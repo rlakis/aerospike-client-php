@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<browserconfig>
+   <msapplication>
+     <tile>
+        <square70x70logo src="http://c1.mourjan.com/img/1.0.0/icon-70.png"/>
+        <square150x150logo src="http://c1.mourjan.com/img/1.0.0/icon-150.png"/>
+        <wide310x150logo src="http://c1.mourjan.com/img/1.0.0/icon-310.png"/>
+        <square310x310logo src="http://c1.mourjan.com/img/1.0.0/icon-b310.png"/>
+        <TileColor>#13415b</TileColor>
+     </tile>
+   </msapplication>
+</browserconfig>
