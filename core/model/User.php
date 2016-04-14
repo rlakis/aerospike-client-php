@@ -1433,7 +1433,7 @@ class User {
                 if($users && count($users)){
                     foreach($users as $user){
                         if($user['LVL']==5){
-                            $blockAccount=true;
+                            $blockAccount=$user['ID'];
                             break;
                         }elseif($user['OPTS']){
                             $options = json_decode($user['OPTS'],true);
@@ -1447,7 +1447,12 @@ class User {
                     $this->info['level']=5;
                     $status = 5;
                     $this->update();
+                    if(!is_array($this->info['options']))
+                        $this->info['options']=array();
                     $this->setLevel($this->info['id'],5);
+                    $this->info['options']['autoblock']="reference {$blockAccount}";
+                    $this->update();
+                    $this->updateOptions();
                 }elseif($time != $current_time){
                     if(!is_array($this->info['options']))
                         $this->info['options']=array();
