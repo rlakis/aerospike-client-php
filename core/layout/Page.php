@@ -2658,7 +2658,7 @@ class Page extends Site{
         }
         if ($this->urlRouter->userId) {
             $year = date('Y');
-            ?><div class="ftr"><div class="cr">© 2010-<?= $year ?> Mourjan.com Classifieds Aggregator - All Rights Reserved.<?php        
+            ?><div class="ftr"><div class="cr">© 2010-2016<?= $year ?> Mourjan.com Classifieds Aggregator - All Rights Reserved.<?php        
         }else {
             ?><div class="ftr"><div class="w"><?php
             ?><div class="q0 q1 fl"><?php
@@ -2858,13 +2858,58 @@ class Page extends Site{
 
                 /* ?><div class="fr"><div id="google_translate_element"></div></div><?php */
                 $year = date('Y');
-                ?><div class="cr">© 2010-<?= $year ?> Mourjan.com Classifieds Aggregator - All Rights Reserved.</div><?php                    
+                ?><div class="cr">© 2010-2016<?= $year ?> Mourjan.com Classifieds Aggregator - All Rights Reserved.</div><?php                    
             //}
             
         }
         ?></div></div><?php 
-        /* ?><script type="text/javascript" src="https://seal.thawte.com/getthawteseal?host_name=www.mourjan.com&amp;size=S&amp;lang=en"></script><?php */
         /* ?><div class="fb-recommendations-bar" data-href="http://www.mourjan.com<?= $this->urlRouter->uri ?>" data-action="recommend" data-site="mourjan.com"></div><?php */
+        
+        if ($this->urlRouter->module==='index')
+        {
+        ?>
+            <div name="paypal">
+            <form action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post">
+                <!-- Identify your business so that you can collect the payments. -->
+                <input type="hidden" name="business" value="nooralex-facilitator@gmail.com">
+
+                <!-- Specify a Buy Now button. -->
+                <input type="hidden" name="cmd" value="_xclick">
+
+                <!-- Specify details about the item that buyers will purchase. -->
+                <input type="hidden" name="item_name" value="Mourjan Gold">
+                <input type="hidden" name="currency_code" value="USD">
+                <input type="hidden" name="address_override" value="1">
+                
+                <!-- Provide a dropdown menu option field with prices. -->
+                <input type="hidden" name="on0" value="Crediting">Mourjan Gold/Credits <br />
+                <select name="os0">
+                <option value="7gold">7 gold - $4.99 USD</option>
+                <option value="14gold" selected>14 gold - $8.99 USD</option>
+                <option value="21gold">21 gold - $12.99 USD</option>
+                <option value="30gold">30 gold - $17.99 USD</option>
+                </select> <br />
+
+                <!-- Specify the price that PayPal uses for each option. -->
+                <input type="hidden" name="option_index" value="0">
+                <input type="hidden" name="option_select0" value="7gold">
+                <input type="hidden" name="option_amount0" value="4.99">
+                <input type="hidden" name="option_select1" value="14gold">
+                <input type="hidden" name="option_amount1" value="8.99">
+                <input type="hidden" name="option_select2" value="21gold">
+                <input type="hidden" name="option_amount2" value="12.99">
+                <input type="hidden" name="option_select3" value="30gold">
+                <input type="hidden" name="option_amount3" value="17.99">
+
+                <!-- Display the payment button. -->
+                <input type="image" name="submit" border="0" src="https://www.paypalobjects.com/en_US/i/btn/btn_buynow_LG.gif" alt="PayPal - The safer, easier way to pay online">
+                <img alt="" border="0" width="1" height="1" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif">
+
+            </form>
+                
+            </div>
+        <?php
+        }
         
     }
     

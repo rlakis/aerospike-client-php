@@ -1642,7 +1642,7 @@ if($this->urlRouter->params['iq']){
                 }
             }
         }
-        ?><div class="rights">© 2010-2013 <a href="<?= $this->urlRouter->cfg['host'] ?>/">Mourjan.com</a> Classifieds Aggregator - All Rights Reserved.</div></div><?php
+        ?><div class="rights">© 2010-2013 <a href="<?= $this->urlRouter->cfg['host'] ?>/">Mourjan.com</a> Classifieds Aggregator - All Rights Reserved.</div></div><?php           
     }
     
     

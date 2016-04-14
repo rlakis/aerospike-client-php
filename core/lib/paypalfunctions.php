@@ -1,19 +1,19 @@
 <?php
-	/********************************************
-	PayPal API Module	 
-	Defines all the global variables and the wrapper functions 
-	********************************************/
-	$PROXY_HOST = '127.0.0.1';
-	$PROXY_PORT = '808';
+    /********************************************
+    PayPal API Module	 
+    Defines all the global variables and the wrapper functions 
+    ********************************************/
+    $PROXY_HOST = '127.0.0.1';
+    $PROXY_PORT = '808';
 
-	$SandboxFlag = false;
-	//' TODO:
-	//'------------------------------------
-	//' PayPal API Credentials
-	//' Replace <API_USERNAME> with your API Username
-	//' Replace <API_PASSWORD> with your API Password
-	//' Replace <API_SIGNATURE> with your Signature
-	//'------------------------------------
+    $SandboxFlag = false;
+    //' TODO:
+    //'------------------------------------
+    //' PayPal API Credentials
+    //' Replace <API_USERNAME> with your API Username
+    //' Replace <API_PASSWORD> with your API Password
+    //' Replace <API_SIGNATURE> with your Signature
+    //'------------------------------------
         
     $cred = DB::getCacheStorage($config)->get("paypal");
 	$API_UserName=$cred['user'];
@@ -23,38 +23,42 @@
         
             
 
-	// BN Code 	is only applicable for partners
-	$sBNCode = "PP-ECWizard";
+    // BN Code 	is only applicable for partners
+    $sBNCode = "PP-ECWizard";
 	
 	
-	/*	
-	' Define the PayPal Redirect URLs.  
-	' 	This is the URL that the buyer is first sent to do authorize payment with their paypal account
-	' 	change the URL depending if you are testing on the sandbox or the live PayPal site
-	'
-	' For the sandbox, the URL is       https://www.sandbox.paypal.com/webscr&cmd=_express-checkout&token=
-	' For the live site, the URL is        https://www.paypal.com/webscr&cmd=_express-checkout&token=
-	*/
+    /*	
+    ' Define the PayPal Redirect URLs.  
+    ' 	This is the URL that the buyer is first sent to do authorize payment with their paypal account
+    ' 	change the URL depending if you are testing on the sandbox or the live PayPal site
+    '
+    ' For the sandbox, the URL is       https://www.sandbox.paypal.com/webscr&cmd=_express-checkout&token=
+    ' For the live site, the URL is        https://www.paypal.com/webscr&cmd=_express-checkout&token=
+    */
 	
-	if ($SandboxFlag == true) 
-	{
-		$API_UserName='admin-facilitator_api1.berysoft.com';
-		$API_Password='HN64RA8GA86HHZGD';
-		$API_Signature='AD2HhNz5Mi4-UbgOQOFKQ2xC5r-FAjoI1aYQOMtegdvXf8FHIyVM2BHH';
-                
-		$API_Endpoint = "https://api-3t.sandbox.paypal.com/nvp";
-		$PAYPAL_URL = "https://www.sandbox.paypal.com/webscr?cmd=_express-checkout&token=";
-		$PAYPAL_DG_URL = "https://www.sandbox.paypal.com/incontext?token=";
-	}
-	else
-	{
-		$API_Endpoint = "https://api-3t.paypal.com/nvp";
-		$PAYPAL_URL = "https://www.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=";
-		$PAYPAL_DG_URL = "https://www.paypal.com/incontext?token=";
-	}
+    if ($SandboxFlag == true) 
+    {
+        $API_UserName='nooralex-facilitator@gmail.com';
+        
+        $API_Password='HN64RA8GA86HHZGD';
+        $API_Signature='AD2HhNz5Mi4-UbgOQOFKQ2xC5r-FAjoI1aYQOMtegdvXf8FHIyVM2BHH';
+        
+        $API_CLIENT_ID="AfQRCoCMXO_ROAwWHgY9pUpv5Kv6wtNzInBDYlaVLvQgJLbH0huDXvQwxWmUQH7d0TrqvtdNEVZ_cUlH";
+        $API_SECRET="EPIKgPNIBMPuGZJNNWXGBEp4tdOB4R4JF29o6he-yLcEFW9DV1OjTkEQ1E0zRTGEke7-nUeseKw9JshN";
+        
+        $API_Endpoint = "https://api-3t.sandbox.paypal.com/nvp";
+        $PAYPAL_URL = "https://www.sandbox.paypal.com/webscr?cmd=_express-checkout&token=";
+        $PAYPAL_DG_URL = "https://www.sandbox.paypal.com/incontext?token=";
+    }
+    else
+    {
+        $API_Endpoint = "https://api-3t.paypal.com/nvp";
+        $PAYPAL_URL = "https://www.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=";
+        $PAYPAL_DG_URL = "https://www.paypal.com/incontext?token=";
+    }
 
-	$USE_PROXY = false;
-	$version = "84";
+    $USE_PROXY = false;
+    $version = "84";
 
 
 	/* An express checkout transaction starts with a token, that

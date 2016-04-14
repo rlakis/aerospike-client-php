@@ -25,7 +25,8 @@ $config=array(
     'slogan_en'             => '<span>The Best Classifieds Website</span>',
     'slogan_ar'             => '<span>أفضل موقع للإعلانات</span>',
     'site_key'              => 'mjn',
-    'site_production'       => 1,
+    'server_id'             => intval(get_cfg_var('mourjan.server_id')),
+    'site_production'       => 0,
     'enabled_js_log'        => 0,
     //'enabled_ads'           => 1,
     'restricted_section_ads'=> array(
@@ -88,7 +89,7 @@ $config=array(
     'enabled_charts'        => 1,
     'enabled_interactions'  => array(59801,220906),
     'max_upload'            => 2097152,
-    'server_id'             => intval(get_cfg_var('mourjan.server_id')),
+    
     
     'android_url_upload'            =>  'https://up.mourjan.com/upload/index.php',
     'android_url_web'               =>  'https://www.mourjan.com/',
