@@ -2865,12 +2865,12 @@ class Page extends Site{
         ?></div></div><?php 
         /* ?><div class="fb-recommendations-bar" data-href="http://www.mourjan.com<?= $this->urlRouter->uri ?>" data-action="recommend" data-site="mourjan.com"></div><?php */
         
-        if ($this->urlRouter->module==='index')
-        {
-        ?>
-            <div name="paypal">
+        if ($this->urlRouter->module==='index' && $this->user->info['id'])
+        {?><div>
             <form action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post">
+            <!--<form action="https://www.paypal.com/cgi-bin/webscr" method="post">-->
                 <!-- Identify your business so that you can collect the payments. -->
+                <!--<input type="hidden" name="business" value="nooralex@gmail.com">-->
                 <input type="hidden" name="business" value="nooralex-facilitator@gmail.com">
 
                 <!-- Specify a Buy Now button. -->
@@ -2879,30 +2879,38 @@ class Page extends Site{
                 <!-- Specify details about the item that buyers will purchase. -->
                 <input type="hidden" name="item_name" value="Mourjan Gold">
                 <input type="hidden" name="currency_code" value="USD">
-                <input type="hidden" name="address_override" value="1">
+                <input type="hidden" name="no_note" value="1">
+                <input type="hidden" name="no_shipping" value="1">
+                <!--<input type="hidden" name="image_url" value="https://dv.mourjan.com/web/img/mourjan-icon.png">-->
+                <input type="hidden" name="image_url" value="https://doxplxe8wce37.cloudfront.net/css/5.3.7/i/logo.jpg">                
+                <input type="hidden" name="return" value="https://dv.mourjan.com/statement/">
+                <input type="hidden" name="notify_url" value="https://dv.mourjan.com/bin/ppipn.php">
+                <input type="hidden" name="cancel_return" value="<?php echo 'https://'. $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];?>">
+                <input type="hidden" name="cbt" value="Return to Mourjan Classifieds website">
+                <input type="hidden" name="custom" value="<?php echo $this->user->info['id'];?>">
                 
                 <!-- Provide a dropdown menu option field with prices. -->
-                <input type="hidden" name="on0" value="Crediting">Mourjan Gold/Credits <br />
+                <input type="hidden" name="on0" value="Credits">Mourjan Gold/Credits <br />
                 <select name="os0">
-                <option value="7gold">7 gold - $4.99 USD</option>
-                <option value="14gold" selected>14 gold - $8.99 USD</option>
-                <option value="21gold">21 gold - $12.99 USD</option>
-                <option value="30gold">30 gold - $17.99 USD</option>
+                <option value="7 gold">7 gold - $4.99 USD</option>
+                <option value="14 gold" selected>14 gold - $8.99 USD</option>
+                <option value="21 gold">21 gold - $12.99 USD</option>
+                <option value="30 gold">30 gold - $17.99 USD</option>
                 </select> <br />
 
                 <!-- Specify the price that PayPal uses for each option. -->
                 <input type="hidden" name="option_index" value="0">
-                <input type="hidden" name="option_select0" value="7gold">
+                <input type="hidden" name="option_select0" value="7 gold">
                 <input type="hidden" name="option_amount0" value="4.99">
-                <input type="hidden" name="option_select1" value="14gold">
+                <input type="hidden" name="option_select1" value="14 gold">
                 <input type="hidden" name="option_amount1" value="8.99">
-                <input type="hidden" name="option_select2" value="21gold">
+                <input type="hidden" name="option_select2" value="21 gold">
                 <input type="hidden" name="option_amount2" value="12.99">
-                <input type="hidden" name="option_select3" value="30gold">
+                <input type="hidden" name="option_select3" value="30 gold">
                 <input type="hidden" name="option_amount3" value="17.99">
 
                 <!-- Display the payment button. -->
-                <input type="image" name="submit" border="0" src="https://www.paypalobjects.com/en_US/i/btn/btn_buynow_LG.gif" alt="PayPal - The safer, easier way to pay online">
+                <input type=image name=submit src="https://www.paypalobjects.com/en_US/i/btn/btn_buynow_LG.gif" alt="PayPal - The safer, easier way to pay online">
                 <img alt="" border="0" width="1" height="1" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif">
 
             </form>
