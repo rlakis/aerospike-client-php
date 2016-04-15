@@ -272,11 +272,11 @@ class Doc extends Page{
     
     private function paypalButton($name, $price) 
     {
-        $sandbox = TRUE;
+        $sandbox = $this->urlRouter->cfg['server_id']==99 ? true : false;
         $business = $sandbox ? 'nooralex-facilitator@gmail.com' : 'nooralex@gmail.com';
         $webscr = $sandbox ? 'https://www.sandbox.paypal.com/cgi-bin/webscr' : 'https://www.paypal.com/cgi-bin/webscr';
         $logo = $this->urlRouter->cfg['url_resources'] . '/img/mourjan-logo-120.png';
-        $return_url = $this->urlRouter->cfg['host'] . '/buy/' . ($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage . '/' : '') . '?paypal=success';
+        $return_url = $this->urlRouter->cfg['host'] . '/buy/' . ($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage . '/' : '') . '?paypal=success&item='.$name;
         $notify_url = $this->urlRouter->cfg['host'] . '/bin/ppipn.php';
         $cancel_url = $this->urlRouter->cfg['host'] . '/buy/' . ($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage . '/' : '') . '?paypal=cancel';
         
@@ -291,8 +291,8 @@ class Doc extends Page{
         echo "<input type='hidden' name='return' value='{$return_url}'>";
         echo "<input type='hidden' name='notify_url' value='{$notify_url}'>";
         echo "<input type='hidden' name='cancel_return' value='{$cancel_url}'>";
-        echo "<input type='hidden' name='cbt' value='Return to Mourjan Classifieds website'>";
-        echo "<input type='hidden' name='custom' value='{$this->user->info['id']}>'>";
+        echo "<input type='hidden' name='cbt' value='return to mourjan'>";
+        echo "<input type='hidden' name='custom' value='{$this->user->info['id']}'>";
         
         //  Specify details about the item that buyers will purchase.
         echo "<input type='hidden' name='item_name' value='{$name}'>";
@@ -320,13 +320,15 @@ class Doc extends Page{
                     }else{
                         echo '<div class="doc en">';
                     }
-                    if(isset($this->user->pending['PAYPAL_OK'])){
-                        $msg = preg_replace('/{gold}/', $this->user->pending['PAYPAL_OK'], $this->lang['paypal_ok']);
+                    //if(isset($this->user->pending['PAYPAL_OK'])){
+                    if(isset($_GET['paypal']) && $_GET['paypal']=='success'){
+                        $goldCount = preg_replace('/\..*/', '', $_GET['item']);
+                        $msg = preg_replace('/{gold}/', $goldCount, $this->lang['paypal_ok']);
                         echo "<div class='mnb rc'><p><span class='done'></span> {$msg}</p></div>";
-                        unset($this->user->pending['PAYPAL_OK']);
+                        //unset($this->user->pending['PAYPAL_OK']);
                         $this->user->update();
                     }
-                    if(isset($this->user->pending['PAYPAL_FAIL'])){
+                    /*if(isset($this->user->pending['PAYPAL_FAIL'])){
                         echo "<div class='mnb rc'><p><span class='fail'></span> {$this->lang['paypal_fail']}</p></div>";
                         unset($this->user->pending['PAYPAL_FAIL']);
                         $this->user->update();
@@ -335,7 +337,7 @@ class Doc extends Page{
                         echo "<div class='mnb rc'><p><span class='fail'></span> {$this->lang['paypal_old']}</p></div>";
                         unset($this->user->pending['PAYPAL_OLD']);
                         $this->user->update();
-                    }
+                    }*/
                     
                 
                     $products = $this->urlRouter->db->queryCacheResultSimpleArray("products",
@@ -432,10 +434,10 @@ class Doc extends Page{
                 echo "<br /><p>{$this->lang['gold_p2_0']}</p>";
                 /* ?><div class="btH"><a href="/buy/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>" class="bt"><?= substr($this->lang['buy_gold'],0,-1)  ?></a></div><?php */
                 echo "<hr /><h2 id='how-to'>{$this->lang['buy_gold']}</h2><br />";
-                //echo "<p>{$this->lang['gold_p2_5']}</p>";
-                //echo "<p>{$this->lang['gold_p2_6']}</p>";
-                /* ?><div class="btH"><a href="/buy/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>"><img width="228" height="44" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png" alt="Buy now with PayPal" /></a></div><br /><?php */
-                /* ?><div class="btH"><a href="/buy/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>"><img width="319" height="110" src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg" alt="Buy now with PayPal" /></a></div><br /><?php */
+                echo "<p>{$this->lang['gold_p2_5']}</p>";
+                echo "<p>{$this->lang['gold_p2_6']}</p>";
+                ?><div class="btH"><a href="/buy/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>"><img width="228" height="44" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png" alt="Buy now with PayPal" /></a></div><br /><?php 
+                ?><div class="btH"><a href="/buy/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>"><img width="319" height="110" src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg" alt="Buy now with PayPal" /></a></div><br /><?php 
                 echo "<p>{$this->lang['gold_p2_4']}</p>";
                 echo '<ul class="alinks"><li><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class="android"></span></a></li><li><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class="ios"></span></a></li></ul>';
                 echo "<br /><h2>{$this->lang['buy_gold_0']}</h2>";

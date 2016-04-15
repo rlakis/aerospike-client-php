@@ -43,6 +43,14 @@ foreach ($myPost as $key => $value)
 }
 
 
+if (!file_exists($logfile)) 
+{
+    $fh = @fopen($logfile, 'w');
+    fclose($fh);
+}
+error_log(sprintf("%s\t%s", date("Y-m-d H:i:s"), json_encode($_POST).PHP_EOL), 3, $logfile);
+
+
 // STEP 2: POST IPN data back to PayPal to validate
 $ppurl = ($sandbox==FALSE) ? 'https://www.paypal.com/cgi-bin/webscr' : 'https://www.sandbox.paypal.com/cgi-bin/webscr';
 $ch = curl_init($ppurl);
@@ -67,18 +75,15 @@ if( !($res = curl_exec($ch)) )
 }
 curl_close($ch);
 
-if (!file_exists($logfile)) 
-{
-    $fh = @fopen($logfile, 'w');
-    fclose($fh);
-}
-error_log(sprintf("%s\t%s", date("Y-m-d H:i:s"), json_encode($_POST).PHP_EOL), 3, $logfile);
-
 
 // STEP 3: Inspect IPN validation result and act accordingly
 
 if (strcmp ($res, "VERIFIED") == 0)
 {
+    include get_cfg_var('mourjan.path').'/config/cfg.php';
+    
+    $success = false;
+    
     // The IPN is verified, process it:
     // check whether the payment_status is Completed
     // check that txn_id has not been previously processed
@@ -110,25 +115,32 @@ if (strcmp ($res, "VERIFIED") == 0)
     $payment_date = new DateTime($_POST['payment_date']);
     $payment_date->setTimeZone( new DateTimeZone( 'UTC' ));            
     $txn_date = $payment_date->format('Y-m-d H:i:s');
-    
-    include get_cfg_var('mourjan.path').'/config/cfg.php';
 
     $db = new DB($config, FALSE);
     
     if ($txn_type=='web_accept')
     {
-        $db->queryResultArray(
-            "INSERT INTO T_TRAN 
-            (UID, DATED, CURRENCY_ID, AMOUNT, DEBIT, CREDIT, USD_VALUE, XREF_ID, PRODUCT_ID, TRANSACTION_ID, TRANSACTION_DATE, VALID, SERVER_ID, NET, GATEWAY) VALUES 
-            ({$user_id}, current_timestamp, '{$payment_currency}', {$payment_amount}, 0, {$credits}, {$payment_amount}, 0, '{$item_name}', '{$txn_id}', '{$txn_date}', 1, {$config['server_id']}, {$net}, 'PAYPAL')",
-            null, TRUE);
+        
+        $old_transaction = $db->queryResultArray("select id from t_tran where TRANSACTION_ID=?", [$txn_id]);
+        if ($old_transaction && count($old_transaction) > 0) {
+            //do nothing
+            //$user->pending['PAYPAL_OLD'] = true;
+            
+        } else {
+            $processed = $db->queryResultArray(
+                "INSERT INTO T_TRAN 
+                (UID, DATED, CURRENCY_ID, AMOUNT, DEBIT, CREDIT, USD_VALUE, XREF_ID, PRODUCT_ID, TRANSACTION_ID, TRANSACTION_DATE, VALID, SERVER_ID, NET, GATEWAY) VALUES 
+                ({$user_id}, current_timestamp, '{$payment_currency}', {$payment_amount}, 0, {$credits}, {$payment_amount}, 0, '{$item_name}', '{$txn_id}', '{$txn_date}', 1, {$config['server_id']}, {$net}, 'PAYPAL')",
+                null, TRUE);
+        }
+        
     }
     // IPN message values depend upon the type of notification sent.
     // To loop through the &_POST array and print the NV pairs to the screen:
-    foreach($_POST as $key => $value)
+    /*foreach($_POST as $key => $value)
     {
         error_log( $key." = ". $value );
-    }
+    }*/
 }
 else if (strcmp ($res, "INVALID") == 0)
 {
