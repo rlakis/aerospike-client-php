@@ -269,6 +269,43 @@ class Doc extends Page{
         $this->main_pane();
     }
 
+    
+    private function paypalButton($name, $price) 
+    {
+        $sandbox = TRUE;
+        $business = $sandbox ? 'nooralex-facilitator@gmail.com' : 'nooralex@gmail.com';
+        $webscr = $sandbox ? 'https://www.sandbox.paypal.com/cgi-bin/webscr' : 'https://www.paypal.com/cgi-bin/webscr';
+        $logo = $this->urlRouter->cfg['url_resources'] . '/img/mourjan-logo-120.png';
+        $return_url = $this->urlRouter->cfg['host'] . '/buy/' . ($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage . '/' : '') . '?paypal=success';
+        $notify_url = $this->urlRouter->cfg['host'] . '/bin/ppipn.php';
+        $cancel_url = $this->urlRouter->cfg['host'] . '/buy/' . ($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage . '/' : '') . '?paypal=cancel';
+        
+        echo "<form action='{$webscr}' method='post'>";
+        
+        // Identify your business so that you can collect the payments
+        echo "<input type='hidden' name='business' value='{$business}'>";
+        
+        // Specify a Buy Now button
+        echo "<input type='hidden' name='cmd' value='_xclick'>";
+        echo "<input type='hidden' name='image_url' value='{$logo}'>";
+        echo "<input type='hidden' name='return' value='{$return_url}'>";
+        echo "<input type='hidden' name='notify_url' value='{$notify_url}'>";
+        echo "<input type='hidden' name='cancel_return' value='{$cancel_url}'>";
+        echo "<input type='hidden' name='cbt' value='Return to Mourjan Classifieds website'>";
+        echo "<input type='hidden' name='custom' value='{$this->user->info['id']}>'>";
+        
+        //  Specify details about the item that buyers will purchase.
+        echo "<input type='hidden' name='item_name' value='{$name}'>";
+        echo "<input type='hidden' name='currency_code' value='USD'>";
+        echo "<input type='hidden' name='amount' value='{$price}'>";
+        echo "<input type='hidden' name='no_note' value='1'>";
+        echo "<input type='hidden' name='no_shipping' value='1'>";
+        
+        echo "<input type=image name=submit border='0' src='https://www.paypalobjects.com/en_US/i/btn/btn_buynow_LG.gif' alt='PayPal - The safer, easier way to pay online'>";
+        echo "<img alt='' border='0' width='1' height='1' src='https://www.paypalobjects.com/en_US/i/scr/pixel.gif'></form>";
+    }
+    
+    
     function main_pane(){
         $adLang='';
         if ($this->urlRouter->siteLanguage!='ar') $adLang=$this->urlRouter->siteLanguage.'/';
@@ -308,18 +345,26 @@ class Doc extends Page{
                                         and blocked=0 
                                         and usd_price > 3 
                                         order by mcu asc",
-                                        null, 0, $this->urlRouter->cfg['ttl_long']);
+                                        null, 0, $this->urlRouter->cfg['ttl_long'], TRUE);
                     
+                    //$products['100.gold'] = ['100.gold', '100 ذهبية', '100 gold', 49.99, 100];
                     echo '<ul class="table">';
                     $i=1;$j=0;
                     foreach($products as $product){
                         $alt = $i++%2;
-                        echo "<li>{$product[ $this->urlRouter->siteLanguage == 'ar' ? 1 : 2]}</li><li>{$product[3]} USD</li><li class='tt'><form action='/checkout/' METHOD='POST'><input type='image' name='paypal_submit' id='sub{$j}'  src='https://www.paypal.com/en_US/i/btn/btn_dg_pay_w_paypal.gif' border='0' align='top' alt='Pay with PayPal'/><input type='hidden' name='product' value='{$product[0]}' /></form></li>";
+                        //echo "<li>{$product[ $this->urlRouter->siteLanguage == 'ar' ? 1 : 2]}</li><li>{$product[3]} USD</li><li class='tt'>
+                        //<form action='/checkout/' METHOD='POST'><input type='image' name='paypal_submit' id='sub{$j}'  
+                        //src='https://www.paypal.com/en_US/i/btn/btn_dg_pay_w_paypal.gif' border='0' align='top' alt='Pay with PayPal'/>
+                        //<input type='hidden' name='product' value='{$product[0]}' /></form></li>";
+                        echo "<li>{$product[ $this->urlRouter->siteLanguage == 'ar' ? 1 : 2]}</li><li>{$product[3]} USD</li><li class='tt'>";
+                        $this->paypalButton($product[0], $product[3]);
+                        echo "</li>";
                         $j++;
                     }
+                    
                     echo '</ul>';
                     
-                    ?><div class="htf db"><?= $this->lang['paypal_suspended'] ?></div><?php
+                    ?><!--<div class="htf db">< //$this->lang['paypal_suspended'] </div>--><?php
                 }
                 break;
             case 'iguide':

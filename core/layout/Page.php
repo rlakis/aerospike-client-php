@@ -2866,28 +2866,31 @@ class Page extends Site{
         /* ?><div class="fb-recommendations-bar" data-href="http://www.mourjan.com<?= $this->urlRouter->uri ?>" data-action="recommend" data-site="mourjan.com"></div><?php */
         
         if ($this->urlRouter->module==='index' && $this->user->info['id'])
-        {?><div>
-            <form action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post">
-            <!--<form action="https://www.paypal.com/cgi-bin/webscr" method="post">-->
+        {
+            $sandbox = TRUE;
+            $business = $sandbox ? 'nooralex-facilitator@gmail.com' : 'nooralex@gmail.com';
+            $webscr = $sandbox ? 'https://www.sandbox.paypal.com/cgi-bin/webscr' : 'https://www.paypal.com/cgi-bin/webscr';
+            ?>
+            
+            <div><form action="<?php echo $webscr;?>" method="post">
                 <!-- Identify your business so that you can collect the payments. -->
-                <!--<input type="hidden" name="business" value="nooralex@gmail.com">-->
-                <input type="hidden" name="business" value="nooralex-facilitator@gmail.com">
+                <input type="hidden" name="business" value="<?php echo $business;?>">
 
                 <!-- Specify a Buy Now button. -->
                 <input type="hidden" name="cmd" value="_xclick">
-
-                <!-- Specify details about the item that buyers will purchase. -->
-                <input type="hidden" name="item_name" value="Mourjan Gold">
-                <input type="hidden" name="currency_code" value="USD">
-                <input type="hidden" name="no_note" value="1">
-                <input type="hidden" name="no_shipping" value="1">
-                <!--<input type="hidden" name="image_url" value="https://dv.mourjan.com/web/img/mourjan-icon.png">-->
-                <input type="hidden" name="image_url" value="https://doxplxe8wce37.cloudfront.net/css/5.3.7/i/logo.jpg">                
+                <input type="hidden" name="image_url" value="https://dv.mourjan.com/web/img/mourjan-icon.png">
+                <!--<input type="hidden" name="image_url" value="https://doxplxe8wce37.cloudfront.net/css/5.3.7/i/logo.jpg">   -->             
                 <input type="hidden" name="return" value="https://dv.mourjan.com/statement/">
                 <input type="hidden" name="notify_url" value="https://dv.mourjan.com/bin/ppipn.php">
                 <input type="hidden" name="cancel_return" value="<?php echo 'https://'. $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];?>">
                 <input type="hidden" name="cbt" value="Return to Mourjan Classifieds website">
                 <input type="hidden" name="custom" value="<?php echo $this->user->info['id'];?>">
+                
+                <!-- Specify details about the item that buyers will purchase. -->
+                <input type="hidden" name="item_name" value="Mourjan Gold">
+                <input type="hidden" name="currency_code" value="USD">
+                <input type="hidden" name="no_note" value="1">
+                <input type="hidden" name="no_shipping" value="1">
                 
                 <!-- Provide a dropdown menu option field with prices. -->
                 <input type="hidden" name="on0" value="Credits">Mourjan Gold/Credits <br />
@@ -2910,12 +2913,9 @@ class Page extends Site{
                 <input type="hidden" name="option_amount3" value="17.99">
 
                 <!-- Display the payment button. -->
-                <input type=image name=submit src="https://www.paypalobjects.com/en_US/i/btn/btn_buynow_LG.gif" alt="PayPal - The safer, easier way to pay online">
+                <input type=image name=submit border="0" src="https://www.paypalobjects.com/en_US/i/btn/btn_buynow_LG.gif" alt="PayPal - The safer, easier way to pay online">
                 <img alt="" border="0" width="1" height="1" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif">
-
-            </form>
-                
-            </div>
+            </form></div>
         <?php
         }
         

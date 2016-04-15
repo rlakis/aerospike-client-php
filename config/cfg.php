@@ -16,6 +16,43 @@ else
 
 include_once get_cfg_var('mourjan.path') . '/core/model/Db.php';
 
+
+class Configuration 
+{
+    const site_domain   = 'www.mourjan.com';
+    const site_key      = 'mrj';
+    const slogan        = '';// ' <span>faster than 82% of websites</span>',
+    const slogan_en     = '<span>The Best Classifieds Website</span>';
+    const slogan_ar     = '<span>أفضل موقع للإعلانات</span>';
+
+    public $dir; // base directory
+    public $serverId;
+    public $baseUrl;
+    public $binUrl;
+
+    private $android;
+    private $ios;
+    
+    private $restrictedEMailPatterns = null;
+    
+    public function __construct() 
+    {
+        $this->serverId = intval(get_cfg_var('mourjan.server_id'));
+        $this->dir = get_cfg_var('mourjan.path');
+        $this->baseUrl = $this->isProductionServer() ? 'https://www.mourjan.com' : 'https://dv.mourjan.com';
+        $this->binUrl = $this->baseUrl . '/bin';
+    }
+    
+    
+    public function isProductionServer()
+    {
+        return ($this->serverId>1 && $this->serverId<99);
+    }
+    
+    
+}
+
+
 $aws = 'https://doxplxe8wce37.cloudfront.net';
 
 $config=array(
@@ -206,38 +243,38 @@ $config=array(
                                 'terms'        => array('Doc',1),
                                 'privacy'       => array('Doc',1),
                                 'about'       => array('Doc',1),
-								'blocked'          => array('Blocked',1),
+                                'blocked'          => array('Blocked',1),
                                 'publication-prices'          => array('Doc',1),
-								'advertise'          => array('Doc',1),
-                                'gold'          => array('Doc',1),
-                                'buy'          => array('Doc',1),
+                                'advertise'         => array('Doc',1),
+                                'gold'              => array('Doc',1),
+                                'buy'               => array('Doc',1),
                                 'checkout'          => array('Checkout',0),
-                                'premium'          => array('Doc',1),
+                                'premium'           => array('Doc',1),
                                 'guide'          => array('Doc',1),
                                 'iguide'          => array('Doc',1),
                                 'statement'  => array('Balance',0),
                                 'favorites'     => array('Search',0),
-				    			'watchlist'     => array('Search',0),
+                                'watchlist'     => array('Search',0),
                                 'post'          => array('PostAd',0),
                                 'myads'          => array('MyAds',0),
                                 'oauth'          => array('OAuth',0),
                                 'account'          => array('Account',0),
                                 'ajax-home'         => array('Bin',0),  
                                 'ajax-mute'         => array('Bin',0),                              
-								'ajax-changepu'         => array('Bin',0),
+                                'ajax-changepu'         => array('Bin',0),
                                 'ajax-getad'         => array('Bin',1),
                                 'ajax-delshout'         => array('Bin',0),
-								'page'          => array('Profile',0),
+                                'page'          => array('Profile',0),
                                 'ajax-user-type'         => array('Bin',0),
                                 'ajax-sorting'         => array('Bin',0),
-								'ajax-mpre'         => array('Bin',0),
+                                'ajax-mpre'         => array('Bin',0),
                                 'ajax-spre'         => array('Bin',0),
                                 'ajax-balance'  => array('Bin',0),
-								'ajax-screen'         => array('Bin',0),
-								'ajax-pi'         => array('Bin',0),
+                                'ajax-screen'         => array('Bin',0),
+                                'ajax-pi'         => array('Bin',0),
                                 'ajax-code-list'      => array('Bin',0),
                                 'ajax-post-se'         => array('Bin',0),
-								'ajax-ads'         => array('Bin',0),
+                                'ajax-ads'         => array('Bin',0),
                                 'ajax-page'         => array('Bin',0),
                                 'ajax-page-loc'         => array('Bin',0),
                                 'ajax-stat'         => array('Bin',0),
@@ -269,7 +306,7 @@ $config=array(
                                 'ajax-pending'  => array('Bin',0),
                                 'ajax-approve'  => array('Bin',0),
                                 'ajax-reject'  => array('Bin',0),
-								'ajax-watch'  => array('Bin',0),
+                                'ajax-watch'  => array('Bin',0),
                                 'ajax-remove-watch'  => array('Bin',0),
                                 'ajax-watch-update'  => array('Bin',0),
                                 'video-upload'  => array('Bin',0),
@@ -282,30 +319,31 @@ $config=array(
                                 'ajax-video-delete'  => array('Bin',0),
                                 'video-link'  => array('Bin',0),
                                 'ajax-video-link'  => array('Bin',0),
-								'ajax-js-error'  => array('Bin',0),
-								'ajax-ga'  => array('Bin',0),
+                                'ajax-js-error'  => array('Bin',0),
+                                'ajax-ga'  => array('Bin',0),
                                 'ajax-register'  => array('Bin',0),
                                 'ajax-password'  => array('Bin',0),
                                 'ajax-preset'  => array('Bin',0),
-								'ajax-prog'  => array('Bin',0),
+                                'ajax-prog'  => array('Bin',0),
                                 'cache'         => array('GenModules',0),
                                 'notfound'      => array('NotFound',1),
                                 'suspended'      => array('Blocked',1),
                                 'invalid'      => array('NotFound',1),
-								'redirect'      => array('Redirect',0),
+                                'redirect'      => array('Redirect',0),
                                 'signin'      => array('Signin',0),
                                 'signup'      => array('Register',0),
                                 'password'      => array('Register',0),
                                 'welcome'      => array('Register',0),
-								'homescreen'      => array('Homescreen',1),
-								'maintenance'      => array('NotFound',1),
-								'held'      => array('Blocked',1),
+                                'homescreen'      => array('Homescreen',1),
+                                'maintenance'      => array('NotFound',1),
+                                'held'      => array('Blocked',1),
                                 'ajax-ususpend'     =>  array('Bin',0),
-								'ajax-close-banner'     =>  array('Bin',0),
+                                'ajax-close-banner'     =>  array('Bin',0),
                                 'install'      => array('Homescreen',0),
                                 'ajax-ilogo'      => array('Bin',0),
                                 'ajax-ipage'      => array('Bin',0)
                             ),
+    
 	'blocked_agents'        => array(
                                 '-'             => 1,
                                 'Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt; DTS Agent'  => 1,
