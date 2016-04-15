@@ -3571,13 +3571,19 @@ class Page extends Site{
         if(isset($this->user->params['include_JSON']) && $this->urlRouter->module=='post'){
             ?><script type="text/javascript" src="<?= $this->urlRouter->cfg['url_jquery'] ?>json2.js"></script><?php
         }         
+        /*
         if($this->urlRouter->module=='buy' && $this->user->info['id']){
             ?><script src='https://www.paypalobjects.com/js/external/dg.js' type='text/javascript'></script><?php
         }
+         * 
+        */
         ?><script type="text/javascript"><?php 
+        /*
             if($this->urlRouter->module=='buy' && $this->user->info['id']){
                 ?>var dg = new PAYPAL.apps.DGFlow({trigger: ['sub0','sub1','sub2','sub3'],expType: 'instant'});<?php
             }
+         * 
+         */
             ?>var head = document.getElementsByTagName("head")[0] || document.documentElement;<?php
             /*
             if ($this->urlRouter->cfg['enabled_ads'] && count($this->googleAds)) {
