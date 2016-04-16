@@ -76,8 +76,8 @@ class ITransaction {
             if ($transaction_id!="(null)" && !$this->startsWith($transaction_id, $product_id) && strlen($transaction_id)<19) 
             {
                 $coins = $this->api->db->queryResultArray(
-                    "INSERT INTO T_TRAN (UID, DATED, CURRENCY_ID, AMOUNT, DEBIT, CREDIT, XREF_ID, TRANSACTION_ID, TRANSACTION_DATE, PRODUCT_ID, SERVER_ID) VALUES ".
-                    "(?, current_timestamp, 'USD', ?, 0, ?, 0, ?, ?, ?, ?) RETURNING ID", 
+                    "INSERT INTO T_TRAN (UID, DATED, CURRENCY_ID, AMOUNT, DEBIT, CREDIT, XREF_ID, TRANSACTION_ID, TRANSACTION_DATE, PRODUCT_ID, SERVER_ID, GATEWAY) VALUES ".
+                    "(?, current_timestamp, 'USD', ?, 0, ?, 0, ?, ?, ?, ?, 'IOS') RETURNING ID", 
                     [$this->api->getUID(), $product_rs['USD_PRICE']+0.0, $product_rs['MCU']+0.0, $transaction_id, $transaction_date, $product_id, $server_id], 
                     TRUE, PDO::FETCH_NUM);
             

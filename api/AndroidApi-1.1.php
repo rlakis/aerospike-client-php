@@ -1263,8 +1263,8 @@ class AndroidApi {
                                     $transaction_date = date("Y-m-d H:i:s",floor($transaction_date / 1000));
                                     $server_id = intval(get_cfg_var('mourjan.server_id')) ;
                                     $coins = $this->api->db->queryResultArray(
-                                        "INSERT INTO T_TRAN (UID, DATED, CURRENCY_ID, AMOUNT, DEBIT, CREDIT, XREF_ID, TRANSACTION_ID, TRANSACTION_DATE, PRODUCT_ID, SERVER_ID) VALUES ".
-                                        "(?, current_timestamp, 'USD', ?, 0, ?, 0, ?, ?, ?, ?) RETURNING ID", 
+                                        "INSERT INTO T_TRAN (UID, DATED, CURRENCY_ID, AMOUNT, DEBIT, CREDIT, XREF_ID, TRANSACTION_ID, TRANSACTION_DATE, PRODUCT_ID, SERVER_ID, GATEWAY) VALUES ".
+                                        "(?, current_timestamp, 'USD', ?, 0, ?, 0, ?, ?, ?, ?, 'ANDROID') RETURNING ID", 
                                         [$this->api->getUID(), $product_rs['USD_PRICE']+0.0, $product_rs['MCU']+0.0, $transaction_id, $transaction_date, $product_id, $server_id], 
                                         TRUE, PDO::FETCH_NUM);
                                     if($coins && count($coins)){
@@ -1440,7 +1440,7 @@ class AndroidApi {
                         $rs = $this->api->db->queryResultArray(
                                 "SELECT product_id, name_{$language} as name  
                                 FROM product 
-                                where iphone = 0 and blocked = 0 
+                                where iphone=0 and blocked=0 and mcu<=30 
                                 order by mcu asc");
                         if($rs && count($rs)){
                             $this->api->result['d'] = [];
