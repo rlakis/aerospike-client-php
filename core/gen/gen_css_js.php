@@ -1,7 +1,7 @@
 <?php
-$jsReadPath='/var/www/dev.mourjan/web/js/1.0.0/';
-$jsMobileReadPath='/var/www/dev.mourjan/web/js/2.0.0/';
-$jsWritePath='/var/www/dev.mourjan/web/js/release/';
+$jsReadPath='/home/www/mourjan/web/js/1.0.0/';
+$jsMobileReadPath='/home/www/mourjan/web/js/2.0.0/';
+$jsWritePath='/home/www/mourjan/web/js/release/';
 
 function processContent($content){
     $content=preg_replace("/([^:\"\'])\/\/.*\n/", '$1', $content);
@@ -113,8 +113,8 @@ if ($handle = opendir($jsMobileReadPath)) {
 }
 
 echo 'Generating CSS release files', "\n";
-$cssReadPath='/var/www/dev.mourjan/web/css/1.0.0/';
-$cssWritePath='/var/www/dev.mourjan/web/css/release/';
+$cssReadPath='/home/www/mourjan/web/css/1.0.0/';
+$cssWritePath='/home/www/mourjan/web/css/release/';
 if ($handle = opendir($cssReadPath)) {
     while (false !== ($entry = readdir($handle))) {
         if ($entry != "." && $entry != "..") {

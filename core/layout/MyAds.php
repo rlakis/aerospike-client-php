@@ -55,7 +55,13 @@ class MyAds extends Page {
             }
             $this->globalScript.=';';
             if($this->user->info['id'] && $this->user->info['level']==9) {
-                $this->inlineCss .= '.oc .lnk {padding:0 15px!important}';
+                
+                if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
+                
+                $this->inlineCss .= '.oc .lnk {padding:0 15px!important}li.owned{background-color: #D9FAC8 !important}';
+                if($sub=='pending'){
+                    $this->inlineCss.='li.owned .oc{display:block}.oc, li.activeForm .oc{display:none}';
+                }
                 
                 $this->inlineCss.='
                     .btmask{
@@ -531,8 +537,12 @@ var rtMsgs={
         }
     }    
     
-    function renderEditorsBox($state=0){
-        if(in_array($this->user->info['id'],array(1,2,2100))){
+    function renderEditorsBox($state=0, $standalone=false){
+        if($this->user->isSuperUser()){
+            $filters = $this->user->getAdminFilters();
+            if($standalone){                
+                ?><div class="fl"><?php 
+            }
             $link='';
             switch ($state){
                 case 9:
@@ -552,18 +562,66 @@ var rtMsgs={
                     break;
             }
             ?><style><?php
-            ?>.prx{display:block;height:290px;clear:both}.prx a{color:#00e}.prx a:hover{text-decoration:underline}<?php
+            ?>.stin,.phc{display:none}.prx h4{margin-bottom:5px}.prx{display:block;height:320px;clear:both;width:300px}.prx a{color:#00e}.prx a:hover{text-decoration:underline}<?php
+            ?>.pfrx{height:auto}.prx select{width:260px;padding:3px 5px;margin:10px}.pfrx input{padding:5px 20px;margin:5px 0 10px}<?php            
+            if($filters['active']){
+                ?>.pfrx{background-color:#D9FAC8}<?php
+            }
             ?></style><?php
-            ?><div id="adminList" class="prx ar"><h4>تحت طائلة المسؤولية</h4><ul><?php
-            ?><li class="hvn50okt2 d2d9s5pl1g n2u2hbyqsn"><a href="<?= $link ?>69905">Robert</a></li><?php
-            ?><li class="f3iw09ojp5 a1zvo4t2vk"><a href="<?= $link ?>1">Bassel</a></li><?php
-            ?><li class="a1zvo4t4b8"><a href="<?= $link ?>2100">Nooralex</a></li><?php
-            ?><li class="n2u2hc8xil"><a href="<?= $link ?>477618">Sam</a></li><?php
-            ?><li class="x1arwhzqsl"><a href="<?= $link ?>38813">Editor 1</a></li><?php
-            ?><li class="d2d9s5p1p2"><a href="<?= $link ?>44835">Editor 2</a></li><?php
-            ?><li class="b2ixe8tahr"><a href="<?= $link ?>53456">Editor 3</a></li><?php
-            ?><li class="hvn50s5hk"><a href="<?= $link ?>166772">Editor 4</a></li><?php
-            ?></ul></div><?php
+            
+            if($state==1){
+                $baseUrl = '/myads/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/');
+
+                ?><form action="<?= $baseUrl ?>" method="GET"><input type="hidden" name="sub" value="pending" /><div class="prx pfrx"><ul><?php
+                if($filters['uid']){
+                    ?><li><input type="hidden" name="fuid" value="<?= $filters['uid'] ?>" /><?= ($this->urlRouter->siteLanguage=='ar'?'مستخدم':'user').': <b>'.$filters['uid'].'</b>' ?></li><?php
+                }
+                ?><li><select name="fhl" onchange="this.form.submit()"><?php 
+                    ?><option value="0"<?= $filters['lang']==0?' selected':'' ?>><?= $this->lang['lg_sorting_0'] ?></option><?php
+                    ?><option value="1"<?= $filters['lang']==1?' selected':'' ?>>العربي فقط</option><?php
+                    ?><option value="2"<?= $filters['lang']==2?' selected':'' ?>>الانجليزي فقط</option><?php
+                ?></select></li><?php 
+                ?><li><select name="fro" onchange="this.form.submit()"><?php 
+                    ?><option value="0"<?= $filters['root']==0 ? ' selected':'' ?>><?= $this->lang['opt_all_sections'] ?></option><?php
+                    foreach($this->urlRouter->pageRoots as $id => $root){
+                        ?><option value="<?= $id ?>"<?= $filters['root']==$id ? ' selected':'' ?>><?= $root['name'] ?></option><?php
+                    }
+                ?></select></li><?php 
+                if($filters['root'] == 3){
+                    ?><li><select name="fpu" onchange="this.form.submit()"><?php 
+                    ?><option value="0"<?= $filters['purpose']==0 ? ' selected':'' ?>><?= $this->lang['opt_all_sections'] ?></option><?php
+                    foreach($this->urlRouter->pageRoots[3]['purposes'] as $id => $purpose){
+                        ?><option value="<?= $id ?>"<?= $filters['purpose']==$id ? ' selected':'' ?>><?= $purpose['name'] ?></option><?php
+                    }
+                    ?></select></li><?php
+                }
+                if($filters['active']){
+                    ?><li><input type="reset" onclick="location.href='<?= $baseUrl.'?sub=pending' ?>'" value="<?= $this->lang['search_cancel'] ?>" /></li><?php
+                }
+                ?><?php
+                ?><?php
+                ?></ul></div></form><?php
+            }
+            
+            if(!$filters['active']){
+            
+                ?><div id="adminList" class="prx ar"><h4>تحت طائلة المسؤولية</h4><ul><?php
+                ?><li class="hvn50okt2 d2d9s5pl1g n2u2hbyqsn"><a href="<?= $link ?>69905">Robert</a></li><?php
+                ?><li class="f3iw09ojp5 a1zvo4t2vk"><a href="<?= $link ?>1">Bassel</a></li><?php
+                ?><li class="a1zvo4t4b8"><a href="<?= $link ?>2100">Nooralex</a></li><?php
+                ?><li class="n2u2hc8xil"><a href="<?= $link ?>477618">Sam</a></li><?php
+                ?><li class="x1arwhzqsl"><a href="<?= $link ?>38813">Editor 1</a></li><?php
+                ?><li class="d2d9s5p1p2"><a href="<?= $link ?>44835">Editor 2</a></li><?php
+                ?><li class="b2ixe8tahr"><a href="<?= $link ?>53456">Editor 3</a></li><?php
+                ?><li class="hvn50s5hk"><a href="<?= $link ?>166772">Editor 4</a></li><?php
+                ?><li class="j1nz09nf5t"><a href="<?= $link ?>516064">Editor 5</a></li><?php
+                ?></ul></div><?php
+            
+            }
+            
+            if($standalone){                
+                ?></div><?php 
+            }
         }
     }
 
@@ -679,6 +737,8 @@ var rtMsgs={
             $isAdmin = true;
             $mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
         }
+        
+        $filters = $this->user->getAdminFilters();
         
         $lang='';
         if($this->urlRouter->siteLanguage!='ar')$lang=$this->urlRouter->siteLanguage.'/';
@@ -1156,6 +1216,10 @@ var rtMsgs={
                             if($ad['USER_RANK'] < 3){
                                 ?><span class="lnk" onclick="suspF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['suspend'] ?></span><?php
                             }
+                            if($this->user->isSuperUser() && $filters['uid']==0){
+                                ?><a class="lnk" href="/myads/<?= $this->urlRouter->siteLanguage=='ar'?'':'en/' ?>?sub=pending&fuid=<?= $ad['WEB_USER_ID'] ?>"><?= $this->lang['user_type_option_1'] ?></a><?php
+                            }
+                            
                             $contactInfo='';
                             if(isset($content['cui'])) {
                                 if(isset($content['cui']['p'])){ 
@@ -1320,6 +1384,28 @@ var rtMsgs={
                     $appendOp='&';
                 }
                 
+                if(isset($_GET['a']) && $_GET['a']){
+                    $link.=$appendOp.'a='.$_GET['a'];
+                    $appendOp='&';
+                }
+                
+                if($filters['uid']){
+                    $link.=$appendOp.'fuid='.$filters['uid'];
+                    $appendOp='&';
+                }                
+                if($filters['root']){
+                    $link.=$appendOp.'fro='.$filters['root'];
+                    $appendOp='&';
+                }                
+                if($filters['purpose']){
+                    $link.=$appendOp.'fpu='.$filters['purpose'];
+                    $appendOp='&';
+                }               
+                if($filters['lang']){
+                    $link.=$appendOp.'fhl='.$filters['lang'];
+                    $appendOp='&';
+                }
+                
                 /*if($_SERVER['QUERY_STRING']) {
                     $link .= $appendOp.preg_replace('/[?&]o\=[0-9]+/','',$_SERVER['QUERY_STRING']);
                     $appendOp = '&';
@@ -1376,7 +1462,8 @@ var rtMsgs={
                     echo $this->lang['ads_drafts'].($count ? ' ('.$count.')':'').' '.$this->renderUserTypeSelector();
                     break;
             }
-            ?></p><?php
+            ?></p><?php            
+            $this->renderEditorsBox($state, true);
             ?><div class="htf db"><?= $msg ?><br /><br /><?php
             ?><input onclick="document.location='/post/<?= $lang ?>'" class="bt" type="button" value="<?= $this->lang['create_ad'] ?>" /><?php
             ?></div><?php

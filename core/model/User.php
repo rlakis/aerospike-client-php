@@ -271,6 +271,26 @@ class User {
         }
     }
     
+    function isSuperUser(){
+        return in_array($this->info['id'],array(1,2,2100));
+    }
+    
+    function getAdminFilters(){
+        $filters=[];
+        $filters['root'] = (isset($_GET['fro']) && $_GET['fro']) ? $_GET['fro'] : 0;
+        $filters['purpose'] = (isset($_GET['fpu']) && $_GET['fpu']) ? $_GET['fpu'] : 0;
+        $filters['lang'] = (isset($_GET['fhl']) && $_GET['fhl']) ? $_GET['fhl'] : 0;
+        $filters['uid'] = (isset($_GET['fuid']) && $_GET['fuid']) ? $_GET['fuid'] : 0;
+        $filters['active']=false;
+        foreach ($filters as $key => $value){
+            $filters['active'] = $value>0;
+            if($filters['active']){
+                break;
+            }
+        }
+        return $filters;
+    }
+    
     function setReloadFlag($id){
         $ssh=null;
         $this->db->getCache()->set('re'.$id, 1);  
@@ -604,18 +624,41 @@ class User {
                                 ORDER BY bo_date_ended desc, a.DATE_ADDED desc
                                 ', array($uid,$state));
                         }elseif ($state){
-                            $res=$this->db->queryResultArray(
-                            'select '.$pagination_str.' a.*,u.full_name,u.lvl,'
-                                    . 'u.DISPLAY_NAME,u.profile_url, '
-                                    . 'iif((a.section_id = 190 or a.section_id = 1179 or a.section_id = 540),1,0) ppn, '
-                                    . 'iif(a.state = 4,1,0) primo, '
-                                    . 'u.user_rank,IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
-                    IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended  '
-                                    . 'from ad_user a '
-                                    . 'left join web_users u on u.id=a.web_user_id '
-                                    . 'left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
-                                        left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date '
-                                    . 'where (a.state in (1,2,4)) or (a.state=3 and a.web_user_id='.$uid.') order by primo desc, a.state asc,bo_date_ended desc, ppn,a.date_added desc');
+                            $filters = $this->getAdminFilters();
+                            $q='select '.$pagination_str.' a.*,u.full_name,u.lvl,'
+                                . 'u.DISPLAY_NAME,u.profile_url, '
+                                . 'iif((a.section_id = 190 or a.section_id = 1179 or a.section_id = 540),1,0) ppn, '
+                                . 'iif(a.state = 4,1,0) primo, '
+                                . 'u.user_rank,IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
+                                    IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended  '
+                                . 'from ad_user a '
+                                . 'left join web_users u on u.id=a.web_user_id '
+                                . 'left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 '
+                                . 'left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date ';
+                                if($filters['root']){
+                                    $q .= 'left join section s on a.section_id = s.id ';
+                                }
+                                $q .= 'where ';
+                                    if($filters['uid']){
+                                        $q.= '( (a.state in (1,2,4)) and a.web_user_id='.$filters['uid'].' ) ';
+                                    }else{
+                                        $q.= '( (a.state in (1,2,4)) or (a.state=3 and a.web_user_id='.$uid.') ) ';
+                                    }
+                                    if($filters['purpose']){
+                                        $q.='and a.purpose_id='.$filters['purpose'].' ';
+                                    }
+                                    if($filters['lang']==1){                                        
+                                        $q.='and (a.rtl in (1,2)) ';
+                                    }
+                                    if($filters['lang']==2){                                        
+                                        $q.='and (a.rtl in (0,2)) ';
+                                    }
+                                    if($filters['root']){
+                                        $q.='and s.root_id = '.$filters['root'].' ';
+                                    }
+                                    $q.= 'order by primo desc, a.state asc,bo_date_ended desc, ppn,a.date_added desc';                               
+                            //echo $q;
+                            $res=$this->db->queryResultArray($q);
                         }else {
                             $res=$this->db->queryResultArray(
                             'select '.$pagination_str.' a.*,u.full_name,u.lvl,u.DISPLAY_NAME,u.profile_url, u.user_rank from ad_user a left join web_users u on u.id=a.web_user_id where a.web_user_id=? and a.state=? order by a.date_added desc',
@@ -697,9 +740,30 @@ class User {
                             where web_user_id=? and state=?
                             ', array($uid,$state));
                     }elseif ($state){
-                        $res=$this->db->queryResultArray(
-                        'select count(*) from ad_user 
-                            where (state in (1,2,4)) or (state=3 and web_user_id='.$uid.')');
+                        $filters=  $this->getAdminFilters();
+                        $q = 'select count(*) from ad_user a ';
+                        if($filters['root']){
+                            $q .= 'left join section s on a.section_id = s.id ';
+                        }
+                        $q .= 'where ';
+                        if($filters['uid']){
+                            $q.= '( (a.state in (1,2,4)) and a.web_user_id='.$filters['uid'].' ) ';
+                        }else{
+                            $q.= '( (a.state in (1,2,4)) or (a.state=3 and a.web_user_id='.$uid.') ) ';
+                        }
+                        if($filters['purpose']){
+                            $q.='and a.purpose_id='.$filters['purpose'].' ';
+                        }
+                        if($filters['lang']==1){                                        
+                            $q.='and (a.rtl in (1,2)) ';
+                        }
+                        if($filters['lang']==2){                                        
+                            $q.='and (a.rtl in (0,2)) ';
+                        }
+                        if($filters['root']){
+                            $q.='and s.root_id = '.$filters['root'].' ';
+                        }
+                        $res=$this->db->queryResultArray($q);
                     }else {
                         $res=$this->db->queryResultArray(
                         'select count(*) from ad_user 
@@ -2625,7 +2689,7 @@ class User {
         return $n;
     }
     function parseUserAdTime($cui /*contact user info array*/,$cut /*contact user times array*/,$d=0 /* ad rtl */){
-        $l=count($cui['p']);
+        $l=isset($cui['p']) ? count($cui['p']) : 0;
         $t='';
         $v=$d?' / ':' / ';
         if($l){
@@ -2701,16 +2765,16 @@ class User {
                 $t.=$value['s'];
             }
         }
-        if($cui['b']){
+        if(isset($cui['b']) && $cui['b']){
             $t.=' - '.($d?'بلاكبيري مسنجر':'BBM pin').': <span class="pn">'.$cui['b'].'</span>';
         }
-        if($cui['t']){
+        if(isset($cui['t']) && $cui['t']){
             $t.=' - '.($d?'تويتر':'Twitter').': <span class="pn">'.$cui['t'].'</span>';
         }
-        if($cui['s']){
+        if(isset($cui['s']) && $cui['s']){
             $t.=' - '.($d?'سكايب':'Skype').': <span class="pn">'.$cui['s'].'</span>';
         }
-        if($cui['e']){
+        if(isset($cui['e']) && $cui['e']){
             $t.=' - '.($d?'البريد الإلكتروني':'Email').': <span class="pn">'.$cui['e'].'</span>';
         }
         if($t)
