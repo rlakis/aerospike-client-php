@@ -3699,7 +3699,6 @@ class Page extends Site{
             echo $this->globalScript;
             /* ?>function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:lang, layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false, multilanguagePage: true, gaTrack: true, gaId: 'UA-435731-13'}, 'google_translate_element');}<?php */
             ?>window.onload=function(){<?php 
-                
                     switch($this->urlRouter->module){
                         case 'signin':
                             ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_jquery'] ?>jquery.min.js';<?php 
@@ -3728,7 +3727,7 @@ class Page extends Site{
                                     if($this->user->info['id']){
                                         if($this->user->info['level']==9){     
                                             if($this->urlRouter->cfg['site_production']){
-                                                ?>sh.src='https://h5.mourjan.com/js/3.0.3/myadsad.js';<?php 
+                                                ?>sh.src='https://h5.mourjan.com/js/3.0.4/myadsad.js';<?php 
                                             }else{
                                                 ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/myadsad.js';<?php 
                                             }

@@ -807,7 +807,6 @@ if(typeof imgs!=="undefined"){
 
 $('.ms.ut',li).each(function(){
     var e=$(this);
-    console.log(e.attr('value'));
     var v = e.attr('value');
     var m='';
     if(lang=='ar'){

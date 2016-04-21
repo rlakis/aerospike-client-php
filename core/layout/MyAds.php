@@ -21,11 +21,11 @@ class MyAds extends Page {
             unset($this->user->pending['post']);
             $this->user->update();
         }
-        
+        $sub='';
         if ($this->isMobile) {
             $this->urlRouter->cfg['enabled_ads']=0;
             $this->inlineCss.='time{margin:0 10px}p.nd{border-top:1px solid #ececec}.ls p{margin-top:0;padding-top:10px}';
-            $sub='';
+            
             if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
             switch($sub){
                 case 'pending':
@@ -60,7 +60,7 @@ class MyAds extends Page {
                 
                 $this->inlineCss .= '.oc .lnk {padding:0 15px!important}li.owned{background-color: #D9FAC8 !important}';
                 if($sub=='pending'){
-                    $this->inlineCss.='li.owned .oc{display:block}.oc, li.activeForm .oc{display:none}';
+                    $this->inlineCss.='li.owned .oc{visibility:visible}.oc, li.activeForm .oc{visibility:hidden}';
                 }
                 
                 $this->inlineCss.='
@@ -1061,7 +1061,7 @@ var rtMsgs={
                     $style='';
                     if ($ad['LVL']==4) $style=' style="color:orange"';
                     elseif ($ad['LVL']==5) $style=' style="color:red"';
-                    $title='<div class="oct"><a target="blank" onclick="var nw=window.open(this.href,\'blank\');if (window.focus) {nw.focus()}if (!nw.closed) {nw.focus()}return false;" href="'.$ad['PROFILE_URL'].'">Profile</a><a target="blank"'.$style.' onclick="var nw=window.open(this.href,\'blank\');if (window.focus) {nw.focus()}if (!nw.closed) {nw.focus()}return false;" href="/myads/'.$lang.'?u='.$ad['WEB_USER_ID'].'">'.$name.'</a>';
+                    $title='<div class="oct"><a target="blank" onclick="openW(this.href);return false" href="'.$ad['PROFILE_URL'].'">Profile</a><a target="blank"'.$style.' onclick="openW(this.href);return false;" href="/myads/'.$lang.'?u='.$ad['WEB_USER_ID'].'">'.$name.'</a>';
                     if(isset($content['userLOC'])){
                         $geo = preg_replace('/[0-9\.]|(?:^|\s|,)[a-zA-Z]{1,3}\s/','',$content['userLOC']);
                         $geo = preg_replace('/,/', '' , $geo);
@@ -1251,7 +1251,7 @@ var rtMsgs={
                             }
                             
                             if ($contactInfo) {                                    
-                                ?><a target="blank" class="lnk" onclick="var nw=window.open(this.href,'blank');if (window.focus) {nw.focus()}if (!nw.closed) {nw.focus()}return false;" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
+                                ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
                             }
                         }
                     }

@@ -1006,8 +1006,13 @@ if(PEND){
                             }
                             var u=curLink.attr('href')+encodeURIComponent(' '+t);
                             var nw=window.open(u,'blank');
-                            if (window.focus) {nw.focus()}
-                            if (!nw.closed) {nw.focus()}
+                            if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1){
+                                nw.close();
+                                nw=window.open(u,'blank');
+                            }else{
+                                if (window.focus) {nw.focus()}
+                                if (!nw.closed) {nw.focus()}
+                            }
                             return false;
                         }
                         break;
@@ -1342,9 +1347,12 @@ if(PEND){
         }
 
         li.bind('touchstart click',touch);
+        li.bind('contextmenu', function(e) {
+            e.preventDefault();
+        });
         
-        $(document).bind('click',function(){
-            if(!lockTouch && ownad){
+        $(document).bind('click',function(e){
+            if(e.which==1 && !lockTouch && ownad){
                 var a=$('#banForm'),b=$('#suspForm'),c=$('#rejForm');
                 if(a.css('display')!='block' && b.css('display')!='block' && c.css('display')!='block'){
                     wio.emit("release",[ownad,UIDK]); 
@@ -1829,5 +1837,16 @@ function EAD(e,idx){
     });
     bdy.append(dsk);
     bdy.append(ae);
+    }
+};
+
+function openW(href){
+    var nw=window.open(href,'blank');
+    if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1){
+        nw.close();
+        nw=window.open(u,'blank');
+    }else{
+        if (window.focus) {nw.focus()}
+        if (!nw.closed) {nw.focus()}
     }
 };
