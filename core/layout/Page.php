@@ -22,7 +22,7 @@ class Page extends Site{
     var $extended=null,$extendedId=0,$localities=null,$parentLocalities=null,$cityParentLocalityId=0,$localityId=0,$localityParentId=0,$extended_uri='';
 
     var $countryCounter='',$inlineScript='',$inlineQueryScript='',$globalScript='',$cssImgsLoaded=false, $inlineCss='';
-    var $detailAd, $detailAdExpired=false,$requireLogin=false,$forceNoIndex=false,$isAdminSearch=0;
+    var $detailAd, $isNewMobile=false, $detailAdExpired=false,$requireLogin=false,$forceNoIndex=false,$isAdminSearch=0;
     var $cityName='',$rootName='', $countryName='', $categoryName='', $sectionName='', $purposeName='',$backLink='';
     
     var $pageItemScope='itemscope itemtype="http://schema.org/WebPage"';
