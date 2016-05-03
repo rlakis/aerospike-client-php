@@ -921,7 +921,7 @@ class User {
                     array($content, $sectionId, $purposeId, $id),true);
                 }else{
                     $res=$this->db->queryResultArray(
-                    'update ad_user set content=?, section_id=?, purpose_id=?, state = '.$state.', date_added = current_timestamp where id = ? and web_user_id = ? returning id',
+                    'update ad_user set content=?, section_id=?, purpose_id=?, state='.$state.', date_added=current_timestamp where id=? and web_user_id=? returning id',
                     array($content, $sectionId, $purposeId, $id,$this->info['id']),true);
                 }
                 
@@ -933,7 +933,7 @@ class User {
                     array($id),true);
                 }else{
                     $res=$this->db->queryResultArray(
-                    'update ad_user set state = '.$state.', date_added = current_timestamp where id = ? and web_user_id = ? returning id',
+                    'update ad_user set state='.$state.', date_added=current_timestamp where id=? and web_user_id=? returning id',
                     array($id,$this->info['id']),true);
                 }
             }
