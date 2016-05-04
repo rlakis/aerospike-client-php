@@ -589,6 +589,75 @@ class MCSaveHandler
     }
 
     
+    
+    public function testRealEstate($country_id=1)
+    {
+        $myfile = fopen("/tmp/testfile.txt", "w") ;
+        $db = new DB($this->cfg);
+        $rs = $db->queryResultArray("SELECT first 500 ad_user.*
+                    from ad
+                    left join AD_USER on AD_USER.ID=ad.ID
+                    left join section s on s.Id=ad.SECTION_ID
+                    where ad.COUNTRY_ID=?
+                    and ad.PUBLICATION_ID=1
+                    and s.ROOT_ID=1
+                    and ad.HOLD=0
+                    order by ad_user.id", [$country_id]);
+        $c = count($rs);
+        for ($i=0; $i<$c; $i++)
+        {
+            $ad = $rs[$i];
+            $content = json_decode($ad['CONTENT']);
+            if (isset($content->attrs)) {
+                unset($content->attrs);
+            }
+            
+            $command = ['command'=>'normalize', 'json'=>json_encode($content)];
+            $buffer = json_encode($command);
+            $len = pack('N', strlen($buffer));
+            $buffer = $len.$buffer;
+            fwrite($myfile, "----------------------------------------------------------------------------------------------------------\n");
+            fwrite($myfile, $ad['ID'].PHP_EOL);            
+            fwrite($myfile, $content->other.PHP_EOL);
+            if (isset($content->altother))
+            {
+                fwrite($myfile, $content->altother.PHP_EOL);
+            }
+            
+            $connection = new MCSaveHandler();
+            $connection->setConfig($this->cfg);
+            $connection->SetServer($this->_host);
+            $connection->Open();
+            
+            if ($connection->_Send($connection->_socket, $buffer, strlen($buffer)))
+            {            
+                $response = $connection->_GetResponse($connection->_socket, '');
+                if ($response) 
+                {
+                    $j = json_decode($response);
+                    fwrite($myfile, ">>>>>\n");
+                    fwrite($myfile, $j->other .PHP_EOL);
+                    if (isset($j->altother))
+                    {
+                        fwrite($myfile, $j->altother.PHP_EOL);
+                    }
+                    fwrite($myfile, var_export($j->attrs, TRUE));
+                } else {
+                    echo $connection->_error, "\n";
+                }
+            }
+            else
+            {
+                echo $connection->_error, "\n";
+            }
+            
+            $connection->Close();
+            //usleep(10);
+        }
+        fclose($myfile);
+    }
+    
+    
     public function getFromContentObject($ad_content)
     {
         if (isset($ad_content->attrs)) {
@@ -664,7 +733,8 @@ if (php_sapi_name()=='cli')
     $saveHandler->Open();
 
     if ($saveHandler->_error == '') {
-        $saveHandler->getFromDatabase($argv[1]);
+        //$saveHandler->getFromDatabase($argv[1]);
+        $saveHandler->testRealEstate(1);
     }
     
 }
