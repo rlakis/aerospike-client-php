@@ -1244,15 +1244,34 @@ class User {
         try{
 
             if ($userId) {
-                include_once $this->cfg['dir'] . '/core/lib/MCAdTextHandler.php';
-                $textHandler = new AdTextFormatter();
+                //include_once $this->cfg['dir'] . '/core/lib/MCAdTextHandler.php';
+                include_once $this->cfg['dir'] . '/core/lib/MCSaveHandler.php';
+                //$textHandler = new AdTextFormatter();
+                
+                $normalizer = new MCSaveHandler();
+                $normalizer->setConfig($this->cfg);
+                $normalizer->SetServer($this->cfg['db_host']);
+                $normalizer->Open();
 
                 $content = json_decode($this->pending['post']['content'],true);
 
+                $normalized = $normalizer->getFromContentObject($content);
+                if ($normalized)
+                {
+                    error_log(json_encode($normalized));
+                    $content = $normalized;
+                    //if (isset($normalized->text))
+                    //    $content['other'] = $normalized->text;
+                    //if (isset($normalized->altr))
+                    //    $content['other'] = $normalized->text;
+                }
+                
+                /*
                 if (isset($content['other'])) {
                     $textHandler->setText($content['other']);
                     $textHandler->format();                
                     $content['other'] = $textHandler->text;
+                    //error_log($textHandler->text);
                 }
 
                 if (isset($content['altother'])) {
@@ -1260,6 +1279,10 @@ class User {
                     $textHandler->format();                
                     $content['altother'] = $textHandler->text;
                 }
+                
+                */
+                $normalizer->Close();
+                
                 $this->pending['post']['content']=json_encode($content);
 
                 $hasVideo=(isset($content['video']) && is_array($content['video']) && count($content['video'])) ?  1 : 0;
