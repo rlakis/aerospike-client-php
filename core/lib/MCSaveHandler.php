@@ -3,7 +3,7 @@
 include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
 
 error_reporting(E_ALL);
-ini_set('display_errors', '1');
+ini_set('display_errors', php_sapi_name()=='cli'?'1':'0');
 
 /* Allow the script to hang around waiting for connections. */
 set_time_limit(0);
@@ -477,7 +477,7 @@ class MCSaveHandler
         {
             $ll = unpack('Nlen', $header);
             $len = $ll['len'];
-            echo $len, "\n";
+            //echo $len, "\n";
             
             //list ( $status, $ver, $len ) = array_values ( unpack ( "n2a/Nb", $header ) );
             $left = $len;
@@ -588,6 +588,32 @@ class MCSaveHandler
         }
     }
 
+    
+    public function getFromContentObject($ad_content)
+    {
+        if (isset($ad_content->attrs)) {
+            unset($ad_content->attrs);
+        }
+        $command = ['command'=>'normalize', 'json'=>json_encode($ad_content)];
+        $buffer = json_encode($command);
+        $len = pack('N', strlen($buffer));
+        $buffer = $len.$buffer;
+        if ($this->_Send($this->_socket, $buffer, strlen($buffer)))
+        {            
+            $response = $this->_GetResponse($this->_socket, '');
+            if ($response) {
+                $j = json_decode($response, TRUE);
+                return $j;
+            } else {
+                error_log($this->_error);
+            }
+        }
+        else
+        {
+            error_log($this->_error);
+        }
+        return FALSE;
+    }
 
     /////////////////////////////////////////////////////////////////////////////
     // persistent connections
@@ -629,13 +655,16 @@ class MCSaveHandler
 }
 
 
+if (php_sapi_name()=='cli')
+{
 
+    $saveHandler = new MCSaveHandler();
+    $saveHandler->setConfig($config);
+    $saveHandler->SetServer("db.mourjan.com");
+    $saveHandler->Open();
 
-$saveHandler = new MCSaveHandler();
-$saveHandler->setConfig($config);
-$saveHandler->SetServer("db.mourjan.com");
-$saveHandler->Open();
-
-if ($saveHandler->_error == '') {
-    $saveHandler->getFromDatabase($argv[1]);
+    if ($saveHandler->_error == '') {
+        $saveHandler->getFromDatabase($argv[1]);
+    }
+    
 }
