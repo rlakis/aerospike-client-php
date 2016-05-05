@@ -16,73 +16,6 @@ $address = 'h8.mourjan.com';
 $port = 1337;
 
 
-// important properties of PHP's integers:
-//  - always signed (one bit short of PHP_INT_SIZE)
-//  - conversion from string to int is saturated
-//  - float is double
-//  - div converts arguments to floats
-//  - mod converts arguments to ints
-// the packing code below works as follows:
-//  - when we got an int, just pack it
-//    if performance is a problem, this is the branch users should aim for
-//
-//  - otherwise, we got a number in string form
-//    this might be due to different reasons, but we assume that this is
-//    because it didn't fit into PHP int
-//
-//  - factor the string into high and low ints for packing
-//    - if we have bcmath, then it is used
-//    - if we don't, we have to do it manually (this is the fun part)
-//
-//    - x64 branch does factoring using ints
-//    - x32 (ab)uses floats, since we can't fit unsigned 32-bit number into an int
-//
-// unpacking routines are pretty much the same.
-//  - return ints if we can
-//  - otherwise format number into a string
-/// pack 64-bit signed
-function sphPackI64 ( $v )
-{
-	assert ( is_numeric($v) );
-
-	// x64
-	if ( PHP_INT_SIZE>=8 )
-	{
-		$v = (int)$v;
-		return pack ( "NN", $v>>32, $v&0xFFFFFFFF );
-	}
-	// x32, int
-	if ( is_int($v) )
-		return pack ( "NN", $v < 0 ? -1 : 0, $v );
-	// x32, bcmath
-	if ( function_exists("bcmul") )
-	{
-		if ( bccomp ( $v, 0 ) == -1 )
-			$v = bcadd ( "18446744073709551616", $v );
-		$h = bcdiv ( $v, "4294967296", 0 );
-		$l = bcmod ( $v, "4294967296" );
-		return pack ( "NN", (float)$h, (float)$l ); // conversion to float is intentional; int would lose 31st bit
-	}
-	// x32, no-bcmath
-	$p = max(0, strlen($v) - 13);
-	$lo = abs((float)substr($v, $p));
-	$hi = abs((float)substr($v, 0, $p));
-	$m = $lo + $hi*1316134912.0; // (10 ^ 13) % (1 << 32) = 1316134912
-	$q = floor($m/4294967296.0);
-	$l = $m - ($q*4294967296.0);
-	$h = $hi*2328.0 + $q; // (10 ^ 13) / (1 << 32) = 2328
-	if ( $v<0 )
-	{
-		if ( $l==0 )
-			$h = 4294967296.0 - $h;
-		else
-		{
-			$h = 4294967295.0 - $h;
-			$l = 4294967296.0 - $l;
-		}
-	}
-	return pack ( "NN", $h, $l );
-}
 /// pack 64-bit unsigned
 function sphPackU64 ( $v )
 {
@@ -472,10 +405,10 @@ class MCSaveHandler
     {
         $response = "";
         $len = 0;
-        $header = fgets ( $fp, 5 );
-        if ( strlen($header)==4 )
+        $header = fread ( $fp, 2 );
+        if ( strlen($header)==2 )
         {
-            $ll = unpack('Nlen', $header);
+            $ll = unpack('nlen', $header);
             $len = $ll['len'];
             //echo $len, "\n";
             
@@ -562,6 +495,7 @@ class MCSaveHandler
         $db = new DB($this->cfg);
         $rs = $db->queryResultArray("select * from ad_user where id=?", [$reference])[0];
         $rs['CONTENT'] = json_decode($rs['CONTENT']);
+        //print_r($rs['CONTENT']);
         if (isset($rs['CONTENT']->attrs)) {
             unset($rs['CONTENT']->attrs);
         }
@@ -594,7 +528,7 @@ class MCSaveHandler
     {
         $myfile = fopen("/tmp/testfile.txt", "w") ;
         $db = new DB($this->cfg);
-        $rs = $db->queryResultArray("SELECT first 500 ad_user.*
+        $rs = $db->queryResultArray("SELECT ad_user.*
                     from ad
                     left join AD_USER on AD_USER.ID=ad.ID
                     left join section s on s.Id=ad.SECTION_ID
@@ -644,6 +578,7 @@ class MCSaveHandler
                     fwrite($myfile, var_export($j->attrs, TRUE));
                 } else {
                     echo $connection->_error, "\n";
+                    print_r($content);
                 }
             }
             else
@@ -651,7 +586,7 @@ class MCSaveHandler
                 echo $connection->_error, "\n";
             }
             
-            $connection->Close();
+            //$connection->Close();
             //usleep(10);
         }
         fclose($myfile);
@@ -733,8 +668,8 @@ if (php_sapi_name()=='cli')
     $saveHandler->Open();
 
     if ($saveHandler->_error == '') {
-        //$saveHandler->getFromDatabase($argv[1]);
-        $saveHandler->testRealEstate(1);
+        $saveHandler->getFromDatabase($argv[1]);
+        //$saveHandler->testRealEstate(1);
     }
     
 }
