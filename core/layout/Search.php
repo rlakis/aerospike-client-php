@@ -2861,25 +2861,21 @@ if($isFeatured){
         if(!isset($this->user->params['feature'])) {
             $this->user->params['feature']=array();
         }
-
-
-
-        
         if($ad_count && isset($_GET['cmp']) && is_numeric($_GET['cmp'])){
-            $ad = $this->user->getPendingAds($_GET['cmp']);
-            if (!empty($ad)) {
-                $ad=$ad[0];
-                $content=json_decode($ad['CONTENT'],true);
-                $clang = $content['rtl'] ? 'ar' : 'en';
-                ?><li style="height:auto;background-image:none;background-color:#FFF;width:300px;position:fixed;top:160px;left:20px;z-index:100000;border:5px solid #000"><?php
-                ?><p class="<?= $clang ?>" style="height:auto"><?= $content['other'] ?></p><?php 
-                if(isset($content['altother']) && $content['altother']!=''){
-                    $clang = $content['altRtl'] ? 'ar' : 'en';
-                    ?><p class="<?= $clang ?>" style="height:auto;margin-top: 5px;border-top: 1px solid #999;padding: 5px;"><?= $content['altother'] ?></p><?php 
+                $ad = $this->user->getPendingAds($_GET['cmp']);
+                if (!empty($ad)) {
+                    $ad=$ad[0];
+                    $content=json_decode($ad['CONTENT'],true);
+                    $clang = $content['rtl'] ? 'ar' : 'en';
+                    ?><li style="height:auto;background-image:none;background-color:#FFF;width:300px;position:fixed;top:160px;left:20px;z-index:100000;border:5px solid #000"><?php
+                    ?><p class="<?= $clang ?>" style="height:auto"><?= $content['other'] ?></p><?php 
+                    if(isset($content['altother']) && $content['altother']!=''){
+                        $clang = $content['altRtl'] ? 'ar' : 'en';
+                        ?><p class="<?= $clang ?>" style="height:auto;margin-top: 5px;border-top: 1px solid #999;padding: 5px;"><?= $content['altother'] ?></p><?php 
+                    }
+                    ?><div class="tbs" style="margin-top: 5px;padding: 0 5px;border-top: 1px solid #ccc;line-height: 30px;height: 30px;background-color: #bdc9dc;overflow: hidden;color: #333;"><?= $this->getAdCmpSection($ad) ?></div><?php
+                    ?></li><?php
                 }
-		?><div class="tbs" style="margin-top: 5px;padding: 0 5px;border-top: 1px solid #ccc;line-height: 30px;height: 30px;background-color: #bdc9dc;overflow: hidden;color: #333;"><?= $this->getAdCmpSection($ad) ?></div><?php
-                ?></li><?php
-            }
         }
         
         for ($ptr = 0; $ptr < $ad_count; $ptr++) {
@@ -3243,6 +3239,21 @@ if($isFeatured){
          */
         if (!$this->userFavorites && $this->urlRouter->module != 'detail')
             $this->updateUserSearchCriteria();
+        
+        
+        
+        if(isset($_GET['cmp']) && $this->user->isSuperUser() && $this->urlRouter->params['q']){
+            $filename = '/var/log/mourjan/keywords.log';
+            $handle = fopen($filename,'a');
+            if($handle){
+                preg_match('/\s(.*)$/ui', $this->urlRouter->params['q'],$matches);
+                $keywords = $matches[1];
+                fwrite($handle, $keywords."\n");
+                fclose($handle);
+            }
+        }
+        
+        
         ?><div class="rs"><?php
             $hasResults = $this->searchResults['body']['total_found'] > 0 && isset($this->searchResults['body']['matches']) && count($this->searchResults['body']['matches']) > 0;
 
