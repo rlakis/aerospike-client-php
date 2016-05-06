@@ -3244,12 +3244,14 @@ if($isFeatured){
         
         if(isset($_GET['cmp']) && $this->user->isSuperUser() && $this->urlRouter->params['q']){
             $filename = '/var/log/mourjan/keywords.log';
-            $handle = fopen($filename,'a');
-            if($handle){
-                preg_match('/\s(.*)$/ui', $this->urlRouter->params['q'],$matches);
-                $keywords = $matches[1];
-                fwrite($handle, $keywords."\n");
-                fclose($handle);
+            preg_match('/\s(.*)$/ui', $this->urlRouter->params['q'],$matches);
+            if(isset($matches[1]) && $matches[1]){
+                $handle = fopen($filename,'a');
+                if($handle){
+                    $keywords = $matches[1];
+                    fwrite($handle, $keywords."\n");
+                    fclose($handle);
+                }
             }
         }
         
