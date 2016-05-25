@@ -232,10 +232,11 @@ class MCSaveHandler
     var $_warning;		///< last warning message
     var $_connerror;		///< connection error vs remote error flag
 
-    function __construct() 
+    function __construct($config) 
     {
+        $this->cfg = $config;
         // per-client-object settings
-        $this->_host		= "localhost";
+        $this->_host		= $this->cfg['db_host'];
         $this->_port		= 1337;
         $this->_path		= false;
         $this->_socket		= false;
@@ -266,29 +267,6 @@ class MCSaveHandler
             fclose ( $this->_socket );
     }
 
-
-    /// set searchd host name (string) and port (integer)
-    function SetServer ( $host, $port = 0 )
-    {
-        assert ( is_string($host) );
-        if ( $host[0] == '/')
-        {
-            $this->_path = 'unix://' . $host;
-            return;
-        }
-
-        if ( substr ( $host, 0, 7 )=="unix://" )
-        {
-            $this->_path = $host;
-            return;
-        }
-
-        $this->_host = $host;
-        $port = intval($port);
-        assert ( 0<=$port && $port<65536 );
-        $this->_port = ( $port==0 ) ? 1337 : $port;
-        $this->_path = '';
-    }
 
     /// set server connection timeout (0 to remove)
     function SetConnectTimeout ( $timeout )
@@ -483,12 +461,6 @@ class MCSaveHandler
         return $response;
     }
 
-    
-    public function setConfig($config)
-    {
-        $this->cfg = $config;
-    }
-
 
     public function getFromDatabase($reference)
     {
@@ -504,22 +476,26 @@ class MCSaveHandler
         $buffer = json_encode($command);
         $len = pack('N', strlen($buffer));
         $buffer = $len.$buffer;
-        if ($this->_Send($this->_socket, $buffer, strlen($buffer)))
+        if ($this->Open())
         {
-            
-            $response = $this->_GetResponse($this->_socket, '');
-            if ($response) {
-                //echo $response, "\n";
-                $j = json_decode($response);
-                print_r($j);
-            } else {
+            if ($this->_Send($this->_socket, $buffer, strlen($buffer)))
+            {
+
+                $response = $this->_GetResponse($this->_socket, '');
+                if ($response) {
+                    //echo $response, "\n";
+                    $j = json_decode($response);
+                    print_r($j);
+                } else {
+                    echo $this->_error, "\n";
+                }
+            }
+            else
+            {
                 echo $this->_error, "\n";
             }
-        }
-        else
-        {
-            echo $this->_error, "\n";
-        }
+            $this->Close();
+        }        
     }
 
     
@@ -535,6 +511,7 @@ class MCSaveHandler
                     where ad.COUNTRY_ID=?
                     and ad.PUBLICATION_ID=1
                     and s.ROOT_ID=1
+                    and ad.section_id=7
                     and ad.HOLD=0
                     order by ad_user.id", [$country_id]);
         $c = count($rs);
@@ -558,24 +535,25 @@ class MCSaveHandler
                 fwrite($myfile, $content->altother.PHP_EOL);
             }
             
-            $connection = new MCSaveHandler();
-            $connection->setConfig($this->cfg);
-            $connection->SetServer($this->_host);
+            $connection = new MCSaveHandler($this->cfg);
             $connection->Open();
-            
+           
             if ($connection->_Send($connection->_socket, $buffer, strlen($buffer)))
             {            
                 $response = $connection->_GetResponse($connection->_socket, '');
                 if ($response) 
                 {
                     $j = json_decode($response);
-                    fwrite($myfile, ">>>>>\n");
-                    fwrite($myfile, $j->other .PHP_EOL);
-                    if (isset($j->altother))
+                    if (!isset($j->attrs->locales) || !isset($j->attrs->space) || !isset($j->attrs->price))
                     {
-                        fwrite($myfile, $j->altother.PHP_EOL);
+                        fwrite($myfile, ">>>>>\n");
+                        fwrite($myfile, $j->other .PHP_EOL);
+                        if (isset($j->altother))
+                        {
+                            fwrite($myfile, $j->altother.PHP_EOL);
+                        }
+                        fwrite($myfile, var_export($j->attrs, TRUE));
                     }
-                    fwrite($myfile, var_export($j->attrs, TRUE));
                 } else {
                     echo $connection->_error, "\n";
                     print_r($content);
@@ -662,14 +640,8 @@ class MCSaveHandler
 if (php_sapi_name()=='cli')
 {
 
-    $saveHandler = new MCSaveHandler();
-    $saveHandler->setConfig($config);
-    $saveHandler->SetServer("db.mourjan.com");
-    $saveHandler->Open();
-
-    if ($saveHandler->_error == '') {
-        $saveHandler->getFromDatabase($argv[1]);
-        //$saveHandler->testRealEstate(1);
-    }
+    $saveHandler = new MCSaveHandler($config);
+    $saveHandler->getFromDatabase($argv[1]);
+    //$saveHandler->testRealEstate(1);
     
 }
