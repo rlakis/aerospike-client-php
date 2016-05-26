@@ -1248,18 +1248,25 @@ class User {
                 include_once $this->cfg['dir'] . '/core/lib/MCSaveHandler.php';
                 //$textHandler = new AdTextFormatter();
                 
-                $normalizer = new MCSaveHandler();
-                $normalizer->setConfig($this->cfg);
-                $normalizer->SetServer($this->cfg['db_host']);
-                $normalizer->Open();
+                $normalizer = new MCSaveHandler($this->cfg);
 
                 $content = json_decode($this->pending['post']['content'],true);
 
                 $normalized = $normalizer->getFromContentObject($content);
+
                 if ($normalized)
                 {
-                    error_log(json_encode($normalized));
+                    //error_log(json_encode($normalized));
                     $content = $normalized;
+                    if ($content->se!=$this->pending['post']['se'])
+                    {
+                        
+                    }
+                    if ($content->pu!=$this->pending['post']['pu'])
+                    {
+                        
+                    }
+
                     //if (isset($normalized->text))
                     //    $content['other'] = $normalized->text;
                     //if (isset($normalized->altr))
@@ -1281,7 +1288,6 @@ class User {
                 }
                 
                 */
-                $normalizer->Close();
                 
                 $this->pending['post']['content']=json_encode($content);
 
