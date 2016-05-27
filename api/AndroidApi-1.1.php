@@ -510,13 +510,33 @@ class AndroidApi {
                             $ad['other'] .= "\u200B / ".$ad['contact_en'];
                         }
                         */
-                        
-                        include_once $this->api->config['dir'] . '/core/lib/MCAdTextHandler.php';
-                        $textHandler = new AdTextFormatter();
 
-                        $textHandler->setText($ad['other']);
-                        $textHandler->format();
-                        $ad['other'] = $textHandler->text;
+                        include_once $this->api->config['dir'] . '/core/lib/MCSaveHandler.php';                
+                        $normalizer = new MCSaveHandler($this->api->config);
+                        //$content = json_decode($ad, true);
+                        $normalized = $normalizer->getFromContentObject($ad);
+                        $attrs = [];
+                        if ($normalized)
+                        {
+                            $ad = $normalized;
+                            $attrs = $normalized['attrs'];
+                            //if ($ad['se']!=$this->pending['post']['se'])
+                            //{
+                            //    $this->pending['post']['se']=$content['se'];
+                            //}
+                            //if ($content['pu']=$this->pending['post']['pu'])
+                            //{
+                            //    $this->pending['post']['pu']=$content['pu'];
+                            //}
+                        }
+
+                
+                        //include_once $this->api->config['dir'] . '/core/lib/MCAdTextHandler.php';
+                        //$textHandler = new AdTextFormatter();
+
+                        //$textHandler->setText($ad['other']);
+                        //$textHandler->format();
+                        //$ad['other'] = $textHandler->text;
 
                         if($this->isRTL($ad['other'])){
                             $ad['rtl']=1;
@@ -525,9 +545,9 @@ class AndroidApi {
                         }
                         
                         if(isset($ad['altother']) && $ad['altother']){
-                            $textHandler->setText($ad['altother']);
-                            $textHandler->format();                
-                            $ad['altother'] = $textHandler->text;
+                            //$textHandler->setText($ad['altother']);
+                            //$textHandler->format();                
+                            //$ad['altother'] = $textHandler->text;
 
                             if($this->isRTL($ad['altother'])){
                                 $ad['altRtl']=1;
@@ -657,9 +677,17 @@ class AndroidApi {
                                     ])) {
                                         $result=$stmt->fetchAll(PDO::FETCH_ASSOC);
                                     }
-                                    if (!empty($result)){
+                                    
+                                    if (!empty($result)) {
+                                        
                                         $state=(int)$result[0]['STATE'];
                                         $ad_id = (int)$result[0]['ID'];
+                                        
+                                        $st = $this->api->db->getInstance()->prepare("update or insert into ad_object (id, attributes) values (?, ?)");
+                                        $st->bindValue(1, $ad_id, PDO::PARAM_INT);
+                                        $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
+                                        $st->execute();
+                                        
                                     }                                
 
                                     if( $ad['state']==1 ) {
@@ -697,10 +725,17 @@ class AndroidApi {
                                         ,$ad['rtl'], $country_id , $city_id, $ad['lat'],$ad['lon'],$ad['media'] ), 
                                         true
                                 );
+
                                 if (!empty ($result)) {
                                     $ad_id=$result[0]['ID'];
                                     $state=(int)$result[0]['STATE'];
+                                    
+                                    $st = $this->api->db->getInstance()->prepare("update or insert into ad_object (id, attributes) values (?, ?)");
+                                    $st->bindValue(1, $ad_id, PDO::PARAM_INT);
+                                    $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
+                                    $st->execute();
                                 }
+                                
                                 if( $state==1 ) {
                                     $userState = $this->detectDuplicateSuspension($ad['cui']);                            
                                 }
