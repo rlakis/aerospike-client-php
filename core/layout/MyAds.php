@@ -459,6 +459,11 @@ class MyAds extends Page {
             case 'pending':
                 $this->pendingAds(1);
                 if($this->user->info['level']==9){
+                    /* 'يرجى توفير المزيد من التفاصيل', 
+        'please provide more details',
+
+                     *                      */
+                    
                     $this->globalScript.="                            
 var rtMsgs={
     'ar':[
@@ -472,8 +477,7 @@ var rtMsgs={
         'نص الإعلان غير صالح للنشر',
         'نص الإعلان غير صالح للنشر في هذا القسم',
         'group=تفاصيل ناقصة',
-        'يرجى تحديد المنطقة',
-        'يرجى توفير المزيد من التفاصيل',
+        'يرجى تحديد المنطقة',        
         'group=وساءل التواصل',
         'يرجى اضافة رقم الهاتف للتواصل معك ضمن خانة معلومات التواصل',
         'يرجى تصحيح رقم الهاتف',
@@ -502,7 +506,6 @@ var rtMsgs={
         'the ad text is not suitable for publishing in this section',
         'group=Ad Details',
         'please specify the location',
-        'please provide more details',
         'group=Contact Info',
         'please specify a phone number within the contact info',
         'please correct the phone number',

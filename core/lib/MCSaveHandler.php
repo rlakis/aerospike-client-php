@@ -16,206 +16,6 @@ $address = 'h8.mourjan.com';
 $port = 1337;
 
 
-/// pack 64-bit unsigned
-function sphPackU64 ( $v )
-{
-	assert ( is_numeric($v) );
-
-	// x64
-	if ( PHP_INT_SIZE>=8 )
-	{
-		assert ( $v>=0 );
-
-		// x64, int
-		if ( is_int($v) )
-			return pack ( "NN", $v>>32, $v&0xFFFFFFFF );
-
-		// x64, bcmath
-		if ( function_exists("bcmul") )
-		{
-			$h = bcdiv ( $v, 4294967296, 0 );
-			$l = bcmod ( $v, 4294967296 );
-			return pack ( "NN", $h, $l );
-		}
-
-		// x64, no-bcmath
-		$p = max ( 0, strlen($v) - 13 );
-		$lo = (int)substr ( $v, $p );
-		$hi = (int)substr ( $v, 0, $p );
-
-		$m = $lo + $hi*1316134912;
-		$l = $m % 4294967296;
-		$h = $hi*2328 + (int)($m/4294967296);
-		return pack ( "NN", $h, $l );
-	}
-	// x32, int
-	if ( is_int($v) )
-		return pack ( "NN", 0, $v );
-
-	// x32, bcmath
-	if ( function_exists("bcmul") )
-	{
-		$h = bcdiv ( $v, "4294967296", 0 );
-		$l = bcmod ( $v, "4294967296" );
-		return pack ( "NN", (float)$h, (float)$l ); // conversion to float is intentional; int would lose 31st bit
-	}
-	// x32, no-bcmath
-	$p = max(0, strlen($v) - 13);
-	$lo = (float)substr($v, $p);
-	$hi = (float)substr($v, 0, $p);
-
-	$m = $lo + $hi*1316134912.0;
-	$q = floor($m / 4294967296.0);
-	$l = $m - ($q * 4294967296.0);
-	$h = $hi*2328.0 + $q;
-	return pack ( "NN", $h, $l );
-}
-// unpack 64-bit unsigned
-function sphUnpackU64 ( $v )
-{
-	list ( $hi, $lo ) = array_values ( unpack ( "N*N*", $v ) );
-	if ( PHP_INT_SIZE>=8 )
-	{
-		if ( $hi<0 ) $hi += (1<<32); // because php 5.2.2 to 5.2.5 is totally fucked up again
-		if ( $lo<0 ) $lo += (1<<32);
-		// x64, int
-		if ( $hi<=2147483647 )
-			return ($hi<<32) + $lo;
-		// x64, bcmath
-		if ( function_exists("bcmul") )
-			return bcadd ( $lo, bcmul ( $hi, "4294967296" ) );
-		// x64, no-bcmath
-		$C = 100000;
-		$h = ((int)($hi / $C) << 32) + (int)($lo / $C);
-		$l = (($hi % $C) << 32) + ($lo % $C);
-		if ( $l>$C )
-		{
-			$h += (int)($l / $C);
-			$l  = $l % $C;
-		}
-		if ( $h==0 )
-			return $l;
-		return sprintf ( "%d%05d", $h, $l );
-	}
-	// x32, int
-	if ( $hi==0 )
-	{
-		if ( $lo>0 )
-			return $lo;
-		return sprintf ( "%u", $lo );
-	}
-	$hi = sprintf ( "%u", $hi );
-	$lo = sprintf ( "%u", $lo );
-	// x32, bcmath
-	if ( function_exists("bcmul") )
-		return bcadd ( $lo, bcmul ( $hi, "4294967296" ) );
-
-	// x32, no-bcmath
-	$hi = (float)$hi;
-	$lo = (float)$lo;
-
-	$q = floor($hi/10000000.0);
-	$r = $hi - $q*10000000.0;
-	$m = $lo + $r*4967296.0;
-	$mq = floor($m/10000000.0);
-	$l = $m - $mq*10000000.0;
-	$h = $q*4294967296.0 + $r*429.0 + $mq;
-	$h = sprintf ( "%.0f", $h );
-	$l = sprintf ( "%07.0f", $l );
-	if ( $h=="0" )
-		return sprintf( "%.0f", (float)$l );
-	return $h . $l;
-}
-// unpack 64-bit signed
-function sphUnpackI64 ( $v )
-{
-	list ( $hi, $lo ) = array_values ( unpack ( "N*N*", $v ) );
-	// x64
-	if ( PHP_INT_SIZE>=8 )
-	{
-		if ( $hi<0 ) $hi += (1<<32); // because php 5.2.2 to 5.2.5 is totally fucked up again
-		if ( $lo<0 ) $lo += (1<<32);
-		return ($hi<<32) + $lo;
-	}
-	// x32, int
-	if ( $hi==0 )
-	{
-		if ( $lo>0 )
-			return $lo;
-		return sprintf ( "%u", $lo );
-	}
-	// x32, int
-	elseif ( $hi==-1 )
-	{
-		if ( $lo<0 )
-			return $lo;
-		return sprintf ( "%.0f", $lo - 4294967296.0 );
-	}
-
-	$neg = "";
-	$c = 0;
-	if ( $hi<0 )
-	{
-		$hi = ~$hi;
-		$lo = ~$lo;
-		$c = 1;
-		$neg = "-";
-	}
-	$hi = sprintf ( "%u", $hi );
-	$lo = sprintf ( "%u", $lo );
-	// x32, bcmath
-	if ( function_exists("bcmul") )
-		return $neg . bcadd ( bcadd ( $lo, bcmul ( $hi, "4294967296" ) ), $c );
-	// x32, no-bcmath
-	$hi = (float)$hi;
-	$lo = (float)$lo;
-
-	$q = floor($hi/10000000.0);
-	$r = $hi - $q*10000000.0;
-	$m = $lo + $r*4967296.0;
-	$mq = floor($m/10000000.0);
-	$l = $m - $mq*10000000.0 + $c;
-	$h = $q*4294967296.0 + $r*429.0 + $mq;
-	if ( $l==10000000 )
-	{
-		$l = 0;
-		$h += 1;
-	}
-	$h = sprintf ( "%.0f", $h );
-	$l = sprintf ( "%07.0f", $l );
-	if ( $h=="0" )
-		return $neg . sprintf( "%.0f", (float)$l );
-	return $neg . $h . $l;
-}
-function sphFixUint ( $value )
-{
-	if ( PHP_INT_SIZE>=8 )
-	{
-		// x64 route, workaround broken unpack() in 5.2.2+
-		if ( $value<0 ) $value += (1<<32);
-		return $value;
-	}
-	else
-	{
-		// x32 route, workaround php signed/unsigned braindamage
-		return sprintf ( "%u", $value );
-	}
-}
-function sphSetBit ( $flag, $bit, $on )
-{
-	if ( $on )
-	{
-		$flag |= ( 1<<$bit );
-	} else
-	{
-		$reset = 16777215 ^ ( 1<<$bit );
-		$flag = $flag & $reset;
-	}
-	return $flag;
-}
-
-
-
 
 class MCSaveHandler
 {
@@ -504,6 +304,10 @@ class MCSaveHandler
     {
         $myfile = fopen("/tmp/testfile.txt", "w") ;
         $db = new DB($this->cfg);
+        
+        $ps = $db->prepareQuery("update ad_user set content=? where id=?");
+        $po = $db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
+        
         $rs = $db->queryResultArray("SELECT ad_user.*
                     from ad
                     left join AD_USER on AD_USER.ID=ad.ID
@@ -514,6 +318,7 @@ class MCSaveHandler
                     and ad.section_id=7
                     and ad.HOLD=0
                     order by ad_user.id", [$country_id]);
+        
         $c = count($rs);
         for ($i=0; $i<$c; $i++)
         {
@@ -554,6 +359,14 @@ class MCSaveHandler
                         }
                         fwrite($myfile, var_export($j->attrs, TRUE));
                     }
+                    
+                    if (isset($j->attrs))
+                    {
+                        $ps->execute([$response, $ad['ID']]);
+                        $po->bindValue(1, $ad['ID'], PDO::PARAM_INT);
+                        $po->bindValue(2, preg_replace('/\s+/', ' ', json_encode($j->attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
+                        $po->execute();    
+                    }
                 } else {
                     echo $connection->_error, "\n";
                     print_r($content);
@@ -567,19 +380,24 @@ class MCSaveHandler
             //$connection->Close();
             //usleep(10);
         }
+        $db->commit();
         fclose($myfile);
     }
     
     
     public function getFromContentObject($ad_content)
     {
-        if (isset($ad_content->attrs)) {
-            unset($ad_content->attrs);
+        if (isset($ad_content['attrs'])) 
+        {
+            unset($ad_content['attrs']);
         }
         $command = ['command'=>'normalize', 'json'=>json_encode($ad_content)];
         $buffer = json_encode($command);
         $len = pack('N', strlen($buffer));
         $buffer = $len.$buffer;
+        
+        $this->Open();
+
         if ($this->_Send($this->_socket, $buffer, strlen($buffer)))
         {            
             $response = $this->_GetResponse($this->_socket, '');
@@ -589,11 +407,13 @@ class MCSaveHandler
             } else {
                 error_log($this->_error);
             }
+            $this->Close();
         }
         else
         {
             error_log($this->_error);
         }
+        
         return FALSE;
     }
 
@@ -641,7 +461,7 @@ if (php_sapi_name()=='cli')
 {
 
     $saveHandler = new MCSaveHandler($config);
-    $saveHandler->getFromDatabase($argv[1]);
-    //$saveHandler->testRealEstate(1);
+    //$saveHandler->getFromDatabase($argv[1]);
+    $saveHandler->testRealEstate(1);
     
 }

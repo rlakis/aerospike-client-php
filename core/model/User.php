@@ -867,25 +867,35 @@ class User {
         return $result;
     }
 
-    function renewAd($id,$state=1){
+    
+    function renewAd($id,$state=1)
+    {
         $result=false;
         $ad=$this->getPendingAds($id);
+        
         if (!empty($ad)){
             $ad=$ad[0];
-            
-            if($ad['ID'] < 3134500){
+            include_once $this->cfg['dir'] . '/core/lib/MCSaveHandler.php';                
+            $normalizer = new MCSaveHandler($this->cfg);
+
+            if ($ad['ID'] < 3134500)
+            {
                 
                 $sectionId= $ad['SECTION_ID'];
                 $purposeId= $ad['PURPOSE_ID'];
                 
                 $sections = $this->db->getSections();
-                if(isset($sections[$sectionId]) && $sections[$sectionId][5] && $sections[$sectionId][8]==$purposeId){
+                
+                $content=json_decode($ad['CONTENT'],true);
+                
+                if (isset($sections[$sectionId]) && $sections[$sectionId][5] && $sections[$sectionId][8]==$purposeId)
+                {
                     $content['ro']=$sections[$sections[$sectionId][5]][4];
                     $purposeId=$content['pu']=$sections[$sectionId][9];
                     $sectionId=$content['se']=$sections[$sectionId][5];
                 }
                 
-                $content=json_decode($ad['CONTENT'],true);
+                
                 
                 if(isset($content['altother']) && $content['altother']){
                     if($this->site->isRTL($content['altother'])){
@@ -913,33 +923,63 @@ class User {
                     }
                 }
                 
+                $normalized = $normalizer->getFromContentObject($content);
+                if ($normalized)                    
+                {
+                    $content = $normalized;
+                    if ($content['se']!=$sectionId)
+                    {
+                        $sectionId=$content['se'];
+                    }
+                    if ($content['pu']=$purposeId)
+                    {
+                        $purposeId=$content['pu'];
+                    }
+                }                
+                
                 $content = json_encode($content);
                 
-                if($this->info['level']==9){
+                if($this->info['level']==9)
+                {
                     $res=$this->db->queryResultArray(
-                    'update ad_user set content=?, section_id=?, purpose_id=?, state = '.$state.', date_added = current_timestamp where id = ? returning id',
-                    array($content, $sectionId, $purposeId, $id),true);
-                }else{
+                        'update ad_user set content=?, section_id=?, purpose_id=?, state = '.$state.', date_added=current_timestamp where id=? returning id',
+                        array($content, $sectionId, $purposeId, $id),true);
+                }
+                else
+                {
                     $res=$this->db->queryResultArray(
-                    'update ad_user set content=?, section_id=?, purpose_id=?, state='.$state.', date_added=current_timestamp where id=? and web_user_id=? returning id',
-                    array($content, $sectionId, $purposeId, $id,$this->info['id']),true);
+                        'update ad_user set content=?, section_id=?, purpose_id=?, state='.$state.', date_added=current_timestamp where id=? and web_user_id=? returning id',
+                        array($content, $sectionId, $purposeId, $id,$this->info['id']),true);
                 }
                 
             }else{
             
-                if($this->info['level']==9){
-                    $res=$this->db->queryResultArray(
-                    'update ad_user set state = '.$state.', date_added = current_timestamp where id = ? returning id',
-                    array($id),true);
-                }else{
-                    $res=$this->db->queryResultArray(
-                    'update ad_user set state='.$state.', date_added=current_timestamp where id=? and web_user_id=? returning id',
-                    array($id,$this->info['id']),true);
+                if($this->info['level']==9)
+                {
+                    $res=$this->db->queryResultArray('update ad_user set state='.$state.', date_added=current_timestamp where id=? returning id', [$id],true);
                 }
+                else
+                {
+                    $res=$this->db->queryResultArray('update ad_user set state='.$state.', date_added=current_timestamp where id=? and web_user_id=? returning id', [$id, $this->info['id']], true);
+                }
+
+                $normalized = $normalizer->getFromContentObject(json_decode($ad['CONTENT'], true));
+
             }
-            if (!empty ($res)) {
+            
+            if (!empty ($res)) 
+            {
                 $result = $res;
+                if ($normalized)
+                {
+                    $st = $this->db->getInstance()->prepare("update or insert into ad_object (id, attributes) values (?, ?)");
+                    $st->bindValue(1, $id, PDO::PARAM_INT);
+                    $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($normalized['attrs'], JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
+                    $st->execute();
+                }
+                
             }
+            
             /*$q='insert into ad_user
                 (web_user_id,state,content,title,purpose_id,section_id,
                 rtl,country_id,city_id,latitude,longitude,active_country_id,active_city_id)
@@ -1254,23 +1294,17 @@ class User {
 
                 $normalized = $normalizer->getFromContentObject($content);
 
-                if ($normalized)
+                if ($normalized)                    
                 {
-                    //error_log(json_encode($normalized));
                     $content = $normalized;
-                    if ($content->se!=$this->pending['post']['se'])
+                    if ($content['se']!=$this->pending['post']['se'])
                     {
-                        
+                        $this->pending['post']['se']=$content['se'];
                     }
-                    if ($content->pu!=$this->pending['post']['pu'])
+                    if ($content['pu']=$this->pending['post']['pu'])
                     {
-                        
+                        $this->pending['post']['pu']=$content['pu'];
                     }
-
-                    //if (isset($normalized->text))
-                    //    $content['other'] = $normalized->text;
-                    //if (isset($normalized->altr))
-                    //    $content['other'] = $normalized->text;
                 }
                 
                 /*
@@ -1305,6 +1339,9 @@ class User {
                 if (isset ($this->pending['post']['id']) && $this->pending['post']['id']) {
 
                     $id=$this->pending['post']['id'];
+                    
+                    $attrs = isset($content['attrs']) ? $content['attrs'] : NULL;
+                    
                     $q='update ad_user set
                         content=?,title=?,purpose_id=?,section_id=?,rtl=?,
                         country_id=?,city_id=?,latitude=?,longitude=?,state=?,media=? ';
@@ -1338,9 +1375,16 @@ class User {
 
                 	    	$result=null;
                     		try {
-                    			if ($stmt->execute()) {
-                        			$result=$stmt->fetchAll(PDO::FETCH_ASSOC);
-                    			}
+                                    if ($stmt->execute()) {
+                                        $result=$stmt->fetchAll(PDO::FETCH_ASSOC);
+                                        if ($attrs)
+                                        {
+                                            $st=$this->db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
+                                            $st->bindValue(1, $id, PDO::PARAM_INT);
+                                            $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
+                                            $st->execute();    
+                                        }
+                                    }
                     		} catch (Exception $e) {
                     			error_log('User.SaveAd ('. $id .'): ' . $e->getMessage());
                     			error_log('User.SaveAd ('. $id .') Transaction: ' . $this->db->getTransactionIsolationMessage());
@@ -1434,7 +1478,7 @@ class User {
                         }
                     }
                 } else {
-                	if ($this->pending['post']['se']>0) {
+                    if ($this->pending['post']['se']>0) {
                     	$q='insert into ad_user
                         	(web_user_id,content,title,purpose_id,section_id,rtl,country_id,city_id,latitude,longitude,media)
                         	values (?,?,?,?,?,?,?,?,?,?,?) returning id';
@@ -1458,6 +1502,8 @@ class User {
                     	}
                     }
                 }
+                
+                
 
             }
             $this->db->commit();
