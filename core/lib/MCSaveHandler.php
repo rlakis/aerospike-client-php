@@ -286,6 +286,18 @@ class MCSaveHandler
                     //echo $response, "\n";
                     $j = json_decode($response);
                     print_r($j);
+                    if (isset($j->attrs))
+                    {
+                        $ps = $db->prepareQuery("update ad_user set content=? where id=?");
+                        $po = $db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
+        
+                        $ps->execute([$response, $reference]);
+                        
+                        $po->bindValue(1, $reference, PDO::PARAM_INT);
+                        $po->bindValue(2, preg_replace('/\s+/', ' ', json_encode($j->attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
+                        $po->execute();    
+                    }
+                    
                 } else {
                     echo $this->_error, "\n";
                 }
@@ -461,7 +473,7 @@ if (php_sapi_name()=='cli')
 {
 
     $saveHandler = new MCSaveHandler($config);
-    //$saveHandler->getFromDatabase($argv[1]);
-    $saveHandler->testRealEstate(1);
+    $saveHandler->getFromDatabase($argv[1]);
+    //$saveHandler->testRealEstate(1);
     
 }
