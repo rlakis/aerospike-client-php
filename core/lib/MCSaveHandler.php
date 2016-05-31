@@ -327,7 +327,7 @@ class MCSaveHandler
                     where ad.COUNTRY_ID=?
                     and ad.PUBLICATION_ID=1
                     and s.ROOT_ID=1
-                    and ad.section_id=7
+                    and ad.section_id=1
                     and ad.HOLD=0
                     order by ad_user.id", [$country_id]);
         
@@ -344,13 +344,6 @@ class MCSaveHandler
             $buffer = json_encode($command);
             $len = pack('N', strlen($buffer));
             $buffer = $len.$buffer;
-            fwrite($myfile, "----------------------------------------------------------------------------------------------------------\n");
-            fwrite($myfile, $ad['ID'].PHP_EOL);            
-            fwrite($myfile, $content->other.PHP_EOL);
-            if (isset($content->altother))
-            {
-                fwrite($myfile, $content->altother.PHP_EOL);
-            }
             
             $connection = new MCSaveHandler($this->cfg);
             $connection->Open();
@@ -363,6 +356,14 @@ class MCSaveHandler
                     $j = json_decode($response);
                     if (!isset($j->attrs->locales) || !isset($j->attrs->space) || !isset($j->attrs->price))
                     {
+                        fwrite($myfile, "----------------------------------------------------------------------------------------------------------\n");
+                        fwrite($myfile, $ad['ID'].PHP_EOL);            
+                        fwrite($myfile, $content->other.PHP_EOL);
+                        if (isset($content->altother))
+                        {
+                            fwrite($myfile, $content->altother.PHP_EOL);
+                        }
+  
                         fwrite($myfile, ">>>>>\n");
                         fwrite($myfile, $j->other .PHP_EOL);
                         if (isset($j->altother))
