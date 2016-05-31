@@ -954,16 +954,30 @@ class User {
                 
             }else{
             
-                if($this->info['level']==9)
+                $normalized = $normalizer->getFromContentObject(json_decode($ad['CONTENT'], true));
+                if ($normalized)
                 {
-                    $res=$this->db->queryResultArray('update ad_user set state='.$state.', date_added=current_timestamp where id=? returning id', [$id],true);
+                    
+                    if($this->info['level']==9)
+                    {
+                        $res=$this->db->queryResultArray('update ad_user set state='.$state.', content=?, date_added=current_timestamp where id=? returning id', [json_encode($normalized), $id],true);
+                    }
+                    else
+                    {
+                        $res=$this->db->queryResultArray('update ad_user set state='.$state.', content=?, date_added=current_timestamp where id=? and web_user_id=? returning id', [json_encode($normalized), $id, $this->info['id']], true);
+                    }                    
                 }
                 else
                 {
-                    $res=$this->db->queryResultArray('update ad_user set state='.$state.', date_added=current_timestamp where id=? and web_user_id=? returning id', [$id, $this->info['id']], true);
+                    if($this->info['level']==9)
+                    {
+                        $res=$this->db->queryResultArray('update ad_user set state='.$state.', date_added=current_timestamp where id=? returning id', [$id],true);
+                    }
+                    else
+                    {
+                        $res=$this->db->queryResultArray('update ad_user set state='.$state.', date_added=current_timestamp where id=? and web_user_id=? returning id', [$id, $this->info['id']], true);
+                    }
                 }
-
-                $normalized = $normalizer->getFromContentObject(json_decode($ad['CONTENT'], true));
 
             }
             
