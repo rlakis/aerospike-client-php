@@ -327,7 +327,7 @@ class MCSaveHandler
                     where ad.COUNTRY_ID=?
                     and ad.PUBLICATION_ID=1
                     and s.ROOT_ID=1
-                    and ad.section_id=1
+                    and ad.section_id in (1,2,7)
                     and ad.HOLD=0
                     order by ad_user.id", [$country_id]);
         
@@ -354,7 +354,8 @@ class MCSaveHandler
                 if ($response) 
                 {
                     $j = json_decode($response);
-                    if (!isset($j->attrs->locales) || !isset($j->attrs->space) || !isset($j->attrs->price))
+                    ///Users/robertallakis/NetBeansProjects/MourjanAdNormalizer/dist/MourjanNormalizer.jar
+                    if (!isset($j->attrs->locales) )
                     {
                         fwrite($myfile, "----------------------------------------------------------------------------------------------------------\n");
                         fwrite($myfile, $ad['ID'].PHP_EOL);            
