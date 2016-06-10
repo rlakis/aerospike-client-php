@@ -1833,14 +1833,14 @@ class User {
         
         $q='update web_users set last_visit=current_timestamp  
             where identifier=? and  user_pass=? and provider = \'mourjan\' 
-             returning id,provider,lvl,display_name, email, active_ads,pending_ads,archive_ads,draft_ads,user_rank,user_name,user_email,opts,prev_visit,last_visit
+             returning id,provider,lvl,display_name, email, user_rank,user_name,user_email,opts,prev_visit,last_visit
         ';
         
         if(!preg_match('/@/',$email)){
             $email = (int)$email;
             $q='update web_users set last_visit = current_timestamp  
                 where identifier containing ? and  user_pass = ? and provider = \'mourjan\' 
-                 returning id,provider,lvl,display_name, email, active_ads,pending_ads,archive_ads,draft_ads,user_rank,user_name,user_email,opts,prev_visit,last_visit
+                 returning id,provider,lvl,display_name, email, user_rank,user_name,user_email,opts,prev_visit,last_visit
             ';
         }
         
@@ -2127,7 +2127,7 @@ class User {
         $q='update or insert into web_users
             (IDENTIFIER, email, provider, full_name, display_name, profile_url, last_visit)
             values (?, ?, ?, ?, ?, ?, current_timestamp)
-            matching (identifier, provider) returning id,provider,lvl,display_name, email, active_ads,pending_ads,archive_ads,draft_ads,user_rank,user_name,user_email,opts,prev_visit,last_visit';
+            matching (identifier, provider) returning id,provider,lvl,display_name, email, user_rank,user_name,user_email,opts,prev_visit,last_visit';
             
         $result=$this->db->queryResultArray($q, array(
             $identifier,
