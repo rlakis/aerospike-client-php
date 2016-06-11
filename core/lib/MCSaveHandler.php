@@ -295,7 +295,14 @@ class MCSaveHandler
                         
                         $po->bindValue(1, $reference, PDO::PARAM_INT);
                         $po->bindValue(2, preg_replace('/\s+/', ' ', json_encode($j->attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
-                        $po->execute();    
+                        $po->execute();   
+                        
+                        if ($rs['STATE']=='1')
+                        {
+                            $po = $db->prepareQuery("INSERT INTO INVALIDATE (TABLE_ID, RECORD_ID) VALUES (12, ?)");
+                            $po->bindValue(1, $reference, PDO::PARAM_INT);
+                            $po->execute(); 
+                        }
                     }
                     
                 } else {
@@ -327,7 +334,7 @@ class MCSaveHandler
                     where ad.COUNTRY_ID=?
                     and ad.PUBLICATION_ID=1
                     and s.ROOT_ID=1
-                    and ad.section_id in (1,2,7)
+                    and ad.section_id!=748
                     and ad.HOLD=0
                     order by ad_user.id", [$country_id]);
         
@@ -476,6 +483,6 @@ if (php_sapi_name()=='cli')
 
     $saveHandler = new MCSaveHandler($config);
     $saveHandler->getFromDatabase($argv[1]);
-    //$saveHandler->testRealEstate(1);
+    //$saveHandler->testRealEstate(3);
     
 }
