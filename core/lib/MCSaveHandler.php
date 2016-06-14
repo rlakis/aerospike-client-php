@@ -336,7 +336,8 @@ class MCSaveHandler
                     and ad.PUBLICATION_ID=1
                     and s.ROOT_ID=1
                     and ad.section_id!=748
-                    and ad.HOLD=0 
+                    and ad.HOLD=0
+                    and ad.id>6400000
                     order by ad_user.id", [$country_id]);
         
         $c = count($rs);
