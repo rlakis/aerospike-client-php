@@ -288,10 +288,11 @@ class MCSaveHandler
                     print_r($j);
                     if (isset($j->attrs))
                     {
-                        $ps = $db->prepareQuery("update ad_user set content=? where id=?");
+                        $ps = $db->prepareQuery("update ad_user set section_id=?, purpose_id=?, content=? where id=?");
                         $po = $db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
         
-                        $ps->execute([$response, $reference]);
+                        $ps->execute([$j->se, $j->pu, $response, $reference]);
+                        
                         
                         $po->bindValue(1, $reference, PDO::PARAM_INT);
                         $po->bindValue(2, preg_replace('/\s+/', ' ', json_encode($j->attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
@@ -335,7 +336,7 @@ class MCSaveHandler
                     and ad.PUBLICATION_ID=1
                     and s.ROOT_ID=1
                     and ad.section_id!=748
-                    and ad.HOLD=0
+                    and ad.HOLD=0 
                     order by ad_user.id", [$country_id]);
         
         $c = count($rs);
@@ -483,6 +484,6 @@ if (php_sapi_name()=='cli')
 
     $saveHandler = new MCSaveHandler($config);
     $saveHandler->getFromDatabase($argv[1]);
-    //$saveHandler->testRealEstate(3);
+    //$saveHandler->testRealEstate(7);
     
 }
