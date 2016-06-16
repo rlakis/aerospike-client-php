@@ -336,8 +336,7 @@ class MCSaveHandler
                     and ad.PUBLICATION_ID=1
                     and s.ROOT_ID=1
                     and ad.section_id!=748
-                    and ad.HOLD=0
-                    and ad.id>6400000
+                    and ad.HOLD=0 
                     order by ad_user.id", [$country_id]);
         
         $c = count($rs);
@@ -485,6 +484,6 @@ if (php_sapi_name()=='cli')
 
     $saveHandler = new MCSaveHandler($config);
     $saveHandler->getFromDatabase($argv[1]);
-    //$saveHandler->testRealEstate(7);
+    //$saveHandler->testRealEstate(9);
     
 }
