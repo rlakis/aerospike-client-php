@@ -15,7 +15,7 @@ return [
 
 		"Yahoo" => [
 			"enabled" => true,
-            "wrapper" => [ "path" => "Providers/YahooOpenId.php", "class" => "Hybrid_Providers_Yahoo" ]
+            "wrapper" => [ "path" => "vendor/hybridauth/hybridauth/additional-providers/hybridauth-yahoo-openid/Providers/Yahoo.php", "class" => "Hybrid_Providers_Yahoo" ]
 		],
 
 		"Google" => [
