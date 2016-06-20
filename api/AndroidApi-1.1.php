@@ -513,47 +513,19 @@ class AndroidApi {
 
                         include_once $this->api->config['dir'] . '/core/lib/MCSaveHandler.php';                
                         $normalizer = new MCSaveHandler($this->api->config);
-                        //$content = json_decode($ad, true);
                         $normalized = $normalizer->getFromContentObject($ad);
                         $attrs = [];
                         if ($normalized)
                         {
                             $ad = $normalized;
                             $attrs = $normalized['attrs'];
-                            //if ($ad['se']!=$this->pending['post']['se'])
-                            //{
-                            //    $this->pending['post']['se']=$content['se'];
-                            //}
-                            //if ($content['pu']=$this->pending['post']['pu'])
-                            //{
-                            //    $this->pending['post']['pu']=$content['pu'];
-                            //}
-                        }
+                        }                
 
-                
-                        //include_once $this->api->config['dir'] . '/core/lib/MCAdTextHandler.php';
-                        //$textHandler = new AdTextFormatter();
-
-                        //$textHandler->setText($ad['other']);
-                        //$textHandler->format();
-                        //$ad['other'] = $textHandler->text;
-
-                        if($this->isRTL($ad['other'])){
-                            $ad['rtl']=1;
-                        }else{
-                            $ad['rtl']=0;
-                        }
+                        $ad['rtl'] = ($this->isRTL($ad['other'])) ? 1 : 0;
                         
                         if(isset($ad['altother']) && $ad['altother']){
-                            //$textHandler->setText($ad['altother']);
-                            //$textHandler->format();                
-                            //$ad['altother'] = $textHandler->text;
 
-                            if($this->isRTL($ad['altother'])){
-                                $ad['altRtl']=1;
-                            }else{
-                                $ad['altRtl']=0;
-                            }
+                            $ad['altRtl'] = ($this->isRTL($ad['altother'])) ? 1 : 0;
 
                             if($ad['rtl'] == $ad['altRtl']){
                                 $ad['extra']['t']=2;
@@ -581,11 +553,6 @@ class AndroidApi {
                             $ip = $_SERVER['REMOTE_ADDR'];
                         }
                         $ad['ip']=$ip;                            
-                        //$ip = @geoip_record_by_name($ip);
-                        //if($ip)
-                        //    $ad['userLOC']=implode(" ,",$ip);
-                        //else 
-                        //$ad['userLOC']=0;
                         $databaseFile = '/home/db/GeoLite2-City.mmdb';
         				$reader = new Reader($databaseFile);
         				$geo = $reader->get($ip);
@@ -660,8 +627,8 @@ class AndroidApi {
                                     returning state, id';
                                     $stmt = $this->api->db->getInstance()->prepare($q);
 
-                                    $result=null;
-                                    if ($stmt->execute([
+                                $result=null;
+                                if ($stmt->execute([
                                         $encodedAd,
                                         $ad['pu'],
                                         $ad['se'],
@@ -674,9 +641,10 @@ class AndroidApi {
                                         $ad['media'],
                                         $ad_id,
                                         $this->api->getUID()
-                                    ])) {
-                                        $result=$stmt->fetchAll(PDO::FETCH_ASSOC);
-                                    }
+                                    ])) 
+                                {
+                                    $result=$stmt->fetchAll(PDO::FETCH_ASSOC);
+                                }
                                     
                                     if (!empty($result)) {
                                         
@@ -926,28 +894,33 @@ class AndroidApi {
                     }
                 }
                 break;
+                
                 case API_ANDROID_RENEW_AD:                
-                $opts = $this->api->userStatus($status);
-                if ($status == 1 && (!isset($opts->suspend) || $opts->suspend <= time() )) {   
-                    $this->api->db->setWriteMode();   
-                    $ad_id = filter_input(INPUT_POST, 'adid', FILTER_VALIDATE_INT) + 0;
+                    $opts = $this->api->userStatus($status);
+                    if ($status == 1 && (!isset($opts->suspend) || $opts->suspend <= time() )) 
+                    {
+                        $this->api->db->setWriteMode();   
+                        $ad_id = filter_input(INPUT_POST, 'adid', FILTER_VALIDATE_INT) + 0;
                     
-                    $ad = $this->api->db->queryResultArray(
-                            'select a.id, a.content, a.state, a.section_id  '
-                            . 'from ad_user a '
-                            . 'where a.id = ? and a.web_user_id = ?', [$ad_id, $this->api->getUID()], true
-                    );
-                    $renew= true;
-                    if($ad && isset($ad[0]['ID']) && $ad[0]['ID']){
-                        $ad = $ad[0];
-                        $content = json_decode($ad['CONTENT'],true);
-                        if(in_array($ad['SECTION_ID'],array(190,1179,540,1114))){
-                            $dupliactePending = $this->detectIfAdInPending($ad_id, $ad['SECTION_ID'], $content['cui']);
-                            if($dupliactePending){
-                                $renew= false;
-                                $q='update ad_user set
-                                    content=?,state=? 
-                                    where id=?';
+                        $ad = $this->api->db->queryResultArray(
+                            'select a.id, a.content, a.state, a.section_id, a.purpose_id ' .
+                            'from ad_user a ' .
+                            'where a.id=? and a.web_user_id=?', [$ad_id, $this->api->getUID()], true
+                        );
+                    
+                        $renew= true;
+                    
+                        if($ad && isset($ad[0]['ID']) && $ad[0]['ID'])
+                        {
+                            $ad = $ad[0];
+                            $content = json_decode($ad['CONTENT'], true);
+                            if(in_array($ad['SECTION_ID'],array(190,1179,540,1114)))
+                            {
+                                $dupliactePending = $this->detectIfAdInPending($ad_id, $ad['SECTION_ID'], $content['cui']);
+                                if($dupliactePending)
+                                {
+                                    $renew= false;
+                                    $q='update ad_user set content=?, state=? where id=?';
                                     $suspendStmt = $this->api->db->getInstance()->prepare($q);
                                     if($content['rtl']){
                                         $msg = 'هنالك اعلان مماثل في لائحة الانتظار وبالنتظار موافقة محرري الموقع';
@@ -958,36 +931,53 @@ class AndroidApi {
                                 
                                     $encodedAd = json_encode($content);
                                     $result=null;
-                                    $suspendStmt->execute([
-                                        $encodedAd,
-                                        3,
-                                        $ad_id
-                                    ]);
+                                    $suspendStmt->execute([$encodedAd, 3, $ad_id]);
                                     $suspendStmt->closeCursor();
+                                }
                             }
-                        }
                     
-                        if($renew){
-                            $result = $this->api->db->queryResultArray(
-                                    "update ad_user a set a.state = 1 where a.id = ? and a.web_user_id = ? and a.state = 9 returning id", [$ad_id,$this->api->getUID()], true
-                            );
+                            if($renew)
+                            {
+                                include_once $this->api->config['dir'] . '/core/lib/MCSaveHandler.php';                
+                                $normalizer = new MCSaveHandler($this->api->config);
+                                if (isset($content['attrs'])) {
+                                    unset($content['attrs']);
+                                }
+                                $normalized = $normalizer->getFromContentObject($content);
+                                $attrs = [];
+                                if ($normalized)
+                                {
+                                    $ad['CONTENT'] = $normalized;
+                                    $attrs = $normalized['attrs'];
+                                    if ($ad['SECTION_ID']!=$normalized['se'])
+                                        $ad['SECTION_ID']=$normalized['se'];
+                                    if ($ad['PURPOSE_ID']!=$normalized['pu'])
+                                        $ad['PURPOSE_ID']=$normalized['pu'];
+                                }
+
+                                $result = $this->api->db->queryResultArray(
+                                    "update ad_user a set a.section_id=?, a.purpose_id=?, a.content=?, a.state=1 where a.id=? and a.web_user_id=? and a.state=9 returning id", 
+                                    [$ad['SECTION_ID'], $ad['PURPOSE_ID'], json_encode($ad['CONTENT']), $ad_id, $this->api->getUID()], true);
 
 
-                            $this->api->result['d'] = [];
-                            if($result && isset($result[0]['ID'])){
-                                $this->api->result['d']['renew'] = $result[0]['ID'];
-
+                                if (!empty($result)) 
+                                { 
+                                    $st = $this->api->db->getInstance()->prepare("update or insert into ad_object (id, attributes) values (?, ?)");
+                                    $st->bindValue(1, $ad_id, PDO::PARAM_INT);
+                                    $st->bindValue(2, json_encode($attrs, JSON_UNESCAPED_UNICODE), PDO::PARAM_STR);
+                                    $st->execute();                                        
+                                }
+                                    
+                                $this->api->result['d'] = [];
+                                $this->api->result['d']['renew'] = ($result && isset($result[0]['ID'])) ? $result[0]['ID'] : 0;                                                        
                             }else{
-                                $this->api->result['d']['renew'] = 0;
+                                $this->api->result['d']['renew'] = $ad_id;
                             }
                         }else{
-                            $this->api->result['d']['renew'] = $ad_id;
+                            $this->api->result['d']['renew'] = 0;
                         }
-                    }else{
-                        $this->api->result['d']['renew'] = 0;
                     }
-                    
-                }
+                
                 break;
                 case API_ANDROID_SIGN_UP: 
                     $this->api->result['d'] = [];

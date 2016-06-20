@@ -2355,9 +2355,14 @@ class MobileApi
             $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT)+0;
             if ($id) {
                 $this->db->setWriteMode();
-                $rs = $this->db->queryResultArray("update AD_USER set state=1 where id=? returning state", [$id], FALSE, PDO::FETCH_ASSOC);
+                include_once $this->config['dir'] . '/core/model/User.php';
+                $user = new User($this->db, $this->config, null, 0);
+                $rs = $user->renewAd($id, 1);
+                
+                
+                //$rs = $this->db->queryResultArray("update AD_USER set state=1 where id=? returning state", [$id], FALSE, PDO::FETCH_ASSOC);
                 if (empty($rs)==false) {
-                    $this->result['d']['state']=$rs[0]['STATE'];
+                    $this->result['d']['state']=1;//$rs[0]['STATE'];
                 }
             }
         }
