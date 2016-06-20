@@ -1085,7 +1085,7 @@ var rtMsgs={
                     }
                     $title.='<b'.$class.'>#'.$ad['ID'].'#</b>';
                     if($onlySuper){
-                        $title.='<span class="fail"></span>';
+                        $title.='<span class="fail fr"></span>';
                     }
                     $title.='</div>';
                 
