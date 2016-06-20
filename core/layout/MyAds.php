@@ -1002,6 +1002,9 @@ var rtMsgs={
                         $pic = '<span class="ig"></span>';
                     }
                 }
+                
+                
+                $onlySuper = ($isAdmin && isset($ad['SUPER_ADMIN']) && $ad['SUPER_ADMIN']==1) ? 1 : 0;  
                     
                 if($this->user->info['level']==9) {
                         
@@ -1080,7 +1083,11 @@ var rtMsgs={
                     }else if($isFeatureBooked){
                         $class = ' style="color:#FFF;background-color:blue"';
                     }
-                    $title.='<b'.$class.'>#'.$ad['ID'].'#</b></div>';
+                    $title.='<b'.$class.'>#'.$ad['ID'].'#</b>';
+                    if($onlySuper){
+                        $title.='<span class="fail"></span>';
+                    }
+                    $title.='</div>';
                 
                 }
                     
@@ -1211,6 +1218,10 @@ var rtMsgs={
                         ?><input type="button" class="lnk" onclick="rejF(this,<?= $ad['WEB_USER_ID'] ?>)" value="<?= $this->lang['reject'] ?>" /><?php
                     }else { 
                         if($state>0 && $state<7){
+                                                      
+                            if(!$this->user->isSuperUser() && !$onlySuper){
+                                ?><span class="lnk" onclick="help(this)"><?= $this->lang['ask_help'] ?></span><?php
+                            }
                             ?><span class="lnk" onclick="app(this)"><?= $this->lang['approve'] ?></span><?php
                             ?><span class="lnk" onclick="rejF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['reject'] ?></span><?php 
                             if($ad['USER_RANK'] < 2){
@@ -1255,6 +1266,10 @@ var rtMsgs={
                             
                             if ($contactInfo) {                                    
                                 ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
+                            }
+                            
+                            if($this->user->isSuperUser()){
+                                ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?aid=<?= $ad['ID'] ?>&q=check"><<<?= $this->lang['lookup'] ?>>></a><?php
                             }
                         }
                     }

@@ -519,11 +519,21 @@ class Site {
                     $this->getMediaAds();
                 }
 
-                $this->searchResults = $this->urlRouter->db->ql->executeBatch();   
-                if (isset($this->searchResults['sections'])) {
+                
+        
+                if(isset($_GET['aid']) && is_numeric($_GET['aid'])){
+                    $this->searchResults = ['body'=>[
+                                                'total_found'=>0
+                                                ]
+                                            ];
+                }else{
+                    $this->searchResults = $this->urlRouter->db->ql->executeBatch();   
+                    //var_dump($this->searchResults);
+                }
+                /*if (isset($this->searchResults['sections'])) {
                     //error_log(var_export($this->searchResults['sections'], true));
                     
-                }
+                }*/
             }       
         }
         

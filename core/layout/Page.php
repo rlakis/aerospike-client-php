@@ -29,7 +29,7 @@ class Page extends Site{
 
     function __construct($router){
         parent::__construct($router);
-        //$this->user->sysAuthById(160285);
+        //$this->user->sysAuthById(43905);
         if(!$this->urlRouter->cfg['enabled_users']){
             if($this->urlRouter->siteLanguage == 'ar'){
                 $this->setNotification('مرجان يواجه بعض المشاكل التقنية والتي يتم معالجتها حالياً. شكراً لتحليكم بالصبر.');
@@ -3727,7 +3727,7 @@ class Page extends Site{
                                     if($this->user->info['id']){
                                         if($this->user->info['level']==9){     
                                             if($this->urlRouter->cfg['site_production']){
-                                                ?>sh.src='https://h5.mourjan.com/js/3.0.4/myadsad.js';<?php 
+                                                ?>sh.src='https://h5.mourjan.com/js/3.0.5/myadsad.js';<?php 
                                             }else{
                                                 ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/myadsad.js';<?php 
                                             }

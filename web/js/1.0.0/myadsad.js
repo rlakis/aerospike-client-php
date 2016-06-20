@@ -333,6 +333,27 @@ trePic();
 _s('rejForm',null);
 _s('banForm',null);
 _s('suspForm',null);
+function help(e){
+    var d=mask(e);
+    var i=e.parentNode.parentNode.id;
+    $.ajax({
+        type:"POST",
+        url:"/ajax-help/",
+        data:{i:i},
+        dataType:"json",
+        success:function(rp){
+            if (rp.RP) {
+                d.removeClass("load");
+                d.html('Referring To Super Admin');
+            }else {
+                d.remove()
+            }
+        },
+        error:function(){
+            d.remove()
+        }
+    })
+}
 function app(e){
     var d=mask(e);
     var i=e.parentNode.parentNode.id;
@@ -1106,6 +1127,16 @@ if(PEND){
                 }
             }
         }
+        
+        wio.on('superAdmin',function(data){console.log(data);
+            if(typeof data !== 'undefined'){
+                var li=$('#'+data.id);
+                if(li.length){
+                    var d=mask(li[0],1);
+                    d.html('Sent To Super Admin');
+                }
+            }
+        });
         
         wio.on('editorialUpdate',function(data){
             if(typeof data !== 'undefined'){

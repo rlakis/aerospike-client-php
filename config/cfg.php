@@ -259,6 +259,7 @@ $config=array(
                                 'myads'          => array('MyAds',0),
                                 'oauth'          => array('OAuth',0),
                                 'account'          => array('Account',0),
+                                'ajax-help'         => array('Bin',0),  
                                 'ajax-home'         => array('Bin',0),  
                                 'ajax-mute'         => array('Bin',0),                              
                                 'ajax-changepu'         => array('Bin',0),

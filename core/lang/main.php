@@ -669,6 +669,8 @@ $lang=array(
     . '<li>{IMG8}<br />2 - Choose Package</li>'
     . '</ul></li>',
     
+    'ask_help'  =>  'Help',
+    
     'guide_droid_skip'  =>  'If you already have mourjan app setup on your mobile device <a href="#step2">click here to skip to second step</a>',
     'guide_apple_skip'  =>  'If you already have activated mourjan app and verified your phone number on your mobile device <a href="#step2">click here to skip to second step</a>',
     

@@ -585,6 +585,7 @@ class User {
                 }
             }else {
                 if ($this->info['level']==9){
+                    
                     $aid=0;
                     if (isset ($_GET['a']) && is_numeric($_GET['a'])) $aid=(int)$_GET['a'];
                     if($aid){
@@ -624,8 +625,12 @@ class User {
                                 ORDER BY bo_date_ended desc, a.DATE_ADDED desc
                                 ', array($uid,$state));
                         }elseif ($state){
+                            $adLevel=0;
+                            if($this->isSuperUser()){
+                                $adLevel=1;
+                            }
                             $filters = $this->getAdminFilters();
-                            $q='select '.$pagination_str.' a.*,u.full_name,u.lvl,'
+                            $q='select '.$pagination_str.' a.*,ao.super_admin,u.full_name,u.lvl,'
                                 . 'u.DISPLAY_NAME,u.profile_url, '
                                 . 'iif((a.section_id = 190 or a.section_id = 1179 or a.section_id = 540),1,0) ppn, '
                                 . 'iif(a.state = 4,1,0) primo, '
@@ -633,17 +638,20 @@ class User {
                                     IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended  '
                                 . 'from ad_user a '
                                 . 'left join web_users u on u.id=a.web_user_id '
+                                . 'left join ad_object ao on ao.id = a.id '
                                 . 'left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 '
                                 . 'left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date ';
                                 if($filters['root']){
                                     $q .= 'left join section s on a.section_id = s.id ';
                                 }
                                 $q .= 'where ';
+                                    
                                     if($filters['uid']){
                                         $q.= '( (a.state in (1,2,4)) and a.web_user_id='.$filters['uid'].' ) ';
                                     }else{
                                         $q.= '( (a.state in (1,2,4)) or (a.state=3 and a.web_user_id='.$uid.') ) ';
                                     }
+                                    $q .= ' and ao.super_admin <= '.$adLevel.' ';
                                     if($filters['purpose']){
                                         $q.='and a.purpose_id='.$filters['purpose'].' ';
                                     }
@@ -811,6 +819,17 @@ class User {
                     'update ad_user set state=2, admin_id=?, admin_stamp=current_timestamp where id=? returning state',
                     array($this->info['id'],$id),true);
         if (!empty($res)) {
+            $result=true;
+        }
+        return $result;
+    }
+    
+    function referrToSuperAdmin($id){
+        $result=false;
+        $res=$this->db->queryResultArray(
+                    'update ad_object set super_admin=1 where id=?',
+                    array($id),true);
+        if ($res!==false) {
             $result=true;
         }
         return $result;

@@ -2990,6 +2990,32 @@ class Bin extends AjaxHandler{
                     }else $this->fail('102');
                 }else $this->fail('101');
                 break;
+            case 'ajax-help':
+                if ($this->user->info['level']==9 && isset ($_POST['i'])) {
+                    $id=$_POST['i'];
+                    if (is_numeric($id)){
+                        if ($this->user->referrToSuperAdmin($id)) {
+                            $this->process();
+                            
+                            try {
+            	
+                                $redis = new Redis();
+                                $data = [
+                                    'cmd'   =>  'superAdmin',
+                                    'data'  => [
+                                        'id'=>$id
+                                    ]
+                                ];
+                                if ($redis->connect('h6.mourjan.com', 6379, 1, NULL, 50)) {
+                                    $redis->publish('editorial', json_encode($data));
+                                }
+
+                            } catch (RedisException $re) {}
+                            
+                        }else $this->fail('103');
+                    }else $this->fail('102');
+                }else $this->fail('101');
+                break;
             case 'ajax-mpre':
                 $ad_id = filter_input(INPUT_POST, 'i', FILTER_VALIDATE_INT) + 0;
                 $coins = filter_input(INPUT_POST, 'c', FILTER_VALIDATE_INT) + 0;
