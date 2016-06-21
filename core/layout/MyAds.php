@@ -735,6 +735,7 @@ var rtMsgs={
     function pendingAds($state=0) {
         $isAdmin = false;
         $isAdminOwner = false;
+        $isSuperAdmin = $this->user->isSuperUser();
         $current_time = time();
         if($this->user->info['level']==9) {
             $isAdmin = true;
@@ -1218,19 +1219,21 @@ var rtMsgs={
                         ?><input type="button" class="lnk" onclick="rejF(this,<?= $ad['WEB_USER_ID'] ?>)" value="<?= $this->lang['reject'] ?>" /><?php
                     }else { 
                         if($state>0 && $state<7){
-                                                      
-                            if(!$this->user->isSuperUser() && !$onlySuper){
-                                ?><span class="lnk" onclick="help(this)"><?= $this->lang['ask_help'] ?></span><?php
-                            }
+                                           
                             ?><span class="lnk" onclick="app(this)"><?= $this->lang['approve'] ?></span><?php
                             ?><span class="lnk" onclick="rejF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['reject'] ?></span><?php 
-                            if($ad['USER_RANK'] < 2){
+                                       
+                            if(!$isSuperAdmin && !$onlySuper){
+                                ?><span class="lnk" onclick="help(this)"><?= $this->lang['ask_help'] ?></span><?php
+                            }
+                            
+                            if($isSuperAdmin && $ad['USER_RANK'] < 2){
                                 ?><span class="lnk" onclick="banF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['block'] ?></span><?php 
                             }
                             if($ad['USER_RANK'] < 3){
                                 ?><span class="lnk" onclick="suspF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['suspend'] ?></span><?php
                             }
-                            if($this->user->isSuperUser() && $filters['uid']==0){
+                            if($isSuperAdmin && $filters['uid']==0){
                                 ?><a class="lnk" href="/myads/<?= $this->urlRouter->siteLanguage=='ar'?'':'en/' ?>?sub=pending&fuid=<?= $ad['WEB_USER_ID'] ?>"><?= $this->lang['user_type_option_1'] ?></a><?php
                             }
                             
@@ -1263,14 +1266,14 @@ var rtMsgs={
                                     $contactInfo.=urlencode('"'.$content['cui']['s'].'"');
                                 }
                             }
+                            if($isSuperAdmin){
+                                ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?aid=<?= $ad['ID'] ?>&q="><?= $this->lang['similar'] ?></a><?php
+                            }
                             
                             if ($contactInfo) {                                    
                                 ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
                             }
                             
-                            if($this->user->isSuperUser()){
-                                ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?aid=<?= $ad['ID'] ?>&q=check"><<<?= $this->lang['lookup'] ?>>></a><?php
-                            }
                         }
                     }
                 }

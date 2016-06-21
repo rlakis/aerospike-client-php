@@ -1,6 +1,6 @@
 <?php
 
-include_once '../../config/cfg.php';
+include_once '../../../config/cfg.php';
 include_once $config['dir'].'/core/model/Db.php';
 
 class Administration {
@@ -24,7 +24,33 @@ class Administration {
         //include_once $config['dir'].'/core/model/User.php';
         //$USER = new User($this->db, $config, null, false);
         $start = time();
+        $pass= true;
         switch($this->ACTION){
+            case "unblock":
+                if(isset($this->args[2]) && is_numeric($this->args[2])){
+                    $userId = $this->args[2];
+                    
+                    $accounts = [
+                        $userId => ['LVL'=>0]
+                    ];
+                    
+                    echo "unblocking {$userId}..".PHP_EOL;
+                    
+                    $this->getUserAccounts($accounts);
+                    $ids=  array_keys($accounts);
+                    
+                    $q='update web_users set lvl = 0 where id in ('.  implode(',', $ids).')';
+                    
+                    if($this->db->queryResultArray($q)){
+                        echo "{$userId} unblocked successfully".PHP_EOL;
+                    }else{
+                        echo "system error: failed to unblock".PHP_EOL;
+                    }
+                    
+                }else{
+                    echo "unblock error: missing {web_user_id}".PHP_EOL;
+                }
+                break;
             case "yBlocked":
                 if(isset($this->args[2]) && is_numeric($this->args[2])){
                     $userId = $this->args[2];
@@ -37,20 +63,24 @@ class Administration {
                     
                     $this->getUserAccounts($accounts);
                     
-                    var_dump($accounts);
+                    $this->displayUserAccounts($accounts);
                     
                 }else{
-                    echo "yBlocked error - missing {web_user_id}".PHP_EOL;
+                    echo "yBlocked error: missing {web_user_id}".PHP_EOL;
                 }
                 break;
             default:
+                $pass=false;
                 echo "command not found".PHP_EOL;
                 echo "available commands:".PHP_EOL;
                 echo "1-\tyBlocked {web_user_id}".PHP_EOL;
+                echo "2-\tunblock {web_user_id}".PHP_EOL;
                 break;
         }
-        $time = time() - $start;
-        echo "Runtime: {$time}ms".PHP_EOL;
+        if($pass){
+            $time = time() - $start;
+            echo "Runtime: {$time}ms".PHP_EOL;
+        }
         echo "------------------------------------------------------".PHP_EOL;
     }
     
@@ -105,7 +135,7 @@ class Administration {
                     'LVL'=>$other['LVL']
                 ];
                 $opts = json_decode($other['OPTS'],true);
-                if(isset($opts['block'])){
+                if($other['LVL']==5 && isset($opts['block'])){
                     $accounts[$other['ID']]['block']=$opts['block'];
                 }
             }
@@ -114,6 +144,22 @@ class Administration {
         if(count($accounts)!=$accountCount){
             $this->getUserAccounts($accounts);
         }
+    }
+    
+    function displayUserAccounts($accounts){
+        $q = 'select id, email, user_email from web_users where lvl = 9';
+        $admins = $this->db->queryResultArray($q);
+        $ids=[];
+        $labels=[];
+        foreach($admins as $admin){
+            $ids[]='/\s'.$admin['ID'].'/';
+            $labels[]=' '.(($admin['USER_EMAIL']!='')?$admin['USER_EMAIL']:$admin['EMAIL']);
+        }
+        $accounts=json_encode($accounts);        
+        $accounts=preg_replace($ids, $labels, $accounts);
+        $accounts=  json_decode($accounts,true);
+        
+        print_r($accounts);
     }
     
     function _getContactInfo($ads, &$phones, &$emails){        

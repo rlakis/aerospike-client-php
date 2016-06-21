@@ -3727,7 +3727,7 @@ class Page extends Site{
                                     if($this->user->info['id']){
                                         if($this->user->info['level']==9){     
                                             if($this->urlRouter->cfg['site_production']){
-                                                ?>sh.src='https://h5.mourjan.com/js/3.0.5/myadsad.js';<?php 
+                                                ?>sh.src='https://h5.mourjan.com/js/3.0.6/myadsad.js';<?php 
                                             }else{
                                                 ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/myadsad.js';<?php 
                                             }

@@ -377,6 +377,9 @@ class Router {
                 }
             }                        
         }
+        if(isset($_GET['aid']) && isset($_GET['q'])){
+            $this->force_search=true;
+        }
             
         if ($this->params['start'] && !array_key_exists('start', $_GET))
             $_GET['start']=  $this->params['start'];

@@ -159,6 +159,7 @@ $lang=array(
         Submitting spam or immoral ads
         </li></ul>",
     'lookup'        =>  'Lookup',
+    'similar'        =>  'Similar',
     "keywords"      =>  "",
     "description"   =>  "",
     "home_description"  =>  "Browse and search through all classifieds listings including real estate for sale for rent, cars for sale, jobs and more",
