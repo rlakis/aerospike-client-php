@@ -2678,7 +2678,8 @@ if($isFeatured){
         for ($ptr = 0; $ptr < $ad_count; $ptr++) {
             $id = $this->searchResults['zone2']['matches'][$ptr];
             $ad = $this->classifieds->getById($id,false,$ad_cache);
-            if (isset($ad[Classifieds::ID]) ) {
+            //if (isset($ad[Classifieds::ID]) ) {
+            if (isset($ad[Classifieds::ID]) && ( $ad[Classifieds::USER_ID]!=220906 || $ad[Classifieds::ID]==6889499 || ($ptr == $ad_count-1) )) {
                 $this->replacePhonetNumbers($ad[Classifieds::CONTENT], $ad[Classifieds::PUBLICATION_ID], $ad[Classifieds::COUNTRY_CODE], $ad[Classifieds::TELEPHONES][0], $ad[Classifieds::TELEPHONES][1], $ad[Classifieds::TELEPHONES][2],$ad[Classifieds::EMAILS]);
 
                 //$this->processTextNumbers($ad[Classifieds::CONTENT],$ad[Classifieds::PUBLICATION_ID],$ad[Classifieds::COUNTRY_CODE]);
@@ -2759,7 +2760,8 @@ if($isFeatured){
         for ($ptr = 0; $ptr < $ad_count; $ptr++) {
             $id = $this->searchResults['zone2']['matches'][$ptr];
             $ad = $this->classifieds->getById($id,false,$ad_cache);
-            if (isset($ad[Classifieds::ID]) ) {
+            //if (isset($ad[Classifieds::ID]) {
+            if (isset($ad[Classifieds::ID]) && ( $ad[Classifieds::USER_ID]!=220906 || $ad[Classifieds::ID]==6889499 || ($ptr == $ad_count-1) )) {
                 $this->replacePhonetNumbers($ad[Classifieds::CONTENT], $ad[Classifieds::PUBLICATION_ID], $ad[Classifieds::COUNTRY_CODE], $ad[Classifieds::TELEPHONES][0], $ad[Classifieds::TELEPHONES][1], $ad[Classifieds::TELEPHONES][2],$ad[Classifieds::EMAILS]);
 
                 //$this->processTextNumbers($ad[Classifieds::CONTENT],$ad[Classifieds::PUBLICATION_ID],$ad[Classifieds::COUNTRY_CODE]);

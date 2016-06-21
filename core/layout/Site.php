@@ -622,7 +622,7 @@ class Site {
             $this->urlRouter->db->ql->setFilterCondition('featured_date_ended', '>=', time());                        
             $this->urlRouter->db->ql->setSelect("id" );
             $this->urlRouter->db->ql->setSortBy("rand()");            
-            $this->urlRouter->db->ql->setLimits(0, 20);
+            $this->urlRouter->db->ql->setLimits(0, 30);
             $this->urlRouter->db->ql->addQuery('zone1', $q);
         }
         
@@ -638,11 +638,11 @@ class Site {
             elseif ($this->urlRouter->sectionId)
                 $cl->SetFilter('section_id', array($this->urlRouter->sectionId));
 */
-            //220906
-            $rand = mt_rand(0, 9);
+            
+            /*$rand = mt_rand(0, 9);
             if($rand != 0){
-                $this->urlRouter->db->ql->setFilter('user_id', array(220906,298835), true);
-            }
+                $this->urlRouter->db->ql->setFilter('user_id', array(220906), true);
+            }*/
 
             if ($this->urlRouter->countryId) {
                 $this->urlRouter->db->ql->setFilter('country', $this->urlRouter->countryId);
@@ -659,7 +659,7 @@ class Site {
             $this->urlRouter->db->ql->setFilterCondition('featured_date_ended', '>=', time());
             $this->urlRouter->db->ql->setSelect("id" );
             $this->urlRouter->db->ql->setSortBy("RAND()");
-            $this->urlRouter->db->ql->setLimits(0, 1);
+            $this->urlRouter->db->ql->setLimits(0, 4);
             $this->urlRouter->db->ql->addQuery('zone2');
         }
         
