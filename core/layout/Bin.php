@@ -284,7 +284,7 @@ class Bin extends AjaxHandler{
                                     'cmd'   =>  $redisAction,
                                     'data'  => $this->data
                                 ];
-                                if ($redis->connect('h6.mourjan.com', 6379, 1, NULL, 50)) {
+                                if ($redis->connect('h8.mourjan.com', 6379, 1, NULL, 50)) {
                                     $redis->publish('editorial', json_encode($data));
                                 } 
 
@@ -3006,7 +3006,7 @@ class Bin extends AjaxHandler{
                                         'id'=>$id
                                     ]
                                 ];
-                                if ($redis->connect('h6.mourjan.com', 6379, 1, NULL, 50)) {
+                                if ($redis->connect('h8.mourjan.com', 6379, 1, NULL, 50)) {
                                     $redis->publish('editorial', json_encode($data));
                                 }
 

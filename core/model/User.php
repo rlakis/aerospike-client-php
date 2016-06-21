@@ -664,7 +664,7 @@ class User {
                                     if($filters['root']){
                                         $q.='and s.root_id = '.$filters['root'].' ';
                                     }
-                                    $q.= 'order by primo desc, a.state asc,bo_date_ended desc, ppn,a.date_added desc';                               
+                                    $q.= 'order by primo desc,a.state asc,bo_date_ended desc,ao.super_admin desc, ppn,a.date_added desc';                               
                             //echo $q;
                             $res=$this->db->queryResultArray($q);
                         }else {

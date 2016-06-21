@@ -140,6 +140,10 @@ class MyAds extends Page {
                     z-index:50001;
                     padding:5px
                     }
+                    .oct a{
+                        overflow:hidden;white-space:nowrap;max-width:230px;
+                        text-overflow: ellipsis;padding:0 10px
+                    }
                 ';
                 if($this->urlRouter->siteLanguage=='ar'){
                     $this->inlineCss.='
@@ -1085,9 +1089,6 @@ var rtMsgs={
                         $class = ' style="color:#FFF;background-color:blue"';
                     }
                     $title.='<b'.$class.'>#'.$ad['ID'].'#</b>';
-                    if($onlySuper){
-                        $title.='<span class="fail fr"></span>';
-                    }
                     $title.='</div>';
                 
                 }
@@ -1112,7 +1113,7 @@ var rtMsgs={
                     
                 ?><li id="<?= $ad['ID'] ?>" <?= $liClass ?><?= $ad['STATE']==2 ? ' status="2" class="approved"' : ($ad['STATE']==3 ? ' status="3" class="approved"' : '') ?><?= ($this->user->info['level']==9 ? ' ro="'.$content['ro'].'" se="'.$content['se'].'" pu="'.$content['pu'].'"':'') ?>><?php
                 if ($ad['STATE']==1 || $ad['STATE']==4) {
-                    echo '<div class="nb nbw"><span class="wait"></span>',$this->lang['pendingMsg'],'</div>';
+                    echo '<div class="nb nbw">' .($onlySuper ? '<span class="fail"></span>' : '<span class="wait"></span>') ,$this->lang['pendingMsg'],'</div>';
                 }elseif ($ad['STATE']==2) {
                     echo '<div class="nb nbg"><span class="done"></span>',$this->lang['approvedMsg'],'</div>';
                 }elseif ($ad['STATE']==3){
