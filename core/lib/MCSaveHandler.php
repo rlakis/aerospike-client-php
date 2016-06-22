@@ -439,6 +439,183 @@ class MCSaveHandler
         return FALSE;
     }
 
+    
+    function searchByAdId($reference)
+    {
+        $db = new DB($this->cfg);
+        include_once $this->cfg['dir'].'/core/lib/SphinxQL.php';
+        $sphinx = new SphinxQL(['host'=>'p1.mourjan.com', 'port'=>9307, 'socket'=>NULL], 'ad');
+        $sphinx->connect();
+        $rs = $db->queryResultArray("select * from ad_user where id=?", [$reference])[0];
+        $db->close();        
+
+        $obj = json_decode($rs['CONTENT']);
+        //print_r($obj->attrs);
+        
+        $words = explode(' ', $obj->attrs->ar);
+        //print_r($words);
+        
+        $q = "select id, attrs, locality_id, IF(featured_date_ended>=NOW(),1,0) featured, section_id, purpose_id";
+        $sbPhones = "";
+        $sbMails = "";
+        $sbGeoKeys = "";
+        
+        if (isset($obj->attrs->geokeys) && !empty($obj->attrs->geokeys))
+        {
+            $sbGeoKeys.=", ANY(";
+            $len = count($obj->attrs->geokeys);
+            for ($i=0; $i<$len; $i++)
+            {
+                if ($i>0) $sbGeoKeys.=" OR ";
+                $sbGeoKeys.="x={$obj->attrs->geokeys[$i]}";
+            }
+            $sbGeoKeys.=" FOR x IN attrs.geokeys) gfilter";
+            $q.=$sbGeoKeys;    
+        }
+        
+        $names = [];
+        if (!isset($obj->attrs->geokeys))
+        {
+            $obj->attrs->geokeys = [];
+        }
+        
+        if (isset($obj->attrs->price))
+        {
+            $names['price'] = 0;
+        }
+        
+        if (isset($obj->attrs->rooms))
+        {
+            $names['rooms'] = 0;
+        }
+
+        if (isset($obj->attrs->space))
+        {
+            $names['space'] = 0;
+        }
+        
+        
+        if (isset($obj->attrs->phones) && isset($obj->attrs->phones->n) && !empty($obj->attrs->phones->n))
+        {
+            $len = count($obj->attrs->phones->n);
+            $sbPhones.="ANY(";
+            for ($i=0; $i<$len; $i++)
+            {
+                if ($i>0) $sbPhones.=" OR ";
+                $sbPhones.="BIGINT(x)={$obj->attrs->phones->n[$i]}";                    
+            }
+            $sbPhones.=" FOR x IN attrs.phones.n)";
+        }
+        
+        if (isset($obj->attrs->mails) && !empty($obj->attrs->mails))
+        {
+            $len = count($obj->attrs->mails);
+            $sbMails.="ANY(";
+            for ($i=0; $i<$len; $i++)
+            {
+                if ($i>0) $sbMails.=" OR ";
+                $sbMails.="x='{$obj->attrs->mails[$i]}'";
+            }
+            $sbMails.=" FOR x IN attrs.mails)";
+        }
+            
+        if ($sbPhones && $sbMails)
+        {
+            $q.=", ({$sbPhones} OR {$sbMails}) cfilter";
+        }
+        else if ($sbPhones && empty($sbMails))
+        {
+            $q.=", {$sbPhones} cfilter";
+        }
+        else if (empty($sbPhones) && $sbMails)
+        {
+            $q.=", {$sbMails} cfilter";
+        }
+        $q.=" FROM ad WHERE id!={$reference} AND publication_id=1 and hold=0 and cfilter=1 limit 1000";
+
+        //echo $q, "\n";
+        
+        $res = $sphinx->search($q);
+        $sphinx->close();
+
+        //print_r($res);
+        
+        $len = count($res['matches']);
+        $scores = [];
+        for ($i=0; $i<$len; $i++)
+        {
+            $scores[$res['matches'][$i]['id']] = 0;
+            
+            $res['matches'][$i]['score'] = 0;
+            $attrs = json_decode($res['matches'][$i]['attrs']);
+
+            if (isset($attrs->geokeys)) {
+                $scores[$res['matches'][$i]['id']] += (empty($obj->attrs->geokeys)) ? 0 : count(array_intersect($attrs->geokeys, $obj->attrs->geokeys)) / count($obj->attrs->geokeys);
+            }
+
+            $att_score = 0;
+            foreach ($names as $key => $value) 
+            {
+                if (isset($attrs->$key)){
+                    $att_score+=($attrs->$key==$obj->attrs->$key)?1:0;
+                    //$res['matches'][$i][$key. '_score'] = (int)($attrs->$key==$obj->attrs->$key);
+                } //else $res['matches'][$i][$key. '_score'] = 0;
+            }
+            $scores[$res['matches'][$i]['id']] += count($names)>0 ? $att_score / count($names) : 0;
+            
+            if (isset($attrs->ar))
+            {
+                $scores[$res['matches'][$i]['id']] += $this->jaccardIndex($words, explode(' ', $attrs->ar));
+            }
+            
+            //print_r($res['matches'][$i]);
+        }
+        
+        arsort($scores, SORT_NUMERIC);
+        //print_r($scores);
+        $searchResults = ['body'=>['matches'=>[], 'scores'=>[], 'text'=>[] ]];
+
+        foreach ($scores as $key => $value) 
+        {
+            if ($value>=0.5) 
+            {
+                $searchResults['body']['scores'][$key] = $value;
+                $searchResults['body']['matches'][] = $key;
+            }
+        }
+        
+        /*
+        foreach ($this->searchResults['body']['matches'] as $id) {
+            $matches = preg_split('/\x{200b}/u', $this->data[$id][Classifieds::CONTENT], -1, PREG_SPLIT_NO_EMPTY);
+            $this->searchResults['body']['text'][] = (count($matches)>1 ? $matches[0] : $this->data[$id][Classifieds::CONTENT]);
+
+        }
+         * 
+         */
+        $searchResults['body']['facet'] = $obj->attrs;
+        $searchResults['body']['total'] = count($searchResults['body']['matches']);
+        $searchResults['body']['total_found'] = $searchResults['body']['total'];
+        
+        
+        return $searchResults;
+        //print_r($searchResults);
+    }
+    
+    
+    private function jaccardIndex($a1, $a2) 
+    {
+        $index = 0.0;
+                
+        $intersection = array_intersect($a1, $a2);
+        if (!empty($intersection)) {
+            $union =  array_unique(array_merge($a1,  $a2));        
+            $index = count($intersection) /  count($union) ;
+        }
+        return $index;
+        
+    }
+    
+    
     /////////////////////////////////////////////////////////////////////////////
     // persistent connections
     /////////////////////////////////////////////////////////////////////////////
@@ -484,6 +661,7 @@ if (php_sapi_name()=='cli')
 
     $saveHandler = new MCSaveHandler($config);
     $saveHandler->getFromDatabase($argv[1]);
+    //$saveHandler->searchByAdId($argv[1]);
     //$saveHandler->testRealEstate(9);
     
 }

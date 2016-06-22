@@ -522,10 +522,13 @@ class Site {
                 
         
                 if(isset($_GET['aid']) && is_numeric($_GET['aid'])){
-                    $this->searchResults = ['body'=>[
-                                                'total_found'=>0
-                                                ]
-                                            ];
+                    include_once $this->urlRouter->cfg['dir'] . '/core/lib/MCSaveHandler.php';
+                    $handler = new MCSaveHandler($this->urlRouter->cfg);
+                    $this->searchResults = $handler->searchByAdId($_GET['aid']);
+                    //$this->searchResults = ['body'=>[
+                    //                            'total_found'=>0
+                    //                            ]
+                    //                        ];
                 }else{
                     $this->searchResults = $this->urlRouter->db->ql->executeBatch();   
                     //var_dump($this->searchResults);
