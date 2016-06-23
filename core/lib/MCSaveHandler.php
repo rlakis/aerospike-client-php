@@ -7,9 +7,6 @@ ini_set('display_errors', php_sapi_name()=='cli'?'1':'0');
 
 /* Allow the script to hang around waiting for connections. */
 set_time_limit(0);
-
-/* Turn on implicit output flushing so we see what we're getting
- * as it comes in. */
 ob_implicit_flush();
 
 $address = 'h8.mourjan.com';
@@ -22,11 +19,11 @@ class MCSaveHandler
     var $_host;			///< searchd host (default is "db.mourjan.com")
     var $_port;			///< searchd port (default is 1337)
 
-    private $address;
+    //private $address;
     private $_socket;
     private $cfg;
 
-    private $client;
+    //private $client;
 
     var $_error;		///< last error message
     var $_warning;		///< last warning message
@@ -47,24 +44,16 @@ class MCSaveHandler
         $this->_connerror	= false;
 
         $this->_reqs		= array ();	// requests storage (for multi-query case)
-        $this->_mbenc		= "";
         $this->_arrayresult	= false;
         $this->_timeout		= 0;
-
-        /* Get the IP address for the target host. */
-        //$this->address = gethostbyname('h8.mourjan.com');
-
-        //$this->client = stream_socket_client("tcp://h8.mourjan.com:{$service_port}", $errno, $errstr, 30);
-        //if (!$this->client) {
-        //    echo "$errstr ($errno)<br />\n";
-        //}
     }
 
 
     function __destruct()
     {
-        if ( $this->_socket !== false )
-            fclose ( $this->_socket );
+        if ($this->_socket !== false) {
+            fclose($this->_socket);
+        }
     }
 
 
@@ -87,24 +76,6 @@ class MCSaveHandler
         return true;
     }
 
-    /// enter mbstring workaround mode
-    function _MBPush ()
-    {
-        $this->_mbenc = "";
-        if ( ini_get ( "mbstring.func_overload" ) & 2 )
-        {
-            $this->_mbenc = mb_internal_encoding();
-            mb_internal_encoding ( "latin1" );
-        }
-    }
-
-
-    /// leave mbstring workaround mode
-    function _MBPop ()
-    {
-        if ( $this->_mbenc )
-            mb_internal_encoding ( $this->_mbenc );
-    }
 
      
     function _Connect ()
@@ -150,30 +121,7 @@ class MCSaveHandler
             $this->_connerror = true;
             return false;
         }
-
-        /*
-        // send my version
-        // this is a subtle part. we must do it before (!) reading back from searchd.
-        // because otherwise under some conditions (reported on FreeBSD for instance)
-        // TCP stack could throttle write-write-read pattern because of Nagle.
-        if ( !$this->_Send ( $fp, pack ( "N", 1 ), 4 ) )
-        {
-            fclose ( $fp );
-            $this->_error = "failed to send client protocol version";
-            return false;
-        }
-
-        // check version
-        list(,$v) = unpack ( "N*", fread ( $fp, 4 ) );
-        $v = (int)$v;
-        if ( $v<1 )
-        {
-            fclose ( $fp );
-            $this->_error = "expected searchd protocol version 1+, got version '$v'";
-            return false;
-        }
-         *
-         */
+     
         return $fp;
     }
 
@@ -223,41 +171,7 @@ class MCSaveHandler
             $this->_error = $response;
             return false;
         }
-        /*
-        // check status
-        if ( $status==SEARCHD_WARNING )
-        {
-            list(,$wlen) = unpack ( "N*", substr ( $response, 0, 4 ) );
-            $this->_warning = substr ( $response, 4, $wlen );
-            return substr ( $response, 4+$wlen );
-        }
-
-        if ( $status==SEARCHD_ERROR )
-        {
-            $this->_error = "searchd error: " . substr ( $response, 4 );
-            return false;
-        }
-
-        if ( $status==SEARCHD_RETRY )
-        {
-            $this->_error = "temporary searchd error: " . substr ( $response, 4 );
-            return false;
-        }
-
-        if ( $status!=SEARCHD_OK )
-        {
-            $this->_error = "unknown status code '$status'";
-            return false;
-        }
-
-        // check version
-        if ( $ver<$client_ver )
-        {
-            $this->_warning = sprintf ( "searchd command v.%d.%d older than client's v.%d.%d, some options might not work",
-                    $ver>>8, $ver&0xff, $client_ver>>8, $client_ver&0xff );
-        }
-         * 
-         */
+      
         return $response;
     }
 
