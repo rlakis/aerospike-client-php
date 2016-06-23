@@ -733,7 +733,8 @@ class Search extends Page {
             
             $renderAd=true;
             
-            for ($ptr = 0; $ptr < $ad_count; $ptr++) {
+            for ($ptr = 0; $ptr < $ad_count; $ptr++) 
+            {
                 $id = $ad_keys[$ptr];
                 $feature=false;
                 $paid=false;
@@ -852,7 +853,7 @@ class Search extends Page {
                     if($isFeatureBooked){
                         $liClass.=' vpz';
                     }
-if($isFeatured){
+                    if($isFeatured){
                         $liClass.=' vp vpd';
                     }elseif($feature){
                         $liClass.=' vp';
@@ -865,9 +866,11 @@ if($isFeatured){
                     }elseif ($idx == 0) {
                         $liClass.=" f";
                     }
+                    
                     if ($ad[Classifieds::RTL]) {
                         $textClass = "ar";
                     }
+                    
                     $_link = sprintf($ad[Classifieds::URI_FORMAT], ($this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage . '/'), $ad[Classifieds::ID]);
 
                     $pic = '';
@@ -953,6 +956,8 @@ if($isFeatured){
             }
         }
 
+        
+        
         function _rss() {
             $feed = parent::_rss();
             if ($this->urlRouter->rootId == 2 && $this->urlRouter->sectionId > 0) {
@@ -2848,7 +2853,11 @@ if($isFeatured){
     }
     
     
-    function renderDResults($keywords) {
+    function renderDResults($keywords) 
+    {
+        // print_r($this->searchResults['body']['scores']);
+        // die('found');
+        
         $idx = 0;
         $ad_keys = array();
         $this->mergeResults($topFeatureCount, $ad_keys);       
@@ -2860,27 +2869,32 @@ if($isFeatured){
         if (!isset($this->stat['ad-imp']))
             $this->stat['ad-imp'] = array();   
         
-        if(!isset($this->user->params['feature'])) {
+        if(!isset($this->user->params['feature'])) 
+        {
             $this->user->params['feature']=array();
         }
-        if($ad_count && isset($_GET['cmp']) && is_numeric($_GET['cmp'])){
-                $ad = $this->user->getPendingAds($_GET['cmp']);
-                if (!empty($ad)) {
-                    $ad=$ad[0];
-                    $content=json_decode($ad['CONTENT'],true);
-                    $clang = $content['rtl'] ? 'ar' : 'en';
-                    ?><li style="height:auto;background-image:none;background-color:#FFF;width:300px;position:fixed;top:160px;left:20px;z-index:100000;border:5px solid #000"><?php
-                    ?><p class="<?= $clang ?>" style="height:auto"><?= $content['other'] ?></p><?php 
-                    if(isset($content['altother']) && $content['altother']!=''){
-                        $clang = $content['altRtl'] ? 'ar' : 'en';
-                        ?><p class="<?= $clang ?>" style="height:auto;margin-top: 5px;border-top: 1px solid #999;padding: 5px;"><?= $content['altother'] ?></p><?php 
-                    }
-                    ?><div class="tbs" style="margin-top: 5px;padding: 0 5px;border-top: 1px solid #ccc;line-height: 30px;height: 30px;background-color: #bdc9dc;overflow: hidden;color: #333;"><?= $this->getAdCmpSection($ad) ?></div><?php
-                    ?></li><?php
+        
+        if($ad_count && isset($_GET['cmp']) && is_numeric($_GET['cmp']))
+        {
+            $ad = $this->user->getPendingAds($_GET['cmp']);
+            if (!empty($ad)) 
+            {
+                $ad=$ad[0];
+                $content=json_decode($ad['CONTENT'],true);
+                $clang = $content['rtl'] ? 'ar' : 'en';
+                ?><li style="height:auto;background-image:none;background-color:#FFF;width:300px;position:fixed;top:160px;left:20px;z-index:100000;border:5px solid #000"><?php
+                ?><p class="<?= $clang ?>" style="height:auto"><?= $content['other'] ?></p><?php 
+                if(isset($content['altother']) && $content['altother']!=''){
+                    $clang = $content['altRtl'] ? 'ar' : 'en';
+                    ?><p class="<?= $clang ?>" style="height:auto;margin-top: 5px;border-top: 1px solid #999;padding: 5px;"><?= $content['altother'] ?></p><?php 
                 }
+                ?><div class="tbs" style="margin-top: 5px;padding: 0 5px;border-top: 1px solid #ccc;line-height: 30px;height: 30px;background-color: #bdc9dc;overflow: hidden;color: #333;"><?= $this->getAdCmpSection($ad) ?></div><?php
+                ?></li><?php
+            }
         }
         
-        for ($ptr = 0; $ptr < $ad_count; $ptr++) {
+        for ($ptr = 0; $ptr < $ad_count; $ptr++) 
+        {
             $id = $ad_keys[$ptr];
             
             $feature=false;
@@ -3124,6 +3138,10 @@ if($isFeatured){
                     if (!$replaces && $this->urlRouter->id != $ad[Classifieds::ID])
                         $feed.='<span class="lnk"> ' . ($ad[Classifieds::RTL] ? $this->lang['readMore_ar'] : $this->lang['readMore_en']) . '</span>';
                 }
+                if ($this->user->isSuperUser() && isset($this->searchResults['body']['scores'][$ad[Classifieds::ID]]))
+                {
+                    $feed.="<span style='padding-left:10px;padding-right:10px'>[ {$this->searchResults['body']['scores'][$ad[Classifieds::ID]]} ]</span>";
+                }
                 $ad[Classifieds::CONTENT] = $feed; 
 
                 $__link = $_link;
@@ -3226,7 +3244,8 @@ if($isFeatured){
         ?></div><?php
     }
 
-    function results() {
+    
+    function results() {       
         $keywords = '';
 //        if (isset($this->searchResults['words']))
 //            $keywords = implode(' ', array_keys($this->searchResults['words']));

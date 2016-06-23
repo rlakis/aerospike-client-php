@@ -415,7 +415,7 @@ class MCSaveHandler
             $sbPhones.="ANY(";
             for ($i=0; $i<$len; $i++)
             {
-                if ($i>0) $sbPhones.=" OR ";
+                $sbPhones.= ($i>0) ? " OR " : "";
                 $sbPhones.="BIGINT(x)={$obj->attrs->phones->n[$i]}";                    
             }
             $sbPhones.=" FOR x IN attrs.phones.n)";
@@ -427,7 +427,7 @@ class MCSaveHandler
             $sbMails.="ANY(";
             for ($i=0; $i<$len; $i++)
             {
-                if ($i>0) $sbMails.=" OR ";
+                $sbMails.=($i>0) ? " OR " : "";
                 $sbMails.="x='{$obj->attrs->mails[$i]}'";
             }
             $sbMails.=" FOR x IN attrs.mails)";
@@ -452,11 +452,9 @@ class MCSaveHandler
         $res = $sphinx->search($q);
         $sphinx->close();
 
-        //print_r($res);
-        
         $len = count($res['matches']);
         $scores = [];
-        $x = preg_split('//u', $obj->attrs->ar, null, PREG_SPLIT_NO_EMPTY);
+        //$x = preg_split('//u', $obj->attrs->ar, null, PREG_SPLIT_NO_EMPTY);
         for ($i=0; $i<$len; $i++)
         {
             $scores[$res['matches'][$i]['id']] = 0;
@@ -479,23 +477,17 @@ class MCSaveHandler
             
             if (isset($attrs->ar))
             {
-                $jaccard = $this->jaccardIndex($words, explode(' ', $attrs->ar));
-                //$longest = $this->longestCommonSubsequence($x, $attrs->ar);
-                //echo $jaccard, "\t", $longest, "\n";
-                $scores[$res['matches'][$i]['id']] += $jaccard;
-            }
-            
-            //print_r($res['matches'][$i]);
+                $scores[$res['matches'][$i]['id']] += $this->jaccardIndex($words, explode(' ', $attrs->ar));
+            }            
         }
         
         arsort($scores, SORT_NUMERIC);
-        //print_r($scores);
 
         $searchResults = ['body'=>['matches'=>[], 'scores'=>[] ]];
 
         foreach ($scores as $key => $value) 
         {
-            if ($value>=0.5) 
+            if ($value>=0.25) 
             {
                 $searchResults['body']['scores'][$key] = $value;
                 $searchResults['body']['matches'][] = $key;
@@ -505,10 +497,8 @@ class MCSaveHandler
         $searchResults['body']['facet'] = $obj->attrs;
         $searchResults['body']['total'] = count($searchResults['body']['matches']);
         $searchResults['body']['total_found'] = $searchResults['body']['total'];
-        
-        
+                
         return $searchResults;
-        //print_r($searchResults);
     }
     
     

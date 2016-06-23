@@ -2229,7 +2229,6 @@ class Page extends Site{
             
             $qtotal_found = $this->searchResults['body']['total_found'];
             if ($qtotal_found>0) {
-                
                 $pages = ceil($qtotal_found/$this->num);
                 
                 $tmp=$this->urlRouter->cfg['search_results_max']/$this->num;
