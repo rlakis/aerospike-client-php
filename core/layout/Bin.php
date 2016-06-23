@@ -448,6 +448,40 @@ class Bin extends AjaxHandler{
                     $this->fail(101);
                 }
                 break;
+            case 'ajax-keyword':
+                if($this->user->info['id'] && $this->user->isSuperUser()){
+                    $key = $this->get('k');
+                    $country = $this->get('c');
+                    if($key){         
+                        $res = $this->urlRouter->db->queryResultArray('select * from country_loc_keywords c where c.keyword containing ? and c.cc = ? order by c.keyword',[$key,$country], true);
+                        if(is_array($res)){
+                            $this->setData($res,'keys');           
+                        }else{
+                            $this->setData([],'keys');
+                        }
+                        $this->process();
+                    }elseif(isset($_POST['id'])){
+                        $id=  $this->post('id');
+                        $AR=  trim($this->post('ar'));
+                        $EN=  trim($this->post('en'));
+                        $TAR=  trim($this->post('tar'));
+                        $TEN=  trim($this->post('ten'));
+                        $CC=  trim($this->post('cc'));
+                        if($id){
+                            $res = $this->urlRouter->db->queryResultArray('update country_loc_keywords set keyword=?,en=?,en_form=?,ar_form=?,cc=? where id=?',[$AR,$EN,$TEN,$TAR,$CC,$id], true);
+                            if($res){
+                                $this->process();
+                            }else{
+                                $this->fail(103);
+                            }
+                        }
+                    }else{
+                        $this->fail(102);
+                    }
+                }else{
+                    $this->fail(101);
+                }
+                break;
             case 'ajax-stat':
                 if ($this->urlRouter->cfg['server_id']<=0 || $this->urlRouter->cfg['server_id']>=99)
                 {
