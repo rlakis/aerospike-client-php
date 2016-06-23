@@ -542,6 +542,7 @@ class MCSaveHandler
         
         $len = count($res['matches']);
         $scores = [];
+        $x = preg_split('//u', $obj->attrs->ar, null, PREG_SPLIT_NO_EMPTY);
         for ($i=0; $i<$len; $i++)
         {
             $scores[$res['matches'][$i]['id']] = 0;
@@ -558,14 +559,16 @@ class MCSaveHandler
             {
                 if (isset($attrs->$key)){
                     $att_score+=($attrs->$key==$obj->attrs->$key)?1:0;
-                    //$res['matches'][$i][$key. '_score'] = (int)($attrs->$key==$obj->attrs->$key);
-                } //else $res['matches'][$i][$key. '_score'] = 0;
+                }
             }
             $scores[$res['matches'][$i]['id']] += count($names)>0 ? $att_score / count($names) : 0;
             
             if (isset($attrs->ar))
             {
-                $scores[$res['matches'][$i]['id']] += $this->jaccardIndex($words, explode(' ', $attrs->ar));
+                $jaccard = $this->jaccardIndex($words, explode(' ', $attrs->ar));
+                //$longest = $this->longestCommonSubsequence($x, $attrs->ar);
+                //echo $jaccard, "\t", $longest, "\n";
+                $scores[$res['matches'][$i]['id']] += $jaccard;
             }
             
             //print_r($res['matches'][$i]);
@@ -573,7 +576,8 @@ class MCSaveHandler
         
         arsort($scores, SORT_NUMERIC);
         //print_r($scores);
-        $searchResults = ['body'=>['matches'=>[], 'scores'=>[], 'text'=>[] ]];
+
+        $searchResults = ['body'=>['matches'=>[], 'scores'=>[] ]];
 
         foreach ($scores as $key => $value) 
         {
@@ -584,14 +588,6 @@ class MCSaveHandler
             }
         }
         
-        /*
-        foreach ($this->searchResults['body']['matches'] as $id) {
-            $matches = preg_split('/\x{200b}/u', $this->data[$id][Classifieds::CONTENT], -1, PREG_SPLIT_NO_EMPTY);
-            $this->searchResults['body']['text'][] = (count($matches)>1 ? $matches[0] : $this->data[$id][Classifieds::CONTENT]);
-
-        }
-         * 
-         */
         $searchResults['body']['facet'] = $obj->attrs;
         $searchResults['body']['total'] = count($searchResults['body']['matches']);
         $searchResults['body']['total_found'] = $searchResults['body']['total'];
@@ -614,7 +610,40 @@ class MCSaveHandler
         return $index;
         
     }
-    
+
+
+    private function longestCommonSubsequence($X,  $s)
+    {
+        $m = count($X);
+        //$m = mb_strlen($s1);
+        $n = mb_strlen($s);
+        //$X = preg_split('//u', $s1, null, PREG_SPLIT_NO_EMPTY);
+        $Y = preg_split('//u', $s, null, PREG_SPLIT_NO_EMPTY);
+
+        $C = array(array($m + 1), array($n + 1));
+
+
+        for ($i = 0; $i <= $m; $i++) {
+            $C[$i][0] = 0;
+        }
+
+        for ($j = 0; $j <= $n; $j++) {
+            $C[0][$j] = 0;
+        }
+
+        for ($i = 1; $i <= $m; $i++) {
+            for ($j = 1; $j <= $n; $j++) {
+                if ($X[$i - 1] == $Y[$j - 1]) {
+                    $C[$i][$j] = $C[$i - 1][$j - 1] + 1;
+                } else {
+                    $C[$i][$j] =  max( $C[$i][$j - 1], $C[$i - 1][$j] );
+                }
+            }
+        }
+
+        return $m + $n - 2 * $C[$m][$n];;
+    }
+
     
     /////////////////////////////////////////////////////////////////////////////
     // persistent connections
@@ -660,8 +689,8 @@ if (php_sapi_name()=='cli')
 {
 
     $saveHandler = new MCSaveHandler($config);
-    $saveHandler->getFromDatabase($argv[1]);
-    //$saveHandler->searchByAdId($argv[1]);
+    //$saveHandler->getFromDatabase($argv[1]);
+    $saveHandler->searchByAdId($argv[1]);
     //$saveHandler->testRealEstate(9);
     
 }
