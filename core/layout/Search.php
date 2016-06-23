@@ -71,8 +71,9 @@ class Search extends Page {
         }
         if (!$this->isMobile && !$this->urlRouter->userId && !$this->userFavorites && !$this->urlRouter->watchId) {
             $this->hasLeadingPane=true;
-            if($this->user->info['id'] && $this->user->info['level']==9)
+            if($this->user->info['id'] && $this->user->info['level']==9){
                 $this->isAdminSearch=isset($_SERVER['HTTP_REFERER']) && preg_match('/\/myads\/\?sub=pending$/', $_SERVER['HTTP_REFERER']) ? 1 : 0;
+            }
             
             $this->inlineCss.='                
                 .col2w .col1 {width:765px;}
@@ -85,6 +86,7 @@ class Search extends Page {
 .crd{top:119px;}
 .ls p{height:125px;}
 .pics img{max-width:448px;}
+.kq{background-color:yellow;padding:0 10px;display:block;text-align:left;direction:ltr;position:absolute;top:65px;left:0;color:#666}
 @media all and (min-width:1250px) {
     .pics img{max-width:648px;}
     body{min-width:1206px}
@@ -2874,9 +2876,10 @@ class Search extends Page {
             $this->user->params['feature']=array();
         }
         
-        if($ad_count && isset($_GET['cmp']) && is_numeric($_GET['cmp']))
+        if($ad_count && ( (isset($_GET['cmp']) && is_numeric($_GET['cmp'])) || (isset($_GET['aid']) && is_numeric($_GET['aid']))) )
         {
-            $ad = $this->user->getPendingAds($_GET['cmp']);
+            $aid = isset($_GET['cmp']) ? $_GET['cmp'] : $_GET['aid'];
+            $ad = $this->user->getPendingAds($aid);
             if (!empty($ad)) 
             {
                 $ad=$ad[0];
@@ -3140,7 +3143,7 @@ class Search extends Page {
                 }
                 if ($this->user->isSuperUser() && isset($this->searchResults['body']['scores'][$ad[Classifieds::ID]]))
                 {
-                    $feed.="<span style='padding-left:10px;padding-right:10px'>[ {$this->searchResults['body']['scores'][$ad[Classifieds::ID]]} ]</span>";
+                    $feed.="<span class='kq'>".$this->searchResults['body']['scores'][$ad[Classifieds::ID]]."</span>";
                 }
                 $ad[Classifieds::CONTENT] = $feed; 
 
