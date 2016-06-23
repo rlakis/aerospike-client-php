@@ -363,11 +363,8 @@ class MCSaveHandler
         $rs = $db->queryResultArray("select * from ad_user where id=?", [$reference])[0];
         $db->close();        
 
-        $obj = json_decode($rs['CONTENT']);
-        //print_r($obj->attrs);
-        
+        $obj = json_decode($rs['CONTENT']);        
         $words = explode(' ', $obj->attrs->ar);
-        //print_r($words);
         
         $q = "select id, attrs, locality_id, IF(featured_date_ended>=NOW(),1,0) featured, section_id, purpose_id";
         $sbPhones = "";
@@ -454,32 +451,55 @@ class MCSaveHandler
 
         $len = count($res['matches']);
         $scores = [];
+        $messages = [];
         //$x = preg_split('//u', $obj->attrs->ar, null, PREG_SPLIT_NO_EMPTY);
         for ($i=0; $i<$len; $i++)
         {
-            $scores[$res['matches'][$i]['id']] = 0;
+            $desc = "";
+            $scores[ $res['matches'][$i]['id'] ] = 0;
             
-            $res['matches'][$i]['score'] = 0;
             $attrs = json_decode($res['matches'][$i]['attrs']);
 
-            if (isset($attrs->geokeys)) {
-                $scores[$res['matches'][$i]['id']] += (empty($obj->attrs->geokeys)) ? 0 : count(array_intersect($attrs->geokeys, $obj->attrs->geokeys)) / count($obj->attrs->geokeys);
+            if (isset($attrs->geokeys)) 
+            {
+                if (empty($obj->attrs->geokeys)) {
+                    $geo_score = 0;
+                } else {
+                    $geo_score = (empty($obj->attrs->geokeys)) ? 0 : count(array_intersect($attrs->geokeys, $obj->attrs->geokeys)) / count($obj->attrs->geokeys);
+                }
+                
+                $scores[ $res['matches'][$i]['id'] ] += $geo_score;
+                $desc.="G: ".number_format($geo_score*100) ."% ";
             }
 
             $att_score = 0;
             foreach ($names as $key => $value) 
             {
-                if (isset($attrs->$key)){
+                if (isset($attrs->$key))
+                {
                     $att_score+=($attrs->$key==$obj->attrs->$key)?1:0;
+                    $desc.="[".$key.": " . (($attrs->$key==$obj->attrs->$key)?'Y':'N') . "] ";
+
                 }
             }
             $scores[$res['matches'][$i]['id']] += count($names)>0 ? $att_score / count($names) : 0;
             
+            $desc.=" A: ".  number_format( (count($names)>0 ? $att_score / count($names) : 0)*100)."%";
+            
             if (isset($attrs->ar))
             {
-                $scores[$res['matches'][$i]['id']] += $this->jaccardIndex($words, explode(' ', $attrs->ar));
-            }            
+                $jaccard = $this->jaccardIndex($words, explode(' ', $attrs->ar));
+                $scores[$res['matches'][$i]['id']] += $jaccard;
+                $desc.= " Similarity: ".number_format($jaccard*100,2).'%';
+            }
+            $scores[$res['matches'][$i]['id']] += ($res['matches'][$i]['section_id']==$obj->se) ? 1 : 0;
+            $scores[$res['matches'][$i]['id']] += ($res['matches'][$i]['purpose_id']==$obj->pu) ? 1 : 0;
+
+            $desc.=" Total: ".number_format($scores[$res['matches'][$i]['id']],2);
+            $messages[$res['matches'][$i]['id']] = $desc; 
+            
         }
+        
         
         arsort($scores, SORT_NUMERIC);
 
@@ -489,7 +509,7 @@ class MCSaveHandler
         {
             if ($value>=0.25) 
             {
-                $searchResults['body']['scores'][$key] = $value;
+                $searchResults['body']['scores'][$key] = $messages[$key];
                 $searchResults['body']['matches'][] = $key;
             }
         }
@@ -510,6 +530,7 @@ class MCSaveHandler
         if (!empty($intersection)) {
             $union =  array_unique(array_merge($a1,  $a2));        
             $index = count($intersection) /  count($union) ;
+            if ($index>1) $index=1.0;
         }
         return $index;
         
@@ -593,8 +614,8 @@ if (php_sapi_name()=='cli')
 {
 
     $saveHandler = new MCSaveHandler($config);
-    //$saveHandler->getFromDatabase($argv[1]);
-    $saveHandler->searchByAdId($argv[1]);
+    $saveHandler->getFromDatabase($argv[1]);
+    //$saveHandler->searchByAdId($argv[1]);
     //$saveHandler->testRealEstate(9);
     
 }
