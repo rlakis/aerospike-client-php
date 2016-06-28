@@ -8,45 +8,53 @@ $processItems = 1000;
 $FEED_URI = 'http://xml.propspace.com/feed/xml.php?cl=1523&pid=8245&acc=8807';
 
 $sections_map = array(
-    "land" => 7,
-    "land residential" => 7,
+    "apartment" => 1,
+    "villa" => 131,
+    "office" => 6,
+    'retail' => 5,
+    "hotel apartment" => 1,
+    "warehouse" => 111,
     "land commercial" => 7,
+    "labour camp" => 162,
+    'residential building' => 8,
+    'multiple sale units'=>1,
+    "land residential" => 7,
+    'commercial full building' => 8,
+    "penthouse"            =>   1,
+    "duplex" => 1,
+    "loft apartment" => 1,
+    "townhouse" => 1,
+    'hotel' => 419,
+    "land mixed use" => 7,
+    
+    
+    
+    "land" => 7,
     "plots" => 7,
     "plot" => 7,
     
     '' => 1,
-    "townhouse" => 1,
-    "apartment" => 1,
-    "hotel apartment" => 1,
     "full floor" => 1,
     "1 bhk" => 1,
     "2 bhk" => 1,
     "3 bhk" => 1,
     "penthouse" => 1,
-    "duplex" => 1,
     
     "furnished apartment" => 2,
     
-    "villa" => 131,
     
-    "office" => 6,
     
     'building' => 8,
     'commercial building' => 8,
-    'residential building' => 8,
     'whole building' => 8,
     
     'studio' => 122,
     
-    'hotel' => 419,
     
     'commercial villa' => 5,
-    'shop' => 5,
-    'retail' => 5,
+    'shop' => 5
     
-    "labour camp" => 162,
     
-    "warehouse" => 111
 );
 $cities_map = array(
     "dubai" => 14,

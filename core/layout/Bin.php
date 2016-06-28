@@ -476,7 +476,11 @@ class Bin extends AjaxHandler{
                             }
                         }
                     }else{
-                        $this->fail(102);
+                        if(isset($_GET['rotate'])){
+                            $this->process();
+                        }else{
+                            $this->fail(102);
+                        }
                     }
                 }else{
                     $this->fail(101);

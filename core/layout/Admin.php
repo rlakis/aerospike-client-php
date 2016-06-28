@@ -21,7 +21,8 @@ class Admin extends Page{
                 . '.options{position:absolute;border:1px solid #aaa;border-bottom:0;width:306px;background-color:#FFF}'
                 . '.options li{cursor:pointer;border-bottom:1px solid #aaa;direction:rtl;text-align:right;padding:10px;}'
                 . '.options li:hover{background-color:#00e;color:#FFF}'
-                . '#msg{height:40px;display:block}';
+                . '#msg{height:40px;display:block}'
+                . '.load{width: 30px;height: 30px;display: inline-block;vertical-align: middle}';
         
         $this->set_require('css', 'account');
         $this->title=$this->lang['title'];
@@ -45,7 +46,7 @@ class Admin extends Page{
                 foreach($this->urlRouter->countries as $country){
                     echo "<option value=".  strtoupper($country['uri']).">{$country['name']}</option>";
                 }
-            ?></select></div><?php
+                ?></select><input id="rotate" type="button" class="bt" onclick="rotate(this)" style="margin:0 30px" value="<?= $this->lang['rotate']?>" /></div><?php
              ?></li><?php
             ?><li><?php 
             ?><div class="lm"><label><?= $this->lang['keyword'] ?></label><input onfocus="build()" onkeydown="idir(this)" onkeyup="load(this)" onchange="idir(this,1)" id="keyword" type="text" /><?php
@@ -66,6 +67,37 @@ class Admin extends Page{
         $this->inlineQueryScript.='$("body").click(function(e){if(e.target.id!="keyword")clear()});';
         $this->globalScript.='
                 var xhr=null,locs=[];
+                function rotate(e){
+                    e=$(e);
+                    var c=$("#country").val();
+                    e.next().remove();
+                    e.css("visibility","hidden");
+                    e.parent().append("<span class=\'load\'></span>");
+                    xhr = $.ajax({
+                        type:"GET",
+                        url: "/ajax-keyword/",
+                        data:{rotate:1,c:c},
+                        success: function(rp) {
+                            if(rp && rp.RP){
+                                var d=("<span class=\'done\'></span>");
+                                e.next().remove();
+                                e.css("visibility","visible");
+                                e.parent().append(d);
+                            }else{
+                                frot(e);
+                            }
+                        },
+                        error:function(rc) {
+                            frot(e);
+                        }
+                    });
+                };
+                function frot(){                    
+                    var d=("<span class=\'fail\'></span>");
+                    e.next().remove();
+                    e.css("visibility","visible");
+                    e.parent().append(d);
+                }
                 function CC(){
                     clear();
                     rmsg();
@@ -75,6 +107,7 @@ class Admin extends Page{
                     $("#ten").val("");
                     $("#tar").val("");
                     $("#submit").removeAttr("disabled");
+                    $("#rotate").next().remove();
                     locs=[];
                     load($("#keyword")[0],1);
                 };
@@ -158,7 +191,9 @@ class Admin extends Page{
                         data:d,
                         success: function(rp) {
                             if(rp && rp.RP){
+                                $("#rotate").next().remove();
                                 $("#msg").html("<span class=\'done\'></span> تم الحفظ");
+                                load($("#keyword")[0],1);
                             }else{
                                 fail();
                             }
