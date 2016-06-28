@@ -477,6 +477,7 @@ class Bin extends AjaxHandler{
                         }
                     }else{
                         if(isset($_GET['rotate'])){
+                            $this->urlRouter->db->queryResultArray("select PHP('touch', '{$country}', '') from rdb\$database",null, true);
                             $this->process();
                         }else{
                             $this->fail(102);
