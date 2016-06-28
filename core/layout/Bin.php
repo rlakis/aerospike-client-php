@@ -474,6 +474,17 @@ class Bin extends AjaxHandler{
                             }else{
                                 $this->fail(103);
                             }
+                        }else{
+                            if($AR){
+                                $res = $this->urlRouter->db->queryResultArray('insert into country_loc_keywords (keyword,en,en_form,ar_form,cc) values (?,?,?,?,?)',[$AR,$EN,$TEN,$TAR,$CC], true);
+                                if($res){
+                                    $this->process();
+                                }else{
+                                    $this->fail(105);
+                                }
+                            }else{
+                                $this->fail(104);
+                            }
                         }
                     }else{
                         if(isset($_GET['rotate'])){

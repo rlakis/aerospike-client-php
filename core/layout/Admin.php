@@ -50,12 +50,12 @@ class Admin extends Page{
              ?></li><?php
             ?><li><?php 
             ?><div class="lm"><label><?= $this->lang['keyword'] ?></label><input onfocus="build()" onkeydown="idir(this)" onkeyup="load(this)" onchange="idir(this,1)" id="keyword" type="text" /><?php
-            /* ?><input type="button" class="bt" style="margin:0 30px" value="<?= $this->lang['new_key']?>" /><?php */
+            ?><input onclick="nek(this)" type="button" class="bt" style="margin:0 30px" value="<?= $this->lang['new_key']?>" /><?php 
             ?></div></li><?php
         ?></ul><?php 
         ?><form onsubmit="save();return false"><input id="id" type="hidden" value="0" /><?php
                 ?><ul class="ts hy"><?php
-                ?><li id="msg" class="action"></li><?php
+                ?><li id="msg" class="action">كلمة جديدة</li><?php
                 ?><li><label>عربي</label><input onchange="rmsg()" id="ar" class="ar" type="text" /></li><?php
                 ?><li><label>English</label><input onchange="rmsg()" id="en" class="en" type="text" /></li><?php
                 ?><li><textarea onchange="rmsg()" id="tar" class="ar"></textarea></li><?php
@@ -67,6 +67,15 @@ class Admin extends Page{
         $this->inlineQueryScript.='$("body").click(function(e){if(e.target.id!="keyword")clear()});';
         $this->globalScript.='
                 var xhr=null,locs=[];
+                function nek(e){
+                    $("#id").val(0);
+                    $("#ar").val("");
+                    $("#en").val("");
+                    $("#ten").val("");
+                    $("#tar").val("");
+                    $("#submit").removeAttr("disabled");
+                    $("#msg").html("كلمة جديدة");
+                };
                 function rotate(e){
                     e=$(e);
                     var c=$("#country").val();
@@ -110,6 +119,7 @@ class Admin extends Page{
                     $("#rotate").next().remove();
                     locs=[];
                     load($("#keyword")[0],1);
+                    $("#msg").html("كلمة جديدة");
                 };
                 function load(e,nop){
                     var c=$("#country").val();
@@ -175,6 +185,7 @@ class Admin extends Page{
                     $("#ten").val(o.EN_FORM);
                     $("#tar").val(o.AR_FORM);
                     $("#submit").removeAttr("disabled");
+                    $("#msg").html("");
                 };
                 function save(){
                     var d={
