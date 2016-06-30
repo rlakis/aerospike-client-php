@@ -360,6 +360,7 @@ class Page extends Site{
             $this->urlRouter->cfg['enabled_sharing']=false;
             $this->urlRouter->cfg['enabled_ads']=false;
         }
+        //var_dump($this->urlRouter->cities);
     }
     /*
     if ($this->urlRouter->watchId) {

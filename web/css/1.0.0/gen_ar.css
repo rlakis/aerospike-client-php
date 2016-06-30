@@ -359,6 +359,9 @@ input.bt,input.bt.off:active{
 .j.sti{
     background-position:-180px 0;
 }
+.j.prop{
+    background-position:-720px 0;
+}
 .j.coin{
     background-position:-660px 0;
 }

@@ -6,55 +6,110 @@
 $processItems = 1000;
 
 $FEED_URI = 'http://xml.propspace.com/feed/xml.php?cl=1252&pid=8245&acc=8807';
+//$FEED_URI = 'http://xml.propspace.com/feed/xml.php?cl=2918&pid=8245&acc=8807';
 
 $sections_map = array(
-    "land" => 7,
-    "land residential" => 7,
+    
+    "apartment" => 1,
+    "villa" => 131,
+    "office" => 6,
+    'retail' => 5,
+    "hotel apartment" => 1,
+    "warehouse" => 111,
     "land commercial" => 7,
+    "labour camp" => 162,
+    "staff accommodation" => 162,
+    'residential building' => 8,
+    'multiple sale units'=>1,
+    'multiple rental units'=>1,
+    "land residential" => 7,
+    'commercial full building' => 8,
+    "penthouse"            =>   1,
+    "duplex" => 1,
+    "loft apartment" => 1,
+    "townhouse" => 1,
+    'hotel' => 419,
+    "land mixed use" => 7,
+    
+    "bungalow"=>4,
+    
+    "land" => 7,
     "plots" => 7,
     "plot" => 7,
     
     '' => 1,
-    "townhouse" => 1,
-    "apartment" => 1,
-    "hotel apartment" => 1,
+    'compound'=>1,
+    'residential half floor'=>1,
+    'residential full floor'=>1,
     "full floor" => 1,
+    "half floor" => 1,
     "1 bhk" => 1,
     "2 bhk" => 1,
     "3 bhk" => 1,
-    "penthouse" => 1,
     
     "furnished apartment" => 2,
     
-    "villa" => 131,
-    
-    "office" => 6,
-    
     'building' => 8,
     'commercial building' => 8,
-    'residential building' => 8,
     'whole building' => 8,
     
     'studio' => 122,
     
-    'hotel' => 419,
     
+    'commercial half floor'=>5,
+    "commercial full floor"=>5,
+    'commercial villa' => 5,
     'shop' => 5,
-    'retail' => 5,
-    
-    "labour camp" => 162,
-    
-    "warehouse" => 111
+    'factory'   =>  367
 );
 $cities_map = array(
     "dubai" => 14,
     "ajman" => 436,
     "sharjah" => 333,
-    "abu dhabi" => 4
+    "abu dhabi" => 4,
+    'fujairah'  =>  812,
+    'ras al khaimah'  =>  815,
+    'umm al quwain'  =>  2609,
+    'al ain'=>6
 );
 
+$sections_label = [
+    'apartment' =>  'Apartment',
+    "villa" => 'Villa',
+    "office" => 'Office',
+    'retail' => 'Shop',
+    'commercial villa' => 'Commercial Villa',
+    "hotel apartment" => 'Hotel apartment',
+    "warehouse" => 'Warehouse',
+    "land commercial" => 'Commercial land',
+    "labour camp" => 'Labour camp',
+    'residential building' => 'Residential building',
+    'multiple sale units'=> 'Multiple sale units',
+    'multiple rental units'=>'Multiple rental units',
+    "land residential" => 'Residential land',
+    'commercial full building' => 'Full commercial building',
+    'commercial half floor'=>'Commercial half floor',
+    "commercial full floor"=>"Commercial full floor",
+    "penthouse"            =>   'Penthouse',
+    "duplex" => 'Duplex',
+    "loft apartment" => 'Loft apartment',
+    "townhouse" => 'Townhouse',
+    'hotel' => 'Hotel',
+    "land mixed use" => 'Land',
+    'bungalow'  =>  'Bungalow',
+    "factory"=>'Factory',
+    'staff accommodation'=>'Staff accommodation',
+    'residential half floor'=>'Residential half floor',
+    "residential full floor"=>"Residential full floor",
+    'full floor'    =>  'Full floor',
+    'half floor'    =>  'Half floor',
+    'compound'    =>  'Compound',
+];
 
-include_once '/var/www/dev.mourjan/config/cfg.php';
+$UNIT_MEASURE = 'sqft';
+$CURRENCY = 'AED';
+
+include_once '/home/www/mourjan/config/cfg.php';
 include_once $config['dir'].'/core/model/Db.php';
 
 echo "Starting Casabella crawler\n";
@@ -115,10 +170,21 @@ try{
     $error = 0;
     $i=0;
     $j=0;
-    foreach($feeds as $ad){
+    
+    echo "\n\n",'Total:',count($feeds),"\tProcessing:",$processItems,"\n";
+    sleep(2);
+    
+    foreach($feeds as $ad){    
+        $description ='';
+        $original ='';
+        $IDX = $ad['count'];
+        echo "\n\n",'-------------------Listing '.$ad['count'].'----------------------',"\n";
         //if(in_array($ad['reference_code'],array("RHCR310","VOCS210","VOCS209","VOCS208","VOCS207","VOCS206","VOCS204","VOCS202"))) continue;
         $db->ql->resetFilters(true);
         $db->ql->setFilter("user_id", $user_id);
+        
+        $ad['Property_Ref_No'] = '#'.preg_replace('/^.+-/', '', $ad['Property_Ref_No']);
+        
         $db->ql->addQuery('body', $ad['Property_Ref_No']);
         $searchRes = $db->ql->executeBatch(); 
         
@@ -156,14 +222,18 @@ try{
             $error=1;
             continue;
         }
+        
         $description = $ad['Web_Remarks'];
+        if(is_array($description)){
+            $description = '';
+        }
 
         $sections[$section] = isset($sections[$section])? $sections[$section]++ : 1;
         $purposes[$purpose] = isset($purposes[$purpose])? $purposes[$purpose]++ : 1;
         $cities[$city] = isset($cities[$city]) && $cities[$city]? $cities[$city]++ : 1;
                
         if(!isset($sections_map[$section])){
-            echo '--------------------SECTION MAP---------------------',"\n";
+            echo '--------------------SECTION MAP '.$section.'---------------------',"\n";
             var_dump($ad);
             echo '----------------------------------------------------',"\n";
             $error=1;
@@ -197,8 +267,10 @@ try{
             $error=1;
             continue;
         }
+        //continue;
         
-        $raw_number = trim($ad['Listing_Agent_Phone']);
+        
+        $raw_number = !empty($ad['Listing_Agent_Phone']) ? trim($ad['Listing_Agent_Phone']) :'';
         
         $number = preg_replace('/^0/','+'.$country_code,$raw_number);
         if (!is_numeric($raw_number)) continue;
@@ -212,11 +284,13 @@ try{
         $longitude = isset($ad['Longitude']) && $ad['Longitude'] ? $ad['Longitude'] : 0;
         $hasMap = ($latitude || $longitude) ? 1 : 2;
         $location = '';
-        if($hasMap){
-            $location .= isset($ad['Property_Name']) && $ad['Property_Name'] ? $ad['Property_Name'].' ' : '';
-            $location .= isset($ad['Community']) && $ad['Community'] ? $ad['Community'] : '';
-            $location = trim($location);
+        
+        $hasName = isset($ad['Property_Name']) && !empty($ad['Property_Name']);
+        $location .= $hasName ? $ad['Property_Name'].' ' : '';
+        if(isset($ad['Community']) && $ad['Community'] && (!$hasName || ($ad['Community']!=$ad['Property_Name'] && !preg_match('/'.$ad['Community'].'/i',$ad['Property_Name'])))){
+            $location .=  ($hasName ? '- ':'').$ad['Community'];
         }
+        $location = trim($location);
         
         
         $content = array(
@@ -267,10 +341,47 @@ try{
         );
         
         $bathrooms = getElementValue($ad['No_of_Bathroom']);
-        $bedroom = getElementValue($ad['No_of_Rooms']);
+        $bedroom = getElementValue($ad['Bedrooms']);
+        $rooms = getElementValue($ad['No_of_Rooms']);
         $price = getElementValue($ad['Price']);
         $area = getElementValue($ad['Unit_Builtup_Area']);
         $area_unit = getElementValue($ad['unit_measure']);
+        $frequency = isset($ad['Frequency']) && !empty($ad['Frequency']) ? getElementValue($ad['Frequency']) :'';
+        
+        $facilities = isset($ad['Facilities']) && !empty($ad['Facilities'])? getElementValue($ad['Facilities'],'facility') :'';
+        
+        
+        
+        $summary = $sections_label[strtolower($section)].' for '.strtolower($purpose).' in '.$location.' / ';
+        if($bedroom && is_numeric($bedroom)){
+            $summary .= $bedroom ? $bedroom. ' bedroom'.( $bedroom>1 ? 's':'').' - ' : '';
+        }elseif($rooms && is_numeric($rooms)){
+            $summary .= $rooms ? $rooms. ' room'.( $rooms>1 ? 's':'').' - ' : '';
+        }
+        $summary .= $bathrooms && is_numeric($bathrooms) ? $bathrooms. ' bathroom'.( $bathrooms>1 ? 's':'').' - ' : '';
+        if($area){
+            $area = preg_replace('/[^0-9]/', '',$area);
+            $unit_measure = isset($ad['unit_measure']) && !empty($ad['unit_measure'])? strtolower(preg_replace('/[.]/','',getElementValue($ad['unit_measure']))) : $UNIT_MEASURE;
+            $summary.= number_format($area).' '.$unit_measure.' - ';
+        }
+        if($price){
+            $summary.= 'price '.number_format($price).' '.$CURRENCY.($frequency ? ' '.$frequency:'').' - ';
+        }    
+        if(!empty($facilities)){
+            $summary = preg_replace('/- $/', '', $summary);
+            $summary.='(';
+            $n=0;
+            foreach ($facilities as $facility){
+                if($n)$summary.=',';
+                $summary.=$facility;
+                $n++;
+            }
+            $summary.=') ';
+        }
+        $summary.= 'ref'.$ad['Property_Ref_No'];
+        //$summary = $summary.  json_decode('"\u200B"').' / please call '.ucfirst($ad['Listing_Agent']).parseUserAdTime($content['cui'], $content['cut']);
+        $summary = $summary.  json_decode('"\u200B"').' / '.parseUserAdTime($content['cui'], $content['cut']);
+        
         
         /*
         $description = preg_replace('/\n.*+/i', '', $description);
@@ -285,87 +396,90 @@ try{
         $description = preg_replace('/([a-zA-Z])[.,]([0-9])/', '$1. $2', $description);
         $description = preg_replace('/[.,!]$/', '', strtolower(trim($description)));*/
         
-        $original = $description;
         
-        $original = $description = preg_replace('/(?:<br \/>)+/i', ' - ', $description);
-        $original = $description = preg_replace('/<br \/>|<\/p>/i', ' - ', $description);
-        $original = $description = preg_replace('/<br \/>/i', ' - ', $description);
-        $original = $description = preg_replace('/<.*?>/i', '', $description);
-        $original = $description = preg_replace('/\s+/', ' ', $description);
-        $original = $description = preg_replace('/-(?:(?:\s|)-)+/', ' ', $description);
-        $description = preg_replace('/\s(?:(?:just|pls(?:\.|)|please)\s|)call\s.*$/i', '', $description);
-        $original = $description = preg_replace('/[.,;](\s|)-/i', ' - ', $description);        
-        
-        $original = $description = trim($description);
-        $original = $description = preg_replace('/[-.,]$/i', '', $description);
-        $original = $description = preg_replace('/^[-.,]/i', '', $description);
-        $original = $description = preg_replace('/[!]/i', '', $description);
-        $original = $description = trim($description);
-        $original = $description = preg_replace('/\s+/', ' ', $description);
-        
-        if(strlen($description) > 400){
-            $description = preg_replace('/(?:ABOUT CASABELLA|Also available|facilities:|Building Amenities:|Building Facilities:|features:).*$/i', '$1', $description);
-            
+        if(!empty($description)){
+            $original = $description;
+
+            $original = $description = preg_replace('/(?:<br \/>)+/i', ' - ', $description);
+            $original = $description = preg_replace('/<br \/>|<\/p>/i', ' - ', $description);
+            $original = $description = preg_replace('/<br \/>/i', ' - ', $description);
+            $original = $description = preg_replace('/<.*?>/i', '', $description);
+            $original = $description = preg_replace('/\s+/', ' ', $description);
+            $original = $description = preg_replace('/-(?:(?:\s|)-)+/', ' ', $description);
+            $description = preg_replace('/\s(?:(?:just|pls(?:\.|)|please)\s|)call\s.*$/i', '', $description);
+            $original = $description = preg_replace('/[.,;](\s|)-/i', ' - ', $description);        
+
             $original = $description = trim($description);
             $original = $description = preg_replace('/[-.,]$/i', '', $description);
             $original = $description = preg_replace('/^[-.,]/i', '', $description);
             $original = $description = preg_replace('/[!]/i', '', $description);
             $original = $description = trim($description);
             $original = $description = preg_replace('/\s+/', ' ', $description);
-        }
-        
-        
-        if(strlen($description) > 400){
-            $description = preg_replace('/(price.*\s-).*$/i', '$1', $description);
-        
+
+            if(strlen($description) > 400){
+                $description = preg_replace('/(?:ABOUT CASABELLA|Also available|facilities:|Building Amenities:|Building Facilities:|features:).*$/i', '$1', $description);
+
+                $original = $description = trim($description);
+                $original = $description = preg_replace('/[-.,]$/i', '', $description);
+                $original = $description = preg_replace('/^[-.,]/i', '', $description);
+                $original = $description = preg_replace('/[!]/i', '', $description);
+                $original = $description = trim($description);
+                $original = $description = preg_replace('/\s+/', ' ', $description);
+            }
+
+
+            if(strlen($description) > 400){
+                $description = preg_replace('/(price.*\s-).*$/i', '$1', $description);
+
+                $description = trim($description);
+                $original = $description = preg_replace('/[-.,]$/i', '', $description);
+                $original = $description = preg_replace('/^[-.,]/i', '', $description);
+                $description = preg_replace('/[!]/i', '', $description);
+                $description = trim($description);
+                $description = preg_replace('/\s+/', ' ', $description);
+            }
+
             $description = trim($description);
             $original = $description = preg_replace('/[-.,]$/i', '', $description);
             $original = $description = preg_replace('/^[-.,]/i', '', $description);
-            $description = preg_replace('/[!]/i', '', $description);
-            $description = trim($description);
-            $description = preg_replace('/\s+/', ' ', $description);
-        }
-        
-        $description = trim($description);
-        $original = $description = preg_replace('/[-.,]$/i', '', $description);
-        $original = $description = preg_replace('/^[-.,]/i', '', $description);
-        $description = preg_replace('/([a-zA-Z])([.,])([a-zA-Z0-9])/i', '$1$2 $3', $description);
-        $description = preg_replace('/\(\s/', '(', $description);
-        $description = preg_replace('/\s\)/', ')', $description);
-        $description = preg_replace('/([)])\./', '$1', $description);
-        
-        if(strlen($description) > 400){
-            $description = $ad['Property_Title'];
-            if($bedroom){
-                $description.= ' - '.$bedroom.' bedroom'.($bedroom>1 ? 's':'');
+            $description = preg_replace('/([a-zA-Z])([.,])([a-zA-Z0-9])/i', '$1$2 $3', $description);
+            $description = preg_replace('/\(\s/', '(', $description);
+            $description = preg_replace('/\s\)/', ')', $description);
+            $description = preg_replace('/([)])\./', '$1', $description);
+
+            if(strlen($description) > 400){
+                $description = $ad['Property_Title'];
+                if($bedroom){
+                    $description.= ' - '.$bedroom.' bedroom'.($bedroom>1 ? 's':'');
+                }
+                if($bathrooms){
+                    $description.= ' - '.$bathrooms.' bathroom'.($bathrooms>1 ? 's':'');
+                }
+                if($area){
+                    $area = preg_replace('/[^0-9]/', '',$area);
+                    $description.= ' - '.number_format($area).' sqft';
+                }
+                if($price){
+                    $description.= ' - price '.number_format($price).' AED';
+                }
+
             }
-            if($bathrooms){
-                $description.= ' - '.$bathrooms.' bathroom'.($bathrooms>1 ? 's':'');
+
+            $description.= ' - ref: '.$ad['Property_Ref_No'];
+            $description = $description.  json_decode('"\u200B"').' / please call '.ucfirst($ad['Listing_Agent']).parseUserAdTime($content['cui'], $content['cut']);
+
+            if($section_id == 1){
+                if(preg_match('/furnished/i',$description)){
+                    $section_id = 2;
+                }
             }
-            if($area){
-                $area = preg_replace('/[^0-9]/', '',$area);
-                $description.= ' - '.number_format($area).' sqft';
+            if(preg_match('/studio/i',$description)){
+                $section_id = 122;
             }
-            if($price){
-                $description.= ' - price '.number_format($price).' AED';
+
+            if(preg_match('/under construction|under-construction/i',$description)){
+                $section_id = 1341;
             }
-            
-        }
-        
-        $description.= ' - ref: '.$ad['Unit_Reference_No'];
-        $description = $description.  json_decode('"\u200B"').' / please call '.ucfirst($ad['Listing_Agent']).parseUserAdTime($content['cui'], $content['cut']);
-        
-        if($section_id == 1){
-            if(preg_match('/furnished/i',$description)){
-                $section_id = 2;
-            }
-        }
-        if(preg_match('/studio/i',$description)){
-            $section_id = 122;
-        }
-        
-        if(preg_match('/under construction|under-construction/i',$description)){
-            $section_id = 1341;
         }
         
         /*            
@@ -413,38 +527,24 @@ try{
         
         
         //echo $ad['description_en'],"\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
-        echo "INDEX ".$j++."\t LEGNTH: ".strlen($description)."\t Original ".strlen($original)."\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
+        echo "INDEX ".$j++."\t SUMMARY: ".strlen($summary)."\t DESC: ".strlen($description)."\t Original ".strlen($original)."\n";
+        echo 'SUMMARY----------------------------------------------------',"\n";
+        echo $summary,"\n";
+        echo 'DESC-------------------------------------------------------',"\n";
         echo $description,"\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
+        echo 'ORIGINAL---------------------------------------------------',"\n";
         echo $original , "\n";
         echo '----------------------------------------------------',"\n";
         echo "Section:\t{$section_id}\t\tPurpose:\t{$purpose_id}\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
-        echo '----------------------------------------------------',"\n";
+        echo '----------------------------------------------------',"\n\n\n";
               
         
         $content['other']=$description;
         
-        if( strlen($description) > 550){
+        
+        //sleep(5);
+        
+        if( strlen($summary) > 550){
             continue;
         }
         
@@ -528,8 +628,8 @@ try{
         */
         $i++;
         if($i==$processItems){
-            $insert_ad->closeCursor();
-            $update_ad->closeCursor();
+            unset($insert_ad);
+            unset($update_ad);
             $db->close();
             exit(0);
         }
@@ -566,7 +666,7 @@ $stmt=$db->prepareQuery(
 $db->close();
  * 
  */
-echo 'Done me-properties.com crawling',"\n\n";
+echo 'Done casabella crawling',"\n\n";
 
 function getElementValue($element,$is_array=0){
     if(is_array($element)){

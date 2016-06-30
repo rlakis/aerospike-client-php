@@ -207,6 +207,7 @@ $config=array(
     'url_js'                => 'https://dv.mourjan.com/web/js/1.0.0',
     'url_js_mobile'         => $aws.'/js/2.1.8d',
     'url_css'               => $aws.'/css/5.3.7',
+    'url_css'               => 'https://dv.mourjan.com/web/css/1.0.0',
     'url_css_mobile'        => $aws.'/css/5.2.8c',
     'url_jquery'            => $aws.'/jquery/1.10.2.3/js/',
     'url_jquery_mobile'     => $aws.'/jquery/2.1.0/',

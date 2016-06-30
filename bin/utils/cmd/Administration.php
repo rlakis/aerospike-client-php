@@ -56,7 +56,7 @@ class Administration {
                     $userId = $this->args[2];
                     
                     $accounts = [
-                        $userId => ['LVL'=>0]
+                        $userId => ['LVL'=>5]
                     ];
                     
                     echo "checking why account {$userId} was blocked..".PHP_EOL;
@@ -95,6 +95,7 @@ class Administration {
                 $q .= ',';
             }
             $q .= $id;
+            $i++;
         }
         $q.=')';
         

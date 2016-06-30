@@ -95,7 +95,15 @@ class Panel extends Page{
                 }
             };
             $(".close").click(function(){$(this).parent().remove()}).hover(function(){$(this).next().addClass("on")},function(){$(this).next().removeClass("on")});
+            
         ';
+        $this->globalScript.='
+            function prop(){
+                Dialog.show(
+                    \'prop_dialog\',
+                    \'hello\'
+                )
+            };';
         $lang = $this->urlRouter->siteLanguage == 'ar' ? '':$this->urlRouter->siteLanguage.'/';
         if($this->user->info['id']){
             ?><ul id="note" class='note <?= $this->urlRouter->siteLanguage ?>'></ul><?php
@@ -112,6 +120,14 @@ class Panel extends Page{
                 ?><a id="watchlist" href="/watchlist/<?= $lang ?>?u=<?= $this->user->info['idKey'] ?>" class="option half watchlist"><span class="j eye"></span> <?= $this->lang['myList'] ?></a><?php
             ?></div><div class="account <?= $this->urlRouter->siteLanguage ?>"><?php         
                 ?><a href="/account/<?= $lang ?>" class="option full settings"><span class="j sti"></span> <?= $this->lang['myAccount'] ?></a><?php
+            ?></div><div class="account <?= $this->urlRouter->siteLanguage ?>"><?php         
+            ?><a href="javascript:void(0)" onclick="prop()" class="option full settings"><span class="j prop"></span> <?= $this->lang['myPropspace'] ?></a><?php
+            ?></div><?php
+            
+            
+            ?><div id="prop_dialog" class="dialog"><?php
+                ?><div class="dialog-box"></div><?php 
+                ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
             ?></div><?php
         }else{
             $this->renderLoginPage();

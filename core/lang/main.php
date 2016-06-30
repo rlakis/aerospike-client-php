@@ -215,6 +215,7 @@ $lang=array(
     "noUserList"    =>  "User Watchlist",
     "myFavorites"    =>  "My Favorites",
     'myAccount'         =>  'My Settings',
+    'myPropspace'         =>  'Link With PropSpace',
     'watchSettings'         =>  'Search Settings',
     'editPage'         =>  'edit my page',
     "signin"    =>  "Sign In",

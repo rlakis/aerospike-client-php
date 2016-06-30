@@ -220,6 +220,7 @@ $lang=array(
     "noUserList"    => 'لائحة متابعة مستخدم',
     "myFavorites"    =>  "مفضلتي",
     'myAccount'     =>  'خصائص حسابي',
+    'myPropspace'         =>  'ربط حسابي مع PropSpace',
     'watchSettings'         =>  'خصائص البحث',
     'editPage'         =>  'تعديل خصائص صفحتي',
     "signin"    =>  "تسجيل الدخول",

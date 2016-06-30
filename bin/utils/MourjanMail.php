@@ -470,7 +470,7 @@ class MourjanMail extends PHPMailer {
         $this->Subject='New comment on your ad';
         $this->AddAddress($email,$username);
         //$this->AddBCC('admin@berysoft.com');
-        $this->AddBCC('bassel@mourjan.com');
+        //$this->AddBCC('bassel@mourjan.com');
         
         $content = $this->getAdTextTable($adTitle, $rtl, $pic);
         if (preg_match('/[\x{0621}-\x{0669}]/u', $comment)){
