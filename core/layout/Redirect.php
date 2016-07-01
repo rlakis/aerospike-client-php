@@ -11,7 +11,7 @@ class Redirect extends Site{
         $userLogin = $this->post('u');
         if($userLogin && $this->isEmail($userLogin)){
             $ref = $this->post('r');
-            if(isset($_SERVER['HTTP_REFERER']) && preg_match('/^(?:http|https)\:\/\/(?:www\.|dev\.|)mourjan\.com/', $_SERVER['HTTP_REFERER']) 
+            if(isset($_SERVER['HTTP_REFERER']) && preg_match('/^(?:http|https)\:\/\/(?:www\.|dev\.|dv\.|rc\.|)mourjan\.com/', $_SERVER['HTTP_REFERER']) 
                    && $ref && preg_match('/\/home\/|\/signin\/|\/favorites\/|\/account\/\|\/myads\/|\/post\/|\/watchlist\/|\/buy\/|\/buyu\/|\/statement\//',$ref) ){
                             $userPass = $this->post('p');
                             $keepme_in = $this->post('o','boolean');

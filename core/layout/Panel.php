@@ -12,6 +12,13 @@ class Panel extends Page{
         $this->urlRouter->cfg['enabled_ads']=0;
         $this->set_require('css', array('home'));
         
+        $this->inlineCss.='input.prop{    
+            width: 400px;
+            padding: 5px 10px;
+            direction: ltr;
+            text-align: left;
+        }';
+        
         $this->render();
     }
     
@@ -101,7 +108,7 @@ class Panel extends Page{
             function prop(){
                 Dialog.show(
                     \'prop_dialog\',
-                    \'hello\'
+                    \'<input class="prop" type="text" placeholder="http://xml.propspace.com/feed/xml.php" />\'
                 )
             };';
         $lang = $this->urlRouter->siteLanguage == 'ar' ? '':$this->urlRouter->siteLanguage.'/';
@@ -127,7 +134,7 @@ class Panel extends Page{
             
             ?><div id="prop_dialog" class="dialog"><?php
                 ?><div class="dialog-box"></div><?php 
-                ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
+                ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['connect'] ?>" /></div><?php 
             ?></div><?php
         }else{
             $this->renderLoginPage();

@@ -8,6 +8,7 @@
 // ------------------------------------------------------------------------
 //	HybridAuth End Point
 // ------------------------------------------------------------------------
+$_REQUEST['hauth_done'] = 'Live';
 require 'vendor/autoload.php';
 use mourjan\Hybrid;
 use mourjan\EndPoint;

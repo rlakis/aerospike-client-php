@@ -1,7 +1,7 @@
 <?php
 
 require_once 'vendor/autoload.php';
-use hybridauth\Hybrid;
+use mourjan\Hybrid;
 use mobiledetect\MobileDetect;
 
 class User {
@@ -651,7 +651,7 @@ class User {
                                     }else{
                                         $q.= '( (a.state in (1,2,4)) or (a.state=3 and a.web_user_id='.$uid.') ) ';
                                     }
-                                    $q .= ' and ao.super_admin <= '.$adLevel.' ';
+                                    $q .= ' and (ao.super_admin is null or ao.super_admin <= '.$adLevel.') ';
                                     if($filters['purpose']){
                                         $q.='and a.purpose_id='.$filters['purpose'].' ';
                                     }
@@ -748,17 +748,25 @@ class User {
                             where web_user_id=? and state=?
                             ', array($uid,$state));
                     }elseif ($state){
+                        
+                        $adLevel=0;
+                        if($this->isSuperUser()){
+                            $adLevel=1;
+                        }
                         $filters=  $this->getAdminFilters();
                         $q = 'select count(*) from ad_user a ';
                         if($filters['root']){
                             $q .= 'left join section s on a.section_id = s.id ';
                         }
+                        $q .= 'left join ad_object ao on ao.id = a.id ';
                         $q .= 'where ';
                         if($filters['uid']){
                             $q.= '( (a.state in (1,2,4)) and a.web_user_id='.$filters['uid'].' ) ';
                         }else{
                             $q.= '( (a.state in (1,2,4)) or (a.state=3 and a.web_user_id='.$uid.') ) ';
                         }
+                        $q .= ' and (ao.super_admin is null or ao.super_admin <= '.$adLevel.') ';
+                                    
                         if($filters['purpose']){
                             $q.='and a.purpose_id='.$filters['purpose'].' ';
                         }

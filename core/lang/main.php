@@ -676,6 +676,7 @@ $lang=array(
     'keyword'   =>  'Keyword',
     'new_key'   =>  'New Keyword',
     'rotate'   =>  'Rotate',
+    'connect'   =>  'Connect',
     
     'guide_droid_skip'  =>  'If you already have mourjan app setup on your mobile device <a href="#step2">click here to skip to second step</a>',
     'guide_apple_skip'  =>  'If you already have activated mourjan app and verified your phone number on your mobile device <a href="#step2">click here to skip to second step</a>',
