@@ -491,8 +491,8 @@ $lang=array(
     'requireEmail'  =>  'To better serve you, Mourjan.com needs your email address. <a href="/account/en/?action=email">Click here</a> to specify your email address',
     'validateEmail' =>  'A verification email has been sent to <b>{email}</b>. Please visit your email inbox to verify your email address or <a href="/account/en/?action=email">click here</a> to correct the provided email address',
 
-    'sys_error'=>'Mourjan system Failure, please try again or <a href="/contact/en/">click here</a> to tell us about it',
-    'sys_err'=>'Mourjan system Failure, please try again',
+    'sys_error'=>'Mourjan system failure, please try again or <a href="/contact/en/">click here</a> to tell us about it',
+    'sys_err'=>'Mourjan system failure, please try again',
     'addF0'     =>  'click the <span class="i fav"></span> star to add an ad to favorites',
     'addF1'     =>  'to add ads to My Favorites, first',
     'addF2'     =>  'second',
@@ -693,6 +693,21 @@ $lang=array(
     'user_type_option_1'   =>  'individual',
     'user_type_option_2'   =>  'company',
     
-    'paypal_suspended'      =>  'Sorry! Paypal payments are no longer accepted'
+    'paypal_suspended'      =>  'Sorry! Paypal payments are no longer accepted',
+    
+    'prop_title'      =>  'PropSpace feeds',
+    'prop_delete'      =>  'Remove this PropSpace link?',
+    'link_ok'      =>  'link is active',
+    'link_no'      =>  'cannot access this link',
+    'prop_reading_ads'      =>  'Reading ads in progress, please wait',
+    'prop_added'      =>  'PropSpace account has been added successfully<br /><ul class="rs">'
+    . '<li>you will find a list of all your PropSpace links at the bottom of this page</li>'
+    . '<li>ads will be added gradually by mourjan engine</li>'
+    . '<li>you will find added ads in your Active Ads\' list</li>'
+    . '<li>editting/deleting any of your PropSpace ads should be done from your PropSpace account</li>'
+    . '</ul>',
+    
+    'ERROR_101' =>  'forbidden access',
+    'ERROR_102' =>  'some parameters are missing',
     
 );

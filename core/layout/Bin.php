@@ -317,6 +317,80 @@ class Bin extends AjaxHandler{
                 }
                 $this->process();
                 break;
+            case 'ajax-propspace':
+                $del = $this->get('del');
+                if($del && is_numeric($del)){
+                    if($this->user->info['id']){
+                        $success = $this->urlRouter->db->queryResultArray(
+                            'delete from web_users_propspace where id = ? and uid = ?', array(
+                                $del,
+                                $this->user->info['id']
+                            ));
+                        if($success){
+                            $this->process();
+                        }else{
+                            $this->fail($this->lang['sys_err']);
+                        }
+                    }else{
+                        $this->fail($this->lang['ERROR_101']);
+                    }
+                }else{
+                    $lang = $this->get('hl');
+                    $url = trim($this->get('url'));
+                    if(!in_array($lang,array('ar','en'))){
+                        $lang = 'ar';
+                    }
+                    $this->urlRouter->siteLanguage=$lang;   
+                    $this->load_lang(array('main'), $lang);
+                    if($this->user->info['id']){
+                        if($this->urlRouter->cfg['active_maintenance']){
+                            $this->fail(strtolower($this->lang['title_site_maintenance']));
+                        }else{
+                            $connection = ssh2_connect('p1.mourjan.com', 22);
+                            if($connection){
+                                if(ssh2_auth_password($connection, 'root', 'x8p72CYDdweTty')){
+                                    $stream = ssh2_exec($connection, '/usr/local/bin/php /opt/mourjan/utils/linkProp.php '.$this->user->info['id'].' "'.$url.'"');
+                                    stream_set_blocking($stream, true);                                
+                                    $stream_out = ssh2_fetch_stream($stream, SSH2_STREAM_STDIO);
+                                    $result = stream_get_contents($stream_out);
+                                    if($result===false){
+                                        $this->fail($this->lang['sys_error']);
+                                    }else{
+                                        error_log($result);
+                                        $object = json_decode($result,true);
+                                        if(json_last_error()){
+                                            $msg = $result;
+                                            if(strpos($result, 'ERROR_')!==false){
+                                                $msg = $this->lang[$result];
+                                            }
+                                            $this->fail($msg);
+                                        }else{                                        
+                                            $this->setData($object, 'feed');
+                                            $this->process();
+                                        }
+                                    }
+                                }else{
+                                    $this->fail($this->lang['sys_error']);
+                                }
+                                unset($connection);
+                            }else{
+                                $this->fail($this->lang['sys_error']);
+                            }
+                        }
+                        /*$notes = $this->urlRouter->db->queryResultArray(
+                                    'select first 5 s.id, s.text_'.$lang.' from
+                                    shoutout s
+                                    left join web_users_shoutouts_xref x on x.shoutout_id = s.id and x.uid = ?
+                                    where x.id is null and s.members_only = 1 and s.publish_type in (0,2,6)
+                                    order by s.id desc', array(
+                                        $this->user->info['id']
+                                    ));
+                        $this->setData($notes, 'shouts');*/
+                    }else{
+                        $this->fail($this->lang['ERROR_101']);
+                    }
+                }
+                break;
             case 'ajax-delshout':   
                 if($this->user->info['id']){
                     $shoutId = $this->post('i','uint');
@@ -382,6 +456,18 @@ class Bin extends AjaxHandler{
                                 }
                             }
                             $this->setData($stats, 'ads');
+                        }
+                        
+                        $props = $this->urlRouter->db->queryResultArray(
+                                "select id,url,counter,DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', last_crawl) as crawl from web_users_propspace where uid = ?", array(
+                                    $this->user->info['id']
+                                ));
+                        if($props !== false){
+                            $propspace = [];
+                            foreach ($props as $prop){
+                                $propspace[] = [$prop['ID'],$prop['URL'],$prop['CRAWL']];
+                            }
+                            $this->setData($propspace, 'props');
                         }
                     }
                     

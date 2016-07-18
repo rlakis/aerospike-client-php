@@ -1,6 +1,6 @@
 .account{
                     width:660px;
-                    margin:20px 0 30px 0;
+                    margin:20px 0 0px 0;
                     overflow:visible;                        
                     -webkit-touch-callout: none;
                     -webkit-user-select: none;
@@ -17,12 +17,12 @@
                       margin-top: -10px
                  }
                 .account .option:first-child{
-                    margin:0 0 40px 0;
+                    margin:0 0 10px 0;
                 }
                 .option{
                     position:relative;
                     float:left;
-                    margin:0 0 40px 40px;
+                    margin:0 0 10px 40px;
                     background-color:#aff56d;
                     border:1px solid #aaa;
                     display:inline-block;
@@ -55,7 +55,7 @@
                 .full, .full:first-child{
                     width:500px;
                     height:45px;
-                    margin:0 0 40px 42px!important
+                    margin:0 0 10px 42px!important
                 }
                 .half{
                     width:250px;
@@ -90,9 +90,9 @@
                 .pj.coin{margin:-10px 0 0 25px}
                 .ar .pj.coin{margin:-10px 25px 0 0}
                 .ar .option{float:right;
-                    margin:0 40px 40px 0}
+                    margin:0 40px 0px 0}
                 .ar .full, .ar .full:first-child{
-                    margin:0 42px 40px 0!important
+                    margin:0 42px 10px 0!important
                 }
                 .note{
                     width:300px;
@@ -145,6 +145,9 @@
                 .note a:hover{
                     background-color:#FF9000!important;
                     color:#FFF!important
+                }
+                #props{
+                    margin-bottom:15px
                 }
                 
 .shake { display: inline-block; -webkit-transform-origin: center center; -ms-transform-origin: center center; transform-origin: center center; }

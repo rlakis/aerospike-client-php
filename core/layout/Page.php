@@ -29,6 +29,10 @@ class Page extends Site{
 
     function __construct($router){
         parent::__construct($router);
+        
+        //$res= $this->urlRouter->db->queryResultArray('select * from ad_user where content = \'\' and state = 3');
+        //var_dump($res);
+        
         //$this->user->sysAuthById(43905);
         if(!$this->urlRouter->cfg['enabled_users']){
             if($this->urlRouter->siteLanguage == 'ar'){
@@ -3809,7 +3813,11 @@ class Page extends Site{
         ?></script><?php
         
         if($this->user->info['id'] && $this->user->info['level']==9 && $this->urlRouter->module=='post'){
-            ?><script type="text/javascript" async="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/pvc.js"></script><?php
+            if($this->urlRouter->cfg['site_production']){
+                ?><script type="text/javascript" async="true" src="https://h5.mourjan.com/js/3.0.7/pvc.js"></script><?php
+            }else{
+                ?><script type="text/javascript" async="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/pvc.js"></script><?php
+            }
         }
         if($this->urlRouter->module == 'index'){
             ?><script type="application/ld+json"><?php

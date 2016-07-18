@@ -17,7 +17,40 @@ class Panel extends Page{
             padding: 5px 10px;
             direction: ltr;
             text-align: left;
-        }';
+        }
+        .rs{            
+            list-style: disc inside;
+            text-align: right;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+        .dialog-box .msg{
+            margin-top:10px;
+            width:424px;font-size:';
+        if($this->urlRouter->siteLanguage=='ar'){
+            $this->inlineCss.='16';
+        }else{
+            $this->inlineCss.='14';
+        }
+        $this->inlineCss.='px}
+        .ldl{
+            width:424px
+        }
+        .account.seli{width:625px}
+        .account.seli:not(.h){margin: 0;list-style:none;text-align:left;direction:ltr}
+        .seli li{width:auto}
+        .seli .lnk,.seli .load{float:right}
+        ';
+        
+        if($this->urlRouter->siteLanguage=='ar'){
+            $this->inlineCss.='
+                .account{float:right}
+            ';
+        }else{
+            $this->inlineCss.='
+                .account{float:left}
+            ';
+        }
         
         $this->render();
     }
@@ -51,6 +84,9 @@ class Panel extends Page{
                                 var e=$("<li><a class=\'shake warn\' href=\'/myads/"+(lang=="ar"?"":lang+"/")+"?sub=pending\'><span class=\'fail\'></span>"+(lang=="ar"? "هنالك "+( a[4] == 1 ? "اعلان قد تم رفض عرضه" : (a[4] == 2 ? "اعلانين قد تم رفض عرضهما" : (a[4] < 11 ? a[4]+" اعلانات قد تم رفض عرضها" : a[4]+" اعلان قد تم رفض عرضهم" )))+". انقر(ي) هنا للمراجعة":"You have "+(a[4] > 1 ? a[4]+" ads that were rejected.":"1 ad that was rejected.")+" Click here to review")+"</a></li>");
                                 note.prepend(e);
                             }
+                        }
+                        if(typeof rp.DATA.props  !== "undefined"){
+                            qprop(rp.DATA.props);
                         }
                         if(typeof rp.DATA.favs  !== "undefined"){
                             $("#favorite").append($("<span class=\'notifier\'>"+rp.DATA.favs+"</span>"));
@@ -106,10 +142,128 @@ class Panel extends Page{
         ';
         $this->globalScript.='
             function prop(){
+                $("#purl").val("");
+                mprop("");
                 Dialog.show(
                     \'prop_dialog\',
-                    \'<input class="prop" type="text" placeholder="http://xml.propspace.com/feed/xml.php" />\'
+                    null,
+                    uprop
                 )
+            };
+            var REQ=null,TEQ=null;
+            function qprop(k){ 
+                if(k.length==0)return;
+                var d=$("#props");
+                if(d.length==0){
+                    d=$("<ul class=\'account seli h sh rct\'><li><b>'.$this->lang['prop_title'].'</b></li></ul><ul id=\'props\' class=\'account seli sh\'></ul>");
+                    $("#prob").after(d);
+                }
+                d=$("#props");
+                for(var i in k){
+                    var s="<span title=\''.$this->lang['link_ok'].'\' class=\'done\'></span>";
+                    if(0 && k[i][2]==null){
+                        s="<span title=\''.$this->lang['link_no'].'\' class=\'fail\'></span>";
+                    }
+                    var o=$("<li id=\'p"+k[i][0]+"\'>"+s+" "+k[i][1]+" <span onclick=\'dprop(this)\' class=\'lnk\'>'.strtolower($this->lang['remove']).'</span></li>");
+                    d.append(o);
+                }
+            };
+            function xprop(v){
+                REQ=$.ajax({
+                    type:"GET",
+                    url:"/ajax-propspace/",
+                    dataType:"json",
+                    data:{hl:lang,url:v},
+                    success:function(rp){
+                        REQ=null;
+                        if(rp.RP){
+                            qprop([rp.DATA.feed]);
+                            Dialog.show(
+                                \'prop_done\'
+                            );
+                        }else{
+                            fprop(rp.MSG);
+                        }
+                    },
+                    error:function(rp){
+                        REQ=null;
+                        var m=\'<span class="fail"></span> '.$this->lang['sys_error'].'\';
+                        fprop(m);
+                    }
+                });
+            };
+            function dprop(e){
+                if(confirm("'.$this->lang['prop_delete'].'")){
+                    
+                    var li=$(e.parentNode);
+                    e=$(e);
+                    var i=li.attr("id").substring(1);
+                    var ld=$("<span class=\'load loads\'></span>");
+                    e.hide();
+                    e.after(ld);
+                    REQ=$.ajax({
+                        type:"GET",
+                        url:"/ajax-propspace/",
+                        dataType:"json",
+                        data:{del:i},
+                        success:function(rp){
+                            ld.remove();
+                            if(rp.RP){
+                                $("span:first-child",li).css("visibility","hidden");
+                                li.css("text-decoration", "line-through");
+                            }else{
+                                e.show();
+                            }
+                        },
+                        error:function(rp){
+                            ld.remove();
+                            e.show()
+                        }
+                    });
+                }
+            };
+            function uprop(){
+                var v = $("#purl").val().trim();
+                mprop("");
+                if(v.match(/^(?:http(?:s|):\/\/|)xml\.propspace\.com\/feed\/xml\.php/)){
+                    Dialog.show(
+                        \'prop_load\',
+                        null,
+                        null,
+                        clprop
+                    );
+                    if(REQ && REQ.readyState != 4){
+                        REQ.abort();
+                    }
+                    TEQ=setTimeout(function(){xprop(v)},1000);
+                }else{
+                    var m="<span class=\'fail\'></span> "+(lang=="ar"?"رابط PropSpace الالكتروني المدخل غير صحيح":"provided link is not a valid PropSpace XML feed link");
+                    mprop(m);
+                }
+            };
+            function fprop(m){
+                mprop(m);
+                Dialog.show(
+                    \'prop_dialog\',
+                    null,
+                    uprop
+                )
+            };
+            function mprop(m){
+                $("#prop_dialog .msg").html(m);
+            };
+            function clprop(){
+                mprop("");
+                if(REQ && REQ.readyState != 4){
+                    REQ.abort();
+                }
+                if(TEQ){
+                    clearTimeout(TEQ);
+                    TEQ=null
+                }
+                var v=$("#purl").val();
+                prop();
+                $("#purl").val(v);
             };';
         $lang = $this->urlRouter->siteLanguage == 'ar' ? '':$this->urlRouter->siteLanguage.'/';
         if($this->user->info['id']){
@@ -127,15 +281,27 @@ class Panel extends Page{
                 ?><a id="watchlist" href="/watchlist/<?= $lang ?>?u=<?= $this->user->info['idKey'] ?>" class="option half watchlist"><span class="j eye"></span> <?= $this->lang['myList'] ?></a><?php
             ?></div><div class="account <?= $this->urlRouter->siteLanguage ?>"><?php         
                 ?><a href="/account/<?= $lang ?>" class="option full settings"><span class="j sti"></span> <?= $this->lang['myAccount'] ?></a><?php
-            ?></div><div class="account <?= $this->urlRouter->siteLanguage ?>"><?php         
-            ?><a href="javascript:void(0)" onclick="prop()" class="option full settings"><span class="j prop"></span> <?= $this->lang['myPropspace'] ?></a><?php
             ?></div><?php
+            if($this->user->info['level']!=5){
+                ?><div id="prob" class="account <?= $this->urlRouter->siteLanguage ?>"><?php         
+                ?><a href="javascript:void(0)" onclick="prop()" class="option full settings"><span class="j prop"></span> <?= $this->lang['myPropspace'] ?></a><?php
+                ?></div><?php
+            }
             
-            
-            ?><div id="prop_dialog" class="dialog"><?php
-                ?><div class="dialog-box"></div><?php 
-                ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['connect'] ?>" /></div><?php 
-            ?></div><?php
+            if($this->user->info['level']!=5){
+                ?><div id="prop_dialog" class="dialog dlg-fix"><?php
+                ?><div class="dialog-box"><div><input id="purl" onfocus="mprop('')" class="prop" type="text" placeholder="http://xml.propspace.com/feed/xml.php" /></div><div class="msg inf err ctr"></div></div><?php 
+                    ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['connect'] ?>" /></div><?php 
+                ?></div><?php
+                ?><div id="prop_load" class="dialog"><?php
+                    ?><div class="dialog-box"><div class='ldl ctr'><span class='load loads'></span> <?= $this->lang['prop_reading_ads'] ?></div></div><?php 
+                    ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /></div><?php 
+                ?></div><?php
+                ?><div id="prop_done" class="dialog"><?php
+                    ?><div class="dialog-box"><div class='ldl ctr'><span class="done"></span> <?= $this->lang['prop_added'] ?></div></div><?php 
+                    ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
+                ?></div><?php
+            }
         }else{
             $this->renderLoginPage();
         }

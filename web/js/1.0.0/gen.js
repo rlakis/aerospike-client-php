@@ -274,6 +274,7 @@ if( (typeof showBalance !== 'undefined') && showBalance==1){
                 }
             },
             error:function(){
+                var bc = $("#balanceCounter");
                 msg="";
                 if(lang=="ar"){
                     msg="معلومات الرصيد غير متوفرة حالياً";

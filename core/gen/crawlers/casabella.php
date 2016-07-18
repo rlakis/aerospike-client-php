@@ -6,7 +6,7 @@
 $processItems = 1000;
 
 $FEED_URI = 'http://xml.propspace.com/feed/xml.php?cl=1252&pid=8245&acc=8807';
-//$FEED_URI = 'http://xml.propspace.com/feed/xml.php?cl=2918&pid=8245&acc=8807';
+$FEED_URI = 'http://xml.propspace.com/feed/xml.php?cl=2918&pid=8245&acc=8807';
 
 $sections_map = array(
     
