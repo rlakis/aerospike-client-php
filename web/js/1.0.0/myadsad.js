@@ -1050,7 +1050,7 @@ if(PEND){
         var active_admins=0,hasTouch=0,ownad=0,newad=0,newd,title_tag,adSound;
         var options = {transports: ['websocket'], 'force new connection': false};
 
-        var wio = io.connect("io.mourjan.com:1313", options);
+        var wio = io.connect("ws.mourjan.com:1313", options);
         wio.on('admins',function(data){
             active_admins=data.a;
             if(isNaN(active_admins)){

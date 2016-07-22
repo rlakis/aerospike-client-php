@@ -664,7 +664,7 @@ if(uhc){
 
 
 if(PEND && WSO){
-    var wio = io.connect("io.mourjan.com:1313", {'force new connection':false, transports: ['websocket', 'xhr-polling', 'polling', 'htmlfile', 'flashsocket']});
+    var wio = io.connect("ws.mourjan.com:1313", {'force new connection':false, transports: ['websocket', 'xhr-polling', 'polling', 'htmlfile', 'flashsocket']});
 
     wio.on("ads", function(data) {
     if(typeof data.c !== 'undefined'){        
