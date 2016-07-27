@@ -695,13 +695,13 @@ $lang=array(
     
     'paypal_suspended'      =>  'Sorry! Paypal payments are no longer accepted',
     
-    'prop_title'      =>  'PropSpace feeds',
+    'last_update'      =>  'last update:',
+    'prop_title'      =>  'PropSpace',
     'prop_delete'      =>  'Remove this PropSpace link?',
     'link_ok'      =>  'link is active',
     'link_no'      =>  'cannot access this link',
     'prop_reading_ads'      =>  'Reading ads in progress, please wait',
     'prop_added'      =>  'PropSpace account has been added successfully<br /><ul class="rs">'
-    . '<li>you will find a list of all your PropSpace links at the bottom of this page</li>'
     . '<li>ads will be added gradually by mourjan engine</li>'
     . '<li>you will find added ads in your Active Ads\' list</li>'
     . '<li>editting/deleting any of your PropSpace ads should be done from your PropSpace account</li>'

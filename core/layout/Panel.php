@@ -37,6 +37,7 @@ class Panel extends Page{
             width:424px
         }
         .account.seli{width:625px}
+        .account.seli.h span{float:right;margin:0 10px}
         .account.seli:not(.h){margin: 0;list-style:none;text-align:left;direction:ltr}
         .seli li{width:auto}
         .seli .lnk,.seli .load{float:right}
@@ -87,6 +88,8 @@ class Panel extends Page{
                         }
                         if(typeof rp.DATA.props  !== "undefined"){
                             qprop(rp.DATA.props);
+                        }else{
+                            prini();
                         }
                         if(typeof rp.DATA.favs  !== "undefined"){
                             $("#favorite").append($("<span class=\'notifier\'>"+rp.DATA.favs+"</span>"));
@@ -140,6 +143,25 @@ class Panel extends Page{
             $(".close").click(function(){$(this).parent().remove()}).hover(function(){$(this).next().addClass("on")},function(){$(this).next().removeClass("on")});
             
         ';
+        if($this->user->info['level']!=5){
+                $this->globalScript .= 'function prini(){var t=$(\'<div id="prob" class="account '. $this->urlRouter->siteLanguage .'">         
+                <a href="javascript:void(0)" onclick="prop()" class="option full settings"><span class="j prop"></span> '. $this->lang['myPropspace'] .'</a>
+                </div><div id="prop_dialog" class="dialog dlg-fix"><div class="dialog-box"><div><input id="purl" onfocus="mprop(\\\'\\\')" class="prop" type="text" placeholder="http://xml.propspace.com/feed/xml.php" /></div><div class="msg inf err ctr"></div></div> 
+                    <div class="dialog-action"><input type="button" class="cl" value="'. $this->lang['cancel'] .'" /><input type="button" value="'. $this->lang['connect'] .'" /></div> 
+                </div>
+                <div id="prop_load" class="dialog">
+                    <div class="dialog-box"><div class="ldl ctr"><span class="load loads"></span> '. $this->lang['prop_reading_ads'] .'</div></div>
+                    <div class="dialog-action"><input type="button" class="cl" value="'. $this->lang['cancel'] .'" /></div>
+                </div>
+                <div id="prop_done" class="dialog">
+                    <div class="dialog-box"><div class="ldl ctr"><span class="done"></span> '. $this->lang['prop_added'] .'</div></div> 
+                    <div class="dialog-action"><input type="button" value="'. $this->lang['continue'] .'" /></div>
+                </div>\');
+                $(".col1").append(t)};
+                ';
+            }else{
+                $this->globalScript .='function prini(){};';
+            }
         $this->globalScript.='
             function prop(){
                 $("#purl").val("");
@@ -153,10 +175,12 @@ class Panel extends Page{
             var REQ=null,TEQ=null;
             function qprop(k){ 
                 if(k.length==0)return;
-                var d=$("#props");
+                var d=$("#prob");
+                d.after().remove();
+                d=$("#props");
                 if(d.length==0){
-                    d=$("<ul class=\'account seli h sh rct\'><li><b>'.$this->lang['prop_title'].'</b></li></ul><ul id=\'props\' class=\'account seli sh\'></ul>");
-                    $("#prob").after(d);
+                    d=$("<ul class=\'account seli h sh rct en\'><li><b>'.$this->lang['prop_title'].'</b></li></ul><ul id=\'props\' class=\'account seli sh\'></ul>");
+                    $(".col1").append(d);
                 }
                 d=$("#props");
                 for(var i in k){
@@ -211,6 +235,9 @@ class Panel extends Page{
                             if(rp.RP){
                                 $("span:first-child",li).css("visibility","hidden");
                                 li.css("text-decoration", "line-through");
+                                li.parent().prev().remove();
+                                li.parent().remove();
+                                prini();
                             }else{
                                 e.show();
                             }
@@ -225,7 +252,7 @@ class Panel extends Page{
             function uprop(){
                 var v = $("#purl").val().trim();
                 mprop("");
-                if(v.match(/^(?:http(?:s|):\/\/|)xml\.propspace\.com\/feed\/xml\.php/)){
+                if(v.match(/^(?:http(?:s|):\/\/|)(?:me|)xml\.propspace\.com\/(?:me|)feed\/xml\.php/)){
                     Dialog.show(
                         \'prop_load\',
                         null,
@@ -282,26 +309,12 @@ class Panel extends Page{
             ?></div><div class="account <?= $this->urlRouter->siteLanguage ?>"><?php         
                 ?><a href="/account/<?= $lang ?>" class="option full settings"><span class="j sti"></span> <?= $this->lang['myAccount'] ?></a><?php
             ?></div><?php
-            if($this->user->info['level']!=5){
+           /* if($this->user->info['level']!=5){
                 ?><div id="prob" class="account <?= $this->urlRouter->siteLanguage ?>"><?php         
                 ?><a href="javascript:void(0)" onclick="prop()" class="option full settings"><span class="j prop"></span> <?= $this->lang['myPropspace'] ?></a><?php
                 ?></div><?php
-            }
+            }*/
             
-            if($this->user->info['level']!=5){
-                ?><div id="prop_dialog" class="dialog dlg-fix"><?php
-                ?><div class="dialog-box"><div><input id="purl" onfocus="mprop('')" class="prop" type="text" placeholder="http://xml.propspace.com/feed/xml.php" /></div><div class="msg inf err ctr"></div></div><?php 
-                    ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['connect'] ?>" /></div><?php 
-                ?></div><?php
-                ?><div id="prop_load" class="dialog"><?php
-                    ?><div class="dialog-box"><div class='ldl ctr'><span class='load loads'></span> <?= $this->lang['prop_reading_ads'] ?></div></div><?php 
-                    ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /></div><?php 
-                ?></div><?php
-                ?><div id="prop_done" class="dialog"><?php
-                    ?><div class="dialog-box"><div class='ldl ctr'><span class="done"></span> <?= $this->lang['prop_added'] ?></div></div><?php 
-                    ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
-                ?></div><?php
-            }
         }else{
             $this->renderLoginPage();
         }

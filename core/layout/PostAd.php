@@ -792,8 +792,8 @@ class PostAd extends Page{
                     }
                 ?></ul></li><?php 
                 ?><li class="pid"><b class="ah ctr act2"><?php 
-                    ?><form target="upload"<?= $hasPics < 5 ? '':' class="hid"' ?> id="picF" action="/x-upload/" enctype="multipart/form-data" method="post"><?php 
-                    ?><span class="button bt ok upload_bt"><input id="picB" name="pic" type="file" multiple="multiple" /><?= $this->lang['add_images'] ?></span><?php 
+                    ?><form target="upload"<?= $hasPics < 5 ? '':' class="hid"' ?> id="picF" action="<?= $this->urlRouter->cfg['url_uploader'] ?>/upload/" enctype="multipart/form-data" method="post"><?php 
+                    ?><span class="button bt ok upload_bt"><input id="picB" name="pic" type="file" multiple="multiple" /><input type="hidden" name="<?php echo ini_get("session.upload_progress.name") ?>" value="<?= $this->user->info['id'] ?>" /><?= $this->lang['add_images'] ?></span><?php 
                     ?><input name="picS" type="submit" class="hid" /><?php
                     ?></form><span id="noPBT" onclick="noPO(this)" class="button bt<?= $hasPics ? '' : ' cl' ?>"><?= $hasPics ? $this->lang['next'] : $this->lang['no'] ?></span><?php 
                     ?><iframe id="upForm" class="hid" name="upload" src="/web/blank.html"></iframe><?php

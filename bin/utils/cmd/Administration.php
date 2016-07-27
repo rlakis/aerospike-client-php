@@ -1,6 +1,5 @@
 <?php
-
-include_once '../../../config/cfg.php';
+include_once dirname(__FILE__).'/../../../config/cfg.php';
 include_once $config['dir'].'/core/model/Db.php';
 
 class Administration {
@@ -26,27 +25,67 @@ class Administration {
         $start = time();
         $pass= true;
         switch($this->ACTION){
+            case "block":
+                if(isset($this->args[2]) && $this->args[2]){
+                    if(isset($this->args[3]) && $this->args[3]){
+                        $userId = $this->args[2];
+                        $msg = $this->args[3];
+
+                        echo "blocking '{$userId}' because of {$msg}".PHP_EOL;
+                        
+                        $users = $this->db->queryResultArray('select id, opts from web_users where id in ('.$userId.') and lvl != 5');
+
+                        if($users!==false){
+                            $updateStmt = $this->db->prepareQuery('update web_users set lvl = 5, opts = ? where id = ?');
+                            $success = [];
+                            $failure = [];
+                            foreach($users as $user){
+                                $opts = json_decode($user['OPTS'],true);
+                                if(isset($opts['block']) && is_array($opts['block'])){
+                                    $opts['block'][] = $msg;
+                                }else{  
+                                    $opts['block'] = [$msg];
+                                }
+                                
+                                if($updateStmt->execute([json_encode($opts),$user['ID']])){
+                                    $success[]=$user['ID'];
+                                }else{
+                                    $failure[]=$user['ID'];
+                                }
+                            }
+                            unset($updateStmt);
+                            echo "blocked successfully: ".implode(",", $success).PHP_EOL;
+                            echo "failed to block: ".implode(",", $failure).PHP_EOL;
+                        }else{
+                            echo "system error: failed to fetch accounts".PHP_EOL;
+                        }
+                    }else{
+                        echo "unblock error: missing \"message for why blocked\"".PHP_EOL;
+                    }                    
+                }else{
+                    echo "block error: missing  \"id1,id2,...\"".PHP_EOL;
+                }
+                break;
             case "unblock":
                 if(isset($this->args[2]) && is_numeric($this->args[2])){
                     $userId = $this->args[2];
-                    
+
                     $accounts = [
                         $userId => ['LVL'=>0]
                     ];
-                    
+
                     echo "unblocking {$userId}..".PHP_EOL;
-                    
+
                     $this->getUserAccounts($accounts);
                     $ids=  array_keys($accounts);
-                    
+
                     $q='update web_users set lvl = 0 where id in ('.  implode(',', $ids).')';
-                    
+
                     if($this->db->queryResultArray($q)){
                         echo "{$userId} unblocked successfully".PHP_EOL;
                     }else{
                         echo "system error: failed to unblock".PHP_EOL;
                     }
-                    
                 }else{
                     echo "unblock error: missing {web_user_id}".PHP_EOL;
                 }
@@ -75,6 +114,7 @@ class Administration {
                 echo "available commands:".PHP_EOL;
                 echo "1-\tyBlocked {web_user_id}".PHP_EOL;
                 echo "2-\tunblock {web_user_id}".PHP_EOL;
+                echo "3-\tblock \"id1,id2,...\" \"message for why blocked\"".PHP_EOL;
                 break;
         }
         if($pass){

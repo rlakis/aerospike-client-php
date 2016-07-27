@@ -322,12 +322,20 @@ class Bin extends AjaxHandler{
                 if($del && is_numeric($del)){
                     if($this->user->info['id']){
                         $success = $this->urlRouter->db->queryResultArray(
-                            'delete from web_users_propspace where id = ? and uid = ?', array(
-                                $del,
+                            'update ad_user set state=8 where web_user_id = ? and content containing \'SYS_CRAWL\'', array(
                                 $this->user->info['id']
                             ));
                         if($success){
-                            $this->process();
+                            $success = $this->urlRouter->db->queryResultArray(
+                                'delete from web_users_propspace where id = ? and uid = ?', array(
+                                    $del,
+                                    $this->user->info['id']
+                                ));
+                            if($success){
+                                $this->process();
+                            }else{
+                                $this->fail($this->lang['sys_err']);
+                            }
                         }else{
                             $this->fail($this->lang['sys_err']);
                         }
@@ -462,7 +470,7 @@ class Bin extends AjaxHandler{
                                 "select id,url,counter,DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', last_crawl) as crawl from web_users_propspace where uid = ?", array(
                                     $this->user->info['id']
                                 ));
-                        if($props !== false){
+                        if($props !== false && count($props)){
                             $propspace = [];
                             foreach ($props as $prop){
                                 $propspace[] = [$prop['ID'],$prop['URL'],$prop['CRAWL']];
