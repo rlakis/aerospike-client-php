@@ -371,6 +371,6 @@ if ($globalSettings!==FALSE)
     }
 }
 
-$config['url_uploader'] = 'https://h5.mourjan.com:1443';
+$config['url_uploader'] = 'https://h5.mourjan.com';
 
 ?>
