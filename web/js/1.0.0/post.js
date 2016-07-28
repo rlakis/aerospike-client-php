@@ -2258,10 +2258,13 @@ function checkUploadLock(n){
 }
 function uproF(uid,uog,uoh){
     var w = 0;
+    console.log(uog);
+    console.log(uoh);
+
     $.ajax({
         url:UP_URL+'/upload/progress.php',
         data:{
-            PHP_SESSION_UPLOAD_PROGRESS:1,
+            UPLOAD_IDENTIFIER:1,
             s:USID},
         type:'POST',
         success:function(rp){
@@ -2323,7 +2326,7 @@ function uploadFile(data,type,prog){
     var f= dataURLtoBlob(data,type);
     var fd = new FormData();
     //fd.append('upload_progress_PHP_SESSION_UPLOAD_PROGRESS',1);
-    fd.append('PHP_SESSION_UPLOAD_PROGRESS',1);
+    fd.append('UPLOAD_IDENTIFIER',1);
     fd.append('pic',f);
     var rg=new RegExp('.*/');
     var t=type.replace(rg,'');
