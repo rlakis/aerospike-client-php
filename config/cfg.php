@@ -209,6 +209,7 @@ $config=array(
     'url_css'               => $aws.'/css/5.3.7',
     'url_css'               => 'https://dv.mourjan.com/web/css/1.0.0',
     'url_css_mobile'        => $aws.'/css/5.2.8c',
+    'url_css_mobile'        => $aws.'/css/5.2.8c',
     'url_jquery'            => $aws.'/jquery/1.10.2.3/js/',
     'url_jquery'            => 'https://dv.mourjan.com/web/jquery/1.10.2.2/js/',
     'url_jquery_mobile'     => $aws.'/jquery/2.1.0/',

@@ -322,7 +322,7 @@ class Bin extends AjaxHandler{
                 if($del && is_numeric($del)){
                     if($this->user->info['id']){
                         $success = $this->urlRouter->db->queryResultArray(
-                            'update ad_user set state=8 where web_user_id = ? and content containing \'SYS_CRAWL\'', array(
+                            'update ad_user set state=8 where web_user_id = ? and doc_id > \'\'', array(
                                 $this->user->info['id']
                             ));
                         if($success){
@@ -354,7 +354,42 @@ class Bin extends AjaxHandler{
                         if($this->urlRouter->cfg['active_maintenance']){
                             $this->fail(strtolower($this->lang['title_site_maintenance']));
                         }else{
-                            $connection = ssh2_connect('p1.mourjan.com', 22);
+                            $params = array(
+                                "uid" => $this->user->info['id'],
+                                "url" => $url,
+                                "hl"    =>  $lang
+                            );
+                            $script = 'https://h5.mourjan.com/prop.php?'.http_build_query($params);
+                            $headers = array(
+                                'Content-Type: application/json',
+                                'Connection: Keep-Alive',
+                                'Keep-Alive: 300'
+                            );
+                            $ch = curl_init();
+                            curl_setopt($ch, CURLOPT_URL, $script);
+                            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+                            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+
+
+                            $result = curl_exec($ch);
+                            if ($result == NULL || curl_errno($ch)) {
+                                $this->fail($this->lang['sys_error'].' '.  curl_error($ch));
+                            }else{
+                                $object = json_decode($result,true);
+                                if(json_last_error()){
+                                    $msg = $result;
+                                    if(strpos($result, 'ERROR_')!==false){
+                                        $msg = $this->lang[$result];
+                                    }
+                                    error_log("Failed to connect {$this->user->info['id']} <{$url}>".PHP_EOL, 3, '/var/log/mourjan/propspace.error.log');
+                                    $this->fail($msg);
+                                }else{                                        
+                                    $this->setData($object, 'feed');
+                                    $this->process();
+                                }
+                            }
+                            /*$connection = ssh2_connect('p1.mourjan.com', 22);
                             if($connection){
                                 if(ssh2_auth_password($connection, 'root', 'x8p72CYDdweTty')){
                                     $stream = ssh2_exec($connection, '/usr/local/bin/php /opt/mourjan/utils/linkProp.php '.$this->user->info['id'].' "'.$url.'"');
@@ -383,17 +418,8 @@ class Bin extends AjaxHandler{
                                 unset($connection);
                             }else{
                                 $this->fail($this->lang['sys_error']);
-                            }
+                            }*/
                         }
-                        /*$notes = $this->urlRouter->db->queryResultArray(
-                                    'select first 5 s.id, s.text_'.$lang.' from
-                                    shoutout s
-                                    left join web_users_shoutouts_xref x on x.shoutout_id = s.id and x.uid = ?
-                                    where x.id is null and s.members_only = 1 and s.publish_type in (0,2,6)
-                                    order by s.id desc', array(
-                                        $this->user->info['id']
-                                    ));
-                        $this->setData($notes, 'shouts');*/
                     }else{
                         $this->fail($this->lang['ERROR_101']);
                     }

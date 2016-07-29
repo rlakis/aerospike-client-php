@@ -179,7 +179,7 @@ class MyAds extends Page {
             }
             $this->set_ad(array('zone_0'=>array('/1006833/PublicRelation', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->urlRouter->cfg['server_id'])));
         
-            $this->inlineCss.='.ig{-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none}.ww{font-size:16px}.cct .k{float:none}.rpd{padding-top:5px!important}.rpd .bt{width:auto!important}.cct{height:auto}.ls p{padding-bottom:5px}.alt{border-top:1px solid #ccc;padding:5px!important}.en .ig{float:left;margin:0 10px 5px 0}.ar .ig{float:right;margin:0 0 5px 10px}';
+            $this->inlineCss.='.htf.db{width:720px!important}.ig{-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none}.ww{font-size:16px}.cct .k{float:none}.rpd{padding-top:5px!important}.rpd .bt{width:auto!important}.cct{height:auto}.ls p{padding-bottom:5px}.alt{border-top:1px solid #ccc;padding:5px!important}.en .ig{float:left;margin:0 10px 5px 0}.ar .ig{float:right;margin:0 0 5px 10px}';
             if($this->user->info['id'] && $this->user->info['level']==9){
                 $this->inlineCss.='#rejS{width:640px;padding:5px;margin-bottom:10px;}.adminNB{position:fixed;cursor:pointer;bottom:0;'.($this->urlRouter->siteLanguage=='ar'?'left':'right').':5px;background-color:#D9FAC8;padding:5px 15px;border:1px solid #ccc;border-bottom:0;font-weight:bold;color:#00e}.adminNB:hover{text-decoration:underline}';
             }
@@ -339,6 +339,7 @@ class MyAds extends Page {
                     $idx++;
                 }
                 ?></ul><?php
+                $isSystemAd = (isset($ad['DOC_ID']) && $ad['DOC_ID']) ? true : false;
                 ?><div id="aopt" class="sbx"><?php 
                     ?><div class="bts"><?php
                         /*
@@ -355,9 +356,9 @@ class MyAds extends Page {
                         ?><div><span class="k eye on"></span><label><?= $this->lang['m_Followed'] ?></label></div><?php*/
                         $state=$ad['STATE'];
                         
-                        $isSuspended = isset($this->user->info['options']['suspend']) && ($this->user->info['options']['suspend']>time());
+                        $isSuspended = isset($this->user->info['options']['suspend']) && ($this->user->info['options']['suspend']>time());                        
                         
-                        if ($state<7) {
+                        if ($state<7 && !$isSystemAd) {
                             if(!$isSuspended){
                                 ?><form action="/post/<?= $linkLang ?>" method="post"><?php
                                         ?><input type="hidden" name="ad" /><?php 
@@ -369,25 +370,29 @@ class MyAds extends Page {
                             if($this->urlRouter->cfg['enabled_charts']){
                                 ?><div onclick="aStat(this,event)" class="button"><span class="k stat"></span><label><?= $this->lang['stats'] ?></label></div><?php
                             }
+                            if(!$isSystemAd){
                             ?><div onclick="ahld(this,event)" class="button"><span class="k spam"></span><label><?= $this->lang['hold'] ?></label></div><?php
                             ?><form action="/post/<?= $linkLang ?>" method="post"><?php
                                     ?><input type="hidden" name="adr" /><?php
                                     ?><div onclick="$b(this).value=eid;$p(this).submit()" class="button"><span class="k aedi"></span><label><?= $this->lang['edit_ad'] ?></label></div><?php
-                                ?></form><?php 
+                                ?></form><?php
+                            }
                         }elseif($state==9){
                             if($this->urlRouter->cfg['enabled_charts']){
                                 ?><div onclick="aStat(this,event)" class="button"><span class="k stat"></span><label><?= $this->lang['stats'] ?></label></div><?php
                             }
-                            if(!$isSuspended){
-                                ?><form action="/post/<?= $linkLang ?>" method="post"><?php
-                                    ?><input type="hidden" name="adr" /><?php
-                                    ?><div onclick="$b(this).value=eid;$p(this).submit()" class="button"><span class="k aedi"></span><label><?= $this->lang['edit_republish'] ?></label></div><?php
-                                ?></form><?php 
-                                if(isset($content['version']) && $content['version']==2) {
-                                    ?><div onclick="are(this,event)" class="button"><span class="k ref"></span><label><?= $this->lang['renew'] ?></label></div><?php
+                            if(!$isSystemAd){
+                                if(!$isSuspended){
+                                    ?><form action="/post/<?= $linkLang ?>" method="post"><?php
+                                        ?><input type="hidden" name="adr" /><?php
+                                        ?><div onclick="$b(this).value=eid;$p(this).submit()" class="button"><span class="k aedi"></span><label><?= $this->lang['edit_republish'] ?></label></div><?php
+                                    ?></form><?php 
+                                    if(isset($content['version']) && $content['version']==2) {
+                                        ?><div onclick="are(this,event)" class="button"><span class="k ref"></span><label><?= $this->lang['renew'] ?></label></div><?php
+                                    }
                                 }
+                                ?><div onclick="adel(this,1,event)" class="button"><span class="k spam"></span><label><?= $this->lang['delete'] ?></label></div><?php
                             }
-                            ?><div onclick="adel(this,1,event)" class="button"><span class="k spam"></span><label><?= $this->lang['delete'] ?></label></div><?php
                         }
                     ?></div><?php
                     if($this->urlRouter->cfg['enabled_charts'] && ($state==7 || $state==9)){
@@ -1147,19 +1152,25 @@ var rtMsgs={
             
                 $isSuspended = isset($this->user->info['options']['suspend']) && ($this->user->info['options']['suspend']>time());
                         
+                
+                $isSystemAd = (isset($ad['DOC_ID']) && $ad['DOC_ID']) ? true : false;
+                        
                 ?><div class='oc'><?php
                 if ($state<7) { 
-                    if(!isset($content['SYS_CRAWL']) || $this->user->info['level']==9) {
-                        if(!$isSuspended) {
-                            ?><form action="/post/<?= $linkLang ?>" method="post"><?php
-                            ?><input type="hidden" name="ad" value="<?= $ad['ID'] ?>" /><?php
-                            /*?><input type="submit" class="lnk" value="<?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?>" /><?php */
-                            ?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></span><?php
-                            ?></form><?php
-                        }
+                    
+                    if(!$isSystemAd){
+                        //if($this->user->info['level']==9) {
+                            if(!$isSuspended) {
+                                ?><form action="/post/<?= $linkLang ?>" method="post"><?php
+                                ?><input type="hidden" name="ad" value="<?= $ad['ID'] ?>" /><?php
+                                /*?><input type="submit" class="lnk" value="<?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?>" /><?php */
+                                ?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></span><?php
+                                ?></form><?php
+                            }
+                        //}
                     }
                     /*?><input type="button" class="lnk" onclick="adel(this)" value="<?= $this->lang['delete'] ?>" /><?php*/
-                    if(!$isAdmin || ($isAdmin && $isAdminOwner)){
+                    if(!$isSystemAd && (!$isAdmin || ($isAdmin && $isAdminOwner))){
                         ?><span class="lnk" onclick="adel(this)"><span class="rj del"></span><?= $this->lang['delete'] ?></span><?php
                     }
                 }elseif($state==7){
@@ -1179,35 +1190,39 @@ var rtMsgs={
                             ?><span class="lnk" onclick="cancelPremium(this)"><span class="mc24"></span><?= $this->lang['stop_premium_bt'] ?></span><?php                                    
                         }
                         
-                        if(!$isAdmin || ($isAdmin && !$isFeatured && !$isFeatureBooked) || ($isAdmin && $isAdminOwner)){
+                        if(!$isSystemAd && (!$isAdmin || ($isAdmin && !$isFeatured && !$isFeatureBooked) || ($isAdmin && $isAdminOwner))){
                             ?><span class="lnk" onclick="ahld(this)"><span class="rj hod"></span><?= $this->lang['hold'] ?></span><?php                                    
                         }
-                        ?><form action="/post/<?= $linkLang ?>" method="post"><?php
-                        ?><input type="hidden" name="adr" value="<?= $ad['ID'] ?>" /><?php
-                        /*?><input type="submit" class="lnk" value="<?= $this->lang['edit_republish'] ?>" /><?php*/
-                        ?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $this->lang['edit_ad'] ?></span><?php
-                        ?></form><?php 
+                        if(!$isSystemAd){
+                            ?><form action="/post/<?= $linkLang ?>" method="post"><?php
+                            ?><input type="hidden" name="adr" value="<?= $ad['ID'] ?>" /><?php
+                            /*?><input type="submit" class="lnk" value="<?= $this->lang['edit_republish'] ?>" /><?php*/
+                            ?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $this->lang['edit_ad'] ?></span><?php
+                            ?></form><?php 
+                        }
                         if($this->urlRouter->cfg['enabled_ad_stats'] && !$isAdminProfiling){
                             ?><span class="stad load"></span><?php
                         }
                     }
                             
                 }elseif($state==9){
-                    if(!isset($content['SYS_CRAWL'])|| $this->user->info['level']==9) {
-                        if(!$isSuspended) {
-                            ?><form action="/post/<?= $linkLang ?>" method="post"><?php
-                            ?><input type="hidden" name="adr" value="<?= $ad['ID'] ?>" /><?php
-                            /*?><input type="submit" class="lnk" value="<?= $this->lang['edit_republish'] ?>" /><?php*/
-                            ?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $this->lang['edit_republish'] ?></span><?php
-                            ?></form><?php 
-                            if(isset($content['version']) && $content['version']==2) {
-                                /* ?><input type="button" class="lnk" onclick="are(this)" value="<?= $this->lang['renew'] ?>" /><?php */
-                                ?><span class="lnk" onclick="are(this)"><span class="rj ren"></span><?= $this->lang['renew'] ?></span><?php
+                    if(!$isSystemAd){
+                        //if($this->user->info['level']==9) {
+                            if(!$isSuspended) {
+                                ?><form action="/post/<?= $linkLang ?>" method="post"><?php
+                                ?><input type="hidden" name="adr" value="<?= $ad['ID'] ?>" /><?php
+                                /*?><input type="submit" class="lnk" value="<?= $this->lang['edit_republish'] ?>" /><?php*/
+                                ?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $this->lang['edit_republish'] ?></span><?php
+                                ?></form><?php 
+                                if(isset($content['version']) && $content['version']==2) {
+                                    /* ?><input type="button" class="lnk" onclick="are(this)" value="<?= $this->lang['renew'] ?>" /><?php */
+                                    ?><span class="lnk" onclick="are(this)"><span class="rj ren"></span><?= $this->lang['renew'] ?></span><?php
+                                }
                             }
-                        }
+                        //}
                     }
                     /*?><input type="button" class="lnk" onclick="adel(this,1)" value="<?= $this->lang['delete'] ?>" /><?php*/
-                    if(!$isAdmin || ($isAdmin && $isAdminOwner)){
+                    if(!$isSystemAd && (!$isAdmin || ($isAdmin && $isAdminOwner))){
                         ?><span class="lnk" onclick="adel(this,1)"><span class="rj del"></span><?= $this->lang['delete'] ?></span><?php 
                     }
                     if($this->urlRouter->cfg['enabled_ad_stats'] && !$isAdminProfiling){
@@ -1216,23 +1231,25 @@ var rtMsgs={
                 }
                         
                 if($this->user->info['level']==9){
-                    if ($ad['STATE']==2) {
+                    if ($ad['STATE']==2 && (!$isSystemAd || $isSuperAdmin)) {
                         ?><input type="button" class="lnk" onclick="rejF(this,<?= $ad['WEB_USER_ID'] ?>)" value="<?= $this->lang['reject'] ?>" /><?php
                     }else { 
                         if($state>0 && $state<7){
-                                           
-                            ?><span class="lnk" onclick="app(this)"><?= $this->lang['approve'] ?></span><?php
-                            ?><span class="lnk" onclick="rejF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['reject'] ?></span><?php 
-                                       
-                            if(!$isSuperAdmin && !$onlySuper){
+                            if(!$isSystemAd || $isSuperAdmin){         
+                                ?><span class="lnk" onclick="app(this)"><?= $this->lang['approve'] ?></span><?php
+                                ?><span class="lnk" onclick="rejF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['reject'] ?></span><?php 
+                            }           
+                            if(!$isSuperAdmin && !$onlySuper && !$isSystemAd){
                                 ?><span class="lnk" onclick="help(this)"><?= $this->lang['ask_help'] ?></span><?php
                             }
                             
                             if($isSuperAdmin && $ad['USER_RANK'] < 2){
                                 ?><span class="lnk" onclick="banF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['block'] ?></span><?php 
                             }
-                            if($ad['USER_RANK'] < 3){
-                                ?><span class="lnk" onclick="suspF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['suspend'] ?></span><?php
+                            if(!$isSystemAd && $isSuperAdmin){
+                                if($ad['USER_RANK'] < 3){
+                                    ?><span class="lnk" onclick="suspF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['suspend'] ?></span><?php
+                                }
                             }
                             if($isSuperAdmin && $filters['uid']==0){
                                 ?><a class="lnk" href="/myads/<?= $this->urlRouter->siteLanguage=='ar'?'':'en/' ?>?sub=pending&fuid=<?= $ad['WEB_USER_ID'] ?>"><?= $this->lang['user_type_option_1'] ?></a><?php
@@ -1270,9 +1287,10 @@ var rtMsgs={
                             if($isSuperAdmin){
                                 ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?aid=<?= $ad['ID'] ?>&q="><?= $this->lang['similar'] ?></a><?php
                             }
-                            
-                            if ($contactInfo) {                                    
-                                ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
+                            if(!$isSystemAd || $isSuperAdmin){
+                                if ($contactInfo) {                                    
+                                    ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
+                                }
                             }
                             
                         }

@@ -143,7 +143,7 @@ class Panel extends Page{
             $(".close").click(function(){$(this).parent().remove()}).hover(function(){$(this).next().addClass("on")},function(){$(this).next().removeClass("on")});
             
         ';
-        if($this->user->info['level']!=5){
+        if($this->user->info['id'] && $this->user->info['level']!=5){
                 $this->globalScript .= 'function prini(){var t=$(\'<div id="prob" class="account '. $this->urlRouter->siteLanguage .'">         
                 <a href="javascript:void(0)" onclick="prop()" class="option full settings"><span class="j prop"></span> '. $this->lang['myPropspace'] .'</a>
                 </div><div id="prop_dialog" class="dialog dlg-fix"><div class="dialog-box"><div><input id="purl" onfocus="mprop(\\\'\\\')" class="prop" type="text" placeholder="http://xml.propspace.com/feed/xml.php" /></div><div class="msg inf err ctr"></div></div> 

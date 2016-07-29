@@ -703,7 +703,7 @@ $lang=array(
     'prop_reading_ads'      =>  'Reading ads in progress, please wait',
     'prop_added'      =>  'PropSpace account has been added successfully<br /><ul class="rs">'
     . '<li>ads will be added gradually by mourjan engine</li>'
-    . '<li>you will find added ads in your Active Ads\' list</li>'
+    . '<li>you will find added ads in your Active Ads\\\' list</li>'
     . '<li>editting/deleting any of your PropSpace ads should be done from your PropSpace account</li>'
     . '</ul>',
     
