@@ -206,6 +206,7 @@ $config=array(
     'url_img'               => $aws.'/img/1.0.0',
     'url_js'                => 'https://dv.mourjan.com/web/js/1.0.0',
     'url_js_mobile'         => $aws.'/js/2.1.8d',
+    'url_js_mobile'         => 'https://dv.mourjan.com/web/js/2.0.0',
     'url_css'               => $aws.'/css/5.3.7',
     'url_css'               => 'https://dv.mourjan.com/web/css/1.0.0',
     'url_css_mobile'        => $aws.'/css/5.2.8c',
@@ -372,6 +373,6 @@ if ($globalSettings!==FALSE)
     }
 }
 
-$config['url_uploader'] = 'https://h5.mourjan.com';
+//$config['url_uploader'] = 'https://h5.mourjan.com';
 
 ?>

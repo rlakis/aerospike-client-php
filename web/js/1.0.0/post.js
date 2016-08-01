@@ -2258,14 +2258,12 @@ function checkUploadLock(n){
 }
 function uproF(uid,uog,uoh){
     var w = 0;
-    console.log(uog);
-    console.log(uoh);
-
     $.ajax({
         url:UP_URL+'/upload/progress.php',
         data:{
-            UPLOAD_IDENTIFIER:1,
-            s:USID},
+            UPLOAD_IDENTIFIER:uid,
+            s:USID
+        },
         type:'POST',
         success:function(rp){
             rp = eval(rp);
@@ -2275,7 +2273,6 @@ function uproF(uid,uog,uoh){
                 uoh.css('background-size',w+'% 100%');
             }else if(rp.state == 'done'){
             }else if (rp.state == 'error') {
-                //window.clearTimeout(uptimers[uid]);
                 clearInterval(uptimers[uid]);
                 delete uptimers[uid];
                 checkUploadLock($p(uoh[0],5));
@@ -2288,7 +2285,6 @@ function uproF(uid,uog,uoh){
         },
         error:function(rp){
             uproFail(0,uoh,uog);
-            //window.clearTimeout(uptimers[uid]);
             clearInterval(uptimers[uid]);
             delete uptimers[uid];
             checkUploadLock($p(uoh[0],5));
@@ -2325,8 +2321,7 @@ function uploadFile(data,type,prog){
     var uproh=$('.uproh',prog);
     var f= dataURLtoBlob(data,type);
     var fd = new FormData();
-    //fd.append('upload_progress_PHP_SESSION_UPLOAD_PROGRESS',1);
-    fd.append('UPLOAD_IDENTIFIER',1);
+    fd.append('UPLOAD_IDENTIFIER',uuid);
     fd.append('pic',f);
     var rg=new RegExp('.*/');
     var t=type.replace(rg,'');
@@ -2385,6 +2380,7 @@ function setFileRow(tul,type){
     }
     
     uForm.action = UP_URL+'/upload/?s='+USID;
+    $('#upKey').val(uuid);
     uplp=1;
     uForm.submit();
     

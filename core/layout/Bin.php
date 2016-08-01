@@ -162,11 +162,18 @@ class Bin extends AjaxHandler{
                         if($imgAdmin){
                             $newImgs = [];
                             $i=0;
+                            $imageToRemove = '';
                             foreach($content['pics'] as $img => $dim){
                                 if($i++ != $imgIdx){
                                     $newImgs[$img]=$dim;
+                                }else{
+                                    $imageToRemove = $img;
                                 }
                             }
+                            if($imageToRemove){
+                                $this->urlRouter->db->queryResultArray("delete from ad_media where ad_id = ? and media_id = ?",[$id,$imageToRemove],true);
+                            }
+                            
                             $content['pics']=$newImgs;
                             
                             $images='';
@@ -3136,7 +3143,9 @@ class Bin extends AjaxHandler{
                                 break;
                             }
                         }
+                        
                         if ($found) {
+                            $this->urlRouter->db->queryResultArray("delete from ad_media where ad_id = ? and media_id = ?",[$this->user->pending['post']['id'],$fn],true);
                             if(count($adContent['pics'])==0){
                                 if(isset($adContent['extra']['p']))$adContent['extra']['p']=0;
                             }

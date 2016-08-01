@@ -1899,9 +1899,11 @@ function checkUploadLock(n){
 function uproF(uid,uog,uoh){
     var w = 0;
     $.ajax({
-        url:UP_URL+'/x-progress/',
-        data:{'X-Progress-ID':uid},
-        type:'GET',
+        url:UP_URL+'/upload/progress.php',
+        data:{
+            UPLOAD_IDENTIFIER:uid,
+            s:USID},
+        type:'POST',
         success:function(rp){
             rp = eval(rp);
             if(rp.state == 'uploading'){
@@ -1958,11 +1960,12 @@ function uploadFile(data,type,prog){
     var uproh=$('.uproh',prog);
     var f= dataURLtoBlob(data,type);
     var fd = new FormData();
+    fd.append('UPLOAD_IDENTIFIER',uuid);
     fd.append('pic',f);
     var rg=new RegExp('.*/');
     var t=type.replace(rg,'');
     $.ajax({
-       url:UP_URL+'/x-upload/?X-Progress-ID='+uuid+'&t='+t+'&s='+USID,
+       url:UP_URL+'/upload/?t='+t+'&s='+USID,
        type: "POST",
        data: fd,
        processData: false,
@@ -2017,7 +2020,8 @@ function setFileRow(tul,type){
         uForm = document.getElementById('picF');
     }
     
-    uForm.action = UP_URL+'/x-upload/?X-Progress-ID='+uuid+'&s='+USID;
+    uForm.action = UP_URL+'/upload/?s='+USID;
+    $('#upKey').val(uuid);
     uplp=1;
     uForm.submit();
     
