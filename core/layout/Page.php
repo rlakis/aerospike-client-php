@@ -2486,6 +2486,18 @@ class Page extends Site{
         if($this->user->info['id']==0 && in_array($this->urlRouter->module,['home','signin','favorites','account','myads','post','statement','watchlist','signup','password','buy','buyu'])){
             ?><script src='https://www.google.com/recaptcha/api.js<?= $this->urlRouter->siteLanguage=='ar'?'?hl=ar':'' ?>'></script><?php
         }
+
+        if ($this->isMobile) {
+            echo "\n<script src='{$this->urlRouter->cfg['url_jquery']}zepto.min.js' async></script>";
+        } else {
+            echo "\n<script src='{$this->urlRouter->cfg['url_jquery']}jquery.min.js' async></script>";
+        }
+        
+        if ($this->urlRouter->module==='myads' || $this->urlRouter->module==='signin' || $this->urlRouter->module==='home')
+        {
+            echo "\n<script src='{$this->urlRouter->cfg['url_jquery']}socket.io-1.4.5.js' async></script>\n";
+        }
+        
     }
 
     function footer(){
@@ -3103,27 +3115,36 @@ class Page extends Site{
         
     }
 
-    function loadMobileJs(){
-        if ($this->globalScript) {
+    
+    function loadMobileJs_classic()
+    {
+        if ($this->globalScript) 
+        {
             $this->globalScript=preg_replace('/\s+/', ' ', $this->globalScript);
             $this->globalScript=preg_replace("/[\n\t\r]/", '', $this->globalScript);
             $this->globalScript.=';';
             $this->globalScript=preg_replace("/;;/", ';', $this->globalScript);
         }
-        if ($this->inlineScript){
+        
+        if ($this->inlineScript)
+        {
             $this->inlineScript=preg_replace('/\s+/', ' ', $this->inlineScript);
             $this->inlineScript=preg_replace("/[\n\t\r]/", '', $this->inlineScript);
             $this->inlineScript.=';';
             $this->inlineScript=preg_replace("/;;/", ';', $this->inlineScript);
         }
-        if ($this->urlRouter->module=='index' && !$this->urlRouter->rootId && $this->urlRouter->countryId) { 
+        
+        if ($this->urlRouter->module=='index' && !$this->urlRouter->rootId && $this->urlRouter->countryId) 
+        { 
             ?><div id="fb-root"></div><?php
         }
+        
         ?><script type="text/javascript"><?php
         //has Query Parameter
         ?>var head = document.getElementsByTagName("head")[0] || document.documentElement;<?php
         
-        if($this->urlRouter->isApp){
+        if($this->urlRouter->isApp)
+        {
             ?>function addEvent(d,e,c){<?php
                 ?>if (d.addEventListener){<?php 
                     ?>d.addEventListener(e,c,false);<?php
@@ -3533,9 +3554,10 @@ class Page extends Site{
         /* ?>var h1,m1,p1;function tof(){if (!h1){h1=document.getElementById("title");p1=h1.parentNode;}var c=p1.lastChild;if(c.tagName=='H1'){if (c.clientWidth < c.scrollWidth || c.clientHeight < c.scrollHeight){if (!m1){m1=document.createElement("marquee");m1.className="<?= ($this->detailAd && !$this->detailAdExpired) ? ($this->detailAd[Classifieds::RTL]==0 ? 'e':'a'):($this->urlRouter->siteLanguage=='en'?'e':'a') ?>";m1.behavior="scroll";m1.innerHTML=h1.innerHTML;}p1.removeChild(h1);p1.appendChild(m1);}}else if(c.tagName=='MARQUEE'){p1.removeChild(m1);p1.appendChild(h1);tof();}};<?php */
         /* ?>window.onresize=function(){tof();fbf();wsp()};</script><?php */
         /* ?>window.onresize=function(){fbf();wsp()};<?php */
-         ?></script><?php 
+        ?></script><?php 
          
-        if($this->urlRouter->module == 'index'){
+        if($this->urlRouter->module == 'index')
+        {
             ?><script type="application/ld+json"><?php
                 ?>{"@context": "http://schema.org",<?php
                 ?>"@type": "WebSite",<?php
@@ -3550,7 +3572,583 @@ class Page extends Site{
         }
     }
 
-    function load_js() {
+
+    function loadMobileJs()
+    {
+        if ($this->globalScript) 
+        {
+            $this->globalScript=preg_replace('/\s+/', ' ', $this->globalScript);
+            $this->globalScript=preg_replace("/[\n\t\r]/", '', $this->globalScript);
+            $this->globalScript.=';';
+            $this->globalScript=preg_replace("/;;/", ';', $this->globalScript);
+        }
+        
+        if ($this->inlineScript)
+        {
+            $this->inlineScript=preg_replace('/\s+/', ' ', $this->inlineScript);
+            $this->inlineScript=preg_replace("/[\n\t\r]/", '', $this->inlineScript);
+            $this->inlineScript.=';';
+            $this->inlineScript=preg_replace("/;;/", ';', $this->inlineScript);
+        }
+        
+        if ($this->urlRouter->module=='index' && !$this->urlRouter->rootId && $this->urlRouter->countryId) 
+        { 
+            ?><div id="fb-root"></div><?php
+        }
+        
+        ?><script type="text/javascript"><?php
+        //has Query Parameter
+        ?>var head=document.getElementsByTagName("head")[0]||document.documentElement;<?php
+        
+        if($this->urlRouter->isApp)
+        {
+            ?>function addEvent(d,e,c){if(d.addEventListener){d.addEventListener(e,c,false);}else if(d.attachEvent){d.attachEvent(e,c);}};<?php
+            ?>addEvent(document,'DOMContentLoaded',function(){parent.postMessage('DOMContentLoaded','*');});
+            window.onpagehide=function(){parent.postMessage('pageHide','*');return null;};<?php
+        }
+                
+        
+        ?>var SCLD,lang='<?= $this->urlRouter->siteLanguage ?>',<?php
+        ?>hasQ=<?= $this->urlRouter->params['q'] ? 1:0 ?>,canSh=<?= $this->urlRouter->cfg['enabled_sharing']?1:0 ?>,<?php
+        ?>sic=[],<?php
+        ?>isApp=<?= $this->urlRouter->isApp ? 1:0 ?>,<?php
+        ?>uid=<?= $this->user->info['id'] ?>,<?php
+        ?>mod='<?= $this->urlRouter->module ?>',<?php
+        ?>jsLog=<?= $this->urlRouter->cfg['enabled_js_log'] ?>,<?php 
+        ?>uimg='<?= $this->urlRouter->cfg['url_ad_img'] ?>',<?php 
+        
+        if(isset($this->user->params['hasCanvas']))
+        {
+            ?>hasCvs=<?= $this->user->params['hasCanvas'] ?>,<?php 
+        }else{
+            ?>tmp=document.createElement('canvas'),<?php
+            ?>hasCvs=!!(tmp.getContext && tmp.getContext('2d')),<?php
+        }
+        
+        if($this->user->info['id'])
+        {
+            ?>UIDK='<?= $this->user->info['idKey'] ?>',<?php 
+        }
+        
+        if($this->user->info['id'] && $this->urlRouter->module=='post')
+        {
+            ?>UP_URL='<?= $this->urlRouter->cfg['url_uploader'] ?>',<?php 
+            ?>USID='<?= session_id() ?>',<?php 
+            ?>uixf='<?= $this->urlRouter->cfg['url_image_lib'] ?>/load-image.all.min.js',<?php 
+        }
+        
+        if ($this->stat)
+        {
+            $this->stat['page']=($this->urlRouter->params['start']) ? $this->urlRouter->params['start'] : 1;
+            $this->stat['num']=$this->num;
+            ?>stat='<?= isset($this->stat) ? json_encode($this->stat):'' ?>',<?php
+            $page=array(
+                'cn'=>$this->urlRouter->countryId,
+                'c'=>$this->urlRouter->cityId,
+                'se'=>$this->urlRouter->sectionId,
+                'pu'=>$this->urlRouter->purposeId,
+            );
+            ?>page='<?= json_encode($page) ?>',<?php
+        } else {
+            ?>stat=0,<?php
+        }
+        
+        if($this->user->info['id'] && $this->urlRouter->module=='myads')
+        {
+            if ($this->urlRouter->cfg['enabled_charts'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) 
+            {
+                ?>uhc='<?= $this->urlRouter->cfg['url_highcharts'] ?>',<?php 
+                if($this->user->info['level']==9){
+                    ?>uuid=<?= (isset($_GET['u']) && is_numeric($_GET['u'])) ? (int)$_GET['u'] : 0 ?>,<?php
+                }
+            }
+            else
+            {
+                ?>uhc=0,<?php 
+            }
+            
+            if ($this->urlRouter->cfg['enabled_ad_stats'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) {
+                ?>ustats=1,<?php
+            }else{
+                ?>ustats=0,<?php
+            }
+            
+            if (isset($_GET['sub']) && $_GET['sub']=='pending') {
+                ?>PEND=1,<?php
+            }else{
+                ?>PEND=0,<?php
+            }
+        }
+        
+        if ($this->urlRouter->module == 'search' && !$this->userFavorites && !$this->urlRouter->watchId) 
+        {
+            $key = $this->urlRouter->countryId . '-' . $this->urlRouter->cityId . '-' . $this->urlRouter->sectionId . '-' . $this->extendedId . '-' . $this->localityId . '-' . $this->urlRouter->purposeId . '-' . crc32($this->urlRouter->params['q']);
+            if ( (!$this->user->info['id'] || ($this->user->info['id'] && !isset($this->user->info['options']['watch'][$key])) ) 
+                    && ( ($this->urlRouter->countryId && $this->urlRouter->sectionId && $this->urlRouter->purposeId) 
+                    || ($this->urlRouter->params['q'] && $this->searchResults['body']['total_found'] < 100) ) ) 
+            {
+                ?>_cn=<?= $this->urlRouter->countryId ?>,<?php
+                ?>_c=<?= $this->urlRouter->cityId ?>,<?php
+                ?>_se=<?= $this->urlRouter->sectionId ?>,<?php
+                ?>_pu=<?= $this->urlRouter->purposeId ?>,<?php
+                ?>_ext=<?= $this->extendedId ?>,<?php
+                ?>_loc=<?= $this->localityId ?>,<?php
+                ?>_ttl='<span class="<?= $this->urlRouter->siteLanguage ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
+                ?>_q='<?= $this->urlRouter->params['q'] ? addcslashes($this->urlRouter->params['q'], "'") :'' ?>',<?php
+            }
+        }
+        
+        ?>hrs=<?= isset($this->searchResults['body']['total_found']) && $this->searchResults['body']['total_found']>0 ? 1:0 ?>,<?php
+        ?>hd='<?= ($this->detailAd && !$this->detailAdExpired) ? ($this->detailAd[Classifieds::RTL]==0 ? 'e':'a'):($this->urlRouter->siteLanguage=='en'?'e':'a') ?>',<?php 
+        ?>ucss='<?= $this->urlRouter->cfg['url_css_mobile'] ?>',<?php
+        
+        if ($this->urlRouter->module=='search' || $this->urlRouter->module=='detail' || $this->urlRouter->module=='myads')
+        {
+            /* ?>xCancel='<?= $this->lang['cancel'] ?>',<?php */
+            ?>xAOK='<?= $this->lang['abuseReported'] ?>',<?php
+            ?>xF='<?= $this->lang['sys_error'] ?>',<?php
+            ?>since='<?= $this->lang['since'] ?>',<?php
+            ?>ago='<?= $this->lang['ago'] ?>',<?php
+        }
+        
+        if ($this->urlRouter->module=='account'){
+            ?>xSaving='<?= $this->lang['savingProgress'] ?>',<?php
+        }
+        
+        ?>ro=<?= $this->urlRouter->rootId ?>,<?php
+        ?>cn=<?= $this->urlRouter->countryId ?>,<?php
+        ?>c=<?= $this->urlRouter->cityId ?>,<?php
+        ?>se=<?= $this->urlRouter->sectionId ?>,<?php
+        ?>pu=<?= $this->urlRouter->purposeId ?>;<?php
+        
+        echo $this->globalScript;
+            
+        ?>window.onload=function(){<?php 
+        if($this->urlRouter->cfg['site_production']) 
+        {
+            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;<?php
+                ?>sh.onload=sh.onreadystatechange=function(){<?php
+                    ?>if (!SCLD && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete")){<?php
+                    
+                    switch($this->urlRouter->module){
+                        case 'myads':
+                            if($this->user->info['id']) {
+                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_fullads.js';document.body.appendChild(sh)})();<?php 
+                            }else{
+                                ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
+                            }
+                            break;
+                        case 'post':
+                            if($this->user->info['id']) {
+                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_fullpost.js';document.body.appendChild(sh)})();<?php 
+                            }else{
+                                ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
+                            }
+                            break;
+                        case 'detail':
+                        case 'search':
+                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_search.js';document.body.appendChild(sh)})();<?php 
+                            break;
+                        case 'account':
+                            if($this->user->info['id']) {
+                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_account.js';document.body.appendChild(sh)})();<?php 
+                            }else{
+                                ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
+                            }
+                            break;
+                        case 'contact':
+                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_contact.js';document.body.appendChild(sh)})();<?php 
+                            break;
+                        case 'password':
+                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_password.js';document.body.appendChild(sh)})();<?php 
+                            break;
+                        
+                        case 'index':
+                        default:
+                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
+                            break;
+                    }
+                    
+                    ?>}<?php 
+                ?>};<?php
+                ?>sh.src='<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>zepto.min.js';document.body.appendChild(sh)})();<?php                                                 
+        } 
+        else 
+        {
+            // testing here
+            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;<?php
+            
+                ?>sh.onload=sh.onreadystatechange=function(){console.log("onload");<?php
+                    ?>if (!SCLD && (!this.readyState || this.readyState==="loaded" || this.readyState==="complete")){<?php
+                        switch($this->urlRouter->module){
+                            case 'myads':
+                                if($this->user->info['id']) {
+                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                    ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_ads.js';document.body.appendChild(sh)<?php 
+                                }else{
+                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                }
+                                break;
+                            case 'detail':
+                            case 'search':
+                                ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_srh.js';document.body.appendChild(sh)<?php 
+                                break;
+                            case 'post':
+                                if($this->user->info['id']) {
+                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                    ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_post.js';document.body.appendChild(sh)<?php 
+                                }else{
+                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                }
+                                break;
+                            case 'account':
+                                if($this->user->info['id']) {
+                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                    ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_acc.js';document.body.appendChild(sh)<?php 
+                                }else{
+                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)<?php 
+                                }
+                                break;
+                            case 'contact':
+                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                    ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_cnt.js';document.body.appendChild(sh)<?php 
+                                break;                            
+                            case 'password':
+                                if($this->include_password_js){
+                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                    ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_pwd.js';document.body.appendChild(sh)<?php 
+                                    break;
+                                }
+                            case 'index':
+                            default:
+                                ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php  
+                                break;
+                        }
+                    ?>}<?php 
+                ?>};<?php
+                ?>sh.src='<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>zepto.min.js';document.body.appendChild(sh)})();<?php 
+         
+        }
+        echo $this->inlineScript;
+        ?>};<?php        
+        ?></script><?php 
+         
+        if($this->urlRouter->module == 'index')
+        {
+            ?><script type="application/ld+json"><?php
+                ?>{"@context": "http://schema.org",<?php
+                ?>"@type": "WebSite",<?php
+                ?>"url": "https://www.mourjan.com/",<?php
+                ?>"potentialAction":{<?php
+                ?>"@type": "SearchAction",<?php
+                ?>"target": "https://www.mourjan.com/?q={search_term_string}",<?php
+                ?>"query-input": "required name=search_term_string"<?php
+                ?>}<?php
+                ?>}<?php
+            ?></script><?php
+        }
+    }
+
+
+    
+    function load_js() 
+    {
+        if ($this->globalScript) 
+        {
+            $this->globalScript=preg_replace('/\s+/', ' ', $this->globalScript);
+            $this->globalScript=preg_replace("/[\n\t\r]/", '', $this->globalScript);
+            $this->globalScript.=';';
+            $this->globalScript=preg_replace("/;;/", ';', $this->globalScript);
+        }
+        if ($this->inlineScript)
+        {
+            $this->inlineScript=preg_replace('/\s+/', ' ', $this->inlineScript);
+            $this->inlineScript=preg_replace("/[\n\t\r]/", '', $this->inlineScript);
+            $this->inlineScript.=';';
+            $this->inlineScript=preg_replace("/;;/", ';', $this->inlineScript);
+        }
+        
+        if($this->inlineQueryScript)
+        {
+            $this->inlineQueryScript=preg_replace('/\s+/', ' ', $this->inlineQueryScript);
+            $this->inlineQueryScript=preg_replace("/[\n\t\r]/", '', $this->inlineQueryScript);
+            $this->inlineQueryScript.=';';
+            $this->inlineQueryScript=preg_replace("/;;/", ';', $this->inlineQueryScript);
+        }
+        
+        echo '<div id="fb-root"></div>';
+        
+        if (isset($this->user->params['include_JSON']) && $this->urlRouter->module=='post')
+        {
+            ?><script type="text/javascript" src="<?= $this->urlRouter->cfg['url_jquery'] ?>json2.js"></script><?php
+        }         
+
+        ?><script type="text/javascript">
+            var head = document.getElementsByTagName("head")[0] || document.documentElement;            
+            var ucss='<?= $this->urlRouter->cfg['url_css'] ?>',uimg='<?= $this->urlRouter->cfg['url_ad_img'] ?>',<?php
+            if(isset($this->user->params['hasCanvas']))
+            {            
+                ?>hasCvs=<?= $this->user->params['hasCanvas'] ?>,<?php 
+            }
+            else
+            {
+                ?>tmp=document.createElement('canvas'),<?php
+                ?>hasCvs=!!(tmp.getContext && tmp.getContext('2d')),<?php
+            }
+            
+            if($this->user->info['id'] && $this->urlRouter->module=='myads')
+            {
+                if ($this->urlRouter->cfg['enabled_charts'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) 
+                {
+                    ?>uhc='<?= $this->urlRouter->cfg['url_highcharts'] ?>',<?php 
+                    if($this->user->info['level']==9)
+                    {
+                        ?>uuid=<?= (isset($_GET['u']) && is_numeric($_GET['u'])) ? (int)$_GET['u'] : 0 ?>,<?php
+                    }
+                }
+                else
+                {
+                    ?>uhc=0,<?php 
+                }
+                
+                if ($this->urlRouter->cfg['enabled_ad_stats'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) 
+                {
+                    ?>ustats=1,<?php
+                }else{
+                    ?>ustats=0,<?php
+                }
+                
+                if (isset($_GET['sub']) && $_GET['sub']=='pending') 
+                {
+                    ?>PEND=1,<?php
+                }else{
+                    ?>PEND=0,<?php
+                }
+            }
+            
+            if($this->urlRouter->module=='search')
+            {
+                if($this->userFavorites || $this->urlRouter->watchId)
+                {
+                    ?>ubs='',<?php
+                }else{
+                    $tmp=$this->urlRouter->siteLanguage;
+                    $this->urlRouter->siteLanguage='ar';
+                    ?>ubs='<?= $this->urlRouter->getURL($this->urlRouter->countryId,$this->urlRouter->cityId) ?>',<?php                 
+                    $this->urlRouter->siteLanguage=$tmp;
+                }
+            }
+            
+            ?>AID=<?= (isset($this->detailAd[Classifieds::ID]) && !$this->detailAdExpired ? $this->detailAd[Classifieds::ID] : 0) ?>,<?php 
+            ?>UID=<?= $this->user->info['id'] ?>,<?php 
+            
+            if($this->user->info['id']) 
+            { 
+                ?>UIDK='<?= $this->user->info['idKey'] ?>',<?php 
+                ?>SSID='<?= md5($this->user->info['idKey'].'nodejs.mourjan') 
+            ?>',<?php             
+            }
+            
+            ?>PID=<?= $this->urlRouter->userId ? 1:0 ?>,<?php 
+            ?>ULV=<?= isset($this->user->info['level']) ? $this->user->info['level'] : 0 ?>,<?php 
+            ?>ujs='<?= $this->urlRouter->cfg['url_js'] ?>',<?php 
+            
+            if($this->user->info['id'] && $this->urlRouter->module=='post')
+            {
+                ?>UP_URL='<?= $this->urlRouter->cfg['url_uploader'] ?>',<?php 
+                ?>USID='<?= session_id() ?>',<?php 
+                ?>uixf='<?= $this->urlRouter->cfg['url_image_lib'] ?>/load-image.all.min.js',<?php 
+            }
+            
+            ?>lang='<?= $this->urlRouter->siteLanguage ?>',<?php
+            ?>share=<?= $this->urlRouter->cfg['enabled_sharing'] ? 1:0 ?>,<?php
+            ?>hads=<?= $this->urlRouter->cfg['enabled_ads'] ? 1:0 ?>,<?php
+            ?>SCLD=0,<?php //script loading var
+            ?>ITC=0,<?php //is touch flag 
+            ?>jsLog=<?= $this->urlRouter->cfg['enabled_js_log'] ?>,<?php 
+            ?>MOD="<?= $this->urlRouter->module ?>",<?php
+            ?>STO=(typeof(Storage)==="undefined"?0:1),<?php
+            ?>WSO=(typeof(WebSocket)==="undefined"?0:1),<?php
+            
+            if($this->urlRouter->module=='detail' && !$this->detailAdExpired && ( ($this->detailAd[Classifieds::LATITUDE]  || $this->detailAd[Classifieds::LONGITUDE]) && is_numeric($this->detailAd[Classifieds::LATITUDE]) && is_numeric($this->detailAd[Classifieds::LONGITUDE]) )  ) 
+            {
+                ?>hasMap=1,LAT=<?= $this->detailAd[Classifieds::LATITUDE] ?>,LON=<?= $this->detailAd[Classifieds::LONGITUDE] ?>,<?php
+                ?>DTTL="<?= htmlspecialchars($this->title, ENT_QUOTES) ?>",<?php
+            }
+            
+            //menu slider vars
+            ?>tmr,tmu,tmd,func,fupc,mul,menu,mp,<?php
+            if ($this->urlRouter->cfg['enabled_disqus'] && $this->urlRouter->module=='detail' && !$this->detailAdExpired && $this->detailAd[Classifieds::PUBLICATION_ID]==1) 
+            {
+                ?>disqus_shortname = 'mourjan',disqus_config=function(){this.language = 'en'},disqus_identifier = '<?= $this->detailAd[Classifieds::ID] ?>',<?php
+            }elseif ($this->urlRouter->cfg['enabled_disqus'] && $this->urlRouter->module=='myads'){
+                ?>disqus_shortname = 'mourjan',disqus_config=function(){this.language = 'en'},<?php
+            }
+            
+            if ($this->stat)
+            {
+                $this->stat['page']=($this->urlRouter->params['start']) ? $this->urlRouter->params['start'] : 1;
+                $this->stat['num']=$this->num;
+                ?>stat='<?= isset($this->stat) ? json_encode($this->stat):'' ?>',<?php
+                $page=array(
+                    'cn'=>$this->urlRouter->countryId,
+                    'c'=>$this->urlRouter->cityId,
+                    'se'=>$this->urlRouter->sectionId,
+                    'pu'=>$this->urlRouter->purposeId,
+                );
+                ?>page='<?= json_encode($page) ?>',<?php
+            }
+            else 
+            {
+                ?>stat=0,<?php
+            }
+            
+            if ($this->urlRouter->module == 'search' && !$this->userFavorites && !$this->urlRouter->watchId) 
+            {
+                $key = $this->urlRouter->countryId . '-' . $this->urlRouter->cityId . '-' . $this->urlRouter->sectionId . '-' . $this->extendedId . '-' . $this->localityId . '-' . $this->urlRouter->purposeId . '-' . crc32($this->urlRouter->params['q']);
+                if ( (!$this->user->info['id'] || ($this->user->info['id'] && !isset($this->user->info['options']['watch'][$key])) ) 
+                        && ( ($this->urlRouter->countryId && $this->urlRouter->sectionId && $this->urlRouter->purposeId) 
+                        || ($this->urlRouter->params['q'] && $this->searchResults['body']['total_found'] < 100) ) ) 
+                {
+                    ?>_cn=<?= $this->urlRouter->countryId ?>,<?php
+                    ?>_c=<?= $this->urlRouter->cityId ?>,<?php
+                    ?>_se=<?= $this->urlRouter->sectionId ?>,<?php
+                    ?>_pu=<?= $this->urlRouter->purposeId ?>,<?php
+                    ?>_ext=<?= $this->extendedId ?>,<?php
+                    ?>_loc=<?= $this->localityId ?>,<?php
+                    ?>_ttl='<span class="<?= $this->urlRouter->siteLanguage ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
+                    ?>_q='<?= $this->urlRouter->params['q'] ? addcslashes($this->urlRouter->params['q'], "'") :'' ?>',<?php
+                }
+            }
+            
+            ?>ICH='<?= $this->includeHash ?>',<?php
+            ?>LSM='<?= $this->urlRouter->last_modified ?>';<?php
+            echo $this->globalScript;
+            error_log($this->urlRouter->module);
+            ?>
+            
+            head.addEventListener("load", function(event) 
+            {
+                var mdl='<?= $this->urlRouter->module ?>';
+                if (event.target.nodeName === "SCRIPT")
+                {
+                    if (event.target.getAttribute("src").includes("jquery.min.js") || event.target.getAttribute("src").includes("zepto.min.js") )
+                    {
+                        var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;
+                        <?php
+                        switch($this->urlRouter->module)
+                        {
+                            case 'signin':
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/signin.js';head.insertBefore(sh,head.firstChild);<?php 
+                                break;
+                            
+                            case 'detail':
+                            case 'search':
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/search.js';head.insertBefore(sh,head.firstChild);<?php 
+                                break;
+                            
+                            case 'myads':
+                                if($this->user->info['id']){
+                                    if($this->user->info['level']==9){     
+                                        if($this->urlRouter->cfg['site_production']){
+                                            ?>sh.src='https://h5.mourjan.com/js/3.0.8/myadsad.js';<?php
+                                        }else{
+                                            ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/myadsad.js';<?php 
+                                        }
+                                    }else{
+                                        ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/myads.js';<?php                                            
+                                    }
+                                }else{
+                                    ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/gen.js';<?php
+                                }
+                                ?>head.insertBefore(sh,head.firstChild);<?php 
+                                break;
+                            
+                            case 'account':
+                                if($this->user->info['id'])
+                                {
+                                    ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/account.js';<?php                                            
+                                }else{
+                                    ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/gen.js';<?php
+                                }
+                                ?>head.insertBefore(sh,head.firstChild);<?php 
+                                break;
+                                
+                            case 'post':
+                                if($this->user->info['id'])
+                                {
+                                    ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/post.js';<?php                                            
+                                }
+                                else
+                                {
+                                    ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/gen.js';<?php
+                                }
+                                ?>head.insertBefore(sh,head.firstChild);<?php 
+                                break;
+                            
+                            case 'password':
+                                if($this->include_password_js)
+                                {
+                                    ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/pwd.js';head.insertBefore(sh,head.firstChild);<?php 
+                                }
+                                break;
+                                
+                            case 'index':
+                                ?>(function(){sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/gen.js';<?php 
+                                echo "\n",$this->inlineQueryScript;
+                                ?>head.insertBefore(sh,head.firstChild)})();<?php
+                                break;
+                        }
+                        ?>
+                        
+
+                    }
+                    //alert("Script loaded: " + event.target.getAttribute("src"));
+                }
+            }, true);
+            
+            <?php
+            ?>window.onload=function(){<?php echo $this->inlineScript;?>};<?php
+        
+                 
+            ?>(function(){<?php
+                ?>var po=document.createElement('script'); po.type='text/javascript'; po.async=true;<?php
+                ?>po.src = 'https://apis.google.com/js/platform.js';<?php
+                ?>var s=document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po,s);<?php
+            ?>})();<?php
+        
+        ?></script><?php
+        
+        if($this->user->info['id'] && $this->user->info['level']==9 && $this->urlRouter->module=='post')
+        {
+            if($this->urlRouter->cfg['site_production'])
+            {
+                ?><script type="text/javascript" async="true" src="https://h5.mourjan.com/js/3.0.7/pvc.js"></script><?php
+            }else{
+                ?><script type="text/javascript" async="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/pvc.js"></script><?php
+            }
+        }
+        
+        if($this->urlRouter->module == 'index'){
+            ?><script type="application/ld+json"><?php
+                ?>{"@context": "http://schema.org",<?php
+                ?>"@type": "WebSite",<?php
+                ?>"url": "https://www.mourjan.com/",<?php
+                ?>"potentialAction":{<?php
+                ?>"@type": "SearchAction",<?php
+                ?>"target": "https://www.mourjan.com/?q={search_term_string}",<?php
+                ?>"query-input": "required name=search_term_string"<?php
+                ?>}<?php
+                ?>}<?php
+            ?></script><?php
+        }
+    }
+    
+    
+    
+    function load_js_classic()
+    {
         if ($this->globalScript) {
             $this->globalScript=preg_replace('/\s+/', ' ', $this->globalScript);
             $this->globalScript=preg_replace("/[\n\t\r]/", '', $this->globalScript);
@@ -3836,7 +4434,12 @@ class Page extends Site{
         ?><script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script><?php
          * 
          */
+
+        
+        
     }
+    
+    
     
     function load_js_bk() {
         
@@ -4123,6 +4726,7 @@ class Page extends Site{
         }
     }
 
+    
     protected function _header(){
         $country_code="";
         if ($this->urlRouter->countryId && array_key_exists($this->urlRouter->countryId, $this->urlRouter->countries)) {
@@ -4362,6 +4966,7 @@ class Page extends Site{
                     ?>" <?= $this->pageItemScope ?>><meta itemprop="isFamilyFriendly" content="true" /><?php
              * 
              */
+            
         ?></head><?php flush() ?><body<?= $this->isAdminSearch ? ' oncontextmenu="return false;"':'' ?> class="<?= ($this->urlRouter->userId ? 'partner':'') ?>" <?= $this->pageItemScope ?>><meta itemprop="isFamilyFriendly" content="true" /><?php
     }
 
