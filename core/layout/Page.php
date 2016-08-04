@@ -3722,115 +3722,118 @@ class Page extends Site{
         ?>pu=<?= $this->urlRouter->purposeId ?>;<?php
         
         echo $this->globalScript;
-            
-        ?>window.onload=function(){<?php 
-        if($this->urlRouter->cfg['site_production']) 
-        {
-            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;<?php
-                ?>sh.onload=sh.onreadystatechange=function(){<?php
-                    ?>if (!SCLD && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete")){<?php
-                    
-                    switch($this->urlRouter->module){
+        ?>
+        head.addEventListener("load",function(event){if(event.target.nodeName==="SCRIPT"){
+            if(event.target.getAttribute("src").includes("jquery.min.js")||event.target.getAttribute("src").includes("zepto.min.js")){
+                var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;<?php
+                if ($this->urlRouter->cfg['site_production']) 
+                {
+                    switch($this->urlRouter->module)
+                    {
                         case 'myads':
-                            if($this->user->info['id']) {
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_fullads.js';document.body.appendChild(sh)})();<?php 
+                            if ($this->user->info['id']) {
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_fullads.js';document.body.appendChild(sh);<?php 
                             }else{
-                                ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
                             }
                             break;
+                            
                         case 'post':
-                            if($this->user->info['id']) {
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_fullpost.js';document.body.appendChild(sh)})();<?php 
+                            if ($this->user->info['id']) {
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_fullpost.js';document.body.appendChild(sh);<?php 
                             }else{
-                                ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
                             }
                             break;
+                            
                         case 'detail':
                         case 'search':
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_search.js';document.body.appendChild(sh)})();<?php 
+                            ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_search.js';document.body.appendChild(sh);<?php 
                             break;
+                        
                         case 'account':
-                            if($this->user->info['id']) {
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_account.js';document.body.appendChild(sh)})();<?php 
+                            if ($this->user->info['id']) {
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_account.js';document.body.appendChild(sh);<?php 
                             }else{
-                                ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
                             }
                             break;
+                            
                         case 'contact':
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_contact.js';document.body.appendChild(sh)})();<?php 
+                            ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_contact.js';document.body.appendChild(sh);<?php 
                             break;
+                        
                         case 'password':
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_password.js';document.body.appendChild(sh)})();<?php 
+                            ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_password.js';document.body.appendChild(sh);<?php 
                             break;
                         
                         case 'index':
                         default:
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
+                            ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
                             break;
                     }
-                    
-                    ?>}<?php 
-                ?>};<?php
-                ?>sh.src='<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>zepto.min.js';document.body.appendChild(sh)})();<?php                                                 
-        } 
-        else 
-        {
-            // testing here
-            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;<?php
-            
-                ?>sh.onload=sh.onreadystatechange=function(){console.log("onload");<?php
-                    ?>if (!SCLD && (!this.readyState || this.readyState==="loaded" || this.readyState==="complete")){<?php
-                        switch($this->urlRouter->module){
-                            case 'myads':
-                                if($this->user->info['id']) {
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                    ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_ads.js';document.body.appendChild(sh)<?php 
-                                }else{
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                }
+                } 
+                else 
+                {
+                    switch($this->urlRouter->module)
+                    {
+                        case 'myads':
+                            if ($this->user->info['id']) {
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_ads.js';document.body.appendChild(sh);<?php 
+                            }else{
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                            }
+                            break;
+                            
+                        case 'detail':
+                        case 'search':
+                            ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                            ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_srh.js';document.body.appendChild(sh);<?php 
+                            break;
+
+                        case 'post':
+                            if ($this->user->info['id']) {
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_post.js';document.body.appendChild(sh);<?php 
+                            }else{
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                            }
+                            break;
+                            
+                        case 'account':
+                            if ($this->user->info['id']) {
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_acc.js';document.body.appendChild(sh);<?php 
+                            }else{
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)<?php 
+                            }
+                            break;
+                            
+                        case 'contact':
+                            ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                            ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_cnt.js';document.body.appendChild(sh);<?php 
+                            break;
+                        
+                        case 'password':
+                            if ($this->include_password_js) 
+                            {
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_pwd.js';document.body.appendChild(sh);<?php 
                                 break;
-                            case 'detail':
-                            case 'search':
-                                ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_srh.js';document.body.appendChild(sh)<?php 
-                                break;
-                            case 'post':
-                                if($this->user->info['id']) {
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                    ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_post.js';document.body.appendChild(sh)<?php 
-                                }else{
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                }
-                                break;
-                            case 'account':
-                                if($this->user->info['id']) {
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                    ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_acc.js';document.body.appendChild(sh)<?php 
-                                }else{
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)<?php 
-                                }
-                                break;
-                            case 'contact':
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                    ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_cnt.js';document.body.appendChild(sh)<?php 
-                                break;                            
-                            case 'password':
-                                if($this->include_password_js){
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                    ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_pwd.js';document.body.appendChild(sh)<?php 
-                                    break;
-                                }
-                            case 'index':
-                            default:
-                                ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php  
-                                break;
-                        }
-                    ?>}<?php 
-                ?>};<?php
-                ?>sh.src='<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>zepto.min.js';document.body.appendChild(sh)})();<?php 
-         
-        }
-        echo $this->inlineScript;
+                            }
+                            
+                        case 'index':
+                        default:
+                            ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php  
+                            break;
+                    }                    
+                }                
+                ?>                
+            }
+        }}, true);<?php
+        ?>window.onload=function(){<?php      
+            echo $this->inlineScript;
         ?>};<?php        
         ?></script><?php 
          
@@ -4025,93 +4028,77 @@ class Page extends Site{
             ?>ICH='<?= $this->includeHash ?>',<?php
             ?>LSM='<?= $this->urlRouter->last_modified ?>';<?php
             echo $this->globalScript;
-            error_log($this->urlRouter->module);
-            ?>
-            
-            head.addEventListener("load", function(event) 
-            {
-                var mdl='<?= $this->urlRouter->module ?>';
-                if (event.target.nodeName === "SCRIPT")
-                {
-                    if (event.target.getAttribute("src").includes("jquery.min.js") || event.target.getAttribute("src").includes("zepto.min.js") )
+            ?>            
+            head.addEventListener("load",function(event){if(event.target.nodeName==="SCRIPT"){
+                if (event.target.getAttribute("src").includes("jquery.min.js")||event.target.getAttribute("src").includes("zepto.min.js")){
+                    var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;
+                    <?php
+                    switch($this->urlRouter->module)
                     {
-                        var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;
-                        <?php
-                        switch($this->urlRouter->module)
-                        {
-                            case 'signin':
-                                ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/signin.js';head.insertBefore(sh,head.firstChild);<?php 
-                                break;
+                        case 'signin':
+                            ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/signin.js';head.insertBefore(sh,head.firstChild);<?php 
+                            break;
                             
-                            case 'detail':
-                            case 'search':
-                                ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/search.js';head.insertBefore(sh,head.firstChild);<?php 
-                                break;
+                        case 'detail':
+                        case 'search':
+                            ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/search.js';head.insertBefore(sh,head.firstChild);<?php 
+                            break;
                             
-                            case 'myads':
-                                if($this->user->info['id']){
-                                    if($this->user->info['level']==9){     
-                                        if($this->urlRouter->cfg['site_production']){
-                                            ?>sh.src='https://h5.mourjan.com/js/3.0.8/myadsad.js';<?php
-                                        }else{
-                                            ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/myadsad.js';<?php 
-                                        }
+                        case 'myads':
+                            if($this->user->info['id']){
+                                if($this->user->info['level']==9){     
+                                    if($this->urlRouter->cfg['site_production']){
+                                        ?>sh.src='https://h5.mourjan.com/js/3.0.8/myadsad.js';<?php
                                     }else{
-                                        ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/myads.js';<?php                                            
+                                        ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/myadsad.js';<?php 
                                     }
                                 }else{
-                                    ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/gen.js';<?php
+                                    ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/myads.js';<?php                                            
                                 }
-                                ?>head.insertBefore(sh,head.firstChild);<?php 
-                                break;
-                            
-                            case 'account':
-                                if($this->user->info['id'])
-                                {
-                                    ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/account.js';<?php                                            
-                                }else{
-                                    ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/gen.js';<?php
-                                }
-                                ?>head.insertBefore(sh,head.firstChild);<?php 
-                                break;
-                                
-                            case 'post':
-                                if($this->user->info['id'])
-                                {
-                                    ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/post.js';<?php                                            
-                                }
-                                else
-                                {
-                                    ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/gen.js';<?php
-                                }
-                                ?>head.insertBefore(sh,head.firstChild);<?php 
-                                break;
-                            
-                            case 'password':
-                                if($this->include_password_js)
-                                {
-                                    ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/pwd.js';head.insertBefore(sh,head.firstChild);<?php 
-                                }
-                                break;
-                                
-                            case 'index':
-                                ?>(function(){sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/gen.js';<?php 
-                                echo "\n",$this->inlineQueryScript;
-                                ?>head.insertBefore(sh,head.firstChild)})();<?php
-                                break;
-                        }
-                        ?>
-                        
-
-                    }
-                    //alert("Script loaded: " + event.target.getAttribute("src"));
-                }
-            }, true);
+                            }else{
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/gen.js';<?php
+                            }
+                            ?>head.insertBefore(sh,head.firstChild);<?php 
+                            break;
+                
+                        case 'account':
+                            if($this->user->info['id'])
+                            {
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/account.js';<?php                                            
+                            }else{
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/gen.js';<?php
+                            }
+                            ?>head.insertBefore(sh,head.firstChild);<?php 
+                            break;
             
-            <?php
-            ?>window.onload=function(){<?php echo $this->inlineScript;?>};<?php
-        
-                 
+                        case 'post':
+                            if($this->user->info['id'])
+                            {
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/post.js';<?php                                            
+                            }
+                            else
+                            {
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/gen.js';<?php
+                            }
+                            ?>head.insertBefore(sh,head.firstChild);<?php 
+                            break;
+                            
+                        case 'password':
+                            if($this->include_password_js)
+                            {
+                                ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/pwd.js';head.insertBefore(sh,head.firstChild);<?php 
+                            }
+                            break;
+                                
+                        case 'index':
+                        default:
+                            ?>(function(){sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/gen.js';<?php 
+                            echo "\n",$this->inlineQueryScript;
+                            ?>head.insertBefore(sh,head.firstChild)})();<?php
+                            break;
+                    }
+            ?>}}}, true);<?php
+            ?>window.onload=function(){<?php echo $this->inlineScript;?>};<?php                        
             ?>(function(){<?php
                 ?>var po=document.createElement('script'); po.type='text/javascript'; po.async=true;<?php
                 ?>po.src = 'https://apis.google.com/js/platform.js';<?php
