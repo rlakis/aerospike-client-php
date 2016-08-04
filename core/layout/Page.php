@@ -5068,7 +5068,7 @@ class Page extends Site{
 
             //echo '<!--googleon: snippet-->';
             $this->body();
-            $this->load_js();
+            $this->load_js_classic();
         }
         ?></body></html><?php
     }

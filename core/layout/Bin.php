@@ -143,7 +143,7 @@ class Bin extends AjaxHandler{
                     $pu = $this->get('p');
                     
                     
-                    $text = $this->post('t');
+                    $text = $_POST['t'];
                     $textIdx = $this->post('dx');
                     $textRtl = $this->post('rtl');
                     
@@ -366,7 +366,7 @@ class Bin extends AjaxHandler{
                                 "url" => $url,
                                 "hl"    =>  $lang
                             );
-                            $script = 'https://h5.mourjan.com/prop.php?'.http_build_query($params);
+                            $script = 'https://up.mourjan.com/prop.php?'.http_build_query($params);
                             $headers = array(
                                 'Content-Type: application/json',
                                 'Connection: Keep-Alive',
