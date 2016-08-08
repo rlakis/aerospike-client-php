@@ -312,6 +312,7 @@ function hva(e){
             fv=$("<span onclick='rpa(this)' class='i ab' title='"+atxt+"'></span>");
             n.appendChild(fv[0]);
         }
+        console.log(ms);
         n.appendChild(ms[0]);
         ce.addClass('hover');
         cli=e;

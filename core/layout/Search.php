@@ -704,6 +704,11 @@ class Search extends Page {
             }
         }
 
+        function load_js_classic() {
+            ?><div id="mis" class='ms'></div><?php
+            parent::load_js_classic();
+        }
+        
         function load_js() {
             ?><div id="mis" class='ms'></div><?php
             parent::load_js();

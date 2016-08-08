@@ -566,12 +566,21 @@ class AndroidApi {
                             
                         $city_id = 0;
                         $country_id = 0;
+                        $currentCid = 0;
+                        $isMultiCountry = false;
+                        $cities = $this->api->db->getCitiesDictionary();
                         foreach($ad['pubTo'] as $key => $val){
-                            $city_id=$key;
-                            break;
+                            if(!$city_id && isset($cities[$city_id])){
+                                $city_id=$key;
+                            }
+                            if($key && isset($cities[$key])){
+                                if($currentCid && $currentCid != $cities[$key][4]){
+                                    $isMultiCountry = true;
+                                }
+                                $currentCid = $cities[$key][4];
+                            }
                         }
                         if($city_id){
-                            $cities = $this->api->db->getCitiesDictionary();
                             $country_id=$cities[$city_id][4];
                         }
                         
@@ -592,7 +601,7 @@ class AndroidApi {
                             }
                             $ad['msg'] = $msg;
                         }
-                       
+                        
                         if ($isSCAM){
                             
                             $this->setLevel($this->api->getUID(),5);
@@ -606,6 +615,7 @@ class AndroidApi {
                                 if($ad['state'] == 1 && isset($ad['budget']) && $ad['budget']+0 > 0){
                                     $ad['state'] = 4;
                                 }
+                                $state = $ad['state'];
 
                                 $encodedAd = json_encode($ad);
 
@@ -708,8 +718,28 @@ class AndroidApi {
                                     $userState = $this->detectDuplicateSuspension($ad['cui']);                            
                                 }
                             }
+                            if($ad_id && $state == 4 && $isMultiCountry){
+                                $q='update ad_user set
+                                    content=?,state=? 
+                                    where id=?';
+                                    $suspendStmt = $this->api->db->getInstance()->prepare($q);
 
-                            if($ad_id && $userState == 1){
+                                if($ad['rtl']){
+                                    $msg = 'عذراً ولكن لا يمكن تمييز الاعلان في اكثر من بلد واحد';
+                                }else{
+                                    $msg = 'Sorry, you cannot publish premium ads targetting more than ONE country';
+                                }
+                                $ad['msg'] = $msg;
+
+                                $encodedAd = json_encode($ad);
+                                $result=null;
+                                $suspendStmt->execute([
+                                    $encodedAd,
+                                    3,
+                                    $ad_id
+                                ]);
+                                unset($suspendStmt);
+                            }elseif($ad_id && $userState == 1){
                                 $q='update ad_user set
                                     content=?,state=? 
                                     where id=?';
@@ -729,7 +759,7 @@ class AndroidApi {
                                     3,
                                     $ad_id
                                 ]);
-                                $suspendStmt->closeCursor();
+                                unset($suspendStmt);
                             }else if($ad_id && in_array($ad['se'],array(190,1179,540,1114))){
                                 $dupliactePending = $this->detectIfAdInPending($ad_id, $ad['se'], $ad['cui']);
                                 if($dupliactePending){

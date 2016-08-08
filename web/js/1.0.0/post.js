@@ -3,7 +3,7 @@ window['_s']=function(a,v){
 };
 function pi(){
     $.ajax({type:'POST',url:'/ajax-pi/'});
-}
+};
 if(UID)setInterval(pi,300000);
 function cl(u){
     if(lang!='ar')u+=lang+'/';
@@ -355,6 +355,12 @@ function savAd(p, clr){
         t[i]=i;
     }
     ad.pubTo=t;
+    /*
+     * if ad is premium, double check for multiple countries
+     * TO DO BASSEL
+    if(){
+        
+    }*/
     //setting text if changed
     if(txt!=null){
         ad.other=txt;
@@ -3319,8 +3325,47 @@ if(hNum)
 
 
 function savAdP(){
-    var sp = $('#spinner').SelectNumber();
-    Dialog.show("make_premium",null,function(){confirmPremium(sp)});
+    //check if multi country selected
+    var u=$('#cnu > li'),mu=0,ck=0,i=0,j=0,k=0,l=0,n;
+    l=u.length;
+    for(i=0;i<l;i++){
+        if($(u[i]).hasClass("on")){
+            if(ck){
+                mu=1;
+                break;
+            }else{
+                ck=1;
+            }
+        }
+    }
+    if(!mu){
+        u=$('.sls');
+        l=u.length;
+        for(i=0;i<l;i++){
+            n=u[i].childNodes;
+            k=n.length;
+            for(j=0;j<k;j++){
+                if($(n[j]).hasClass("on")){
+                    if(ck){
+                        mu=1;
+                        break;
+                    }else{
+                        ck=1;
+                        break;
+                    }
+                }
+            }
+            if(mu){
+                break;
+            }
+        }
+    }
+    if(mu){
+        mCPrem()
+    }else{
+        var sp = $('#spinner').SelectNumber();
+        Dialog.show("make_premium",null,function(){confirmPremium(sp)});
+    }
 }
 function confirmPremium(sp){
     var str='',x='',y='';

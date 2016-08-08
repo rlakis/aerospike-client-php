@@ -2486,7 +2486,8 @@ class Page extends Site{
         if($this->user->info['id']==0 && in_array($this->urlRouter->module,['home','signin','favorites','account','myads','post','statement','watchlist','signup','password','buy','buyu'])){
             ?><script src='https://www.google.com/recaptcha/api.js<?= $this->urlRouter->siteLanguage=='ar'?'?hl=ar':'' ?>'></script><?php
         }
-
+        
+        /*
         if ($this->isMobile) {
             echo "\n<script src='{$this->urlRouter->cfg['url_jquery']}zepto.min.js' async></script>";
         } else {
@@ -2497,7 +2498,7 @@ class Page extends Site{
         {
             echo "\n<script src='{$this->urlRouter->cfg['url_jquery']}socket.io-1.4.5.js' async></script>\n";
         }
-        
+        */
     }
 
     function footer(){
@@ -5024,7 +5025,7 @@ class Page extends Site{
             $this->bodyMobile();
             if (!$this->urlRouter->isApp) 
                 $this->footerMobile();
-            $this->loadMobileJs();
+            $this->loadMobileJs_classic();
             //echo "</div></div>";
             //echo "<div id='adft'>Featured ad placement</div>";
         } else {
@@ -5069,6 +5070,7 @@ class Page extends Site{
             //echo '<!--googleon: snippet-->';
             $this->body();
             $this->load_js_classic();
+            
         }
         ?></body></html><?php
     }

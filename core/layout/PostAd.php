@@ -538,6 +538,7 @@ class PostAd extends Page{
                 $cityList='';
                 $tmpList='';
                 $countryName='';
+                
                 foreach ($countries as $key=>$country) {
                     if (isset($country[0]) && $country[0]!=110) {
                     if ($cid != (int)$country[0]) {
@@ -904,6 +905,15 @@ class PostAd extends Page{
                         ?><div class="dialog-box"></div><?php 
                         ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['deal'] ?>" /></div><?php 
                 ?></div><?php
+                ?><div id="alert_dialog" class="dialog"><?php
+                    ?><div class="dialog-box"></div><?php 
+                    ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /><input type="button" value="<?= $this->lang['modify'] ?>" /></div><?php 
+                ?></div><?php
+                $this->globalScript.='
+                        function mCPrem(){
+                            Dialog.show("alert_dialog",\'<span class="fail"></span>'.$this->lang['multi_premium_no'].'\',function(){var c=$("#cnu")[0];cnT(c);gto(c);});
+                        };
+                    ';
             }
             //$this->user->pending['post']['content']=json_encode($this->adContent);
             //$this->user->update();

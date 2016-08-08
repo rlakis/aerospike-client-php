@@ -373,6 +373,6 @@ if ($globalSettings!==FALSE)
     }
 }
 
-//$config['url_uploader'] = 'https://h5.mourjan.com';
+$config['url_js'] = 'https://dv.mourjan.com/web/js/1.0.0';
 
 ?>

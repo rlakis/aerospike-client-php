@@ -765,7 +765,7 @@ class MobileApi
         if ($this->uid>0 && !empty($this->uuid)) {
             $status = 0;
             $q = $this->db->queryResultArray(
-                    "select d.uid, u.opts, u.full_name,u.identifier,u.email,u.provider,u.profile_url,IIF(m.STATUS IS NULL, 10, m.STATUS) STATUS, "
+                    "select d.uid,d.app_prefs, u.opts, u.full_name,u.identifier,u.email,u.provider,u.profile_url,IIF(m.STATUS IS NULL, 10, m.STATUS) STATUS, "
                     . "IIF(m.SECRET is null, '', m.SECRET) secret, IIF(m.MOBILE is null, 0, m.MOBILE) mobile, u.lvl, "
                     . "DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', d.last_visit) as device_last_visit, "
                     . "DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', u.last_visit) as user_last_visit, "
@@ -781,7 +781,11 @@ class MobileApi
                 if(is_null($opts) || !is_object($opts)){
                     $opts = json_decode("{}");
                 }
-                
+                if($q[0]['APP_PREFS']){
+                    $opts->prefs = json_decode(base64_decode($q[0]['APP_PREFS']),true);
+                }else{
+                    $opts->prefs = [];
+                }
                 //$opts->dump = $q;
                 $opts->device_last_visit = $q[0]['DEVICE_LAST_VISIT'];
                 $opts->user_last_visit = $q[0]['USER_LAST_VISIT'];
@@ -2365,6 +2369,8 @@ class MobileApi
                     $this->result['d']['state']=1;//$rs[0]['STATE'];
                 }
             }
+        }else{
+            error_log("error on status");
         }
     }
 
@@ -2436,14 +2442,39 @@ class MobileApi
         } else {
             $opts = $this->userStatus($status);
             $this->result['d']['order_id']=0;
-            if ($status==1) {
-                $start_date = date('Y-m-d h:i:s', $start);
-                $this->result['start']=$start_date;
-
-                $rs = $this->db->queryResultArray(
-                    "INSERT INTO T_AD_BO (AD_ID, OFFER_ID, CREDIT, DATED, START_DATE, BLOCKED, DEMO) VALUES ".
-                    "(?, ?, ?, current_timestamp, ?, 0, 0) RETURNING ID", [$adId, 1, $days, $start_date], TRUE);
-                $this->result['d']['order_id']=$rs[0]['ID']+0;
+            if ($status==1) {                
+                $ad = $this->db->queryResultArray('select * from ad_user where id = ?', [$adId], TRUE);
+                if($ad && count($ad)){
+                    $content = json_decode($ad[0]['CONTENT'],true);                    
+                    $currentCid = 0;
+                    $isMultiCountry = false;
+                    $cities = $this->db->getCitiesDictionary();
+                    foreach($content['pubTo'] as $key => $val){
+                        if($key && isset($cities[$key])){
+                            if($currentCid && $currentCid != $cities[$key][4]){
+                                $isMultiCountry = true;
+                                break;
+                            }
+                            $currentCid = $cities[$key][4];
+                        }
+                    }
+                    
+                    if($isMultiCountry){
+                        if(isset($opts->prefs['lang']) && $opts->prefs['lang']=='ar'){
+                            $msg = 'عذراً ولكن لا يمكن تمييز الاعلان في اكثر من بلد واحد';
+                        }else{
+                            $msg = 'Sorry, you cannot publish premium ads targetting more than ONE country';
+                        }
+                        $this->result['e']=$msg;
+                    }else{                
+                        $start_date = date('Y-m-d h:i:s', $start);
+                        $this->result['start']=$start_date;
+                        $rs = $this->db->queryResultArray(
+                            "INSERT INTO T_AD_BO (AD_ID, OFFER_ID, CREDIT, DATED, START_DATE, BLOCKED, DEMO) VALUES ".
+                            "(?, ?, ?, current_timestamp, ?, 0, 0) RETURNING ID", [$adId, 1, $days, $start_date], TRUE);
+                        $this->result['d']['order_id']=$rs[0]['ID']+0;
+                    }
+                }
             }
         }
         $this->getBalance();

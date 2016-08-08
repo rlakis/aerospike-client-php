@@ -2,7 +2,8 @@ var ase=[],ccN,ccD,ccA,ccF,tmpT=0,btwT=0,tar,ctac=0,tlen,edN,uForm,vForm,txt,atx
 function hasCanvas(){
   var elem = document.createElement('canvas');
   return !!(elem.getContext && elem.getContext('2d'));
-}
+};
+
 var saveXHR;
 function savAd(p){    
     if(saveXHR){
@@ -26,6 +27,12 @@ function savAd(p){
         t[i]=i;
     }
     ad.pubTo=t;
+    /*
+     * if ad is premium, double check for multiple countries
+     * TO DO BASSEL
+    if(){
+        
+    }*/
     //setting text if changed
     if(txt!=null){
         ad.other=txt;

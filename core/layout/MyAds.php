@@ -47,6 +47,7 @@ class MyAds extends Page {
                     break;
             }
         } else {
+            if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
             $this->globalScript.='var SOUND="beep.mp3",';
             if(isset($this->user->params['mute'])&&$this->user->params['mute']){
                 $this->globalScript.='MUTE=1';
@@ -54,6 +55,7 @@ class MyAds extends Page {
                 $this->globalScript.='MUTE=0';
             }
             $this->globalScript.=';';
+            
             if($this->user->info['id'] && $this->user->info['level']==9) {
                 
                 if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
@@ -176,6 +178,14 @@ class MyAds extends Page {
                         }
                     };
                 ';
+                
+                if($sub===''){
+                    $this->globalScript.='
+                        function mCPrem(){
+                            Dialog.show("alert_dialog",\'<span class="fail"></span>'.$this->lang['multi_premium_no'].'\');
+                        };
+                    ';
+                }
             }
             $this->set_ad(array('zone_0'=>array('/1006833/PublicRelation', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->urlRouter->cfg['server_id'])));
         
@@ -637,7 +647,7 @@ var rtMsgs={
         }
     }
 
-    function getAdSection($ad, $rootId=0) {
+    function getAdSection($ad, $rootId=0, &$isMultiCountry=false) {
         $section='';
         switch($ad['PURPOSE_ID']){
             case 1:
@@ -705,7 +715,10 @@ var rtMsgs={
                 }
                 $i=0;
                 foreach ($countriesArray as $key => $value) {
-                    if ($i)$content.=' - ';
+                    if ($i){
+                        $content.=' - ';
+                        $isMultiCountry = true;
+                    }
                     $content.=$value[0];
                     if ($value[1]!==false) $content.=' ('.implode ($comma, $value[1]).')';
                     $i++;
@@ -1148,7 +1161,8 @@ var rtMsgs={
                 if(!$isAdminProfiling && $this->user->info['level']==9 && in_array($state,[1,2,3])){
                     echo ' onclick="quickSwitch(this)"';
                 }
-                ?>><?=  $this->getAdSection($ad, $content['ro']).($state>6?'<a class="com" href="'.$link.'#disqus_thread" data-disqus-identifier="'.$ad['ID'].'" rel="nofollow"></a>':'') ?></div><?php
+                $isMultiCountry = false;
+                ?>><?=  $this->getAdSection($ad, $content['ro'],$isMultiCountry).($state>6?'<a class="com" href="'.$link.'#disqus_thread" data-disqus-identifier="'.$ad['ID'].'" rel="nofollow"></a>':'') ?></div><?php
             
                 $isSuspended = isset($this->user->info['options']['suspend']) && ($this->user->info['options']['suspend']>time());
                         
@@ -1184,7 +1198,7 @@ var rtMsgs={
                     }
                     if(!$ad_hold){
                         if ((!$isAdmin || ($isAdmin && $isAdminOwner)) && (!$isFeatured || !$isFeatureBooked)){
-                            ?><span class="lnk" onclick="<?= $this->userBalance ? 'askPremium(this)':'noPremium()' ?>"><span class="mc24"></span><?= $this->lang['make_premium'] ?></span><?php                                    
+                            ?><span class="lnk" onclick="<?= $isMultiCountry ? 'mCPrem()' : ($this->userBalance ? 'askPremium(this)':'noPremium()') ?>"><span class="mc24"></span><?= $this->lang['make_premium'] ?></span><?php                                    
                         }
                         if ((!$isAdmin || ($isAdmin && $isAdminOwner)) && $isFeatureBooked){
                             ?><span class="lnk" onclick="cancelPremium(this)"><span class="mc24"></span><?= $this->lang['stop_premium_bt'] ?></span><?php                                    

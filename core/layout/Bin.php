@@ -142,8 +142,10 @@ class Bin extends AjaxHandler{
                     $se = $this->get('s');
                     $pu = $this->get('p');
                     
-                    
-                    $text = $_POST['t'];
+                    $text = '';
+                    if(isset($_POST['t'])){
+                        $text = $_POST['t'];
+                    }
                     $textIdx = $this->post('dx');
                     $textRtl = $this->post('rtl');
                     
@@ -171,7 +173,10 @@ class Bin extends AjaxHandler{
                                 }
                             }
                             if($imageToRemove){
-                                $this->urlRouter->db->queryResultArray("delete from ad_media where ad_id = ? and media_id = ?",[$id,$imageToRemove],true);
+                                $media = $this->urlRouter->db->queryResultArray("select * from media where filename = ?",[$imageToRemove],true);
+                                if($media && count($media)){
+                                    $this->urlRouter->db->queryResultArray("delete from ad_media where ad_id = ? and media_id = ?",[$id,$media[0]['ID']],true);
+                                }
                             }
                             
                             $content['pics']=$newImgs;
@@ -2043,6 +2048,8 @@ class Bin extends AjaxHandler{
                         
                         $cityId=0;
                         $countryId=0;
+                        $currentCid = 0;
+                        $isMultiCountry = false;
                         if(count($ad['pubTo'])){
                             foreach($ad['pubTo'] as $key => $val){
                                 if(!is_numeric($key)){
@@ -2055,6 +2062,14 @@ class Bin extends AjaxHandler{
                                         unset($ad['pubTo']['64']);
                                     elseif(isset($ad['pubTo'][64]))
                                         unset($ad['pubTo'][64]);
+                                    $cityId=0;
+                                    $key = 0;
+                                }
+                                if($key && isset($this->urlRouter->cities[$key][4])){
+                                    if($currentCid && $currentCid != $this->urlRouter->cities[$key][4]){
+                                        $isMultiCountry = true;
+                                    }
+                                    $currentCid = $this->urlRouter->cities[$key][4];
                                 }
                             }
                         }
@@ -2414,6 +2429,13 @@ class Bin extends AjaxHandler{
                                     $msg = 'يرجى تصحيح رقم الهاتف أو تحديد رمز المنطقة إن لزم';
                                 }else{
                                     $msg = 'please correct the phone number or specify the area code if applicable';
+                                }
+                                $this->user->rejectAd($adId,$msg);
+                            }else if($publish == 4 && $isMultiCountry){
+                                if($ad['rtl']){
+                                    $msg = 'عذراً ولكن لا يمكن تمييز الاعلان في اكثر من بلد واحد';
+                                }else{
+                                    $msg = 'Sorry, you cannot publish premium ads targetting more than ONE country';
                                 }
                                 $this->user->rejectAd($adId,$msg);
                             }
@@ -3144,8 +3166,11 @@ class Bin extends AjaxHandler{
                             }
                         }
                         
-                        if ($found) {
-                            $this->urlRouter->db->queryResultArray("delete from ad_media where ad_id = ? and media_id = ?",[$this->user->pending['post']['id'],$fn],true);
+                        //if ($found) {
+                            $media = $this->urlRouter->db->queryResultArray("select * from media where filename = ?",[$fn],true);
+                            if($media && count($media)){
+                                $this->urlRouter->db->queryResultArray("delete from ad_media where ad_id = ? and media_id = ?",[$this->user->pending['post']['id'],$media[0]['ID']],true);
+                            }
                             if(count($adContent['pics'])==0){
                                 if(isset($adContent['extra']['p']))$adContent['extra']['p']=0;
                             }
@@ -3154,7 +3179,7 @@ class Bin extends AjaxHandler{
                             $this->user->saveAd();
                             $this->setData($adContent['pic_def'],'def');
                             $this->process();
-                        }else $this->fail('103');
+                        //}else $this->fail('103');
                     }else $this->fail('102');
                 }else $this->fail('101');
                 break;
