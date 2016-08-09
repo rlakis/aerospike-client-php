@@ -580,6 +580,10 @@ class AndroidApi {
                                 $currentCid = $cities[$key][4];
                             }
                         }
+                        foreach($ad['pubTo'] as $key => $val){
+                            $city_id=$key;
+                            break;
+                        }
                         if($city_id){
                             $country_id=$cities[$city_id][4];
                         }
