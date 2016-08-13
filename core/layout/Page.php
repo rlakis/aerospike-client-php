@@ -29,7 +29,29 @@ class Page extends Site{
 
     function __construct($router){
         parent::__construct($router);
-        
+        if (isset($this->user->params['user_country']))
+        {
+            if ($this->user->params['user_country']==='lb'||
+                $this->user->params['user_country']==='ae'||
+                $this->user->params['user_country']==='bh'||
+                $this->user->params['user_country']==='sa'||
+                $this->user->params['user_country']==='us')
+            {
+                $this->urlRouter->cfg['url_resources']      = 'https://mourjan.r.worldssl.net';
+                $this->urlRouter->cfg['url_ad_img']         = 'https://mourjan.r.worldssl.net';
+                $this->urlRouter->cfg['url_img']            = 'https://mourjan.r.worldssl.net/img/1.0.0';
+                $this->urlRouter->cfg['url_js']             = 'https://mourjan.r.worldssl.net/js/3.1.0';
+                $this->urlRouter->cfg['url_js_mobile']      = 'https://mourjan.r.worldssl.net/js/2.1.8e';
+                $this->urlRouter->cfg['url_css']            = 'https://mourjan.r.worldssl.net/css/5.3.9';
+                $this->urlRouter->cfg['url_css_mobile']     = 'https://mourjan.r.worldssl.net/css/5.2.8d';
+                $this->urlRouter->cfg['url_jquery']         = 'https://mourjan.r.worldssl.net/jquery/1.10.2.4/js/';
+                $this->urlRouter->cfg['url_jquery_mobile']  = 'https://mourjan.r.worldssl.net/jquery/2.1.0/';
+                $this->urlRouter->cfg['url_image_lib']      = 'https://mourjan.r.worldssl.net/lix/2.0.0';
+                $this->urlRouter->cfg['url_highcharts']     = 'https://mourjan.r.worldssl.net/hc/3.0.9';
+
+            }
+            //error_log($this->user->params['user_country']);
+        }
         //$res= $this->urlRouter->db->queryResultArray('select * from ad_user where content = \'\' and state = 3');
         //var_dump($res);
         
