@@ -1,29 +1,3 @@
-/*@import url(http://fonts.googleapis.com/earlyaccess/droidarabickufi.css);*/
-/*@import url(http://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css);*/
-/*
-@font-face {
-  font-family: 'Droid Arabic Kufi';
-  font-style: normal;
-  font-weight: 400;
-  src: url('f/DroidKufi-Regular.eot');
-  src: url('f/DroidKufi-Regular.eot?#iefix') format('embedded-opentype'),
-       url('f/DroidKufi-Regular.woff2') format('woff2'),
-       url('f/DroidKufi-Regular.woff') format('woff'),
-       url('f/DroidKufi-Regular.ttf') format('truetype');
-}
-*/
-/*
-@font-face {
-  font-family: 'Droid Arabic Kufi';
-  font-style: normal;
-  font-weight: 700;
-  src: url('f/DroidKufi-Bold.eot');
-  src: url('f/DroidKufi-Bold.eot?#iefix') format('embedded-opentype'),
-       url('f/DroidKufi-Bold.woff2') format('woff2'),
-       url('f/DroidKufi-Bold.woff') format('woff'),
-       url('f/DroidKufi-Bold.ttf') format('truetype');
-}
-*/
 *{
     padding:0;
     margin:0

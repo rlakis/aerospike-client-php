@@ -40,11 +40,11 @@ class Page extends Site{
                 $this->urlRouter->cfg['url_resources']      = 'https://mourjan.r.worldssl.net';
                 $this->urlRouter->cfg['url_ad_img']         = 'https://mourjan.r.worldssl.net';
                 $this->urlRouter->cfg['url_img']            = 'https://mourjan.r.worldssl.net/img/1.0.0';
-                $this->urlRouter->cfg['url_js']             = 'https://mourjan.r.worldssl.net/js/3.1.1';
+                $this->urlRouter->cfg['url_js']             = 'https://mourjan.r.worldssl.net/js/3.1.0';
                 $this->urlRouter->cfg['url_js_mobile']      = 'https://mourjan.r.worldssl.net/js/2.1.8e';
-                $this->urlRouter->cfg['url_css']            = 'https://mourjan.r.worldssl.net/css/5.4.0';
+                $this->urlRouter->cfg['url_css']            = 'https://mourjan.r.worldssl.net/css/5.3.9';
                 $this->urlRouter->cfg['url_css_mobile']     = 'https://mourjan.r.worldssl.net/css/5.2.8d';
-                $this->urlRouter->cfg['url_jquery']         = 'https://mourjan.r.worldssl.net/jquery/3.1.0a/js/';
+                $this->urlRouter->cfg['url_jquery']         = 'https://mourjan.r.worldssl.net/jquery/1.10.2.4/js/';
                 $this->urlRouter->cfg['url_jquery_mobile']  = 'https://mourjan.r.worldssl.net/jquery/2.1.0/';
                 $this->urlRouter->cfg['url_image_lib']      = 'https://mourjan.r.worldssl.net/lix/2.0.0';
                 $this->urlRouter->cfg['url_highcharts']     = 'https://mourjan.r.worldssl.net/hc/3.0.9';
@@ -52,9 +52,9 @@ class Page extends Site{
             }
             //error_log($this->user->params['user_country']);
         }
-        //$this->urlRouter->cfg['url_js'] = 'https://dv.mourjan.com/web/js/1.0.0';
-        //$this->urlRouter->cfg['url_css'] = 'https://dv.mourjan.com/web/css/1.0.0';
-        //$this->urlRouter->cfg['url_jquery'] = 'https://dv.mourjan.com/web/jquery/3.1.0/js/';
+        $this->urlRouter->cfg['url_js'] = 'https://dv.mourjan.com/web/js/1.0.0';
+        $this->urlRouter->cfg['url_css'] = 'https://dv.mourjan.com/web/css/1.0.0';
+        $this->urlRouter->cfg['url_jquery'] = 'https://dv.mourjan.com/web/jquery/3.1.0/js/';
         
         //$this->user->sysAuthById(43905);
         if(!$this->urlRouter->cfg['enabled_users']){
@@ -150,22 +150,7 @@ class Page extends Site{
             $this->set_ad(array('zone_0'=>array('/1006833/Leaderboard', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->urlRouter->cfg['server_id'])));
 //            elseif ($this->urlRouter->module=='search')
 //                $this->set_ad(array('zone_5'=>array('/1006833/pf-banner', 468, 60, 'div-gpt-ad-1380370257319-0'.$this->urlRouter->cfg['server_id'])));
-            /*switch ($this->urlRouter->module){
-                case 'search':
-                    $this->set_require('css', array('gencs'));
-                    break;
-                case 'detail':
-                    $this->set_require('css', array('gencd'));
-                    break;
-                case 'index':
-                    $this->set_require('css', array('genc'));
-                    break;
-                default:
-                    $this->set_require('css', array('gen'));
-                    break;
-            }*/
             $this->set_require('css', array('gen'));
-            
 //            if (isset ($this->user->params['visit']) && !in_array ($this->urlRouter->module,array('post','myads','account','page'))){
 //                $this->cssImgsLoaded=true;
 //                $this->set_require('css', array('imgs'));
@@ -394,19 +379,17 @@ class Page extends Site{
             $this->urlRouter->params['q'] = preg_replace('/\//','',$this->urlRouter->params['q']);
             $this->urlRouter->params['q'] = trim(preg_replace('/\s+/',' ',$this->urlRouter->params['q']));
         }
-        
+        $this->user->setStats();
+//        $this->urlRouter->cfg['enabled_ads']=0;
+//        $this->urlRouter->cfg['enabled_sharing']=0;
+        //if ($this->user->info['id']==2 || $this->user->info['id']==1) {
         if (in_array($this->user->info['id'],array(1,2,2100,38813,44835,53456))) {
             $this->urlRouter->cfg['enabled_sharing']=false;
             $this->urlRouter->cfg['enabled_ads']=false;
         }
-        if(!isset($this->user->params['visit'])){
-            $this->urlRouter->cfg['enabled_sharing']=false;
-        }
-        
-        
-        $this->user->setStats();
-        //$this->urlRouter->cfg['enabled_sharing']=false;
-        //$this->urlRouter->cfg['enabled_ads']=false;
+        $this->urlRouter->cfg['enabled_sharing']=false;
+        $this->urlRouter->cfg['enabled_ads']=false;
+        //var_dump($this->urlRouter->cities);
     }
     /*
     if ($this->urlRouter->watchId) {
@@ -2526,7 +2509,7 @@ class Page extends Site{
         }
         ?><meta name="msapplication-config" content="<?= $this->urlRouter->cfg['host'] ?>/browserconfig.xml" /><?php 
         if($this->user->info['id']==0 && in_array($this->urlRouter->module,['home','signin','favorites','account','myads','post','statement','watchlist','signup','password','buy','buyu'])){
-            ?><script async="true" defer="true" src='https://www.google.com/recaptcha/api.js<?= $this->urlRouter->siteLanguage=='ar'?'?hl=ar':'' ?>'></script><?php
+            ?><script src='https://www.google.com/recaptcha/api.js<?= $this->urlRouter->siteLanguage=='ar'?'?hl=ar':'' ?>'></script><?php
         }
         
         /*
@@ -3047,7 +3030,7 @@ class Page extends Site{
     
     protected function set_analytics_header(){
         //error_log($_SERVER['HTTP_USER_AGENT']);
-        if (isset($this->user->info['level']) && $this->user->info['level']==9){
+        if (1 || isset($this->user->info['level']) && $this->user->info['level']==9){
             return;
         }
         $banAd = 0;
@@ -3092,7 +3075,7 @@ class Page extends Site{
         }
         ?>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){<?php
         ?>(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),<?php
-        ?>m=s.getElementsByTagName(o)[0];a.async=true;a.src=g;m.parentNode.insertBefore(a,m)<?php
+        ?>m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)<?php
         ?>})(window,document,'script','//www.google-analytics.com/analytics.js','ga');<?php
 
         ?>ga('create','UA-435731-13','mourjan.com');<?php
@@ -4209,7 +4192,7 @@ class Page extends Site{
         
         ?><div id="fb-root"></div><?php 
         if(isset($this->user->params['include_JSON']) && $this->urlRouter->module=='post'){
-            ?><script type="text/javascript" async="true" defer="true" src="<?= $this->urlRouter->cfg['url_jquery'] ?>json2.js"></script><?php
+            ?><script type="text/javascript" src="<?= $this->urlRouter->cfg['url_jquery'] ?>json2.js"></script><?php
         }         
         /*
         if($this->urlRouter->module=='buy' && $this->user->info['id']){
@@ -4226,9 +4209,8 @@ class Page extends Site{
          */
             ?>var head = document.getElementsByTagName("head")[0] || document.documentElement;<?php
             
-            ?>function loadCss(fn,cb){var s=document.getElementsByTagName("link"),l=s.length-1,e;for(i=l;i>=0;i--){if(s[i].rel=='stylesheet'){e=s[i];break;}}var l=document.createElement('link');l.rel='stylesheet';l.type="text/css";l.media='all';l.href=fn;e.parentNode.insertBefore(l,e.nextSibling)}<?php 
-            
-            /*function AJAXLoad(type,url) {
+            ?>
+                function AJAXLoad(type,url) {
                     var ext;
                     if (type == "js") {
                         ext = document.createElement('script');
@@ -4263,7 +4245,8 @@ class Page extends Site{
                     }
                     xr.open("GET",url,true);
                     xr.send();
-                }*/
+                }
+            <?php
             /*
             if ($this->urlRouter->cfg['enabled_ads'] && count($this->googleAds)) {
                 ?>(function(){var gads=document.createElement('script');gads.async=true;gads.type='text/javascript';var useSSL='https:'==document.location.protocol;gads.src=(useSSL?'https:':'http:')+'//www.googletagservices.com/tag/js/gpt.js';head.appendChild(gads);})();<?php
@@ -4375,15 +4358,12 @@ class Page extends Site{
             }
             ?>ICH='<?= $this->includeHash ?>',<?php
             ?>LSM='<?= $this->urlRouter->last_modified ?>';<?php
-            if(0 && in_array($this->urlRouter->module,['index','search','detail'])){ ?>loadCss(ucss+"/gen<?= $this->urlRouter->siteLanguage=='ar'?'_ar':'' ?>.css");<?php }
-            ?>loadCss(ucss+"/imgs.css");<?php             
             echo $this->globalScript;
             /* ?>function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:lang, layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false, multilanguagePage: true, gaTrack: true, gaId: 'UA-435731-13'}, 'google_translate_element');}<?php */
             
             
-            /* ?>window.onload=function(){<?php */
+            /* ?>window.onload=function(){<?php */            
             
-            /*
                     switch($this->urlRouter->module){
                         case 'signin':
                             ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_jquery'] ?>jquery.min.js';<?php 
@@ -4396,7 +4376,7 @@ class Page extends Site{
                             break;
                         case 'detail':
                         case 'search':
-                             ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_jquery'] ?>jquery.min.js';<?php 
+                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_jquery'] ?>jquery.min.js';<?php 
                             ?>sh.onload=sh.onreadystatechange=function(){<?php
                                 ?>if (!SCLD && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete")){<?php
                                     ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/search.js';head.insertBefore(sh,head.firstChild);<?php 
@@ -4470,74 +4450,31 @@ class Page extends Site{
                             }
                         case 'index':
                         default:
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_jquery'] ?>jquery.min.js';<?php 
+                            ?>AJAXLoad("css",'<?= $this->urlRouter->cfg['url_css'] ?>'+"/imgs.css");<?php
+                            ?>AJAXLoad("js",'<?= $this->urlRouter->cfg['url_jquery'] ?>jquery.min.js');<?php
+                            /* ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_jquery'] ?>jquery.min.js';<?php 
                             ?>sh.onload=sh.onreadystatechange=function(){<?php
                                 ?>if (!SCLD && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete")){<?php
                                     ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/gen.js';head.insertBefore(sh,head.firstChild);<?php 
                                     echo $this->inlineQueryScript;
                                 ?>}<?php 
                             ?>};<?php
-                            ?>head.insertBefore(sh,head.firstChild)})();<?php 
+                            ?>head.insertBefore(sh,head.firstChild)})();<?php */
                             break;
-                    } */
+                    }
                 echo $this->inlineScript;
             /* ?>};<?php */
         
-                if($this->urlRouter->cfg['enabled_sharing'] && in_array($this->urlRouter->module,['index','search','detail'])){ 
+                /* 
 ?>(function() {<?php
     ?>var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;<?php
     ?>po.src = 'https://apis.google.com/js/platform.js';<?php
     ?>var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);<?php
-  ?>})();<?php 
-                }
-        
+  ?>})();<?php
+        */
             
         /*?>(function(){var ga=document.createElement('script');ga.type='text/javascript';ga.async=true;ga.src=('https:'==document.location.protocol?'https://':'http://')+'stats.g.doubleclick.net/dc.js';var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(ga,s);})();<?php*/
-                ?>function inlineQS(){<?= $this->inlineQueryScript; ?>}<?php
         ?></script><?php
-        ?><script type="text/javascript" onload="inlineQS()" defer="true" src="<?= $this->urlRouter->cfg['url_jquery'] ?>jquery.min.js"></script><?php
-        switch($this->urlRouter->module){
-            case 'signin':
-                ?><script type="text/javascript" src="<?= $this->urlRouter->cfg['url_jquery'] ?>socket.io-1.4.5.js"></script><?php
-                ?><script type="text/javascript" src="<?= $this->urlRouter->cfg['url_js'] ?>/signin.js"></script><?php
-                break;
-            case 'detail':
-            case 'search':
-                ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/search.js"></script><?php
-                break;
-            case 'myads':
-                if($this->user->info['id']){
-                    ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_jquery'] ?>socket.io-1.4.5.js"></script><?php
-                    if($this->user->info['level']==9){     
-                        if($this->urlRouter->cfg['site_production']){
-                            ?><script type="text/javascript" defer="true" src="https://h5.mourjan.com/js/3.0.8/myadsad.js"></script><?php
-                        }else{
-                            ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/myadsad.js"></script><?php
-                        }
-                    }else{
-                        ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/myads.js"></script><?php                                          
-                    }
-                }
-                break;
-            case 'account':
-                if($this->user->info['id']){
-                    ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/account.js"></script><?php
-                }
-                break;
-            case 'post':
-                if($this->user->info['id']){
-                    ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/post.js"></script><?php
-                }
-                break;
-            case 'password':
-                if($this->include_password_js){
-                    ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/pwd.js"></script><?php
-                }
-                break;
-            case 'index':                
-            default:
-                break;
-        }
         
         if($this->user->info['id'] && $this->user->info['level']==9 && $this->urlRouter->module=='post'){
             if($this->urlRouter->cfg['site_production']){
@@ -4546,18 +4483,14 @@ class Page extends Site{
                 ?><script type="text/javascript" async="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/pvc.js"></script><?php
             }
         }
-        if($this->urlRouter->module == 'index'){
-            $country = '';
-            if ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId])) {
-                $country = $this->urlRouter->countries[$this->urlRouter->countryId]['uri'];
-            }
+        if(0 && $this->urlRouter->module == 'index'){
             ?><script type="application/ld+json"><?php
                 ?>{"@context": "http://schema.org",<?php
                 ?>"@type": "WebSite",<?php
-                ?>"url": "https://www.mourjan.com/<?= ($country ? $country.'/' :'').($this->urlRouter->siteLanguage=='ar' ?'':$this->urlRouter->siteLanguage.'/') ?>",<?php
+                ?>"url": "https://www.mourjan.com/",<?php
                 ?>"potentialAction":{<?php
                 ?>"@type": "SearchAction",<?php
-                ?>"target": "https://www.mourjan.com/<?= ($country ? $country.'/' :'').($this->urlRouter->siteLanguage=='ar' ?'':$this->urlRouter->siteLanguage.'/') ?>?q={search_term_string}",<?php
+                ?>"target": "https://www.mourjan.com/?q={search_term_string}",<?php
                 ?>"query-input": "required name=search_term_string"<?php
                 ?>}<?php
                 ?>}<?php
@@ -5484,5 +5417,4 @@ class Page extends Site{
     
 
 }
-
 ?>

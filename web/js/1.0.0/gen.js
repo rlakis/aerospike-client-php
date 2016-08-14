@@ -217,7 +217,7 @@ if(share) {
         s.appendChild(sh);
     })();
 }
-if(jsLog)
+if(jsLog){
 window.onerror = function(m, url, ln) {
     if(m!='Script error.')
     $.ajax({
@@ -230,6 +230,8 @@ window.onerror = function(m, url, ln) {
         }
     });
 };
+}
+function wo(u){if(u)document.location=u};
 function wn(u){if(u)window.open(u,'_blank')};
 
 

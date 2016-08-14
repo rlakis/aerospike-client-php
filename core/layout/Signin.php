@@ -26,6 +26,7 @@ class Signin extends Page
         $this->forceNoIndex=true;
         $this->title=$this->lang['title_sign_in'];
         $this->urlRouter->cfg['enabled_ads']=0;
+        $this->urlRouter->cfg['enabled_sharing']=0;
         $this->render();
     }
 

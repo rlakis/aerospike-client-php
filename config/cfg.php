@@ -374,5 +374,8 @@ if ($globalSettings!==FALSE)
 }
 
 $config['url_js'] = 'https://dv.mourjan.com/web/js/1.0.0';
+$config['url_css'] = 'https://dv.mourjan.com/web/css/1.0.0';
+$config['url_jquery'] = 'https://dv.mourjan.com/web/jquery/1.10.2.2/js/';
+$config['url_jquery'] = 'https://dv.mourjan.com/web/jquery/3.1.0/js/';
 
 ?>
