@@ -40,11 +40,11 @@ class Page extends Site{
                 $this->urlRouter->cfg['url_resources']      = 'https://mourjan.r.worldssl.net';
                 $this->urlRouter->cfg['url_ad_img']         = 'https://mourjan.r.worldssl.net';
                 $this->urlRouter->cfg['url_img']            = 'https://mourjan.r.worldssl.net/img/1.0.0';
-                $this->urlRouter->cfg['url_js']             = 'https://mourjan.r.worldssl.net/js/3.1.1';
+                $this->urlRouter->cfg['url_js']             = 'https://mourjan.r.worldssl.net/js/3.1.2';
                 $this->urlRouter->cfg['url_js_mobile']      = 'https://mourjan.r.worldssl.net/js/2.1.8e';
                 $this->urlRouter->cfg['url_css']            = 'https://mourjan.r.worldssl.net/css/5.4.0';
                 $this->urlRouter->cfg['url_css_mobile']     = 'https://mourjan.r.worldssl.net/css/5.2.8d';
-                $this->urlRouter->cfg['url_jquery']         = 'https://mourjan.r.worldssl.net/jquery/3.1.0a/js/';
+                $this->urlRouter->cfg['url_jquery']         = 'https://mourjan.r.worldssl.net/jquery/3.1.0b/js/';
                 $this->urlRouter->cfg['url_jquery_mobile']  = 'https://mourjan.r.worldssl.net/jquery/2.1.0/';
                 $this->urlRouter->cfg['url_image_lib']      = 'https://mourjan.r.worldssl.net/lix/2.0.0';
                 $this->urlRouter->cfg['url_highcharts']     = 'https://mourjan.r.worldssl.net/hc/3.0.9';
@@ -399,9 +399,9 @@ class Page extends Site{
             $this->urlRouter->cfg['enabled_sharing']=false;
             $this->urlRouter->cfg['enabled_ads']=false;
         }
-        if(!isset($this->user->params['visit'])){
+        /*if(!isset($this->user->params['visit'])){
             $this->urlRouter->cfg['enabled_sharing']=false;
-        }
+        }*/
         
         
         $this->user->setStats();
@@ -4484,11 +4484,22 @@ class Page extends Site{
             /* ?>};<?php */
         
                 if($this->urlRouter->cfg['enabled_sharing'] && in_array($this->urlRouter->module,['index','search','detail'])){ 
-?>(function() {<?php
-    ?>var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;<?php
+?>window.onload=function(){<?php
+    ?>var po = document.createElement('script');<?php
+    ?>po.type = 'text/javascript';<?php 
+    ?>po.async = true;<?php
     ?>po.src = 'https://apis.google.com/js/platform.js';<?php
-    ?>var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);<?php
-  ?>})();<?php 
+    ?>var s = document.getElementsByTagName('script')[0];<?php
+    ?>s.parentNode.insertBefore(po,s);<?php 
+    //pagead2.googlesyndication.com/pagead/js/adsbygoogle.js
+    if(in_array($this->urlRouter->module,['search','detail'])){
+    ?>po = document.createElement('script');<?php
+    ?>po.type = 'text/javascript';<?php 
+    ?>po.async = true;<?php
+    ?>po.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';<?php
+    ?>s.parentNode.insertBefore(po,s);<?php 
+    }
+  ?>};<?php 
                 }
         
             

@@ -5213,7 +5213,7 @@ if($isFeatured){
                 
                 if($this->urlRouter->cfg['enabled_ads'] && $countAds >= 10) {
                 ?><li><?php
-                ?><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><ins class="adsbygoogle" style="display:inline-block;width:300px;height:600px" data-ad-client="ca-pub-2427907534283641" data-ad-slot="9190558623"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script><?php
+                ?><ins class="adsbygoogle" style="display:inline-block;width:300px;height:600px" data-ad-client="ca-pub-2427907534283641" data-ad-slot="9190558623"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script><?php
                 ?></li><?php }
                 
                 if($countAds > 7) {

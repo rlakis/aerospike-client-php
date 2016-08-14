@@ -37,7 +37,7 @@ $("b[st]").each(function(i,e){
     }
 });
 if ( (typeof (disqus_shortname)!=="undefined") && MOD=='detail') {
-    (function() {var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);})();
+    addEvent(window,'load',function() {var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)});
 }
 /*
 if ( (typeof (disqus_shortname)!=="undefined") && (MOD=='detail' || MOD=='search' || MOD=='myads')){
@@ -643,10 +643,12 @@ if(typeof hasMap!=="undefined"){
     _s('geocoder',null);
     _s('marker',null);
     _s('map',null);
+    addEvent(window,'load',function(){
     var s=document.createElement("script");
     s.type="text/javascript";
     s.src = "//maps.googleapis.com/maps/api/js?key=AIzaSyBNSe6GcNXfaOM88_EybNH6Y6ItEE8t3EA&sensor=true&callback=initMap&language="+lang;
     document.body.appendChild(s);
+    });
     
     function initMap() {
         geocoder = new google.maps.Geocoder();
