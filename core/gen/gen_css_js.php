@@ -1,14 +1,14 @@
 <?php
 $jsReadPath='/home/www/mourjan/web/js/1.0.0/';
-$jsMobileReadPath='/home/www/mourjan/web/js/2.0.0/';
+$jsMobileReadPath='/home/www/mourjan/web/js/2.0.1/';
 $jsWritePath='/home/www/mourjan/web/js/release/';
 
 function processContent($content){
     $content=preg_replace("/([^:\"\'])\/\/.*\n/", '$1', $content);
     $content=preg_replace("/[\n\t\r]/", '', $content);                
     $content=preg_replace('/\s+/', ' ', $content);
-    $content=preg_replace('/(;|=|,|if|\(|\)|\{|\}|\?|\||\&)\s/', '$1', $content);
-    $content=preg_replace('/\s(;|=|,|\(|\)|\{|\}|\?|\||\&)/', '$1', $content);
+    $content=preg_replace('/(;|=|,|if|\(|\)|\{|\}|\?|\||\&|:)\s/', '$1', $content);
+    $content=preg_replace('/\s(;|=|,|\(|\)|\{|\}|\?|\||\&|:)/', '$1', $content);
     $content=preg_replace('/;\}/', '}', $content);
     $content=preg_replace('/\/\*.*?\*\//', '', $content); 
     return $content;
@@ -89,11 +89,11 @@ if ($handle = opendir($jsMobileReadPath)) {
         echo "\tProcessing {$entry}\n";
         $content=file_get_contents($jsMobileReadPath.$entry);               
         $content=  processContent($content);
-        if($entry!='m_gen.js'){
+        /*if($entry!='m_gen.js'){
             $content=$genContent.$content;
-        }
+        }*/
         //$content=compileCode($content);
-        file_put_contents($jsWritePath.$pair[1], $content);
+        file_put_contents($jsWritePath.$pair[0], $content);
     }
     /*while (false !== ($entry = readdir($handle))) {
         if ($entry != "." && $entry != "..") {

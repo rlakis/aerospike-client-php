@@ -68,6 +68,8 @@ class Search extends Page {
         if(!$this->isMobile){
             $this->inlineCss .= '.cct > a{white-space:nowrap;float:'.($this->urlRouter->siteLanguage == 'ar' ? 'right':'left').'}';
             $this->inlineCss .= '.sfilter .order,.sfilter .olang{background-color:#f8f8f8}.sfilter .order.ov,.sfilter .olang.ov{background-color:#ff9000}ul.sfilter{background-color:gold}';
+        }else{
+            $this->inlineCss .= '.thb.prem{height:50px}';
         }
         if (!$this->isMobile && !$this->urlRouter->userId && !$this->userFavorites && !$this->urlRouter->watchId) {
             $this->hasLeadingPane=true;
@@ -2730,14 +2732,14 @@ class Search extends Page {
                         $pic = $ad[Classifieds::VIDEO][2];
                         //$this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img src=\"' . $pic . '\" /><span class=\"play\"></span>'.$picCount.'";';
                         //$pic = '<span class="thb"></span>';
-                        $pic = '<img src="' . $pic . '" /><span class="play"></span>'.$picCount;
+                        $pic = '<img src="' . $pic . '" />'.$picCount;
                         //$liClass.=' pic';
                     } elseif ($ad[Classifieds::PICTURES] && is_array($ad[Classifieds::PICTURES])  && count($ad[Classifieds::PICTURES])) {
                         $picCount=count($ad[Classifieds::PICTURES]);
                         $pic = $ad[Classifieds::PICTURES][0];
                         //$this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img src=\"' . $this->urlRouter->cfg['url_ad_img'] . '/repos/s/' . $pic . '\" /><span class=\"cnt\">'.$picCount.'</span>";';
                         //$pic = '<span class="thb"></span>';
-                        $pic = '<img src="' . $this->urlRouter->cfg['url_ad_img'] . '/repos/s/' . $pic . '" /><span class="cnt">'.$picCount.'</span>';
+                        $pic = '<img src="' . $this->urlRouter->cfg['url_ad_img'] . '/repos/s/' . $pic . '" />';
                         //$liClass.=' pic';
                     } else {
                         //$this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img class=\"d\" src=\"' . $this->urlRouter->cfg['url_img'] . '/90/' . $ad[Classifieds::SECTION_ID] . '.png\" />";';
@@ -2750,7 +2752,7 @@ class Search extends Page {
                 $_link = sprintf($ad[Classifieds::URI_FORMAT], ($this->urlRouter->siteLanguage == "ar" ? "" : "{$this->urlRouter->siteLanguage}/"), $ad[Classifieds::ID]).'?ref=mediaside';
 
                 ?><div onclick="wo('<?= $_link ?>')" class="bottomFtr" id="bottomFtr"><p class="<?=  $textClass ?>"><?php 
-                echo '<span class="thb" style="height:50px">'.$pic.'</span>';
+                echo '<span class="thb prem">'.$pic.'</span>';
                 echo $ad[Classifieds::CONTENT];
                 ?></p></div><?php
                 
@@ -3130,7 +3132,7 @@ class Search extends Page {
                     $pic = '<span class="ig"></span>';
                 } elseif (isset($ad[Classifieds::PICTURES]) && $ad[Classifieds::PICTURES] && count($ad[Classifieds::PICTURES])) {
                     $pic = $ad[Classifieds::PICTURES][0];
-                    $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img width=\"120\" src=\"'.$this->urlRouter->cfg['url_ad_img'].'/repos/d/' . $pic . '\" /><span class=\"cnt\">'.count($ad[Classifieds::PICTURES]).'<span class=\"i sp\"></span></span>";';
+                    $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img width=\"120\" src=\"'.$this->urlRouter->cfg['url_ad_img'].'/repos/s/' . $pic . '\" /><span class=\"cnt\">'.count($ad[Classifieds::PICTURES]).'<span class=\"i sp\"></span></span>";';
                     $pic = '<span class="ig"></span>';
                 } else {
                     $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img class=\"ir\" src=\"'.$this->urlRouter->cfg['url_img'].'/90/' . $ad[Classifieds::SECTION_ID] . '.png\" />";';

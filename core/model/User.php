@@ -2474,7 +2474,9 @@ class User {
 
     function setStats(){
         if (!isset($this->params['visit'])) {
-            $this->params['visit']=true;
+            $this->params['visit']=1;
+        }else{
+            $this->params['visit']++;
         }
         $this->update();
         if($this->info['id']){
@@ -2701,7 +2703,7 @@ class User {
             $this->reset();
             $this->params['country']=$countryId;
             $this->params['city']=$cityId;
-            $this->params['visit']=true;
+            $this->params['visit']=1;
             if($sorting > -1){
                 $this->params['sorting']=$sorting;
             }

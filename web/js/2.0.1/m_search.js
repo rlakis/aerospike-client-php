@@ -1,3 +1,215 @@
+var switchTo5x=true,cad=[],serv=['email','facebook','twitter','googleplus','linkedin','sharethis'],servd=[],tmp,fbx,leb,peb,cli,sif;
+var fbf=function(){};
+function se(){
+    var v=window.event;
+    if(v){
+        if(v.preventDefault)
+            v.preventDefault();
+        if(v.stopPropagation)
+            v.stopPropagation();
+    }
+}
+function spe(){
+    var v=window.event;
+    if(v){
+        if(v.stopPropagation)
+            v.stopPropagation();
+    }
+}
+function ds(e){
+    e.preventDefault();
+}
+function pi(){
+    $.ajax({
+        type:'POST',
+        url:'/ajax-pi/'
+    })
+}
+setInterval(pi,300000);
+
+function gto(e){
+    var r = e.getBoundingClientRect();
+    var doc = document.documentElement, body = document.body;
+    var top = (doc && doc.scrollTop  || body && body.scrollTop  || 0);
+    window.scrollTo(0,r.top+top);
+}
+function $p(e,n){
+    if(!n)n=1;
+    while(n--){
+        e=e.parentNode;
+    }
+    return e
+}
+function $b(e,n){
+    if(!n)n=1;
+    while(n--){
+        e=e.previousSibling;
+    }
+    return e
+}
+function $a(e,n){
+    if(!n)n=1;
+    while(n--){
+        e=e.nextSibling;
+    }
+    return e
+}
+function $f(e,n){
+    if(!n)n=1;
+    while(n--){
+        e=e.firstChild;
+    }
+    return e
+}
+function $c(e,n){
+    e=e.childNodes;
+    if(n==null){
+        return e;
+    }else{
+        return e[n];
+    }
+}
+function $cL(e,n){
+    return e.childNodes.length;
+}
+function fdT(u,s,c){
+    if(!c)c='hid';
+    if(s){
+        var q=new RegExp('\s'+c+'|'+c,'ig');
+        var k=u.className;
+        k=k.replace(q,'');
+        k=k.replace(/^\s+|\s+$/g,'');
+        u.className=k;
+    }else{
+        u.className+=' '+c;
+    }
+}
+function idir(e){
+    var v=e.value;
+    if(v.match(/[\u0621-\u064a\u0750-\u077f]/)){
+        e.className='ar';
+    }else{
+        e.className='en';
+    }
+}
+function ose(e){
+    var o=(e.className=="srch" ? 0:1);
+    var d=e.parentNode.nextSibling.firstChild;
+    if (o){
+        if (hasQ)
+            document.location=d.firstChild.action;
+        else {
+            e.className="srch";
+            d.className="sef"
+        }
+    }else {
+        e.className="srch on";
+        d.className="sef on";
+        document.getElementById('q').focus();
+    }
+};
+function wsp(){
+    $.ajax({
+        type:'POST',
+        url:'/ajax-screen/',
+        data:{
+            w:document.body.clientWidth,
+            h:document.body.clientHeight
+        }
+    })
+};
+function uPO(d,o){
+    if(!d)d=document.getElementById("sil");
+    if(!sif)sif=document.getElementById("sif");
+    var e=sif;
+    var s=e.style.display;
+    if(!uid && e.parentNode!=document.body){
+        if(s=='block'){            
+            if($p(sif) && $p(sif,2) && $p(sif,3) && $p(sif,4).tagName=='DIV'){
+                pF(document.getElementById('dFB')) 
+            }else {
+                pF(document.getElementById('pFB'))            
+            }
+        }
+        document.body.insertBefore(e, $('main')[0]);
+    }
+    s=e.style.display;
+    if(s=="block") {
+        e.style.display="none";
+        d.firstChild.className="k log"+(o?" on":"")
+    }else {
+        e.style.display="block";
+        d.firstChild.className="k log"+(o?" on":"")+" op"
+    }
+    e.className="si"
+};
+function csif(){
+    if(sif.parentNode==document.body){
+        uPO(0,0);
+        window.scrollTo(0,0)
+    }else{
+        if($p(sif) && $p(sif,2) && $p(sif,3) && $p(sif,4).tagName=='DIV'){
+            pF(document.getElementById('dFB')) 
+        }else {
+            pF(document.getElementById('pFB'))            
+        }
+    }
+};
+/*
+var h1,p1,m1;
+function tof(){
+    if (!h1){
+        h1=document.getElementById("title");
+        p1=h1.parentNode
+    }
+    var c=p1.lastChild;
+    if(c.tagName=='H1'){
+        if (c.clientWidth < c.scrollWidth || c.clientHeight < c.scrollHeight){
+            if (!m1){
+                m1=document.createElement("marquee");
+                m1.className=hd;
+                m1.behavior="scroll";
+                m1.innerHTML=h1.innerHTML
+            }
+            p1.removeChild(h1);
+            p1.appendChild(m1)
+        }
+    }else if(c.tagName=='MARQUEE'){
+        p1.removeChild(m1);
+        p1.appendChild(h1);
+        tof()
+    }
+};
+tof();
+*/
+function getWSct(){
+    var d = document.documentElement, b = document.body;
+    return (d && d.scrollTop  || b && b.scrollTop  || 0)
+}
+function wo(u){if(u)document.location=u};
+
+
+/*executable code*/
+wsp();
+
+var cs=document.createElement("link");cs.setAttribute("rel", "stylesheet");cs.setAttribute("type", "text/css");cs.setAttribute("href", ucss+"/mms.css");document.getElementsByTagName("head")[0].appendChild(cs);
+
+
+window.onresize=function(){fbf();wsp()};
+if(jsLog){
+    window.onerror = function(m,url,ln) {
+        $.ajax({
+            type:'POST',
+            url:'/ajax-js-error/',
+            data:{
+                e:m,
+                u:url,
+                ln:ln
+            }
+        })
+    }
+}
+
 function ado(e){
     var li=$p(e,2);
     if (!leb){
@@ -6,26 +218,22 @@ function ado(e){
         var l=$p(leb);
         if (l!=li) {
             fdT(l,1,'edit');
-            $(peb).removeClass('aup');
-            //peb.className="adn";
+            peb.className="adn";
             acls(leb)
         }
         l.removeChild(leb);
         leb.style.display="none";
     }
-    //var cn=li.className;
+    var cn=li.className;
     peb=e;
-    var z=$(li);
-    if(z.hasClass('edit')){
+    if(cn.match(/edit/)){
         fdT(li,1,'edit');
-        $(e).removeClass('aup');
-        //e.className="adn";
+        e.className="adn";
     }else{
         fdT(li,0,'edit');
-        $(e).addClass('aup');
-        //e.className="adn aup";
+        e.className="adn aup";
         var c=$c($f(leb));
-        if (z.hasClass('fav')){
+        if (cn.match(/fav/)){
             c[0].style.display='none';
             c[1].style.display='block';
         }else{
@@ -76,7 +284,6 @@ function share(e){
     if(dsh){
     if(!e)e=dele;
     if(e){
-    var z=$(e);
     var d=$p(e,2);
     var li=$p(d);
     var ok=1;
@@ -91,8 +298,7 @@ function share(e){
                 sLD(e);
                 $.ajax({
                     type:'POST',
-                    url:'/ajax-ads/',        
-        dataType:'json',
+                    url:'/ajax-ads/',
                     data:{
                         id:li.id,
                         l:lang
@@ -104,8 +310,7 @@ function share(e){
                             bshare(s,x);
                             eLD(e);
                             acls(d);
-                            z.addClass('on');
-                            //e.className='on';
+                            e.className='on';
                             s.style.display='block';
                             aht(li)
                         }else {
@@ -131,14 +336,12 @@ function share(e){
                 })*/
             }
         }
-        if(z.hasClass('on')){
+        if(e.className=='on'){
             s.style.display='none';
-            //e.className='';
-            z.removeClass('on');
+            e.className='';
         }else if(ok){
             acls(d);
-            z.addClass('on');
-            //e.className='on';
+            e.className='on';
             s.style.display='block';
             aht(li)
         }
@@ -161,15 +364,12 @@ function sms(d,m,s){
 function rpA(e){
     var d=$p(e,2);
     var s=$c(d,2);
-    var z=$(e);
-    if(z.hasClass('on')){
+    if(e.className=='on'){
         s.style.display='none';
-        //e.className='';
-        z.removeClass('on');
+        e.className='';
     }else{
         acls(d);
-        z.addClass('on');
-        //e.className='on';
+        e.className='on';
         s.style.display='block';
         $c(s,1).focus();
         aht(d.parentNode)
@@ -182,8 +382,7 @@ function rpS(e){
     if(m.length>0){
         $.ajax({
             type:'POST',
-            url:'/ajax-report/',        
-        dataType:'json',
+            url:'/ajax-report/',
             data:{
                 id:id,
                 msg:m
@@ -207,8 +406,7 @@ function acls(d){
     var t=$c($f(d));
     var c=t.length;
     for (var i=0;i<c;i++){
-        $(t[i]).removeClass('on');
-        //t[i].className='';
+        t[i].className='';
         eLD(t[i]);
     }
 }
@@ -216,12 +414,10 @@ function pF(e){
     if(!sif)sif=$("#sif")[0];    
     var d=$p(e,2);
     var s=$c(d,4);
-    var z=$(e);
-    if(z.hasClass('on')){
+    if(e.className=='on'){
         s.style.display='none';
         sif.style.display='none';
-        //e.className='';
-        z.removeClass('on');
+        e.className='';
     }else{
         acls(d);
         var t=$p(sif);
@@ -237,13 +433,11 @@ function pF(e){
         var li=$p(d);
         var id=li.id;
         sif.style.display='block';
-        //e.className='on';
-        z.addClass('on');
+        e.className='on';
         s.style.display='block';
         $.ajax({
             type:'POST',
-            url:'/ajax-favorite/',        
-        dataType:'json',
+            url:'/ajax-favorite/',
             data:{
                 id:id
             }
@@ -252,16 +446,14 @@ function pF(e){
     }
 }
 function aF(e){
-    var z=$(e);
-    if(!z.hasClass('load')){
+    if(!e.className.match(/load/)){
         sLD(e);
         var p=$p(e);
         var li=$p(p,2);
         var id=li.id;
         $.ajax({
             type:'POST',
-            url:'/ajax-favorite/',        
-        dataType:'json',
+            url:'/ajax-favorite/',
             data:{
                 id:id,
                 s:0
@@ -273,8 +465,7 @@ function aF(e){
                 var sc=(li.tagName=='LI'?$c(li,1):$a($p(p)));
                 var t='<span class="k fav on"></span>';
                 sc.innerHTML+=t;
-                //li.className+=" fav";
-                $(li).addClass('fav');
+                li.className+=" fav";
                 if(mod=='detail'){
                     var d=$('#d'+id)[0];
                     if(d){
@@ -301,16 +492,14 @@ function aF(e){
     }
 }
 function rF(e){
-    var z=$(e);
-    if(!z.hasClass('load')){
+    if(!e.className.match(/load/)){
         sLD(e);
         var p=$p(e);
         var li=$p(p,2);
         var id=li.id;
         $.ajax({
             type:'POST',
-            url:'/ajax-favorite/',        
-        dataType:'json',
+            url:'/ajax-favorite/',
             data:{
                 id:id,
                 s:1
@@ -362,7 +551,6 @@ function sLD(e){
     }
     var d=document.createElement('span');
     d.className='load';
-    //$(d).addClass('load');
     e.appendChild(d);
     fdT(e,0,'on');
 }
@@ -378,60 +566,6 @@ function eLD(e){
         c[i].style.visibility='visible'
     }
 }
-
-function owt(e){
-    e=$(e);
-    e.css('visibility','hidden');
-    var p=e.parent();
-    p.addClass('load embg');
-    var b=p.parent();
-    var pt='/watchlist/'+(lang=='ar'?'':'en/')+(typeof UIDK !== 'undefined' ? '?u='+UIDK : '');
-    $.ajax({
-        type:'POST',
-        url:'/ajax-watch/',        
-        dataType:'json',
-        data:{
-            lang:lang,
-            cn:_cn,
-            c:_c,
-            s:_se,
-            e:_ext,
-            l:_loc,
-            p:_pu,
-            q:_q,
-            t:_ttl
-        },
-        success:function(rp){
-            p.removeClass('load');
-            if(uid){
-            if(rp.RP && rp.DATA.id){
-                var m='<span class="lnk"><span class="done"></span>';
-                if(lang=='ar'){
-                    m+='تمت الإضافة الى لائحة المتابعة';
-                }else{    
-                    m+='search added to watchlist';
-                }
-                m+='</span><span class="to"></span>';
-                e.html(m);
-                e[0].onclick=function(){
-                    document.location=pt;
-                };
-                e.css('visibility','visible');
-            }else{
-                $('.to',e)[0].className='et fail';
-                e.css('visibility','visible');
-            }
-        }else{
-            document.location=pt;
-        }},
-        error:function(rp){
-            p.removeClass('load');
-            $('.to',e)[0].className='et fail';
-            e.css('visibility','visible');
-        }
-    })
-}
-
 /*executable code*/
 if (stat){
     tmp=true;
@@ -439,8 +573,7 @@ if (stat){
     if(tmp){
         $.ajax({
             type:'POST',
-            url:'/ajax-stat/',        
-        dataType:'json',
+            url:'/ajax-stat/',
             data:{
                 a:stat,
                 l:page
@@ -492,97 +625,10 @@ if (mod=='search' || mod=='detail'){
         }
     }
 }
-/*if(sic.length){
+if(sic.length){
     for(i in sic){
+        console.log(i);
         var e=$('#i'+i)[0];
         e.innerHTML=sic[i];
     }
-}  
-*/
-var li=$('.rsl li'),lip,ptm,atm={},liCnt,aCnt=0;
-function rePic(){
-    var h=$(window).height();
-    if(!lip){
-        lip=$(".thb",li);
-        liCnt=lip.length;
-    }
-    lip.each(function(i,e){
-        var c=$p(e,2).id;
-        if(c[0]=='d'){
-            c=c.substring(1,c.length);
-        }
-        if(!atm[i]){
-            var r = e.getBoundingClientRect();
-            var k=r.top;
-            if(k>=-100 && k<=h+100){
-                e.innerHTML=sic[c];
-                atm[i]=1;
-                aCnt++;
-            }
-        }
-    });
-    if(liCnt==aCnt){
-        $(window).unbind('scroll',trePic);
-        $(window).unbind('scroll',trePic);
-    }
 }
-function trePic(){    
-    if(ptm){
-        clearTimeout(ptm);
-        ptm=null;
-    }
-    ptm=setTimeout('rePic()',100);
-}
-$(window).bind('scroll',trePic);
-$(window).bind('resize',trePic);
-trePic();
-
-if(typeof imgs!=="undefined"){
-    var d=$('#pics');var spim,dtm=null,dam=[],dCnt=0;
-    function dePic(){
-        var h=$(window).height();
-        if(!spim){
-            spim=$("span",d);
-        }
-        spim.each(function(i,e){
-            if(!dam[i]){
-                var r = e.getBoundingClientRect();
-                var k=r.top;
-                var b=r.bottom;
-                if( (k>=-100 && k<=h+100) || (b>=-100 && b<=h+100)){
-                    e.innerHTML='<img src="'+uimg+'/repos/d/'+imgs[parseInt(e.className.replace(/[a-z]/g,''))]+'" />';
-                    dam[i]=1;
-                    dCnt++;
-                }
-            }
-        });
-        if(spim.length==dCnt){
-            $(window).unbind('scroll',drePic);
-            $(window).unbind('scroll',drePic);
-        }
-    }
-    function drePic(){    
-        if(dtm){
-            clearTimeout(dtm);
-            dtm=null;
-        }
-        dtm=setTimeout('dePic()',100);
-    }
-    $(window).bind('scroll',drePic);
-    $(window).bind('resize',drePic);
-    drePic();
-}
-var lastScrollTop = 0,
-    isMenuUp = 0,
-    isMenuOpen = 0,
-    isSearchOpen = 0,
-    dontBlur = 0,
-    menu = $("#top"),
-    menuHeight = menu.height();
-$(window).scroll(function() {
-    if (!isMenuOpen) {
-        var e = $(this).scrollTop(),
-            n = $("#bottomFtr");
-        n && (e >= 60 ? n.hide(600) : n.show(600)), e > lastScrollTop && e > 40 ? isMenuUp || (menu.addClass("up"), isMenuUp = 1) : isMenuUp && (menu.removeClass("up"), isMenuUp = 0), lastScrollTop = e
-    }
-});

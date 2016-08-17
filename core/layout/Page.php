@@ -40,12 +40,12 @@ class Page extends Site{
                 $this->urlRouter->cfg['url_resources']      = 'https://mourjan.r.worldssl.net';
                 $this->urlRouter->cfg['url_ad_img']         = 'https://mourjan.r.worldssl.net';
                 $this->urlRouter->cfg['url_img']            = 'https://mourjan.r.worldssl.net/img/1.0.0';
-                $this->urlRouter->cfg['url_js']             = 'https://mourjan.r.worldssl.net/js/3.1.2';
-                $this->urlRouter->cfg['url_js_mobile']      = 'https://mourjan.r.worldssl.net/js/2.1.8e';
+                $this->urlRouter->cfg['url_js']             = 'https://mourjan.r.worldssl.net/js/3.1.3';
+                $this->urlRouter->cfg['url_js_mobile']      = 'https://mourjan.r.worldssl.net/js/3.1.3';
                 $this->urlRouter->cfg['url_css']            = 'https://mourjan.r.worldssl.net/css/5.4.0';
                 $this->urlRouter->cfg['url_css_mobile']     = 'https://mourjan.r.worldssl.net/css/5.2.8d';
-                $this->urlRouter->cfg['url_jquery']         = 'https://mourjan.r.worldssl.net/jquery/3.1.0b/js/';
-                $this->urlRouter->cfg['url_jquery_mobile']  = 'https://mourjan.r.worldssl.net/jquery/2.1.0/';
+                $this->urlRouter->cfg['url_jquery']         = 'https://mourjan.r.worldssl.net/jquery/3.1.0c/js/';
+                $this->urlRouter->cfg['url_jquery_mobile']  = 'https://mourjan.r.worldssl.net/jquery/3.1.0c/js/';
                 $this->urlRouter->cfg['url_image_lib']      = 'https://mourjan.r.worldssl.net/lix/2.0.0';
                 $this->urlRouter->cfg['url_highcharts']     = 'https://mourjan.r.worldssl.net/hc/3.0.9';
 
@@ -55,6 +55,10 @@ class Page extends Site{
         //$this->urlRouter->cfg['url_js'] = 'https://dv.mourjan.com/web/js/1.0.0';
         //$this->urlRouter->cfg['url_css'] = 'https://dv.mourjan.com/web/css/1.0.0';
         //$this->urlRouter->cfg['url_jquery'] = 'https://dv.mourjan.com/web/jquery/3.1.0/js/';
+        
+        //$this->urlRouter->cfg['url_js_mobile'] = 'https://dv.mourjan.com/web/js/release';
+        //$this->urlRouter->cfg['url_css'] = 'https://dv.mourjan.com/web/css/1.0.0';
+        //$this->urlRouter->cfg['url_jquery_mobile'] = 'https://dv.mourjan.com/web/jquery/3.1.0/js/';
         
         //$this->user->sysAuthById(43905);
         if(!$this->urlRouter->cfg['enabled_users']){
@@ -399,12 +403,16 @@ class Page extends Site{
             $this->urlRouter->cfg['enabled_sharing']=false;
             $this->urlRouter->cfg['enabled_ads']=false;
         }
+        if(!$this->isMobile){
+            $this->urlRouter->cfg['enabled_sharing']=false;
+        }
         /*if(!isset($this->user->params['visit'])){
             $this->urlRouter->cfg['enabled_sharing']=false;
         }*/
         
         
-        $this->user->setStats();
+        $this->user->update();
+        //var_dump(isset($this->user->params['visit']));
         //$this->urlRouter->cfg['enabled_sharing']=false;
         //$this->urlRouter->cfg['enabled_ads']=false;
     }
@@ -809,17 +817,41 @@ class Page extends Site{
             if ($this->urlRouter->siteTranslate=='ar') $addOn.='_ar';
         }elseif ($this->urlRouter->siteLanguage=='ar') $addOn.='_ar'; 
         $fAddon=$addOn;
+        $csFile = '';
+        $toRequire = [];
         foreach ($this->requires['css'] as $css) {
             if ($css=='ie6' || $css=='ie7' || $css=='imgs' || $css == 'home') $addOn='';
             else $addOn=$fAddon;
-            echo '<link rel=\'stylesheet\' type=\'text/css\' href=\'', $source, '/',$css,$addOn, '.css\' />';
+            //if($css == 'main' && $this->isMobile){
+            //if (!isset($this->user->params['visit']) || $this->user->params['visit']<2) {
+            if (1 || $this->isMobile) {
+                $toRequire[]='/'.$css.$addOn.'.css';
+                $csFile .= preg_replace('/url\((?:\.\/|)i/', 'url('.$source.'/i', file_get_contents($source. '/'.$css.$addOn. '.css'));
+            }else{
+                echo '<link rel=\'stylesheet\' type=\'text/css\' href=\'', $source, '/',$css,$addOn, '.css\' />';
+            }
         }
-        unset ($this->requires['css']);
+        if($csFile){
+            $this->requires['css'] = $toRequire;
+        }else{
+            unset ($this->requires['css']);
+        }
         if ($this->inlineCss){
             $this->inlineCss= preg_replace('/\n/','',$this->inlineCss);
             $this->inlineCss= preg_replace('/\s+/',' ',$this->inlineCss);
-            echo '<style type="text/css">',  $this->inlineCss, '</style>';
+        }else{
+            $this->inlineCss='';
         }
+        if($csFile || $this->inlineCss){            
+            echo '<style type="text/css">',$csFile, $this->inlineCss, '</style>';
+        }
+        /*if (isset($this->user->params['visit']) && $this->user->params['visit']>= 2) {
+            if($this->isMobile){
+                echo '<link rel=\'stylesheet\' type=\'text/css\' href=\'', $source, '/mms.css\' />';
+            }else{
+                echo '<link rel=\'stylesheet\' type=\'text/css\' href=\'', $source, '/imgs.css\' />';
+            }
+        }*/
         if(!$this->isMobile){
             if ($this->urlRouter->siteLanguage=='ar'){
                 ?><!--[if IE 7]><link rel="stylesheet" type="text/css" href="<?= $this->urlRouter->cfg['url_css'] ?>/ie7_ar.css"><![endif]--><?php
@@ -3090,6 +3122,7 @@ class Page extends Site{
                 $module = 'pricelist';
             }
         }
+        
         ?>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){<?php
         ?>(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),<?php
         ?>m=s.getElementsByTagName(o)[0];a.async=true;a.src=g;m.parentNode.insertBefore(a,m)<?php
@@ -3104,7 +3137,7 @@ class Page extends Site{
         if(isset($this->user->pending['email_watchlist'])){
             ?>ga('set','dimension6','watchlist');<?php
         }
-        ?>ga('send','pageview');<?php
+        ?>ga('send','pageview');<?php 
         
         /*
         $module = $this->urlRouter->module;
@@ -3131,6 +3164,8 @@ class Page extends Site{
             ?>_gaq.push(['_trackPageview']);<?php 
             ?>(function(){var ga=document.createElement('script');ga.type='text/javascript';ga.async=true;ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(ga,s);})();<?php 
         */
+        
+        
           ?></script><?php
     }
 
@@ -3185,19 +3220,11 @@ class Page extends Site{
         ?><script type="text/javascript"><?php
         //has Query Parameter
         ?>var head = document.getElementsByTagName("head")[0] || document.documentElement;<?php
-        
+        ?>function loadCss(fn,cb){var s=document.getElementsByTagName("link"),l=s.length-1,p=0,e;for(i=l;i>=0;i--){if(s[i].rel=='stylesheet'){e=s[i];break;}}if(typeof e==='undefined'){p=1;e=head.firstChild}var l=document.createElement('link');l.rel='stylesheet';l.type="text/css";l.media='all';l.href=fn;e.parentNode.insertBefore(l,e.nextSibling)}<?php 
+        ?>function addEvent(e, en, fn){if (e.addEventListener)e.addEventListener(en, fn, false);else if(e.attachEvent)e.attachEvent('on' + en, fn)}<?php
         if($this->urlRouter->isApp)
         {
-            ?>function addEvent(d,e,c){<?php
-                ?>if (d.addEventListener){<?php 
-                    ?>d.addEventListener(e,c,false);<?php
-                ?>}else if (d.attachEvent){<?php 
-                    ?>d.attachEvent(e,c);<?php
-                ?>}<?php
-            ?>};<?php
-            ?>addEvent(document,'DOMContentLoaded',function(){
-                parent.postMessage('DOMContentLoaded','*');
-            });
+            ?>addEvent(document,'DOMContentLoaded',function(){parent.postMessage('DOMContentLoaded','*')});<?php
             //if(typeof window.onbeforeunload !== 'undefined'){
                 /*window.onbeforeunload=function(){
                     parent.postMessage('DOMContentBeforeUnload','*');
@@ -3207,10 +3234,10 @@ class Page extends Site{
                     parent.postMessage('DOMContentUnload','*');
                     return null;
                 };*/
-                window.onpagehide=function(){
-                    parent.postMessage('pageHide','*');
-                    return null;
-                };
+                ?>window.onpagehide=function(){<?php
+                    ?>parent.postMessage('pageHide','*');<?php
+                    ?>return null;<?php
+                ?>};<?php
             /*} else if(typeof window.onpagehide !== 'undefined'){
                 addEvent(window,'pagehide',function(){
                     parent.postMessage('DOMContentUnloaded','*');
@@ -3221,9 +3248,7 @@ class Page extends Site{
                     parent.postMessage('DOMContentUnloaded','*');
                     return null;
                 });
-            }*/
-            <?php
-            /*?>addEvent(window,'popstate',function(){
+            }addEvent(window,'popstate',function(){
                 parent.postMessage('popstate','*');
             });<?php
              ?>window.onbeforeunload=function(){<?php
@@ -3328,294 +3353,132 @@ class Page extends Site{
         ?>c=<?= $this->urlRouter->cityId ?>,<?php
         ?>se=<?= $this->urlRouter->sectionId ?>,<?php
         ?>pu=<?= $this->urlRouter->purposeId ?>;<?php
-        
-        echo $this->globalScript;
-        /* ?>var standalone=(window.navigator.userAgent.indexOf('iPhone')!=-1 && window.navigator.standalone==true);var se=function(){var v=window.event;if(v){if(v.preventDefault)v.preventDefault();if(v.stopPropagation)v.stopPropagation();}};<?php 
-        if ($this->urlRouter->module=='detail') {
-            ?>;var switchTo5x=true;<?php
-        }
-
-         ?>;if (standalone) {var a=document.getElementsByTagName("a");for(var i=0;i<a.length;i++){var href=this.getAttribute("href");a[i].onclick=function(){window.location=this.getAttribute("href");return false}}};<?php */
-        
-        /*
-        ?>var _gaq=_gaq||[];_gaq.push(['_setAccount','UA-435731-13']);_gaq.push(['_setDomainName','mourjan.com']);_gaq.push(['_setCustomVar', 1, 'Module', <? echo "'{$module}'";?>, 3]);_gaq.push(['_setCustomVar', 2,'Root', '<? echo $this->urlRouter->rootId?$this->urlRouter->roots[$this->urlRouter->rootId][2]:'AnyRoot';?>', 3]);_gaq.push(['_setCustomVar', 3,'Section', '<? echo $this->urlRouter->sectionId?$this->urlRouter->sections[$this->urlRouter->sectionId][2]:'AnySection';?>', 3]);_gaq.push(['_setCustomVar', 4, 'Country', '<? echo $this->urlRouter->countryId?$this->urlRouter->countries[$this->urlRouter->countryId][3]:'Global';?>', 3]);<?php 
-        if(isset($this->user->pending['email_watchlist'])){
-            ?>_gaq.push(['_setCustomVar', 5, 'Campaign', 'watchlist', 3]);<?php
-        }
-        ?>_gaq.push(['_trackPageview']);<?php
-        */
-        //Ajax post function
-        /*?>function aR(){var amds=["Msxml2.XMLHTTP", "Microsoft.XMLHTTP"];if (window.ActiveXObject){for (var i=0; i<amds.length; i++){try{return new ActiveXObject(activexmodes[i])}catch(e){}}}else if (window.XMLHttpRequest){return new XMLHttpRequest()}else return false};<?php
-        ?>var posA=function(url,data,cbk){var ar=new aR();ar.onreadystatechange=function(){if (ar.readyState==4){if (ar.status==200 || window.location.href.indexOf("http")==-1){cbk(ar.responseText);}}};ar.open("POST", url, true);ar.setRequestHeader("Content-type", "application/x-www-form-urlencoded");ar.send(data);};<?php
-        */
-        //search box handler
-        /*if ($this->urlRouter->countryId) {
-         ?>var ose=function(e){var o=(e.className=="srch" ? 0:1);var d=e.parentNode.nextSibling.firstChild;if (o){<?php if($this->urlRouter->params['q']){ ?>document.location=d.firstChild.action;<?php }else { ?>e.className="srch";d.className="sef";<?php } ?>}else {e.className="srch on";d.className="sef on";}};<?php
-        }*/
-        //save screen width to session function
-        /* ?>var wsp=function(){posA('/ajax-screen/','w='+document.body.clientWidth+'&h='+document.body.clientHeight,function(){})};<?php */
-        //global variables
-            
+        /*if (isset($this->requires['css'])) {
+            foreach ($this->requires['css'] as $css) {
+                ?>loadCss(ucss+'<?= $css ?>');<?php  
+            }            
+        } */
+        /*?>loadCss(ucss+"/mms.css");<?php  */
+        /*?>addEvent(window,'load',function(){loadCss(ucss+"/mms.css")});<?php */
+        ?>loadCss(ucss+"/mms.css");<?php 
+        echo $this->globalScript;        
+        echo $this->inlineScript;       
+        ?>function inlineQS(){<?= $this->inlineQueryScript; ?>}<?php
         
         
-        
-        /* ?>window.onload=function(){<?php */
         
         
         /*
-            ?>if(window.applicationCache){
-                if (window.addEventListener) {
-
-                    window.applicationCache.addEventListener('updateready', function(e) {
-                      if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
-                        // Browser downloaded a new app cache.
-                        //if (confirm('A new version of this site is available. Load it?')) {
-                          window.location.reload();
-                        //}
-                      } else {
-                        // Manifest didn't changed. Nothing new to server.
-                      }
-                    }, false);
-
-
-                }else if (window.attachEvent) { 
-
-                    window.applicationCache.attachEvent('updateready', function(e) {
-                      if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
-                        // Browser downloaded a new app cache.
-                        //if (confirm('A new version of this site is available. Load it?')) {
-                          window.location.reload();
-                        //}
-                      } else {
-                        // Manifest didn't changed. Nothing new to server.
-                      }
-                    });
-               }
-            }<?php */
-            /* ?>tof();<?php */
-            /*if ($this->urlRouter->module=='search' || $this->urlRouter->module=='detail'){
-                $this->stat['page']=($this->urlRouter->params['start']) ? $this->urlRouter->params['start'] : 1;
-                $this->stat['num']=$this->num;                
-                ?>doIt=true;<?php
-                ?>if(typeof document.webkitHidden!="undefined" && document.webkitHidden){doIt=false};<?php
-                ?>if(doIt){posA("/ajax-stat/",'a=<?= json_encode($this->stat) ?>',function(){})};<?php
-            }
-            ?>wsp();<?php */
-            /* if (array_key_exists('HTTP_USER_AGENT', $_SERVER) && (strstr($_SERVER['HTTP_USER_AGENT'], 'iPhone;')||strstr($_SERVER['HTTP_USER_AGENT'], 'iPad;'))) { ?>setTimeout(function(){window.scrollTo(0,1)},1);<?php } */
-           /* ?>var cs=document.createElement("link");cs.setAttribute("rel", "stylesheet");cs.setAttribute("type", "text/css");cs.setAttribute("href", "<?= $this->urlRouter->cfg['url_css'] ?>/imgs_m.css");document.getElementsByTagName("head")[0].appendChild(cs);<?php */
-            /*if ($this->urlRouter->module=='detail' && $this->urlRouter->cfg['enabled_sharing']) {
-                ?>(function() {window['doneSh']=false;window['__st_loadLate']=true;var sh=document.createElement('script');sh.type= 'text/javascript';sh.async=true;sh.src='http://w.sharethis.com/button/buttons.js';sh.onload=sh.onreadystatechange=function(){if(!doneSh&&(!this.readyState||this.readyState=="loaded"||this.readyState=="complete")){stLight.options({publisher:'74ad18c8-1178-4f31-8122-688748ba482a',onhover:false,theme:'5',async:true});}};var s = document.getElementsByTagName('head')[0];s.appendChild(sh);})();<?php */
-                /* ?>window['doneSh']=false;(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='http://s7.addthis.com/js/300/addthis_widget.js#pubid=mourjan&domready=1';sh.onload=sh.onreadystatechange=function(){if(!doneSh&&(!this.readyState||this.readyState=="loaded"||this.readyState=="complete")){doneSh=true}};var s = document.getElementsByTagName('head')[0];s.appendChild(sh);})();<?php */
-            //} 
-            /* ?>var cs=document.createElement("link");cs.setAttribute("rel", "stylesheet");cs.setAttribute("type", "text/css");cs.setAttribute("href", "<?= $this->urlRouter->cfg['url_css'] ?>/mms.css");document.getElementsByTagName("head")[0].appendChild(cs);<?php */
-            /*if ($this->urlRouter->module=='search' || $this->urlRouter->module=='detail') { 
-                ?>var ts=document.getElementsByTagName('time');var ln=ts.length;var time=parseInt((new Date().getTime())/1000);var d=0,dy=0,rt='';for(var i=0;i<ln;i++){d=time-parseInt(ts[i].getAttribute('st'));dy=Math.floor(d/86400);if(dy<=31){rt='';<?php if($this->urlRouter->siteLanguage=='ar'){ ?>rt="<?= $this->lang['since'] ?> ";if(dy){rt+=(dy==1?"يوم":(dy==2?"يومين":dy+' '+(dy<11?"أيام" : "يوم")))}else{dy=Math.floor(d/3600);if(dy){rt+=(dy==1?"ساعة":(dy==2?"ساعتين":dy+' '+(dy<11?"ساعات" : "ساعة")))}else{dy=Math.floor(d/60);if(dy==0)dy=1;rt+=(dy==1?"دقيقة":(dy==2?"دقيقتين":dy+' '+(dy<11?"دقائق" : "دقيقة")))}}<?php }else { ?>if(dy){rt=(dy==1?'1 day':dy+' days')}else{dy=Math.floor(d/3600);if(dy){rt=(dy==1?'1 hour':dy+' hours')}else{dy=Math.floor(d/60);if(dy==0)dy=1;rt=(dy==1?'1 minute':dy+' minutes')}}rt+=" <?= $this->lang['ago'] ?>";<?php } ?>ts[i].innerHTML=rt}}<?php 
-            }*/
-            //fb
-            /*if ($this->urlRouter->module=='index' && !$this->urlRouter->rootId && $this->urlRouter->countryId){
-                ?>fbx=document.getElementById('fb-box');<?php
-                ?>fbx.setAttribute('data-width', (document.body.clientWidth-20));<?php
-                ?>(function(d, s, id) {var js, fjs = d.getElementsByTagName(s)[0];if (d.getElementById(id)) return;js = d.createElement(s);js.id = id;js.onload=function(){fbf=function(){if(!fbx)fbx=document.getElementById('fb-box');var s=fbx.firstChild;if(s){var f=s.firstChild;var w=document.body.clientWidth;s.style.width=(w-20)+'px';f.style.width=(w-20)+'px';f.width=(w-20)}};fbf()};js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=215939228482851";fjs.parentNode.insertBefore(js, fjs);}(document, 'script', 'facebook-jssdk'));<?php 
-            }*/
-        if($this->urlRouter->cfg['site_production']) {
-            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;<?php
-                ?>sh.onload=sh.onreadystatechange=function(){<?php
-                    ?>if (!SCLD && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete")){<?php
-                    
-                    switch($this->urlRouter->module){
-                        case 'myads':
-                            if($this->user->info['id']) {
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_fullads.js';document.body.appendChild(sh)})();<?php 
-                            }else{
-                                ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
-                            }
-                            break;
-                        case 'post':
-                            if($this->user->info['id']) {
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_fullpost.js';document.body.appendChild(sh)})();<?php 
-                            }else{
-                                ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
-                            }
-                            break;
-                        case 'detail':
-                        case 'search':
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_search.js';document.body.appendChild(sh)})();<?php 
-                            break;
-                        case 'account':
-                            if($this->user->info['id']) {
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_account.js';document.body.appendChild(sh)})();<?php 
-                            }else{
-                                ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
-                            }
-                            break;
-                        case 'contact':
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_contact.js';document.body.appendChild(sh)})();<?php 
-                            break;
-                        case 'password':
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_password.js';document.body.appendChild(sh)})();<?php 
-                            break;
-                        
-                        case 'index':
-                        default:
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
-                            break;
-                    }
-                    
-                    ?>}<?php 
-                ?>};<?php
-                ?>sh.src='<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>zepto.min.js';document.body.appendChild(sh)})();<?php 
-                
-                
-                
-        } else {
-            // testing here
-            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;<?php
-            
-                ?>sh.onload=sh.onreadystatechange=function(){console.log("onload");<?php
-                    ?>if (!SCLD && (!this.readyState || this.readyState==="loaded" || this.readyState==="complete")){<?php
-                        switch($this->urlRouter->module){
-                            case 'myads':
-                                if($this->user->info['id']) {
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                    ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_ads.js';document.body.appendChild(sh)<?php 
-                                }else{
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                }
-                                break;
-                            case 'detail':
-                            case 'search':
-                                ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_srh.js';document.body.appendChild(sh)<?php 
-                                break;
-                            case 'post':
-                                if($this->user->info['id']) {
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                    ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_post.js';document.body.appendChild(sh)<?php 
-                                }else{
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                }
-                                break;
-                            case 'account':
-                                if($this->user->info['id']) {
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                    ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_acc.js';document.body.appendChild(sh)<?php 
-                                }else{
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)<?php 
-                                }
-                                break;
-                            case 'contact':
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                    ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_cnt.js';document.body.appendChild(sh)<?php 
-                                break;                            
-                            case 'password':
-                                if($this->include_password_js){
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                    ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_pwd.js';document.body.appendChild(sh)<?php 
-                                    break;
-                                }
-                            case 'index':
-                            default:
-                                ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php  
-                                break;
-                        }
-                    ?>}<?php 
-                ?>};<?php
-                ?>sh.src='<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>zepto.min.js';document.body.appendChild(sh)})();<?php 
-            /*
-             * sh.src='<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>jq.min.js';document.body.appendChild(sh)
-             * var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);
-             * var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)
-            switch($this->urlRouter->module){
-                case 'myads':
-                    if($this->user->info['id']) {
-                    ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
-                    ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_ads.js';document.body.appendChild(sh)})();<?php 
-                    }else{
-                        ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
-                    }
-                    break;
-                case 'detail':
-                case 'search':
-                    ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
-                    ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_srh.js';document.body.appendChild(sh)})();<?php 
-                    
-                    break;
-                case 'post':
-                    if($this->user->info['id']) {
-                    ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
-                    ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_post.js';document.body.appendChild(sh)})();<?php 
-                    }else{
-                        ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
-                    }
-                    break;
-                case 'account':
-                    if($this->user->info['id']) {
-                    ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
-                    ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_acc.js';document.body.appendChild(sh)})();<?php 
-                    }else{
-                        ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
-                    }
-                    break;
-                case 'contact':
-                    ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
-                    ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_cnt.js';document.body.appendChild(sh)})();<?php 
-                    break;
-                case 'index':
-                default:
-                    ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)})();<?php 
-                    break;
-            }
-             * 
-             */
-        }
-        echo $this->inlineScript;
-        /*?>};<?php */
-        
-        
-        
-        /*if ($this->urlRouter->module=='search' || $this->urlRouter->module=='detail') {
-            ?>function wo(u){if(u)document.location=u};<?php 
-            ?>var leb,peb;<?php
-            ?>function ado(e){
-                var li=e.parentNode.parentNode;
-                if(leb && leb.parentNode){
-                    var l=leb.parentNode;
-                    if (leb.parentNode!=li) {
-                        l.className=l.className.replace(" edit","");
-                        peb.className="adn";
-                    }
-                    l.removeChild(leb);
-                    leb=null
-                }
-                var cn=li.className;
-                peb=e;
-                if(cn.match(/edit/)){
-                    li.className=cn.replace(" edit","");
-                    e.className="adn";
+        switch($this->urlRouter->module){
+            case 'myads':
+                if($this->user->info['id']) {
+                    ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
+                        ?>'<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                        ?>'<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_ads.js'<?php
+                    ?>]);<?php
                 }else{
-                    li.className=cn+' edit';
-                    e.className="adn aup";
-                    leb=document.createElement("div");
-                    leb.innerHTML="<ul><li><span class='k fav on'></span></li></ul>";
-                    leb.className="ebx";
-                    li.appendChild(leb);
+                    ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
+                        ?>'<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>/zepto.min.js'<?php
+                    ?>]);<?php
                 }
-            };<?php 
+                break;
+            case 'post':
+                if($this->user->info['id']) {
+                    ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
+                        ?>'<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                        ?>'<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_post.js'<?php
+                    ?>]);<?php
+                }else{
+                    ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
+                        ?>'<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>/zepto.min.js'<?php
+                    ?>]);<?php
+                }
+                break;
+            case 'detail':
+            case 'search':                
+                ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
+                    ?>'<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                    ?>'<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_srh.js'<?php
+                ?>]);<?php
+                break;
+            case 'account':
+                if(!$this->user->info['id']) {
+                    
+                    ?>(function () {<?php
+                        ?>var s=document.createElement('script');<?php
+                        ?>s.type='text/javascript';<?php
+                        ?>s.async=true;<?php
+                        ?>s.defer=true;<?php
+                        ?>s.src='<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>/zepto.min.js';<?php
+                        ?>var x=document.getElementsByTagName('script')[0];<?php
+                        ?>x.parentNode.insertBefore(s,x);<?php
+                    ?>})();<?php 
+                }
+                break;
+            case 'contact':
+            case 'password':
+                break;
+            case 'index':
+            default:
+                ?>(function () {<?php
+                    ?>var s=document.createElement('script');<?php
+                    ?>s.type='text/javascript';<?php
+                    ?>s.async=true;<?php
+                    ?>s.defer=true;<?php
+                    ?>s.src='<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>/zepto.min.js';<?php
+                    ?>var x=document.getElementsByTagName('script')[0];<?php
+                    ?>x.parentNode.insertBefore(s,x);<?php
+                ?>})();<?php 
+                break;
         }*/
-        /* ?>var h1,m1,p1;function tof(){if (!h1){h1=document.getElementById("title");p1=h1.parentNode;}var c=p1.lastChild;if(c.tagName=='H1'){if (c.clientWidth < c.scrollWidth || c.clientHeight < c.scrollHeight){if (!m1){m1=document.createElement("marquee");m1.className="<?= ($this->detailAd && !$this->detailAdExpired) ? ($this->detailAd[Classifieds::RTL]==0 ? 'e':'a'):($this->urlRouter->siteLanguage=='en'?'e':'a') ?>";m1.behavior="scroll";m1.innerHTML=h1.innerHTML;}p1.removeChild(h1);p1.appendChild(m1);}}else if(c.tagName=='MARQUEE'){p1.removeChild(m1);p1.appendChild(h1);tof();}};<?php */
-        /* ?>window.onresize=function(){tof();fbf();wsp()};</script><?php */
-        /* ?>window.onresize=function(){fbf();wsp()};<?php */
-        ?></script><?php 
+        ?></script><?php
+        
+        ?><script type="text/javascript" onload="inlineQS()" defer="true" src="<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>zepto.min.js"></script><?php
+        switch($this->urlRouter->module){
+            case 'myads':
+                if($this->user->info['id']) {
+                    ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_ads.js"></script><?php
+                }
+                break;
+            case 'post':
+                if($this->user->info['id']) {
+                    ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_post.js"></script><?php
+                }
+                break;
+            case 'detail':
+            case 'search':
+                ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_srh.js"></script><?php
+                break;
+            case 'account':
+                if($this->user->info['id']) {
+                ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_acc.js"></script><?php
+                }
+                break;
+            case 'contact':
+                ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_cnt.js"></script><?php
+                break;
+            case 'password':
+                ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_pwd.js"></script><?php
+                break;
+
+            case 'index':
+            default:
+                break;
+        }
+        
          
-        if($this->urlRouter->module == 'index')
-        {
+        if($this->urlRouter->module == 'index'){
+            $country = '';
+            if ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId])) {
+                $country = $this->urlRouter->countries[$this->urlRouter->countryId]['uri'];
+            }
             ?><script type="application/ld+json"><?php
                 ?>{"@context": "http://schema.org",<?php
                 ?>"@type": "WebSite",<?php
-                ?>"url": "https://www.mourjan.com/",<?php
+                ?>"url": "https://www.mourjan.com/<?= ($country ? $country.'/' :'').($this->urlRouter->siteLanguage=='ar' ?'':$this->urlRouter->siteLanguage.'/') ?>",<?php
                 ?>"potentialAction":{<?php
                 ?>"@type": "SearchAction",<?php
-                ?>"target": "https://www.mourjan.com/?q={search_term_string}",<?php
+                ?>"target": "https://www.mourjan.com/<?= ($country ? $country.'/' :'').($this->urlRouter->siteLanguage=='ar' ?'':$this->urlRouter->siteLanguage.'/') ?>?q={search_term_string}",<?php
                 ?>"query-input": "required name=search_term_string"<?php
                 ?>}<?php
                 ?>}<?php
@@ -4225,8 +4088,9 @@ class Page extends Site{
          * 
          */
             ?>var head = document.getElementsByTagName("head")[0] || document.documentElement;<?php
-            
-            ?>function loadCss(fn,cb){var s=document.getElementsByTagName("link"),l=s.length-1,e;for(i=l;i>=0;i--){if(s[i].rel=='stylesheet'){e=s[i];break;}}var l=document.createElement('link');l.rel='stylesheet';l.type="text/css";l.media='all';l.href=fn;e.parentNode.insertBefore(l,e.nextSibling)}<?php 
+            ?>function addEvent(e, en, fn){if (e.addEventListener)e.addEventListener(en, fn, false);else if(e.attachEvent)e.attachEvent('on' + en, fn)}<?php
+            ?>function loadCss(fn,cb){var s=document.getElementsByTagName("link"),l=s.length-1,p=0,e;for(i=l;i>=0;i--){if(s[i].rel=='stylesheet'){e=s[i];break;}}if(typeof e==='undefined'){p=1;e=head.firstChild}var l=document.createElement('link');l.rel='stylesheet';l.type="text/css";l.media='all';l.href=fn;e.parentNode.insertBefore(l,e.nextSibling)}<?php 
+            /*?>function loadCss(fn,cb){var e=document.getElementsByTagName('script')[0];var l=document.createElement('link');l.rel='stylesheet';l.type="text/css";l.media='all';l.href=fn;e.parentNode.insertBefore(l,e.nextSibling)}<?php */
             
             /*function AJAXLoad(type,url) {
                     var ext;
@@ -4376,7 +4240,13 @@ class Page extends Site{
             ?>ICH='<?= $this->includeHash ?>',<?php
             ?>LSM='<?= $this->urlRouter->last_modified ?>';<?php
             if(0 && in_array($this->urlRouter->module,['index','search','detail'])){ ?>loadCss(ucss+"/gen<?= $this->urlRouter->siteLanguage=='ar'?'_ar':'' ?>.css");<?php }
-            ?>loadCss(ucss+"/imgs.css");<?php             
+            /*if (isset($this->requires['css'])) {
+                foreach ($this->requires['css'] as $css) {
+                    ?>loadCss(ucss+'<?= $css ?>');<?php  
+                } 
+            } */            
+            /*?>addEvent(window,'load',function(){loadCss(ucss+"/imgs.css")});<?php */
+            ?>loadCss(ucss+"/imgs.css");<?php 
             echo $this->globalScript;
             /* ?>function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:lang, layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false, multilanguagePage: true, gaTrack: true, gaId: 'UA-435731-13'}, 'google_translate_element');}<?php */
             
@@ -4482,24 +4352,85 @@ class Page extends Site{
                     } */
                 echo $this->inlineScript;
             /* ?>};<?php */
+                
+                /*
+                switch($this->urlRouter->module){
+                case 'myads':
+                    if($this->user->info['id']) {
+                        ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
+                            ?>'<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                            ?>'<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_ads.js'<?php
+                        ?>])<?php
+                    }else{
+
+                    }
+                    break;
+                case 'post':
+                    if($this->user->info['id']) {
+                        ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
+                            ?>'<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                            ?>'<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_post.js'<?php
+                        ?>])<?php
+                    }else{
+
+                    }
+                    break;
+                case 'detail':
+                case 'search':                
+                    ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
+                        ?>'<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                        ?>'<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_srh.js'<?php
+                    ?>]);<?php
+                    break;
+                case 'account':
+                    if($this->user->info['id']) {
+                        ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
+                            ?>'<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                            ?>'<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_acc.js'<?php
+                        ?>]);<?php
+                    }else{
+
+                    }
+                    break;
+                case 'contact':
+                        ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
+                            ?>'<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                            ?>'<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_cnt.js'<?php
+                        ?>]);<?php
+                    break;
+                case 'password':
+                        ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
+                            ?>'<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                            ?>'<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_pwd.js'<?php
+                        ?>]);<?php
+                    break;
+
+                case 'index':
+                default:
+                    ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
+                        ?>'<?= $this->urlRouter->cfg['url_jquery'] ?>/jquery.min.js'<?php
+                    ?>]);<?php
+
+                    break;
+            }*/
         
                 if($this->urlRouter->cfg['enabled_sharing'] && in_array($this->urlRouter->module,['index','search','detail'])){ 
-?>window.onload=function(){<?php
-    ?>var po = document.createElement('script');<?php
-    ?>po.type = 'text/javascript';<?php 
-    ?>po.async = true;<?php
-    ?>po.src = 'https://apis.google.com/js/platform.js';<?php
-    ?>var s = document.getElementsByTagName('script')[0];<?php
-    ?>s.parentNode.insertBefore(po,s);<?php 
-    //pagead2.googlesyndication.com/pagead/js/adsbygoogle.js
-    if(in_array($this->urlRouter->module,['search','detail'])){
-    ?>po = document.createElement('script');<?php
-    ?>po.type = 'text/javascript';<?php 
-    ?>po.async = true;<?php
-    ?>po.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';<?php
-    ?>s.parentNode.insertBefore(po,s);<?php 
-    }
-  ?>};<?php 
+                    ?>addEvent(window,'load',function(){<?php
+                        ?>var po = document.createElement('script');<?php
+                        ?>po.type = 'text/javascript';<?php 
+                        ?>po.async = true;<?php
+                        ?>po.src = 'https://apis.google.com/js/platform.js';<?php
+                        ?>var s = document.getElementsByTagName('script')[0];<?php
+                        ?>s.parentNode.insertBefore(po,s);<?php 
+                        //pagead2.googlesyndication.com/pagead/js/adsbygoogle.js
+                        if(in_array($this->urlRouter->module,['search','detail'])){
+                        ?>po = document.createElement('script');<?php
+                        ?>po.type = 'text/javascript';<?php 
+                        ?>po.async = true;<?php
+                        ?>po.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';<?php
+                        ?>s.parentNode.insertBefore(po,s);<?php 
+                        }
+                      ?>});<?php 
                 }
         
             
@@ -4536,7 +4467,14 @@ class Page extends Site{
                 }
                 break;
             case 'post':
-                if($this->user->info['id']){
+                if($this->user->info['id']){                    
+                    if($this->user->info['id'] && $this->user->info['level']==9 && $this->urlRouter->module=='post'){
+                        if($this->urlRouter->cfg['site_production']){
+                            ?><script type="text/javascript" src="https://h5.mourjan.com/js/3.0.7/pvc.js"></script><?php
+                        }else{
+                            ?><script type="text/javascript" src="<?= $this->urlRouter->cfg['url_js'] ?>/pvc.js"></script><?php
+                        }
+                    }
                     ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/post.js"></script><?php
                 }
                 break;
@@ -4550,13 +4488,6 @@ class Page extends Site{
                 break;
         }
         
-        if($this->user->info['id'] && $this->user->info['level']==9 && $this->urlRouter->module=='post'){
-            if($this->urlRouter->cfg['site_production']){
-                ?><script type="text/javascript" async="true" src="https://h5.mourjan.com/js/3.0.7/pvc.js"></script><?php
-            }else{
-                ?><script type="text/javascript" async="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/pvc.js"></script><?php
-            }
-        }
         if($this->urlRouter->module == 'index'){
             $country = '';
             if ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId])) {
@@ -4581,164 +4512,6 @@ class Page extends Site{
 
         
         
-    }
-    
-    
-    
-    function load_js_bk() {
-        
-        $this->globalScript=preg_replace('/\s+/', ' ', $this->globalScript);
-        $this->globalScript=preg_replace("/[\n\t\r]/", '', $this->globalScript);
-        $this->inlineScript=preg_replace('/\s+/', ' ', $this->inlineScript);
-        $this->inlineScript=preg_replace("/[\n\t\r]/", '', $this->inlineScript);
-         ?><div id="fb-root"></div><?php 
-         
-        /*    if ($this->urlRouter->module=='index'){
-               /* ?>(function(d, s, id) {var js, fjs = d.getElementsByTagName(s)[0];if (d.getElementById(id)) return;js = d.createElement(s); js.id = id;js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=215939228482851";fjs.parentNode.insertBefore(js, fjs);}(document, 'script', 'facebook-jssdk'));<?php */
-             /*   ?><div id="fb-root"></div><?php */
-           // }
-        
-        $current_url=(!empty($_SERVER['HTTPS'])) ? "https://".$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'] : "http://".$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'];
-        ?><script defer="defer" type="text/javascript"><?= $this->globalScript ?>;var _gaq=_gaq||[];_gaq.push(['_setAccount','UA-435731-13']);_gaq.push(['_setDomainName','mourjan.com']);_gaq.push(['_setCustomVar', 1, 'Module', <?php echo "'{$this->urlRouter->module}'";?>, 3]);_gaq.push(['_setCustomVar', 2,'Root', '<?php echo $this->urlRouter->rootId?$this->urlRouter->roots[$this->urlRouter->rootId][2]:'AnyRoot';?>', 3]);_gaq.push(['_setCustomVar', 3,'Section', '<?php echo ($this->urlRouter->sectionId && isset($this->urlRouter->sections[$this->urlRouter->sectionId]))?$this->urlRouter->sections[$this->urlRouter->sectionId][2]:'AnySection'; ?>', 3]);_gaq.push(['_setCustomVar', 4, 'Country', '<?php echo $this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId])?$this->urlRouter->countries[$this->urlRouter->countryId]['uri']:'Global';?>', 3]);_gaq.push(['_trackPageview']);<?php
-        ?>var lang="<?= $this->urlRouter->siteLanguage ?>";<?php
-        ?>var chs,cTmp,func,fupc,tmu,tmr,menu,mp,mul,mh,ms,sid,sar=[],cli,fv,fi,tv,ti,rti,eti,pi,doneJa=false,doneSh=false,dLj=false;doneMj=false;<?php
-        if ($this->urlRouter->cfg['enabled_disqus'] && $this->urlRouter->module=='detail' && !$this->detailAdExpired && $this->detailAd[Classifieds::PUBLICATION_ID]==1) {
-        ?>var disqus_shortname = 'mourjan';var disqus_identifier = '<?= $this->detailAd[Classifieds::ID] ?>';<?php
-        }elseif ($this->urlRouter->cfg['enabled_disqus'] && ($this->urlRouter->module=='detail' || $this->urlRouter->module=='search' || $this->urlRouter->module=='myads')){
-            ?>var disqus_shortname = 'mourjan';<?php
-        }
-        /*if ($this->urlRouter->cfg['enabled_disqus'] && $this->urlRouter->siteLanguage=='ar'){
-            ?>var disqus_config = function () {this.language = "ar"};<?php
-        }*/
-        if ($this->urlRouter->cfg['enabled_sharing'] && ($this->urlRouter->module=='search'||$this->urlRouter->module=='detail')) {
-            ?>var hvt=null;var hve=null;var serv=['email','facebook','twitter','googleplus','linkedin','sharethis'];<?php
-            ?>var hva=function(e){e=hve;if(cli!=e){ms.empty();sid=e.id;var ce=$(e);var hasp=ce.hasClass("pic");e.childNodes[hasp?2:1].appendChild(ms[0]);if (cli){var t=$(cli);if (!t.hasClass("fon")) $(".fav,.ab", $(cli)).remove();};<? if ($this->user->info['id']) { ?>if(!ce.hasClass("fon")){var fv=$("<span onclick='rpa("+ce.attr("id")+",this)' class='ab' title='<?= $this->lang['reportAbuse'] ?>'></span>");e.childNodes[hasp?2:1].appendChild(fv[0]);fv=$("<span onclick='fv("+ce.attr("id")+",this)' class='fav'></span>");e.childNodes[hasp?2:1].appendChild(fv[0])}<?php }else{ ?>var fv=$("<span onclick='rpa("+ce.attr("id")+",this)' class='ab' title='<?= $this->lang['reportAbuse'] ?>'></span>");e.childNodes[hasp?2:1].appendChild(fv[0]);fv=$("<span onclick='fi("+ce.attr("id")+");$($(\".login\")[0]).click();' class='fav' title='<?= $this->lang['addFav'] ?>'></span>");e.childNodes[hasp?2:1].appendChild(fv[0]);<?php } ?>cli=e;if(sar[sid]) {rha(sar[sid]);}else {$.ajax({type:'POST',url:'/ajax-ads/',data:{id:sid},dataType:"json",success:function(rp){if(rp && rp.RP && rp.DATA.i){sar[sid]=rp.DATA.i;rha(sar[sid]);}}});}}};<?php 
-            ?>var rha=function(r){if(serv && doneSh && r.i==cli.id && (typeof stWidget !== 'undefined')){ms.css("display","inline-block");$.each(serv,function(i){var s=document.createElement("span");ms[0].appendChild(s);var n={"service":serv[i],"element":s,"url":r.l,"title":r.t,"type":"chicklet","summary":r.c};if(r.p){n['image']=r.p}stWidget.addEntry(n)})}};<?php
-        } 
-        ?>window.onload=function(){<?php 
-        if (!$this->cssImgsLoaded) { ?>var cs=document.createElement("link");cs.setAttribute("rel", "stylesheet");cs.setAttribute("type", "text/css");cs.setAttribute("href", "<?= $this->urlRouter->cfg['url_css'] ?>/imgs.css");document.getElementsByTagName("head")[0].appendChild(cs);<?php }
-        ?>var mj=document.createElement('script');mj.type='text/javascript';mj.async=true;mj.src='<?= $this->urlRouter->cfg['url_jquery'] ?>jquery.min.js';mj.onload=mj.onreadystatechange=function(){if(!doneMj&&(!this.readyState||this.readyState=="loaded"||this.readyState=="complete")){doneMj=true;<?php 
-        ?>window.onerror=function(m, url, ln){$.ajax({type:'POST',url:'/ajax-js-error/',data:{e:m,u:url,ln:ln},dataType:'json'})};<?php
-        if (!$this->urlRouter->siteTranslate) { if ($this->urlRouter->module=='search'||$this->urlRouter->module=='detail') {
-            if($this->user->info['id']) { ?>ti=function(){var e=$(".eck");$.ajax({type:'POST',url:'/ajax-watch/',data:{cn:<?= $this->urlRouter->countryId ?>,c:<?= $this->hasCities ? $this->urlRouter->countryId : 0 ?>,s:<?= $this->urlRouter->sectionId ?>,e:<?= $this->extendedId ?>,l:<?= $this->localityId ?>,p:<?= $this->urlRouter->purposeId ?>,q:'<?= addcslashes(trim($this->urlRouter->params['q']),"'") ?>',t:'<span class="<?= $this->urlRouter->siteLanguage ?>"><?= $this->title ?></span>'},dataType:"json",success:function(rp){if(rp.RP && rp.DATA.id){var id=rp.DATA.id;e.addClass('rck');e.html("<?= $this->lang['nowWatching'].' <b>'.$this->title.'</b>'.$this->lang['goWatch'] ?>");e.on('click',function(){document.location='/watchlist<?= ($this->urlRouter->siteLanguage=='ar'? '':'/en') ?>/'})}}})};var uifc=$("span#uifc");fv=function(id,e){var s=0;var d=parseInt(uifc.html());var p=$(e).parent().parent();if(e.className=="fav on") {p.removeClass("fon");s=1;e.className="fav";d--;uifc.html(d+"");e.title="<?= $this->lang['addFav'] ?>";var t=$("<span onclick='rpa("+p.attr("id")+",this)' class='ab' title='<?= $this->lang['reportAbuse'] ?>'></span>");$(e).before(t)}else {p.addClass("fon");e.className="fav on";d++;uifc.html(d+"");e.title="<?= $this->lang['removeFav'] ?>";$(".ab",p).remove();};$.ajax({type:'POST',url:'/ajax-favorite/',data:{id:id,s:s},dataType:"json"});};<?php }else {?>ti=function(){$($(".login")[0]).click();$.ajax({type:'POST',url:'/ajax-watch/',data:{cn:<?= $this->urlRouter->countryId ?>,c:<?= $this->hasCities ? $this->urlRouter->countryId : 0 ?>,s:<?= $this->urlRouter->sectionId ?>,e:<?= $this->extendedId ?>,l:<?= $this->localityId ?>,p:<?= $this->urlRouter->purposeId ?>,q:'<?= htmlentities($this->urlRouter->params['q'],ENT_QUOTES) ?>',t:'<?= $this->title ?>'},dataType:"json"})};fi=function(id){$.ajax({type:'POST',url:'/ajax-favorite/',data:{id:id},dataType:"json"})};<?php }
-            if ($this->urlRouter->watchId==$this->user->info['id']){
-                ?>chs=$('#channels');<?php 
-                /* $('li',chs).hover(function(e){var t=e.target;$('.edx,.mx',t).css('display','block')},function(e){var t=e.target;$('.edx,.mx',t).css('display','none')});*/ 
-                ?>rti=function(e){e.preventDefault();e.stopPropagation();var t=e.target;var id=t.parentNode.id;if(confirm("<?= $this->lang['stopWatching'] ?>")){$.ajax({type:'POST',url:'/ajax-remove-watch/',data:{id:id},dataType:"json",success:function(rp){if(rp.RP){var p=$(t).parent().parent();var ul=p.parent();p.remove();var cul=ul.children().length;if(cul==2){ul.children()[0].remove()}}}})}return false};<?php
-                ?>eti=function(e){e.preventDefault();e.stopPropagation();var t=$(e.target.parentNode);var c=t.children('.mx, .edx');c.remove();cTmp=t.html();t.html('');var i=$('<input type="text" class="<?= $this->urlRouter->siteLanguage ?>" />');var r=cTmp.replace(/<.*?>/g,"");i.attr('value', r);t.append(i);i.focus();i.on('blur',function(e){e=$(e.target);var v=e.attr('value');if(v==''||v==r){e.remove();t.html(cTmp);t.append(c);$('.edx',t).on('click',eti);$(".mx",t).on('click',rti)}else{e.remove();var id=t.attr('id');t.html('<p class="loading <?= $this->urlRouter->siteLanguage ?>"><?= $this->lang['savingProgress'] ?></p>');$.ajax({type:'POST',url:'/ajax-watch-update/',data:{id:id,t:v},dataType:"json",success:function(rp){e.remove();if(rp.RP){t.html(rp.DATA.T)}else{t.html(cTmp)};t.append(c);$('.edx',t).on('click',eti);$(".mx",t).on('click',rti)},error:function(){e.remove();t.html(cTmp);t.append(c);$('.edx',t).on('click',eti);$(".mx",t).on('click',rti)}})}});return false};var tmp=$('.edx',chs);tmp.attr('label','<?= $this->lang['edit_ad'] ?>');tmp.on('click',eti);tmp=$(".mx",chs);tmp.attr('label','<?= $this->lang['delete'] ?>');tmp.on('click',rti);<?php
-            }
-        }
-        if (($this->urlRouter->module=='detail' || $this->urlRouter->module=='search')) {
-            $this->stat['page']=($this->urlRouter->params['start']) ? $this->urlRouter->params['start'] : 1;
-            $this->stat['num']=$this->num;
-        ?>doIt=true;if(typeof document.webkitHidden!="undefined" && document.webkitHidden) doIt=false;
-          if (doIt) {;$.ajax({type:'POST',url:'/ajax-stat/',data:{'a':'<?= json_encode($this->stat) ?>'},dataType:'json'});}<?php
-        }
-
-        if (!$this->urlRouter->userId){
-        ?>;$.ajax({type:'GET',url:'/ajax-menu/',data:{h:'<?= $this->includeHash ?>','_t':'<?= $this->urlRouter->last_modified ?>'},dataType:'html',success:function(d){if(d){ $('body').append(d); mul=$(".mul"); mul.hover( function(e){if (tmr) {clearTimeout(tmr);func=null}},function(e){$(this).slideUp(200)}) }}});<?php
-        ?>menu=$('.menu');mp=menu.position();$(window).resize(function() {if(mul){mul.each(function(i,e){e.style.right=""});mp=menu.position()}});$(".row a",menu).hover(function(e){if (tmr) {clearTimeout(tmr);tmr=null;if (func) func();func=null;}var u=$("#u"+this.id);if(u.length>0 && (typeof u[0] !== 'undefined')){if (u[0].style.right=="") {var w=$(this).outerWidth();if(u.width()<w){u.width(w);}var p=$(this).position();<?php
-        if ($this->urlRouter->siteLanguage=='en') {
-            ?>var r=mp.left+p.left;u[0].style.left=r+"px";<?php
-        }else{
-            ?>var r=(970+mp.left)-(p.left+w);u[0].style.right=r+"px";<?php
-        } ?>u[0].style.top=(mp.top+30)+"px";}var id=this.id;fupc=function(){$("#u"+id).slideDown(200)};tmu=setTimeout("fupc();",500)}},function(e){if(tmu)clearTimeout(tmu);var id=this.id;func=function(){$("#u"+id).slideUp(200);};tmr=setTimeout("func();",100);});<?php
-        }   
-            ?>;$("#country").on("change",function(e){var v=$(this).attr("value");var l=(v==0?"":"/"+v)+"<?php
-            $q='';
-            if ($this->urlRouter->params['q']) {
-                $q='?q='.urlencode($this->urlRouter->params['q']);
-            }
-            echo $this->urlRouter->getURL(0,0,$this->urlRouter->rootId,$this->urlRouter->sectionId,$this->urlRouter->purposeId),$q;
-        ?>";document.location=l;});<?php }
-            if (!$this->urlRouter->siteTranslate && !$this->user->info['id'] && $this->urlRouter->cfg['enabled_users']) {
-                ?>;var lj=document.createElement('script');lj.type='text/javascript';lj.async=true;lj.src='<?= $this->urlRouter->cfg['url_jquery'] ?>jquery.colorbox.js';lj.onload=lj.onreadystatechange=function(){if(!dLj&&(!this.readyState||this.readyState=="loaded"||this.readyState=="complete")){dLj=true;$(".login").each(function(i,e){e.href='/oauth/<?= $this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/' ?>?_ts=<?= time() ?>&return_to='+escape(e.href)}).colorbox({iframe:true, innerWidth:430, innerHeight:250, title:'<?= $this->lang['signin'] . ' '. $this->lang['title_suffix'] ?>'})}<?= $this->requireLogin ? 'setTimeout(\'$($(".login")[0]).click();\',500);':'' ?>};var s = document.getElementsByTagName('head')[0];s.appendChild(lj);<?php
-            }elseif ($this->user->info['id'] && $this->urlRouter->module=='post' && $this->loadColorBox) {
-                ?>;var lj=document.createElement('script');lj.type='text/javascript';lj.async=true;lj.src='<?= $this->urlRouter->cfg['url_jquery'] ?>jquery.colorbox.js';lj.onload=lj.onreadystatechange=function(){if(!dLj&&(!this.readyState||this.readyState=="loaded"||this.readyState=="complete")){dLj=true;$(".play",updS).colorbox({iframe:true,innerWidth:430,innerHeight:250});$(".imgT",updS).colorbox({rel:'imgT'})}};var s = document.getElementsByTagName('head')[0];s.appendChild(lj);<?php
-            }
-                //Disqus Integration
-                if ($this->urlRouter->cfg['enabled_disqus'] && $this->urlRouter->module=='detail' && !$this->detailAdExpired && $this->detailAd[Classifieds::PUBLICATION_ID]==1) {
-                ?>(function() {var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);})();<?php 
-                }
-                if ($this->urlRouter->cfg['enabled_disqus'] && ($this->urlRouter->module=='detail' || $this->urlRouter->module=='search' || $this->urlRouter->module=='myads')){
-                  ?>(function () {var s = document.createElement('script'); s.async = true;s.type = 'text/javascript';s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);}());<?php   
-                }
-            echo $this->inlineScript;
-            
-            
-            if($this->urlRouter->module=='post' && $this->user->info['id']){
-                ?>;var lj=document.createElement('script');lj.type='text/javascript';lj.async=true;lj.src='<?= $this->urlRouter->cfg['url_js'] ?>/post.js';var s = document.getElementsByTagName('head')[0];s.appendChild(lj);<?php
-            }
-            
-            //fb
-            
-            if ($this->urlRouter->module=='index' || $this->urlRouter->module=='search'){
-                ?>(function(d, s, id) {var js, fjs = d.getElementsByTagName(s)[0];if (d.getElementById(id)) return;js = d.createElement(s); js.id = id;js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=215939228482851";fjs.parentNode.insertBefore(js, fjs);}(document, 'script', 'facebook-jssdk'));<?php 
-            } 
-                
-                if ($this->urlRouter->cfg['enabled_sharing']) {
-                    ?>window['__st_loadLate']=true;(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='https://ws.sharethis.com/button/buttons.js';sh.onload=sh.onreadystatechange=function(){if(!doneSh&&(!this.readyState||this.readyState=="loaded"||this.readyState=="complete")){doneSh=true;if(typeof stLight !== 'undefined'){stLight.options({publisher:'74ad18c8-1178-4f31-8122-688748ba482a',onhover:false,theme:'1',async:'true',embeds:'true',headerbg:'#3087B4'});}<?php
-                   /* if ($this->urlRouter->module=='search'||$this->urlRouter->module=='detail'){ ?>ms=$('#mis');var li=$("ul.ls li");li.on("hover, touch",function(e){hve=this;if(hvt)clearTimeout(hvt);hvt=setTimeout('hva();',500)});<?php 
-                    ?>var time=parseInt((new Date().getTime())/1000);$("b[st]").each(function(i,e){var d=time-parseInt($(e).attr("st"));var dy=Math.floor(d/86400);if(dy<=31){var rt='';<?php if($this->urlRouter->siteLanguage=='ar'){ ?>rt="<?= $this->lang['since'] ?> ";if(dy){rt+=(dy==1?"يوم":(dy==2?"يومين":dy+' '+(dy<11?"أيام" : "يوم")))}else{dy=Math.floor(d/3600);if(dy){rt+=(dy==1?"ساعة":(dy==2?"ساعتين":dy+' '+(dy<11?"ساعات" : "ساعة")))}else{dy=Math.floor(d/60);if(dy==0)dy=1;rt+=(dy==1?"دقيقة":(dy==2?"دقيقتين":dy+' '+(dy<11?"دقائق" : "دقيقة")))}}<?php }else { ?>if(dy){rt=(dy==1?'1 day':dy+' days')}else{dy=Math.floor(d/3600);if(dy){rt=(dy==1?'1 hour':dy+' hours')}else{dy=Math.floor(d/60);if(dy==0)dy=1;rt=(dy==1?'1 minute':dy+' minutes')}}rt+=" <?= $this->lang['ago'] ?>";<?php } ?>e.innerHTML=rt}});<?php }  */
-                    ?>}};var s = document.getElementsByTagName('head')[0];s.appendChild(sh);})();<?php
-                    /* ?>window['doneSh']=false;(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='http://s7.addthis.com/js/300/addthis_widget.js#pubid=mourjan&domready=1';sh.onload=sh.onreadystatechange=function(){if(!doneSh&&(!this.readyState||this.readyState=="loaded"||this.readyState=="complete")){doneSh=true;setTimeout('$(".shf").css("display","block");$(".tsh").css("visibility","visible");',1000);<?php
-                                if (!$this->urlRouter->siteTranslate && $this->urlRouter->module=='search'||$this->urlRouter->module=='detail') { 
-                                    ?>ms=$('#mis');var li=$("ul.ls li:not(.on)");li.on("hover, touch",function(e){hve=this;if(hvt)clearTimeout(hvt);hvt=setTimeout('hva();',500)});<?php
-                                    ?>var time=parseInt((new Date().getTime())/1000);$("b[st]").each(function(i,e){var d=time-parseInt($(e).attr("st"));var dy=Math.floor(d/86400);if(dy<=31){var rt='';<?php if($this->urlRouter->siteLanguage=='ar'){ ?>rt="<?= $this->lang['since'] ?> ";if(dy){rt+=(dy==1?"يوم":(dy==2?"يومين":dy+' '+(dy<11?"أيام" : "يوم")))}else{dy=Math.floor(d/3600);if(dy){rt+=(dy==1?"ساعة":(dy==2?"ساعتين":dy+' '+(dy<11?"ساعات" : "ساعة")))}else{dy=Math.floor(d/60);if(dy==0)dy=1;rt+=(dy==1?"دقيقة":(dy==2?"دقيقتين":dy+' '+(dy<11?"دقائق" : "دقيقة")))}}<?php }else { ?>if(dy){rt=(dy==1?'1 day':dy+' days')}else{dy=Math.floor(d/3600);if(dy){rt=(dy==1?'1 hour':dy+' hours')}else{dy=Math.floor(d/60);if(dy==0)dy=1;rt=(dy==1?'1 minute':dy+' minutes')}}rt+=" <?= $this->lang['ago'] ?>";<?php } ?>e.innerHTML=rt}});<?php
-                                } ?>}};var s = document.getElementsByTagName('head')[0];s.appendChild(sh);})();<?php */
-                }//else {
-                    if ($this->urlRouter->cfg['enabled_sharing'] && ($this->urlRouter->module=='search'||$this->urlRouter->module=='detail')){ 
-                        ?>ms=$('#mis');var li=$("ul.ls li");li.on("hover, touch",function(e){hve=this;if(hvt)clearTimeout(hvt);hvt=setTimeout('hva();',500)});<?php 
-                    }
-                    if ($this->urlRouter->module=='search'||$this->urlRouter->module=='detail'){
-                        ?>var time=parseInt((new Date().getTime())/1000);$("b[st]").each(function(i,e){var d=time-parseInt($(e).attr("st"));var dy=Math.floor(d/86400);if(dy<=31){var rt='';<?php if($this->urlRouter->siteLanguage=='ar'){ ?>rt="<?= $this->lang['since'] ?> ";if(dy){rt+=(dy==1?"يوم":(dy==2?"يومين":dy+' '+(dy<11?"أيام" : "يوم")))}else{dy=Math.floor(d/3600);if(dy){rt+=(dy==1?"ساعة":(dy==2?"ساعتين":dy+' '+(dy<11?"ساعات" : "ساعة")))}else{dy=Math.floor(d/60);if(dy==0)dy=1;rt+=(dy==1?"دقيقة":(dy==2?"دقيقتين":dy+' '+(dy<11?"دقائق" : "دقيقة")))}}<?php }else { ?>if(dy){rt=(dy==1?'1 day':dy+' days')}else{dy=Math.floor(d/3600);if(dy){rt=(dy==1?'1 hour':dy+' hours')}else{dy=Math.floor(d/60);if(dy==0)dy=1;rt=(dy==1?'1 minute':dy+' minutes')}}rt+=" <?= $this->lang['ago'] ?>";<?php } ?>e.innerHTML=rt}});<?php  
-                    }                    
-               // }
-        ?>}};var s = document.getElementsByTagName('head')[0];s.appendChild(mj);<?php 
-
-            if ($this->urlRouter->cfg['enabled_ads'] && count($this->googleAds)) {
-                ?>(function(){var gads=document.createElement('script');gads.async=true;gads.type='text/javascript';var useSSL='https:'==document.location.protocol;gads.src=(useSSL?'https:':'http:')+'//www.googletagservices.com/tag/js/gpt.js';var s = document.getElementsByTagName('head')[0];s.appendChild(gads);})();<?php
-            }
-            
-            
-/*
-            if ($this->urlRouter->siteLanguage=='ar' && $this->urlRouter->cfg['enabled_yamli']) {
-                ?>window['doneYa']=false;
-                (function(){
-                    var ya=document.createElement('script');
-                    ya.type='text/javascript';
-                    ya.async=true;
-                    ya.src='http://api.yamli.com/js/yamli_api.js';
-                    ya.onload=ya.onreadystatechange=function(){
-                        if(!doneYa&&(!this.readyState||this.readyState=="loaded"||this.readyState=="complete")){
-                            doneYa=true;
-                            if(document.getElementById('q')){
-                                if(typeof(Yamli)=="object"&&Yamli.init({uiLanguage:"en",startMode:"onOrUserDefault"})){
-                                    Yamli.DomReady();
-                                    console.log(Yamli);
-                                    console.log(Yamli.global);
-                                    //console.log(Yamli.global.getAdInfo());
-                                    Yamli.yamlify("q",{settingsPlacement:"inside",settingsXOffset:458,uiFontFamily:"arial"});
-                                    console.log(Yamli.getInstances());
-                                }
-                            }
-                        }
-                    };
-                    var s = document.getElementsByTagName('head')[0];
-                    s.appendChild(ya);}
-                )();<?php
-             } */
-            
-            
-            ?>(function(){var ga=document.createElement('script');ga.type='text/javascript';ga.async=true;ga.src=('https:'==document.location.protocol?'https://ssl':'http://www')+'.google-analytics.com/ga.js';var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(ga,s);})();<?php
-            
-            
-            ?>};function _m_sl(_id){if(_id)window.open(_id,'_blank');};<?php
-            ?>function wo(u){if(typeof(u)=='string')document.location=u;else{if(u.getAttribute('v'))document.location=u.getAttribute('v')}};<?php
-            ?></script><?php 
-            if($this->urlRouter->module=='post' && $this->user->info['id'] && $this->user->info['level']==9){
-                ?><script type="text/javascript" async="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/pvc.js"></script><?php
-            }
     }
 
     
@@ -4788,6 +4561,7 @@ class Page extends Site{
         } else {
             $this->_header();
             $this->_body();
+            $this->user->setStats();
         }
     }
     
