@@ -37,15 +37,16 @@ class Page extends Site{
                 $this->user->params['user_country']==='sa'||
                 $this->user->params['user_country']==='us')
             {
+
                 //$cdn = "https://mourjan.r.worldssl.net";
                 $cdn = "https://cdn.mourjan.com";
                 $this->urlRouter->cfg['url_resources']      = $cdn;
                 $this->urlRouter->cfg['url_ad_img']         = $cdn;
-                $this->urlRouter->cfg['url_img']            = $cdn.'/img/1.0.0';
+                $this->urlRouter->cfg['url_img']            = $cdn.'/img/1.0.1';
                 $this->urlRouter->cfg['url_js']             = $cdn.'/js/3.1.3';
                 $this->urlRouter->cfg['url_js_mobile']      = $cdn.'/js/3.1.3';
-                $this->urlRouter->cfg['url_css']            = $cdn.'/css/5.4.0';
-                $this->urlRouter->cfg['url_css_mobile']     = $cdn.'/css/5.2.8d';
+                $this->urlRouter->cfg['url_css']            = $cdn.'/css/5.4.1';
+                $this->urlRouter->cfg['url_css_mobile']     = $cdn.'/css/5.2.8e';
                 $this->urlRouter->cfg['url_jquery']         = $cdn.'/jquery/3.1.0c/js/';
                 $this->urlRouter->cfg['url_jquery_mobile']  = $cdn.'/jquery/3.1.0c/js/';
                 $this->urlRouter->cfg['url_image_lib']      = $cdn.'/lix/2.0.0';
@@ -814,6 +815,9 @@ class Page extends Site{
         if ($this->isMobile) {
             $addOn.='_m';
             $source=$this->urlRouter->cfg['url_css_mobile'];
+            $this->requires['css'][]='mms';
+        }else{
+            $this->requires['css'][]='imgs';
         }
         if ($this->urlRouter->siteTranslate) {
             if ($this->urlRouter->siteTranslate=='ar') $addOn.='_ar';
@@ -822,7 +826,7 @@ class Page extends Site{
         $csFile = '';
         $toRequire = [];
         foreach ($this->requires['css'] as $css) {
-            if ($css=='ie6' || $css=='ie7' || $css=='imgs' || $css == 'home') $addOn='';
+            if ($css=='ie6' || $css=='ie7' || $css=='imgs' || $css=='mms' || $css == 'home') $addOn='';
             else $addOn=$fAddon;
             //if($css == 'main' && $this->isMobile){
             //if (!isset($this->user->params['visit']) || $this->user->params['visit']<2) {
@@ -3080,6 +3084,23 @@ class Page extends Site{
 
     
     protected function set_analytics_header(){
+       /* ?><script type="text/javascript"><?php
+        ?>
+        var canImp=0;
+        var head = document.getElementsByTagName("head")[0] || document.documentElement;
+        if('import' in document.createElement('link')){
+            canImp=1;
+            var l = document.createElement('link');        
+            l.rel = 'import';
+            l.href = 'https://h5.mourjan.com/imp/1.0.0/index_ar.html';
+            l.setAttribute('async', 'true');
+            l.onload = function(e) {
+                console.log('loaded');
+            }
+            head.appendChild(l);
+        }
+                <?php
+        ?></script><?php */
         //error_log($_SERVER['HTTP_USER_AGENT']);
         if (isset($this->user->info['level']) && $this->user->info['level']==9){
             return;
@@ -3222,7 +3243,7 @@ class Page extends Site{
         ?><script type="text/javascript"><?php
         //has Query Parameter
         ?>var head = document.getElementsByTagName("head")[0] || document.documentElement;<?php
-        ?>function loadCss(fn,cb){var s=document.getElementsByTagName("link"),l=s.length-1,p=0,e;for(i=l;i>=0;i--){if(s[i].rel=='stylesheet'){e=s[i];break;}}if(typeof e==='undefined'){p=1;e=head.firstChild}var l=document.createElement('link');l.rel='stylesheet';l.type="text/css";l.media='all';l.href=fn;e.parentNode.insertBefore(l,e.nextSibling)}<?php 
+        /* ?>function loadCss(fn,cb){var s=document.getElementsByTagName("link"),l=s.length-1,p=0,e;for(i=l;i>=0;i--){if(s[i].rel=='stylesheet'){e=s[i];break;}}if(typeof e==='undefined'){p=1;e=head.firstChild}var l=document.createElement('link');l.rel='stylesheet';l.type="text/css";l.media='all';l.href=fn;e.parentNode.insertBefore(l,e.nextSibling)}<?php */
         ?>function addEvent(e, en, fn){if (e.addEventListener)e.addEventListener(en, fn, false);else if(e.attachEvent)e.attachEvent('on' + en, fn)}<?php
         if($this->urlRouter->isApp)
         {
@@ -3362,7 +3383,7 @@ class Page extends Site{
         } */
         /*?>loadCss(ucss+"/mms.css");<?php  */
         /*?>addEvent(window,'load',function(){loadCss(ucss+"/mms.css")});<?php */
-        ?>loadCss(ucss+"/mms.css");<?php 
+        /* ?>loadCss(ucss+"/mms.css");<?php  */
         echo $this->globalScript;        
         echo $this->inlineScript;       
         ?>function inlineQS(){<?= $this->inlineQueryScript; ?>}<?php
@@ -4091,7 +4112,7 @@ class Page extends Site{
          */
             ?>var head = document.getElementsByTagName("head")[0] || document.documentElement;<?php
             ?>function addEvent(e, en, fn){if (e.addEventListener)e.addEventListener(en, fn, false);else if(e.attachEvent)e.attachEvent('on' + en, fn)}<?php
-            ?>function loadCss(fn,cb){var s=document.getElementsByTagName("link"),l=s.length-1,p=0,e;for(i=l;i>=0;i--){if(s[i].rel=='stylesheet'){e=s[i];break;}}if(typeof e==='undefined'){p=1;e=head.firstChild}var l=document.createElement('link');l.rel='stylesheet';l.type="text/css";l.media='all';l.href=fn;e.parentNode.insertBefore(l,e.nextSibling)}<?php 
+            /* ?>function loadCss(fn,cb){var s=document.getElementsByTagName("link"),l=s.length-1,p=0,e;for(i=l;i>=0;i--){if(s[i].rel=='stylesheet'){e=s[i];break;}}if(typeof e==='undefined'){p=1;e=head.firstChild}var l=document.createElement('link');l.rel='stylesheet';l.type="text/css";l.media='all';l.href=fn;e.parentNode.insertBefore(l,e.nextSibling)}<?php */
             /*?>function loadCss(fn,cb){var e=document.getElementsByTagName('script')[0];var l=document.createElement('link');l.rel='stylesheet';l.type="text/css";l.media='all';l.href=fn;e.parentNode.insertBefore(l,e.nextSibling)}<?php */
             
             /*function AJAXLoad(type,url) {
@@ -4248,7 +4269,8 @@ class Page extends Site{
                 } 
             } */            
             /*?>addEvent(window,'load',function(){loadCss(ucss+"/imgs.css")});<?php */
-            ?>loadCss(ucss+"/imgs.css");<?php 
+            /*?>if(!canImp){loadCss(ucss+"/imgs.css")}<?php */
+            /*?>loadCss(ucss+"/imgs.css");<?php */
             echo $this->globalScript;
             /* ?>function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:lang, layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false, multilanguagePage: true, gaTrack: true, gaId: 'UA-435731-13'}, 'google_translate_element');}<?php */
             
