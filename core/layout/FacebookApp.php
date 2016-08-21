@@ -153,7 +153,7 @@ class FacebookApp extends Search {
             .lg{color: #1D4088 !important; letter-spacing: 1.1px !important}
             .menu{margin-top: 4px !important}
         </style>
-        <?
+        <?php
 
         if ($this->lang['description']) { 
             ?><meta name="description" content="<?= preg_replace("/<.*?>/", "", $this->lang['description']) ?>" /><?php 
