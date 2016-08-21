@@ -37,17 +37,19 @@ class Page extends Site{
                 $this->user->params['user_country']==='sa'||
                 $this->user->params['user_country']==='us')
             {
-                $this->urlRouter->cfg['url_resources']      = 'https://mourjan.r.worldssl.net';
-                $this->urlRouter->cfg['url_ad_img']         = 'https://mourjan.r.worldssl.net';
-                $this->urlRouter->cfg['url_img']            = 'https://mourjan.r.worldssl.net/img/1.0.0';
-                $this->urlRouter->cfg['url_js']             = 'https://mourjan.r.worldssl.net/js/3.1.3';
-                $this->urlRouter->cfg['url_js_mobile']      = 'https://mourjan.r.worldssl.net/js/3.1.3';
-                $this->urlRouter->cfg['url_css']            = 'https://mourjan.r.worldssl.net/css/5.4.0';
-                $this->urlRouter->cfg['url_css_mobile']     = 'https://mourjan.r.worldssl.net/css/5.2.8d';
-                $this->urlRouter->cfg['url_jquery']         = 'https://mourjan.r.worldssl.net/jquery/3.1.0c/js/';
-                $this->urlRouter->cfg['url_jquery_mobile']  = 'https://mourjan.r.worldssl.net/jquery/3.1.0c/js/';
-                $this->urlRouter->cfg['url_image_lib']      = 'https://mourjan.r.worldssl.net/lix/2.0.0';
-                $this->urlRouter->cfg['url_highcharts']     = 'https://mourjan.r.worldssl.net/hc/3.0.9';
+                //$cdn = "https://mourjan.r.worldssl.net";
+                $cdn = "https://cdn.mourjan.com";
+                $this->urlRouter->cfg['url_resources']      = $cdn;
+                $this->urlRouter->cfg['url_ad_img']         = $cdn;
+                $this->urlRouter->cfg['url_img']            = $cdn.'/img/1.0.0';
+                $this->urlRouter->cfg['url_js']             = $cdn.'/js/3.1.3';
+                $this->urlRouter->cfg['url_js_mobile']      = $cdn.'/js/3.1.3';
+                $this->urlRouter->cfg['url_css']            = $cdn.'/css/5.4.0';
+                $this->urlRouter->cfg['url_css_mobile']     = $cdn.'/css/5.2.8d';
+                $this->urlRouter->cfg['url_jquery']         = $cdn.'/jquery/3.1.0c/js/';
+                $this->urlRouter->cfg['url_jquery_mobile']  = $cdn.'/jquery/3.1.0c/js/';
+                $this->urlRouter->cfg['url_image_lib']      = $cdn.'/lix/2.0.0';
+                $this->urlRouter->cfg['url_highcharts']     = $cdn.'/hc/3.0.9';
 
             }
             //error_log($this->user->params['user_country']);
