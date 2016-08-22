@@ -42,11 +42,11 @@ class Page extends Site{
                 $cdn = "https://cdn.mourjan.com";
                 $this->urlRouter->cfg['url_resources']      = $cdn;
                 $this->urlRouter->cfg['url_ad_img']         = $cdn;
-                $this->urlRouter->cfg['url_img']            = $cdn.'/img/1.0.1';
+                $this->urlRouter->cfg['url_img']            = $cdn.'/img/1.0.3';
                 $this->urlRouter->cfg['url_js']             = $cdn.'/js/3.1.3';
                 $this->urlRouter->cfg['url_js_mobile']      = $cdn.'/js/3.1.3';
-                $this->urlRouter->cfg['url_css']            = $cdn.'/css/5.4.1';
-                $this->urlRouter->cfg['url_css_mobile']     = $cdn.'/css/5.2.8e';
+                $this->urlRouter->cfg['url_css']            = $cdn.'/css/5.4.3';
+                $this->urlRouter->cfg['url_css_mobile']     = $cdn.'/css/5.2.8g';
                 $this->urlRouter->cfg['url_jquery']         = $cdn.'/jquery/3.1.0c/js/';
                 $this->urlRouter->cfg['url_jquery_mobile']  = $cdn.'/jquery/3.1.0c/js/';
                 $this->urlRouter->cfg['url_image_lib']      = $cdn.'/lix/2.0.0';
@@ -812,9 +812,11 @@ class Page extends Site{
         $addOn='';
         $mobileDir='';
         $source=$this->urlRouter->cfg['url_css'];
+        $sourceFile = '/home/www/css/5.4.2';
         if ($this->isMobile) {
             $addOn.='_m';
             $source=$this->urlRouter->cfg['url_css_mobile'];
+            $sourceFile = '/home/www/css/5.2.8f';
             $this->requires['css'][]='mms';
         }else{
             $this->requires['css'][]='imgs';
@@ -832,7 +834,7 @@ class Page extends Site{
             //if (!isset($this->user->params['visit']) || $this->user->params['visit']<2) {
             if (1 || $this->isMobile) {
                 $toRequire[]='/'.$css.$addOn.'.css';
-                $csFile .= preg_replace('/url\((?:\.\/|)i/', 'url('.$source.'/i', file_get_contents($source. '/'.$css.$addOn. '.css'));
+                $csFile .= preg_replace('/url\((?:\.\/|)i/', 'url('.$source.'/i', file_get_contents($sourceFile. '/'.$css.$addOn. '.css'));
             }else{
                 echo '<link rel=\'stylesheet\' type=\'text/css\' href=\'', $source, '/',$css,$addOn, '.css\' />';
             }
