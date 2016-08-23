@@ -35,6 +35,7 @@ class Page extends Site{
                 $this->user->params['user_country']==='ae'||
                 $this->user->params['user_country']==='bh'||
                 $this->user->params['user_country']==='sa'||
+                $this->user->params['user_country']==='eg'||                    
                 $this->user->params['user_country']==='us')
             {
 
