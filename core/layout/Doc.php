@@ -5,7 +5,7 @@ class Doc extends Page{
     function __construct($router){
         header('Vary: User-Agent');
         parent::__construct($router); 
-        if($this->urlRouter->module =='buy'){
+        if($this->urlRouter->module =='buy' || $this->urlRouter->module == 'buyu'){
             if($this->urlRouter->cfg['active_maintenance']){
                 $this->user->redirectTo('/maintenance/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
             }
@@ -57,7 +57,7 @@ class Doc extends Page{
                         ';
             }
 
-            if($this->urlRouter->module=='buy'){
+            if($this->urlRouter->module=='buy' || $this->urlRouter->module=='buyu'){
                 $this->inlineCss.='
                     .prices{margin:0!important;list-style:disc inside!important;padding:0 40px;}
                     .prices ul{display:inline-block;line-height:1em;margin:0!important}
@@ -152,12 +152,12 @@ class Doc extends Page{
         }elseif($this->urlRouter->module=='gold'){
                 $this->title=$this->lang['gold_title'];
                 $this->lang['description']= $this->lang['gold_desc'];
-        }elseif($this->urlRouter->module=='buy'){
+        }elseif($this->urlRouter->module=='buy' || $this->urlRouter->module == 'buyu'){
             $this->forceNoIndex=true;
                 //$this->lang['description']= $this->lang['buy_desc'];
         }
         
-        if($this->urlRouter->module == 'buy' && $this->user->info['id']==0){
+        if(($this->urlRouter->module == 'buy' || $this->urlRouter->module == 'buyu') && $this->user->info['id']==0){
             $this->hasLeadingPane = false;
         }
         
@@ -235,7 +235,7 @@ class Doc extends Page{
     }
 
     function side_pane(){
-        if($this->urlRouter->module != 'buy' || ($this->urlRouter->module == 'buy' && $this->user->info['id'])){            
+        if( ($this->urlRouter->module != 'buy' && $this->urlRouter->module != 'buyu') || (($this->urlRouter->module == 'buyu' || $this->urlRouter->module == 'buy') && $this->user->info['id'])){            
             $this->renderSideSite();
         }
         //$this->renderSideUserPanel();
@@ -269,6 +269,45 @@ class Doc extends Page{
         $this->main_pane();
     }
 
+    
+    private function payforButton($product) 
+    {
+        $product[4] = (int)$product[4];
+        $product[3] = (int)number_format($product[3],2);
+        $sandbox = $this->urlRouter->cfg['server_id']==99 ? true : false;
+        $access_code = $this->urlRouter->cfg['payfor_access_code'];
+        $webscr = $sandbox ? $this->urlRouter->cfg['payfor_url_test'] : $this->urlRouter->cfg['payfor_url'];
+        $return_url = $this->urlRouter->cfg['host'] . '/buyu/' . ($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage . '/' : '');
+        $merchant_id = $this->urlRouter->cfg['payfor_merchant_id'];
+        
+        $requestParams = [
+            'access_code' => $access_code ,
+            'amount' => $product[3],
+            'currency' => 'USD',
+            'customer_email' => $this->user->info['email'],
+            //'order_description' =>  $product[4].(1 ? ' mourjan gold':' ذهبية مرجان'),
+            'order_description' =>  'bla',
+            'language' => $this->urlRouter->siteLanguage,
+            'merchant_identifier' => $merchant_id,
+            'command' => 'PURCHASE',
+            'return_url'=>$return_url,
+            //'dynamic_descriptor' => $product[4]. ' mourjan gold'
+            'dynamic_descriptor' => 'bla'
+        ];
+        
+        ksort($requestParams);
+        
+        echo '<form method="post" onsubmit="buy('.$product[5].',this);" action="'.$webscr.'" name="payment">';
+        
+        foreach ($requestParams as $a => $b) {
+            echo "<input type='hidden' name='".htmlentities($a)."' value='".htmlentities($b)."'>";
+        }
+        
+        echo "<input type=image name=submit border='0' src='https://www.paypalobjects.com/en_US/i/btn/btn_buynow_LG.gif' alt='Visa/Mastercard'>";
+        
+        echo "</form>";
+        
+    }
     
     private function paypalButton($name, $price) 
     {
@@ -310,6 +349,105 @@ class Doc extends Page{
         $adLang='';
         if ($this->urlRouter->siteLanguage!='ar') $adLang=$this->urlRouter->siteLanguage.'/';
         switch ($this->urlRouter->module){
+            case 'buyu':
+                if($this->user->info['id']==0){ 
+                    echo '<div>';
+                    $this->renderLoginPage();
+                }else{
+                    if ($this->urlRouter->siteLanguage=='ar') {
+                        echo '<div class="doc ar">';
+                    }else{
+                        echo '<div class="doc en">';
+                    }
+                    
+                    if(isset($_GET['paypal']) && $_GET['paypal']=='success'){
+                        $goldCount = preg_replace('/\..*/', '', $_GET['item']);
+                        $msg = preg_replace('/{gold}/', $goldCount, $this->lang['paypal_ok']);
+                        echo "<div class='mnb rc'><p><span class='done'></span> {$msg}</p></div>";
+                        $this->user->update();
+                    }                    
+                
+                    $products = $this->urlRouter->db->queryCacheResultSimpleArray("products",
+                                        "select product_id, name_ar, name_en, usd_price, mcu, id  
+                                        from product 
+                                        where iphone=0 
+                                        and blocked=0 
+                                        and usd_price > 10 
+                                        order by mcu asc",
+                                        null, 0, $this->urlRouter->cfg['ttl_long'], TRUE);
+                    
+                    echo '<ul class="table">';
+                    $i=1;$j=0;
+                    foreach($products as $product){
+                        $alt = $i++%2;
+                        //echo "<li>{$product[ $this->urlRouter->siteLanguage == 'ar' ? 1 : 2]}</li><li>{$product[3]} USD</li><li class='tt'>
+                        //<form action='/checkout/' METHOD='POST'><input type='image' name='paypal_submit' id='sub{$j}'  
+                        //src='https://www.paypal.com/en_US/i/btn/btn_dg_pay_w_paypal.gif' border='0' align='top' alt='Pay with PayPal'/>
+                        //<input type='hidden' name='product' value='{$product[0]}' /></form></li>";
+                        echo "<li>{$product[ $this->urlRouter->siteLanguage == 'ar' ? 1 : 2]}</li><li>{$product[3]} USD</li><li class='tt'>";
+                        $this->payforButton($product);
+                        echo "</li>";
+                        $j++;
+                    }
+                    
+                    echo '</ul>';
+                    
+                    
+        $this->globalScript .= '
+                var xhr;
+                function buy(i,f){                    
+                    f=$(f);
+                    var r=f.attr("ready");
+                    if(r=="true"){
+                        return true;
+                    }else{
+                        try{
+                            Dialog.show("paypro",null,function(){
+                                if(xhr && xhr.readyState != 4){
+                                    xhr.abort();
+                                }
+                            });
+                            xhr = $.ajax({
+                                type:"POST",
+                                url:"/ajax-pay/",
+                                data:{i:i,hl:lang},
+                                dataType:"json",
+                                success:function(rp){
+                                    if (rp.RP) {
+                                        f.attr("ready","true");
+                                        var o=$("<input type=\"hidden\" name=\"signature\" value=\""+rp.DATA.S+"\" />");
+                                        f.append(o);
+                                        o=$("<input type=\"hidden\" name=\"merchant_referance\" value=\""+rp.DATA.O+"\" />");
+                                        f.append(o);
+                                        $("input[name=\'submit\']",f).remove();
+                                        f.submit();
+                                    }else {
+                                        errDialog();
+                                    }
+                                },
+                                error:function(){
+                                    errDialog();
+                                }
+                            })
+                        }catch(e){}
+                        return false;
+                    }
+                };
+                function errDialog(){
+                    Dialog.show("alert_dialog",\''.$this->lang['payment_redirect_fail'].'\');
+                };
+                ';
+        
+        ?><div id="paypro" class="dialog"><?php
+        ?><div class="dialog-box"><span class="loads load"></span><?= $this->lang['payment_redirect'] ?></div><?php 
+            ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /></div><?php 
+        ?></div><?php
+        ?><div id="alert_dialog" class="dialog"><?php
+                        ?><div class="dialog-box ctr"></div><?php 
+                        ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
+                    ?></div><?php
+                }
+                break;
             case 'buy':
                 if($this->user->info['id']==0){ 
                     echo '<div>';

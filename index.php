@@ -102,7 +102,7 @@ if (!isset($argc))
                     }
                     $user->update();
                 }else{
-			if(!$router->isMobile && !in_array($router->uri, array('/favorites/','/account/','/myads/','/post/','/watchlist/','/buy/','/buyu/'))){
+			if(!$router->isMobile && !in_array($router->uri, array('/favorites/','/account/','/myads/','/post/','/watchlist/','/statement/','/buy/','/buyu/'))){
                         $uri='/home/';
                     }else{
                         $uri = $router->uri;

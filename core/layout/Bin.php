@@ -3427,6 +3427,81 @@ class Bin extends AjaxHandler{
                     }else $this->fail('102');
                 }else $this->fail('101');
                 break;
+            case 'ajax-pay':
+                if ($this->user->info['id'] && isset ($_POST['i'])) {
+                    $id=$this->post('i','numeric');
+                    $lang = $this->post('hl');
+                    if (is_numeric($id)){
+                        $product=$this->urlRouter->db->queryResultArray(
+                            "select * from product where id=?",
+                            array($id), true);
+                        if(isset($product[0]['ID']) && $product[0]['ID']){
+                            $product = $product[0];
+                            $product['MCU'] = (int)$product['MCU'];
+                            $product['USD_PRICE'] = (int)number_format($product['USD_PRICE'],2);
+                            $orderId='';
+                            $order=$this->urlRouter->db->queryResultArray(
+                                "insert into t_order (uid,currency_id,amount,debit,credit,usd_value,server_id) values (?,?,?,?,?,?,?) returning id",
+                                [
+                                    $this->user->info['id'],
+                                    'USD',
+                                    $product['USD_PRICE'],
+                                    0,
+                                    $product['MCU'],
+                                    $product['USD_PRICE'],
+                                    $this->urlRouter->cfg['server_id']
+                                ], true);
+                            if(isset($order[0]['ID']) && $order[0]['ID']){
+                                $orderId=$this->user->info['id'].'-'.$order[0]['ID'];
+                            
+                                $product['MCU'] = (int)$product['MCU'];
+                                $passPhrase = $this->urlRouter->cfg['payfor_pass_phrase_out'];
+                                $sandbox = $this->urlRouter->cfg['server_id']==99 ? true : false;
+                                $access_code = $this->urlRouter->cfg['payfor_access_code'];
+                                $webscr = $sandbox ? $this->urlRouter->cfg['payfor_url_test'] : $this->urlRouter->cfg['payfor_url'];
+                                $return_url = $this->urlRouter->cfg['host'] . '/buyu/' . ($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage . '/' : '');
+                                $merchant_id = $this->urlRouter->cfg['payfor_merchant_id'];
+
+                                $requestParams = [
+                                    'access_code' => $access_code ,
+                                    'amount' => $product['USD_PRICE'],
+                                    'currency' => 'USD',
+                                    'customer_email' => $this->user->info['email'],
+                                    'merchant_reference' => $orderId,
+                                    //'order_description' =>  $product['MCU'].(1 ? ' mourjan gold':' ذهبية مرجان'),
+                                    'order_description' =>  'bla',
+                                    'language' => $lang,
+                                    'merchant_identifier' => $merchant_id,
+                                    'command' => 'PURCHASE',
+                                    'return_url'=>$return_url,
+                                    //'dynamic_descriptor' => $product['MCU']. ' mourjan gold'
+                                    'dynamic_descriptor' => 'bla'
+                                ];
+
+                                ksort($requestParams);
+
+                                $signature = '';
+                                foreach ($requestParams as $a => $b) {
+                                    $signature .= $a . '=' .$b;
+                                }
+                                $signature = $passPhrase.$signature.$passPhrase; 
+                                
+                                //error_log(var_export($requestParams,true));
+                                //error_log($signature);
+                                
+                                $signature = hash('sha256', $signature);  
+                                
+                                
+
+                                $this->setData($signature, "S");
+                                $this->setData($orderId, "O");
+                                $this->process();
+                                
+                            }else $this->fail('104');                            
+                        }else $this->fail('103');
+                    }else $this->fail('102');
+                }else $this->fail('101');
+                break;
             case 'ajax-adel':
                 if ($this->user->info['id'] && isset ($_POST['i'])) {
                     $id=$_POST['i'];

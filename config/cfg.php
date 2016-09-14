@@ -150,6 +150,14 @@ $config=array(
         'US'    =>  'https://doxplxe8wce37.cloudfront.net/repos'
     ],
     
+    'payfor_merchant_id'    =>  'AUCZNGGy',
+    'payfor_access_code'    =>  'ou8rcz98spCiypVgz67U',
+    'payfor_pass_phrase_out'=>  'ky9BWdcbDZqn2c',
+    'payfor_pass_phrase_in' =>  'pWgawXBckxLbuf',
+    'payfor_url'            =>  'https://checkout.payfort.com/FortAPI/paymentPage',
+    'payfor_url_test'       =>  'https://sbcheckout.payfort.com/FortAPI/paymentPage',
+    
+    
     //Admin
     'admin_email'           => array('support@mourjan.com'),
     
@@ -248,6 +256,7 @@ $config=array(
 
     'modules'               => array(
                                 'admin'        => array('Admin',0),
+                                'ajax-pay'        => array('Bin',0),
                                 'ajax-keyword'        => array('Bin',0),
                                 'ajax-propspace'        => array('Bin',0),
                                 'detail'        => array('Detail',1),
@@ -262,7 +271,8 @@ $config=array(
                                 'publication-prices'          => array('Doc',1),
                                 'advertise'         => array('Doc',1),
                                 'gold'              => array('Doc',1),
-                                'buy'               => array('Doc',1),
+                                'buyu'               => array('Doc',0),
+                                'buy'               => array('Doc',0),
                                 'checkout'          => array('Checkout',0),
                                 'premium'           => array('Doc',1),
                                 'guide'          => array('Doc',1),
@@ -385,5 +395,7 @@ $config['url_js'] = 'https://dv.mourjan.com/web/js/1.0.0';
 $config['url_css'] = 'https://dv.mourjan.com/web/css/1.0.0';
 $config['url_jquery'] = 'https://dv.mourjan.com/web/jquery/1.10.2.2/js/';
 $config['url_jquery'] = 'https://dv.mourjan.com/web/jquery/3.1.0/js/';
+
+$config['server_id'] = get_cfg_var('mourjan.server_id');
 
 ?>

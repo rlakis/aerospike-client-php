@@ -712,4 +712,8 @@ $lang=array(
     'ERROR_101' =>  'forbidden access',
     'ERROR_102' =>  'some parameters are missing',
     
+    'payment_redirect'  =>  'redirecting to payment gateway',
+    'payment_redirect_fail'  =>  'failed to proceed with your request<br />please try again<br />or<br /><a class="lnk" href="/contact/en/">tell us about it</a>',
+    'please_wait'       =>  'Please wait'
+    
 );
