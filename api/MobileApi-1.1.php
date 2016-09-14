@@ -1228,6 +1228,7 @@ class MobileApi
             $this->result['d']['u_up'] = $this->config['android_url_upload'];
             $this->result['d']['u_web'] = $this->config['android_url_web'];
             $this->result['d']['u_img'] = $this->config['android_url_img'];
+            $this->result['d']['u_xx'] = $this->config['android_url_img_xx'];
             $this->result['d']['u_api'] = $this->config['android_url_api'];
             $this->result['d']['u_nas'] = $this->config['android_url_node_ad_stage'];
             $this->result['d']['e_support'] = $this->config['android_email_support'];

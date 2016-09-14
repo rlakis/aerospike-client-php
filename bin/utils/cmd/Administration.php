@@ -25,6 +25,34 @@ class Administration {
         $start = time();
         $pass= true;
         switch($this->ACTION){
+            case "grant":
+                if(isset($this->args[2]) && $this->args[2]){
+                    if(isset($this->args[3]) && $this->args[3]){
+                        $userId = $this->args[2];
+                        $amount = $this->args[3];
+
+                        echo "granting '{$userId}' > {$amount} gold".PHP_EOL;
+                        
+                        $users = $this->db->queryResultArray('select id, opts from web_users where id in ('.$userId.') and lvl != 5');
+
+                        if($users!==false){
+                            $updateStmt = $this->db->prepareQuery("insert into t_tran (uid,currency_id,amount,debit,credit,usd_value) values ({$userId},'MCU',{$amount},0,{$amount},{$amount})");
+                             if($updateStmt->execute()){
+                                unset($updateStmt);
+                                echo "{$userId} was granted {$amount} gold successfully".PHP_EOL;
+                             }else{
+                                $failure[]=$user['ID'];
+                             }
+                        }else{
+                            echo "system error: failed to grant gold".PHP_EOL;
+                        }
+                    }else{
+                        echo "grant gold error: missing amount".PHP_EOL;
+                    }                    
+                }else{
+                    echo "grant gold error: missing id".PHP_EOL;
+                }
+                break;
             case "block":
                 if(isset($this->args[2]) && $this->args[2]){
                     if(isset($this->args[3]) && $this->args[3]){
@@ -115,6 +143,7 @@ class Administration {
                 echo "1-\tyBlocked {web_user_id}".PHP_EOL;
                 echo "2-\tunblock {web_user_id}".PHP_EOL;
                 echo "3-\tblock \"id1,id2,...\" \"message for why blocked\"".PHP_EOL;
+                echo "4-\tgrant \"id\" \"amount\"".PHP_EOL;
                 break;
         }
         if($pass){

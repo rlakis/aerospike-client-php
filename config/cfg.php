@@ -141,6 +141,14 @@ $config=array(
     'android_enabled_banner_exit'   =>  0,
     'android_enabled_banner_pending'=>  1,
     'android_enabled_banner_detail_inter'=>10,
+    'android_url_img'               =>  [
+        'LB'    =>  'https://doxplxe8wce37.cloudfront.net/repos',
+        'AE'    =>  'https://doxplxe8wce37.cloudfront.net/repos',
+        'BH'    =>  'https://doxplxe8wce37.cloudfront.net/repos',
+        'SA'    =>  'https://doxplxe8wce37.cloudfront.net/repos',
+        'EG'    =>  'https://doxplxe8wce37.cloudfront.net/repos',
+        'US'    =>  'https://doxplxe8wce37.cloudfront.net/repos'
+    ],
     
     //Admin
     'admin_email'           => array('support@mourjan.com'),
