@@ -73,6 +73,11 @@ class Contact extends Page{
     function contactForm(){
         $name="";
         $email="";
+        $message = '';
+        if(isset($_GET['payfort']) && is_numeric($_GET['payfort'])){
+            $message = $this->lang['payfort_fail_msg'].'#'.$_GET['payfort'].'#';
+        }
+        
         if ($this->user->info['id']) {
             $name=$this->user->info['name'];
             if (isset ($this->user->info['email']) && strpos($this->user->info['email'], "@")!==false) $email=$this->user->info['email'];
@@ -80,7 +85,7 @@ class Contact extends Page{
         ?><p class="ph phm"><?= $this->lang['header'] ?></p><div class="form rc"><form onsubmit="vf(this);return false;"><ul><?php
             ?><li><label><?= $this->lang['name'] ?>:</label><input onkeydown="idir(this)" onchange="idir(this,1)" type="text" id="name" value="<?= $name ?>" placeholder="<?= $this->lang['hint_name'] ?>" <?= $name ? "disabled='disabled'":"" ?> /></li><?php
             ?><li><label><?= $this->lang['email'] ?>:</label><input onkeydown="idir(this)" onchange="idir(this,1)" type="text" id="email" value="<?= $email ?>" placeholder="<?= $this->lang['hint_email'] ?>" <?= $email ? "disabled='disabled'":"" ?> /></li><?php
-            ?><li><label class="ta"><?= $this->lang['message'] ?>:</label><textarea onkeydown="idir(this)" onchange="idir(this,1)" rows="10" id="msg"></textarea></li><?php
+            ?><li><label class="ta"><?= $this->lang['message'] ?>:</label><textarea onkeydown="idir(this)" onchange="idir(this,1)" rows="10" id="msg"><?= $message ?></textarea></li><?php
         ?><li class="ctr"><input class="bt" type="submit" value="<?= $this->lang['send'] ?>" /></li><?php
         ?></ul></form><span class="omail <?= $this->urlRouter->siteLanguage ?>"></span><span class="nb"></span></div><?php
         $this->inlineScript.='

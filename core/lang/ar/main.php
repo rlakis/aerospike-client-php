@@ -689,7 +689,10 @@ $lang=array(
     'paypal_ok'         =>  'تمت عملية شراء <b>{gold} ذهبية</b> بنجاح',
     'paypal_cancel'         =>  'تم الغاء عملية الشراء',
     'paypal_fail'       =>  'حصل خطأ ما اثناء عملية اضافة الذهبيات لحسابك لذا نرجو منك <a class="lnk" href="/contact/">اطلاعنا بالأمر</a> لمعالجه',
+    'payfort_fail'       =>  'حصل خطأ ما اثناء عملية اضافة الذهبيات لحسابك لذا نرجو منك <a class="lnk" href="/contact/?payfort={payfort}">اطلاعنا بالأمر</a> لمعالجه',
     'paypal_old'       =>  'لقد تم معالجة عملية الشراء هذه مسبقاً',
+    'paypal_failure'       =>  'فشلت عملية الشراء للسبب التالي:',
+    'payfort_fail_msg'  => 'واجهت مشكلة في عملية الشراء ورقم العملية ',
     'buy_now'       =>  'شراء',
     
     'switch_lang'       =>  'switch to English',

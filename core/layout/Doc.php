@@ -272,41 +272,30 @@ class Doc extends Page{
     
     private function payforButton($product) 
     {
-        $product[4] = (int)$product[4];
-        $product[3] = (int)number_format($product[3],2);
-        $sandbox = $this->urlRouter->cfg['server_id']==99 ? true : false;
-        $access_code = $this->urlRouter->cfg['payfor_access_code'];
-        $webscr = $sandbox ? $this->urlRouter->cfg['payfor_url_test'] : $this->urlRouter->cfg['payfor_url'];
-        $return_url = $this->urlRouter->cfg['host'] . '/buyu/' . ($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage . '/' : '');
-        $merchant_id = $this->urlRouter->cfg['payfor_merchant_id'];
-        
-        $requestParams = [
-            'access_code' => $access_code ,
-            'amount' => $product[3],
-            'currency' => 'USD',
-            'customer_email' => $this->user->info['email'],
-            //'order_description' =>  $product[4].(1 ? ' mourjan gold':' ذهبية مرجان'),
-            'order_description' =>  'bla',
-            'language' => $this->urlRouter->siteLanguage,
-            'merchant_identifier' => $merchant_id,
-            'command' => 'PURCHASE',
-            'return_url'=>$return_url,
-            //'dynamic_descriptor' => $product[4]. ' mourjan gold'
-            'dynamic_descriptor' => 'bla'
-        ];
-        
-        ksort($requestParams);
-        
-        echo '<form method="post" onsubmit="buy('.$product[5].',this);" action="'.$webscr.'" name="payment">';
-        
-        foreach ($requestParams as $a => $b) {
-            echo "<input type='hidden' name='".htmlentities($a)."' value='".htmlentities($b)."'>";
-        }
+        echo '<form method="post" onsubmit="buy('.$product[5].',this);" action="javascript:void(0);" name="payment">';
         
         echo "<input type=image name=submit border='0' src='https://www.paypalobjects.com/en_US/i/btn/btn_buynow_LG.gif' alt='Visa/Mastercard'>";
         
         echo "</form>";
         
+    }
+    
+    
+    public function calculateSignature($arrData, $signType = 'request')
+    {
+        $shaString             = '';
+        ksort($arrData);
+        foreach ($arrData as $k => $v) {
+            $shaString .= "$k=$v";
+        }
+        if ($signType == 'request') {
+            $shaString = $this->urlRouter->cfg['payfor_pass_phrase_out'] . $shaString . $this->urlRouter->cfg['payfor_pass_phrase_out'];
+        }
+        else {
+            $shaString = $this->urlRouter->cfg['payfor_pass_phrase_in'] . $shaString . $this->urlRouter->cfg['payfor_pass_phrase_in'];
+        }
+        $signature = hash('sha256', $shaString);
+        return $signature;
     }
     
     private function paypalButton($name, $price) 
@@ -360,14 +349,64 @@ class Doc extends Page{
                         echo '<div class="doc en">';
                     }
                     
-                    if(isset($_GET['paypal']) && $_GET['paypal']=='success'){
-                        $goldCount = preg_replace('/\..*/', '', $_GET['item']);
-                        $msg = preg_replace('/{gold}/', $goldCount, $this->lang['paypal_ok']);
-                        echo "<div class='mnb rc'><p><span class='done'></span> {$msg}</p></div>";
-                        $this->user->update();
+                    if(isset($_GET['payfort']) && $_GET['payfort']=='process'){
+                        require_once $this->urlRouter->cfg['dir'].'/core/lib/PayfortIntegration.php';
+                        
+                        $payFort = new PayfortIntegration();
+                        $payFort->setLanguage($this->urlRouter->siteLanguage);
+                        $payment = $payFort->processResponse();
+                        
+                        $success = true;
+                        $internalError = false;
+                        if(isset($payment['error_msg'])){
+                            $success = false;
+                        }
+                        
+                        $orderId = 0;
+                        if(isset($payment['merchant_reference'])){
+                            $orderId = preg_split('/-/', $payment['merchant_reference']);
+                            if($orderId && count($orderId)==2 && is_numeric($orderId[0]) && is_numeric($orderId[1])){
+                                if($orderId[0] == $this->user->info['id']){
+                                    $orderId = (int)$orderId[1];
+                                }else{
+                                    $orderId=0;
+                                }
+                            }else{
+                                $orderId=0;
+                            }
+                        }
+                        if($orderId){
+                            if($success){
+                                $res = $this->urlRouter->db->queryResultArray(
+                                            "update t_order set state = ?, msg = ? where id = ? and uid = ? and state = 0 returning id",
+                                            [2, $payment['fort_id'], $orderId, $this->user->info['id']], TRUE);
+                                if($res !== false){
+                                    $goldCount = preg_replace('/[^0-9]/', '', $payment['order_description']);
+                                    $msg = preg_replace('/{gold}/', $goldCount, $this->lang['paypal_ok']);
+                                    echo "<div class='mnb rc'><p><span class='done'></span> {$msg}</p></div>";
+                                }else{
+                                    $msg = preg_replace('/{payfort}/', $payment['fort_id'], $this->lang['payfort_fail']);
+                                    echo "<div class='mnb rc'><p><span class='fail'></span> {$msg}</p></div>";
+                                }
+                                
+                                $this->user->update();
+                            }else{
+                                $state = 3;
+                                if( ($error_code = substr($payment['response_code'],-3))=="072"){
+                                    $state = 1;
+                                }
+                                echo "<div class='mnb rc'><p><span class='fail'></span> {$this->lang['paypal_failure']} {$payment['error_msg']}</p></div>";
+
+                                $res = $this->urlRouter->db->queryResultArray(
+                                            "update t_order set state = ?, msg = ? where id = ? and uid = ? and state = 0 returning id",
+                                            [$state, $payment['error_msg'], $orderId, $this->user->info['id']], TRUE);
+
+                                $this->user->update();
+                            }
+                        }
                     }                    
                 
-                    $products = $this->urlRouter->db->queryCacheResultSimpleArray("products",
+                    $products = $this->urlRouter->db->queryCacheResultSimpleArray("products_payfort",
                                         "select product_id, name_ar, name_en, usd_price, mcu, id  
                                         from product 
                                         where iphone=0 
@@ -380,10 +419,7 @@ class Doc extends Page{
                     $i=1;$j=0;
                     foreach($products as $product){
                         $alt = $i++%2;
-                        //echo "<li>{$product[ $this->urlRouter->siteLanguage == 'ar' ? 1 : 2]}</li><li>{$product[3]} USD</li><li class='tt'>
-                        //<form action='/checkout/' METHOD='POST'><input type='image' name='paypal_submit' id='sub{$j}'  
-                        //src='https://www.paypal.com/en_US/i/btn/btn_dg_pay_w_paypal.gif' border='0' align='top' alt='Pay with PayPal'/>
-                        //<input type='hidden' name='product' value='{$product[0]}' /></form></li>";
+                        $product[3] = ceil($product[3]);
                         echo "<li>{$product[ $this->urlRouter->siteLanguage == 'ar' ? 1 : 2]}</li><li>{$product[3]} USD</li><li class='tt'>";
                         $this->payforButton($product);
                         echo "</li>";
@@ -415,11 +451,8 @@ class Doc extends Page{
                                 success:function(rp){
                                     if (rp.RP) {
                                         f.attr("ready","true");
-                                        var o=$("<input type=\"hidden\" name=\"signature\" value=\""+rp.DATA.S+"\" />");
-                                        f.append(o);
-                                        o=$("<input type=\"hidden\" name=\"merchant_referance\" value=\""+rp.DATA.O+"\" />");
-                                        f.append(o);
-                                        $("input[name=\'submit\']",f).remove();
+                                        f.attr("action",rp.DATA.U);
+                                        f.prepend(rp.DATA.D);
                                         f.submit();
                                     }else {
                                         errDialog();

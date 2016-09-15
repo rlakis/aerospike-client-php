@@ -119,7 +119,6 @@ class Balance extends Page{
             $uid = $_GET['u'];
         }
         $data = $this->user->getStatement($uid, 0, false, null, $this->urlRouter->siteLanguage);
-        
         $hasError = 0;
         if($data && $data['balance']!==null){
             $subHeader = $this->lang['current_balance'].'<span class="mc24"></span>'.$data['balance'].' '.$this->lang['gold'];

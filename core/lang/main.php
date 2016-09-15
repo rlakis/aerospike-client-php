@@ -686,7 +686,10 @@ $lang=array(
     'paypal_ok'         =>  '<b>{gold} gold</b> has been purchased successfully',
     'paypal_cancel'         =>  'Gold purchase operation was canceled',
     'paypal_fail'      =>  'Something went wrong in completing your purchase, please <a class="lnk" href="/contact/en/">tell us about it</a> so we can fix it',
+    'payfort_fail'      =>  'Something went wrong in completing your purchase, please <a class="lnk" href="/contact/en/?payfort={payfort}">tell us about it</a> so we can fix it',
     'paypal_old'       =>  'This transaction is already processed',
+    'paypal_failure'       =>  'Failed to proceed with your payment. Reason:',
+    'payfort_fail_msg'  => 'I have a problem with my Purchase and my transaction id is ',
     'buy_now'       =>  'Buy Now',
     
     'switch_lang'       =>  'تبديل الى العربية',

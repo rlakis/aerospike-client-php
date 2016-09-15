@@ -3438,7 +3438,7 @@ class Bin extends AjaxHandler{
                         if(isset($product[0]['ID']) && $product[0]['ID']){
                             $product = $product[0];
                             $product['MCU'] = (int)$product['MCU'];
-                            $product['USD_PRICE'] = (int)number_format($product['USD_PRICE'],2);
+                            $product['USD_PRICE'] = ceil(number_format($product['USD_PRICE'],2));
                             $orderId='';
                             $order=$this->urlRouter->db->queryResultArray(
                                 "insert into t_order (uid,currency_id,amount,debit,credit,usd_value,server_id) values (?,?,?,?,?,?,?) returning id",
@@ -3452,8 +3452,27 @@ class Bin extends AjaxHandler{
                                     $this->urlRouter->cfg['server_id']
                                 ], true);
                             if(isset($order[0]['ID']) && $order[0]['ID']){
-                                $orderId=$this->user->info['id'].'-'.$order[0]['ID'];
-                            
+                                $orderId=$this->user->info['id'].'-'.$order[0]['ID'];   
+                                
+                                require_once $this->urlRouter->cfg['dir'].'/core/lib/PayfortIntegration.php';
+                                
+                                $objFort = new PayfortIntegration();
+                                $objFort->setAmount($product['USD_PRICE']);
+                                $objFort->setCustomerEmail($this->user->info['email']);
+                                $objFort->setItemName($product['MCU'].($lang!='ar' ? ' mourjan gold':' ذهبية مرجان'));
+                                //$objFort->setItemBillName((1 ? ' mourjan gold':' ذهبية مرجان'));
+                                $objFort->setMerchantReference($orderId);
+                                $objFort->setLanguage($lang);
+                                $objFort->setCommand('PURCHASE');
+                                
+                                $form = $objFort->getRedirectionData('');
+                                $formData = '';
+                                foreach($form['params'] as $k => $v){
+                                    $formData .= '<input type="hidden" name="' . $k . '" value="' . $v . '">';
+                                }
+                                $this->setData($formData, "D");
+                                $this->setData($form['url'], "U");
+                                /*
                                 $product['MCU'] = (int)$product['MCU'];
                                 $passPhrase = $this->urlRouter->cfg['payfor_pass_phrase_out'];
                                 $sandbox = $this->urlRouter->cfg['server_id']==99 ? true : false;
@@ -3467,15 +3486,13 @@ class Bin extends AjaxHandler{
                                     'amount' => $product['USD_PRICE'],
                                     'currency' => 'USD',
                                     'customer_email' => $this->user->info['email'],
-                                    'merchant_reference' => $orderId,
-                                    //'order_description' =>  $product['MCU'].(1 ? ' mourjan gold':' ذهبية مرجان'),
-                                    'order_description' =>  'bla',
+                                    'merchant_reference' => '1-3',
+                                    'order_description' =>  $product['MCU'].(1 ? ' mourjan gold':' ذهبية مرجان'),
                                     'language' => $lang,
                                     'merchant_identifier' => $merchant_id,
                                     'command' => 'PURCHASE',
                                     'return_url'=>$return_url,
-                                    //'dynamic_descriptor' => $product['MCU']. ' mourjan gold'
-                                    'dynamic_descriptor' => 'bla'
+                                    'dynamic_descriptor' => $product['MCU']. ' mourjan gold'
                                 ];
 
                                 ksort($requestParams);
@@ -3486,15 +3503,14 @@ class Bin extends AjaxHandler{
                                 }
                                 $signature = $passPhrase.$signature.$passPhrase; 
                                 
-                                //error_log(var_export($requestParams,true));
-                                //error_log($signature);
-                                
                                 $signature = hash('sha256', $signature);  
                                 
                                 
 
                                 $this->setData($signature, "S");
                                 $this->setData($orderId, "O");
+                                 * 
+                                 */
                                 $this->process();
                                 
                             }else $this->fail('104');                            

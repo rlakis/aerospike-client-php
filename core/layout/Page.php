@@ -64,7 +64,7 @@ class Page extends Site{
         //$this->urlRouter->cfg['url_css'] = 'https://dv.mourjan.com/web/css/1.0.0';
         //$this->urlRouter->cfg['url_jquery_mobile'] = 'https://dv.mourjan.com/web/jquery/3.1.0/js/';
         
-        //$this->user->sysAuthById(43905);
+        //$this->user->sysAuthById(515496);
         if(!$this->urlRouter->cfg['enabled_users']){
             if($this->urlRouter->siteLanguage == 'ar'){
                 $this->setNotification('مرجان يواجه بعض المشاكل التقنية والتي يتم معالجتها حالياً. شكراً لتحليكم بالصبر.');
