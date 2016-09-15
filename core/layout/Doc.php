@@ -101,6 +101,7 @@ class Doc extends Page{
                     .bt:hover{text-decoration:none!important}
                     .ick{vertical-align:middle}
                     hr{display: block; height: 1px;border: 0; border-top: 1px solid powderblue;margin:20px 0}
+                    .credits{width:338px;height:110px;margin-bottom:20px;display:inline-block;background:url('.$this->urlRouter->cfg['url_css'].'/i/creditcards.jpg) no-repeat center}                
                 ';            
             }
 
@@ -411,7 +412,7 @@ class Doc extends Page{
                                         from product 
                                         where iphone=0 
                                         and blocked=0 
-                                        and usd_price > 10 
+                                        and usd_price > 3 
                                         order by mcu asc",
                                         null, 0, $this->urlRouter->cfg['ttl_long'], TRUE);
                     
@@ -428,6 +429,7 @@ class Doc extends Page{
                     
                     echo '</ul>';
                     
+                    ?><br /><br /><div class="bth ctr"><img width="288" height="60" src="<?= $this->urlRouter->cfg['url_css'] ?>/i/payfort.jpg" alt="Verified by PAYFORT"></div><br /><?php
                     
         $this->globalScript .= '
                 var xhr;
@@ -537,6 +539,8 @@ class Doc extends Page{
                     
                     echo '</ul>';
                     
+                    ?><br /><div class="bth ctr"><img width="319" height="110" src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg" alt="Buy now with PayPal"></div><?php
+                    
                     ?><!--<div class="htf db">< //$this->lang['paypal_suspended'] </div>--><?php
                 }
                 break;
@@ -605,6 +609,7 @@ class Doc extends Page{
                 echo "<br /><p>{$this->lang['gold_p2_0']}</p>";
                 /* ?><div class="btH"><a href="/buy/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>" class="bt"><?= substr($this->lang['buy_gold'],0,-1)  ?></a></div><?php */
                 echo "<hr /><h2 id='how-to'>{$this->lang['buy_gold']}</h2><br />";
+                echo "<p>{$this->lang['gold_p2_5_0']}</p>";
                 echo "<p>{$this->lang['gold_p2_5']}</p>";
                 echo "<p>{$this->lang['gold_p2_6']}</p>";
                 ?><div class="btH"><a href="/buy/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>"><img width="228" height="44" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png" alt="Buy now with PayPal" /></a></div><br /><?php 
