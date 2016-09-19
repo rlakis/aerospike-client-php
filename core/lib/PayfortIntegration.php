@@ -12,7 +12,8 @@ class PayfortIntegration
     /**
      * @var string your Merchant Identifier account (mid)
      */
-    public $merchantIdentifier = 'AUCZNGGy';
+    //public $merchantIdentifier = 'AUCZNGGy';Sandbox
+    public $merchantIdentifier = 'daHyRFxZ';
     /**
      * @var string your Merchant Identifier account (mid)
      */
@@ -20,7 +21,8 @@ class PayfortIntegration
     /**
      * @var string your access code
      */
-    public $accessCode         = 'ou8rcz98spCiypVgz67U';
+    //public $accessCode         = 'ou8rcz98spCiypVgz67U';//Sandbox
+    public $accessCode         = '2D2ChCFe3duM0LrDMJUf';
     /**
      * @var string sha in passphrase
      */
@@ -59,7 +61,7 @@ class PayfortIntegration
     /**
      * @var boolean for live account change it to false
      */
-    public $sandboxMode        = true;
+    public $sandboxMode        = false;
     /**
      * @var string  project root folder
      * change it if the project is not on root folder.

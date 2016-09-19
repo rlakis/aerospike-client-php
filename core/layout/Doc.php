@@ -350,6 +350,15 @@ class Doc extends Page{
                         echo '<div class="doc en">';
                     }
                     
+                    
+                    if ( !$this->user->info['email']) {
+                        $message = $this->lang['requireEmailPay'];
+                        if ( (isset($this->user->info['options']['email']) && isset($this->user->info['options']['emailKey']) )) {
+                            $message = preg_replace('/{email}/', $this->user->info['options']['email'], $this->lang['validateEmailPay']);                    
+                        }
+                        echo '<div class="htf">'.$message.'</div>';
+                    }else{
+                    
                     if(isset($_GET['payfort']) && $_GET['payfort']=='process'){
                         require_once $this->urlRouter->cfg['dir'].'/core/lib/PayfortIntegration.php';
                         
@@ -420,7 +429,7 @@ class Doc extends Page{
                     $i=1;$j=0;
                     foreach($products as $product){
                         $alt = $i++%2;
-                        $product[3] = ceil($product[3]);
+                        $product[3] = number_format($product[3],2);
                         echo "<li>{$product[ $this->urlRouter->siteLanguage == 'ar' ? 1 : 2]}</li><li>{$product[3]} USD</li><li class='tt'>";
                         $this->payforButton($product);
                         echo "</li>";
@@ -481,6 +490,7 @@ class Doc extends Page{
                         ?><div class="dialog-box ctr"></div><?php 
                         ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
                     ?></div><?php
+                    }
                 }
                 break;
             case 'buy':

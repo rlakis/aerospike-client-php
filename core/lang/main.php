@@ -490,8 +490,10 @@ $lang=array(
     'uriSet'        =>  'Your page address was successfully set',
     'save'          =>  'save',
 
-    'requireEmail'  =>  'To better serve you, Mourjan.com needs your email address. <a href="/account/en/?action=email">Click here</a> to specify your email address',
+    'requireEmail'  =>  'To better serve you, Mourjan.com needs to know your email address. <a href="/account/en/?action=email">Click here</a> to specify your email address',
     'validateEmail' =>  'A verification email has been sent to <b>{email}</b>. Please visit your email inbox to verify your email address or <a href="/account/en/?action=email">click here</a> to correct the provided email address',
+    'requireEmailPay'  =>  'Before making a purchase and in order to better serve you, Mourjan.com needs to know your email address. <a href="/account/en/?action=email">Click here</a> to specify your email address',
+    'validateEmailPay' =>  'A verification email has been sent to <b>{email}</b>. Please visit your email inbox to verify your email address or <a href="/account/en/?action=email">click here</a> to correct the provided email address before proceeding with any purchase',
 
     'sys_error'=>'Mourjan system failure, please try again or <a href="/contact/en/">click here</a> to tell us about it',
     'sys_err'=>'Mourjan system failure, please try again',

@@ -3438,7 +3438,7 @@ class Bin extends AjaxHandler{
                         if(isset($product[0]['ID']) && $product[0]['ID']){
                             $product = $product[0];
                             $product['MCU'] = (int)$product['MCU'];
-                            $product['USD_PRICE'] = ceil(number_format($product['USD_PRICE'],2));
+                            $product['USD_PRICE'] = number_format($product['USD_PRICE'],2);
                             $orderId='';
                             $order=$this->urlRouter->db->queryResultArray(
                                 "insert into t_order (uid,currency_id,amount,debit,credit,usd_value,server_id) values (?,?,?,?,?,?,?) returning id",

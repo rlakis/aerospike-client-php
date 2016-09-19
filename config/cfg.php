@@ -397,5 +397,6 @@ $config['url_jquery'] = 'https://dv.mourjan.com/web/jquery/1.10.2.2/js/';
 $config['url_jquery'] = 'https://dv.mourjan.com/web/jquery/3.1.0/js/';
 
 $config['server_id'] = get_cfg_var('mourjan.server_id');
+$config['active_maintenance']=0;
 
 ?>
