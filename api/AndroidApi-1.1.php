@@ -70,7 +70,7 @@ class AndroidApi {
                     }
                     //sync my ads
                     $results = $this->api->db->queryResultArray(
-                        'select a.id, a.content, a.state, a.section_id, '
+                        'select a.id, a.content, a.state, a.section_id,a.doc_id, '
                             . 'a.purpose_id,a.media, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', a.last_update) last_update, '
                             . 'IIF(f.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', f.ended_date)) feature_end, '
                             . 'IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) booking_end, '
@@ -96,6 +96,24 @@ class AndroidApi {
                             $content['booked']=$result['BOOKING_END'];
                             $content['book']=$result['BOOKING_START'];
                             $content['featured']=$result['FEATURE_END'];
+                            if(isset($result['DOC_ID']) && $result['DOC_ID']){
+                                $content['SYS_CRAWL']=1;
+                            }elseif(isset($content['SYS_CRAWL'])){
+                                unset($content['SYS_CRAWL']);
+                            }
+                            
+                            if(isset($content['userLOC'])){
+                                unset($content['userLOC']);
+                            }
+                            if(isset($content['ip'])){
+                                unset($content['ip']);
+                            }
+                            if(isset($content['text'])){
+                                unset($content['text']);
+                            }
+                            if (isset($content['attrs'])) {
+                                unset($content['attrs']);
+                            }
                             
                             $this->api->result['d']['ads'][$result['ID']] = json_encode($content);
                         }
@@ -818,7 +836,7 @@ class AndroidApi {
                     $ad_id = filter_input(INPUT_POST, 'adid', FILTER_VALIDATE_INT) + 0;
                     
                     $result = $this->api->db->queryResultArray(
-                            'select a.id, a.content, a.state, a.section_id, a.purpose_id,a.media,DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', a.last_update) last_update, '
+                            'select a.id, a.content, a.state, a.section_id, a.purpose_id,a.media,DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', a.last_update) last_update,a.doc_id, '
                             . 'IIF(f.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', f.ended_date)) feature_end, '
                             . 'IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) booking_end, '                            
                             . 'IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.start_date)) booking_start '                            
@@ -842,6 +860,24 @@ class AndroidApi {
                         $content['featured']=$result[0]['FEATURE_END'];
                         $content['booked']=$result[0]['BOOKING_END'];
                         $content['book']=$result[0]['BOOKING_START'];
+                        if(isset($result[0]['DOC_ID']) && $result[0]['DOC_ID']){
+                            $content['SYS_CRAWL']=1;
+                        }elseif(isset($content['SYS_CRAWL'])){
+                            unset($content['SYS_CRAWL']);
+                        }
+
+                        if(isset($content['userLOC'])){
+                            unset($content['userLOC']);
+                        }
+                        if(isset($content['ip'])){
+                            unset($content['ip']);
+                        }
+                        if(isset($content['text'])){
+                            unset($content['text']);
+                        }
+                        if (isset($content['attrs'])) {
+                            unset($content['attrs']);
+                        }
                         $this->api->result['d']['ad'] = json_encode($content);
                         
                     }else{
@@ -1408,7 +1444,7 @@ class AndroidApi {
 
                                         if($result && count($result)){ 
                                             $result = $this->api->db->queryResultArray(
-                                                    'select a.id, a.content, a.state, a.section_id, a.purpose_id,a.media,DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', a.last_update) last_update, '
+                                                    'select a.id,a.doc_id, a.content, a.state, a.section_id, a.purpose_id,a.media,DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', a.last_update) last_update, '
                                                     . 'IIF(f.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', f.ended_date)) feature_end, '
                                                     . 'IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) booking_end, '                            
                                                     . 'IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.start_date)) booking_start '                            
@@ -1429,6 +1465,24 @@ class AndroidApi {
                                                 $content['featured']=$result[0]['FEATURE_END'];
                                                 $content['booked']=$result[0]['BOOKING_END'];
                                                 $content['book']=$result[0]['BOOKING_START'];
+                                                if(isset($result[0]['DOC_ID']) && $result[0]['DOC_ID']){
+                                                    $content['SYS_CRAWL']=1;
+                                                }elseif(isset($content['SYS_CRAWL'])){
+                                                    unset($content['SYS_CRAWL']);
+                                                }
+
+                                                if(isset($content['userLOC'])){
+                                                    unset($content['userLOC']);
+                                                }
+                                                if(isset($content['ip'])){
+                                                    unset($content['ip']);
+                                                }
+                                                if(isset($content['text'])){
+                                                    unset($content['text']);
+                                                }
+                                                if (isset($content['attrs'])) {
+                                                    unset($content['attrs']);
+                                                }
                                                 $this->api->result['d'] = json_encode($content);
                                             }else{
                                                 $this->api->result['e'] = "500";
@@ -1464,7 +1518,7 @@ class AndroidApi {
                             
                             if($result){
                                 $result = $this->api->db->queryResultArray(
-                                        'select a.id, a.content, a.state, a.section_id, a.purpose_id,a.media,DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', a.last_update) last_update, '
+                                        'select a.id, a.doc_id, a.content, a.state, a.section_id, a.purpose_id,a.media,DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', a.last_update) last_update, '
                                         . 'IIF(f.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', f.ended_date)) feature_end, '
                                         . 'IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) booking_end, '                            
                                         . 'IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.start_date)) booking_start '                            
@@ -1485,6 +1539,24 @@ class AndroidApi {
                                     $content['featured']=$result[0]['FEATURE_END'];
                                     $content['booked']=$result[0]['BOOKING_END'];
                                     $content['book']=$result[0]['BOOKING_START'];
+                                    if(isset($result[0]['DOC_ID']) && $result[0]['DOC_ID']){
+                                        $content['SYS_CRAWL']=1;
+                                    }elseif(isset($content['SYS_CRAWL'])){
+                                        unset($content['SYS_CRAWL']);
+                                    }
+
+                                    if(isset($content['userLOC'])){
+                                        unset($content['userLOC']);
+                                    }
+                                    if(isset($content['ip'])){
+                                        unset($content['ip']);
+                                    }
+                                    if(isset($content['text'])){
+                                        unset($content['text']);
+                                    }
+                                    if (isset($content['attrs'])) {
+                                        unset($content['attrs']);
+                                    }
                                     $this->api->result['d'] = json_encode($content);
                                 }else{
                                         $this->api->result['e'] = "500";
