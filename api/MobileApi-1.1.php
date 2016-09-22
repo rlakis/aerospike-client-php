@@ -1235,7 +1235,9 @@ class MobileApi
             $this->result['d']['a_release'] = $this->config['android_app_release'];
             $this->result['d']['a_force'] = $this->config['android_app_release_enforce'];
             $this->result['d']['ed'] = $this->config['android_enabled_banner_detail']+0;
+            $this->result['d']['edn'] = $this->config['android_enabled_banner_detail_native']+0;
             $this->result['d']['es'] = $this->config['android_enabled_banner_search']+0;
+            $this->result['d']['esn'] = $this->config['android_enabled_banner_search_native']+0;
             $this->result['d']['ee'] = $this->config['android_enabled_banner_exit']+0;
             $this->result['d']['epi'] = $this->config['android_enabled_banner_pending']+0;
             $this->result['d']['edi'] = $this->config['android_enabled_banner_detail_inter']+0;
