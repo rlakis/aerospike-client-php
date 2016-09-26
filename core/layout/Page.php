@@ -28,7 +28,8 @@ class Page extends Site{
     var $pageItemScope='itemscope itemtype="http://schema.org/WebPage"';
 
     function __construct($router){
-        parent::__construct($router);
+        parent::__construct($router);       
+        
         if (isset($this->user->params['user_country']))
         {
             if ($this->user->params['user_country']==='lb'||
@@ -63,6 +64,12 @@ class Page extends Site{
         //$this->urlRouter->cfg['url_js_mobile'] = 'https://dv.mourjan.com/web/js/release';
         //$this->urlRouter->cfg['url_css'] = 'https://dv.mourjan.com/web/css/1.0.0';
         //$this->urlRouter->cfg['url_jquery_mobile'] = 'https://dv.mourjan.com/web/jquery/3.1.0/js/';
+        
+        $this->urlRouter->cfg['url_css'] = '/web/css/release';
+        header("Link: <{$this->urlRouter->cfg['url_css']}/gen_ar.css>; rel=preload; as=style;", false);
+        header("Link: <{$this->urlRouter->cfg['url_css']}/imgs.css>; rel=preload; as=style;", false);
+        //header("Link: </web/css/release/imgs.css>; rel=preload; as=stylesheet;", false);
+        //header("Link '<{$this->urlRouter->cfg['url_css']}/imgs.css>; rel=preload; as=stylesheet';");        
         
         //$this->user->sysAuthById(515496);
         if(!$this->urlRouter->cfg['enabled_users']){
@@ -833,7 +840,7 @@ class Page extends Site{
             else $addOn=$fAddon;
             //if($css == 'main' && $this->isMobile){
             //if (!isset($this->user->params['visit']) || $this->user->params['visit']<2) {
-            if (1 || $this->isMobile) {
+            if ($this->isMobile) {
                 $toRequire[]='/'.$css.$addOn.'.css';
                 $csFile .= preg_replace('/url\((?:\.\/|)i/', 'url('.$source.'/i', file_get_contents($sourceFile. '/'.$css.$addOn. '.css'));
             }else{
@@ -861,7 +868,7 @@ class Page extends Site{
                 echo '<link rel=\'stylesheet\' type=\'text/css\' href=\'', $source, '/imgs.css\' />';
             }
         }*/
-        if(!$this->isMobile){
+        if(0 && !$this->isMobile){
             if ($this->urlRouter->siteLanguage=='ar'){
                 ?><!--[if IE 7]><link rel="stylesheet" type="text/css" href="<?= $this->urlRouter->cfg['url_css'] ?>/ie7_ar.css"><![endif]--><?php
                 ?><!--[if IE 8]><link rel="stylesheet" type="text/css" href="<?= $this->urlRouter->cfg['url_css'] ?>/ie8_ar.css"><![endif]--><?php
