@@ -171,7 +171,6 @@ class MobileApi
         if ($ad) {
             return $ad;
         }
-
         if (!self::$stmt_get_ad || !$this->db->inTransaction()) {
             self::$stmt_get_ad = $this->db->getInstance()->prepare(
                 "select 
@@ -278,6 +277,12 @@ class MobileApi
             if (isset($decoder['userLvl']) && $decoder['userLvl']) {
                 $ad[Classifieds::USER_LEVEL] = $decoder['userLvl'];
             }
+            
+            if (isset($decoder['attrs']['price']) && $decoder['attrs']['price']>0) {
+                $ad[Classifieds::PRICE] = $decoder['attrs']['price'];
+            }else{
+                $ad[Classifieds::PRICE] = 0;
+            }
 
             if ($ad[Classifieds::ROOT_ID]==1) {
                 self::$stmt_get_loc->execute(array($id));
@@ -300,15 +305,47 @@ class MobileApi
         return FALSE;
     }
     
+    function fetchPremiumAds($sphinxQL, $keywords, $rootId, $sectionId){
+        $sphinxQL->resetFilters();
+        $sphinxQL->setFilter('publication_id', 1);
+        if ($this->countryId) {
+            $sphinxQL->setFilter('country', $this->countryId);
+        }
+        if ($this->cityId) {
+            $sphinxQL->setFilter('city', $this->cityId);
+        }
+        if ($sectionId) {
+            $sphinxQL->setFilter('section_id', $sectionId, TRUE);
+        }elseif ($rootId) {
+            $sphinxQL->setFilter('root_id', $rootId, TRUE);
+        }
+        $sphinxQL->setFilterCondition('featured_date_ended', '>=', time());
+        $sphinxQL->setSelect("id" );
+        $sphinxQL->setSortBy("RAND()");
+        $sphinxQL->setLimits(0, 6);
+        
+        if(!$sectionId && !$rootId && $keywords!=''){
+            $words = preg_split('/ /', $keywords);
+            $keywords='';
+            foreach ($words as $word){
+                $keywords .= ' -'.$word;
+            }
+            $keywords = trim($keywords);
+        }
+        
+        return $sphinxQL->Query($keywords, MYSQLI_NUM);
+    }
 
     function search($forceFavorite = false) {
         include_once $this->config['dir'].'/core/lib/SphinxQL.php';
         include_once $this->config['dir'].'/core/model/Classifieds.php';
         $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
+        
+        $device_sysname  = filter_input(INPUT_GET, 'sn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
 
         $num = 20;
         $filters = array();
-        $keywords = filter_input(INPUT_GET, 'q', FILTER_SANITIZE_STRING, ['options'=>['default'=>""]]);
+        $keywords = trim(filter_input(INPUT_GET, 'q', FILTER_SANITIZE_STRING, ['options'=>['default'=>""]]));
         $offset = filter_input(INPUT_GET, 'offset', FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
         $favorite = filter_input(INPUT_GET, 'favorite', FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
         $sortLang = filter_input(INPUT_GET, 'sl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
@@ -378,160 +415,195 @@ class MobileApi
                 }
             }
         }
-
+        $keywords = preg_replace('/@/', '\@', $keywords);
         $query = $sphinxQL->Query($keywords, MYSQLI_NUM);
-
+        
         if ($sphinxQL->getLastError()) {
             $this->result['e'] = $sphinxQL->getLastError();
         } else {
             $this->result['total']=$query['total_found']+0;
             if (isset($query['matches'])) {
                 //$is_ios_client = isset($_SERVER['HTTP_USER_AGENT']) && strstr($_SERVER['HTTP_USER_AGENT'], 'CFNetwork');
-                
                 $model = new Classifieds($this->db);
                 
+                
+                //fetch premium ads
+                $premiumAds = [];
+                $hasPremium = false;
+                if($device_sysname == 'Android' && $this->result['total'] > 0){
+                    $premiumQuery = $this->fetchPremiumAds($sphinxQL, $keywords, $rootId, $sectionId);
+                    if(!$sphinxQL->getLastError() && $premiumQuery['total_found'] && isset($premiumQuery['matches'])){
+                        foreach ($premiumQuery['matches'] as $matches) {
+                            $premiumAds[] = $matches[0];
+                            $hasPremium = true;
+                        }
+                    }
+                }
+                $i = 0;
+                $j = 0;
+                $premiumGap = 14;
+                $pOff = floor($offset / $premiumGap);
+                $j = $pOff * $premiumGap + $premiumGap;
+                $numberofPremium = 0;
+                //$hasPremium = 0;
                 foreach ($query['matches'] as $matches) {
                     $count = count($matches);
 
-                    //$ad = $this->getClassified($matches[0]+0);
                     $ad = $model->getById($matches[0]+0);
                     if ($ad) {
-                        unset($ad[Classifieds::TITLE]);
-                        unset($ad[Classifieds::ALT_TITLE]);
-                        
-                        unset($ad[Classifieds::CANONICAL_ID]);
-                        unset($ad[Classifieds::CATEGORY_ID]);
-                        unset($ad[Classifieds::SECTION_NAME_AR]);
-                        unset($ad[Classifieds::SECTION_NAME_EN]);
-                        unset($ad[Classifieds::HELD]);
-
-                        $emails = $ad[Classifieds::EMAILS];
-                        //$telNumbers = $ad[Classifieds::TELEPHONES];
-                        //$this->result['tels'][] = $ad[Classifieds::TELEPHONES];
-                        /*
-                        if ($is_ios_client && is_array($telNumbers) && count($telNumbers)>2 && empty($telNumbers[0]) && !empty($telNumbers[2])) 
-                        {
-                            $telNumbers[0]=$telNumbers[2];
-                            unset($telNumbers[2]);
-                            $ad[Classifieds::TELEPHONES] = $telNumbers;
-                        }                                                                                           
-                        */
-                        //$tmpContent = $ad[Classifieds::CONTENT];
-
-                        //$telNumbers = [];
-                        $this->cutOfContacts($ad[Classifieds::CONTENT]);
-                        //$this->processTextNumbers($ad[Classifieds::CONTENT], $ad[Classifieds::PUBLICATION_ID], $ad[Classifieds::COUNTRY_CODE], $telNumbers);
-
-                        $ad[Classifieds::CONTENT] = strip_tags($ad[Classifieds::CONTENT]);
-
-                        if($ad[Classifieds::ALT_CONTENT]!=""){
-                            //$tmpTel = [];
-                            //$this->processTextNumbers($ad[Classifieds::ALT_CONTENT], $ad[Classifieds::PUBLICATION_ID], $ad[Classifieds::COUNTRY_CODE], $telNumbers);
-                            $this->cutOfContacts($ad[Classifieds::ALT_CONTENT]);
-                            $ad[Classifieds::ALT_CONTENT] = strip_tags($ad[Classifieds::ALT_CONTENT]);
+                        $this->addAdToResultArray($ad, $matches[2]);
+                        $i++;
+                    }
+                    if($hasPremium && ($j==$i+$offset) && count($premiumAds)){
+                        $j += $premiumGap;
+                        $adId = array_pop($premiumAds);
+                        $ad = $model->getById($adId);
+                        if ($ad) {
+                            $this->addAdToResultArray($ad,$matches[2],true);
+                            $numberofPremium++;
                         }
-                        
-                        if (!empty($emails)) {
-                            $j=0;
-                            $email_regex='';
-                            foreach ($emails as $email){
-                                if($j++)$email_regex.='|';
-                                $email_regex .= addslashes($email);
-                            }
-                            
-                            //check if email still exists after stripping phone numbers
-                            $strpos = strpos($ad[Classifieds::CONTENT], $email);
-                            if($strpos){
-                                $ad[Classifieds::CONTENT] = trim(substr($ad[Classifieds::CONTENT],0, $strpos));
-                                $ad[Classifieds::CONTENT] = trim(preg_replace('/[-\/\\\]$/', '', $ad[Classifieds::CONTENT]));
-                            }
+                    }
+                }
+                if($numberofPremium > 0){
+                    $this->result['p']=[$numberofPremium,$premiumGap];
+                }
+            }
+        }
 
-                            if($ad[Classifieds::ALT_CONTENT]!=""){
-                                $strpos = strpos($ad[Classifieds::ALT_CONTENT], $email);
-                                if($strpos){
-                                    $ad[Classifieds::ALT_CONTENT] = trim(substr($ad[Classifieds::ALT_CONTENT],0, $strpos));
-                                    $ad[Classifieds::ALT_CONTENT] = trim(preg_replace('/[-\/\\\]$/', '', $ad[Classifieds::ALT_CONTENT]));
-                                }
-                            }
-                            
-                        }
+    }
+    
+    function addAdToResultArray($ad,$isFeatured=0, $isPremium=false){
+        unset($ad[Classifieds::TITLE]);
+        unset($ad[Classifieds::ALT_TITLE]);
+
+        unset($ad[Classifieds::CANONICAL_ID]);
+        unset($ad[Classifieds::CATEGORY_ID]);
+        unset($ad[Classifieds::SECTION_NAME_AR]);
+        unset($ad[Classifieds::SECTION_NAME_EN]);
+        unset($ad[Classifieds::HELD]);
+
+        $emails = $ad[Classifieds::EMAILS];
+        //$telNumbers = $ad[Classifieds::TELEPHONES];
+        //$this->result['tels'][] = $ad[Classifieds::TELEPHONES];
+        /*
+        if ($is_ios_client && is_array($telNumbers) && count($telNumbers)>2 && empty($telNumbers[0]) && !empty($telNumbers[2])) 
+        {
+            $telNumbers[0]=$telNumbers[2];
+            unset($telNumbers[2]);
+            $ad[Classifieds::TELEPHONES] = $telNumbers;
+        }                                                                                           
+        */
+        //$tmpContent = $ad[Classifieds::CONTENT];
+
+        //$telNumbers = [];
+        $this->cutOfContacts($ad[Classifieds::CONTENT]);
+        //$this->processTextNumbers($ad[Classifieds::CONTENT], $ad[Classifieds::PUBLICATION_ID], $ad[Classifieds::COUNTRY_CODE], $telNumbers);
+
+        $ad[Classifieds::CONTENT] = strip_tags($ad[Classifieds::CONTENT]);
+
+        if($ad[Classifieds::ALT_CONTENT]!=""){
+            //$tmpTel = [];
+            //$this->processTextNumbers($ad[Classifieds::ALT_CONTENT], $ad[Classifieds::PUBLICATION_ID], $ad[Classifieds::COUNTRY_CODE], $telNumbers);
+            $this->cutOfContacts($ad[Classifieds::ALT_CONTENT]);
+            $ad[Classifieds::ALT_CONTENT] = strip_tags($ad[Classifieds::ALT_CONTENT]);
+        }
+
+        if (!empty($emails)) {
+            $j=0;
+            $email_regex='';
+            foreach ($emails as $email){
+                if($j++)$email_regex.='|';
+                $email_regex .= addslashes($email);
+            }
+
+            //check if email still exists after stripping phone numbers
+            $strpos = strpos($ad[Classifieds::CONTENT], $email);
+            if($strpos){
+                $ad[Classifieds::CONTENT] = trim(substr($ad[Classifieds::CONTENT],0, $strpos));
+                $ad[Classifieds::CONTENT] = trim(preg_replace('/[-\/\\\]$/', '', $ad[Classifieds::CONTENT]));
+            }
+
+            if($ad[Classifieds::ALT_CONTENT]!=""){
+                $strpos = strpos($ad[Classifieds::ALT_CONTENT], $email);
+                if($strpos){
+                    $ad[Classifieds::ALT_CONTENT] = trim(substr($ad[Classifieds::ALT_CONTENT],0, $strpos));
+                    $ad[Classifieds::ALT_CONTENT] = trim(preg_replace('/[-\/\\\]$/', '', $ad[Classifieds::ALT_CONTENT]));
+                }
+            }
+
+        }
 /*
-                        $emails = $this->detectEmail($tmpContent);
-                        if($emails && count($emails)){
-                            $emails = $emails[0];
-                            if($emails && count($emails)){
-                                $j=0;
-                                $email_regex='';
-                                foreach ($emails as $email){
-                                    if($j++)$email_regex.='|';
-                                    $email_regex .= addslashes($email);
-                                }
-                                //check if email still exists after stripping phone numbers
-                                $strpos = strpos($ad[Classifieds::CONTENT], $email);
-                                if($strpos){
-                                    $ad[Classifieds::CONTENT] = trim(substr($ad[Classifieds::CONTENT],0, $strpos));
-                                    $ad[Classifieds::CONTENT] = trim(preg_replace('/[-\/\\\]$/', '', $ad[Classifieds::CONTENT]));
-                                }
+        $emails = $this->detectEmail($tmpContent);
+        if($emails && count($emails)){
+            $emails = $emails[0];
+            if($emails && count($emails)){
+                $j=0;
+                $email_regex='';
+                foreach ($emails as $email){
+                    if($j++)$email_regex.='|';
+                    $email_regex .= addslashes($email);
+                }
+                //check if email still exists after stripping phone numbers
+                $strpos = strpos($ad[Classifieds::CONTENT], $email);
+                if($strpos){
+                    $ad[Classifieds::CONTENT] = trim(substr($ad[Classifieds::CONTENT],0, $strpos));
+                    $ad[Classifieds::CONTENT] = trim(preg_replace('/[-\/\\\]$/', '', $ad[Classifieds::CONTENT]));
+                }
 
-                                if($ad[Classifieds::ALT_CONTENT]!=""){
-                                    $strpos = strpos($ad[Classifieds::ALT_CONTENT], $email);
-                                    if($strpos){
-                                        $ad[Classifieds::ALT_CONTENT] = trim(substr($ad[Classifieds::ALT_CONTENT],0, $strpos));
-                                        $ad[Classifieds::ALT_CONTENT] = trim(preg_replace('/[-\/\\\]$/', '', $ad[Classifieds::ALT_CONTENT]));
-                                    }
-                                }
-                            }
-                        }
-                        
-                        $ad[Classifieds::EMAILS] = $emails;
-                        $ad[Classifieds::TELEPHONES] = $telNumbers;
-*/
-                        
-                        $this->result['d'][] = [
-                            $ad[Classifieds::ID],//0
-                            $ad[Classifieds::PUBLICATION_ID],//1
-                            $ad[Classifieds::COUNTRY_ID],//2
-                            $ad[Classifieds::CITY_ID],//3
-                            $ad[Classifieds::PURPOSE_ID],//4
-                            $ad[Classifieds::ROOT_ID],//5
-                            $ad[Classifieds::CONTENT],//6
-                            $ad[Classifieds::RTL],//7
-                            $ad[Classifieds::DATE_ADDED],//8
-                            $ad[Classifieds::SECTION_ID],//9
-                            $ad[Classifieds::COUNTRY_CODE],//10
-                            $ad[Classifieds::UNIXTIME],//11
-                            $ad[Classifieds::EXPIRY_DATE],//12
-                            $ad[Classifieds::URI_FORMAT],//13
-                            $ad[Classifieds::LAST_UPDATE],//14
-                            $ad[Classifieds::LATITUDE],//15
-                            $ad[Classifieds::LONGITUDE],//16
-                            $ad[Classifieds::ALT_CONTENT],//17
-                            $ad[Classifieds::USER_ID],//18
-                            isset($ad[Classifieds::PICTURES]) ? $ad[Classifieds::PICTURES] : "",//19
-                            isset($ad[Classifieds::VIDEO]) ? $ad[Classifieds::VIDEO] : "",//20
-                            isset($ad[Classifieds::EXTENTED_AR]) ? $ad[Classifieds::EXTENTED_AR] : "",//21
-                            isset($ad[Classifieds::EXTENTED_EN]) ? $ad[Classifieds::EXTENTED_EN] : "",//22
-                            isset($ad[Classifieds::LOCALITY_ID]) ? $ad[Classifieds::LOCALITY_ID] : 0,//23
-                            isset($ad[Classifieds::LOCALITIES_AR]) ? $ad[Classifieds::LOCALITIES_AR] : "",//24
-                            isset($ad[Classifieds::LOCALITIES_EN]) ? $ad[Classifieds::LOCALITIES_EN] : "",//25
-                            isset($ad[Classifieds::USER_LEVEL]) ? $ad[Classifieds::USER_LEVEL] : 0,//26
-                            isset($ad[Classifieds::LOCATION]) ? $ad[Classifieds::LOCATION] : "",//27
-                            isset($ad[Classifieds::PICTURES_DIM]) ? $ad[Classifieds::PICTURES_DIM] : "",//28
-                            $ad[Classifieds::TELEPHONES], //29
-                            $ad[Classifieds::EMAILS],//30
-                            //featured flag
-                            $matches[2]+0,//31
-                            isset($ad[Classifieds::CONTACT_INFO]) ? $ad[Classifieds::CONTACT_INFO] : "",//32 (revise for production)
-                            isset($ad[Classifieds::CONTACT_TIME]) ? $ad[Classifieds::CONTACT_TIME] : "",//33 (revise for production)
-                            isset($ad[Classifieds::PUBLISHER_TYPE]) ? $ad[Classifieds::PUBLISHER_TYPE] : 0//34
-                        ];
-
-
+                if($ad[Classifieds::ALT_CONTENT]!=""){
+                    $strpos = strpos($ad[Classifieds::ALT_CONTENT], $email);
+                    if($strpos){
+                        $ad[Classifieds::ALT_CONTENT] = trim(substr($ad[Classifieds::ALT_CONTENT],0, $strpos));
+                        $ad[Classifieds::ALT_CONTENT] = trim(preg_replace('/[-\/\\\]$/', '', $ad[Classifieds::ALT_CONTENT]));
                     }
                 }
             }
         }
 
+        $ad[Classifieds::EMAILS] = $emails;
+        $ad[Classifieds::TELEPHONES] = $telNumbers;
+*/
+
+        $this->result['d'][] = [
+            $ad[Classifieds::ID],//0
+            $ad[Classifieds::PUBLICATION_ID],//1
+            $ad[Classifieds::COUNTRY_ID],//2
+            $ad[Classifieds::CITY_ID],//3
+            $ad[Classifieds::PURPOSE_ID],//4
+            $ad[Classifieds::ROOT_ID],//5
+            $ad[Classifieds::CONTENT],//6
+            $ad[Classifieds::RTL],//7
+            $ad[Classifieds::DATE_ADDED],//8
+            $ad[Classifieds::SECTION_ID],//9
+            $ad[Classifieds::COUNTRY_CODE],//10
+            $ad[Classifieds::UNIXTIME],//11
+            $ad[Classifieds::EXPIRY_DATE],//12
+            $ad[Classifieds::URI_FORMAT],//13
+            $ad[Classifieds::LAST_UPDATE],//14
+            $ad[Classifieds::LATITUDE],//15
+            $ad[Classifieds::LONGITUDE],//16
+            $ad[Classifieds::ALT_CONTENT],//17
+            $ad[Classifieds::USER_ID],//18
+            isset($ad[Classifieds::PICTURES]) ? $ad[Classifieds::PICTURES] : "",//19
+            isset($ad[Classifieds::VIDEO]) ? $ad[Classifieds::VIDEO] : "",//20
+            isset($ad[Classifieds::EXTENTED_AR]) ? $ad[Classifieds::EXTENTED_AR] : "",//21
+            isset($ad[Classifieds::EXTENTED_EN]) ? $ad[Classifieds::EXTENTED_EN] : "",//22
+            isset($ad[Classifieds::LOCALITY_ID]) ? $ad[Classifieds::LOCALITY_ID] : 0,//23
+            isset($ad[Classifieds::LOCALITIES_AR]) ? $ad[Classifieds::LOCALITIES_AR] : "",//24
+            isset($ad[Classifieds::LOCALITIES_EN]) ? $ad[Classifieds::LOCALITIES_EN] : "",//25
+            isset($ad[Classifieds::USER_LEVEL]) ? $ad[Classifieds::USER_LEVEL] : 0,//26
+            isset($ad[Classifieds::LOCATION]) ? $ad[Classifieds::LOCATION] : "",//27
+            isset($ad[Classifieds::PICTURES_DIM]) ? $ad[Classifieds::PICTURES_DIM] : "",//28
+            $ad[Classifieds::TELEPHONES], //29
+            $ad[Classifieds::EMAILS],//30
+            //featured flag
+            $isFeatured+0,//31
+            isset($ad[Classifieds::CONTACT_INFO]) ? $ad[Classifieds::CONTACT_INFO] : "",//32 (revise for production)
+            isset($ad[Classifieds::CONTACT_TIME]) ? $ad[Classifieds::CONTACT_TIME] : "",//33 (revise for production)
+            isset($ad[Classifieds::PUBLISHER_TYPE]) ? $ad[Classifieds::PUBLISHER_TYPE] : 0,//34
+            $isPremium ? 1:0,//35
+            isset($ad[Classifieds::PRICE]) ? $ad[Classifieds::PRICE] : 0//36
+        ];
     }
 
 
@@ -1241,6 +1313,10 @@ class MobileApi
             $this->result['d']['ee'] = $this->config['android_enabled_banner_exit']+0;
             $this->result['d']['epi'] = $this->config['android_enabled_banner_pending']+0;
             $this->result['d']['edi'] = $this->config['android_enabled_banner_detail_inter']+0;
+            $this->result['d']['esl'] = $this->config['android_enabled_banner_search_native_list']+0;
+            $this->result['d']['eslf'] = $this->config['android_banner_search_native_list_first_idx']+0;
+            $this->result['d']['eslg'] = $this->config['android_banner_search_native_list_gap']+0;
+            $this->result['d']['eslz'] = $this->config['android_banner_search_native_list_freq']+0;
         }
 
         if (empty($carrier_country)) {

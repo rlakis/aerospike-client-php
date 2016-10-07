@@ -61,6 +61,7 @@ class Classifieds {
     const USER_RANK             = 44;
     
     const PUBLISHER_TYPE        = 45;
+    const PRICE                 = 46;
     
     const DONE                  = 99;
 
@@ -74,7 +75,7 @@ class Classifieds {
     private $formatNumbers=1;
     private $mobileValidator=null;
     
-    private $isDebugMode=false;
+    private $isDebugMode=true;
 
     function __construct($database){
         $this->db = $database;
@@ -85,8 +86,7 @@ class Classifieds {
         if (!is_numeric($id)) return FALSE;
         $id=$id+0;
         if ($id<=0) return FALSE;
-        
-        if ($this->isDebugMode || !$forceCache) {
+        if (!$this->isDebugMode && !$forceCache) {
             if(count($cacheSet)>0 && isset($cacheSet[$id])){
                 $ad = $cacheSet[$id];
             }else{
@@ -215,6 +215,12 @@ class Classifieds {
             if (isset($decoder['userLvl']) && $decoder['userLvl']) {
                 $ad[Classifieds::USER_LEVEL] = $decoder['userLvl'];
             }
+            
+            if (isset($decoder['attrs']['price']) && $decoder['attrs']['price']>0) {
+                $ad[Classifieds::PRICE] = $decoder['attrs']['price'];
+            }else{
+                $ad[Classifieds::PRICE] = 0;
+            }
 
             if ($ad[Classifieds::ROOT_ID]==1) {
                 self::$stmt_get_loc->execute(array($id));
@@ -229,6 +235,7 @@ class Classifieds {
                     $ad[$extRow['LANG']=='ar' ? Classifieds::EXTENTED_AR : Classifieds::EXTENTED_EN] = $extRow['SECTION_TAG_ID']+0;
                 }
             }
+            
             
             $this->normalizeContacts($ad);
 
