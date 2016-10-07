@@ -322,7 +322,7 @@ class MobileApi
         $sphinxQL->setFilterCondition('featured_date_ended', '>=', time());
         $sphinxQL->setSelect("id" );
         $sphinxQL->setSortBy("RAND()");
-        $sphinxQL->setLimits(0, 6);
+        $sphinxQL->setLimits(0, 3);
         
         if(!$sectionId && !$rootId && $keywords!=''){
             $words = preg_split('/ /', $keywords);
@@ -441,7 +441,7 @@ class MobileApi
                 }
                 $i = 0;
                 $j = 0;
-                $premiumGap = 14;
+                $premiumGap = 20;
                 $pOff = floor($offset / $premiumGap);
                 $j = $pOff * $premiumGap + $premiumGap;
                 $numberofPremium = 0;
