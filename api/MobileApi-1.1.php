@@ -341,6 +341,7 @@ class MobileApi
         include_once $this->config['dir'].'/core/model/Classifieds.php';
         $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
         
+        //this variable specifies if app is Android 1.2.1+
         $device_sysname  = filter_input(INPUT_GET, 'sn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
 
         $num = 20;
@@ -441,11 +442,13 @@ class MobileApi
                 }
                 $i = 0;
                 $j = 0;
-                $premiumGap = 20;
+                $premiumGap = 14;
                 $pOff = floor($offset / $premiumGap);
                 $j = $pOff * $premiumGap + $premiumGap;
+                $numberOfAds = floor( ($j-1) / $premiumGap);                
+                $j += $numberOfAds;
                 $numberofPremium = 0;
-                //$hasPremium = 0;
+                
                 foreach ($query['matches'] as $matches) {
                     $count = count($matches);
 
@@ -453,14 +456,18 @@ class MobileApi
                     if ($ad) {
                         $this->addAdToResultArray($ad, $matches[2]);
                         $i++;
-                    }
-                    if($hasPremium && ($j==$i+$offset) && count($premiumAds)){
-                        $j += $premiumGap;
-                        $adId = array_pop($premiumAds);
-                        $ad = $model->getById($adId);
-                        if ($ad) {
-                            $this->addAdToResultArray($ad,$matches[2],true);
-                            $numberofPremium++;
+                        if($hasPremium && count($premiumAds)){
+                            $translated_i = $i + $offset + $numberOfAds;                        
+                            if($j==$translated_i){
+                                $j += $premiumGap+1;
+                                $numberOfAds++;
+                                $adId = array_pop($premiumAds);
+                                $ad = $model->getById($adId);
+                                if ($ad) {
+                                    $this->addAdToResultArray($ad,$matches[2],true);
+                                    $numberofPremium++;
+                                }
+                            }
                         }
                     }
                 }
