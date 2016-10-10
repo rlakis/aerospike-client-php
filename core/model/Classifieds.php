@@ -1,5 +1,4 @@
 <?php
-
 require 'vendor/autoload.php';
 use libphonenumber\PhoneNumber;
 use libphonenumber\PhoneNumberToCarrierMapper;
@@ -75,7 +74,7 @@ class Classifieds {
     private $formatNumbers=1;
     private $mobileValidator=null;
     
-    private $isDebugMode=true;
+    private $isDebugMode=false;
 
     function __construct($database){
         $this->db = $database;
