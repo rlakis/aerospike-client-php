@@ -844,7 +844,7 @@ class MobileApi
         if ($this->uid>0 && !empty($this->uuid)) {
             $status = 0;
             $q = $this->db->queryResultArray(
-                    "select d.uid,d.app_prefs, u.opts, u.full_name,u.identifier,u.email,u.provider,u.profile_url,IIF(m.STATUS IS NULL, 10, m.STATUS) STATUS, "
+                    "select d.uid,d.push_id,d.device_sysname,d.app_prefs, u.opts, u.full_name,u.identifier,u.email,u.provider,u.profile_url,IIF(m.STATUS IS NULL, 10, m.STATUS) STATUS, "
                     . "IIF(m.SECRET is null, '', m.SECRET) secret, IIF(m.MOBILE is null, 0, m.MOBILE) mobile, u.lvl, "
                     . "DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', d.last_visit) as device_last_visit, "
                     . "DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', u.last_visit) as user_last_visit, "
@@ -874,6 +874,10 @@ class MobileApi
                 $opts->phone_number = $q[0]['MOBILE']+0;
                 $opts->disallow_purchase = $q[0]['DISALLOW_PURCHASE']+0;
                 $opts->cuid = $q[0]['CUID'];
+                
+                if($q[0]['DEVICE_SYSNAME']=='Android'){
+                    $opts->push = $q[0]['PUSH_ID'];
+                }
                 
                 if(in_array($q[0]['PROVIDER'], array('mourjan','facebook','twitter','yahoo','google','live','linkedin')))
                 {
@@ -1324,6 +1328,7 @@ class MobileApi
             $this->result['d']['eslf'] = $this->config['android_banner_search_native_list_first_idx']+0;
             $this->result['d']['eslg'] = $this->config['android_banner_search_native_list_gap']+0;
             $this->result['d']['eslz'] = $this->config['android_banner_search_native_list_freq']+0;
+            $this->result['d']['push'] = $opts->push;
         }
 
         if (empty($carrier_country)) {
