@@ -608,10 +608,14 @@ class AndroidApi {
                         
                         
                         $isSCAM = 0;
+                        $requireReview = 0;
                         if(isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0){
                             $blockedEmailPatterns = addcslashes(implode('|', $this->api->config['restricted_email_domains']),'.');
                             $isSCAM = preg_match('/'.$blockedEmailPatterns.'/ui', $ad['cui']['e']);
-                        }                           
+                        }   
+                        if(!$isSCAM && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0){
+                            $requireReview = preg_match('/\+.*@/', $ad['cui']['e']);
+                        }
                         
                         
                         if($ad['se']==0 || count($ad['pubTo'])==0){
@@ -638,6 +642,8 @@ class AndroidApi {
                             
                             $this->setLevel($this->api->getUID(),5);
                             
+                        }elseif($requireReview){
+                            $this->referrToSuperAdmin($adId);
                         }elseif($hasFailure){
                             $ad_id = 0;
                             $state = 3;
@@ -1926,6 +1932,17 @@ class AndroidApi {
             }
         }
         return $state;
+    }
+    
+    function referrToSuperAdmin($id){
+        $result=false;
+        $res=$this->api->db->queryResultArray(
+                    'update ad_object set super_admin=1 where id=?',
+                    array($id),true);
+        if ($res!==false) {
+            $result=true;
+        }
+        return $result;
     }
     
     function setLevel($id,$level){

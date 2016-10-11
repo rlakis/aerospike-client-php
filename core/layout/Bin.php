@@ -2339,9 +2339,13 @@ class Bin extends AjaxHandler{
                             }
                         }
                         $isSCAM = 0;
+                        $requireReview = 0;
                         if($publish== 1 && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0){
                             $blockedEmailPatterns = addcslashes(implode('|', $this->urlRouter->cfg['restricted_email_domains']),'.');
                             $isSCAM = preg_match('/'.$blockedEmailPatterns.'/ui', $ad['cui']['e']);
+                        }
+                        if(!$isSCAM && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0){
+                            $requireReview = preg_match('/\+.*@/', $ad['cui']['e']);
                         }
                         
                         if($publish == 1 && isset($ad['budget']) && is_numeric($ad['budget']) && $ad['budget']> 0){
@@ -2401,6 +2405,8 @@ class Bin extends AjaxHandler{
                             
                             $this->user->setLevel($this->user->info['id'],5);
                         
+                        }elseif($requireReview){
+                            $this->user->referrToSuperAdmin($adId);
                         }else{
                             
                             $status = 0;
