@@ -396,7 +396,7 @@ class AndroidApi {
                 break;
             case API_ANDROID_WATCHLIST_ADD:                
                 $this->api->userStatus($status);
-                if ($status == 1) {
+                //if ($status == 1) {
                     $this->api->db->setWriteMode();
                     $data = urldecode(filter_input(INPUT_GET, 'data', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '']]));
                     $data = json_decode($data, true);
@@ -435,11 +435,11 @@ class AndroidApi {
                         }
                     }
                     $stmt->closeCursor();
-                }
+                //}
                 break;
             case API_ANDROID_WATCHLIST_REMOVE:                
                 $this->api->userStatus($status);
-                if ($status == 1) {
+                //if ($status == 1) {
                     $this->api->db->setWriteMode();
                     $data = urldecode(filter_input(INPUT_GET, 'data', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '']]));
                     $data = json_decode($data, true);
@@ -468,11 +468,11 @@ class AndroidApi {
                         }
                     }
                     $stmt->closeCursor();
-                }
+                //}
                 break;
             case API_ANDROID_WATCHLIST_TOUCH:                
                 $this->api->userStatus($status);
-                if ($status == 1) {
+                //if ($status == 1) {
                     $data = urldecode(filter_input(INPUT_GET, 'data', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '']]));
                     $data = json_decode($data, true);
                     if (is_array($data) && count($data)) {
@@ -489,7 +489,7 @@ class AndroidApi {
                                 . 'and locality_id = ? and purpose_id = ? and query_term = ? and publisher_type = ?', [$this->api->getUID(), $req['country_id'], $req['city_id'], $req['section_id'], $req['tag_id'], $req['geo_id'], $req['purpose_id'], $req['query'], $publisherType], TRUE
                         );
                     }
-                }
+                //}
                 break;
             case API_ANDROID_POST_AD:         
                 if($this->api->config['active_maintenance']){
