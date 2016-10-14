@@ -45,7 +45,7 @@ class Page extends Site{
                 $this->urlRouter->cfg['url_resources']      = $cdn;
                 $this->urlRouter->cfg['url_ad_img']         = $cdn;
                 $this->urlRouter->cfg['url_img']            = $cdn.'/img/1.0.3';
-                $this->urlRouter->cfg['url_js']             = $cdn.'/js/3.1.3';
+                $this->urlRouter->cfg['url_js']             = $cdn.'/js/3.1.4';
                 $this->urlRouter->cfg['url_js_mobile']      = $cdn.'/js/3.1.3';
                 $this->urlRouter->cfg['url_css']            = $cdn.'/css/5.4.3';
                 $this->urlRouter->cfg['url_css_mobile']     = $cdn.'/css/5.2.8g';
@@ -65,9 +65,9 @@ class Page extends Site{
         //$this->urlRouter->cfg['url_css'] = 'https://dv.mourjan.com/web/css/1.0.0';
         //$this->urlRouter->cfg['url_jquery_mobile'] = 'https://dv.mourjan.com/web/jquery/3.1.0/js/';
         
-        $this->urlRouter->cfg['url_css'] = '/web/css/release';
-        header("Link: <{$this->urlRouter->cfg['url_css']}/gen_ar.css>; rel=preload; as=style;", false);
-        header("Link: <{$this->urlRouter->cfg['url_css']}/imgs.css>; rel=preload; as=style;", false);
+        //$this->urlRouter->cfg['url_css'] = '/web/css/release';
+        //header("Link: <{$this->urlRouter->cfg['url_css']}/gen_ar.css>; rel=preload; as=style;", false);
+        //header("Link: <{$this->urlRouter->cfg['url_css']}/imgs.css>; rel=preload; as=style;", false);
         //header("Link: </web/css/release/imgs.css>; rel=preload; as=stylesheet;", false);
         //header("Link '<{$this->urlRouter->cfg['url_css']}/imgs.css>; rel=preload; as=stylesheet';");        
         
@@ -840,7 +840,7 @@ class Page extends Site{
             else $addOn=$fAddon;
             //if($css == 'main' && $this->isMobile){
             //if (!isset($this->user->params['visit']) || $this->user->params['visit']<2) {
-            if ($this->isMobile) {
+            if (1 || $this->isMobile) {
                 $toRequire[]='/'.$css.$addOn.'.css';
                 $csFile .= preg_replace('/url\((?:\.\/|)i/', 'url('.$source.'/i', file_get_contents($sourceFile. '/'.$css.$addOn. '.css'));
             }else{
@@ -868,7 +868,7 @@ class Page extends Site{
                 echo '<link rel=\'stylesheet\' type=\'text/css\' href=\'', $source, '/imgs.css\' />';
             }
         }*/
-        if(0 && !$this->isMobile){
+        if(!$this->isMobile){
             if ($this->urlRouter->siteLanguage=='ar'){
                 ?><!--[if IE 7]><link rel="stylesheet" type="text/css" href="<?= $this->urlRouter->cfg['url_css'] ?>/ie7_ar.css"><![endif]--><?php
                 ?><!--[if IE 8]><link rel="stylesheet" type="text/css" href="<?= $this->urlRouter->cfg['url_css'] ?>/ie8_ar.css"><![endif]--><?php

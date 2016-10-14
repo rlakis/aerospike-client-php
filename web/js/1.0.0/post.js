@@ -143,7 +143,7 @@ function savAd(p, clr){
         saveXHR.abort();
         saveXHR=null;
     }
-    if(!clr){
+    if(typeof(clr)!=='undefined' && clr){
         ad.budget=0;
     }
     ad.extra=extra;
@@ -3217,5 +3217,5 @@ function confirmPremium(sp){
 }
 function makePremium(c){
     ad.budget = c;
-    savAd(1, true);
+    savAd(1);
 }

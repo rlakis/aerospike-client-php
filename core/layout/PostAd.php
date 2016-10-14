@@ -874,18 +874,18 @@ class PostAd extends Page{
                             $with = $budget.' Golds';
                         }
                     }
-                    ?><li class="pid"><b class="ah ctr"><span onclick="savAd(1,true)" class="button bt btw gold"><?= $this->lang['publish_ad_premium'].' '.$this->lang['with'].$with ?></span><br /><br /></b></li><?php
+                    ?><li class="pid"><b class="ah ctr"><span onclick="savAd(1)" class="button bt btw gold"><?= $this->lang['publish_ad_premium'].' '.$this->lang['with'].$with ?></span><br /><br /></b></li><?php
                 }
-                ?><li class="pid"><b class="ah ctr"><span onclick="savAd(1<?= ($this->user->info['level']==9 && $this->user->pending['post']['user'] != $this->user->info['id']) ? ',true':'' ?>)" class="button bt btw ok"><?= $this->lang['publish_ad_free'] ?></span></b></li><?php
+                ?><li class="pid"><b class="ah ctr"><span onclick="savAd(1<?= ($this->user->pending['post']['user'] == $this->user->info['id']) ? ',true':'' ?>)" class="button bt btw ok"><?= $this->lang['publish_ad_free'] ?></span></b></li><?php
                 if(!$this->isMobile && $this->userBalance && $this->user->pending['post']['user'] == $this->user->info['id']){
                     //$this->globalScript.='uqss="'.$this->urlRouter->cfg['url_jquery_ui'].'";';
                     ?><li class="pid"><b class="ah ctr"><span onclick="savAdP()" class="button bt btw gold"><?= $this->lang['publish_ad_premium'] ?></span></b></li><?php
                 }
                 if($this->user->info['level']==9){
-                    ?><li class="pid"><b class="ah ctr"><span onclick="savAd(2<?= ($this->user->info['level']==9 && $this->user->pending['post']['user'] != $this->user->info['id']) ? ',true':'' ?>)" class="button bt btw ok"><?= $this->lang['approve'] ?></span></b></li><?php
+                    ?><li class="pid"><b class="ah ctr"><span onclick="savAd(2)" class="button bt btw ok"><?= $this->lang['approve'] ?></span></b></li><?php
                 }
                 if($this->user->info['level']!=9 || ($this->user->pending['post']['user'] == $this->user->info['id']) ){
-                    ?><li class="pid"><b class="ah ctr"><span onclick="savAd(-1)" class="button bt btw cl ah"><?= $this->lang['savePending'] ?></span></b></li><?php
+                    ?><li class="pid"><b class="ah ctr"><span onclick="savAd(-1,true)" class="button bt btw cl ah"><?= $this->lang['savePending'] ?></span></b></li><?php
                 }
             ?></ul><?php 
             if(!$this->isMobile && $this->userBalance && ($this->user->info['level']!=9 || ($this->user->pending['post']['user'] == $this->user->info['id']) )){
@@ -2470,7 +2470,9 @@ function myloc(force){
                 ?><ul class="radio"><?php
                 ?><li><input type="radio" onchange="rgen(this)" name="oLoc" value="<?= $this->user->pending['post']['loc'] ?>" <?= ($sloc==$this->user->pending['post']['loc']?' checked':'') ?>/><?= $this->user->pending['post']['loc'] ?></li><?php
                 ?><li><input type="radio" onchange="rgen(this)" name="oLoc" value="<?= $this->user->pending['post']['gloc'] ?>" <?= ($sloc==$this->user->pending['post']['gloc']?' checked':'') ?>/><?= $this->user->pending['post']['gloc'] ?></li><?php
-                if ($this->user->pending['post']['tloc']!=$this->user->pending['post']['gloc']){ ?><li><input type="radio" onchange="rgen(this)" name="oLoc" value="<?= $this->user->pending['post']['tloc'] ?>" <?= ($sloc==$this->user->pending['post']['tloc']?' checked':'') ?>/><?= $this->user->pending['post']['tloc'] ?></li><? }
+                if ($this->user->pending['post']['tloc']!=$this->user->pending['post']['gloc']){ 
+                    ?><li><input type="radio" onchange="rgen(this)" name="oLoc" value="<?= $this->user->pending['post']['tloc'] ?>" <?= ($sloc==$this->user->pending['post']['tloc']?' checked':'') ?>/><?= $this->user->pending['post']['tloc'] ?></li><?php 
+                }
                 ?><li><input type="radio" onchange="rgen(this)" name="oLoc" value="<?= $this->user->pending['post']['dcni'] ?>" <?= ($sloc==$this->user->pending['post']['dcni']?' checked':'') ?>/><?= $this->user->pending['post']['dcni']
                 ?><input type="hidden" id="sloc" value="<?= $sloc ?>" /></li><?php
                 ?></ul></li><?php 
