@@ -336,6 +336,7 @@ class MobileApi
         return $sphinxQL->Query($keywords, MYSQLI_NUM);
     }
 
+    
     function search($forceFavorite = false) {
         include_once $this->config['dir'].'/core/lib/SphinxQL.php';
         include_once $this->config['dir'].'/core/model/Classifieds.php';
@@ -379,15 +380,15 @@ class MobileApi
             $localityId = filter_input(INPUT_GET, 'locality', FILTER_VALIDATE_INT)+0;
             $adId = filter_input(INPUT_GET, 'aid', FILTER_VALIDATE_INT)+0;
 
-            if ($adId) $sphinxQL->setFilter('id', $adId);
-            if ($this->countryId) $sphinxQL->setFilter('country', $this->countryId);
-            if ($this->cityId)    $sphinxQL->setFilter('city', $this->cityId);
-            if ($rootId)          $sphinxQL->setFilter('root_id', $rootId);
-            if ($sectionId)       $sphinxQL->setFilter('section_id', $sectionId);
-            if ($tagId)           $sphinxQL->setFilter('section_tag_id', $tagId);
-            if ($localityId)      $sphinxQL->setFilter('locality_id', $localityId);
-            if ($purposeId)       $sphinxQL->setFilter('purpose_id', $purposeId);
-            if ($publisherType)   $sphinxQL->setFilter('publisher_type', $publisherType); 
+            if ($adId)              $sphinxQL->setFilter('id', $adId);
+            if ($this->countryId)   $sphinxQL->setFilter('country', $this->countryId);
+            if ($this->cityId)      $sphinxQL->setFilter('city', $this->cityId);
+            if ($rootId)            $sphinxQL->setFilter('root_id', $rootId);
+            if ($sectionId)         $sphinxQL->setFilter('section_id', $sectionId);
+            if ($tagId)             $sphinxQL->setFilter('section_tag_id', $tagId);
+            if ($localityId)        $sphinxQL->setFilter('locality_id', $localityId);
+            if ($purposeId)         $sphinxQL->setFilter('purpose_id', $purposeId);
+            if ($publisherType)     $sphinxQL->setFilter('publisher_type', $publisherType); 
         }
 
         if ($sortLang=='ar') {
@@ -478,6 +479,7 @@ class MobileApi
         }
 
     }
+    
     
     function addAdToResultArray($ad,$isFeatured=0, $isPremium=false){
         unset($ad[Classifieds::TITLE]);
@@ -859,7 +861,7 @@ class MobileApi
                 $opts = json_decode($q[0]['OPTS']);
                 if(is_null($opts) || !is_object($opts)){
                     $opts = json_decode("{}");
-                }
+                } 
                 if($q[0]['APP_PREFS']){
                     $opts->prefs = json_decode(base64_decode($q[0]['APP_PREFS']),true);
                 }else{
@@ -906,7 +908,7 @@ class MobileApi
                     return $opts;
                 }
             }
-            
+            else $opts = json_decode("{}");
             /*
             $q=$this->db->queryResultArray(
                     "select u.IDENTIFIER, u.USER_EMAIL, u.OPTS, u.FULL_NAME, IIF(m.STATUS IS NULL, 10, m.STATUS) STATUS, m.SECRET "
@@ -1328,6 +1330,7 @@ class MobileApi
             $this->result['d']['eslf'] = $this->config['android_banner_search_native_list_first_idx']+0;
             $this->result['d']['eslg'] = $this->config['android_banner_search_native_list_gap']+0;
             $this->result['d']['eslz'] = $this->config['android_banner_search_native_list_freq']+0;
+            if (isset($opts->push))
             $this->result['d']['push'] = $opts->push;
         }
 
