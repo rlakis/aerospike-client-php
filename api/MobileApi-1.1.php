@@ -344,6 +344,10 @@ class MobileApi
         
         //this variable specifies if app is Android 1.2.1+
         $device_sysname  = filter_input(INPUT_GET, 'sn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+        if ($device_sysname=='ios')
+        {
+            $this->result['cdn'] = 'https://cdn.mourjan.com';
+        }
 
         $num = 20;
         $filters = array();
@@ -352,6 +356,7 @@ class MobileApi
         $favorite = filter_input(INPUT_GET, 'favorite', FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
         $sortLang = filter_input(INPUT_GET, 'sl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
         $sortBy = filter_input(INPUT_GET, 'sm', FILTER_VALIDATE_INT, ['options'=>['default'=>0]]);
+        $adMobAlreadySent = filter_input(INPUT_GET, 'admob', FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
         
         $publisherType = filter_input(INPUT_GET, 'pt', FILTER_VALIDATE_INT, ['options'=>['default'=>0]]);
         if(!in_array($publisherType, [0,1,2])){
@@ -432,9 +437,11 @@ class MobileApi
                 //fetch premium ads
                 $premiumAds = [];
                 $hasPremium = false;
-                if($device_sysname == 'Android' && $this->result['total'] > 0){
+                if (($device_sysname == 'Android' || $device_sysname=='ios') && $this->result['total'] > 0 && !($favorite || $forceFavorite))
+                {
                     $premiumQuery = $this->fetchPremiumAds($sphinxQL, $keywords, $rootId, $sectionId);
-                    if(!$sphinxQL->getLastError() && $premiumQuery['total_found'] && isset($premiumQuery['matches'])){
+                    if(!$sphinxQL->getLastError() && $premiumQuery['total_found'] && isset($premiumQuery['matches']))
+                    {
                         foreach ($premiumQuery['matches'] as $matches) {
                             $premiumAds[] = $matches[0];
                             $hasPremium = true;
@@ -449,22 +456,32 @@ class MobileApi
                 $numberOfAds = floor( ($j-1) / $premiumGap);                
                 $j += $numberOfAds;
                 $numberofPremium = 0;
-                
-                foreach ($query['matches'] as $matches) {
-                    $count = count($matches);
 
+                foreach ($query['matches'] as $matches) 
+                {
+                    $count = count($matches);
                     $ad = $model->getById($matches[0]+0);
-                    if ($ad) {
+                    if ($ad) 
+                    {                   
                         $this->addAdToResultArray($ad, $matches[2]);
                         $i++;
-                        if($hasPremium && count($premiumAds)){
+                        if ($device_sysname=='ios' && $adMobAlreadySent<5 && ($i+$offset)%7==0 && ($i+$offset)%2==1)
+                        {
+                            $this->result['d'][] = [-1*($i+$offset), $adMobAlreadySent%2==0 ? "ca-app-pub-2427907534283641/4099192620" : "ca-app-pub-2427907534283641/1911755820"];
+                            $adMobAlreadySent++;
+                        }
+                        
+                        if($hasPremium && count($premiumAds))
+                        {
                             $translated_i = $i + $offset + $numberOfAds;                        
-                            if($j==$translated_i){
+                            if($j==$translated_i)
+                            {
                                 $j += $premiumGap+1;
                                 $numberOfAds++;
                                 $adId = array_pop($premiumAds);
                                 $ad = $model->getById($adId);
-                                if ($ad) {
+                                if ($ad) 
+                                {
                                     $this->addAdToResultArray($ad,$matches[2],true);
                                     $numberofPremium++;
                                 }
@@ -472,6 +489,7 @@ class MobileApi
                         }
                     }
                 }
+                
                 if($numberofPremium > 0){
                     $this->result['p']=[$numberofPremium,$premiumGap];
                 }
@@ -481,7 +499,7 @@ class MobileApi
     }
     
     
-    function addAdToResultArray($ad,$isFeatured=0, $isPremium=false){
+    function addAdToResultArray($ad, $isFeatured=0, $isPremium=false){
         unset($ad[Classifieds::TITLE]);
         unset($ad[Classifieds::ALT_TITLE]);
 
