@@ -2079,6 +2079,8 @@ class Bin extends AjaxHandler{
                         $this->user->pending['post']['c']=$cityId;
                         $this->user->pending['post']['cn']=$countryId;
                         
+                        $requireReview = 0;
+                        
                         if ($this->user->info['level']!=9) $ad['userLvl']=$this->user->info['level'];
                         if ($this->user->info['id'] == $this->user->pending['post']['user']){
                             $ad['agent']=$_SERVER['HTTP_USER_AGENT'];
@@ -2090,10 +2092,31 @@ class Bin extends AjaxHandler{
                             $ad['ip']=$ip;   
                             $geo = $this->urlRouter->getIpLocation($ip);
                             if($geo) {
-                            	$ad['userLOC'] = isset($geo['city']['names']['en']) ? $geo['city']['names']['en'] : '';
-                                $ad['userLOC'].=', '.$geo['country']['iso_code'];
-                                $ad['userLOC'].= isset($geo['city']['names']['en']) ? $geo['city']['names']['en'] : '';
+                            	$ad['userLOC'] = isset($geo['city']['names']['en']) ? $geo['city']['names']['en'].', ' : '';
+                                $ad['userLOC'].=$geo['country']['iso_code'];
                                 $ad['userLOC'].=': '. implode(" ,",$geo['location']);
+                                
+                                if(!in_array($geo['country']['iso_code'],[
+                                    'AE',
+                                    'BH',
+                                    'YE',
+                                    'EG',
+                                    'IQ',
+                                    'JO',
+                                    'KW',
+                                    'LB',
+                                    'LY',
+                                    'MA',
+                                    'QA',
+                                    'SA',
+                                    'SD',
+                                    'SY',
+                                    'TN',
+                                    'TR'
+                                    ])){
+                                    $requireReview = 1;
+                                }
+                                
                             } else $ad['userLOC']=0;
                         }
                         
@@ -2339,13 +2362,18 @@ class Bin extends AjaxHandler{
                             }
                         }
                         $isSCAM = 0;
-                        $requireReview = 0;
                         if($publish== 1 && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0){
                             $blockedEmailPatterns = addcslashes(implode('|', $this->urlRouter->cfg['restricted_email_domains']),'.');
                             $isSCAM = preg_match('/'.$blockedEmailPatterns.'/ui', $ad['cui']['e']);
                         }
-                        if(!$isSCAM && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0){
+                        if(!$isSCAM && !$requireReview && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0){
                             $requireReview = preg_match('/\+.*@/', $ad['cui']['e']);
+                            if(!$requireReview){
+                                $requireReview = preg_match('/hotel/', $ad['cui']['e']);
+                            }
+                            if(!$requireReview){
+                                $requireReview = preg_match('/\..*\..*@/', $ad['cui']['e']);
+                            }
                         }
                         
                         if($publish == 1 && isset($ad['budget']) && is_numeric($ad['budget']) && $ad['budget']> 0){

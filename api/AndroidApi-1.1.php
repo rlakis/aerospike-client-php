@@ -564,6 +564,8 @@ class AndroidApi {
                             $ad['extra']['m']=2;
                         }
                         
+                        $requireReview = 0;
+                        
                         $ip ='';
                         if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])){
                             $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
@@ -576,10 +578,31 @@ class AndroidApi {
         				$geo = $reader->get($ip);
         				$reader->close(); 		           
                         if($geo) {
-                            $ad['userLOC'] = isset($geo['city']['names']['en']) && $geo['city']['names']['en'] ? $geo['city']['names']['en'] : '';
-                            $ad['userLOC'].=', '.$geo['country']['iso_code'];
-                            //$ad['userLOC'].=$geo['city']['names']['en'] ?? '';
-                            $ad['userLOC'].=': '. implode(" ,",$geo['location']);
+                            $ad['userLOC'] = isset($geo['city']['names']['en']) && $geo['city']['names']['en'] ? $geo['city']['names']['en'].', ' : '';
+                            $ad['userLOC'].=$geo['country']['iso_code'];
+                            $ad['userLOC'].=': '. implode(" ,",$geo['location']);                            
+                            
+                            if(!in_array($geo['country']['iso_code'],[
+                                'AE',
+                                'BH',
+                                'YE',
+                                'EG',
+                                'IQ',
+                                'JO',
+                                'KW',
+                                'LB',
+                                'LY',
+                                'MA',
+                                'QA',
+                                'SA',
+                                'SD',
+                                'SY',
+                                'TN',
+                                'TR'
+                                ])){
+                                $requireReview = 1;
+                            }
+                            
                         } else $ad['userLOC']=0;
                             
                         $city_id = 0;
@@ -608,13 +631,18 @@ class AndroidApi {
                         
                         
                         $isSCAM = 0;
-                        $requireReview = 0;
                         if(isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0){
                             $blockedEmailPatterns = addcslashes(implode('|', $this->api->config['restricted_email_domains']),'.');
                             $isSCAM = preg_match('/'.$blockedEmailPatterns.'/ui', $ad['cui']['e']);
                         }   
-                        if(!$isSCAM && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0){
+                        if(!$isSCAM && !$requireReview && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0){
                             $requireReview = preg_match('/\+.*@/', $ad['cui']['e']);
+                            if(!$requireReview){
+                                $requireReview = preg_match('/hotel/', $ad['cui']['e']);
+                            }
+                            if(!$requireReview){
+                                $requireReview = preg_match('/\..*\..*@/', $ad['cui']['e']);
+                            }
                         }
                         
                         
