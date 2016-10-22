@@ -599,7 +599,8 @@ class AndroidApi {
                                 'SD',
                                 'SY',
                                 'TN',
-                                'TR'
+                                'TR',
+                                'OM'
                                 ])){
                                 $requireReview = 1;
                             }
