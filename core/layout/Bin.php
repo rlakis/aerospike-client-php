@@ -2099,6 +2099,7 @@ class Bin extends AjaxHandler{
                                 if(!in_array($geo['country']['iso_code'],[
                                     'AE',
                                     'BH',
+                                    'DZ',
                                     'YE',
                                     'EG',
                                     'IQ',
