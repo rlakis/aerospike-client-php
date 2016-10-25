@@ -1335,7 +1335,11 @@ class MobileApi
             $this->result['d']['u_api'] = $this->config['android_url_api'];
             $this->result['d']['u_nas'] = $this->config['android_url_node_ad_stage'];
             $this->result['d']['e_support'] = $this->config['android_email_support'];
-            $this->result['d']['a_release'] = $this->config['android_app_release'];
+            if($device_sysversion > '3'){
+                $this->result['d']['a_release'] = $this->config['android_app_release'];
+            }else{
+                $this->result['d']['a_release'] = '1.0.0';
+            }
             $this->result['d']['a_force'] = $this->config['android_app_release_enforce'];
             $this->result['d']['ed'] = $this->config['android_enabled_banner_detail']+0;
             $this->result['d']['edn'] = $this->config['android_enabled_banner_detail_native']+0;
