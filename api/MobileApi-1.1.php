@@ -1654,132 +1654,178 @@ class MobileApi
         $this->result['d']['from']=$sender;
     }
 */
-    function activate() {
-        
+    
+    function activate() 
+    {    
         $opts = $this->userStatus($status);
-        if ($status==1) {
-            if ($opts->user_status==9) {
-                $this->result['e'] = 'Your account is retired.'.chr(10).'Please remove Mourjan app and install it again to reactivate it.';
+        if ($status!=1)
+        {
+            $this->result['e'] = 'Invalid user status';
+            return;
+        }
+        
+        if ($opts->user_status==9) 
+        {
+            $this->result['e'] = 'Your account is retired.'.chr(10).'Please remove Mourjan app and install it again to reactivate it.';
+            return;
+        }
+        
+        $mobile_no = filter_input(INPUT_GET, 'tel', FILTER_VALIDATE_INT)+0;
+        $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
+        $num = $this->mobileValidator->parse($mobile_no, 'LB');
+            
+        if($num && $this->mobileValidator->isValidNumber($num))
+        {
+            $numberType = $this->mobileValidator->getNumberType($num);
+            if ($numberType!=libphonenumber\PhoneNumberType::MOBILE && $numberType!=libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE)
+            {
+                $this->result['e'] = "+{$mobile_no} is not a valid mobile number!";
                 return;
-            }
-            $mobile_no = filter_input(INPUT_GET, 'tel', FILTER_VALIDATE_INT)+0;
-            $sender = (strval($mobile_no)[0]=='1') ? '12165044111' : 'Mourjan';
+            }            
+        }
+        else 
+        {
+            $this->result['e'] = "+{$mobile_no} is not not a valid telephone number!";
+            return;
+        }
+            
+        $sender = (strval($mobile_no)[0]=='1') ? '12165044111' : 'Mourjan';
 
-            if ($mobile_no<999999) {
-                $this->result['e'] = 'Invalid mobile registration request';
-                return;
-            }
+        if ($mobile_no<999999) 
+        {
+            $this->result['e'] = 'Invalid mobile registration request';
+            return;
+        }
 
-            include_once $this->config['dir'].'/core/lib/nexmo/NexmoMessage.php';
+        include_once $this->config['dir'].'/core/lib/nexmo/NexmoMessage.php';
 
-            $rs = $this->db->queryResultArray(
-                    "select m.ID, m.UID, m.MOBILE, m.STATUS, m.DELIVERED, m.CODE, m.SMS_COUNT, "
-                    . "datediff(SECOND from m.REQUEST_TIMESTAMP to CURRENT_TIMESTAMP) req_age "
-                    . "from WEB_USERS_MOBILE m "
-                    . "left join WEB_USERS_DEVICE d on d.UID=m.UID "
-                    . "where m.mobile=? and d.uuid=?", [$mobile_no, $this->uuid]);
+        $rs = $this->db->queryResultArray(
+                "select m.ID, m.UID, m.MOBILE, m.STATUS, m.DELIVERED, m.CODE, m.SMS_COUNT, "
+                . "datediff(SECOND from m.REQUEST_TIMESTAMP to CURRENT_TIMESTAMP) req_age "
+                . "from WEB_USERS_MOBILE m "
+                . "left join WEB_USERS_DEVICE d on d.UID=m.UID "
+                . "where m.mobile=? and d.uuid=?", [$mobile_no, $this->uuid]);
 
-            //$this->result['d']['rs']=$rs;
-
-            if (is_array($rs)) {
-                $this->db->setWriteMode();
+        if (is_array($rs)) 
+        {
+            $this->db->setWriteMode();
                 
-                if (count($rs)==0) {                    
-                    //echo $mobile_no;
-                    $pin = mt_rand(1000, 9999);
-                    $iq = $this->db->queryResultArray(
-                            "INSERT INTO WEB_USERS_MOBILE (UID, MOBILE, CODE, STATUS, DELIVERED, SMS_COUNT)
-                            VALUES (?, ?, ?, 5, 0, 0) RETURNING ID", [$this->uid, $mobile_no, $pin], TRUE);
-                    if ($iq[0]['ID']>0) {
-                        $sms = new NexmoMessage('8984ddf8', 'CVa3tHey3js6');
+            if (count($rs)==0) 
+            {               
+                //echo $mobile_no;
+                $pin = mt_rand(1000, 9999);
+                $iq = $this->db->queryResultArray(
+                        "INSERT INTO WEB_USERS_MOBILE (UID, MOBILE, CODE, STATUS, DELIVERED, SMS_COUNT)
+                        VALUES (?, ?, ?, 5, 0, 0) RETURNING ID", [$this->uid, $mobile_no, $pin], TRUE);
+                if ($iq[0]['ID']>0) 
+                {
+                    $sms = new NexmoMessage('8984ddf8', 'CVa3tHey3js6');
                         
-                        $response = $sms->sendText( "+{$mobile_no}", $sender,
+                    $response = $sms->sendText( "+{$mobile_no}", $sender,
                                 "Your Mourjan code is:\n{$pin}\nClose this message and enter the code into Mourjan to activate your account.",
                                         $iq[0]['ID']);
-                        //var_dump($response);
-                        if ($response) {
-                            $this->db->queryResultArray("update WEB_USERS_MOBILE set status=0, sms_count=sms_count+1 where id=?", [$iq[0]['ID']], TRUE);
-                            $this->result['d']['status']='sent';
-                        }
+                    //var_dump($response);
+                    if ($response) 
+                    {
+                        $this->db->queryResultArray("update WEB_USERS_MOBILE set status=0, sms_count=sms_count+1 where id=?", [$iq[0]['ID']], TRUE);
+                        $this->result['d']['status']='sent';
                     }
-                } else {
-                    //var_dump($rs);
-                    if ($rs[0]['MOBILE']!=$mobile_no) {
-                        $this->result['e']='Not a valid mobile for you';
-                        return;
-                    }
+                }
+            } 
+            else 
+            {
+                //var_dump($rs);
+                if ($rs[0]['MOBILE']!=$mobile_no) 
+                {
+                    $this->result['e']='Not a valid mobile for you';
+                    return;
+                }
 
-                    // Must not pass anymore after left join device matching uuid
-                    if ($rs[0]['UID']!=$this->uid) {
-                        if ($rs[0]['STATUS']==1) {
-                            $this->result['d']['status']='validate';
-                            $this->result['e']='This mobile number is already exists. Enter your password to activate your device';
-                            return;
-                        }
-                    }
-
-                    $pin_code = filter_input(INPUT_GET, 'code', FILTER_VALIDATE_INT)+0;
-                    if ($pin_code>999) {
-                        if ($pin_code==$rs['0']['CODE']+0) {
-                            
-                            if ($this->db->queryResultArray("update WEB_USERS_MOBILE set status=1, activation_timestamp=current_timestamp where id=? returning status", [$rs[0]['ID']], TRUE)) {
-                                $this->result['d']['status']='activated';
-
-                                include $this->config['dir'] .'/core/model/User.php';
-                                $user = new User($this->db, $this->config, null, 0);
-                                $user->sysAuthById($this->uid);
-                                $user->params['app']=1;
-                                $user->update();
-                                $this->result['d']['kuid'] = $user->encodeId($this->uid);
-                                $this->getBalance();
-                                
-                                return;
-                            } else {
-                                $this->result['e'] = 'This mobile number is used on different device';
-                                $this->result['d']['status']='invalid';
-                                return;
-                            }
-                        } else {
-                            $this->result['e'] = 'Activation code is not valid';
-                            $this->result['d']['status']='invalid';
-                            return;
-                        }
-                    } else {
-                        if ($rs[0]['STATUS']==5) { // No sent SMS
-                            $sms = new NexmoMessage('8984ddf8', 'CVa3tHey3js6');
-                            $pin = $rs[0]['CODE'];
-                            $response = $sms->sendText( "+{$mobile_no}", $sender,
-                                "Your Mourjan code is:\n{$pin}\nClose this message and enter the code into Mourjan to activate your account.",
-                                        $rs[0]['ID']);
-                            //var_dump($response);
-                            if ($response) {
-                                $this->db->queryResultArray("update WEB_USERS_MOBILE set status=0, sms_count=sms_count+1 where id=?", [$rs[0]['ID']], TRUE);
-                                $this->result['d']['status']='sent';
-                            }
-
-                        }
-                    }
-
-                    if ($rs[0]['DELIVERED']==1) {
-                        $this->result['e'] = 'Activation code is already delivered to this mobile sms inbox';
-                        $this->result['d']['status']='delivered';
-                        return;
-                    }
-
-                    if ($rs[0]['REQ_AGE']<120) {
-                        $this->result['e'] = 'Activation code is already sent, but not delivered yet.\nPlease wait a few minutes';
-                        return;
-                    }
-
-                    if ($rs[0]['STATUS']==0 && $rs[0]['DELIVERED']==0 && $rs[0]['SMS_COUNT']>0) {
-                        $this->result['e'] = 'Invalid mobile number! Please enter well formed mobile number to proceed.';
+                // Must not pass anymore after left join device matching uuid
+                if ($rs[0]['UID']!=$this->uid) 
+                {
+                    if ($rs[0]['STATUS']==1) 
+                    {
+                        $this->result['d']['status']='validate';
+                        $this->result['e']='This mobile number is already exists. Enter your password to activate your device';
                         return;
                     }
                 }
+
+                $pin_code = filter_input(INPUT_GET, 'code', FILTER_VALIDATE_INT)+0;
+                if ($pin_code>999) 
+                {
+                    if ($pin_code==$rs['0']['CODE']+0) 
+                    {
+                            
+                        if ($this->db->queryResultArray("update WEB_USERS_MOBILE set status=1, activation_timestamp=current_timestamp where id=? returning status", [$rs[0]['ID']], TRUE)) 
+                        {
+                            $this->result['d']['status']='activated';
+
+                            include $this->config['dir'] .'/core/model/User.php';
+                            $user = new User($this->db, $this->config, null, 0);
+                            $user->sysAuthById($this->uid);
+                            $user->params['app']=1;
+                            $user->update();
+                            $this->result['d']['kuid'] = $user->encodeId($this->uid);
+                            $this->getBalance();
+                                
+                            return;
+                        } 
+                        else 
+                        {
+                            $this->result['e'] = 'This mobile number is used on different device';
+                            $this->result['d']['status']='invalid';
+                            return;
+                        }
+                    } 
+                    else 
+                    {
+                        $this->result['e'] = 'Activation code is not valid';
+                        $this->result['d']['status']='invalid';
+                        return;
+                    }
+                } 
+                else 
+                {
+                    if ($rs[0]['STATUS']==5) 
+                    { // No sent SMS
+                        $sms = new NexmoMessage('8984ddf8', 'CVa3tHey3js6');
+                        $pin = $rs[0]['CODE'];
+                        $response = $sms->sendText( "+{$mobile_no}", $sender,
+                                "Your Mourjan code is:\n{$pin}\nClose this message and enter the code into Mourjan to activate your account.",
+                                        $rs[0]['ID']);
+                        //var_dump($response);
+                        if ($response) 
+                        {
+                            $this->db->queryResultArray("update WEB_USERS_MOBILE set status=0, sms_count=sms_count+1 where id=?", [$rs[0]['ID']], TRUE);
+                            $this->result['d']['status']='sent';
+                        }
+
+                    }
+                }
+
+                if ($rs[0]['DELIVERED']==1) 
+                {
+                    $this->result['e'] = 'Activation code is already delivered to this mobile sms inbox';
+                    $this->result['d']['status']='delivered';
+                    return;
+                }
+
+                if ($rs[0]['REQ_AGE']<120) 
+                {
+                    $this->result['e'] = 'Activation code is already sent, but not delivered yet.\nPlease wait a few minutes';
+                    return;
+                }
+
+                if ($rs[0]['STATUS']==0 && $rs[0]['DELIVERED']==0 && $rs[0]['SMS_COUNT']>0) 
+                {
+                    $this->result['e'] = 'Invalid mobile number! Please enter well formed mobile number to proceed.';
+                    return;
+                }
             }
-        } else {
-            $this->result['e'] = 'Invalid user status';
         }
+        
     }
 
 
