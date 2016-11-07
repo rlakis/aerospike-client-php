@@ -2349,15 +2349,19 @@ class Bin extends AjaxHandler{
                                     }
                                     
                                     //check is local number
-                                    if($requireReview && !$isMultiCountry && $ad['cui']['e']==''){
+                                    if($requireReview && $countryId && !$isMultiCountry && $ad['cui']['e']==''){
                                         $countryCode = '+'.$this->urlRouter->countries[$countryId]['code'];
+                                        //error_log("check #{$ad['id']}# ".$countryCode);
                                         $differentCodes = false;
                                         foreach($numbers as $number){
+                                            //error_log("number ".$number['v']);
+                                            //error_log("with ".substr($number['v'], 0, strlen($countryCode)));
                                             if(substr($number['v'], 0, strlen($countryCode)) != $countryCode){
                                                 $differentCodes = true;
                                             }
                                         }
                                         if(!$differentCodes){
+                                            //error_log("rollback review");
                                             $requireReview = 0;
                                         }
                                     }

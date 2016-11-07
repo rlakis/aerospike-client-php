@@ -636,6 +636,24 @@ class AndroidApi {
                         if(isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0){
                             $blockedEmailPatterns = addcslashes(implode('|', $this->api->config['restricted_email_domains']),'.');
                             $isSCAM = preg_match('/'.$blockedEmailPatterns.'/ui', $ad['cui']['e']);
+                        }elseif($requireReview && $country_id && !$isMultiCountry){
+                            $countries = $this->api->db->getCountriesData('en');
+                            if(isset($countries[$country_id]['code'])){
+                                $countryCode = '+'.$countries[$country_id]['code'];
+                                //error_log("mobile check #{$ad['id']}# ".$countryCode);
+                                $differentCodes = false;
+                                foreach($ad['cui']['p'] as $number){
+                                    //error_log("number ".$number['v']);
+                                    //error_log("with ".substr($number['v'], 0, strlen($countryCode)));
+                                    if(substr($number['v'], 0, strlen($countryCode)) != $countryCode){
+                                        $differentCodes = true;
+                                    }
+                                }
+                                if(!$differentCodes){
+                                    //error_log("rollback review");
+                                    $requireReview = 0;
+                                }
+                            }
                         }   
                         if(!$isSCAM && !$requireReview && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0){
                             $requireReview = preg_match('/\+.*@/', $ad['cui']['e']);
