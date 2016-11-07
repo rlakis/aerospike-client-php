@@ -2050,6 +2050,7 @@ class Bin extends AjaxHandler{
                         $countryId=0;
                         $currentCid = 0;
                         $isMultiCountry = false;
+                        
                         if(count($ad['pubTo'])){
                             foreach($ad['pubTo'] as $key => $val){
                                 if(!is_numeric($key)){
@@ -2345,6 +2346,20 @@ class Bin extends AjaxHandler{
                                         $altRTL=preg_match('/[\x{0621}-\x{064a}]/u', $altOther);
                                         $ad['altother']=$altOther;
                                         $ad['altother'].="\xE2\x80\x8B".$this->user->parseUserAdTime($ad['cui'],$ad['cut'],$altRTL);
+                                    }
+                                    
+                                    //check is local number
+                                    if($requireReview && !$isMultiCountry && $ad['cui']['e']==''){
+                                        $countryCode = '+'.$this->urlRouter->countries[$countryId]['code'];
+                                        $differentCodes = false;
+                                        foreach($numbers as $number){
+                                            if(substr($number['v'], 0, strlen($countryCode)) != $countryCode){
+                                                $differentCodes = true;
+                                            }
+                                        }
+                                        if(!$differentCodes){
+                                            $requireReview = 0;
+                                        }
                                     }
                                 }else{
                                     $wrongPhoneNumber = true;

@@ -42,6 +42,7 @@ class Page extends Site{
 
                 //$cdn = "https://mourjan.r.worldssl.net";
                 $cdn = "https://cdn.mourjan.com";
+                //$cdn = "https://www.mourjan.com";
                 $this->urlRouter->cfg['url_resources']      = $cdn;
                 $this->urlRouter->cfg['url_ad_img']         = $cdn;
                 $this->urlRouter->cfg['url_img']            = $cdn.'/img/1.0.3';
