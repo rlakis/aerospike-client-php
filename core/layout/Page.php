@@ -1805,8 +1805,8 @@ class Page extends Site{
                         $backButton = '<a class="back" href="'.$this->urlRouter->getURL($this->urlRouter->countryId,$cityId,$this->urlRouter->rootId,$this->urlRouter->sectionId,$this->urlRouter->purposeId).'"></a>';
                     }elseif($this->localityId){
                         $this->localityId = $this->localityId+0;
-                        if (isset($this->localities[$this->localityId]) && $this->localities[$this->localityId]['parent_geo_id']){
-                            $tmpId=$this->localities[$this->localityId]['parent_geo_id'];
+                        if (isset($this->localities[$this->localityId]) && isset($this->localities[$this->localities[$this->localityId]['parent_geo_id']+0])){
+                            $tmpId=$this->localities[$this->localityId]['parent_geo_id']+0;
                             $backButton = '<a class="back" href="/'.$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->urlRouter->sections[$this->urlRouter->sectionId][3].'/'.($this->urlRouter->purposeId ? $this->urlRouter->purposes[$this->urlRouter->purposeId][3].'/' : '').($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage.'/':'').'c-'.$tmpId.'-2/"></a>';
                         }else {
                             $backButton = '<a class="back" href="'.$this->urlRouter->getURL($this->urlRouter->countryId,$cityId,$this->urlRouter->rootId,$this->urlRouter->sectionId,$this->urlRouter->purposeId).'"></a>';
