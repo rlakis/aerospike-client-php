@@ -2523,6 +2523,8 @@ class MobileApi
                 $this->db->setWriteMode();
                 include_once $this->config['dir'] . '/core/model/User.php';
                 $user = new User($this->db, $this->config, null, 0);
+                $user->info['id'] = $this->uid;
+                $user->info['level'] = 0;
                 $rs = $user->renewAd($id, 1);
                 
                 
