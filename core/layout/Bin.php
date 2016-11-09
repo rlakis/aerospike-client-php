@@ -2349,7 +2349,7 @@ class Bin extends AjaxHandler{
                                     }
                                     
                                     //check is local number
-                                    if($requireReview && $countryId && !$isMultiCountry && trim($ad['cui']['e'])==''){
+                                    if($requireReview && $countryId && !$isMultiCountry && $ad['cui']['e']==''){
                                         $countryCode = '+'.$this->urlRouter->countries[$countryId]['code'];
                                         //error_log("check #{$ad['id']}# ".$countryCode);
                                         $differentCodes = false;
@@ -2369,7 +2369,9 @@ class Bin extends AjaxHandler{
                                     $wrongPhoneNumber = true;
                                 }
                             }                            
+                        
                         $this->user->pending['post']['content']=json_encode($ad);
+                        
                         
                         $json_error = json_last_error();
                         

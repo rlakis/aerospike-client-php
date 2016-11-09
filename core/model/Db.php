@@ -245,26 +245,6 @@ class DB
         return $result;
     }
     
-    function executeStatement($stmt,$params=null, $runtime=0){
-        $result = false;
-        try{
-            if($params){
-                $result = $stmt->execute($params);
-            }else{
-                $result = $stmt->execute();
-            }            
-        } catch (Exception $ex) {  
-            self::$Instance->rollBack();    
-            if( (strpos($ex->getMessage(), '913 deadlock') > -1) && $runtime < 5){
-                usleep(100);
-                return $this->executeStatement($stmt,$params, $runtime+1);
-            }else{
-                error_log('CODE: '. $ex->getCode() . ' | '.$ex->getMessage() . PHP_EOL);
-            }
-        }
-        return $result;
-    }
-    
     
     function stmtCacheResultSimpleArray($label, $stmt, $params=null, $key=0, $lifetime=86400, $forceSetting=false){
         $records=array();

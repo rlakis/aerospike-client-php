@@ -429,7 +429,7 @@ class Search extends Page {
                 }
 
                 if (isset($this->urlRouter->params['loc_id']))
-                    $this->localityId = $this->urlRouter->params['loc_id']+0;
+                    $this->localityId = $this->urlRouter->params['loc_id'];
                 if (!($this->localities && $this->localityId && isset($this->localities[$this->localityId])))
                     $this->localityId = 0;
                 
@@ -2658,16 +2658,11 @@ class Search extends Page {
                         foreach($nums as $num){
                             if($num[0]!=$num[1]){
                                 $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
-                                $num[0]=  preg_replace('/\\\([0-9])/','$1' , $num[0]);
-                                $num[0]=  preg_replace('/\/.*/','' , $num[0]);
                                 $text = preg_replace('/'.$num[0].'/', '<span class="pn">'.$num[1].'</span>', $text);
                                 $matches[]=$num[1];
                             }else{
                                 $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
-                                $num[0]=  preg_replace('/\\\([0-9])/','$1' , $num[0]);
-                                $num[0]=  preg_replace('/\/.*/','' , $num[0]);
                                 $text = preg_replace('/'.$num[0].'/', '<span class="vn">'.$num[1].'</span>', $text);
-                                
                             }
                         }
                     }
@@ -5511,10 +5506,10 @@ if($isFeatured){
                 //if ($forceSetting || $this->urlRouter->module=="detail") {
                 if ($this->extendedId || $this->localityId) {
                     if ($this->localityId) {
-                        $localityId = $this->localityId+0;
+                        $localityId = $this->localityId;
                         $tmp = array();
                         while ($this->localities[$localityId]['parent_city_id']) {
-                            $localityId = $this->localities[$localityId]['parent_geo_id']+0;
+                            $localityId = $this->localities[$localityId]['parent_geo_id'];
                             if(isset($this->localities[$localityId])){
                                 $tmp[] = "<a href='" .
                                         $prefix_parent_uri . $this->localities[$localityId]['uri'] . $suffix_parent_uri . $prefix_append_uri . $localityId . $suffix_append_uri .
@@ -5603,10 +5598,10 @@ if($isFeatured){
                 if ($forceSetting || $this->urlRouter->module == "detail" || $this->urlRouter->isPriceList) {
                     if ($this->extendedId || $this->localityId) {
                         if ($this->localityId && isset($this->localities[$this->localityId])) {
-                            $localityId = $this->localityId+0;
+                            $localityId = $this->localityId;
                             $tmp = array();
                             while (isset($this->localities[$localityId]) && $this->localities[$localityId]['parent_city_id'] && isset($this->localities[$this->localities[$localityId]['parent_geo_id']])) {
-                                $localityId = $this->localities[$localityId]['parent_geo_id']+0;
+                                $localityId = $this->localities[$localityId]['parent_geo_id'];
                                 $tmp[] = "<a href='" .
                                         $prefix_parent_uri . $this->localities[$localityId]['uri'] . $suffix_parent_uri . $prefix_append_uri . $localityId . $suffix_append_uri .
                                         "'>" . $prefix_parent_name . $this->localities[$localityId]['name'] . "</a>";
@@ -5638,10 +5633,10 @@ if($isFeatured){
                     }
                 } else {
                     if ($this->localityId) {
-                        $localityId = $this->localityId+0;
+                        $localityId = $this->localityId;
                         $tmp = array();
                         while ($this->localities[$localityId]['parent_city_id']) {
-                            $localityId = $this->localities[$localityId]['parent_geo_id']+0;
+                            $localityId = $this->localities[$localityId]['parent_geo_id'];
                             if (isset($this->localities[$localityId])) {
                                 $tmp[] = "<a href='" .
                                         $prefix_parent_uri . $this->localities[$localityId]['uri'] . $suffix_parent_uri . $prefix_append_uri . $localityId . $suffix_append_uri .

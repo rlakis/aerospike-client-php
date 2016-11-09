@@ -1315,7 +1315,7 @@ class User {
         return $result;
     }
 
-    function saveAd($publish=0,$user_id=0,$runtime=0){
+    function saveAd($publish=0,$user_id=0){
         $id=0;
         if($user_id)
             $userId=$user_id;
@@ -1416,22 +1416,22 @@ class User {
 
                 	    	$result=null;
                     		try {
-                                    if ($this->db->executeStatement($stmt)) {
+                                    if ($stmt->execute()) {
                                         $result=$stmt->fetchAll(PDO::FETCH_ASSOC);
                                         if ($attrs)
                                         {
                                             $st=$this->db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
                                             $st->bindValue(1, $id, PDO::PARAM_INT);
                                             $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
-                                            $st->execute();  
-                                            $this->db->executeStatement($st);
+                                            $st->execute();    
                                         }
                                     }
                     		} catch (Exception $e) {
-                                    error_log('User.SaveAd ('. $id .'): ' . $e->getMessage());
-                                    error_log('User.SaveAd ('. $id .') Transaction: ' . $this->db->getTransactionIsolationMessage());
-
-                                    $this->db->getInstance()->rollBack();
+                    			error_log('User.SaveAd ('. $id .'): ' . $e->getMessage());
+                    			error_log('User.SaveAd ('. $id .') Transaction: ' . $this->db->getTransactionIsolationMessage());
+                    			
+                    			$this->db->getInstance()->rollBack();
+                    			//usleep(10);
                     		}	
 							
                     	//} 
@@ -1550,7 +1550,9 @@ class User {
             $this->db->commit();
 
         }catch(Exception $e){
-            $this->db->getInstance()->rollBack(); 
+            error_log( $e->getMessage() );
+            //error_log( var_export($e, true) );
+            $this->db->getInstance()->rollBack();
             $id=0;
         }
         return $id;

@@ -1804,7 +1804,6 @@ class Page extends Site{
                     if ($this->extendedId){
                         $backButton = '<a class="back" href="'.$this->urlRouter->getURL($this->urlRouter->countryId,$cityId,$this->urlRouter->rootId,$this->urlRouter->sectionId,$this->urlRouter->purposeId).'"></a>';
                     }elseif($this->localityId){
-                        $this->localityId = $this->localityId+0;
                         if (isset($this->localities[$this->localityId]) && $this->localities[$this->localityId]['parent_geo_id']){
                             $tmpId=$this->localities[$this->localityId]['parent_geo_id'];
                             $backButton = '<a class="back" href="/'.$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->urlRouter->sections[$this->urlRouter->sectionId][3].'/'.($this->urlRouter->purposeId ? $this->urlRouter->purposes[$this->urlRouter->purposeId][3].'/' : '').($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage.'/':'').'c-'.$tmpId.'-2/"></a>';
@@ -3839,7 +3838,6 @@ class Page extends Site{
         ?><script type="text/javascript">
             var head = document.getElementsByTagName("head")[0] || document.documentElement;            
             var ucss='<?= $this->urlRouter->cfg['url_css'] ?>',uimg='<?= $this->urlRouter->cfg['url_ad_img'] ?>',<?php
-            
             if(isset($this->user->params['hasCanvas']))
             {            
                 ?>hasCvs=<?= $this->user->params['hasCanvas'] ?>,<?php 
@@ -3877,9 +3875,6 @@ class Page extends Site{
                     ?>PEND=1,<?php
                 }else{
                     ?>PEND=0,<?php
-                }
-                if($this->user->info['level']==9){
-                    ?>SU=<?= $this->user->isSuperUser()?1:0 ?>,<?php
                 }
             }
             
@@ -4001,7 +3996,7 @@ class Page extends Site{
                             if($this->user->info['id']){
                                 if($this->user->info['level']==9){     
                                     if($this->urlRouter->cfg['site_production']){
-                                        ?>sh.src='https://h5.mourjan.com/js/3.1.5/myadsad.js';<?php
+                                        ?>sh.src='https://h5.mourjan.com/js/3.0.8/myadsad.js';<?php
                                     }else{
                                         ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/myadsad.js';<?php 
                                     }
@@ -4071,17 +4066,13 @@ class Page extends Site{
         }
         
         if($this->urlRouter->module == 'index'){
-            $country = '';
-            if ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId])) {
-                $country = $this->urlRouter->countries[$this->urlRouter->countryId]['uri'];
-            }
             ?><script type="application/ld+json"><?php
                 ?>{"@context": "http://schema.org",<?php
                 ?>"@type": "WebSite",<?php
-                ?>"url": "https://www.mourjan.com/<?= ($country ? $country.'/' :'').($this->urlRouter->siteLanguage=='ar' ?'':$this->urlRouter->siteLanguage.'/') ?>",<?php
+                ?>"url": "https://www.mourjan.com/",<?php
                 ?>"potentialAction":{<?php
                 ?>"@type": "SearchAction",<?php
-                ?>"target": "https://www.mourjan.com/<?= ($country ? $country.'/' :'').($this->urlRouter->siteLanguage=='ar' ?'':$this->urlRouter->siteLanguage.'/') ?>?q={search_term_string}",<?php
+                ?>"target": "https://www.mourjan.com/?q={search_term_string}",<?php
                 ?>"query-input": "required name=search_term_string"<?php
                 ?>}<?php
                 ?>}<?php
@@ -4203,9 +4194,6 @@ class Page extends Site{
                     ?>PEND=1,<?php
                 }else{
                     ?>PEND=0,<?php
-                }
-                if($this->user->info['level']==9){
-                    ?>SU=<?= $this->user->isSuperUser()?1:0 ?>,<?php
                 }
             }
             if($this->urlRouter->module=='search'){
@@ -4499,7 +4487,7 @@ class Page extends Site{
                     ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_jquery'] ?>socket.io-1.4.5.js"></script><?php
                     if($this->user->info['level']==9){     
                         if($this->urlRouter->cfg['site_production']){
-                            ?><script type="text/javascript" defer="true" src="https://h5.mourjan.com/js/3.1.5/myadsad.js"></script><?php
+                            ?><script type="text/javascript" defer="true" src="https://h5.mourjan.com/js/3.0.8/myadsad.js"></script><?php
                         }else{
                             ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/myadsad.js"></script><?php
                         }
