@@ -1264,7 +1264,7 @@ var rtMsgs={
                             if($isSuperAdmin && $ad['USER_RANK'] < 2){
                                 ?><span class="lnk" onclick="banF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['block'] ?></span><?php 
                             }
-                            if(!$isSystemAd && $isSuperAdmin){
+                            if(!$isSystemAd){
                                 if($ad['USER_RANK'] < 3){
                                     ?><span class="lnk" onclick="suspF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['suspend'] ?></span><?php
                                 }

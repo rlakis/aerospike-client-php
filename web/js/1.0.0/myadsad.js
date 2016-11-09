@@ -299,6 +299,9 @@ function suspF(e,usr){
         o=$('<option value="1">'+(lang=='ar'?'ساعة':'1 hour')+'</option>');
         ta.append(o);
         for (var i=6;i<=72;i=i+6){
+            if(i > 48 && SU==0){
+                break;
+            }
             o=$('<option value="'+i+'">'+i+' '+(lang=='ar'?'ساعة':'hours')+'</option>');
             ta.append(o);
         }

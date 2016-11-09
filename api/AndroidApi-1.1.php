@@ -362,14 +362,14 @@ class AndroidApi {
                     foreach ($data as $id => $set) {
                         $succeed=false;
                         $found = false;
-                        if ($checkAdExists->execute(array($id))!== false){
+                        if ($this->api->db->executeStatement($checkAdExists,[$id])!== false){
                             $oldAd = $checkAdExists->fetch(PDO::FETCH_NUM);
                             if(isset($oldAd[0]) && $oldAd[0]){
                                 $found = true;
                             }
                         }
                         if($found){
-                            $res = $stmt->execute([$this->api->getUID(), $id, ($set ? 0 : 1)]);
+                            $res = $this->api->db->executeStatement($stmt, [$this->api->getUID(), $id, ($set ? 0 : 1)]);
                             /*if ($res) {                 
                                 if ($st->execute([$id])) { 
                                     if ($users=$st->fetch(PDO::FETCH_NUM)) {
@@ -429,12 +429,12 @@ class AndroidApi {
                                 $label = trim( substr($label, 0, $pos));
                             }
                         }
-                        $res = $stmt->execute([$this->api->getUID(), $req['country_id'], $req['city_id'], $req['section_id'], $req['tag_id'], $req['geo_id'], $req['purpose_id'], $query, $label, $publisherType]);
+                        $res = $this->api->db->executeStatement($stmt,[$this->api->getUID(), $req['country_id'], $req['city_id'], $req['section_id'], $req['tag_id'], $req['geo_id'], $req['purpose_id'], $query, $label, $publisherType]);
                         if ($res) {
                             $this->api->result['d'][] = $req['id'];
                         }
                     }
-                    $stmt->closeCursor();
+                    unset($stmt);
                 //}
                 break;
             case API_ANDROID_WATCHLIST_REMOVE:                
@@ -462,12 +462,12 @@ class AndroidApi {
                                 $query = trim( substr($query, 0, $pos) );
                             }
                         }
-                        $res = $stmt->execute([$this->api->getUID(), $req['country_id'], $req['city_id'], $req['section_id'], $req['tag_id'], $req['geo_id'], $req['purpose_id'], $query, $publisherType]);
+                        $res = $this->api->db->executeStatement($stmt,[$this->api->getUID(), $req['country_id'], $req['city_id'], $req['section_id'], $req['tag_id'], $req['geo_id'], $req['purpose_id'], $query, $publisherType]);
                         if ($res) {
                             $this->api->result['d'][] = $req['id'];
                         }
                     }
-                    $stmt->closeCursor();
+                    unset($stmt);
                 //}
                 break;
             case API_ANDROID_WATCHLIST_TOUCH:                
@@ -721,10 +721,10 @@ class AndroidApi {
                                     country_id=?,city_id=?,latitude=?,longitude=?,state=?,media=?,date_added=current_timestamp 
                                     where id=? and web_user_id+0=? 
                                     returning state, id';
-                                    $stmt = $this->api->db->getInstance()->prepare($q);
+                                $stmt = $this->api->db->getInstance()->prepare($q);
 
                                 $result=null;
-                                if ($stmt->execute([
+                                if ($this->api->db->executeStatement($stmt,[
                                         $encodedAd,
                                         $ad['pu'],
                                         $ad['se'],
@@ -750,8 +750,7 @@ class AndroidApi {
                                         $st = $this->api->db->getInstance()->prepare("update or insert into ad_object (id, attributes) values (?, ?)");
                                         $st->bindValue(1, $ad_id, PDO::PARAM_INT);
                                         $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
-                                        $st->execute();
-                                        
+                                        $this->api->db->executeStatement($st);
                                     }                                
 
                                     if( $ad['state']==1 ) {
@@ -797,7 +796,7 @@ class AndroidApi {
                                     $st = $this->api->db->getInstance()->prepare("update or insert into ad_object (id, attributes) values (?, ?)");
                                     $st->bindValue(1, $ad_id, PDO::PARAM_INT);
                                     $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
-                                    $st->execute();
+                                    $this->api->db->executeStatement($st);
                                 }
                                 
                                 if( $state==1 ) {
@@ -819,7 +818,7 @@ class AndroidApi {
 
                                 $encodedAd = json_encode($ad);
                                 $result=null;
-                                $suspendStmt->execute([
+                                $this->api->db->executeStatement($suspendStmt,[                                    
                                     $encodedAd,
                                     3,
                                     $ad_id
@@ -840,7 +839,7 @@ class AndroidApi {
 
                                 $encodedAd = json_encode($ad);
                                 $result=null;
-                                $suspendStmt->execute([
+                                $this->api->db->executeStatement($suspendStmt,[                                    
                                     $encodedAd,
                                     3,
                                     $ad_id
@@ -862,12 +861,12 @@ class AndroidApi {
 
                                     $encodedAd = json_encode($ad);
                                     $result=null;
-                                    $suspendStmt->execute([
+                                    $this->api->db->executeStatement($suspendStmt,[                                    
                                         $encodedAd,
                                         3,
                                         $ad_id
                                     ]);
-                                    $suspendStmt->closeCursor();
+                                    unset($suspendStmt);
                                 }
                             }
                         }
@@ -1069,8 +1068,12 @@ class AndroidApi {
 
                                         $encodedAd = json_encode($content);
                                         $result=null;
-                                        $suspendStmt->execute([$encodedAd, 3, $ad_id]);
-                                        $suspendStmt->closeCursor();
+                                        $this->api->db->executeStatement($suspendStmt,[                                    
+                                            $encodedAd,
+                                            3,
+                                            $ad_id
+                                        ]);
+                                        unset($suspendStmt);
                                     }
                                 }
 
@@ -1103,7 +1106,7 @@ class AndroidApi {
                                         $st = $this->api->db->getInstance()->prepare("update or insert into ad_object (id, attributes) values (?, ?)");
                                         $st->bindValue(1, $ad_id, PDO::PARAM_INT);
                                         $st->bindValue(2, json_encode($attrs, JSON_UNESCAPED_UNICODE), PDO::PARAM_STR);
-                                        $st->execute();                                        
+                                        $this->api->db->executeStatement($st);                                     
                                     }
 
                                     $this->api->result['d'] = [];
@@ -2015,11 +2018,10 @@ class AndroidApi {
             $q=$this->api->db->prepareQuery("update web_users set opts=:options where id=:id");
             $q->bindParam(':options', $options, PDO::PARAM_LOB);
             $q->bindParam(':id', $id, PDO::PARAM_INT);
-            if ($q->execute()) {
+            if ($this->api->db->executeStatement($q)) {
                 $succeed=true;
-                error_log('MOBILE SUSPENDED '.$id);
             }
-            $q->closeCursor();
+            unset($q);
         }
         return $succeed;
     }
