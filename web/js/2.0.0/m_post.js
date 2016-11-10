@@ -3,9 +3,9 @@ function hasCanvas(){
   var elem = document.createElement('canvas');
   return !!(elem.getContext && elem.getContext('2d'));
 };
-
 var saveXHR;
-function savAd(p){    
+function savAd(p){  
+    
     if(saveXHR){
         saveXHR.abort();
         saveXHR=null;
@@ -65,18 +65,21 @@ function savAd(p){
                 ad.id=r.id;
                 ad.user=r.user;
                 ad.state=r.state;
+          
+                
                 if(p==1){
                     if(isApp){
                         m=(lang=='ar'?'لقد تم حفظ الإعلان وتحويله للمراجعة من قبل محرري الموقع للموافقة والنشر، وسيتم ابلاغك فور نشره':'Your ad was successfully saved and is now pending administrator approval. You will be notified once your ad is approved and published.');
                     }else{
                         m=(lang=='ar'?'لقد تم حفظ الإعلان وتحويله للمراجعة من قبل محرري الموقع للموافقة والنشر، وسيتم ابلاغك برسالة على عنوان بريدك الإلكتروني فور نشره':'Your ad was successfully saved and is now pending administrator approval. You will be notified by email once your ad is approved and published.');
                     }
-                    
+                    window.location = 'ios:pending';
                     dsl($('#main')[0],m,0,1);
                 }else if (p==2){
                     document.location='/myads/?sub=pending';
                 }else if(p==-1){
                     m='<span class="done"></span>'+(lang=='ar'?'لقد تم حفظ الإعلان في لائحة المسودات للتعديل لاحقاً':'Your ad was successfully saved to your drafts for later editing');
+                    window.location = 'ios:draft';
                     dsl($('#main')[0],m,0,-1);
                 }
             }else{
