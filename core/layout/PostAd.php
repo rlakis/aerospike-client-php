@@ -98,7 +98,7 @@ class PostAd extends Page{
         }
         
         if($this->urlRouter->isApp){
-            $this->inlineCss.='body{background:#F4F4F4;}';
+            $this->inlineCss.='body{background:#F4F4F4}.spimg{width:300px!important;background-color:red}';
         }
         
         $this->render();
@@ -791,7 +791,7 @@ class PostAd extends Page{
                         foreach($this->adContent['pics'] as $key => $val){
                             $this->globalScript.='imgs['.$k.']="'.$key.'";';
                         ?><?php
-                            ?><li onclick="edOP($p(this,2));" class="button"><b class="ah ctr"><span title="<?= $this->lang['removePic'] ?>" onclick="delP('<?= $key ?>',this)" class="button pz pzd"></span><?= $this->user->info['level']==9 ? '<a onclick="spe()" class="button iah" target="blank" href="'.$this->urlRouter->cfg['url_ad_img'].'/repos/l/'.$key.'"><span id="sp'. $k .'" class="sp'. $k .' load"></span></a>':'<span id="sp'. $k .'" class="sp'. $k .' load"></span>' ?></b></li><?php 
+                            ?><li onclick="edOP($p(this,2));" class="button"><b class="ah ctr"><span title="<?= $this->lang['removePic'] ?>" onclick="delP('<?= $key ?>',this)" class="button pz pzd"></span><?= $this->user->info['level']==9 && !$this->isMobile ? '<a onclick="spe()" class="button iah" target="blank" href="'.$this->urlRouter->cfg['url_ad_img'].'/repos/l/'.$key.'"><span id="sp'. $k .'" class="sp'. $k .' load spimg"></span></a>':'<span id="sp'. $k .'" class="sp'. $k .' load spimg"></span>' ?></b></li><?php 
                             $k++;
                         }
                     }
@@ -892,6 +892,15 @@ class PostAd extends Page{
                     ?><li class="pid"><b class="ah ctr"><span onclick="savAd(-1,true)" class="button bt btw cl ah"><?= $this->lang['savePending'] ?></span></b></li><?php
                 }
             ?></ul><?php 
+            if($this->isMobile || $this->urlRouter->isApp > '1.0.4'){                
+                ?><div id="loading_dialog" class="dialog loading"><?php
+                    ?><div class="dialog-box"></div><?php 
+                ?></div><?php
+                ?><div id="alert_dialog" class="dialog"><?php
+                    ?><div class="dialog-box"></div><?php 
+                    ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
+                ?></div><?php
+            }
             if(!$this->isMobile && $this->userBalance && ($this->user->info['level']!=9 || ($this->user->pending['post']['user'] == $this->user->info['id']) )){
                 ?><div id="make_premium" class="dialog premium"><?php
                         ?><div class="dialog-title"><?= $this->lang['balance'].': '.$this->userBalance ?> <span class='mc24'></span></div><?php

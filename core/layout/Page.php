@@ -30,6 +30,8 @@ class Page extends Site{
     function __construct($router){
         parent::__construct($router);       
         
+        $cdn = $this->urlRouter->cfg['url_resources'];
+        
         if (isset($this->user->params['user_country']))
         {
             if ($this->user->params['user_country']==='lb'||
@@ -43,28 +45,47 @@ class Page extends Site{
                 //$cdn = "https://mourjan.r.worldssl.net";
                 $cdn = "https://cdn.mourjan.com";
                 //$cdn = "https://www.mourjan.com";
-                $this->urlRouter->cfg['url_resources']      = $cdn;
-                $this->urlRouter->cfg['url_ad_img']         = $cdn;
-                $this->urlRouter->cfg['url_img']            = $cdn.'/img/1.0.3';
-                $this->urlRouter->cfg['url_js']             = $cdn.'/js/3.1.4';
-                $this->urlRouter->cfg['url_js_mobile']      = $cdn.'/js/3.1.3';
-                $this->urlRouter->cfg['url_css']            = $cdn.'/css/5.4.3';
-                $this->urlRouter->cfg['url_css_mobile']     = $cdn.'/css/5.2.8g';
-                $this->urlRouter->cfg['url_jquery']         = $cdn.'/jquery/3.1.0c/js/';
-                $this->urlRouter->cfg['url_jquery_mobile']  = $cdn.'/jquery/3.1.0c/js/';
-                $this->urlRouter->cfg['url_image_lib']      = $cdn.'/lix/2.0.0';
-                $this->urlRouter->cfg['url_highcharts']     = $cdn.'/hc/3.0.9';
-
             }
-            //error_log($this->user->params['user_country']);
+        }        
+        $this->urlRouter->cfg['url_resources']      = $cdn;
+        $this->urlRouter->cfg['url_ad_img']         = $cdn;
+        if(strpos($this->urlRouter->cfg['url_img'], 'http')===false){
+            $this->urlRouter->cfg['url_img']            = $cdn.$this->urlRouter->cfg['url_img'];
         }
+        if(strpos($this->urlRouter->cfg['url_js'], 'http')===false){
+            $this->urlRouter->cfg['url_js']             = $cdn.$this->urlRouter->cfg['url_js'] ;
+        }
+        if(strpos($this->urlRouter->cfg['url_js_mobile'], 'http')===false){
+            $this->urlRouter->cfg['url_js_mobile']      = $cdn.$this->urlRouter->cfg['url_js_mobile'];
+        }
+        if(strpos($this->urlRouter->cfg['url_css'], 'http')===false){
+            $this->urlRouter->cfg['url_css']            = $cdn.$this->urlRouter->cfg['url_css'];
+        }
+        if(strpos($this->urlRouter->cfg['url_css_mobile'], 'http')===false){
+            $this->urlRouter->cfg['url_css_mobile']     = $cdn.$this->urlRouter->cfg['url_css_mobile'];
+        }
+        if(strpos($this->urlRouter->cfg['url_jquery'], 'http')===false){
+            $this->urlRouter->cfg['url_jquery']         = $cdn.$this->urlRouter->cfg['url_jquery'] ;
+        }
+        if(strpos($this->urlRouter->cfg['url_jquery_mobile'], 'http')===false){
+            $this->urlRouter->cfg['url_jquery_mobile']  = $cdn.$this->urlRouter->cfg['url_jquery_mobile'];
+        }
+        if(strpos($this->urlRouter->cfg['url_image_lib'], 'http')===false){
+            $this->urlRouter->cfg['url_image_lib']      = $cdn.$this->urlRouter->cfg['url_image_lib'];
+        }
+        if(strpos($this->urlRouter->cfg['url_highcharts'], 'http')===false){
+            $this->urlRouter->cfg['url_highcharts']     = $cdn.$this->urlRouter->cfg['url_highcharts'];
+        }
+        
+        
+        
         //$this->urlRouter->cfg['url_js'] = 'https://dv.mourjan.com/web/js/1.0.0';
         //$this->urlRouter->cfg['url_css'] = 'https://dv.mourjan.com/web/css/1.0.0';
         //$this->urlRouter->cfg['url_jquery'] = 'https://dv.mourjan.com/web/jquery/3.1.0/js/';
-        
+        ////$this->urlRouter->cfg['url_js_mobile'] = 'https://dv.mourjan.com/web/js/2.0.0';
         //$this->urlRouter->cfg['url_js_mobile'] = 'https://dv.mourjan.com/web/js/release';
-        //$this->urlRouter->cfg['url_css'] = 'https://dv.mourjan.com/web/css/1.0.0';
-        //$this->urlRouter->cfg['url_jquery_mobile'] = 'https://dv.mourjan.com/web/jquery/3.1.0/js/';
+        ////$this->urlRouter->cfg['url_css_mobile'] = 'https://dv.mourjan.com/web/css/1.0.1';
+        ////$this->urlRouter->cfg['url_jquery_mobile'] = 'https://dv.mourjan.com/web/jquery/4.0.0/js/';
         
         //$this->urlRouter->cfg['url_css'] = '/web/css/release';
         //header("Link: <{$this->urlRouter->cfg['url_css']}/gen_ar.css>; rel=preload; as=style;", false);
@@ -822,10 +843,12 @@ class Page extends Site{
         $mobileDir='';
         $source=$this->urlRouter->cfg['url_css'];
         $sourceFile = '/home/www/css/5.4.2';
+        $sourceFile = '/home/www'.substr($source,strlen($this->urlRouter->cfg['url_resources']));
         if ($this->isMobile) {
             $addOn.='_m';
             $source=$this->urlRouter->cfg['url_css_mobile'];
-            $sourceFile = '/home/www/css/5.2.8f';
+            $sourceFile = '/home/www/css/5.2.8g';
+            $sourceFile = '/home/www'.substr($source,strlen($this->urlRouter->cfg['url_resources']));
             $this->requires['css'][]='mms';
         }else{
             $this->requires['css'][]='imgs';
@@ -841,11 +864,12 @@ class Page extends Site{
             else $addOn=$fAddon;
             //if($css == 'main' && $this->isMobile){
             //if (!isset($this->user->params['visit']) || $this->user->params['visit']<2) {
-            if (1 || $this->isMobile) {
+            //if (0 && $this->isMobile) {
+            if (strpos($this->urlRouter->cfg['url_resources'],'dv.mourjan.com')!==false) {
                 $toRequire[]='/'.$css.$addOn.'.css';
                 $csFile .= preg_replace('/url\((?:\.\/|)i/', 'url('.$source.'/i', file_get_contents($sourceFile. '/'.$css.$addOn. '.css'));
             }else{
-                echo '<link rel=\'stylesheet\' type=\'text/css\' href=\'', $source, '/',$css,$addOn, '.css\' />';
+                echo '<link rel=\'stylesheet\' type=\'text/css\' href=\'', $source, '/',$css,$addOn, '.css'.'\' />';
             }
         }
         if($csFile){
@@ -3301,7 +3325,7 @@ class Page extends Site{
         ?>var SCLD,lang='<?= $this->urlRouter->siteLanguage ?>',<?php
         ?>hasQ=<?= $this->urlRouter->params['q'] ? 1:0 ?>,canSh=<?= $this->urlRouter->cfg['enabled_sharing']?1:0 ?>,<?php
         ?>sic=[],<?php
-        ?>isApp=<?= $this->urlRouter->isApp ? 1:0 ?>,<?php
+        ?>isApp=<?= $this->urlRouter->isApp ? "'".$this->urlRouter->isApp."'":0 ?>,<?php
         ?>uid=<?= $this->user->info['id'] ?>,<?php
         ?>mod='<?= $this->urlRouter->module ?>',<?php
         ?>jsLog=<?= $this->urlRouter->cfg['enabled_js_log'] ?>,<?php 
@@ -3477,7 +3501,7 @@ class Page extends Site{
                 break;
             case 'post':
                 if($this->user->info['id']) {
-                    ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_post.js"></script><?php
+                    ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_post.js?t=<?= time() ?>"></script><?php
                 }
                 break;
             case 'detail':
@@ -3560,7 +3584,7 @@ class Page extends Site{
         ?>var SCLD,lang='<?= $this->urlRouter->siteLanguage ?>',<?php
         ?>hasQ=<?= $this->urlRouter->params['q'] ? 1:0 ?>,canSh=<?= $this->urlRouter->cfg['enabled_sharing']?1:0 ?>,<?php
         ?>sic=[],<?php
-        ?>isApp=<?= $this->urlRouter->isApp ? 1:0 ?>,<?php
+        ?>isApp=<?= $this->urlRouter->isApp ? "'".$this->urlRouter->isApp."'":0 ?>,<?php
         ?>uid=<?= $this->user->info['id'] ?>,<?php
         ?>mod='<?= $this->urlRouter->module ?>',<?php
         ?>jsLog=<?= $this->urlRouter->cfg['enabled_js_log'] ?>,<?php 

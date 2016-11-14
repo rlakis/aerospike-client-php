@@ -68,6 +68,8 @@ class Search extends Page {
         if(!$this->isMobile){
             $this->inlineCss .= '.cct > a{white-space:nowrap;float:'.($this->urlRouter->siteLanguage == 'ar' ? 'right':'left').'}';
             $this->inlineCss .= '.sfilter .order,.sfilter .olang{background-color:#f8f8f8}.sfilter .order.ov,.sfilter .olang.ov{background-color:#ff9000}ul.sfilter{background-color:gold}';
+            $this->inlineCss.='.ad600{display:inline-block;width:300px;height:600px}.adsawa{border:0;display:inline-block;width:300px;height:250px}';                
+        
         }else{
             $this->inlineCss .= '.thb.prem{height:50px}';
         }
@@ -5220,10 +5222,13 @@ if($isFeatured){
                 
                 if($this->urlRouter->cfg['enabled_ads'] && $countAds >= 10) {
                 ?><li><?php
-                ?><ins class="adsbygoogle" style="display:inline-block;width:300px;height:600px" data-ad-client="ca-pub-2427907534283641" data-ad-slot="9190558623"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script><?php
+                ?><ins class="adsbygoogle" class="ad600" data-ad-client="ca-pub-2427907534283641" data-ad-slot="9190558623"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script><?php
                 ?></li><?php }
+                if($this->urlRouter->countryId == 1){
+                    ?><li><iframe class="adsawa" src="/web/gosawa.html"></iframe></li><?php
+                }
                 
-                if($countAds > 7) {
+                if(0 && $countAds > 7) {
                     ?><li><div class="g-page" data-href="https://plus.google.com/+MourjanAds/posts" data-width="300" data-layout="landscape" data-rel="publisher"></div></li><?php
                     ?><li><div class="fb-like-box fb-like-side" data-href="http://www.facebook.com/pages/Mourjan/318337638191015" data-width="300" data-show-faces="true" data-stream="false" data-show-border="false" data-header="false"></div></li><?php 
                 }

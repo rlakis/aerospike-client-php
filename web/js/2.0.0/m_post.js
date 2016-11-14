@@ -5,7 +5,6 @@ function hasCanvas(){
 };
 var saveXHR;
 function savAd(p){  
-    
     if(saveXHR){
         saveXHR.abort();
         saveXHR=null;
@@ -49,8 +48,12 @@ function savAd(p){
         //dt+='&pub='+(p==-1 ? 0 : p);
         dt['pub']=(p==-1 ? 0 : p);
         if(p==1 || p==-1){
-            m=(lang=='ar'?'يرجى الإنتظار في حين يتم حفظ الإعلان':'Saving ad, please wait');
-            dsl($('#main')[0],m,1);
+            if(!isApp || isApp < '1.0.5'){
+                m=(lang=='ar'?'يرجى الإنتظار في حين يتم حفظ الإعلان':'Saving ad, please wait');
+                dsl($('#main')[0],m,1);
+            }else{
+                Dialog.show("loading_dialog","<div class='ctr'>"+(lang=='ar'?'جاري نشر الاعلان':'publishing ad')+"</div><span class='load'></span>");
+            }
         }
     }
     saveXHR = $.ajax({
@@ -68,22 +71,47 @@ function savAd(p){
           
                 
                 if(p==1){
-                    if(isApp){
-                        m=(lang=='ar'?'لقد تم حفظ الإعلان وتحويله للمراجعة من قبل محرري الموقع للموافقة والنشر، وسيتم ابلاغك فور نشره':'Your ad was successfully saved and is now pending administrator approval. You will be notified once your ad is approved and published.');
+                    if(isApp>'1.0.4'){
+                        window.location = 'ios:pending';                        
                     }else{
-                        m=(lang=='ar'?'لقد تم حفظ الإعلان وتحويله للمراجعة من قبل محرري الموقع للموافقة والنشر، وسيتم ابلاغك برسالة على عنوان بريدك الإلكتروني فور نشره':'Your ad was successfully saved and is now pending administrator approval. You will be notified by email once your ad is approved and published.');
+                        if(isApp){
+                            m=(lang=='ar'?'لقد تم حفظ الإعلان وتحويله للمراجعة من قبل محرري الموقع للموافقة والنشر، وسيتم ابلاغك فور نشره':'Your ad was successfully saved and is now pending administrator approval. You will be notified once your ad is approved and published.');
+                        }else{
+                            m=(lang=='ar'?'لقد تم حفظ الإعلان وتحويله للمراجعة من قبل محرري الموقع للموافقة والنشر، وسيتم ابلاغك برسالة على عنوان بريدك الإلكتروني فور نشره':'Your ad was successfully saved and is now pending administrator approval. You will be notified by email once your ad is approved and published.');
+                        }
+                        dsl($('#main')[0],m,0,1);
                     }
-                    window.location = 'ios:pending';
-                    dsl($('#main')[0],m,0,1);
                 }else if (p==2){
-                    document.location='/myads/?sub=pending';
+                    if(isApp>'1.0.4'){
+                        window.location = 'ios:approved';
+                    }else{
+                        document.location='/myads/?sub=pending';
+                    }
                 }else if(p==-1){
-                    m='<span class="done"></span>'+(lang=='ar'?'لقد تم حفظ الإعلان في لائحة المسودات للتعديل لاحقاً':'Your ad was successfully saved to your drafts for later editing');
-                    window.location = 'ios:draft';
-                    dsl($('#main')[0],m,0,-1);
+                    if(isApp>'1.0.4'){
+                        window.location = 'ios:draft';
+                    }else{
+                        m='<span class="done"></span>'+(lang=='ar'?'لقد تم حفظ الإعلان في لائحة المسودات للتعديل لاحقاً':'Your ad was successfully saved to your drafts for later editing');
+                        dsl($('#main')[0],m,0,-1);
+                    }
                 }
             }else{
                 if(p==1){
+                    if(isApp>'1.0.4'){
+                        Dialog.show("alert_dialog","<span class='fail'></span> "+(lang=='ar'?'فشلت عملية نشر الاعلان، يرجى المحاولة مجدداً':'Failed to publish ad, please try again'));
+                        //window.location = 'ios:failure';
+                    }else{
+                        var m=(lang=='ar'?'فشل محرك مرجان بحفظ الإعلان، يرجى المحاولة مجدداً':'Mourjan system failed to save your ad, please try again');
+                        dsl($('#main')[0],m,0,0,1);
+                    }
+                }
+            }
+        },error:function(rp){
+            if(p==1){
+                if(isApp>'1.0.4'){
+                    Dialog.show("alert_dialog","<span class='fail'></span> "+(lang=='ar'?'فشلت عملية نشر الاعلان، يرجى المحاولة مجدداً':'Failed to publish ad, please try again'));
+                    //window.location = 'ios:failure';
+                }else{
                     var m=(lang=='ar'?'فشل محرك مرجان بحفظ الإعلان، يرجى المحاولة مجدداً':'Mourjan system failed to save your ad, please try again');
                     dsl($('#main')[0],m,0,0,1);
                 }

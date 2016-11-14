@@ -225,19 +225,19 @@ $config=array(
 	'url_uploader'         => 'https://up.mourjan.com',    
 	'url_resources'         => $aws,
 	'url_ad_img'            => $aws,
-    'url_img'               => $aws.'/img/1.0.0',
-    'url_js'                => 'https://dv.mourjan.com/web/js/1.0.0',
-    'url_js_mobile'         => $aws.'/js/2.1.8d',
-    'url_js_mobile'         => 'https://dv.mourjan.com/web/js/2.0.0',
-    'url_css'               => $aws.'/css/5.3.7',
-    'url_css'               => 'https://dv.mourjan.com/web/css/1.0.0',
-    'url_css_mobile'        => $aws.'/css/5.2.8c',
-    'url_css_mobile'        => $aws.'/css/5.2.8c',
-    'url_jquery'            => $aws.'/jquery/1.10.2.3/js/',
-    'url_jquery'            => 'https://dv.mourjan.com/web/jquery/1.10.2.2/js/',
-    'url_jquery_mobile'     => $aws.'/jquery/2.1.0/',
-    'url_image_lib'         => $aws.'/lix/2.0.0',
-    'url_highcharts'        => $aws.'/hc/3.0.9',
+    'url_img'               => '/img/1.0.0',
+    'url_js'                => '/js/1.0.0',
+    'url_js_mobile'         => '/js/2.1.8d',
+    //'url_js_mobile'         => 'https://dv.mourjan.com/web/js/2.0.0',
+    'url_css'               => '/css/5.3.7',
+    //'url_css'               => 'https://dv.mourjan.com/web/css/1.0.0',
+    'url_css_mobile'        => '/css/5.2.8c',
+    'url_css_mobile'        => '/css/5.2.8g',
+    'url_jquery'            => '/jquery/3.1.0e/js/',
+    //'url_jquery'            => 'https://dv.mourjan.com/web/jquery/1.10.2.2/js/',
+    'url_jquery_mobile'     => '/jquery/2.1.0/',
+    'url_image_lib'         => '/lix/2.0.0',
+    'url_highcharts'        => '/hc/3.0.9',
     
     //iso countries
     'iso_countries'         => [
@@ -396,7 +396,7 @@ if ($globalSettings!==FALSE)
         $config[$key] = $value;
     }
 }
-
+$config['url_resources']='https://dv.mourjan.com';
 $config['url_js'] = 'https://dv.mourjan.com/web/js/1.0.0';
 $config['url_css'] = 'https://dv.mourjan.com/web/css/1.0.0';
 $config['url_jquery'] = 'https://dv.mourjan.com/web/jquery/1.10.2.2/js/';

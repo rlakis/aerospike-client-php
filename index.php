@@ -203,7 +203,7 @@ class Router {
     var $force_search = false;
     var $isDynamic = false;
     var $isMobile = false;
-    var $isApp = false;
+    var $isApp = 0;
     var $host = 'www.mourjan.com';
     var $referer = '';
     var $session_key;
@@ -242,7 +242,11 @@ class Router {
         }
         
         $this->session_key = session_id().$this->cfg['site_key'];
-        $this->isApp = isset($_GET['app'])||((isset($_SESSION[$this->session_key]['params']['app']) && $_SESSION[$this->session_key]['params']['app']=='1' ));
+        if(isset($_GET['app'])){
+            $this->isApp = $_GET['app'];
+        }elseif(isset($_SESSION[$this->session_key]['params']['app'])){
+            $this->isApp = $_SESSION[$this->session_key]['params']['app'];
+        }
 
         if (array_key_exists('HTTP_HOST', $_SERVER))
             $this->host = $_SERVER['HTTP_HOST'];
