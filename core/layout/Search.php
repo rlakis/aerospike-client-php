@@ -5224,7 +5224,7 @@ if($isFeatured){
                 ?><li><?php
                 ?><ins class="adsbygoogle" class="ad600" data-ad-client="ca-pub-2427907534283641" data-ad-slot="9190558623"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script><?php
                 ?></li><?php }
-                if($this->urlRouter->countryId == 1){
+                if(0 && $this->urlRouter->countryId == 1){
                     ?><li><iframe class="adsawa" src="/web/gosawa.html"></iframe></li><?php
                 }
                 
