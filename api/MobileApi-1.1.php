@@ -1352,8 +1352,14 @@ class MobileApi
             $this->result['d']['eslf'] = $this->config['android_banner_search_native_list_first_idx']+0;
             $this->result['d']['eslg'] = $this->config['android_banner_search_native_list_gap']+0;
             $this->result['d']['eslz'] = $this->config['android_banner_search_native_list_freq']+0;
-            if (isset($opts->push))
-            $this->result['d']['push'] = $opts->push;
+            if($device_appversion > '1.3.0' && $device_appversion != '1.8.8'){                
+                $this->result['d']['edn'] = 0;
+                $this->result['d']['esn'] = 0;
+                $this->result['d']['esl'] = 0;
+            }
+            if (isset($opts->push)){
+                $this->result['d']['push'] = $opts->push;
+            }
         }
 
         if (empty($carrier_country)) {
