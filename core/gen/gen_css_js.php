@@ -113,7 +113,7 @@ if ($handle = opendir($jsMobileReadPath)) {
 }
 
 echo 'Generating CSS release files', "\n";
-$cssReadPath='/home/www/mourjan/web/css/1.0.0/';
+$cssReadPath='/home/www/mourjan/web/css/1.0.1/';
 $cssWritePath='/home/www/mourjan/web/css/release/';
 if ($handle = opendir($cssReadPath)) {
     while (false !== ($entry = readdir($handle))) {

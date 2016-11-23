@@ -45,6 +45,7 @@ class Page extends Site{
                 //$cdn = "https://mourjan.r.worldssl.net";
                 $cdn = "https://cdn.mourjan.com";
                 //$cdn = "https://www.mourjan.com";
+                //$cdn = "https://dv.mourjan.com";
             }
         }        
         $this->urlRouter->cfg['url_resources']      = $cdn;
@@ -843,12 +844,12 @@ class Page extends Site{
         $mobileDir='';
         $source=$this->urlRouter->cfg['url_css'];
         $sourceFile = '/home/www/css/5.4.2';
-        $sourceFile = '/home/www'.substr($source,strlen($this->urlRouter->cfg['url_resources']));
+        $sourceFile = $this->urlRouter->cfg['dir_css'].substr($source,strlen($this->urlRouter->cfg['url_resources']));
         if ($this->isMobile) {
             $addOn.='_m';
             $source=$this->urlRouter->cfg['url_css_mobile'];
             $sourceFile = '/home/www/css/5.2.8g';
-            $sourceFile = '/home/www'.substr($source,strlen($this->urlRouter->cfg['url_resources']));
+            $sourceFile = $this->urlRouter->cfg['dir_css'].substr($source,strlen($this->urlRouter->cfg['url_resources']));
             $this->requires['css'][]='mms';
         }else{
             $this->requires['css'][]='imgs';
@@ -865,7 +866,7 @@ class Page extends Site{
             //if($css == 'main' && $this->isMobile){
             //if (!isset($this->user->params['visit']) || $this->user->params['visit']<2) {
             //if (0 && $this->isMobile) {
-            if (strpos($this->urlRouter->cfg['url_resources'],'dv.mourjan.com')!==false) {
+            if (strpos($source,'dv.mourjan.com')===false) {
                 $toRequire[]='/'.$css.$addOn.'.css';
                 $csFile .= preg_replace('/url\((?:\.\/|)i/', 'url('.$source.'/i', file_get_contents($sourceFile. '/'.$css.$addOn. '.css'));
             }else{
@@ -3501,7 +3502,7 @@ class Page extends Site{
                 break;
             case 'post':
                 if($this->user->info['id']) {
-                    ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_post.js?t=<?= time() ?>"></script><?php
+                    ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_post.js"></script><?php
                 }
                 break;
             case 'detail':

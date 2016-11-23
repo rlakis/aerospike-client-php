@@ -214,6 +214,7 @@ $config=array(
     //resourses parameters
     'host'                  => 'https://dv.mourjan.com',
     'dir'                   => '/home/www/mourjan',
+    'dir_css'                   => '/home/www/mourjan',
             
             
     'ttl_short'             => 3600,
@@ -400,7 +401,11 @@ $config['url_resources']='https://dv.mourjan.com';
 $config['url_js'] = 'https://dv.mourjan.com/web/js/1.0.0';
 $config['url_css'] = 'https://dv.mourjan.com/web/css/1.0.0';
 $config['url_jquery'] = 'https://dv.mourjan.com/web/jquery/1.10.2.2/js/';
-$config['url_jquery'] = 'https://dv.mourjan.com/web/jquery/3.1.0/js/';
+$config['url_jquery_mobile'] = 'https://dv.mourjan.com/web/jquery/4.0.0/js/';
+$config['url_css_mobile'] = 'https://dv.mourjan.com/web/css/release';
+$config['dir_css'] = '/home/www/mourjan';
+$config['url_js_mobile'] = 'https://dv.mourjan.com/web/js/release';
+$config['url_image_lib'] = 'https://dv.mourjan.com/web/lix/2.0.0';
 
 $config['server_id'] = get_cfg_var('mourjan.server_id');
 $config['active_maintenance']=0;
