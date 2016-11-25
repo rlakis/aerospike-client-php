@@ -96,7 +96,7 @@ class PostAd extends Page{
         if(isset($this->userBalance['balance'])){
             $this->userBalance = $this->userBalance['balance'];
         }
-        error_log($this->urlRouter->isApp);
+        //error_log($this->urlRouter->isApp);
         if($this->urlRouter->isApp > '1.0.4'){
             $this->inlineCss.='.spimg{width:300px!important}';
         }
