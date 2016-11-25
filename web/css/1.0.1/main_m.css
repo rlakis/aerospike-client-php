@@ -39,8 +39,7 @@ b.b {
 }
 body {
     font-family: arial;
-    background-color: #CBD1DF;
-    background: #CBD1DF url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAe9JREFUOE9N1EeOQzEMA9AUp7dNcv+bzGpOMAcJ0nt7BoOP8SKQbZKiJP+Un9+/TqdTSnm9XsPhsNVqPR6P2+3W6/Xe73e/3/c7Ho8BrOv16goApbJWq9VoNLLPgogWju3z+RS02+37/X65XCguFgs5nFtFJCcchMASuBB0u11M8fl85oioGPJ4PMoPUHa7nSM4DmPVyp3ASbxQhJF8vV7jA8tay4gxekBoSYIDRNoWLb5SmoDKfr8v2+3WxWAwQAByp7z0L92KBRIRjdC3NcvlEjOIrKZs0Ol0msobfowgC8pkMqHEvMozIVpOGGMh/YejSMstO2k+cNlsNjaEDcxylzmRp4hGFCc9i4qFWUfVNLMqlSJhSshgMip5aGV+fqlYtamHwyGtN0wBslNPKhZqYaUgm0V0bVWaERYtgaM3n8+TMBzQFGyemX+qS840v8xmM5ZiLE9FbIaqSJFUuKOikbnN07BK/DgN2didsMd5BnE6nTL8/wPP5ApLyZAOsxShmFcOlXw52QIEWZ8KD1qVTqJZ7LmWkHOBbTL7Tc35ZmpmJpvR522FAxp5tHw5OpfXlsNKJtycssBIXn/aHi12mM9DzH/G17YJgcZ8OCpMzfkzSCPztvLBSJtpVYTkTqkElweQh5Xykj9/GFFJgz+qqzN4WHkVDwAAAABJRU5ErkJggg==) repeat top left;
+    background-color:#F4F4F4;
     color: #333;
     text-align: left
 }

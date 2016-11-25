@@ -121,17 +121,26 @@ class Administration {
             case "yBlocked":
                 if(isset($this->args[2]) && is_numeric($this->args[2])){
                     $userId = $this->args[2];
-                    
-                    $accounts = [
-                        $userId => ['LVL'=>5]
-                    ];
-                    
-                    echo "checking why account {$userId} was blocked..".PHP_EOL;
-                    
-                    $this->getUserAccounts($accounts);
-                    
-                    $this->displayUserAccounts($accounts);
-                    
+                    $q = 'select id,lvl, opts from web_users where id = '.$userId;                    
+                    $user = $this->db->queryResultArray($q);
+                    if($user && isset($user[0]['ID']) && $user[0]['ID']>0){
+                        $uObj = ['LVL'=>$user[0]['LVL']];
+                        $opts = json_decode($user[0]['OPTS'],true);
+                        if($user[0]['LVL']==5 && isset($opts['block'])){
+                            $uObj['block']=$opts['block'];
+                        }
+                        $accounts = [
+                            $userId => $uObj
+                        ];
+
+                        echo "checking why account {$userId} was blocked..".PHP_EOL;
+
+                        $this->getUserAccounts($accounts);
+
+                        $this->displayUserAccounts($accounts);
+                    }else{
+                        echo "yBlocked error: user does not exist".PHP_EOL;
+                    }                    
                 }else{
                     echo "yBlocked error: missing {web_user_id}".PHP_EOL;
                 }
@@ -172,6 +181,7 @@ class Administration {
         $emails = [];
                     
         $ads = $this->db->queryResultArray($q);
+        
         $this->_getContactInfo($ads, $phones, $emails);
         
         if(count($phones) || count($emails)){
@@ -227,7 +237,7 @@ class Administration {
         }
         $accounts=json_encode($accounts);        
         $accounts=preg_replace($ids, $labels, $accounts);
-        $accounts=  json_decode($accounts,true);
+        $accounts=json_decode($accounts,true);
         
         print_r($accounts);
     }
