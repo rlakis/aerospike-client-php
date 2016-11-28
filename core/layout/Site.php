@@ -751,8 +751,9 @@ class Site {
             $mail->Username   = ($sender_account) ? $sender_account : $this->urlRouter->cfg['smtp_user'];
             $mail->Password   = $this->urlRouter->cfg['smtp_pass'];
             $mail->SMTPSecure = 'ssl';
-            //$mail->SetFrom($fromEmail, $fromName);
-            $mail->SetFrom($fromName, $fromEmail);
+            $mail->Sender = $fromEmail;
+            $mail->SetFrom($fromEmail, $fromName);
+            //$mail->SetFrom($fromName, $fromEmail);
             if (is_array($toEmail)) 
             {
                 foreach ($toEmail as $email) 
