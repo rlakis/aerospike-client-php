@@ -736,8 +736,10 @@ class Site {
         return false;
     }
 
-    function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account=''){
-    	//require_once ('lib/phpmailer.class.php');
+    
+    function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='')
+    {
+        error_log("starget");
     	require 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';
         $mail = new PHPMailer(true);
         $mail->IsSMTP();
@@ -746,25 +748,30 @@ class Site {
             $mail->Host       = $this->urlRouter->cfg['smtp_server'];
             $mail->SMTPAuth   = true;
             $mail->Port       = $this->urlRouter->cfg['smtp_port'];
-            if($sender_account){
-                $mail->Username   = $sender_account;
-            }else{
-                $mail->Username   = $this->urlRouter->cfg['smtp_user'];
-            }
+            $mail->Username   = ($sender_account) ? $sender_account : $this->urlRouter->cfg['smtp_user'];
             $mail->Password   = $this->urlRouter->cfg['smtp_pass'];
             $mail->SMTPSecure = 'ssl';
-            $mail->SetFrom($fromEmail, $fromName);
-            if (is_array($toEmail)) {
-                foreach ($toEmail as $email){
+            //$mail->SetFrom($fromEmail, $fromName);
+            $mail->SetFrom($fromName, $fromEmail);
+            if (is_array($toEmail)) 
+            {
+                foreach ($toEmail as $email) 
+                {
                     $mail->AddAddress($email,'');
                 }
-            }else
+            }
+            else
+            {
                 $mail->AddAddress($toEmail,$toName);
+            }
             $mail->IsHTML(true);
             $mail->CharSet='UTF-8';
             $mail->Subject = $subject;
             $mail->Body    = $message;
-            if ($mail->Send()) $res= 1;
+            if ($mail->send())
+            {
+                $res = 1;
+            }
          } catch (phpmailerException $e) {
          	$res= 0;
                 //trigger_error($mail->ErrorInfo);
