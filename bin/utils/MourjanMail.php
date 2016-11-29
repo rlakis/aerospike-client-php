@@ -409,8 +409,8 @@ class MourjanMail extends PHPMailer {
         $this->Password     = $config['smtp_pass'];
         $this->CharSet      = 'UTF-8';
         $this->SetFrom($config['smtp_user'], 'Mourjan.com');
-        
-        $this->language=$language;
+        //$this->setLanguage($lan);
+        //$this->language=$language;
         require_once $config['dir'].'/core/model/Db.php';
         require_once $config['dir'].'/core/model/User.php';
         $this->db = new DB($config);

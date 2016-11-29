@@ -131,7 +131,7 @@ class DB
     }
 
 
-    public function getInstance() {
+    public function getInstance($try=0) {
        if (self::$Instance === NULL) {            
             $this->newInstance();
             if (!self::$Instance->inTransaction()) {
@@ -161,8 +161,20 @@ class DB
                 self::$Instance->beginTransaction();
             } 
         }
-        //error_log(self::getTransactionIsolationMessage());
-        return self::$Instance;
+        if(self::$Instance->inTransaction()){
+            //error_log(self::getTransactionIsolationMessage());
+            return self::$Instance;
+        }else{
+            if($try === 3){
+                error_log("############################");
+                error_log("UNABLE TO BEGIN TRANSACTION");
+                error_log("############################");
+                return false;
+            }else{
+                usleep(100);
+                return $this->getInstance($try+1);
+            }
+        }
     }
     
     
