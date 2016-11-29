@@ -737,9 +737,72 @@ class Site {
     }
 
     
+    function createTicket($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='')
+    {
+        $osticket = ['url'=>'http://ticket.mourjan.com/api/http.php/tickets.json', 'key'=>'BE3B545DE0E7EAB26360CF633269D99A'];
+        
+        $ticket = json_decode('{"alert":true, "autorespond":false}');
+        $ticket->name = $fromName;
+        $ticket->email = $fromEmail;
+        $ticket->subject = $subject;
+        $ticket->message = "data:text/html;charset=utf-8,TicketSubmission:{$message}";
+        
+        #set timeout
+        set_time_limit(10);
+
+        #curl post
+        $ch = curl_init();        
+        curl_setopt($ch, CURLOPT_URL, $osticket['url']);        
+        curl_setopt($ch, CURLOPT_POST, 1);        
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($ticket));
+        curl_setopt($ch, CURLOPT_USERAGENT, 'osTicket API Client v1.10');
+        curl_setopt($ch, CURLOPT_HEADER, TRUE);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array( 'Expect:', 'X-API-Key: '.$osticket['key']));
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, FALSE);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE); 
+        $result=curl_exec($ch);
+        curl_close($ch);
+
+        //Use postfix exit codes...expected by MTA.
+        $code = 75;
+        if(preg_match('/HTTP\/.* ([0-9]+) .*/', $result, $status)) 
+        {
+            echo $result;
+            echo '<br/><br/>';
+            echo print_r($status);
+            switch($status[1]) 
+            {
+                case 201: //Success
+                    $code = 0;
+                    break;
+                case 400:
+                    $code = 66;
+                    break;
+                case 401: /* permission denied */
+                case 403:
+                    $code = 77;
+                    break;
+                case 415:
+                case 416:
+                case 417:
+                case 501:
+                    $code = 65;
+                    break;
+                case 503:
+                    $code = 69;
+                    break;
+                case 500: //Server error.
+                default: //Temp (unknown) failure - retry 
+                    $code = 75;
+            }
+        }
+    }
+    
+    
     function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='')
     {
-        error_log("starget");
+        $this->createTicket($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account);
+        if (TRUE) return;
     	require 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';
         $mail = new PHPMailer(true);
         $mail->IsSMTP();
