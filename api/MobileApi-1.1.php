@@ -861,6 +861,7 @@ class MobileApi
 
     function userStatus(&$status, &$name=null, $device_name = null) {
         $name=null;
+        $opts = json_decode("{}");
         if ($this->uid>0 && !empty($this->uuid)) {
             $status = 0;
             $q = $this->db->queryResultArray(
@@ -926,7 +927,9 @@ class MobileApi
                     return $opts;
                 }
             }
-            else $opts = json_decode("{}");
+            else {
+                $opts = json_decode("{}");
+            }
             /*
             $q=$this->db->queryResultArray(
                     "select u.IDENTIFIER, u.USER_EMAIL, u.OPTS, u.FULL_NAME, IIF(m.STATUS IS NULL, 10, m.STATUS) STATUS, m.SECRET "
@@ -950,11 +953,11 @@ class MobileApi
             }
              *
              */
-            return null;
         }else{
+            $opts = json_decode("{}");
             $status = -9;
-            return null;
         }
+        return $opts;
         //DO NOT DELETE <<<<<<<<<<<<<---------------------
         /*
          *  else if($device_name == 'Android' && $this->uid == 0 && !empty($this->uuid)){
