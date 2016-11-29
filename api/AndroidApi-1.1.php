@@ -691,7 +691,7 @@ class AndroidApi {
                             $this->setLevel($this->api->getUID(),5);
                             
                         }elseif($requireReview){
-                            $this->referrToSuperAdmin($adId);
+                            $this->referrToSuperAdmin($ad_id);
                         }elseif($hasFailure){
                             $ad_id = 0;
                             $state = 3;
