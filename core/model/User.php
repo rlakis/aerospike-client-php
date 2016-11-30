@@ -1425,11 +1425,22 @@ class User {
             	        	if ($this->info['level']!=9)$stmt->bindValue(13,$userId, PDO::PARAM_INT);
 
                 	    	$result=null;
-                    		try {
+                                
+                    		try 
+                                {
+                                    if (!$this->db->inTransaction())
+                                    {
+                                        error_log('User.SaveAd ('. $id .'): Not in transaction (1)' );
+                                    }
                                     if ($this->db->executeStatement($stmt)) {
                                         $result=$stmt->fetchAll(PDO::FETCH_ASSOC);
                                         if ($attrs)
                                         {
+                                            if (!$this->db->inTransaction())
+                                            {
+                                                error_log('User.SaveAd ('. $id .'): Not in transaction (2)' );
+                                            }
+                                            
                                             $st=$this->db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
                                             $st->bindValue(1, $id, PDO::PARAM_INT);
                                             $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
@@ -1438,7 +1449,8 @@ class User {
                                         }
                                     }
                     		} catch (Exception $e) {
-                                    error_log('User.SaveAd ('. $id .'): ' . $e->getMessage());
+                                    error_log('User.SaveAd ('. $id .'): ' .  $e->getMessage());
+                                    error_log('User.SaveAd ('. $id .'): ' .  $e->getTraceAsString());
                                     error_log('User.SaveAd ('. $id .') Transaction: ' . $this->db->getTransactionIsolationMessage());
 
                                     $this->db->getInstance()->rollBack();
