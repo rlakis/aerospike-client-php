@@ -249,6 +249,7 @@ class DB
             if( (strpos($ex->getMessage(), '913 deadlock') > -1) && $runtime < 5){
                 //error_log('RETRY: '. $runtime . ' | CODE: '. $ex->getCode() . ' | '.$ex->getMessage() . PHP_EOL . $query . PHP_EOL . var_export($params, TRUE));
                 usleep(100);
+                $this->getInstance();
                 return $this->queryResultArray($query, $params, $commit, $fetch_mode, $runtime+1);
             }else{
                 error_log('CODE: '. $ex->getCode() . ' | '.$ex->getMessage() . PHP_EOL . $query . PHP_EOL . var_export($params, TRUE));
@@ -269,6 +270,7 @@ class DB
             self::$Instance->rollBack();    
             if( (strpos($ex->getMessage(), '913 deadlock') > -1) && $runtime < 5){
                 usleep(100);
+                $this->getInstance();
                 return $this->executeStatement($stmt,$params, $runtime+1);
             }else{
                 error_log('CODE: '. $ex->getCode() . ' | '.$ex->getMessage() . PHP_EOL);
