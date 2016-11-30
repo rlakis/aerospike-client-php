@@ -803,6 +803,26 @@ class AndroidApi {
                                     $userState = $this->detectDuplicateSuspension($ad['cui']);                            
                                 }
                             }
+                            if($ad_id && $state == 1){                                
+                                $dbAd = $this->api->db->queryResultArray(
+                                        'select a.id,
+                                        IIF(f.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', f.ended_date)) featured_date_ended, 
+                                        IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended '                         
+                                        . 'from ad_user a '
+                                        . 'left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 '
+                                        . 'left join t_ad_featured f on f.ad_id=a.id and current_timestamp between f.added_date and f.ended_date '                                                       
+                                        . 'where a.id = ?', [$ad_id], true
+                                );
+                                if(isset($dbAd[0]['ID']) && $dbAd[0]['ID']){
+                                    $dbAd=$dbAd[0];
+                                    $current_time = time();
+                                    $isFeatured = isset($dbAd['FEATURED_DATE_ENDED']) && $dbAd['FEATURED_DATE_ENDED'] ? ($current_time < $dbAd['FEATURED_DATE_ENDED']) : false;
+                                    $isFeatureBooked = isset($dbAd['BO_DATE_ENDED']) && $dbAd['BO_DATE_ENDED'] ? ($current_time < $dbAd['BO_DATE_ENDED']) : false;
+                                    if($isFeatured || $isFeatureBooked){
+                                        $state = 4;
+                                    }
+                                }
+                            }
                             if($ad_id && $state == 4 && $isMultiCountry){
                                 $q='update ad_user set
                                     content=?,state=? 

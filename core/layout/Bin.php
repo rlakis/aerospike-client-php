@@ -2397,7 +2397,23 @@ class Bin extends AjaxHandler{
                         
                         if($publish == 1 && isset($ad['budget']) && is_numeric($ad['budget']) && $ad['budget']> 0){
                             $publish = 4;
-                        }                        
+                        } 
+                        
+                        $adId = $this->user->pending['post']['id'];
+                        
+                        if($publish == 1){
+                            $dbAd = $this->user->getPendingAds($adId,0,0,true);
+                            if(isset($dbAd[0]['ID']) && $dbAd[0]['ID']){
+                                $dbAd=$dbAd[0];
+                                $current_time = time();
+                                $isFeatured = isset($dbAd['FEATURED_DATE_ENDED']) && $dbAd['FEATURED_DATE_ENDED'] ? ($current_time < $dbAd['FEATURED_DATE_ENDED']) : false;
+                                $isFeatureBooked = isset($dbAd['BO_DATE_ENDED']) && $dbAd['BO_DATE_ENDED'] ? ($current_time < $dbAd['BO_DATE_ENDED']) : false;
+                                if($isFeatured || $isFeatureBooked){
+                                    $publish = 4;
+                                }
+                            }
+                 
+                        }
                         
                         $this->user->update();
                         if(!$isSCAM){
@@ -2405,7 +2421,6 @@ class Bin extends AjaxHandler{
                             $this->logAdmin($this->user->pending['post']['id'], $publish);
                         }
                         
-                        $adId = $this->user->pending['post']['id'];
                         $result=array(
                             'id'=>$this->user->pending['post']['id'],
                             'user'=>$this->user->pending['post']['user'],

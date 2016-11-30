@@ -554,7 +554,7 @@ class User {
         return $ad;
     }
 
-    function getPendingAds($id=0, $state=0,$pagination=0){
+    function getPendingAds($id=0, $state=0,$pagination=0, $commit=false){
         $res=false;
         
         $pagination_str = '';
@@ -573,15 +573,25 @@ class User {
                 if ($this->info['level']==9){
                     $res=$this->db->queryResultArray(
                         'select a.*,u.full_name,u.lvl,u.provider,u.email,u.DISPLAY_NAME,'
-                            . 'u.user_name,u.user_email,u.profile_url, u.user_rank '
+                            . 'u.user_name,u.user_email,u.profile_url, u.user_rank, 
+                            IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
+                            IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended '
                             . 'from ad_user a '
-                            . 'left join web_users u on u.id=a.web_user_id '
+                            . 'left join web_users u on u.id=a.web_user_id 
+                               left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
+                               left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date '
                             . 'where a.id=?',
-                        array($id));
+                        array($id), $commit);
                 }else {
                     $res=$this->db->queryResultArray(
-                        'select * from ad_user where web_user_id=? and id=?',
-                        array($this->info['id'],$id));
+                        'select a.*, 
+                         IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
+                         IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended 
+                         from ad_user a                             
+                         left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
+                         left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
+                         where web_user_id=? and id=?',
+                        array($this->info['id'],$id), $commit);
                 }
             }else {
                 if ($this->info['level']==9){
@@ -597,14 +607,14 @@ class User {
                                 left join web_users u on u.id=a.web_user_id
                                 where a.admin_id=? and a.state=? 
                                 ORDER BY a.DATE_ADDED desc
-                                ', array($aid,$state));
+                                ', array($aid,$state), $commit);
                         }elseif ($state){
                             $res=$this->db->queryResultArray(
                             'select '.$pagination_str.' a.*,u.full_name,u.lvl,u.DISPLAY_NAME,u.profile_url, u.user_rank from ad_user a left join web_users u on u.id=a.web_user_id where a.state=3 and a.admin_id='.$aid.' order by a.state asc,a.date_added desc');
                         }else {
                             $res=$this->db->queryResultArray(
                             'select '.$pagination_str.' a.*,u.full_name,u.lvl,u.DISPLAY_NAME,u.profile_url, u.user_rank from ad_user a left join web_users u on u.id=a.web_user_id where a.admin_id=? and a.state=? order by a.date_added desc',
-                            array($aid,$state));
+                            array($aid,$state), $commit);
                         }
                         
                     }else{
@@ -623,7 +633,7 @@ class User {
                                 left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
                                 where a.web_user_id=? and a.state=? 
                                 ORDER BY bo_date_ended desc, a.DATE_ADDED desc
-                                ', array($uid,$state));
+                                ', array($uid,$state), $commit);
                         }elseif ($state){
                             $adLevel=0;
                             if($this->isSuperUser()){
@@ -666,11 +676,11 @@ class User {
                                     }
                                     $q.= 'order by primo desc,a.state asc,bo_date_ended desc,ao.super_admin desc, ppn,a.date_added desc';                               
                             //echo $q;
-                            $res=$this->db->queryResultArray($q);
+                            $res=$this->db->queryResultArray($q,null, $commit);
                         }else {
                             $res=$this->db->queryResultArray(
                             'select '.$pagination_str.' a.*,u.full_name,u.lvl,u.DISPLAY_NAME,u.profile_url, u.user_rank from ad_user a left join web_users u on u.id=a.web_user_id where a.web_user_id=? and a.state=? order by a.date_added desc',
-                            array($uid,$state));
+                            array($uid,$state), $commit);
                         }
                         
                     }
@@ -688,7 +698,7 @@ class User {
                          where a.web_user_id=? and a.state=? 
                                 ORDER BY bo_date_ended desc, a.DATE_ADDED desc
                                 ',
-                        array($this->info['id'],$state));
+                        array($this->info['id'],$state), $commit);
                     }elseif ($state) {
                         // 1: Pending to apprive, 2: approved not published, 3: rejected
                         $res=$this->db->queryResultArray(
@@ -700,12 +710,12 @@ class User {
                         . 'left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
                         left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date '
                         . 'where a.web_user_id=? and a.state in (1,2,3,4) order by a.date_added desc' ,       
-                        array($this->info['id']));
+                        array($this->info['id']), $commit);
                     }else {
                         // Draft
                         $res=$this->db->queryResultArray(
                         'select '.$pagination_str.' * from ad_user where web_user_id=? and state=? order by date_added desc',
-                        array($this->info['id'],$state));
+                        array($this->info['id'],$state), $commit);
                     }
                 }
             }
