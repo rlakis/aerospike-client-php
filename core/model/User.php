@@ -590,7 +590,7 @@ class User {
                          from ad_user a                             
                          left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
                          left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
-                         where web_user_id=? and id=?',
+                         where a.web_user_id=? and a.id=?',
                         array($this->info['id'],$id), $commit);
                 }
             }else {
