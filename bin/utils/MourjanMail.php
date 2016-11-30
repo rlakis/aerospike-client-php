@@ -7,7 +7,7 @@ class MourjanMail extends PHPMailer {
     public 
             $user = null,$db=null,
             $templatePath   =  'include',
-            $language,
+            $mLanguage,
             $debug=false,
             $dir='',
             $notifiers=array(),
@@ -394,7 +394,7 @@ class MourjanMail extends PHPMailer {
             ;
 
 
-    function __construct($config, $language='en', $debug=false){
+    function __construct($config, $lang='en', $debug=false){
         parent::__construct();
         $this->dir = $config['dir'];
         $this->notifiers    = $config['notifier_mail'];
@@ -410,7 +410,7 @@ class MourjanMail extends PHPMailer {
         $this->CharSet      = 'UTF-8';
         $this->SetFrom($config['smtp_user'], 'Mourjan.com');
         //$this->setLanguage($lan);
-        //$this->language=$language;
+        $this->mLanguage=$lang;
         require_once $config['dir'].'/core/model/Db.php';
         require_once $config['dir'].'/core/model/User.php';
         $this->db = new DB($config);
@@ -432,7 +432,7 @@ class MourjanMail extends PHPMailer {
     function MsgTemplate($template, $params=array(), $genParams=array(), $basedir = '', $plainFooter=0) {
         //echo __DIR__, "\n";
         global $config;
-        $templateUri=$this->templatePath.'/'.($this->language!='en'?$this->language.'/':'').$template.'.html';
+        $templateUri=$this->templatePath.'/'.($this->mLanguage!='en'?$this->mLanguage.'/':'').$template.'.html';
         if (!isset($this->templates[$templateUri])) {
             $this->templates[$templateUri]=file_get_contents($templateUri, true);
         }
@@ -444,7 +444,7 @@ class MourjanMail extends PHPMailer {
         $message=addcslashes($this->templates[$templateUri],'"');
         eval("\$message= \"$message\";");
         if (count($genParams)){
-            if($this->language=='ar'){
+            if($this->mLanguage=='ar'){
                 if($plainFooter)
                     $message = $this->emailHeader_ar.$message.$this->plainFooter_ar;
                 else 
@@ -480,7 +480,7 @@ class MourjanMail extends PHPMailer {
             $comment='<p style="text-align:center;direction:ltr;color:#666;font-size:18px;font-style:italic;font-family:verdana,arial;line-height:25px">"'.$comment.'"</p>';
         }
         
-        $addLang= ($this->language =='ar' ? '' :$this->language.'/');
+        $addLang= ($this->mLanguage =='ar' ? '' :$this->mLanguage.'/');
         
         $myAccountKey = $this->user->encodeRequest('my_account',array($userId));
         $myAdsKey = $this->user->encodeRequest('my_ads',array($userId));
@@ -500,7 +500,7 @@ class MourjanMail extends PHPMailer {
         );
         $genParams=array(
             'img_url'   =>  $imgUrlLink,
-            'title'     =>  ($this->language == 'ar' ? 'إشعار بتعليق جديد على اعلانك' :'New Comment Notification')
+            'title'     =>  ($this->mLanguage == 'ar' ? 'إشعار بتعليق جديد على اعلانك' :'New Comment Notification')
         );
         $this->MsgTemplate('ad-comment',$params, $genParams, '', 1);
         if($this->debug) return 1;
@@ -523,7 +523,7 @@ class MourjanMail extends PHPMailer {
         );        
         $genParams=array(
             'img_url'   =>  $imgUrlLink,
-            'title'     =>  ($this->language == 'ar' ? 'تأكيد ملكية عنوان البريد الإلكتروني' :'Email Verification')
+            'title'     =>  ($this->mLanguage == 'ar' ? 'تأكيد ملكية عنوان البريد الإلكتروني' :'Email Verification')
         );
         $this->MsgTemplate('email-verification',$params,$genParams,'',1);
         if($this->debug) return 1;
@@ -545,7 +545,7 @@ class MourjanMail extends PHPMailer {
         );        
         $genParams=array(
             'img_url'   =>  $imgUrlLink,
-            'title'     =>  ($this->language == 'ar' ? 'تأكيد ملكية عنوان البريد الإلكتروني' :'Email Verification')
+            'title'     =>  ($this->mLanguage == 'ar' ? 'تأكيد ملكية عنوان البريد الإلكتروني' :'Email Verification')
         );
         $this->MsgTemplate('email-code-verification',$params,$genParams,'',1);
         if($this->debug) return 1;
@@ -567,7 +567,7 @@ class MourjanMail extends PHPMailer {
         );        
         $genParams=array(
             'img_url'   =>  $imgUrlLink,
-            'title'     =>  ($this->language == 'ar' ? 'تفعيل الحساب' :'Account Activation')
+            'title'     =>  ($this->mLanguage == 'ar' ? 'تفعيل الحساب' :'Account Activation')
         );
         $this->MsgTemplate('account-verification',$params,$genParams,'',1);
         if($this->debug) return 1;
@@ -589,7 +589,7 @@ class MourjanMail extends PHPMailer {
         );        
         $genParams=array(
             'img_url'   =>  $imgUrlLink,
-            'title'     =>  ($this->language == 'ar' ? 'إعادة تعيين كلمة السر' :'Password Reset')
+            'title'     =>  ($this->mLanguage == 'ar' ? 'إعادة تعيين كلمة السر' :'Password Reset')
         );
         $this->MsgTemplate('password-reset',$params,$genParams,'',1);
         if($this->debug) return 1;
@@ -634,7 +634,7 @@ class MourjanMail extends PHPMailer {
         global $config;
         $imgUrlLink=$config['url_resources'].$config['url_img'];
         $this->doClearAll();
-        $this->language=$lang;        
+        $this->mLanguage=$lang;        
         $this->Subject='New Ads in your watchlist';
         $this->AddAddress($email,$username);
         //$this->AddBCC('admin@berysoft.com');
@@ -660,7 +660,7 @@ class MourjanMail extends PHPMailer {
             $fontFamily='verdana,arial';
         }
         
-        $addLang= ($this->language =='ar' ? '' :$this->language.'/');
+        $addLang= ($this->mLanguage =='ar' ? '' :$this->mLanguage.'/');
         $content='';
         
         foreach ($ads as $ad){
@@ -686,7 +686,7 @@ class MourjanMail extends PHPMailer {
             }
             $ad['channel_title']=$sectionTitle;
             if($cnt){
-                if($this->language=='ar'){                                        
+                if($this->mLanguage=='ar'){                                        
                     $sectionTitle='بالاضافة الى';
                     if($cnt==1){
                         $sectionTitle.=' اعلان آخر';
@@ -711,7 +711,7 @@ class MourjanMail extends PHPMailer {
             $content.='
                     <tr>
                         <td bgcolor="#f5f5f5" background="'.$imgUrlLink.'/fx.png">
-                            <table width="100%" '.($this->language=='ar' ? 'dir="rtl"':'dir="ltr"').' cellpadding="5px" cellspacing="0" style="'.($this->language=='ar' ? 'direction:rtl;':'').'border-collapse:collapse;border:1px solid #ccc">
+                            <table width="100%" '.($this->mLanguage=='ar' ? 'dir="rtl"':'dir="ltr"').' cellpadding="5px" cellspacing="0" style="'.($this->mLanguage=='ar' ? 'direction:rtl;':'').'border-collapse:collapse;border:1px solid #ccc">
                                 <tr>
                                     <td style="color:#333;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;">'.$sectionTitle.'</td>
                                 </tr>
@@ -738,7 +738,7 @@ class MourjanMail extends PHPMailer {
         );
         $genParams=array(
             'img_url'   =>  $imgUrlLink,
-            'title'     =>  ($this->language == 'ar' ? 'إعلانات جديدة في لائحة المراقبة' :'New Ads in Watchlist')
+            'title'     =>  ($this->mLanguage == 'ar' ? 'إعلانات جديدة في لائحة المراقبة' :'New Ads in Watchlist')
         );
         $this->MsgTemplate('ad-notification',$params, $genParams, '', 1);
         if($this->debug) return 1;
@@ -780,7 +780,7 @@ class MourjanMail extends PHPMailer {
         $fontSize=13;
         $fontFamily='verdana,arial';
         
-        if($this->language=='ar'){
+        if($this->mLanguage=='ar'){
             $fieldIndex=1;
             $comma='، ';
             $fontSize=14;
@@ -792,33 +792,33 @@ class MourjanMail extends PHPMailer {
             $section = $this->parsePageLabel($ad['SECTION_NAME_EN'],$ad['PURPOSE_ID'],$ad['PURPOSE_NAME_EN']);
         }
         
-        $addLang= ($this->language =='ar' ? '' :$this->language.'/');
+        $addLang= ($this->mLanguage =='ar' ? '' :$this->mLanguage.'/');
         if ($expired){
             $sKey=$this->user->encodeRequest('my_archive',array($ad['WEB_USER_ID']));
             $link_1= $config['host'].'/a/'.$addLang.'?k='.$sKey;
-            $link_1='<a href="'.$link_1.'" style="text-align:center;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;display:block;padding:5px 0;color:#fff;text-decoration:none;">'.($this->language =='ar' ? 'أرشيف الإعلانات' :'My Archive').'</a>';
+            $link_1='<a href="'.$link_1.'" style="text-align:center;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;display:block;padding:5px 0;color:#fff;text-decoration:none;">'.($this->mLanguage =='ar' ? 'أرشيف الإعلانات' :'My Archive').'</a>';
             
             $sKey=$this->user->encodeRequest('ad_renew',array($ad['WEB_USER_ID'],$ad['REFERENCE']));
             $link_2=$config['host'].'/a/'.$addLang.'?k='.$sKey;
-            $link_2='<a href="'.$link_2.'" style="text-align:center;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;display:block;padding:5px 0;color:#fff;text-decoration:none;">'.($this->language =='ar' ? 'تجديد النشر' :'Renew Ad').'</a>';
+            $link_2='<a href="'.$link_2.'" style="text-align:center;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;display:block;padding:5px 0;color:#fff;text-decoration:none;">'.($this->mLanguage =='ar' ? 'تجديد النشر' :'Renew Ad').'</a>';
         }else{
             $sKey=$this->user->encodeRequest('ad_page',array($ad['WEB_USER_ID'],$ad['REFERENCE']));
             $link_1=$config['host'].'/a/'.$addLang.'?k='.$sKey;
-            $link_1='<a href="'.$link_1.'" style="text-align:center;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;display:block;padding:5px 0;color:#fff;text-decoration:none;">'.($this->language =='ar' ? 'صفحة الإعلان' :'Visit Ad Page').'</a>';
+            $link_1='<a href="'.$link_1.'" style="text-align:center;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;display:block;padding:5px 0;color:#fff;text-decoration:none;">'.($this->mLanguage =='ar' ? 'صفحة الإعلان' :'Visit Ad Page').'</a>';
             
             $sKey=$this->user->encodeRequest('ad_stop',array($ad['WEB_USER_ID'],$ad['REFERENCE']));
             $link_2=$config['host'].'/a/'.$addLang.'?k='.$sKey;
-            $link_2='<a href="'.$link_2.'" style="text-align:center;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;display:block;padding:5px 0;color:#fff;text-decoration:none;">'.($this->language =='ar' ? 'إيقاف العرض' :'Stop Ad').'</a>';
+            $link_2='<a href="'.$link_2.'" style="text-align:center;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;display:block;padding:5px 0;color:#fff;text-decoration:none;">'.($this->mLanguage =='ar' ? 'إيقاف العرض' :'Stop Ad').'</a>';
         }
         
         if (isset($adContent['pubTo'])) {
             $countriesArray=array();
             $cities=$this->db->getCities();
-            $countries = $this->db->getCountries($this->language);
+            $countries = $this->db->getCountries($this->mLanguage);
             foreach ($adContent['pubTo'] as $city => $value){
                 if (isset($cities[$city])) {
                     if (!isset($countriesArray[$cities[$city][6]])){
-                        $ccs=$this->db->getCountryCities($cities[$city][6], $this->language);
+                        $ccs=$this->db->getCountryCities($cities[$city][6], $this->mLanguage);
                         if ($ccs && count($ccs)>1){
                             $countriesArray[$cities[$city][6]]=array($countries[$cities[$city][6]][$fieldIndex],array());
                         }else {
@@ -831,16 +831,16 @@ class MourjanMail extends PHPMailer {
             $i=0;
             foreach ($countriesArray as $key => $value) {
                 if ($i)$section.=' - '.$value[0];
-                else $section.=' '.($this->language=='ar'?'في':'in').' '.$value[0];
+                else $section.=' '.($this->mLanguage=='ar'?'في':'in').' '.$value[0];
                 if ($value[1]!==false) $section.='('.implode ($comma, $value[1]).')';
                 $i++;
             }
         }else {
-            $ccs=$this->db->getCountryCities($ad['COUNTRY_ID'], $this->language);
+            $ccs=$this->db->getCountryCities($ad['COUNTRY_ID'], $this->mLanguage);
             if ($ccs && count($ccs)>1){
-                $section.=' '.($this->language=='ar'?'في '.$ad['CITY_NAME_AR']:'in '.$ad['CITY_NAME_EN']).$comma;
+                $section.=' '.($this->mLanguage=='ar'?'في '.$ad['CITY_NAME_AR']:'in '.$ad['CITY_NAME_EN']).$comma;
                 }
-                $section.=' '.($this->language=='ar'?'في '.$ad['COUNTRY_NAME_AR']:'in '.$ad['COUNTRY_NAME_EN']);
+                $section.=' '.($this->mLanguage=='ar'?'في '.$ad['COUNTRY_NAME_AR']:'in '.$ad['COUNTRY_NAME_EN']);
             }
         
         
@@ -848,14 +848,14 @@ class MourjanMail extends PHPMailer {
         $content.='
                     <tr>
                         <td bgcolor="#f5f5f5" background="'.$imgUrlLink.'/fx.png">
-                            <table width="100%" '.($this->language=='ar' ? 'dir="rtl"':'dir="ltr"').' cellpadding="5px" cellspacing="0" style="'.($this->language=='ar' ? 'direction:rtl;':'').'border-collapse:collapse;border:1px solid #ccc">
+                            <table width="100%" '.($this->mLanguage=='ar' ? 'dir="rtl"':'dir="ltr"').' cellpadding="5px" cellspacing="0" style="'.($this->mLanguage=='ar' ? 'direction:rtl;':'').'border-collapse:collapse;border:1px solid #ccc">
                                 <tr valign="top">
-                                    <td width="100px" style="color:#333;font-weight:bold;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;">'.($this->language=='ar' ? 'نشر في':'Published in').':</td>
+                                    <td width="100px" style="color:#333;font-weight:bold;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;">'.($this->mLanguage=='ar' ? 'نشر في':'Published in').':</td>
                                     <td style="color:#333;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;">'.$section.'</td>
                                 </tr>
                                 <tr>
-                                    <td width="100px" style="color:#333;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;"><b>'.($this->language=='ar' ? 'صالح لغاية':'Valid Until').':</b></td>
-                                    <td style="color:#333;font-weight:bold;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;">'.($expired ? '<b style="color:red" style="font-family:'.$fontFamily.';font-size:'.$fontSize.'px;">'.($this->language == 'ar' ? 'منتهي الصلاحية':'Expired').'</b>' : $expiry_date).'</td>
+                                    <td width="100px" style="color:#333;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;"><b>'.($this->mLanguage=='ar' ? 'صالح لغاية':'Valid Until').':</b></td>
+                                    <td style="color:#333;font-weight:bold;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;">'.($expired ? '<b style="color:red" style="font-family:'.$fontFamily.';font-size:'.$fontSize.'px;">'.($this->mLanguage == 'ar' ? 'منتهي الصلاحية':'Expired').'</b>' : $expiry_date).'</td>
                                 </tr>
                                 <tr>
                                     <td colspan="2">
@@ -910,7 +910,7 @@ class MourjanMail extends PHPMailer {
                 $name=$ad['USER_NAME']; 
                 $opts=json_decode($ad['OPTS'],true);
                 if (isset($opts['lang'])) {
-                    $this->language=$opts['lang'];
+                    $this->mLanguage=$opts['lang'];
                 }
             }
             if($count > 1) $content.='<tr><td align="center" style="font-family:verdana,arial;color:#999;font-size:22px;padding:5px 0">- '.($i+1).' -</td></tr>';
@@ -922,7 +922,7 @@ class MourjanMail extends PHPMailer {
         //$this->AddBCC('admin@berysoft.com');
         //$this->AddBCC('bassel@mourjan.com');
         
-        $addLang= ($this->language =='ar' ? '' :$this->language.'/');
+        $addLang= ($this->mLanguage =='ar' ? '' :$this->mLanguage.'/');
         
         $myAccountKey = $this->user->encodeRequest('my_account',array($ad['WEB_USER_ID']));
         $myAdsKey = $this->user->encodeRequest('my_ads',array($ad['WEB_USER_ID']));
@@ -946,11 +946,11 @@ class MourjanMail extends PHPMailer {
             'img_url'   =>  $imgUrlLink
         );
         if (count($ads)>1) {
-            $genParams['title']=  ($this->language == 'ar' ? 'إشعار بنشر الإعلانات' :'Published Ads Notification');
+            $genParams['title']=  ($this->mLanguage == 'ar' ? 'إشعار بنشر الإعلانات' :'Published Ads Notification');
             $this->Subject='Your ads are approved and published';
             $this->MsgTemplate('ads-published',$params, $genParams,'',1);
         }else {      
-            $genParams['title']=  ($this->language == 'ar' ? 'إشعار بنشر الإعلان' :'Published Ad Notification');
+            $genParams['title']=  ($this->mLanguage == 'ar' ? 'إشعار بنشر الإعلان' :'Published Ad Notification');
             $this->Subject='Your ad is approved and published';
             $this->MsgTemplate('ad-published',$params, $genParams,'',1);
         }
@@ -976,7 +976,7 @@ class MourjanMail extends PHPMailer {
                 $name=$ad['USER_NAME'];
                 $opts=json_decode($ad['OPTS'],true);
                 if (isset($opts['lang'])) {
-                    $this->language=$opts['lang'];
+                    $this->mLanguage=$opts['lang'];
                 }
             }
             if($count > 1) $content.='<tr><td align="center" style="font-family:verdana,arial;color:#999;font-size:22px;padding:5px 0">- '.($i+1).' -</td></tr>';
@@ -989,7 +989,7 @@ class MourjanMail extends PHPMailer {
         //$this->AddBCC('admin@berysoft.com');
         //$this->AddBCC('mourjan@gmail.com');
         
-        $addLang= ($this->language =='ar' ? '' :$this->language.'/');
+        $addLang= ($this->mLanguage =='ar' ? '' :$this->mLanguage.'/');
         
         $myAccountKey = $this->user->encodeRequest('my_account',array($ad['WEB_USER_ID']));
         $myArchiveKey = $this->user->encodeRequest('my_archive',array($ad['WEB_USER_ID']));
@@ -1013,11 +1013,11 @@ class MourjanMail extends PHPMailer {
             'img_url'   =>  $imgUrlLink
         );
         if (count($ads)>1) {
-            $genParams['title']=  ($this->language == 'ar' ? 'إشعار بإنتهاء مدة عرض الإعلانات' :'Expired Ads Notification');
+            $genParams['title']=  ($this->mLanguage == 'ar' ? 'إشعار بإنتهاء مدة عرض الإعلانات' :'Expired Ads Notification');
             $this->Subject='Your ads have expired';
             $this->MsgTemplate('ads-expired',$params, $genParams,'',1);
         }else {      
-            $genParams['title']=  ($this->language == 'ar' ? 'إشعار بإنتهاء مدة عرض الإعلان' :'Expired Ad Notification');
+            $genParams['title']=  ($this->mLanguage == 'ar' ? 'إشعار بإنتهاء مدة عرض الإعلان' :'Expired Ad Notification');
             $this->Subject='Your ad has expired';
             $this->MsgTemplate('ad-expired',$params, $genParams,'',1);
         }
@@ -1025,9 +1025,9 @@ class MourjanMail extends PHPMailer {
         else return $this->Send();
     }
     
-    function notifyPageUpgrade($userEmail, $pageLink, $userName='', $language='ar'){
+    function notifyPageUpgrade($userEmail, $pageLink, $userName='', $lang='ar'){
         $this->doClearAll();
-        $this->language=$language;
+        $this->mLanguage=$lang;
         $this->Username = 'account@mourjan.com';
         $this->SetFrom('account@mourjan.com', 'Mourjan.com');
         $this->Subject='Your Account is Special with Mourjan';
@@ -1035,7 +1035,7 @@ class MourjanMail extends PHPMailer {
         //$this->AddBCC('mourjan@gmail.com');
         $params=array(
             'username'  =>  $userName,
-            'pageLink'  =>  $pageLink.($this->language=='en' ? 'en/':'')
+            'pageLink'  =>  $pageLink.($this->mLanguage=='en' ? 'en/':'')
         );
         $this->MsgTemplate('page-upgrade',$params);
 //        if($this->debug) return 1;
@@ -1051,7 +1051,7 @@ class MourjanMail extends PHPMailer {
                         $sname = $sname.' '.$pname;
                         break;
                     case 999://various
-                        if($this->language=='ar'){                    
+                        if($this->mLanguage=='ar'){                    
                             $sname = ($sname == 'متفرقات' ? $sname :  $sname.' متفرقة');
                         }else{
                             $sname = ( (strpos($sname,'Misc.')===false || $sname == 'Miscellaneous') ? $sname : 'Misc. '.$sname);
@@ -1059,14 +1059,14 @@ class MourjanMail extends PHPMailer {
                         break;
                     case 6://to rent
                     case 7://to buy
-                        if($this->language=='ar'){                    
+                        if($this->mLanguage=='ar'){                    
                             $sname = $pname.' '.$sname ;
                         }else{
                             $sname = 'Looking '.$pname.' '.$sname;
                         }
                         break;
                     case 3://vacancies
-                        if($this->language=='ar'){                    
+                        if($this->mLanguage=='ar'){                    
                             $sname = $pname.' '.$sname;
                         }else{
                             $sname = $sname.' '.$pname;
@@ -1074,11 +1074,11 @@ class MourjanMail extends PHPMailer {
                         break;
                     case 4://seeking work
                         $in='';
-                        if ($this->language=="en")$in=" {$this->lang['in']}";
+                        if ($this->mLanguage=="en")$in=" {$this->lang['in']}";
                         $sname= $pname.$in.' '.$sname;
                         break;
                     case 5://services
-                        if($this->language=='ar'){                    
+                        if($this->mLanguage=='ar'){                    
                             $sname = ( strpos($sname,$pname)===false ? $pname .' '.$sname : $sname);
                         }else{
                             $sname = ( strpos($sname,$pname)===false ? $sname.' '.$pname : $sname);
