@@ -1271,11 +1271,8 @@ class AndroidApi {
                         if(isset($user[0]['ID']) && $user[0]['ID']){
                             $opt = json_decode($user[0]['OPTS'], true);
                             if(isset($opt['accountKey']) && $opt['accountKey']==$code){
-                                error_log("BEFORE RESET");
                                 if($USER->resetPassword($id, $password)){
-                                    error_log("BEFORE MERGE");
                                     $USER->mergeDeviceToAccount($this->api->getUUID(), $this->api->getUID(), $id);
-                                    error_log("AFTER MERGE");
                                     $newId=$id;
                                     $this->api->result['d']['provider']=$user[0]['PROVIDER'];
                                     if($user[0]['PROVIDER']=='mourjan'){

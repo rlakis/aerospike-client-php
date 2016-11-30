@@ -4836,6 +4836,8 @@ class Bin extends AjaxHandler{
                 }else $this->fail('101');
                 break;
             case 'ajax-password':
+                error_log("PASSWORD: <{$pass}>".(isset($this->user->pending['password_new']) ? ' | NEW':'').(isset($this->user->pending['password_reset']) ? ' | RESET':'').PHP_EOL);
+                    
                 $pass=$this->post('v');
                 $lang='ar';
                 $tLang=$this->post('lang');
@@ -4847,8 +4849,8 @@ class Bin extends AjaxHandler{
                         $this->fail('102');
                     }
                 }else {
-                    error_log("password reset failed params >{$pass}< | ".isset($this->user->pending['user_id'])." | ".isset($this->user->pending['password_new'])." | ".isset($this->user->pending['password_reset'])."\n", 3, "/var/log/nginx/mourjan.password.log");
-                    error_log(var_export($_SERVER,true)."\n", 3, "/var/log/nginx/mourjan.password.log");
+                    //error_log(var_export($_SERVER,true).PHP_EOL, 3, "/var/log/mourjan/password.log");
+                    error_log("PASSWORD SERVER LOG: ".var_export($_SERVER,true).PHP_EOL);
                     $this->fail('101');
                 }
                 break;
