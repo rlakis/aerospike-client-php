@@ -4836,9 +4836,9 @@ class Bin extends AjaxHandler{
                 }else $this->fail('101');
                 break;
             case 'ajax-password':
+                $pass=$this->post('v');
                 error_log("PASSWORD: <{$pass}>".(isset($this->user->pending['password_new']) ? ' | NEW':'').(isset($this->user->pending['password_reset']) ? ' | RESET':'').PHP_EOL);
                     
-                $pass=$this->post('v');
                 $lang='ar';
                 $tLang=$this->post('lang');
                 if($tLang=='ar'||$tLang=='en')$lang=$tLang;

@@ -466,6 +466,7 @@ class MourjanMail extends PHPMailer {
     
     function commentNotify($user,$comment,$adLink,$adTitle,$email,$pic,$rtl,$userId,$username=''){
         global $config;
+        $imgUrlLink=$config['url_resources'].$config['url_img'];
         $this->doClearAll();
         $this->Subject='New comment on your ad';
         $this->AddAddress($email,$username);
@@ -495,10 +496,10 @@ class MourjanMail extends PHPMailer {
             'content'   =>  $content,
             'link_account'  =>  $link_acc,
             'link_ads'  =>  $link_ads,
-            'img_url'   =>  $config['url_img']
+            'img_url'   =>  $imgUrlLink
         );
         $genParams=array(
-            'img_url'   =>  $config['url_img'],
+            'img_url'   =>  $imgUrlLink,
             'title'     =>  ($this->language == 'ar' ? 'إشعار بتعليق جديد على اعلانك' :'New Comment Notification')
         );
         $this->MsgTemplate('ad-comment',$params, $genParams, '', 1);
@@ -508,6 +509,7 @@ class MourjanMail extends PHPMailer {
 
     function sendEmailValidation($userEmail,$verifyLink,$userName=''){
         global $config;
+        $imgUrlLink=$config['url_resources'].$config['url_img'];
         $this->doClearAll();
         $this->Username = 'account@mourjan.com';
         $this->SetFrom('account@mourjan.com', 'Mourjan.com');
@@ -517,10 +519,10 @@ class MourjanMail extends PHPMailer {
             'username'  =>  $userName,
             'useremail' =>  $userEmail,
             'verifyLink'=>  $verifyLink,
-            'img_url'   =>  $config['url_img']
+            'img_url'   =>  $imgUrlLink
         );        
         $genParams=array(
-            'img_url'   =>  $config['url_img'],
+            'img_url'   =>  $imgUrlLink,
             'title'     =>  ($this->language == 'ar' ? 'تأكيد ملكية عنوان البريد الإلكتروني' :'Email Verification')
         );
         $this->MsgTemplate('email-verification',$params,$genParams,'',1);
@@ -530,6 +532,7 @@ class MourjanMail extends PHPMailer {
     
     function sendEmailCode($userEmail,$verifyLink){
         global $config;
+        $imgUrlLink=$config['url_resources'].$config['url_img'];
         $this->doClearAll();
         $this->Username = 'account@mourjan.com';
         $this->SetFrom('account@mourjan.com', 'mourjan.com');
@@ -538,10 +541,10 @@ class MourjanMail extends PHPMailer {
         $params=array(
             'useremail' =>  $userEmail,
             'verifyLink'=>  $verifyLink,
-            'img_url'   =>  $config['url_img']
+            'img_url'   =>  $imgUrlLink
         );        
         $genParams=array(
-            'img_url'   =>  $config['url_img'],
+            'img_url'   =>  $imgUrlLink,
             'title'     =>  ($this->language == 'ar' ? 'تأكيد ملكية عنوان البريد الإلكتروني' :'Email Verification')
         );
         $this->MsgTemplate('email-code-verification',$params,$genParams,'',1);
@@ -551,6 +554,7 @@ class MourjanMail extends PHPMailer {
     
     function sendNewAccount($userEmail,$verifyLink){
         global $config;
+        $imgUrlLink=$config['url_resources'].$config['url_img'];
         $this->doClearAll();
         $this->Username = 'account@mourjan.com';
         $this->SetFrom('account@mourjan.com', 'Mourjan.com');
@@ -559,10 +563,10 @@ class MourjanMail extends PHPMailer {
         $params=array(
             'useremail' =>  $userEmail,
             'verifyLink'=>  $verifyLink,
-            'img_url'   =>  $config['url_img']
+            'img_url'   =>  $imgUrlLink
         );        
         $genParams=array(
-            'img_url'   =>  $config['url_img'],
+            'img_url'   =>  $imgUrlLink,
             'title'     =>  ($this->language == 'ar' ? 'تفعيل الحساب' :'Account Activation')
         );
         $this->MsgTemplate('account-verification',$params,$genParams,'',1);
@@ -572,6 +576,7 @@ class MourjanMail extends PHPMailer {
     
     function sendResetPass($userEmail,$verifyLink){
         global $config;
+        $imgUrlLink=$config['url_resources'].$config['url_img'];
         $this->doClearAll();
         $this->Username = 'account@mourjan.com';
         $this->SetFrom('account@mourjan.com', 'Mourjan.com');
@@ -580,10 +585,10 @@ class MourjanMail extends PHPMailer {
         $params=array(
             'useremail' =>  $userEmail,
             'verifyLink'=>  $verifyLink,
-            'img_url'   =>  $config['url_img']
+            'img_url'   =>  $imgUrlLink
         );        
         $genParams=array(
-            'img_url'   =>  $config['url_img'],
+            'img_url'   =>  $imgUrlLink,
             'title'     =>  ($this->language == 'ar' ? 'إعادة تعيين كلمة السر' :'Password Reset')
         );
         $this->MsgTemplate('password-reset',$params,$genParams,'',1);
@@ -609,10 +614,11 @@ class MourjanMail extends PHPMailer {
     
     function getAdTextTable($text,$rtl,$pic){
         global $config;
+        $imgUrlLink=$config['url_resources'].$config['url_img'];
         return '
             <tr>
                 <td>
-                    <table width="100%" '.($rtl ? 'dir="rtl"':'dir="ltr"').' cellpadding="5px" style="'.($rtl ? 'direction:rtl;':'').'border-collapse:collapse;border:1px solid #ccc" background="'.$config['url_img'].'/abg.jpg">
+                    <table width="100%" '.($rtl ? 'dir="rtl"':'dir="ltr"').' cellpadding="5px" style="'.($rtl ? 'direction:rtl;':'').'border-collapse:collapse;border:1px solid #ccc" background="'.$imgUrlLink.'/abg.jpg">
                     	<tr valign="top">
                             <td width="120px" align="center">'.$pic.'</td>
                             <td style="'.($rtl ? 'color:#333;line-height:30px;direction:rtl;text-align:right;font-family:tahoma,arial;font-size:14px;':'color:#333;line-height:25px;direction:ltr;text-align:left;font-family:verdana,tahoma;font-size:13px;').'">'.$text.'</td>
@@ -626,6 +632,7 @@ class MourjanMail extends PHPMailer {
     
     function newAdsNotices($ads, $userId, $email, $username, $lang, $total){
         global $config;
+        $imgUrlLink=$config['url_resources'].$config['url_img'];
         $this->doClearAll();
         $this->language=$lang;        
         $this->Subject='New Ads in your watchlist';
@@ -664,7 +671,7 @@ class MourjanMail extends PHPMailer {
                 $pic = $ad[Classifieds::PICTURES][0];
                 $pic = '<span style="height:110px;overflow:hidden;"><img width="110" src="'.$config['url_ad_img'].'/repos/d/' . $pic.'" /></span>';
             }else{
-                $pic='<img width="90" height="90" src="'.$config['url_img'].'/90/'.$ad[Classifieds::SECTION_ID].'.png" />';
+                $pic='<img width="90" height="90" src="'.$imgUrlLink.'/90/'.$ad[Classifieds::SECTION_ID].'.png" />';
             }
             $content.=$this->getAdTextTable($ad[Classifieds::CONTENT], $ad[Classifieds::RTL], $pic);
             $sectionTitle=preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$ad['channel_title']);
@@ -703,7 +710,7 @@ class MourjanMail extends PHPMailer {
             }
             $content.='
                     <tr>
-                        <td bgcolor="#f5f5f5" background="'.$config['url_img'].'/fx.png">
+                        <td bgcolor="#f5f5f5" background="'.$imgUrlLink.'/fx.png">
                             <table width="100%" '.($this->language=='ar' ? 'dir="rtl"':'dir="ltr"').' cellpadding="5px" cellspacing="0" style="'.($this->language=='ar' ? 'direction:rtl;':'').'border-collapse:collapse;border:1px solid #ccc">
                                 <tr>
                                     <td style="color:#333;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;">'.$sectionTitle.'</td>
@@ -727,10 +734,10 @@ class MourjanMail extends PHPMailer {
             'content'   =>  $content,
             'link_contact'  =>  $link_contact,
             'link_watch'  =>  $link_watch,
-            'img_url'   =>  $config['url_img']
+            'img_url'   =>  $imgUrlLink
         );
         $genParams=array(
-            'img_url'   =>  $config['url_img'],
+            'img_url'   =>  $imgUrlLink,
             'title'     =>  ($this->language == 'ar' ? 'إعلانات جديدة في لائحة المراقبة' :'New Ads in Watchlist')
         );
         $this->MsgTemplate('ad-notification',$params, $genParams, '', 1);
@@ -740,6 +747,7 @@ class MourjanMail extends PHPMailer {
     
     function getAdTabloids($ad,$expired=false){
         global $config;
+        $imgUrlLink=$config['url_resources'].$config['url_img'];
         
         $adContent=json_decode($ad['EXT_CONTENT'],true); 
         
@@ -750,7 +758,7 @@ class MourjanMail extends PHPMailer {
                     $pic = $adContent['pic_def'];
                     $pic = '<span style="height:110px;overflow:hidden;"><img width="110" src="'.$config['url_ad_img'].'/repos/d/' . $pic.'" /></span>';
         }else{
-            $pic='<img width="90" height="90" src="'.$config['url_img'].'/90/'.$ad['SECTION_ID'].'.png" />';
+            $pic='<img width="90" height="90" src="'.$imgUrlLink.'/90/'.$ad['SECTION_ID'].'.png" />';
         }
         
                 
@@ -839,7 +847,7 @@ class MourjanMail extends PHPMailer {
         
         $content.='
                     <tr>
-                        <td bgcolor="#f5f5f5" background="'.$config['url_img'].'/fx.png">
+                        <td bgcolor="#f5f5f5" background="'.$imgUrlLink.'/fx.png">
                             <table width="100%" '.($this->language=='ar' ? 'dir="rtl"':'dir="ltr"').' cellpadding="5px" cellspacing="0" style="'.($this->language=='ar' ? 'direction:rtl;':'').'border-collapse:collapse;border:1px solid #ccc">
                                 <tr valign="top">
                                     <td width="100px" style="color:#333;font-weight:bold;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;">'.($this->language=='ar' ? 'نشر في':'Published in').':</td>
@@ -854,7 +862,7 @@ class MourjanMail extends PHPMailer {
                                         <table width="100%" cellpadding="5px" cellspacing="0">
                                             <tr>
                                              	<td width="50%" align="center">
-                                                    <table width="160px" bgcolor="#369" background="'.$config['url_img'].'/fx.png" style="border:1px solid #afafaf;background-color:#369" cellpadding="5px" cellspacing="0">
+                                                    <table width="160px" bgcolor="#369" background="'.$imgUrlLink.'/fx.png" style="border:1px solid #afafaf;background-color:#369" cellpadding="5px" cellspacing="0">
                                                     	<tr>
                                                             <td align="center">
                                                                 '.$link_1.'
@@ -863,7 +871,7 @@ class MourjanMail extends PHPMailer {
                                                     </table>
                                                 </td>
                                                 <td width="50%" align="center">
-                                                    <table width="160px" bgcolor="#'.($expired ? '41B419': 'a00').'" background="'.$config['url_img'].'/fx.png" style="border:1px solid #afafaf;background-color:#'.($expired ? '41B419': 'a00').'" cellpadding="5px" cellspacing="0">
+                                                    <table width="160px" bgcolor="#'.($expired ? '41B419': 'a00').'" background="'.$imgUrlLink.'/fx.png" style="border:1px solid #afafaf;background-color:#'.($expired ? '41B419': 'a00').'" cellpadding="5px" cellspacing="0">
                                                       	<tr>
                                                             <td align="center">
                                                                 '.$link_2.'                                                               	
@@ -887,6 +895,7 @@ class MourjanMail extends PHPMailer {
     
     function adActivated($ads){
         global $config;
+        $imgUrlLink=$config['url_resources'].$config['url_img'];
         $this->doClearAll();
         $content='';
         $i=0;
@@ -929,12 +938,12 @@ class MourjanMail extends PHPMailer {
             'content'       =>  $content,
             'link_account'  =>  $link_acc,
             'link_ads'  =>  $link_ads,
-            'img_url'   =>  $config['url_img']
+            'img_url'   =>  $imgUrlLink
         );
         $genParams=array(
             'link_contact'  =>  $link_contact,
             'link_mourjan'  =>  $link_mourjan,
-            'img_url'   =>  $config['url_img']
+            'img_url'   =>  $imgUrlLink
         );
         if (count($ads)>1) {
             $genParams['title']=  ($this->language == 'ar' ? 'إشعار بنشر الإعلانات' :'Published Ads Notification');
@@ -952,6 +961,7 @@ class MourjanMail extends PHPMailer {
 
     function adRetired($ads){
         global $config;
+        $imgUrlLink=$config['url_resources'].$config['url_img'];
         $this->doClearAll();
         $content='';
         $i=0;
@@ -995,12 +1005,12 @@ class MourjanMail extends PHPMailer {
             'content'       =>  $content,
             'link_account'  =>  $link_acc,
             'link_archive'  =>  $link_archive,
-            'img_url'   =>  $config['url_img']
+            'img_url'   =>  $imgUrlLink
         );
         $genParams=array(
             'link_contact'  =>  $link_contact,
             'link_mourjan'  =>  $link_mourjan,
-            'img_url'   =>  $config['url_img']
+            'img_url'   =>  $imgUrlLink
         );
         if (count($ads)>1) {
             $genParams['title']=  ($this->language == 'ar' ? 'إشعار بإنتهاء مدة عرض الإعلانات' :'Expired Ads Notification');
