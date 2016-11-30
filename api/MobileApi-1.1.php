@@ -801,25 +801,42 @@ class MobileApi
         $q.=" group by section_tag_id limit 1000";
 
         $batch="";
-        foreach ($sections as $sectionId) {
+        foreach ($sections as $sectionId) 
+        {
             $batch.= preg_replace('/%sectionId%/', $sectionId, $q) . ";\n";
         }
+        
         $query = $sphinx->search($batch);
         $matches_count = count($query['matches']);
-        for ($i=0; $i<$matches_count; $i++) {
+        for ($i=0; $i<$matches_count; $i++) 
+        {
+            if (!isset($query['matches'][$i]) && !isset($msg))
+            {
+                $msg = var_export($batch, TRUE);
+            }
             $group_count = count($query['matches'][$i]);
-            for ($g=0; $g<$group_count; $g++) {
+            for ($g=0; $g<$group_count; $g++) 
+            {
+                if (!isset($query['matches'][$i][$g]) && !isset($msg))
+                {
+                    $msg = var_export($batch, TRUE);
+                }
                 $sectionId = $query['matches'][$i][$g]['section_id']+0;
-                if (!isset($arr[ $sectionId ])) {
+                if (!isset($arr[ $sectionId ])) 
+                {
                     $arr[$sectionId] = [];
                 }
                 $row=[$query['matches'][$i][$g]['groupby()']+0, $query['matches'][$i][$g]['count(*)']+0,[]];
-                foreach (array_unique(explode(',', $query['matches'][$i][$g]['group_concat(purpose_id)'])) as $purposeId) {
+                foreach (array_unique(explode(',', $query['matches'][$i][$g]['group_concat(purpose_id)'])) as $purposeId) 
+                {
                     $row[2][]=$purposeId+0;
                 }
                 $arr[$sectionId][]=$row;
             }
+     
         }
+        if (isset($msg)) error_log ($msg);
+        
         return $arr;
     }
 
