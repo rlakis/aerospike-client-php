@@ -115,7 +115,6 @@ class Contact extends Page{
                     e=true;
                 }
                 data.email=email.val();
-                console.log(data.email);
                 if (!isEmail(data.email)){
                     email.addClass("err");
                     pla(email);
