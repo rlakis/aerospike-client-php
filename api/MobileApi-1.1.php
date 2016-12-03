@@ -465,7 +465,7 @@ class MobileApi
                     {                   
                         $this->addAdToResultArray($ad, $matches[2]);
                         $i++;
-                        if ($device_sysname=='ios' && $adMobAlreadySent<5 && ($i+$offset)%7==0 && ($i+$offset)%2==1)
+                        if ($device_sysname=='ios' && $adMobAlreadySent<5 && ($i+$offset)%7==0 && ($i+$offset)%2==1 && !($favorite || $forceFavorite))
                         {
                             $this->result['d'][] = [-1*($i+$offset), $adMobAlreadySent%2==0 ? "ca-app-pub-2427907534283641/4099192620" : "ca-app-pub-2427907534283641/1911755820"];
                             $adMobAlreadySent++;
@@ -1526,8 +1526,8 @@ class MobileApi
                 $this->db->queryResultArray(
                         "insert into WEB_USERS_DEVICE "
                         . "(uuid, uid, device_model, device_name, device_sysname, device_sysversion, "
-                        . "last_visit, push_id, NOTIFICATION_ENABLED, SNS_ID, CARRIER_COUNTRY, APP_VERSION) "
-                        . "values (?, ?, ?, ?, ?, ?, current_timestamp, '', 1, '', ?, ?)",
+                        . "last_visit, push_id, NOTIFICATION_ENABLED, CARRIER_COUNTRY, APP_VERSION) "
+                        . "values (?, ?, ?, ?, ?, ?, current_timestamp, '', 1, ?, ?)",
                         [$this->uuid, $q[0]['ID'], $device_model, $device_name, $device_sysname,
                             $device_sysversion, $carrier_country, $device_appversion], TRUE);
             } else {
