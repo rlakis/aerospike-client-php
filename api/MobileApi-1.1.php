@@ -1705,7 +1705,9 @@ class MobileApi
             $this->result['e'] = "+{$mobile_no} is not not a valid telephone number!";
             return;
         }
-            
+        
+        $mobile_no= intval($this->mobileValidator->format($num, \libphonenumber\PhoneNumberFormat::E164));
+        
         $sender = (strval($mobile_no)[0]=='1') ? '12165044111' : 'Mourjan';
 
         if ($mobile_no<999999) 
