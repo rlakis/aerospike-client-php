@@ -1672,14 +1672,6 @@ class MobileApi
 
     }
 
-/*
-    function testNumberStarting() {
-        $mobile_no = filter_input(INPUT_GET, 'tel', FILTER_VALIDATE_INT)+0;
-        $sender = (strval($mobile_no)[0]=='1') ? '12165044111' : 'Mourjan';
-        $this->result['d']['number']=$mobile_no;
-        $this->result['d']['from']=$sender;
-    }
-*/
     
     function activate() 
     {    
@@ -1698,12 +1690,11 @@ class MobileApi
         
         $mobile_no = filter_input(INPUT_GET, 'tel', FILTER_VALIDATE_INT)+0;
         $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
-        $num = $this->mobileValidator->parse($mobile_no, 'LB');
-            
+        $num = $this->mobileValidator->parse("+{$mobile_no}", 'LB');
         if($num && $this->mobileValidator->isValidNumber($num))
         {
             $numberType = $this->mobileValidator->getNumberType($num);
-            if ($numberType!=libphonenumber\PhoneNumberType::MOBILE && $numberType!=libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE)
+            if (!($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE))
             {
                 $this->result['e'] = "+{$mobile_no} is not a valid mobile number!";
                 return;
