@@ -745,7 +745,7 @@ class Site {
         $ticket->name = $fromName;
         $ticket->email = $fromEmail;
         $ticket->subject = $subject;
-        $ticket->message = "data:text/html;charset=utf-8,TicketSubmission:{$message}";
+        $ticket->message = "data:text/html;charset=utf-8,{$message}";
         
         #set timeout
         set_time_limit(10);
@@ -765,44 +765,53 @@ class Site {
 
         //Use postfix exit codes...expected by MTA.
         $code = 75;
+        $status = -1;
+        error_log(var_export($result, true));
+
         if(preg_match('/HTTP\/.* ([0-9]+) .*/', $result, $status)) 
         {
-            echo $result;
-            echo '<br/><br/>';
-            echo print_r($status);
+            //echo $result;
+            //echo '<br/><br/>';
+            error_log (var_export($status, TRUE));
             switch($status[1]) 
             {
                 case 201: //Success
                     $code = 0;
                     break;
+
                 case 400:
                     $code = 66;
                     break;
+
                 case 401: /* permission denied */
                 case 403:
                     $code = 77;
                     break;
+
                 case 415:
                 case 416:
                 case 417:
                 case 501:
                     $code = 65;
                     break;
+
                 case 503:
                     $code = 69;
                     break;
+
                 case 500: //Server error.
                 default: //Temp (unknown) failure - retry 
                     $code = 75;
             }
         }
+        return ($code==0) ? 1 : 0;
     }
     
     
     function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='')
     {
-        $this->createTicket($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account);
-        if (TRUE) return;
+        return $this->createTicket($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account);
+        /*
     	require 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';
         $mail = new PHPMailer(true);
         $mail->IsSMTP();
@@ -848,6 +857,8 @@ class Site {
          $mail->ClearAllRecipients();
          $mail->ClearAttachments();
          return $res;
+         * 
+         */
     }
     
     

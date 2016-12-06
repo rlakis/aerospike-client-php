@@ -4255,8 +4255,10 @@ class Bin extends AjaxHandler{
                     }else $this->fail('101');
                 }else $this->fail($this->lang['sessionTO']);
                 break;
+
             case 'ajax-support':
-                if ($this->user->info['id']) {
+                if ($this->user->info['id'])
+                {
                     $lang=$this->post('lang');
                     $this->load_lang(array('post'),$lang);
                     $name=$this->user->info['name'];
@@ -4286,43 +4288,100 @@ class Bin extends AjaxHandler{
                     }
                 }else $this->fail('101');
                 break;
+
             case 'ajax-contact':
-                $lang=$this->post('lang');
+                $lang = $this->post('lang');
                 $this->load_lang(array('contact'),$lang);
                 $subject = 'User Feedback';
-                $name=$this->post('name', 'filter');
-                $email=$this->post('email', 'filter');
-                $feed=$this->post('msg', 'filter');
+                $name = $this->post('name', 'filter');
+                $email = $this->post('email', 'filter');
+                $feed = $this->post('msg', 'filter');
                 			           
-        		$geo = $this->urlRouter->getIpLocation();
-              
-                            
-                $mobile=0;
-                if (isset($this->user->params['mobile'])){
-                    $mobile=$this->user->params['mobile'];
+        	$geo = $this->urlRouter->getIpLocation();
+                                          
+                $mobile= (isset($this->user->params['mobile'])) ? $mobile=$this->user->params['mobile'] : 0;
+        
+                
+                //$geostr =  json_encode($geo);
+                $geostr = "";
+                if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en']))
+                {
+                    $geostr.= $geo['country']['names']['en'];
                 }
-                
-                $geostr =  json_encode($geo);
-                
+
+                if (isset($geo['location']) && isset($geo['location']['time_zone']))
+                {
+                    $geostr.= " - {$geo['location']['time_zone']} [{$geo['location']['latitude']}, {$geo['location']['longitude']}]";
+                }
+                if ($mobile)
+                {
+                    $geostr.= " - Mobile";
+                }
+
+                $msg = "<table>";
+                if (isset($this->user->info['id']) && $this->user->info['id']>0)
+                {
+                    $msg.="<tr><td><b>UID</b></td><td>{$this->user->info['id']}</td></tr>";
+                }
+                $msg.="<tr><td><b>Name</b></td><td>{$name}</td></tr>";
+                $msg.="<tr><td><b>Location</b></td><td>{$geostr}</td></tr>";
+                if (isset($this->user->params['country']))
+                {
+                    if (isset($this->urlRouter->countries[$this->user->params['country']]))
+                    {
+                        $msg.="<tr><td><b>Target</b></td><td>{$this->urlRouter->countries[$this->user->params['country']]['uri']}";
+                        if (isset($this->user->params['city']))
+                        {
+                            if (isset($this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']]))
+                            {
+                                $msg.=" - {$this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']]['uri']}";
+                            }
+                            else
+                            {
+                                $msg.=" - {$this->user->params['city']}";
+                            }
+                        }
+                    }
+                    else
+                    {
+                        $msg.="<tr><td><b>Target</b></td><td>{$this->user->params['country']}";
+                        if (isset($this->user->params['city']))
+                        {
+                            $msg.=" - {$this->user->params['city']}";
+                        }
+                    }
+
+                    $msg.="</td></tr>";
+                }
+                $msg.="<tr><td><b>Locale</b></td><td>".$_SERVER['HTTP_ACCEPT_LANGUAGE']."</td></tr>";
+                $msg.="<tr><td><b>Browser</b></td><td>".$_SERVER['HTTP_USER_AGENT']."</td></tr>";
+                $msg.="<tr><td colspan='2'>{$feed}</td></tr>";
+                $msg.="</table>";
+/*
                 $msg="<table>
                     <tr><td><b>ID</b>:</td><td>{$this->user->info['id']}</td></tr>
                     <tr><td><b>Name</b>:</td><td>{$name}</td></tr>
                     <tr><td><b>Email</b>:</td><td>{$email}</td></tr>
-                    <tr><td><b>Geo</b>:</td><td>{$geostr}</td></tr>
+                    <tr><td><b>Location</b>:</td><td>{$geostr}</td></tr>
                     <tr><td><b>Selected Country</b>:</td><td>".(isset ($this->user->params['country']) ? $this->user->params['country'] : "0")."</td></tr>
                     <tr><td><b>Agent Language</b>:</td><td>".$_SERVER['HTTP_ACCEPT_LANGUAGE']."</td></tr>
                     <tr><td><b>Is Mobile</b>:</td><td>".($mobile ? 'Yes': 'No')."</td></tr>
                     <tr><td><b>User Agent</b>:</td><td>".$_SERVER['HTTP_USER_AGENT']."</td></tr>
                     <tr><td colspan='2'>{$feed}</td></tr>
                     </table>";
+*/
                 $res=$this->sendMail("Mourjan Support", $this->urlRouter->cfg['admin_email'], $name,$email,$subject,$msg,$this->urlRouter->cfg['smtp_contact']);
-                if (!$res) {
+                if (!$res)
+                {
                     $this->fail($this->lang['errSys']);
-                }else {
+                }
+                else
+                {
                     $this->msg=$this->lang['msgOk'];
                     $this->process();
                 }
                 break;
+
             case 'ajax-section-update':
                 if($this->user->info['id'] && $this->user->info['level']==9){
                 $id=$this->post('id', 'numeric');
