@@ -4267,13 +4267,25 @@ class Bin extends AjaxHandler{
                         $data=json_encode($_POST['obj']);
                     elseif (isset($this->user->pending['post']))
                         $data=json_encode($this->user->pending['post']);
-                    $geo = implode(" ,", geoip_record_by_name($_SERVER['REMOTE_ADDR']));
+                    
+                    //$geo = implode(" ,", geoip_record_by_name($_SERVER['REMOTE_ADDR']));
+                    $geo = $this->urlRouter->getIpLocation();
+                    $geostr = "";
+                    if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en']))
+                    {
+                        $geostr.= $geo['country']['names']['en'];
+                    }
+
+                    if (isset($geo['location']) && isset($geo['location']['time_zone']))
+                    {
+                        $geostr.= " - {$geo['location']['time_zone']} [{$geo['location']['latitude']}, {$geo['location']['longitude']}]";
+                    }
                     $msg="<table>
                     <tr><td><b>ID</b>:</td><td>{$this->user->info['id']}</td></tr>
                     <tr><td><b>Name</b>:</td><td>{$name}</td></tr>
                     <tr><td><b>Email</b>:</td><td>{$email}</td></tr>
                     <tr><td><b>Lang</b>:</td><td>{$lang}</td></tr>
-                    <tr><td><b>Geo</b>:</td><td>{$geo}</td></tr>
+                    <tr><td><b>Location</b>:</td><td>{$geostr}</td></tr>
                     <tr><td><b>Mobile</b>:</td><td>".((isset($this->user->params['mobile']) && $this->user->params['mobile']) ? 'yes':'no')."</td></tr>
                     <tr><td><b>Agent Language</b>:</td><td>".$_SERVER['HTTP_ACCEPT_LANGUAGE']."</td></tr>
                     <tr><td><b>User Agent</b>:</td><td>".$_SERVER['HTTP_USER_AGENT']."</td></tr>
@@ -4502,15 +4514,30 @@ class Bin extends AjaxHandler{
                     $feed=$this->post('msg', 'filter');
                     
                     $feed=trim($feed);
-                    $geo = $this->urlRouter->getIpLocation();
+                    //$geo = $this->urlRouter->getIpLocation();
                     //$geo = geoip_record_by_name($_SERVER['REMOTE_ADDR']);
 
-                    $geostr=  json_encode($geo);
+                    //$geostr=  json_encode($geo);
+                    $geo = $this->urlRouter->getIpLocation();
+                    $geostr = "";
+                    if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en']))
+                    {
+                        $geostr.= $geo['country']['names']['en'];
+                    }
+
+                    if (isset($geo['location']) && isset($geo['location']['time_zone']))
+                    {
+                        $geostr.= " - {$geo['location']['time_zone']} [{$geo['location']['latitude']}, {$geo['location']['longitude']}]";
+                    }                    
+                    if ($mobile)
+                    {
+                        $geostr.= " - Mobile";
+                    }
+                    
                     $msg="<table>
                         <tr><td><b>ID</b>:</td><td>{$this->user->info['id']}</td></tr>
                         <tr><td><b>Ad</b>:</td><td><a href='{$this->urlRouter->cfg['host']}/{$id}'>{$id}</a></td></tr>
-                        <tr><td><b>Geo</b>:</td><td>{$geostr}</td></tr>
-                        <tr><td><b>Is Mobile</b>:</td><td>".($mobile ? 'Yes': 'No')."</td></tr>
+                        <tr><td><b>Location</b>:</td><td>{$geostr}</td></tr>
                         <tr><td><b>User Agent</b>:</td><td>".$_SERVER['HTTP_USER_AGENT']."</td></tr>"
                         .($feed ? "<tr><td colspan='2'>{$feed}</td></tr>":"").
                         "</table>";
