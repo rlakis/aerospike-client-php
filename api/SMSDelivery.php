@@ -33,7 +33,8 @@ $messageTimestamp = filter_input(INPUT_GET, 'message-timestamp', FILTER_SANITIZE
 $reference = filter_input(INPUT_GET, 'client-ref', FILTER_VALIDATE_INT)+0;
 $text = filter_input(INPUT_GET, 'text', FILTER_SANITIZE_STRING);
 
-
+error_log(json_encode($_GET).PHP_EOL, 3, "/var/log/mourjan/sms.log");
+error_log(json_encode($_POST).PHP_EOL, 3, "/var/log/mourjan/sms.log");
 error_log(sprintf("%s\t%d\t%s\t%d\t%s\t%f\t%s\t%d\t%d\t%s\t%d\t%s", date("Y-m-d H:i:s"), $msisdn, $to, $networkcode, $messageId, $price, $status, $scts, $errCode, $messageTimestamp, $reference, $text).PHP_EOL, 3, "/var/log/mourjan/sms.log");
 
 if ($errCode==0 && $reference>0 && ($to=="Mourjan"||$to=="12165044111"||$to=="mourjan")) 

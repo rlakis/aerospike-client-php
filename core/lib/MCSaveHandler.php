@@ -610,7 +610,7 @@ class MCSaveHandler
 }
 
 
-if (php_sapi_name()=='cli')
+if (php_sapi_name()=='cli' && get_cfg_var('mourjan.server_id')=='99')
 {
 
     $saveHandler = new MCSaveHandler($config);
