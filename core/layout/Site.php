@@ -737,16 +737,136 @@ class Site {
     }
 
     
-    function createTicket($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='')
+    function faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0)
     {
-        $osticket = ['url'=>'http://ticket.mourjan.com/api/http.php/tickets.json', 'key'=>'BE3B545DE0E7EAB26360CF633269D99A'];
+        $key='mEI5PRfHaBvbn6El48yZcX492NLb5Cu5';
+        $url = 'http://io.mourjan.com:8080/api/v1/authenticate';
+     
+        $myvars = 'username=rlakis@berysoft.com&password=GQ71BUT2&api_key='.$key;
+        $ch = curl_init( $url );
+        curl_setopt( $ch, CURLOPT_POST, 1);
+        curl_setopt( $ch, CURLOPT_POSTFIELDS, $myvars);
+        curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt( $ch, CURLOPT_HEADER, 0);
+        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
+
+        $auth = json_decode(curl_exec( $ch ));
+        
+        
+        $url = 'http://io.mourjan.com:8080/api/v1/helpdesk/create?user_id='.$auth->user_id.'&token='.$auth->token;
+        $myvars = array();
+        $myvars['api_key'] = $key;
+        $myvars['user_id'] = $auth->user_id;
+        $myvars['token'] = $auth->token;
+        $myvars['subject'] = $subject;
+        $myvars['body'] = $message;
+        $myvars['helptopic']=1;
+        $myvars['email']=$fromEmail;
+        $myvars['sla']=1;
+        $myvars['priority']=2;
+        $myvars['code']='0';
+        $myvars['mobile']=null;//'9611487521';
+        $myvars['phone']='';
+        
+        $name = preg_split('/\s+/', trim($fromName), -1, PREG_SPLIT_NO_EMPTY);
+        $myvars['first_name']= $name[0];
+        $myvars['last_name']='';
+        for($i=1; $i<count($name); $i++)
+            $myvars['last_name'].=$name[$i]." ";
+        $myvars['last_name']= trim($myvars['last_name']);
+       //$myvars['first_name']='Sami';
+       //$myvars['last_name']='Lakis';
+        
+        /*
+        $myvars.= '&sla=1';
+        $myvars.= '&priority=2';
+        $myvars.= '&dept=2';
+        
+        $myvars = 'api_key=' . $key;
+        $myvars.= '&user_id=' . $auth->user_id;
+        $myvars.= '&token=' . $auth->token;
+        
+        $myvars.= '&subject=User&nbsp;Feedback';// . htmlentities( $subject );
+        $myvars.= '&body=' . 'test';// '<div dir="auto">' . $message . '</div>';
+        $myvars.= '&helptopic=1';
+        $myvars.= '&sla=1';
+        $myvars.= '&priority=2';
+        $myvars.= '&dept=2';
+        
+        $myvars.= '&first_name=robert' ;//. htmlentities($fromName);
+        
+        error_log($url);
+        error_log($myvars);
+        */
+        $ch = curl_init( $url );
+        curl_setopt( $ch, CURLOPT_POST, 1);
+        curl_setopt( $ch, CURLOPT_POSTFIELDS, $myvars);
+        curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt( $ch, CURLOPT_HTTPHEADER, array( 'Expect:', 'X-XSRF-TOKEN: '.$auth->token));
+        curl_setopt( $ch, CURLOPT_HEADER, 1);
+        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
+
+        $response = curl_exec( $ch );
+        curl_close($ch);
+        
+        $code = 75;
+        $status = -1;
+        //error_log(var_export($result, true));
+
+        if(preg_match('/HTTP\/.* ([0-9]+) .*/', $response, $status)) 
+        {
+            error_log("Error: ".PHP_EOL.$status[1]);
+        }
+        error_log($response);
+        return 1;
+        
+    }
+    
+    
+    function createTicket($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0)
+    {
+        $keys = [99=>'BE3B545DE0E7EAB26360CF633269D99A', 2=>'80061F9B6D72FAC2E9D92D6AC5F705AA', 4=>'BE3B545DE0E7EAB26360CF633269D99A'];
+        $osticket = ['url'=>'http://ticket.mourjan.com/api/http.php/tickets.json', 'key'=>$keys[get_cfg_var('mourjan.server_id')]];
         
         $ticket = json_decode('{"alert":true, "autorespond":false}');
+        $ticket->autorespond = FALSE;
         $ticket->name = $fromName;
         $ticket->email = $fromEmail;
         $ticket->subject = $subject;
         $ticket->message = "data:text/html;charset=utf-8,{$message}";
         
+        if ($this->user->info['id'])
+        {
+            $ticket->uid = $this->user->info['id'];
+            if ($fromName=='')
+            {
+                $ticket->name = $this->user->info['name'];
+            }
+            
+            if (isset($this->user->info['email']) && strpos($this->user->info['email'], '@')!==FALSE) 
+            {
+                 $ticket->email = $this->user->info['email'];
+            }
+            //$ticket->upage = "<a href='https://www.mourjan.com//myads/?u={$ticket->uid}' target=_blank>User Ads</a>";
+        }
+        
+        if ($fromName=='Abusive Report' && $reference>0)
+        {
+            $ticket->aid = $reference;
+            $ticket->topicId=12;
+            $ticket->priority='High';
+            $ticket->subject.= " - {$reference}";
+        }
+        
+        if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR']))
+        {
+            $ticket->ip = "{$_SERVER['HTTP_X_FORWARDED_FOR']}";
+        } 
+        else 
+        {
+            $ticket->ip = "{$_SERVER['REMOTE_ADDR']}";
+        }
+       
         #set timeout
         set_time_limit(10);
 
@@ -766,13 +886,11 @@ class Site {
         //Use postfix exit codes...expected by MTA.
         $code = 75;
         $status = -1;
-        error_log(var_export($result, true));
+        //error_log(var_export($result, true));
 
         if(preg_match('/HTTP\/.* ([0-9]+) .*/', $result, $status)) 
         {
-            //echo $result;
-            //echo '<br/><br/>';
-            error_log (var_export($status, TRUE));
+            //error_log (var_export($status, TRUE));
             switch($status[1]) 
             {
                 case 201: //Success
@@ -808,9 +926,10 @@ class Site {
     }
     
     
-    function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='')
+    function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0)
     {
-        return $this->createTicket($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account);
+        return $this->faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference);
+        //return $this->createTicket($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference);
         /*
     	require 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';
         $mail = new PHPMailer(true);
