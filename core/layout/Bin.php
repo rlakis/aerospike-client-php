@@ -4310,11 +4310,7 @@ class Bin extends AjaxHandler{
                 $feed = $this->post('msg', 'filter');
                 			           
         	$geo = $this->urlRouter->getIpLocation();
-                                          
                 $mobile= (isset($this->user->params['mobile'])) ? $mobile=$this->user->params['mobile'] : 0;
-        
-                
-                //$geostr =  json_encode($geo);
                 $geostr = "";
                 if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en']))
                 {
@@ -4330,21 +4326,21 @@ class Bin extends AjaxHandler{
                     $geostr.= " - Mobile";
                 }
 
-                $msg = "<table>";
+                $msg = "<style>table{border-collapse:collapse;border-spacing:2px;border-color:gray;} th,td{border: 1px solid #cecfd5;padding: 10px 15px;}</style><table><tr>";
                 if ($this->user->info['id'])
                 {
-                    $msg.="<tr><td><b>Name</b></td><td><a href='https://www.mourjan.com/myads/?u={$this->user->info['id']}' target=_blank>{$name}</a></td></tr>";
+                    $msg.="<td><b>Name</b></td><td><a href='https://www.mourjan.com/myads/?u={$this->user->info['id']}' target=_blank>{$name}</a></td>";
                 }
                 else
                 {
-                    $msg.="<tr><td><b>Name</b></td><td>{$name}</td></tr>";
+                    $msg.="<td><b>Name</b></td><td>{$name}</td>";
                 }
-                $msg.="<tr><td><b>Location</b></td><td>{$geostr}</td></tr>";
-                if (isset($this->user->params['country']))
+                $msg.="<td><b>Location</b></td><td>{$geostr}</td>";
+                if (isset($this->user->params['country']) && $this->user->params['country']>0)
                 {
                     if (isset($this->urlRouter->countries[$this->user->params['country']]))
                     {
-                        $msg.="<tr><td><b>Target</b></td><td>{$this->urlRouter->countries[$this->user->params['country']]['uri']}";
+                        $msg.="<td><b>Target</b></td><td>{$this->urlRouter->countries[$this->user->params['country']]['uri']}";
                         if (isset($this->user->params['city']) && $this->user->params['city']>0)
                         {
                             if (isset($this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']]))
@@ -4367,10 +4363,10 @@ class Bin extends AjaxHandler{
                     }
 
                     $msg.="</td></tr>";
-                }
-                $msg.="<tr><td><b>Locale</b></td><td>".$_SERVER['HTTP_ACCEPT_LANGUAGE']."</td></tr>";
-                $msg.="<tr><td><b>Browser</b></td><td>".$_SERVER['HTTP_USER_AGENT']."</td></tr>";
-                $msg.="<tr><td colspan='2'>{$feed}</td></tr>";
+                } else $msg.="</tr>";
+                $msg.="<tr><td><b>Locale</b></td><td>".filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE', FILTER_SANITIZE_STRING)."</td>";
+                $msg.="<td><b>Browser</b></td><td colspan='3'>".filter_input(INPUT_SERVER, 'HTTP_USER_AGENT', FILTER_SANITIZE_STRING)."</td></tr>";
+                $msg.="<tr><td colspan='6'>{$feed}</td></tr>";
                 $msg.="</table>";
 /*
                 $msg="<table>
@@ -4481,6 +4477,7 @@ class Bin extends AjaxHandler{
             case 'ajax-report':                
                 $$mobile= (isset($this->user->params['mobile'])) ? $mobile=$this->user->params['mobile'] : 0;
                 $id=$this->post('id', 'int');
+                $name = $this->post('name', 'filter');
                 $flag = -1;
                 if(isset($_POST['flag']) && in_array($_POST['flag'],[0,1,2,3,4,5])){
                     $flag=$this->post('flag', 'int');
@@ -4489,7 +4486,8 @@ class Bin extends AjaxHandler{
                     $this->urlRouter->db->queryResultArray("EXECUTE PROCEDURE SP\$HOLD_AD({$id})");
                     $this->process();
                     $this->logAdmin($id, 9);
-                }elseif($id) {
+                }
+                elseif($id) {
                     $feed='';
                     switch($flag){
                         case 0:
@@ -4531,17 +4529,17 @@ class Bin extends AjaxHandler{
                         $geostr.= " - Mobile";
                     }
 
-                    $msg = "<table>";
+                    $msg = "<style>table{border-collapse:collapse;border-spacing:2px;border-color:gray;} th,td{border: 1px solid #cecfd5;padding: 10px 15px;}</style><table><tr>";
                     if (isset($this->user->info['id']) && $this->user->info['id']>0)
                     {
-                        $msg.="<tr><td><b>Name</b></td><td>{$name}</td></tr>";
+                        $msg.="<td><b>Name</b></td><td>{$name}</td>";
                     }
-                    $msg.="<tr><td><b>Location</b></td><td>{$geostr}</td></tr>";
+                    $msg.="<td><b>Location</b></td><td>{$geostr}</td>";
                     if (isset($this->user->params['country']))
                     {
                         if (isset($this->urlRouter->countries[$this->user->params['country']]))
                         {
-                            $msg.="<tr><td><b>Target</b></td><td>{$this->urlRouter->countries[$this->user->params['country']]['uri']}";
+                            $msg.="<td><b>Target</b></td><td>{$this->urlRouter->countries[$this->user->params['country']]['uri']}";
                             if (isset($this->user->params['city']) && $this->user->params['city']>0)
                             {
                                 if (isset($this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']]))
@@ -4556,7 +4554,7 @@ class Bin extends AjaxHandler{
                         }
                         else
                         {
-                            $msg.="<tr><td><b>Target</b></td><td>{$this->user->params['country']}";
+                            $msg.="<td><b>Target</b></td><td>{$this->user->params['country']}";
                             if (isset($this->user->params['city']))
                             {
                                 $msg.=" - {$this->user->params['city']}";
@@ -4564,30 +4562,20 @@ class Bin extends AjaxHandler{
                         }
 
                         $msg.="</td></tr>";
-                    }
-                    $msg.="<tr><td><b>Locale</b></td><td>".$_SERVER['HTTP_ACCEPT_LANGUAGE']."</td></tr>";
-                    $msg.="<tr><td><b>Browser</b></td><td>".$_SERVER['HTTP_USER_AGENT']."</td></tr>";
-                    //$msg.="<tr><td colspan='2'>{$feed}</td></tr>";
-                    $msg.="<tr><td colspan='2'><a href='{$this->urlRouter->cfg['host']}/{$id}' target=_blank>{$feed}</td></tr>";
+                    } else $msg.="</tr>";
+                    $msg.="<tr><td><b>Locale</b></td><td>".filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE', FILTER_SANITIZE_STRING)."</td>";
+                    $msg.="<td><b>Browser</b></td><td colspan='3'>".filter_input(INPUT_SERVER, 'HTTP_USER_AGENT', FILTER_SANITIZE_STRING)."</td></tr>";
+                    $msg.="<tr><td colspan='6'><a href='{$this->urlRouter->cfg['host']}/{$id}' target=_blank>{$feed}</a></td></tr>";
                     $msg.="</table>";
-                    //$msg.="<iframe src='{$this->urlRouter->cfg['host']}/{$id}' width='600px' height='600px'></iframe>";
-
-                    /*
-                    $geostr=  json_encode($geo);
-                    $msg="<table>
-                        <tr><td><b>ID</b>:</td><td>{$this->user->info['id']}</td></tr>
-                        <tr><td><b>Ad</b>:</td><td><a href='{$this->urlRouter->cfg['host']}/{$id}'>{$id}</a></td></tr>
-                        <tr><td><b>Location</b>:</td><td>{$geostr}</td></tr>
-                        <tr><td><b>User Agent</b>:</td><td>".$_SERVER['HTTP_USER_AGENT']."</td></tr>"
-                        .($feed ? "<tr><td colspan='2'>{$feed}</td></tr>":"").
-                        "</table>";
-                        */
-                    $res=$this->sendMail("Mourjan Admin", $this->urlRouter->cfg['admin_email'], 'Abusive Report', $this->urlRouter->cfg['smtp_user'], $subject, $msg, $this->urlRouter->cfg['smtp_contact'], $id);
+                    
+                  
+                    $res=$this->sendMail("Mourjan Admin", $this->urlRouter->cfg['admin_email'], ($name) ? $name : 'Abusive Report', $this->urlRouter->cfg['smtp_user'], $subject, $msg, $this->urlRouter->cfg['smtp_contact'], $id);
                     $this->process();
                 }else{
                     $this->fail('101');
                 }
                 break;
+                
             case 'ajax-ususpend':
                 if ($this->user->info['level']==9 && isset ($_POST['i'])) {
                     $id=$_POST['i'];
@@ -4963,20 +4951,21 @@ class Bin extends AjaxHandler{
                 break;
             case 'ajax-password':
                 $pass=$this->post('v');
-                error_log("PASSWORD: <{$pass}>".(isset($this->user->pending['password_new']) ? ' | NEW':'').(isset($this->user->pending['password_reset']) ? ' | RESET':'').PHP_EOL);
+                error_log("PASSWORD: <{$pass}>".(isset($this->user->pending['password_new']) ? ' | NEW':'').(isset($this->user->pending['password_reset']) ? ' | RESET':'').PHP_EOL, 3, "/var/log/mourjan/password.log");
                     
                 $lang='ar';
                 $tLang=$this->post('lang');
                 if($tLang=='ar'||$tLang=='en')$lang=$tLang;
-                if($pass && isset($this->user->pending['user_id']) && (isset($this->user->pending['password_new']) || isset($this->user->pending['password_reset'])) ){
+                if($pass && isset($this->user->pending['user_id']) && (isset($this->user->pending['password_new']) || isset($this->user->pending['password_reset'])))
+                {
                     if($this->user->updatePassword($pass)){
                         $this->process();
                     }else{
                         $this->fail('102');
                     }
-                }else {
-                    //error_log(var_export($_SERVER,true).PHP_EOL, 3, "/var/log/mourjan/password.log");
-                    error_log("PASSWORD SERVER LOG: ".var_export($_SERVER,true).PHP_EOL);
+                } else {
+                    error_log(var_export($_SERVER,true).PHP_EOL, 3, "/var/log/mourjan/password.log");
+                    //error_log("PASSWORD SERVER LOG: ".var_export($_SERVER,true).PHP_EOL);
                     $this->fail('101');
                 }
                 break;
