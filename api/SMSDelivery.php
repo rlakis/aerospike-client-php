@@ -37,15 +37,16 @@ error_log(json_encode($_GET).PHP_EOL, 3, "/var/log/mourjan/sms.log");
 error_log(json_encode($_POST).PHP_EOL, 3, "/var/log/mourjan/sms.log");
 error_log(sprintf("%s\t%d\t%s\t%d\t%s\t%f\t%s\t%d\t%d\t%s\t%d\t%s", date("Y-m-d H:i:s"), $msisdn, $to, $networkcode, $messageId, $price, $status, $scts, $errCode, $messageTimestamp, $reference, $text).PHP_EOL, 3, "/var/log/mourjan/sms.log");
 
-if ($errCode==0 && $reference>0 && ($to=="Mourjan"||$to=="12165044111"||$to=="mourjan")) 
+if ($errCode==0 && $reference>0 && ($to=="Mourjan"||$to=="12242144077"||$to=="mourjan"||$to=="33644630401")) 
 {
-	$db = new DB($config);
+    $db = new DB($config);
     $db->queryResultArray("UPDATE WEB_USERS_MOBILE SET DELIVERED=1 WHERE ID=? and MOBILE=? and DELIVERED=0", [$reference, $msisdn], TRUE);
     error_log(sprintf("%s\t%d\tis written", date("Y-m-d H:i:s"), $msisdn).PHP_EOL, 3, "/var/log/mourjan/sms.log");
-	$db->close();
+    $db->close();
 }
 else
-error_log( var_export($_GET, true) );
+{
+    error_log( var_export($_GET, true) );
+}
 
-if ($to=='31635250222') error_log( var_export($_GET, true) );
 

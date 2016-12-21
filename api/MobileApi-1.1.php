@@ -2705,12 +2705,14 @@ class MobileApi
     }
     
     
-    public function sendSMS($phone_number, $text, $callback_reference=0) {
+    public function sendSMS($phone_number, $text, $callback_reference=0) 
+    {
         try {
             include_once $this->config['dir'].'/core/lib/nexmo/NexmoMessage.php';
             $sms = new NexmoMessage('8984ddf8', 'CVa3tHey3js6');
-            $response = $sender = (strval($phone_number)[0]=='1') ? '12165044111' : 'Mourjan';
-            $sms->sendText( "+{$phone_number}", $sender, $text, $callback_reference);
+            $phone_number=strval($phone_number);
+            $sender = ($phone_number[0]=='1' || substr($phone_number, 0, 3)=='974') ? '12242144077' : 'Mourjan';
+            $response = $sms->sendText( "+{$phone_number}", $sender, $text, $callback_reference);
             return $response;    
         } catch (Exception $e) {
             
