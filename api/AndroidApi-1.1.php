@@ -7,6 +7,7 @@ use MaxMind\Db\Reader;
 class AndroidApi {
 
     private $api;
+    var $mobileValidator=null;
 
     function __construct($_api) {
         global $appVersion;
@@ -19,6 +20,26 @@ class AndroidApi {
         define ('MOURJAN_KEY', 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAo//5OB8WpXTlsD5TEA5S+JK/I4xuYNOCGpGen07GKUpNdHcIVxSejoKiTmszUjsRgR1NC5H6Xu+5YMxfsPzQWwqyGMaQbvdLYOW2xQ5gnK4HEqp1ZP74HkNrnBCpyaGEuap4XcHu+37xNxZNRZpTgtr34dPcMIsN2GGANMNTy5aWlAPsl1BTYkDOCMu2f+Tyq2eqIkOvlHS09717JwNrx6NyI+CI7y8AAuLLZOp8usXWA/Lx3H6COts9IXMXE/+eNiFkaGsaolxzvO/aBg9w/0iYWGTinInOyHqwjcxazmoNJxxYbS/iTAlcPMrXzjn3UUepcq2WZ/+HWI0bzf4mVQIDAQAB');
         
         switch ($this->api->command) {
+            case API_ANDROID_VERIFY_NUMBER:
+                $number = filter_input(INPUT_POST, 'tel');
+                $iso = trim(filter_input(INPUT_POST, 'iso'));
+                if($number && is_numeric($number) && strlen($iso)==2){
+                    $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
+                    $num = $this->mobileValidator->parse($number, $iso);
+                    if($num && $this->mobileValidator->isValidNumber($num)){
+                        $this->api->result['d'] = [
+                            'check'=>true,
+                            'n'=>$this->mobileValidator->format($num, libphonenumber\PhoneNumberFormat::E164),
+                            'r'=>$number,
+                            't'=>$this->mobileValidator->getNumberType($num),
+                            'c'=>$num->getCountryCode(),
+                            'x'=>$this->mobileValidator->getRegionCodeForNumber($num)
+                        ];   
+                    }else{
+                        $this->api->result['d'] = ['check'=>false];
+                    }                    
+                }
+                break;
             case API_ANDROID_SYNC_WATCHLIST:  
                 $this->api->result['d'] = [];
                 $this->api->userStatus($status);
@@ -210,7 +231,7 @@ class AndroidApi {
                         }
                         $msg = "<table>
                             <tr><td><b>UID</b>:</td><td>{$this->api->getUID()}</td></tr>
-                            <tr><td><b>Ad</b>:</td><td><a href='https://www.mourjan.com/{$id}'>{$id}</a></td></tr>
+                            <tr><td><b>Ad</b>:</td><td><a target='_blank' href='https://www.mourjan.com/{$id}'>{$id}</a></td></tr>
                             <tr><td><b>Mobile</b>:</td><td>Android</td></tr>
                             <tr><td><b>Sender</b>:</td><td>AndroidApi-{$appVersion}</td></tr>
                             </table>";

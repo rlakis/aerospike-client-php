@@ -93,6 +93,7 @@ const API_ANDROID_SIGN_UP      = 79;
 const API_ANDROID_SET_PASSWORD      = 80;
 const API_ANDROID_CHANGE_ACCOUNT      = 81;
 const API_ANDROID_PUSH_RECEIPT      = 82;
+const API_ANDROID_VERIFY_NUMBER      = 83;
 
 const API_DB_EVENT                  = 998;
 const API_LOG                       = 999;
@@ -298,6 +299,7 @@ if (!$api->hasError()) {
         case API_ANDROID_SET_PASSWORD:
         case API_ANDROID_CHANGE_ACCOUNT:
         case API_ANDROID_PUSH_RECEIPT:
+        case API_ANDROID_VERIFY_NUMBER:
         case API_ANDROID_CHECK_FIX_CONNECTION_FAILURE:
             $api->androidTransaction($appVersion);
             break;

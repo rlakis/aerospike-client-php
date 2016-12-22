@@ -1357,6 +1357,8 @@ class MobileApi
             $this->result['d']['e_support'] = $this->config['android_email_support'];
             if($device_sysversion > '3'){
                 $this->result['d']['a_release'] = $this->config['android_app_release'];
+                $this->result['d']['a_rel_en'] = $this->config['android_release_en'];
+                $this->result['d']['a_rel_ar'] = $this->config['android_release_ar'];
             }else{
                 $this->result['d']['a_release'] = '1.0.0';
             }
