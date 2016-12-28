@@ -770,9 +770,9 @@ class Site {
 
         if ($this->user->info['id'])
         {
-            $myvars['subject'].=" - ". $this->user->info['id'] . " - ".$this->user->info['name'];
-            if ($fromName=='')
-            {
+            $user_name = $this->user->info['name'] ? $this->user->info['name'] : 'Anonymous';
+            $myvars['subject'].=" - ". $this->user->info['id'] . " - ".$user_name;
+            if ($user_name!=='Anonymous'){
                 $fromName = $this->user->info['name'];
             }
 
@@ -953,9 +953,9 @@ class Site {
     }
     
     
-    function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0)
+    function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0, $helpTopic=1)
     {
-        return $this->faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference);
+        return $this->faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference, $helpTopic);
         //return $this->createTicket($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference);
         /*
     	require 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';

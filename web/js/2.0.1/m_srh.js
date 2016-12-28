@@ -159,7 +159,8 @@ function rpA(e) {
 }
 
 function rpS(e) {
-    var m = $b(e).value;
+    var m = $b(e,3).value;
+    var em = $b(e).value;
     var d = $p(e, 2);
     var id = $p(d).id;
     if (m.length > 0) {
@@ -169,10 +170,11 @@ function rpS(e) {
             dataType: 'json',
             data: {
                 id: id,
+                email:em,
                 msg: m
             }
         });
-        $b(e).value = '';
+        $b(e,3).value = '';
         sms(d, xAOK, 1)
     }
 }

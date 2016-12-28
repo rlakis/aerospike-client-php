@@ -398,7 +398,7 @@ if ($globalSettings!==FALSE)
     }
 }
 $config['url_resources']='https://dv.mourjan.com';
-$config['url_js'] = 'https://dv.mourjan.com/web/js/1.0.0';
+$config['url_js'] = 'https://dv.mourjan.com/web/js/release';
 $config['url_css'] = 'https://dv.mourjan.com/web/css/1.0.0';
 $config['url_jquery'] = 'https://dv.mourjan.com/web/jquery/3.1.0/js/';
 $config['url_jquery_mobile'] = 'https://dv.mourjan.com/web/jquery/4.0.0/js/';

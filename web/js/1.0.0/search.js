@@ -255,7 +255,8 @@ function rpa(e,o,dt){
                 });
             }
         }else if(o==2){
-            var t=e.prev();
+            var em=e.prev();
+            var t=em.prev().prev();
             var msg=t.val();
             if(msg.length>0){
                 var p=e.parent();
@@ -267,6 +268,7 @@ function rpa(e,o,dt){
                     url:"/ajax-report/",
                     data:{
                         id:(dt?AID:li.attr("id")),
+                        email:em.val(),
                         msg:msg
                     },
                     dataType:"json"
@@ -303,7 +305,7 @@ function rpa(e,o,dt){
                     }
                 }
             }else{
-                e.prev().addClass("err")
+                t.addClass("err")
             }
         }
     }else{
@@ -356,7 +358,7 @@ function rpa(e,o,dt){
             if(!dt){
                 var li=r.parent();
                 li.animate({
-                    height:249
+                    height:330
                 },100);
             }
             r.css('display','block');

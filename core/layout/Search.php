@@ -69,9 +69,10 @@ class Search extends Page {
             $this->inlineCss .= '.cct > a{white-space:nowrap;float:'.($this->urlRouter->siteLanguage == 'ar' ? 'right':'left').'}';
             $this->inlineCss .= '.sfilter .order,.sfilter .olang{background-color:#f8f8f8}.sfilter .order.ov,.sfilter .olang.ov{background-color:#ff9000}ul.sfilter{background-color:gold}';
             $this->inlineCss.='.ad600{display:inline-block;width:300px;height:600px}.adsawa{border:0;display:inline-block;width:300px;height:250px}';                
-        
+            $this->inlineCss .= '.rpd input[type="email"]{direction:ltr;display: block;width:624px;padding:5px 10px;margin-bottom:15px}';
         }else{
             $this->inlineCss .= '.thb.prem{height:50px}';
+            $this->inlineCss .= '.txtd input[type="email"]{direction:ltr;width:90%;margin:10px auto;padding:5px 10px;border: 1px solid #CCC}';
         }
         if (!$this->isMobile && !$this->urlRouter->userId && !$this->userFavorites && !$this->urlRouter->watchId) {
             $this->hasLeadingPane=true;
@@ -1734,6 +1735,8 @@ class Search extends Page {
                 ?><div class="txtd bts"><?php
                 ?><h2><?= $this->lang['abuseTitle'] ?></h2><?php
                 ?><textarea onkeyup="idir(this)"></textarea><?php
+                ?><h2><?= $this->lang['abuseContact'] ?></h2><?php
+                ?><input type="email" placeholder="your.email@gmail.com" /><?php
                 ?><span onclick="rpS(this)" class="button bt ok"><?= $this->lang['send'] ?></span><?php
                 ?></div><?php
                 ?><div class="txtd bts"></div><?php 
@@ -3667,6 +3670,8 @@ if($isFeatured){
                 ?> <!--googleoff: all--> <div id="rpd" class="rpd cct"><?php
                     ?><b><?= $this->lang['abuseTitle'] ?></b><?php
                     ?><textarea onkeydown="idir(this)" onchange="idir(this,1)"></textarea><?php
+                    ?><b><?= $this->lang['abuseContact'] ?></b><?php
+                    ?><input type="email" placeholder="your.email@gmail.com" /><?php
                     ?><input type="button" onclick="rpa(this,2)" class="bt" value="<?= $this->lang['send'] ?>" /><?php
                     ?><input type="button" onclick="rpa(this,1)" class="bt cl" value="<?= $this->lang['cancel'] ?>" /><?php
                 ?></div> <!--googleon: all--> <?php

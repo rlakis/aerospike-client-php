@@ -221,7 +221,7 @@ class Detail extends Search{
                             $.ajax({
                                 type:"POST",
                                 url:"/ajax-ublock/",
-                                data:{i:'.$this->detailAd[Classifieds::USER_ID].',msg:"Blocked From Detail Page By Admin '.$this->user->info['id'].'"},
+                                data:{i:'.$this->detailAd[Classifieds::USER_ID].',msg:"Blocked From Detail Page <'.$this->detailAd[Classifieds::USER_ID].'> By Admin '.$this->user->info['id'].'"},
                                 dataType:"json",
                                 success:function(rp){
                                     if (rp.RP) {
@@ -880,7 +880,9 @@ class Detail extends Search{
                 ?><div class="shad bts"></div><?php 
                 ?><div class="txtd bts"><?php 
                     ?><h2><?= $this->lang['abuseTitle'] ?></h2><?php
-                    ?><textarea></textarea><?php
+                    ?><textarea onkeyup="idir(this)"></textarea><?php
+                    ?><h2><?= $this->lang['abuseContact'] ?></h2><?php
+                    ?><input type="email" placeholder="your.email@gmail.com" /><?php
                     ?><span onclick="rpS(this)" class="button bt ok"><?= $this->lang['send'] ?></span><?php
                 ?></div><?php
                 ?><div class="txtd bts"></div><?php

@@ -4478,7 +4478,10 @@ class Bin extends AjaxHandler{
                 $mobile= (isset($this->user->params['mobile']) && $this->user->params['mobile'])? 1 : 0;
                 $id=$this->post('id', 'int');
                 $name = $this->post('name', 'filter');
+                $userEmail = $this->post('email', 'filter');
+                
                 $flag = -1;
+                $helpTopic=4;
                 if(isset($_POST['flag']) && in_array($_POST['flag'],[0,1,2,3,4,5])){
                     $flag=$this->post('flag', 'int');
                 }
@@ -4529,7 +4532,7 @@ class Bin extends AjaxHandler{
                     $msg = "<style>table{border-collapse:collapse;border-spacing:2px;border-color:gray;} th,td{border: 1px solid #cecfd5;padding: 10px 15px;}</style><table><tr>";
                     if (isset($this->user->info['id']) && $this->user->info['id']>0){
                         $name=$this->user->info['name'];
-                        $msg.="<td><b>Name</b></td><td>{$name}</td>";
+                        $msg.="<td><b>Name</b></td><td><a href='{$this->urlRouter->cfg['host']}/myads/?u={$this->user->info['id']}' target='_blank'>{$name}</a></td>";
                     }
                     $msg.="<td><b>Location</b></td><td>{$geostr}</td>";
                     if (isset($this->user->params['country']))
@@ -4564,9 +4567,8 @@ class Bin extends AjaxHandler{
                     $msg.="<td><b>Browser</b></td><td colspan='3'>".filter_input(INPUT_SERVER, 'HTTP_USER_AGENT', FILTER_SANITIZE_STRING)."</td></tr>";
                     $msg.="<tr><td colspan='6'><a href='{$this->urlRouter->cfg['host']}/{$id}' target=_blank>{$feed}</a></td></tr>";
                     $msg.="</table>";
-                    
                   
-                    $res=$this->sendMail("Mourjan Admin", $this->urlRouter->cfg['admin_email'], ($name) ? $name : 'Abusive Report', $this->urlRouter->cfg['smtp_user'], $subject, $msg, $this->urlRouter->cfg['smtp_contact'], $id);
+                    $res=$this->sendMail("Mourjan Admin", $this->urlRouter->cfg['admin_email'], ($name) ? $name : 'Abusive Report', ($userEmail ? $userEmail : $this->urlRouter->cfg['smtp_user']), $subject, $msg, $this->urlRouter->cfg['smtp_contact'], $id, $helpTopic);
                     $this->process();
                 }else{
                     $this->fail('101');

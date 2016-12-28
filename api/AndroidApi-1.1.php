@@ -203,11 +203,12 @@ class AndroidApi {
                 }
                 break;
             case API_ANDROID_FLAG_AD:
-                $this->api->userStatus($status);
+                $opts = $this->api->userStatus($status);
                 if ($status == 1) {
                     $id = filter_input(INPUT_GET, 'adid', FILTER_VALIDATE_INT) + 0;
                     $ad = $this->api->getClassified($id);
                     if($ad && !in_array($ad[12], array(190,1179,540))){
+                        $helpTopic = 4;
                         $flagId = filter_input(INPUT_GET, 'fid', FILTER_VALIDATE_INT) + 0;
                         switch ($flagId) {
                             case 0:
@@ -229,14 +230,19 @@ class AndroidApi {
                                 $subject = 'Abusive Ad Report';
                                 break;
                         }
+                        $pushId = '';
                         $msg = "<table>
-                            <tr><td><b>UID</b>:</td><td>{$this->api->getUID()}</td></tr>
+                            <tr><td><b>UID</b>:</td><td><a href='https://www.mourjan.com/myads/{$this->api->getUID()}' target='_blank'>{$this->api->getUID()}</td></tr>
                             <tr><td><b>Ad</b>:</td><td><a target='_blank' href='https://www.mourjan.com/{$id}'>{$id}</a></td></tr>
                             <tr><td><b>Mobile</b>:</td><td>Android</td></tr>
-                            <tr><td><b>Sender</b>:</td><td>AndroidApi-{$appVersion}</td></tr>
                             </table>";
+                        
+                        $defUserName = 'a'.$this->api->getUID();
+                        $fromName = isset($opts->full_name) && $opts->full_name ? $opts->full_name : $defUserName;
+                        //$fromEmail = isset($opts->email) && $opts->email ? $opts->email : ($pushId ? $pushId.'@a.mourjan.com' : $defUserName.'@mourjan.com');
+                        $fromEmail = isset($opts->email) && $opts->email ? $opts->email : $defUserName.'@mourjan.com';
 
-                        $res = $this->sendMail("Mourjan Admin", $this->api->config['admin_email'], 'Mourjan Android', $this->api->config['smtp_user'], $subject, $msg, $this->api->config['smtp_contact']);
+                        $res = $this->sendMail("Mourjan Admin", $this->api->config['admin_email'], $fromName, $fromEmail, $subject, $msg, $this->api->config['smtp_contact'], $id, $helpTopic);
                     }
                 }
                 break;
@@ -2063,9 +2069,80 @@ class AndroidApi {
         }
         return $succeed;
     }
+    
+    function faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0)
+    {
+        $res = 0;
+        $key='mEI5PRfHaBvbn6El48yZcX492NLb5Cu5';
+        $url = 'http://io.mourjan.com:8080/api/v1/authenticate';
+     
+        $myvars = 'username=rlakis@berysoft.com&password=GQ71BUT2&api_key='.$key;
+        $ch = curl_init( $url );
+        curl_setopt( $ch, CURLOPT_POST, 1);
+        curl_setopt( $ch, CURLOPT_POSTFIELDS, $myvars);
+        curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt( $ch, CURLOPT_HEADER, 0);
+        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
 
-    function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account = '') {
-        //require_once ('lib/phpmailer.class.php');
+        $auth = json_decode(curl_exec( $ch ));
+        
+        if(isset($auth->user_id) && $auth->user_id){
+            $url = 'http://io.mourjan.com:8080/api/v1/helpdesk/create?user_id='.$auth->user_id.'&token='.$auth->token;
+            $myvars = array();
+            $myvars['api_key'] = $key;
+            $myvars['user_id'] = $auth->user_id;
+            $myvars['token'] = $auth->token;
+            $myvars['subject'] = $subject;
+            $myvars['body'] = $message;
+            $myvars['helptopic']=1;
+            $myvars['email']=$fromEmail;
+            $myvars['sla']=1;
+            $myvars['priority']=2;
+            $myvars['code']='0';
+            $myvars['mobile']=null;//'9611487521';
+            $myvars['phone']='';
+
+            $name = preg_split('/\s+/', trim($fromName), -1, PREG_SPLIT_NO_EMPTY);
+            $myvars['first_name']= $name[0];
+            $myvars['last_name']='';
+            for($i=1; $i<count($name); $i++)
+            {
+                $myvars['last_name'].=$name[$i]." ";
+            }
+            $myvars['last_name']= trim($myvars['last_name']);
+
+            if ($fromName=='Abusive Report' && $reference>0)
+            {
+                $myvars['subject'].= " - {$reference}";
+            }
+
+            $ch = curl_init( $url );
+            curl_setopt( $ch, CURLOPT_POST, 1);
+            curl_setopt( $ch, CURLOPT_POSTFIELDS, $myvars);
+            curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt( $ch, CURLOPT_HTTPHEADER, array( 'Expect:', 'X-XSRF-TOKEN: '.$auth->token));
+            curl_setopt( $ch, CURLOPT_HEADER, 1);
+            curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
+
+            $response = curl_exec( $ch );
+            curl_close($ch);
+
+            if(preg_match('/HTTP\/.* ([0-9]+) .*/', $response, $status)) 
+            {
+                if ($status[1]==200)
+                {
+                    $res= 1;
+                }
+            }
+        }
+        
+        return $res;
+        
+    }
+
+    function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account = '',$reference=0, $helpTopic=1) {
+        return $this->faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference, $helpTopic);
+        /*
         $mail = new PHPMailer(true);
         $mail->IsSMTP();
         $res = 0;
@@ -2103,7 +2180,7 @@ class AndroidApi {
         $mail->ClearAddresses();
         $mail->ClearAllRecipients();
         $mail->ClearAttachments();
-        return $res;
+        return $res;*/
     }
     
     function isRTL($text){
