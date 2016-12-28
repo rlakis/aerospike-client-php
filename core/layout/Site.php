@@ -767,13 +767,39 @@ class Site {
         $myvars['code']='0';
         $myvars['mobile']=null;//'9611487521';
         $myvars['phone']='';
-        
+
+        if ($this->user->info['id'])
+        {
+            $myvars['subject'].=" - ". $this->user->info['id'] . " - ".$this->user->info['name'];
+            if ($fromName=='')
+            {
+                $fromName = $this->user->info['name'];
+            }
+
+            if (isset($this->user->info['email']) && strpos($this->user->info['email'], '@')!==FALSE)
+            {
+                $myvars['email'] = $this->user->info['email'];
+            }
+        }
+
         $name = preg_split('/\s+/', trim($fromName), -1, PREG_SPLIT_NO_EMPTY);
         $myvars['first_name']= $name[0];
         $myvars['last_name']='';
         for($i=1; $i<count($name); $i++)
+        {
             $myvars['last_name'].=$name[$i]." ";
+        }
         $myvars['last_name']= trim($myvars['last_name']);
+
+        if ($fromName=='Abusive Report' && $reference>0)
+        {
+            //$ticket->aid = $reference;
+            //$ticket->topicId=12;
+            //$ticket->priority='High';
+            $myvars['subject'].= " - {$reference}";
+        }
+
+
        //$myvars['first_name']='Sami';
        //$myvars['last_name']='Lakis';
         
@@ -809,15 +835,16 @@ class Site {
         $response = curl_exec( $ch );
         curl_close($ch);
         
-        $code = 75;
-        $status = -1;
-        //error_log(var_export($result, true));
 
         if(preg_match('/HTTP\/.* ([0-9]+) .*/', $response, $status)) 
         {
-            error_log("Error: ".PHP_EOL.$status[1]);
+            if ($status[1]!=200)
+            {
+                error_log($response);
+                return 0;
+            }
         }
-        error_log($response);
+        
         return 1;
         
     }

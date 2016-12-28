@@ -4475,7 +4475,7 @@ class Bin extends AjaxHandler{
                 }else $this->fail();
                 break;
             case 'ajax-report':                
-                $$mobile= (isset($this->user->params['mobile'])) ? $mobile=$this->user->params['mobile'] : 0;
+                $mobile= (isset($this->user->params['mobile']) && $this->user->params['mobile'])? 1 : 0;
                 $id=$this->post('id', 'int');
                 $name = $this->post('name', 'filter');
                 $flag = -1;
@@ -4515,23 +4515,20 @@ class Bin extends AjaxHandler{
                     $geo = $this->urlRouter->getIpLocation();
                 
                     $geostr = "";
-                    if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en']))
-                    {
+                    if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en'])){
                         $geostr.= $geo['country']['names']['en'];
                     }
 
-                    if (isset($geo['location']) && isset($geo['location']['time_zone']))
-                    {
+                    if (isset($geo['location']) && isset($geo['location']['time_zone'])){
                         $geostr.= " - {$geo['location']['time_zone']} [{$geo['location']['latitude']}, {$geo['location']['longitude']}]";
                     }
-                    if ($mobile)
-                    {
+                    if ($mobile){
                         $geostr.= " - Mobile";
                     }
 
                     $msg = "<style>table{border-collapse:collapse;border-spacing:2px;border-color:gray;} th,td{border: 1px solid #cecfd5;padding: 10px 15px;}</style><table><tr>";
-                    if (isset($this->user->info['id']) && $this->user->info['id']>0)
-                    {
+                    if (isset($this->user->info['id']) && $this->user->info['id']>0){
+                        $name=$this->user->info['name'];
                         $msg.="<td><b>Name</b></td><td>{$name}</td>";
                     }
                     $msg.="<td><b>Location</b></td><td>{$geostr}</td>";
