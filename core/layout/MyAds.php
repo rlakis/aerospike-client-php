@@ -513,7 +513,8 @@ var rtMsgs={
         'لا يمكن نشر هذا الاعلان سوى في البلد الذي تتواجد فيه مكاتبكم وخدماتكم',
         'لا يمكن نشر هذا الإعلان سوى في البلد حيث يتواجد فيه العقار، السيارة أو السلعة',
         'group=سياسة الموقع',
-        'لا يمكن نشر إعلانات مماثلة طبقاً لسياسة الموقع'
+        'لا يمكن نشر إعلانات مماثلة طبقاً لسياسة الموقع',
+        'اعلانات زواج المسيار والمتعة مخالفة لسياسة الموقع ولا يمكن نشرها'
     ],
     'en':[
         'specify the reason...',
@@ -543,7 +544,8 @@ var rtMsgs={
         'this ad can only be published in countries where your offices and services are located',
         'this ad cannot be published in countries other than the country of origin (cars, real estate, goods)',
         'group=Website Policy',
-        'this type of ads is against the website policy and cannot be published'
+        'this type of ads is against the website policy and cannot be published',
+        'Temporary marriages (Mesyar, Muta\') ads are against the website policy and caanot be published'
     ]
 };
                             ";

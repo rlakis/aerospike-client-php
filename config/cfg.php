@@ -181,6 +181,10 @@ $config=array(
     'enable_query_strings'  => FALSE,
     'url_suffix'            => '',
     
+    'gapp_oauth_client_id'  =>  '1017340605957-4pboe02jriltl0r74v9u6io0bdhrncpd.apps.googleusercontent.com',
+    'gapp_client_secret'    =>  '0lOjpI5kfmqJvYEXGL9lBV5R',
+    'gapp_api_key'    =>  'AIzaSyBRv6rc-uUbx_pEeUki6g027FzwyZmVGgM',
+    
     //youtube credentials
     'gapp_key_browser'       =>  'AIzaSyClGjkP8kdPPU5FVyayTrj8I3uc9ry6p1Y',        
     'gapp_key_server'       =>  'AIzaSyBV4Y9v8fGOpn4FK_CZ3Kpgp2QftOx9l7Q', 

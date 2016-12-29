@@ -4861,13 +4861,13 @@ class Bin extends AjaxHandler{
                     $tLang=$this->post('lang');
                     if($tLang=='ar'||$tLang=='en')$lang=$tLang;
                     
-                    require_once 'Google/autoload.php';
+                    //require_once 'Google/autoload.php';
                     
                     try{
                     
                         $client = new Google_Client();
                         $client->setApplicationName('Mourjan.com Uploader');
-                        $apiKey = $this->urlRouter->cfg['gapp_key_server'];
+                        $apiKey = $this->urlRouter->cfg['gapp_api_key'];
 
                         if (strpos($apiKey, "<") !== false) {
                             echo missingApiKeyWarning();
