@@ -233,7 +233,7 @@ class SphinxQL {
                 $records = $records[0];
             }
         } catch (Exception $ex) {
-            echo $ex->getMessage();
+            error_log( $ex->getMessage() );
         } 
         
         return $records;
@@ -257,8 +257,11 @@ class SphinxQL {
             if (count($result['matches'])==1) {
                     $result['matches']=$result['matches'][0];
             }
-        } catch (Exception $ex) {
-            echo $ex->getMessage();
+        } 
+        catch (Exception $ex) 
+        {            
+            error_log( $ex->getMessage() );
+            error_log($queryQL);
         } finally {
             $this->fetchMetaData($result);
         }
