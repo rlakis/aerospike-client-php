@@ -239,24 +239,46 @@ class SphinxQL {
         return $records;
     }
     
-    function search($queryQL, $fetchMode=MYSQLI_ASSOC) {
-        $result = array('error' => '', 'warning' => '', 'total' => 0, 'total_found' => 0, 'time' => 0, 'matches' => array (), 'sql'=>$queryQL);
-        try {
-            if ($this->_sphinx->multi_query($queryQL)) {
+    
+    function search($queryQL, $fetchMode=MYSQLI_ASSOC) 
+    {
+        if (empty($queryQL))
+        {
+            $this->build();
+            $queryQL = $this->_query;            
+        }
+        $result = ['error' => '', 'warning' => '', 'total' => 0, 'total_found' => 0, 'time' => 0, 'matches' => array (), 'sql'=>$queryQL];
+        try 
+        {
+            if ($this->_sphinx->multi_query($queryQL)) 
+            {
                 do {
-                    if ($rs = $this->_sphinx->store_result()) {
+                    if ($rs = $this->_sphinx->store_result()) 
+                    {
                         $result['matches'][] = $rs->fetch_all($fetchMode);
                         $rs->free();
                     }
-                    if(!$this->_sphinx->more_results()){
+                    
+                    if(!$this->_sphinx->more_results())
+                    {
                         break;
                     }
+                    
                 } while ($this->_sphinx->next_result());
             }
             
-            if (count($result['matches'])==1) {
-                    $result['matches']=$result['matches'][0];
+            if ($this->_sphinx->error) 
+            {
+                error_log(__FILE__  .'::' . __FUNCTION__ . ' --> ['. $this->_sphinx->errno.'] '.$this->_sphinx->error. PHP_EOL .'[ '. $queryQL .']');
+                error_log(__FILE__  .'::' . __FUNCTION__ . PHP_EOL . json_encode($result));
             }
+            
+            if (count($result['matches'])==1) 
+            {
+                $result['matches']=$result['matches'][0];
+            }
+            
+            
         } 
         catch (Exception $ex) 
         {            
@@ -270,7 +292,8 @@ class SphinxQL {
     }
     
     
-    function query($keywords="", $fetchMode=MYSQLI_ASSOC) {        
+    function query($keywords="", $fetchMode=MYSQLI_ASSOC) 
+    {        
         $this->build($keywords);
         return $this->search($this->_query, $fetchMode);
     }
@@ -476,32 +499,50 @@ class SphinxQL {
     }
 
 
-    public function build($keywords="") {
-        if ($this->indexName=='classifier') {
+    public function build($keywords="") 
+    {
+        if ($this->indexName=='classifier') 
+        {
             $this->_query = "select {$this->clause} from {$this->indexName} where hold=0 ";
-        } else {
+        } 
+        else 
+        {
             $this->_query = "select {$this->clause} from {$this->indexName} where hold=0 and canonical_id=0 ";
         }
-        foreach ($this->filters as $key => $value) {
+        
+        foreach ($this->filters as $key => $value) 
+        {
             $this->_query.="and {$key}{$value} ";
         }
-        if ($keywords) {
+        
+        if ($keywords) 
+        {
             $keywords=$this->escape($keywords);
+            if ($keywords[0]=='-')
+            {
+                $keywords = 'qwerty '.$keywords;
+            }
             $this->_query.="and match({$keywords}) ";
         }
-        if (count($this->groupby)>0) {
+        
+        if (count($this->groupby)>0) 
+        {
             $this->_query.="group by " . implode(',', $this->groupby) . ' ';
         }
-        if ($this->sortby) {
+        
+        if ($this->sortby) 
+        {
             $this->_query.="order by {$this->sortby} ";
         }
         $this->_query.="LIMIT {$this->offset}, {$this->limit} ";
         
-        if ($this->max_matches) {
+        if ($this->max_matches) 
+        {
             $this->_query.="OPTION max_matches={$this->max_matches} "; 
         }
 
-        if (count($this->facets)>0) {
+        if (count($this->facets)>0) 
+        {
             $this->_query.=implode(' ', array_values( $this->facets ));
         }
     }
