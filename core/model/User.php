@@ -857,11 +857,11 @@ class User {
         $result=false;
         if ($this->info['level']==9){
             $res=$this->db->queryResultArray(
-            'update ad set hold=1 where id=? returning id',
+            'update ad set hold=1 where id=? and hold=0 returning id',
             array($id),true);
         }else {
           $res=$this->db->queryResultArray(
-            'update ad set hold=1 where id=? and exists(select 1 from ad_user where id=ad.id and web_user_id=?) returning id',
+            'update ad set hold=1 where id=? and hold=0 and exists(select 1 from ad_user where id=ad.id and web_user_id=?) returning id',
             array($id,$this->info['id']),true);
         }
         if (!empty($res)) {

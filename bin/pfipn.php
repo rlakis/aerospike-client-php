@@ -2,13 +2,33 @@
 ini_set('log_errors_max_len', 0);
 $sandbox = (get_cfg_var('mourjan.server_id')=='99');
 $logfile = '/var/log/mourjan/payfort.log';
+if (!function_exists('getallheaders')) 
+{ 
+    function getallheaders() 
+    { 
+           $headers = ''; 
+       foreach ($_SERVER as $name => $value) 
+       { 
+           if (substr($name, 0, 5) == 'HTTP_') 
+           { 
+               $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value; 
+           } 
+       } 
+       return $headers; 
+    } 
+} 
 
 if (!file_exists($logfile)) 
 {
     $fh = @fopen($logfile, 'w');
     fclose($fh);
 }
-error_log(sprintf("%s\t%s", date("Y-m-d H:i:s"), json_encode($_POST).PHP_EOL), 3, $logfile);
+$headers = getallheaders();
+$logMsg = '------------------------------------'.PHP_EOL;
+foreach($headers as $key => $value){
+    $logMsg.=$key.'::'.$value.PHP_EOL;
+}
+error_log(sprintf("%s\t%s", date("Y-m-d H:i:s"), $logMsg.json_encode($_POST).PHP_EOL), 3, $logfile);
 
 
 include_once get_cfg_var('mourjan.path') . '/config/cfg.php';

@@ -525,7 +525,8 @@ class AndroidApi {
                 }            
                 $opts = $this->api->userStatus($status);
                 if ($status == 1 && (!isset($opts->suspend) || $opts->suspend <= time() )) {
-                    $this->api->db->setWriteMode();
+                    $this->api->db->setWriteMode();  
+                    
                     $direct_publish = filter_input(INPUT_POST, 'pub', FILTER_VALIDATE_INT) + 0;
                     
                     $rid = filter_input(INPUT_POST, 'rid', FILTER_VALIDATE_INT) + 0;
@@ -724,7 +725,11 @@ class AndroidApi {
                             $state = 3;
                         }else{
                         
-                            if($ad_id > 0) {     
+                            if($ad_id > 0) {                                  
+                                require_once $this->api->config['dir'].'/core/model/User.php';
+                                $USER = new User($this->api->db, $this->api->config, null, 0);
+                                $USER->holdAd($ad_id);
+                                
                                 if($ad['state'] == 1 && isset($ad['budget']) && $ad['budget']+0 > 0){
                                     $ad['state'] = 4;
                                 }
