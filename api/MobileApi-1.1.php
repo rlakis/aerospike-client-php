@@ -2521,16 +2521,20 @@ class MobileApi
     }
 
 
-    public function userDeleteAd() {        
+    public function userDeleteAd() 
+    {
         $opts = $this->userStatus($status);
         $this->result['d']['state']=-1;
-        if ($status==1) {
+        if ($status==1) 
+        {
             $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT)+0;
             if ($id) {
                 $this->db->setWriteMode();
                 $rs = $this->db->queryResultArray("update AD_USER set state=8 where id=? returning state", [$id], FALSE, PDO::FETCH_ASSOC);
-                if (empty($rs)==false) {
+                if (is_array($rs) && count($rs))
+                {
                     $this->result['d']['state']=$rs[0]['STATE'];
+                    $this->db->queryResultArray("update ad set hold=1 where id=? and hold=0 returning id", [$id], TRUE, PDO::FETCH_NUM);
                 }
             }
         }
