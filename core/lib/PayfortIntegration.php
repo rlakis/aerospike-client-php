@@ -475,13 +475,10 @@ class PayfortIntegration
      */
     public function convertFortAmount($amount, $currencyCode)
     {
-        error_log($amount);
-        error_log("--------");
         $new_amount = 0;
         $total = $amount;
         $decimalPoints    = $this->getCurrencyDecimalPoints($currencyCode);
         $new_amount = round($total, $decimalPoints) * (pow(10, $decimalPoints));
-        error_log($new_amount);
         return $new_amount;
     }
 
