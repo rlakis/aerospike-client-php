@@ -718,7 +718,7 @@ class AndroidApi {
                             
                             $this->setLevel($this->api->getUID(),5);
                             
-                        }elseif($requireReview){
+                        }elseif($requireReview && $ad_id){
                             $this->referrToSuperAdmin($ad_id);
                         }elseif($hasFailure){
                             $ad_id = 0;
@@ -726,9 +726,9 @@ class AndroidApi {
                         }else{
                         
                             if($ad_id > 0) {                                  
-                                require_once $this->api->config['dir'].'/core/model/User.php';
-                                $USER = new User($this->api->db, $this->api->config, null, 0);
-                                $USER->holdAd($ad_id);
+                                $this->api->db->queryResultArray(
+                                    "update ad a set a.hold = 1 where a.id = ? and hold=0 and ((select web_user_id from ad_user d where d.id = ?) = ?) returning id", [$ad_id,$ad_id, $this->api->getUID()], false
+                                );
                                 
                                 if($ad['state'] == 1 && isset($ad['budget']) && $ad['budget']+0 > 0){
                                     $ad['state'] = 4;
@@ -829,6 +829,9 @@ class AndroidApi {
                                     $st->bindValue(1, $ad_id, PDO::PARAM_INT);
                                     $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
                                     $this->api->db->executeStatement($st);
+                                }
+                                if($requireReview && $ad_id){
+                                    $this->referrToSuperAdmin($ad_id);
                                 }
                                 
                                 if( $state==1 ) {
