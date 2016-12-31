@@ -879,7 +879,9 @@ class MobileApi
     function userStatus(&$status, &$name=null, $device_name = null) {
         $name=null;
         $opts = json_decode("{}");
-        if ($this->uid>0 && !empty($this->uuid)) {
+
+        if (!empty($this->uuid)) 
+        {
             $status = 0;
             $q = $this->db->queryResultArray(
                     "select d.uid,d.push_id,d.device_sysname,d.app_prefs, u.opts, u.full_name,u.identifier,u.email,u.user_email,u.provider,u.profile_url,IIF(m.STATUS IS NULL, 10, m.STATUS) STATUS, "
@@ -891,19 +893,19 @@ class MobileApi
                     . "left join web_users_mobile m on m.uid=d.uid "
                     . "left join web_users u on u.id = d.uid "
                     . "where d.uuid=? order by IIF(m.STATUS=1,1,0) desc, m.id desc", [$this->uuid]);
-            //var_dump($q);
-            //error_log(var_export($q,true));
+
             if ($q && count($q) ) {
                 $opts = json_decode($q[0]['OPTS']);
-                if(is_null($opts) || !is_object($opts)){
+                if(is_null($opts) || !is_object($opts))
+                {
                     $opts = json_decode("{}");
-                } 
+                }
                 if($q[0]['APP_PREFS']){
                     $opts->prefs = json_decode(base64_decode($q[0]['APP_PREFS']),true);
                 }else{
                     $opts->prefs = [];
                 }
-                //$opts->dump = $q;
+
                 $opts->device_last_visit = $q[0]['DEVICE_LAST_VISIT'];
                 $opts->user_last_visit = $q[0]['USER_LAST_VISIT'];
                 $opts->user_status = $q[0]['STATUS']+0;
@@ -913,11 +915,8 @@ class MobileApi
                 $opts->disallow_purchase = $q[0]['DISALLOW_PURCHASE']+0;
                 $opts->cuid = $q[0]['CUID'];
                 $opts->full_name = $q[0]['FULL_NAME'];
-                $opts->email = $q[0]['USER_EMAIL'] ? $q[0]['USER_EMAIL'] : $q[0]['EMAIL'];
-                
-                //if($q[0]['DEVICE_SYSNAME']=='Android'){
+                $opts->email = $q[0]['USER_EMAIL'] ? $q[0]['USER_EMAIL'] : $q[0]['EMAIL'];                
                 $opts->push = $q[0]['PUSH_ID'];
-                //}
                 
                 if(in_array($q[0]['PROVIDER'], array('mourjan','facebook','twitter','yahoo','google','live','linkedin')))
                 {
@@ -929,6 +928,12 @@ class MobileApi
                     }else{
                         $opts->account=$q[0]['EMAIL'];
                     }
+                }
+                
+                if ($this->uid==0 && $q[0]['LVL']!=5)
+                {
+                    $status=1;
+                    $name=$q[0]['FULL_NAME'];
                 }
                 
                 if ($this->uid==$q[0]['UID']) 
@@ -944,9 +949,10 @@ class MobileApi
                         $name='';
                     }
                     return $opts;
-                }
+                }               
             }
-            else {
+            else 
+            {
                 $opts = json_decode("{}");
             }
             /*
@@ -976,7 +982,9 @@ class MobileApi
             $opts = json_decode("{}");
             $status = -9;
         }
+        
         return $opts;
+        
         //DO NOT DELETE <<<<<<<<<<<<<---------------------
         /*
          *  else if($device_name == 'Android' && $this->uid == 0 && !empty($this->uuid)){
@@ -1017,6 +1025,7 @@ class MobileApi
          */
         
     }
+    
 
     function clearWebuserDeviceRecord($uid=0){
         if($uid > 0) {
@@ -1297,9 +1306,6 @@ class MobileApi
         $this->db->setWriteMode();
         include_once $this->config['dir'] . '/core/lib/MCSessionHandler.php';
         new MCSessionHandler(TRUE);
-        //$handler = new MCSessionHandler(TRUE);
-        //session_set_save_handler($handler, true);
-        //session_start();
         $current_name="";
         
         $device_name  = filter_input(INPUT_GET, 'dn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
@@ -1318,10 +1324,14 @@ class MobileApi
 
         }
 
-        $device_sysname  = filter_input(INPUT_GET, 'sn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-        if(strlen($device_sysname) > 50) {
+        $device_sysname = filter_input(INPUT_GET, 'sn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+        if(strlen($device_sysname) > 50) 
+        {
             $device_sysname = substr($device_sysname, 0, 50);
         }
+        
+        $isAndroid = ($device_sysname == 'Android');
+        
         $device_sysversion = filter_input(INPUT_GET, 'sv', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
         $carrier_country = filter_input(INPUT_GET, 'cc', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
         $device_appversion = filter_input(INPUT_GET, 'bv', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
@@ -1329,16 +1339,16 @@ class MobileApi
         $app_prefs = html_entity_decode(filter_input(INPUT_GET, 'prefs', FILTER_SANITIZE_STRING, ['options'=>['default'=>'{}']]));
         
         //Android Fix for lost UID
-        if($device_sysname == 'Android' && $this->uid == 0 && $this->uuid){
+        if($isAndroid && $this->uid == 0 && $this->uuid)
+        {
             //error_log("Verifying if previous record exists for UUID {$this->uuid} with UID NIL\n");
-            $oldUid = $this->db->queryResultArray("select uid from WEB_USERS_DEVICE "
-                    . "where uuid = ? and device_sysname = 'Android'",
+            $oldUid = $this->db->queryResultArray(
+                    "select uid from WEB_USERS_DEVICE where uuid=? and device_sysname='Android'",
                     [$this->uuid], TRUE);
-            if ($oldUid && count($oldUid)) {
+            
+            if ($oldUid && count($oldUid)) 
+            {
                 $this->uid = $oldUid[0]['UID'];
-                //error_log("{$this->uuid} Old UID has been retrieved\n");
-            //}else{
-            //    error_log("{$this->uuid} no previous records\n");
             }
         }
         //End of Android Fix for lost UID
@@ -1346,9 +1356,10 @@ class MobileApi
         
         $opts = $this->userStatus($status, $current_name, $device_name);
 
-
         $this->result['status']=9;
-        if($device_sysname == 'Android'){
+        
+        if($isAndroid)
+        {
             //setting app params
             $this->result['d']['u_up'] = $this->config['android_url_upload'];
             $this->result['d']['u_web'] = $this->config['android_url_web'];
@@ -1386,17 +1397,17 @@ class MobileApi
             }
         }
 
-        if (empty($carrier_country)) {
+        if (empty($carrier_country)) 
+        {
             if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])){
                 $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
             }else {
                 $ip = $_SERVER['REMOTE_ADDR'];
             }
-            //$geo = @geoip_record_by_name($ip);
-        	$databaseFile = '/home/db/GeoLite2-City.mmdb';
-        	$reader = new Reader($databaseFile);
-        	$geo = $reader->get($ip);
-        	$reader->close();
+            $databaseFile = '/home/db/GeoLite2-City.mmdb';
+            $reader = new Reader($databaseFile);
+            $geo = $reader->get($ip);
+            $reader->close();
         
             if ($geo) {
                 $country_code = trim(strtoupper(trim($geo['country']['iso_code'])));
@@ -1406,7 +1417,8 @@ class MobileApi
             $carrier_country = (isset($geo['country']['iso_code']) && strlen(trim($geo['country']['iso_code']))==2) ? strtoupper(trim($geo['country']['iso_code'])) : 'XX';
         }
         
-        if ($status==1) {
+        if ($status==1) 
+        {
             /* opts->user_status
              * 9: retired
              * 10: does not have web_users_mobile record (not activated mobile user)
@@ -1421,7 +1433,8 @@ class MobileApi
                     $device_sysversion, $carrier_country, $device_appversion, $app_prefs], TRUE);
             }
             
-            if($device_sysname == 'Android'){
+            if($isAndroid)
+            {
                 $this->result['d']['uid']=  $this->uid;
                 //device last visit
                 $this->result['d']['dlv'] = $opts->device_last_visit+0;
@@ -1477,12 +1490,12 @@ class MobileApi
             }
 
             $uname = filter_input(INPUT_GET, 'uname', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-
-            if ($uname && $uname!=$current_name) {
+            if ($uname && $uname!=$current_name) 
+            {
                 $this->db->queryResultArray("update web_users set full_name=?, display_name=? where id=?", [$uname, $uname, $this->uid], true);
             }
-
-            if (empty($uname) && $is_ping==0) {
+            if (empty($uname) && $is_ping==0) 
+            {
                 $this->db->queryResultArray("update web_users set last_visit=current_timestamp where id=?", [$this->uid], TRUE);
             }
 
@@ -1504,18 +1517,23 @@ class MobileApi
             }
             
             
-        } elseif ($status==-9 && !empty ($this->uuid)) {
+        } 
+        elseif ($status==-9 && !empty ($this->uuid)) 
+        {
             
             $q = $this->db->queryResultArray(
                     "insert into web_users (identifier, email, provider, full_name, profile_url, opts, user_name, user_email) "
-                    . "values (?, '', '".($device_sysname == 'Android'?'mourjan-android':'mourjan-iphone')."', '', 'http://www.mourjan.com/', '{}', '', '')  returning id,lvl", [$this->uuid], TRUE);
-            if ($q && is_array($q) && count($q)==1) {
+                    . "values (?, '', '".($isAndroid?'mourjan-android':'mourjan-iphone')."', '', 'https://www.mourjan.com/', '{}', '', '')  returning id,lvl", [$this->uuid], TRUE);
+            
+            if ($q && is_array($q) && count($q)==1) 
+            {
 
                 $this->result['d']['uid']=$q[0]['ID']+0;
                 
                 //return user level. nb: even if it's a new a record, taking into consideration
                 //any triggers that might be implemented in future that might affect user status
-                if($device_sysname == 'Android'){
+                if($device_sysname == 'Android')
+                {
                     $this->result['d']['level']=$q[0]['LVL'];
                     $this->result['d']['status']=10;
                     
@@ -1524,6 +1542,7 @@ class MobileApi
                     //user last visit
                     $this->result['d']['ulv'] = 0;
                 }
+                
                 //disallow purchase default 0
                 $this->result['d']['blp'] = 0;
 
@@ -1534,9 +1553,11 @@ class MobileApi
                         . "values (?, ?, ?, ?, ?, ?, current_timestamp, '', 1, ?, ?)",
                         [$this->uuid, $q[0]['ID'], $device_model, $device_name, $device_sysname,
                             $device_sysversion, $carrier_country, $device_appversion], TRUE);
-            } else {
+            } 
+            else 
+            {
                 $this->result['e'] = 'System error!';
-                print_r($this->db->getInstance()->errorInfo());
+                //print_r($this->db->getInstance()->errorInfo());
             }
 
         } else {
