@@ -880,7 +880,7 @@ class MobileApi
         $name=null;
         $opts = json_decode("{}");
 
-        if (!empty($this->uuid)) 
+        if (!empty($this->uuid) && $this->uid>0) 
         {
             $status = 0;
             $q = $this->db->queryResultArray(
@@ -930,11 +930,7 @@ class MobileApi
                     }
                 }
                 
-                if ($this->uid==0 && $q[0]['LVL']!=5)
-                {
-                    $status=1;
-                    $name=$q[0]['FULL_NAME'];
-                }
+                
                 
                 if ($this->uid==$q[0]['UID']) 
                 {
