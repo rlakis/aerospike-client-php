@@ -1787,7 +1787,7 @@ class MobileApi
                     if ($rs[0]['STATUS']==1) 
                     {
                         $this->result['d']['status']='validate';
-                        $this->result['e']='This mobile number is already exists. Enter your password to activate your device';
+                        $this->result['e']='This mobile number already exists. Enter your password to activate your device';
                         return;
                     }
                 }

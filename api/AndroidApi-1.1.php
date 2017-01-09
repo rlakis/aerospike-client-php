@@ -1175,7 +1175,139 @@ class AndroidApi {
                         }
                     }
                 
-                break;
+                break;     
+                case API_ANDROID_USER_NUMBER:
+                    $keyCode=0;
+                    $number = filter_input(INPUT_POST, 'tel');
+                    $keyCode = filter_input(INPUT_POST, 'code');
+                    $keyCode = is_numeric($keyCode) ? $keyCode : 0;
+                    
+                    $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                    
+                    if($number && base64_decode($signature) == strtoupper(hash_hmac('sha1', ($_SERVER['HTTPS'] == 'on' ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                        
+                        if($keyCode){
+                            $ns = $this->api->db->queryResultArray(
+                                "UPDATE WEB_USERS_LINKED_MOBILE set "
+                                . "ACTIVATION_TIMESTAMP=current_timestamp "
+                                . "where uid = ? and code = ? and mobile = ? RETURNING ID", 
+                            [$this->api->getUID(),$keyCode,$number], TRUE);
+                            if($ns!==false && count($ns)){
+                                $this->api->result['d']['number']=$number;
+                                $this->api->result['d']['code']=$keyCode;
+                                $this->api->result['d']['verified']=true;
+                            }else{                                
+                                $this->api->result['d']['number']=$number;
+                                $this->api->result['d']['code']=$keyCode;
+                                $this->api->result['d']['verified']=false;
+                            }
+                        }else{
+                            $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
+                            $num = $this->mobileValidator->parse($number, 'LB');
+                            if(!is_array($this->api->result['d'])){
+                                $this->api->result['d']=[];
+                            }
+                                //$this->api->result['d']['number']=$number;
+                                //$this->api->result['d']['code']=mt_rand(1000, 9999);
+                            if($num && $this->mobileValidator->isValidNumber($num)){
+                                $numberType = $this->mobileValidator->getNumberType($num);
+                                if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE){
+
+                                    $sendSms= false;
+
+                                    $rs = $this->api->db->queryResultArray(
+                                    "select m.ID, m.UID, m.MOBILE, m.DELIVERED, m.CODE, m.SMS_COUNT,m.ACTIVATION_TIMESTAMP, "
+                                    . "datediff(SECOND from m.ACTIVATION_TIMESTAMP to CURRENT_TIMESTAMP) active_age, "
+                                    . "datediff(SECOND from m.REQUEST_TIMESTAMP to CURRENT_TIMESTAMP) request_age "
+                                    . "from WEB_USERS_LINKED_MOBILE m "
+                                    . "where m.mobile=? and m.uid=? order by m.REQUEST_TIMESTAMP desc", [$number, $this->api->getUID()]);
+
+                                    $keyCode = 0;
+
+                                    if($rs!==false){
+                                        if(count($rs)){
+                                            $expiredDelivery = ($rs[0]['DELIVERED']==0 && $rs[0]['REQUEST_AGE']>3600);
+                                            $expiredValidity = ($rs[0]['DELIVERED']==1 && $rs[0]['ACTIVE_AGE'] && $rs[0]['ACTIVE_AGE']>86400*365);
+                                            $stillValid = ($rs[0]['DELIVERED']==1 && $rs[0]['ACTIVE_AGE'] && $rs[0]['ACTIVE_AGE']<=86400*365);
+                                            if($expiredDelivery){
+                                                //resend sms since it was not delivered after 1 hour
+                                                $ns = $this->api->db->queryResultArray(
+                                                "UPDATE WEB_USERS_LINKED_MOBILE set "
+                                                        . "SMS_COUNT=sms_count+1,"
+                                                        . "REQUEST_TIMESTAMP=current_timestamp "
+                                                        . "where id = ? RETURNING ID", 
+                                                    [$rs[0]['ID']], TRUE);
+                                                if($ns!==false && count($ns)){
+                                                    $sendSms = $ns[0]['ID'];
+                                                    $keyCode = $ns[0]['CODE'];
+                                                }else{
+                                                    $keyCode=0;
+                                                    $number=0;
+                                                }
+                                            }else if($expiredValidity){
+                                                //re-validate by sending sms with new code
+                                                $ns = $this->api->db->queryResultArray(
+                                                "UPDATE WEB_USERS_LINKED_MOBILE set "
+                                                        . "code = ?, "
+                                                        . "SMS_COUNT=sms_count+1,"
+                                                        . "REQUEST_TIMESTAMP=current_timestamp "
+                                                        . "where id = ? RETURNING ID", 
+                                                    [$keyCode, $rs[0]['ID']], TRUE);
+                                                if($ns!==false && count($ns)){
+                                                    $sendSms = $ns[0]['ID'];
+                                                    $keyCode=mt_rand(1000, 9999);
+                                                }else{
+                                                    $keyCode=0;
+                                                    $number=0;
+                                                }
+                                            }elseif($stillValid){
+                                                //validate without sending sms
+                                                $this->api->result['d']['check'] = true;
+                                                $number = 0;
+                                                $keyCode = 0;
+                                            }else{
+                                                //sms is still valid but not delivered
+                                                $keyCode = $rs[0]['CODE'];
+                                            }                                        
+                                        }else{
+                                            $keyCode=mt_rand(1000, 9999);
+                                            $ns = $this->api->db->queryResultArray(
+                                            "INSERT INTO WEB_USERS_LINKED_MOBILE (UID, MOBILE, CODE, DELIVERED, SMS_COUNT,ACTIVATION_TIMESTAMP)
+                                            VALUES (?, ?, ?, 0, 0,null) RETURNING ID", [$this->api->getUID(), $number, $keyCode], TRUE);
+
+                                            if($ns!==false && count($ns)){
+                                                $sendSms = $ns[0]['ID'];
+                                            }else{
+                                                $keyCode=0;
+                                                $number=0;
+                                            }
+                                        }
+                                    }else{
+                                        $number = 0;
+                                        $keyCode = 0;
+                                    }
+                                    if($sendSms){
+                                        include_once $this->api->config['dir'].'/core/lib/nexmo/NexmoMessage.php';
+                                        $sms = new NexmoMessage($this->api->config['nexmo_key'], $this->api->config['nexmo_secret']);
+                                        $sent = $sms->sendText($number, 'mourjan',
+                                            $keyCode." is your mourjan confirmation code",
+                                            'm'.$sendSms);
+                                        if(!$sent){
+                                            $keyCode=0;
+                                            $number=0;
+                                        }
+                                    }
+                                    $this->api->result['d']['number']=$number;
+                                    $this->api->result['d']['code']=$keyCode; 
+                                }else{
+                                    $this->api->result['d']['check'] = false;
+                                }
+                            }else{
+                                $this->api->result['d']['check'] = false;
+                            } 
+                        }
+                    }
+                    break;
                 case API_ANDROID_SIGN_UP: 
                     $this->api->result['d'] = [];
                     $this->api->result['d']['id'] = -2;

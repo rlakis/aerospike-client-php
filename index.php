@@ -587,7 +587,7 @@ class Router {
     private function setGeoByIp() {
     	$geo = $this->getIpLocation();
 			
-        if (!empty($geo)) {
+        if (!empty($geo) && isset($geo['country']['iso_code'])) {
             $country_code=strtolower(trim($geo['country']['iso_code']));
             $_SESSION[$this->session_key]['params']['user_country']=$country_code;
             $_SESSION[$this->session_key]['params']['latitude'] = isset($geo['location']['latitude']) ? $geo['location']['latitude'] : 0.0;
