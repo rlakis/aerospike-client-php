@@ -332,6 +332,26 @@ class User {
         return $id;
     }
     
+    function updateUserLinkedMobile($uid, $number){
+        $mobile = $this->db->queryResultArray(
+            'select * from web_users_linked_mobile where uid = ? and mobile = ?',
+            array($uid, $number));
+        $res=false;
+        if(is_array($mobile) && count($mobile)){
+            $res = $this->db->queryResultArray(
+            'update web_users_linked_mobile set activation_timestamp = current_timestamp where uid = ? and mobile = ? returning id',
+            array($uid, $number));
+        }else{
+            $res = $this->db->queryResultArray(
+            'insert into web_users_linked_mobile '
+                    . '(uid,mobile,code,delivered,sms_count,activation_timestamp,request_timestamp) '
+                    . 'values '
+                    . '(?,?,111,1,0,current_timestamp,current_timestamp) returning id',
+            array($uid, $number));
+        }
+        return $res;
+    }
+    
     function checkAccount($email){
         $user = $this->db->queryResultArray(
             'select * from web_users where IDENTIFIER=?',

@@ -1,5 +1,24 @@
 <?php
 die();
+include_once '/home/www/mourjan/config/cfg.php';
+include_once $config['dir'].'/core/model/Db.php';
+$db=new DB($config);
+$users = $db->queryResultArray("select * from web_users u
+                    where u.identifier like '+%'  and opts not containing 'validating'",null,true);
+$stmt=$db->prepareQuery(
+    'update or insert into web_users_linked_mobile '
+                    . '(uid,mobile,code,delivered,sms_count,activation_timestamp,request_timestamp) '
+                    . 'values '
+                    . '(?,?,222,1,0,?,current_timestamp) matching(uid,mobile)'
+    );
+foreach($users as $user){
+    $stmt->execute([
+        $user['ID'],
+        $user['IDENTIFIER'],
+        $user['REGISTER_DATE']
+    ]);
+}
+exit(0);
 include_once '/var/www/dev.mourjan/config/cfg.php';
 include_once $config['dir'].'/core/model/Db.php';
 

@@ -1226,16 +1226,16 @@ class AndroidApi {
 
                                     if($rs!==false){
                                         if(count($rs)){
-                                            $expiredDelivery = ($rs[0]['DELIVERED']==0 && $rs[0]['REQUEST_AGE']>3600);
-                                            $expiredValidity = ($rs[0]['DELIVERED']==1 && $rs[0]['ACTIVE_AGE'] && $rs[0]['ACTIVE_AGE']>86400*365);
-                                            $stillValid = ($rs[0]['DELIVERED']==1 && $rs[0]['ACTIVE_AGE'] && $rs[0]['ACTIVE_AGE']<=86400*365);
+                                            $expiredDelivery = $rs[0]['DELIVERED']==0 && $rs[0]['REQUEST_AGE']>3600;
+                                            $expiredValidity = ($rs[0]['DELIVERED']==1 && $rs[0]['ACTIVATION_TIMESTAMP'] && $rs[0]['ACTIVE_AGE']>86400*365);
+                                            $stillValid = ($rs[0]['DELIVERED']==1 && $rs[0]['ACTIVATION_TIMESTAMP'] && $rs[0]['ACTIVE_AGE']<=86400*365);
                                             if($expiredDelivery){
                                                 //resend sms since it was not delivered after 1 hour
                                                 $ns = $this->api->db->queryResultArray(
                                                 "UPDATE WEB_USERS_LINKED_MOBILE set "
                                                         . "SMS_COUNT=sms_count+1,"
                                                         . "REQUEST_TIMESTAMP=current_timestamp "
-                                                        . "where id = ? RETURNING ID", 
+                                                        . "where id = ? RETURNING ID,CODE", 
                                                     [$rs[0]['ID']], TRUE);
                                                 if($ns!==false && count($ns)){
                                                     $sendSms = $ns[0]['ID'];
@@ -1246,6 +1246,7 @@ class AndroidApi {
                                                 }
                                             }else if($expiredValidity){
                                                 //re-validate by sending sms with new code
+                                                $keyCode=mt_rand(1000, 9999);
                                                 $ns = $this->api->db->queryResultArray(
                                                 "UPDATE WEB_USERS_LINKED_MOBILE set "
                                                         . "code = ?, "
@@ -1255,7 +1256,6 @@ class AndroidApi {
                                                     [$keyCode, $rs[0]['ID']], TRUE);
                                                 if($ns!==false && count($ns)){
                                                     $sendSms = $ns[0]['ID'];
-                                                    $keyCode=mt_rand(1000, 9999);
                                                 }else{
                                                     $keyCode=0;
                                                     $number=0;
@@ -1396,14 +1396,36 @@ class AndroidApi {
                         if(isset($user[0]['ID']) && $user[0]['ID']){
                             $opt = json_decode($user[0]['OPTS'], true);
                             if(isset($opt['accountKey']) && $opt['accountKey']==$code){
-                            	error_log("API_ANDROID_CHANGE_ACCOUNT - before");
-                            	
+                            	//error_log("API_ANDROID_CHANGE_ACCOUNT - before");                            	
                                 $USER->mergeDeviceToAccount($this->api->getUUID(), $this->api->getUID(), $id);
-                                error_log("API_ANDROID_CHANGE_ACCOUNT - after");
+                                //error_log("API_ANDROID_CHANGE_ACCOUNT - after");
                                 $old=$USER->getAccount($this->api->getUID());
                                 if(isset($old[0]['ID']) && $old[0]['ID']){
                                     $old=$old[0];
-                                    $USER->copyUserData($id, $old['USER_PASS'], $old['USER_RANK'], $old['LVL'], $old['USER_PUBLISHER'], $old['OPTS']);
+                                    try{
+                                        $opts = json_decode($old['OPTS'],true);
+                                    }catch(Exception $e){
+                                        $opts = [];
+                                    }
+                                    if(isset($opts['validating'])){
+                                        unset($opts['validating']);
+                                    }
+                                    if(isset($opts['accountKey'])){
+                                        unset($opts['accountKey']);
+                                    }
+                                    $opts = json_encode($opts);
+                                    $USER->copyUserData($id, $old['USER_PASS'], $old['USER_RANK'], $old['LVL'], $old['USER_PUBLISHER'], $opts);
+                                }else{                                    
+                                    if(isset($opt['validating'])){
+                                        unset($opt['validating']);
+                                    }
+                                    if(isset($opt['accountKey'])){
+                                        unset($opt['accountKey']);
+                                    }
+                                    $USER->updateOptions($user[0]['ID'], $opt);
+                                }
+                                if(substr($user[0]['IDENTIFIER'],0,1)=='+'){
+                                    $USER->updateUserLinkedMobile($id,$user[0]['IDENTIFIER']);
                                 }
                                 $newId=$id;
                                 $this->api->result['d']['provider']=$user[0]['PROVIDER'];
@@ -1441,6 +1463,11 @@ class AndroidApi {
                                 if($USER->resetPassword($id, $password)){
                                     $USER->mergeDeviceToAccount($this->api->getUUID(), $this->api->getUID(), $id);
                                     $newId=$id;
+                                    
+                                    if(substr($user[0]['IDENTIFIER'],0,1)=='+'){
+                                        $USER->updateUserLinkedMobile($id,$user[0]['IDENTIFIER']);
+                                    }
+                                    
                                     $this->api->result['d']['provider']=$user[0]['PROVIDER'];
                                     if($user[0]['PROVIDER']=='mourjan'){
                                         $this->api->result['d']['account']=$user[0]['IDENTIFIER'];
