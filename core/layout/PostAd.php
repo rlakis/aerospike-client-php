@@ -6,6 +6,7 @@ class PostAd extends Page{
     var $unit='',$globalScript='',$inlineScript='',$adContent=null,$presetTitle=false,$id=0,$advanced=false;
     var $pageGlobal='',$pageInline='',$ad=null, $loadColorBox=false, $sectionCrumb='', $userBalance=0;
     
+    
     function __construct($router){
         parent::__construct($router);
         if($this->urlRouter->cfg['active_maintenance']){
@@ -46,51 +47,76 @@ class PostAd extends Page{
         if ($this->user->params["city"]){
             $this->urlRouter->cityId=$this->user->params["city"];
         }
-
-        if (isset ($_POST['ad']) && is_numeric($_POST['ad'])) {
-            
-            $this->ad=$this->user->loadAdToSession($_POST['ad']);
-            $this->id=$this->user->pending['post']['id'];
-            $this->countryId=$this->user->pending['post']['cn'];
-                $this->cityId=$this->user->pending['post']['c'];
-                $this->sectionId=$this->user->pending['post']['se'];
-                $this->purposeId=$this->user->pending['post']['pu'];
-                $this->rootId=$this->user->pending['post']['ro'];
-                $this->adContent=json_decode($this->user->pending['post']['content'],true);
-                if($this->user->info['id']==$this->user->pending['post']['user']) {
-                    $this->user->saveAd(0,$this->user->info['id']);
-                }
-        }
         
-        if (isset ($_POST['adr']) && is_numeric($_POST['adr'])) {
-            //$res = $this->user->renewAd($_POST['adr'],0);
-            $id = filter_input(INPUT_POST, 'adr', FILTER_VALIDATE_INT, ['options'=>['default'=>0]]);
-            if($id){
-                $this->user->holdAd($id);
-            //if(!empty($res)){
-                $this->ad=$this->user->loadAdToSession($id);
-                $this->id=$this->user->pending['post']['id']; 
-                $this->user->pending['post']['state']=0;
-                $this->countryId=$this->user->pending['post']['cn'];
-                $this->cityId=$this->user->pending['post']['c'];
-                $this->sectionId=$this->user->pending['post']['se'];
-                $this->purposeId=$this->user->pending['post']['pu'];
-                $this->rootId=$this->user->pending['post']['ro'];
-                $this->adContent=json_decode($this->user->pending['post']['content'],true);
-                $this->user->update();
+        $this->hasLeadingPane = $this->user->info['id'] && !$this->isUserMobileVerified;
+        if(!$this->isUserMobileVerified){
+            $this->title=$this->lang['verify_mobile'];
+            $this->set_require('css', array('select2'));
+            $this->inlineCss.='div.row{display:block}.phwrap{padding:0 20px}p.ph{padding-bottom:15px;line-height:28px;border:0px;background-color:transparent;width:100%}#main{background-color:#FFF;border:0;padding-bottom:20px}';
+            $this->inlineCss.='
+                .ph.num{direction:ltr}
+                .row .bt{width:200px}
+                .row.err{padding:10px 0;color:red}
+                #code{width:272px;visibility:hidden;height:28px}
+                    #number,#vcode{direction:ltr;font-size:22px;width:250px;padding:10px;border:1px solid #aaa;border-radius:4px;text-align:center}
+                    ';
+            if(isset($this->user->pending['mobile'])){
+                $this->inlineCss .= '#mb_notice{display:none}';                
+            }else{                
+                $this->inlineCss .= '#mb_validate{display:none}';
             }
+            $this->inlineCss .= '#mb_check{display:none}';
+            $this->inlineCss .= '#mb_load{display:none}';
+            $this->inlineCss .= '#mb_done{display:none}';
+            /*if($this->urlRouter->siteLanguage=='ar'){
+                $this->inlineCss.='.select2-selection__rendered,.select2-results__option{unicode-bidi:bidi-override;}';
+            }*/
+        }else{
+            if (isset ($_REQUEST['ad']) && is_numeric($_REQUEST['ad'])) {
+
+                $this->ad=$this->user->loadAdToSession($_REQUEST['ad']);
+                $this->id=$this->user->pending['post']['id'];
+                $this->countryId=$this->user->pending['post']['cn'];
+                    $this->cityId=$this->user->pending['post']['c'];
+                    $this->sectionId=$this->user->pending['post']['se'];
+                    $this->purposeId=$this->user->pending['post']['pu'];
+                    $this->rootId=$this->user->pending['post']['ro'];
+                    $this->adContent=json_decode($this->user->pending['post']['content'],true);
+                    if($this->user->info['id']==$this->user->pending['post']['user']) {
+                        $this->user->saveAd(0,$this->user->info['id']);
+                    }
+            }
+
+            if (isset ($_REQUEST['adr']) && is_numeric($_REQUEST['adr'])) {
+                //$res = $this->user->renewAd($_POST['adr'],0);
+                $id = $_REQUEST['adr'];
+                if($id){
+                    $this->user->holdAd($id);
+                //if(!empty($res)){
+                    $this->ad=$this->user->loadAdToSession($id);
+                    $this->id=$this->user->pending['post']['id']; 
+                    $this->user->pending['post']['state']=0;
+                    $this->countryId=$this->user->pending['post']['cn'];
+                    $this->cityId=$this->user->pending['post']['c'];
+                    $this->sectionId=$this->user->pending['post']['se'];
+                    $this->purposeId=$this->user->pending['post']['pu'];
+                    $this->rootId=$this->user->pending['post']['ro'];
+                    $this->adContent=json_decode($this->user->pending['post']['content'],true);
+                    $this->user->update();
+                }
+            }
+
+            if (!isset ($this->user->pending['post'])){
+                $this->user->loadAdToSession(0);
+            }
+
+            $this->adContent=json_decode($this->user->pending['post']['content'],true);
+            $this->rootId=isset($this->adContent['ro']) ? (int)$this->adContent['ro'] : 0;
+            $this->purposeId=(int)$this->user->pending['post']['pu'];
+            $this->sectionId=(int)$this->user->pending['post']['se'];
+            $this->countryId=(int)$this->user->pending['post']['cn'];
+            $this->cityId=(int)$this->user->pending['post']['c'];
         }
-        
-        if (!isset ($this->user->pending['post'])){
-            $this->user->loadAdToSession(0);
-        }
-        
-        $this->adContent=json_decode($this->user->pending['post']['content'],true);
-        $this->rootId=isset($this->adContent['ro']) ? (int)$this->adContent['ro'] : 0;
-        $this->purposeId=(int)$this->user->pending['post']['pu'];
-        $this->sectionId=(int)$this->user->pending['post']['se'];
-        $this->countryId=(int)$this->user->pending['post']['cn'];
-        $this->cityId=(int)$this->user->pending['post']['c'];
         
         $this->userBalance = $this->user->getStatement(0, 0, true);
         if(isset($this->userBalance['balance'])){
@@ -106,6 +132,9 @@ class PostAd extends Page{
     
     function mainMobile(){
         if ($this->user->info['id']) {
+            
+            if($this->isUserMobileVerified){
+            
             $seqHide=false;
             $preview='';
             $altPreview='';
@@ -930,6 +959,251 @@ class PostAd extends Page{
             }
             //$this->user->pending['post']['content']=json_encode($this->adContent);
             //$this->user->update();
+            
+            
+            
+            }else{
+                $q='select c.code,c.id,c.name_'.$this->urlRouter->siteLanguage.',c.locked,trim(id_2)    
+                        from country c 
+                        where id != 109 
+                        order by c.locked desc,c.name_'.$this->urlRouter->siteLanguage;
+                    $cc=$this->urlRouter->db->queryCacheResultSimpleArray(
+                        'country_codes_req_'.strtolower($this->urlRouter->siteLanguage),
+                        $q,
+                        null, null, $this->urlRouter->cfg['ttl_long']);
+                    //var_dump($cc);
+                if($this->isMobile){
+                    ?><div class="phwrap"><?php
+                }
+                ?><br /><?php
+                ?><div id="mb_notice"><?php 
+                    ?><p class="ph"><?= $this->lang['notice_mobile_required'] ?><br /></p><?php 
+                    ?><form onsubmit="dcheck();return false"><?php
+                    ?><div class="ctr row"><?php
+                        ?><select id="code"><?php 
+                            foreach($cc as $country){
+                                $country[2]= preg_replace('/\x{200E}/u','',trim($country[2]));
+                                ?><option value="<?= $country[0] ?>"<?= $this->user->params['country']==$country[1]?' selected':'' ?>><?= $country[2] ?> (<?= ($this->urlRouter->siteLanguage=='ar'?'':'+').$country[0].($this->urlRouter->siteLanguage=='ar'?'+':'') ?>)</option><?php
+                            }
+                        ?></select><?php
+                    ?></div><br /><?php
+                    ?><div class="ctr row"><?php
+                    ?><input type="tel" placeholder="<?= $this->lang['your_mobile'] ?>" id="number" /><?php
+                    ?></div><?php
+                    ?><div id="error_msg" class="ctr row err"><br /></div><?php
+                    ?><div class="ctr row"><?php
+                    ?><input type="button" onclick="dcheck(this)" value="<?= $this->lang['continue'] ?>" class="bt" /><?php
+                    ?></div><?php
+                    ?></form><?php
+                ?></div><?php
+                ?><div id="mb_check"><?php 
+                    ?><p class="ph ctr num" id="num_string"></p><?php 
+                    ?><p class="ph ctr"><?= $this->lang['notice_check_number'] ?><br /></p><?php                     
+                    ?><div id="error_smsg" class="ctr row err"><br /></div><?php
+                    ?><div class="ctr row"><?php
+                    ?><input type="button" onclick="verify()" value="<?= $this->lang['send_code'] ?>" class="bt ok" /><?php
+                    ?></div><br /><?php
+                    ?><div class="ctr row"><?php
+                    ?><a href="javascript:ncorrect()" class="lnk"><?= $this->lang['correct'] ?></a><?php
+                    ?></div><?php
+                ?></div><?php
+                ?><form onsubmit="validate();return false"><?php
+                ?><div id="mb_validate"><?php 
+                    ?><p class="ph ctr num" id="val_string"></p><?php 
+                    ?><p class="ph ctr" id="sms_text"><?= isset($this->user->pending['mobile']) ? $this->lang['notice_sent_sms_prev'].'<br />' :'' ?></p><?php 
+                    ?><div class="ctr row"><?php
+                    ?><input type="text" placeholder="0000" id="vcode" /><?php
+                    ?></div><?php
+                    ?><div id="error_vmsg" class="ctr row err"><br /></div><?php
+                    ?><div class="ctr row"><?php
+                    ?><input type="button" onclick="validate()" value="<?= $this->lang['verify'] ?>" class="bt ok" /><?php
+                    ?></div><br /><?php
+                    ?><div class="ctr row"><?php
+                    ?><a href="javascript:vcancel()" class="lnk"><?= $this->lang['cancel'] ?></a><?php
+                    ?></div><?php
+                ?></div><?php
+                ?></form><?php                
+                ?><div id="mb_done"><?php 
+                    ?><p class="ph ctr"><span class="done"></span> <?= $this->lang['notice_mobile_validated'] ?><br /></p><?php                     
+                    ?><div class="ctr row"><?php
+                    ?><input type="button" onclick="cont()" value="<?= $this->lang['continue'] ?>" class="bt ok" /><?php
+                    ?></div><?php
+                ?></div><?php
+                ?><div class="ctr" id="mb_load"><?php 
+                    ?><br /><p class="ph ctr"><?= $this->lang['mobile_wait'] ?></p><br /><?php 
+                    ?><img src="<?= $this->urlRouter->cfg['url_css'] ?>/i/mobile-loading.gif" height="200" width="158" /><?php
+                ?></div><?php
+                if($this->isMobile){
+                    ?></div><?php
+                }
+                $this->globalScript.='
+                    var curNumber="'.(isset($this->user->pending['mobile'])?$this->user->pending['mobile']:'').'";
+                    var cont=function(){
+                        document.location="";
+                    };
+                    var verify=function(){
+                        $("#mb_check").hide();
+                        $("#mb_load").show();
+                        sctop();
+                        $("#error_smsg").html("<br />");
+                        $.ajax({
+                            type:"POST",
+                            url:"/ajax-mobile/",
+                            data:{
+                                tel:curNumber
+                            },
+                            dataType:"json",
+                            success:function(rp){
+                                if(rp.RP){
+                                    if(typeof rp.DATA.verified !== "undefined"){
+                                        doneW();
+                                    }else if(typeof rp.DATA.check !== "undefined"){
+                                        if(rp.DATA.check){
+                                            sentW(0);
+                                        }else{
+                                            wNum();
+                                            $("#mb_load").hide();
+                                            $("#mb_notice").show();
+                                        }
+                                    }else{
+                                        if(rp.DATA.number>0){
+                                            sentW(1);
+                                        }else{
+                                            sysErr();
+                                        }
+                                    }
+                                }else{
+                                    sysErr()
+                                }
+                            },
+                            error:function(rp){sysErr()}
+                        })
+                    };
+                    var doneW=function(){
+                        $("#mb_load").hide();
+                        $("#mb_check").hide();
+                        $("#mb_validate").hide();
+                        $("#mb_done").show();
+                        sctop();
+                    };
+                    var sentW=function(nw){
+                        $("#val_string").html(curNumber);
+                        var m;
+                        if(nw){
+                            m ="'.$this->lang['notice_sent_sms'].'";
+                        }else{
+                            m = "'.$this->lang['notice_sent_sms_prev'].'";
+                        }
+                        $("#sms_text").html(m+"<br />");
+                        $("#mb_load").hide();
+                        $("#mb_check").hide();
+                        $("#mb_validate").show();
+                        sctop();
+                    };
+                    var dcheck=function(e){
+                        var num=$("#number");
+                        var v=num.val();
+                        v=v.replace(/[^0-9]/g,"");
+                        if(v.length>0){
+                            if(isNaN(v)){
+                                wNum();
+                            }else{
+                                curNumber="+"+$("#code").val()+parseInt(v);
+                                num.css("border-color","#aaa");
+                                $("#error_msg").html("<br />");
+                                $("#num_string").html(curNumber);
+                                $("#mb_notice").hide();
+                                $("#mb_check").show();
+                                sctop();
+                                $("#number").val(v);
+                            }
+                        }else{
+                            wNum();
+                        }
+                    };
+                    var validate=function(e){
+                        var num=$("#vcode");
+                        var v=num.val();
+                        v=v.replace(/[^0-9]/g,"");
+                        if(v.length==4){
+                            if(isNaN(v)){
+                                wCode();
+                            }else{
+                                num.css("border-color","#aaa");
+                                $("#error_vmsg").html("<br />");
+                                $("#mb_validate").hide();
+                                $("#mb_load").show();
+                                sctop();
+                                $.ajax({
+                                    type:"POST",
+                                    url:"/ajax-mobile/",
+                                    data:{
+                                        tel:curNumber,
+                                        code:v
+                                    },
+                                    dataType:"json",
+                                    success:function(rp){
+                                        if(rp.RP){
+                                            if(rp.DATA.verified){
+                                                doneW();
+                                            }else{
+                                                wCode();
+                                                $("#mb_load").hide();
+                                                $("#mb_validate").show();
+                                            }
+                                        }else{sysVErr()}
+                                    },
+                                    error:function(rp){sysVErr()}
+                                })
+                            }
+                        }else{
+                            wCode();
+                        }
+                    };
+                    var sctop=function(){
+                        $("html,body").animate({scrollTop:"0px"},300);
+                    };
+                    var vcancel=function(){                        
+                        $("#mb_validate").hide();
+                        $("#mb_notice").show();
+                        sctop();
+                        $.ajax({
+                            type:"POST",
+                            url:"/ajax-mobile/",
+                            data:{},
+                            dataType:"json"
+                        })
+                    };
+                    var wNum=function(){
+                        setErr("number","error_msg","'.$this->lang['invalid_mobile'].'");
+                    };
+                    var wCode=function(){
+                        setErr("vcode","error_vmsg","'.$this->lang['invalid_code'].'");
+                    };
+                    var sysErr=function(){
+                        setErr(0,"error_smsg",0);
+                        $("#mb_load").hide();
+                        $("#mb_check").show();
+                    };
+                    var sysVErr=function(){
+                        setErr(0,"error_vmsg",0);
+                        $("#mb_load").hide();
+                        $("#mb_validate").show();
+                    };
+                    var setErr=function(field,nb,msg){
+                        if(field)$("#"+field).css("border-color","red");
+                        $("#"+nb).html(msg?msg:\''.$this->lang['sys_error'].'\');
+                    };
+                    var ncorrect=function(){
+                        $("#mb_check").hide();
+                        $("#mb_notice").show();
+                        sctop();
+                    };
+                    ';
+            }
+            
+            
+            
         }
     }
     
@@ -944,8 +1218,10 @@ class PostAd extends Page{
     }*/
 
     function side_pane(){
-        $this->renderSideUserPanel();
-        if (!$this->user->info['id'])$this->renderSideSite();
+        //$this->renderSideUserPanel();
+        //if (!$this->user->info['id'] || !$this->isUserMobileVerified){
+            $this->renderSideSite();
+        //}
     }
 
     function main_pane(){

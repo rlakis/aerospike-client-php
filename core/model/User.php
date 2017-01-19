@@ -216,7 +216,7 @@ class User {
                     if($bplatform=='windows'){
                         switch($bname){
                             case 'internet explorer':
-                                if($bversion < 9){
+                                if($bversion < 10){
                                     $this->params['browser_alert']=1;
                                 }
                                 if($bversion < 8){
@@ -246,6 +246,9 @@ class User {
                         }
                     }
                 }
+            }
+            if($this->info['id'] && !isset($this->info['verified'])){
+                $this->info['verified'] = $this->isMobileVerified($this->info['id']);
             }
             //if (isset($this->pending['fav'])) unset($this->pending['fav']);
             $this->update();
@@ -350,6 +353,18 @@ class User {
             array($uid, $number));
         }
         return $res;
+    }
+    
+    function isMobileVerified($uid){
+        $mobile = $this->db->queryResultArray(
+            'select * from web_users_linked_mobile m
+where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp > current_date - 365',
+            array($uid));
+        $verified = false;
+        if(is_array($mobile) && count($mobile)){
+            $verified = true;
+        }
+        return $verified;
     }
     
     function checkAccount($email){

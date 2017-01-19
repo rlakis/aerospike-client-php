@@ -1192,7 +1192,7 @@ class AndroidApi {
                                 . "ACTIVATION_TIMESTAMP=current_timestamp "
                                 . "where uid = ? and code = ? and mobile = ? RETURNING ID", 
                             [$this->api->getUID(),$keyCode,$number], TRUE);
-                            if($ns!==false && count($ns)){
+                            if($ns!==false && isset($ns[0]['ID']) && $ns[0]['ID']){
                                 $this->api->result['d']['number']=$number;
                                 $this->api->result['d']['code']=$keyCode;
                                 $this->api->result['d']['verified']=true;
@@ -1237,7 +1237,7 @@ class AndroidApi {
                                                         . "REQUEST_TIMESTAMP=current_timestamp "
                                                         . "where id = ? RETURNING ID,CODE", 
                                                     [$rs[0]['ID']], TRUE);
-                                                if($ns!==false && count($ns)){
+                                                if($ns!==false && isset($ns[0]['ID']) && $ns[0]['ID']){
                                                     $sendSms = $ns[0]['ID'];
                                                     $keyCode = $ns[0]['CODE'];
                                                 }else{
@@ -1254,7 +1254,7 @@ class AndroidApi {
                                                         . "REQUEST_TIMESTAMP=current_timestamp "
                                                         . "where id = ? RETURNING ID", 
                                                     [$keyCode, $rs[0]['ID']], TRUE);
-                                                if($ns!==false && count($ns)){
+                                                if($ns!==false && isset($ns[0]['ID']) && $ns[0]['ID']){
                                                     $sendSms = $ns[0]['ID'];
                                                 }else{
                                                     $keyCode=0;
@@ -1275,7 +1275,7 @@ class AndroidApi {
                                             "INSERT INTO WEB_USERS_LINKED_MOBILE (UID, MOBILE, CODE, DELIVERED, SMS_COUNT,ACTIVATION_TIMESTAMP)
                                             VALUES (?, ?, ?, 0, 0,null) RETURNING ID", [$this->api->getUID(), $number, $keyCode], TRUE);
 
-                                            if($ns!==false && count($ns)){
+                                            if($ns!==false && isset($ns[0]['ID']) && $ns[0]['ID']){
                                                 $sendSms = $ns[0]['ID'];
                                             }else{
                                                 $keyCode=0;
@@ -1286,7 +1286,7 @@ class AndroidApi {
                                         $number = 0;
                                         $keyCode = 0;
                                     }
-                                    if($sendSms){
+                                    if($sendSms && $number && $keyCode){
                                         include_once $this->api->config['dir'].'/core/lib/nexmo/NexmoMessage.php';
                                         $sms = new NexmoMessage($this->api->config['nexmo_key'], $this->api->config['nexmo_secret']);
                                         $sent = $sms->sendText($number, 'mourjan',

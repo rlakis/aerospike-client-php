@@ -370,7 +370,7 @@ class MyAds extends Page {
                         
                         if ($state<7 && !$isSystemAd) {
                             if(!$isSuspended){
-                                ?><form action="/post/<?= $linkLang ?>" method="post"><?php
+                                ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$ad['ID'] : '') ?>" method="post"><?php
                                         ?><input type="hidden" name="ad" /><?php 
                                         ?><div onclick="$b(this).value=eid;$p(this).submit()" class="button"><span class="k aedi"></span><label><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></label></div><?php
                                     ?></form><?php
@@ -382,7 +382,7 @@ class MyAds extends Page {
                             }
                             if(!$isSystemAd){
                             ?><div onclick="ahld(this,event)" class="button"><span class="k spam"></span><label><?= $this->lang['hold'] ?></label></div><?php
-                            ?><form action="/post/<?= $linkLang ?>" method="post"><?php
+                            ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$ad['ID'] : '') ?>" method="post"><?php
                                     ?><input type="hidden" name="adr" /><?php
                                     ?><div onclick="$b(this).value=eid;$p(this).submit()" class="button"><span class="k aedi"></span><label><?= $this->lang['edit_ad'] ?></label></div><?php
                                 ?></form><?php
@@ -393,11 +393,11 @@ class MyAds extends Page {
                             }
                             if(!$isSystemAd){
                                 if(!$isSuspended){
-                                    ?><form action="/post/<?= $linkLang ?>" method="post"><?php
+                                    ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$ad['ID'] : '') ?>" method="post"><?php
                                         ?><input type="hidden" name="adr" /><?php
                                         ?><div onclick="$b(this).value=eid;$p(this).submit()" class="button"><span class="k aedi"></span><label><?= $this->lang['edit_republish'] ?></label></div><?php
                                     ?></form><?php 
-                                    if(isset($content['version']) && $content['version']==2) {
+                                    if($this->isUserMobileVerified && isset($content['version']) && $content['version']==2) {
                                         ?><div onclick="are(this,event)" class="button"><span class="k ref"></span><label><?= $this->lang['renew'] ?></label></div><?php
                                     }
                                 }
@@ -1181,7 +1181,7 @@ var rtMsgs={
                     if(!$isSystemAd){
                         //if($this->user->info['level']==9) {
                             if(!$isSuspended) {
-                                ?><form action="/post/<?= $linkLang ?>" method="post"><?php
+                                ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$ad['ID'] : '') ?>" method="post"><?php
                                 ?><input type="hidden" name="ad" value="<?= $ad['ID'] ?>" /><?php
                                 /*?><input type="submit" class="lnk" value="<?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?>" /><?php */
                                 ?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></span><?php
@@ -1214,7 +1214,7 @@ var rtMsgs={
                             ?><span class="lnk" onclick="ahld(this)"><span class="rj hod"></span><?= $this->lang['hold'] ?></span><?php                                    
                         }
                         if(!$isSystemAd){
-                            ?><form action="/post/<?= $linkLang ?>" method="post"><?php
+                            ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$ad['ID'] : '') ?>" method="post"><?php
                             ?><input type="hidden" name="adr" value="<?= $ad['ID'] ?>" /><?php
                             /*?><input type="submit" class="lnk" value="<?= $this->lang['edit_republish'] ?>" /><?php*/
                             ?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $this->lang['edit_ad'] ?></span><?php
@@ -1229,12 +1229,12 @@ var rtMsgs={
                     if(!$isSystemAd){
                         //if($this->user->info['level']==9) {
                             if(!$isSuspended) {
-                                ?><form action="/post/<?= $linkLang ?>" method="post"><?php
+                                ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$ad['ID'] : '') ?>" method="post"><?php
                                 ?><input type="hidden" name="adr" value="<?= $ad['ID'] ?>" /><?php
                                 /*?><input type="submit" class="lnk" value="<?= $this->lang['edit_republish'] ?>" /><?php*/
                                 ?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $this->lang['edit_republish'] ?></span><?php
                                 ?></form><?php 
-                                if(isset($content['version']) && $content['version']==2) {
+                                if($this->isUserMobileVerified && isset($content['version']) && $content['version']==2) {
                                     /* ?><input type="button" class="lnk" onclick="are(this)" value="<?= $this->lang['renew'] ?>" /><?php */
                                     ?><span class="lnk" onclick="are(this)"><span class="rj ren"></span><?= $this->lang['renew'] ?></span><?php
                                 }

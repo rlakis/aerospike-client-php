@@ -7,6 +7,7 @@ class Page extends Site{
     protected $requires=array('js'=>array(),'css'=>array());
     protected $title='',$description='';
     protected $rss = false;
+    var $isUserMobileVerified = false;
     var $stat;
     var $pageUri = '';
     var $googleAds=array();
@@ -28,8 +29,16 @@ class Page extends Site{
     var $pageItemScope='itemscope itemtype="http://schema.org/WebPage"';
 
     function __construct($router){
-        parent::__construct($router);       
-        
+        parent::__construct($router); 
+        if($this->user->info['id']){
+            if($this->urlRouter->isApp){
+                $this->isUserMobileVerified = true;
+            }elseif ($this->user->info['level']==9 && $this->user->info['id']!=1 && $this->user->info['id']!=2){
+                $this->isUserMobileVerified = true;
+            }else{
+                $this->isUserMobileVerified = (isset($this->user->info['verified']) && $this->user->info['verified']);
+            }
+        }
         $cdn = $this->urlRouter->cfg['url_resources'];
         
         if (isset($this->user->params['user_country']))
@@ -861,7 +870,7 @@ class Page extends Site{
         $csFile = '';
         $toRequire = [];
         foreach ($this->requires['css'] as $css) {
-            if ($css=='ie6' || $css=='ie7' || $css=='imgs' || $css=='mms' || $css == 'home') $addOn='';
+            if ($css=='ie6' || $css=='ie7' || $css=='imgs' || $css=='mms' || $css == 'home' || $css == 'select2') $addOn='';
             else $addOn=$fAddon;
             //if($css == 'main' && $this->isMobile){
             //if (!isset($this->user->params['visit']) || $this->user->params['visit']<2) {
@@ -3492,8 +3501,10 @@ class Page extends Site{
                 break;
         }*/
         ?></script><?php
-        
-        ?><script type="text/javascript" onload="inlineQS()" defer="true" src="<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>zepto.min.js"></script><?php
+        $renderMobileVerifyPage = ($this->urlRouter->module=='post' && $this->user->info['id'] && !$this->isUserMobileVerified);
+        if(!$renderMobileVerifyPage){
+            ?><script type="text/javascript" onload="inlineQS()" defer="true" src="<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>zepto.min.js"></script><?php
+        }
         switch($this->urlRouter->module){
             case 'myads':
                 if($this->user->info['id']) {
@@ -3501,8 +3512,11 @@ class Page extends Site{
                 }
                 break;
             case 'post':
-                if($this->user->info['id']) {
+                if($this->user->info['id'] && $this->isUserMobileVerified) {
                     ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_post.js"></script><?php
+                }elseif($renderMobileVerifyPage){
+                    ?><script defer="true" type="text/javascript" onload="inlineQS()" src="<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>jquery.mob.min.js"></script><?php
+                    ?><script defer="true" type="text/javascript" onload="$('#code').select2({language:'<?= $this->urlRouter->siteLanguage ?>',dir:'rtl'})" src="<?= $this->urlRouter->cfg['url_jquery'] ?>select2.min.js"></script><?php
                 }
                 break;
             case 'detail':
@@ -3713,7 +3727,7 @@ class Page extends Site{
                             break;
                             
                         case 'post':
-                            if ($this->user->info['id']) {
+                            if ($this->user->info['id'] && $this->isUserMobileVerified) {
                                 ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_fullpost.js';document.body.appendChild(sh);<?php 
                             }else{
                                 ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
@@ -3767,7 +3781,7 @@ class Page extends Site{
                             break;
 
                         case 'post':
-                            if ($this->user->info['id']) {
+                            if ($this->user->info['id'] && $this->isUserMobileVerified) {
                                 ?>sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
                                 ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_post.js';document.body.appendChild(sh);<?php 
                             }else{
@@ -4050,7 +4064,7 @@ class Page extends Site{
                             break;
             
                         case 'post':
-                            if($this->user->info['id'])
+                            if($this->user->info['id'] && $this->isUserMobileVerified)
                             {
                                 ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/post.js';<?php                                            
                             }
@@ -4539,7 +4553,7 @@ class Page extends Site{
                 }
                 break;
             case 'post':
-                if($this->user->info['id']){                    
+                if($this->user->info['id'] && $this->isUserMobileVerified){                    
                     if($this->user->info['id'] && $this->user->info['level']==9 && $this->urlRouter->module=='post'){
                         if($this->urlRouter->cfg['site_production']){
                             ?><script type="text/javascript" src="https://h5.mourjan.com/js/3.0.7/pvc.js"></script><?php
@@ -4548,6 +4562,8 @@ class Page extends Site{
                         }
                     }
                     ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/post.js"></script><?php
+                }elseif($this->user->info['id']){
+                    ?><script type="text/javascript" onload="$('#code').select2({language:'<?= $this->urlRouter->siteLanguage ?>',dir:'rtl'})" defer="true" src="<?= $this->urlRouter->cfg['url_jquery'] ?>select2.min.js"></script><?php
                 }
                 break;
             case 'password':

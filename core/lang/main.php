@@ -676,6 +676,23 @@ $lang=array(
     . '<li>{IMG8}<br />2 - Choose Package</li>'
     . '</ul></li>',
     
+    'notice_mobile_required'    =>  'In order to prevent any misusage of mourjan services,
+        it is required to verify your mobile number before posting any ads.<br /><br />
+        Your mobile number will not be published to the public (in your ads) nor will it be shared with any third parties,
+        except in the rise of a legal dispute and request by authorities.',
+    'invalid_mobile'               =>  'invalid mobile number',
+    'invalid_code'               =>  'code is not correct',
+    'mobile_wait'               =>  'please wait while we verify your number',
+    'verify_mobile'               =>  'Verify Mobile Number',
+    'your_mobile'               =>  'mobile number',
+    'send_code'               =>  'Send Code',
+    'country_code'          =>  'country code',
+    'notice_check_number'       =>  'An sms will be sent to this number with a verification code.<br />Please make sure that this is the correct number before you proceed.',
+    'notice_sent_sms'       =>  'An sms has been sent with the verification code<br />it might take a minute or two',
+    'notice_sent_sms_prev'       =>  'An sms has already been sent with the verification code',
+    'verify'            =>  'Verify',
+    'notice_mobile_validated'   =>  'Mobile number verified.<br /><br />Thank you for your trust and we wish you all the best using mourjan services.',
+    
     'ask_help'  =>  'Help',
     'country'   =>  'Country',
     'keyword'   =>  'Keyword',

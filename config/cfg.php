@@ -268,6 +268,7 @@ $config=array(
     'modules'               => array(
                                 'admin'        => array('Admin',0),
                                 'ajax-pay'        => array('Bin',0),
+                                'ajax-mobile'        => array('Bin',0),
                                 'ajax-keyword'        => array('Bin',0),
                                 'ajax-propspace'        => array('Bin',0),
                                 'detail'        => array('Detail',1),
