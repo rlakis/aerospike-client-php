@@ -1225,7 +1225,7 @@ class AndroidApi {
                                     $keyCode = 0;
 
                                     if($rs!==false){
-                                        if(count($rs)){
+                                        if(count($rs) && isset($rs[0]['ID']) && $rs[0]['ID']){
                                             $expiredDelivery = $rs[0]['DELIVERED']==0 && $rs[0]['REQUEST_AGE']>3600;
                                             $expiredValidity = ($rs[0]['DELIVERED']==1 && $rs[0]['ACTIVATION_TIMESTAMP'] && $rs[0]['ACTIVE_AGE']>86400*365);
                                             $stillValid = ($rs[0]['DELIVERED']==1 && $rs[0]['ACTIVATION_TIMESTAMP'] && $rs[0]['ACTIVE_AGE']<=86400*365);
