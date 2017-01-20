@@ -1,7 +1,6 @@
 <?php
-
 include get_cfg_var("mourjan.path") . "/config/cfg.php";
-include_once $config['dir'].'/core/lib/nexmo/NexmoMessage.php';
+include_once $config['dir'].'/core/lib/MourjanNexmo.php';
 
 $arguments = getopt("i::n::t::");
 print_r($arguments);
@@ -20,7 +19,7 @@ if ($id<0)
 }
 
 
-$sms = new NexmoMessage('8984ddf8', 'CVa3tHey3js6');
+$sms = new MourjanNexmo();
 
 $text = "";
 //$mobile_number = "+97455127794";
@@ -57,11 +56,10 @@ if ($id)
             $pin = mt_rand(1000, 9999);
     	}
         $mobile_number = $rs['MOBILE'];
-    	$from = ($mobile_number[0]=='1' || substr($mobile_number, 0, 3)==='974')?'12242144077':'Mourjan';
-    
+    	
         
-    	$response = $sms->sendText( "+{$mobile_number}", $from,
-                            "Your Mourjan code is:\n{$pin}\nClose this message and enter the code into Mourjan to activate your account.",
+    	$response = $sms->sendSMS( "+{$mobile_number}", 
+                            $pin." is your mourjan confirmation code",
                             ($linked?"m":"").$id);
     	print_r($response); 
     
@@ -78,8 +76,7 @@ elseif (isset($arguments['n']) && isset($arguments['t']))
     $mobile_number = intval($arguments['n'], 10);
     if ($text && $mobile_number)
     {
-        $from = ($mobile_number[0]=='1')?'12242144077':'Mourjan';
-        $response = $sms->sendText("+{$mobile_number}", $from, $text, 0);
+        $response = $sms->sendSMS("+{$mobile_number}", $text, 0);
         print_r($response); 
     }
 }

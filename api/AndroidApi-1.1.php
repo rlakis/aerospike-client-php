@@ -1,7 +1,6 @@
 <?php
 
 require_once 'vendor/autoload.php';
-require_once 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';
 use MaxMind\Db\Reader;
 
 class AndroidApi {
@@ -1212,7 +1211,7 @@ class AndroidApi {
                             if($num && $this->mobileValidator->isValidNumber($num)){
                                 $numberType = $this->mobileValidator->getNumberType($num);
                                 if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE){
-
+                                    
                                     $sendSms= false;
 
                                     $rs = $this->api->db->queryResultArray(
@@ -1287,9 +1286,9 @@ class AndroidApi {
                                         $keyCode = 0;
                                     }
                                     if($sendSms && $number && $keyCode){
-                                        include_once $this->api->config['dir'].'/core/lib/nexmo/NexmoMessage.php';
-                                        $sms = new NexmoMessage($this->api->config['nexmo_key'], $this->api->config['nexmo_secret']);
-                                        $sent = $sms->sendText($number, 'mourjan',
+                                        include_once $this->api->config['dir'].'/core/lib/MourjanNexmo.php';
+                                        $sms = new MourjanNexmo();
+                                        $sent = $sms->sendSMS($number,
                                             $keyCode." is your mourjan confirmation code",
                                             'm'.$sendSms);
                                         if(!$sent){
@@ -1359,11 +1358,21 @@ class AndroidApi {
                                 
                                 $sent=$mailer->sendEmailCode($username,$keyCode);
                             }else{
-                                include_once $this->api->config['dir'].'/core/lib/nexmo/NexmoMessage.php';
-                                $sms = new NexmoMessage($this->api->config['nexmo_key'], $this->api->config['nexmo_secret']);
-                                $sent = $sms->sendText($username, 'mourjan',
-                                $keyCode." is your mourjan confirmation code",
-                                $newId);
+                                $validator = libphonenumber\PhoneNumberUtil::getInstance();
+                                $num = $validator->parse($username, 'LB');
+                                if($num && $validator->isValidNumber($num)){
+                                    $numberType = $validator->getNumberType($num);
+                                    if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE){
+                                        include_once $this->api->config['dir'].'/core/lib/MourjanNexmo.php';
+                                        $sms = new MourjanNexmo();
+                                        $sent = $sms->sendSMS($username, 
+                                        $keyCode." is your mourjan confirmation code");
+                                    }else{
+                                        $sent = false;
+                                    }
+                                }else{
+                                    $sent=false;
+                                }
                             }
                             if($sent){
                                 if(!isset($opt['validating'])) $opt['validating'] = array();

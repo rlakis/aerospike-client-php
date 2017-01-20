@@ -1741,15 +1741,13 @@ class MobileApi
         
         $mobile_no= intval($this->mobileValidator->format($num, \libphonenumber\PhoneNumberFormat::E164));
         
-        $sender = (strval($mobile_no)[0]=='1') ? '12165044111' : 'Mourjan';
-
         if ($mobile_no<999999) 
         {
             $this->result['e'] = 'Invalid mobile registration request';
             return;
         }
 
-        include_once $this->config['dir'].'/core/lib/nexmo/NexmoMessage.php';
+        include_once $this->config['dir'].'/core/lib/MourjanNexmo.php';
 
         $rs = $this->db->queryResultArray(
                 "select m.ID, m.UID, m.MOBILE, m.STATUS, m.DELIVERED, m.CODE, m.SMS_COUNT, "
@@ -1771,10 +1769,10 @@ class MobileApi
                         VALUES (?, ?, ?, 5, 0, 0) RETURNING ID", [$this->uid, $mobile_no, $pin], TRUE);
                 if ($iq[0]['ID']>0) 
                 {
-                    $sms = new NexmoMessage('8984ddf8', 'CVa3tHey3js6');
+                    $sms = new MourjanNexmo();
                         
-                    $response = $sms->sendText( "+{$mobile_no}", $sender,
-                                "Your Mourjan code is:\n{$pin}\nClose this message and enter the code into Mourjan to activate your account.",
+                    $response = $sms->sendSMS( "+{$mobile_no}", 
+                                $pin." is your mourjan confirmation code",
                                         $iq[0]['ID']);
                     //var_dump($response);
                     if ($response) 
@@ -1842,10 +1840,10 @@ class MobileApi
                 {
                     if ($rs[0]['STATUS']==5) 
                     { // No sent SMS
-                        $sms = new NexmoMessage('8984ddf8', 'CVa3tHey3js6');
+                        $sms = new MourjanNexmo();
                         $pin = $rs[0]['CODE'];
-                        $response = $sms->sendText( "+{$mobile_no}", $sender,
-                                "Your Mourjan code is:\n{$pin}\nClose this message and enter the code into Mourjan to activate your account.",
+                        $response = $sms->sendSMS( "+{$mobile_no}", 
+                                $pin." is your mourjan confirmation code",
                                         $rs[0]['ID']);
                         //var_dump($response);
                         if ($response) 
@@ -2104,7 +2102,7 @@ class MobileApi
                 return;
             }
 
-            include_once $this->config['dir'].'/core/lib/nexmo/NexmoMessage.php';
+            include_once $this->config['dir'].'/core/lib/MourjanNexmo.php';
             $rs = $this->db->queryResultArray(
                     "select m.ID, m.UID, m.MOBILE, m.STATUS, m.DELIVERED, m.CODE, SMS_COUNT, "
                     . "datediff(SECOND from m.REQUEST_TIMESTAMP to CURRENT_TIMESTAMP) req_age "
@@ -2121,9 +2119,9 @@ class MobileApi
                              WHERE UID=? AND MOBILE=?
                              RETURNING ID", [$pin, $phone_number, $this->uid, $current_phone_number], TRUE);
                     if ($iq[0]['ID']>0) {
-                        $sms = new NexmoMessage('8984ddf8', 'CVa3tHey3js6');
-                        $response = $sms->sendText( "+{$phone_number}", 'Mourjan',
-                                "Your Mourjan code is:\n{$pin}\nClose this message and enter the code into Mourjan to activate your account.",
+                        $sms = new MourjanNexmo();
+                        $response = $sms->sendSMS( "+{$phone_number}", 
+                                $pin." is your mourjan confirmation code",
                                         $iq[0]['ID']);
                         //var_dump($response);
                         if ($response) {
@@ -2745,11 +2743,10 @@ class MobileApi
     public function sendSMS($phone_number, $text, $callback_reference=0) 
     {
         try {
-            include_once $this->config['dir'].'/core/lib/nexmo/NexmoMessage.php';
-            $sms = new NexmoMessage('8984ddf8', 'CVa3tHey3js6');
+            include_once $this->config['dir'].'/core/lib/MourjanNexmo.php';
+            $sms = new MourjanNexmo();
             $phone_number=strval($phone_number);
-            $sender = ($phone_number[0]=='1' || substr($phone_number, 0, 3)=='974') ? '12242144077' : 'Mourjan';
-            $response = $sms->sendText( "+{$phone_number}", $sender, $text, $callback_reference);
+            $response = $sms->sendSMS( "+{$phone_number}", $text, $callback_reference);
             return $response;    
         } catch (Exception $e) {
             

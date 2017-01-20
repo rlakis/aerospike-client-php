@@ -340,7 +340,7 @@ class Bin extends AjaxHandler{
                             if($num && $validator->isValidNumber($num)){
                                 $numberType = $validator->getNumberType($num);
                                 if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE){
-
+                                    
                                     $sendSms= false;
 
                                     $rs = $this->urlRouter->db->queryResultArray(
@@ -414,9 +414,10 @@ class Bin extends AjaxHandler{
                                         $keyCode = 0;
                                     }
                                     if($sendSms && $number && $keyCode){
-                                        include_once $this->urlRouter->cfg['dir'].'/core/lib/nexmo/NexmoMessage.php';
-                                        $sms = new NexmoMessage($this->urlRouter->cfg['nexmo_key'], $this->urlRouter->cfg['nexmo_secret']);
-                                        $sent = $sms->sendText($number, 'mourjan',
+                                                                                
+                                        include_once $this->urlRouter->cfg['dir'].'/core/lib/MourjanNexmo.php';
+                                        $sms = new MourjanNexmo();
+                                        $sent = $sms->sendSMS($number, 
                                             $keyCode." is your mourjan confirmation code",
                                             'm'.$sendSms);
                                         if(!$sent){
