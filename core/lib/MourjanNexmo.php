@@ -1,7 +1,7 @@
 <?php
 require_once 'vendor/autoload.php';
-require_once get_cfg_var('mourjan.path'). '/config/cfg.php';
-include_once $config['dir'].'/core/lib/nexmo/NexmoMessage.php';
+$dir = get_cfg_var('mourjan.path');
+include_once $dir.'/core/lib/nexmo/NexmoMessage.php';
 
 class MourjanNexmo extends NexmoMessage{
         
