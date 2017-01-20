@@ -11,8 +11,13 @@ if ($argc<2)
     echo 'Usage php SendSMS.php -iWEB_USERS_MOBILE.ID -nMobileNumber -tSMSTextMessage', "\n";
     return;
 }
-
+$linked=FALSE;
 $id = isset($arguments['i']) ? intval($arguments['i'], 10) : 0;
+if ($id<0)
+{
+    $id=abs($id);
+    $linked=true;
+}
 
 
 $sms = new NexmoMessage('8984ddf8', 'CVa3tHey3js6');
@@ -25,11 +30,22 @@ if ($id)
 {
     $db = new DB($config);
 
-    $rs = $db->queryResultArray(
-        "SELECT UID, MOBILE, CODE, STATUS, REQUEST_TIMESTAMP, 
-    	ACTIVATION_TIMESTAMP, DELETE_TIMESTAMP, MOVED_TO, DELIVERED, SECRET, SMS_COUNT
-    	FROM WEB_USERS_MOBILE
-    	WHERE ID=?", [$id]);
+    if ($linked)
+    { 
+        $rs = $db->queryResultArray(
+            "SELECT ID, UID, MOBILE, CODE, ACTIVATION_TIMESTAMP, DELIVERED, REQUEST_TIMESTAMP, SMS_COUNT
+            FROM WEB_USERS_LINKED_MOBILE 
+            WHERE ID=?", [$id]);
+    }
+    else
+    {
+        $rs = $db->queryResultArray(
+            "SELECT UID, MOBILE, CODE, STATUS, REQUEST_TIMESTAMP, 
+            ACTIVATION_TIMESTAMP, DELETE_TIMESTAMP, MOVED_TO, DELIVERED, SECRET, SMS_COUNT
+            FROM WEB_USERS_MOBILE
+            WHERE ID=?", [$id]);
+    }
+    
 
     if ($rs) 
     {
@@ -43,13 +59,15 @@ if ($id)
         $mobile_number = $rs['MOBILE'];
     	$from = ($mobile_number[0]=='1' || substr($mobile_number, 0, 3)==='974')?'12242144077':'Mourjan';
     
+        
     	$response = $sms->sendText( "+{$mobile_number}", $from,
                             "Your Mourjan code is:\n{$pin}\nClose this message and enter the code into Mourjan to activate your account.",
-                            $id);
+                            ($linked?"m":"").$id);
     	print_r($response); 
     
-    	if ($response) {
-        	$db->queryResultArray("update WEB_USERS_MOBILE set status=0, sms_count=sms_count+1 where id=?", [$id], TRUE);
+    	if ($response) 
+        {           
+            $db->queryResultArray($linked ? "update WEB_USERS_LINKED_MOBILE set sms_count=sms_count+1 where id=?" : "update WEB_USERS_MOBILE set status=0, sms_count=sms_count+1 where id=?", [$id], TRUE);
     	}
     }
     $db->close();
