@@ -1685,7 +1685,7 @@ where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp 
                     if(!is_array($this->info['options']))
                         $this->info['options']=array();
                     $this->setLevel($this->info['id'],5);
-                    $this->info['options']['autoblock']="reference {$blockAccount}";
+                    $this->info['options']['autoblock']="reference {$blockAccount} date:".date("d.m.y");
                     $this->update();
                     $this->updateOptions();
                 }elseif($time != $current_time){
@@ -1853,8 +1853,9 @@ where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp 
     }
     
     function authenticateById($id, $key){
-        $q='select identifier,id,lvl,display_name,provider, email, user_rank,user_name,user_email,opts,prev_visit,last_visit 
-            from web_users where id = ?';
+        /*$q='select identifier,id,lvl,display_name,provider, email, user_rank,user_name,user_email,opts,prev_visit,last_visit 
+            from web_users where id = ?';*/
+        $q = 'update web_users set last_visit = current_timestamp where id = ? returning identifier,id,lvl,display_name,provider,email,user_rank,user_name,user_email,opts,prev_visit,last_visit';
         $result=$this->db->queryResultArray($q, array($id));
         if ($result && isset($result[0]) && $result[0]['ID'] && md5($result[0]['IDENTIFIER'])==$key) {
             $this->setUserParams($result);
@@ -1866,8 +1867,9 @@ where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp 
         if($this->session_id==''){
             $this->session_id = session_id().$this->cfg['site_key'];
         }
-        $q='select identifier,id,lvl,display_name,provider,email,user_rank,user_name,user_email,opts,prev_visit,last_visit 
-            from web_users where id = ?';
+        /*$q='select identifier,id,lvl,display_name,provider,email,user_rank,user_name,user_email,opts,prev_visit,last_visit 
+            from web_users where id = ?';*/
+        $q = 'update web_users set last_visit = current_timestamp where id = ? returning identifier,id,lvl,display_name,provider,email,user_rank,user_name,user_email,opts,prev_visit,last_visit';
         $result=$this->db->queryResultArray($q, [$id]);
         if ($result && isset($result[0]) && $result[0]['ID']) {
             $this->setUserParams($result);

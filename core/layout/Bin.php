@@ -354,7 +354,7 @@ class Bin extends AjaxHandler{
 
                                     if($rs!==false){
                                         if(count($rs)){
-                                            $expiredDelivery = $rs[0]['DELIVERED']==0 && $rs[0]['REQUEST_AGE']>3600;
+                                            $expiredDelivery = $rs[0]['DELIVERED']==0 && $rs[0]['REQUEST_AGE']>86400 && $rs[0]['SMS_COUNT']<5;
                                             $expiredValidity = ($rs[0]['DELIVERED']==1 && $rs[0]['ACTIVATION_TIMESTAMP'] && $rs[0]['ACTIVE_AGE']>86400*365);
                                             $stillValid = ($rs[0]['DELIVERED']==1 && $rs[0]['ACTIVATION_TIMESTAMP'] && $rs[0]['ACTIVE_AGE']<=86400*365);
                                             if($expiredDelivery){
@@ -4733,7 +4733,7 @@ class Bin extends AjaxHandler{
                     $id=$_POST['i'];
                     $msg=trim($_POST['msg']);
                     if($msg=='')$msg='Scam Detection';
-                    $msg .= ' by admin '.$this->user->info['id'];
+                    $msg .= ' by admin '.$this->user->info['id'].' date:'.date("d.m.y");
                     if (is_numeric($id)){
                         if($msg){
                             $options = $this->user->getOptions($id);
