@@ -10,7 +10,6 @@ class MCSessionHandler implements \SessionHandlerInterface
     private $ttl;
     private $shared;
     
-    
     function __construct($useMemcached=TRUE, $autoStart=TRUE)
     {
         $this->shared = $useMemcached;
@@ -18,11 +17,43 @@ class MCSessionHandler implements \SessionHandlerInterface
         session_set_save_handler($this, TRUE);
         if ($autoStart)
         {
-        	session_start();
+            session_start();
         }
     }
     
 
+    public static function getUser($user_id)
+    {
+        $user= json_decode('{}');
+        try 
+        {
+            $redis = new Redis();
+            
+            if ($redis->connect('138.201.28.229', 6379, 2, NULL, 20)) 
+            {
+                $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+                $redis->setOption(Redis::OPT_PREFIX, 'mu_');
+                $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
+                
+                $user = json_decode($redis->get($user_id) ? : '{}');
+            }
+            else 
+            {
+                error_log("Could not connect to redis user store! " . $redis->getLastError(). '?!?!');
+            }            	
+        }
+        catch (RedisException $re) 
+        {           
+            error_log(PHP_EOL . PHP_EOL . $re->getCode() . PHP_EOL . $re->getMessage() . PHP_EOL . $re->getTraceAsString() . PHP_EOL);
+        }
+        finally 
+        {
+            $redis->close();
+        }
+        return $user;
+    }
+    
+    
     private function openMem() 
     {
         try 
@@ -33,8 +64,10 @@ class MCSessionHandler implements \SessionHandlerInterface
             {
                 $this->storage->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_PHP);
                 $this->storage->setOption(Redis::OPT_PREFIX, self::SESSION_PREFIX);
-                $this->storage->setOption(Redis::OPT_READ_TIMEOUT, 10);                
-            } else {
+                $this->storage->setOption(Redis::OPT_READ_TIMEOUT, 10);
+            }             
+            else 
+            {
                 error_log("Could not connect to redis session store! " . $this->storage->getLastError(). '?!?!');
                 if (MCSessionHandler::FULL_REDIS!=1) 
                 {
@@ -70,11 +103,12 @@ class MCSessionHandler implements \SessionHandlerInterface
             if ($this->shared) 
             {
                 $this->openMem();
-            } else
-            if (isset($_COOKIE['mourjan_user'])) 
+            } 
+            else if (isset($_COOKIE['mourjan_user'])) 
             {
                 $cook = json_decode($_COOKIE['mourjan_user']);
-                if (is_object($cook) && isset($cook->mu)) {
+                if (is_object($cook) && isset($cook->mu)) 
+                {
                     $this->shared = true;
                     $this->openMem();
                 }
