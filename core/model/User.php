@@ -605,19 +605,22 @@ where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp 
         
         if ($this->info['id']) {
             if ($id) {
-                if ($this->info['level']==9){
-                    $res=$this->db->queryResultArray(
-                        'select a.*,u.full_name,u.lvl,u.provider,u.email,u.DISPLAY_NAME,'
-                            . 'u.user_name,u.user_email,u.profile_url, u.user_rank, 
-                            IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
-                            IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended '
-                            . 'from ad_user a '
-                            . 'left join web_users u on u.id=a.web_user_id 
-                               left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
-                               left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date '
-                            . 'where a.id=?',
-                        array($id), $commit);
-                }else {
+                if ($this->info['level']==9)
+                {
+                    $res=$this->db->queryResultArray('
+                        select a.*, u.full_name, u.lvl, u.provider, u.email, u.DISPLAY_NAME,
+                        u.user_name,u.user_email,u.profile_url, u.user_rank, 
+                        IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
+                        IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended 
+                        from ad_user a 
+                        left join web_users u on u.id=a.web_user_id 
+                        left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
+                        left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
+                        where a.id=?',
+                        [$id], $commit);
+                }
+                else 
+                {
                     $res=$this->db->queryResultArray(
                         'select a.*, 
                          IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
@@ -628,7 +631,9 @@ where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp 
                          where a.web_user_id=? and a.id=?',
                         array($this->info['id'],$id), $commit);
                 }
-            }else {
+            }
+            else 
+            {
                 if ($this->info['level']==9){
                     
                     $aid=0;
@@ -757,6 +762,7 @@ where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp 
         }
         return $res;
     }
+    
     
     function getPendingAdsCount($state=0){
         $res=false;
