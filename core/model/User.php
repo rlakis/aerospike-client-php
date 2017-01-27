@@ -2692,6 +2692,13 @@ where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp 
         if (isset($_SESSION[$this->session_id]['info'])) $this->info=$_SESSION[$this->session_id]['info'];
         if (isset($_SESSION[$this->session_id]['params'])) $this->params=$_SESSION[$this->session_id]['params'];
         if (isset($_SESSION[$this->session_id]['pending'])) $this->pending=$_SESSION[$this->session_id]['pending'];
+        $this->info['data'] = MCSessionHandler::getUser($this->info['id']);
+        include_once '/home/www/mourjan/core/lib/MCUser.php';
+        $mcUser = new MCUser($this->info['data']);
+        echo '<br/>';
+        print_r($mcUser);
+        //print_r($this->info);
+                
     }
 
     function isSpider(){
