@@ -642,7 +642,7 @@ where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp 
                         if ($state>6){
                             $res=$this->db->queryResultArray(
                                 'select '.$pagination_str.' a.*, u.full_name, u.lvl, 
-                                    u.DISPLAY_NAME, u.profile_url, u.user_rank
+                                    u.DISPLAY_NAME, u.profile_url, u.user_rank,u.provider 
                                 from ad_user a
                                 left join web_users u on u.id=a.web_user_id
                                 where a.admin_id=? and a.state=? 
@@ -650,10 +650,10 @@ where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp 
                                 ', array($aid,$state), $commit);
                         }elseif ($state){
                             $res=$this->db->queryResultArray(
-                            'select '.$pagination_str.' a.*,u.full_name,u.lvl,u.DISPLAY_NAME,u.profile_url, u.user_rank from ad_user a left join web_users u on u.id=a.web_user_id where a.state=3 and a.admin_id='.$aid.' order by a.state asc,a.date_added desc');
+                            'select '.$pagination_str.' a.*,u.full_name,u.lvl,u.DISPLAY_NAME,u.profile_url, u.user_rank,u.provider  from ad_user a left join web_users u on u.id=a.web_user_id where a.state=3 and a.admin_id='.$aid.' order by a.state asc,a.date_added desc');
                         }else {
                             $res=$this->db->queryResultArray(
-                            'select '.$pagination_str.' a.*,u.full_name,u.lvl,u.DISPLAY_NAME,u.profile_url, u.user_rank from ad_user a left join web_users u on u.id=a.web_user_id where a.admin_id=? and a.state=? order by a.date_added desc',
+                            'select '.$pagination_str.' a.*,u.full_name,u.lvl,u.DISPLAY_NAME,u.profile_url, u.user_rank,u.provider  from ad_user a left join web_users u on u.id=a.web_user_id where a.admin_id=? and a.state=? order by a.date_added desc',
                             array($aid,$state), $commit);
                         }
                         
@@ -666,7 +666,8 @@ where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp 
                                 'select '.$pagination_str.' a.*, u.full_name, u.lvl, 
                                     u.DISPLAY_NAME, u.profile_url, u.user_rank, 
                                     IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
-                    IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended 
+                    IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended,
+                                u.provider  
                                 from ad_user a
                                 left join web_users u on u.id=a.web_user_id 
                                 left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
@@ -685,7 +686,8 @@ where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp 
                                 . 'iif((a.section_id = 190 or a.section_id = 1179 or a.section_id = 540),1,0) ppn, '
                                 . 'iif(a.state = 4,1,0) primo, '
                                 . 'u.user_rank,IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
-                                    IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended  '
+                                    IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended, '
+                                . 'u.provider '
                                 . 'from ad_user a '
                                 . 'left join web_users u on u.id=a.web_user_id '
                                 . 'left join ad_object ao on ao.id = a.id '
@@ -2674,10 +2676,6 @@ where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp 
             setcookie('mourjan_login', '', 1,'/',$this->cfg['site_domain']);
             setcookie('mourjan_log', '', 1,'/',$this->cfg['site_domain']);
         }
-        /*
-        if(isset($_GET['debug'])){
-            var_dump($_COOKIE);
-        }*/
     }
     
     function setActiveCookie(){
@@ -2694,9 +2692,9 @@ where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp 
         if (isset($_SESSION[$this->session_id]['pending'])) $this->pending=$_SESSION[$this->session_id]['pending'];
         $this->info['data'] = MCSessionHandler::getUser($this->info['id']);
         include_once '/home/www/mourjan/core/lib/MCUser.php';
-        $mcUser = new MCUser($this->info['data']);
-        echo '<br/>';
-        print_r($mcUser);
+        $this->info['data'] = new MCUser($this->info['data']);
+        //echo '<br/>';
+        //print_r($mcUser);
         //print_r($this->info);
                 
     }

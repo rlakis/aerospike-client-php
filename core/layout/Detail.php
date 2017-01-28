@@ -197,6 +197,9 @@ class Detail extends Search{
             if($this->user->info['id'] && $this->user->info['level']==9){
                 if(!$isFeatured && !$isFeatureBooked){
                     $abuseLink="<div class='d2' onclick='rpa(this,0,1)'><span class='i ab'></span><span>{$this->lang['reportAbuse']}</span></div>";
+                    if($this->detailAd[Classifieds::USER_ID] && $this->detailAd[Classifieds::USER_RANK]<2){
+                        $abuseLink.="<div class='d2' onclick='rpa(this,0,1,".$this->detailAd[Classifieds::USER_ID].")'><span class='fail'></span><span>{$this->lang['block']}</span></div>";
+                    }
                 }
             }else{
                 $abuseLink="<div class='d2' onclick='rpa(this,0,1)'><span class='i ab'></span><span>{$this->lang['reportAbuse']}</span></div>";
@@ -213,7 +216,7 @@ class Detail extends Search{
                 ?><div class="dtf"><span class="vpdi ar"></span> <?= $this->lang['premium_ad_dt'] ?></div><?php
             }
             if($this->user->info['id'] && $this->detailAd[Classifieds::USER_ID] && $this->user->info['level']==9){
-                if(!$isFeatured && !$isFeatureBooked){
+                /*if(!$isFeatured && !$isFeatureBooked){
                 $this->globalScript.=' 
                     var blockUser=function(e,id){
                         if(confirm("Block User?")){
@@ -237,14 +240,14 @@ class Detail extends Search{
                         }
                     };
                 ';
-                }
+                }*/
                 echo '<b class="dhr">Admin Controls </b>';
                 ?><div><ul style="overflow:hidden"><?php
                 ?><li class="fr" style="margin:5px 10px"><a href="/myads/?u=<?= $this->detailAd[Classifieds::USER_ID] ?>" class="bt fl">user ads: <?= $this->detailAd[Classifieds::USER_ID] ?></a></li><?php 
-                
+                /*
                 if(!$isFeatured && !$isFeatureBooked && $this->detailAd[Classifieds::USER_RANK]<2){
                 ?><li class="fr" style="margin:5px 10px"><input style="height:auto!important;line-height:35px!important" type="button" class="bt" onclick="blockUser(this,<?= $this->detailAd[Classifieds::USER_ID] ?>)" value="Block User" /></li><?php
-                }
+                }*/
                 ?></ul></div><?php
             }
             if ($this->urlRouter->cfg['enabled_sharing']) {

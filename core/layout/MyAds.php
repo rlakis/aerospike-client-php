@@ -1096,7 +1096,17 @@ var rtMsgs={
                     $style='';
                     if ($ad['LVL']==4) $style=' style="color:orange"';
                     elseif ($ad['LVL']==5) $style=' style="color:red"';
-                    $title='<div class="oct"><a target="blank" onclick="openW(this.href);return false" href="'.$ad['PROFILE_URL'].'">Profile</a><a target="blank"'.$style.' onclick="openW(this.href);return false;" href="/myads/'.$lang.'?u='.$ad['WEB_USER_ID'].'">'.$name.'</a>';
+                    
+                    //var_dump($this->user);
+                    $userData = MCSessionHandler::getUser($ad['WEB_USER_ID']);
+                    $mcUser = new MCUser($userData);
+                    $userMobile = $mcUser->getMobile()->getNumber();
+                    $profileLabel =  isset($ad['PROVIDER']) ? $ad['PROVIDER']:'profile';
+                    if($userMobile){
+                        $profileLabel = '+'.$userMobile;
+                    }
+                    
+                    $title='<div class="oct"><a target="blank" onclick="openW(this.href);return false" href="'.$ad['PROFILE_URL'].'">'.$profileLabel.'</a><a target="blank"'.$style.' onclick="openW(this.href);return false;" href="/myads/'.$lang.'?u='.$ad['WEB_USER_ID'].'">'.$name.'</a>';
                     if(isset($content['userLOC'])){
                         $geo = preg_replace('/[0-9\.]|(?:^|\s|,)[a-zA-Z]{1,3}\s/','',$content['userLOC']);
                         $geo = preg_replace('/,/', '' , $geo);

@@ -15,7 +15,7 @@ class MCJsonMapper
                 {
                     $class_name = get_class($object->{$property});
                     $object->{$property} = new $class_name();
-                    $this->mapper($object->{$property}, $value);                    
+                    $this->mapper($object->{$property}, $value);  
                 }
                 else
                 {
@@ -85,7 +85,7 @@ class MCUser extends MCJsonMapper
     public function set($json)
     {
         //$this->mapper(  );
-        print_r($json);
+        //print_r($json);
         $this->mapper($this, $json );
     }
 
@@ -336,6 +336,12 @@ class MCMobile extends MCJsonMapper
     protected $sc;       // SMS sent count
     protected $flag;     // 2: ios    
     protected $secret;  // ios users only
+    
+     
+    public function getNumber() : int
+    {
+        return $this->number ?: 0;
+    }
 }
 
 

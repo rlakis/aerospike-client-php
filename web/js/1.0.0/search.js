@@ -231,10 +231,11 @@ function fv(e,dt){
         })
     }
 }
-
+_s('AUID',0);
 _s('rpd',null);
-function rpa(e,o,dt){
+function rpa(e,o,dt,blk){
     e=$(e);
+    blk = (typeof blk === 'undefined' ? 0 : blk);
     if(o){
         if(o==1){
             var p=e.parent();
@@ -263,16 +264,28 @@ function rpa(e,o,dt){
                 var b=p.prev();
                 var li=p.parent();
                 if(li.hasClass('dt'))dt=1;
-                $.ajax({
-                    type:"POST",
-                    url:"/ajax-report/",
-                    data:{
-                        id:(dt?AID:li.attr("id")),
-                        email:em.val(),
-                        msg:msg
-                    },
-                    dataType:"json"
-                });
+                if(ULV==9){
+                    $.ajax({
+                        type:"POST",
+                        url:"/ajax-ublock/",
+                        data:{
+                            i:AUID,
+                            msg:"Blocked From Detail Page #"+AID+"# By Admin "+UID+" reason <<"+msg+">>"
+                        },
+                        dataType:"json"
+                    });
+                }else{
+                    $.ajax({
+                        type:"POST",
+                        url:"/ajax-report/",
+                        data:{
+                            id:(dt?AID:li.attr("id")),
+                            email:em.val(),
+                            msg:msg
+                        },
+                        dataType:"json"
+                    });
+                }
                 t.val('');
                 if(!dt){
                     li.animate({
@@ -281,6 +294,9 @@ function rpa(e,o,dt){
                     li.unbind('mouseenter mouseleave');
                 }
                 var m='<b class="anb"><span class="done"></span>'+(lang=='ar'?'تم تبليغ شكواك وسيتم مراجعتها قريباً':'Your complaint has been reported and will be reviewed soon')+'</b>';
+                if(ULV==9){
+                    m='<b class="anb"><span class="done"></span>'+(lang=='ar'?'تم ايقاف حساب المستخدم':'User account blocked')+'</b>';
+                }
                 b.css('background-color','#fbe385');
                 b.html(m);
                 b.css('display','block');
@@ -310,30 +326,42 @@ function rpa(e,o,dt){
         }
     }else{
         if(ULV==9){
+            if(blk){
+                AUID=blk;
+                if(!rpd)rpd=$("#rpd");
+                var r=rpd;
+                var c=e.parent();
+                c.css('display','none');
+                c.after(r);
+                r[0].childNodes[2].style.display='none';
+                r[0].childNodes[3].style.display='none';
+                r.css('display','block');
+            }else{
                 var p=e.parent();
                 var li=p.parent();
-            if(ULV==9 && (li.hasClass("vpd") || li.hasClass("vpz"))){
-                alert(lang=="ar"?"هذا اعلان مميز ولا يمكن ايقافه":"This is a premium ad and it cannot be stopped");
-            }else if(confirm("Hold this ad?")){
-                e.addClass("load");
-                $.ajax({
-                    type:"POST",
-                    url:"/ajax-report/",
-                    data:{id:(dt?AID:li.attr("id"))},
-                    dataType:"json",
-                    success:function(rp){
-                        if(rp.RP){
-                            e.remove();
-                            p.css("background-color", "#fbe385");
-                            p.addClass('ctr');
-                            p.html('stopped');
-                            li.unbind('mouseenter mouseleave');
+                if(ULV==9 && (li.hasClass("vpd") || li.hasClass("vpz"))){
+                    alert(lang=="ar"?"هذا اعلان مميز ولا يمكن ايقافه":"This is a premium ad and it cannot be stopped");
+                }else if(confirm("Hold this ad?")){
+                    e.addClass("load");
+                    $.ajax({
+                        type:"POST",
+                        url:"/ajax-report/",
+                        data:{id:(dt?AID:li.attr("id"))},
+                        dataType:"json",
+                        success:function(rp){
+                            if(rp.RP){
+                                e.remove();
+                                p.css("background-color", "#fbe385");
+                                p.addClass('ctr');
+                                p.html('stopped');
+                                li.unbind('mouseenter mouseleave');
+                            }
+                        },
+                        error:function(rp){
+                            e.removeClass("load")
                         }
-                    },
-                    error:function(rp){
-                        e.removeClass("load")
-                    }
-                });
+                    });
+                }
             }
         }else{
             if(!rpd)rpd=$("#rpd");
@@ -355,6 +383,8 @@ function rpa(e,o,dt){
             var c=e.parent();
             c.css('display','none');
             c.after(r);
+            r[0].childNodes[2].style.display='block';
+            r[0].childNodes[3].style.display='block';
             if(!dt){
                 var li=r.parent();
                 li.animate({
