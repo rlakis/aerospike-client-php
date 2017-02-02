@@ -770,7 +770,7 @@ class Search extends Page {
                     
                     $isFeatured = $current_time < $ad[Classifieds::FEATURE_ENDING_DATE];
                     $isFeatureBooked = $current_time < $ad[Classifieds::BO_ENDING_DATE];
-            
+                    
                     if ($ad[Classifieds::PUBLICATION_ID]==1 && !(isset($this->detailAd[Classifieds::ID]) && $this->detailAd[Classifieds::ID]==$ad[Classifieds::ID]) ) {
                         if (isset($this->user->info['level'])) {
                             if (!($this->user->info['level'] == 9 || $this->user->info['id'] == $ad[Classifieds::USER_ID])) {
@@ -2141,10 +2141,11 @@ class Search extends Page {
         if (!isset($this->formatNumbers) || empty($this->formatNumbers)){
             return;
         }
-        //var_dump($mobiles);
         $isArabic = preg_match('/[\x{0621}-\x{064a}]/u', $text);
         if (preg_match('/\<span class/', $text)) {
-            if ($this->urlRouter->publications[$pubId][6]=='http://www.waseet.net/') {
+            //var_dump($mobiles);
+            //var_dump($phones);
+            /*if ($this->urlRouter->publications[$pubId][6]=='http://www.waseet.net/') {
                 $res = '';
                 if (count($mobiles) || count($phones)) {
 
@@ -2223,10 +2224,10 @@ class Search extends Page {
                 if($res)
                     $text.=' / '.$res;
 
-            } else {
+            } else {*/
                 foreach ($mobiles as $num) {
-                    $number = $this->formatPhoneNumber($num[1]);
-                     if ($num[0]!=$number) {
+                    $number = $this->formatPhoneNumber($num[0]);
+                    if ($num[0]!=$number) {
                         $num[0]= preg_replace('/\+/','\\+' , $num[0]);
                         $text = preg_replace('/'.$num[0].'/', $number, $text);
                     } else {
@@ -2235,7 +2236,7 @@ class Search extends Page {
                     }
                 }
                 foreach ($phones as $num) {
-                    $number = $this->formatPhoneNumber($num[1]);
+                    $number = $this->formatPhoneNumber($num[0]);
                      if ($num[0]!=$number) {
                         $num[0]= preg_replace('/\+/','\\+' , $num[0]);
                         $text = preg_replace('/'.$num[0].'/', $number, $text);
@@ -2244,9 +2245,9 @@ class Search extends Page {
                         $text = preg_replace('/\<span class="pn(?:[a-z0-9]*)">'.$num[0].'\<\/span\>/', '<span class="vn">'.$number.'</span>', $text);
                     }
                 }
-            }
+            /*}*/
 
-        } else {
+        }/* else {
             if(isset($this->urlRouter->publications[$pubId]) && $this->urlRouter->publications[$pubId][6]=='http://www.waseet.net/'){
                 $res = '';
                 if (count($mobiles) || count($phones)) {
@@ -2352,8 +2353,24 @@ class Search extends Page {
                 }
 
             }
-        }        
+        } */       
 
+        return $text;
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         $phone = '/((?:\+|\s)(?:[0-9\\/\-]{7,16}))/ui';
         $content=null;
         preg_match($REGEX_CATCH, $text, $content);
@@ -2593,93 +2610,93 @@ class Search extends Page {
                                     $res.=($isArabic ? 'موبايل':'Mobile').': ';
                                     $i=0;
                                     foreach($mobile as $mob){
-                                    if($i)$res.=($isArabic ? 'او ':'or ');
-                                    $res.='<span class="pn o1">'.$mob[1].'</span> ';
-                                    $matches[]=$mob[1];
-                                    $i++;
+                                        if($i)$res.=($isArabic ? 'او ':'or ');
+                                        $res.='<span class="pn o1">'.$mob[1].'</span> ';
+                                        $matches[]=$mob[1];
+                                        $i++;
+                                    }
                                 }
-                            }
-                            if(count($phone)){
-                                if($res)$res.='- ';
+                                if(count($phone)){
+                                    if($res)$res.='- ';
+                                    $res.=($isArabic ? 'هاتف':'Phone').': ';
+                                    $i=0;
+                                    foreach($phone as $mob){
+                                        if($i)$res.=($isArabic ? 'او ':'or ');
+                                        $res.='<span class="pn o7">'.$mob[1].'</span> ';
+                                        $matches[]=$mob[1];
+                                        $i++;
+                                    }
+                                }
+                            }elseif(count($undefined)){
                                 $res.=($isArabic ? 'هاتف':'Phone').': ';
                                 $i=0;
-                                foreach($phone as $mob){
+                                foreach($undefined as $mob){
                                     if($i)$res.=($isArabic ? 'او ':'or ');
-                                    $res.='<span class="pn o7">'.$mob[1].'</span> ';
+                                    $res.='<span class="vn">'.$mob[1].'</span> ';
                                     $matches[]=$mob[1];
                                     $i++;
                                 }
                             }
-                        }elseif(count($undefined)){
-                            $res.=($isArabic ? 'هاتف':'Phone').': ';
-                            $i=0;
-                            foreach($undefined as $mob){
-                                if($i)$res.=($isArabic ? 'او ':'or ');
-                                $res.='<span class="vn">'.$mob[1].'</span> ';
-                                $matches[]=$mob[1];
-                                $i++;
+                            $divider=null;
+                            preg_match($REGEX_MATCH,$text,$divider);
+                            $pos=0;
+                            if($divider && count($divider) && $divider[1]){
+                                $pos = strpos($text, $divider[1]);
+                                if(!$pos){
+                                    $divider=null;
+                                    preg_match('/(<span)/',$text,$divider);
+                                    if($divider && count($divider) && $divider[1]){
+                                        $pos = strpos($text, $divider[1]);
+                                    }
+                                }
                             }
-                        }
-                        $divider=null;
-                        preg_match($REGEX_MATCH,$text,$divider);
-                        $pos=0;
-                        if($divider && count($divider) && $divider[1]){
-                            $pos = strpos($text, $divider[1]);
+
                             if(!$pos){
-                                $divider=null;
-                                preg_match('/(<span)/',$text,$divider);
-                                if($divider && count($divider) && $divider[1]){
-                                    $pos = strpos($text, $divider[1]);
+                                $srh='';
+                                foreach($nums as $num){
+                                    if($srh)$srh.='|';
+                                    $srh .= $num[0];
+                                }
+                                if($srh){
+                                    $srh = preg_replace('/\+/', '\\+' , $srh);
+                                    $srh = preg_replace('/\//', '\\/', $srh);
+                                    $divider=null;
+
+                                    preg_match('/((?:\+|)'.$srh.')/u', $text, $divider);
+
+                                    if($divider && count($divider) && $divider[1]){
+                                        $pos = strpos($text, $divider[1]);
+                                    }
                                 }
                             }
-                        }
-                        
-                        if(!$pos){
-                            $srh='';
+
+                            if($pos)
+                                $text = substr($text, 0, $pos);
+
+                            if($res){
+                                $text.=' / '.$res;
+                            }
+                        }else{
                             foreach($nums as $num){
-                                if($srh)$srh.='|';
-                                $srh .= $num[0];
-                            }
-                            if($srh){
-                                $srh = preg_replace('/\+/', '\\+' , $srh);
-                                $srh = preg_replace('/\//', '\\/', $srh);
-                                $divider=null;
-                                
-                                preg_match('/((?:\+|)'.$srh.')/u', $text, $divider);
-                                
-                                if($divider && count($divider) && $divider[1]){
-                                    $pos = strpos($text, $divider[1]);
+                                if($num[0]!=$num[1]){
+                                    $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
+                                    $num[0]=  preg_replace('/\\\([0-9])/','$1' , $num[0]);
+                                    $num[0]=  preg_replace('/\/.*/','' , $num[0]);
+                                    $text = preg_replace('/'.$num[0].'/', '<span class="pn">'.$num[1].'</span>', $text);
+                                    $matches[]=$num[1];
+                                }else{
+                                    $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
+                                    $num[0]=  preg_replace('/\\\([0-9])/','$1' , $num[0]);
+                                    $num[0]=  preg_replace('/\/.*/','' , $num[0]);
+                                    $text = preg_replace('/'.$num[0].'/', '<span class="vn">'.$num[1].'</span>', $text);
+
                                 }
-                            }
-                        }
-                        
-                        if($pos)
-                            $text = substr($text, 0, $pos);
-                        
-                        if($res){
-                            $text.=' / '.$res;
-                        }
-                    }else{
-                        foreach($nums as $num){
-                            if($num[0]!=$num[1]){
-                                $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
-                                $num[0]=  preg_replace('/\\\([0-9])/','$1' , $num[0]);
-                                $num[0]=  preg_replace('/\/.*/','' , $num[0]);
-                                $text = preg_replace('/'.$num[0].'/', '<span class="pn">'.$num[1].'</span>', $text);
-                                $matches[]=$num[1];
-                            }else{
-                                $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
-                                $num[0]=  preg_replace('/\\\([0-9])/','$1' , $num[0]);
-                                $num[0]=  preg_replace('/\/.*/','' , $num[0]);
-                                $text = preg_replace('/'.$num[0].'/', '<span class="vn">'.$num[1].'</span>', $text);
-                                
                             }
                         }
                     }
                 }
-            }
             
-        }
+            }
         }
         if(isset($email[0]) && !preg_match('/'.$email[0].'/',$text)){
             $text .= '/ '.($isArabic ? 'بريد االكتروني':'Email').': <span>'.$email[0].'</span>';

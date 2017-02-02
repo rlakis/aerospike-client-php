@@ -321,7 +321,6 @@ class Detail extends Search{
                 //$renderedPics=1;
             //}
             
-            
             ?><div class="txt"><?php 
                 echo $adSection;
                 $this->replacePhonetNumbers($this->detailAd[Classifieds::CONTENT], $this->detailAd[Classifieds::PUBLICATION_ID], $this->detailAd[Classifieds::COUNTRY_CODE], $this->detailAd[Classifieds::TELEPHONES][0], $this->detailAd[Classifieds::TELEPHONES][1], $this->detailAd[Classifieds::TELEPHONES][2],$this->detailAd[Classifieds::EMAILS]);
@@ -697,7 +696,7 @@ class Detail extends Search{
         echo "<div class='bt red fx' ontouchstart='iz()' onclick='iz()'>".$this->lang['cancel']."</div>";?></div> */
         $numMatches=null;
         
-        $this->processTextNumbers($this->detailAd[Classifieds::CONTENT],$this->detailAd[Classifieds::PUBLICATION_ID],$this->detailAd[Classifieds::COUNTRY_CODE],$numMatches);
+        //$this->processTextNumbers($this->detailAd[Classifieds::CONTENT],$this->detailAd[Classifieds::PUBLICATION_ID],$this->detailAd[Classifieds::COUNTRY_CODE],$numMatches);
 
         $this->replacePhonetNumbers($this->detailAd[Classifieds::CONTENT], $this->detailAd[Classifieds::PUBLICATION_ID], $this->detailAd[Classifieds::COUNTRY_CODE], $this->detailAd[Classifieds::TELEPHONES][0], $this->detailAd[Classifieds::TELEPHONES][1], $this->detailAd[Classifieds::TELEPHONES][2],$this->detailAd[Classifieds::EMAILS]);
 
