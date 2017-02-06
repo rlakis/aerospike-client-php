@@ -2247,8 +2247,8 @@ class Search extends Page {
                 }
             /*}*/
 
-        }/* else {
-            if(isset($this->urlRouter->publications[$pubId]) && $this->urlRouter->publications[$pubId][6]=='http://www.waseet.net/'){
+        } else {
+            /*if(isset($this->urlRouter->publications[$pubId]) && $this->urlRouter->publications[$pubId][6]=='http://www.waseet.net/'){
                 $res = '';
                 if (count($mobiles) || count($phones)) {
 
@@ -2329,12 +2329,11 @@ class Search extends Page {
                 if ($res) {
                     $text.=' / '.$res;
                 }
-            } else {
+            } else {*/
                 foreach ($mobiles as $num) {
                     $number = $this->formatPhoneNumber($num[1]);
                      if ($num[0]!=$number) {
-                        $num[0]= preg_replace('/\+/','\\+' , $num[0]);
-                        
+                        $num[0]= preg_replace('/\+/','\\+' , $num[0]);                        
                         $text = preg_replace('/'.$num[0].'/', '<span class="pn">'.$number.'</span>', $text);
                     } else {
                         $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
@@ -2352,8 +2351,8 @@ class Search extends Page {
                     }
                 }
 
-            }
-        } */       
+            /*}*/
+        }       
 
         return $text;
         
