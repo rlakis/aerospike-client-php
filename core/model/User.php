@@ -3,6 +3,7 @@
 require_once 'vendor/autoload.php';
 use mourjan\Hybrid;
 use mobiledetect\MobileDetect;
+include_once '/home/www/mourjan/core/lib/MCUser.php';
 
 class User {
 
@@ -247,9 +248,9 @@ class User {
                     }
                 }
             }
-            if($this->info['id'] && !isset($this->info['verified'])){
-                $this->info['verified'] = $this->isMobileVerified($this->info['id']);
-            }
+            //if($this->info['id'] && !isset($this->info['verified'])){
+            //    $this->info['verified'] = $this->isMobileVerified($this->info['id']);
+            //}
             //if (isset($this->pending['fav'])) unset($this->pending['fav']);
             $this->update();
 
@@ -358,11 +359,12 @@ class User {
     function isMobileVerified($uid){
         $mobile = $this->db->queryResultArray(
             'select * from web_users_linked_mobile m
-where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp > current_date - 365',
+where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp > current_date - 365 
+order by m.activation_timestamp desc',
             array($uid));
         $verified = false;
-        if(is_array($mobile) && count($mobile)){
-            $verified = true;
+        if(is_array($mobile) && isset($mobile[0]['ID']) && $mobile[0]['ID']){
+            $verified = $mobile[0]['MOBILE'];
         }
         return $verified;
     }
@@ -1607,9 +1609,7 @@ where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp 
                         	$this->update();
                     	}
                     }
-                }
-                
-                
+                }                
 
             }
             $this->db->commit();
@@ -1621,89 +1621,114 @@ where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp 
         return $id;
     }
     
-    function suspend($uid, $hours){
-        $options = $this->getOptions($uid);
-        if($options) {
-            $options =  json_decode($options,true);
-            $options['suspend']=time()+($hours*3600);
-            $this->updateOptions($uid,$options);
+    function block($uid, $number, $msg){
+        $q = 'update or insert into bl_phone (telephone,subject,web_user_id) values (?,?,?) matching(telephone) returning id';
+        $block = $this->db->queryResultArray($q, [
+            $number,
+            $msg,
+            $uid
+        ]);
+        $pass=0;
+        if(isset($block[0]['ID']) && $block[0]['ID']){
+            $pass=1;
         }
+        return $pass;
     }
     
-    function detectDuplicateSuspension($contactInfo=array()){
+    function suspend($uid, $hours, $newModel=0){
+        $pass=false;
+        if($newModel){
+            if(substr($newModel, 0,1)=='+'){
+                $newModel = substr($newModel, 1);
+            }
+            $pass=MCSessionHandler::setSuspendMobile($uid, $newModel, $hours*3600);
+        }else{
+            $options = $this->getOptions($uid);
+            if($options) {
+                $options =  json_decode($options,true);
+                $options['suspend']=time()+($hours*3600);
+                $pass=$this->updateOptions($uid,$options);
+            }
+        }
+        return $pass;
+    }
+    
+    function detectDuplicateSuspension($contactInfo=array(),$isMobileVerified=0){
         $status = 0;
-        if(count($contactInfo) && $this->info['id']){
-            $q='
-            select distinct u.id,u.lvl,u.opts from ad_attribute t
-            left join ad_user a on a.id = t.ad_id
-            left join web_users u on u.id = a.web_user_id
-            where
-            a.id is not null and
-            a.id <> '.$this->info['id'].' and (   
-            ';
-            $params=array();
-            $pass = 0;
-            if(isset($contactInfo['p']) && count($contactInfo['p'])){
-                foreach($contactInfo['p'] as $number){
-                    if(isset($number['v']) && trim($number['v'])!=''){
-                        if($pass) $q.= ' or ';
-                        $q .= '
-                            (t.attr_id = 1 
-                            and 
-                            t.attr_value = ?)
-                        ';
-                        $params[]=$number['v'];
-                        $pass++;
-                    }
-                }
-            }
-            if(isset($contactInfo['e']) && count($contactInfo['e'])){
-                if($pass) $q.= ' or ';
-                $q .= '
-                    (t.attr_id = 2 
-                    and 
-                    t.attr_value = ?)
+        if(!$isMobileVerified){
+            if(count($contactInfo) && $this->info['id']){
+                $q='
+                select distinct u.id,u.lvl,u.opts from ad_attribute t
+                left join ad_user a on a.id = t.ad_id
+                left join web_users u on u.id = a.web_user_id
+                where
+                a.id is not null and
+                a.id <> '.$this->info['id'].' and (   
                 ';
-                $params[]=$contactInfo['e'];
-                $pass++;
-            }
-            $q.=')';
-            
-            if(count($params)){
-                $users = $this->db->queryResultArray($q, $params);
-                $time = $current_time = time();
-                $blockAccount = false;
-                if($users && count($users)){
-                    foreach($users as $user){
-                        if($user['LVL']==5){
-                            $blockAccount=$user['ID'];
-                            break;
-                        }elseif($user['OPTS']){
-                            $options = json_decode($user['OPTS'],true);
-                            if(isset($options['suspend']) && $options['suspend'] > $time){
-                                $time = $options['suspend'];
-                            }
+                $params=array();
+                $pass = 0;
+                if(isset($contactInfo['p']) && count($contactInfo['p'])){
+                    foreach($contactInfo['p'] as $number){
+                        if(isset($number['v']) && trim($number['v'])!=''){
+                            if($pass) $q.= ' or ';
+                            $q .= '
+                                (t.attr_id = 1 
+                                and 
+                                t.attr_value = ?)
+                            ';
+                            $params[]=$number['v'];
+                            $pass++;
                         }
                     }
                 }
-                if($blockAccount){
-                    $this->info['level']=5;
-                    $status = 5;
-                    $this->update();
-                    if(!is_array($this->info['options']))
-                        $this->info['options']=array();
-                    $this->setLevel($this->info['id'],5);
-                    $this->info['options']['autoblock']="reference {$blockAccount} date:".date("d.m.y");
-                    $this->update();
-                    $this->updateOptions();
-                }elseif($time != $current_time){
-                    if(!is_array($this->info['options']))
-                        $this->info['options']=array();
-                    $this->info['options']['suspend']=$time;
-                    $status = 1;
-                    error_log('DESKTOP SUSPENDED '.$this->info['id']);
-                    $this->update();
-                    $this->updateOptions();
+                if(isset($contactInfo['e']) && count($contactInfo['e'])){
+                    if($pass) $q.= ' or ';
+                    $q .= '
+                        (t.attr_id = 2 
+                        and 
+                        t.attr_value = ?)
+                    ';
+                    $params[]=$contactInfo['e'];
+                    $pass++;
+                }
+                $q.=')';
+
+                if(count($params)){
+                    $users = $this->db->queryResultArray($q, $params);
+                    $time = $current_time = time();
+                    $blockAccount = false;
+                    if($users && count($users)){
+                        foreach($users as $user){
+                            if($user['LVL']==5){
+                                $blockAccount=$user['ID'];
+                                break;
+                            }elseif($user['OPTS']){
+                                $options = json_decode($user['OPTS'],true);
+                                if(isset($options['suspend']) && $options['suspend'] > $time){
+                                    $time = $options['suspend'];
+                                }
+                            }
+                        }
+                    }
+                    if($blockAccount){
+                        $this->info['level']=5;
+                        $status = 5;
+                        $this->update();
+                        if(!is_array($this->info['options']))
+                            $this->info['options']=array();
+                        $this->setLevel($this->info['id'],5);
+                        $this->info['options']['autoblock']="reference {$blockAccount} date:".date("d.m.y");
+                        $this->update();
+                        $this->updateOptions();
+                    }elseif($time != $current_time){
+                        if(!is_array($this->info['options']))
+                            $this->info['options']=array();
+                        $this->info['options']['suspend']=$time;
+                        $status = 1;
+                        error_log('DESKTOP SUSPENDED '.$this->info['id']);
+                        $this->update();
+                        $this->updateOptions();
+                    }
                 }
             }
         }
@@ -2690,13 +2715,23 @@ where m.uid=? and m.activation_timestamp is not null and m.activation_timestamp 
         if (isset($_SESSION[$this->session_id]['info'])) $this->info=$_SESSION[$this->session_id]['info'];
         if (isset($_SESSION[$this->session_id]['params'])) $this->params=$_SESSION[$this->session_id]['params'];
         if (isset($_SESSION[$this->session_id]['pending'])) $this->pending=$_SESSION[$this->session_id]['pending'];
-        $this->info['data'] = MCSessionHandler::getUser($this->info['id']);
-        include_once '/home/www/mourjan/core/lib/MCUser.php';
-        $this->info['data'] = new MCUser($this->info['data']);
-        //echo '<br/>';
-        //print_r($mcUser);
-        //print_r($this->info);
-                
+        
+        if($this->info['id']){
+            $data = $this->info['data'] = new MCUser(MCSessionHandler::getUser($this->info['id']));
+            if($data->getID()){
+                $this->info['level'] = $data->getLevel();
+                $this->info['verified'] = $data->isMobileVerified();
+                $this->info['options']['suspend'] = $data->getSuspensionTime();
+            }
+        }
+        $this->update();   
+    }
+    
+    function refreshCache($uid=0){
+        if(!$uid) $uid = $this->info['id'];
+        if($uid){
+            
+        }
     }
 
     function isSpider(){

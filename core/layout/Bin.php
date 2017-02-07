@@ -2104,8 +2104,12 @@ class Bin extends AjaxHandler{
                 break;
             case "ajax-adsave":
                 //if (isset($this->user->params['mobile']) && $this->user->params['mobile']){
-       
                     if($this->user->info['id'] && isset($_POST['o'])){
+                        $userData = MCSessionHandler::getUser($this->user->info['id']);
+                        $mcUser = new MCUser($userData);
+                        if($mcUser->isBlocked()){
+                            $this->fail('101');
+                        }
                         include_once $this->urlRouter->cfg['dir'] . '/core/lib/MCAdTextHandler.php';
                         $textHandler = new AdTextFormatter();
                         
@@ -2599,20 +2603,26 @@ class Bin extends AjaxHandler{
                         $this->process();
                         
                         if($isSCAM){
-                            
-                            $this->user->setLevel($this->user->info['id'],5);
-                        
+                            if($mcUser->isMobileVerified()){
+                                $this->user->block($this->user->info['id'],$mcUser->getMobileNumber(),'scam detection by system based on certain email keywords');
+                            }else{
+                                $this->user->setLevel($this->user->info['id'],5);
+                            }
                         }elseif($requireReview){
                             $this->user->referrToSuperAdmin($adId);
                         }else{
                             
                             $status = 0;
                             if($publish==1 && $this->user->info['level']!=9 && $adId) {
-                                $status = $this->user->detectDuplicateSuspension($ad['cui']); 
-                                if($ad['rtl']){
-                                    $msg = 'لقد تم ايقاف حسابك بشكل مؤقت نظراً للتكرار';
+                                if($mcUser->isMobileVerified()){
+                                    $status = $mcUser->isSuspended() ? 1:0;
                                 }else{
-                                    $msg = 'your account is suspended due to repetition';
+                                    $status = $this->user->detectDuplicateSuspension($ad['cui']); 
+                                    if($ad['rtl']){
+                                        $msg = 'لقد تم ايقاف حسابك بشكل مؤقت نظراً للتكرار';
+                                    }else{
+                                        $msg = 'your account is suspended due to repetition';
+                                    }
                                 }
                                 if($status == 1){
                                     $this->user->rejectAd($adId,$msg);
@@ -3597,11 +3607,18 @@ class Bin extends AjaxHandler{
                                 $section_id = $ad['SECTION_ID'];
                                 $ad = json_decode($ad['CONTENT'], TRUE);
                             
-                                $status = $this->user->detectDuplicateSuspension($ad['cui']); 
-                                if($ad['rtl']){
-                                    $msg = 'لقد تم ايقاف حسابك بشكل مؤقت نظراً للتكرار';
+                                $userData = MCSessionHandler::getUser($this->user->info['id']);
+                                $mcUser = new MCUser($userData);
+                                
+                                if($mcUser->isMobileVerified()){
+                                    $status = $mcUser->isSuspended() ? 1:0;
                                 }else{
-                                    $msg = 'your account is suspended due to repetition';
+                                    $status = $this->user->detectDuplicateSuspension($ad['cui'],$mcUser->isMobileVerified()); 
+                                    if($ad['rtl']){
+                                        $msg = 'لقد تم ايقاف حسابك بشكل مؤقت نظراً للتكرار';
+                                    }else{
+                                        $msg = 'your account is suspended due to repetition';
+                                    }
                                 }
                                 if($status == 1){
                                     $renew= false;
@@ -4715,17 +4732,32 @@ class Bin extends AjaxHandler{
                     $id=$_POST['i'];
                     $hours=(int)$_POST['v'];
                     if (is_numeric($id) && $hours){
-                        $options = $this->user->getOptions($id);
-                        if($options) {
-                            $options =  json_decode($options,true);
-                            $options['suspend']=time()+($hours*3600);
-                            if($this->user->updateOptions($id,$options)) {
-                                //$q = 'update ad_user set state = 0 where web_user_id = ? and state = 1';
-                                //$this->urlRouter->db->queryResultArray($q,array($id));
-                                //$this->user->setReloadFlag($id);
+                        $userData = MCSessionHandler::getUser($id);
+                        $mcUser = new MCUser($userData);
+                        if($mcUser->isMobileVerified()){
+                            if($this->user->suspend($id,$hours,$mcUser->getMobileNumber())){
                                 $this->process();
-                            }else $this->fail('104');
-                        }else $this->fail('103');
+                            }else{
+                                $this->fail('104');
+                            }
+                        }else{
+                            /*$options = $this->user->getOptions($id);
+                            if($options) {
+                                $options =  json_decode($options,true);
+                                $options['suspend']=time()+($hours*3600);
+                                if($this->user->updateOptions($id,$options)) {
+                                    //$q = 'update ad_user set state = 0 where web_user_id = ? and state = 1';
+                                    //$this->urlRouter->db->queryResultArray($q,array($id));
+                                    //$this->user->setReloadFlag($id);
+                                    $this->process();
+                                }else $this->fail('104');
+                            }else $this->fail('103');*/
+                            if($this->user->suspend($id,$hours)){
+                                $this->process();
+                            }else{
+                                $this->fail('104');
+                            }
+                        }
                     }else $this->fail('102');
                 }else $this->fail('101');
                 break;
@@ -4736,20 +4768,30 @@ class Bin extends AjaxHandler{
                     if($msg=='')$msg='Scam Detection';
                     $msg .= ' by admin '.$this->user->info['id'].' date:'.date("d.m.y");
                     if (is_numeric($id)){
-                        if($msg){
-                            $options = $this->user->getOptions($id);
-                            if($options) {
-                                $options =  json_decode($options,true);
-                                if(!isset($options['block']))$options['block']=array();
-                                $options['block'][]=$msg;
-                                if($this->user->updateOptions($id,$options)) {
-                                    //$this->user->setReloadFlag($id);
-                                }else$this->fail('105');
-                            }else $this->fail('104');
-                        }
-                        if ($this->user->setLevel($id,5)) 
+                        $userData = MCSessionHandler::getUser($id);
+                        $mcUser = new MCUser($userData);
+                        if($mcUser->isMobileVerified()){
+                            if($this->user->block($id, $mcUser->getMobileNumber(),$msg)){
                                 $this->process();
-                        else $this->fail('103');
+                            }else{
+                                $this->fail('103');
+                            }
+                        }else{
+                            if($msg){
+                                $options = $this->user->getOptions($id);
+                                if($options) {
+                                    $options =  json_decode($options,true);
+                                    if(!isset($options['block']))$options['block']=array();
+                                    $options['block'][]=$msg;
+                                    if($this->user->updateOptions($id,$options)) {
+                                        //$this->user->setReloadFlag($id);
+                                    }else$this->fail('105');
+                                }else $this->fail('104');
+                            }
+                            if ($this->user->setLevel($id,5)) 
+                                    $this->process();
+                            else $this->fail('103');
+                        }
                     }else $this->fail('102');
                 }else $this->fail('101');
                 break;

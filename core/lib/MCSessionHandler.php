@@ -21,6 +21,28 @@ class MCSessionHandler implements \SessionHandlerInterface
         }
     }
     
+    public static function setSuspendMobile($uid, $number, $secondsToSuspend)
+    {   
+        $pass = false;
+        $redis = new Redis();
+            
+        if ($redis->connect('138.201.28.229', 6379, 2, NULL, 20)) 
+        {
+            $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+            $redis->setOption(Redis::OPT_PREFIX, 'mm_');
+            $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
+            
+            $pass = $redis->set($number, 1, $secondsToSuspend);
+            
+            if($pass){
+                $redisPublisher = new Redis();
+                if($redisPublisher->connect('p1.mourjan.com',6379,2,NULL,20)){
+                    $redisPublisher->publish('FBEventManager','{"event":"cache","action":"suspend","id":'.$uid.'}');
+                }
+            }
+        }
+        return $pass;
+    }
 
     public static function getUser($user_id)
     {
@@ -36,6 +58,26 @@ class MCSessionHandler implements \SessionHandlerInterface
                 $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
                 
                 $user = json_decode($redis->get($user_id) ? : '{}');
+                
+                if(!isset($user->id)){
+                    $redisPublisher = new Redis();
+                    if($redisPublisher->connect('p1.mourjan.com',6379,2,NULL,20)){
+                        $redisPublisher->publish('FBEventManager','{"event":"cache","action":"user","id":'.$user_id.'}');
+                        $time = 0;
+                        do{
+                            usleep(500);
+                            $time+=500;
+                            $user = json_decode($redis->get($user_id) ? : '{}');
+                        }while($time < 2000000 && !isset($user->id));
+                    }
+                }
+                if(isset($user->id) && isset($user->mobile->number) && $user->mobile->number){
+                    $redis->setOption(Redis::OPT_PREFIX, 'mm_');
+                    $suspended = $redis->get($user->mobile->number);
+                    if($suspended){
+                        $user->opts->suspend = $suspended+0;
+                    }
+                }
             }
             else 
             {
@@ -87,7 +129,6 @@ class MCSessionHandler implements \SessionHandlerInterface
             }
         }
     }
-
 
     public function open($savePath, $sessionName) 
     {        

@@ -41,7 +41,6 @@ class MCJsonMapper
 }
 
 
-
 class MCUser extends MCJsonMapper
 {   
     protected $id;
@@ -86,7 +85,7 @@ class MCUser extends MCJsonMapper
     {
         //$this->mapper(  );
         //print_r($json);
-        $this->mapper($this, $json );
+        $this->mapper($this, $json);
     }
 
     
@@ -95,12 +94,25 @@ class MCUser extends MCJsonMapper
         return $this->id;
     }
     
+    public function isMobileVerified():bool
+    {
+        return $this->getMobile()->isVerified();
+    }
     
     public function getProviderIdentifier() : string
     {
         return $this->pid;
     }
     
+    public function isSuspended():bool
+    {
+        return $this->getOptions()->isSuspended();
+    }
+    
+    public function getSuspensionTime():int
+    {
+        return $this->getOptions()->getSuspensionTime();
+    }
     
     public function getProvider() : string
     {
@@ -161,6 +173,11 @@ class MCUser extends MCJsonMapper
     public function getLevel() : int
     {
         return $this->lvl;
+    }
+    
+    public function isBlocked() : bool
+    {
+        return $this->getLevel()===5;
     }
     
     
@@ -233,6 +250,11 @@ class MCUser extends MCJsonMapper
         return $this->mobile;
     }
     
+    public function getMobileNumber() : String
+    {
+        return $this->getMobile()->getNumber();
+    }
+    
     
     public function getDependants() : array
     {
@@ -260,20 +282,20 @@ class MCUser extends MCJsonMapper
 }
 
 
-class MCUserOptions
+class MCUserOptions extends MCJsonMapper
 {
     private $data;
     
-    private $e;             // int
-    private $lang;
-    private $bmail;
-    private $bmailKey;
-    private $watch = [];
-    private $cut;           // CallingTime
-    private $cui;           // ContactInfo
-    private $UA;
-    private $cts;
-    private $suspend;
+    protected $e;             // int
+    protected $lang;
+    protected $bmail;
+    protected $bmailKey;
+    protected $watch = [];
+    protected $cut;           // CallingTime
+    protected $cui;           // ContactInfo
+    protected $UA;
+    protected $cts;
+    protected $suspend;
 
     function __construct() 
     {
@@ -322,6 +344,11 @@ class MCUserOptions
     {
         $this->suspend = $tillTime;
     }
+    
+    public function getSuspensionTime():int
+    {
+        return $this->suspend ? $this->suspend : 0;
+    }
 
 }
 
@@ -341,6 +368,11 @@ class MCMobile extends MCJsonMapper
     public function getNumber() : int
     {
         return $this->number ?: 0;
+    }
+    
+    public function isVerified() : bool
+    {
+        return ($this->ats != null && $this->ats > time()-31556926 ) ? true: false;
     }
 }
 
@@ -399,11 +431,11 @@ class MCPhoneData extends MCJsonMapper
 
 class MCPropSpace extends MCJsonMapper
 {
-    private $id;
-    private $lnk;
-    private $cntr;      // counter
-    private $lcts;      // last crawled timestamp
-    private $st;        // State
-    private $dats;      // date added ts
+    protected $id;
+    protected $lnk;
+    protected $cntr;      // counter
+    protected $lcts;      // last crawled timestamp
+    protected $st;        // State
+    protected $dats;      // date added ts
 }
 ?>

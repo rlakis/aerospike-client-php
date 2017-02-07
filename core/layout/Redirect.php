@@ -18,20 +18,24 @@ class Redirect extends Site{
                             
                             if($userPass && strlen($userPass)>=6){
                                 $pass=false;
-                                $cred = DB::getCacheStorage($router->cfg)->get('recaptcha');
-                                $recaptcha = new \ReCaptcha\ReCaptcha($cred['secret']);
-                                $resp = $recaptcha->verify($_POST['g-recaptcha-response'], $_SERVER['REMOTE_ADDR']);
-                                if ($resp->isSuccess()){
+                                if(isset($_POST['g-recaptcha-response'])){
+                                    $cred = DB::getCacheStorage($router->cfg)->get('recaptcha');
+                                    $recaptcha = new \ReCaptcha\ReCaptcha($cred['secret']);
+                                    $resp = $recaptcha->verify($_POST['g-recaptcha-response'], $_SERVER['REMOTE_ADDR']);
+                                    if ($resp->isSuccess()){
 
-                                    $pass = $this->user->authenticateByEmail($userLogin,$userPass);
-                                    if($pass){
-                                        $this->user->params['keepme_in']=$keepme_in ? 1:0;
-                                        if($keepme_in){
-                                            $sKey=$this->user->encodeRequest('keepme_in',array($this->user->info['id']));
-                                            setcookie('__uvme', $sKey, time()+1814400,'/',$router->cfg['site_domain']);
+                                        $pass = $this->user->authenticateByEmail($userLogin,$userPass);
+                                        if($pass){
+                                            $this->user->params['keepme_in']=$keepme_in ? 1:0;
+                                            if($keepme_in){
+                                                $sKey=$this->user->encodeRequest('keepme_in',array($this->user->info['id']));
+                                                setcookie('__uvme', $sKey, time()+1814400,'/',$router->cfg['site_domain']);
+                                            }
+                                        }else{
+                                            $this->user->pending['login_attempt']=true;
                                         }
                                     }else{
-                                        $this->user->pending['login_attempt']=true;
+                                        $this->user->pending['login_attempt_captcha']=true;
                                     }
                                 }else{
                                     $this->user->pending['login_attempt_captcha']=true;

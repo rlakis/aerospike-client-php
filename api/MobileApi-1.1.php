@@ -888,7 +888,7 @@ class MobileApi
                     . "IIF(m.SECRET is null, '', m.SECRET) secret, IIF(m.MOBILE is null, 0, m.MOBILE) mobile, u.lvl, "
                     . "DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', d.last_visit) as device_last_visit, "
                     . "DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', u.last_visit) as user_last_visit, "
-                    . "d.disallow_purchase, d.cuid "
+                    . "d.disallow_purchase, d.cuid, d.app_version "
                     . "from web_users_device d "
                     . "left join web_users_mobile m on m.uid=d.uid "
                     . "left join web_users u on u.id = d.uid "
@@ -917,6 +917,7 @@ class MobileApi
                 $opts->full_name = $q[0]['FULL_NAME'];
                 $opts->email = $q[0]['USER_EMAIL'] ? $q[0]['USER_EMAIL'] : $q[0]['EMAIL'];                
                 $opts->push = $q[0]['PUSH_ID'];
+                $opts->appVersion = $q[0]['APP_VERSION'];
                 
                 if(in_array($q[0]['PROVIDER'], array('mourjan','facebook','twitter','yahoo','google','live','linkedin')))
                 {
@@ -1300,7 +1301,6 @@ class MobileApi
                 ];
             
         $this->db->setWriteMode();
-        include_once $this->config['dir'] . '/core/lib/MCSessionHandler.php';
         new MCSessionHandler(TRUE);
         $current_name="";
         
@@ -2330,7 +2330,6 @@ class MobileApi
             
             // Register session            
             if ( $opts->user_status==1) {
-                include_once $this->config['dir'] . '/core/lib/MCSessionHandler.php';
                 new MCSessionHandler(TRUE);
                 //$handler = new MCSessionHandler(TRUE);
                 //session_set_save_handler($handler, true);

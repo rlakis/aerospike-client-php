@@ -39,6 +39,11 @@ class Page extends Site{
                 $this->isUserMobileVerified = (isset($this->user->info['verified']) && $this->user->info['verified']);
             }
         }
+        
+        /*$row = $this->urlRouter->db->queryResultArray(
+                                "select * from web_users_device where uuid = ?", ['FB963563-7201-4E44-BEFD-D44BC32BA3DB']);
+        var_dump($row);*/
+        
         $cdn = $this->urlRouter->cfg['url_resources'];
         
         if (isset($this->user->params['user_country']))
