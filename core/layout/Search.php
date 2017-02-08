@@ -2232,7 +2232,7 @@ class Search extends Page {
                         $text = preg_replace('/'.$num[0].'/', $number, $text);
                     } else {
                         $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
-                        $text = preg_replace('/\<span class="pn(?:[a-z0-9]*)">'.$num[0].'\<\/span\>/', '<span class="vn">'.$number.'</span>', $text);
+                        $text = preg_replace('/\<span class="pn(?:[\sa-z0-9]*)">'.$num[0].'\<\/span\>/', '<span class="vn">'.$number.'</span>', $text);
                     }
                 }
                 foreach ($phones as $num) {
@@ -2242,7 +2242,7 @@ class Search extends Page {
                         $text = preg_replace('/'.$num[0].'/', $number, $text);
                     } else {
                         $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
-                        $text = preg_replace('/\<span class="pn(?:[a-z0-9]*)">'.$num[0].'\<\/span\>/', '<span class="vn">'.$number.'</span>', $text);
+                        $text = preg_replace('/\<span class="pn(?:[\sa-z0-9]*)">'.$num[0].'\<\/span\>/', '<span class="vn">'.$number.'</span>', $text);
                     }
                 }
             /*}*/

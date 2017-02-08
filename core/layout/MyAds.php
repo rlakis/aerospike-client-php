@@ -66,6 +66,7 @@ class MyAds extends Page {
                 }
                 
                 $this->inlineCss.='
+                    .png{background-color:#BFEE90}
                     .btmask{
                     position:fixed;
                     display:block;
@@ -1034,14 +1035,27 @@ var rtMsgs={
                 
                 
                 $onlySuper = ($isAdmin && isset($ad['SUPER_ADMIN']) && $ad['SUPER_ADMIN']==1) ? 1 : 0;  
-                    
+                                
                 if($this->user->info['level']==9) {
-                        
+                    
+                    $userData = MCSessionHandler::getUser($ad['WEB_USER_ID']);
+                    $mcUser = new MCUser($userData);
+                    $userMobile = $mcUser->getMobile()->getNumber();
+                    
+                    $needNumberDisplayFix=false;
+                    if(!preg_match('/span class="pn/u', $text)){
+                        $needNumberDisplayFix = true;
+                    }
                     if(isset($content['cui']['p']) && is_array($content['cui']['p'])){
-                        foreach($content['cui']['p'] as $p){
+                        foreach($content['cui']['p'] as $p){                            
+                            $isUserMobile = false;
                             try{
                                 $num = $mobileValidator->parse($p['v'],$p['i']);
                                 if($num && $mobileValidator->isValidNumber($num)){
+                                    if($userMobile && '+'.$userMobile == $p['v']){
+                                        $isUserMobile=true;
+                                    }
+                                
                                     $type=$mobileValidator->getNumberType($num);  
                                     $phoneValidErr=0;
                                     switch((int)$p['t']){
@@ -1069,6 +1083,24 @@ var rtMsgs={
                                 }
                             }catch(Exception $ex){
                                 $phoneValidErr=2;
+                            }
+                            if($needNumberDisplayFix){
+                                $text = preg_replace('/\\'.$p['v'].'/', '<span class="pn">'.$p['v'].'</span>', $text);
+                                if($altText){
+                                    $altText = preg_replace('/\\'.$p['v'].'/', '<span class="pn">'.$p['v'].'</span>', $altText);
+                                }
+                            }
+                            if($isUserMobile){
+                                $text = preg_replace('/\<span class="pn">\\'.$p['v'].'\<\/span\>/', '<span class="pn png">'.$p['v'].'</span>', $text);
+                                if($altText){
+                                    $altText = preg_replace('/\<span class="pn">\\'.$p['v'].'\<\/span\>/', '<span class="pn png">'.$p['v'].'</span>', $altText);
+                                }
+                            }
+                            if($phoneValidErr){
+                                $text = preg_replace('/\<span class="pn(?:[\sa-z0-9]*)">\\'.$p['v'].'\<\/span\>/', '<span class="vn">'.$p['v'].'</span>', $text);
+                                if($altText){
+                                    $altText = preg_replace('/\<span class="pn(?:[\sa-z0-9]*)">\\'.$p['v'].'\<\/span\>/', '<span class="vn">'.$p['v'].'</span>', $altText);
+                                }
                             }
                         }
                     }/*else{
@@ -1098,12 +1130,14 @@ var rtMsgs={
                     elseif ($ad['LVL']==5) $style=' style="color:red"';
                     
                     //var_dump($this->user);
-                    $userData = MCSessionHandler::getUser($ad['WEB_USER_ID']);
-                    $mcUser = new MCUser($userData);
-                    $userMobile = $mcUser->getMobile()->getNumber();
                     $profileLabel =  isset($ad['PROVIDER']) ? $ad['PROVIDER']:'profile';
                     if($userMobile){
+                        $unum = $mobileValidator->parse('+'.$userMobile,'LB');
+                        $XX = $mobileValidator->getRegionCodeForNumber($unum);
                         $profileLabel = '+'.$userMobile;
+                        if($XX){
+                            $profileLabel = '('.$XX. ')' . $profileLabel;
+                        }
                     }
                     
                     $title='<div class="oct"><a target="blank" onclick="openW(this.href);return false" href="'.$ad['PROFILE_URL'].'">'.$profileLabel.'</a><a target="blank"'.$style.' onclick="openW(this.href);return false;" href="/myads/'.$lang.'?u='.$ad['WEB_USER_ID'].'">'.$name.'</a>';

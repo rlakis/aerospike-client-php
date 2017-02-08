@@ -21,6 +21,24 @@ class MCSessionHandler implements \SessionHandlerInterface
         }
     }
     
+    public static function checkSuspendedMobile($number)
+    {   
+        $redis = new Redis();
+            
+        if ($redis->connect('138.201.28.229', 6379, 2, NULL, 20)) 
+        {
+            $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+            $redis->setOption(Redis::OPT_PREFIX, 'mm_');
+            $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
+            
+            $ttl = $redis->ttl($number);            
+            if($ttl<0){
+                $ttl=0;
+            }
+        }
+        return $ttl;
+    }
+    
     public static function setSuspendMobile($uid, $number, $secondsToSuspend)
     {   
         $pass = false;

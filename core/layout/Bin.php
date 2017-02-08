@@ -314,12 +314,18 @@ class Bin extends AjaxHandler{
             case 'ajax-mobile':
                 if($this->user->info['id'] && $this->user->info['level']!=5){
                     $keyCode=0;
+                    $lang=filter_input(INPUT_POST, 'hl');
+                    if(!in_array($lang, ['en','ar'])){
+                        $lang='en';
+                    }
                     $number = filter_input(INPUT_POST, 'tel');
                     $keyCode = filter_input(INPUT_POST, 'code');
                     $keyCode = is_numeric($keyCode) ? $keyCode : 0;
-                    
                     if($number){                        
                         if($keyCode){
+                            if(substr($number,0,1)=='+'){
+                                $number = substr($number,1);
+                            }
                             $ns = $this->urlRouter->db->queryResultArray(
                                 "UPDATE WEB_USERS_LINKED_MOBILE set "
                                 . "ACTIVATION_TIMESTAMP=current_timestamp "
@@ -340,6 +346,61 @@ class Bin extends AjaxHandler{
                             if($num && $validator->isValidNumber($num)){
                                 $numberType = $validator->getNumberType($num);
                                 if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE){
+                                    
+                                    if(substr($number,0,1)=='+'){
+                                        $number = substr($number,1);
+                                    }
+                                    
+                                    /*check if number is blocked*/
+                                    $prv = $this->urlRouter->db->queryResultArray(
+                                            'select * from bl_phone where telephone = ?',
+                                            [$number],
+                                            true
+                                    );
+                                    if($prv !== false && isset($prv[0]['ID']) && $prv[0]['ID']){
+                                        $this->fail('403');
+                                    }
+                                    /*check if number is suspended*/
+                                    $time = MCSessionHandler::checkSuspendedMobile($number);
+                                    if($time){
+                                        $hours = $time / 3600;
+                                        if(ceil($hours)>1){
+                                            $hours = ceil($hours);
+                                            if($lang=='ar'){
+                                                if($hours==2){
+                                                    $hours='ساعتين ';
+                                                }elseif($hours>2 && $hours<11){
+                                                    $hours=$hours.' ساعات';
+                                                }else{
+                                                    $hours = $hours.' ساعة';
+                                                }
+                                            }else{
+                                                $hours = $hours.' hours';
+                                            }
+                                        }else{
+                                            $hours = ceil($time / 60);
+                                            if($lang=='ar'){
+                                                if($hours==1){
+                                                    $hours='دقيقة';
+                                                }if($hours==2){
+                                                    $hours='دقيقتين';
+                                                }elseif($hours>2 && $hours<11){
+                                                    $hours=$hours.' دقائق';
+                                                }else{
+                                                    $hours = $hours.' دقيقة';
+                                                }
+                                            }else{
+                                                if($hours>1){                                
+                                                    $hours = $hours.' minutes';
+                                                }else{                                
+                                                    $hours = $hours.' minute';
+                                                }
+                                            }
+                                        }
+                                        $this->setData($hours,'time');
+                                        $this->fail('402');
+                                    }
+                                    
                                     
                                     $sendSms= false;
 
@@ -2105,11 +2166,6 @@ class Bin extends AjaxHandler{
             case "ajax-adsave":
                 //if (isset($this->user->params['mobile']) && $this->user->params['mobile']){
                     if($this->user->info['id'] && isset($_POST['o'])){
-                        $userData = MCSessionHandler::getUser($this->user->info['id']);
-                        $mcUser = new MCUser($userData);
-                        if($mcUser->isBlocked()){
-                            $this->fail('101');
-                        }
                         include_once $this->urlRouter->cfg['dir'] . '/core/lib/MCAdTextHandler.php';
                         $textHandler = new AdTextFormatter();
                         
@@ -2190,6 +2246,13 @@ class Bin extends AjaxHandler{
                         $currentCid = 0;
                         $isMultiCountry = false;
                         
+                        
+                        $userData = MCSessionHandler::getUser($this->user->pending['post']['user']);
+                        $mcUser = new MCUser($userData);
+                        if($mcUser->isBlocked()){
+                            $this->fail('101');
+                        }
+                        
                         if(count($ad['pubTo'])){
                             foreach($ad['pubTo'] as $key => $val){
                                 if(!is_numeric($key)){
@@ -2221,8 +2284,11 @@ class Bin extends AjaxHandler{
                         
                         $requireReview = 0;
                         
+                        $validator = libphonenumber\PhoneNumberUtil::getInstance();
+                        
                         if ($this->user->info['level']!=9) $ad['userLvl']=$this->user->info['level'];
                         if ($this->user->info['id'] == $this->user->pending['post']['user']){
+                            
                             $ad['agent']=$_SERVER['HTTP_USER_AGENT'];
                             if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])){
                                 $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
@@ -2231,35 +2297,48 @@ class Bin extends AjaxHandler{
                             }
                             $ad['ip']=$ip;   
                             $geo = $this->urlRouter->getIpLocation($ip);
+                            $XX='';
                             if($geo) {
                             	$ad['userLOC'] = isset($geo['city']['names']['en']) ? $geo['city']['names']['en'].', ' : '';
                                 $ad['userLOC'].=$geo['country']['iso_code'];
                                 $ad['userLOC'].=': '. implode(" ,",$geo['location']);
                                 
-                                if(!in_array($geo['country']['iso_code'],[
-                                    'AE',
-                                    'BH',
-                                    'DZ',
-                                    'YE',
-                                    'EG',
-                                    'IQ',
-                                    'JO',
-                                    'KW',
-                                    'LB',
-                                    'LY',
-                                    'MA',
-                                    'QA',
-                                    'SA',
-                                    'SD',
-                                    'SY',
-                                    'TN',
-                                    'TR',
-                                    'OM'
-                                    ])){
-                                    $requireReview = 1;
-                                }
-                                
+                                $XX = $geo['country']['iso_code'];                                
                             } else $ad['userLOC']=0;
+                            
+                            if($mcUser->isMobileVerified()){
+                                $uNum = $mcUser->getMobileNumber();
+                                if($uNum){
+                                    $uNum = $validator->parse('+'.$uNum, 'LB');
+                                    $TXX = $validator->getRegionCodeForNumber($uNum);
+                                    if($TXX){
+                                        $XX=$TXX;
+                                    }
+                                }
+                            }
+
+                            if(!$XX || !in_array($XX,[
+                                'AE',
+                                'BH',
+                                'DZ',
+                                'YE',
+                                'EG',
+                                'IQ',
+                                'JO',
+                                'KW',
+                                'LB',
+                                'LY',
+                                'MA',
+                                'QA',
+                                'SA',
+                                'SD',
+                                'SY',
+                                'TN',
+                                'TR',
+                                'OM'
+                                ])){
+                                $requireReview = 1;
+                            }
                         }
                         
                         $publish=(isset($_POST['pub']) && $_POST['pub'] ? (int)$_POST['pub'] : 0);
@@ -2332,7 +2411,6 @@ class Bin extends AjaxHandler{
                         $wrongPhoneNumber = false;
                         if($publish== 1 && isset($ad['cui']['p']) && count($ad['cui']['p'])){
                                 $numbers = [];
-                                $validator = libphonenumber\PhoneNumberUtil::getInstance();
                                 foreach($ad['cui']['p'] as $number){
                                     if(isset($number['v']) && trim($number['v'])!=''){
                                         $num = $validator->parse($number['v'], $number['i']);

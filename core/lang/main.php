@@ -681,6 +681,8 @@ $lang=array(
         Your mobile number will not be published to the public (in your ads) nor will it be shared with any third parties,
         except in the rise of a legal dispute and request by authorities.',
     'invalid_mobile'               =>  'invalid mobile number',
+    'blocked_mobile'               =>  'This mobile number is blocked and restricted from using mourjan services',
+    'suspended_mobile'               =>  'This mobile number is suspended and cannot use mourjan services before the next',
     'invalid_code'               =>  'code is not correct',
     'mobile_wait'               =>  'please wait while we verify your number',
     'verify_mobile'               =>  'Verify Mobile Number',

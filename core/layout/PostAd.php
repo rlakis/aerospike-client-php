@@ -1050,7 +1050,8 @@ class PostAd extends Page{
                             type:"POST",
                             url:"/ajax-mobile/",
                             data:{
-                                tel:curNumber
+                                tel:curNumber,
+                                hl:lang
                             },
                             dataType:"json",
                             success:function(rp){
@@ -1073,7 +1074,18 @@ class PostAd extends Page{
                                         }
                                     }
                                 }else{
-                                    sysErr()
+                                    var m=0;
+                                    switch(rp.MSG){
+                                        case "403":
+                                            m="'.$this->lang['blocked_mobile'].'";
+                                            break;
+                                        case "402":
+                                            m="'.$this->lang['suspended_mobile'].' "+rp.DATA.time;
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                    sysErr(m)
                                 }
                             },
                             error:function(rp){sysErr()}
@@ -1180,8 +1192,9 @@ class PostAd extends Page{
                     var wCode=function(){
                         setErr("vcode","error_vmsg","'.$this->lang['invalid_code'].'");
                     };
-                    var sysErr=function(){
-                        setErr(0,"error_smsg",0);
+                    var sysErr=function(msg){
+                        if(typeof msg === "undefined")msg=0;
+                        setErr(0,"error_smsg",msg);
                         $("#mb_load").hide();
                         $("#mb_check").show();
                     };

@@ -608,13 +608,30 @@ class AndroidApi {
                         $databaseFile = '/home/db/GeoLite2-City.mmdb';
         				$reader = new Reader($databaseFile);
         				$geo = $reader->get($ip);
-        				$reader->close(); 		           
+        				$reader->close(); 	
+                        
+                        $XX='';                
                         if($geo) {
                             $ad['userLOC'] = isset($geo['city']['names']['en']) && $geo['city']['names']['en'] ? $geo['city']['names']['en'].', ' : '';
                             $ad['userLOC'].=$geo['country']['iso_code'];
                             $ad['userLOC'].=': '. implode(" ,",$geo['location']);                            
+                            $XX=$geo['country']['iso_code'];
                             
-                            if(!in_array($geo['country']['iso_code'],[
+                        } else $ad['userLOC']=0;
+                        
+                        if($mcUser->isMobileVerified()){
+                            $uNum = $mcUser->getMobileNumber();
+                            if($uNum){
+                                $validator = libphonenumber\PhoneNumberUtil::getInstance();
+                                $uNum = $validator->parse('+'.$uNum, 'LB');
+                                $TXX = $validator->getRegionCodeForNumber($uNum);
+                                if($TXX){
+                                    $XX=$TXX;
+                                }
+                            }
+                        }
+                        
+                        if(!$XX || !in_array($XX,[
                                 'AE',
                                 'BH',
                                 'DZ',
@@ -636,8 +653,6 @@ class AndroidApi {
                                 ])){
                                 $requireReview = 1;
                             }
-                            
-                        } else $ad['userLOC']=0;
                             
                         $city_id = 0;
                         $country_id = 0;
@@ -1188,7 +1203,7 @@ class AndroidApi {
                                     }                                    
                                     $state = 1;
                                     if($opts->appVersion < '1.3.4' || $opts->appVersion=='1.8.8'){
-                                        if($ad['rtl']){
+                                        if($ad['RTL']){
                                             $msg = 'يرجى تحديث تطبيق مرجان لنشر الاعلانات';
                                         }else{
                                             $msg = 'please update mourjan app to publish ads';
@@ -1232,7 +1247,10 @@ class AndroidApi {
                     
                     if($number && base64_decode($signature) == strtoupper(hash_hmac('sha1', ($_SERVER['HTTPS'] == 'on' ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
                         
-                        if($keyCode){
+                        if($keyCode){                            
+                            if(substr($number,0,1)=='+'){
+                                $number = substr($number,1);
+                            }
                             $ns = $this->api->db->queryResultArray(
                                 "UPDATE WEB_USERS_LINKED_MOBILE set "
                                 . "ACTIVATION_TIMESTAMP=current_timestamp "
@@ -1259,92 +1277,158 @@ class AndroidApi {
                                 $numberType = $this->mobileValidator->getNumberType($num);
                                 if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE){
                                     
-                                    $sendSms= false;
-
-                                    $rs = $this->api->db->queryResultArray(
-                                    "select m.ID, m.UID, m.MOBILE, m.DELIVERED, m.CODE, m.SMS_COUNT,m.ACTIVATION_TIMESTAMP, "
-                                    . "datediff(SECOND from m.ACTIVATION_TIMESTAMP to CURRENT_TIMESTAMP) active_age, "
-                                    . "datediff(SECOND from m.REQUEST_TIMESTAMP to CURRENT_TIMESTAMP) request_age "
-                                    . "from WEB_USERS_LINKED_MOBILE m "
-                                    . "where m.mobile=? and m.uid=? order by m.REQUEST_TIMESTAMP desc", [$number, $this->api->getUID()]);
-
-                                    $keyCode = 0;
-
-                                    if($rs!==false){
-                                        if(count($rs) && isset($rs[0]['ID']) && $rs[0]['ID']){
-                                            $expiredDelivery = $rs[0]['DELIVERED']==0 && $rs[0]['REQUEST_AGE']>86400 && $rs[0]['SMS_COUNT']<5;
-                                            $expiredValidity = ($rs[0]['DELIVERED']==1 && $rs[0]['ACTIVATION_TIMESTAMP'] && $rs[0]['ACTIVE_AGE']>86400*365);
-                                            $stillValid = ($rs[0]['DELIVERED']==1 && $rs[0]['ACTIVATION_TIMESTAMP'] && $rs[0]['ACTIVE_AGE']<=86400*365);
-                                            if($expiredDelivery){
-                                                //resend sms since it was not delivered after 1 hour
-                                                $ns = $this->api->db->queryResultArray(
-                                                "UPDATE WEB_USERS_LINKED_MOBILE set "
-                                                        . "SMS_COUNT=sms_count+1,"
-                                                        . "REQUEST_TIMESTAMP=current_timestamp "
-                                                        . "where id = ? RETURNING ID,CODE", 
-                                                    [$rs[0]['ID']], TRUE);
-                                                if($ns!==false && isset($ns[0]['ID']) && $ns[0]['ID']){
-                                                    $sendSms = $ns[0]['ID'];
-                                                    $keyCode = $ns[0]['CODE'];
+                                    if(substr($number,0,1)=='+'){
+                                        $number = substr($number,1);
+                                    }
+                                    /*check if number is blocked*/
+                                    $prv = $this->api->db->queryResultArray(
+                                            'select * from bl_phone where telephone = ?',
+                                            [$number],
+                                            true
+                                    );
+                                    if($prv !== false && isset($prv[0]['ID']) && $prv[0]['ID']){
+                                        $number=0;
+                                        $keyCode=0;
+                                    }
+                                    /*check if number is suspended*/
+                                    $time = MCSessionHandler::checkSuspendedMobile($number);
+                                    if($time){
+                                        /*$hours = $time / 3600;
+                                        if(ceil($hours)>1){
+                                            $hours = ceil($hours);
+                                            if($lang=='ar'){
+                                                if($hours==2){
+                                                    $hours='ساعتين ';
+                                                }elseif($hours>2 && $hours<11){
+                                                    $hours=$hours.' ساعات';
                                                 }else{
-                                                    $keyCode=0;
-                                                    $number=0;
+                                                    $hours = $hours.' ساعة';
                                                 }
-                                            }else if($expiredValidity){
-                                                //re-validate by sending sms with new code
+                                            }else{
+                                                $hours = $hours.' hours';
+                                            }
+                                        }else{
+                                            $hours = ceil($time / 60);
+                                            if($lang=='ar'){
+                                                if($hours==1){
+                                                    $hours='دقيقة';
+                                                }if($hours==2){
+                                                    $hours='دقيقتين';
+                                                }elseif($hours>2 && $hours<11){
+                                                    $hours=$hours.' دقائق';
+                                                }else{
+                                                    $hours = $hours.' دقيقة';
+                                                }
+                                            }else{
+                                                if($hours>1){                                
+                                                    $hours = $hours.' minutes';
+                                                }else{                                
+                                                    $hours = $hours.' minute';
+                                                }
+                                            }
+                                        }*/
+                                        $number=0;
+                                        $keyCode=0;
+                                    }                                    
+                                    
+                                    if($number){                                   
+                                    
+                                        $sendSms= false;
+
+                                        $rs = $this->api->db->queryResultArray(
+                                        "select m.ID, m.UID, m.MOBILE, m.DELIVERED, m.CODE, m.SMS_COUNT,m.ACTIVATION_TIMESTAMP, "
+                                        . "datediff(SECOND from m.ACTIVATION_TIMESTAMP to CURRENT_TIMESTAMP) active_age, "
+                                        . "datediff(SECOND from m.REQUEST_TIMESTAMP to CURRENT_TIMESTAMP) request_age "
+                                        . "from WEB_USERS_LINKED_MOBILE m "
+                                        . "where m.mobile=? and m.uid=? order by m.REQUEST_TIMESTAMP desc", [$number, $this->api->getUID()]);
+
+                                        $keyCode = 0;
+
+                                        if($rs!==false){
+                                            if(count($rs) && isset($rs[0]['ID']) && $rs[0]['ID']){
+                                                $expiredDelivery = $rs[0]['DELIVERED']==0 && $rs[0]['REQUEST_AGE']>86400 && $rs[0]['SMS_COUNT']<5;
+                                                $expiredValidity = ($rs[0]['DELIVERED']==1 && $rs[0]['ACTIVATION_TIMESTAMP'] && $rs[0]['ACTIVE_AGE']>86400*365);
+                                                $stillValid = ($rs[0]['DELIVERED']==1 && $rs[0]['ACTIVATION_TIMESTAMP'] && $rs[0]['ACTIVE_AGE']<=86400*365);
+                                                if($expiredDelivery){
+                                                    //resend sms since it was not delivered after 1 hour
+                                                    $ns = $this->api->db->queryResultArray(
+                                                    "UPDATE WEB_USERS_LINKED_MOBILE set "
+                                                            . "SMS_COUNT=sms_count+1,"
+                                                            . "REQUEST_TIMESTAMP=current_timestamp "
+                                                            . "where id = ? RETURNING ID,CODE", 
+                                                        [$rs[0]['ID']], TRUE);
+                                                    if($ns!==false && isset($ns[0]['ID']) && $ns[0]['ID']){
+                                                        $sendSms = $ns[0]['ID'];
+                                                        $keyCode = $ns[0]['CODE'];
+                                                    }else{
+                                                        $keyCode=0;
+                                                        $number=0;
+                                                    }
+                                                }else if($expiredValidity){
+                                                    //re-validate by sending sms with new code
+                                                    $keyCode=mt_rand(1000, 9999);
+                                                    $ns = $this->api->db->queryResultArray(
+                                                    "UPDATE WEB_USERS_LINKED_MOBILE set "
+                                                            . "code = ?, "
+                                                            . "SMS_COUNT=sms_count+1,"
+                                                            . "REQUEST_TIMESTAMP=current_timestamp "
+                                                            . "where id = ? RETURNING ID", 
+                                                        [$keyCode, $rs[0]['ID']], TRUE);
+                                                    if($ns!==false && isset($ns[0]['ID']) && $ns[0]['ID']){
+                                                        $sendSms = $ns[0]['ID'];
+                                                    }else{
+                                                        $keyCode=0;
+                                                        $number=0;
+                                                    }
+                                                }elseif($stillValid){
+                                                    //validate without sending sms
+                                                    $this->api->result['d']['check'] = true;
+                                                    $number = 0;
+                                                    $keyCode = 0;
+                                                }else{
+                                                    //sms is still valid but not delivered
+                                                    $keyCode = $rs[0]['CODE'];
+                                                }                                        
+                                            }else{
                                                 $keyCode=mt_rand(1000, 9999);
                                                 $ns = $this->api->db->queryResultArray(
-                                                "UPDATE WEB_USERS_LINKED_MOBILE set "
-                                                        . "code = ?, "
-                                                        . "SMS_COUNT=sms_count+1,"
-                                                        . "REQUEST_TIMESTAMP=current_timestamp "
-                                                        . "where id = ? RETURNING ID", 
-                                                    [$keyCode, $rs[0]['ID']], TRUE);
+                                                "INSERT INTO WEB_USERS_LINKED_MOBILE (UID, MOBILE, CODE, DELIVERED, SMS_COUNT,ACTIVATION_TIMESTAMP)
+                                                VALUES (?, ?, ?, 0, 0,null) RETURNING ID", [$this->api->getUID(), $number, $keyCode], TRUE);
+
                                                 if($ns!==false && isset($ns[0]['ID']) && $ns[0]['ID']){
                                                     $sendSms = $ns[0]['ID'];
                                                 }else{
                                                     $keyCode=0;
                                                     $number=0;
                                                 }
-                                            }elseif($stillValid){
-                                                //validate without sending sms
-                                                $this->api->result['d']['check'] = true;
-                                                $number = 0;
-                                                $keyCode = 0;
-                                            }else{
-                                                //sms is still valid but not delivered
-                                                $keyCode = $rs[0]['CODE'];
-                                            }                                        
+                                            }
                                         }else{
-                                            $keyCode=mt_rand(1000, 9999);
-                                            $ns = $this->api->db->queryResultArray(
-                                            "INSERT INTO WEB_USERS_LINKED_MOBILE (UID, MOBILE, CODE, DELIVERED, SMS_COUNT,ACTIVATION_TIMESTAMP)
-                                            VALUES (?, ?, ?, 0, 0,null) RETURNING ID", [$this->api->getUID(), $number, $keyCode], TRUE);
-
-                                            if($ns!==false && isset($ns[0]['ID']) && $ns[0]['ID']){
-                                                $sendSms = $ns[0]['ID'];
-                                            }else{
+                                            $number = 0;
+                                            $keyCode = 0;
+                                        }
+                                        if($sendSms && $number && $keyCode){
+                                            include_once $this->api->config['dir'].'/core/lib/MourjanNexmo.php';
+                                            $sms = new MourjanNexmo();
+                                            $sent = $sms->sendSMS($number,
+                                                $keyCode." is your mourjan confirmation code",
+                                                'm'.$sendSms);
+                                            if(!$sent){
                                                 $keyCode=0;
                                                 $number=0;
                                             }
                                         }
-                                    }else{
-                                        $number = 0;
-                                        $keyCode = 0;
-                                    }
-                                    if($sendSms && $number && $keyCode){
-                                        include_once $this->api->config['dir'].'/core/lib/MourjanNexmo.php';
-                                        $sms = new MourjanNexmo();
-                                        $sent = $sms->sendSMS($number,
-                                            $keyCode." is your mourjan confirmation code",
-                                            'm'.$sendSms);
-                                        if(!$sent){
-                                            $keyCode=0;
-                                            $number=0;
+                                        if($number){                                        
+                                            if(substr($number,0,1)!='+'){
+                                                $number = '+'.$number;
+                                            }
                                         }
+                                        $this->api->result['d']['number']=$number;
+                                        $this->api->result['d']['code']=$keyCode; 
+                                    }else{                                        
+                                        $this->api->result['d']['number']=$number;
+                                        $this->api->result['d']['code']=$keyCode;
                                     }
-                                    $this->api->result['d']['number']=$number;
-                                    $this->api->result['d']['code']=$keyCode; 
+                                    
                                 }else{
                                     $this->api->result['d']['check'] = false;
                                 }
@@ -1384,17 +1468,77 @@ class AndroidApi {
                                 $keyCode=$opt['accountKey'];
                             }
                         }else{             
-                            $user = $USER->createNewAccount($username);
-                            if(isset($user[0]['ID']) && $user[0]['ID']){
-                                $newId = $user[0]['ID'];
-                                $opt = json_decode($user[0]['OPTS'], true);
-                                $sendCode=true;
+                            $isEmail = preg_match('/@/ui', $username);
+                            $doProceed=true;
+                            if(!$isEmail){
+                                $number = $username;
+                                if(substr($number,0,1)=='+'){
+                                    $number = substr($number,1);
+                                }
+                                /*check if number is blocked*/
+                                $prv = $this->api->db->queryResultArray(
+                                        'select * from bl_phone where telephone = ?',
+                                        [$number],
+                                        true
+                                );
+                                if($prv !== false && isset($prv[0]['ID']) && $prv[0]['ID']){
+                                    $doProceed=true;
+                                }
+                                /*check if number is suspended*/
+                                $time = MCSessionHandler::checkSuspendedMobile($number);
+                                if($time){
+                                    /*$hours = $time / 3600;
+                                    if(ceil($hours)>1){
+                                        $hours = ceil($hours);
+                                        if($lang=='ar'){
+                                            if($hours==2){
+                                                $hours='ساعتين ';
+                                            }elseif($hours>2 && $hours<11){
+                                                $hours=$hours.' ساعات';
+                                            }else{
+                                                $hours = $hours.' ساعة';
+                                            }
+                                        }else{
+                                            $hours = $hours.' hours';
+                                        }
+                                    }else{
+                                        $hours = ceil($time / 60);
+                                        if($lang=='ar'){
+                                            if($hours==1){
+                                                $hours='دقيقة';
+                                            }if($hours==2){
+                                                $hours='دقيقتين';
+                                            }elseif($hours>2 && $hours<11){
+                                                $hours=$hours.' دقائق';
+                                            }else{
+                                                $hours = $hours.' دقيقة';
+                                            }
+                                        }else{
+                                            if($hours>1){                                
+                                                $hours = $hours.' minutes';
+                                            }else{                                
+                                                $hours = $hours.' minute';
+                                            }
+                                        }
+                                    }*/
+                                    $doProceed=false;
+                                }  
+                            }
+                            if($doProceed){
+                                $user = $USER->createNewAccount($username);
+                                if(isset($user[0]['ID']) && $user[0]['ID']){
+                                    $newId = $user[0]['ID'];
+                                    $opt = json_decode($user[0]['OPTS'], true);
+                                    $sendCode=true;
+                                }else{
+                                    $newId=-2;
+                                }
                             }else{
                                 $newId=-2;
                             }
                         }
                         if($sendCode){
-                            $isEmail = preg_match('/@/', $username);
+                            $isEmail = preg_match('/@/ui', $username);
                             $sent=false;
                             if(!$keyCode){
                                 $keyCode=mt_rand(1000, 9999);
