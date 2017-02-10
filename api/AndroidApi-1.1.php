@@ -1135,7 +1135,7 @@ class AndroidApi {
                     
                     $userData = MCSessionHandler::getUser($this->api->getUID());
                     $mcUser = new MCUser($userData);
-                    
+                    $state=0;
                     if ($status == 1 && !$mcUser->isSuspended() && !$mcUser->isBlocked()) 
                     {
                         $this->api->db->setWriteMode();   
@@ -1163,6 +1163,7 @@ class AndroidApi {
                                     if($dupliactePending)
                                     {
                                         $renew= false;
+                                        $state=3;
                                         $q='update ad_user set content=?, state=? where id=?';
                                         $suspendStmt = $this->api->db->getInstance()->prepare($q);
                                         if($content['rtl']){
@@ -1176,7 +1177,7 @@ class AndroidApi {
                                         $result=null;
                                         $this->api->db->executeStatement($suspendStmt,[                                    
                                             $encodedAd,
-                                            3,
+                                            $state,
                                             $ad_id
                                         ]);
                                         unset($suspendStmt);
@@ -1184,12 +1185,23 @@ class AndroidApi {
                                 }
 
                                 if($renew)
-                                {
+                                {                           
+                                    $state = 1;
+                                    if($opts->appVersion < '1.3.4' || $opts->appVersion=='1.8.8'){
+                                        if($ad['RTL']){
+                                            $msg = 'يرجى تحديث تطبيق مرجان لنشر الاعلانات';
+                                        }else{
+                                            $msg = 'please update mourjan app to publish ads';
+                                        }
+                                        $content['msg'] = $msg;
+                                        $state = 3;
+                                    }
                                     include_once $this->api->config['dir'] . '/core/lib/MCSaveHandler.php';                
                                     $normalizer = new MCSaveHandler($this->api->config);
                                     if (isset($content['attrs'])) {
                                         unset($content['attrs']);
                                     }
+                                    $content['state']=$state;
                                     $normalized = $normalizer->getFromContentObject($content);
                                     $attrs = [];
                                     if ($normalized)
@@ -1200,17 +1212,7 @@ class AndroidApi {
                                             $ad['SECTION_ID']=$normalized['se'];
                                         if ($ad['PURPOSE_ID']!=$normalized['pu'])
                                             $ad['PURPOSE_ID']=$normalized['pu'];
-                                    }                                    
-                                    $state = 1;
-                                    if($opts->appVersion < '1.3.4' || $opts->appVersion=='1.8.8'){
-                                        if($ad['RTL']){
-                                            $msg = 'يرجى تحديث تطبيق مرجان لنشر الاعلانات';
-                                        }else{
-                                            $msg = 'please update mourjan app to publish ads';
-                                        }
-                                        $ad['msg'] = $msg;
-                                        $state = 3;
-                                    }
+                                    }         
 
                                     $result = $this->api->db->queryResultArray(
                                         "update ad_user a set a.section_id=?, a.purpose_id=?, a.content=?, a.state={$state} where a.id=? and a.web_user_id=? and a.state=9 returning id", 

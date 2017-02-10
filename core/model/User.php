@@ -1004,7 +1004,7 @@ order by m.activation_timestamp desc',
                         $content['altRtl']=0;
                     }
                 }
-                
+                $content['state']=$state;
                 $normalized = $normalizer->getFromContentObject($content);
                 if ($normalized)                    
                 {
@@ -1035,8 +1035,9 @@ order by m.activation_timestamp desc',
                 }
                 
             }else{
-            
-                $normalized = $normalizer->getFromContentObject(json_decode($ad['CONTENT'], true));
+                $content = json_decode($ad['CONTENT'], true);
+                $content['state']=$state;
+                $normalized = $normalizer->getFromContentObject($content);
                 if ($normalized)
                 {
                     
@@ -1387,7 +1388,7 @@ order by m.activation_timestamp desc',
                 $normalizer = new MCSaveHandler($this->cfg);
 
                 $content = json_decode($this->pending['post']['content'],true);
-
+                $content['state']=$publish;
                 $normalized = $normalizer->getFromContentObject($content);
 
                 if ($normalized)                    

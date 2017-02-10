@@ -91,10 +91,13 @@ class MCSessionHandler implements \SessionHandlerInterface
                 }
                 if(isset($user->id) && isset($user->mobile->number) && $user->mobile->number){
                     $redis->setOption(Redis::OPT_PREFIX, 'mm_');
-                    $suspended = $redis->get($user->mobile->number);
-                    if($suspended){
-                        $user->opts->suspend = $suspended+0;
+                    $suspended = $redis->ttl($user->mobile->number);
+                    if($suspended<0){
+                        $suspended=0;
+                    }else{
+                        $suspended = time()+$suspended;
                     }
+                    $user->opts->suspend = $suspended+0;
                 }
             }
             else 
