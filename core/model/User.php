@@ -383,6 +383,18 @@ order by m.activation_timestamp desc',
         return $user;
     }
     
+    function getBlockingReason($number){
+        $res = $this->db->queryResultArray(
+            'select subject from bl_phone where telephone=?',
+            [$number]);
+        if(isset($res[0]['SUBJECT']) && $res[0]['SUBJECT']){
+            $res = $res[0]['SUBJECT'];
+        }else{
+            $res = false;
+        }
+        return $res;
+    }
+    
     function resetPassword($userId, $pass){
         $original = $pass;
         $pass = md5($this->md5_prefix.$pass);

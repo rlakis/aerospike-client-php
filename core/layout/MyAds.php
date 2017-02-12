@@ -1541,16 +1541,17 @@ var rtMsgs={
         } else {
             ?><p class="ph phb db"><?php
             $msg='';
+            $mcUser = null;
             switch ($state){
                 case 9:
                     $msg=  $this->lang['no_archive'];
                     $this->user->info['archive_ads']=$count;
-                    echo $this->lang['ads_archive'].($count ? ' ('.$count.')':'').' '.$this->renderUserTypeSelector();
+                    echo $this->lang['ads_archive'].($count ? ' ('.$count.')':'').' '.$this->renderUserTypeSelector($mcUser);
                     break;
                 case 7:
                     $msg=  $this->lang['no_active'];
                     $this->user->info['active_ads']=$count;
-                    echo $this->lang['ads_active'].($count ? ' ('.$count.')':'').' '.$this->renderUserTypeSelector();
+                    echo $this->lang['ads_active'].($count ? ' ('.$count.')':'').' '.$this->renderUserTypeSelector($mcUser);
                     break;
                 case 1:
                 case 2:
@@ -1563,18 +1564,27 @@ var rtMsgs={
                 default:
                     $msg=  $this->lang['no_drafts'];
                     $this->user->info['draft_ads']=$count;
-                    echo $this->lang['ads_drafts'].($count ? ' ('.$count.')':'').' '.$this->renderUserTypeSelector();
+                    echo $this->lang['ads_drafts'].($count ? ' ('.$count.')':'').' '.$this->renderUserTypeSelector($mcUser);
                     break;
             }
             ?></p><?php            
             $this->renderEditorsBox($state, true);
+            
+            if($this->user->info['level']==9 && $mcUser && $mcUser->isBlocked()){
+                $msg = 'User is Blocked';
+                $reason = $this->user->getBlockingReason($mcUser->getMobileNumber());
+                if($reason){
+                    $msg = $msg.'<br />'.$reason;
+                }
+            }
+            
             ?><div class="htf db"><?= $msg ?><br /><br /><?php
             ?><input onclick="document.location='/post/<?= $lang ?>'" class="bt" type="button" value="<?= $this->lang['create_ad'] ?>" /><?php
             ?></div><?php
         }
     }
 
-    function renderUserTypeSelector(){
+    function renderUserTypeSelector(&$user=null){
         if ($this->user->info['id'] && $this->user->info['level']==9){
             $userId = $this->user->info['id'];
             $type = 0;
@@ -1582,7 +1592,51 @@ var rtMsgs={
                 $userId = $_GET['u'];
                 $type = $this->user->getType($userId);
             }
+            $user = new MCUser(MCSessionHandler::getUser($userId));
+            if($user->isSuspended()){
+                $time = MCSessionHandler::checkSuspendedMobile($user->getMobileNumber());
+                $hours=0;
+                $lang=$this->urlRouter->siteLanguage;
+                if($time){
+                    $hours = $time / 3600;
+                    if(ceil($hours)>1){
+                        $hours = ceil($hours);
+                        if($lang=='ar'){
+                            if($hours==2){
+                                $hours='ساعتين ';
+                            }elseif($hours>2 && $hours<11){
+                                $hours=$hours.' ساعات';
+                            }else{
+                                $hours = $hours.' ساعة';
+                            }
+                        }else{
+                            $hours = $hours.' hours';
+                        }
+                    }else{
+                        $hours = ceil($time / 60);
+                        if($lang=='ar'){
+                            if($hours==1){
+                                $hours='دقيقة';
+                            }if($hours==2){
+                                $hours='دقيقتين';
+                            }elseif($hours>2 && $hours<11){
+                                $hours=$hours.' دقائق';
+                            }else{
+                                $hours = $hours.' دقيقة';
+                            }
+                        }else{
+                            if($hours>1){                                
+                                $hours = $hours.' minutes';
+                            }else{                                
+                                $hours = $hours.' minute';
+                            }
+                        }
+                    }
+                }
+                echo '<span class="fl"><span class="wait"></span>'.$hours.'</span>';
+            }
             echo '<span class="fl">'.$this->lang['user_type_label'].': <select onchange="setUT(this,'.$userId.')"><option value="0">'.$this->lang['user_type_option_0'].'</option><option value="1"'.($type == 1 ? ' selected':'').'>'.$this->lang['user_type_option_1'].'</option><option value="2"'.($type == 2 ? ' selected':'').'>'.$this->lang['user_type_option_2'].'</option></select></span>';
+            
         }
     }
     
