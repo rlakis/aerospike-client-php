@@ -4844,7 +4844,10 @@ class Bin extends AjaxHandler{
                     $id=$_POST['i'];
                     $msg=trim($_POST['msg']);
                     if($msg=='')$msg='Scam Detection';
-                    $msg .= ' by admin '.$this->user->info['id'].' date:'.date("d.m.y");
+                    if(!preg_match('/by admin/ui',$msg)){
+                        $msg .= ' by admin '.$this->user->info['id'];
+                    }
+                    $msg.=' date:'.date("d.m.y");
                     if (is_numeric($id)){
                         $userData = MCSessionHandler::getUser($id);
                         $mcUser = new MCUser($userData);

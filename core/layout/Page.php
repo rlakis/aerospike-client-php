@@ -127,7 +127,17 @@ class Page extends Site{
         }
         if ($this->urlRouter->isMobile) {
             $this->inlineCss.='.g-recaptcha{display:inline-block;min-height:78px}li.recap{text-align:center}';
+            if(date('d-m')=='14-02'){
+                if($this->urlRouter->module=='index' || $this->urlRouter->module=='search' || $this->urlRouter->module=='detail'){
+                    $this->inlineCss.='body{background:url('.$this->urlRouter->cfg['url_css'].'/i/iv.png) repeat top left}';
+                }
+            }
         }else{
+            if(date('d-m')=='14-02'){
+                if($this->urlRouter->module=='index' || $this->urlRouter->module=='search' || $this->urlRouter->module=='detail'){
+                    $this->inlineCss.='.ad,.aps,.dt{background-color:#FFF}.colw,.col2w,.tpb{background:url('.$this->urlRouter->cfg['url_css'].'/i/iv.png) repeat top left}';
+                }
+            }
             if($this->urlRouter->siteLanguage=='ar'){
                 $this->inlineCss.='.g-recaptcha{float:right}';
             }else{

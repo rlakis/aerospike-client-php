@@ -352,8 +352,8 @@ class GenModules extends Site
         $content .= '<a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class="ios"></span></a>';
         $content .= '<a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class="android"></span></a>';
         $content .= '</div>';
-        $content .= '<div class="g-page gplus" data-href="https://plus.google.com/+MourjanAds/posts" data-width="336" data-layout="landscape" data-rel="publisher"></div>';
-        $content.='<div class="fb-like-box" data-href="http://www.facebook.com/pages/Mourjan/318337638191015" data-width="336" data-show-faces="true" data-stream="false" data-show-border="false" data-header="false"></div>';
+        //$content .= '<div class="g-page gplus" data-href="https://plus.google.com/+MourjanAds/posts" data-width="336" data-layout="landscape" data-rel="publisher"></div>';
+        //$content.='<div class="fb-like-box" data-href="http://www.facebook.com/pages/Mourjan/318337638191015" data-width="336" data-show-faces="true" data-stream="false" data-show-border="false" data-header="false"></div>';
         $content .= '</div>';
         return $content;
     }
