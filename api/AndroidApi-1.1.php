@@ -13,7 +13,7 @@ class AndroidApi {
         $this->api = $_api;
         
         if($this->api->config['active_maintenance']){
-            $this->api->result['e']="active maintenance";
+            $this->api->result['e']="503";
         }else{
         
         define ('MOURJAN_KEY', 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAo//5OB8WpXTlsD5TEA5S+JK/I4xuYNOCGpGen07GKUpNdHcIVxSejoKiTmszUjsRgR1NC5H6Xu+5YMxfsPzQWwqyGMaQbvdLYOW2xQ5gnK4HEqp1ZP74HkNrnBCpyaGEuap4XcHu+37xNxZNRZpTgtr34dPcMIsN2GGANMNTy5aWlAPsl1BTYkDOCMu2f+Tyq2eqIkOvlHS09717JwNrx6NyI+CI7y8AAuLLZOp8usXWA/Lx3H6COts9IXMXE/+eNiFkaGsaolxzvO/aBg9w/0iYWGTinInOyHqwjcxazmoNJxxYbS/iTAlcPMrXzjn3UUepcq2WZ/+HWI0bzf4mVQIDAQAB');
@@ -734,7 +734,7 @@ class AndroidApi {
                             $ad['msg'] = $msg;
                         }
                         
-                        if($opts->appVersion < '1.3.4' || $opts->appVersion=='1.8.8'){
+                        if(true || $opts->appVersion < '1.3.4' || $opts->appVersion=='1.8.8'){
                             $hasFailure=1;
                             if($ad['rtl']){
                                 $msg = 'يرجى تحديث تطبيق مرجان لنشر الاعلانات';
@@ -769,6 +769,7 @@ class AndroidApi {
                                 if($hasFailure){
                                     $state = 3;
                                 }
+                                $ad['state']=$state;
 
                                 $encodedAd = json_encode($ad);
 
@@ -840,6 +841,7 @@ class AndroidApi {
                                 if($hasFailure){
                                     $state = 3;
                                 }
+                                $ad['state']=$state;
 
                                 $encodedAd = json_encode($ad);
 
@@ -910,23 +912,25 @@ class AndroidApi {
                                     content=?,state=? 
                                     where id=?';
                                     $suspendStmt = $this->api->db->getInstance()->prepare($q);
-
+                                $state = 3;
                                 if($ad['rtl']){
                                     $msg = 'عذراً ولكن لا يمكن تمييز الاعلان في اكثر من بلد واحد';
                                 }else{
                                     $msg = 'Sorry, you cannot publish premium ads targetting more than ONE country';
                                 }
+                                $ad['state']=$state;
                                 $ad['msg'] = $msg;
 
                                 $encodedAd = json_encode($ad);
                                 $result=null;
                                 $this->api->db->executeStatement($suspendStmt,[                                    
                                     $encodedAd,
-                                    3,
+                                    $state,
                                     $ad_id
                                 ]);
                                 unset($suspendStmt);
                             }elseif($ad_id && $userState == 1){
+                                $state=3;
                                 $q='update ad_user set
                                     content=?,state=? 
                                     where id=?';
@@ -937,18 +941,20 @@ class AndroidApi {
                                 }else{
                                     $msg = 'your account is suspended due to repetition';
                                 }
+                                $ad['state']=$state;
                                 $ad['msg'] = $msg;
 
                                 $encodedAd = json_encode($ad);
                                 $result=null;
                                 $this->api->db->executeStatement($suspendStmt,[                                    
                                     $encodedAd,
-                                    3,
+                                    $state,
                                     $ad_id
                                 ]);
                                 unset($suspendStmt);
                             }else if($ad_id && in_array($ad['se'],array(190,1179,540,1114))){
                                 $dupliactePending = $this->detectIfAdInPending($ad_id, $ad['se'], $ad['cui']);
+                                $state = 3;
                                 if($dupliactePending){
                                     $q='update ad_user set
                                     content=?,state=? 
@@ -959,13 +965,14 @@ class AndroidApi {
                                     }else{
                                         $msg = 'There is another similar ad pending Editors\' approval';
                                     }
+                                    $ad['state']=$state;
                                     $ad['msg'] = $msg;
 
                                     $encodedAd = json_encode($ad);
                                     $result=null;
                                     $this->api->db->executeStatement($suspendStmt,[                                    
                                         $encodedAd,
-                                        3,
+                                        $state,
                                         $ad_id
                                     ]);
                                     unset($suspendStmt);
@@ -981,8 +988,6 @@ class AndroidApi {
                     $this->api->result['d']['state'] = $state;
                     
                     unset($stmt);
-                    
-                   
                 }
                 break;
                 case API_ANDROID_GET_AD:                
@@ -1086,7 +1091,7 @@ class AndroidApi {
                         $ad_id = filter_input(INPUT_POST, 'adid', FILTER_VALIDATE_INT) + 0;
                         $note = urldecode(filter_input(INPUT_POST, 'note', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']]));
                         $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                        IF($ad_id && base64_decode($signature) == strtoupper(hash_hmac('sha1', ($_SERVER['HTTPS'] == 'on' ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                        IF($ad_id && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
                         
                             $this->api->db->setWriteMode();  
                             $result = false;
@@ -1244,10 +1249,11 @@ class AndroidApi {
                     $number = filter_input(INPUT_POST, 'tel');
                     $keyCode = filter_input(INPUT_POST, 'code');
                     $keyCode = is_numeric($keyCode) ? $keyCode : 0;
-                    
+                    $language = filter_input(INPUT_GET, 'hl', FILTER_SANITIZE_STRING , ['options'=>['default'=>'en']]);
                     $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                    $appVersion = filter_input(INPUT_GET, 'apv', FILTER_SANITIZE_STRING , ['options'=>['default'=>'']]);
                     
-                    if($number && base64_decode($signature) == strtoupper(hash_hmac('sha1', ($_SERVER['HTTPS'] == 'on' ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                    if($number && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
                         
                         if($keyCode){                            
                             if(substr($number,0,1)=='+'){
@@ -1291,46 +1297,17 @@ class AndroidApi {
                                     if($prv !== false && isset($prv[0]['ID']) && $prv[0]['ID']){
                                         $number=0;
                                         $keyCode=0;
+                                        $this->api->result['d']['blocked']=1;
                                     }
-                                    /*check if number is suspended*/
-                                    $time = MCSessionHandler::checkSuspendedMobile($number);
-                                    if($time){
-                                        /*$hours = $time / 3600;
-                                        if(ceil($hours)>1){
-                                            $hours = ceil($hours);
-                                            if($lang=='ar'){
-                                                if($hours==2){
-                                                    $hours='ساعتين ';
-                                                }elseif($hours>2 && $hours<11){
-                                                    $hours=$hours.' ساعات';
-                                                }else{
-                                                    $hours = $hours.' ساعة';
-                                                }
-                                            }else{
-                                                $hours = $hours.' hours';
-                                            }
-                                        }else{
-                                            $hours = ceil($time / 60);
-                                            if($lang=='ar'){
-                                                if($hours==1){
-                                                    $hours='دقيقة';
-                                                }if($hours==2){
-                                                    $hours='دقيقتين';
-                                                }elseif($hours>2 && $hours<11){
-                                                    $hours=$hours.' دقائق';
-                                                }else{
-                                                    $hours = $hours.' دقيقة';
-                                                }
-                                            }else{
-                                                if($hours>1){                                
-                                                    $hours = $hours.' minutes';
-                                                }else{                                
-                                                    $hours = $hours.' minute';
-                                                }
-                                            }
-                                        }*/
-                                        $number=0;
-                                        $keyCode=0;
+                                    if($number){
+                                        /*check if number is suspended*/
+                                        $time = MCSessionHandler::checkSuspendedMobile($number);
+                                        $time = 3600;
+                                        if($time>60){
+                                            $number=0;
+                                            $keyCode=0;
+                                            $this->api->result['d']['suspended']=$time;
+                                        }
                                     }                                    
                                     
                                     if($number){                                   
@@ -1443,90 +1420,70 @@ class AndroidApi {
                 case API_ANDROID_SIGN_UP: 
                     $this->api->result['d'] = [];
                     $this->api->result['d']['id'] = -2;
+                    $appVersion = filter_input(INPUT_GET, 'apv', FILTER_SANITIZE_STRING , ['options'=>['default'=>'']]);
                     $username = urldecode(filter_input(INPUT_POST, 'user', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']]));
                     $language = filter_input(INPUT_GET, 'hl', FILTER_SANITIZE_STRING , ['options'=>['default'=>'en']]);
                     $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
                     $newId=-2;
                     $keyCode='0';
-                    if($username && base64_decode($signature) == strtoupper(hash_hmac('sha1', ($_SERVER['HTTPS'] == 'on' ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                    if($username && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
                         require_once $this->api->config['dir'].'/core/model/User.php';
                         $this->api->db->setWriteMode();  
-                        $USER = new User($this->api->db, $this->api->config, null, 0);
-                        $user=$USER->checkAccount($username);
-                        $sendCode=false;
-                        $date = date('Ymd');
-                        if(isset($user[0]['ID']) && $user[0]['ID']){
-                            $newId = $user[0]['ID'];
-                            $opt = json_decode($user[0]['OPTS'], true);
-                            
-                            if(isset($opt['validating'])){
-                                if(!isset($opt['validating'][$date]) || (isset($opt['validating'][$date]) && $opt['validating'][$date]<2)){
-                                    $sendCode=true;
+                        
+                        $doProceed=true;
+                        $isEmail = preg_match('/@/ui', $username);
+                        $isSuspended = 0;
+                        if(!$isEmail){
+                            $number = $username;
+                            if(substr($number,0,1)=='+'){
+                                $number = substr($number,1);
+                            }
+                            /*check if number is blocked*/
+                            $prv = $this->api->db->queryResultArray(
+                                    'select * from bl_phone where telephone = ?',
+                                    [$number],
+                                    true
+                            );
+                            if($prv !== false && isset($prv[0]['ID']) && $prv[0]['ID']){
+                                $doProceed=false;
+                            }
+                            /*check if number is suspended*/
+                            $time = MCSessionHandler::checkSuspendedMobile($number);
+                            if($doProceed && $time>60){                                    
+                                $doProceed=false;
+                                $isSuspended = $time;
+                            }  
+                        }
+                        if(!$doProceed){
+                            if($appVersion){
+                                if($isSuspended){
+                                    $newId = -1 * $isSuspended;
+                                }else{
+                                    $newId = -3;
                                 }
                             }else{
-                                $sendCode=true;
-                            } 
-                            if(isset($opt['accountKey']) && $opt['accountKey']){
-                                $keyCode=$opt['accountKey'];
+                                $newId = -2;
                             }
-                        }else{             
-                            $isEmail = preg_match('/@/ui', $username);
-                            $doProceed=true;
-                            if(!$isEmail){
-                                $number = $username;
-                                if(substr($number,0,1)=='+'){
-                                    $number = substr($number,1);
+                        }else{                        
+                            $USER = new User($this->api->db, $this->api->config, null, 0);
+                            $user=$USER->checkAccount($username);
+                            $sendCode=false;
+                            $date = date('Ymd');
+                            if(isset($user[0]['ID']) && $user[0]['ID']){
+                                $newId = $user[0]['ID'];
+                                $opt = json_decode($user[0]['OPTS'], true);
+
+                                if(isset($opt['validating'])){
+                                    if(!isset($opt['validating'][$date]) || (isset($opt['validating'][$date]) && $opt['validating'][$date]<2)){
+                                        $sendCode=true;
+                                    }
+                                }else{
+                                    $sendCode=true;
+                                } 
+                                if(isset($opt['accountKey']) && $opt['accountKey']){
+                                    $keyCode=$opt['accountKey'];
                                 }
-                                /*check if number is blocked*/
-                                $prv = $this->api->db->queryResultArray(
-                                        'select * from bl_phone where telephone = ?',
-                                        [$number],
-                                        true
-                                );
-                                if($prv !== false && isset($prv[0]['ID']) && $prv[0]['ID']){
-                                    $doProceed=true;
-                                }
-                                /*check if number is suspended*/
-                                $time = MCSessionHandler::checkSuspendedMobile($number);
-                                if($time){
-                                    /*$hours = $time / 3600;
-                                    if(ceil($hours)>1){
-                                        $hours = ceil($hours);
-                                        if($lang=='ar'){
-                                            if($hours==2){
-                                                $hours='ساعتين ';
-                                            }elseif($hours>2 && $hours<11){
-                                                $hours=$hours.' ساعات';
-                                            }else{
-                                                $hours = $hours.' ساعة';
-                                            }
-                                        }else{
-                                            $hours = $hours.' hours';
-                                        }
-                                    }else{
-                                        $hours = ceil($time / 60);
-                                        if($lang=='ar'){
-                                            if($hours==1){
-                                                $hours='دقيقة';
-                                            }if($hours==2){
-                                                $hours='دقيقتين';
-                                            }elseif($hours>2 && $hours<11){
-                                                $hours=$hours.' دقائق';
-                                            }else{
-                                                $hours = $hours.' دقيقة';
-                                            }
-                                        }else{
-                                            if($hours>1){                                
-                                                $hours = $hours.' minutes';
-                                            }else{                                
-                                                $hours = $hours.' minute';
-                                            }
-                                        }
-                                    }*/
-                                    $doProceed=false;
-                                }  
-                            }
-                            if($doProceed){
+                            }else{           
                                 $user = $USER->createNewAccount($username);
                                 if(isset($user[0]['ID']) && $user[0]['ID']){
                                     $newId = $user[0]['ID'];
@@ -1535,49 +1492,47 @@ class AndroidApi {
                                 }else{
                                     $newId=-2;
                                 }
-                            }else{
-                                $newId=-2;
                             }
-                        }
-                        if($sendCode){
-                            $isEmail = preg_match('/@/ui', $username);
-                            $sent=false;
-                            if(!$keyCode){
-                                $keyCode=mt_rand(1000, 9999);
-                            }
-                            if($isEmail){
-                                require_once $this->api->config['dir'].'/bin/utils/MourjanMail.php';
-                                $mailer=new MourjanMail($this->api->config, $language);
-                                
-                                $sent=$mailer->sendEmailCode($username,$keyCode);
-                            }else{
-                                $validator = libphonenumber\PhoneNumberUtil::getInstance();
-                                $num = $validator->parse($username, 'LB');
-                                if($num && $validator->isValidNumber($num)){
-                                    $numberType = $validator->getNumberType($num);
-                                    if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE){
-                                        include_once $this->api->config['dir'].'/core/lib/MourjanNexmo.php';
-                                        $sms = new MourjanNexmo();
-                                        $sent = $sms->sendSMS($username, 
-                                        $keyCode." is your mourjan confirmation code");
+                            if($sendCode){
+                                $isEmail = preg_match('/@/ui', $username);
+                                $sent=false;
+                                if(!$keyCode){
+                                    $keyCode=mt_rand(1000, 9999);
+                                }
+                                if($isEmail){
+                                    require_once $this->api->config['dir'].'/bin/utils/MourjanMail.php';
+                                    $mailer=new MourjanMail($this->api->config, $language);
+
+                                    $sent=$mailer->sendEmailCode($username,$keyCode);
+                                }else{
+                                    $validator = libphonenumber\PhoneNumberUtil::getInstance();
+                                    $num = $validator->parse($username, 'LB');
+                                    if($num && $validator->isValidNumber($num)){
+                                        $numberType = $validator->getNumberType($num);
+                                        if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE){
+                                            include_once $this->api->config['dir'].'/core/lib/MourjanNexmo.php';
+                                            $sms = new MourjanNexmo();
+                                            $sent = $sms->sendSMS($username, 
+                                            $keyCode." is your mourjan confirmation code");
+                                        }else{
+                                            $sent = false;
+                                        }
                                     }else{
-                                        $sent = false;
+                                        $sent=false;
                                     }
-                                }else{
-                                    $sent=false;
                                 }
-                            }
-                            if($sent){
-                                if(!isset($opt['validating'])) $opt['validating'] = array();
-                                if(isset($opt['validating'][$date]) && is_numeric($opt['validating'][$date])){
-                                    $opt['validating'][$date]++;
+                                if($sent){
+                                    if(!isset($opt['validating'])) $opt['validating'] = array();
+                                    if(isset($opt['validating'][$date]) && is_numeric($opt['validating'][$date])){
+                                        $opt['validating'][$date]++;
+                                    }else{
+                                        $opt['validating'][$date]=1;
+                                    }
+                                    $opt['accountKey']=$keyCode;
+                                    $USER->updateOptions($newId,$opt);
                                 }else{
-                                    $opt['validating'][$date]=1;
+                                    $newId=-2;
                                 }
-                                $opt['accountKey']=$keyCode;
-                                $USER->updateOptions($newId,$opt);
-                            }else{
-                                $newId=-2;
                             }
                         }
                     }
@@ -1590,7 +1545,7 @@ class AndroidApi {
                     $id = filter_input(INPUT_POST, 'nuid', FILTER_VALIDATE_INT) + 0;
                     $code = filter_input(INPUT_POST, 'code', FILTER_VALIDATE_INT) + 0;
                     $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                    if($id && $code && base64_decode($signature) == strtoupper(hash_hmac('sha1', ($_SERVER['HTTPS'] == 'on' ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                    if($id && $code && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
                         require_once $this->api->config['dir'].'/core/model/User.php';
                         $this->api->db->setWriteMode();  
                         $USER = new User($this->api->db, $this->api->config, null, 0);
@@ -1654,7 +1609,7 @@ class AndroidApi {
                     $code = filter_input(INPUT_POST, 'code', FILTER_VALIDATE_INT) + 0;
                     $password = urldecode(filter_input(INPUT_POST, 'pass', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']]));
                     $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                    if($id && $password && base64_decode($signature) == strtoupper(hash_hmac('sha1', ($_SERVER['HTTPS'] == 'on' ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                    if($id && $password && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
                         require_once $this->api->config['dir'].'/core/model/User.php';
                         $this->api->db->setWriteMode();  
                         $USER = new User($this->api->db, $this->api->config, null, 0);
@@ -1697,7 +1652,7 @@ class AndroidApi {
                     $password = urldecode(filter_input(INPUT_POST, 'pass', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']]));
                     $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
                     //error_log($username);
-                    if($username && $password && base64_decode($signature) == strtoupper(hash_hmac('sha1', ($_SERVER['HTTPS'] == 'on' ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                    if($username && $password && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
                         require_once $this->api->config['dir'].'/core/model/User.php';
                         $this->api->db->setWriteMode();  
                         $USER = new User($this->api->db, $this->api->config, null, 0);
@@ -1766,7 +1721,7 @@ class AndroidApi {
                     $transaction_id = filter_input(INPUT_POST, 'transaction_id', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
                     $transaction_date = date("Y-m-d H:i:s", filter_input(INPUT_POST, 'transaction_date', FILTER_VALIDATE_INT)+0);                    
                     $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                    IF( ( ($product_id && $transaction_date && $transaction_id) || $transaction) && base64_decode($signature) == strtoupper(hash_hmac('sha1', ($_SERVER['HTTPS'] == 'on' ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                    IF( ( ($product_id && $transaction_date && $transaction_id) || $transaction) && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
                         
                         $transaction_signature = '';
                         $transaction_payload = '';
@@ -1819,7 +1774,7 @@ class AndroidApi {
                             }
                         }
                         /*
-                        if($transaction == '' && ( $product_id && $transaction_date && $transaction_id && base64_decode($signature) == strtoupper(hash_hmac('sha1', ($_SERVER['HTTPS'] == 'on' ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY)))){
+                        if($transaction == '' && ( $product_id && $transaction_date && $transaction_id && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY)))){
                             $proceed = true;
                         }
                         */
@@ -1884,7 +1839,7 @@ class AndroidApi {
                         $coins = filter_input(INPUT_POST, 'coins', FILTER_VALIDATE_INT) + 0;
                         $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
                         $this->api->db->setWriteMode();  
-                        IF($ad_id && $coins && base64_decode($signature) == strtoupper(hash_hmac('sha1', ($_SERVER['HTTPS'] == 'on' ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                        IF($ad_id && $coins && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
                         
                             $result = $this->api->db->queryResultArray("
                                     select a.id, bo.id as bo_id, a.state   
@@ -1975,7 +1930,7 @@ class AndroidApi {
                     if ($status == 1) { 
                         $ad_id = filter_input(INPUT_POST, 'adid', FILTER_VALIDATE_INT) + 0;
                         $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                        IF($ad_id && base64_decode($signature) == strtoupper(hash_hmac('sha1', ($_SERVER['HTTPS'] == 'on' ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                        IF($ad_id && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
                         $this->api->db->setWriteMode();   
                         $result = $this->api->db->queryResultArray("
                                 select id from ad_user where id = ? and web_user_id = ?  
@@ -2073,7 +2028,7 @@ class AndroidApi {
                     $promoIdk = filter_input(INPUT_GET, 'pid', FILTER_SANITIZE_STRING , ['options'=>['default'=>'']]);
                     $claimOk = filter_input(INPUT_GET, 'ok', FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
                     $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                    IF($promoIdk && base64_decode($signature) == strtoupper(hash_hmac('sha1', ($_SERVER['HTTPS'] == 'on' ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                    IF($promoIdk && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
                     
                         require_once $this->api->config['dir'].'/core/model/User.php';
                         $USER = new User(null, null, null, 0);
@@ -2125,7 +2080,7 @@ class AndroidApi {
                     if(!in_array($language, ['en','ar'])){
                         $language = 'en';
                     }
-                    IF($promoIdk && base64_decode($signature) == strtoupper(hash_hmac('sha1', ($_SERVER['HTTPS'] == 'on' ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                    IF($promoIdk && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
                         
                         require_once $this->api->config['dir'].'/core/model/User.php';
                         $USER = new User(null, null, null, 0);
@@ -2170,7 +2125,7 @@ class AndroidApi {
                         if(!in_array($language, ['en','ar'])){
                             $language = 'en';
                         }
-                        IF(base64_decode($signature) == strtoupper(hash_hmac('sha1', ($_SERVER['HTTPS'] == 'on' ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                        IF(base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
                             $rs = $this->api->db->queryResultArray(
                             "SELECT count(*) as total 
                             FROM T_TRAN r

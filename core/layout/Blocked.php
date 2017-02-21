@@ -25,7 +25,7 @@ class Blocked extends Page{
                         $hours = ceil($hours);
                         if($this->urlRouter->siteLanguage=='ar'){
                             if($hours==2){
-                                $hours='ساعتين ';
+                                $hours='ساعتين';
                             }elseif($hours>2 && $hours<11){
                                 $hours=$hours.' ساعات';
                             }else{
@@ -39,7 +39,7 @@ class Blocked extends Page{
                         if($this->urlRouter->siteLanguage=='ar'){
                             if($hours==1){
                                 $hours='دقيقة';
-                            }if($hours==2){
+                            }elseif($hours==2){
                                 $hours='دقيقتين';
                             }elseif($hours>2 && $hours<11){
                                 $hours=$hours.' دقائق';
