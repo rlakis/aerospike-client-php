@@ -10,6 +10,9 @@ class MourjanNexmo extends NexmoMessage{
     }
     
     function sendSMS($to, $message, $clienRef=null, $unicode=null){
+        if(!preg_match('/^(?:00|\+)/', $to)){
+            $to = '+'.$to;
+        }
         $validator = libphonenumber\PhoneNumberUtil::getInstance();
         $num = $validator->parse($to, 'LB');
         $countryCode = $num->getCountryCode();
