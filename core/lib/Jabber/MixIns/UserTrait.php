@@ -32,7 +32,7 @@ trait UserTrait
                 'password' => $password
             ]
         );
-        if ($response['res'] != 0) {
+        if ($response != 0) {
             throw new \RuntimeException('Unable create user');
         }
     }
@@ -121,10 +121,12 @@ trait UserTrait
     public function sendMessageChat($fromJid, $toJid, $message)
     {
         $this->sendRequest(
-            'send_message_chat',
+            'send_message',
             [
+                'type' => 'chat',
                 'from' => $fromJid,
                 'to'   => $toJid,
+                'subject' => 'test',
                 'body' => $message
             ]
         );
@@ -382,6 +384,20 @@ trait UserTrait
     {
         $users = $this->sendRequest('connected_users', []);
         return isset($users['connected_users']) ? $users['connected_users'] : [];
+    }
+    
+    
+    public function addRosterItem($localuser, $user, $nick="", $group="", $subs="both")
+    {
+        $this->sendRequest(
+                'add_rosteritem', [
+                    "localuser"=> $localuser,
+                    "localserver"=> $this->host,
+                    "user"=> $user,
+                    "server"=> $this->host,
+                    "nick"=> $nick,
+                    "group"=> $group,
+                    "subs"=> $subs]);
     }
 }
 

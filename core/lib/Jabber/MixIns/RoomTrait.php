@@ -141,5 +141,15 @@ trait RoomTrait
             ]
         );
     }
+    
+    /**
+     * 
+     * @param string $name The room name.
+     * @param string $userJid
+     */
+    public function subscribeRoom($name, $userJid, $nickName)
+    {
+        $this->sendRequest('subscribe_room', ['user'=>$userJid, 'nick'=>$nickName, 'room'=>$name.'@conference.' . $this->host, 'node'=>'ejabberd@localhost']);
+    }
 }
 
