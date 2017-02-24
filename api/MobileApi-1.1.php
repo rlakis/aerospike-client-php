@@ -1397,7 +1397,7 @@ class MobileApi
                 $mobile = $this->db->queryResultArray(
                         "select m.ID, m.MOBILE
                         from WEB_USERS_LINKED_MOBILE m
-                        where m.uid=? and datediff(year from m.ACTIVATION_TIMESTAMP to CURRENT_TIMESTAMP) = 0 order by m.ACTIVATION_TIMESTAMP desc",
+                        where m.uid=? and m.ACTIVATION_TIMESTAMP > CURRENT_date - 366 order by m.ACTIVATION_TIMESTAMP desc",
                         [$this->uid], TRUE);
                 if(is_array($mobile) && isset($mobile[0]['ID']) && $mobile[0]['ID']){
                     $this->result['d']['mobile']=$mobile[0]['MOBILE'];

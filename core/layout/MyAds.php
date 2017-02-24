@@ -1572,7 +1572,7 @@ var rtMsgs={
             
             if($this->user->info['level']==9 && $mcUser && $mcUser->isBlocked()){
                 $msg = 'User is Blocked';
-                $reason = $this->user->getBlockingReason($mcUser->getMobileNumber());
+                $reason = preg_replace(['/\</','/\>/'],['&#60;','&#62;'],$this->user->getBlockingReason($mcUser->getMobileNumber()));
                 if($reason){
                     $msg = $msg.'<br />'.$reason;
                 }

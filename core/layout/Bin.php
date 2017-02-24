@@ -2695,14 +2695,14 @@ class Bin extends AjaxHandler{
                                 if($mcUser->isMobileVerified()){
                                     $status = $mcUser->isSuspended() ? 1:0;
                                 }else{
-                                    $status = $this->user->detectDuplicateSuspension($ad['cui']); 
+                                    $status = $this->user->detectDuplicateSuspension($ad['cui']);
+                                }
+                                if($status == 1){ 
                                     if($ad['rtl']){
                                         $msg = 'لقد تم ايقاف حسابك بشكل مؤقت نظراً للتكرار';
                                     }else{
                                         $msg = 'your account is suspended due to repetition';
                                     }
-                                }
-                                if($status == 1){
                                     $this->user->rejectAd($adId,$msg);
                                 }else if(in_array($section_id,array(190,1179,540,1114))){
                                     $dupliactePending = $this->user->detectIfAdInPending($adId, $section_id, $ad['cui']);

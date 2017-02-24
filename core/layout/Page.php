@@ -41,7 +41,7 @@ class Page extends Site{
         }
         
         /*$row = $this->urlRouter->db->queryResultArray(
-                                "select * from web_users_device where uuid = ?", ['FB963563-7201-4E44-BEFD-D44BC32BA3DB']);
+                                "select * from web_users_linked_mobile where mobile containing ?", ['66966912']);
         var_dump($row);*/
         
         $cdn = $this->urlRouter->cfg['url_resources'];
