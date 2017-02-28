@@ -33,12 +33,11 @@ interface EjabberdExternalAuth_UserManagement
 abstract class EjabberdExternalAuth 
 {
 
-    private $db     = null;
     private $log    = null;
     private $stdin  = null;
     private $stdout = null;
     
-    public static $logLevel = array(LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR, LOG_WARNING, LOG_INFO, LOG_KERN);
+    public static $logLevel = [LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR, LOG_WARNING, LOG_INFO, LOG_KERN];
 
     /**
      * Corresponds to `auth` operation.
@@ -51,15 +50,15 @@ abstract class EjabberdExternalAuth
     abstract protected function exists($user, $server);
 
 
-    final public function __construct(PDO $db = null, $log = null) 
+    final public function __construct($log = null) 
     {
         set_error_handler(array($this, 'errorHandler'));
         
-        $this->db     = $db;
         $this->stdin  = fopen('php://stdin', 'rb');
         $this->stdout = fopen('php://stdout', 'wb');
 
-        if ($log) {
+        if ($log) 
+        {
             $this->log = fopen($log, 'a');
         }
 
@@ -74,9 +73,7 @@ abstract class EjabberdExternalAuth
         $this->log('Exiting...', LOG_INFO);
     }
     
-    final protected function db() {
-        return $this->db;
-    }
+   
 
     
     final private function work() 
@@ -178,7 +175,8 @@ abstract class EjabberdExternalAuth
     
     final protected function log($message, $severity = LOG_ERR) 
     {
-        if ($this->log && in_array($severity, self::$logLevel, true)) {
+        if ($this->log && in_array($severity, self::$logLevel, true)) 
+        {
             static $types = array(
                 LOG_EMERG   => 'EMERGENCY',
                 LOG_ALERT   => 'ALERT',
