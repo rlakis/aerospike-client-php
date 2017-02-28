@@ -279,6 +279,65 @@ class MCUser extends MCJsonMapper
         return $this->data->prps;
     }
     
+    
+    /**
+    * Ensures an ip address is both a valid IP and does not fall within
+    * a private network range.
+    */
+    private function validate_ip($ip)
+    {
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) 
+        {
+            return false;
+        }
+        return true;
+    }
+
+    
+    public function getRealIPAddress()
+    {
+        $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
+        foreach ($ip_keys as $key) 
+        {
+            $val = filter_input(INPUT_SERVER, $key, FILTER_SANITIZE_STRING);
+            if (!empty($val)) 
+            {
+                foreach (explode(',', $val) as $ip) 
+                {
+                    // trim for safety measures
+                    $ip = trim($ip);
+                    // attempt to validate IP
+                    if ($this->validate_ip($ip)) 
+                    {
+                        return $ip;
+                    }
+                }
+            }
+        }
+        $val = filter_input(INPUT_SERVER, 'REMOTE_ADDR', FILTER_SANITIZE_STRING);
+        if (!empty($val))
+        {
+            return $val;
+        }
+        
+        return false;
+    }
+    
+
+    
+    public function generateToken() : string
+    {
+        $key = "9613287168";
+        $token = [
+            "mobile"=> $this->getMobileNumber(), 
+            "date_created"=> $this->getRegisterUnixtime(), 
+            "identifier"=> $this->getProviderIdentifier(), 
+            "provider"=> $this->getProvider(),
+            "ip"=> $this->getRealIPAddress()];
+        
+        $jwt = JWT::encode($token, $key);
+        return $jwt;
+    }
 }
 
 
