@@ -325,17 +325,21 @@ class MCUser extends MCJsonMapper
     
 
     
-    public function generateToken() : string
+    public function createToken($secret) : string
     {
-        $key = "9613287168";
-        $token = [
+        $claim = [
+            "iss" => "mourjan", /* issuer */
+            "sub" => "any", /* subject */
+            "nbf" => time(), /* not before time */
+            "exp" => time() + 24*60*60, /* expiration */
+            "iat" => time(), /* issued at */
+            "typ" => "jabber", /* type */
             "mobile"=> $this->getMobileNumber(), 
             "date_created"=> $this->getRegisterUnixtime(), 
             "identifier"=> $this->getProviderIdentifier(), 
-            "provider"=> $this->getProvider(),
-            "ip"=> $this->getRealIPAddress()];
+            "provider"=> $this->getProvider()];
         
-        $jwt = JWT::encode($token, $key);
+        $jwt = JWT::encode($claim, $secret);
         return $jwt;
     }
 }
