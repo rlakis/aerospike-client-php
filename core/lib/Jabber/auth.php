@@ -1,19 +1,16 @@
-#!/opt/php.7.0.16/bin/php
 <?php
 require 'external_auth.php';
-require 'firebase/php-jwt/src/JWT.php';
-use Firebase\JWT\JWT;
+require get_cfg_var('mourjan.path') . '/core/lib/MCSessionHandler.php';
+require get_cfg_var('mourjan.path') . '/core/lib/MCUser.php';
 
 
-class MyAuth extends EjabberdExternalAuth 
+class EjabberdJWTAuth extends EjabberdExternalAuth 
 {
 
     protected function authenticate($user, $server, $password) 
     {
-        //$this->db()->prepare(...);
-        // here be dragons
-        $this->log($user . ' ' . $server, LOG_INFO);
-        $isValid = ($server==='mourjan.com' && ($user=='2' || $user=='1'));
+        $mcUser = new MCUser(  MCSessionHandler::getUser($user) );        
+        $isValid = ($server==='mourjan.com' && $mcUser->isValidToken($password));
         return $isValid;
     }
 
@@ -27,23 +24,7 @@ class MyAuth extends EjabberdExternalAuth
 }
 
 
-//new MyAuth(NULL, '/var/log/mourjan/myauth.log');
 
-$key = "9613287168";
-$token = ["mobile"=>9613287168, "date_created"=>"01.02.2012", "identifier"=>"1727582100", "provider"=>"facebook"];
-$jwt = JWT::encode($token, $key);
+//$token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtb3VyamFuIiwic3ViIjoiYW55IiwibmJmIjoxNDg4MzgzNTEwLCJleHAiOjE0ODg0Njk5MTAsImlhdCI6MTQ4ODM4MzUxMCwidHlwIjoiamFiYmVyIiwicGlkIjo5MTcxLCJtb2IiOiI5NjEzMjg3MTY4IiwidXJkIjoxMzI4MDU0NDAwLCJ1aWQiOiIxNzI3NTgyMTAwIiwicHZkIjoiZmFjZWJvb2sifQ.pSCk8AdrRPBWy6OdkGkNPFzaZJTDjdk_ZG0o8Y-__TA";
 
-echo $jwt, "\n\n";
-
-/**
- * You can add a leeway to account for when there is a clock skew times between
- * the signing and verifying servers. It is recommended that this leeway should
- * not be bigger than a few minutes.
- *
- * Source: http://self-issued.info/docs/draft-ietf-oauth-json-web-token.html#nbfDef
- */
-JWT::$leeway = 60; // $leeway in seconds
-$decoded = JWT::decode($jwt, $key, array('HS256'));
-
-
-print_r( $decoded );
+new EjabberdJWTAuth(NULL, '/var/log/mourjan/myauth.log');

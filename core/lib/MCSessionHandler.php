@@ -62,6 +62,7 @@ class MCSessionHandler implements \SessionHandlerInterface
         return $pass;
     }
 
+    
     public static function getUser($user_id)
     {
         $user= json_decode('{}');
@@ -77,26 +78,35 @@ class MCSessionHandler implements \SessionHandlerInterface
                 
                 $user = json_decode($redis->get($user_id) ? : '{}');
                 
-                if(!isset($user->id)){
+                if (!isset($user->id))
+                {
                     $redisPublisher = new Redis();
-                    if($redisPublisher->connect('p1.mourjan.com',6379,2,NULL,20)){
+                    if ($redisPublisher->connect('p1.mourjan.com', 6379, 2, NULL, 20))
+                    {
                         $redisPublisher->publish('FBEventManager','{"event":"cache","action":"user","id":'.$user_id.'}');
                         $time = 0;
-                        do{
+                        do
+                        {
                             usleep(500);
                             $time+=500;
                             $user = json_decode($redis->get($user_id) ? : '{}');
-                        }while($time < 2000000 && !isset($user->id));
+                        } while ($time < 2000000 && !isset($user->id));
                     }
                 }
-                if(isset($user->id) && isset($user->mobile->number) && $user->mobile->number){
+                
+                if (isset($user->id) && isset($user->mobile->number) && $user->mobile->number)
+                {
                     $redis->setOption(Redis::OPT_PREFIX, 'mm_');
                     $suspended = $redis->ttl($user->mobile->number);
-                    if($suspended<0){
+                    if ($suspended<0)
+                    {
                         $suspended=0;
-                    }else{
+                    }
+                    else
+                    {
                         $suspended = time()+$suspended;
                     }
+                    
                     $user->opts->suspend = $suspended+0;
                 }
             }
@@ -116,6 +126,8 @@ class MCSessionHandler implements \SessionHandlerInterface
         return $user;
     }
     
+    
+   
     
     private function openMem() 
     {

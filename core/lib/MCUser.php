@@ -1,6 +1,7 @@
 <?php
 require_once 'vendor/autoload.php';
-
+use Firebase\JWT\JWT;
+        
 class MCJsonMapper
 {
     protected $metadata = [];
@@ -325,22 +326,103 @@ class MCUser extends MCJsonMapper
     
 
     
-    public function createToken($secret) : string
+    public function createToken() : string
     {
+
+        $secret = hash('sha256', random_bytes(512), FALSE);
+        
         $claim = [
             "iss" => "mourjan", /* issuer */
             "sub" => "any", /* subject */
             "nbf" => time(), /* not before time */
-            "exp" => time() + 24*60*60, /* expiration */
+            "exp" => time(NULL) + 86400, /* expiration */
             "iat" => time(), /* issued at */
             "typ" => "jabber", /* type */
-            "mobile"=> $this->getMobileNumber(), 
-            "date_created"=> $this->getRegisterUnixtime(), 
-            "identifier"=> $this->getProviderIdentifier(), 
-            "provider"=> $this->getProvider()];
+            "pid" => getmypid(),
+            "mob" => $this->getMobileNumber(), 
+            "urd" => $this->getRegisterUnixtime(), 
+            "uid" => $this->getProviderIdentifier(), 
+            "pvd" => $this->getProvider()];
         
         $jwt = JWT::encode($claim, $secret);
+        
+        try 
+        {
+            $redis = new Redis();
+            
+            if ($redis->connect('138.201.28.229', 6379, 2, NULL, 20)) 
+            {
+                $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+                $redis->setOption(Redis::OPT_PREFIX, 'jwt_');
+                $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
+                $claim['key']=$secret;
+                
+                $redis->set($this->getID(), json_encode($claim));
+                
+                $redis->expireAt($this->getID(), $claim['exp']);
+            }
+            else 
+            {
+                error_log("Could not connect to redis user store! " . $redis->getLastError(). '?!?!');
+            }            	
+        }
+        catch (RedisException $re) 
+        {           
+            error_log(PHP_EOL . PHP_EOL . $re->getCode() . PHP_EOL . $re->getMessage() . PHP_EOL . $re->getTraceAsString() . PHP_EOL);
+        }
+        finally 
+        {
+            $redis->close();
+        }
         return $jwt;
+    }
+    
+    
+    public function isValidToken($token) : bool
+    {
+        //$start = microtime(TRUE);
+        $result = FALSE;
+        try 
+        {
+            $redis = new Redis();
+            
+            if ($redis->connect('138.201.28.229', 6379, 2, NULL, 20)) 
+            {
+                $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+                $redis->setOption(Redis::OPT_PREFIX, 'jwt_');
+                $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
+         
+                $str = $redis->get($this->getID());
+                if ($str)
+                {
+                    $claim = json_decode($str, TRUE);
+                    $secret = $claim['key'];
+                    unset($claim['key']);
+                    //echo "\nRedis:\n";
+                    //var_dump($claim);
+                    JWT::$leeway = 60; // $leeway in seconds
+                    $decoded = (array)  JWT::decode($token, $secret, array('HS256'));
+                    //echo "\nDecoded:\n";
+                    //var_dump($decoded);
+                    $result = ($claim==$decoded && $decoded['nbf']<time());
+                }
+            }
+            else 
+            {
+                error_log("Could not connect to redis user store! " . $redis->getLastError(). '?!?!');
+            }            	
+        }
+        catch (RedisException $re) 
+        {           
+            error_log(PHP_EOL . PHP_EOL . $re->getCode() . PHP_EOL . $re->getMessage() . PHP_EOL . $re->getTraceAsString() . PHP_EOL);
+        }
+        finally 
+        {
+            $redis->close();
+        }
+        //$end = microtime(TRUE);
+        //echo "\nmicro: ", ($end-$start)*1000.0, " ms \n";
+        return $result;
     }
 }
 
