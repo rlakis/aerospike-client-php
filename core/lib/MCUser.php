@@ -424,6 +424,38 @@ class MCUser extends MCJsonMapper
         //echo "\nmicro: ", ($end-$start)*1000.0, " ms \n";
         return $result;
     }
+    
+    
+    public function destroyToken()
+    {
+        try 
+        {
+            $redis = new Redis();
+            
+            if ($redis->connect('138.201.28.229', 6379, 2, NULL, 20)) 
+            {
+                $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
+                $redis->setOption(Redis::OPT_PREFIX, 'jwt_');
+                $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
+                
+                $redis->expire($this->getID(), 30);
+            }
+            else 
+            {
+                error_log("Could not connect to redis user store! " . $redis->getLastError(). '?!?!');
+            }            	
+        }
+        catch (RedisException $re) 
+        {           
+            error_log(PHP_EOL . PHP_EOL . $re->getCode() . PHP_EOL . $re->getMessage() . PHP_EOL . $re->getTraceAsString() . PHP_EOL);
+        }
+        finally 
+        {
+            $redis->close();
+        }
+    }
+    
+    
 }
 
 

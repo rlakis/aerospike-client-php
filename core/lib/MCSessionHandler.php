@@ -249,7 +249,7 @@ class MCSessionHandler implements \SessionHandlerInterface
     public function write($id, $data) 
     {
         if (MCSessionHandler::FULL_REDIS)
-        {
+        {            
             return $this->storage->setex($id, $this->ttl, $data);
         }
         
