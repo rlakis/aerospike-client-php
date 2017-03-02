@@ -103,29 +103,35 @@ abstract class EjabberdExternalAuth
                 case 'auth' :
                     $response = $this->authenticate($message['user'], $message['server'], $message['password']);
                     break;
+                
                 case 'isuser' :
                     $response = $this->exists($message['user'], $message['server']);
                     break;
             }
             
-            /*
-            if ($this instanceof EjabberdExternalAuth_UserManagement) {
-                switch ($message['command']) {
+            
+            if ($this instanceof EjabberdExternalAuth_UserManagement) 
+            {
+                switch ($message['command']) 
+                {
                     case 'setpass' :
                         $response = $this->setPassword($message['user'], $message['server'], $message['password']);
                         break;
+                
                     case 'tryregister' :
                         $response = $this->register($message['user'], $message['server'], $message['password']);
                         break;
+                    
                     case 'removeuser' :
                         $response = $this->remove($message['user'], $message['server']);
                         break;
+                    
                     case 'removeuser3' :
                         $response = $this->removeSafely($message['user'], $message['server'], $message['password']);
                         break;
                 }
             }
-            */
+            
             $this->respond($response);
         }
     }

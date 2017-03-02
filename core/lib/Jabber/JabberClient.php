@@ -56,10 +56,10 @@ class JabberClient
         $this->server = $options['server'];
         $this->host = 'mourjan.com';
         $this->username = '9613287168@mourjan.com';
-        $this->password = 'f0sVSPrO';
+        $this->password = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtb3VyamFuIiwic3ViIjoiYW55IiwibmJmIjoxNDg4MzgzNTEwLCJleHAiOjE0ODg0Njk5MTAsImlhdCI6MTQ4ODM4MzUxMCwidHlwIjoiamFiYmVyIiwicGlkIjo5MTcxLCJtb2IiOiI5NjEzMjg3MTY4IiwidXJkIjoxMzI4MDU0NDAwLCJ1aWQiOiIxNzI3NTgyMTAwIiwicHZkIjoiZmFjZWJvb2sifQ.pSCk8AdrRPBWy6OdkGkNPFzaZJTDjdk_ZG0o8Y-__TA';
         $this->timeout = 5;
         $this->debug = TRUE;
-        $this->userAgent = 'XMLRPC::Client Mourjan site';
+        $this->userAgent = 'JSON API:Client Mourjan site';
         
     }
     
@@ -113,6 +113,7 @@ class JabberClient
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+        curl_setopt($ch, CURLOPT_SSL_OPTIONS, CURL_SSLVERSION_TLSv1);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
                             'Content-Type: application/json',
                             'Content-Length: ' . strlen($data_string),
@@ -121,12 +122,14 @@ class JabberClient
                     ]);
 
         $response = curl_exec($ch);
-                echo "----------------------------------------------------------------", "\n";
-        print_r($response);
-        print_r(curl_error($ch));
-        ECHO "----","\n";
-
+        $error= curl_error($ch);
         curl_close($ch);
+
+        echo "----------------------------------------------------------------", "\n";
+        echo $response,"\n";
+        echo $error, "\n";                                
+        ECHO "----------------------------------------------------------------","\n";
+
 
         if ($this->debug)
         {
@@ -140,9 +143,9 @@ class JabberClient
 
 
 
-$jc = new JabberClient(['server'=>'http://localhost:5280/api']);
+$jc = new JabberClient(['server'=>'https://dv.mourjan.com:5280/api']);
 //$jc->createUser('1', 'GQ71BUT2');
-//$jc->createUser('3', 'GQ71but244');
+$jc->createUser('4', 'GQ71but244');
 
 //var_dump($jc->checkAccount(['96171750413']));
 //$jc->createRoom("96171750413-1400-rlakis");
@@ -152,8 +155,8 @@ $jc = new JabberClient(['server'=>'http://localhost:5280/api']);
 //$jc->inviteToRoom("96171750413-1400-rlakis", "", "test chat", ["rlakis@mourjan.com"]);
 //$jc->getConnectedUsers();
 
-$jc->addRosterItem("2", "3");
-$jc->addRosterItem("3", "2");
+//$jc->addRosterItem("2", "3");
+//$jc->addRosterItem("3", "2");
 
 //$jc->sendMessageChat("2", "1", "Hello there");
 //$jc->subscribeRoom("96171750413-1400-rlakis", "rlakis@mourjan.com", "Advertiser");
