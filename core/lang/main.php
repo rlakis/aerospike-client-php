@@ -146,7 +146,7 @@ $lang=array(
     "desc_held"     =>  "Your account has been suspended <b>temporarily</b> and you cannot post any ads for the next <b>{hours}</b>.<br />Most likely your account has been suspended for one of the following reasons:",
     'desc_held_reasons' => "<ul class='rc sh'><li>
         Repeating ads
-        </li></ul><p><br />After <b>{hours}</b>, your account will be reinstated automatically and you will be able to post new ads again.</p>",
+        </li><li>your ad has been rejected multiple times without you correcting the reason for which it was rejected</li></ul><p><br />After <b>{hours}</b>, your account will be reinstated automatically and you will be able to post new ads again.</p>",
     "desc_blocked"     =>  "Your account has been blocked and cannot access the site services after failing to abide to Mourjan.com's <a href='/terms/en/'>Terms of use</a>. If you think that your account was blocked by accident, <a href='/contact/en/'>contact us</a>.<br /><br />
         Most likely your account has been blocked for one of the following reasons:",
     'desc_blocked_reasons' => "<ul class='rc sh'><li>
