@@ -355,10 +355,9 @@ class MCUser extends MCJsonMapper
                 $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
                 $redis->setOption(Redis::OPT_PREFIX, 'jwt_');
                 $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
-                $claim['key']=$secret;
-                
-                $redis->set($this->getID(), json_encode($claim));
-                
+                $claim['key'] = $secret;
+                $claim['jwt'] = $jwt;
+                $redis->set($this->getID(), json_encode($claim));                
                 $redis->expireAt($this->getID(), $claim['exp']);
             }
             else 
@@ -396,15 +395,17 @@ class MCUser extends MCJsonMapper
                 if ($str)
                 {
                     $claim = json_decode($str, TRUE);
+                    
                     $secret = $claim['key'];
-                    unset($claim['key']);
-                    //echo "\nRedis:\n";
-                    //var_dump($claim);
+                    $jwt = $claim['jwt'];
+
+                    unset( $claim['key'] );
+                    unset( $claim['jwt'] );
+                    
                     JWT::$leeway = 60; // $leeway in seconds
                     $decoded = (array)  JWT::decode($token, $secret, array('HS256'));
-                    //echo "\nDecoded:\n";
-                    //var_dump($decoded);
-                    $result = ($claim==$decoded && $decoded['nbf']<time());
+                    
+                    $result = ($claim==$decoded && $decoded['nbf']<time() && $token===$jwt);
                 }
             }
             else 

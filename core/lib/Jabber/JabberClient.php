@@ -145,9 +145,9 @@ class JabberClient
 
 $jc = new JabberClient(['server'=>'https://dv.mourjan.com:5280/api']);
 //$jc->createUser('1', 'GQ71BUT2');
-$jc->createUser('4', 'GQ71but244');
+//$jc->createUser('4', 'GQ71but244');
 
-//var_dump($jc->checkAccount(['96171750413']));
+var_dump( $jc->checkAccount(['1']) );
 //$jc->createRoom("96171750413-1400-rlakis");
 
 //$jc->deleteRoom("96171750413-1400-rlakis");
@@ -155,8 +155,8 @@ $jc->createUser('4', 'GQ71but244');
 //$jc->inviteToRoom("96171750413-1400-rlakis", "", "test chat", ["rlakis@mourjan.com"]);
 //$jc->getConnectedUsers();
 
-//$jc->addRosterItem("2", "3");
+$jc->addRosterItem("2", "4");
 //$jc->addRosterItem("3", "2");
 
-//$jc->sendMessageChat("2", "1", "Hello there");
+$jc->sendMessageChat("2", "4", "Hello there");
 //$jc->subscribeRoom("96171750413-1400-rlakis", "rlakis@mourjan.com", "Advertiser");

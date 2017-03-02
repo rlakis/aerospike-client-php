@@ -22,13 +22,16 @@ class EjabberdJWTAuth extends EjabberdExternalAuth
 
     protected function exists($user, $server) 
     {
-        return true;
+        $mcUser = new MCUser(  MCSessionHandler::getUser($user) );
+        if ($mcUser->getID()==$user && $mcUser->getLevel()!=5)
+        {
+            return TRUE;
+        }
+        
+        return FALSE;
     }
 
 }
 
-
-
-//$token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtb3VyamFuIiwic3ViIjoiYW55IiwibmJmIjoxNDg4MzgzNTEwLCJleHAiOjE0ODg0Njk5MTAsImlhdCI6MTQ4ODM4MzUxMCwidHlwIjoiamFiYmVyIiwicGlkIjo5MTcxLCJtb2IiOiI5NjEzMjg3MTY4IiwidXJkIjoxMzI4MDU0NDAwLCJ1aWQiOiIxNzI3NTgyMTAwIiwicHZkIjoiZmFjZWJvb2sifQ.pSCk8AdrRPBWy6OdkGkNPFzaZJTDjdk_ZG0o8Y-__TA";
 
 new EjabberdJWTAuth(NULL, '/var/log/mourjan/myauth.log');
