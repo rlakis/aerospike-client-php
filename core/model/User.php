@@ -1783,7 +1783,6 @@ order by m.activation_timestamp desc',
     function authenticate(){
         if( isset( $_GET["connected_with"]) || isset( $_GET["logout"] )) {
             $config   = $this->cfg['dir'] . '/web/lib/hybridauth/config.php';
-            //require_once( $this->cfg['dir'] . '/web/lib/hybridauth/Hybrid/Auth.php' );
             $loaded=true;
             try{
                 $hybridauth = new Hybrid_Auth( $config );
@@ -1792,7 +1791,8 @@ order by m.activation_timestamp desc',
                 $loaded=false;
             }
             
-            if ($loaded){
+            if ($loaded)
+            {
                 if( isset( $_GET["logout"] ) ){
                     if($_GET["logout"]!='mourjan' && $_GET["logout"]!="mourjan-iphone"){
                         $provider = $_GET["logout"];
@@ -1807,16 +1807,17 @@ order by m.activation_timestamp desc',
                     $adapter = $hybridauth->getAdapter( $provider );
                     $auth_info = $adapter->getUserProfile();
                     
-                    
                     $this->updateUserRecord($auth_info,$provider);
                 }
             }
+            
         }elseif(isset($_GET['identifier'])) {
             $id=$this->site->get('identifier', 'uint');
             $key=$this->site->get('cks');
             if ($id && $key){
                 $id=$id-$this->site->urlRouter->baseUserId;
                 if ($id>0){
+                    //error_log(json_encode($_GET, JSON_PRETTY_PRINT));
                     $this->authenticateById($id, $key);
                 }
             }
@@ -2248,25 +2249,21 @@ order by m.activation_timestamp desc',
         $dispName=(!is_null($info->displayName) ? $info->displayName : '');
         $infoStr=(!is_null($info->profileURL) ? $info->profileURL : '');
         
-        $userRec=$this->db->queryResultArray("select id from web_users where identifier = ? and provider = ?",array($identifier,$provider));
-        if($userRec!==false){
-            if(empty($userRec)){
+        $userRec=$this->db->queryResultArray("select id from web_users where identifier=? and provider=?", array($identifier,$provider));
+        if ($userRec!==false)
+        {
+            if(empty($userRec))
+            {
                 $this->pending['social_new']=1;                
             }
         }
         $q='update or insert into web_users
             (IDENTIFIER, email, provider, full_name, display_name, profile_url, last_visit)
             values (?, ?, ?, ?, ?, ?, current_timestamp)
-            matching (identifier, provider) returning id,provider,lvl,display_name, email, user_rank,user_name,user_email,opts,prev_visit,last_visit';
+            matching (identifier, provider) 
+            returning id, provider, lvl, display_name, email, user_rank, user_name, user_email, opts, prev_visit, last_visit';
             
-        $result=$this->db->queryResultArray($q, array(
-            $identifier,
-            $email,
-            $provider,
-            $fullName,
-            $dispName,
-            $infoStr
-        ),true);
+        $result=$this->db->queryResultArray($q, [$identifier, $email, $provider, $fullName, $dispName, $infoStr], true);
         
         if ($result && count($result)) {
             /*
@@ -2279,6 +2276,9 @@ order by m.activation_timestamp desc',
                 setcookie('mourjan_log', json_encode($info), time()+2592000,'/',$this->cfg['site_domain']);
             }
             */
+            // User logged in
+            //error_log(json_encode($result, JSON_PRETTY_PRINT));
+            
             
             $this->setUserParams($result);
 
@@ -2723,22 +2723,28 @@ order by m.activation_timestamp desc',
         setcookie('mourjan_sess', json_encode($info), 0,'/',$this->cfg['site_domain']);
     }
 
-    function populate(){
+    
+    function populate()
+    {
         $this->session_id=session_id().$this->cfg['site_key'];
         if (isset($_SESSION[$this->session_id]['info'])) $this->info=$_SESSION[$this->session_id]['info'];
         if (isset($_SESSION[$this->session_id]['params'])) $this->params=$_SESSION[$this->session_id]['params'];
         if (isset($_SESSION[$this->session_id]['pending'])) $this->pending=$_SESSION[$this->session_id]['pending'];
         
-        if($this->info['id']){
+        if($this->info['id'])
+        {
             $data = $this->info['data'] = new MCUser(MCSessionHandler::getUser($this->info['id']));
-            if($data->getID()){
+            if($data->getID())
+            {
                 $this->info['level'] = $data->getLevel();
                 $this->info['verified'] = $data->isMobileVerified();
                 $this->info['options']['suspend'] = $data->getSuspensionTime();
+                $data->createToken();
             }
         }
         $this->update();   
     }
+    
     
     function refreshCache($uid=0){
         if(!$uid) $uid = $this->info['id'];
@@ -2802,6 +2808,7 @@ order by m.activation_timestamp desc',
         $_SESSION[$this->session_id]['pending']=$this->pending;
     }
 
+    
     function logout(){
         $countryId=isset($this->params['country'])?$this->params['country']:0;
         $cityId=isset($this->params['city'])?$this->params['city']:0;
@@ -2813,9 +2820,15 @@ order by m.activation_timestamp desc',
             setcookie('__uvme', '', 1,'/',$this->cfg['site_domain']);
         }
                 
-        if (session_destroy()) {
-        	session_start();
+        if (session_destroy()) 
+        {
+            session_start();
             session_regenerate_id();
+            if (isset($this->info['data']))
+            {
+                $this->info['data']->destroyToken();
+            }
+            
             $this->reset();
             $this->params['country']=$countryId;
             $this->params['city']=$cityId;
