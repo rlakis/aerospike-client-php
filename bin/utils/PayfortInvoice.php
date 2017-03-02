@@ -7,7 +7,7 @@ $rs = $db->queryResultArray(
                 from T_TRAN t
                 left JOIN T_PAYFORT p on p.FORT_ID=t.TRANSACTION_ID
                 where t.GATEWAY = 'PAYFORT'
-                and t.DATED between '01.10.2016' and '31.12.2016 23:59:59'
+                and t.DATED between '01.01.2017 00:00:00.000' and '28.02.2017 23:59:59.999'
                 order by t.ID
             ");
 
