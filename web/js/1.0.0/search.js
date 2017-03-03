@@ -861,3 +861,98 @@ function cFtr(e,key){
     $('span',li).removeClass('arrowU');
     $('.'+key,ul).slideToggle();
 }
+
+var Chat = function () 
+{
+    var self = this;
+    this.connection = false;
+    this.jid = false;
+    this.BOSH_SERVICE = 'https://dv.mourjan.com:5280/http-bind';
+    
+    this.init = function () 
+    {
+        self.connection = new Strophe.Connection(this.BOSH_SERVICE);
+        self.connection.xmlInput = this.log;
+        self.connection.xmlOutput = this.log;
+        if (UID>0)
+        {        
+            self.jid = UID;
+            console.log(JWT);
+            self.connection.connect(UID+"@mourjan.com",
+                        JWT,
+                        self.events.onConnect
+                    );
+        } else {
+            self.connection.disconnect();
+        }
+    };
+    
+    this.log = function( message ) 
+    {
+        console.log( message );
+    };
+    
+    this.out = function( message ) 
+    {
+        console.info( message );
+    };
+    
+    this.events = {
+        "onConnect": function (status) {
+            if (status == Strophe.Status.CONNECTING) {
+                        /*$('#log').html('');*/
+                self.out('Connecting chat server...');
+            } else if (status == Strophe.Status.CONNFAIL) {
+                self.out('Failed to connect.');
+                /*$('#connect').get(0).value = 'connect';*/
+            } else if (status == Strophe.Status.DISCONNECTING) {
+                self.out('Disconnecting from chat server...');
+            } else if (status == Strophe.Status.DISCONNECTED) {
+                self.out('Disconnected.');
+                /*
+                $('#connect').get(0).value = 'connect';
+                $('#messageForm').hide();
+                $('#loginForm').show();*/
+            } else if (status == Strophe.Status.CONNECTED) {
+                self.out('Connected.');
+                self.out('ECHOBOT: Send a message to ' + self.connection.jid +
+                    ' to talk to me.');
+                self.connection.addHandler(
+                        function (msg) {
+                            return self.events.onMessage( msg );
+                        }, null, 'message', null, null, null);
+                        
+                self.connection.send($pres().tree());
+                /*$('#loginForm').hide();
+                $('#messageForm').show();*/
+
+                /*self.groupchat.join();*/
+
+            }
+        },
+
+        "onMessage": function( msg ) {
+            if(jQuery(msg).attr("type") == "chat") {
+                self.out( "<strong>" + jQuery(msg).attr("from") + ": </strong>" + jQuery(msg).find("body:first").text() );
+            }
+
+            return true;
+        }
+    };
+    
+    this.sendMessage = function( recipient, message ) {
+            var reply = $msg({to: recipient, type: "chat"})
+                            .c("body")
+                            .t(message);
+            console.log("SENDING MESSAGE: " + message);
+            self.connection.send(reply.tree());
+            self.out( "<strong>" + self.connection.jid + ": </strong>" + message );
+    };
+        
+        
+    this.init();
+}
+function doChat()
+{
+    window.chat = new Chat();
+}
