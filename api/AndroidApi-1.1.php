@@ -231,7 +231,7 @@ class AndroidApi {
                         }
                         $pushId = '';
                         $msg = "<table>
-                            <tr><td><b>UID</b>:</td><td><a href='https://www.mourjan.com/myads/{$this->api->getUID()}' target='_blank'>{$this->api->getUID()}</td></tr>
+                            <tr><td><b>UID</b>:</td><td><a href='https://www.mourjan.com/myads/?u={$this->api->getUID()}' target='_blank'>{$this->api->getUID()}</td></tr>
                             <tr><td><b>Ad</b>:</td><td><a target='_blank' href='https://www.mourjan.com/{$id}'>{$id}</a></td></tr>
                             <tr><td><b>Mobile</b>:</td><td>Android</td></tr>
                             </table>";
