@@ -3951,11 +3951,12 @@ class Page extends Site{
             }
             
             ?>AID=<?= (isset($this->detailAd[Classifieds::ID]) && !$this->detailAdExpired ? $this->detailAd[Classifieds::ID] : 0) ?>,<?php 
-            ?>UID=<?= $this->user->info['id'] ?>,<?php 
+            ?>UID=<?= $this->user->info['id'] ?>,<?php             
             
             if($this->user->info['id']) 
             { 
                 ?>UIDK='<?= $this->user->info['idKey'] ?>',<?php 
+                ?>JWT='<?= $this->user->info['data']->getToken() ?>',<?php
                 ?>SSID='<?= md5($this->user->info['idKey'].'nodejs.mourjan') 
             ?>',<?php             
             }
@@ -4103,13 +4104,18 @@ class Page extends Site{
                             echo "\n",$this->inlineQueryScript;
                             ?>head.insertBefore(sh,head.firstChild)})();<?php
                             break;
-                    }
+                    }                    
             ?>}}}, true);<?php
             ?>window.onload=function(){<?php echo $this->inlineScript;?>};<?php                        
             ?>(function(){<?php
                 ?>var po=document.createElement('script'); po.type='text/javascript'; po.async=true;<?php
                 ?>po.src = 'https://apis.google.com/js/platform.js';<?php
                 ?>var s=document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po,s);<?php
+                
+                ?>var xm=document.createElement('script'); po.type='text/javascript'; xm.async=true;<?php
+                ?>xm.src='<?=$this->urlRouter->cfg['url_js']?>/strophe.js';<?php
+                ?>var sx=document.getElementsByTagName('script')[0]; sx.parentNode.insertBefore(xm,sx);<?php
+                
             ?>})();<?php
         
         ?></script><?php
@@ -4276,6 +4282,7 @@ class Page extends Site{
             ?>UID=<?= $this->user->info['id'] ?>,<?php 
             if($this->user->info['id']) { 
                 ?>UIDK='<?= $this->user->info['idKey'] ?>',<?php 
+                ?>JWT='<?= $this->user->info['data']->getToken() ?>',<?php
                 ?>SSID='<?= md5($this->user->info['idKey'].'nodejs.mourjan') 
             ?>',<?php }
             ?>PID=<?= $this->urlRouter->userId ? 1:0 ?>,<?php 
@@ -4547,6 +4554,7 @@ class Page extends Site{
             case 'detail':
             case 'search':
                 ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/search.js"></script><?php
+                ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/strophe.js"></script><?php
                 break;
             case 'myads':
                 if($this->user->info['id']){

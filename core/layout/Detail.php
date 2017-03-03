@@ -345,7 +345,7 @@ class Detail extends Search{
                 if( isset($this->detailAd[Classifieds::PUBLISHER_TYPE]) && in_array($this->detailAd[Classifieds::ROOT_ID],[1,2,3])){
                         switch($this->detailAd[Classifieds::PUBLISHER_TYPE]){
                             case 3:
-                                echo '<div class="d2 ut"><span class="i i'.$this->detailAd[Classifieds::ROOT_ID].'"></span><span>'.$this->lang['pub_3_'.$this->detailAd[Classifieds::ROOT_ID]].'</span></div>';
+                                echo '<div class="d2 ut" onclick="doChat()"><span class="i i'.$this->detailAd[Classifieds::ROOT_ID].'"></span><span>'.$this->lang['pub_3_'.$this->detailAd[Classifieds::ROOT_ID]].'</span></div>';
                                 break;
                             case 1:
                                 if($this->detailAd[Classifieds::ROOT_ID] == 3){
@@ -569,9 +569,10 @@ class Detail extends Search{
         }
     }
 
+    
     function displayDetailMobile(){
         if (!$this->detailAdExpired) {
-            
+                        
             $current_time = time();
             $isFeatured = $current_time < $this->detailAd[Classifieds::FEATURE_ENDING_DATE];
             $isFeatureBooked = $current_time < $this->detailAd[Classifieds::BO_ENDING_DATE];            
@@ -765,6 +766,7 @@ class Detail extends Search{
                     ?></div><?php
                 }
                 $this->globalScript.='var imgs=[];';
+                
                 if($picsCount){
                     echo '<h3 class="ctr">'.$this->lang['adPics'].'</h3>';
                     $oPics=$this->detailAd[Classifieds::PICTURES_DIM];
