@@ -33,7 +33,7 @@ interface EjabberdExternalAuth_UserManagement
 abstract class EjabberdExternalAuth 
 {
 
-    private $log    = null;
+    private $enabled_log;
     private $stdin  = null;
     private $stdout = null;
     
@@ -50,17 +50,13 @@ abstract class EjabberdExternalAuth
     abstract protected function exists($user, $server);
 
 
-    final public function __construct($log = null) 
+    public function __construct($log = false) 
     {
-        set_error_handler(array($this, 'errorHandler'));
+        $this->enabled_log = $log;
+        set_error_handler( [$this, 'errorHandler'] );
         
         $this->stdin  = fopen('php://stdin', 'rb');
         $this->stdout = fopen('php://stdout', 'wb');
-
-        if ($log) 
-        {
-            $this->log = fopen($log, 'a');
-        }
 
         $this->log('Starting auth service...', LOG_INFO);
 
@@ -181,7 +177,7 @@ abstract class EjabberdExternalAuth
     
     final protected function log($message, $severity = LOG_ERR) 
     {
-        if ($this->log && in_array($severity, self::$logLevel, true)) 
+        if ($this->enabled_log && in_array($severity, self::$logLevel, true)) 
         {
             static $types = array(
                 LOG_EMERG   => 'EMERGENCY',
@@ -195,8 +191,10 @@ abstract class EjabberdExternalAuth
                 LOG_KERN    => 'KERNEL'
             );
             
-            $message = sprintf('%s <%s> %9s: %s', date('Y-m-d H:i:s'), getmypid(), isset($types[$severity]) ? $types[$severity] : $types[LOG_ERR], $message);
-            fwrite($this->log, $message . PHP_EOL);
+            $message = sprintf('%s <%s> %9s: %s', date('Y-m-d H:i:s'), getmypid(), isset($types[$severity]) ? $types[$severity] : $types[LOG_ERR], $message.PHP_EOL);
+            error_log($message, 3, "/var/log/mourjan/myauth.log");
+            
+            //fwrite($this->log, $message . PHP_EOL);
         }
     }
     

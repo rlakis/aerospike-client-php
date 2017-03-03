@@ -4,9 +4,10 @@ require get_cfg_var('mourjan.path') . '/core/lib/MCSessionHandler.php';
 require get_cfg_var('mourjan.path') . '/core/lib/MCUser.php';
 
 
-class EjabberdJWTAuth extends EjabberdExternalAuth 
+class EjabberdJWTAuth extends EjabberdExternalAuth
 {
 
+    
     protected function authenticate($user, $server, $password) 
     {
         if ($user==='9613287168' && $server==="mourjan.com" && $password==="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtb3VyamFuIiwic3ViIjoiYW55IiwibmJmIjoxNDg4MzgzNTEwLCJleHAiOjE0ODg0Njk5MTAsImlhdCI6MTQ4ODM4MzUxMCwidHlwIjoiamFiYmVyIiwicGlkIjo5MTcxLCJtb2IiOiI5NjEzMjg3MTY4IiwidXJkIjoxMzI4MDU0NDAwLCJ1aWQiOiIxNzI3NTgyMTAwIiwicHZkIjoiZmFjZWJvb2sifQ.pSCk8AdrRPBWy6OdkGkNPFzaZJTDjdk_ZG0o8Y-__TA")
@@ -14,7 +15,9 @@ class EjabberdJWTAuth extends EjabberdExternalAuth
             return true;
         }
         
-        $mcUser = new MCUser(  MCSessionHandler::getUser($user) );        
+        $mcUser = new MCUser(  MCSessionHandler::getUser($user) );  
+        $this->log(__FUNCTION__.PHP_EOL.$user.'@'.$server.PHP_EOL.$password);
+        $this->log(__FUNCTION__.PHP_EOL.$mcUser->isValidToken($password));
         $isValid = ($server==='mourjan.com' && $mcUser->isValidToken($password));
         return $isValid;
     }
@@ -34,4 +37,5 @@ class EjabberdJWTAuth extends EjabberdExternalAuth
 }
 
 
-new EjabberdJWTAuth(NULL, '/var/log/mourjan/myauth.log');
+$authenticator = new EjabberdJWTAuth(TRUE);
+//$authenticator->authenticate('2', 'mourjan.com', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtb3VyamFuIiwic3ViIjoiYW55IiwibmJmIjoxNDg4NTQ1MzEwLCJleHAiOjE0ODg2MzE3MTAsImlhdCI6MTQ4ODU0NTMxMCwidHlwIjoiamFiYmVyIiwicGlkIjoyNzM1LCJtb2IiOiI5NjEzMjg3MTY4IiwidXJkIjoxMzI4MDU0NDAwLCJ1aWQiOiIxNzI3NTgyMTAwIiwicHZkIjoiZmFjZWJvb2sifQ.xIWeQ30AGrBx3FGHkU-kPsKBhnSuwFuqAe3rbEUVPgs');

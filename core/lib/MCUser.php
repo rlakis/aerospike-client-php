@@ -68,13 +68,14 @@ class MCUser extends MCJsonMapper
     protected $devices = [];      // MCDevice ArrayList;
     protected $prps;              // MCPropSpace
      
+    private $jwt;
     
     function __construct($json=false) 
     {
         $this->metadata = ['devices'=>'MCDevice'];
         $this->opts = new MCUserOptions();
         $this->mobile = new MCMobile();
-        
+        $this->jwt = FALSE;
         if ($json) 
         {            
             $this->set($json);
@@ -278,57 +279,18 @@ class MCUser extends MCJsonMapper
     public function getPropSpace()
     {
         return $this->data->prps;
-    }
-    
-    
-    /**
-    * Ensures an ip address is both a valid IP and does not fall within
-    * a private network range.
-    */
-    private function validate_ip($ip)
-    {
-        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) 
-        {
-            return false;
-        }
-        return true;
-    }
-
-    
-    public function getRealIPAddress()
-    {
-        $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
-        foreach ($ip_keys as $key) 
-        {
-            $val = filter_input(INPUT_SERVER, $key, FILTER_SANITIZE_STRING);
-            if (!empty($val)) 
-            {
-                foreach (explode(',', $val) as $ip) 
-                {
-                    // trim for safety measures
-                    $ip = trim($ip);
-                    // attempt to validate IP
-                    if ($this->validate_ip($ip)) 
-                    {
-                        return $ip;
-                    }
-                }
-            }
-        }
-        $val = filter_input(INPUT_SERVER, 'REMOTE_ADDR', FILTER_SANITIZE_STRING);
-        if (!empty($val))
-        {
-            return $val;
-        }
-        
-        return false;
-    }
-    
+    }        
 
     
     public function createToken() : string
     {
 
+        if (is_string($this->jwt))
+        {
+            return;
+        }
+        
+        
         $secret = hash('sha256', random_bytes(512), FALSE);
         
         $claim = [
@@ -344,7 +306,6 @@ class MCUser extends MCJsonMapper
             "uid" => $this->getProviderIdentifier(), 
             "pvd" => $this->getProvider()];
         
-        $jwt = JWT::encode($claim, $secret);
         
         try 
         {
@@ -355,10 +316,25 @@ class MCUser extends MCJsonMapper
                 $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
                 $redis->setOption(Redis::OPT_PREFIX, 'jwt_');
                 $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
-                $claim['key'] = $secret;
-                $claim['jwt'] = $jwt;
-                $redis->set($this->getID(), json_encode($claim));                
-                $redis->expireAt($this->getID(), $claim['exp']);
+                $temp = $redis->get($this->getID());
+                if ($temp)
+                {
+                    $_temp = json_decode($temp, TRUE);
+                    if ($this->isValidToken($_temp['jwt']))
+                    {
+                        $this->jwt = $_temp['jwt'];
+                    }
+                }
+                
+                if ($this->jwt===FALSE)
+                {
+                    $this->jwt = JWT::encode($claim, $secret);
+
+                    $claim['key'] = $secret;
+                    $claim['jwt'] = $this->jwt;
+                    $redis->set($this->getID(), json_encode($claim));
+                    $redis->expireAt($this->getID(), $claim['exp']);
+                }
             }
             else 
             {
@@ -373,13 +349,22 @@ class MCUser extends MCJsonMapper
         {
             $redis->close();
         }
-        return $jwt;
+        return $this->jwt;
+    }
+    
+    
+    public function getToken()
+    {
+        if ($this->jwt===FALSE)
+        {
+            return $this->createToken();
+        }
+        return $this->jwt;
     }
     
     
     public function isValidToken($token) : bool
     {
-        //$start = microtime(TRUE);
         $result = FALSE;
         try 
         {
@@ -402,8 +387,9 @@ class MCUser extends MCJsonMapper
                     unset( $claim['key'] );
                     unset( $claim['jwt'] );
                     
+                    
                     JWT::$leeway = 60; // $leeway in seconds
-                    $decoded = (array)  JWT::decode($token, $secret, array('HS256'));
+                    $decoded = (array) JWT::decode($token, $secret, array('HS256'));
                     
                     $result = ($claim==$decoded && $decoded['nbf']<time() && $token===$jwt);
                 }
@@ -417,12 +403,14 @@ class MCUser extends MCJsonMapper
         {           
             error_log(PHP_EOL . PHP_EOL . $re->getCode() . PHP_EOL . $re->getMessage() . PHP_EOL . $re->getTraceAsString() . PHP_EOL);
         }
+        catch (Firebase\JWT\SignatureInvalidException $se)
+        {
+            error_log(PHP_EOL . PHP_EOL . $se->getCode() . PHP_EOL . $se->getMessage() . PHP_EOL . $se->getTraceAsString() . PHP_EOL);
+        }
         finally 
         {
             $redis->close();
         }
-        //$end = microtime(TRUE);
-        //echo "\nmicro: ", ($end-$start)*1000.0, " ms \n";
         return $result;
     }
     
