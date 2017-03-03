@@ -522,8 +522,7 @@ class AndroidApi {
                     $this->api->result['e'] = "503";
                     break;
                 }            
-                $opts = $this->api->userStatus($status);
-                
+                $opts = $this->api->userStatus($status);                
                 
                 $userData = MCSessionHandler::getUser($this->api->getUID());
                 $mcUser = new MCUser($userData);
@@ -574,7 +573,6 @@ class AndroidApi {
                         $ad['rtl'] = ($this->isRTL($ad['other'])) ? 1 : 0;
                         
                         if(isset($ad['altother']) && $ad['altother']){
-
                             $ad['altRtl'] = ($this->isRTL($ad['altother'])) ? 1 : 0;
 
                             if($ad['rtl'] == $ad['altRtl']){
@@ -678,7 +676,6 @@ class AndroidApi {
                             $country_id=$cities[$city_id][4];
                         }
                         
-                        
                         $isSCAM = 0;
                         if(isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0){
                             $blockedEmailPatterns = addcslashes(implode('|', $this->api->config['restricted_email_domains']),'.');
@@ -734,7 +731,7 @@ class AndroidApi {
                             $ad['msg'] = $msg;
                         }
                         
-                        if(true || $opts->appVersion < '1.3.4' || $opts->appVersion=='1.8.8'){
+                        if($opts->appVersion < '1.3.4' || $opts->appVersion=='1.8.8'){
                             $hasFailure=1;
                             if($ad['rtl']){
                                 $msg = 'يرجى تحديث تطبيق مرجان لنشر الاعلانات';
