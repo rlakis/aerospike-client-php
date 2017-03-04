@@ -43,7 +43,7 @@ trait UserTrait
      *
      * @return bool
      */
-    public function checkAccount($user)
+    public function checkAccount($user) : bool
     {
         $response = $this->sendRequest(
             'check_account',

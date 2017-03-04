@@ -1,6 +1,8 @@
 <?php
 require_once 'vendor/autoload.php';
+require_once get_cfg_var('mourjan.path').'/core/lib/Jabber/JabberClient.php';
 use Firebase\JWT\JWT;
+use lib\Jabber\JabberClient;
         
 class MCJsonMapper
 {
@@ -285,9 +287,9 @@ class MCUser extends MCJsonMapper
     public function createToken() : string
     {
 
-        if (is_string($this->jwt))
+        if (is_string($this->jwt) || strpos(filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_URL), 'ajax') !== false )
         {
-            return;
+            return '';
         }
         
         
@@ -317,12 +319,19 @@ class MCUser extends MCJsonMapper
                 $redis->setOption(Redis::OPT_PREFIX, 'jwt_');
                 $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
                 $temp = $redis->get($this->getID());
+                //error_log("Redis get:".PHP_EOL.$temp);
                 if ($temp)
                 {
                     $_temp = json_decode($temp, TRUE);
+                    //var_dump($_temp);
                     if ($this->isValidToken($_temp['jwt']))
                     {
-                        $this->jwt = $_temp['jwt'];
+                        $this->jwt = $_temp['jwt'];    
+                        error_log("Valid token pid<".getmypid().">: ".$this->getID());
+                    }
+                    else 
+                    {
+                        error_log("Invalid token pid<".getmypid().">: ".$this->getID());
                     }
                 }
                 
@@ -334,6 +343,18 @@ class MCUser extends MCJsonMapper
                     $claim['jwt'] = $this->jwt;
                     $redis->set($this->getID(), json_encode($claim));
                     $redis->expireAt($this->getID(), $claim['exp']);
+                    
+                    $jabber = new JabberClient(['server'=>'https://dv.mourjan.com:5280/api']);
+                    if ($jabber->checkAccount( (string) $this->getID()) )
+                    {
+                        error_log("User already exists: <" . getmypid() . "> ". $this->getID().PHP_EOL);
+                        //error_log($this->jwt);
+                        error_log($jabber->changePassword((string)$this->getID(), $this->jwt)==0 ? "changed ".getmypid()  : "fail to change ".getmypid() );
+                    }
+                    else
+                    {
+                        $jabber->createUser((string)$this->getID(), $this->jwt);
+                    }
                 }
             }
             else 
@@ -353,7 +374,7 @@ class MCUser extends MCJsonMapper
     }
     
     
-    public function getToken()
+    public function getToken() : string
     {
         if ($this->jwt===FALSE)
         {
@@ -363,7 +384,7 @@ class MCUser extends MCJsonMapper
     }
     
     
-    public function isValidToken($token) : bool
+    public function isValidToken(string $token) : bool
     {
         $result = FALSE;
         try 
@@ -405,7 +426,7 @@ class MCUser extends MCJsonMapper
         }
         catch (Firebase\JWT\SignatureInvalidException $se)
         {
-            error_log(PHP_EOL . PHP_EOL . $se->getCode() . PHP_EOL . $se->getMessage() . PHP_EOL . $se->getTraceAsString() . PHP_EOL);
+            error_log(getmypid().PHP_EOL . PHP_EOL . $se->getCode() . PHP_EOL . $se->getMessage() . PHP_EOL . $se->getTraceAsString() . PHP_EOL);
         }
         finally 
         {
@@ -427,7 +448,7 @@ class MCUser extends MCJsonMapper
                 $redis->setOption(Redis::OPT_PREFIX, 'jwt_');
                 $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
                 
-                $redis->expire($this->getID(), 30);
+                $redis->delete($this->getID());
             }
             else 
             {

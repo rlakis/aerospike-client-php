@@ -56,9 +56,10 @@ class JabberClient
         $this->server = $options['server'];
         $this->host = 'mourjan.com';
         $this->username = '9613287168@mourjan.com';
-        $this->password = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtb3VyamFuIiwic3ViIjoiYW55IiwibmJmIjoxNDg4MzgzNTEwLCJleHAiOjE0ODg0Njk5MTAsImlhdCI6MTQ4ODM4MzUxMCwidHlwIjoiamFiYmVyIiwicGlkIjo5MTcxLCJtb2IiOiI5NjEzMjg3MTY4IiwidXJkIjoxMzI4MDU0NDAwLCJ1aWQiOiIxNzI3NTgyMTAwIiwicHZkIjoiZmFjZWJvb2sifQ.pSCk8AdrRPBWy6OdkGkNPFzaZJTDjdk_ZG0o8Y-__TA';
+        //$this->password = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtb3VyamFuIiwic3ViIjoiYW55IiwibmJmIjoxNDg4MzgzNTEwLCJleHAiOjE0ODg0Njk5MTAsImlhdCI6MTQ4ODM4MzUxMCwidHlwIjoiamFiYmVyIiwicGlkIjo5MTcxLCJtb2IiOiI5NjEzMjg3MTY4IiwidXJkIjoxMzI4MDU0NDAwLCJ1aWQiOiIxNzI3NTgyMTAwIiwicHZkIjoiZmFjZWJvb2sifQ.pSCk8AdrRPBWy6OdkGkNPFzaZJTDjdk_ZG0o8Y-__TA';
+        $this->password = 'f0sVSPrO';
         $this->timeout = 5;
-        $this->debug = TRUE;
+        $this->debug = FALSE;
         $this->userAgent = 'JSON API:Client Mourjan site';
         
     }
@@ -99,7 +100,7 @@ class JabberClient
     
     
     
-    protected function sendRequest($command, array $params)
+    protected function sendRequest(string $command, array $params)
     {
         $data_string = json_encode($params);
         $ch = curl_init();
@@ -125,15 +126,18 @@ class JabberClient
         $error= curl_error($ch);
         curl_close($ch);
 
-        echo "----------------------------------------------------------------", "\n";
-        echo $response,"\n";
-        echo $error, "\n";                                
-        ECHO "----------------------------------------------------------------","\n";
-
+        if ($error)
+        {
+            error_log("----------------------------------------------------------------");
+            error_log( $error);                                
+            error_log("----------------------------------------------------------------");
+        }
 
         if ($this->debug)
         {
-            var_dump($command, $params, $response);
+            error_log(var_export($command, true));
+            error_log(var_export($params, true));
+            error_log(var_export($response,TRUE));
         }
         return $response;
     }
@@ -143,11 +147,12 @@ class JabberClient
 
 
 
-$jc = new JabberClient(['server'=>'https://dv.mourjan.com:5280/api']);
+//$jc = new JabberClient(['server'=>'https://dv.mourjan.com:5280/api']);
 //$jc->createUser('1', 'GQ71BUT2');
 //$jc->createUser('4', 'GQ71but244');
 
-var_dump( $jc->checkAccount(['1']) );
+//var_dump( $jc->checkAccount(['1']) );
+
 //$jc->createRoom("96171750413-1400-rlakis");
 
 //$jc->deleteRoom("96171750413-1400-rlakis");
@@ -155,8 +160,8 @@ var_dump( $jc->checkAccount(['1']) );
 //$jc->inviteToRoom("96171750413-1400-rlakis", "", "test chat", ["rlakis@mourjan.com"]);
 //$jc->getConnectedUsers();
 
-$jc->addRosterItem("2", "4");
+//$jc->addRosterItem("2", "4");
 //$jc->addRosterItem("3", "2");
 
-$jc->sendMessageChat("2", "4", "Hello there");
+//$jc->sendMessageChat("2", "4", "Hello there");
 //$jc->subscribeRoom("96171750413-1400-rlakis", "rlakis@mourjan.com", "Advertiser");
