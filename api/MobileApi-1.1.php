@@ -885,12 +885,16 @@ class MobileApi
             $status = 0;
             $q = $this->db->queryResultArray(
                     "select d.uid,d.push_id,d.device_sysname,d.app_prefs, u.opts, u.full_name,u.identifier,u.email,u.user_email,u.provider,u.profile_url,IIF(m.STATUS IS NULL, 10, m.STATUS) STATUS, "
-                    . "IIF(m.SECRET is null, '', m.SECRET) secret, IIF(m.MOBILE is null, 0, m.MOBILE) mobile, u.lvl, "
+                    . "IIF(m.SECRET is null, '', m.SECRET) secret, "
+                    . "IIF(m.MOBILE is null, 0, m.MOBILE) mobile, "
+                    . "IIF(lm.MOBILE is null, 0, lm.MOBILE) linked_mobile, "
+                    . "u.lvl, "
                     . "DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', d.last_visit) as device_last_visit, "
                     . "DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', u.last_visit) as user_last_visit, "
                     . "d.disallow_purchase, d.cuid, d.app_version "
                     . "from web_users_device d "
                     . "left join web_users_mobile m on m.uid=d.uid "
+                    . "left join web_users_linked_mobile lm on lm.uid=d.uid "
                     . "left join web_users u on u.id = d.uid "
                     . "where d.uuid=? order by IIF(m.STATUS=1,1,0) desc, m.id desc", [$this->uuid]);
 
@@ -912,6 +916,9 @@ class MobileApi
                 $opts->user_level = $q[0]['LVL']+0;
                 $opts->secret = $q[0]['SECRET'];
                 $opts->phone_number = $q[0]['MOBILE']+0;
+                if($q[0]['LINKED_MOBILE']+0){
+                    $opts->phone_number = $q[0]['LINKED_MOBILE'];
+                }
                 $opts->disallow_purchase = $q[0]['DISALLOW_PURCHASE']+0;
                 $opts->cuid = $q[0]['CUID'];
                 $opts->full_name = $q[0]['FULL_NAME'];
@@ -930,8 +937,14 @@ class MobileApi
                         $opts->account=$q[0]['EMAIL'];
                     }
                 }
-                
-                
+                if($opts->phone_number){
+                    $opts->suspend = MCSessionHandler::checkSuspendedMobile($opts->phone_number);
+                    if($opts->suspend > 0){
+                        $opts->suspend = time() + $opts->suspend;
+                    }else{
+                        $opts->suspend = 0;
+                    }
+                }
                 
                 if ($this->uid==$q[0]['UID']) 
                 {

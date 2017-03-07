@@ -1144,7 +1144,7 @@ class AndroidApi {
                         $ad_id = filter_input(INPUT_POST, 'adid', FILTER_VALIDATE_INT) + 0;
                     
                         $ad = $this->api->db->queryResultArray(
-                            'select a.id, a.content, a.state, a.section_id, a.purpose_id ' .
+                            'select a.id, a.content, a.state, a.section_id, a.purpose_id, a.rtl ' .
                             'from ad_user a ' .
                             'where a.id=? and a.web_user_id=?', [$ad_id, $this->api->getUID()], true
                         );
@@ -1299,7 +1299,6 @@ class AndroidApi {
                                     if($number){
                                         /*check if number is suspended*/
                                         $time = MCSessionHandler::checkSuspendedMobile($number);
-                                        $time = 3600;
                                         if($time>60){
                                             $number=0;
                                             $keyCode=0;
