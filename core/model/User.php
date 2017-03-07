@@ -140,6 +140,9 @@ class User {
 
     function __construct($db, $config, $site, $init=1){
 
+        //$uu = new MCUser();
+        //$uu->loadFromAreoSpike(2);
+        
         $this->db=$db;
         $this->cfg=$config;
         $this->reset();
