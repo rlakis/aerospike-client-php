@@ -46,8 +46,8 @@ class MCJsonMapper
 
 class MCUser extends MCJsonMapper
 {   
-    protected $id;
-    protected $pid;               // Provider identifier
+    public $id;
+    public $pid;               // Provider identifier
     protected $email;
     protected $prvdr;             // Provider
     protected $fn;                // Full name
@@ -81,6 +81,7 @@ class MCUser extends MCJsonMapper
         if ($json) 
         {            
             $this->set($json);
+            //$this->cacheStore();
         }        
     }
     
@@ -92,6 +93,92 @@ class MCUser extends MCJsonMapper
         $this->mapper($this, $json);
     }
 
+    
+    public function loadFromAreoSpike(int $pk)
+    {
+        $time = -microtime(true);
+        // The cluster can be located by just one host
+        $config = [
+          "hosts" => [
+            [ "addr" => "h5.mourjan.com", "port" => 3000 ],
+            [ "addr" => "h8.mourjan.com", "port" => 3000 ],
+           ]];
+        
+        // The new client will connect and learn the cluster layout
+        $db = new Aerospike($config);
+        if (!$db->isConnected()) 
+        {
+            echo "Failed to connect to the Aerospike server [{$db->errorno()}]: {$db->error()}\n";
+            return;
+        }
+        
+        $key = $db->initKey("users", "profiles", $pk);
+        $status = $db->get($key, $record);
+        if ($status != Aerospike::OK) 
+        {
+            echo "Error [{$db->errorno()}] {$db->error()}", "\n";
+            return;
+        }
+        
+        $time += microtime(true); 
+        
+        var_dump($time*1000.0);
+        var_dump($record);
+        
+        $db->close();
+        
+    }
+    
+    
+    public function cacheStore()
+    {
+        if ($this->getID()<=0)
+        {
+            return;
+        }
+        // The cluster can be located by just one host
+        $config = [
+          "hosts" => [
+            [ "addr" => "h5.mourjan.com", "port" => 3000 ],
+            [ "addr" => "h8.mourjan.com", "port" => 3000 ],
+           ]];
+        
+        // The new client will connect and learn the cluster layout
+        $db = new Aerospike($config, FALSE);
+        if (!$db->isConnected()) {
+            echo "Failed to connect to the Aerospike server [{$db->errorno()}]: {$db->error()}\n";
+            return;
+        }
+        
+        // records are identified as a (namespace, set, primary-key) tuple
+        $digest = $db->getKeyDigest("users", "profiles", $this->getID());
+        $key = $db->initKey("users", "profiles", $digest, TRUE);
+
+        // the record and its bins are created and updated similar to an array
+        
+        
+        $values = json_decode(json_encode($this), TRUE);
+        $status = $db->put($key, $values);
+        if ($status != Aerospike::OK) 
+        {
+            echo "Error [{$db->errorno()}] {$db->error()}", "\n";
+        }
+
+        // record bins can hold complex types such as arrays
+        //$update_vals = [
+        //  "quotes" => [
+        //    "I'm Scruffy. The janitor.",
+        //    "I'm on break.",
+        //    "Scruffy's gonna die like he lived."]];
+        //$db->put($key, $update_vals);
+
+        // read selected bins from a record
+        $db->get($key, $record);
+        //print_r($record);
+        
+        $db->close();
+    }
+    
     
     public function getID() : int
     {

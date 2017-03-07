@@ -68,6 +68,7 @@ class MCSessionHandler implements \SessionHandlerInterface
         $user= json_decode('{}');
         try 
         {
+            $timer= -microtime(true);
             $redis = new Redis();
             
             if ($redis->connect('138.201.28.229', 6379, 2, NULL, 20)) 
@@ -77,7 +78,8 @@ class MCSessionHandler implements \SessionHandlerInterface
                 $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
                 
                 $user = json_decode($redis->get($user_id) ? : '{}');
-                
+                $timer+= microtime(true);
+                //var_dump($timer*1000.0);
                 if (!isset($user->id))
                 {
                     $redisPublisher = new Redis();
