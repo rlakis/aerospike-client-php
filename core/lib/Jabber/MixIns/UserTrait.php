@@ -399,5 +399,14 @@ trait UserTrait
                     "group"=> $group,
                     "subs"=> $subs]);
     }
+    
+    
+    public function kickUser($user)
+    {
+        $this->sendRequest(
+                'kick_user', [
+                    "user"=> $user,
+                    "host"=> $this->host]);
+    }
 }
 
