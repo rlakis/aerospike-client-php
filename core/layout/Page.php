@@ -39,7 +39,6 @@ class Page extends Site{
                 $this->isUserMobileVerified = (isset($this->user->info['verified']) && $this->user->info['verified']);
             }
         }
-        error_log('<<'.session_id());
         //var_dump($_SESSION['info']);
         //var_dump($this->user->info);
         
