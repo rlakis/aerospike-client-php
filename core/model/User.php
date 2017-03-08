@@ -2738,7 +2738,8 @@ order by m.activation_timestamp desc',
         //error_log(var_export($_SESSION,true));
         if($this->info['id'])
         {
-            $data = $this->info['data'] = new MCUser(MCSessionHandler::getUser($this->info['id']));
+            //$data = $this->info['data'] = new MCUser(MCSessionHandler::getUser($this->info['id']));
+            $data = $this->info['data'] = new MCUser($this->info['id']);
             if($data->getID())
             {
                 $this->info['level'] = $data->getLevel();

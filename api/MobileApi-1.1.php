@@ -1377,9 +1377,11 @@ class MobileApi
             $this->result['d']['u_api'] = $this->config['android_url_api'];
             $this->result['d']['u_nas'] = $this->config['android_url_node_ad_stage'];
             $this->result['d']['e_support'] = $this->config['android_email_support'];
-            error_log($device_appversion);
+            
             if($device_appversion > '1.3.0'){
                 $this->result['d']['a_release'] = $this->config['android_app_release'];
+                $this->result['d']['a_rel_en'] = '';
+                $this->result['d']['a_rel_ar'] = '';
                 foreach ($this->config['android_releases_en'] as $release => $msg){
                     if($device_appversion < $release){
                         if($this->result['d']['a_rel_en']!=''){
@@ -1396,8 +1398,7 @@ class MobileApi
                         $this->result['d']['a_rel_ar'] .= $msg;
                     }
                 }
-                //$this->result['d']['a_rel_en'] = $this->config['android_release_en'];
-                //$this->result['d']['a_rel_ar'] = $this->config['android_release_ar'];
+                
             }else{
                 $this->result['d']['a_release'] = '1.0.0';
             }
