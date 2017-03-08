@@ -8,7 +8,6 @@ use mobiledetect\MobileDetect;
 include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
 include_once $config['dir']. '/core/model/Db.php';
 include_once $config['dir']. '/core/lib/MCSessionHandler.php';
-
 if (isset($_GET['provider']) && isset($_GET['connect']))
 {
     try {
@@ -23,6 +22,7 @@ if (isset($_GET['provider']) && isset($_GET['connect']))
         	try {
             	$hybridauth = new Hybrid_Auth( $config['dir'].'/web/lib/hybridauth/config.php' );
             	$adapter = $hybridauth->authenticate( $provider );
+                error_log(var_export($_SESSION,true));
             	$failed=0;
             	if ($hybridauth->isConnectedWith( $provider ) )
             	{
@@ -58,7 +58,6 @@ if (php_sapi_name()!='cli')
 {
     $handler = new MCSessionHandler(isset($_GET['app']) && $_GET['app']==1 && preg_match('/\/post\//', $_SERVER['REQUEST_URI']));
 }
-
 
 $router = new Router($config);
 
@@ -241,11 +240,11 @@ class Router {
             }
         }
         
-        $this->session_key = session_id().$this->cfg['site_key'];
+        $this->session_key = session_id();
         if(isset($_GET['app'])){
             $this->isApp = $_GET['app'];
-        }elseif(isset($_SESSION[$this->session_key]['params']['app'])){
-            $this->isApp = $_SESSION[$this->session_key]['params']['app'];
+        }elseif(isset($_SESSION['params']['app'])){
+            $this->isApp = $_SESSION['params']['app'];
         }
 
         if (array_key_exists('HTTP_HOST', $_SERVER))
@@ -273,23 +272,23 @@ class Router {
         
         if ($this->isApp) {
             $this->isMobile = TRUE;
-            $_SESSION[$this->session_key]['params']['mobile']=1;
-            $_SESSION[$this->session_key]['params']['app']=1;
+            $_SESSION['params']['mobile']=1;
+            $_SESSION['params']['app']=1;
         }
       
-        if (!isset($_SESSION[$this->session_key]['params']['mobile'])) {
+        if (!isset($_SESSION['params']['mobile'])) {
             if(isset($this->cookie->m) && in_array($this->cookie->m,array(0,1))){
                 $this->isMobile = (int)$this->cookie->m ? true : false;
-                $_SESSION[$this->session_key]['params']['mobile']=(int)$this->cookie->m;
+                $_SESSION['params']['mobile']=(int)$this->cookie->m;
             }else{
                 $device = new Mobile_Detect();
 
                 if ($device->isMobile() && !$device->isTablet()) {
                     $this->isMobile = TRUE;
-                    $_SESSION[$this->session_key]['params']['mobile']=1;
+                    $_SESSION['params']['mobile']=1;
                 } else {
                     $this->isMobile = FALSE;
-                    $_SESSION[$this->session_key]['params']['mobile']=0;
+                    $_SESSION['params']['mobile']=0;
                 }
             }
         }
@@ -297,13 +296,13 @@ class Router {
         if (isset($_POST['mobile'])) {
             if ($_POST['mobile']) {
                 $this->isMobile = TRUE;
-                $_SESSION[$this->session_key]['params']['mobile']=1;
+                $_SESSION['params']['mobile']=1;
             }else {
                 $this->isMobile = false;
-                $_SESSION[$this->session_key]['params']['mobile']=0;
+                $_SESSION['params']['mobile']=0;
             }
-        }elseif (isset($_SESSION[$this->session_key]['params']['mobile'])) {
-            $this->isMobile = $_SESSION[$this->session_key]['params']['mobile'];
+        }elseif (isset($_SESSION['params']['mobile'])) {
+            $this->isMobile = $_SESSION['params']['mobile'];
         }
 
         if (preg_match('/\/en(?:\/|$)/',$_SERVER['REQUEST_URI'])) {
@@ -320,7 +319,7 @@ class Router {
             $this->uri = rtrim( parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
         }
         
-        $_SESSION[$this->session_key]['params']['lang']=$this->siteLanguage;
+        $_SESSION['params']['lang']=$this->siteLanguage;
         
         if (isset($_SERVER['HTTP_REFERER']) && preg_match('/translate\.google\.com/', $_SERVER['HTTP_REFERER'])){
             $toLang=null;
@@ -481,21 +480,21 @@ class Router {
 	if ((!$this->internal_referer || strstr($this->referer, '/oauth/')) &&  empty($_GET) && ($this->uri=='' || $this->uri=='/')  && !$this->userId && !$this->watchId) {
             $this->countries = $this->db->getCountriesData($this->siteLanguage);
             
-            if (isset($_SESSION[$this->session_key]['params']['visit']) && isset($_SESSION[$this->session_key]['params']['user_country'])) {                
+            if (isset($_SESSION['params']['visit']) && isset($_SESSION['params']['user_country'])) {                
                 if (!$this->countryId) {                
                     $curi = $this->uri;
                     if(isset($this->cookie->cn) && $this->cookie->cn){
 		        if (!isset($_GET['app']) && isset($this->cookie->lg) && in_array($this->cookie->lg, array('ar','en'))) {
-                            $this->siteLanguage=$_SESSION[$this->session_key]['params']['lang']=$this->cookie->lg;                            
+                            $this->siteLanguage=$_SESSION['params']['lang']=$this->cookie->lg;                            
                         }
 
-                        $this->countryId=$_SESSION[$this->session_key]['params']['country']=$this->cookie->cn;
-                        $this->cityId=$_SESSION[$this->session_key]['params']['city']=0;
+                        $this->countryId=$_SESSION['params']['country']=$this->cookie->cn;
+                        $this->cityId=$_SESSION['params']['city']=0;
                         $this->uri='/'. $this->countries[$this->cookie->cn]['uri'];
                         if(isset($this->cookie->c) && $this->cookie->c){
                             if (isset($this->countries[$this->countryId]['cities'][$this->cookie->c])) {
                                 $this->uri.='/'.$this->countries[$this->countryId]['cities'][$this->cookie->c]['uri'];
-                    		$this->cityId=$_SESSION[$this->session_key]['params']['city']=$this->cookie->c;
+                    		$this->cityId=$_SESSION['params']['city']=$this->cookie->c;
                             }
                         }
                         if ($this->uri!=$curi) {
@@ -511,7 +510,7 @@ class Router {
             }    
             
         
-            if ( !isset($_SESSION[$this->session_key]['params']['visit'])) {
+            if ( !isset($_SESSION['params']['visit'])) {
                 $current_uri = $this->uri;
                 $this->setGeoByIp();
                 if ($current_uri!=$this->uri) {
@@ -520,13 +519,13 @@ class Router {
                 
                 if (!$this->countryId){                
                     if(isset($this->cookie->cn) && $this->cookie->cn){
-                        $this->countryId=$_SESSION[$this->session_key]['params']['country']=$this->cookie->cn;
-                        $this->cityId=$_SESSION[$this->session_key]['params']['city']=0;
+                        $this->countryId=$_SESSION['params']['country']=$this->cookie->cn;
+                        $this->cityId=$_SESSION['params']['city']=0;
                         $this->uri='/'. $this->countries[$this->cookie->cn]['uri'];
                         if(isset($this->cookie->c) && $this->cookie->c){
                             if (isset($this->countries[$this->countryId]['cities'][$this->cookie->c])) {
                     		$this->uri.='/'.$this->countries[$this->countryId]['cities'][$this->cookie->c]['uri'];
-                    		$this->cityId=$_SESSION[$this->session_key]['params']['city']=$this->cookie->c;
+                    		$this->cityId=$_SESSION['params']['city']=$this->cookie->c;
                             }
                         }
                         if ($current_uri!=$this->uri) {
@@ -537,27 +536,27 @@ class Router {
             }
         }
 
-        if(!isset($_GET['app']) && !isset($_SESSION[$this->session_key]['params']['user_country'])){
+        if(!isset($_GET['app']) && !isset($_SESSION['params']['user_country'])){
         	$geo = $this->getIpLocation();
             if (isset($geo['country'])) {
             	$country_code=strtolower(trim($geo['country']['iso_code']));
-            	$_SESSION[$this->session_key]['params']['user_country']=$country_code;
-            	$_SESSION[$this->session_key]['params']['latitude'] = isset($geo['location']['latitude']) ? $geo['location']['latitude'] : 0.0;
-            	$_SESSION[$this->session_key]['params']['longitude'] = isset($geo['location']['longitude']) ? $geo['location']['longitude'] : 0.0;
+            	$_SESSION['params']['user_country']=$country_code;
+            	$_SESSION['params']['latitude'] = isset($geo['location']['latitude']) ? $geo['location']['latitude'] : 0.0;
+            	$_SESSION['params']['longitude'] = isset($geo['location']['longitude']) ? $geo['location']['longitude'] : 0.0;
             }else{
-                $_SESSION[$this->session_key]['params']['user_country']='';
+                $_SESSION['params']['user_country']='';
             }
         }
         
-        if (!isset($_SESSION[$this->session_key]['params']['lang']) ) {
+        if (!isset($_SESSION['params']['lang']) ) {
             if (!isset($_GET['app']) && isset($this->cookie->lg) && in_array($this->cookie->lg, array('ar','en'))) {
-                $this->siteLanguage=$_SESSION[$this->session_key]['params']['lang']=$this->cookie->lg;
+                $this->siteLanguage=$_SESSION['params']['lang']=$this->cookie->lg;
                 $this->redirect($this->cfg['url_base'].$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->siteLanguage != 'ar' ? $this->siteLanguage .'/':'').($this->id ? $this->id.'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
             } else {
-                $_SESSION[$this->session_key]['params']['lang']=$this->siteLanguage;
+                $_SESSION['params']['lang']=$this->siteLanguage;
             }
         } else {
-            $_SESSION[$this->session_key]['params']['lang']=$this->siteLanguage;
+            $_SESSION['params']['lang']=$this->siteLanguage;
         }
     }
     
@@ -589,15 +588,15 @@ class Router {
 			
         if (!empty($geo) && isset($geo['country']['iso_code'])) {
             $country_code=strtolower(trim($geo['country']['iso_code']));
-            $_SESSION[$this->session_key]['params']['user_country']=$country_code;
-            $_SESSION[$this->session_key]['params']['latitude'] = isset($geo['location']['latitude']) ? $geo['location']['latitude'] : 0.0;
-            $_SESSION[$this->session_key]['params']['longitude'] = isset($geo['location']['longitude']) ? $geo['location']['longitude'] : 0.0;
+            $_SESSION['params']['user_country']=$country_code;
+            $_SESSION['params']['latitude'] = isset($geo['location']['latitude']) ? $geo['location']['latitude'] : 0.0;
+            $_SESSION['params']['longitude'] = isset($geo['location']['longitude']) ? $geo['location']['longitude'] : 0.0;
                 
             if (array_key_exists($country_code, $this->cfg['iso_countries'])) {
                 $this->countryId = $this->cfg['iso_countries'][$country_code];                    
                     
                 $this->uri='/'.$country_code; 
-                $_SESSION[$this->session_key]['params']['city']=0;
+                $_SESSION['params']['city']=0;
                 
                 if (count($this->countries[$this->countryId]['cities']) > 1) {
                     $this->cache();
@@ -612,26 +611,26 @@ class Router {
                     }                        
                     if ($default_city>0) {
                         $this->uri.='/'.$this->countries[$this->countryId]['cities'][$default_city]['uri'];
-                        $_SESSION[$this->session_key]['params']['city']=$default_city;
+                        $_SESSION['params']['city']=$default_city;
                     }
                 }
-                $_SESSION[$this->session_key]['params']['country'] = $this->countryId;
+                $_SESSION['params']['country'] = $this->countryId;
                     
                 if(isset($this->cookie->lg) && in_array($this->cookie->lg,array('ar','en'))){
-                    $this->siteLanguage=$_SESSION[$this->session_key]['params']['lang']=$this->cookie->lg;                        
+                    $this->siteLanguage=$_SESSION['params']['lang']=$this->cookie->lg;                        
                 }else{
-                    $_SESSION[$this->session_key]['params']['lang']=$this->siteLanguage;
+                    $_SESSION['params']['lang']=$this->siteLanguage;
                 }
                     
                 //$this->redirect($this->cfg['url_base'].$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->siteLanguage != 'ar' ? $this->siteLanguage .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
             } else {
-                $_SESSION[$this->session_key]['params']['country'] = $this->countryId;
-                $_SESSION[$this->session_key]['params']['city']=0;
+                $_SESSION['params']['country'] = $this->countryId;
+                $_SESSION['params']['city']=0;
             }
         }else{
-            $_SESSION[$this->session_key]['params']['user_country']='';
-            $_SESSION[$this->session_key]['params']['latitude'] = 0.0;
-            $_SESSION[$this->session_key]['params']['longitude'] = 0.0;
+            $_SESSION['params']['user_country']='';
+            $_SESSION['params']['latitude'] = 0.0;
+            $_SESSION['params']['longitude'] = 0.0;
         }        
     }
    
@@ -708,10 +707,10 @@ class Router {
         if ($this->cfg['modules'][$this->module][1]==0) return;
         if (!$this->cfg['site_production']) return;
         if(isset($_GET['provider']))return;
-        //header("X-Mourjan-ID: ".$_SESSION[$this->session_key]['info']['id'] );
-        if ( isset($_SESSION[$this->session_key]['info']['id']) && $_SESSION[$this->session_key]['info']['id'] && $this->module!='homescreen') return;
+        //header("X-Mourjan-ID: ".$_SESSION['info']['id'] );
+        if ( isset($_SESSION['info']['id']) && $_SESSION['info']['id'] && $this->module!='homescreen') return;
         if ($lastModifiedDate) {
-            $etag = isset($_SESSION[$this->session_key]['params']['etag']) && isset($_SESSION[$this->session_key]['params']['mobile']) && $_SESSION[$this->session_key]['params']['mobile'] ? $_SESSION[$this->session_key]['params']['etag'] : $this->cfg['etag'];
+            $etag = isset($_SESSION['params']['etag']) && isset($_SESSION['params']['mobile']) && $_SESSION['params']['mobile'] ? $_SESSION['params']['etag'] : $this->cfg['etag'];
             //$ifModifiedSince=(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) ? $_SERVER['HTTP_IF_MODIFIED_SINCE'] : false);
                            
             $etagFile = sprintf('%x%x-%x-%x-%x-%x-%x-%x-%x', $this->isMobile, $etag,
@@ -1053,8 +1052,8 @@ class Router {
 
 
      function distance($lat, $lon, $ulat=0, $ulon=0) {
-        if (!$ulat) $ulat = $_SESSION[$this->session_key]['params']['latitude'];
-        if (!$ulon) $ulon = $_SESSION[$this->session_key]['params']['longitude'];
+        if (!$ulat) $ulat = $_SESSION['params']['latitude'];
+        if (!$ulon) $ulon = $_SESSION['params']['longitude'];
         $theta = $ulon - $lon;
         $dist = sin(deg2rad($ulat)) * sin(deg2rad($lat)) +  cos(deg2rad($ulat)) * cos(deg2rad($lat)) * cos(deg2rad($theta));
         $dist = acos($dist);

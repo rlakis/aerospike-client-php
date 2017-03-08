@@ -96,7 +96,7 @@ class MCUser extends MCJsonMapper
     
     public function loadFromAreoSpike(int $pk)
     {
-        $time = -microtime(true);
+        //$time = -microtime(true);
         // The cluster can be located by just one host
         $config = [
           "hosts" => [
@@ -105,7 +105,7 @@ class MCUser extends MCJsonMapper
            ]];
         
         // The new client will connect and learn the cluster layout
-        $db = new Aerospike($config);
+        $db = new Aerospike($config, TRUE);
         if (!$db->isConnected()) 
         {
             echo "Failed to connect to the Aerospike server [{$db->errorno()}]: {$db->error()}\n";
@@ -120,13 +120,41 @@ class MCUser extends MCJsonMapper
             return;
         }
         
-        $time += microtime(true); 
+        //$time += microtime(true); 
         
-        var_dump($time*1000.0);
-        var_dump($record);
+        //var_dump($time*1000.0);
+        //var_dump($record);
+        //var_dump(json_encode($record['bins'], JSON_PRETTY_PRINT));
         
         $db->close();
         
+        
+        $this->id = $record['bins']['id'];
+        $this->pid = isset($record['bins']['provider_id'])?$record['bins']['provider_id']:$record['bins']['provide_id'];
+        $this->email = $record['bins']['email'];
+        $this->prvdr = $record['bins']['provider'];
+        $this->fn = $record['bins']['full_name'];
+        $this->dn = $record['bins']['display_name'];
+        $this->pu = $record['bins']['profile_url'];
+        $this->rd = $record['bins']['date_added'];
+        $this->lvts = $record['bins']['last_visited'];
+        $this->lvl = $record['bins']['level'];
+        $this->name = $record['bins']['name'];
+        $this->um = $record['bins']['user_email'];
+        $this->up = $record['bins']['password'];
+        $this->rnk = $record['bins']['rank'];
+        $this->pvts = $record['bins']['prior_visited'];
+        $this->ps = $record['bins']['pblshr_status'];
+        $this->lrts = $record['bins']['last_renewed'];
+        $this->dependants = $record['bins']['dependants'];
+        
+        $this->opts->parseAssoc($record['bins']['options']);
+        $this->mobile = new MCMobile($record['bins']['mobile']);
+        
+        foreach ($record['bins']['devices'] as $value) 
+        {
+            $this->devices[]=new MCDevice($value);
+        }
     }
     
     
@@ -578,6 +606,21 @@ class MCUserOptions extends MCJsonMapper
     }
     
     
+    public function parseAssoc($array)
+    {
+        $this->e = $array['e'];
+        $this->lang = $array['lang'];
+        $this->bmail = $array['bmail'];
+        $this->bmailKey = $array['bmailKey'];
+        $this->watch = $array['subscriptions'];
+        $this->cut->parseAssoc($array['calling_time']);
+        $this->cui->parseAssoc($array['contact_info']);
+        $this->UA = $array['user_agent'];
+        $this->cts = $array['cts'];
+        $this->suspend = $array['suspend'];                
+    }
+    
+    
     public function getE() : int
     {
         return $this->e;
@@ -638,7 +681,22 @@ class MCMobile extends MCJsonMapper
     protected $flag;     // 2: ios    
     protected $secret;  // ios users only
     
-     
+    function __construct($as_array=null) 
+    {
+        if (is_array($as_array))
+        {
+            $this->number = $as_array['number'];
+            $this->code = $as_array['code'];
+            $this->rts = $as_array['date_requested'];
+            $this->ats = $as_array['date_activated'];
+            $this->dlvrd = $as_array['delivered'];
+            $this->sc = $as_array['sms_count'];
+            $this->flag = $as_array['flag'];
+            $this->secret = $as_array['secret'];
+        }
+    }
+    
+    
     public function getNumber() : int
     {
         return $this->number ?: 0;
@@ -667,6 +725,29 @@ class MCDevice extends MCJsonMapper
     protected $rmvd;
     protected $dats;      // date added
     protected $pa;        // purchase allowed    
+    
+
+    function __construct($as_array=null) 
+    {
+        if (is_array($as_array))
+        {
+            $this->uuid = $as_array['uuid'];
+            $this->model = $as_array['model'];
+            $this->name = $as_array['name'];
+            $this->sn = $as_array['sys_name'];
+            $this->sv = $as_array['sys_version'];
+            $this->lvts = $as_array['last_visited'];
+            $this->tk = $as_array['token'];
+            $this->pn = $as_array['push_enabled'];
+            $this->ccc = $as_array['carrier_country'];
+            $this->iav = $as_array['app_version'];
+            $this->prefs = $as_array['app_preferences'];
+            $this->rmvd = $as_array['removed'];
+            $this->dats = $as_array['date_added'];
+            $this->pa = $as_array['purchase_enabled'];
+        }
+    }
+
 }
 
 
@@ -682,6 +763,20 @@ class MCContactInfo extends MCJsonMapper
     {
         $this->metadata = ['p'=>'MCPhoneData'];
     }
+    
+    public function parseAssoc($array)
+    {
+        foreach ($array['phones'] as $phone) 
+        {
+            $pc = new MCPhoneData();
+            $pc->parseAssoc($phone);
+            $this->p[] = $pc;
+        }
+        $this->b = $array['blackberry'];
+        $this->e = $array['email'];
+        $this->s = $array['skype'];
+        $this->t = $array['twiter'];
+    }
 }
 
 
@@ -690,6 +785,14 @@ class MCCallingTime extends MCJsonMapper
     protected $t; // type (before, after, between)
     protected $b; // before
     protected $a; // after   
+    
+
+    public function parseAssoc($array)
+    {
+        $this->t = $array['type'];
+        $this->b = $array['before'];
+        $this->a = $array['after'];
+    }
 }
 
 
@@ -699,7 +802,16 @@ class MCPhoneData extends MCJsonMapper
     protected $t;
     protected $c;
     protected $r;
-    protected $i;    
+    protected $i;
+    
+    public function parseAssoc($array)
+    {
+        $this->v = $array['humain'];
+        $this->t = $array['type'];
+        $this->c = $array['country_key'];
+        $this->r = $array['raw_input'];
+        $this->i = $array['country_iso'];
+    }
 }
 
 

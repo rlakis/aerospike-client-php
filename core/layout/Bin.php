@@ -17,7 +17,7 @@ class AjaxHandler extends Site {
         parent::__construct($router);
         $this->dir=$router->cfg['dir'];
         $this->host=$router->cfg['host'];
-        $this->sid=session_id().$router->cfg['site_key'];
+        $this->sid=session_id();
     }
 
     function setData($res, $label=''){

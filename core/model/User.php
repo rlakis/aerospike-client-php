@@ -1915,7 +1915,7 @@ order by m.activation_timestamp desc',
     
     function sysAuthById($id){
         if($this->session_id==''){
-            $this->session_id = session_id().$this->cfg['site_key'];
+            $this->session_id = session_id();
         }
         /*$q='select identifier,id,lvl,display_name,provider,email,user_rank,user_name,user_email,opts,prev_visit,last_visit 
             from web_users where id = ?';*/
@@ -2302,6 +2302,7 @@ order by m.activation_timestamp desc',
                 $updateOptions=true;
             }            
             $this->update();
+            //error_log(var_export($result,true));
             if ($updateOptions){                
                 $this->updateOptions();
                 if ($checkWatchMail) {
@@ -2729,11 +2730,12 @@ order by m.activation_timestamp desc',
     
     function populate()
     {
-        $this->session_id=session_id().$this->cfg['site_key'];
-        if (isset($_SESSION[$this->session_id]['info'])) $this->info=$_SESSION[$this->session_id]['info'];
-        if (isset($_SESSION[$this->session_id]['params'])) $this->params=$_SESSION[$this->session_id]['params'];
-        if (isset($_SESSION[$this->session_id]['pending'])) $this->pending=$_SESSION[$this->session_id]['pending'];
-        
+        $this->session_id=session_id();
+        if (isset($_SESSION['info'])) $this->info=$_SESSION['info'];
+        if (isset($_SESSION['params'])) $this->params=$_SESSION['params'];
+        if (isset($_SESSION['pending'])) $this->pending=$_SESSION['pending'];
+        //error_log($this->session_id);
+        //error_log(var_export($_SESSION,true));
         if($this->info['id'])
         {
             $data = $this->info['data'] = new MCUser(MCSessionHandler::getUser($this->info['id']));
@@ -2806,9 +2808,10 @@ order by m.activation_timestamp desc',
     }
 
     function update(){
-        $_SESSION[$this->session_id]['info']=$this->info;
-        $_SESSION[$this->session_id]['params']=$this->params;
-        $_SESSION[$this->session_id]['pending']=$this->pending;
+        $_SESSION['info']=$this->info;
+        $_SESSION['params']=$this->params;
+        $_SESSION['pending']=$this->pending;
+        //error_log(var_export($_SESSION,true));
     }
 
     
@@ -2826,7 +2829,7 @@ order by m.activation_timestamp desc',
         if (session_destroy()) 
         {
             session_start();
-            session_regenerate_id();
+            //session_regenerate_id();
             if (isset($this->info['data']))
             {
                 $this->info['data']->destroyToken();
