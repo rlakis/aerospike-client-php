@@ -70,22 +70,25 @@ class MCUser extends MCJsonMapper
     protected $devices = [];      // MCDevice ArrayList;
     protected $prps;              // MCPropSpace
      
-    private $jwt;
+    private $jwt = ['token'=>false, 'secret'=>'', 'claim'=>[]];
     
     function __construct($json=false) 
     {
         $this->metadata = ['devices'=>'MCDevice'];
         $this->opts = new MCUserOptions();
         $this->mobile = new MCMobile();
-        $this->jwt = FALSE;
-        if ($json) 
+        if (is_numeric($json)) 
         {            
+            $this->loadFromAreoSpike($json);
+        }         
+        elseif (is_string($json)) 
+        {
             $this->set($json);
-            //$this->cacheStore();
         }        
     }
     
-    
+
+
     public function set($json)
     {
         //$this->mapper(  );
@@ -96,19 +99,16 @@ class MCUser extends MCJsonMapper
     
     public function loadFromAreoSpike(int $pk)
     {
-        //$time = -microtime(true);
-        // The cluster can be located by just one host
         $config = [
           "hosts" => [
             [ "addr" => "h5.mourjan.com", "port" => 3000 ],
             [ "addr" => "h8.mourjan.com", "port" => 3000 ],
            ]];
         
-        // The new client will connect and learn the cluster layout
         $db = new Aerospike($config, TRUE);
         if (!$db->isConnected()) 
         {
-            echo "Failed to connect to the Aerospike server [{$db->errorno()}]: {$db->error()}\n";
+            error_log( "Failed to connect to the Aerospike server [{$db->errorno()}]: {$db->error()}");
             return;
         }
         
@@ -116,18 +116,11 @@ class MCUser extends MCJsonMapper
         $status = $db->get($key, $record);
         if ($status != Aerospike::OK) 
         {
-            echo "Error [{$db->errorno()}] {$db->error()}", "\n";
+            error_log( "Error [{$db->errorno()}] {$db->error()}" );
             return;
         }
-        
-        //$time += microtime(true); 
-        
-        //var_dump($time*1000.0);
-        //var_dump($record);
-        //var_dump(json_encode($record['bins'], JSON_PRETTY_PRINT));
-        
-        $db->close();
-        
+                
+        $db->close();        
         
         $this->id = $record['bins']['id'];
         $this->pid = isset($record['bins']['provider_id'])?$record['bins']['provider_id']:$record['bins']['provide_id'];
@@ -149,64 +142,18 @@ class MCUser extends MCJsonMapper
         $this->dependants = $record['bins']['dependants'];
         
         $this->opts->parseAssoc($record['bins']['options']);
-        $this->mobile = new MCMobile($record['bins']['mobile']);
+        $this->mobile = new MCMobile($record['bins']['mobile']);        
         
         foreach ($record['bins']['devices'] as $value) 
         {
             $this->devices[]=new MCDevice($value);
         }
+        
+        $this->jwt['token'] = isset($record['bins']['jwt']['token']) ? $record['bins']['jwt']['token'] : FALSE;
+        $this->jwt['secret'] = isset($record['bins']['jwt']['secret']) ? $record['bins']['jwt']['secret'] : '';
+        $this->jwt['claim'] = isset($record['bins']['jwt']['claim']) ? $record['bins']['jwt']['claim'] : [];
     }
-    
-    
-    public function cacheStore()
-    {
-        if ($this->getID()<=0)
-        {
-            return;
-        }
-        // The cluster can be located by just one host
-        $config = [
-          "hosts" => [
-            [ "addr" => "h5.mourjan.com", "port" => 3000 ],
-            [ "addr" => "h8.mourjan.com", "port" => 3000 ],
-           ]];
-        
-        // The new client will connect and learn the cluster layout
-        $db = new Aerospike($config, FALSE);
-        if (!$db->isConnected()) {
-            echo "Failed to connect to the Aerospike server [{$db->errorno()}]: {$db->error()}\n";
-            return;
-        }
-        
-        // records are identified as a (namespace, set, primary-key) tuple
-        $digest = $db->getKeyDigest("users", "profiles", $this->getID());
-        $key = $db->initKey("users", "profiles", $digest, TRUE);
-
-        // the record and its bins are created and updated similar to an array
-        
-        
-        $values = json_decode(json_encode($this), TRUE);
-        $status = $db->put($key, $values);
-        if ($status != Aerospike::OK) 
-        {
-            echo "Error [{$db->errorno()}] {$db->error()}", "\n";
-        }
-
-        // record bins can hold complex types such as arrays
-        //$update_vals = [
-        //  "quotes" => [
-        //    "I'm Scruffy. The janitor.",
-        //    "I'm on break.",
-        //    "Scruffy's gonna die like he lived."]];
-        //$db->put($key, $update_vals);
-
-        // read selected bins from a record
-        $db->get($key, $record);
-        //print_r($record);
-        
-        $db->close();
-    }
-    
+       
     
     public function getID() : int
     {
@@ -399,7 +346,104 @@ class MCUser extends MCJsonMapper
     }        
 
     
-    public function createToken() : string
+    public function createToken()
+    {
+        if ( !$this->isValidJsonWebToken($this->jwt['token']) )
+        {
+            $this->jwt['secret'] = hash('sha256', random_bytes(512), FALSE);
+            $this->jwt['claim'] = [
+                        "iss" => "mourjan", /* issuer */
+                        "sub" => "any", /* subject */
+                        "nbf" => time(), /* not before time */
+                        "exp" => time(NULL) + 86400, /* expiration */
+                        "iat" => time(), /* issued at */
+                        "typ" => "jabber", /* type */
+                        "pid" => getmypid(),
+                        "mob" => $this->getMobileNumber(), 
+                        "urd" => $this->getRegisterUnixtime(), 
+                        "uid" => $this->getProviderIdentifier(), 
+                        "pvd" => $this->getProvider()
+                    ];
+            
+            $this->jwt['token'] = JWT::encode($this->jwt['claim'], $this->jwt['secret']);
+            
+            // The cluster can be located by just one host
+            $config = [
+              "hosts" => [
+                    [ "addr" => "h5.mourjan.com", "port" => 3000 ],
+                    [ "addr" => "h8.mourjan.com", "port" => 3000 ],
+               ]];
+        
+            // The new client will connect and learn the cluster layout
+            $db = new Aerospike($config, TRUE);
+            if ($db->isConnected()) 
+            {
+                // records are identified as a (namespace, set, primary-key) tuple
+                $digest = $db->getKeyDigest("users", "profiles", $this->getID());
+                $key = $db->initKey("users", "profiles", $digest, TRUE);
+                $db->put($key, array('jwt' => $this->jwt) );
+                
+                $db->close();
+            }        
+        
+            $jabber = new JabberClient(['server'=>'https://dv.mourjan.com:5280/api']);
+            if ($jabber->checkAccount( (string) $this->getID()) )
+            {
+                error_log("User.... already exists: <" . getmypid() . "> ". $this->getID().PHP_EOL);
+                error_log($jabber->changePassword((string)$this->getID(), $this->jwt['token'])==0 ? "changed ".getmypid()  : "fail to change ".getmypid() );
+            }
+            else
+            {
+                $jabber->createUser((string)$this->getID(), $this->jwt['token']);
+            }
+            
+        }
+    }
+    
+    
+    public function isValidJsonWebToken(string $token) : bool
+    {
+        if (!is_string($token)) return false;
+        if (empty($this->jwt['secret']) || empty($this->jwt['claim'])) return false;
+                
+        JWT::$leeway = 60; // $leeway in seconds
+        $decoded = (array) JWT::decode($token, $this->jwt['secret'], array('HS256'));                    
+        return ($this->jwt['claim']==$decoded && $decoded['nbf']<time() &&  $decoded['exp']>time() && $token===$this->jwt['token']);
+    }
+    
+    
+    public function destroyToken()
+    {
+        $jabber = new JabberClient(['server'=>'https://dv.mourjan.com:5280/api']);
+        if ($jabber->checkAccount( (string) $this->getID()) )
+        {
+            $jabber->kickUser((string) $this->getID());
+        }
+        
+        $config = [
+              "hosts" => [
+                    [ "addr" => "h5.mourjan.com", "port" => 3000 ],
+                    [ "addr" => "h8.mourjan.com", "port" => 3000 ],
+               ]];
+            
+        // The new client will connect and learn the cluster layout
+        $db = new Aerospike($config, TRUE);
+            
+        if ($db->isConnected()) 
+        {
+            // records are identified as a (namespace, set, primary-key) tuple
+            $digest = $db->getKeyDigest("users", "profiles", $this->getID());
+            $key = $db->initKey("users", "profiles", $digest, TRUE);
+            $db->removeBin($key, ['jwt']);
+                
+            $db->close();
+        }        
+            
+    }
+    
+    
+    
+    public function createToken1() : string
     {
 
         if (is_string($this->jwt) || strpos(filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_URL), 'ajax') !== false )
@@ -464,7 +508,7 @@ class MCUser extends MCJsonMapper
                     {
                         error_log("User already exists: <" . getmypid() . "> ". $this->getID().PHP_EOL);
                         //error_log($this->jwt);
-                        error_log($jabber->changePassword((string)$this->getID(), $this->jwt)==0 ? "changed ".getmypid()  : "fail to change ".getmypid() );
+                        error_log( $jabber->changePassword((string)$this->getID(), $this->jwt)==0 ? "changed ".getmypid()  : "fail to change ".getmypid() );
                     }
                     else
                     {
@@ -490,12 +534,9 @@ class MCUser extends MCJsonMapper
     
     
     public function getToken() : string
-    {
-        if ($this->jwt===FALSE)
-        {
-            return $this->createToken();
-        }
-        return $this->jwt;
+    {        
+        $this->createToken();
+        return $this->jwt['token'];
     }
     
     
@@ -551,7 +592,7 @@ class MCUser extends MCJsonMapper
     }
     
     
-    public function destroyToken()
+    public function destroyToken1()
     {
         try 
         {
