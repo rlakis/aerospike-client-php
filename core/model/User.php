@@ -278,8 +278,9 @@ class User {
         }
     }
     
-    function isSuperUser(){
-        return in_array($this->info['id'],array(1,2,2100));
+    function isSuperUser()
+    {
+        return in_array($this->info['id'], array(1,2,2100));
     }
     
     function getAdminFilters(){
@@ -1810,6 +1811,7 @@ order by m.activation_timestamp desc',
                     $adapter = $hybridauth->getAdapter( $provider );
                     $auth_info = $adapter->getUserProfile();
                     
+                    
                     $this->updateUserRecord($auth_info,$provider);
                 }
             }
@@ -1878,12 +1880,6 @@ order by m.activation_timestamp desc',
                 $this->info['email']=$result[0]['USER_EMAIL'] ? $result[0]['USER_EMAIL'] : $result[0]['EMAIL'];
             }
             if(strpos($this->info['email'], '@')===false) $this->info['email']='';
-           	/*
-            $this->info['active_ads']=0;
-            $this->info['pending_ads']=0;
-            $this->info['draft_ads']=0;
-            $this->info['archive_ads']=0;
-            */
             if ($result[0]['PREV_VISIT']) $this->params['last_visit']=  strtotime($result[0]['PREV_VISIT']);
             if ($result[0]['OPTS']=='') {
                 $this->info['options']=array();
@@ -2243,6 +2239,8 @@ order by m.activation_timestamp desc',
 
 
     function updateUserRecord($info,$provider){
+        //Core\Model\NoSQL::getInstance()->updateUser($info, $provider);
+
         $updateOptions=false;
         $provider=strtolower($provider);
         $identifier=$info->identifier;
