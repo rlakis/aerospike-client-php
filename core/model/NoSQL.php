@@ -1,7 +1,7 @@
 <?php
 namespace Core\Model;
 
-require_once 'asd/MCUserTrait.php';
+require_once 'asd/UserTrait.php';
 
 
 class NoSQL 
