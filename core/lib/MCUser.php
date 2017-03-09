@@ -1,8 +1,11 @@
 <?php
 require_once 'vendor/autoload.php';
+require_once get_cfg_var('mourjan.path').'/core/model/NoSQL.php';
 require_once get_cfg_var('mourjan.path').'/core/lib/Jabber/JabberClient.php';
+
 use Firebase\JWT\JWT;
 use lib\Jabber\JabberClient;
+use Core\Model\NoSQL;
         
 class MCJsonMapper
 {
@@ -99,6 +102,9 @@ class MCUser extends MCJsonMapper
     
     public function loadFromAreoSpike(int $pk)
     {
+        //NoSQL::getInstance()->createUser([]);
+        //NoSQL::getInstance()->updateLinkedMobile($pk, 9613287168);
+        
         $config = [
           "hosts" => [
             [ "addr" => "h5.mourjan.com", "port" => 3000 ],
@@ -152,8 +158,43 @@ class MCUser extends MCJsonMapper
         $this->jwt['token'] = isset($record['bins']['jwt']['token']) ? $record['bins']['jwt']['token'] : FALSE;
         $this->jwt['secret'] = isset($record['bins']['jwt']['secret']) ? $record['bins']['jwt']['secret'] : '';
         $this->jwt['claim'] = isset($record['bins']['jwt']['claim']) ? $record['bins']['jwt']['claim'] : [];
+        
+        //var_dump($this->getAsArray());
     }
-       
+    
+    
+    public function getAsArray() : array
+    {
+        $result = [
+            'id' => $this->getID(), 
+            'provider_id' => $this->getProviderIdentifier(),
+            'email' => $this->getEMail(),
+            'provider' => $this->getProvider(),
+            'full_name' => $this->getFullName(),
+            'display_name' => $this->getDisplayName(),
+            'profile_url' => $this->getProfileURL(),
+            'date_added' => $this->getRegisterUnixtime(),
+            'last_visited' => $this->getLastVisitUnixtime(),
+            'level' => $this->getLevel(),
+            'name' => $this->getUserName(),
+            'user_email' => $this->getUserMail(),
+            'password' => $this->getPassword(),
+            'rank' => $this->getRank(),
+            'prior_visited' => $this->getPreviousVisitUnixtime(),
+            'pblshr_status' => $this->getPublisherStatus(),
+            'last_renewed' => $this->getLastAdRenewUnixtime(),
+            'dependants' => $this->getDependants(),
+            'options' => $this->opts->getAsArray(),
+            'mobile' => $this->mobile->getAsArray(),
+            'devices' => []       
+        ];
+        foreach ($this->getDevices() as $dvc) 
+        {
+            $result['devices'][] = $dvc->getAsArray();
+        }
+        return $result;
+    }
+    
     
     public function getID() : int
     {
@@ -255,18 +296,18 @@ class MCUser extends MCJsonMapper
     
     public function getUserMail()
     {
-        return $this->data->um;
+        return $this->um;
     }
     
     
     public function getPassword()
     {
-        return $this->data->up;
+        return $this->up;
     }
     
     public function getRank()
     {
-        return $this->data->rnk;
+        return $this->rnk;
     }
     
     
@@ -286,7 +327,7 @@ class MCUser extends MCJsonMapper
     
     public function getPublisherStatus()
     {
-        return $this->data->ps;        
+        return $this->ps;        
     }
     
     
@@ -323,8 +364,8 @@ class MCUser extends MCJsonMapper
     
     
     public function getDependants() : array
-    {
-        return $this->data->dependants;
+    {        
+        return $this->dependants;
     }
     
     
@@ -662,6 +703,22 @@ class MCUserOptions extends MCJsonMapper
     }
     
     
+    public function getAsArray() : array
+    {
+        return [
+            'e'=> $this->e, 
+            'lang'=> $this->lang, 
+            'bmail'=> $this->bmail,
+            'bmailKey'=> $this->bmailKey,
+            'subscriptions'=> $this->watch,
+            'calling_time'=> $this->cut->getAsArray(),
+            'contact_info'=> $this->cui->getAsArray(),
+            'user_agent'=> $this->UA,
+            'cts'=> $this->cts,
+            'suspend'=> $this->suspend
+            ];
+    }
+    
     public function getE() : int
     {
         return $this->e;
@@ -738,6 +795,24 @@ class MCMobile extends MCJsonMapper
     }
     
     
+    public function getAsArray() : array
+    {
+        if ($this->number)
+            return [
+                'number'=> $this->number,
+                'code'=> $this->code,
+                'date_requested'=> $this->rts,
+                'date_activated'=> $this->ats,
+                'delivered'=> $this->dlvrd,
+                'sms_count'=> $this->sc,
+                'flag'=> $this->flag,
+                'secret'=> $this->secret
+            ];
+        else
+            return [];
+    }
+    
+    
     public function getNumber() : int
     {
         return $this->number ?: 0;
@@ -788,6 +863,27 @@ class MCDevice extends MCJsonMapper
             $this->pa = $as_array['purchase_enabled'];
         }
     }
+    
+    
+    public function getAsArray() : array
+    {
+        return [
+            'uuid'=> $this->uuid,
+            'model'=> $this->model,
+            'name'=> $this->name,
+            'sys_name'=> $this->sn,
+            'sys_version'=> $this->sv,
+            'last_visited'=> $this->lvts,
+            'token'=> $this->tk,
+            'push_enabled'=> $this->pn,
+            'carrier_country'=> $this->ccc,
+            'app_version'=> $this->iav,
+            'app_preferences'=> $this->prefs,
+            'removed'=> $this->rmvd,
+            'date_added'=> $this->dats,
+            'purchase_enabled'=> $this->pa
+        ];
+    }
 
 }
 
@@ -818,6 +914,22 @@ class MCContactInfo extends MCJsonMapper
         $this->s = $array['skype'];
         $this->t = $array['twiter'];
     }
+    
+    public function getAsArray() : array
+    {
+        $pp=[];
+        foreach ($this->p as $pc) {
+            $pp[]=$pc->getAsArray();
+            
+        }
+        return [
+            'phones'=> $pp,
+            'blackberry'=> $this->b,
+            'email'=> $this->e,
+            'skype'=> $this->s,
+            'twiter'=> $this->t
+        ];
+    }
 }
 
 
@@ -833,6 +945,15 @@ class MCCallingTime extends MCJsonMapper
         $this->t = $array['type'];
         $this->b = $array['before'];
         $this->a = $array['after'];
+    }
+    
+    public function getAsArray() : array
+    {
+        return [
+            'type'=> $this->t,
+            'before'=> $this->b,
+            'after'=> $this->a
+        ];
     }
 }
 
@@ -852,6 +973,17 @@ class MCPhoneData extends MCJsonMapper
         $this->c = $array['country_key'];
         $this->r = $array['raw_input'];
         $this->i = $array['country_iso'];
+    }
+    
+    public function getAsArray() : array
+    {
+        return [
+            'humain'=> $this->v,
+            'type'=> $this->t,
+            'country_key'=> $this->c,
+            'raw_input'=> $this->r,
+            'country_iso'=> $this->i
+        ];
     }
 }
 
