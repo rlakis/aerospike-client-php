@@ -475,15 +475,15 @@ order by m.activation_timestamp desc',
                     $passOk=1;
                 }else{
                     $passOk=0;
-                    error_log('password reset sysauth failure | >'.$userId .':'.$original.'< >'.$pass.'<'."\n", 3, "/var/log/nginx/mourjan.password.log");
-                    error_log(var_export($this->db->getInstance()->errorInfo(),true)."\n",3, "/var/log/nginx/mourjan.password.log");
+                    error_log('password reset sysauth failure | >'.$userId .':'.$original.'< >'.$pass.'<'."\n", 3, "/var/log/mourjan/password.log");
+                    error_log(var_export($this->db->getInstance()->errorInfo(),true)."\n",3, "/var/log/mourjan/password.log");
                 }
             }else{
-                error_log('password reset failed > on query | >'.$userId .':'.$original.'< >'.$pass.'<'."\n", 3, "/var/log/nginx/mourjan.password.log");
-                error_log(var_export($this->db->getInstance()->errorInfo(),true)."\n",3, "/var/log/nginx/mourjan.password.log");
+                error_log('password reset failed > on query | >'.$userId .':'.$original.'< >'.$pass.'<'."\n", 3, "/var/log/mourjan/password.log");
+                error_log(var_export($this->db->getInstance()->errorInfo(),true)."\n",3, "/var/log/mourjan/password.log");
             }
         }catch(Exception $e){
-            error_log('password reset failed > on exception | >'.$e->getMessage()."\n", 3, "/var/log/nginx/mourjan.password.log");
+            error_log('password reset failed > on exception | >'.$e->getMessage()."\n", 3, "/var/log/mourjan/password.log");
         }
         return $passOk;
     }

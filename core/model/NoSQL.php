@@ -17,7 +17,7 @@ class NoSQL
                     [ "addr" => "h5.mourjan.com", "port" => 3000 ],
                     [ "addr" => "h8.mourjan.com", "port" => 3000 ],
                   ]];
-        $this->cluster = new \Aerospike($connection_config, TRUE);
+        $this->cluster = new \Aerospike($connection_config, FALSE);
     }
 
 
