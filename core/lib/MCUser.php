@@ -81,8 +81,9 @@ class MCUser extends MCJsonMapper
         $this->opts = new MCUserOptions();
         $this->mobile = new MCMobile();
         if (is_numeric($json)) 
-        {            
-            $this->loadFromAreoSpike($json);
+        {
+            $this->parseArray(NoSQL::getInstance()->fetchUser($json));
+            //$this->loadFromAreoSpike($json);
         }         
         elseif (is_string($json)) 
         {
@@ -99,7 +100,51 @@ class MCUser extends MCJsonMapper
         $this->mapper($this, $json);
     }
 
-    
+
+    private function parseArray(array $record)
+    {
+        if (empty($record))
+        {
+            return;
+        }
+        
+        $this->id = $record['id'];
+        $this->pid = isset($record['provider_id'])?$record['provider_id']:$record['provide_id'];
+        $this->email = $record['email'];
+        $this->prvdr = $record['provider'];
+        $this->fn = $record['full_name'];
+        $this->dn = $record['display_name'];
+        $this->pu = $record['profile_url'];
+        $this->rd = $record['date_added'];
+        $this->lvts = $record['last_visited'];
+        $this->lvl = $record['level'];
+        $this->name = $record['name'];
+        $this->um = $record['user_email'];
+        $this->up = $record['password'];
+        $this->rnk = $record['rank'];
+        $this->pvts = $record['prior_visited'];
+        $this->ps = $record['pblshr_status'];
+        $this->lrts = $record['last_renewed'];
+        $this->dependants = $record['dependants'];
+
+        $this->opts->parseAssoc($record['options']);
+
+        $this->mobile = isset($record['mobile']) ? new MCMobile($record['mobile']) : new MCMobile();
+
+        foreach ($record['devices'] as $value)
+        {
+            $this->devices[]=new MCDevice($value);
+        }
+
+        $this->jwt['token'] = isset($record['jwt']['token']) ? $record['jwt']['token'] : FALSE;
+        $this->jwt['secret'] = isset($record['jwt']['secret']) ? $record['jwt']['secret'] : '';
+        $this->jwt['claim'] = isset($record['jwt']['claim']) ? $record['jwt']['claim'] : [];
+
+
+    }
+
+
+
     public function loadFromAreoSpike(int $pk)
     {
         //NoSQL::getInstance()->createUser([]);
@@ -279,6 +324,8 @@ class MCUser extends MCJsonMapper
     
     public function getLevel() : int
     {
+        if ($this->lvl==null)
+            $this->lvl=0;
         return $this->lvl;
     }
     
@@ -428,10 +475,10 @@ class MCUser extends MCJsonMapper
             }        
         
             $jabber = new JabberClient(['server'=>'https://dv.mourjan.com:5280/api']);
+
             if ($jabber->checkAccount( (string) $this->getID()) )
             {
-                error_log("User.... already exists: <" . getmypid() . "> ". $this->getID().PHP_EOL);
-                error_log($jabber->changePassword((string)$this->getID(), $this->jwt['token'])==0 ? "changed ".getmypid()  : "fail to change ".getmypid() );
+                $jabber->changePassword((string)$this->getID(), $this->jwt['token'])==0 ? "changed ".getmypid()  : "fail to change ".getmypid();
             }
             else
             {
@@ -817,10 +864,13 @@ class MCMobile extends MCJsonMapper
     {
         return $this->number ?: 0;
     }
-    
+
+
     public function isVerified() : bool
     {
-        return ($this->ats != null && $this->ats > time()-31556926 ) ? true: false;
+        //error_log("verified: ".($this->number && ($this->ats+31556926)>time()));
+
+        return ($this->number && ($this->ats+31556926)>time());
     }
 }
 
@@ -903,11 +953,14 @@ class MCContactInfo extends MCJsonMapper
     
     public function parseAssoc($array)
     {
-        foreach ($array['phones'] as $phone) 
+        if (isset($array['phones']) && is_array($array['phones']))
         {
-            $pc = new MCPhoneData();
-            $pc->parseAssoc($phone);
-            $this->p[] = $pc;
+            foreach ($array['phones'] as $phone)
+            {
+                $pc = new MCPhoneData();
+                $pc->parseAssoc($phone);
+                $this->p[] = $pc;
+            }
         }
         $this->b = $array['blackberry'];
         $this->e = $array['email'];

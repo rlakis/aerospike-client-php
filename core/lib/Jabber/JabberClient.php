@@ -50,18 +50,17 @@ class JabberClient
      * @var string
      */
     protected $userAgent;
+
     
     public function __construct(array $options)
     {
         $this->server = $options['server'];
         $this->host = 'mourjan.com';
         $this->username = '9613287168@mourjan.com';
-        //$this->password = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtb3VyamFuIiwic3ViIjoiYW55IiwibmJmIjoxNDg4MzgzNTEwLCJleHAiOjE0ODg0Njk5MTAsImlhdCI6MTQ4ODM4MzUxMCwidHlwIjoiamFiYmVyIiwicGlkIjo5MTcxLCJtb2IiOiI5NjEzMjg3MTY4IiwidXJkIjoxMzI4MDU0NDAwLCJ1aWQiOiIxNzI3NTgyMTAwIiwicHZkIjoiZmFjZWJvb2sifQ.pSCk8AdrRPBWy6OdkGkNPFzaZJTDjdk_ZG0o8Y-__TA';
         $this->password = 'f0sVSPrO';
         $this->timeout = 5;
         $this->debug = FALSE;
-        $this->userAgent = 'JSON API:Client Mourjan site';
-        
+        $this->userAgent = 'JSON API:Client Mourjan site';        
     }
     
     /**
@@ -128,9 +127,9 @@ class JabberClient
 
         if ($error)
         {
-            error_log("----------------------------------------------------------------");
-            error_log( $error);                                
-            error_log("----------------------------------------------------------------");
+            //error_log("----------------------------------------------------------------");
+            //error_log( $error);
+            //error_log("----------------------------------------------------------------");
         }
 
         if ($this->debug)
