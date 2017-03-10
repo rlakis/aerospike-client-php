@@ -3958,7 +3958,7 @@ class Page extends Site{
             if($this->user->info['id']) 
             { 
                 ?>UIDK='<?= $this->user->info['idKey'] ?>',<?php 
-                ?>JWT='<?= $this->user->data->getToken() ?>',<?php
+                ?>JWT='<?= $this->user->data ? $this->user->data->getToken():'' ?>',<?php
                 ?>SSID='<?= md5($this->user->info['idKey'].'nodejs.mourjan') 
             ?>',<?php             
             }
@@ -4284,7 +4284,7 @@ class Page extends Site{
             ?>UID=<?= $this->user->info['id'] ?>,<?php 
             if($this->user->info['id']) { 
                 ?>UIDK='<?= $this->user->info['idKey'] ?>',<?php 
-                ?>JWT='<?= $this->user->data->getToken() ?>',<?php
+                ?>JWT='<?= $this->user->data ? $this->user->data->getToken():'' ?>',<?php
                 ?>SSID='<?= md5($this->user->info['idKey'].'nodejs.mourjan') 
             ?>',<?php }
             ?>PID=<?= $this->urlRouter->userId ? 1:0 ?>,<?php 
