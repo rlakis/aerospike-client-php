@@ -75,7 +75,7 @@ if ($errCode==0 && $reference && ($to=="Mourjan"||$to=="12242144077"||$to=="mour
 }
 else
 {
-    error_log( json_encode($_GET) );
+    //error_log( json_encode($_GET) );
 }
 
 
