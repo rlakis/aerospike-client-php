@@ -13,6 +13,7 @@ class User {
     var $params=array();
     var $pending=array();
     var $favorites=array();
+    var $data=null;
 
     var $db=null, $cfg=null, $site=null;
     
@@ -2572,14 +2573,28 @@ order by m.activation_timestamp desc',
         unset ($this->params);
         unset ($this->pending);
         unset ($this->favorites);
+        unset ($this->data);
         $this->info=array('id'=>0, 'inc'=>0, 'app-user'=>0);
         $this->params=array('last_visit'=>0,'country'=>0,'city'=>0);
         $this->pending=array();
+        $this->data=null;
+        $this->favorites=[];
     }
 
     function setStats(){
         if (!isset($this->params['visit'])) {
             $this->params['visit']=1;
+            
+            $keys = array_keys($_SESSION);
+            //error_log(implode('||',$keys).'||'.(isset($keys['params'])?'SET':'NOT').PHP_EOL);
+            if(isset($_SESSION['info'])){
+                foreach($keys as $key){
+                    if(strlen($key)>16 && substr($key, -3)=='mjn'){
+                        unset($_SESSION[$key]);
+                        break;
+                    }
+                }
+            }
         }else{
             $this->params['visit']++;
         }
@@ -2736,14 +2751,13 @@ order by m.activation_timestamp desc',
         //error_log(var_export($_SESSION,true));
         if($this->info['id'])
         {
-            //$data = $this->info['data'] = new MCUser(MCSessionHandler::getUser($this->info['id']));
-            $data = $this->info['data'] = new MCUser($this->info['id']);
-            if($data->getID())
+            $this->data = new MCUser($this->info['id']);
+            if($this->data->getID())
             {
-                $this->info['level'] = $data->getLevel();
-                $this->info['verified'] = $data->isMobileVerified();
-                $this->info['options']['suspend'] = $data->getSuspensionTime();
-                $data->createToken();
+                $this->info['level'] = $this->data->getLevel();
+                $this->info['verified'] = $this->data->isMobileVerified();
+                $this->info['options']['suspend'] = $this->data->getSuspensionTime();
+                $this->data->createToken();
             }
         }
         $this->update();   
@@ -2829,9 +2843,9 @@ order by m.activation_timestamp desc',
         {
             session_start();
             //session_regenerate_id();
-            if (isset($this->info['data']))
+            if ($this->data)
             {
-                $this->info['data']->destroyToken();
+                $this->data->destroyToken();
             }
             
             $this->reset();
