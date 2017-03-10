@@ -96,8 +96,10 @@ class DB
     }
     
     
-    public function commit($restartTransaction=FALSE) {
-        if($this->inTransaction()) {
+    public function commit($restartTransaction=FALSE)
+    {
+        if($this->inTransaction())
+        {
             try {
                 self::$Instance->commit();
                 if ($restartTransaction==TRUE) {
@@ -114,7 +116,7 @@ class DB
     private function newInstance() 
     {
         self::$Instance = new PDO(self::$dbUri, self::$user, self::$pass,
-                    array(
+                    [
                         PDO::ATTR_PERSISTENT=>TRUE,
                         PDO::ATTR_AUTOCOMMIT=>FALSE,
                         PDO::ATTR_EMULATE_PREPARES=>FALSE,
@@ -126,7 +128,7 @@ class DB
                         PDO::FB_ATTR_READONLY=>self::$Readonly,
                         PDO::FB_TRANS_ISOLATION_LEVEL=>self::$IsolationLevel,
                         PDO::FB_ATTR_TIMEOUT=>self::$WaitTimeout
-                    )
+                    ]
                 );
     }
 
@@ -188,11 +190,16 @@ class DB
     }
     
 
-    function close(){
-        if ($this->inTransaction()) {
-            try {
+    function close()
+    {
+        if ($this->inTransaction())
+        {
+            try
+            {
                 self::$Instance->commit();
-            } catch (Exception $ex) {
+            } 
+            catch (Exception $ex)
+            {
                 error_log("Db commit: " . $ex->getMessage() . PHP_EOL);
                 self::$Instance->rollBack();
             }
@@ -225,12 +232,14 @@ class DB
                     $result = TRUE;
                 }else {
 
-                    if ($fetch_mode==PDO::FETCH_NUM) {
-                        if (($row = $stmt->fetch(PDO::FETCH_NUM)) !== false) {
-                            $count = count($row);
+                    if ($fetch_mode==PDO::FETCH_NUM)
+                    {
+                        if (($row = $stmt->fetch(PDO::FETCH_NUM)) !== false)
+                        {
+                            //$count = count($row);
                             do {
-                                for ($i=0; $i < $count; $i++)
-                                    if(is_numeric($row[$i])) $row[$i] = $row[$i] + 0;
+                                //for ($i=0; $i < $count; $i++)
+                                //    if(is_numeric($row[$i])) $row[$i] = $row[$i] + 0;
                                 $result[]=$row;
                                 //break;
                             } while($row = $stmt->fetch(PDO::FETCH_NUM));
@@ -238,7 +247,9 @@ class DB
                     } else $result = $stmt->fetchAll($fetch_mode);
                 }
             }
-            if ($commit) {                
+
+            if ($commit)
+            {
                 self::$Instance->commit();
                 $stmt=null;
             }
@@ -294,10 +305,10 @@ class DB
                     $stmt->execute();
 
                 if (($row = $stmt->fetch(PDO::FETCH_NUM)) !== false) {
-                    $count = count($row);
+                    //$count = count($row);
                     do {
-                        for ($i=0; $i < $count; $i++)
-                            if(is_numeric($row[$i])) $row[$i] = $row[$i] + 0;
+                        //for ($i=0; $i < $count; $i++)
+                        //    if(is_numeric($row[$i])) $row[$i] = $row[$i] + 0;
                         if ($key>=0)
                             $records[$row[$key]]=$row;
                         else {
@@ -356,13 +367,13 @@ class DB
                     $stmt->execute();
 
                 if(($row = $stmt->fetch(PDO::FETCH_NUM)) !== false) {
-                    $count = count($row);
+                    //$count = count($row);
                     $simpleArray=is_null($key) ? true : false;
                     
                     do {
                         //error_log(var_export($row, TRUE));
-                        for ($i=0; $i < $count; $i++)
-                            if(is_numeric($row[$i])) $row[$i] = $row[$i]+0;
+                        //for ($i=0; $i < $count; $i++)
+                        //    if(is_numeric($row[$i])) $row[$i] = $row[$i]+0;
 
                         if($simpleArray){
                             $records[]=$row;
@@ -479,11 +490,11 @@ class DB
 
                 if(($row = $stmt->fetch(PDO::FETCH_NUM)) !== false) {
 
-                    $count = count($row);
+                    //$count = count($row);
                     $simpleArray=is_null($key) ? true : false;
                     do {
-                        for ($i=0; $i < $count; $i++)
-                            if(is_numeric($row[$i])) $row[$i] = $row[$i]+0;
+                        //for ($i=0; $i < $count; $i++)
+                        //    if(is_numeric($row[$i])) $row[$i] = $row[$i]+0;
 
                         if($simpleArray){
                             $records[]=$row;

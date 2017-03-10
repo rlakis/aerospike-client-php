@@ -1037,9 +1037,10 @@ var rtMsgs={
                 $onlySuper = ($isAdmin && isset($ad['SUPER_ADMIN']) && $ad['SUPER_ADMIN']==1) ? 1 : 0;  
                                 
                 if($this->user->info['level']==9) {
-                    
-                    $userData = MCSessionHandler::getUser($ad['WEB_USER_ID']);
-                    $mcUser = new MCUser($userData);
+
+                    $mcUser = new MCUser((int)$ad['WEB_USER_ID']);
+                    //$userData = MCSessionHandler::getUser($ad['WEB_USER_ID']);
+                    //$mcUser = new MCUser($userData);
                     $userMobile = $mcUser->getMobile()->getNumber();
                     
                     $needNumberDisplayFix=false;
@@ -1592,7 +1593,7 @@ var rtMsgs={
                 $userId = $_GET['u'];
                 $type = $this->user->getType($userId);
             }
-            $user = new MCUser(MCSessionHandler::getUser($userId));
+            $user = new MCUser($userId); //(MCSessionHandler::getUser($userId));
             if($user->isSuspended()){
                 $time = MCSessionHandler::checkSuspendedMobile($user->getMobileNumber());
                 $hours=0;

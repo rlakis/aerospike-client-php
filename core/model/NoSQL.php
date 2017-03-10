@@ -19,8 +19,14 @@ class NoSQL
                   ]];
         $this->cluster = new \Aerospike($connection_config, TRUE);
     }
-    
-    
+
+
+    public function __destruct()
+    {
+        $this->close();
+    }
+
+
     public static function getInstance() : NoSQL
     {
         if (!self::$instance)

@@ -1,5 +1,6 @@
 <?php
 require_once 'vendor/autoload.php';
+
 use MaxMind\Db\Reader;
 
 require_once $config['dir'].'/core/layout/Site.php';
@@ -2247,8 +2248,9 @@ class Bin extends AjaxHandler{
                         $isMultiCountry = false;
                         
                         
-                        $userData = MCSessionHandler::getUser($this->user->pending['post']['user']);
-                        $mcUser = new MCUser($userData);
+                        //$userData = MCSessionHandler::getUser($this->user->pending['post']['user']);
+                        //$mcUser = new MCUser($userData);
+                        $mcUser = new MCUser($this->user->pending['post']['user']);
                         if($mcUser->isBlocked()){
                             $this->fail('101');
                         }
@@ -3685,8 +3687,9 @@ class Bin extends AjaxHandler{
                                 $section_id = $ad['SECTION_ID'];
                                 $ad = json_decode($ad['CONTENT'], TRUE);
                             
-                                $userData = MCSessionHandler::getUser($this->user->info['id']);
-                                $mcUser = new MCUser($userData);
+                                //$userData = MCSessionHandler::getUser($this->user->info['id']);
+                                //$mcUser = new MCUser($userData);
+                                $mcUser = new MCUser($this->user->info['id']);
                                 
                                 if($mcUser->isMobileVerified()){
                                     $status = $mcUser->isSuspended() ? 1:0;
@@ -4810,8 +4813,9 @@ class Bin extends AjaxHandler{
                     $id=$_POST['i'];
                     $hours=(int)$_POST['v'];
                     if (is_numeric($id) && $hours){
-                        $userData = MCSessionHandler::getUser($id);
-                        $mcUser = new MCUser($userData);
+                        //$userData = MCSessionHandler::getUser($id);
+                        //$mcUser = new MCUser($userData);
+                        $mcUser = new MCUser($id);
                         if($mcUser->isMobileVerified()){
                             if($this->user->suspend($id,$hours,$mcUser->getMobileNumber())){
                                 $this->process();
@@ -4849,8 +4853,9 @@ class Bin extends AjaxHandler{
                     }
                     $msg.=' date:'.date("d.m.y");
                     if (is_numeric($id)){
-                        $userData = MCSessionHandler::getUser($id);
-                        $mcUser = new MCUser($userData);
+                        //$userData = MCSessionHandler::getUser($id);
+                        //$mcUser = new MCUser($userData);
+                        $mcUser = new MCUser($id);
                         if($mcUser->isMobileVerified()){
                             if($this->user->block($id, $mcUser->getMobileNumber(),$msg)){
                                 $this->process();
