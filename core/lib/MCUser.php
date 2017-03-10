@@ -494,9 +494,18 @@ class MCUser extends MCJsonMapper
         if (!is_string($token)) return false;
         if (empty($this->jwt['secret']) || empty($this->jwt['claim'])) return false;
                 
-        JWT::$leeway = 60; // $leeway in seconds
-        $decoded = (array) JWT::decode($token, $this->jwt['secret'], array('HS256'));                    
-        return ($this->jwt['claim']==$decoded && $decoded['nbf']<time() &&  $decoded['exp']>time() && $token===$this->jwt['token']);
+        try
+        {
+            JWT::$leeway = 60; // $leeway in seconds
+            $decoded = (array) JWT::decode($token, $this->jwt['secret'], array('HS256'));
+        }
+        catch (Exception $e)
+        {
+            error_log(__FILE__.".".__CLASS__.".".__FUNCTION__.PHP_EOL.$e->getTraceAsString());
+            return FALSE;
+        }
+        
+        return ($this->jwt['claim']==$decoded && $token===$this->jwt['token']);
     }
     
     

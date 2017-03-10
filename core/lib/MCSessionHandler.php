@@ -1,9 +1,13 @@
 <?php
 ini_set('session.save_handler', 'aerospike');
-ini_set('session.save_path', 'users|sessions|h5.mourjan.com:3000,h8.mourjan.com:3000');
-if (session_status() == PHP_SESSION_NONE) {
+ini_set('session.save_path', 'users|sessions|148.251.184.77:3000,138.201.28.229:3000');
+
+if (session_status() == PHP_SESSION_NONE) 
+{
     session_start();
 }
+
+
 class MCSessionHandler
 {
     function __construct($autoStart=TRUE)
