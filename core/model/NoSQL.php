@@ -10,6 +10,7 @@ class NoSQL
 
     private static $instance = null;
     private $cluster;
+    private $configuration = ["hosts" => [["addr"=>"148.251.184.77", "port"=>3000], ["addr"=>"138.201.28.229", "port"=>3000]]];
     
     private function __construct() 
     {
@@ -17,7 +18,7 @@ class NoSQL
                     [ "addr" => "h5.mourjan.com", "port" => 3000 ],
                     [ "addr" => "h8.mourjan.com", "port" => 3000 ],
                   ]];
-        $this->cluster = new \Aerospike($connection_config, FALSE);
+        $this->cluster = new \Aerospike($this->configuration, FALSE);
     }
 
 
@@ -45,6 +46,11 @@ class NoSQL
     
     public function getConnection()
     {
+        if (!$this->cluster->isConnected())
+        {
+            error_log( "Tryring to connect the Aerospike server...");
+            $this->cluster = new \Aerospike($this->configuration, FALSE);
+        }
         return $this->cluster;
     }
     
