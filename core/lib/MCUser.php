@@ -6,6 +6,7 @@ require_once get_cfg_var('mourjan.path').'/core/lib/Jabber/JabberClient.php';
 use Firebase\JWT\JWT;
 use lib\Jabber\JabberClient;
 use Core\Model\NoSQL;
+use Core\Model\ASD;
         
 class MCJsonMapper
 {
@@ -72,6 +73,7 @@ class MCUser extends MCJsonMapper
     protected $dependants = [];   // Related user ids
     protected $devices = [];      // MCDevice ArrayList;
     protected $prps;              // MCPropSpace
+    protected $xmpp = 0;
      
     private $jwt = ['token'=>false, 'secret'=>'', 'claim'=>[]];
     
@@ -80,10 +82,10 @@ class MCUser extends MCJsonMapper
         $this->metadata = ['devices'=>'MCDevice'];
         $this->opts = new MCUserOptions();
         $this->mobile = new MCMobile();
+
         if (is_numeric($json)) 
         {
             $this->parseArray(NoSQL::getInstance()->fetchUser($json));
-            //$this->loadFromAreoSpike($json);
         }         
         elseif (is_string($json)) 
         {
@@ -108,8 +110,8 @@ class MCUser extends MCJsonMapper
             return;
         }
         
-        $this->id = $record['id'];
-        $this->pid = isset($record['provider_id'])?$record['provider_id']:$record['provide_id'];
+        $this->id = $record[ASD\USER_PROFILE_ID];
+        $this->pid = isset($record[ASD\USER_PROVIDER_ID])?$record[ASD\USER_PROVIDER_ID]:$record['provide_id'];
         $this->email = $record['email'];
         $this->prvdr = $record['provider'];
         $this->fn = $record['full_name'];
@@ -139,103 +141,39 @@ class MCUser extends MCJsonMapper
         $this->jwt['token'] = isset($record['jwt']['token']) ? $record['jwt']['token'] : FALSE;
         $this->jwt['secret'] = isset($record['jwt']['secret']) ? $record['jwt']['secret'] : '';
         $this->jwt['claim'] = isset($record['jwt']['claim']) ? $record['jwt']['claim'] : [];
-
-
-    }
-
-
-
-    public function loadFromAreoSpike(int $pk)
-    {
-        //NoSQL::getInstance()->createUser([]);
-        //NoSQL::getInstance()->updateLinkedMobile($pk, 9613287168);
         
-        $config = [
-          "hosts" => [
-            [ "addr" => "h5.mourjan.com", "port" => 3000 ],
-            [ "addr" => "h8.mourjan.com", "port" => 3000 ],
-           ]];
-        
-        $db = new Aerospike($config, TRUE);
-        if (!$db->isConnected()) 
-        {
-            error_log( "Failed to connect to the Aerospike server [{$db->errorno()}]: {$db->error()}");
-            return;
-        }
-        
-        $key = $db->initKey("users", "profiles", $pk);
-        $status = $db->get($key, $record);
-        if ($status != Aerospike::OK) 
-        {
-            error_log( "Error [{$db->errorno()}] {$db->error()}" );
-            return;
-        }
-                
-        $db->close();        
-        
-        $this->id = $record['bins']['id'];
-        $this->pid = isset($record['bins']['provider_id'])?$record['bins']['provider_id']:$record['bins']['provide_id'];
-        $this->email = $record['bins']['email'];
-        $this->prvdr = $record['bins']['provider'];
-        $this->fn = $record['bins']['full_name'];
-        $this->dn = $record['bins']['display_name'];
-        $this->pu = $record['bins']['profile_url'];
-        $this->rd = $record['bins']['date_added'];
-        $this->lvts = $record['bins']['last_visited'];
-        $this->lvl = $record['bins']['level'];
-        $this->name = $record['bins']['name'];
-        $this->um = $record['bins']['user_email'];
-        $this->up = $record['bins']['password'];
-        $this->rnk = $record['bins']['rank'];
-        $this->pvts = $record['bins']['prior_visited'];
-        $this->ps = $record['bins']['pblshr_status'];
-        $this->lrts = $record['bins']['last_renewed'];
-        $this->dependants = $record['bins']['dependants'];
-        
-        $this->opts->parseAssoc($record['bins']['options']);
-        $this->mobile = new MCMobile($record['bins']['mobile']);        
-        
-        foreach ($record['bins']['devices'] as $value) 
-        {
-            $this->devices[]=new MCDevice($value);
-        }
-        
-        $this->jwt['token'] = isset($record['bins']['jwt']['token']) ? $record['bins']['jwt']['token'] : FALSE;
-        $this->jwt['secret'] = isset($record['bins']['jwt']['secret']) ? $record['bins']['jwt']['secret'] : '';
-        $this->jwt['claim'] = isset($record['bins']['jwt']['claim']) ? $record['bins']['jwt']['claim'] : [];
-        
-        //var_dump($this->getAsArray());
-    }
+        $this->xmpp = isset($record[ASD\USER_XMPP_CREATED]) ? $record[ASD\USER_XMPP_CREATED] : 0;
+    }   
     
     
     public function getAsArray() : array
     {
         $result = [
-            'id' => $this->getID(), 
-            'provider_id' => $this->getProviderIdentifier(),
-            'email' => $this->getEMail(),
-            'provider' => $this->getProvider(),
-            'full_name' => $this->getFullName(),
-            'display_name' => $this->getDisplayName(),
-            'profile_url' => $this->getProfileURL(),
-            'date_added' => $this->getRegisterUnixtime(),
-            'last_visited' => $this->getLastVisitUnixtime(),
-            'level' => $this->getLevel(),
-            'name' => $this->getUserName(),
-            'user_email' => $this->getUserMail(),
-            'password' => $this->getPassword(),
-            'rank' => $this->getRank(),
-            'prior_visited' => $this->getPreviousVisitUnixtime(),
-            'pblshr_status' => $this->getPublisherStatus(),
-            'last_renewed' => $this->getLastAdRenewUnixtime(),
-            'dependants' => $this->getDependants(),
-            'options' => $this->opts->getAsArray(),
-            'mobile' => $this->mobile->getAsArray(),
-            'devices' => []       
+            ASD\USER_PROFILE_ID => $this->getID(), 
+            ASD\USER_PROVIDER_ID => $this->getProviderIdentifier(),
+            ASD\USER_PROVIDER_EMAIL => $this->getEMail(),
+            ASD\USER_PROVIDER => $this->getProvider(),
+            ASD\USER_FULL_NAME => $this->getFullName(),
+            ASD\USER_DISPLAY_NAME => $this->getDisplayName(),
+            ASD\USER_PROFILE_URL => $this->getProfileURL(),
+            ASD\USER_DATE_ADDED => $this->getRegisterUnixtime(),
+            ASD\USER_LAST_VISITED => $this->getLastVisitUnixtime(),
+            ASD\USER_LEVEL => $this->getLevel(),
+            ASD\USER_NAME => $this->getUserName(),
+            ASD\USER_EMAIL => $this->getUserMail(),
+            ASD\USER_PASSWORD => $this->getPassword(),
+            ASD\USER_RANK => $this->getRank(),
+            ASD\USER_PRIOR_VISITED => $this->getPreviousVisitUnixtime(),
+            ASD\USER_PUBLISHER_STATUS => $this->getPublisherStatus(),
+            ASD\USER_LAST_AD_RENEWED => $this->getLastAdRenewUnixtime(),
+            ASD\USER_DEPENDANTS => $this->getDependants(),
+            ASD\USER_OPTIONS => $this->opts->getAsArray(),
+            ASD\USER_MOBILE => $this->mobile->getAsArray(),
+            ASD\USER_DEVICES => [],
         ];
         foreach ($this->getDevices() as $dvc) 
         {
-            $result['devices'][] = $dvc->getAsArray();
+            $result[ASD\USER_DEVICES][] = $dvc->getAsArray();
         }
         return $result;
     }
@@ -455,34 +393,30 @@ class MCUser extends MCJsonMapper
             
             $this->jwt['token'] = JWT::encode($this->jwt['claim'], $this->jwt['secret']);
             
-            // The cluster can be located by just one host
-            $config = [
-              "hosts" => [
-                    [ "addr" => "h5.mourjan.com", "port" => 3000 ],
-                    [ "addr" => "h8.mourjan.com", "port" => 3000 ],
-               ]];
-        
-            // The new client will connect and learn the cluster layout
-            $db = new Aerospike($config, TRUE);
-            if ($db->isConnected()) 
-            {
-                // records are identified as a (namespace, set, primary-key) tuple
-                $digest = $db->getKeyDigest("users", "profiles", $this->getID());
-                $key = $db->initKey("users", "profiles", $digest, TRUE);
-                $db->put($key, array('jwt' => $this->jwt) );
-                
-                $db->close();
-            }        
+            NoSQL::getInstance()->setJsonWebToken($this->getID(), $this->jwt);
+            
         
             $jabber = new JabberClient(['server'=>'https://dv.mourjan.com:5280/api']);
-
-            if ($jabber->checkAccount( (string) $this->getID()) )
+            if ($this->xmpp)
             {
-                $jabber->changePassword((string)$this->getID(), $this->jwt['token'])==0 ? "changed ".getmypid()  : "fail to change ".getmypid();
-            }
-            else
-            {
-                $jabber->createUser((string)$this->getID(), $this->jwt['token']);
+                $jabber->changePassword((string)$this->getID(), $this->jwt['token']);
+            } 
+            else 
+            {            
+                if ($jabber->checkAccount( (string) $this->getID()) )
+                {
+                    NoSQL::getInstance()->setEnabledXMPP($this->getID());
+                    $jabber->changePassword((string)$this->getID(), $this->jwt['token']);
+                }
+                else
+                {
+                    try
+                    {
+                        $jabber->createUser((string)$this->getID(), $this->jwt['token']);
+                        NoSQL::getInstance()->setEnabledXMPP($this->getID());
+                    } 
+                    catch (Exception $e) {}
+                }
             }
             
         }
@@ -501,7 +435,7 @@ class MCUser extends MCJsonMapper
         }
         catch (Exception $e)
         {
-            error_log(__FILE__.".".__CLASS__.".".__FUNCTION__.PHP_EOL.$e->getTraceAsString());
+            error_log(__CLASS__.".".__FUNCTION__.' <'.$e->getMessage().'>');
             return FALSE;
         }
         
@@ -516,207 +450,16 @@ class MCUser extends MCJsonMapper
         {
             $jabber->kickUser((string) $this->getID());
         }
-        
-        $config = [
-              "hosts" => [
-                    [ "addr" => "h5.mourjan.com", "port" => 3000 ],
-                    [ "addr" => "h8.mourjan.com", "port" => 3000 ],
-               ]];
-            
-        // The new client will connect and learn the cluster layout
-        $db = new Aerospike($config, TRUE);
-            
-        if ($db->isConnected()) 
-        {
-            // records are identified as a (namespace, set, primary-key) tuple
-            $digest = $db->getKeyDigest("users", "profiles", $this->getID());
-            $key = $db->initKey("users", "profiles", $digest, TRUE);
-            $db->removeBin($key, ['jwt']);
-                
-            $db->close();
-        }        
-            
+        NoSQL::getInstance()->unsetJsonWebTocken($this->getID());            
     }
     
-    
-    
-    public function createToken1() : string
-    {
-
-        if (is_string($this->jwt) || strpos(filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_URL), 'ajax') !== false )
-        {
-            return '';
-        }
-        
-        
-        $secret = hash('sha256', random_bytes(512), FALSE);
-        
-        $claim = [
-            "iss" => "mourjan", /* issuer */
-            "sub" => "any", /* subject */
-            "nbf" => time(), /* not before time */
-            "exp" => time(NULL) + 86400, /* expiration */
-            "iat" => time(), /* issued at */
-            "typ" => "jabber", /* type */
-            "pid" => getmypid(),
-            "mob" => $this->getMobileNumber(), 
-            "urd" => $this->getRegisterUnixtime(), 
-            "uid" => $this->getProviderIdentifier(), 
-            "pvd" => $this->getProvider()];
-        
-        
-        try 
-        {
-            $redis = new Redis();
-            
-            if ($redis->connect('138.201.28.229', 6379, 2, NULL, 20)) 
-            {
-                $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
-                $redis->setOption(Redis::OPT_PREFIX, 'jwt_');
-                $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
-                $temp = $redis->get($this->getID());
-                //error_log("Redis get:".PHP_EOL.$temp);
-                if ($temp)
-                {
-                    $_temp = json_decode($temp, TRUE);
-                    //var_dump($_temp);
-                    if ($this->isValidToken($_temp['jwt']))
-                    {
-                        $this->jwt = $_temp['jwt'];    
-                        error_log("Valid token pid<".getmypid().">: ".$this->getID());
-                    }
-                    else 
-                    {
-                        error_log("Invalid token pid<".getmypid().">: ".$this->getID());
-                    }
-                }
-                
-                if ($this->jwt===FALSE)
-                {
-                    $this->jwt = JWT::encode($claim, $secret);
-
-                    $claim['key'] = $secret;
-                    $claim['jwt'] = $this->jwt;
-                    $redis->set($this->getID(), json_encode($claim));
-                    $redis->expireAt($this->getID(), $claim['exp']);
-                    
-                    $jabber = new JabberClient(['server'=>'https://dv.mourjan.com:5280/api']);
-                    if ($jabber->checkAccount( (string) $this->getID()) )
-                    {
-                        error_log("User already exists: <" . getmypid() . "> ". $this->getID().PHP_EOL);
-                        //error_log($this->jwt);
-                        error_log( $jabber->changePassword((string)$this->getID(), $this->jwt)==0 ? "changed ".getmypid()  : "fail to change ".getmypid() );
-                    }
-                    else
-                    {
-                        $jabber->createUser((string)$this->getID(), $this->jwt);
-                    }
-                }
-            }
-            else 
-            {
-                error_log("Could not connect to redis user store! " . $redis->getLastError(). '?!?!');
-            }            	
-        }
-        catch (RedisException $re) 
-        {           
-            error_log(PHP_EOL . PHP_EOL . $re->getCode() . PHP_EOL . $re->getMessage() . PHP_EOL . $re->getTraceAsString() . PHP_EOL);
-        }
-        finally 
-        {
-            $redis->close();
-        }
-        return $this->jwt;
-    }
     
     
     public function getToken() : string
     {        
         $this->createToken();
         return $this->jwt['token'];
-    }
-    
-    
-    public function isValidToken(string $token) : bool
-    {
-        $result = FALSE;
-        try 
-        {
-            $redis = new Redis();
-            
-            if ($redis->connect('138.201.28.229', 6379, 2, NULL, 20)) 
-            {
-                $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
-                $redis->setOption(Redis::OPT_PREFIX, 'jwt_');
-                $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
-         
-                $str = $redis->get($this->getID());
-                if ($str)
-                {
-                    $claim = json_decode($str, TRUE);
-                    
-                    $secret = $claim['key'];
-                    $jwt = $claim['jwt'];
-
-                    unset( $claim['key'] );
-                    unset( $claim['jwt'] );
-                    
-                    
-                    JWT::$leeway = 60; // $leeway in seconds
-                    $decoded = (array) JWT::decode($token, $secret, array('HS256'));
-                    
-                    $result = ($claim==$decoded && $decoded['nbf']<time() && $token===$jwt);
-                }
-            }
-            else 
-            {
-                error_log("Could not connect to redis user store! " . $redis->getLastError(). '?!?!');
-            }            	
-        }
-        catch (RedisException $re) 
-        {           
-            error_log(PHP_EOL . PHP_EOL . $re->getCode() . PHP_EOL . $re->getMessage() . PHP_EOL . $re->getTraceAsString() . PHP_EOL);
-        }
-        catch (Firebase\JWT\SignatureInvalidException $se)
-        {
-            error_log(getmypid().PHP_EOL . PHP_EOL . $se->getCode() . PHP_EOL . $se->getMessage() . PHP_EOL . $se->getTraceAsString() . PHP_EOL);
-        }
-        finally 
-        {
-            $redis->close();
-        }
-        return $result;
-    }
-    
-    
-    public function destroyToken1()
-    {
-        try 
-        {
-            $redis = new Redis();
-            
-            if ($redis->connect('138.201.28.229', 6379, 2, NULL, 20)) 
-            {
-                $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
-                $redis->setOption(Redis::OPT_PREFIX, 'jwt_');
-                $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
-                
-                $redis->delete($this->getID());
-            }
-            else 
-            {
-                error_log("Could not connect to redis user store! " . $redis->getLastError(). '?!?!');
-            }            	
-        }
-        catch (RedisException $re) 
-        {           
-            error_log(PHP_EOL . PHP_EOL . $re->getCode() . PHP_EOL . $re->getMessage() . PHP_EOL . $re->getTraceAsString() . PHP_EOL);
-        }
-        finally 
-        {
-            $redis->close();
-        }
-    }
+    }   
     
     
 }

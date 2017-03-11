@@ -6,18 +6,14 @@ require_once 'asd/UserTrait.php';
 
 class NoSQL 
 {
-    use \Core\Model\ASD\UserTrait;
-
+    use \Core\Model\ASD\UserTrait;    
+    
     private static $instance = null;
     private $cluster;
     private $configuration = ["hosts" => [["addr"=>"148.251.184.77", "port"=>3000], ["addr"=>"138.201.28.229", "port"=>3000]]];
     
     private function __construct() 
     {
-        $connection_config = ["hosts" => [
-                    [ "addr" => "h5.mourjan.com", "port" => 3000 ],
-                    [ "addr" => "h8.mourjan.com", "port" => 3000 ],
-                  ]];
         $this->cluster = new \Aerospike($this->configuration, FALSE);
     }
 

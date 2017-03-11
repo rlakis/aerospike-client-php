@@ -127,9 +127,11 @@ class JabberClient
 
         if ($error)
         {
-            error_log("----------------------------------------------------------------");
-            error_log( $error);
-            error_log("----------------------------------------------------------------");
+            error_log(__CLASS__.'.'.__FUNCTION__.': '. $error);
+            error_log(var_export($command, true));
+            error_log(var_export($params, true));
+            error_log(var_export($response,TRUE));
+
         }
 
         if ($this->debug)

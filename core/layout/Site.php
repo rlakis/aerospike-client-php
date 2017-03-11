@@ -42,17 +42,23 @@ class Site {
     public function __destruct() {
     }    
     
-    function checkUserGeo(){
+    
+    function checkUserGeo()
+    {
         $geo = $this->urlRouter->getIpLocation();
-        if (!empty($geo)) {
+        if (isset($geo['country'])) 
+        {
             $country_code=strtolower(trim($geo['country']['iso_code']));
             $this->user->params['user_country']=$country_code;
             if(strlen($country_code)!=2)$this->user->params['user_country']='';
-        }else{
+        }
+        else
+        {
             $this->user->params['user_country']='';
         }
         $this->user->update();
     }
+    
     
     function isRTL($text){
         /*

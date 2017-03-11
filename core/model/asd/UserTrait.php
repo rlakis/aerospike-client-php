@@ -2,8 +2,39 @@
 
 namespace Core\Model\ASD;
 
+const NS_USER               = 'users';
+const TS_USER               = 'profiles';
+
+const USER_PROFILE_ID       = 'id';
+const USER_PROVIDER_ID      = 'provider_id';
+const USER_PROVIDER_EMAIL   = 'email';
+const USER_PROVIDER         = 'provider';
+const USER_FULL_NAME        = 'full_name';
+const USER_DISPLAY_NAME     = 'display_name';
+const USER_PROFILE_URL      = 'profile_url';
+const USER_DATE_ADDED       = 'date_added';
+const USER_LAST_VISITED     = 'last_visited';
+const USER_LEVEL            = 'level';
+const USER_NAME             = 'name';
+const USER_EMAIL            = 'user_email';
+const USER_PASSWORD         = 'password';
+const USER_RANK             = 'rank';
+const USER_PRIOR_VISITED    = 'prior_visited';
+const USER_PUBLISHER_STATUS = 'pblshr_status';
+const USER_LAST_AD_RENEWED  = 'last_renewed';
+const USER_DEPENDANTS       = 'dependants';
+const USER_OPTIONS          = 'options';
+const USER_MOBILE           = 'mobile';
+const USER_MOBILE_NUMBER            = 'number';
+const USER_MOBILE_DATE_ACTIVATED    = 'date_activated';
+const USER_DEVICES          = 'devices';
+const USER_XMPP_CREATED     = 'xmpp';
+const USER_JWT              = 'jwt';
+
+
 trait UserTrait
 {
+
     abstract public function getConnection();
 
     public function fetchUser(int $uid) : array
@@ -20,7 +51,7 @@ trait UserTrait
 
     public function createUser(array $bins)
     {
-        $key = $this->getConnection()->initKey("users", "generators", 'gen_id');
+        $key = $this->getConnection()->initKey(NS_USER, "generators", 'gen_id');
         $operations = [
             ["op" => \Aerospike::OPERATOR_INCR, "bin" => "profile_id", "val" => 1],
             ["op" => \Aerospike::OPERATOR_READ, "bin" => "profile_id"],
@@ -31,27 +62,28 @@ trait UserTrait
             $uid = $record['profile_id'];
             $now = time();
             $record = [
-                'id' => $uid, 
-                'provider_id' => '',
-                'email' => '',
-                'provider' => '',
-                'full_name' => '',
-                'display_name' => '',
-                'profile_url' => '',
-                'date_added' => $now,
-                'last_visited' => $now,
-                'level' => 0,
-                'name' => '',
-                'user_email' => '',
-                'password' => '',
-                'rank' => 0,
-                'prior_visited' => 0,
-                'pblshr_status' => 0,
-                'last_renewed' => 0,
-                'dependants' => [],
-                'options' => [],
-                'mobile' => [],
-                'devices' => []       
+                USER_PROFILE_ID => $uid, 
+                USER_PROVIDER_ID => '',
+                USER_PROVIDER_EMAIL => '',
+                USER_PROVIDER => '',
+                USER_FULL_NAME => '',
+                USER_DISPLAY_NAME => '',
+                USER_PROFILE_URL => '',
+                USER_DATE_ADDED => $now,
+                USER_LAST_VISITED => $now,
+                USER_LEVEL => 0,
+                USER_NAME => '',
+                USER_EMAIL => '',
+                USER_PASSWORD => '',
+                USER_RANK => 0,
+                USER_PRIOR_VISITED => 0,
+                USER_PUBLISHER_STATUS => 0,
+                USER_LAST_AD_RENEWED => 0,
+                USER_XMPP_CREATED => 0,
+                USER_DEPENDANTS => [],
+                USER_OPTIONS => [],
+                USER_MOBILE => [],
+                USER_DEVICES => []
             ];
             foreach ($bins as $k => $v) 
             {
@@ -64,7 +96,6 @@ trait UserTrait
     
     public function updateUser($info, string $provider)
     {
-        error_log(__CLASS__ );
         $provider = strtolower($provider);
         $identifier = $info->identifier;
         $email = is_null($info->emailVerified) ? (is_null($info->email ? '' : $info->email)) : $info->emailVerified;
@@ -76,17 +107,17 @@ trait UserTrait
         $dispName = (!is_null($info->displayName) ? $info->displayName : '');
         $infoStr = (!is_null($info->profileURL) ? $info->profileURL : '');
         $uid = 0;
-        $where = \Aerospike::predicateEquals('provider_id', $identifier);
-        $this->getConnection()->query("users", "profiles", $where,  
+        $where = \Aerospike::predicateEquals(USER_PROVIDER_ID, $identifier);
+        $this->getConnection()->query(NS_USER, TS_USER, $where,  
                 function ($record) use (&$uid, $provider) 
                 {
-                    if ($record['bins']['provider']==$provider)
+                    if ($record['bins'][USER_PROVIDER]==$provider)
                     {
-                        $uid = $record['bins']['id'];                        
+                        $uid = $record['bins'][USER_PROFILE_ID];                        
                     }
-                }, ['id', 'provider']);
+                }, [USER_PROFILE_ID, USER_PROVIDER]);
                 
-        $bins = ['email'=>$email, 'full_name'=>$fullName, 'display_name'=>$dispName, 'profile_url'=>$infoStr];        
+        $bins = [USER_PROVIDER_EMAIL=>$email, USER_FULL_NAME=>$fullName, USER_DISPLAY_NAME=>$dispName, USER_PROFILE_URL=>$infoStr];        
         if ($uid)
         {
             $pk = $this->initKey($uid);            
@@ -95,8 +126,8 @@ trait UserTrait
         }
         else
         {
-            $bins['provider_id'] = $identifier;
-            $bins['provider'] = $provider;
+            $bins[USER_PROVIDER_ID] = $identifier;
+            $bins[USER_PROVIDER] = $provider;
             $this->createUser($bins);
         }
                 
@@ -105,7 +136,7 @@ trait UserTrait
     
     private function initKey(int $uid) 
     {
-        return $this->getConnection()->initKey("users", "profiles", $uid);
+        return $this->getConnection()->initKey(NS_USER, TS_USER, $uid);
     }
     
     
@@ -127,6 +158,9 @@ trait UserTrait
         if ($status != \Aerospike::OK) 
         {
             error_log( "Error [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" );
+            error_log(json_encode($pk));
+            error_log(json_encode($bins));
+            
             return FALSE;
         }
         return TRUE;
@@ -136,21 +170,40 @@ trait UserTrait
     public function setVisitUnixtime(int $uid)
     {
         $pk = $this->initKey($uid);
-        $record = $this->getBins($pk, ["last_visited"]);
+        $record = $this->getBins($pk, [USER_LAST_VISITED]);
         if ($record)
         {        
-            $this->setBins($pk, ['last_visited'=>time(), 'prior_visited'=>$record['last_visited']]);
+            $this->setBins($pk, [USER_LAST_VISITED=>time(), USER_PRIOR_VISITED=>$record[USER_LAST_VISITED]]);
         }
+    }
+    
+    
+    public function setEnabledXMPP(int $uid)
+    {
+        $pk = $this->initKey($uid);
+        $this->setBins($pk, [USER_XMPP_CREATED => 1]);
+    }
+    
+    
+    public function setJsonWebToken(int $uid, array $jwt) : bool
+    {
+        return $this->setBins($this->initKey($uid), [USER_JWT => $jwt]);
+    }
+    
+    
+    public function unsetJsonWebTocken(int $uid)
+    {
+        $this->getConnection()->removeBin($this->initKey($uid), [USER_JWT]);
     }
     
     
     public function updateLinkedMobile(int $uid, int $number) : bool
     {
         $pk = $this->initKey($uid);
-        $record=$this->getBins($pk, ['mobile']);
-        if ($record && isset($record['mobile']['number']) && $record['mobile']['number']==$number)
+        $record=$this->getBins($pk, [USER_MOBILE]);
+        if ($record && isset($record[USER_MOBILE][USER_MOBILE_NUMBER]) && $record[USER_MOBILE][USER_MOBILE_NUMBER]==$number)
         {
-            $record['mobile']['date_activated'] = time();
+            $record[USER_MOBILE][USER_MOBILE_DATE_ACTIVATED] = time();
             return $this->setBins($pk, $record);            
         }
         return FALSE;
@@ -160,13 +213,13 @@ trait UserTrait
     public function getVerifiedMobile(int $uid)
     {
         $pk = $this->initKey($uid);
-        $record=$this->getBins($pk, ['mobile']);
-        if ($record && isset($record['mobile']['number']) && isset($record['mobile']['date_activated']))
+        $record=$this->getBins($pk, [USER_MOBILE]);
+        if ($record && isset($record[USER_MOBILE][USER_MOBILE_NUMBER]) && isset($record[USER_MOBILE][USER_MOBILE_DATE_ACTIVATED]))
         {
             $year_in_seconds = 31556926;
-            if ($record['mobile']['date_activated']+$year_in_seconds>time()) 
+            if ($record[USER_MOBILE][USER_MOBILE_DATE_ACTIVATED]+$year_in_seconds>time()) 
             {
-                return $record['mobile']['number'];
+                return $record[USER_MOBILE][USER_MOBILE_NUMBER];
             }
         }
         return FALSE;        
@@ -176,15 +229,15 @@ trait UserTrait
     public function getOptions(int $uid) : array
     {
         $pk = $this->initKey($uid);
-        $record=$this->getBins($pk, ['options']);
-        return isset($record['options']) ? $record['options'] : $record;
+        $record=$this->getBins($pk, [USER_OPTIONS]);
+        return isset($record[USER_OPTIONS]) ? $record[USER_OPTIONS] : $record;
     }
 
     
     public function getRank(int $uid) : int
     {
         $pk = $this->initKey($uid);
-        $record=$this->getBins($pk, ['rank']);        
-        return isset($record['rank']) ? $record['rank'] : 0;
+        $record=$this->getBins($pk, [USER_RANK]);        
+        return isset($record[USER_RANK]) ? $record[USER_RANK] : 0;
     }
 }
