@@ -4426,7 +4426,7 @@ class Bin extends AjaxHandler{
                                             $sKey=$this->user->encodeRequest('email_verify',array($this->user->info['id']));
                                             $verifyLink=$this->host.'/a/'.($lang=='ar'?'':$lang.'/').'?k='.$sKey.'&key='.urlencode($sessionKey);
                                             
-                                            $mailer=new MourjanMail($this->urlRouter->cfg, $this->user->info['options']['lang'] ? $this->user->info['options']['lang'] : $this->site->urlRouter->siteLanguage);
+                                            $mailer=new MourjanMail($this->urlRouter->cfg, $this->user->info['options']['lang'] ? $this->user->info['options']['lang'] : $this->urlRouter->siteLanguage);
                                             if ($mailer->sendEmailValidation($fields['email'],$verifyLink,$this->user->info['name'])){
                                                 $this->user->info['options']['email']=$fields['email'];
                                                 $this->user->info['options']['emailKey']=$sessionKey;
