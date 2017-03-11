@@ -23,13 +23,49 @@ const USER_PRIOR_VISITED    = 'prior_visited';
 const USER_PUBLISHER_STATUS = 'pblshr_status';
 const USER_LAST_AD_RENEWED  = 'last_renewed';
 const USER_DEPENDANTS       = 'dependants';
+
 const USER_OPTIONS          = 'options';
+const USER_OPTIONS_E                = 'e';
+const USER_OPTIONS_LANG             = 'lang';
+const USER_OPTIONS_BMAIL            = 'bmail';
+const USER_OPTIONS_MMAIL_KEY        = 'bmailKey';
+const USER_OPTIONS_SUBSCRIPTIONS    = 'subscriptions';
+const USER_OPTIONS_CALLING_TIME     = 'calling_time';
+const USER_OPTIONS_CONTACT_INFO     = 'contact_info';
+const USER_OPTIONS_USER_AGENT       = 'user_agent';
+const USER_OPTIONS_CTS              = 'cts';
+const USER_OPTIONS_SUSPEND          = 'suspend';
+
 const USER_MOBILE           = 'mobile';
 const USER_MOBILE_NUMBER            = 'number';
+const USER_MOBILE_ACTIVATION_CODE   = 'code';
+const USER_MOBILE_DATE_REQUESTED    = 'date_requested';
 const USER_MOBILE_DATE_ACTIVATED    = 'date_activated';
+const USER_MOBILE_CODE_DELIVERED    = 'delivered';
+const USER_MOBILE_SENT_SMS_COUNT    = 'sms_count';
+const USER_MOBILE_FLAG              = 'flag';
+const USER_MOBILE_SECRET            = 'secret';
+
 const USER_DEVICES          = 'devices';
+const USER_DEVICE_UUID              = 'uuid';
+const USER_DEVICE_MODEL             = 'model';
+const USER_DEVICE_NAME              = 'name';
+const USER_DEVICE_SYS_NAME          = 'sys_name';
+const USER_DEVICE_SYS_VERSION       = 'sys_version';
+const USER_DEVICE_LAST_VISITED      = 'last_visited';
+const USER_DEVICE_PUSH_TOKEN        = 'token';
+const USER_DEVICE_PUSH_ENABLED      = 'push_enabled';
+const USER_DEVICE_CARRIER_COUNTRY   = 'carrier_country'; // iso country code
+const USER_DEVICE_APP_VERSION       = 'app_version';
+const USER_DEVICE_APP_PREFERENCES   = 'app_preferences';
+const USER_DEVICE_UNINSTALLED       = 'removed';
+const USER_DEVICE_DATE_ADDED        = 'date_added';
+const USER_DEVICE_PURCHASE_ENABLED  = 'purchase_enabled';
+
 const USER_XMPP_CREATED     = 'xmpp';
 const USER_JWT              = 'jwt';
+const USER_JWT_SECRET               = 'secret';
+const USER_JWT_TOKEN                = 'token';
 
 
 trait UserTrait
