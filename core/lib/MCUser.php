@@ -97,8 +97,6 @@ class MCUser extends MCJsonMapper
 
     public function set($json)
     {
-        //$this->mapper(  );
-        //print_r($json);
         $this->mapper($this, $json);
     }
 
@@ -170,6 +168,7 @@ class MCUser extends MCJsonMapper
             ASD\USER_OPTIONS => $this->opts->getAsArray(),
             ASD\USER_MOBILE => $this->mobile->getAsArray(),
             ASD\USER_DEVICES => [],
+            ASD\USER_XMPP_CREATED => $this->xmpp,
         ];
         foreach ($this->getDevices() as $dvc) 
         {
