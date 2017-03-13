@@ -1,9 +1,10 @@
 <?php
 require_once 'vendor/autoload.php';
+require_once $config['dir'].'/core/layout/Site.php';
+require_once $config['dir'].'/core/model/NoSQL.php';
 
 use MaxMind\Db\Reader;
-
-require_once $config['dir'].'/core/layout/Site.php';
+use Core\Model\NoSQL;
 
 class AjaxHandler extends Site {
 
@@ -340,6 +341,7 @@ class Bin extends AjaxHandler{
                             }else{                                
                                 $this->setData(0,'verified');
                             }
+                            Core\Model\NoSQL::getInstance()->mobileActivation($this->user->info['id'], $number, $keyCode);
                         }else{
                             $validator = libphonenumber\PhoneNumberUtil::getInstance();
                             $num = $validator->parse($number, 'LB');
@@ -461,8 +463,8 @@ class Bin extends AjaxHandler{
                                         }else{
                                             $keyCode=mt_rand(1000, 9999);
                                             $ns = $this->urlRouter->db->queryResultArray(
-                                            "INSERT INTO WEB_USERS_LINKED_MOBILE (UID, MOBILE, CODE, DELIVERED, SMS_COUNT,ACTIVATION_TIMESTAMP)
-                                            VALUES (?, ?, ?, 0, 0,null) RETURNING ID", [$this->user->info['id'], $number, $keyCode], TRUE);
+                                                "INSERT INTO WEB_USERS_LINKED_MOBILE (UID, MOBILE, CODE, DELIVERED, SMS_COUNT,ACTIVATION_TIMESTAMP)
+                                                VALUES (?, ?, ?, 0, 0,null) RETURNING ID", [$this->user->info['id'], $number, $keyCode], TRUE);
 
                                             if($ns!==false && isset($ns[0]['ID']) && $ns[0]['ID']){
                                                 $sendSms = $ns[0]['ID'];
@@ -470,6 +472,13 @@ class Bin extends AjaxHandler{
                                                 $keyCode=0;
                                                 $number=0;
                                             }
+                                            
+                                            NoSQL::getInstance()->mobileInsert([
+                                                    \Core\Model\ASD\USER_UID=> $this->user->info['id'],
+                                                    \Core\Model\ASD\USER_MOBILE_NUMBER=> $number,
+                                                    \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>$keyCode,
+                                                    \Core\Model\ASD\USER_MOBILE_FLAG=>1
+                                                    ]);
                                         }
                                     }else{
                                         $number = 0;
@@ -485,6 +494,8 @@ class Bin extends AjaxHandler{
                                         if(!$sent){
                                             $keyCode=0;
                                             $number=0;
+                                        } else {
+                                            Core\Model\NoSQL::getInstance()->mobileIncrSMS($this->user->info['id'], $number);
                                         }
                                     }
                                     $this->setData($number,'number');

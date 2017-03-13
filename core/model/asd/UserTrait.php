@@ -5,6 +5,10 @@ namespace Core\Model\ASD;
 const NS_USER               = 'users';
 const TS_USER               = 'profiles';
 
+
+const SET_RECORD_ID         = 'id';
+const USER_UID              = 'uid';
+
 const USER_PROFILE_ID       = 'id';
 const USER_PROVIDER_ID      = 'provider_id';
 const USER_PROVIDER_EMAIL   = 'email';
@@ -68,10 +72,14 @@ const USER_JWT_SECRET               = 'secret';
 const USER_JWT_TOKEN                = 'token';
 
 
+
+
 trait UserTrait
 {
 
     abstract public function getConnection();
+    abstract public function genId(string $generator, &$sequence);
+    abstract public function setBins($pk, array $bins);
 
     public function fetchUser(int $uid) : array
     {
@@ -87,15 +95,10 @@ trait UserTrait
 
     public function createUser(array $bins)
     {
-        $key = $this->getConnection()->initKey(NS_USER, "generators", 'gen_id');
-        $operations = [
-            ["op" => \Aerospike::OPERATOR_INCR, "bin" => "profile_id", "val" => 1],
-            ["op" => \Aerospike::OPERATOR_READ, "bin" => "profile_id"],
-        ];
+        $this->getId('profile_id', $uid);
         
-        if ($this->getConnection()->operate($key, $operations, $record)== \Aerospike::OK)
+        if ($uid>0)
         {
-            $uid = $record['profile_id'];
             $now = time();
             $record = [
                 USER_PROFILE_ID => $uid, 
@@ -176,6 +179,22 @@ trait UserTrait
     }
     
     
+    private function getId(string $generator, &$sequence)
+    {
+        $sequence = 0;
+        $key = $this->getConnection()->initKey(NS_USER, "generators", 'gen_id');
+        $operations = [
+            ["op" => \Aerospike::OPERATOR_INCR, "bin" => $generator, "val" => 1],
+            ["op" => \Aerospike::OPERATOR_READ, "bin" => $generator],
+        ];
+        
+        if ($this->getConnection()->operate($key, $operations, $record)== \Aerospike::OK)
+        {
+            $sequence = $record[$generator];
+        }        
+    }
+
+    
     private function getBins($pk, array $bins) : array
     {
         $record=[];
@@ -188,19 +207,7 @@ trait UserTrait
     }
     
     
-    private function setBins($pk, array $bins) : bool
-    {
-        $status = $this->getConnection()->put($pk, $bins);
-        if ($status != \Aerospike::OK) 
-        {
-            error_log( "Error [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" );
-            error_log(json_encode($pk));
-            error_log(json_encode($bins));
-            
-            return FALSE;
-        }
-        return TRUE;
-    }
+    
     
     
     public function setVisitUnixtime(int $uid)
@@ -244,6 +251,48 @@ trait UserTrait
         }
         return FALSE;
     }
+    
+    
+   
+    
+    
+    public function mobileIncrSMS(int $uid, int $number)
+    {
+        $this->getConnection()->increment( $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number), USER_MOBILE_SENT_SMS_COUNT, 1);        
+    }
+    
+    
+    public function mobileUpdate(int $uid, int $number, array $bins)
+    {
+        $mobile_id=FALSE;
+        $succes = FALSE;
+        $where = \Aerospike::predicateEquals(USER_UID, $uid);
+        $this->getConnection()->query(NS_USER, TS_MOBILE, $where, 
+                function ($record) use ($number, &$mobile_id) 
+                {
+                    if ($record['bins'][USER_MOBILE_NUMBER]==$number)
+                    {
+                        $mobile_id = $record['bins'][SET_RECORD_ID];                    
+                    }
+                }, [USER_MOBILE_NUMBER, SET_RECORD_ID]);
+                
+        if ($mobile_id===FALSE)
+        {
+            $this->getId('mobile_id', $mobile_id);
+            $succes = $this->setBins($this->getConnection()->initKey(NS_USER, TS_MOBILE, $mobile_id), [
+                        SET_RECORD_ID=>$mobile_id, USER_UID=>$uid, USER_MOBILE_NUMBER=>$number, 
+                        USER_MOBILE_ACTIVATION_CODE=>111, 
+                        USER_MOBILE_DATE_REQUESTED=>time(), USER_MOBILE_DATE_ACTIVATED=>time(), 
+                        USER_MOBILE_CODE_DELIVERED=>1, USER_MOBILE_SENT_SMS_COUNT=>0,
+                        USER_MOBILE_FLAG=>0]);
+        }
+        else
+        {
+            $succes = $this->setBins($this->getConnection()->initKey(NS_USER, TS_MOBILE, $mobile_id), [USER_MOBILE_DATE_ACTIVATED=>time()]);
+        }
+        return $succes;
+    }
+    
     
     
     public function getVerifiedMobile(int $uid)

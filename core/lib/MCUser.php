@@ -434,7 +434,7 @@ class MCUser extends MCJsonMapper
         }
         catch (Exception $e)
         {
-            error_log(__CLASS__.".".__FUNCTION__.' <'.$e->getMessage().'>');
+            //error_log(__CLASS__.".".__FUNCTION__.' <'.$e->getMessage().'>');
             return FALSE;
         }
         
