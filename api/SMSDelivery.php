@@ -1,7 +1,9 @@
 <?php
 
 require get_cfg_var('mourjan.path'). '/config/cfg.php';
+require get_cfg_var('mourjan.path'). '/core/model/NoSQL.php';
 
+use Core\Model\NoSQL;
 
 
 //echo "sms delivery called";
@@ -65,6 +67,7 @@ if ($errCode==0 && $reference && ($to=="Mourjan"||$to=="12242144077"||$to=="mour
     if($isAndroidValidate)
     {
         $db->queryResultArray("UPDATE WEB_USERS_LINKED_MOBILE SET DELIVERED=1 WHERE ID=? and DELIVERED=0", [$reference], TRUE);
+        NoSQL::getInstance()->mobileSetDeliveredSMS(intval($reference), $msisdn);
     }
     else
     {

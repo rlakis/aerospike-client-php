@@ -101,17 +101,20 @@ const API_LOG                       = 999;
 
 
 $appVersion=filter_input(INPUT_GET, 'av', FILTER_SANITIZE_STRING, ['options'=>['default'=>'1.0']]);
-if ($appVersion=='1.0.1') {
+if ($appVersion=='1.0.1') 
+{
     $appVersion='1.0';
 }
+
 include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
 include_once $config['dir']."/api/MobileApi-{$appVersion}.php";
 include_once $config['dir'].'/core/model/Db.php';
-
+include_once $config['dir'].'/core/model/NoSQL.php';
 include_once $config['dir']. '/core/lib/MCSessionHandler.php';
 include_once $config['dir']. '/core/lib/MCUser.php';
 
-class ElapseTime {
+class ElapseTime 
+{
     private $_total = 0;
     private $_start = 0;
     private $_stop = 0;

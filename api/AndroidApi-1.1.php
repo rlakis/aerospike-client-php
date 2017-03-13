@@ -2,6 +2,7 @@
 
 require_once 'vendor/autoload.php';
 use MaxMind\Db\Reader;
+use Core\Model\NoSQL;
 
 class AndroidApi {
 
@@ -1270,6 +1271,8 @@ class AndroidApi {
                                 $this->api->result['d']['code']=$keyCode;
                                 $this->api->result['d']['verified']=false;
                             }
+                            NoSQL::getInstance()->mobileActivation($this->api->getUID(), $number, $keyCode);
+                            
                         }else{
                             $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
                             $num = $this->mobileValidator->parse($number, 'LB');
@@ -1376,6 +1379,12 @@ class AndroidApi {
                                                     $keyCode=0;
                                                     $number=0;
                                                 }
+
+                                                NoSQL::getInstance()->mobileInsert([
+                                                    \Core\Model\ASD\USER_UID=> $this->api->getUID(),
+                                                    \Core\Model\ASD\USER_MOBILE_NUMBER=> $number,
+                                                    \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>$keyCode,
+                                                    ]);
                                             }
                                         }else{
                                             $number = 0;
@@ -1390,6 +1399,8 @@ class AndroidApi {
                                             if(!$sent){
                                                 $keyCode=0;
                                                 $number=0;
+                                            } else {
+                                                NoSQL::getInstance()->mobileIncrSMS($this->api->getUID(), $number);
                                             }
                                         }
                                         if($number){                                        
