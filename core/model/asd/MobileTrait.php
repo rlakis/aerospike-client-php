@@ -111,9 +111,17 @@ trait MobileTrait
     }
     
     
-    public function assignNewActicationCode() : int
+    public function assignNewActicationCode(int $mobile_id, int $uid, int $number) : int
     {
-        $code = mt_rand(1000, 9999);
-        return $code;
+        $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [USER_UID=>$uid, SET_RECORD_ID=>$mobile_id]);
+        if ($keys)
+        {
+            $code = mt_rand(1000, 9999);
+            if ($this->setBins($keys[0], [USER_MOBILE_ACTIVATION_CODE=>$code]))
+            {
+                return $code;
+            }
+        }
+        return 0;
     }
 }
