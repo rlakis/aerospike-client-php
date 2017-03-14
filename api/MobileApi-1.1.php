@@ -2,6 +2,7 @@
 
 require_once 'vendor/autoload.php';
 use MaxMind\Db\Reader;
+use Core\Model\NoSQL;
 
 class MobileApi
 {
@@ -1644,6 +1645,7 @@ class MobileApi
             $cp=filter_input(INPUT_GET, 'cp', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
             if (!empty($cp) && !empty($np) && strlen($cp)==32 && ($cp==$np) && ($op==$opts->secret || empty($opts->secret))) {
                 $this->db->setWriteMode();
+                
                 $rs = $this->db->queryResultArray("update WEB_USERS_MOBILE set SECRET=? where uid=? returning status, secret", [$np, $this->uid], TRUE);
                 if ($rs) {
                     $this->result['d']['status']=$rs[0]['STATUS']+0;
@@ -1795,6 +1797,14 @@ class MobileApi
             {               
                 //echo $mobile_no;
                 $pin = mt_rand(1000, 9999);
+                
+                NoSQL::getInstance()->mobileInsert([
+                    Core\Model\ASD\USER_UID => $this->uid,
+                    \Core\Model\ASD\USER_MOBILE_NUMBER => $mobile_no,
+                    \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $pin,
+                    \Core\Model\ASD\USER_MOBILE_FLAG => 2,
+                    ]);
+                
                 $iq = $this->db->queryResultArray(
                         "INSERT INTO WEB_USERS_MOBILE (UID, MOBILE, CODE, STATUS, DELIVERED, SMS_COUNT)
                         VALUES (?, ?, ?, 5, 0, 0) RETURNING ID", [$this->uid, $mobile_no, $pin], TRUE);
@@ -1808,6 +1818,8 @@ class MobileApi
                     //var_dump($response);
                     if ($response) 
                     {
+                        NoSQL::getInstance()->mobileIncrSMS($this->uid, $mobile_no);
+                        
                         $this->db->queryResultArray("update WEB_USERS_MOBILE set status=0, sms_count=sms_count+1 where id=?", [$iq[0]['ID']], TRUE);
                         $this->result['d']['status']='sent';
                     }
@@ -1850,7 +1862,8 @@ class MobileApi
                             $user->update();
                             $this->result['d']['kuid'] = $user->encodeId($this->uid);
                             $this->getBalance();
-                                
+                
+                            NoSQL::getInstance()->mobileActivation($this->uid, $mobile_no, $pin_code);
                             return;
                         } 
                         else 
@@ -1881,6 +1894,7 @@ class MobileApi
                         {
                             $this->db->queryResultArray("update WEB_USERS_MOBILE set status=0, sms_count=sms_count+1 where id=?", [$rs[0]['ID']], TRUE);
                             $this->result['d']['status']='sent';
+                            NoSQL::getInstance()->mobileIncrSMS($this->uid, $mobile_no);
                         }
 
                     }
