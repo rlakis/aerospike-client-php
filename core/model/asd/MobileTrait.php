@@ -124,4 +124,18 @@ trait MobileTrait
         }
         return 0;
     }
+
+
+    public function mobileIncrSMS(int $uid, int $number)
+    {
+        $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
+        $this->getConnection()->increment($pk, USER_MOBILE_SENT_SMS_COUNT, 1, [\Aerospike::OPT_POLICY_KEY=>\Aerospike::POLICY_EXISTS_UPDATE]);
+        $e = new Exception();
+        ob_start();
+        debug_print_backtrace();
+        $trace = ob_get_contents();
+        ob_end_clean();
+        error_log(__FUNCTION__.PHP_EOL. $trace);
+    }
+
 }

@@ -251,16 +251,7 @@ trait UserTrait
         }
         return FALSE;
     }
-    
-    
-   
-    
-    
-    public function mobileIncrSMS(int $uid, int $number)
-    {
-        $this->getConnection()->increment( $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number), USER_MOBILE_SENT_SMS_COUNT, 1);        
-    }
-    
+        
     
     public function mobileUpdate(int $uid, int $number, array $bins)
     {
