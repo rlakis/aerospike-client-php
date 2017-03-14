@@ -79,6 +79,7 @@ trait UserTrait
 
     abstract public function getConnection();
     abstract public function genId(string $generator, &$sequence);
+    abstract public function getBins($pk, array $bins);
     abstract public function setBins($pk, array $bins);
 
     public function fetchUser(int $uid) : array
@@ -95,7 +96,7 @@ trait UserTrait
 
     public function createUser(array $bins)
     {
-        $this->getId('profile_id', $uid);
+        $this->genId('profile_id', $uid);
         
         if ($uid>0)
         {
@@ -176,38 +177,7 @@ trait UserTrait
     private function initKey(int $uid) 
     {
         return $this->getConnection()->initKey(NS_USER, TS_USER, $uid);
-    }
-    
-    
-    private function getId(string $generator, &$sequence)
-    {
-        $sequence = 0;
-        $key = $this->getConnection()->initKey(NS_USER, "generators", 'gen_id');
-        $operations = [
-            ["op" => \Aerospike::OPERATOR_INCR, "bin" => $generator, "val" => 1],
-            ["op" => \Aerospike::OPERATOR_READ, "bin" => $generator],
-        ];
-        
-        if ($this->getConnection()->operate($key, $operations, $record)== \Aerospike::OK)
-        {
-            $sequence = $record[$generator];
-        }        
-    }
-
-    
-    private function getBins($pk, array $bins) : array
-    {
-        $record=[];
-        if ($this->getConnection()->get($pk, $record, $bins) != \Aerospike::OK) 
-        {
-            error_log( "Error [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" );
-            return [];
-        }
-        return $record['bins'];        
-    }
-    
-    
-    
+    }    
     
     
     public function setVisitUnixtime(int $uid)
@@ -269,7 +239,7 @@ trait UserTrait
                 
         if ($mobile_id===FALSE)
         {
-            $this->getId('mobile_id', $mobile_id);
+            $this->genId('mobile_id', $mobile_id);
             $succes = $this->setBins($this->getConnection()->initKey(NS_USER, TS_MOBILE, $mobile_id), [
                         SET_RECORD_ID=>$mobile_id, USER_UID=>$uid, USER_MOBILE_NUMBER=>$number, 
                         USER_MOBILE_ACTIVATION_CODE=>111, 

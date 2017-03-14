@@ -58,16 +58,28 @@ class NoSQL
     {
         $sequence = 0;
         $record = [];
-        $key = $this->getConnection()->initKey(ASD\NS_USER, "generators", 'gen_id');
+        $key = $this->getConnection()->initKey(ASD\NS_USER, "generators", $generator);
         $operations = [
-            ["op" => \Aerospike::OPERATOR_INCR, "bin" => $generator, "val" => 1],
-            ["op" => \Aerospike::OPERATOR_READ, "bin" => $generator],
+            ["op" => \Aerospike::OPERATOR_INCR, "bin" => "sequence", "val" => 1],
+            ["op" => \Aerospike::OPERATOR_READ, "bin" => "sequence"],
         ];
         
         if ($this->getConnection()->operate($key, $operations, $record)== \Aerospike::OK)
         {
-            $sequence = $record[$generator];
+            $sequence = $record['sequence'];
         }   
+    }
+    
+   
+    public function getBins($pk, array $bins) : array
+    {
+        $record=[];
+        if ($this->getConnection()->get($pk, $record, $bins) != \Aerospike::OK) 
+        {
+            error_log( "Error [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" );
+            return [];
+        }
+        return $record['bins'];        
     }
     
     
