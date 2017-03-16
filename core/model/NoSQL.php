@@ -13,7 +13,10 @@ class NoSQL
     private static $instance = null;
     private $cluster;
     private $configuration = ["hosts" => [["addr"=>"148.251.184.77", "port"=>3000], ["addr"=>"138.201.28.229", "port"=>3000]]];
-    private $options = [\Aerospike::OPT_POLICY_KEY => \Aerospike::POLICY_KEY_SEND, \Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE];
+    private $options = [
+                \Aerospike::OPT_POLICY_KEY => \Aerospike::POLICY_KEY_SEND, 
+                \Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE, 
+                \Aerospike::OPT_READ_TIMEOUT => 2000,];
     
     private function __construct() 
     {
@@ -95,6 +98,18 @@ class NoSQL
             return FALSE;
         }
         return TRUE;
+    }
+    
+    
+    public function update(string $namespace, string $tablespace, array $bins, array $keys, array $orderby, array $returning)
+    {
+        
+    }
+    
+    
+    protected function orderBy(array &$rowset, array $sortOptions)
+    {
+        
     }
     
     

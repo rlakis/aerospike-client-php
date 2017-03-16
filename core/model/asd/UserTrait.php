@@ -222,7 +222,7 @@ trait UserTrait
         return FALSE;
     }
         
-    
+    /*
     public function mobileUpdate(int $uid, int $number, array $bins)
     {
         $mobile_id=FALSE;
@@ -253,7 +253,7 @@ trait UserTrait
         }
         return $succes;
     }
-    
+    */
     
     
     public function getVerifiedMobile(int $uid)

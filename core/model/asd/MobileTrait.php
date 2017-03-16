@@ -3,7 +3,7 @@
 namespace Core\Model\ASD;
 
 const TS_MOBILE = 'mobiles';
-
+const IX_MOBILE_BINS = [USER_UID, USER_MOBILE_NUMBER];
 
 trait MobileTrait
 {
@@ -67,34 +67,21 @@ trait MobileTrait
             \Aerospike::OPT_SCAN_NOBINS => TRUE,
             
             ];
-        $sort_by = ['id' => [], 'uid' => []];
-        $status = $this->getConnection()->scan(NS_USER, TS_MOBILE, function ($record) use (&$result, &$i, &$sort_by) {
-            $record['bins']['date_requested'] = \DateTime::createFromFormat("U", $record['bins']['date_requested'])->format('Y-m-d H:i:s');
-            if (isset($record['bins']['date_activated']))
+        
+        $sort_by = ['id' => ['data'=>[], 'direction' => SORT_DESC, 'type' => SORT_NUMERIC]];
+        //$sort_by = [            'uid' => ['data'=>[], 'direction' => SORT_ASC, 'type' => SORT_NUMERIC]];
+        $sort_keys = array_keys($sort_by);
+        
+        $status = $this->getConnection()->scan(NS_USER, TS_MOBILE, function ($record) use (&$result, &$i, &$sort_by, $sort_keys) {
+            
+            foreach ($sort_keys as $field_name) 
             {
-                $record['bins']['date_activated'] = \DateTime::createFromFormat("U", $record['bins']['date_activated'])->format('Y-m-d H:i:s');
-            } 
-            else
-            {
-                $record['bins']['date_activated'] = '';
-            }
-            switch ($record['bins']['flag']) {
-                case 0:
-                    $record['bins']['flag'] = 'Android';
-                    break;
-                case 1:
-                    $record['bins']['flag'] = 'Website';
-                    break;
-                case 2:
-                    $record['bins']['flag'] = 'IOS';
-                    break;
-
-                default:
-                    break;
-            }
+                $sort_by[$field_name]['data'][$i] = $record['bins'][$field_name];
+                $sort_by[$field_name]['data'][$i] = $record['bins'][$field_name];
+            }                    
+            
             $result[$i] = $record['bins'];
-            $sort_by['id'][$i] = $record['bins']['id'];
-            $sort_by['uid'][$i] = $record['bins']['uid'];
+            
             $i++;
         }, [], $options);
 
@@ -104,24 +91,70 @@ trait MobileTrait
         } else if ($status !== \Aerospike::OK) {
             echo "An error occured while scanning[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}\n";
         }
-        array_multisort($sort_by['id'], SORT_ASC, $sort_by['uid'], SORT_DESC, SORT_NUMERIC, $result);
+        
+        $params = [];
+        foreach ($sort_keys as $field_name) 
+        {
+            $params[] = $sort_by[$field_name]['data'];
+            $params[] = $sort_by[$field_name]['direction'];
+            $params[] = $sort_by[$field_name]['type'];
+        }
+        $params[] = &$result;
+        call_user_func_array('array_multisort', $params);
+        
         $dups = [];
 
-        $mask = "|%6.6s |%8.8s |%15.15s | %4.4s | %-7.7s | %9.9s | %-9.9s | %-19.19s | %-19.19s |\n";
-        printf($mask, '------', '--------', '-----------------', '----', '-------', '---------', '---------', '-------------------', '-------------------');
-        printf($mask, 'id', 'uid', 'number', 'code', 'flag', 'sms_count', 'delivered', 'date_requested', 'date_activated');
-        printf($mask, '------', '--------', '-----------------', '----', '-------', '---------', '---------', '-------------------', '-------------------');
+        $bound_mask = "+%7.7s+%9.9s+%16.16s+%6.6s+%-9.9s+%11.11s+%-11.11s+%-21.21s+%-21.21s+-%-33.33s+\n";
+        $mask = "|%6.6s |%8.8s |%15.15s | %4.4s | %-7.7s | %9.9s | %-9.9s | %-19.19s | %-19.19s | %-32.32s |\n";
+        printf($bound_mask, '--------', '---------', '------------------', '------', '---------', '------------', '-----------', '---------------------', '---------------------','---------------------------------');    
+        printf($mask, 'id', 'uid', 'number', 'code', 'flag', 'sms_count', 'delivered', 'date_requested', 'date_activated', 'secret');
+        printf($bound_mask, '--------', '---------', '------------------', '------', '---------', '------------', '-----------', '---------------------', '---------------------','---------------------------------');
+        $row_count=0;
         foreach ($result as $record) 
         {
-            printf($mask, $record['id'], $record['uid'], $record['number'], $record['code'], $record['flag'], $record['sms_count'], $record['delivered']?'Yes':'No', $record['date_requested'], $record['date_activated']);
+            switch ($record['flag']) 
+            {
+                case 0:
+                    $flag = 'Android';
+                    break;
+                
+                case 1:
+                    $flag = 'Website';
+                    break;
+                
+                case 2:
+                    $flag = 'IOS';
+                    break;
+
+                default:
+                    $flag = 'Unknown';
+                    break;
+            }
+            $date_requested = \DateTime::createFromFormat("U", $record['date_requested'])->format('Y-m-d H:i:s');
+            if (isset($record['date_activated']))
+            {
+                $date_activated = \DateTime::createFromFormat("U", $record['date_activated'])->format('Y-m-d H:i:s');
+            } 
+            else
+            {
+                $date_activated = '';
+            }                
+            
+            printf($mask, $record[SET_RECORD_ID], $record['uid'], $record['number'], $record['code'], $flag, $record['sms_count'], $record['delivered']?'Yes':'No', $date_requested, $date_activated, isset($record[USER_MOBILE_SECRET])?$record[USER_MOBILE_SECRET]:'');
             if (isset($dups[ $record['id'] ]))
             {
                 $dups[ $record['id'] ]++;
             } else {
                 $dups[$record['id']]=1;
             }
+            $row_count++;
+            if ($row_count>40)
+            {
+                break;
+            }
         }
-        printf($mask, '------', '--------', '-----------------', '----', '-------', '---------', '---------', '-------------------', '-------------------');
+
+        printf($bound_mask, '--------', '---------', '------------------', '------', '---------', '------------', '-----------', '---------------------', '---------------------','---------------------------------');
         echo count($result), " mobile records", "\n";
        
         foreach ($dups as $id=>$value) 
@@ -133,21 +166,13 @@ trait MobileTrait
                 
             
         }
-//        foreach ($result as $key => $value) 
-//        {
-//            for ($i=0;$i<$n;$i++)
-//            {
-//                $opts[$cols[$i]]['buffer'][$key] = $value[$cols[$i]]; 
-//            }
-//        }
-        
     }
     
     
     
     public function mobileSetDeliveredSMS($id, $number) : bool
     {
-        $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, []);
+        $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [SET_RECORD_ID=>$id]);
         if ($keys)
         {
             return $this->setBins($keys[0], [USER_MOBILE_CODE_DELIVERED=>1]);
@@ -169,29 +194,45 @@ trait MobileTrait
             error_log("Could not insert mobile: " . json_encode($bins));
             return 0;
         }
-        
-        
-        $bins[USER_MOBILE_DATE_REQUESTED]=time();
-        $bins[USER_MOBILE_CODE_DELIVERED]=0;
-        $bins[USER_MOBILE_SENT_SMS_COUNT]=0;
-        if (!isset($bins[USER_MOBILE_FLAG]))
-        {
-            $bins[USER_MOBILE_FLAG]=0;
-        }
+                      
         
         if (is_string($bins[USER_MOBILE_NUMBER]))
         {
             $bins[USER_MOBILE_NUMBER]= intval($bins[USER_MOBILE_NUMBER]);
         }
         
-        $mobile_id=0;
-        $this->genId('mobile_id', $mobile_id);
-        $bins[SET_RECORD_ID]=$mobile_id;
-        if (!$this->setBins($this->getConnection()->initKey(NS_USER, TS_MOBILE, $bins[USER_UID].'-'.$bins[USER_MOBILE_NUMBER]), $bins))
+        $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $bins[USER_UID].'-'.$bins[USER_MOBILE_NUMBER]);
+        
+        if (!isset($bins[SET_RECORD_ID]))
+        {
+            $mobile_id=0;
+            $this->genId('mobile_id', $mobile_id);
+            $bins[SET_RECORD_ID]=$mobile_id;
+            $bins[USER_MOBILE_DATE_REQUESTED]=time();
+            $bins[USER_MOBILE_CODE_DELIVERED]=0;
+            $bins[USER_MOBILE_SENT_SMS_COUNT]=0;
+            if (!isset($bins[USER_MOBILE_FLAG]))
+            {
+                $bins[USER_MOBILE_FLAG]=0;
+            }
+        } 
+        else 
+        {
+            $mobile_id=$bins[SET_RECORD_ID];
+            if (!isset($bins[USER_MOBILE_DATE_ACTIVATED]))
+            {
+                $this->getConnection()->removeBin($pk, [USER_MOBILE_DATE_ACTIVATED]);
+            }
+        }
+        
+        
+        if (!$this->setBins($pk, $bins))
         {
             error_log("could not insert mobile record <". json_encode($bins).">");
             return 0;
         }
+        
+        
         return $mobile_id;
     }
     
@@ -236,12 +277,27 @@ trait MobileTrait
             error_log("record does not exists {$uid}-{$number}");
         }
         return FALSE;
-        //$e = new Exception();
-        //ob_start();
-        //debug_print_backtrace();
-        //$trace = ob_get_contents();
-        //ob_end_clean();
-        //error_log(__FUNCTION__.PHP_EOL. $trace);
+    }
+    
+    
+    
+    public function mobileSetSecret(int $uid, string $secret) : bool
+    {
+        $success = FALSE;
+        $where = \Aerospike::predicateEquals(USER_UID, $uid);
+        $this->getConnection()->query(NS_USER, TS_MOBILE, $where,  
+                function ($record) use (&$success, $secret) 
+                {
+                    $success = $this->setBins($record['key'], [USER_MOBILE_SECRET => $secret]);                
+                }, [SET_RECORD_ID]);
+        return $success;
+    }
+    
+    
+    public function mobileUpdate(int $uid, int $number, array $bins) : bool
+    {
+        $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
+        return $this->setBins($pk, $bins);
     }
     
     
