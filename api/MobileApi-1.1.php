@@ -1636,10 +1636,12 @@ class MobileApi
         $this->db->close();
     }
 
-
-    function setPassword() {        
+    
+    function setPassword() 
+    {   
         $opts = $this->userStatus($status, $current_name);
-        if ($status==1) {
+        if ($status==1) 
+        {
             $op=filter_input(INPUT_GET, 'op', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
             $np=filter_input(INPUT_GET, 'np', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
             $cp=filter_input(INPUT_GET, 'cp', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
@@ -1650,8 +1652,14 @@ class MobileApi
                 if ($rs) {
                     $this->result['d']['status']=$rs[0]['STATUS']+0;
                     $this->result['d']['pwset']=!empty($rs[0]['SECRET']);
+                    
+                    if (NoSQL::getInstance()->mobileSetSecret($this->uid, $np))
+                    {
+                        
+                    }
                     return;
                 }
+                
             }
         }
         $this->result['e']='Could not set new password!';
@@ -1799,7 +1807,7 @@ class MobileApi
                 $pin = mt_rand(1000, 9999);
                 
                 NoSQL::getInstance()->mobileInsert([
-                    Core\Model\ASD\USER_UID => $this->uid,
+                    \Core\Model\ASD\USER_UID => $this->uid,
                     \Core\Model\ASD\USER_MOBILE_NUMBER => $mobile_no,
                     \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $pin,
                     \Core\Model\ASD\USER_MOBILE_FLAG => 2,
