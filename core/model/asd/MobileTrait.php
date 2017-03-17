@@ -12,7 +12,7 @@ trait MobileTrait
     abstract public function getBins($pk, array $bins);
     abstract public function setBins($pk, array $bins);
     
-    public function intMobileKey($uid, $number)
+    public function initMobileKey($uid, $number)
     {
         return $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
     }
@@ -82,6 +82,7 @@ trait MobileTrait
             $result[$i] = $record['bins'];
             
             $i++;
+           
         }, [], $options);
 
         // check the status of the last operation
@@ -161,9 +162,7 @@ trait MobileTrait
             if ($value>1)
             {
                 echo $id, "\t", $value, "\n";
-            }
-                
-            
+            }            
         }
     }
     
@@ -299,6 +298,18 @@ trait MobileTrait
         return $this->setBins($pk, $bins);
     }
     
+    
+    public function mobileVerifySecret(int $number, string $secret) : bool
+    {
+        if (empty($secret))
+        {
+            return FALSE;
+        }
+        
+        
+        $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [USER_MOBILE_SECRET=>$secret]);
+        return !empty($keys);
+    }
     
 
 }

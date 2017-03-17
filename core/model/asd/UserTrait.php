@@ -93,7 +93,24 @@ trait UserTrait
         return $record['bins'];
     }
 
+    
+    
+    public function fetchUserByUUID(string $uuid) : array
+    {
+        $record = [];
+        $device = \Core\Model\NoSQL::getInstance()->deviceFetch($uuid);
+        if (isset($device[USER_UID]) && $device[USER_UID])
+        {
+            $record = $this->fetchUser($device[USER_UID]);
+            $record['logged_by_device'] = $device;
+            return $record;
+        }
 
+        return $record;
+    }
+
+    
+    
     public function createUser(array $bins)
     {
         $this->genId('profile_id', $uid);
@@ -221,39 +238,7 @@ trait UserTrait
         }
         return FALSE;
     }
-        
-    /*
-    public function mobileUpdate(int $uid, int $number, array $bins)
-    {
-        $mobile_id=FALSE;
-        $succes = FALSE;
-        $where = \Aerospike::predicateEquals(USER_UID, $uid);
-        $this->getConnection()->query(NS_USER, TS_MOBILE, $where, 
-                function ($record) use ($number, &$mobile_id) 
-                {
-                    if ($record['bins'][USER_MOBILE_NUMBER]==$number)
-                    {
-                        $mobile_id = $record['bins'][SET_RECORD_ID];                    
-                    }
-                }, [USER_MOBILE_NUMBER, SET_RECORD_ID]);
-                
-        if ($mobile_id===FALSE)
-        {
-            $this->genId('mobile_id', $mobile_id);
-            $succes = $this->setBins($this->getConnection()->initKey(NS_USER, TS_MOBILE, $mobile_id), [
-                        SET_RECORD_ID=>$mobile_id, USER_UID=>$uid, USER_MOBILE_NUMBER=>$number, 
-                        USER_MOBILE_ACTIVATION_CODE=>111, 
-                        USER_MOBILE_DATE_REQUESTED=>time(), USER_MOBILE_DATE_ACTIVATED=>time(), 
-                        USER_MOBILE_CODE_DELIVERED=>1, USER_MOBILE_SENT_SMS_COUNT=>0,
-                        USER_MOBILE_FLAG=>0]);
-        }
-        else
-        {
-            $succes = $this->setBins($this->getConnection()->initKey(NS_USER, TS_MOBILE, $mobile_id), [USER_MOBILE_DATE_ACTIVATED=>time()]);
-        }
-        return $succes;
-    }
-    */
+  
     
     
     public function getVerifiedMobile(int $uid)

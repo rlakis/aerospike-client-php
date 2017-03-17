@@ -3,12 +3,14 @@ namespace Core\Model;
 
 require_once 'asd/UserTrait.php';
 require_once 'asd/MobileTrait.php';
+require_once 'asd/DeviceTrait.php';
 
 
 class NoSQL 
 {
     use \Core\Model\ASD\UserTrait;    
-    use \Core\Model\ASD\MobileTrait;    
+    use \Core\Model\ASD\MobileTrait;  
+    use \Core\Model\ASD\DeviceTrait;
     
     private static $instance = null;
     private $cluster;
@@ -74,14 +76,24 @@ class NoSQL
     }
     
    
-    public function getBins($pk, array $bins) : array
+    public function getBins($pk, array $bins=[]) : array
     {
         $record=[];
-        if ($this->getConnection()->get($pk, $record, $bins) != \Aerospike::OK) 
+        if ($bins)
+        {
+            $status = $this->getConnection()->get($pk, $record, $bins);
+        }         
+        else 
+        {
+            $status = $this->getConnection()->get($pk, $record);
+        }
+        
+        if ($status != \Aerospike::OK)
         {
             error_log( "Error [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" );
             return [];
         }
+        
         return $record['bins'];        
     }
     
