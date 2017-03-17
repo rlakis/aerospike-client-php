@@ -619,7 +619,7 @@ class MCMobile extends MCJsonMapper
 
     public function isVerified() : bool
     {
-        //error_log("verified: ".($this->number && ($this->ats+31556926)>time()));
+        //error_log("verified: <".($this->number && ($this->ats+31556926)>time()).">");
 
         return ($this->number && ($this->ats+31556926)>time());
     }

@@ -77,7 +77,6 @@ trait MobileTrait
             foreach ($sort_keys as $field_name) 
             {
                 $sort_by[$field_name]['data'][$i] = $record['bins'][$field_name];
-                $sort_by[$field_name]['data'][$i] = $record['bins'][$field_name];
             }                    
             
             $result[$i] = $record['bins'];
@@ -148,7 +147,7 @@ trait MobileTrait
                 $dups[$record['id']]=1;
             }
             $row_count++;
-            if ($row_count>40)
+            if ($row_count>30)
             {
                 break;
             }
@@ -225,7 +224,7 @@ trait MobileTrait
             }
         }
         
-        
+        //$this->getConnection()->removeBin($pk, [USER_MOBILE_SECRET]);
         if (!$this->setBins($pk, $bins))
         {
             error_log("could not insert mobile record <". json_encode($bins).">");

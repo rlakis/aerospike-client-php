@@ -359,6 +359,13 @@ class User {
                     . 'values '
                     . '(?,?,111,1,0,current_timestamp,current_timestamp) returning id',
             array($uid, $number));
+            Core\Model\NoSQL::getInstance()->mobileInsert([
+                                                    \Core\Model\ASD\USER_UID=> $uid,
+                                                    \Core\Model\ASD\USER_MOBILE_NUMBER=> $number,
+                                                    \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>111,
+                                                    \Core\Model\ASD\USER_MOBILE_FLAG=>0,
+                                                    \Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED=> time(),
+                                                    ]);
         }
         return $res;
     }
