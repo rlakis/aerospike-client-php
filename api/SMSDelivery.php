@@ -71,7 +71,15 @@ if ($errCode==0 && $reference && ($to=="Mourjan"||$to=="12242144077"||$to=="mour
     }
     else
     {
-        $db->queryResultArray("UPDATE WEB_USERS_MOBILE SET DELIVERED=1 WHERE ID=? and MOBILE=? and DELIVERED=0", [$reference, $msisdn], TRUE);    
+        $rs = $db->queryResultArray("UPDATE WEB_USERS_MOBILE SET DELIVERED=1 WHERE ID=? and MOBILE=? and DELIVERED=0 returning UID", [$reference, $msisdn], TRUE);
+        if (count($rs)==1)
+        {
+            $rs = $db->queryResultArray("SELECT ID from WEB_USERS_LINKED_MOBILE WHERE UID=? and MOBILE=?", [$rs[0]['UID'], $msisdn], TRUE);
+            if (count($rs)==1)
+            {
+                NoSQL::getInstance()->mobileSetDeliveredSMS(intval($rs[0]['ID']), $msisdn);
+            }
+        }
     }
     error_log(sprintf("%s\t%d\tis written", date("Y-m-d H:i:s"), $msisdn).PHP_EOL, 3, "/var/log/mourjan/sms.log");
     $db->close();
