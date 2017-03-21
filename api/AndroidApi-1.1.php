@@ -1247,7 +1247,8 @@ class AndroidApi {
                 
                 case API_ANDROID_USER_NUMBER:
                     $keyCode=0;
-                    $number = filter_input(INPUT_POST, 'tel');
+                    //$number = filter_input(INPUT_POST, 'tel');
+                    $number = filter_input(INPUT_POST, 'tel', FILTER_VALIDATE_INT)+0;
                     $keyCode = filter_input(INPUT_POST, 'code');
                     $keyCode = is_numeric($keyCode) ? $keyCode : 0;
                     $language = filter_input(INPUT_GET, 'hl', FILTER_SANITIZE_STRING , ['options'=>['default'=>'en']]);
@@ -1264,11 +1265,26 @@ class AndroidApi {
                                 $number = substr($number,1);
                             }
                             
+                            $this->api->result['d']['number']=$number;
+                            $this->api->result['d']['code']=$keyCode;
+                                
                             if ($this->api->getUID()==0)
                             {
-                                error_log(__FUNCTION__.' uid<0>: ' . json_encode($this->api->user));
+                                error_log(__FUNCTION__.' uid<0>: ' . json_encode($this->api->user));                                
+                                $this->api->result['d']['verified']=false;
                             }
-                            
+                            else
+                            {                                                           
+                                if (NoSQL::getInstance()->mobileActivation($this->api->getUID(), $number, $keyCode))
+                                {
+                                    $this->api->result['d']['verified']=true;
+                                }
+                                else 
+                                {
+                                    $this->api->result['d']['verified']=false;
+                                }
+                            }                            
+                            /*
                             $ns = $this->api->db->queryResultArray(
                                 "UPDATE WEB_USERS_LINKED_MOBILE set "
                                 . "ACTIVATION_TIMESTAMP=current_timestamp "
@@ -1284,7 +1300,7 @@ class AndroidApi {
                                 $this->api->result['d']['code']=$keyCode;
                                 $this->api->result['d']['verified']=false;
                             }
-                            NoSQL::getInstance()->mobileActivation($this->api->getUID(), $number, $keyCode);
+                            */
                             
                         }else{
                             $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
@@ -1355,9 +1371,19 @@ class AndroidApi {
                                                         $keyCode=0;
                                                         $number=0;
                                                     }
-                                                }else if($expiredValidity){
+                                                }
+                                                else if($expiredValidity)
+                                                {
                                                     //re-validate by sending sms with new code
                                                     $keyCode=mt_rand(1000, 9999);
+                                                    if (NoSQL::getInstance()->mobileInsert([
+                                                            \Core\Model\ASD\USER_UID => $this->api->user->getUID(),
+                                                            \Core\Model\ASD\USER_MOBILE_NUMBER => $number,
+                                                            \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $keyCode,
+                                                        ]))
+                                                    {    
+                                                        
+                                                    }     
                                                     $ns = $this->api->db->queryResultArray(
                                                     "UPDATE WEB_USERS_LINKED_MOBILE set "
                                                             . "code = ?, "
@@ -1371,17 +1397,45 @@ class AndroidApi {
                                                         $keyCode=0;
                                                         $number=0;
                                                     }
-                                                }elseif($stillValid){
+                                                }
+                                                elseif($stillValid)
+                                                {
                                                     //validate without sending sms
                                                     $this->api->result['d']['check'] = true;
                                                     $number = 0;
                                                     $keyCode = 0;
-                                                }else{
+                                                }                                                
+                                                else
+                                                {
                                                     //sms is still valid but not delivered
                                                     $keyCode = $rs[0]['CODE'];
-                                                }                                        
+                                                }
+                                                
                                             }else{
                                                 $keyCode=mt_rand(1000, 9999);
+                                                if (NoSQL::getInstance()->mobileInsert([
+                                                    \Core\Model\ASD\USER_UID => $this->api->user->getUID(),
+                                                    \Core\Model\ASD\USER_MOBILE_NUMBER => $number,
+                                                    \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $keyCode,
+                                                    ]))
+                                                {                                                
+                                                    $record = NoSQL::getInstance()->mobileFetch($this->api->user->getUID(), $number);
+                                                    if ($record)
+                                                    {
+                                                        $sendSms = $record[ASD\SET_RECORD_ID];
+                                                    }
+                                                    else
+                                                    {
+                                                        $keyCode=0;
+                                                        $number=0;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    $keyCode=0;
+                                                    $number=0;   
+                                                }
+                                                /*
                                                 $ns = $this->api->db->queryResultArray(
                                                 "INSERT INTO WEB_USERS_LINKED_MOBILE (UID, MOBILE, CODE, DELIVERED, SMS_COUNT,ACTIVATION_TIMESTAMP)
                                                 VALUES (?, ?, ?, 0, 0,null) RETURNING ID", [$this->api->getUID(), $number, $keyCode], TRUE);
@@ -1392,12 +1446,8 @@ class AndroidApi {
                                                     $keyCode=0;
                                                     $number=0;
                                                 }
-
-                                                NoSQL::getInstance()->mobileInsert([
-                                                    \Core\Model\ASD\USER_UID=> $this->api->getUID(),
-                                                    \Core\Model\ASD\USER_MOBILE_NUMBER=> $number,
-                                                    \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>$keyCode,
-                                                    ]);
+                                                */
+                                                
                                             }
                                         }else{
                                             $number = 0;
@@ -1437,6 +1487,7 @@ class AndroidApi {
                         }
                     }
                     break;
+                    
                 case API_ANDROID_SIGN_UP: 
                     $this->api->result['d'] = [];
                     $this->api->result['d']['id'] = -2;

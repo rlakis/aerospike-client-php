@@ -57,7 +57,13 @@ class MobileApi
         return $this->uuid;
     }
 
+    
+    function getUser() : MCUser
+    {
+        return $this->user;
+    }
 
+    
     function getDatabase() 
     {
         $this->result['unixtime']=$this->db->queryResultArray(
