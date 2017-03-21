@@ -19,6 +19,12 @@ trait MobileTrait
         return $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
     }
     
+
+    public function mobileFetch(int $uid, int $number) : array
+    {
+        return $this->getBins($this->initMobileKey($uid, $number));
+    }
+
     
     public function mobileFetchByUID(int $uid) : array
     {
