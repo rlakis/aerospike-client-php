@@ -20,7 +20,9 @@ class MobileApi {
     private $uid;
     private $uuid;
     
-    function __construct($config) {
+    
+    function __construct($config) 
+    {
         $this->lang = filter_input(INPUT_GET, 'l', FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);        
         $this->unixtime = filter_input(INPUT_GET, 't', FILTER_VALIDATE_INT, ['options'=>['default'=>-1, 'min_range'=>1388534400, 'max_range'=>PHP_INT_MAX]]);
         $this->countryId = filter_input(INPUT_GET, 'country', FILTER_VALIDATE_INT, ['options'=>['default'=>0, 'min_range'=>0, 'max_range'=>100000]]);

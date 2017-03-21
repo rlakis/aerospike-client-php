@@ -518,6 +518,7 @@ class AndroidApi {
                     }
                 //}
                 break;
+                
             case API_ANDROID_POST_AD:         
                 if($this->api->config['active_maintenance']){
                     $this->api->result['e'] = "503";
@@ -525,8 +526,9 @@ class AndroidApi {
                 }            
                 $opts = $this->api->userStatus($status);                
                 
-                $userData = MCSessionHandler::getUser($this->api->getUID());
-                $mcUser = new MCUser($userData);
+                //$userData = MCSessionHandler::getUser($this->api->getUID());
+                //$mcUser = new MCUser($userData);
+                $mcUser = new MCUser($this->api->getUID());
                 
                 if ($status == 1 && !$mcUser->isBlocked()) {
                     $this->api->db->setWriteMode();  
@@ -1136,8 +1138,8 @@ class AndroidApi {
                 case API_ANDROID_RENEW_AD:                
                     $opts = $this->api->userStatus($status);                    
                     
-                    $userData = MCSessionHandler::getUser($this->api->getUID());
-                    $mcUser = new MCUser($userData);
+                    //$userData = MCSessionHandler::getUser($this->api->getUID());
+                    $mcUser = new MCUser($this->api->getUID()); //$userData);
                     $state=0;
                     if ($status == 1 && !$mcUser->isSuspended() && !$mcUser->isBlocked()) 
                     {
@@ -1241,7 +1243,8 @@ class AndroidApi {
                         }
                     }
                 
-                break;     
+                break;  
+                
                 case API_ANDROID_USER_NUMBER:
                     $keyCode=0;
                     $number = filter_input(INPUT_POST, 'tel');
@@ -1251,17 +1254,27 @@ class AndroidApi {
                     $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
                     $appVersion = filter_input(INPUT_GET, 'apv', FILTER_SANITIZE_STRING , ['options'=>['default'=>'']]);
                     
-                    if($number && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                    if($number && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY)))
+                    {
                         
-                        if($keyCode){                            
-                            if(substr($number,0,1)=='+'){
+                        if($keyCode)
+                        {                            
+                            if(substr($number,0,1)=='+')
+                            {
                                 $number = substr($number,1);
                             }
+                            
+                            if ($this->api->getUID()==0)
+                            {
+                                error_log(__FUNCTION__.' uid<0>: ' . json_encode($this->api->user));
+                            }
+                            
                             $ns = $this->api->db->queryResultArray(
                                 "UPDATE WEB_USERS_LINKED_MOBILE set "
                                 . "ACTIVATION_TIMESTAMP=current_timestamp "
                                 . "where uid = ? and code = ? and mobile = ? RETURNING ID", 
-                            [$this->api->getUID(),$keyCode,$number], TRUE);
+                                [$this->api->getUID(), $keyCode, $number], TRUE);
+                            
                             if($ns!==false && isset($ns[0]['ID']) && $ns[0]['ID']){
                                 $this->api->result['d']['number']=$number;
                                 $this->api->result['d']['code']=$keyCode;

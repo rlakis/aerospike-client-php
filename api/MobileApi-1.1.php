@@ -26,7 +26,7 @@ class MobileApi
 
     var $uid;
     var $uuid;
-    
+    public $user = null;
 
     function __construct($config) 
     {
@@ -38,7 +38,7 @@ class MobileApi
 
         $this->uid = filter_input(INPUT_GET, 'uid', FILTER_VALIDATE_INT)+0;
         $this->uuid = filter_input(INPUT_GET, 'uuid', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-
+        $this->user = new MCUser($this->uuid);
         $this->config=$config;
 
         $this->db = new DB($this->config, TRUE);
@@ -922,38 +922,38 @@ class MobileApi
         if (!empty($this->uuid) && $this->uid>0) 
         {
             $status = 0;
-            $user = new MCUser($this->uuid);
-            if ($user->getID()>0)
+            //$user = new MCUser($this->uuid);
+            if ($this->user->getID()>0)
             {
-                $opts->prefs = $user->device->getPreferences();
-                $opts->device_last_visit = $user->device->getLastVisitedUnixtime();
-                $opts->user_last_visit = $user->getLastVisitUnixtime();
+                $opts->prefs = $this->user->device->getPreferences();
+                $opts->device_last_visit = $this->user->device->getLastVisitedUnixtime();
+                $opts->user_last_visit = $this->user->getLastVisitUnixtime();
                 //$opts->user_status = $q[0]['STATUS']+0;
-                $opts->user_status = 10; // to changed
-                $opts->user_level = $user->getLevel();
-                $opts->secret = $user->getMobile()->getSecret();
-                $opts->phone_number = $user->getMobile()->getNumber();
-                $opts->disallow_purchase = $user->device->isPurchaseEnabled();
-                $opts->cuid = $user->device->getChangedToUID();
-                $opts->full_name = $user->getFullName();
-                $opts->email = $user->getUserMail() ? $user->getUserMail() : $user->getEMail();                
-                $opts->push = $user->device->getToken();
-                $opts->appVersion = $user->device->getAppVersion();
+                $opts->user_status = $this->user->getMobile()->getStatus();
+                $opts->user_level = $this->user->getLevel();
+                $opts->secret = $this->user->getMobile()->getSecret();
+                $opts->phone_number = $this->user->getMobile()->getNumber();
+                $opts->disallow_purchase = $this->user->device->isPurchaseEnabled();
+                $opts->cuid = $this->user->device->getChangedToUID();
+                $opts->full_name = $this->user->getFullName();
+                $opts->email = $this->user->getUserMail() ? $this->user->getUserMail() : $this->user->getEMail();                
+                $opts->push = $this->user->device->getToken();
+                $opts->appVersion = $this->user->device->getAppVersion();
                 
-                if (in_array($user->getProvider(), ['mourjan','facebook','twitter','yahoo','google','live','linkedin']))
+                if (in_array($this->user->getProvider(), ['mourjan','facebook','twitter','yahoo','google','live','linkedin']))
                 {
-                    $opts->provider = $user->getProvider();
+                    $opts->provider = $this->user->getProvider();
                     if($opts->provider=='mourjan')
                     {
-                        $opts->account = $user->getProviderIdentifier();
+                        $opts->account = $this->user->getProviderIdentifier();
                     }
                     else if($opts->provider=='twitter')
                     {
-                        $opts->account = preg_replace('/http(?:s|)::\/\/twitter\.com\//', '', $user->getProfileURL());
+                        $opts->account = preg_replace('/http(?:s|)::\/\/twitter\.com\//', '', $this->user->getProfileURL());
                     }
                     else
                     {
-                        $opts->account = $user->getEMail();
+                        $opts->account = $this->user->getEMail();
                     }
                 }
                 
@@ -964,12 +964,12 @@ class MobileApi
                 }
                 
                 
-                if ($this->uid==$user->getID())
+                if ($this->uid==$this->user->getID())
                 {
-                    if ($user->getLevel()!=5)
+                    if ($this->user->getLevel()!=5)
                     {
                         $status = 1;
-                        $name = $user->getFullName(); 
+                        $name = $this->user->getFullName(); 
                     }
                     else
                     {
@@ -980,7 +980,7 @@ class MobileApi
                 }
             }
            
-            
+            /*
             $q = $this->db->queryResultArray(
                     "select d.uid, d.push_id, d.device_sysname, d.app_prefs, u.opts, u.full_name, u.identifier, u.email, u.user_email, u.provider, u.profile_url, IIF(m.STATUS IS NULL, 10, m.STATUS) STATUS, "
                     . "IIF(m.SECRET is null, '', m.SECRET) secret, "
@@ -1078,7 +1078,7 @@ class MobileApi
             {
                 $opts = json_decode("{}");
             }
-           
+            */
         }
         else
         {
@@ -1398,7 +1398,8 @@ class MobileApi
     }
 
 
-    function register() {
+    function register() 
+    {
         $this->result['d']['info']=[
                 'version'=>'1.0.2',
                 'force_update'=>0, 
@@ -1441,9 +1442,15 @@ class MobileApi
         $app_prefs = html_entity_decode(filter_input(INPUT_GET, 'prefs', FILTER_SANITIZE_STRING, ['options'=>['default'=>'{}']]));
         
         //Android Fix for lost UID
-        if($isAndroid && $this->uid == 0 && $this->uuid)
+        if($isAndroid && $this->uid==0 && $this->uuid)
         {
             //error_log("Verifying if previous record exists for UUID {$this->uuid} with UID NIL\n");
+            $_device = NoSQL::getInstance()->deviceFetch($this->uuid);
+            if ($_device && count($_device)==1 && $_device[ASD\USER_DEVICE_SYS_NAME]=='Android')
+            {
+                $this->uid = $_device[ASD\USER_UID];
+            }
+            /*
             $oldUid = $this->db->queryResultArray(
                     "select uid from WEB_USERS_DEVICE where uuid=? and device_sysname='Android'",
                     [$this->uuid], TRUE);
@@ -1452,6 +1459,8 @@ class MobileApi
             {
                 $this->uid = $oldUid[0]['UID'];
             }
+             * 
+             */
         }
         //End of Android Fix for lost UID
         
@@ -1517,7 +1526,14 @@ class MobileApi
             }
             
             //check if android user has mobile validated
-            if($this->uid){
+            if($this->uid)
+            {
+                $_mobile = $this->user->getMobile();
+                if ($_mobile && $_mobile->isVerified())
+                {
+                    $this->result['d']['mobile']=$_mobile->getNumber();
+                }
+                /*
                 $mobile = $this->db->queryResultArray(
                         "select m.ID, m.MOBILE
                         from WEB_USERS_LINKED_MOBILE m
@@ -1525,15 +1541,18 @@ class MobileApi
                         [$this->uid], TRUE);
                 if(is_array($mobile) && isset($mobile[0]['ID']) && $mobile[0]['ID']){
                     $this->result['d']['mobile']=$mobile[0]['MOBILE'];
-                }
+                }*/
             }
         }
 
         if (empty($carrier_country)) 
         {
-            if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])){
+            if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR']))
+            {
                 $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-            }else {
+            }
+            else 
+            {
                 $ip = $_SERVER['REMOTE_ADDR'];
             }
             $databaseFile = '/home/db/GeoLite2-City.mmdb';
@@ -1541,9 +1560,13 @@ class MobileApi
             $geo = $reader->get($ip);
             $reader->close();
         
-            if ($geo) {
+            if ($geo && isset($geo['country'])) 
+            {
                 $country_code = trim(strtoupper(trim($geo['country']['iso_code'])));
-                if(strlen($country_code)!=2)$country_code='';
+                if (strlen($country_code)!=2) 
+                {
+                    $country_code='';
+                }
             }
             
             $carrier_country = (isset($geo['country']['iso_code']) && strlen(trim($geo['country']['iso_code']))==2) ? strtoupper(trim($geo['country']['iso_code'])) : 'XX';
@@ -1555,14 +1578,9 @@ class MobileApi
              * 9: retired
              * 10: does not have web_users_mobile record (not activated mobile user)
              */
-            if ($is_ping==0) {
+            if ($is_ping==0) 
+            {
             	$isUTF8 = preg_match('//u', $device_name);
-                $this->db->queryResultArray("update or insert into WEB_USERS_DEVICE "
-                    . "(uuid, uid, device_model, device_name, device_sysname, "
-                    . "device_sysversion, last_visit, CARRIER_COUNTRY, APP_VERSION, APP_PREFS) "
-                    . "values (?, ?, ?, ?, ?, ?, current_timestamp, ?, ?, ?)",
-                    [$this->uuid, $this->uid, $device_model, ($isUTF8 ? $device_name : ''), $device_sysname,
-                    $device_sysversion, $carrier_country, $device_appversion, $app_prefs], TRUE);
                 
                 NoSQL::getInstance()->deviceInsert([
                     Core\Model\ASD\USER_DEVICE_UUID => $this->uuid,
@@ -1570,11 +1588,20 @@ class MobileApi
                     Core\Model\ASD\USER_DEVICE_MODEL => $device_model,
                     Core\Model\ASD\USER_DEVICE_NAME => ($isUTF8 ? $device_name : ''),
                     Core\Model\ASD\USER_DEVICE_SYS_NAME => $device_sysname,
-                    Core\Model\ASD\USER_DEVICE_SYS_VERSION => $device_sysversion,
+                    Core\Model\ASD\USER_DEVICE_SYS_VERSION => $device_sysversion,             
                     Core\Model\ASD\USER_DEVICE_ISO_COUNTRY => $carrier_country,
                     Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
                     Core\Model\ASD\USER_DEVICE_APP_SETTINGS => $app_prefs
                 ]);
+
+                                
+                $this->db->queryResultArray("update or insert into WEB_USERS_DEVICE "
+                    . "(uuid, uid, device_model, device_name, device_sysname, "
+                    . "device_sysversion, last_visit, CARRIER_COUNTRY, APP_VERSION, APP_PREFS) "
+                    . "values (?, ?, ?, ?, ?, ?, current_timestamp, ?, ?, ?)",
+                    [$this->uuid, $this->uid, $device_model, ($isUTF8 ? $device_name : ''), $device_sysname,
+                    $device_sysversion, $carrier_country, $device_appversion, $app_prefs], TRUE);
+                
             }
             
             if($isAndroid)
@@ -1662,9 +1689,9 @@ class MobileApi
             
             
         } 
-        elseif ($status==-9 && !empty ($this->uuid)) 
+        elseif (!$this->user->exists() && !empty ($this->uuid)) 
         {
-            
+             //($status==-9 && !empty ($this->uuid)) 
             $q = $this->db->queryResultArray(
                     "insert into web_users (identifier, email, provider, full_name, profile_url, opts, user_name, user_email) "
                     . "values (?, '', '".($isAndroid?'mourjan-android':'mourjan-iphone')."', '', 'https://www.mourjan.com/', '{}', '', '')  returning id,lvl", [$this->uuid], TRUE);
@@ -1692,14 +1719,6 @@ class MobileApi
 
                 $isUTF8 = preg_match('//u', $device_name);
 
-                $this->db->queryResultArray(
-                        "insert into WEB_USERS_DEVICE "
-                        . "(uuid, uid, device_model, device_name, device_sysname, device_sysversion, "
-                        . "last_visit, push_id, NOTIFICATION_ENABLED, CARRIER_COUNTRY, APP_VERSION) "
-                        . "values (?, ?, ?, ?, ?, ?, current_timestamp, '', 1, ?, ?)",
-                        [$this->uuid, $q[0]['ID'], $device_model, $device_name, $device_sysname,
-                            $device_sysversion, $carrier_country, $device_appversion], TRUE);
-                
                 NoSQL::getInstance()->deviceInsert([
                     Core\Model\ASD\USER_DEVICE_UUID => $this->uuid,
                     Core\Model\ASD\USER_UID => $q[0]['ID'],
@@ -1711,46 +1730,59 @@ class MobileApi
                     Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
                     Core\Model\ASD\USER_DEVICE_APP_SETTINGS => '{}'
                 ]);
+
+                $this->db->queryResultArray(
+                        "insert into WEB_USERS_DEVICE "
+                        . "(uuid, uid, device_model, device_name, device_sysname, device_sysversion, "
+                        . "last_visit, push_id, NOTIFICATION_ENABLED, CARRIER_COUNTRY, APP_VERSION) "
+                        . "values (?, ?, ?, ?, ?, ?, current_timestamp, '', 1, ?, ?)",
+                        [$this->uuid, $q[0]['ID'], $device_model, $device_name, $device_sysname,
+                            $device_sysversion, $carrier_country, $device_appversion], TRUE);
+                
+                
             } 
             else 
             {
                 $this->result['e'] = 'System error!';
-                //print_r($this->db->getInstance()->errorInfo());
             }
-
-        } else {
-            //$this->result['e']='Invalid user request!';
-            //$this->result['d']=[0];
         }
 
     }
 
 
-    function setApnsToken() {        
+    function setApnsToken() 
+    {
         $opts = $this->userStatus($status);
         $this->result['status']=$status;
 
-        if ($status==1 || $status==-9) {
+        if ($status==1 || $status==-9) 
+        {
             $this->db->setWriteMode();
             $token=filter_input(INPUT_GET, 'tk', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
             $rs = $this->db->queryResultArray("update WEB_USERS_DEVICE set PUSH_ID=? where uuid=? and PUSH_ID<>?", [$token, $this->uuid, $token], TRUE);
             if ($rs===FALSE) {
                 $this->result['e']='Could not register notification token';
             }
+        
             if (!NoSQL::getInstance()->deviceSetToken($this->uuid, $token))
             {
-                
+                $this->result['e']='Could not register notification token';                
             }
-        } else
+        } 
+        else
+        {            
             $this->result['e']='Invalid user status';
+        }
         $this->db->close();
     }
 
 
-    function setNotification() {        
+    function setNotification() 
+    {
         $this->userStatus($status);
         $this->result['status']=$status;
-        if ($status==1) {
+        if ($status==1) 
+        {
             $this->db->setWriteMode();
             $enabled=filter_input(INPUT_GET, 'enabled', FILTER_VALIDATE_INT)+0;
             $this->db->queryResultArray("update WEB_USERS_DEVICE set NOTIFICATION_ENABLED=? where uuid=?", [$enabled, $this->uuid], TRUE);
@@ -1772,7 +1804,9 @@ class MobileApi
             $op=filter_input(INPUT_GET, 'op', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
             $np=filter_input(INPUT_GET, 'np', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
             $cp=filter_input(INPUT_GET, 'cp', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-            if (!empty($cp) && !empty($np) && strlen($cp)==32 && ($cp==$np) && ($op==$opts->secret || empty($opts->secret))) {
+            
+            if (!empty($cp) && !empty($np) && strlen($cp)==32 && ($cp==$np) && ($op==$opts->secret || empty($opts->secret))) 
+            {
                 $this->db->setWriteMode();
                 
                 $rs = $this->db->queryResultArray("update WEB_USERS_MOBILE set SECRET=? where uid=? returning status, secret", [$np, $this->uid], TRUE);
@@ -1793,7 +1827,8 @@ class MobileApi
     }
 
 
-    function authenticate() {        
+    function authenticate() 
+    {
         $opts = $this->userStatus($status);
 
         $mobile_no = filter_input(INPUT_GET, 'tel', FILTER_VALIDATE_INT)+0;
@@ -1873,7 +1908,11 @@ class MobileApi
             }
 
             $this->result['e']="Invalid user and password for {$mobile_no}!";
-        } else $this->result['e']="Not a valid user and/or password for {$mobile_no}!";
+        } 
+        else 
+        {
+            $this->result['e']="Not a valid user and/or password for {$mobile_no}!";
+        }
 
     }
 
@@ -2902,7 +2941,9 @@ class MobileApi
         $itran = new ITransaction($this);
     }
     
-    public function androidTransaction($appVersion="1.1") {
+    
+    public function androidTransaction($appVersion="1.1") 
+    {
         include_once 'AndroidApi-'.$appVersion.'.php';
         $itran = new AndroidApi($this);
     }
