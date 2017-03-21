@@ -71,7 +71,7 @@ class MCUser extends MCJsonMapper
     protected $opts;              // MCUserOptions    
     protected $mobile;            // MCMobile
     protected $dependants = [];   // Related user ids
-    protected $devices = [];      // MCDevice ArrayList;
+    protected $devices = false;   // MCDevice ArrayList;
     protected $prps;              // MCPropSpace
     protected $xmpp = 0;
      
@@ -117,13 +117,19 @@ class MCUser extends MCJsonMapper
             return;
         }
         
+        if (!isset($record[ASD\USER_PROFILE_ID]))
+        {
+            error_log(json_encode($record));
+        }
+        
+        
         $this->id = $record[ASD\USER_PROFILE_ID];
         $this->pid = isset($record[ASD\USER_PROVIDER_ID])?$record[ASD\USER_PROVIDER_ID]:$record['provide_id'];
-        $this->email = $record['email'];
-        $this->prvdr = $record['provider'];
-        $this->fn = $record['full_name'];
-        $this->dn = $record['display_name'];
-        $this->pu = $record['profile_url'];
+        $this->email = $record[ASD\USER_PROVIDER_EMAIL];
+        $this->prvdr = $record[ASD\USER_PROVIDER];
+        $this->fn = $record[ASD\USER_FULL_NAME];
+        $this->dn = $record[ASD\USER_DISPLAY_NAME];
+        $this->pu = $record[ASD\USER_PROFILE_URL];
         $this->rd = $record['date_added'];
         $this->lvts = $record['last_visited'];
         $this->lvl = $record['level'];
@@ -136,7 +142,7 @@ class MCUser extends MCJsonMapper
         $this->lrts = $record['last_renewed'];
         $this->dependants = $record[ASD\USER_DEPENDANTS];
 
-        $this->opts->parseAssoc($record['options']);
+        $this->opts->parseAssoc($record[ASD\USER_OPTIONS]);
 
         $this->mobile = isset($record['mobile']) ? new MCMobile($record['mobile']) : new MCMobile();
 
@@ -147,14 +153,18 @@ class MCUser extends MCJsonMapper
             $uuid = $this->device->getUUID();
         }
         
-        foreach ($record['devices'] as $value)
+        if (isset($record[ASD\USER_DEVICES]) && is_array($record[ASD\USER_DEVICES]))
         {
-            if ($value[ASD\USER_DEVICE_UUID]!==$uuid)
+            $this->devices = [];
+            foreach ($record[ASD\USER_DEVICES] as $value)
             {
-                $this->devices[]=new MCDevice($value);
+                if ($value[ASD\USER_DEVICE_UUID]!==$uuid)
+                {                
+                    $this->devices[]=new MCDevice($value);
+                }
             }
         }
-
+        
         $this->jwt['token'] = isset($record['jwt']['token']) ? $record['jwt']['token'] : FALSE;
         $this->jwt['secret'] = isset($record['jwt']['secret']) ? $record['jwt']['secret'] : '';
         $this->jwt['claim'] = isset($record['jwt']['claim']) ? $record['jwt']['claim'] : [];
@@ -202,20 +212,31 @@ class MCUser extends MCJsonMapper
         return $this->id;
     }
     
+    
+    public function exists() : bool
+    {
+        return $this->id ? true : FALSE;
+    }
+    
+    
+    
     public function isMobileVerified():bool
     {
         return $this->getMobile()->isVerified();
     }
+    
     
     public function getProviderIdentifier() : string
     {
         return $this->pid;
     }
     
+    
     public function isSuspended():bool
     {
         return $this->getOptions()->isSuspended();
     }
+    
     
     public function getSuspensionTime():int
     {
@@ -357,8 +378,17 @@ class MCUser extends MCJsonMapper
     
     public function getMobile() : MCMobile
     {
+        if ($this->mobile->getNumber()<=0)
+        {
+            $_mobiles = NoSQL::getInstance()->mobileFetchByUID($this->getID());
+            if ($_mobiles)
+            {
+                $this->mobile = new MCMobile($_mobiles[0]);
+            }
+        }
         return $this->mobile;
     }
+    
     
     public function getMobileNumber() : String
     {
@@ -374,6 +404,15 @@ class MCUser extends MCJsonMapper
     
     public function getDevices() : array
     {
+        if ($this->devices===FALSE)
+        {
+            $this->devices = [];
+            $_records = NoSQL::getInstance()->getUserDevices($this->getID());
+            foreach ($_records as $record) 
+            {
+                $this->devices[]=new MCDevice($record);
+            }
+        }
         return $this->devices;
     }
     
@@ -600,14 +639,14 @@ class MCMobile extends MCJsonMapper
     {
         if (is_array($as_array))
         {
-            $this->number = $as_array['number'];
+            $this->number = $as_array[ASD\USER_MOBILE_NUMBER];
             $this->code = $as_array['code'];
             $this->rts = $as_array['date_requested'];
             $this->ats = $as_array['date_activated'];
             $this->dlvrd = $as_array['delivered'];
             $this->sc = $as_array['sms_count'];
-            $this->flag = $as_array['flag'];
-            $this->secret = $as_array['secret'];
+            $this->flag = $as_array[ASD\USER_MOBILE_FLAG];
+            $this->secret = isset($as_array[ASD\USER_MOBILE_SECRET]) ? $as_array[ASD\USER_MOBILE_SECRET] : '';
         }
     }
     
@@ -616,14 +655,14 @@ class MCMobile extends MCJsonMapper
     {
         if ($this->number)
             return [
-                'number'=> $this->number,
+                ASD\USER_MOBILE_NUMBER => $this->number,
                 'code'=> $this->code,
                 'date_requested'=> $this->rts,
                 'date_activated'=> $this->ats,
                 'delivered'=> $this->dlvrd,
                 'sms_count'=> $this->sc,
-                'flag'=> $this->flag,
-                'secret'=> $this->secret
+                ASD\USER_MOBILE_FLAG => $this->flag,
+                ASD\USER_MOBILE_SECRET => $this->secret
             ];
         else
             return [];
@@ -641,6 +680,25 @@ class MCMobile extends MCJsonMapper
         return $this->secret ? $this->secret : '';
     }
 
+    
+    public function getStatus() : int
+    {
+        $status = 10;
+        if ($this->number)
+        {
+            $status = 0;
+            if ($this->ats)
+            {
+                $status = 1;
+            } 
+            else if ($this->sc==0)
+            {
+                $status = 5;
+            }
+        }
+        return $status;
+    }
+    
     
     public function isVerified() : bool
     {
@@ -674,14 +732,21 @@ class MCDevice extends MCJsonMapper
     {
         if (is_array($as_array))
         {
-            $this->uuid = $as_array['uuid'];
-            $this->model = $as_array['model'];
-            $this->name = $as_array['name'];
+            //if (!isset($as_array[ASD\USER_DEVICE_PUSH_ENABLED]))
+            //{
+            //    error_log(json_encode($as_array));
+            //}
+            
+            $this->uuid = $as_array[ASD\USER_DEVICE_UUID];
+            $this->model = $as_array[ASD\USER_DEVICE_MODEL];
+            $this->name = $as_array[ASD\USER_DEVICE_NAME];
             $this->sn = $as_array['sys_name'];
             $this->sv = $as_array['sys_version'];
             $this->lvts = $as_array['last_visited'];
-            $this->tk = $as_array['token'];
-            $this->pn = $as_array['push_enabled'];
+            
+            $this->tk = isset($as_array[ASD\USER_DEVICE_PUSH_TOKEN]) ? $as_array[ASD\USER_DEVICE_PUSH_TOKEN] : '';
+            
+            $this->pn = isset($as_array[ASD\USER_DEVICE_PUSH_ENABLED]) ? $as_array[ASD\USER_DEVICE_PUSH_ENABLED] : 1;
             if (isset($as_array[ASD\USER_DEVICE_CARRIER_COUNTRY]))
             {
                 $this->ccc = $as_array[ASD\USER_DEVICE_CARRIER_COUNTRY];
@@ -692,7 +757,7 @@ class MCDevice extends MCJsonMapper
             }
             
             
-            $this->iav = $as_array['app_version'];
+            $this->iav = $as_array[ASD\USER_DEVICE_APP_VERSION];
             if (isset($as_array[ASD\USER_DEVICE_APP_PREFERENCES]))
             {
                 $this->prefs = $as_array[ASD\USER_DEVICE_APP_PREFERENCES];
@@ -703,7 +768,12 @@ class MCDevice extends MCJsonMapper
             }
 
             $this->rmvd = isset($as_array[ASD\USER_DEVICE_UNINSTALLED]) ? $as_array[ASD\USER_DEVICE_UNINSTALLED] : 0;
-            $this->dats = $as_array['date_added'];
+            if (!isset($as_array[ASD\USER_DEVICE_DATE_ADDED]))
+            {
+                error_log(json_encode($as_array));
+                $as_array[ASD\USER_DEVICE_DATE_ADDED] = $as_array[ASD\USER_DEVICE_LAST_VISITED];
+            }
+            $this->dats = $as_array[ASD\USER_DEVICE_DATE_ADDED];
             if (isset($as_array[ASD\USER_DEVICE_PURCHASE_ENABLED]))
             {
                 $this->pa = $as_array[ASD\USER_DEVICE_PURCHASE_ENABLED];
@@ -711,7 +781,7 @@ class MCDevice extends MCJsonMapper
             if (isset($as_array[ASD\USER_DEVICE_BAN_TRANSACTIONS]))
             {
                 $this->pa = $as_array[ASD\USER_DEVICE_BAN_TRANSACTIONS] ? 0 : 1;
-            }
+            }            
         }
     }
     
@@ -778,6 +848,12 @@ class MCDevice extends MCJsonMapper
     public function getAppVersion() : string
     {
         return $this->iav;
+    }
+    
+    
+    public function getSystemName() : string
+    {
+        return $this->sn;
     }
     
     

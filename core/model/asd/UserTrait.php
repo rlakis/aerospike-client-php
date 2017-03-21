@@ -271,4 +271,7 @@ trait UserTrait
         $record=$this->getBins($pk, [USER_RANK]);        
         return isset($record[USER_RANK]) ? $record[USER_RANK] : 0;
     }
+    
+    
+    
 }

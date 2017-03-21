@@ -2027,9 +2027,12 @@ order by m.activation_timestamp desc',
         return $this->connectDeviceToAccount(null, null, $uid, $uuid, $newUid);
     }
     
-    function connectDeviceToAccount($info,$provider, $uid, $uuid, $newUid=0){
+    
+    function connectDeviceToAccount($info, $provider, $uid, $uuid, $newUid=0)
+    {
         $newUserId = 0;
-        if($newUid==0){
+        if($newUid==0)
+        {
             $provider=strtolower($provider);
             $identifier=$info->identifier;
             $email=is_null($info->emailVerified) ? (is_null($info->email ? '' : $info->email)) :$info->emailVerified;
@@ -2039,8 +2042,10 @@ order by m.activation_timestamp desc',
             $infoStr=(!is_null($info->profileURL) ? $info->profileURL : '');
         }
         
-        try{
-            if($newUid==0){
+        try
+        {
+            if($newUid==0)
+            {
                 $getUserRecord=$this->db->prepareQuery('update or insert into web_users
                     (IDENTIFIER, email, provider, full_name, display_name, profile_url, last_visit)
                     values (?, ?, ?, ?, ?, ?, current_timestamp)
@@ -2068,9 +2073,10 @@ order by m.activation_timestamp desc',
    
             $result = false;
             
-            if($newUid==0){
+            if($newUid==0)
+            {
                 if($getUserRecord->execute([$identifier, $email, $provider, $fullName, $dispName, $infoStr])) {
-                	$result = $getUserRecord->fetch(PDO::FETCH_NUM);
+                    $result = $getUserRecord->fetch(PDO::FETCH_NUM);
                 }
                 if($result !== false && !empty($result)){
                     $newUserId = $result[0];
@@ -2088,16 +2094,23 @@ order by m.activation_timestamp desc',
             
             if (isset($getUserRecord)) unset($getUserRecord);
 
-            if($newUserId){
+            if($newUserId)
+            {
             	$updateDeviceRecord=$this->db->prepareQuery('update web_users_device set uid = ?, cuid=0 where (uid = ? or uid = ?) and uuid = ? returning uid');
-                if($updateDeviceRecord instanceOf  PDOStatement && 
-                   $updateDeviceRecord->execute([$newUserId, $uid, $newUserId, $uuid]))
+                if($updateDeviceRecord instanceOf  PDOStatement && $updateDeviceRecord->execute([$newUserId, $uid, $newUserId, $uuid]))
                 {
                     $result = $updateDeviceRecord->fetch(PDO::FETCH_NUM);
                     unset($updateDeviceRecord);
                     
                     if($result !== false && !empty($result)){
+                        
                         $newUserId = $result[0];
+                        if (\Core\Model\NoSQL::getInstance()->deviceSetUID($uuid, $newUserId))
+                        {
+                            
+                        }
+                        
+                        
                         if($newUserId){
                             include_once $this->cfg['dir'] . '/core/lib/SphinxQL.php';
                             $sphinx = new SphinxQL($this->cfg['sphinxql'], $this->cfg['search_index']);

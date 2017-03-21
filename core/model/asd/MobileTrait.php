@@ -11,10 +11,34 @@ trait MobileTrait
     abstract public function genId(string $generator, &$sequence);
     abstract public function getBins($pk, array $bins);
     abstract public function setBins($pk, array $bins);
+    abstract public function exists($pk) : int;
     
+        
     public function initMobileKey($uid, $number)
     {
         return $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
+    }
+    
+    
+    public function mobileFetchByUID(int $uid) : array
+    {
+        $matches=[];
+        $keys=[];
+        $where = \Aerospike::predicateEquals(USER_UID, $uid);
+        $this->getConnection()->query(NS_USER, TS_MOBILE, $where, function ($record) use (&$matches, &$keys) 
+        {
+            if (!isset($record['bins'][USER_MOBILE_DATE_ACTIVATED]))
+            {
+                $record['bins'][USER_MOBILE_DATE_ACTIVATED]=0;
+            }
+                       
+            $matches[$record['bins'][USER_MOBILE_NUMBER]] = $record['bins'];
+            $keys[$record['bins'][USER_MOBILE_NUMBER]] = $record['bins'][USER_MOBILE_DATE_ACTIVATED];
+        });
+        array_multisort($keys, SORT_DESC, SORT_NUMERIC, $matches);
+        unset($keys);
+        
+        return array_values($matches);
     }
     
     
@@ -148,7 +172,7 @@ trait MobileTrait
                 $dups[$record['id']]=1;
             }
             $row_count++;
-            if ($row_count>30)
+            if ($row_count>60)
             {
                 break;
             }
@@ -264,11 +288,14 @@ trait MobileTrait
     public function mobileIncrSMS(int $uid, int $number) : bool
     {
         $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
-        $metadata=[];
-        $status = $this->getConnection()->exists($pk, $metadata);
-        if ($status==\Aerospike::OK) {
-            $status = $this->getConnection()->increment($pk, USER_MOBILE_SENT_SMS_COUNT, 1, [\Aerospike::OPT_POLICY_KEY=>\Aerospike::POLICY_EXISTS_UPDATE]);
-            return ($status==\Aerospike::OK);
+        if ($this->exists($pk)) 
+        {
+            if ($this->getConnection()->increment($pk, USER_MOBILE_SENT_SMS_COUNT, 1, [\Aerospike::OPT_POLICY_KEY=>\Aerospike::POLICY_EXISTS_UPDATE])==\Aerospike::OK)
+            {
+                error_log(sprintf("%s", json_encode(['mt'=> microtime(TRUE), 'pk'=>$pk, 'inc'=>[USER_MOBILE_SENT_SMS_COUNT, 1]])).PHP_EOL, 3, "/var/log/mourjan/aerospike.set");
+                return TRUE;
+            }
+            return FALSE;
         } 
         else 
         {

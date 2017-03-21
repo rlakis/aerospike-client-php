@@ -90,7 +90,10 @@ class NoSQL
         
         if ($status != \Aerospike::OK)
         {
-            error_log( "Error [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" );
+            if ($status!= \Aerospike::ERR_RECORD_NOT_FOUND)
+            {
+                $this->logError(__FUNCTION__, $pk);
+            }
             return [];
         }
         
@@ -103,13 +106,31 @@ class NoSQL
         $status = $this->getConnection()->put($pk, $bins);
         if ($status != \Aerospike::OK) 
         {
-            error_log( "Error [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" );
-            error_log(json_encode($pk));
+            $this->logError(__FUNCTION__, $pk);
             error_log(json_encode($bins));
             
             return FALSE;
         }
+        error_log(sprintf("%s", json_encode(['mt'=> microtime(TRUE), 'pk'=>$pk, 'bn'=>$bins])).PHP_EOL, 3, "/var/log/mourjan/aerospike.set");      
         return TRUE;
+    }
+    
+    
+    public function exists($pk) : int
+    {
+        $metadata = null;
+        if ($this->getConnection()->exists($pk, $metadata) != \Aerospike::OK)
+        {
+            return 0;
+        }
+        return intval($metadata['generation']);        
+    }
+    
+    
+    private function logError($fnc, $obj)
+    {
+        error_log( "Error {$fnc} [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" );
+        error_log(json_encode($obj));
     }
     
     
