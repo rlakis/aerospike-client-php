@@ -58,8 +58,7 @@ trait DeviceTrait
             }
         }
                 
-        return $this->setBins($pk, $bins);
-                
+        return $this->setBins($pk, $bins);                
     }
     
     

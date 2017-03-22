@@ -3,7 +3,7 @@
 namespace Core\Model\ASD;
 
 const TS_MOBILE = 'mobiles';
-const IX_MOBILE_BINS = [USER_UID, USER_MOBILE_NUMBER];
+
 
 trait MobileTrait
 {

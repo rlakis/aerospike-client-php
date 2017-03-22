@@ -125,6 +125,7 @@ trait UserTrait
     
     public function createUser(array $bins)
     {
+        $uid = 0;
         $this->genId('profile_id', $uid);
         
         if ($uid>0)
