@@ -42,7 +42,7 @@ include_once $config['dir']. '/core/model/Db.php';
 include_once $config['dir'].'/core/lib/PayfortIntegration.php';
 
 
-$language = filter_input(INPUT_REQUEST, 'language', FILTER_SANITIZE_STRING);
+$language = $_REQUEST['language'] ?? 'en';
 if (!in_array($language, ['en','ar']))
 {
     $language = 'en';
