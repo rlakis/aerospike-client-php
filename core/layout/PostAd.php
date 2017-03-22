@@ -49,78 +49,80 @@ class PostAd extends Page{
         }
         
         $this->hasLeadingPane = $this->user->info['id'] && !$this->isUserMobileVerified;
-        if(!$this->isUserMobileVerified){
-            $this->title=$this->lang['verify_mobile'];
-            $this->set_require('css', array('select2'));
-            $this->inlineCss.='div.row{display:block}.phwrap{padding:0 20px}p.ph{padding-bottom:15px;line-height:28px;border:0px;background-color:transparent;width:100%}#main{background-color:#FFF;border:0;padding-bottom:20px}';
-            $this->inlineCss.='
-                .ph.num{direction:ltr}
-                .row .bt{width:200px}
-                .row.err{padding:10px 0;color:red}
-                #code{width:272px;visibility:hidden;height:28px}
-                    #number,#vcode{direction:ltr;font-size:22px;width:250px;padding:10px;border:1px solid #aaa;border-radius:4px;text-align:center}
-                    ';
-            if(isset($this->user->pending['mobile'])){
-                $this->inlineCss .= '#mb_notice{display:none}';                
-            }else{                
-                $this->inlineCss .= '#mb_validate{display:none}';
-            }
-            $this->inlineCss .= '#mb_check{display:none}';
-            $this->inlineCss .= '#mb_load{display:none}';
-            $this->inlineCss .= '#mb_done{display:none}';
-            /*if($this->urlRouter->siteLanguage=='ar'){
-                $this->inlineCss.='.select2-selection__rendered,.select2-results__option{unicode-bidi:bidi-override;}';
-            }*/
-        }else{
-            if (isset ($_REQUEST['ad']) && is_numeric($_REQUEST['ad'])) {
-
-                $this->ad=$this->user->loadAdToSession($_REQUEST['ad']);
-                $this->id=$this->user->pending['post']['id'];
-                $this->countryId=$this->user->pending['post']['cn'];
-                    $this->cityId=$this->user->pending['post']['c'];
-                    $this->sectionId=$this->user->pending['post']['se'];
-                    $this->purposeId=$this->user->pending['post']['pu'];
-                    $this->rootId=$this->user->pending['post']['ro'];
-                    $this->adContent=json_decode($this->user->pending['post']['content'],true);
-                    if($this->user->info['id']==$this->user->pending['post']['user']) {
-                        $this->user->saveAd(0,$this->user->info['id']);
-                    }
-            }
-
-            if (isset ($_REQUEST['adr']) && is_numeric($_REQUEST['adr'])) {
-                //$res = $this->user->renewAd($_POST['adr'],0);
-                $id = $_REQUEST['adr'];
-                if($id){
-                    $this->user->holdAd($id);
-                //if(!empty($res)){
-                    $this->ad=$this->user->loadAdToSession($id);
-                    $this->id=$this->user->pending['post']['id']; 
-                    $this->user->pending['post']['state']=0;
-                    $this->countryId=$this->user->pending['post']['cn'];
-                    $this->cityId=$this->user->pending['post']['c'];
-                    $this->sectionId=$this->user->pending['post']['se'];
-                    $this->purposeId=$this->user->pending['post']['pu'];
-                    $this->rootId=$this->user->pending['post']['ro'];
-                    $this->adContent=json_decode($this->user->pending['post']['content'],true);
-                    $this->user->update();
+        if($this->user->info['id']){
+            if(!$this->isUserMobileVerified){
+                $this->title=$this->lang['verify_mobile'];
+                $this->set_require('css', array('select2'));
+                $this->inlineCss.='div.row{display:block}.phwrap{padding:0 20px}p.ph{padding-bottom:15px;line-height:28px;border:0px;background-color:transparent;width:100%}#main{background-color:#FFF;border:0;padding-bottom:20px}';
+                $this->inlineCss.='
+                    .ph.num{direction:ltr}
+                    .row .bt{width:200px}
+                    .row.err{padding:10px 0;color:red}
+                    #code{width:272px;visibility:hidden;height:28px}
+                        #number,#vcode{direction:ltr;font-size:22px;width:250px;padding:10px;border:1px solid #aaa;border-radius:4px;text-align:center}
+                        ';
+                if(isset($this->user->pending['mobile'])){
+                    $this->inlineCss .= '#mb_notice{display:none}';                
+                }else{                
+                    $this->inlineCss .= '#mb_validate{display:none}';
                 }
+                $this->inlineCss .= '#mb_check{display:none}';
+                $this->inlineCss .= '#mb_load{display:none}';
+                $this->inlineCss .= '#mb_done{display:none}';
+                /*if($this->urlRouter->siteLanguage=='ar'){
+                    $this->inlineCss.='.select2-selection__rendered,.select2-results__option{unicode-bidi:bidi-override;}';
+                }*/
+            }else{
+                if (isset ($_REQUEST['ad']) && is_numeric($_REQUEST['ad'])) {
+
+                    $this->ad=$this->user->loadAdToSession($_REQUEST['ad']);
+                    $this->id=$this->user->pending['post']['id'];
+                    $this->countryId=$this->user->pending['post']['cn'];
+                        $this->cityId=$this->user->pending['post']['c'];
+                        $this->sectionId=$this->user->pending['post']['se'];
+                        $this->purposeId=$this->user->pending['post']['pu'];
+                        $this->rootId=$this->user->pending['post']['ro'];
+                        $this->adContent=json_decode($this->user->pending['post']['content'],true);
+                        if($this->user->info['id']==$this->user->pending['post']['user']) {
+                            $this->user->saveAd(0,$this->user->info['id']);
+                        }
+                }
+
+                if (isset ($_REQUEST['adr']) && is_numeric($_REQUEST['adr'])) {
+                    //$res = $this->user->renewAd($_POST['adr'],0);
+                    $id = $_REQUEST['adr'];
+                    if($id){
+                        $this->user->holdAd($id);
+                    //if(!empty($res)){
+                        $this->ad=$this->user->loadAdToSession($id);
+                        $this->id=$this->user->pending['post']['id']; 
+                        $this->user->pending['post']['state']=0;
+                        $this->countryId=$this->user->pending['post']['cn'];
+                        $this->cityId=$this->user->pending['post']['c'];
+                        $this->sectionId=$this->user->pending['post']['se'];
+                        $this->purposeId=$this->user->pending['post']['pu'];
+                        $this->rootId=$this->user->pending['post']['ro'];
+                        $this->adContent=json_decode($this->user->pending['post']['content'],true);
+                        $this->user->update();
+                    }
+                }
+
+                if (!isset ($this->user->pending['post'])){
+                    $this->user->loadAdToSession(0);
+                }
+
+                $this->adContent=json_decode($this->user->pending['post']['content'],true);
+                $this->rootId=isset($this->adContent['ro']) ? (int)$this->adContent['ro'] : 0;
+                $this->purposeId=(int)$this->user->pending['post']['pu'];
+                $this->sectionId=(int)$this->user->pending['post']['se'];
+                $this->countryId=(int)$this->user->pending['post']['cn'];
+                $this->cityId=(int)$this->user->pending['post']['c'];
             }
 
-            if (!isset ($this->user->pending['post'])){
-                $this->user->loadAdToSession(0);
+            $this->userBalance = $this->user->getStatement(0, 0, true);
+            if(isset($this->userBalance['balance'])){
+                $this->userBalance = $this->userBalance['balance'];
             }
-
-            $this->adContent=json_decode($this->user->pending['post']['content'],true);
-            $this->rootId=isset($this->adContent['ro']) ? (int)$this->adContent['ro'] : 0;
-            $this->purposeId=(int)$this->user->pending['post']['pu'];
-            $this->sectionId=(int)$this->user->pending['post']['se'];
-            $this->countryId=(int)$this->user->pending['post']['cn'];
-            $this->cityId=(int)$this->user->pending['post']['c'];
-        }
-        
-        $this->userBalance = $this->user->getStatement(0, 0, true);
-        if(isset($this->userBalance['balance'])){
-            $this->userBalance = $this->userBalance['balance'];
         }
         //error_log($this->urlRouter->isApp);
         if($this->urlRouter->isApp > '1.0.4'){

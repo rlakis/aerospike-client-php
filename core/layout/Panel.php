@@ -5,6 +5,9 @@ class Panel extends Page{
 
     function __construct($router){
         parent::__construct($router);
+        if($this->isMobile && $this->user->info['id']){
+            $this->user->redirectTo($this->urlRouter->getURL($this->urlRouter->countryId,$this->urlRouter->cityId));
+        }
         if($this->urlRouter->cfg['active_maintenance']){
             $this->user->redirectTo('/maintenance/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
         }        
@@ -57,7 +60,6 @@ class Panel extends Page{
     }
     
     function mainMobile() {
-        
     }
     
     function main_pane(){ 

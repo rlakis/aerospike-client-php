@@ -812,6 +812,7 @@ class Search extends Page {
 
 
                     $ad[Classifieds::CONTENT] = preg_replace('/www(?!\s+)\.(?!\s+).*(?!\s+)\.(?!\s+)(com|org|net|mil|edu|COM|ORG|NET|MIL|EDU)/', '', $ad[Classifieds::CONTENT]);
+                    $ad[Classifieds::CONTENT] = preg_replace('/^[\s-]*/', '', $ad[Classifieds::CONTENT]);
                     //if (!(isset($this->user->info['level']) && $this->user->info['level'] == 9)) {
 //                        $feed = $this->sphinx->BuildExcerpts(array($ad[Classifieds::CONTENT]), 'mouftah', $keywords, array("limit" => 160));
 //                        $feed[0] = trim($feed[0]);
@@ -874,7 +875,7 @@ class Search extends Page {
                             $liClass.=' vpd';
                         }
                     }elseif ($idx % 2) {
-                        $liClass.=" alt";
+                        //$liClass.=" alt";
                     }elseif ($idx == 0) {
                         $liClass.=" f";
                     }
@@ -933,7 +934,8 @@ class Search extends Page {
                         $id = ' id="' . $ad[Classifieds::ID] . '"';
                     }
                     /* ?><li itemprop="itemListElement" <?= $liClass.$itemScope ?>><a class='<?= $textClass ?>' href="<?= $_link ?>"><?= '<span '.$itemDesc.'>'.$newSpan.$ad[Classifieds::CONTENT].'</span>' ?><span class="<?= $this->urlRouter->siteLanguage ?>"><?= $pub_link . " <time st='".$ad[Classifieds::UNIXTIME]."'></time>" ?></span></a></li><?php */
-                    ?><li <?= $id ?> itemprop="itemListElement" <?= $liClass . $itemScope ?>><?= '<p '.( $detailAd ? '': 'onclick="wo(\'' . $_link . '\')" ') . $itemDesc . ' class="button ' . $textClass . '">' . $pic . $newSpan . $ad[Classifieds::CONTENT] . '</p>' ?><span class="src <?= $this->urlRouter->siteLanguage ?>"><?= (($feature||$isFeatured) ? ( ($paid||$isFeatured) ? '<span class="vpdi '.$this->urlRouter->siteLanguage.'"></span><b>'.$this->lang['premium_ad'].'</b>' : '<span class="ovp '.$this->urlRouter->siteLanguage.'"></span>'.$pub_link) : $pub_link . " <time st='" . $ad[Classifieds::UNIXTIME] . "'></time>") . $optSpan. $locSpan . $favSpan  ?></span></li><?php
+                    /* ?><li <?= $id ?> itemprop="itemListElement" <?= $liClass . $itemScope ?>><?= '<p '.( $detailAd ? '': 'onclick="wo(\'' . $_link . '\')" ') . $itemDesc . ' class="button ' . $textClass . '">' . $pic . $newSpan . $ad[Classifieds::CONTENT] . '</p>' ?><span class="src <?= $this->urlRouter->siteLanguage ?>"><?= (($feature||$isFeatured) ? ( ($paid||$isFeatured) ? '<span class="vpdi '.$this->urlRouter->siteLanguage.'"></span><b>'.$this->lang['premium_ad'].'</b>' : '<span class="ovp '.$this->urlRouter->siteLanguage.'"></span>'.$pub_link) : $pub_link . " <time st='" . $ad[Classifieds::UNIXTIME] . "'></time>") . $optSpan. $locSpan . $favSpan  ?></span></li><?php */
+                    ?><li <?= $id ?> itemprop="itemListElement" <?= $liClass . $itemScope ?>><?= '<p '.( $detailAd ? '': 'onclick="wo(\'' . $_link . '\')" ') . $itemDesc . ' class="button ' . $textClass . '">' . $pic . $newSpan . $ad[Classifieds::CONTENT] . '</p>' ?><span class="src <?= $this->urlRouter->siteLanguage ?>"><?= (($feature||$isFeatured) ? ( ($paid||$isFeatured) ? '<span class="vpdi '.$this->urlRouter->siteLanguage.'"></span><b>'.$this->lang['premium_ad'].'</b>' : '<span class="ovp '.$this->urlRouter->siteLanguage.'"></span>') : "<time st='" . $ad[Classifieds::UNIXTIME] . "'></time>") . $optSpan. $locSpan . $favSpan  ?></span></li><?php
                     
                     $idx++;
                     
@@ -1108,7 +1110,7 @@ class Search extends Page {
             $this->urlRouter->rootId = 0;
             $this->rootName = "";
         } else {
-            echo '<h2 class="ctr">' . $this->summerizeSearchMobile(true) . '</h2>';
+            echo '<br /><h2 class="ctr">' . $this->summerizeSearchMobile(true) . '</h2>';
             echo '<p class="ctr"><span class="na"></span></p>';
             echo '<h2 class="ctr">' . $this->lang['anotherSearch'] . '</h2>';
             return false;
@@ -1134,7 +1136,7 @@ class Search extends Page {
             $this->urlRouter->sectionId = $sectionId;
             $this->urlRouter->rootId = $rootId;
             $this->paginationMobile();
-            ?><ul class='ls rsl<?= $this->paginationString == '' ? ' sh' : '' ?>'><?php
+            ?><ul class='ls card rsl<?= $this->paginationString == '' ? ' sh' : '' ?>'><?php
             $this->renderResults($keywords);
             ?></ul><?php
             echo $this->paginationMobile();
@@ -1192,7 +1194,7 @@ class Search extends Page {
                 /* ?><div class="hd"><?php echo $this->summerizeSearchMobile() ?></div><?php */
                 
                 $this->paginationMobile();
-                ?><ul itemscope itemtype="http://schema.org/ItemList" class='ls rsl<?= $this->paginationString == '' ? ' sh' : '' ?>'><?php
+                ?><ul itemscope itemtype="http://schema.org/ItemList" class='ls card rsl<?= $this->paginationString == '' ? ' sh' : '' ?>'><?php
                 $this->renderResults($keywords);
                 ?></ul><?php
                 echo $this->paginationMobile();
@@ -1714,7 +1716,7 @@ class Search extends Page {
             }
 
             if ($this->searchResults['body']['total_found'] > 0 && isset($this->searchResults['body']['matches']) && count($this->searchResults['body']['matches']) > 0) {
-                                       
+                ?> <!--googleoff: index --> <?php                       
                 ?><div id="aopt" class="sbx"><?php
                 ?><div class="bts"><?php
                 
@@ -1747,7 +1749,7 @@ class Search extends Page {
                     ?></div><?php
                 }
                 ?></div><?php
-                    
+                ?> <!--googleon: index --> <?php   
             }
         }
     }
@@ -2705,7 +2707,7 @@ class Search extends Page {
     }
     
     
-    function renderMobileFeature(){        
+    function renderMobileFeature(){return;        
         if (!isset($this->searchResults['zone2']) || $this->searchResults['zone2']['total_found']==0) {
             return;
         }
@@ -5257,7 +5259,7 @@ if($isFeatured){
     }
 
     
-    function filterPurposesMobile() {
+    function filterPurposesMobile() {return;
         if ($this->urlRouter->rootId!=4 && ($this->urlRouter->rootId || $this->urlRouter->sectionId) && count($this->urlRouter->purposes)>1 && !($this->urlRouter->purposeId && count($this->urlRouter->pagePurposes)==1)) {
             $q = '';
             $i = 0;

@@ -41,9 +41,10 @@ class Page extends Site{
         }
         //var_dump($_SESSION['info']);
         //var_dump($this->user->info);
-        
-        /*$row = $this->urlRouter->db->queryResultArray(
-                                "select * from web_users_linked_mobile where mobile containing ?", ['66966912']);
+        /*$mcUser = new MCUser(876007);
+        var_dump($mcUser);
+        $row = $this->urlRouter->db->queryResultArray(
+        "select * from web_users where id = ?", ['876007']);
         var_dump($row);*/
         
         $cdn = $this->urlRouter->cfg['url_resources'];
@@ -697,9 +698,9 @@ class Page extends Site{
                     ?><ul class="dpr"><?php
                         ?><li class="h"><?= $this->lang['signin_mourjan'] ?></li><?php
                         ?><li class="lbl"><?= $this->lang['email'] ?></li><?php
-                        ?><li class="fld"><input name="u" onfocus="cle(this)" class="en" type="email" /></li><?php
+                        ?><li class="fld"><input name="u" placeholder="my-email@gmail.com" onfocus="cle(this)" class="en" type="email" /></li><?php
                         ?><li class="lbl"><?= $this->lang['password'] ?></li><?php
-                        ?><li class="fld"><input name="p" onfocus="cle(this)" type="password" /></li><?php
+                        ?><li class="fld"><input name="p" onfocus="cle(this)" placeholder="********" type="password" /></li><?php
                         ?><li class="lbl"><input name="o" type="checkbox" <?= $keepme_in ? 'checked="checked"':'' ?> /> <?= $this->lang['keepme_in'] ?></li><?php
                         ?><li class="cap"><div class="g-recaptcha" data-sitekey="<?= $this->urlRouter->cfg['recap-key'] ?>"></div></li><?php
                         if(isset($this->user->pending['login_attempt'])) {
@@ -712,16 +713,16 @@ class Page extends Site{
                             $uri = '/home/'.$lang;
                         }
                         ?><li class="ctr"><input name='r' type="hidden" value="<?= $uri ?>" /><input type="submit" class="bt" value="<?= $this->lang['signin'] ?>" /></li><?php
-                        ?><li class="<?= $this->urlRouter->siteLanguage ?> nobr"><a class="lnk" href="/password/<?= $lang ?>"><?= $this->lang['forgot_pass'] ?></a></li><?php
                         ?><li class="<?= $this->urlRouter->siteLanguage ?> nobr"><a class="lnk" href="/signup/<?= $lang ?>"><?= $this->lang['create_account'] ?></a></li><?php
+                        ?><li class="<?= $this->urlRouter->siteLanguage ?> nobr"><a class="lnk" href="/password/<?= $lang ?>"><?= $this->lang['forgot_pass'] ?></a></li><?php
                         
                     ?></ul><?php
                 }else{
                     ?><ul class="ls po"><?php
                         ?><li class="h"><b><?= $this->lang['email'] ?></b></li><?php
-                        ?><li><div class="ipt"><input name="u" onfocus="cle(this)" class="en" type="email" /></div></li><?php
+                        ?><li><div class="ipt"><input name="u" placeholder="my-email@gmail.com" onfocus="cle(this)" class="en" type="email" /></div></li><?php
                         ?><li class="h"><b><?= $this->lang['password'] ?></b></li><?php
-                        ?><li><div class="ipt"><input name="p" onfocus="cle(this)" type="password" /></div></li><?php
+                        ?><li><div class="ipt"><input name="p" onfocus="cle(this)" placeholder="********" type="password" /></div></li><?php
                         ?><li onclick="skO(this)" class="ckn button<?= $keepme_in ? ' on':'' ?>"><input name="o" type="hidden" value="<?= $keepme_in ?>" /><b class="ah"><?= $this->lang['keepme_in'] ?><span class="cbx"></span></b></li><?php  
                         ?><li class="recap"><div class="g-recaptcha" data-sitekey="<?= $this->urlRouter->cfg['recap-key'] ?>"></div></li><?php
                         if(isset($this->user->pending['login_attempt'])) {
@@ -730,8 +731,8 @@ class Page extends Site{
                             ?><li class="nl"><span><span class="fail"></span><?= $this->lang['login_error_captcha'] ?></span></li><?php                    
                         }
                         ?><li><b class="ah ctr act"><input name='r' type="hidden" value="<?= $this->urlRouter->uri ?>" /><input type="submit" class="bt" value="<?= $this->lang['signin'] ?>" /></b></li><?php
-                        ?><li class="<?= $this->urlRouter->siteLanguage ?> br"><a class="lnk" href="/password/<?= $lang ?>"><?= $this->lang['forgot_pass'] ?></a></li><?php
                         ?><li class="<?= $this->urlRouter->siteLanguage ?> br"><a href="/signup/<?= $lang ?>" class="lnk"><?= $this->lang['create_account'] ?></a></li><?php
+                        ?><li class="<?= $this->urlRouter->siteLanguage ?> br"><a class="lnk" href="/password/<?= $lang ?>"><?= $this->lang['forgot_pass'] ?></a></li><?php
                     ?></ul><?php
                 }
              ?></form><?php 
@@ -1811,7 +1812,7 @@ class Page extends Site{
             }elseif($this->urlRouter->watchId) {
                 $this->lang['hint_login']=$this->lang['hint_login_watch'];
                 $this->requireLogin=true;
-            }else if($this->urlRouter->module=='myads' || $this->urlRouter->module=='post' || $this->urlRouter->module=='account'){
+            }else if($this->urlRouter->module=='myads' || $this->urlRouter->module=='post' || $this->urlRouter->module=='account' || $this->urlRouter->module=='home'){
                 $this->requireLogin=true;
             }
         }
@@ -1856,6 +1857,21 @@ class Page extends Site{
                         $backButton = '<a class="back" href="'.$this->urlRouter->getURL($this->urlRouter->countryId,$cityId,$this->urlRouter->rootId,$this->urlRouter->sectionId,$this->urlRouter->purposeId).'"></a>';
                     }elseif($this->localityId){
                         $this->localityId = $this->localityId+0;
+                        /*$tmpId=$this->localityId;
+                        $countre=0;
+                        do{
+                            if (isset($this->localities[$tmpId]) && isset($this->localities[$this->localities[$tmpId]['parent_geo_id']+0])){
+                                $tmpId=$this->localities[$tmpId]['parent_geo_id']+0;
+                                $counter = $this->localities[$tmpId]['counter'];
+                            }else{
+                                $counter=0;
+                            }
+                        }while($tmpId!=0 && $counter==1);
+                        if ($tmpId && $tmpId!=$this->localityId){
+                            $backButton = '<a class="back" href="/'.$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->urlRouter->sections[$this->urlRouter->sectionId][3].'/'.($this->urlRouter->purposeId ? $this->urlRouter->purposes[$this->urlRouter->purposeId][3].'/' : '').($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage.'/':'').'c-'.$tmpId.'-2/"></a>';
+                        }else {
+                            $backButton = '<a class="back" href="'.$this->urlRouter->getURL($this->urlRouter->countryId,$cityId,$this->urlRouter->rootId,$this->urlRouter->sectionId,$this->urlRouter->purposeId).'"></a>';
+                        }*/
                         if (isset($this->localities[$this->localityId]) && isset($this->localities[$this->localities[$this->localityId]['parent_geo_id']+0])){
                             $tmpId=$this->localities[$this->localityId]['parent_geo_id']+0;
                             $backButton = '<a class="back" href="/'.$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->urlRouter->sections[$this->urlRouter->sectionId][3].'/'.($this->urlRouter->purposeId ? $this->urlRouter->purposes[$this->urlRouter->purposeId][3].'/' : '').($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage.'/':'').'c-'.$tmpId.'-2/"></a>';
@@ -1925,7 +1941,6 @@ class Page extends Site{
         ?></form></div><div class="bt btSrch rc" onclick="ts(this,'c')" ontouchstart="ts(this,'t')"><div></div></div><?php */
         /* not isApp */
         if (!$this->urlRouter->isApp) {
-        ?><div class='top'><?php
         $url='';
         switch ($this->urlRouter->module){
             case 'detail':
@@ -1988,14 +2003,19 @@ class Page extends Site{
                 if ($this->urlRouter->siteLanguage=='ar') $url.='en/';
                 break;
         }
-        if ($hasBack) { echo $backButton; } 
+        $this->switchLangUrl = $url;
+        $searchButton = '';
         if ($this->urlRouter->countryId) {
-            if ($this->urlRouter->params['q']) {
-                echo '<div onclick="ose(this)" class="button srch on"><span class="k"></span></div>';
+            if (0 && $this->urlRouter->params['q']) {
+                $searchButton = '<div onclick="ose(this)" class="button srch on"><span class="k"></span></div>';
             }else {
-                echo '<div onclick="ose(this)" class="button srch"><span class="k"></span></div>';
+                $searchButton = '<div onclick="ose(this)" class="button srch"><span class="k"></span></div>';
             }
         }
+        ?><div class='top<?= ($hasBack ?' hasB':'').($searchButton ?' hasS':'') ?>'><?php
+        ?><span onclick="side(this)" class="k home"></span><?php
+        if ($hasBack) { echo $backButton; }
+        echo $searchButton;
         /* if ($this->urlRouter->module!='index' || ($this->urlRouter->module=='index' && $this->urlRouter->rootId)) {
             ?><a class="bt fl nsh" href="<?= $this->urlRouter->getURL($this->urlRouter->countryId,$this->urlRouter->cityId) ?>"><span class="bt-home"></span></a>
             <?php } */ ?><h1 id="title" class="<?= ($this->detailAd && !$this->detailAdExpired) ? ($this->detailAd[Classifieds::RTL]==0 ? 'e':'a'):($this->urlRouter->siteLanguage=='en'?'e':'a') ?>"><?php
@@ -2009,7 +2029,7 @@ class Page extends Site{
         $lang='';
         if ($this->urlRouter->siteLanguage!='ar') $lang=$this->urlRouter->siteLanguage.'/';
         
-        
+        /*
         if ($this->user->info['id']) {
             $menu .= "<li id='sil' onclick='uPO(this,1)' class='button'><span class='k log on'></span></li>";
             $menuIdx++;
@@ -2054,9 +2074,9 @@ class Page extends Site{
             $menu .= "<li><a href='{$url}'><b>عربي</b></a></li>";
             $menuIdx++;
         }
-        ?><div><?php
-        } /* End not is App */
-        if ($this->urlRouter->countryId) {
+        ?><div><?php */
+        } 
+        if (0 && $this->urlRouter->countryId) {
             $uri='';
             if ($this->extendedId){
                 $uri='/'.$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].'/';
@@ -2084,11 +2104,11 @@ class Page extends Site{
                     ?><input type="submit" onclick="if(this.parentNode.previousSibling.firstChild.value!='')return true;else return false" class="qb button" value="" /><?php
                     ?></div><?php 
             ?></form><?php
-        ?></div><?php
+        ?></div><?php 
         }
         /* Start not isApp */
         //error_log("isApp: {$this->urlRouter->isApp}", 0 );
-        if (!$this->urlRouter->isApp) {
+        if (0 && !$this->urlRouter->isApp) {
         ?><ul class="menu f<?= $menuIdx ?>"><?= $menu ?></ul><?php
         ?></div><?php
         if ($this->requireLogin){
@@ -2160,7 +2180,7 @@ class Page extends Site{
             ?><li><a class="bt cl" href="?logout=<?= $this->user->info['provider'] ?>"><?= $this->lang['signout'] ?></a></li><?php
             ?></ul><?php
             
-        }else {
+        }elseif($this->requireLogin) {
             if ($loginErr) {
                 ?><div class="nb ctr err"><?= $this->lang['signin_error'] ?></div><?php
             }
@@ -2179,9 +2199,22 @@ class Page extends Site{
         }
     }
     /* end not isApp */
-        ?></div><?php 
+        /* ?></div><?php */
         if (!$this->urlRouter->isApp) {
-            $this->renderNotificationsMobile();
+            if($this->requireLogin){
+                ?><div class="si blk"><h2 class="ctr"><?= $this->lang['signin_m'] ?></h2><?php
+                ?><ul><?php
+                ?><li><a class="bt mj" href="/signin/<?= $lang ?>">Mourjan</a></li><?php
+                ?><li><a class="bt fb" href="?provider=facebook">Facebook</a></li><?php
+                ?><li><a class="bt go" href="?provider=google">Google</a></li><?php
+                ?><li><a class="bt tw" href="?provider=twitter">Twitter</a></li><?php
+                ?><li><a class="bt ya" href="?provider=yahoo">Yahoo</a></li><?php
+                ?><li><a class="bt lk" href="?provider=linkedin">LinkedIn</a></li><?php
+                ?><li><a class="bt wi" href="?provider=live">Windows Live</a></li><?php
+                ?></ul></div><?php 
+            }else{
+                $this->renderNotificationsMobile();
+            }
         }
         /* if ($this->urlRouter->module!='contact') {
             $uri='';
@@ -2216,6 +2249,66 @@ class Page extends Site{
                 ?></form><?php
               ?></div><?php
         } */
+       $isNotSearch = preg_match('/\/(?:watchlist|favorites)\//iu', $_SERVER['REQUEST_URI']);
+        if (!$this->urlRouter->isApp && $this->urlRouter->module=='search' && !$isNotSearch && $this->urlRouter->rootId!=4 /*&& ($this->urlRouter->rootId || $this->urlRouter->sectionId)*/ && count($this->urlRouter->purposes)>1 && !($this->urlRouter->purposeId && count($this->urlRouter->pagePurposes)==1)) {
+            $q = '';
+            $i = 0;
+            $hasQuery = false;
+            if ($this->urlRouter->params['q']) {
+                $hasQuery = true;
+                $q = '?q=' . urlencode($this->urlRouter->params['q']);
+            }
+            
+            echo "<div class='menu'>";
+            
+            if ($hasQuery) {
+                foreach ($this->urlRouter->pagePurposes as $pid=>$purpose) {
+                    if ($this->urlRouter->purposeId == $pid) {
+                        echo '<b>', $purpose['name'], '</b>';
+                        //echo '<li><span class="bt">', $purpose['name'], '</span></li>';
+                    } else {
+                        //echo '<li><a class="bt" href="' . $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $this->urlRouter->sectionId, $pid) . $q . '">', $purpose['name'], '</a></li>';
+                        echo '<a  href="'.$this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $this->urlRouter->sectionId, $pid) . $q . '">', $purpose['name'],'</a>';
+                    }                    
+                }
+            }else {
+                $append_uri = '';
+                $extended_uri = '';
+                if ($this->extendedId) {
+                    $append_uri = '/' . ($this->urlRouter->siteLanguage != 'ar' ? $this->urlRouter->siteLanguage . '/' : '') . 'q-' . $this->extendedId . '-' . ($this->urlRouter->countryId ? ($this->hasCities && $this->urlRouter->cityId ? 3 : 2) : 1);
+                    $extended_uri = '/' . $this->urlRouter->countries[$this->urlRouter->countryId]['uri'] . '/';
+                    if ($this->hasCities && $this->urlRouter->cityId) {
+                        $extended_uri.=$this->urlRouter->cities[$this->urlRouter->cityId][3] . '/';
+                    }
+                    $extended_uri.=$this->urlRouter->sections[$this->urlRouter->sectionId][3] . '-' . $this->extended[$this->extendedId]['uri'] . '/';
+                } elseif ($this->localityId) {
+                    $append_uri = '/' . ($this->urlRouter->siteLanguage != 'ar' ? $this->urlRouter->siteLanguage . '/' : '') . 'c-' . $this->localityId . '-' . ($this->hasCities && $this->urlRouter->cityId ? 3 : 2);
+                    $extended_uri = '/' . $this->urlRouter->countries[$this->urlRouter->countryId]['uri'] . '/';
+                    $extended_uri.=$this->localities[$this->localityId]['uri'] . '/';
+                    $extended_uri.=$this->urlRouter->sections[$this->urlRouter->sectionId][3] . '/';
+                }
+                
+                foreach ($this->urlRouter->pagePurposes as $pid=>$purpose) {
+                    $selected = ($this->urlRouter->purposeId == $pid);
+                    
+                    if ($this->extendedId || $this->localityId) {
+                        if ($selected) {
+                            echo '<b>', $purpose['name'], '</b>';
+                        } else {
+                            echo '<a href="'. $extended_uri . $this->urlRouter->purposes[$pid][3] . $append_uri . '/' . '">', $purpose['name'], '</a>';
+                        }                        
+                    } else {
+                        if ($selected) {
+                            echo '<b>', $purpose['name'], '</b>';
+                        } else {
+                            echo '<a href="' . $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $this->urlRouter->sectionId, $pid) . $q . '">', $purpose['name'], '</a>';
+                        }
+                    }
+                    $i++;
+                }
+            }
+            echo '</div>';
+        }
     }
 
     function paginationMobile(){      
@@ -3260,7 +3353,7 @@ class Page extends Site{
         $lang=$this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/';
         if ($this->urlRouter->rootId) return;
         ?><ul class="ls br"><?php
-         ?><li><a href="/about/<?= $lang ?>"><span class="vpdi <?= $this->urlRouter->siteLanguage ?>"></span><?= $this->lang['aboutUs'] ?><span class="to"></span></a></li><? 
+         ?><li><a href="/about/<?= $lang ?>"><span class="ic r102"></span><?= $this->lang['aboutUs'] ?><span class="to"></span></a></li><? 
          ?><li><a href="/contact/<?= $lang ?>"><span class="ic r100"></span><?= $this->lang['contactUs'] ?><span class="to"></span></a></li><? 
         ?></ul><?php
         ?><ul class="ls br"><?php
@@ -5033,32 +5126,187 @@ class Page extends Site{
     }
     
     function footerMobile(){
-        if( ( (isset($this->user->params['mobile_ios_app_bottom_banner']) && $this->user->params['mobile_ios_app_bottom_banner']==1) ||
-              (isset($this->user->params['mobile_android_app_bottom_banner']) && $this->user->params['mobile_android_app_bottom_banner']==1) ))
-        {
+        $lang=$this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/';
+        if(!$this->urlRouter->isApp){
             ?> <!--googleoff: index --> <?php
+            ?><div id="side" class="side"><ul class="ls"><?php            
                         
-            ?><br /><ul class="ls"><li class="app_li"><?php 
-            if (isset($this->user->params['mobile_ios_app_bottom_banner']) && $this->user->params['mobile_ios_app_bottom_banner']==1){
-                            
-                ?><a href="https://itunes.apple.com/us/app/mourjan-mrjan/id876330682?ls=1&mt=8"><p><?php                         
-                ?><span class="tha"></span><?php 
-                echo $this->lang['download_ios_app'];
-                ?></p></a><?php
-                            
+            ?><li><?php 
+            if($lang){
+                ?><a class="ar ctr" href="<?= $this->switchLangUrl ?>">تصفح باللغة العربية</a><?php
             }else{
-                            
-                ?><a href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><p><?php                         
-                ?><span class="tha"></span><?php 
-                echo $this->lang['download_android_app'];
-                ?></p></a><?php
-                            
+                ?><a class="en ctr" href="<?= $this->switchLangUrl ?>">switch to English</a><?php
             }
-            ?></li></ul><?php 
-            ?> <!--googleon: index --> <?php 
+            ?></li><?php
+            
+            $headTitle = $this->lang['mourjan'];
+            if($this->urlRouter->cityId){
+                $headTitle=$this->lang['mourjan'].' '.$this->cityName;
+            }elseif($this->urlRouter->countryId){
+                $headTitle=$this->lang['mourjan'].' '.$this->countryName;
+            }
+            if($this->urlRouter->module=='index' && !$this->urlRouter->rootId && $this->urlRouter->countryId){
+                ?><li class="on"><b><span class="k home"></span><?= $headTitle ?></b></li><?php
+            }else{
+                ?><li><a href="<?= $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId); ?>"><span class="k home"></span><?= $headTitle ?></a></li><?php
+            }
+            if($this->user->info['id']){                
+                if($this->urlRouter->module=='post'){    
+                    ?><li class="on"><b><span class="ic apb"></span><?= $this->lang['button_ad_post'] ?></b></li><?php
+                }else{
+                    ?><li><a href="/post/<?= $lang ?>?clear=true"><span class="ic apb"></span><?= $this->lang['button_ad_post'] ?></a></li><?php
+                }     
+                ?><li class="sep"></li><?php   
+                if($this->urlRouter->module != 'search' || !$this->userFavorites) {
+                   ?><li><a href="/favorites/<?= $lang ?>"><span class="ic k fav on"></span><?= $this->lang['myFavorites'] ?></a></li><?php 
+                }else{
+                    ?><li class="on"><b><span class="ic k fav on"></span><?= $this->lang['myFavorites'] ?></b></li><?php 
+                }
+                if($this->urlRouter->module != 'search' || !$this->urlRouter->watchId) {
+                       ?><li><a href="/watchlist/<?= $lang ?>"><span class="ic k eye on"></span><?= $this->lang['myList'] ?></a></li><?php 
+                }else{
+                    ?><li class="on"><b><span class="ic k eye on"></span><?= $this->lang['myList'] ?></b></li><?php 
+                }
+                ?><li class="sep"></li><?php
+                
+                $sub=(isset($_GET['sub']) && $_GET['sub'] ? $_GET['sub']:'');
+                if($this->urlRouter->module != 'myads' || ($this->urlRouter->module == 'myads' && $sub!='') ) {
+                        ?><li><a href="/myads/<?= $lang ?>"><span class="ic aon"></span><?= $this->lang['ads_active'] ?></a></li><?php
+                }else{
+                    ?><li class="on"><b><span class="ic aon"></span><?= $this->lang['ads_active'] ?></b></li><?php
+                }
+                if($this->urlRouter->module != 'myads'  || ($this->urlRouter->module == 'myads' &&  $sub!='pending') ) {
+                        ?><li><a href="/myads/<?= $lang ?>?sub=pending"><span class="ic apd"></span><?= $this->lang['ads_pending'] ?></a></li><?php
+                }else{
+                    ?><li class="on"><b><span class="ic apd"></span><?= $this->lang['ads_pending'] ?></b></li><?php
+                }
+                if($this->urlRouter->module != 'myads'  || ($this->urlRouter->module == 'myads' &&  $sub!='drafts'))  {
+                    ?><li><a href="/myads/<?= $lang ?>?sub=drafts"><span class="ic aedi"></span><?= $this->lang['ads_drafts'] ?></a></li><?php
+                }else{
+                    ?><li class="on"><b><span class="ic aedi"></span><?= $this->lang['ads_drafts'] ?></b></li><?php
+                }
+                if($this->urlRouter->module != 'myads'  || ($this->urlRouter->module == 'myads' &&  $sub!='archive'))  {
+                    ?><li><a href="/myads/<?= $lang ?>?sub=archive"><span class="ic afd"></span><?= $this->lang['ads_archive'] ?></a></li><?php
+                }else{
+                    ?><li class="on"><b><span class="ic afd"></span><?= $this->lang['ads_archive'] ?></b></li><?php
+                }
+            
+            }else{
+                if($this->urlRouter->module=='post'){    
+                    ?><li class="on"><b><span class="ic apb"></span><?= $this->lang['button_ad_post'] ?></b></li><?php
+                }else{
+                    ?><li><a href="/post/<?= $lang ?>?clear=true"><span class="ic apb"></span><?= $this->lang['button_ad_post'] ?></a></li><?php
+                }
+            }
+            ?><li class="sep"></li><?php            
+            
+            if($this->user->info['id']==0){
+                if($this->urlRouter->module=='home'){
+                    ?><li class="on"><b><span class="k log"></span><?= $this->lang['signin'] ?></b></li><?php 
+                }else{
+                    ?><li><a href="/home/<?= $lang ?>"><span class="k log"></span><?= $this->lang['signin'] ?></a></li><?php
+                }
+                ?><li class="sep"></li><?php
+            }
+            
+            /*if($this->user->info['id']){
+                ?><li class="sep"></li><?php
+            }*/
+            $countryId = $this->urlRouter->countryId;
+            $cityId = $this->urlRouter->cityId; 
+            if (isset($this->user->params['country']) && $this->user->params['country'])
+                $countryId=$this->urlRouter->countryId=$this->user->params['country'];
+            if (isset($this->user->params['city']) && $this->user->params['city'])
+                $cityId=$this->urlRouter->cityId=$this->user->params['city'];
+            $this->urlRouter->pageRoots = $this->urlRouter->db->getRootsData($countryId, $cityId, $this->urlRouter->siteLanguage);
+            //roots
+            $i=0;
+            foreach ($this->urlRouter->pageRoots as $key=>$root) {
+                $count=$this->checkNewUserContent($root['unixtime']) ? '<b>'.$root['counter'].'</b>' : $root['counter'];
+                if($this->urlRouter->module=='index' && $this->urlRouter->rootId==$key){
+                    echo '<li class="on"><b><span class="ic r',$key,'"></span>',
+                    $root['name'], ($countryId ? '<span class="n">'. $count. '</span>':'') ,'</b></li>';
+                }else{
+                $_link = $this->urlRouter->getURL($countryId, $cityId, $key);        
+                echo '<li><a href="', $_link, '"><span class="ic r',$key,'"></span>',
+                    $root['name'], ($countryId ? '<span class="n">'. $count. '</span>':'') ,'</a></li>';
+                }
+                $i++;
+            }            
+            
+            ?><li class="sep"></li><?php
+            if($this->urlRouter->module=='index' && $this->urlRouter->countryId==0){
+                echo '<li class="on"><b><span class="cf c', $this->urlRouter->countryId, '"></span>',
+                $this->countryCounter, ' ',$this->lang['in'],' ',($this->urlRouter->cityId?$this->cityName:$this->countryName),
+                '<span class="et"></span></b></li>';
+            }else{
+            //country change
+            echo '<li><a href="/', $this->appendLang ,'"><span class="cf c', $this->urlRouter->countryId, '"></span>',
+                $this->countryCounter, ' ',$this->lang['in'],' ',($this->urlRouter->cityId?$this->cityName:$this->countryName),
+                '<span class="et"></span></a></li>';
+            }
+            
+            
+            ?><li class="sep"></li><?php
+            
+            //contact us
+            if($this->urlRouter->module == 'contact') {
+                ?><li class="on"><b><span class="ic r100"></span><?= $this->lang['contactUs'] ?></b></li><?php 
+            }else{
+                ?><li><a href="/contact/<?= $lang ?>"><span class="ic r100"></span><?= $this->lang['contactUs'] ?></a></li><?php 
+            }
+            
+            ?><li class="sep"></li><?php 
+            if($this->user->info['id']){                
+                if($this->urlRouter->module != 'account') {
+                    ?><li><a href="/account/<?= $lang ?>"><span class="et etr"></span><?= $this->lang['myAccount'] ?></a></li><?php            
+                }else{
+                    ?><li class="on"><b><?= $this->lang['myAccount'] ?></b></li><?php
+                }
+                ?><li><a href="?logout=<?= $this->user->info['provider'] ?>"><span class="k log on"></span><?= $this->lang['signout'] ?></a></li><?php
+            }    
+                
+            ?></ul></div><?php
+            ?> <!--googleon: index --> <?php
+            
+            if( in_array($this->urlRouter->module,['index','search','detail','contact']) &&  
+                   (( (isset($this->user->params['mobile_ios_app_bottom_banner']) && $this->user->params['mobile_ios_app_bottom_banner']==1) ||
+                  (isset($this->user->params['mobile_android_app_bottom_banner']) && $this->user->params['mobile_android_app_bottom_banner']==1) )))
+            {
+                ?> <!--googleoff: index --> <?php
+
+                if (isset($this->user->params['mobile_ios_app_bottom_banner']) && $this->user->params['mobile_ios_app_bottom_banner']==1){
+
+
+                    ?><br /><ul class="install rc sh"><?php
+                    ?><li><span class="ilogo" /></li><?php
+                    ?><li><div><?php
+                        ?><h5><?= $this->lang['mourjan_app'] ?></h5><?php
+                        ?><p><?= $this->lang['app_desc'] ?></p><?php
+                        ?><span class='rating ios'/><?php
+                    ?></div></li><?php
+                    ?><li><a type="button" href='https://itunes.apple.com/us/app/mourjan-mrjan/id876330682?ls=1&mt=8' class="bt"><?= $this->lang['install'] ?></a></li><?php
+                    ?></ul><br /><?php
+
+                }else{
+
+                    ?><br /><ul class="install rc sh"><?php
+                    ?><li><span class="ilogo" /></li><?php
+                    ?><li><div><?php
+                        ?><h5><?= $this->lang['mourjan_app'] ?></h5><?php
+                        ?><p><?= $this->lang['app_desc'] ?></p><?php
+                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(3,721)</span><?php
+                    ?></div></li><?php
+                    ?><li><a type="button" href='https://play.google.com/store/apps/details?id=com.mourjan.classifieds' class="bt"><?= $this->lang['install'] ?></a></li><?php
+                    ?></ul><br /><?php
+
+                }
+                ?> <!--googleon: index --> <?php 
+            }
+            $year = date('Y');
+            ?><div id="footer" class="copy"><span>© 2010-<?= $year ?> mourjan.com Classifieds Aggregator</span><span class="sep"> - </span><span>All Rights Reserved</span></div><?php 
+        
         }
-        $year = date('Y');
-        ?><div id="footer" class="copy"><span>© 2010-<?= $year ?> Mourjan.com Classifieds Aggregator</span><span class="sep"> - </span><span>All Rights Reserved</span></div><?php 
     }
 
     function _body(){
