@@ -739,6 +739,10 @@ $lang=array(
     
     'payment_redirect'  =>  'redirecting to payment gateway',
     'payment_redirect_fail'  =>  'failed to proceed with your request<br />please try again<br />or<br /><a class="lnk" href="/contact/en/">tell us about it</a>',
-    'please_wait'       =>  'Please wait'
+    'please_wait'       =>  'Please wait',
+    
+    'install'   =>  'INSTALL',
+    'mourjan_app'   =>  'mourjan app',
+    'app_desc'      =>  'Faster, easier, and more features'
     
 );

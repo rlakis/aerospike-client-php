@@ -746,6 +746,9 @@ $lang=array(
     
     'payment_redirect'  =>  'جاري التحويل الى صفحة الدفع',
     'payment_redirect_fail'  =>  'فشلنا بالمتابعة بطلبك<br />يرجى المحاولة مجدداَ<br />او<br /><a class="lnk" href="/contact/">اطلاعنا بالأمر</a>',
-    'please_wait'       =>  'يرجى الانتظار'
+    'please_wait'       =>  'يرجى الانتظار',
     
+    'install'   =>  'تحميل',
+    'mourjan_app'   =>  'تطبيق مرجان',
+    'app_desc'      =>  'اسرع، اسهل ومميزات اضافية'
 );
