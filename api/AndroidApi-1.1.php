@@ -9,9 +9,15 @@ class AndroidApi {
     private $api;
     var $mobileValidator=null;
 
-    function __construct($_api) {
+    function __construct(MobileApi $_api) 
+    {
         global $appVersion;
         $this->api = $_api;
+        if ($this->api->getUID()<=0 && $this->api->getUUID())
+        {
+            $this->api->user = new MCUser($this->api->getUUID());
+            $this->api->uid = $this->api->getUser()->getID();
+        }
         
         if($this->api->config['active_maintenance']){
             $this->api->result['e']="503";
