@@ -5,7 +5,6 @@ namespace Core\Model\ASD;
 const NS_USER               = 'users';
 const TS_USER               = 'profiles';
 
-
 const SET_RECORD_ID         = 'id';
 const USER_UID              = 'uid';
 
@@ -282,9 +281,8 @@ trait UserTrait
     {
         $pk = $this->initKey($uid);
         $record=$this->getBins($pk, [USER_RANK]);        
-        return isset($record[USER_RANK]) ? $record[USER_RANK] : 0;
+        return $record[USER_RANK] ?? 0;
     }
-    
     
     
 }
