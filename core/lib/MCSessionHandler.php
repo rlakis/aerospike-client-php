@@ -78,7 +78,7 @@ class MCSessionHandler
                 $redis->setOption(Redis::OPT_PREFIX, 'mu_');
                 $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
                 
-                $user = json_decode($redis->get($user_id) ? : '{}');
+                $user = json_decode($redis->get($user_id) ?? '{}');
                 $timer+= microtime(true);
                 //var_dump($timer*1000.0);
                 if (!isset($user->id))
@@ -92,7 +92,7 @@ class MCSessionHandler
                         {
                             usleep(500);
                             $time+=500;
-                            $user = json_decode($redis->get($user_id) ? : '{}');
+                            $user = json_decode($redis->get($user_id) ?? '{}');
                         } while ($time < 2000000 && !isset($user->id));
                     }
                 }

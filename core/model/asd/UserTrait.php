@@ -101,7 +101,19 @@ trait UserTrait
         $device = \Core\Model\NoSQL::getInstance()->deviceFetch($uuid);
         if (isset($device[USER_UID]) && $device[USER_UID])
         {
-            $record = $this->fetchUser($device[USER_UID]);
+            $time = 0;
+            do
+            {
+                $record = $this->fetchUser($device[USER_UID]);                
+                if (!isset($record[USER_PROFILE_ID]))
+                {
+                    usleep(500);
+                    $time+=500;
+                }
+                
+            } 
+            while (!isset($record[USER_PROFILE_ID]) && $time < 2000000);
+            
             $record['logged_by_device'] = $device;
             return $record;
         }
