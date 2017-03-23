@@ -128,7 +128,9 @@ class PostAd extends Page{
         if($this->urlRouter->isApp > '1.0.4'){
             $this->inlineCss.='.spimg{width:300px!important}';
         }
-        
+        if($this->urlRouter->isApp){
+            $this->inlineCss.='body{margin-top:0!important}';
+        }
         $this->render();
     }    
     
