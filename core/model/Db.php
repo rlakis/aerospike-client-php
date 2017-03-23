@@ -133,6 +133,30 @@ class DB
     }
 
 
+    public static function getDatabase() : DB
+    {
+        if (!self::$Instance) 
+        {
+            self::$Instance = new PDO(self::$dbUri, self::$user, self::$pass,
+                    [
+                        PDO::ATTR_PERSISTENT=>TRUE,
+                        PDO::ATTR_AUTOCOMMIT=>FALSE,
+                        PDO::ATTR_EMULATE_PREPARES=>FALSE,
+                        PDO::ATTR_STRINGIFY_FETCHES=>FALSE,
+                        PDO::ATTR_TIMEOUT=>5,
+                        PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
+
+                        PDO::FB_ATTR_COMMIT_RETAINING=>FALSE,
+                        PDO::FB_ATTR_READONLY=>self::$Readonly,
+                        PDO::FB_TRANS_ISOLATION_LEVEL=>self::$IsolationLevel,
+                        PDO::FB_ATTR_TIMEOUT=>self::$WaitTimeout
+                    ]
+                );
+        }
+        return self::$instance;
+    }
+    
+    
     public function getInstance($try=0) {
        if (self::$Instance === NULL) {            
             $this->newInstance();

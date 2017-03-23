@@ -693,6 +693,7 @@ class MCMobile extends MCJsonMapper
                 $status = 5;
             }
         }
+        //error_log($this->number . " <".$status.">");
         return $status;
     }
     
@@ -702,6 +703,30 @@ class MCMobile extends MCJsonMapper
         //error_log("verified: <".($this->number && ($this->ats+31556926)>time()).">");
 
         return ($this->number && ($this->ats+31556926)>time());
+    }
+    
+    
+    public function getSentSMSCount() : int
+    {
+        return $this->sc;
+    }
+    
+    
+    public function isSMSDelivered() : bool
+    {
+        return $this->dlvrd ? TRUE : FALSE;
+    }
+    
+    
+    public function getRquestedUnixtime() : int
+    {
+        return $this->rts;
+    }
+    
+    
+    public function getActicationUnixtime() : int
+    {
+        return $this->ats;
     }
 }
 

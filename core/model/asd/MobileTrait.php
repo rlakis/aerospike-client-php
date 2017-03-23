@@ -20,26 +20,32 @@ trait MobileTrait
     }
     
 
+    public function mobileExists(int $uid, int $number) : int
+    {
+        return $this->exists($this->initMobileKey($uid, $number));
+    }
+    
+    
     public function mobileFetch(int $uid, int $number) : array
     {
         return $this->getBins($this->initMobileKey($uid, $number));
     }
 
     
-    public function mobileFetchByUID(int $uid) : array
+    public function mobileFetchByUID(int $uid, bool $order_by_req=false) : array
     {
         $matches=[];
         $keys=[];
         $where = \Aerospike::predicateEquals(USER_UID, $uid);
         $this->getConnection()->query(NS_USER, TS_MOBILE, $where, function ($record) use (&$matches, &$keys) 
         {
-            if (!isset($record['bins'][USER_MOBILE_DATE_ACTIVATED]))
+            if (!isset($record['bins'][$order_by_req ? USER_MOBILE_DATE_REQUESTED : USER_MOBILE_DATE_ACTIVATED]))
             {
-                $record['bins'][USER_MOBILE_DATE_ACTIVATED]=0;
+                $record['bins'][$order_by_req ? USER_MOBILE_DATE_REQUESTED : USER_MOBILE_DATE_ACTIVATED]=0;
             }
                        
             $matches[$record['bins'][USER_MOBILE_NUMBER]] = $record['bins'];
-            $keys[$record['bins'][USER_MOBILE_NUMBER]] = $record['bins'][USER_MOBILE_DATE_ACTIVATED];
+            $keys[$record['bins'][USER_MOBILE_NUMBER]] = $record['bins'][$order_by_req ? USER_MOBILE_DATE_REQUESTED : USER_MOBILE_DATE_ACTIVATED];
         });
         array_multisort($keys, SORT_DESC, SORT_NUMERIC, $matches);
         unset($keys);
@@ -48,7 +54,7 @@ trait MobileTrait
     }
     
     
-    private function getDigest(string $index_field_name, $value, array $filter) : array
+    private function getDigest(string $index_field_name, $value, array $filter, array &$out=[]) : array
     {
         $matches=[];
         $bins = array_keys($filter);
@@ -59,10 +65,8 @@ trait MobileTrait
         $where = \Aerospike::predicateEquals($index_field_name, $value);
         
         $this->getConnection()->query(NS_USER, TS_MOBILE, $where,  
-                function ($record) use (&$matches, $filter) 
-                {
-                    //error_log(var_export($record, TRUE));
-                    
+                function ($record) use (&$matches, &$out, $filter) 
+                {                    
                     $matched=TRUE;
                     if ($filter)
                     {
@@ -79,11 +83,19 @@ trait MobileTrait
                     if ($matched)
                     {
                         $matches[] = $record['key'];
+                        $out[] = $record;
                     }
                     
                 }, $bins);
         return $matches;
     }
+    
+    
+    public function mobileGetMatchedKeys(string $index_field_name, $value, array $filter) : array
+    {
+        return $this->getDigest($index_field_name, $value, $filter);
+    }
+    
     
     
     public function mobileGetOrderedBy(array $opts)
@@ -343,15 +355,19 @@ trait MobileTrait
     }
     
     
-    public function mobileVerifySecret(int $number, string $secret) : bool
+    public function mobileVerifySecret(int $number, string $secret, int &$uid=0) : bool
     {
         if (empty($secret))
         {
             return FALSE;
         }
         
-        
-        $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [USER_MOBILE_SECRET=>$secret]);
+        $matched=[];        
+        $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [USER_MOBILE_SECRET => $secret], $matched);
+        if ($keys)
+        {
+            $uid=$matched[0]['bins'][USER_UID];
+        }
         return !empty($keys);
     }
     
