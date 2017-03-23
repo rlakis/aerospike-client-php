@@ -2260,7 +2260,7 @@ class Page extends Site{
                 $q = '?q=' . urlencode($this->urlRouter->params['q']);
             }
             
-            echo "<div class='menu'>";
+            echo "<div id='menu' class='menu'>";
             
             if ($hasQuery) {
                 foreach ($this->urlRouter->pagePurposes as $pid=>$purpose) {
@@ -5093,6 +5093,11 @@ class Page extends Site{
              */
             
         ?></head><?php flush() ?><body<?= $this->isAdminSearch ? ' oncontextmenu="return false;"':'' ?> class="<?= ($this->urlRouter->userId ? 'partner':'') ?>" <?= $this->pageItemScope ?>><meta itemprop="isFamilyFriendly" content="true" /><?php
+        
+        if ($this->isMobile && ($this->urlRouter->module=='search' || $this->urlRouter->module=='detail')) {
+            ?><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php
+            ?><script>(adsbygoogle = window.adsbygoogle || []).push({google_ad_client: "ca-pub-2427907534283641",enable_page_level_ads: true});</script><?php
+        }
     }
 
 

@@ -572,7 +572,7 @@ if(typeof imgs!=="undefined"){
     $(window).bind('resize',drePic);
     drePic();
 }
-var lastScrollTop = 0,
+/*var lastScrollTop = 0,
     isMenuUp = 0,
     isMenuOpen = 0,
     isSearchOpen = 0,
@@ -585,4 +585,63 @@ $(window).scroll(function() {
             n = $("#bottomFtr");
         n && (e >= 60 ? n.hide(600) : n.show(600)), e > lastScrollTop && e > 40 ? isMenuUp || (menu.addClass("up"), isMenuUp = 1) : isMenuUp && (menu.removeClass("up"), isMenuUp = 0), lastScrollTop = e
     }
-});
+});*/
+var _title,_scroll;
+function subList(e){
+    var d=$('#sublist');
+    var e=$(e);
+    var f=function(){    
+        $('#menu').css('display','block');
+        $('#main').css('display','block');
+        d.removeClass('on');
+        $('h1').html(_title);
+        window.removeEventListener("popstate", f, true);
+        setTimeout(function(){            
+            window.scrollTo(0,_scroll);
+        },10);
+        e.removeClass('spin').addClass('rspin');
+        setTimeout(function(){e.removeClass('on')},250);
+        //$(e).removeClass('on').addClass('off');
+    };
+    if(d.hasClass('on')){
+        f();
+        history.back()
+    }else{
+        var h1 = $('h1');
+        _title=h1.html();
+        h1.html($('h2',d).html());
+        d.addClass('on');
+        $('#menu').css('display','none');
+        $('#main').css('display','none');
+        _scroll=window.pageYOffset;
+        window.scrollTo(0,0);
+        var stateObj = {
+            list: 1
+        };
+        history.pushState(stateObj, document.title, document.location);
+        window.addEventListener("popstate", f, true);
+        e.removeClass('rspin').addClass('spin');
+        setTimeout(function(){e.addClass('on')},250);
+        //$(e).removeClass('off').addClass('on');
+        if(e.hasClass("loc")){
+            /*$.ajax({
+                type:'GET',
+                url:'/api/',        
+                dataType:'json',
+                data:{
+                    lang:lang,
+                    cn:_cn,
+                    c:_c,
+                    s:_se,
+                    e:_ext,
+                    l:_loc,
+                    p:_pu,
+                    q:_q,
+                    t:_ttl
+                },
+                success:function(rp){},
+                error:function(rp){}
+            });*/
+        }
+    }
+}

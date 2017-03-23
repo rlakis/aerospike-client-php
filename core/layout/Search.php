@@ -65,6 +65,7 @@ class Search extends Page {
         if(isset($_GET['rt'])){
             $this->isRT = 1;
         }
+        $this->set_require('css', 'search');
         if(!$this->isMobile){
             $this->inlineCss .= '.cct > a{white-space:nowrap;float:'.($this->urlRouter->siteLanguage == 'ar' ? 'right':'left').'}';
             $this->inlineCss .= '.sfilter .order,.sfilter .olang{background-color:#f8f8f8}.sfilter .order.ov,.sfilter .olang.ov{background-color:#ff9000}ul.sfilter{background-color:gold}';
@@ -1612,7 +1613,13 @@ class Search extends Page {
             if ($this->searchResults['body']['total_found'] > 2){
                 if($this->urlRouter->module=='search'){
                     $iDir = $this->urlRouter->siteLanguage == 'ar' ? 'ad_r' : 'ad_l';
-                    echo $this->fill_ad('Square', $iDir);
+                    //echo $this->fill_ad('Square', $iDir);
+                    
+                    ?><ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-client="ca-pub-2427907534283641"
+                         data-ad-slot="7294487825"
+                         data-ad-format="auto"></ins><?php
                 }else{
                     echo $this->fill_ad('Leaderboard', 'ad_dt');
                 }
@@ -1621,99 +1628,13 @@ class Search extends Page {
             if ($this->urlRouter->purposeId && $hasResults)
                 $this->filterPurposesMobile();
 
-                
-            if ( ($this->urlRouter->module=='search' || $this->urlRouter->module=='detail') && !$this->userFavorites && !$this->urlRouter->watchId && !$this->urlRouter->userId ){
-            
-//                if ($this->searchResults['body']['total_found'] > 2){
-//                    if($this->urlRouter->module=='search'){
-//                        $iDir = $this->urlRouter->siteLanguage == 'ar' ? 'ad_r' : 'ad_l';
-//                        echo $this->fill_ad('Square', $iDir);
-//                    }else{
-//                        echo $this->fill_ad('Leaderboard', 'ad_dt');
-//                    }
-//                }
-    
-                $hasResults = $this->searchResults['body']['total_found'] > 0 && isset($this->searchResults['body']['matches']) && count($this->searchResults['body']['matches']) > 0;
-                if (!$this->urlRouter->purposeId && $hasResults)
-                    $this->filterPurposesMobile();
-    
-                if ($this->urlRouter->rootId==1 && $this->urlRouter->countryId && ($this->searchResults['body']['total_found']>20 || $this->localityId) && count($this->localities)) {
-                    if ($this->searchResults['body']['total_found'] > 5 || $this->localityId) {
-                        //echo $this->fill_ad('Leaderboard', 'ad_dt');
-                        ?> <!--googleoff: index --> <h2 class="ctr"><?= $this->lang['suggestionLocation'] . ($this->localityId ? $this->localities[$this->localityId]['name'] . $this->lang['?'] : $this->urlRouter->countries[$this->urlRouter->countryId]['name'] . $this->lang['?']) ?></h2><?php
-                        $this->renderMobileLocalityLinks();
-                    }
-                        
-                    } elseif ($this->urlRouter->sectionId && ($this->searchResults['body']['total_found']>5 || $this->extendedId) && count($this->extended)) {
-                        //echo $this->fill_ad('Leaderboard', 'ad_dt');
-                        
-                        
-                        $prefix_uri = '/';
-                        if ($this->urlRouter->countryId) {
-                            $prefix_uri.=$this->urlRouter->countries[$this->urlRouter->countryId]['uri'] . '/';
-                            $keyIndex = 2;
-                        }
-                        else
-                            $keyIndex = 1;
-
-
-                        $suffix_uri = '/';
-                        $prefix = '';
-                        $suffix = '';
-
-
-                       if (isset($this->urlRouter->countries[$this->urlRouter->countryId]['cities'][$this->urlRouter->cityId])) {
-                            $keyIndex++;
-                            $prefix_uri.=$this->urlRouter->cities[$this->urlRouter->cityId][3] . '/';
-                        }
-
-                        $sectionName = $this->sectionName;
-                        if ($this->urlRouter->purposeId) {
-                            $suffix_uri.=$this->urlRouter->purposes[$this->urlRouter->purposeId][3] . '/';
-                            switch ($this->urlRouter->purposeId) {
-                                case 1:
-                                case 2:
-                                    $suffix = ' ' . $this->purposeName;
-                                    $sectionName.=' ' . $this->purposeName;
-                                    break;
-                                case 6:
-                                case 7:
-                                case 8:
-                                    $prefix = $this->purposeName . ' ';
-                                    $sectionName.=$this->purposeName . ' ';
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        if ($this->urlRouter->siteLanguage != 'ar') {
-                            $suffix_uri.=$this->urlRouter->siteLanguage . '/';
-                        }
-                        ?> <!--googleoff: index --> <h2 class="ctr"><?= $this->lang['suggestion'] ?></h2><ul class="ls"><?php if ($this->extendedId) { ?><li><a href="<?= $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $this->urlRouter->sectionId, $this->urlRouter->purposeId) ?>"><?= $sectionName ?><span class="to"></span></a></li><?php } 
-                        else {
-                            ?><li class="on"><b><?= $sectionName ?></b></li><?php
-                        }
-                        
-                        foreach ($this->extended as $sid=>$sub) {
-                            $append = 'q-' . $sid . '-' . $keyIndex . '/';
-                            if ($this->extendedId == $sid) {
-                                ?><li class="on"><b><?= $prefix . $sub['name'] . $suffix ?></b></li><?php
-                            } else {
-                                /* url error */
-                                ?><li><a href="<?= $prefix_uri . $this->urlRouter->sections[$this->urlRouter->sectionId][3] . '-' . $sub['uri'] . $suffix_uri . $append ?>"><?= $prefix . $sub['name'] . $suffix ?><span class="to"></span></a></li><?php
-                            }
-                        }
-               }
-            
-                ?></ul><br /><?php
-                        
+                                        
+                /*        
                 if (!$this->urlRouter->watchId && !$this->userFavorites){ 
                     ?><ul class="ls us bbr"><?php 
                     ?><li><a href="/post/<?= $adLang ?>"><span class="ic apb"></span><?= $this->lang['button_ad_post_m'] ?><span class="to"></span></a></li><?php 
                     ?></ul><?php
-                }               
-                ?><!--googleon: index --><?php
-            }
+                } */              
 
             if ($this->searchResults['body']['total_found'] > 0 && isset($this->searchResults['body']['matches']) && count($this->searchResults['body']['matches']) > 0) {
                 ?> <!--googleoff: index --> <?php                       
@@ -1754,6 +1675,93 @@ class Search extends Page {
         }
     }
 
+    function renderMobileSublist(){           
+        if ($this->urlRouter->module=='search' && !$this->userFavorites && !$this->urlRouter->watchId && !$this->urlRouter->userId){
+
+            $hasResults = $this->searchResults['body']['total_found'] > 0 && isset($this->searchResults['body']['matches']) && count($this->searchResults['body']['matches']) > 0;
+            if (!$this->urlRouter->purposeId && $hasResults)
+                $this->filterPurposesMobile();
+
+            if ($this->urlRouter->rootId==1 && $this->urlRouter->countryId && ($this->searchResults['body']['total_found']>20 || $this->localityId) && count($this->localities)) {
+                if ($this->searchResults['body']['total_found'] > 5 || $this->localityId) {
+                    //echo $this->fill_ad('Leaderboard', 'ad_dt');
+                    
+                    ?> <!--googleoff: index --> <?php
+                    ?><span onclick="subList(this)" class="rbt subit loc ic"></span><?php
+                    ?><div id="sublist"><?php
+                    ?><h2 class="ctr"><?= $this->lang['suggestionLocation'] . ($this->localityId ? $this->localities[$this->localityId]['name'] . $this->lang['?'] : $this->urlRouter->countries[$this->urlRouter->countryId]['name'] . $this->lang['?']) ?></h2><?php
+                    $this->renderMobileLocalityLinks();
+                }
+
+            }else if ($this->urlRouter->sectionId && ($this->searchResults['body']['total_found']>5 || $this->extendedId) && count($this->extended)) {
+                $prefix_uri = '/';
+                if ($this->urlRouter->countryId) {
+                    $prefix_uri.=$this->urlRouter->countries[$this->urlRouter->countryId]['uri'] . '/';
+                    $keyIndex = 2;
+                }
+                else
+                    $keyIndex = 1;
+
+
+                $suffix_uri = '/';
+                $prefix = '';
+                $suffix = '';
+
+
+               if (isset($this->urlRouter->countries[$this->urlRouter->countryId]['cities'][$this->urlRouter->cityId])) {
+                    $keyIndex++;
+                    $prefix_uri.=$this->urlRouter->cities[$this->urlRouter->cityId][3] . '/';
+                }
+
+                $sectionName = $this->sectionName;
+                if ($this->urlRouter->purposeId) {
+                    $suffix_uri.=$this->urlRouter->purposes[$this->urlRouter->purposeId][3] . '/';
+                    switch ($this->urlRouter->purposeId) {
+                        case 1:
+                        case 2:
+                            $suffix = ' ' . $this->purposeName;
+                            $sectionName.=' ' . $this->purposeName;
+                            break;
+                        case 6:
+                        case 7:
+                        case 8:
+                            $prefix = $this->purposeName . ' ';
+                            $sectionName.=$this->purposeName . ' ';
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                if ($this->urlRouter->siteLanguage != 'ar') {
+                    $suffix_uri.=$this->urlRouter->siteLanguage . '/';
+                }
+                ?> <!--googleoff: index --> <?php
+                ?><span onclick="subList(this)" class="rbt subit ic"></span><?php
+                ?><div id="sublist"><?php
+                    ?><h2 class="ctr"><?= $this->lang['suggestion'] ?></h2><?php
+                    ?><ul class="ls"><?php 
+                    if ($this->extendedId) { 
+                        ?><li><a href="<?= $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $this->urlRouter->sectionId, $this->urlRouter->purposeId) ?>"><?= $sectionName ?><span class="to"></span></a></li><?php 
+                    } 
+                    else {
+                        ?><li class="on"><b><?= $sectionName ?></b></li><?php
+                    }
+
+                    foreach ($this->extended as $sid=>$sub) {
+                        $append = 'q-' . $sid . '-' . $keyIndex . '/';
+                        if ($this->extendedId == $sid) {
+                            ?><li class="on"><b><?= $prefix . $sub['name'] . $suffix ?></b></li><?php
+                        } else {
+                            /* url error */
+                            ?><li><a href="<?= $prefix_uri . $this->urlRouter->sections[$this->urlRouter->sectionId][3] . '-' . $sub['uri'] . $suffix_uri . $append ?>"><?= $prefix . $sub['name'] . $suffix ?><span class="to"></span></a></li><?php
+                        }
+                    }
+                    ?></ul><?php
+                ?></div><?php                
+                ?> <!--googleon: index --> <?php
+            }
+        }
+    }
         
     function renderBottomMen() {
         $lang = '';
@@ -1767,6 +1775,7 @@ class Search extends Page {
     
     
     function footerMobile(){
+        $this->renderMobileSublist();
         parent::footerMobile();
         // Show out of section featured ad
         if ($this->urlRouter->module=='search' && isset($this->searchResults['zone2']) && isset($this->searchResults['zone2']['matches']) && count($this->searchResults['zone2']['matches'])) {
