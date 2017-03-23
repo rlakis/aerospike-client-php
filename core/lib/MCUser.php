@@ -642,7 +642,7 @@ class MCMobile extends MCJsonMapper
         {
             $this->number = $as_array[ASD\USER_MOBILE_NUMBER] ?? 0;
             $this->code = $as_array[ASD\USER_MOBILE_ACTIVATION_CODE] ?? 0;
-            $this->rts = $as_array[ASD\USER_MOBILE_DATE_REQUESTED];
+            $this->rts = $as_array[ASD\USER_MOBILE_DATE_REQUESTED] ?? 0;
             $this->ats = $as_array[ASD\USER_MOBILE_DATE_ACTIVATED] ?? 0;
             $this->dlvrd = $as_array[ASD\USER_MOBILE_CODE_DELIVERED] ?? 0;
             $this->sc = $as_array[ASD\USER_MOBILE_SENT_SMS_COUNT] ?? 0;

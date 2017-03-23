@@ -208,6 +208,17 @@ trait MobileTrait
         return FALSE;
     }
     
+
+    public function mobileSetDeliveredCode(int $uid, int $number) : bool
+    {
+        $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
+        if ($this->exists($pk)) 
+        {
+            return $this->setBins($pk, [USER_MOBILE_CODE_DELIVERED=>1]);
+        }
+        return FALSE;
+    }
+
     
     public function mobileInsert(array $bins) : int
     {
