@@ -928,13 +928,11 @@ class MobileApi
         if (!empty($this->uuid) && $this->uid>0) 
         {
             $status = 0;
-            //$user = new MCUser($this->uuid);
             if ($this->user->getID()>0)
             {
                 $opts->prefs = $this->user->device->getPreferences();
                 $opts->device_last_visit = $this->user->device->getLastVisitedUnixtime();
                 $opts->user_last_visit = $this->user->getLastVisitUnixtime();
-                //$opts->user_status = $q[0]['STATUS']+0;
                 $opts->user_status = $this->user->getMobile()->getStatus();
                 $opts->user_level = $this->user->getLevel();
                 $opts->secret = $this->user->getMobile()->getSecret();
@@ -1452,9 +1450,10 @@ class MobileApi
         {
             //error_log("Verifying if previous record exists for UUID {$this->uuid} with UID NIL\n");
             $_device = NoSQL::getInstance()->deviceFetch($this->uuid);
-            if ($_device && count($_device)==1 && $_device[ASD\USER_DEVICE_SYS_NAME]=='Android')
+         
+            if ($_device && isset($_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]) && $_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]=='Android')
             {
-                $this->uid = $_device[ASD\USER_UID];
+                $this->uid = $_device[\Core\Model\ASD\USER_UID];
             }
             /*
             $oldUid = $this->db->queryResultArray(
@@ -1706,6 +1705,16 @@ class MobileApi
             {
 
                 $this->result['d']['uid']=$q[0]['ID']+0;
+                NoSQL::getInstance()->userUpdate([
+                    Core\Model\ASD\USER_PROVIDER_ID => $this->uuid,
+                    Core\Model\ASD\USER_EMAIL => '',
+                    Core\Model\ASD\USER_PROVIDER => $isAndroid ? 'mourjan-android' : 'mourjan-iphone',
+                    Core\Model\ASD\USER_FULL_NAME => '',
+                    Core\Model\ASD\USER_PROFILE_URL => 'https://www.mourjan.com/',
+                    Core\Model\ASD\USER_OPTIONS => '{}',
+                    Core\Model\ASD\USER_NAME => '',
+                    Core\Model\ASD\USER_PROVIDER_EMAIL => ''
+                    ], $this->result['d']['uid']);
                 
                 //return user level. nb: even if it's a new a record, taking into consideration
                 //any triggers that might be implemented in future that might affect user status
@@ -1994,11 +2003,12 @@ class MobileApi
                         VALUES (?, ?, ?, 5, 0, 0) RETURNING ID", [$this->uid, $mobile_no, $pin], TRUE);
                 if ($iq[0]['ID']>0) 
                 {
-                    $sms = new MourjanNexmo();
+                    $response = ShortMessageService::send("+{$mobile_no}", "{$pin} is your mourjan confirmation code", ['uid' => $this->getUID(), 'mid' => $iq[0]['ID'], 'platform'=>'ios']);
+                    //$sms = new MourjanNexmo();
                         
-                    $response = $sms->sendSMS( "+{$mobile_no}", 
-                                $pin." is your mourjan confirmation code",
-                                        $iq[0]['ID']);
+                    //$response = $sms->sendSMS( "+{$mobile_no}", 
+                    //            $pin." is your mourjan confirmation code",
+                    //                    $iq[0]['ID']);
                     //var_dump($response);
                     if ($response) 
                     {

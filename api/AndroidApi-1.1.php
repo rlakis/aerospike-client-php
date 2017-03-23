@@ -1459,24 +1459,26 @@ class AndroidApi {
                                             $number = 0;
                                             $keyCode = 0;
                                         }
-                                        if($sendSms && $number && $keyCode){
+                                        
+                                        
+                                        if ($sendSms && $number && $keyCode)
+                                        {
                                             include_once $this->api->config['dir'].'/core/lib/MourjanNexmo.php';
-                                            $sms = new MourjanNexmo();
-                                            $sent = $sms->sendSMS($number,
-                                                $keyCode." is your mourjan confirmation code",
-                                                'm'.$sendSms);
-                                            if(!$sent){
+                                            if (ShortMessageService::send($number, "{$keyCode} is your mourjan confirmation code", ['uid' => $this->api->getUID(), 'mid' => $sendSms, 'platform'=>'android']))
+                                            {
+                                                NoSQL::getInstance()->mobileIncrSMS($this->api->getUID(), $number);                                                
+                                            } else {
                                                 $keyCode=0;
                                                 $number=0;
-                                            } else {
-                                                NoSQL::getInstance()->mobileIncrSMS($this->api->getUID(), $number);
                                             }
                                         }
-                                        if($number){                                        
+                                        
+                                        if($number){               
                                             if(substr($number,0,1)!='+'){
                                                 $number = '+'.$number;
                                             }
                                         }
+                                        
                                         $this->api->result['d']['number']=$number;
                                         $this->api->result['d']['code']=$keyCode; 
                                     }else{                                        
@@ -1588,9 +1590,7 @@ class AndroidApi {
                                         $numberType = $validator->getNumberType($num);
                                         if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE){
                                             include_once $this->api->config['dir'].'/core/lib/MourjanNexmo.php';
-                                            $sms = new MourjanNexmo();
-                                            $sent = $sms->sendSMS($username, 
-                                            $keyCode." is your mourjan confirmation code");
+                                            $sent = ShortMessageService::send($username, "{$keyCode} is your mourjan confirmation code");                                            
                                         }else{
                                             $sent = false;
                                         }
