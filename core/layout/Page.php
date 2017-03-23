@@ -39,6 +39,7 @@ class Page extends Site{
                 $this->isUserMobileVerified = (isset($this->user->info['verified']) && $this->user->info['verified']);
             }
         }
+        
         //var_dump($_SESSION['info']);
         //var_dump($this->user->info);
         /*$mcUser = new MCUser(876007);

@@ -1456,7 +1456,7 @@ class AndroidApi {
                                                     //re-validate by sending sms with new code
                                                     $keyCode=mt_rand(1000, 9999);
                                                     if (NoSQL::getInstance()->mobileInsert([
-                                                            \Core\Model\ASD\USER_UID => $this->api->user->getUID(),
+                                                            \Core\Model\ASD\USER_UID => $this->api->user->getID(),
                                                             \Core\Model\ASD\USER_MOBILE_NUMBER => $number,
                                                             \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $keyCode,
                                                         ]))
@@ -1493,15 +1493,15 @@ class AndroidApi {
                                             }else{
                                                 $keyCode=mt_rand(1000, 9999);
                                                 if (NoSQL::getInstance()->mobileInsert([
-                                                    \Core\Model\ASD\USER_UID => $this->api->user->getUID(),
+                                                    \Core\Model\ASD\USER_UID => $this->api->user->getID(),
                                                     \Core\Model\ASD\USER_MOBILE_NUMBER => $number,
                                                     \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $keyCode,
                                                     ]))
                                                 {                                                
-                                                    $record = NoSQL::getInstance()->mobileFetch($this->api->user->getUID(), $number);
+                                                    $record = NoSQL::getInstance()->mobileFetch($this->api->user->getID(), $number);
                                                     if ($record)
                                                     {
-                                                        $sendSms = $record[ASD\SET_RECORD_ID];
+                                                        $sendSms = $record[\Core\Model\ASD\SET_RECORD_ID];
                                                     }
                                                     else
                                                     {
