@@ -76,7 +76,7 @@ class NoSQL
     }
     
    
-    public function getBins($pk, array $bins=[]) : array
+    public function getBins($pk, array $bins=[]) 
     {
         $record=[];
         if ($bins)
@@ -93,6 +93,7 @@ class NoSQL
             if ($status!= \Aerospike::ERR_RECORD_NOT_FOUND)
             {
                 $this->logError(__FUNCTION__, $pk);
+                return FALSE;
             }
             return [];
         }
@@ -125,6 +126,7 @@ class NoSQL
         }
         return intval($metadata['generation']);        
     }
+    
     
     
     private function logError($fnc, $obj)

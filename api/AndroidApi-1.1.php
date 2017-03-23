@@ -1284,12 +1284,18 @@ class AndroidApi {
                                 if (NoSQL::getInstance()->mobileActivation($this->api->getUID(), $number, $keyCode))
                                 {
                                     $this->api->result['d']['verified']=true;
+                                    $this->api->db->queryResultArray(
+                                        "UPDATE WEB_USERS_LINKED_MOBILE set "
+                                        . "ACTIVATION_TIMESTAMP=current_timestamp "
+                                        . "where uid = ? and code = ? and mobile = ? RETURNING ID", 
+                                        [$this->api->getUID(), $keyCode, $number], TRUE);
                                 }
                                 else 
                                 {
                                     $this->api->result['d']['verified']=false;
                                 }
-                            }                            
+                            }
+                            
                             /*
                             $ns = $this->api->db->queryResultArray(
                                 "UPDATE WEB_USERS_LINKED_MOBILE set "
@@ -1308,7 +1314,9 @@ class AndroidApi {
                             }
                             */
                             
-                        }else{
+                        }
+                        else
+                        {
                             $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
                             $num = $this->mobileValidator->parse($number, 'LB');
                             if(!is_array($this->api->result['d'])){
@@ -1316,38 +1324,103 @@ class AndroidApi {
                             }
                                 //$this->api->result['d']['number']=$number;
                                 //$this->api->result['d']['code']=mt_rand(1000, 9999);
-                            if($num && $this->mobileValidator->isValidNumber($num)){
+                            
+                            if ($num && $this->mobileValidator->isValidNumber($num))
+                            {
                                 $numberType = $this->mobileValidator->getNumberType($num);
-                                if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE){
+                                if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE)
+                                {
                                     
-                                    if(substr($number,0,1)=='+'){
+                                    if(substr($number,0,1)=='+')
+                                    {
                                         $number = substr($number,1);
                                     }
+                                    
                                     /*check if number is blocked*/
-                                    $prv = $this->api->db->queryResultArray(
-                                            'select * from bl_phone where telephone = ?',
-                                            [$number],
-                                            true
-                                    );
-                                    if($prv !== false && isset($prv[0]['ID']) && $prv[0]['ID']){
+                                    $prv = $this->api->db->queryResultArray('select * from bl_phone where telephone = ?', [$number], true);
+                                    
+                                    if ($prv !== false && isset($prv[0]['ID']) && $prv[0]['ID'])
+                                    {
                                         $number=0;
                                         $keyCode=0;
                                         $this->api->result['d']['blocked']=1;
                                     }
-                                    if($number){
+                                    
+                                    if($number)
+                                    {
                                         /*check if number is suspended*/
                                         $time = MCSessionHandler::checkSuspendedMobile($number);
-                                        if($time>60){
+                                        if($time>60)
+                                        {
                                             $number=0;
                                             $keyCode=0;
                                             $this->api->result['d']['suspended']=$time;
                                         }
-                                    }                                    
+                                    }                                 
                                     
-                                    if($number){                                   
-                                    
+                                    if($number)
+                                    {                                    
                                         $sendSms= false;
-
+                                        $keyCode = 0;
+                                        
+                                        if (($rs = NoSQL::getInstance()->mobileFetch($this->api->getUID(), $number)) !== FALSE)
+                                        {
+                                            if (isset($rs[Core\Model\ASD\SET_RECORD_ID]) && $rs[Core\Model\ASD\SET_RECORD_ID])
+                                            {
+                                                $mcMobile = new MCMobile($rs);
+                                                $expiredDelivery = !$mcMobile->isSMSDelivered() && (time()-$mcMobile->getRquestedUnixtime())>86400 && $mcMobile->getSentSMSCount()<3;
+                                                $expiredValidity = $mcMobile->isSMSDelivered() && $mcMobile->getActicationUnixtime() &&  (time()-$mcMobile->getActicationUnixtime())>365*86400;
+                                                $stillValid = $mcMobile->isVerified();
+                                                
+                                                if ($expiredDelivery)
+                                                {
+                                                    if (NoSQL::getInstance()->mobileUpdate($this->api->getUID(), $number, [\Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()]))
+                                                    {
+                                                        $sendSms = $rs[\Core\Model\ASD\SET_RECORD_ID];
+                                                        $keyCode = $rs[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
+                                                    } 
+                                                    else
+                                                    {
+                                                        $keyCode=0;
+                                                        $number=0;
+                                                    }
+                                                }
+                                                else if ($expiredValidity)
+                                                {
+                                                    $keyCode=mt_rand(1000, 9999);
+                                                    if (NoSQL::getInstance()->mobileUpdate($this->api->getUID(), $number, [\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $keyCode, \Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()]))
+                                                    {
+                                                        $sendSms = $rs[\Core\Model\ASD\SET_RECORD_ID];
+                                                    } 
+                                                    else
+                                                    {
+                                                        $keyCode=0;
+                                                        $number=0;
+                                                    }
+                                                }
+                                                else if ($stillValid)
+                                                {
+                                                    $this->api->result['d']['check'] = true;
+                                                    $number = 0;
+                                                    $keyCode = 0;
+                                                }
+                                                else 
+                                                {
+                                                    $keyCode = $rs[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
+                                                } 
+                                            }
+                                            else
+                                            {
+                                                
+                                            }
+                                        }
+                                        else
+                                        {
+                                            
+                                        }
+                                        
+                                        
+                                        
                                         $rs = $this->api->db->queryResultArray(
                                         "select m.ID, m.UID, m.MOBILE, m.DELIVERED, m.CODE, m.SMS_COUNT,m.ACTIVATION_TIMESTAMP, "
                                         . "datediff(SECOND from m.ACTIVATION_TIMESTAMP to CURRENT_TIMESTAMP) active_age, "
@@ -1355,7 +1428,7 @@ class AndroidApi {
                                         . "from WEB_USERS_LINKED_MOBILE m "
                                         . "where m.mobile=? and m.uid=? order by m.REQUEST_TIMESTAMP desc", [$number, $this->api->getUID()]);
 
-                                        $keyCode = 0;
+                                        
 
                                         if($rs!==false){
                                             if(count($rs) && isset($rs[0]['ID']) && $rs[0]['ID']){

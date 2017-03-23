@@ -48,7 +48,7 @@ class MobileApi
     
     function getUID() : int
     {
-        return $this->uid;
+        return $this->uid ? $this->uid : $this->user->getID();
     }
 
     
@@ -1676,8 +1676,15 @@ class MobileApi
             }
 
             //error_log(json_encode($this->result['d']), 0);
-            //!empty($opts->secret) &&
-            if ( $opts->user_status==1) {
+            //!empty($opts->secret) &&            
+            
+            
+            if ( $opts->user_status==1) 
+            {
+                if (session_status() == PHP_SESSION_NONE) 
+                {
+                    session_start();
+                }
 
                 include $this->config['dir'] .'/core/model/User.php';
                 $user = new User($this->db, $this->config, null, 0);
@@ -1850,14 +1857,76 @@ class MobileApi
         if ($status==1) {
             $secret=filter_input(INPUT_GET, 'secret', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
 
-            if ($mobile_no>0 && !empty($secret)) {
-                $rs = $this->db->queryResultArray("select * from WEB_USERS_MOBILE where mobile=? and secret=?", [$mobile_no, $secret]);
-                if (NoSQL::getInstance()->mobileVerifySecret($number, $secret))
+            if ($mobile_no>0 && !empty($secret)) 
+            {
+                //$rs = $this->db->queryResultArray("select * from WEB_USERS_MOBILE where mobile=? and secret=?", [$mobile_no, $secret]);
+                
+                if (NoSQL::getInstance()->mobileVerifySecret($number, $secret, $userId) && $this->user->getMobile()->getActicationUnixtime())
                 {
-                    
-                }
-                //var_dump($rs);
+                    $this->result['d']['status']=1;
+                    $this->result['d']['uid']=($this->uid!=$userId) ? $userId : 0;
+                    if ($this->uid!=$userId && $userId>0) 
+                    {
+                        if (NoSQL::getInstance()->deviceSetUID($this->uuid, $userId))
+                        {
+                            $this->db->setWriteMode();
+                            $ok = $this->db->queryResultArray(
+                                    "update web_users_favs a set a.web_user_id=? "
+                                    . "where a.web_user_id=? "
+                                    . "and not exists (select 1 from web_users_favs b "
+                                    . "where b.web_user_id=? and b.ad_id=a.ad_id)", [$userId, $this->uid, $userId], true);
+                            if ($ok) 
+                            {
+                                $ok = $this->db->queryResultArray(
+                                    "update subscription a set a.web_user_id=? "
+                                    . "where a.web_user_id = ? and "
+                                    . "not exists (select 1 from subscription b "
+                                    . "where b.web_user_id=? "
+                                    . "and b.country_id=a.country_id and b.city_id=a.city_id and b.section_id=a.section_id "
+                                    . "and b.purpose_id=a.purpose_id and b.section_tag_id=a.section_tag_id "
+                                    . "and b.locality_id=a.locality_id and b.purpose_id=a.purpose_id and b.query_term=a.query_term)",
+                                    [$userId, $this->uid, $userId], true);
 
+                                if ($ok) 
+                                {
+                                    
+                                    $this->db->queryResultArray("update T_PROMOTION_USERS t set t.UID=? where t.UID=?", [$userId, $this->uid], true);
+                                    $this->db->queryResultArray("update T_TRAN t set t.UID=? where t.UID=?", [$userId, $this->uid], true);
+                                    
+                                    $ok = $this->db->queryResultArray("delete from web_users_favs where web_user_id=?", [$this->uid], true);
+                                    if ($ok) 
+                                    {
+                                        $ok = $this->db->queryResultArray("delete from subscription where web_user_id=?", [$this->uid], true);
+                                        if ($ok) 
+                                        {
+                                            $ok = $this->db->queryResultArray("delete from web_users where id=?", [$this->uid], true);
+                                        }
+                                    }
+                                }
+                            }                
+
+                            if ($ok) 
+                            {
+                                $this->db->getInstance()->commit();
+                                $this->uid=$userId;
+                                $opts = $this->userStatus($status);
+                                $this->result['d']['pwset']=!empty($opts->secret);
+                            } 
+                            else 
+                            {
+                                $this->db->getInstance()->rollBack();
+                                $this->result['e']="Could not activate your device due to internal system error!";
+                                error_log($this->result['e'] . " " . $mobile_no . " to uid: " . $userId);
+                            }
+                        }
+                        
+                    }
+                    return;
+                }
+            }
+                
+                
+/*
                 if (!empty($rs) && isset($rs[0]['STATUS']) && $rs[0]['STATUS']==1) {
                     $userId=$rs[0]['UID']+0;
 
@@ -1899,17 +1968,17 @@ class MobileApi
                                         }
                                     }
                                 }
-                            }
-                            //error_log("Status: ". $ok ? "1":"0");
+                            }                           
 
-                            if ($ok) {
-
+                            if ($ok) 
+                            {
                                 $this->db->getInstance()->commit();
                                 $this->uid=$userId;
                                 $opts = $this->userStatus($status);
                                 $this->result['d']['pwset']=!empty($opts->secret);
-
-                            } else {
+                            } 
+                            else 
+                            {
                                 $this->db->getInstance()->rollBack();
                                 $this->result['e']="Could not activate your device due to internal system error!";
                                 error_log($this->result['e'] . " " . $mobile_no . " to uid: " . $userId);
@@ -1921,7 +1990,7 @@ class MobileApi
                     return;
                 }
             }
-
+*/
             $this->result['e']="Invalid user and password for {$mobile_no}!";
         } 
         else 
@@ -1975,6 +2044,106 @@ class MobileApi
 
         include_once $this->config['dir'].'/core/lib/MourjanNexmo.php';
 
+        
+        if ($record = \Core\Model\NoSQL::getInstance()->mobileFetch($this->getUID(), $mobile_no))
+        {
+            $pin_code = filter_input(INPUT_GET, 'code', FILTER_VALIDATE_INT)+0;
+            if ($pin_code>999) 
+            {
+                if ($pin_code==$record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE]) 
+                {           
+                    if (NoSQL::getInstance()->mobileActivation($this->getUID(), $mobile_no, $pin_code))
+                    {
+                        $this->result['d']['status']='activated';
+
+                        include $this->config['dir'] .'/core/model/User.php';
+                        $user = new User($this->db, $this->config, null, 0);
+                        $user->sysAuthById($this->uid);
+                        $user->params['app']=1;
+                        $user->update();
+                        $this->result['d']['kuid'] = $user->encodeId($this->uid);
+                        $this->getBalance();
+                        
+                        $this->db->queryResultArray("update WEB_USERS_MOBILE set status=1, activation_timestamp=current_timestamp where id=? returning status", [$record[Core\Model\ASD\SET_RECORD_ID]], TRUE);
+                    }
+                    else 
+                    {
+                        $this->result['e'] = 'This mobile number is used on different device';
+                        $this->result['d']['status']='invalid';                        
+                    }
+                    return;
+                } 
+                else 
+                {
+                    $this->result['e'] = 'Activation code is not valid';
+                    $this->result['d']['status']='invalid';
+                    return;
+                }
+            }
+            else
+            {
+                if ($record[Core\Model\ASD\USER_MOBILE_SENT_SMS_COUNT]==0) 
+                { // No sent SMS
+                    $pin = $record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
+                    $response = ShortMessageService::send("+{$mobile_no}", "{$pin} is your mourjan confirmation code", ['uid' => $this->getUID(), 'mid' => $record[Core\Model\ASD\SET_RECORD_ID], 'platform'=>'ios']);
+                    if ($response) 
+                    {
+                        NoSQL::getInstance()->mobileIncrSMS($this->getUID(), $mobile_no);
+                        
+                        $this->db->queryResultArray("update WEB_USERS_MOBILE set status=0, sms_count=sms_count+1 where id=?", [$record[Core\Model\ASD\SET_RECORD_ID]], TRUE);
+                        $this->result['d']['status']='sent';
+                    }
+                }
+            }
+
+            if ($record[Core\Model\ASD\USER_MOBILE_CODE_DELIVERED]) 
+            {
+                $this->result['e'] = 'Activation code is already delivered to this mobile sms inbox';
+                $this->result['d']['status']='delivered';
+                return;
+            }
+
+            if (time()-$record[Core\Model\ASD\USER_MOBILE_DATE_REQUESTED]<120) 
+            {
+                $this->result['e'] = 'Activation code is already sent, but not delivered yet.\nPlease wait a few minutes';
+                return;
+            }
+
+            if (!isset($record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $record[Core\Model\ASD\USER_MOBILE_CODE_DELIVERED]==0 && $record[Core\Model\ASD\USER_MOBILE_SENT_SMS_COUNT]>0) 
+            {
+                $this->result['e'] = 'Invalid mobile number! Please enter well formed mobile number to proceed.';
+                return;
+            }
+            
+        }
+        else
+        {
+            $pin = mt_rand(1000, 9999);
+            
+            if ($mobile_id = NoSQL::getInstance()->mobileInsert([
+                    \Core\Model\ASD\USER_UID => $this->getUID(),
+                    \Core\Model\ASD\USER_MOBILE_NUMBER => $mobile_no,
+                    \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $pin,
+                    \Core\Model\ASD\USER_MOBILE_FLAG => 2,
+                    ]))
+            {
+                $this->db->queryResultArray(
+                        "INSERT INTO WEB_USERS_MOBILE (UID, MOBILE, CODE, STATUS, DELIVERED, SMS_COUNT)
+                        VALUES (?, ?, ?, 5, 0, 0) RETURNING ID", [$this->getUID(), $mobile_no, $pin], TRUE);
+                
+                $response = ShortMessageService::send("+{$mobile_no}", "{$pin} is your mourjan confirmation code", ['uid' => $this->getUID(), 'mid' => $mobile_id, 'platform'=>'ios']);
+                if ($response) 
+                {
+                    NoSQL::getInstance()->mobileIncrSMS($this->uid, $mobile_no);
+                        
+                    $this->db->queryResultArray("update WEB_USERS_MOBILE set status=0, sms_count=sms_count+1 where id=?", [$mobile_id], TRUE);
+                    $this->result['d']['status']='sent';
+                }
+            }
+            
+        }
+       
+        /*
         $rs = $this->db->queryResultArray(
                 "select m.ID, m.UID, m.MOBILE, m.STATUS, m.DELIVERED, m.CODE, m.SMS_COUNT, "
                 . "datediff(SECOND from m.REQUEST_TIMESTAMP to CURRENT_TIMESTAMP) req_age "
@@ -2114,11 +2283,12 @@ class MobileApi
                 }
             }
         }
-        
+        */
     }
 
 
-    function hasError() {
+    function hasError() 
+    {    
         return !empty($this->result['e']);
     }
 
@@ -2163,163 +2333,211 @@ class MobileApi
     }
 
     
-    function processTextNumbers(&$text, $pubId=0, $countryCode=0, &$matches=array()){
-        $phone = '/((?:\+|)(?:[0-9]){7,14})/';
+    function processTextNumbers(&$text, $pubId=0, $countryCode=0, &$matches=[])
+    {
+        $phone = '/((?:\+|)(?:[0-9]){7,14})/';    
         $content=null;
-        //preg_match('/( للمفاهمه: | للمفاهمه | ج\/| للمفاهمة: | فاكس: | للمفاهمة | جوال | للاتصال | للاتصال: | ه: | - call: | call: | - tel: | tel: | tel | - ت: | ت: | ت )/i',$text,$divider);
 
         preg_match('/(?: mobile(?::| \+) | viber(?::| \+) | whatsapp(?::| \+) | phone(?::| \+) | fax(?::| \+) | telefax(?::| \+) | جوال(?::| \+) | موبايل(?::| \+) | واتساب(?::| \+) | فايبر(?::| \+) | هاتف(?::| \+) | فاكس(?::| \+) | تلفاكس(?::| \+) | tel(?:\s|): | call(?:\s|): | ت(?:\s|): | الاتصال | للمفاهمه: | للمفاهمه | ج\/| للمفاهمة: | للاتصال | للاتصال: | ه: )(.*)/ui', $text,$content);
-        if(!($content && count($content))){
-            /*$tmpTxt=preg_replace('/\<.*?>/', '', $text);
-            preg_match('/([0-9\-\\\\\/\+\s]*$)/', $tmpTxt,$content);*/
+        if (!($content && count($content)))
+        {
             preg_match($phone, $text, $content);
-            if(!($content && count($content))){
+            if(!($content && count($content)))
+            {
                 return $text;
             }
         }
 
-        if($content && count($content)){
-        $str=$content[1];
+        if ($content && count($content))
+        {        
+            $str=$content[1];
 
-        $strpos = strpos($text, $content[0]);
-        $text = trim(substr($text,0, $strpos));
-        $text = trim(preg_replace('/[-\/\\\]$/', '', $text));
+            $strpos = strpos($text, $content[0]);
+            $text = trim(substr($text,0, $strpos));
+            $text = trim(preg_replace('/[-\/\\\]$/', '', $text));
 
-        if($str){
-        if($this->formatNumbers){
-            $nums=array();
-            $numInst=array();
-            $numbers = null;
-            preg_match_all($phone, $str, $numbers);
-            if($numbers && count($numbers[1])){
-                foreach($numbers[1] as $match){
-                    $number = $match;
-                    try{
-                        if($pubId==1){
-                            $numInst[] = $num = $this->mobileValidator->parse($number, $this->formatNumbers);
-                        }else{
-                            $numInst[] = $num = $this->mobileValidator->parse($number, $countryCode);
-                        }
-                        if($num && $this->mobileValidator->isValidNumber($num)){
-                            $rCode = $this->mobileValidator->getRegionCodeForNumber($num);
-                            if($rCode==$this->formatNumbers){
-                                $num=$this->mobileValidator->formatInOriginalFormat($num,$this->formatNumbers );
-                            }else{
-                                $num=$this->mobileValidator->formatOutOfCountryCallingNumber($num,$this->formatNumbers);
-                            }
-                            $nums[]=array($number, $num);
-                        }else{
-                            $hasCCode = preg_match('/^\+/', $number);
-                            switch($countryCode){
-                                case 'SA':
-                                    if($hasCCode){
-                                        $num = substr($number,4);
-                                    }else{
-                                        $num = $number;
-                                    }
-                                    if(strlen($num)==7){
-                                        switch($pubId){
-                                            case 9:
-                                                $num='011'.$num;
-                                                break;
-                                            case 12:
-                                            case 18:
-                                                    $tmp='013'.$num;
-                                                    $tmp = $this->mobileValidator->parse($num, $countryCode);
-                                                    if($tmp && $this->mobileValidator->isValidNumber($tmp)){
-                                                        $num='013'.$num;
-                                                    }else{
-                                                        $num='011'.$num;
-                                                    }
-                                                break;
-                                        }
-                                    }
-                                    break;
-                                case 'EG':
-                                    if($hasCCode){
-                                        $num = substr($number,3);
-                                    }else{
-                                        $num = $number;
-                                    }
-                                    if(strlen($num)==7){
-                                        switch($pubId){
-                                            case 13:
-                                                $num='2'.$num;
-                                                break;
-                                            case 14:
-                                                $num='3'.$num;
-                                                break;
-                                        }
-                                    }elseif(strlen($num)==8){
-                                        switch($pubId){
-                                            case 13:
-                                                $num='2'.$num;
-                                                break;
-                                        }
-                                    }
-                                    break;
-                            }
-                            if($num != $number){
-                                $num = $this->mobileValidator->parse($num, $countryCode);
-                                if($num && $this->mobileValidator->isValidNumber($num)){
+            if($str)
+            {            
+                if($this->formatNumbers)
+                {                
+                    $nums=array();
+                    $numInst=array();
+                    $numbers = null;
+                    preg_match_all($phone, $str, $numbers);
+                    if ($numbers && count($numbers[1]))
+                    {                    
+                        foreach($numbers[1] as $match)
+                        {                        
+                            $number = $match;
+                            try
+                            {                            
+                                if ($pubId==1)
+                                {                                
+                                    $numInst[] = $num = $this->mobileValidator->parse($number, $this->formatNumbers);
+                                }
+                                else
+                                {
+                                    $numInst[] = $num = $this->mobileValidator->parse($number, $countryCode);
+                                }
+                                
+                                if ($num && $this->mobileValidator->isValidNumber($num))
+                                {                            
                                     $rCode = $this->mobileValidator->getRegionCodeForNumber($num);
-                                    if($rCode==$this->formatNumbers){
-                                        $num=$this->mobileValidator->formatInOriginalFormat($num, $this->formatNumbers);
-                                    }else{
-                                        $num=$this->mobileValidator->formatOutOfCountryCallingNumber($num, $this->formatNumbers);
+                                    if ($rCode==$this->formatNumbers)
+                                    {                                
+                                        $num=$this->mobileValidator->formatInOriginalFormat($num,$this->formatNumbers );
+                                    }
+                                    else
+                                    {
+                                        $num=$this->mobileValidator->formatOutOfCountryCallingNumber($num,$this->formatNumbers);
                                     }
                                     $nums[]=array($number, $num);
-                                }else{
-                                    $nums[]=array($number, $number);
                                 }
-                            }else{
+                                else
+                                {                                
+                                    $hasCCode = preg_match('/^\+/', $number);
+                                    switch($countryCode)
+                                    {                                    
+                                        case 'SA':
+                                            $num = ($hasCCode) ? substr($number,4) : $number;
+                                            if(strlen($num)==7)
+                                            {
+                                                switch($pubId)
+                                                {
+                                                    case 9:
+                                                        $num='011'.$num;
+                                                        break;
+                                                    
+                                                    case 12:
+                                                    case 18:
+                                                        $tmp='013'.$num;
+                                                        $tmp = $this->mobileValidator->parse($num, $countryCode);
+                                                        if ($tmp && $this->mobileValidator->isValidNumber($tmp))
+                                                        {
+                                                                $num='013'.$num;
+                                                        }
+                                                        else
+                                                        {
+                                                            $num='011'.$num;
+                                                        }
+                                                        break;
+                                                }
+                                            }
+                                            break;
+                                            
+                                        case 'EG':
+                                            $num = ($hasCCode) ? substr($number, 3) : $number;
+                                            if (strlen($num)==7)
+                                            {
+                                                switch($pubId)
+                                                {
+                                                    case 13:
+                                                        $num='2'.$num;
+                                                        break;
+                                                    
+                                                    case 14:
+                                                        $num='3'.$num;
+                                                        break;
+                                                }
+                                            }
+                                            elseif (strlen($num)==8) 
+                                            {
+                                                switch($pubId)
+                                                {
+                                                    case 13:
+                                                        $num='2'.$num;
+                                                        break;
+                                                }
+                                            }
+                                            break;
+                                    }
+                                    
+                                    if ($num != $number)
+                                    {
+                                        $num = $this->mobileValidator->parse($num, $countryCode);
+                                        if ($num && $this->mobileValidator->isValidNumber($num))
+                                        {
+                                            $rCode = $this->mobileValidator->getRegionCodeForNumber($num);
+                                            if ($rCode==$this->formatNumbers)
+                                            {
+                                                $num=$this->mobileValidator->formatInOriginalFormat($num, $this->formatNumbers);
+                                            }
+                                            else
+                                            {
+                                                $num=$this->mobileValidator->formatOutOfCountryCallingNumber($num, $this->formatNumbers);
+                                            }
+                                            $nums[]=array($number, $num);
+                                        }
+                                        else
+                                        {
+                                            $nums[]=array($number, $number);
+                                        }
+                                    } 
+                                    else
+                                    {
+                                        $nums[]=array($number, $number);
+                                    }
+                                    
+                                }
+                            } 
+                            catch(Exception $ex) 
+                            {
                                 $nums[]=array($number, $number);
                             }
-
                         }
-                    }catch(Exception $ex){
-                        $nums[]=array($number, $number);
-                    }
-                }
-                $mobile=array();
-                $phone=array();
-                $undefined = array();
-                $i=0;
+                        
+                        $mobile=array();
+                        $phone=array();
+                        $undefined = array();
+                        $i=0;
 
-                foreach($nums as $num){
-                    if($num[0]!=$num[1]){
-                        $type=$this->mobileValidator->getNumberType($numInst[$i++]);
-                        if($type==1 || $type==2)
-                            $mobile[]=$num;
-                        elseif($type==0 || $type==2)
-                            $phone[]=$num;
-                        else $undefined[]=$num;
-                    }else{
-                        $undefined[]=$num;
+                        foreach ($nums as $num)
+                        {
+                            if ($num[0]!=$num[1])
+                            {
+                                $type=$this->mobileValidator->getNumberType($numInst[$i++]);
+                                if ($type==1 || $type==2)
+                                {
+                                    $mobile[]=$num;
+                                }
+                                elseif ($type==0 || $type==2)
+                                {
+                                    $phone[]=$num;
+                                }
+                                else 
+                                {
+                                    $undefined[]=$num;
+                                }
+                            }
+                            else
+                            {
+                                $undefined[]=$num;
+                            }
+                        }
+                        
+                        $matches = [$mobile, $phone, $undefined];               
                     }
                 }
-                $matches=array(
-                    $mobile,
-                    $phone,
-                    $undefined
-                );
-                
-            }
-        }else{
-            if($pubId!=1){
-                if(!preg_match('/\<span class/',$text)){
-                    preg_match_all($phone, $str, $numbers);
-                    if($numbers && count($numbers[1])){
-                        foreach($numbers[1] as $match){
-                            $number = $match;
-                            $number =  preg_replace('/\+/','\\+' , $number);
-                            ////$text = preg_replace('/('.$number.')/', '<span class="pn">$1</span>', $text);
+                else
+                {
+                    if ($pubId!=1)
+                    {
+                        if (!preg_match('/\<span class/',$text))
+                        {
+                            preg_match_all($phone, $str, $numbers);
+                            if ($numbers && count($numbers[1]))
+                            {
+                                foreach ($numbers[1] as $match)
+                                {
+                                    $number = $match;
+                                    $number =  preg_replace('/\+/','\\+' , $number);
+                                    ////$text = preg_replace('/('.$number.')/', '<span class="pn">$1</span>', $text);
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
-        }
         }
         return $text;
     }
