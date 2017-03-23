@@ -634,6 +634,7 @@ class MCMobile extends MCJsonMapper
     protected $sc;       // SMS sent count
     protected $flag;     // 2: ios    
     protected $secret;  // ios users only
+
     
     function __construct($as_array=null) 
     {

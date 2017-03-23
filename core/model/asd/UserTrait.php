@@ -80,7 +80,9 @@ trait UserTrait
     abstract public function genId(string $generator, &$sequence);
     abstract public function getBins($pk, array $bins);
     abstract public function setBins($pk, array $bins);
+    abstract public function exists($pk) : int;
 
+    
     public function fetchUser(int $uid) : array
     {
         $record = [];
@@ -122,44 +124,66 @@ trait UserTrait
 
     
     
-    public function createUser(array $bins)
+    public function userUpdate(array $bins, int $uid=0)
     {
-        $uid = 0;
-        $this->genId('profile_id', $uid);
+        if ($uid==0)
+        {
+            $this->genId('profile_id', $uid);
+        }
         
         if ($uid>0)
         {
-            $now = time();
-            $record = [
-                USER_PROFILE_ID => $uid, 
-                USER_PROVIDER_ID => '',
-                USER_PROVIDER_EMAIL => '',
-                USER_PROVIDER => '',
-                USER_FULL_NAME => '',
-                USER_DISPLAY_NAME => '',
-                USER_PROFILE_URL => '',
-                USER_DATE_ADDED => $now,
-                USER_LAST_VISITED => $now,
-                USER_LEVEL => 0,
-                USER_NAME => '',
-                USER_EMAIL => '',
-                USER_PASSWORD => '',
-                USER_RANK => 0,
-                USER_PRIOR_VISITED => 0,
-                USER_PUBLISHER_STATUS => 0,
-                USER_LAST_AD_RENEWED => 0,
-                USER_XMPP_CREATED => 0,
-                USER_DEPENDANTS => [],
-                USER_OPTIONS => [],
-                USER_MOBILE => [],
-                USER_DEVICES => []
-            ];
-            foreach ($bins as $k => $v) 
-            {
-                $record[$k] = $v;                
+            $pk = $this->initKey($uid);
+            
+            if (!$this->exists($pk))
+            {            
+                $now = time();
+                $record = [
+                    USER_PROFILE_ID => $uid,
+                    USER_PROVIDER_ID => '',
+                    USER_PROVIDER_EMAIL => '',
+                    USER_PROVIDER => '',
+                    USER_FULL_NAME => '',
+                    USER_DISPLAY_NAME => '',
+                    USER_PROFILE_URL => '',
+                    USER_DATE_ADDED => $now,
+                    USER_LAST_VISITED => $now,
+                    USER_LEVEL => 0,
+                    USER_NAME => '',
+                    USER_EMAIL => '',
+                    USER_PASSWORD => '',
+                    USER_RANK => 0,
+                    USER_PRIOR_VISITED => 0,
+                    USER_PUBLISHER_STATUS => 0,
+                    USER_LAST_AD_RENEWED => 0,
+                    USER_XMPP_CREATED => 0,
+                    USER_DEPENDANTS => [],
+                    USER_OPTIONS => [],
+                    USER_MOBILE => [],
+                    USER_DEVICES => []
+                ];
+                foreach ($bins as $k => $v)
+                {
+                    $record[$k] = $v;
+                }
+                $bins = $record;
+            } else {
+                if (isset($bins[USER_LAST_VISITED]))
+                {
+                    $this->setVisitUnixtime($uid);
+                }
             }
-            error_log(json_encode($record));
+
+            //error_log(__CLASS__.'.' . __FUNCTION__ . PHP_EOL . json_encode($bins));
+
+            if ($this->setBins($pk, $bins))
+            {
+                return $this->getBins($pk);
+            }
+            
         }
+        
+        return FALSE;
     }
     
     

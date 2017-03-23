@@ -436,8 +436,10 @@ order by m.activation_timestamp desc',
         }
         return $passOk;
     }
-    
-    function createNewByEmail($email){
+
+
+    function createNewByEmail($email)
+    {
         $user = $this->db->queryResultArray(
             "insert into web_users
             (IDENTIFIER, email,user_email, provider, full_name, display_name, profile_url, last_visit)
@@ -446,8 +448,10 @@ order by m.activation_timestamp desc',
             array($email,$email));
         return $user;
     }
-    
-    function createNewByPhone($number){
+
+
+    function createNewByPhone($number)
+    {
         $user = $this->db->queryResultArray(
             "insert into web_users
             (IDENTIFIER, email,user_email, provider, full_name, display_name, profile_url, last_visit)
@@ -456,8 +460,10 @@ order by m.activation_timestamp desc',
             array($number));
         return $user;
     }
-    
-    function createNewAccount($account){
+
+
+    function createNewAccount($account)
+    {
         if(preg_match('/@/ui', $account)){
             $user = $this->createNewByEmail($account);
         }else{
@@ -465,13 +471,15 @@ order by m.activation_timestamp desc',
         }
         return $user;
     }
-    
-    function updatePassword($pass){
+
+
+    function updatePassword($pass)
+    {
         $this->db->setWriteMode();
         $original = $pass;
         $userId = $this->pending['user_id'];
         $pass = md5($this->md5_prefix.$pass);
-        $user = $this->db->queryResultArray("update web_users set user_pass = ? where id = ? returning id,opts", [$pass, $this->pending['user_id']], true);
+        $user = $this->db->queryResultArray("update web_users set user_pass=? where id=? returning id, opts", [$pass, $this->pending['user_id']], true);
         $passOk=0;
         try{
             if($user && count($user)){
@@ -499,8 +507,10 @@ order by m.activation_timestamp desc',
         }
         return $passOk;
     }
-    
-    function getWatchInfo($id, $force=false, $onlyEmail=false){
+
+
+    function getWatchInfo($id, $force=false, $onlyEmail=false)
+    {
         if (!is_numeric($id)) return FALSE;
         if($onlyEmail){
             $info = $this->db->queryResultArray(
@@ -2263,7 +2273,8 @@ order by m.activation_timestamp desc',
     }
 
 
-    function updateUserRecord($info,$provider){
+    function updateUserRecord($info, $provider)
+    {
         //Core\Model\NoSQL::getInstance()->updateUser($info, $provider);
 
         $updateOptions=false;
@@ -2292,6 +2303,16 @@ order by m.activation_timestamp desc',
         $result=$this->db->queryResultArray($q, [$identifier, $email, $provider, $fullName, $dispName, $infoStr], true);
         
         if ($result && count($result)) {
+            \Core\Model\NoSQL::getInstance()->userUpdate([
+                                    \Core\Model\ASD\USER_PROVIDER_ID => $identifier,
+                                    \Core\Model\ASD\USER_EMAIL => $email,
+                                    \Core\Model\ASD\USER_PROVIDER => $provider,
+                                    \Core\Model\ASD\USER_FULL_NAME => $fullName,
+                                    \Core\Model\ASD\USER_DISPLAY_NAME => $dispName,
+                                    \Core\Model\ASD\USER_PROFILE_URL => $infoStr,
+                                    \Core\Model\ASD\USER_LAST_VISITED => time(),
+                                    ],
+                                    $result[0]['ID']);
             /*
             if ($provider) {
                 $info=array();

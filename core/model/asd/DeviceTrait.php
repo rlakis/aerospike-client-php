@@ -10,6 +10,7 @@ const USER_DEVICE_CHANGE_TO_UID     = 'cuid';
 const USER_DEVICE_APP_SETTINGS      = 'app_prefs';
 const USER_DEVICE_BAN_TRANSACTIONS  = 'ban_tran';
 
+
 trait DeviceTrait
 {
     abstract public function getConnection();
@@ -61,7 +62,8 @@ trait DeviceTrait
         return $this->setBins($pk, $bins);                
     }
     
-    
+
+
     public function deviceFetch(string $uuid) : array
     {
         $pk = $this->initDeviceKey($uuid);
