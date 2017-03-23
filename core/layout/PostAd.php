@@ -132,6 +132,7 @@ class PostAd extends Page{
         $this->render();
     }    
     
+    
     function mainMobile(){
         if ($this->user->info['id']) {
             

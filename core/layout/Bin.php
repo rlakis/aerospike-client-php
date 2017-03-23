@@ -484,19 +484,18 @@ class Bin extends AjaxHandler{
                                         $number = 0;
                                         $keyCode = 0;
                                     }
-                                    if($sendSms && $number && $keyCode){
+                                    
+                                    if ($sendSms && $number && $keyCode)
+                                    {
                                                                                 
                                         include_once $this->urlRouter->cfg['dir'].'/core/lib/MourjanNexmo.php';
-                                        $sms = new MourjanNexmo();
-                                        $sent = $sms->sendSMS($number, 
-                                            $keyCode." is your mourjan confirmation code",
-                                            'm'.$sendSms);
-                                        if(!$sent){
+                                        if (ShortMessageService::send($number, "{$keyCode} is your mourjan confirmation code", ['uid' => $this->user->info['id'], 'mid' => $sendSms, 'platform'=>'website']))
+                                        {
+                                            Core\Model\NoSQL::getInstance()->mobileIncrSMS($this->user->info['id'], $number);    
+                                        } else {
                                             $keyCode=0;
                                             $number=0;
-                                        } else {
-                                            Core\Model\NoSQL::getInstance()->mobileIncrSMS($this->user->info['id'], $number);
-                                        }
+                                        }                                        
                                     }
                                     $this->setData($number,'number');
                                     if($number){
@@ -519,6 +518,7 @@ class Bin extends AjaxHandler{
                     $this->process();
                 }
                 break;
+                                
             case 'ajax-getshouts-private':
                 if($this->user->info['id']){
                     $lang = $this->get('hl');
