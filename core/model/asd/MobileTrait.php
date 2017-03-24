@@ -37,7 +37,7 @@ trait MobileTrait
         $matches=[];
         $keys=[];
         $where = \Aerospike::predicateEquals(USER_UID, $uid);
-        $this->getConnection()->query(NS_USER, TS_MOBILE, $where, function ($record) use (&$matches, &$keys) 
+        $this->getConnection()->query(NS_USER, TS_MOBILE, $where, function ($record) use (&$matches, &$keys, $order_by_req)
         {
             if (!isset($record['bins'][$order_by_req ? USER_MOBILE_DATE_REQUESTED : USER_MOBILE_DATE_ACTIVATED]))
             {
@@ -190,7 +190,7 @@ trait MobileTrait
                 $dups[$record['id']]=1;
             }
             $row_count++;
-            if ($row_count>60)
+            if ($row_count>40)
             {
                 break;
             }

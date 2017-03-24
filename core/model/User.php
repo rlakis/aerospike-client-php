@@ -344,6 +344,37 @@ class User {
     
     function updateUserLinkedMobile($uid, $number)
     {
+        if (($mobile = \Core\Model\NoSQL::getInstance()->mobileFetch($uid, $number))!==FALSE)
+        {
+            if (isset($mobile[Core\Model\ASD\SET_RECORD_ID]))
+            {
+                if (Core\Model\NoSQL::getInstance()->mobileActivation($uid, $number, $mobile[Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE]))
+                {
+                    $this->db->queryResultArray('update web_users_linked_mobile set activation_timestamp=current_timestamp where uid=? and mobile=?', [$uid, $number]);
+                }
+            }
+            else
+            {
+                if ($mobile[Core\Model\ASD\SET_RECORD_ID] = Core\Model\NoSQL::getInstance()->
+                        mobileInsert([
+                                    \Core\Model\ASD\USER_UID=> $uid,
+                                    \Core\Model\ASD\USER_MOBILE_NUMBER=> $number,
+                                    \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>111,
+                                    \Core\Model\ASD\USER_MOBILE_FLAG=>0,
+                                    \Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED=> time(),
+                                    ]))
+                {
+                    $this->db->queryResultArray(
+                        'insert into web_users_linked_mobile '
+                        . '(id, uid, mobile,code,delivered,sms_count,activation_timestamp,request_timestamp) '
+                        . 'values (?, ?, ?, 111,1,0,current_timestamp,current_timestamp)',
+                        array($mobile[Core\Model\ASD\SET_RECORD_ID], $uid, $number));
+                }
+            }
+            return $mobile;
+        }
+        return FALSE;
+        /*
         $mobile = $this->db->queryResultArray('select * from web_users_linked_mobile where uid=? and mobile=?', array($uid, $number));
         $res=false;
         if(is_array($mobile) && count($mobile))
@@ -368,6 +399,8 @@ class User {
                                                     ]);
         }
         return $res;
+         * 
+         */
     }
     
     

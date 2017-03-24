@@ -50,7 +50,7 @@ class MCJsonMapper
 
 class MCUser extends MCJsonMapper
 {   
-    public $id;
+    public $id = 0;
     public $pid;               // Provider identifier
     protected $email;
     protected $prvdr;             // Provider
@@ -546,16 +546,16 @@ class MCUserOptions extends MCJsonMapper
     
     public function parseAssoc($array)
     {
-        $this->e = $array['e'];
-        $this->lang = $array['lang'];
-        $this->bmail = $array['bmail'];
-        $this->bmailKey = $array['bmailKey'];
-        $this->watch = $array['subscriptions'];
-        $this->cut->parseAssoc($array['calling_time']);
-        $this->cui->parseAssoc($array['contact_info']);
-        $this->UA = $array['user_agent'];
-        $this->cts = $array['cts'];
-        $this->suspend = $array['suspend'];                
+        $this->e = $array['e'] ?? 0;
+        $this->lang = $array['lang'] ?? 'en';
+        $this->bmail = $array['bmail'] ?? '';
+        $this->bmailKey = $array['bmailKey'] ?? '';
+        $this->watch = $array['subscriptions'] ?? [];
+        $this->cut->parseAssoc($array['calling_time'] ?? []);
+        $this->cui->parseAssoc($array['contact_info'] ?? []);
+        $this->UA = $array['user_agent'] ?? '';
+        $this->cts = $array['cts'] ?? 0;
+        $this->suspend = $array['suspend'] ?? 0;
     }
     
     
@@ -889,6 +889,11 @@ class MCContactInfo extends MCJsonMapper
     
     public function parseAssoc($array)
     {
+        if (empty($array))
+        {
+            return;
+        }
+        
         if (isset($array['phones']) && is_array($array['phones']))
         {
             foreach ($array['phones'] as $phone)
@@ -931,9 +936,9 @@ class MCCallingTime extends MCJsonMapper
 
     public function parseAssoc($array)
     {
-        $this->t = $array['type'];
-        $this->b = $array['before'];
-        $this->a = $array['after'];
+        $this->t = $array['type'] ?? 'a';
+        $this->b = $array['before'] ?? 0;
+        $this->a = $array['after'] ?? 0;
     }
     
     public function getAsArray() : array
