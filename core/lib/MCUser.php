@@ -376,16 +376,16 @@ class MCUser extends MCJsonMapper
     }
     
     
-    public function getMobile() : MCMobile
+    public function getMobile(bool $refresh=false) : MCMobile
     {
-        if ($this->mobile->getNumber()<=0)
+        if ($this->mobile->getNumber()<=0 || $refresh)
         {
-            $_mobiles = NoSQL::getInstance()->mobileFetchByUID($this->getID());
-            if ($_mobiles)
+            if ($_mobiles = NoSQL::getInstance()->mobileFetchByUID( $this->getID() ))
             {
-                $this->mobile = new MCMobile($_mobiles[0]);
+                $this->mobile = new MCMobile( $_mobiles[0] );
             }
         }
+        $this->mobile->setUser($this);
         return $this->mobile;
     }
     
@@ -621,11 +621,14 @@ class MCUserOptions extends MCJsonMapper
         return $this->suspend ? $this->suspend : 0;
     }
 
+        
 }
 
 
 class MCMobile extends MCJsonMapper
 {
+    protected $user;
+    
     protected $number;
     protected $code;
     protected $rts;       // Validation request timestamp;
@@ -649,6 +652,12 @@ class MCMobile extends MCJsonMapper
             $this->flag = $as_array[ASD\USER_MOBILE_FLAG] ?? 0;
             $this->secret = $as_array[ASD\USER_MOBILE_SECRET] ?? '';
         }
+    }
+    
+    
+    public function setUser(MCUser $super)
+    {
+        $this->user = $super;       
     }
     
     
@@ -727,6 +736,16 @@ class MCMobile extends MCJsonMapper
     public function getActicationUnixtime() : int
     {
         return $this->ats;
+    }
+    
+    
+    public function setSecret(string $password) : bool
+    {
+        if ($this->ats)
+        {            
+            return NoSQL::getInstance()->mobileUpdate($this->user->getID(), $this->number, [ASD\USER_MOBILE_SECRET => $password]);
+        }
+        return FALSE;
     }
 }
 
