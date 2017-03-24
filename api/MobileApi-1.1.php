@@ -38,6 +38,7 @@ class MobileApi
 
         $this->uid = filter_input(INPUT_GET, 'uid', FILTER_VALIDATE_INT)+0;
         $this->uuid = filter_input(INPUT_GET, 'uuid', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+        
         $this->user = new MCUser($this->uuid);
         $this->config=$config;
 
@@ -1589,7 +1590,7 @@ class MobileApi
                 
                 NoSQL::getInstance()->deviceInsert([
                     Core\Model\ASD\USER_DEVICE_UUID => $this->uuid,
-                    Core\Model\ASD\USER_UID => $this->uid,
+                    Core\Model\ASD\USER_UID => $this->getUID(),
                     Core\Model\ASD\USER_DEVICE_MODEL => $device_model,
                     Core\Model\ASD\USER_DEVICE_NAME => ($isUTF8 ? $device_name : ''),
                     Core\Model\ASD\USER_DEVICE_SYS_NAME => $device_sysname,
@@ -1829,6 +1830,14 @@ class MobileApi
             
             if (!empty($cp) && !empty($np) && strlen($cp)==32 && ($cp==$np) && ($op==$opts->secret || empty($opts->secret))) 
             {
+                //error_log(var_export($this->user, TRUE));
+                if ($this->user->getMobile()->setSecret($np))
+                {
+                   $this->result['d']['status'] = $this->user->getMobile(TRUE)->getStatus();
+                   $this->result['d']['pwset'] = !empty($this->user->getMobile()->getSecret());
+                   return;
+                }
+                /*
                 $this->db->setWriteMode();
                 
                 $rs = $this->db->queryResultArray("update WEB_USERS_MOBILE set SECRET=? where uid=? returning status, secret", [$np, $this->uid], TRUE);
@@ -1836,13 +1845,10 @@ class MobileApi
                     $this->result['d']['status']=$rs[0]['STATUS']+0;
                     $this->result['d']['pwset']=!empty($rs[0]['SECRET']);
                     
-                    if (NoSQL::getInstance()->mobileSetSecret($this->uid, $np))
-                    {
-                        
-                    }
+                   
                     return;
                 }
-                
+                */
             }
         }
         $this->result['e']='Could not set new password!';
@@ -2064,7 +2070,7 @@ class MobileApi
                         $this->result['d']['kuid'] = $user->encodeId($this->uid);
                         $this->getBalance();
                         
-                        $this->db->queryResultArray("update WEB_USERS_MOBILE set status=1, activation_timestamp=current_timestamp where id=? returning status", [$record[Core\Model\ASD\SET_RECORD_ID]], TRUE);
+                        //$this->db->queryResultArray("update WEB_USERS_MOBILE set status=1, activation_timestamp=current_timestamp where id=? returning status", [$record[Core\Model\ASD\SET_RECORD_ID]], TRUE);
                     }
                     else 
                     {
@@ -2127,16 +2133,16 @@ class MobileApi
                     \Core\Model\ASD\USER_MOBILE_FLAG => 2,
                     ]))
             {
-                $this->db->queryResultArray(
-                        "INSERT INTO WEB_USERS_MOBILE (UID, MOBILE, CODE, STATUS, DELIVERED, SMS_COUNT)
-                        VALUES (?, ?, ?, 5, 0, 0) RETURNING ID", [$this->getUID(), $mobile_no, $pin], TRUE);
+                //$this->db->queryResultArray(
+                //        "INSERT INTO WEB_USERS_MOBILE (UID, MOBILE, CODE, STATUS, DELIVERED, SMS_COUNT)
+                //        VALUES (?, ?, ?, 5, 0, 0) RETURNING ID", [$this->getUID(), $mobile_no, $pin], TRUE);
                 
                 $response = ShortMessageService::send("+{$mobile_no}", "{$pin} is your mourjan confirmation code", ['uid' => $this->getUID(), 'mid' => $mobile_id, 'platform'=>'ios']);
                 if ($response) 
                 {
                     NoSQL::getInstance()->mobileIncrSMS($this->uid, $mobile_no);
                         
-                    $this->db->queryResultArray("update WEB_USERS_MOBILE set status=0, sms_count=sms_count+1 where id=?", [$mobile_id], TRUE);
+                    //$this->db->queryResultArray("update WEB_USERS_MOBILE set status=0, sms_count=sms_count+1 where id=?", [$mobile_id], TRUE);
                     $this->result['d']['status']='sent';
                 }
             }
@@ -2637,7 +2643,8 @@ class MobileApi
     }
 
 
-    public function unregister() {        
+    public function unregister() 
+    { 
         $opts = $this->userStatus($status);
         if ($status==1 && $opts->phone_number>0) {
             $phone_number=filter_input(INPUT_GET, 'tel', FILTER_VALIDATE_INT)+0;
