@@ -1284,6 +1284,7 @@ class AndroidApi {
                                 if (NoSQL::getInstance()->mobileActivation($this->api->getUID(), $number, $keyCode))
                                 {
                                     $this->api->result['d']['verified']=true;
+
                                     $this->api->db->queryResultArray(
                                         "UPDATE WEB_USERS_LINKED_MOBILE set "
                                         . "ACTIVATION_TIMESTAMP=current_timestamp "
@@ -1319,11 +1320,10 @@ class AndroidApi {
                         {
                             $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
                             $num = $this->mobileValidator->parse($number, 'LB');
-                            if(!is_array($this->api->result['d'])){
+                            if (!is_array($this->api->result['d']))
+                            {
                                 $this->api->result['d']=[];
                             }
-                                //$this->api->result['d']['number']=$number;
-                                //$this->api->result['d']['code']=mt_rand(1000, 9999);
                             
                             if ($num && $this->mobileValidator->isValidNumber($num))
                             {
@@ -1391,6 +1391,15 @@ class AndroidApi {
                                                     if (NoSQL::getInstance()->mobileUpdate($this->api->getUID(), $number, [\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $keyCode, \Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()]))
                                                     {
                                                         $sendSms = $rs[\Core\Model\ASD\SET_RECORD_ID];
+                                                        $this->api->db->queryResultArray(
+                                                            "UPDATE WEB_USERS_LINKED_MOBILE set "
+                                                            . "code = ?, "
+                                                            . "SMS_COUNT=sms_count+1,"
+                                                            . "REQUEST_TIMESTAMP=current_timestamp "
+                                                            . "where id = ? RETURNING ID", 
+                                                            [$keyCode, $rs[Core\Model\ASD\SET_RECORD_ID]], 
+                                                            TRUE);
+
                                                     } 
                                                     else
                                                     {
@@ -1411,16 +1420,44 @@ class AndroidApi {
                                             }
                                             else
                                             {
+                                                $keyCode=mt_rand(1000, 9999);
+                                                if (NoSQL::getInstance()->mobileInsert([
+                                                    \Core\Model\ASD\USER_UID => $this->api->getUID(),
+                                                    \Core\Model\ASD\USER_MOBILE_NUMBER => $number,
+                                                    \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $keyCode,
+                                                    ]))
+                                                {
+                                                    $record = NoSQL::getInstance()->mobileFetch($this->api->getUID(), $number);
+                                                    if ($record)
+                                                    {
+                                                        $sendSms = $record[\Core\Model\ASD\SET_RECORD_ID];
+                                                        $this->api->db->queryResultArray(
+                                                            "INSERT INTO WEB_USERS_LINKED_MOBILE (ID, UID, MOBILE, CODE, DELIVERED, SMS_COUNT,ACTIVATION_TIMESTAMP)
+                                                            VALUES (?, ?, ?, ?, 0, 0,null) RETURNING ID",
+                                                            [$sendSms, $this->api->getUID(), $number, $keyCode], TRUE);
+                                                    }
+                                                    else
+                                                    {
+                                                        $keyCode=0;
+                                                        $number=0;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    $keyCode=0;
+                                                    $number=0;
+                                                }
                                                 
                                             }
                                         }
                                         else
                                         {
-                                            
+                                            $number = 0;
+                                            $keyCode = 0;
                                         }
                                         
                                         
-                                        
+                                        /*
                                         $rs = $this->api->db->queryResultArray(
                                         "select m.ID, m.UID, m.MOBILE, m.DELIVERED, m.CODE, m.SMS_COUNT,m.ACTIVATION_TIMESTAMP, "
                                         . "datediff(SECOND from m.ACTIVATION_TIMESTAMP to CURRENT_TIMESTAMP) active_age, "
@@ -1514,7 +1551,7 @@ class AndroidApi {
                                                     $keyCode=0;
                                                     $number=0;   
                                                 }
-                                                /*
+                                                
                                                 $ns = $this->api->db->queryResultArray(
                                                 "INSERT INTO WEB_USERS_LINKED_MOBILE (UID, MOBILE, CODE, DELIVERED, SMS_COUNT,ACTIVATION_TIMESTAMP)
                                                 VALUES (?, ?, ?, 0, 0,null) RETURNING ID", [$this->api->getUID(), $number, $keyCode], TRUE);
@@ -1525,7 +1562,7 @@ class AndroidApi {
                                                     $keyCode=0;
                                                     $number=0;
                                                 }
-                                                */
+                                                
                                                 
                                             }
                                         }else{
@@ -1533,14 +1570,17 @@ class AndroidApi {
                                             $keyCode = 0;
                                         }
                                         
-                                        
+                                        */
+
                                         if ($sendSms && $number && $keyCode)
                                         {
                                             include_once $this->api->config['dir'].'/core/lib/MourjanNexmo.php';
                                             if (ShortMessageService::send($number, "{$keyCode} is your mourjan confirmation code", ['uid' => $this->api->getUID(), 'mid' => $sendSms, 'platform'=>'android']))
                                             {
-                                                NoSQL::getInstance()->mobileIncrSMS($this->api->getUID(), $number);                                                
-                                            } else {
+                                                NoSQL::getInstance()->mobileIncrSMS($this->api->getUID(), $number);
+                                            } 
+                                            else
+                                            {
                                                 $keyCode=0;
                                                 $number=0;
                                             }
@@ -1554,15 +1594,21 @@ class AndroidApi {
                                         
                                         $this->api->result['d']['number']=$number;
                                         $this->api->result['d']['code']=$keyCode; 
-                                    }else{                                        
+                                    }
+                                    else
+                                    {
                                         $this->api->result['d']['number']=$number;
                                         $this->api->result['d']['code']=$keyCode;
                                     }
                                     
-                                }else{
+                                }
+                                else
+                                {
                                     $this->api->result['d']['check'] = false;
                                 }
-                            }else{
+                            }
+                            else
+                            {
                                 $this->api->result['d']['check'] = false;
                             } 
                         }
@@ -1752,6 +1798,7 @@ class AndroidApi {
                     }
                     $this->api->result['d']['id']=$newId;
                     break;
+
                 case API_ANDROID_SET_PASSWORD: 
                     $this->api->result['d'] = [];
                     $newId = -2;
@@ -1759,14 +1806,18 @@ class AndroidApi {
                     $code = filter_input(INPUT_POST, 'code', FILTER_VALIDATE_INT) + 0;
                     $password = urldecode(filter_input(INPUT_POST, 'pass', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']]));
                     $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                    if($id && $password && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+
+                    if($id && $password && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY)))
+                    {
                         require_once $this->api->config['dir'].'/core/model/User.php';
                         $this->api->db->setWriteMode();  
                         $USER = new User($this->api->db, $this->api->config, null, 0);
                         $user=$USER->getAccount($id);
-                        if(isset($user[0]['ID']) && $user[0]['ID']){
+                        if(isset($user[0]['ID']) && $user[0]['ID'])
+                        {
                             $opt = json_decode($user[0]['OPTS'], true);
-                            if(isset($opt['accountKey']) && $opt['accountKey']==$code){
+                            if(isset($opt['accountKey']) && $opt['accountKey']==$code)
+                            {
                                 if($USER->resetPassword($id, $password)){
                                     $USER->mergeDeviceToAccount($this->api->getUUID(), $this->api->getUID(), $id);
                                     $newId=$id;
@@ -1795,6 +1846,7 @@ class AndroidApi {
                     }
                     $this->api->result['d']['id']=$newId;
                     break;
+
                 case API_ANDROID_SIGN_IN: 
                     $this->api->result['d'] = [];
                     $this->api->result['d']['id'] = -2;
