@@ -87,6 +87,9 @@ ul {
 .br {
     margin-top: 15px !important
 }
+.brr {
+    margin-bottom: 15px !important
+}
 .lnk {
     color: #00E
 }
@@ -775,7 +778,7 @@ label {
     color: #333
 }
 .sum {
-    padding: 5px 10px;
+    padding:10px;
     line-height: 20px;
     color: #333;
     border: 1px solid #E7E9F0;
@@ -812,7 +815,7 @@ label {
     display: block;
     padding: 15px 5px;
     height: 30px;
-    line-height: 33px;
+    line-height: 30px;
     font-weight: normal
 }
 .side .ls a,
@@ -1871,16 +1874,22 @@ h2 {
     bottom: 0;
     border-left: 1px solid #CCC;
     overflow: auto;
-    display: none
+    -webkit-transition: all 0.5s ease-in-out;
+    -moz-transition: all 0.5s ease-in-out;
+    -o-transition: all 0.5s ease-in-out;
+    transition: all 0.5s ease-in-out;
+    -webkit-transform: translate(-100%, 0); /* Safari */
+    transform: translate(100%, 0);
 }
 .side a.ctr {
     background-color: gainsboro;
     color: #369
 }
 .side.on {
-    display: block
+    -webkit-transform: translate(0, 0); /* Safari */
+    transform: translate(0, 0);
 }
-.side li.on .n {
+li.on .n {
     color: #FFF
 }
 .side li.on {

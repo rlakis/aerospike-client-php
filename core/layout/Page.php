@@ -1873,6 +1873,33 @@ class Page extends Site{
                         }else {
                             $backButton = '<a class="back" href="'.$this->urlRouter->getURL($this->urlRouter->countryId,$cityId,$this->urlRouter->rootId,$this->urlRouter->sectionId,$this->urlRouter->purposeId).'"></a>';
                         }*/
+                        /*while($tmpId){
+                            if (isset($this->localities[$tmpId])){
+                                if(isset($this->localities[$this->localities[$tmpId]['parent_geo_id']+0])){
+                                    $counter=0;
+                                    foreach($this->localities as $id => $local){
+                                        if($id != $tmpId && $local['parent_geo_id']==$this->localities[$tmpId]['parent_geo_id']){
+                                            $counter++;
+                                            break;
+                                        }
+                                    }
+                                    $tmpId=$this->localities[$tmpId]['parent_geo_id']+0;
+                                    
+                                    if($counter){
+                                        break;
+                                    }
+                                }else{
+                                    $tmpId = 0;
+                                }
+                            }else{
+                                $tmpId=0;
+                            }
+                        }
+                        if ($tmpId){
+                            $backButton = '<a class="back" href="/'.$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->urlRouter->sections[$this->urlRouter->sectionId][3].'/'.($this->urlRouter->purposeId ? $this->urlRouter->purposes[$this->urlRouter->purposeId][3].'/' : '').($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage.'/':'').'c-'.$tmpId.'-2/"></a>';
+                        }else {
+                            $backButton = '<a class="back" href="'.$this->urlRouter->getURL($this->urlRouter->countryId,$cityId,$this->urlRouter->rootId,$this->urlRouter->sectionId,$this->urlRouter->purposeId).'"></a>';
+                        }*/
                         if (isset($this->localities[$this->localityId]) && isset($this->localities[$this->localities[$this->localityId]['parent_geo_id']+0])){
                             $tmpId=$this->localities[$this->localityId]['parent_geo_id']+0;
                             $backButton = '<a class="back" href="/'.$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->urlRouter->sections[$this->urlRouter->sectionId][3].'/'.($this->urlRouter->purposeId ? $this->urlRouter->purposes[$this->urlRouter->purposeId][3].'/' : '').($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage.'/':'').'c-'.$tmpId.'-2/"></a>';
@@ -4627,13 +4654,13 @@ class Page extends Site{
                         ?>var s = document.getElementsByTagName('script')[0];<?php
                         ?>s.parentNode.insertBefore(po,s);<?php 
                         //pagead2.googlesyndication.com/pagead/js/adsbygoogle.js
-                        if(in_array($this->urlRouter->module,['search','detail'])){
+                        /*if(in_array($this->urlRouter->module,['search','detail'])){
                         ?>po = document.createElement('script');<?php
                         ?>po.type = 'text/javascript';<?php 
                         ?>po.async = true;<?php
                         ?>po.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';<?php
                         ?>s.parentNode.insertBefore(po,s);<?php 
-                        }
+                        }*/
                       ?>});<?php 
                 }
         
@@ -5093,11 +5120,11 @@ class Page extends Site{
              */
             
         ?></head><?php flush() ?><body<?= $this->isAdminSearch ? ' oncontextmenu="return false;"':'' ?> class="<?= ($this->urlRouter->userId ? 'partner':'') ?>" <?= $this->pageItemScope ?>><meta itemprop="isFamilyFriendly" content="true" /><?php
-        
+        /*
         if ($this->isMobile && ($this->urlRouter->module=='search' || $this->urlRouter->module=='detail')) {
             ?><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php
             ?><script>(adsbygoogle = window.adsbygoogle || []).push({google_ad_client: "ca-pub-2427907534283641",enable_page_level_ads: true});</script><?php
-        }
+        }*/
     }
 
 

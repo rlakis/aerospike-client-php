@@ -1,6 +1,5 @@
 #sublist{
-    display:none;
-    padding-bottom:50px
+    display:none
 }
 #sublist.on{
     display:block

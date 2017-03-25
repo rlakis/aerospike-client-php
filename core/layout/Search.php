@@ -1613,13 +1613,13 @@ class Search extends Page {
             if ($this->searchResults['body']['total_found'] > 2){
                 if($this->urlRouter->module=='search'){
                     $iDir = $this->urlRouter->siteLanguage == 'ar' ? 'ad_r' : 'ad_l';
-                    //echo $this->fill_ad('Square', $iDir);
-                    
+                    echo $this->fill_ad('Square', $iDir);
+                    /*
                     ?><ins class="adsbygoogle"
                          style="display:block"
                          data-ad-client="ca-pub-2427907534283641"
                          data-ad-slot="7294487825"
-                         data-ad-format="auto"></ins><?php
+                         data-ad-format="auto"></ins><?php */
                 }else{
                     echo $this->fill_ad('Leaderboard', 'ad_dt');
                 }
@@ -1686,10 +1686,6 @@ class Search extends Page {
                 if ($this->searchResults['body']['total_found'] > 5 || $this->localityId) {
                     //echo $this->fill_ad('Leaderboard', 'ad_dt');
                     
-                    ?> <!--googleoff: index --> <?php
-                    ?><span onclick="subList(this)" class="rbt subit loc ic"></span><?php
-                    ?><div id="sublist"><?php
-                    ?><h2 class="ctr"><?= $this->lang['suggestionLocation'] . ($this->localityId ? $this->localities[$this->localityId]['name'] . $this->lang['?'] : $this->urlRouter->countries[$this->urlRouter->countryId]['name'] . $this->lang['?']) ?></h2><?php
                     $this->renderMobileLocalityLinks();
                 }
 
@@ -1735,25 +1731,69 @@ class Search extends Page {
                 if ($this->urlRouter->siteLanguage != 'ar') {
                     $suffix_uri.=$this->urlRouter->siteLanguage . '/';
                 }
+                
+                include_once $this->urlRouter->cfg['dir'] . '/core/lib/SphinxQL.php';
+ 
+                $sphinx = new SphinxQL($this->urlRouter->cfg['sphinxql'], $this->urlRouter->cfg['search_index']);
+                if ($this->urlRouter->purposeId) {                                        
+                    $q = "select groupby(), count(*) from {$this->urlRouter->cfg['search_index']} where hold=0 and canonical_id=0 "
+                    . "and section_id={$this->urlRouter->sectionId} "
+                    . "and purpose_id={$this->urlRouter->purposeId} ";
+                    if ($this->urlRouter->countryId) $q.="and country={$this->urlRouter->countryId} ";
+                    if ($this->urlRouter->cityId) $q.="and city={$this->urlRouter->cityId} ";
+                    $q.=" group by section_tag_id limit 1000";
+                }else{                    
+                    $q = "select groupby(), count(*), group_concat(purpose_id) from {$this->urlRouter->cfg['search_index']} where hold=0 and canonical_id=0 and section_id={$this->urlRouter->sectionId} ";
+                    if ($this->urlRouter->countryId) $q.="and country={$this->urlRouter->countryId} ";
+                    if ($this->urlRouter->cityId) $q.="and city={$this->urlRouter->cityId} ";
+                    $q.=" group by section_tag_id limit 1000";
+                }
+                $query = $sphinx->search($q);
+                if(isset($query['matches']) && count($query['matches'])){
+                    $tags=[];
+                    $query = $query['matches'];
+                    foreach($query as $tag){
+                        if ($this->urlRouter->purposeId) {
+                            $pus=$this->urlRouter->purposeId;
+                        }else{
+                            $pus=[];
+                            $pul = explode(",",$tag["group_concat(purpose_id)"]);
+                            foreach($pul as $puid){
+                                $pus[$puid+0]=1;
+                            }
+                        }
+                        $tags[$tag["groupby()"]+0]=[$tag['count(*)'],count($pus)];
+                    }
+                }
+                
                 ?> <!--googleoff: index --> <?php
                 ?><span onclick="subList(this)" class="rbt subit ic"></span><?php
                 ?><div id="sublist"><?php
                     ?><h2 class="ctr"><?= $this->lang['suggestion'] ?></h2><?php
                     ?><ul class="ls"><?php 
                     if ($this->extendedId) { 
-                        ?><li><a href="<?= $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $this->urlRouter->sectionId, $this->urlRouter->purposeId) ?>"><?= $sectionName ?><span class="to"></span></a></li><?php 
+                        ?><li class="bbr"><a href="<?= $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $this->urlRouter->sectionId, $this->urlRouter->purposeId) ?>"><?= $sectionName ?><span class="to"></span><span class="n"><?= $this->urlRouter->pageSections[$this->urlRouter->sectionId]['counter'] ?></span></a></li><?php 
                     } 
                     else {
-                        ?><li class="on"><b><?= $sectionName ?></b></li><?php
+                        ?><li class="on bbr"><b><?= $sectionName ?><span class="n"><?= $this->urlRouter->pageSections[$this->urlRouter->sectionId]['counter'] ?></span></b></li><?php
                     }
 
                     foreach ($this->extended as $sid=>$sub) {
                         $append = 'q-' . $sid . '-' . $keyIndex . '/';
                         if ($this->extendedId == $sid) {
-                            ?><li class="on"><b><?= $prefix . $sub['name'] . $suffix ?></b></li><?php
+                            ?><li class="on"><b><?= $prefix . $sub['name'] . $suffix ?>
+                            <?php
+                            if(isset($tags[$sid])){
+                                ?><span class="n"><?= $tags[$sid][0] ?></span><?php
+                            }
+                            ?></b></li><?php
                         } else {
                             /* url error */
-                            ?><li><a href="<?= $prefix_uri . $this->urlRouter->sections[$this->urlRouter->sectionId][3] . '-' . $sub['uri'] . $suffix_uri . $append ?>"><?= $prefix . $sub['name'] . $suffix ?><span class="to"></span></a></li><?php
+                            ?><li><a href="<?= $prefix_uri . $this->urlRouter->sections[$this->urlRouter->sectionId][3] . '-' . $sub['uri'] . $suffix_uri . $append ?>"><?= $prefix . $sub['name'] . $suffix ?><span class="to"></span><?php
+                            if(isset($tags[$sid])){
+                                ?><span class="n"><?= $tags[$sid][0] ?></span><?php
+                            }
+                            ?></a></li><?php
                         }
                     }
                     ?></ul><?php
@@ -4676,7 +4716,6 @@ if($isFeatured){
             }
             
             
-            
             $childCount = 0;
             $children = array();
             foreach ($this->localities as $lid=>$sub) {
@@ -4756,10 +4795,18 @@ if($isFeatured){
             }
             
             if ($citiesList) {
+                
+                ?> <!--googleoff: index --> <?php
+                    ?><span onclick="subList(this)" class="rbt subit loc ic"></span><?php
+                    ?><div id="sublist"><?php
+                    ?><h2 class="ctr"><?= $this->lang['suggestionLocation'] . ($this->localityId ? $this->localities[$this->localityId]['name'] . $this->lang['?'] : $this->urlRouter->countries[$this->urlRouter->countryId]['name'] . $this->lang['?']) ?></h2><?php
+                    
                 $hasExt=1;
                 if($locId && isset($this->localities[$locId])){                    
                     ?><ul class='ls'><?php
-                    
+                    /*
+                    ?><li class="bbr"><a href="<?= $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $this->urlRouter->sectionId, $this->urlRouter->purposeId) ?>"><?= $this->lang['opt_all_areas'] ?><span class="to"></span><span class="n"><?= $this->urlRouter->pageSections[$this->urlRouter->sectionId]['counter'] ?></span></a></li><?php 
+                    */
                     $alocId = (int)$locId;
                     $parentIds=array();
                     if($isParent){
@@ -4800,7 +4847,7 @@ if($isFeatured){
                                 ?><li class='sm<?= $i++ ?>'><a href='<?= $prefix_uri . $this->localities[$pid]['uri'] . $suffix_uri . $append ?>'><span class="w"></span><?= $this->localities[$pid]['name'] ?><span class='to'></span></a></li><?php
                             }
                         }else{
-                            ?><li><a href='<?= $this->urlRouter->getURL($this->urlRouter->countryId,$this->urlRouter->cityId,$this->urlRouter->rootId,$this->urlRouter->sectionId,$this->urlRouter->purposeId).$q ?>'><?= $this->cityName ? $this->cityName : $this->countryName ?><span class='to'></span></a></li><?php
+                            ?><li class="bbr"><a href='<?= $this->urlRouter->getURL($this->urlRouter->countryId,$this->urlRouter->cityId,$this->urlRouter->rootId,$this->urlRouter->sectionId,$this->urlRouter->purposeId).$q ?>'><?= $this->cityName ? $this->cityName : $this->countryName ?><span class='to'></span></a></li><?php
                         }
                     }
                     
@@ -4817,9 +4864,13 @@ if($isFeatured){
                 }else{     
                     $citiesList = preg_replace('/\<span class\=\"w\"\>\<\/span\>/','',$citiesList);
                     ?><ul class='ls'><?php 
+                    ?><li class="on bbr"><b><?= $this->cityName ? $this->cityName : $this->countryName ?><span class="n"><?= $this->urlRouter->pageSections[$this->urlRouter->sectionId]['counter'] ?></span></b></li><?php
                     echo $citiesList;
                     ?></ul><?php
                 }
+                
+                ?></div><?php
+                ?> <!--googleon: index --> <?php
             }
         }
     }

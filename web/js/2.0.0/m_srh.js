@@ -601,12 +601,15 @@ function subList(e){
         },10);
         e.removeClass('spin').addClass('rspin');
         setTimeout(function(){e.removeClass('on')},250);
-        //$(e).removeClass('on').addClass('off');
     };
-    if(d.hasClass('on')){
+    var z=function(){        
         f();
         history.back()
+    };
+    if(d.hasClass('on')){
+        z();
     }else{
+        $('.on',d)[0].onclick=z;
         var h1 = $('h1');
         _title=h1.html();
         h1.html($('h2',d).html());
@@ -622,9 +625,8 @@ function subList(e){
         window.addEventListener("popstate", f, true);
         e.removeClass('rspin').addClass('spin');
         setTimeout(function(){e.addClass('on')},250);
-        //$(e).removeClass('off').addClass('on');
-        if(e.hasClass("loc")){
-            /*$.ajax({
+        /*if(e.hasClass("loc")){
+            $.ajax({
                 type:'GET',
                 url:'/api/',        
                 dataType:'json',
@@ -641,7 +643,7 @@ function subList(e){
                 },
                 success:function(rp){},
                 error:function(rp){}
-            });*/
-        }
+            });
+        }*/
     }
 }
