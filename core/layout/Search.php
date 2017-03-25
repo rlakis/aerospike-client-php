@@ -65,13 +65,13 @@ class Search extends Page {
         if(isset($_GET['rt'])){
             $this->isRT = 1;
         }
-        $this->set_require('css', 'search');
         if(!$this->isMobile){
             $this->inlineCss .= '.cct > a{white-space:nowrap;float:'.($this->urlRouter->siteLanguage == 'ar' ? 'right':'left').'}';
             $this->inlineCss .= '.sfilter .order,.sfilter .olang{background-color:#f8f8f8}.sfilter .order.ov,.sfilter .olang.ov{background-color:#ff9000}ul.sfilter{background-color:gold}';
             $this->inlineCss.='.ad600{display:inline-block;width:300px;height:600px}.adsawa{border:0;display:inline-block;width:300px;height:250px}';                
             $this->inlineCss .= '.rpd input[type="email"]{direction:ltr;display: block;width:624px;padding:5px 10px;margin-bottom:15px}';
         }else{
+            $this->set_require('css', 'search');
             $this->inlineCss .= '.thb.prem{height:50px}';
             $this->inlineCss .= '.txtd input[type="email"]{direction:ltr;width:90%;margin:10px auto;padding:5px 10px;border: 1px solid #CCC}';
         }
