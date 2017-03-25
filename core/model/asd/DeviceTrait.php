@@ -64,7 +64,7 @@ trait DeviceTrait
     
 
 
-    public function deviceFetch(string $uuid) : array
+    public function deviceFetch(string $uuid)
     {
         $pk = $this->initDeviceKey($uuid);
         return $this->getBins($pk);

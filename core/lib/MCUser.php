@@ -97,7 +97,11 @@ class MCUser extends MCJsonMapper
             }
             else
             {
-                $this->parseArray( NoSQL::getInstance()->fetchUserByUUID($source_data) );
+                if (($user_data = NoSQL::getInstance()->fetchUserByUUID($source_data))!==FALSE)
+                {
+                    $this->parseArray($user_data);
+                }
+                //$this->parseArray( NoSQL::getInstance()->fetchUserByUUID($source_data) );
             }
         }   
     }
