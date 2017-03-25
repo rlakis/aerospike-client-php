@@ -331,10 +331,10 @@ class Search extends Page {
             //if ($this->isMobileAd) {
             //$this->set_ad(array('Leaderboard'=>array('/1006833/mourjan-mobile', 320, 50, 'div-gpt-ad-1326381096859-0-'.$this->urlRouter->cfg['server_id'])));
             
-            $this->inlineCss.='.w300,.w650{width:100%;display:block}.w650, .w650 div{margin:0 auto;display: block}.w650, .w650 div{width:650px;height:120px}.ad.ad_dt{margin:5px 0}@media all and (max-width: 649px){.w650 {display: none!important}}';
+            $this->inlineCss.='.w300,.w650{width:100%;display:block}.w650, .w650 div{margin:0 auto;display: block}.w650, .w650 div{width:650px;height:120px}.card{overflow-x:hidden}.lbad{overflow:visible!important;background-color:transparent!important;border:0!important}.ad.ad_dt{margin:0}@media all and (max-width: 649px){.w650 {display: none!important}}';
 
-            if (isset($this->user->params['screen']['w']) && $this->user->params['screen']['w']) {
-                $width = $this->user->params['screen']['w'];
+            if (isset($this->user->params['screen'][0]) && $this->user->params['screen'][0]) {
+                $width = $this->user->params['screen'][0];
                 if ($width >= 728) {
                     $this->set_ad(array('Leaderboard' => array('/1006833/M728x90', 728, 90, 'lad-' . $this->urlRouter->cfg['server_id'])));
                     $this->set_ad(array('Square' => array('/1006833/M336x280', 336, 280, 'ad-' . $this->urlRouter->cfg['server_id'])));
@@ -745,6 +745,7 @@ class Search extends Page {
             }
             
             $renderAd=true;
+            $smallBanner = true;
             
             for ($ptr = 0; $ptr < $ad_count; $ptr++) 
             {
@@ -936,33 +937,19 @@ class Search extends Page {
                     }
                     /* ?><li itemprop="itemListElement" <?= $liClass.$itemScope ?>><a class='<?= $textClass ?>' href="<?= $_link ?>"><?= '<span '.$itemDesc.'>'.$newSpan.$ad[Classifieds::CONTENT].'</span>' ?><span class="<?= $this->urlRouter->siteLanguage ?>"><?= $pub_link . " <time st='".$ad[Classifieds::UNIXTIME]."'></time>" ?></span></a></li><?php */
                     /* ?><li <?= $id ?> itemprop="itemListElement" <?= $liClass . $itemScope ?>><?= '<p '.( $detailAd ? '': 'onclick="wo(\'' . $_link . '\')" ') . $itemDesc . ' class="button ' . $textClass . '">' . $pic . $newSpan . $ad[Classifieds::CONTENT] . '</p>' ?><span class="src <?= $this->urlRouter->siteLanguage ?>"><?= (($feature||$isFeatured) ? ( ($paid||$isFeatured) ? '<span class="vpdi '.$this->urlRouter->siteLanguage.'"></span><b>'.$this->lang['premium_ad'].'</b>' : '<span class="ovp '.$this->urlRouter->siteLanguage.'"></span>'.$pub_link) : $pub_link . " <time st='" . $ad[Classifieds::UNIXTIME] . "'></time>") . $optSpan. $locSpan . $favSpan  ?></span></li><?php */
+                    
+                    if(!$isFeatured && !$feature && $idx > 1 && $smallBanner){
+                        $banner = $this->fill_ad('Leaderboard', 'ad_dt');
+                        if($banner){
+                            echo '<li class="lbad">'.$banner.'</li>';
+                        }
+                        $smallBanner = false;
+                    }
+                    
                     ?><li <?= $id ?> itemprop="itemListElement" <?= $liClass . $itemScope ?>><?= '<p '.( $detailAd ? '': 'onclick="wo(\'' . $_link . '\')" ') . $itemDesc . ' class="button ' . $textClass . '">' . $pic . $newSpan . $ad[Classifieds::CONTENT] . '</p>' ?><span class="src <?= $this->urlRouter->siteLanguage ?>"><?= (($feature||$isFeatured) ? ( ($paid||$isFeatured) ? '<span class="vpdi '.$this->urlRouter->siteLanguage.'"></span><b>'.$this->lang['premium_ad'].'</b>' : '<span class="ovp '.$this->urlRouter->siteLanguage.'"></span>') : "<time st='" . $ad[Classifieds::UNIXTIME] . "'></time>") . $optSpan. $locSpan . $favSpan  ?></span></li><?php
                     
                     $idx++;
-                    
-                    if( ( (isset($this->user->params['mobile_ios_app_bottom_banner']) && $this->user->params['mobile_ios_app_bottom_banner']==1) 
-                            || (isset($this->user->params['mobile_android_app_bottom_banner']) && $this->user->params['mobile_android_app_bottom_banner']==1) ) && $nidx == 1){
-                        ?> <!--googleoff: index --> <?php
-                        /*
-                        ?><li class="app_li"><?php 
-                        if (isset($this->user->params['mobile_ios_app_bottom_banner']) && $this->user->params['mobile_ios_app_bottom_banner']==1){
-                            
-                            ?><a href="https://itunes.apple.com/us/app/mourjan-mrjan/id876330682?ls=1&mt=8"><p><?php                         
-                            ?><span class="tha"></span><?php 
-                            echo $this->lang['download_ios_app'];
-                            ?></p></a><?php
-                            
-                        }else{
-                            
-                            ?><a href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><p><?php                         
-                            ?><span class="tha"></span><?php 
-                            echo $this->lang['download_android_app'];
-                            ?></p></a><?php
-                            
-                        }
-                        ?></li><?php 
-                        ?> <!--googleon: index --> <?php */
-                    }
+                   
                     
                     if(!$feature) {
                         $nidx++;
@@ -1120,11 +1107,7 @@ class Search extends Page {
         $this->execute(true);
     
         if ($this->searchResults['body']['total_found'] > 0 && isset($this->searchResults['body']['matches']) && count($this->searchResults['body']['matches']) > 0) {
-                                                    
-            if($this->urlRouter->params['start']>1){
-                echo $this->fill_ad('Leaderboard', 'ad_dt');
-            }
-
+                
             echo '<div class="sum">', $this->summerizeSearchMobile(true), '</div>';
 
             $sectionId = $this->urlRouter->sectionId;
@@ -1183,11 +1166,11 @@ class Search extends Page {
             //    $this->filterPurposesMobile();
     
             if ($hasResults) {
-                if ( $this->urlRouter->module=='search' && !$this->userFavorites && !$this->urlRouter->watchId && !$this->urlRouter->userId ){
+                /*if ( $this->urlRouter->module=='search' && !$this->userFavorites && !$this->urlRouter->watchId && !$this->urlRouter->userId ){
                     if($this->urlRouter->params['start']>1){
                         echo $this->fill_ad('Leaderboard', 'ad_dt');
                     }
-                }
+                }*/
                     
                 echo '<div class="sum">', $this->summerizeSearchMobile(), '</div>';
                 //            $this->setNotification($this->summerizeSearchMobile());
