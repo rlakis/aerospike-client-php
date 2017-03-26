@@ -331,7 +331,7 @@ class Search extends Page {
             //if ($this->isMobileAd) {
             //$this->set_ad(array('Leaderboard'=>array('/1006833/mourjan-mobile', 320, 50, 'div-gpt-ad-1326381096859-0-'.$this->urlRouter->cfg['server_id'])));
             
-            $this->inlineCss.='.w300,.w650{width:100%;display:block}.w650, .w650 div{margin:0 auto;display: block}.w650, .w650 div{width:650px;height:120px}.card{overflow-x:hidden}.lbad{overflow:visible!important;background-color:transparent!important;border:0!important}.ad.ad_dt{margin:0}@media all and (max-width: 649px){.w650 {display: none!important}}';
+            $this->inlineCss.='.w300,.w650{width:100%;display:block}.w650, .w650 div{margin:0 auto;display: block}.ad100{display:inline-block;width:320px;height:100px}.w650, .w650 div{width:650px;height:120px}.card{overflow-x:hidden}.lbad{text-align:center;overflow:visible!important;background-color:transparent!important;border:0!important}.ad.ad_dt{margin:0}@media all and (max-width: 649px){.w650 {display: none!important}}';
 
             if (isset($this->user->params['screen'][0]) && $this->user->params['screen'][0]) {
                 $width = $this->user->params['screen'][0];
@@ -939,9 +939,13 @@ class Search extends Page {
                     /* ?><li <?= $id ?> itemprop="itemListElement" <?= $liClass . $itemScope ?>><?= '<p '.( $detailAd ? '': 'onclick="wo(\'' . $_link . '\')" ') . $itemDesc . ' class="button ' . $textClass . '">' . $pic . $newSpan . $ad[Classifieds::CONTENT] . '</p>' ?><span class="src <?= $this->urlRouter->siteLanguage ?>"><?= (($feature||$isFeatured) ? ( ($paid||$isFeatured) ? '<span class="vpdi '.$this->urlRouter->siteLanguage.'"></span><b>'.$this->lang['premium_ad'].'</b>' : '<span class="ovp '.$this->urlRouter->siteLanguage.'"></span>'.$pub_link) : $pub_link . " <time st='" . $ad[Classifieds::UNIXTIME] . "'></time>") . $optSpan. $locSpan . $favSpan  ?></span></li><?php */
                     
                     if(!$isFeatured && !$feature && $idx > 1 && $smallBanner){
-                        $banner = $this->fill_ad('Leaderboard', 'ad_dt');
-                        if($banner){
-                            echo '<li class="lbad">'.$banner.'</li>';
+                        if($this->urlRouter->cfg['enabled_ads'] && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<470)){
+                            ?><li class="lbad"><ins class="adsbygoogle ad100" data-ad-client="ca-pub-2427907534283641" data-ad-slot="5711519829"></ins></li><?php
+                        }else{
+                            $banner = $this->fill_ad('Leaderboard', 'ad_dt');
+                            if($banner){
+                                echo '<li class="lbad">'.$banner.'</li>';
+                            }
                         }
                         $smallBanner = false;
                     }

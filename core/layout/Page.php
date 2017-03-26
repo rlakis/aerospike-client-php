@@ -3289,13 +3289,11 @@ class Page extends Site{
         if (isset($this->user->info['level']) && $this->user->info['level']==9){
             return;
         }
-        $banAd = 0;
         if (preg_match('/Firefox\/27\.0/ui', $_SERVER['HTTP_USER_AGENT'])) {
-            //error_log("Hala " . $_SERVER['HTTP_USER_AGENT']);
-            $banAd = 1;
+            $this->urlRouter->cfg['enabled_ads'] = 0;
         }
         ?><script type='text/javascript'><?php
-        if ($banAd==0 && $this->urlRouter->cfg['enabled_ads'] && count($this->googleAds)) {
+        if ($this->urlRouter->cfg['enabled_ads'] && count($this->googleAds)) {
                 ?>var googletag = googletag||{};googletag.cmd=googletag.cmd||[];(function(){var gads=document.createElement('script');gads.async=true;gads.type='text/javascript';var useSSL='https:'==document.location.protocol;gads.src=(useSSL?'https:':'http:')+'//www.googletagservices.com/tag/js/gpt.js';var node=document.getElementsByTagName('script')[0];node.parentNode.insertBefore(gads, node);})();googletag.cmd.push(function(){<?php
             
             $slot=0;
@@ -3371,9 +3369,13 @@ class Page extends Site{
             ?>_gaq.push(['_trackPageview']);<?php 
             ?>(function(){var ga=document.createElement('script');ga.type='text/javascript';ga.async=true;ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(ga,s);})();<?php 
         */
-        
-        
           ?></script><?php
+          if ($this->isMobile && $this->urlRouter->cfg['enabled_ads'] 
+                  && in_array($this->urlRouter->module,['search','detail'])                   
+                && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<470)){ 
+            ?><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php
+          }
+
     }
 
     function renderMobileLinks(){
@@ -3419,12 +3421,18 @@ class Page extends Site{
             $this->inlineScript=preg_replace("/;;/", ';', $this->inlineScript);
         }
         
-        if ($this->urlRouter->module=='index' && !$this->urlRouter->rootId && $this->urlRouter->countryId) 
+        /*if ($this->urlRouter->module=='index' && !$this->urlRouter->rootId && $this->urlRouter->countryId) 
         { 
             ?><div id="fb-root"></div><?php
-        }
+        }*/
         
         ?><script type="text/javascript"><?php
+        if ($this->urlRouter->cfg['enabled_ads'] 
+                && in_array($this->urlRouter->module,['search','detail']) 
+                && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<470)){
+            /* ?>(adsbygoogle = window.adsbygoogle || []).push({google_ad_client: "ca-pub-2427907534283641",enable_page_level_ads: true,vignettes: {google_ad_channel: 'mourjan-vignette'},overlays: {google_ad_channel: 'mourjan-overlay'}});<?php */
+            ?>(adsbygoogle = window.adsbygoogle || []).push({});<?php
+        }
         //has Query Parameter
         ?>var head = document.getElementsByTagName("head")[0] || document.documentElement;<?php
         /* ?>function loadCss(fn,cb){var s=document.getElementsByTagName("link"),l=s.length-1,p=0,e;for(i=l;i>=0;i--){if(s[i].rel=='stylesheet'){e=s[i];break;}}if(typeof e==='undefined'){p=1;e=head.firstChild}var l=document.createElement('link');l.rel='stylesheet';l.type="text/css";l.media='all';l.href=fn;e.parentNode.insertBefore(l,e.nextSibling)}<?php */
