@@ -3607,8 +3607,10 @@ class Bin extends AjaxHandler{
                     }else $this->fail('102');
                 }else $this->fail('101');
                 break;
+                
             case 'ajax-approve':
-                if ($this->user->info['level']==9 && isset ($_POST['i'])) {
+                if ($this->user->info['level']==9 && isset ($_POST['i'])) 
+                {
                     $id=$_POST['i'];
                     if (is_numeric($id)){
                         if ($this->user->approveAd($id)) {

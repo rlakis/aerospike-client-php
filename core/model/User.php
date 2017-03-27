@@ -2659,33 +2659,45 @@ order by m.activation_timestamp desc',
         $this->favorites=[];
     }
 
-    function setStats(){
-        if (!isset($this->params['visit'])) {
+    
+    function setStats()
+    {
+        if (!isset($this->params['visit'])) 
+        {
             $this->params['visit']=1;
-            
-            $keys = array_keys($_SESSION);
+                       
             //error_log(implode('||',$keys).'||'.(isset($keys['params'])?'SET':'NOT').PHP_EOL);
-            if(isset($_SESSION['info'])){
-                foreach($keys as $key){
-                    if(strlen($key)>16 && substr($key, -3)=='mjn'){
+            if(isset($_SESSION['_u']['info']))
+            {
+                $keys = array_keys($_SESSION);
+                foreach ($keys as $key)
+                {
+                    if (strlen($key)>16 && substr($key, -3)=='mjn')
+                    {
                         unset($_SESSION[$key]);
                         break;
                     }
                 }
             }
-        }else{
+        }
+        else
+        {
             $this->params['visit']++;
         }
+        
         $this->update();
-        if($this->info['id']){
+        if($this->info['id'])
+        {
             if(!isset($this->info['options']['UA']) || 
-                    (isset($this->info['options']['UA']) && $this->info['options']['UA']!=$_SERVER['HTTP_USER_AGENT']) ){
+                    (isset($this->info['options']['UA']) && $this->info['options']['UA']!=$_SERVER['HTTP_USER_AGENT']) )
+            {
                 $this->info['options']['UA']=$_SERVER['HTTP_USER_AGENT'];
                 $this->update();
                 $this->updateOptions();
             }
         }
     }
+    
     
     function getSessionHandlerCookieData(){
         $data=null;
@@ -2822,11 +2834,12 @@ order by m.activation_timestamp desc',
     function populate()
     {
         $this->session_id=session_id();
-        if (isset($_SESSION['info'])) $this->info=$_SESSION['info'];
-        if (isset($_SESSION['params'])) $this->params=$_SESSION['params'];
-        if (isset($_SESSION['pending'])) $this->pending=$_SESSION['pending'];
-        //error_log($this->session_id);
-        //error_log(var_export($_SESSION,true));
+        $_u = $_SESSION['_u'] ?? [];
+        
+        if (isset($_u['info'])) $this->info=$_u['info'];
+        if (isset($_u['params'])) $this->params=$_u['params'];
+        if (isset($_u['pending'])) $this->pending=$_u['pending'];
+
         if($this->info['id'])
         {
             $this->data = new MCUser($this->info['id']);
@@ -2836,9 +2849,9 @@ order by m.activation_timestamp desc',
                 $this->info['verified'] = $this->data->isMobileVerified();
                 $this->info['options']['suspend'] = $this->data->getSuspensionTime();
                 $this->data->createToken();
+                $this->update();
             }
         }
-        $this->update();   
     }
     
     
@@ -2897,11 +2910,14 @@ order by m.activation_timestamp desc',
         $user=array('info'=>$this->info,'params'=>$this->params);
         return $user;
     }
+    
 
-    function update(){
-        $_SESSION['info']=$this->info;
-        $_SESSION['params']=$this->params;
-        $_SESSION['pending']=$this->pending;
+    function update()
+    {
+        $_SESSION['_u'] = ['info' => $this->info, 'params' => $this->params, 'pending'=> $this->pending];
+        //$_SESSION['info']=$this->info;
+        //$_SESSION['params']=$this->params;
+        //$_SESSION['pending']=$this->pending;
         //error_log(var_export($_SESSION,true));
     }
 
