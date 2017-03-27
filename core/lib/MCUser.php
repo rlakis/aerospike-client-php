@@ -683,7 +683,11 @@ class MCMobile extends MCJsonMapper
         return $this->number ? $this->number : 0;
     }
 
-
+    public function getCode() : string
+    {
+        return $this->code ? $this->code : '';
+    }
+    
     public function getSecret() : string
     {
         return $this->secret ? $this->secret : '';

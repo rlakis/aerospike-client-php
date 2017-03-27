@@ -1120,7 +1120,7 @@ class Page extends Site{
             //if($css == 'main' && $this->isMobile){
             //if (!isset($this->user->params['visit']) || $this->user->params['visit']<2) {
             //if (0 && $this->isMobile) {
-            if (1 || strpos($source,'dv.mourjan.com')===false) {
+            if (strpos($source,'dv.mourjan.com')===false) {
                 $fn = $css.$addOn.'.css';
                 if($this->isMobile){
                     $fn = 'm'.$fn;
@@ -1145,6 +1145,11 @@ class Page extends Site{
         if ($this->inlineCss){
             $this->inlineCss= preg_replace('/\n/','',$this->inlineCss);
             $this->inlineCss= preg_replace('/\s+/',' ',$this->inlineCss);
+            $this->inlineCss=preg_replace('/;}/','}',$this->inlineCss);
+            $this->inlineCss=preg_replace('/ {/','{',$this->inlineCss);
+            $this->inlineCss=preg_replace('/} /','}',$this->inlineCss);
+            $this->inlineCss=preg_replace('/, /',',',$this->inlineCss);
+            $this->inlineCss=trim($this->inlineCss);
         }else{
             $this->inlineCss='';
         }

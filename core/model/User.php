@@ -2259,11 +2259,17 @@ order by m.activation_timestamp desc',
                             unset($updateNotes);
                             
                             
-                            if($newUid>0){
+                            if($newUserId>0){
                                 //MERGE DEVICE FAVORITES
                                 $updateTransRecords = $this->db->prepareQuery('update T_TRAN t set t.UID=? where t.UID=?');
                                 $updateTransRecords->execute([$newUserId, $uid]);
                                 unset($updateTransRecords);
+                            }
+                            
+                            $mcUser = new MCUser($uid);
+                            if($mcUser->isMobileVerified()){
+                                $mobile = $mcUser->getMobile(true);                                
+                                \Core\Model\NoSQL::getInstance()->mobileCopyRecord($uid, $mobile->getNumber(), $newUserId);
                             }
                             
                         }else{

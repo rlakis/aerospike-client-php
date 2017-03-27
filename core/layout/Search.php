@@ -71,6 +71,8 @@ class Search extends Page {
             $this->inlineCss.='.ad600{display:inline-block;width:300px;height:600px}.adsawa{border:0;display:inline-block;width:300px;height:250px}';                
             $this->inlineCss .= '.rpd input[type="email"]{direction:ltr;display: block;width:624px;padding:5px 10px;margin-bottom:15px}';
         }else{
+            /*$this->isMobileCssLegacy=false;
+            $this->clear_require('css');*/
             $this->set_require('css', 'search');
             $this->inlineCss .= '.thb.prem{height:50px}';
             $this->inlineCss .= '.txtd input[type="email"]{direction:ltr;width:90%;margin:10px auto;padding:5px 10px;border: 1px solid #CCC}';
