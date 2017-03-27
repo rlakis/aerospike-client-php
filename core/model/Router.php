@@ -998,10 +998,11 @@ class Router
     }
 
 
-     function distance($lat, $lon, $ulat=0, $ulon=0) 
-     {
-        if (!$ulat) $ulat = $_SESSION['params']['latitude'];
-        if (!$ulon) $ulon = $_SESSION['params']['longitude'];
+    function distance($lat, $lon, $ulat=0, $ulon=0) 
+    {
+        $_session_params = $_SESSION['_u']['params'];
+        if (!$ulat) $ulat = $_session_params['latitude'] ?? 0.0;
+        if (!$ulon) $ulon = $_session_params['longitude'] ?? 0.0;
         $theta = $ulon - $lon;
         $dist = sin(deg2rad($ulat)) * sin(deg2rad($lat)) +  cos(deg2rad($ulat)) * cos(deg2rad($lat)) * cos(deg2rad($theta));
         $dist = acos($dist);
