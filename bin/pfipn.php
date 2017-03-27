@@ -41,7 +41,6 @@ include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
 include_once $config['dir']. '/core/model/Db.php';
 include_once $config['dir'].'/core/lib/PayfortIntegration.php';
 
-
 $language = $_REQUEST['language'] ?? 'en';
 if (!in_array($language, ['en','ar']))
 {
