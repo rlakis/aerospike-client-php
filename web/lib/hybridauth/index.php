@@ -15,12 +15,15 @@ use mourjan\Exception;
 use mourjan\Logger;
 
 include_once get_cfg_var('mourjan.path'). '/core/lib/MCSessionHandler.php';
-new MCSessionHandler();
+new \MCSessionHandler(TRUE);
 //session_set_save_handler($handler, true);
 //session_start();
 
-try {
-	Hybrid_Endpoint::process();
-} catch (Exception $e) {
-	error_log($e->getMessage());
+try
+{
+    Hybrid_Endpoint::process();
+}
+catch (Exception $e)
+{
+    error_log($e->getMessage());
 }
