@@ -288,6 +288,27 @@ trait MobileTrait
     }
     
     
+    public function mobileCopyRecord(int $uid, int $number, int $toUID) : bool
+    {
+        $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
+        if ($this->exists($pk)) 
+        {
+            $record = $this->getBins($pk);
+            if ($record)
+            {
+                $mobile_id=0;
+                $this->genId('mobile_id', $mobile_id);
+                $record[SET_RECORD_ID] = $mobile_id;
+                $record[USER_UID] = $toUID;
+                
+                $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $toUID.'-'.$number);
+                return $this->setBins($pk, $record);
+            }                
+        }
+        return FALSE;
+    }
+    
+    
     public function mobileActivation(int $uid, int $number, int $code) : bool
     {
         $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [USER_UID=>$uid, USER_MOBILE_ACTIVATION_CODE=>$code]);
