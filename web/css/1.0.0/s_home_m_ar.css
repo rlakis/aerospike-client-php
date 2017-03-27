@@ -1,0 +1,518 @@
+* {
+    padding: 0;
+    margin: 0;
+    outline: none
+}
+html {
+    -ms-touch-action: manipulation;
+    touch-action: manipulation
+}
+body {
+    font-family: verdana, arial;
+    background-color: #F4F4F4;
+    color: #333;
+    text-align: right;
+    direction: rtl;
+    padding-top: 40px
+}
+input,
+textarea,
+select {
+    border: 1px solid #CCC;
+    padding: 5px;
+    font-size: 18px
+}
+input.err,
+textarea.err,
+select.err {
+    border-color: red
+}
+a {
+    text-decoration: none
+}
+a:visited {
+    color: #00E
+}
+ul {
+    list-style: none
+}
+.bt {
+    background: rgb(201,222,150);
+    background: linear-gradient(to bottom, rgba(201,222,150,1) 0%,rgba(138,182,107,1) 44%,rgba(57,130,53,1) 100%);
+    line-height: 30px;
+    height: 30px;
+    padding: 5px;
+    display: inline-block;
+    color: #FFF
+}
+.bt:visited {
+    color: #FFF
+}
+.bt:active {
+    background-color: #048BF4
+}
+.ctr {
+    text-align: center !important
+}
+.br {
+    margin-top: 15px !important
+}
+.bbr{
+    margin-bottom: 15px !important
+}
+.en,
+.en h2 {
+    text-align: left;
+    direction: ltr;
+    font-size: 15px
+}
+.ar,
+.ar h2 {
+    text-align: right;
+    direction: rtl;
+    font-size:18px
+}
+.rc,
+.bt,
+.bts div,
+.bts,
+input,
+textarea {
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    -o-border-radius: 8px;
+    border-radius: 8px
+}
+.bts div,
+.ad iframe,
+.sh,
+.bt,
+.top,
+.sef,
+.ls li.edit,
+input,
+textarea {
+    -moz-box-shadow: 0 3px 3px #999;
+    -o-box-shadow: 0 3px 3px #999;
+    -webkit-box-shadow: 0 3px 3px #999;
+    box-shadow: 0 3px 3px #999
+}
+.ic,
+.to,
+.et,
+.k,
+.back,
+.srch .k,
+.qb,
+.nw,
+.adn,
+.w {
+    background: url(./i/main_m.png) no-repeat center
+}
+.top {
+    background-color: #143D55;
+    background: -moz-linear-gradient(top, rgba(83, 135, 170, 1) 0%, rgba(29, 86, 124, 1) 47%, rgba(20, 61, 85, 1) 100%);
+    background: -webkit-linear-gradient(top, rgba(83, 135, 170, 1) 0%, rgba(29, 86, 124, 1) 47%, rgba(20, 61, 85, 1) 100%);
+    background: linear-gradient(to bottom, rgba(83, 135, 170, 1) 0%, rgba(29, 86, 124, 1) 47%, rgba(20, 61, 85, 1) 100%);
+    height: 40px;
+    line-height: 40px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 50002
+}
+.top-shd {
+    position: fixed;
+    height: 40px;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50003
+}
+.back,
+.srch {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    background-position: 5px -99px
+}
+.hasB .srch {
+    right: 45px;
+    left: auto
+}
+.back {
+    border-left: 1px solid #999
+}
+.srch .k,
+.k.cancel {
+    width: 40px;
+    height: 40px;
+    display: inline-block;
+    background-position: 5px -138px
+}
+.srch.on {
+    background-color: #6F6F6F;
+    border: 0
+}
+.k.cancel {
+    background-position: 2px -250px
+}
+.k.home {
+    width: 40px;
+    height: 40px;
+    display: inline;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-position: 5px -210px
+}
+.k.home.on {
+    background-position: 5px -175px
+}
+.ic,
+.ls .k.home,
+.k.log{
+    height: 30px;
+    width: 30px;
+    float: right;
+    margin-left: 10px !important
+}
+.ls .k.home,
+.k.log{
+    position: relative;
+    background-position: -2px -214px
+}
+.k.log {
+    background-position: -40px -179px
+}
+.k.log.on {
+    background-position: -40px -214px
+}
+.cf {
+    width: 32px;
+    height: 24px;
+    background-repeat: no-repeat;
+    float: right;
+    margin-left: 10px;
+    position: relative;
+    bottom: -4px
+}
+.r1 {
+    background-position: -84px -1px
+}
+.r2 {
+    background-position: -82px -38px
+}
+.r3 {
+    background-position: -81px -118px
+}
+.r4 {
+    background-position: -81px -157px
+}
+.r99 {
+    background-position: -81px -79px
+}
+.r100 {
+    background-position: -122px -117px
+}
+.r101 {
+    background-position: -160px -130px
+}
+.r102 {
+    background-position: -201px -39px
+}
+.apb {
+    background-position: -159px -92px
+}
+h1 {
+    font-weight: normal;
+    margin: 0 45px;
+    color: #FFF;
+    text-align: right;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    font-size: 18px
+}
+.hasB.hasS h1 {
+    margin: 0 90px 0 45px
+}
+h1.e {
+    direction: ltr
+}
+h1.a {
+    direction: rtl
+}
+.ls {
+    border: 1px solid #E7E9F0;
+    border-top: 0;
+    text-align: right
+}
+.ls li {
+    background-color: #FFF;
+    border-top: 1px solid #E7E9F0;
+    overflow: hidden;
+    position: relative
+}
+.ls a,
+.cls a,
+.ls b {
+    display: block;
+    padding: 15px 5px;
+    height: 30px;
+    line-height: 30px;
+    font-weight: normal
+}
+.side .ls a,
+.side .cls a,
+.side .ls b {
+    padding: 5px
+}
+.ls a:active,
+.cls a:active {
+    background-color: #048BF4;
+    color: #FFF
+}
+.ls form {
+    padding: 15px 5px;
+    height: 30px;
+    line-height: 33px
+}
+.ls li.on {
+    background-color: indianred;
+    color: #FFF
+}
+.ls li.h {
+    background-color: #369;
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#a9db80+0,96c56f+100;Green+3D+%232 */
+    background: linear-gradient(to bottom, rgba(49,116,150,1) 1%,rgba(57,127,155,1) 52%,rgba(37,57,114,1) 100%);
+    color: #FFF;
+    border: 0
+}
+.h b {
+    padding: 5px;
+}
+li.h .n {
+    color: #FFF;
+}
+.to,
+.et {
+    background-position: -37px -142px;
+    width: 20px;
+    height: 30px;
+    float: left
+}
+.et.etr {
+    float: right;
+    width: 30px;
+    margin-left: 10px;
+    background-position: 4px 5px
+}
+.ls .n {
+    float: left;
+    color: #333;
+    font-size: 14px
+}
+.n b {
+    color: red;
+    display: inline-block;
+    padding: 0;
+    height: auto;
+    line-height: inherit
+}
+li.on .n b{
+    color:#FFF
+}
+.et {
+    background-position: 0 5px;
+    width: 25px
+}
+.copy {
+    color: #444;
+    text-shadow: #FFF 1px 1px 2px;
+    text-align: center;
+    direction: ltr;
+    margin: 15px 5px 10px;
+    font-size:11px;
+}
+@media all and (max-width: 320px) {
+    .copy span {
+        display: block
+    }
+    .copy .sep {
+        display: none
+    }
+}
+body,
+.ilnk,
+.bts li,
+.en .ar {
+    font-size: 18px
+}
+.en h2 {
+    font-size: 16px
+}
+.ar h2 {
+    font-size: 18px
+}
+#dialog-mask {
+    position: fixed;
+    display: block;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    opacity: 0.6!important;
+    z-index: 50000
+}
+.side {
+    background-color: #F4F4F4;
+    position: fixed;
+    top: 40px;
+    z-index: 50001;
+    left: 0;
+    width: 80%;
+    bottom: 0;
+    border-right: 1px solid #CCC;
+    overflow: auto;
+    -webkit-transition: all 0.5s ease-in-out;
+    -moz-transition: all 0.5s ease-in-out;
+    -o-transition: all 0.5s ease-in-out;
+    transition: all 0.5s ease-in-out;
+    -webkit-transform: translate(-100%, 0); /* Safari */
+    transform: translate(-100%, 0);
+}
+.side a.ctr {
+    background-color: gainsboro;
+    color: #369
+}
+.side.on {
+    -webkit-transform: translate(0, 0); /* Safari */
+    transform: translate(0, 0);
+}
+li.on .n {
+    color: #FFF
+}
+.side li.on {
+    background-color: indianred!important;
+    color: #FFF!important
+}
+.side span b {
+    line-height: 20px
+}
+.install {
+    border: 1px solid #E7E9F0;
+    background-color: #FFF;
+    overflow: hidden;
+    margin: 0px 10px;
+    color: #369;
+    font-size: 16px
+}
+.install .rating {
+    width: 79px;
+    height: 38px;
+    display: block;
+    background: url(i/rating-ar.jpg) no-repeat top right;
+    font-size: 13px;
+    color: #999;
+    padding-right: 83px
+}
+.install .rating.ios {
+    margin-top: 10px
+}
+.install h5 {
+    font-size: 18px;
+    height: 25px
+}
+.install .bt {
+    width: 70%
+}
+.install li {
+    width: 40%;
+    float: right;
+    text-align: left
+}
+.install div {
+    margin: 10px
+}
+.install li:nth-child(2) {
+    width: 60%;
+    text-align: right
+}
+.install li:last-child {
+    padding-bottom: 10px;
+    text-align: center;
+    width: 100%
+}
+.install .ilogo {
+    margin: 10px 5px;
+    width: 90px;
+    height: 90px;
+    display: inline-block
+}
+#q {
+    direction: rtl;
+    text-align: right;
+    -moz-border-radius: 0px;
+    -webkit-border-radius: 0px;
+    -o-border-radius: 0px;
+    border-radius: 0px;
+    position: absolute;
+    left: 5px;
+    right: 5px;
+    bottom: 1px;
+    top: 1px;
+    height: 38px;
+    margin-right: 36px;
+    -moz-box-shadow: none;
+    -o-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none
+}
+#q.en {
+    direction: ltr;
+    text-align: left
+}
+.ls li.sep {
+    height: 20px;
+    padding: 0;
+    background-color: transparent
+}
+.ilnk {
+    color: #00E;
+    background-color: transparent;
+    border: 0
+}
+h2, label, h3 {
+    text-align: right;
+    text-shadow: #FFF -1px 1px 3px;
+    color: #4C566C;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+.x, .z, .y, .u, .v {
+    height: 40px;
+    width: 40px;
+    top: -5px;
+    position: relative;
+    margin-left: 10px;
+    float: right;
+    background-repeat: no-repeat;
+}
+.nfr {
+    padding:5px;
+    background-color: gold;
+    border-bottom: 1px solid #ccc
+}
+.install .rating.en{background:url(i/rating-en.jpg) no-repeat top left}
+.install .rating.ar{background:url(i/rating-ar.jpg) no-repeat top right}
+.install .rating.ios{background:url(i/rating-ios.jpg) no-repeat top right}
+.install .ilogo{background:url(i/store.jpg) no-repeat center}
+.cf{background-image:url(./i/f/all.png)}

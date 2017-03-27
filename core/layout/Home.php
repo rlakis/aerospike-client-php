@@ -10,6 +10,15 @@ class Home extends Page{
         parent::__construct($router);
         $this->lang['description']=$this->lang['home_description'];
         if ($this->isMobile) {
+            $this->isMobileCssLegacy=false;
+            $this->clear_require('css');
+            $this->set_require('css', 's_home');
+            if($this->urlRouter->rootId){
+                $this->set_require('css', 's_root_'.$this->urlRouter->rootId.'_m');
+            }
+            if($this->user->info['id']){
+                $this->set_require('css', 's_user');
+            }
             //$this->set_ad(array('Leaderboard'=>array('/1006833/M320x50', 320, 50, 'div-gpt-ad-1326381096859-0-'.$this->urlRouter->cfg['server_id'])));
         }else{
             $this->inlineCss.='
@@ -158,7 +167,7 @@ class Home extends Page{
         $isHome = !$this->urlRouter->rootId && $this->urlRouter->countryId;
         $lang=$this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/';
         if($isHome && $this->user->info['id']) {
-            ?><ul class="ls us br"><?php 
+            ?><ul class="ls us"><?php 
                 ?><li><a href="/post/<?= $lang ?>"><span class="ic apb"></span><?= $this->lang['button_ad_post_m'] ?><span class="to"></span></a></li><?php 
             ?></ul><?php
             ?><ul class="ls us br"><?php 
@@ -200,7 +209,7 @@ class Home extends Page{
     function renderMobileCountry(){
         if ($this->urlRouter->rootId) return;
         if ($this->urlRouter->countryId){
-            echo '<ul class="ls br">';
+            echo '<ul class="ls">';
             echo '<li><a href="/', $this->appendLang ,'"><span class="cf c', $this->urlRouter->countryId, '"></span>',
                 $this->countryCounter, ' ',$this->lang['in'],' ',($this->urlRouter->cityId?$this->cityName:$this->countryName),
                 '<span class="et"></span></a></li>';
@@ -244,7 +253,7 @@ class Home extends Page{
     
     function renderMobileSections(){
         if (!$this->urlRouter->rootId) return;
-        echo "<ul class='ls br oh'>";
+        echo "<ul class='ls oh'>";
         $i=0;
         //$hasLogoSpan=$this->urlRouter->rootId==2?true:false;
         $cssPre='';

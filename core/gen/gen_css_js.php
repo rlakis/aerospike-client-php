@@ -113,14 +113,22 @@ if ($handle = opendir($jsMobileReadPath)) {
 }
 
 echo 'Generating CSS release files', "\n";
-$cssReadPath='/home/www/mourjan/web/css/1.0.2/';
+$cssReadPath='/home/www/mourjan/web/css/5.4.3/';
+$cssMobilePath='/home/www/mourjan/web/css/1.0.2/';
 $cssWritePath='/home/www/mourjan/web/css/release/';
+$cssMobileWritePath='/home/www/mourjan/web/css/release-mobile/';
+
+
+$redis = new Redis();
+$redis->connect('p1.mourjan.com', 6379, 1, NULL, 100); 
+
 if ($handle = opendir($cssReadPath)) {
+    
     while (false !== ($entry = readdir($handle))) {
         if ($entry != "." && $entry != "..") {
             if (preg_match('/\.css$/', $entry)){
                 if (!preg_match('/_1\.css$/', $entry)) {
-                    echo "\tProcessing {$entry}\n";
+                    echo "\tProcessing {$entry}";
                     $content=file_get_contents($cssReadPath.$entry);             
                     $content=preg_replace("/[\n\t\r]/", '', $content);               
                     $content=preg_replace('/\s+/', ' ', $content);
@@ -129,6 +137,14 @@ if ($handle = opendir($cssReadPath)) {
                     $content=preg_replace('/;\}/', '}', $content);
                     $content=preg_replace('/\/\*.*?\*\//', '', $content);
                     file_put_contents($cssWritePath.$entry, $content);
+                    
+                    
+                    if($redis->set('v1:'.$entry, $content)){
+                        echo ' cached to redis';
+                    }else{
+                        echo ' failed to cache to redis';
+                    }
+                    echo "\n";
                 }
             }elseif(is_dir($cssReadPath.$entry) && $entry!='m') {
                 $dest=$cssWritePath.$entry;
@@ -139,8 +155,46 @@ if ($handle = opendir($cssReadPath)) {
                 system('cp -rf '.$cssReadPath.$entry.' '.$cssWritePath.$entry);
             }
         }
-    }
+    }    
     closedir($handle);
     echo 'CSS files generated', "\n\n";
 }
+if ($handle = opendir($cssMobilePath)) {    
+    
+    while (false !== ($entry = readdir($handle))) {
+        if ($entry != "." && $entry != "..") {
+            if (preg_match('/\.css$/', $entry)){
+                if (!preg_match('/_1\.css$/', $entry)) {
+                    echo "\tProcessing {$entry}";
+                    $content=file_get_contents($cssMobilePath.$entry);             
+                    $content=preg_replace("/[\n\t\r]/", '', $content);               
+                    $content=preg_replace('/\s+/', ' ', $content);
+                    $content=preg_replace('/(;|:|,|\(|\{|\})\s/', '$1', $content);
+                    $content=preg_replace('/\s(;|:|,|\)|\{|\})/', '$1', $content);
+                    $content=preg_replace('/;\}/', '}', $content);
+                    $content=preg_replace('/\/\*.*?\*\//', '', $content);
+                    file_put_contents($cssMobileWritePath.$entry, $content);
+                    
+                    
+                    if($redis->set('v1:m'.$entry, $content)){
+                        echo ' cached to redis';
+                    }else{
+                        echo ' failed to cache to redis';
+                    }
+                    echo "\n";
+                }
+            }elseif(is_dir($cssMobilePath.$entry) && $entry!='m') {
+                $dest=$cssMobileWritePath.$entry;
+                if($dest!='' && $dest!='/' && is_dir($dest)){
+                    system('rm -rf '.$dest);
+                }
+                echo "\t\tCopying Images Directory {$entry}\n";
+                system('cp -rf '.$cssMobilePath.$entry.' '.$cssMobileWritePath.$entry);
+            }
+        }
+    }    
+    closedir($handle);
+    echo 'CSS files generated', "\n\n";
+}
+$redis->close();
 ?>
