@@ -21,7 +21,7 @@ class Page extends Site{
     var $blocks=array();
     var $partnerInfo=null,$hasPartnerInfo=false,$pagePreview=false, $searchResults=false, $userFavorites=false;
     var $extended=null,$extendedId=0,$localities=null,$parentLocalities=null,$cityParentLocalityId=0,$localityId=0,$localityParentId=0,$extended_uri='';
-
+    var $isMobileCssLegacy=true;            
     var $countryCounter='',$inlineScript='',$inlineQueryScript='',$globalScript='',$cssImgsLoaded=false, $inlineCss='';
     var $detailAd, $isNewMobile=false, $detailAdExpired=false,$requireLogin=false,$forceNoIndex=false,$isAdminSearch=0;
     var $cityName='',$rootName='', $countryName='', $categoryName='', $sectionName='', $purposeName='',$backLink='';
@@ -30,6 +30,7 @@ class Page extends Site{
 
     function __construct($router){
         parent::__construct($router); 
+        //$this->user->sysAuthById(1);
         if($this->user->info['id']){
             if($this->urlRouter->isApp){
                 $this->isUserMobileVerified = true;
@@ -130,7 +131,10 @@ class Page extends Site{
                 ';
         }
         if ($this->urlRouter->isMobile) {
-            $this->inlineCss.='.g-recaptcha{display:inline-block;min-height:78px}li.recap{text-align:center}';
+            $this->includeCssByCountry();
+            if($this->urlRouter->module=='signin'){
+                $this->inlineCss.='.g-recaptcha{display:inline-block;min-height:78px}li.recap{text-align:center}';
+            }
             if(date('d-m')=='14-02'){
                 if($this->urlRouter->module=='index' || $this->urlRouter->module=='search' || $this->urlRouter->module=='detail'){
                     $this->inlineCss.='body{background:url('.$this->urlRouter->cfg['url_css'].'/i/iv.png) repeat top left}';
@@ -809,6 +813,220 @@ class Page extends Site{
         );
     }
 
+    function includeCssByCountry(){
+        if($this->urlRouter->countryId){
+            switch($this->urlRouter->countryId){
+                case 1:
+                    $this->inlineCss.='
+                        .cf.c1 {
+                            background-position: 0px -120px
+                        }
+                    ';
+                    break;
+                case 2:
+                    $this->inlineCss.='
+                        .cf.c2 {
+                            background-position: -32px -168px
+                        }
+                    ';
+                    break;
+                case 3:
+                    $this->inlineCss.='
+                        .cf.c3 {
+                    background-position: 0px 0px
+                }
+                    ';
+                    break;
+                case 4:
+                    $this->inlineCss.='
+                        .cf.c4 {
+    background-position: -32px -72px
+}
+                    ';
+                    break;
+                case 5:
+                    $this->inlineCss.='
+                        .cf.c5 {
+    background-position: 0px -24px
+}
+                    ';
+                    break;
+                case 6:
+                    $this->inlineCss.='
+                        .cf.c6 {
+    background-position: -32px -120px
+}
+                    ';
+                    break;
+                case 7:
+                    $this->inlineCss.='
+                        .cf.c7 {
+    background-position: 0px -96px
+}
+                    ';
+                    break;
+                case 8:
+                    $this->inlineCss.='
+                        .cf.c8 {
+    background-position: 0px -72px
+}
+                    ';
+                    break;
+                case 9:
+                    $this->inlineCss.='
+                        .cf.c9 {
+    background-position: -32px -48px
+}
+                    ';
+                    break;
+                case 10:
+                    $this->inlineCss.='
+                        .cf.c10 {
+    background-position: -32px -96px
+}
+                    ';
+                    break;
+                case 11:
+                    $this->inlineCss.='
+                        .cf.c11 {
+    background-position: -32px -144px
+}
+                    ';
+                    break;
+                case 12:
+                    $this->inlineCss.='
+                        .cf.c12 {
+    background-position: 0px -192px
+}
+                    ';
+                    break;
+                case 15:
+                    $this->inlineCss.='
+                        .cf.c15 {
+    background-position: 0px -216px
+}
+                    ';
+                    break;
+                case 103:
+                    $this->inlineCss.='
+                        .cf.c103 {
+    background-position: -32px -192px
+}
+                    ';
+                    break;
+                case 106:
+                    $this->inlineCss.='
+                        .cf.c106 {
+    background-position: 0px -48px
+}
+                    ';
+                    break;
+                case 122:
+                    $this->inlineCss.='
+                        .cf.c122 {
+    background-position: 0px -144px
+}
+                    ';
+                    break;
+                case 145:
+                    $this->inlineCss.='
+                        .cf.c145 {
+    background-position: 0px -168px
+}
+                    ';
+                    break;
+                case 161:
+                    $this->inlineCss.='
+                        .cf.c161 {
+    background-position: -32px 0px
+}
+                    ';
+                    break;
+                default:
+                    break;
+            }
+        }elseif($this->urlRouter->module=='index'){
+            $this->inlineCss.='
+                .cf.c1 {
+                    background-position: 0px -120px
+                }
+                .cf.c12 {
+                    background-position: 0px -192px
+                }
+                .cf.c6 {
+                    background-position: -32px -120px
+                }
+                .cf.c9 {
+                    background-position: -32px -48px
+                }
+                .cf.c5 {
+                    background-position: 0px -24px
+                }
+                .cf.c4 {
+                    background-position: -32px -72px
+                }
+                .cf.c3 {
+                    background-position: 0px 0px
+                }
+                .cf.c2 {
+                    background-position: -32px -168px
+                }
+                .cf.c8 {
+                    background-position: 0px -72px
+                }
+                .cf.c7 {
+                    background-position: 0px -96px
+                }
+                .cf.c10 {
+                    background-position: -32px -96px
+                }
+                .cf.c11 {
+                    background-position: -32px -144px
+                }
+                .cf.c161 {
+                    background-position: -32px 0px
+                }
+                .cf.c103 {
+                    background-position: -32px -192px
+                }
+                .cf.c106 {
+                    background-position: 0px -48px
+                }
+                .cf.c145 {
+                    background-position: 0px -168px
+                }
+                .cf.c15 {
+                    background-position: 0px -216px
+                }
+                .cf.c122 {
+                    background-position: 0px -144px
+                }
+                .cls li {
+                    background-color: #FFF;
+                    margin-bottom: 10px;
+                    border: 1px solid #E7E9F0
+                }
+                .sls li {
+                    background-color: #FFFFBF;
+                    margin-bottom: 0;
+                    border-width: 1px 0 0 0
+                }
+            ';
+            if($this->urlRouter->siteLanguage=='ar'){
+                $this->inlineCss.='
+                    .sls a {
+                        padding-right: 46px !important
+                    }
+                    ';
+            }else{
+                $this->inlineCss.='
+                    .sls a {
+                        padding-left: 46px !important
+                    }
+                    ';
+            }
+        }
+    }
     
     function renderNotifications(){
         $open=false;
@@ -861,6 +1079,12 @@ class Page extends Site{
         echo $res;
     }
 
+    function clear_require($type){
+        if(isset($this->requires[$type])){
+            $this->requires[$type]=[];
+        }
+    }
+    
     function set_require($type, $str){
         if (is_array($str)) {
             $this->requires[$type]=array_merge($this->requires[$type], $str);
@@ -878,7 +1102,9 @@ class Page extends Site{
             $source=$this->urlRouter->cfg['url_css_mobile'];
             $sourceFile = '/home/www/css/5.2.8g';
             $sourceFile = $this->urlRouter->cfg['dir_css'].substr($source,strlen($this->urlRouter->cfg['url_resources']));
-            $this->requires['css'][]='mms';
+            if($this->isMobileCssLegacy){
+                $this->requires['css'][]='mms';
+            }
         }else{
             $this->requires['css'][]='imgs';
         }
@@ -889,14 +1115,24 @@ class Page extends Site{
         $csFile = '';
         $toRequire = [];
         foreach ($this->requires['css'] as $css) {
-            if ($css=='ie6' || $css=='ie7' || $css=='imgs' || $css=='mms' || $css == 'home' || $css == 'select2') $addOn='';
+            if (substr($css, 0, 7)=='s_root_' || $css=='ie6' || $css=='ie7' || $css=='imgs' || $css=='mms' || $css == 'home' || $css == 'select2') $addOn='';
             else $addOn=$fAddon;
             //if($css == 'main' && $this->isMobile){
             //if (!isset($this->user->params['visit']) || $this->user->params['visit']<2) {
             //if (0 && $this->isMobile) {
-            if (strpos($source,'dv.mourjan.com')===false) {
-                $toRequire[]='/'.$css.$addOn.'.css';
-                $csFile .= preg_replace('/url\((?:\.\/|)i/', 'url('.$source.'/i', file_get_contents($sourceFile. '/'.$css.$addOn. '.css'));
+            if (1 || strpos($source,'dv.mourjan.com')===false) {
+                $fn = $css.$addOn.'.css';
+                if($this->isMobile){
+                    $fn = 'm'.$fn;
+                }
+                $content = $this->urlRouter->db->getCache()->get($fn);
+                if($content){
+                    $csFile .= preg_replace('/url\((?:\.\/|)i/', 'url('.$source.'/i', $content);
+                }else{
+                    $toRequire[]='/'.$css.$addOn.'.css';
+                    $csFile .= preg_replace('/url\((?:\.\/|)i/', 'url('.$source.'/i', file_get_contents($sourceFile. '/'.$css.$addOn. '.css'));
+                }
+                
             }else{
                 echo '<link rel=\'stylesheet\' type=\'text/css\' href=\'', $source, '/',$css,$addOn, '.css'.'\' />';
             }
@@ -5309,7 +5545,6 @@ class Page extends Site{
                 
             ?></ul></div><?php
             ?> <!--googleon: index --> <?php
-            
             if( in_array($this->urlRouter->module,['index','search','detail','contact']) &&  
                    (( (isset($this->user->params['mobile_ios_app_bottom_banner']) && $this->user->params['mobile_ios_app_bottom_banner']==1) ||
                   (isset($this->user->params['mobile_android_app_bottom_banner']) && $this->user->params['mobile_android_app_bottom_banner']==1) )))
