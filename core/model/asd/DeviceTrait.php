@@ -118,14 +118,33 @@ trait DeviceTrait
                 {
                     if ($any==FALSE)
                     {
-                        if (!(isset($record['bins'][USER_DEVICE_UNINSTALLED]) && $record['bins'][USER_DEVICE_UNINSTALLED]))
+                        $deleted = $record['bins'][USER_DEVICE_UNINSTALLED] ?? 0;
+                        
+                        if (!$deleted)
                         {
                             $matches[] = $record['bins'];
+                        }
+                        else
+                        {
+                            $deviceKey = $this->initDeviceKey($record['bins'][USER_DEVICE_UUID]);
+                            if ($this->getConnection()->remove($deviceKey) == \Aerospike::OK)
+                            {
+                                error_log("Deleted device ".$record['bins'][USER_DEVICE_UUID]);
+                            }
+                            
                         }
                     }
                     else
                     {
                         $matches[] = $record['bins'];
+                        if ($record['bins'][USER_DEVICE_UNINSTALLED] ?? 0)
+                        {
+                            $deviceKey = $this->initDeviceKey($record['bins'][USER_DEVICE_UUID]);
+                            if ($this->getConnection()->remove($deviceKey) == \Aerospike::OK)
+                            {
+                                error_log("Deleted device ".$record['bins'][USER_DEVICE_UUID]);
+                            }
+                        }
                     }
                 });
         return $matches;

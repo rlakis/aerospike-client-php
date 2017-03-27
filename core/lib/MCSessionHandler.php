@@ -271,24 +271,29 @@ class MCSessionHandler implements \SessionHandlerInterface
     
     private function initAerospike()
     {
-        //                     \Aerospike::OPT_POLICY_KEY => \Aerospike::POLICY_KEY_SEND,
-
         $configuration = ["hosts" => [["addr"=>"148.251.184.77", "port"=>3000], ["addr"=>"138.201.28.229", "port"=>3000]]];
         $options = [\Aerospike::OPT_READ_TIMEOUT => 1500,
                     \Aerospike::OPT_WRITE_TIMEOUT => 2000,
+                    \Aerospike::OPT_POLICY_KEY => \Aerospike::POLICY_KEY_SEND,
                     \Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE];
 
-        $this->storage = new \Aerospike($configuration, FALSE, $options);
+        $this->storage = new \Aerospike($configuration, TRUE, $options);
 
-        if (!$this->storage->isConnected())
+        if ($this->storage->isConnected())
+        {
+            return TRUE;
+        } 
+        else 
         {
             error_log(__CLASS__ . '.' .__FUNCTION__.PHP_EOL."Failed to connect to the Aerospike server [" . $this->storage->errorno() . "]: " . $this->storage->error());
             if (MCSessionHandler::FULL_CACHE!=1)
             {
                 $this->shared = FALSE;
                 $this->storage = NULL;
+                return TRUE;
             }
         }
+        return FALSE;
     }
 
 
@@ -303,6 +308,7 @@ class MCSessionHandler implements \SessionHandlerInterface
                 $this->storage->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_PHP);
                 $this->storage->setOption(Redis::OPT_PREFIX, self::SESSION_PREFIX);
                 $this->storage->setOption(Redis::OPT_READ_TIMEOUT, 10);
+                return TRUE;
             }
             else
             {
@@ -311,6 +317,7 @@ class MCSessionHandler implements \SessionHandlerInterface
                 {
                     $this->shared = FALSE;
                     $this->storage = NULL;
+                    return TRUE;
                 }
             }
 
@@ -322,8 +329,10 @@ class MCSessionHandler implements \SessionHandlerInterface
             {
                 $this->shared = FALSE;
                 $this->storage = NULL;
+                return TRUE;
             }
         }
+        return FALSE;
     }
 
 
@@ -331,11 +340,11 @@ class MCSessionHandler implements \SessionHandlerInterface
     {
         if (self::AEROSPIKE_STORAGE)
         {
-            $this->initAerospike();
+            return $this->initAerospike();
         }
         else
         {
-            $this->initRedis();
+            return $this->initRedis();
         }
     }
 
@@ -397,13 +406,13 @@ class MCSessionHandler implements \SessionHandlerInterface
                 if (is_object($cook) && isset($cook->mu)) 
                 {
                     $this->shared = true;
-                    $this->openMem();
+                    return $this->openMem();
                 }
             }
         } 
         else 
         {
-            $this->openMem();
+            return $this->openMem();
         }
 
         return true;
@@ -421,19 +430,23 @@ class MCSessionHandler implements \SessionHandlerInterface
     }
 
     
+    private function as_key($id) 
+    {
+        return $this->storage->initKey("users", "sessions", $id);
+    }
+
+    
     public function read($id) 
     {
         if (MCSessionHandler::FULL_CACHE)
         {
             if (MCSessionHandler::AEROSPIKE_STORAGE)
-            {
-                $key = $this->storage->initKey("users", "sessions", $id);
-                $this->storage->touch($key, $this->ttl);
-                $status = $this->storage->get($key, $record);
-                if ($status == \Aerospike::OK)
+            {                
+                $status = $this->storage->get($this->as_key($id), $record);
+                //error_log($id.PHP_EOL.json_encode($record['bins']));                
+                if ($status == \Aerospike::OK && isset($record['bins']))
                 {
-                    //error_log(var_export($record, true));
-                    return $record['PHP_SESSION'] ?? '';
+                    return $record['bins']['PHP_SESSION'] ?? '';
                 }
                 return '';
             }
@@ -481,15 +494,15 @@ class MCSessionHandler implements \SessionHandlerInterface
         {
             if (MCSessionHandler::AEROSPIKE_STORAGE)
             {
-                $key = $this->storage->initKey("users", "sessions", $id);
-                $status = $this->storage->put($key, ["PHP_SESSION" => $data], $this->ttl);
+                $status = $this->storage->put($this->as_key($id), ["PHP_SESSION" => $data], $this->ttl, []);
                 if ($status == \Aerospike::OK)
                 {
                     return TRUE;
                 }
-                error_log("[{$this->storage->errorno()}] ".$this->storage->error());
+                error_log("Session wite error [{$this->storage->errorno()}] ".$this->storage->error());
                 return FALSE;
             }
+            
             return $this->storage->setex($id, $this->ttl, $data);
         }
         
@@ -527,8 +540,8 @@ class MCSessionHandler implements \SessionHandlerInterface
         {
             if (MCSessionHandler::AEROSPIKE_STORAGE)
             {
-                $key = $this->storage->initKey("users", "sessions", $id);
-                $this->storage->remove($key);
+                $status = $this->storage->remove($this->as_key($id));
+                return ($status == \Aerospike::OK);
             }
             else
             {
@@ -552,6 +565,7 @@ class MCSessionHandler implements \SessionHandlerInterface
                 }
             }
         }
+        
         return true;
     }
     
