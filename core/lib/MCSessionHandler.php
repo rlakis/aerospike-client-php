@@ -1,10 +1,12 @@
 <?php
+/*
 if (ini_get('session.save_handler')!='aerospike')
 {
     ini_set('session.save_handler', 'aerospike');
     ini_set('session.save_path', 'users|sessions|148.251.184.77:3000,138.201.28.229:3000');
 }
-
+*/
+/*
 if (session_status() == PHP_SESSION_NONE) 
 {
     session_start();
@@ -129,13 +131,15 @@ class MCSessionHandler
         return $user;
     }
 }
+*/
 
-/*
+
 class MCSessionHandler implements \SessionHandlerInterface 
 {
     const SESSION_PREFIX = 'ms_';
-    const FULL_REDIS = 1;
-    
+    const FULL_CACHE = 1;
+    const AEROSPIKE_STORAGE = 1;
+
     private $savePath;
     private $storage;
     private $ttl;
@@ -146,11 +150,13 @@ class MCSessionHandler implements \SessionHandlerInterface
         $this->shared = $useMemcached;
         $this->ttl = intval(get_cfg_var("session.gc_maxlifetime"), 10);
         session_set_save_handler($this, TRUE);
+
         if ($autoStart)
         {
             session_start();
         }
     }
+
     
     public static function checkSuspendedMobile($number)
     {   
@@ -169,6 +175,7 @@ class MCSessionHandler implements \SessionHandlerInterface
         }
         return $ttl;
     }
+
     
     public static function setSuspendMobile($uid, $number, $secondsToSuspend)
     {   
@@ -183,9 +190,11 @@ class MCSessionHandler implements \SessionHandlerInterface
             
             $pass = $redis->set($number, 1, $secondsToSuspend);
             
-            if($pass){
+            if($pass)
+            {
                 $redisPublisher = new Redis();
-                if($redisPublisher->connect('p1.mourjan.com',6379,2,NULL,20)){
+                if ($redisPublisher->connect('p1.mourjan.com',6379,2,NULL,20))
+                {
                     $redisPublisher->publish('FBEventManager','{"event":"cache","action":"suspend","id":'.$uid.'}');
                 }
             }
@@ -260,8 +269,77 @@ class MCSessionHandler implements \SessionHandlerInterface
     }
     
     
-   
-    
+    private function initAerospike()
+    {
+        //                     \Aerospike::OPT_POLICY_KEY => \Aerospike::POLICY_KEY_SEND,
+
+        $configuration = ["hosts" => [["addr"=>"148.251.184.77", "port"=>3000], ["addr"=>"138.201.28.229", "port"=>3000]]];
+        $options = [\Aerospike::OPT_READ_TIMEOUT => 1500,
+                    \Aerospike::OPT_WRITE_TIMEOUT => 2000,
+                    \Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE];
+
+        $this->storage = new \Aerospike($configuration, FALSE, $options);
+
+        if (!$this->storage->isConnected())
+        {
+            error_log(__CLASS__ . '.' .__FUNCTION__.PHP_EOL."Failed to connect to the Aerospike server [" . $this->storage->errorno() . "]: " . $this->storage->error());
+            if (MCSessionHandler::FULL_CACHE!=1)
+            {
+                $this->shared = FALSE;
+                $this->storage = NULL;
+            }
+        }
+    }
+
+
+    private function initRedis()
+    {
+        try
+        {
+            $this->storage = new Redis();
+
+            if ($this->storage->connect('138.201.28.229', 6379, 2, NULL, 20))
+            {
+                $this->storage->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_PHP);
+                $this->storage->setOption(Redis::OPT_PREFIX, self::SESSION_PREFIX);
+                $this->storage->setOption(Redis::OPT_READ_TIMEOUT, 10);
+            }
+            else
+            {
+                error_log("Could not connect to redis session store! " . $this->storage->getLastError(). '?!?!');
+                if (MCSessionHandler::FULL_CACHE!=1)
+                {
+                    $this->shared = FALSE;
+                    $this->storage = NULL;
+                }
+            }
+
+        }
+        catch (RedisException $re)
+        {
+            error_log(PHP_EOL . PHP_EOL . $re->getCode() . PHP_EOL . $re->getMessage() . PHP_EOL . $re->getTraceAsString() . PHP_EOL);
+            if (MCSessionHandler::FULL_CACHE!=1)
+            {
+                $this->shared = FALSE;
+                $this->storage = NULL;
+            }
+        }
+    }
+
+
+    private function openMem()
+    {
+        if (self::AEROSPIKE_STORAGE)
+        {
+            $this->initAerospike();
+        }
+        else
+        {
+            $this->initRedis();
+        }
+    }
+
+/*
     private function openMem() 
     {
         try 
@@ -277,7 +355,7 @@ class MCSessionHandler implements \SessionHandlerInterface
             else 
             {
                 error_log("Could not connect to redis session store! " . $this->storage->getLastError(). '?!?!');
-                if (MCSessionHandler::FULL_REDIS!=1) 
+                if (MCSessionHandler::FULL_CACHE!=1)
                 {
                     $this->shared = FALSE;
                     $this->storage = NULL;
@@ -288,19 +366,21 @@ class MCSessionHandler implements \SessionHandlerInterface
         catch (RedisException $re) 
         {           
             error_log(PHP_EOL . PHP_EOL . $re->getCode() . PHP_EOL . $re->getMessage() . PHP_EOL . $re->getTraceAsString() . PHP_EOL);
-            if (MCSessionHandler::FULL_REDIS!=1) 
+            if (MCSessionHandler::FULL_CACHE!=1)
             {
                 $this->shared = FALSE;
                 $this->storage = NULL;
             }
         }
     }
+*/
 
+    
     public function open($savePath, $sessionName) 
     {        
         $this->savePath = $savePath;
 
-        if (MCSessionHandler::FULL_REDIS === 0) 
+        if (MCSessionHandler::FULL_CACHE === 0)
         {
             if (!is_dir($this->savePath)) 
             {
@@ -308,7 +388,7 @@ class MCSessionHandler implements \SessionHandlerInterface
             }
 
             if ($this->shared) 
-            {
+            {                
                 $this->openMem();
             } 
             else if (isset($_COOKIE['mourjan_user'])) 
@@ -343,10 +423,26 @@ class MCSessionHandler implements \SessionHandlerInterface
     
     public function read($id) 
     {
-        if (MCSessionHandler::FULL_REDIS)
+        if (MCSessionHandler::FULL_CACHE)
         {
-            $this->storage->expire($id, $this->ttl);
-            return $this->storage->get($id) ? : '';    
+            if (MCSessionHandler::AEROSPIKE_STORAGE)
+            {
+                $key = $this->storage->initKey("users", "sessions", $id);
+                $this->storage->touch($key, $this->ttl);
+                $status = $this->storage->get($key, $record);
+                if ($status == \Aerospike::OK)
+                {
+                    //error_log(var_export($record, true));
+                    return $record['PHP_SESSION'] ?? '';
+                }
+                return '';
+            }
+            else
+            {
+                $this->storage->expire($id, $this->ttl);
+                return $this->storage->get($id) ? : '';
+            }
+                
         }
         
         $sess_file = $this->savePath . '/' . self::SESSION_PREFIX . $id;
@@ -381,8 +477,19 @@ class MCSessionHandler implements \SessionHandlerInterface
     
     public function write($id, $data) 
     {
-        if (MCSessionHandler::FULL_REDIS)
-        {            
+        if (MCSessionHandler::FULL_CACHE)
+        {
+            if (MCSessionHandler::AEROSPIKE_STORAGE)
+            {
+                $key = $this->storage->initKey("users", "sessions", $id);
+                $status = $this->storage->put($key, ["PHP_SESSION" => $data], $this->ttl);
+                if ($status == \Aerospike::OK)
+                {
+                    return TRUE;
+                }
+                error_log("[{$this->storage->errorno()}] ".$this->storage->error());
+                return FALSE;
+            }
             return $this->storage->setex($id, $this->ttl, $data);
         }
         
@@ -408,7 +515,7 @@ class MCSessionHandler implements \SessionHandlerInterface
     
     public function destroy($id) 
     {
-        if (MCSessionHandler::FULL_REDIS==0)
+        if (MCSessionHandler::FULL_CACHE==0)
         {
             $file = $this->savePath . '/' . self::SESSION_PREFIX . $id;
             if (file_exists($file)) 
@@ -418,7 +525,15 @@ class MCSessionHandler implements \SessionHandlerInterface
         }
         else
         {
-        	$this->storage->delete($id);
+            if (MCSessionHandler::AEROSPIKE_STORAGE)
+            {
+                $key = $this->storage->initKey("users", "sessions", $id);
+                $this->storage->remove($key);
+            }
+            else
+            {
+                $this->storage->delete($id);
+            }
         }
         
         return true;
@@ -427,10 +542,12 @@ class MCSessionHandler implements \SessionHandlerInterface
     
     public function gc($maxlifetime) 
     {
-        if (MCSessionHandler::FULL_REDIS==0) 
+        if (MCSessionHandler::FULL_CACHE==0)
         {
-            foreach (glob($this->savePath.'/' . self::SESSION_PREFIX . '*') as $file) {
-                if (filemtime($file) + $maxlifetime < time() && file_exists($file)) {
+            foreach (glob($this->savePath.'/' . self::SESSION_PREFIX . '*') as $file)
+            {
+                if (filemtime($file) + $maxlifetime < time() && file_exists($file))
+                {
                     @unlink($file);
                 }
             }
@@ -438,4 +555,4 @@ class MCSessionHandler implements \SessionHandlerInterface
         return true;
     }
     
-}*/
+}
