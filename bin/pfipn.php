@@ -40,6 +40,7 @@ error_log(sprintf("%s\t%s", date("Y-m-d H:i:s"), json_encode($_POST).PHP_EOL), 3
 include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
 include_once $config['dir']. '/core/model/Db.php';
 include_once $config['dir'].'/core/lib/PayfortIntegration.php';
+use Core\Model\DB;
 
 $language = $_REQUEST['language'] ?? 'en';
 if (!in_array($language, ['en','ar']))

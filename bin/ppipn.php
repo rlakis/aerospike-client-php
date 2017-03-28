@@ -3,6 +3,7 @@
 ini_set('log_errors_max_len', 0);
 $sandbox = (get_cfg_var('mourjan.server_id')=='99');
 $logfile = '/var/log/mourjan/paypal.log';
+use Core\Model\DB;
 
 
 // STEP 1: read POST data
