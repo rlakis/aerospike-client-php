@@ -10,12 +10,8 @@ else
 	ini_set('display_errors', 0);
 }
 
-//ini_set('magic_quotes_gpc', 0);
-//ini_set('magic_quotes_runtime', 0);
-//ini_set('magic_quotes_sybase', 1);
-
 include_once get_cfg_var('mourjan.path') . '/core/model/Db.php';
-
+use Core\Model\DB;
 
 class Configuration 
 {
