@@ -1869,53 +1869,67 @@ class AndroidApi {
                     }
                     //error_log(var_export($this->api->result['d'],true));
                     break;
+                    
                 case API_ANDROID_SIGN_OUT: 
                     $this->api->result['d'] = [];
                     $this->api->result['d']['id'] = 0;
-                //$this->api->userStatus($status);
-                //if ($status == 1) {
                     $default_id = filter_input(INPUT_POST, 'did', FILTER_VALIDATE_INT) + 0;
                     $this->api->db->setWriteMode();  
-                    if($default_id > 0){
-                        $result = $this->api->db->queryResultArray(
+                    if($default_id > 0)
+                    {
+                        if (NoSQL::getInstance()->deviceSetUID($this->api->getUUID(), $default_id, $this->api->getUID()))
+                        {
+                            $result = $this->api->db->queryResultArray(
                                 "update web_users_device set uid = ? where uuid = ? and (uid = ? or uid = ?) returning uid", [$default_id, $this->api->getUUID(), $default_id, $this->api->getUID()], true
-                        );
-                        if($result && isset($result[0]['UID'])){
-                            $this->api->result['d']['id'] = $result[0]['UID'];
+                            );
+                        
+                        
+                            if($result && isset($result[0]['UID']))
+                            {
+                                $this->api->result['d']['id'] = $result[0]['UID'];
                             
-                            //get total
-                            $rs = $this->api->db->queryResultArray(
+                                //get total
+                                $rs = $this->api->db->queryResultArray(
                                 "SELECT sum(r.credit - r.debit)
                                 FROM T_TRAN r
                                 where r.UID=?", [$result[0]['UID']], true);
-                            $this->api->result['d']['balance'] = -1;
-                            if($rs && count($rs) && $rs[0]['SUM']!=null){
-                                if($rs[0]['SUM']){                    
-                                    $this->api->result['d']['balance']=$rs[0]['SUM']+0;
-                                }else{
-                                    $this->api->result['d']['balance']=0;                    
+                        
+                                $this->api->result['d']['balance'] = -1;
+                                if($rs && count($rs) && $rs[0]['SUM']!=null)
+                                {
+                                    if($rs[0]['SUM'])
+                                    { 
+                                        $this->api->result['d']['balance']=$rs[0]['SUM']+0;
+                                    }
+                                    else
+                                    {
+                                        $this->api->result['d']['balance']=0;                    
+                                    }
                                 }
                             }
                         }
                     }
-                //}
                 break;
+                
                 case API_ANDROID_CHECK_FIX_CONNECTION_FAILURE:
                     $this->api->result['d'] = [];
                     $this->api->result['d']['id'] = 0;
-                    $this->api->db->setWriteMode();   
-                    $result = $this->api->db->queryResultArray(
-                        "select uid from web_users_device where uid = ? and uuid = ?", [$this->api->getUID(), $this->api->getUUID()], true
-                    );
-                    if(empty($result)){
-                        $this->api->db->queryResultArray(
-                            "update web_users_device set uid = ? where uuid = ? returning uid", [$this->api->getUID(), $this->api->getUUID()], true
-                        );
-                        if($result && isset($result[0]['UID'])){
-                            $this->api->result['d']['id'] = $result[0]['UID'];
+                    if (NoSQL::getInstance()->deviceSetUID($this->api->getUUID(), $this->api->getUID()))
+                    {
+                        $this->api->db->setWriteMode();   
+                        $result = $this->api->db->queryResultArray("select uid from web_users_device where uid=? and uuid=?", [$this->api->getUID(), $this->api->getUUID()], true);
+                    
+                        if(empty($result))
+                        {
+                            $this->api->db->queryResultArray("update web_users_device set uid=? where uuid=? returning uid", [$this->api->getUID(), $this->api->getUUID()], true);
+                            if($result && isset($result[0]['UID']))
+                            {
+                                $this->api->result['d']['id'] = $result[0]['UID'];
+                            }
                         }
                     }
                     break;
+                                        
                 case API_ANDROID_PURCHASE:   
                     $proceed = false;
                     $product_id = filter_input(INPUT_POST, 'sku', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);

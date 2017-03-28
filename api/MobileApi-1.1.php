@@ -1876,7 +1876,7 @@ class MobileApi
                     $this->result['d']['uid']=($this->uid!=$userId) ? $userId : 0;
                     if ($this->uid!=$userId && $userId>0) 
                     {
-                        if (NoSQL::getInstance()->deviceSetUID($this->uuid, $userId))
+                        if (NoSQL::getInstance()->deviceSetUID($this->uuid, $userId, $this->uid))
                         {
                             $this->db->setWriteMode();
                             $ok = $this->db->queryResultArray(
