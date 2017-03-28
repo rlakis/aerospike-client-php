@@ -1,8 +1,9 @@
 <?php
-//include_once ('lib/class.phpmailer.php');
 require_once 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';
+use Core\Model\DB;
 
-class MourjanMail extends PHPMailer {
+class MourjanMail extends PHPMailer 
+{
     
     public 
             $user = null,$db=null,
