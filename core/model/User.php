@@ -2150,9 +2150,8 @@ order by m.activation_timestamp desc',
                     if($result !== false && !empty($result)){
                         
                         $newUserId = $result[0];
-                        if (\Core\Model\NoSQL::getInstance()->deviceSetUID($uuid, $newUserId))
-                        {
-                            
+                        if (\Core\Model\NoSQL::getInstance()->deviceSetUID($uuid, $newUserId, $uid))
+                        {                            
                         }
                         
                         

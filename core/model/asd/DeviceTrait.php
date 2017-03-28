@@ -71,6 +71,13 @@ trait DeviceTrait
     }
     
     
+    public function deviceExists(string $uuid) : bool
+    {
+        $pk = $this->initDeviceKey($uuid);
+        return ($this->exists($pk)>0);        
+    }
+    
+        
     public function deviceSetToken(string $uuid, string $token) : bool
     {
         $bins = [USER_DEVICE_PUSH_TOKEN => $token];
@@ -98,12 +105,18 @@ trait DeviceTrait
     }
 
     
-    public function deviceSetUID(string $uuid, int $uid) : bool
+    public function deviceSetUID(string $uuid, int $uid, int $oldUID=0) : bool
     {
         $pk = $this->initDeviceKey($uuid);
         if ($this->exists($pk))
         {
-            return $this->setBins($pk, [USER_UID => $uid]);
+            if (($record = $this->getBins($pk, [USER_UID]))!== FALSE)
+            {            
+                if ($record[USER_UID]==$oldUID || $oldUID==0)
+                {
+                    return $this->setBins($pk, [USER_UID => $uid]);
+                }
+            }
         }
         return false;
     }
@@ -126,16 +139,18 @@ trait DeviceTrait
                         }
                         else
                         {
+                            /*
                             $deviceKey = $this->initDeviceKey($record['bins'][USER_DEVICE_UUID]);
                             if ($this->getConnection()->remove($deviceKey) == \Aerospike::OK)
                             {
                                 error_log("Deleted device ".$record['bins'][USER_DEVICE_UUID]);
                             }
-                            
+                            */
                         }
                     }
                     else
                     {
+                        /*
                         $matches[] = $record['bins'];
                         if ($record['bins'][USER_DEVICE_UNINSTALLED] ?? 0)
                         {
@@ -144,7 +159,7 @@ trait DeviceTrait
                             {
                                 error_log("Deleted device ".$record['bins'][USER_DEVICE_UUID]);
                             }
-                        }
+                        }*/
                     }
                 });
         return $matches;

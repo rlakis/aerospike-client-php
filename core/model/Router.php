@@ -65,7 +65,7 @@ class Router
 
 	if(isset($_GET['shareapp']))
         {
-            $device = new Mobile_Detect();
+            $device = new \Mobile_Detect();
             if($device->isMobile())
             {
                 if( $device->isiOS() )

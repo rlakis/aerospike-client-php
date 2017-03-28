@@ -1,6 +1,8 @@
 <?php
 
 include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
+use Core\Model\DB;
+use Core\Lib\SphinxQL;
 
 error_reporting(E_ALL);
 ini_set('display_errors', php_sapi_name()=='cli'?'1':'0');

@@ -499,7 +499,7 @@ class MCSessionHandler implements \SessionHandlerInterface
                 {
                     return TRUE;
                 }
-                error_log("Session wite error [{$this->storage->errorno()}] ".$this->storage->error());
+                error_log("Session {$id} write error [{$this->storage->errorno()}] ".$this->storage->error());
                 return FALSE;
             }
             
