@@ -3,7 +3,10 @@
 require_once 'vendor/autoload.php';
 
 use MaxMind\Db\Reader;
+use Core\Model\DB;
 use Core\Model\NoSQL;
+use Core\Model\Classifieds;
+use Core\Lib\SphinxQL;
 
 class MobileApi
 {

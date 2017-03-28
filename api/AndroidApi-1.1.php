@@ -3,6 +3,7 @@
 require_once 'vendor/autoload.php';
 use MaxMind\Db\Reader;
 use Core\Model\NoSQL;
+use Core\Lib\SphinxQL;
 
 class AndroidApi {
 
