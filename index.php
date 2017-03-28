@@ -8,6 +8,7 @@ include_once $config['dir']. '/core/lib/MCSessionHandler.php';
 
 use hybridauth\Hybrid;
 use Core\Model\Router;
+use Core\Model\DB;
 
 
 if (isset($_GET['provider']) && isset($_GET['connect']))
