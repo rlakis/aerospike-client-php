@@ -1,11 +1,13 @@
 <?php
 
 require_once 'vendor/autoload.php';
+include_once '/home/www/mourjan/core/lib/MCUser.php';
 use mourjan\Hybrid;
 use mobiledetect\MobileDetect;
-include_once '/home/www/mourjan/core/lib/MCUser.php';
+use Core\Lib\SphinxQL;
 
-class User {
+class User 
+{
 
     var $session_id=null;
 
