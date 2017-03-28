@@ -531,8 +531,7 @@ class AndroidApi {
                     $this->api->result['e'] = "503";
                     break;
                 }            
-                $opts = $this->api->userStatus($status);                
-                
+                $opts = $this->api->userStatus($status);   
                 //$userData = MCSessionHandler::getUser($this->api->getUID());
                 //$mcUser = new MCUser($userData);
                 $mcUser = new MCUser($this->api->getUID());
