@@ -2,11 +2,14 @@
 
 require_once 'vendor/autoload.php';
 require_once 'Site.php';
+use Core\Model\Router;
+use Core\Model\DB;
 
-class Redirect extends Site{
-    
+class Redirect extends Site
+{    
 
-    function __construct($router){
+    function __construct(Router $router)
+    {
         parent::__construct($router);
         $userLogin = $this->post('u');
         if($userLogin && $this->isEmail($userLogin)){

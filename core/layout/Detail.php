@@ -1,16 +1,24 @@
 <?php
+
 include $config['dir'].'/core/layout/Search.php';
 
-class Detail extends Search{
+use Core\Model\Classifieds;
+
+class Detail extends Search
+{
 
 
-    function __construct($router){
+    function __construct(Core\Model\Router $router)
+    {
         parent::__construct($router);
     }
 
-    function header(){
+    
+    function header()
+    {
         
-        if ($this->detailAdExpired) {
+        if ($this->detailAdExpired) 
+        {
             parent::header();
             return;
         }

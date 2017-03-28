@@ -1,4 +1,5 @@
 <?php
+namespace Core\Lib;
 
 class SphinxQL
 {
@@ -58,7 +59,7 @@ class SphinxQL
     {
         if ($this->_sphinx==NULL)
         {
-            $this->_sphinx = new mysqli($this->server['host'], '', '', '', $this->server['port'], $this->server['socket']);
+            $this->_sphinx = new \mysqli($this->server['host'], '', '', '', $this->server['port'], $this->server['socket']);
             //if ($this->_sphinx->get_warnings())
             //{
             //}
@@ -478,17 +479,20 @@ class SphinxQL
     }
     
     
-    public function getLastError() {
+    public function getLastError() 
+    {
         return (isset($this->metaData['error'])) ? $this->metaData['error'] : '';
     }
     
     
-    function getLastWarning() {
+    function getLastWarning() 
+    {
         return (isset($this->metaData['warning'])) ? $this->metaData['warning'] : '';
     }
     
     
-    function status() {
+    function status() 
+    {
         $result = array();
         if ($rs = $this->_sphinx->query('SHOW STATUS')) {
             while ($value = $rs->fetch_array(MYSQLI_NUM)) {

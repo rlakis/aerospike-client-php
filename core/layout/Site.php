@@ -1,7 +1,10 @@
 <?php
 
-class Site {
-
+use Core\Model\Router;
+use Core\Model\Classifieds;
+    
+class Site 
+{
     var $lang=array(),$xss_hash='',$watchInfo=false; 
     var $user,$userFavorites,$pageUserId=0;
     var $num=10;
@@ -15,7 +18,8 @@ class Site {
     var $publisherTypeSorting = 0;
 
 
-    function __construct($router) {
+    function __construct(Router $router) 
+    {
         global $argc;
         include_once $router->cfg['dir'].'/core/model/Classifieds.php';
         include_once $router->cfg['dir'].'/core/model/User.php';
@@ -25,7 +29,8 @@ class Site {
         $this->urlRouter = $router;
         if ($router->siteLanguage=='en')
             $this->lnIndex=1;
-        if (isset($argc)) {
+        if (isset($argc)) 
+        {
             return;
         }
         $this->initSphinx();
@@ -60,15 +65,8 @@ class Site {
     }
     
     
-    function isRTL($text){
-        /*
-        var y=v.replace(/[^\u0621-\u064a\u0750-\u077f]|[:\\\/\-;.,؛،?!؟*@#$%^&_+'"|0-9\s]/g,'');
-        var z=v.replace(/[\u0621-\u064a\u0750-\u077f:\\\/\-;.,؛،?!؟*@#$%^&_+'"|0-9\s]/g,'');
-        if(y.length > z.length*0.5){
-            e.className='ar';
-        }else{
-            e.className='en';
-        }*/
+    function isRTL($text)
+    {
         $rtlChars = preg_replace('/[^\x{0621}-\x{064a}\x{0750}-\x{077f}]|[:\\\\\/\-;.,؛،?!؟*@#$%^&_+\'"|0-9\s]/u', '', $text);
         $ltrChars = preg_replace('/[\x{0621}-\x{064a}\x{0750}-\x{077f}]|[:\\\\\/\-;.,؛،?!؟*@#$%^&_+\'"|0-9\s]/u', '', $text);
         if(strlen($rtlChars) > (strlen($ltrChars)*0.5)){
@@ -76,13 +74,12 @@ class Site {
         }else{
             return false;
         }
-        /*if(preg_match('/[\x{0621}-\x{064a}\x{0750}-\x{077f}]/u', $text)){
-            return true;
-        }*/
         return false;
     }
+
     
-    function BuildExcerpts($text, $length = 0, $separator = '...'){
+    function BuildExcerpts($text, $length = 0, $separator = '...')
+    {
         if($length){
             $str_len = mb_strlen($text, 'UTF-8');
             if($str_len > $length){

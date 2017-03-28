@@ -1,6 +1,11 @@
 <?php
+namespace Core\Model;
+
 include_once dirname(__DIR__).'/lib/MCCache.php';
 include_once dirname(__DIR__).'/lib/SphinxQL.php';
+
+use Core\Lib\MCCache;
+use Core\Lib\SphinxQL;
 
 class DB 
 {
@@ -31,10 +36,6 @@ class DB
         $this->setTransactionIsolation($readonly);
 
         self::getCacheStorage($cfg);
-        //if (self::$Cache === NULL)
-        //{
-        //    self::$Cache = new MCCache($cfg);
-        //}
         
         self::$SectionsVersion=FALSE;
         self::$TagsVersion=FALSE;
@@ -52,38 +53,46 @@ class DB
 
     public static function getCacheStorage($config)
     {
-        if (!isset(self::$Cache)) {
-            self::$Cache = new MCCache($config);
+        if (!isset(DB::$Cache)) 
+        {
+            DB::$Cache = new MCCache($config);
         }
         return self::$Cache;
     }
 
 
-    public function __destruct() {
+    public function __destruct() 
+    {
         $this->close();        
     }
 
     
-    public function setWriteMode($on=TRUE) {
+    public function setWriteMode($on=TRUE) 
+    {
         $this->setTransactionIsolation(!$on);
     }
     
     
     
-    private function setTransactionIsolation($read) {
-        if ($read!=self::$Readonly) {
+    private function setTransactionIsolation($read) 
+    {
+        if ($read != DB::$Readonly) 
+        {
             $this->commit();
         }
         
         
-        if ($read) {
-            self::$Readonly=TRUE;
-            self::$IsolationLevel = PDO::FB_TRANS_CONCURRENCY;
-            self::$WaitTimeout = 0;
-        } else {
-            self::$Readonly=FALSE;
-            self::$IsolationLevel = PDO::FB_TRANS_COMMITTED;
-            self::$WaitTimeout=10;       
+        if ($read) 
+        {
+            DB::$Readonly=TRUE;
+            DB::$IsolationLevel = \PDO::FB_TRANS_CONCURRENCY;
+            DB::$WaitTimeout = 0;
+        } 
+        else 
+        {
+            DB::$Readonly=FALSE;
+            DB::$IsolationLevel = \PDO::FB_TRANS_COMMITTED;
+            DB::$WaitTimeout=10;       
         }
     }
     
@@ -100,12 +109,16 @@ class DB
     {
         if($this->inTransaction())
         {
-            try {
-                self::$Instance->commit();
-                if ($restartTransaction==TRUE) {
-                    self::$Instance->beginTransaction();           
+            try 
+            {
+                DB::$Instance->commit();
+                if ($restartTransaction==TRUE) 
+                {
+                    DB::$Instance->beginTransaction();           
                 }
-            } catch (Exception $ex) {
+            } 
+            catch (Exception $ex) 
+            {
                 error_log($ex->getMessage());
             }
         }
@@ -115,19 +128,19 @@ class DB
     
     private function newInstance() 
     {
-        self::$Instance = new PDO(self::$dbUri, self::$user, self::$pass,
+        DB::$Instance = new \PDO(DB::$dbUri, DB::$user, DB::$pass,
                     [
-                        PDO::ATTR_PERSISTENT=>TRUE,
-                        PDO::ATTR_AUTOCOMMIT=>FALSE,
-                        PDO::ATTR_EMULATE_PREPARES=>FALSE,
-                        PDO::ATTR_STRINGIFY_FETCHES=>FALSE,
-                        PDO::ATTR_TIMEOUT=>5,
-                        PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
+                        \PDO::ATTR_PERSISTENT=>TRUE,
+                        \PDO::ATTR_AUTOCOMMIT=>FALSE,
+                        \PDO::ATTR_EMULATE_PREPARES=>FALSE,
+                        \PDO::ATTR_STRINGIFY_FETCHES=>FALSE,
+                        \PDO::ATTR_TIMEOUT=>5,
+                        \PDO::ATTR_ERRMODE=>\PDO::ERRMODE_EXCEPTION,
 
-                        PDO::FB_ATTR_COMMIT_RETAINING=>FALSE,
-                        PDO::FB_ATTR_READONLY=>self::$Readonly,
-                        PDO::FB_TRANS_ISOLATION_LEVEL=>self::$IsolationLevel,
-                        PDO::FB_ATTR_TIMEOUT=>self::$WaitTimeout
+                        \PDO::FB_ATTR_COMMIT_RETAINING=>FALSE,
+                        \PDO::FB_ATTR_READONLY => DB::$Readonly,
+                        \PDO::FB_TRANS_ISOLATION_LEVEL => DB::$IsolationLevel,
+                        \PDO::FB_ATTR_TIMEOUT => DB::$WaitTimeout
                     ]
                 );
     }
@@ -137,23 +150,23 @@ class DB
     {
         if (!self::$Instance) 
         {
-            self::$Instance = new PDO(self::$dbUri, self::$user, self::$pass,
+            DB::$Instance = new \PDO(DB::$dbUri, DB::$user, DB::$pass,
                     [
-                        PDO::ATTR_PERSISTENT=>TRUE,
-                        PDO::ATTR_AUTOCOMMIT=>FALSE,
-                        PDO::ATTR_EMULATE_PREPARES=>FALSE,
-                        PDO::ATTR_STRINGIFY_FETCHES=>FALSE,
-                        PDO::ATTR_TIMEOUT=>5,
-                        PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
+                        \PDO::ATTR_PERSISTENT=>TRUE,
+                        \PDO::ATTR_AUTOCOMMIT=>FALSE,
+                        \PDO::ATTR_EMULATE_PREPARES=>FALSE,
+                        \PDO::ATTR_STRINGIFY_FETCHES=>FALSE,
+                        \PDO::ATTR_TIMEOUT=>5,
+                        \PDO::ATTR_ERRMODE=>\PDO::ERRMODE_EXCEPTION,
 
-                        PDO::FB_ATTR_COMMIT_RETAINING=>FALSE,
-                        PDO::FB_ATTR_READONLY=>self::$Readonly,
-                        PDO::FB_TRANS_ISOLATION_LEVEL=>self::$IsolationLevel,
-                        PDO::FB_ATTR_TIMEOUT=>self::$WaitTimeout
+                        \PDO::FB_ATTR_COMMIT_RETAINING=>FALSE,
+                        \PDO::FB_ATTR_READONLY=>DB::$Readonly,
+                        \PDO::FB_TRANS_ISOLATION_LEVEL=>DB::$IsolationLevel,
+                        \PDO::FB_ATTR_TIMEOUT=>DB::$WaitTimeout
                     ]
                 );
         }
-        return self::$instance;
+        return DB::$instance;
     }
     
     
@@ -179,11 +192,12 @@ class DB
              * 
              */
         } else {            
-            if (!self::$Instance->inTransaction()) {   
+            if (!self::$Instance->inTransaction()) 
+            {   
                 //error_log("old Instance beginTransaction Read: ". (self::$Readonly ? 'YES' : 'NO') ." Wait timeout: ".self::$WaitTimeout. PHP_EOL);
-                self::$Instance->setAttribute(PDO::FB_ATTR_READONLY, self::$Readonly);                
-                self::$Instance->setAttribute(PDO::FB_TRANS_ISOLATION_LEVEL, self::$IsolationLevel);
-                self::$Instance->setAttribute(PDO::FB_ATTR_TIMEOUT, self::$WaitTimeout);
+                self::$Instance->setAttribute(\PDO::FB_ATTR_READONLY, self::$Readonly);                
+                self::$Instance->setAttribute(\PDO::FB_TRANS_ISOLATION_LEVEL, self::$IsolationLevel);
+                self::$Instance->setAttribute(\PDO::FB_ATTR_TIMEOUT, self::$WaitTimeout);
                 self::$Instance->beginTransaction();
             } 
         }
@@ -239,7 +253,8 @@ class DB
     }
 
 
-    function queryResultArray($query, $params=null, $commit=false, $fetch_mode=PDO::FETCH_ASSOC, $runtime=0) {
+    function queryResultArray($query, $params=null, $commit=false, $fetch_mode=\PDO::FETCH_ASSOC, $runtime=0) 
+    {
         $this->checkCorrectWriteMode($query);
         $this->getInstance();
         $result=array();
@@ -256,9 +271,9 @@ class DB
                     $result = TRUE;
                 }else {
 
-                    if ($fetch_mode==PDO::FETCH_NUM)
+                    if ($fetch_mode==\PDO::FETCH_NUM)
                     {
-                        if (($row = $stmt->fetch(PDO::FETCH_NUM)) !== false)
+                        if (($row = $stmt->fetch(\PDO::FETCH_NUM)) !== false)
                         {
                             //$count = count($row);
                             do {
@@ -266,7 +281,7 @@ class DB
                                 //    if(is_numeric($row[$i])) $row[$i] = $row[$i] + 0;
                                 $result[]=$row;
                                 //break;
-                            } while($row = $stmt->fetch(PDO::FETCH_NUM));
+                            } while($row = $stmt->fetch(\PDO::FETCH_NUM));
                         }
                     } else $result = $stmt->fetchAll($fetch_mode);
                 }
@@ -328,7 +343,7 @@ class DB
                 else
                     $stmt->execute();
 
-                if (($row = $stmt->fetch(PDO::FETCH_NUM)) !== false) {
+                if (($row = $stmt->fetch(\PDO::FETCH_NUM)) !== false) {
                     //$count = count($row);
                     do {
                         //for ($i=0; $i < $count; $i++)
@@ -340,7 +355,7 @@ class DB
                             break;
                         }
                     }
-                    while($row = $stmt->fetch(PDO::FETCH_NUM));
+                    while($row = $stmt->fetch(\PDO::FETCH_NUM));
                 }
             }catch (Exception $ex) {
                 error_log($ex->getMessage() . PHP_EOL . $stmt->queryString . PHP_EOL . var_export($params, TRUE));
@@ -390,7 +405,7 @@ class DB
                 else
                     $stmt->execute();
 
-                if(($row = $stmt->fetch(PDO::FETCH_NUM)) !== false) {
+                if(($row = $stmt->fetch(\PDO::FETCH_NUM)) !== false) {
                     //$count = count($row);
                     $simpleArray=is_null($key) ? true : false;
                     
@@ -410,7 +425,7 @@ class DB
                             }
                         }
                     }
-                    while($row = $stmt->fetch(PDO::FETCH_NUM));
+                    while($row = $stmt->fetch(\PDO::FETCH_NUM));
                     
                 }
             }catch (Exception $ex) {
@@ -496,7 +511,8 @@ class DB
     }
     
     
-    function queryQLCacheResultSimpleArray($label, $query, $params=null, $key=0, $lifetime=86400, $forceSetting=false, $forceIfEmpty=false){
+    function queryQLCacheResultSimpleArray($label, $query, $params=null, $key=0, $lifetime=86400, $forceSetting=false, $forceIfEmpty=false)
+    {
         $records=array();        
 
         $foo = self::$Cache->get($label);
@@ -506,13 +522,14 @@ class DB
             $this->checkCorrectWriteMode($query);
             $stmt = $this->getInstance()->prepare($query);
             
-            try{
+            try
+            {
                 if ($params)
                     $stmt->execute($params);
                 else
                     $stmt->execute();
 
-                if(($row = $stmt->fetch(PDO::FETCH_NUM)) !== false) {
+                if(($row = $stmt->fetch(\PDO::FETCH_NUM)) !== false) {
 
                     //$count = count($row);
                     $simpleArray=is_null($key) ? true : false;
@@ -531,7 +548,7 @@ class DB
                             }
                         }
                     }
-                    while($row = $stmt->fetch(PDO::FETCH_NUM));
+                    while($row = $stmt->fetch(\PDO::FETCH_NUM));
                 }
             }catch (Exception $ex) {
                 error_log($ex->getMessage() . PHP_EOL . $query . PHP_EOL . var_export($params, TRUE));

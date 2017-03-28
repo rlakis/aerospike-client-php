@@ -1,8 +1,10 @@
 <?php
 include_once $config['dir'].'/core/layout/Site.php';
 
+use Core\Model\Classifieds;
 
-class Page extends Site{
+class Page extends Site
+{
     protected $action='';
     protected $requires=array('js'=>array(),'css'=>array());
     protected $title='',$description='';
@@ -28,9 +30,10 @@ class Page extends Site{
     
     var $pageItemScope='itemscope itemtype="http://schema.org/WebPage"';
 
-    function __construct($router){
+    
+    function __construct(Core\Model\Router $router)
+    {
         parent::__construct($router); 
-        //$this->user->sysAuthById(1);
         if($this->user->info['id']){
             if($this->urlRouter->isApp){
                 $this->isUserMobileVerified = true;
@@ -41,7 +44,6 @@ class Page extends Site{
             }
         }
         
-        //var_dump($_SESSION['info']);
         //var_dump($this->user->info);
         /*$mcUser = new MCUser(876007);
         var_dump($mcUser);
@@ -304,7 +306,8 @@ class Page extends Site{
         }
         
 
-        if ($this->urlRouter->module=='detail') {
+        if ($this->urlRouter->module=='detail') 
+        {
             $this->detailAd = $this->classifieds->getById($this->urlRouter->id);
             if (!empty ($this->detailAd)) {
                 if (!empty($this->detailAd[Classifieds::ALT_CONTENT])) {

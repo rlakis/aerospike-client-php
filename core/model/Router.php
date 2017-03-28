@@ -1,4 +1,5 @@
 <?php
+namespace Core\Model;
 
 require_once 'vendor/autoload.php';
 use MaxMind\Db\Reader;
@@ -120,7 +121,9 @@ class Router
                 header("HTTP/1.1 403 Forbidden");
                 exit(0);
             }            
-        } else {
+        } 
+        else 
+        {
             header("HTTP/1.1 403 Forbidden");
             exit(0);            
         }
@@ -146,7 +149,7 @@ class Router
             }
             else
             {
-                $device = new Mobile_Detect();
+                $device = new \Mobile_Detect();
 
                 if ($device->isMobile() && !$device->isTablet()) 
                 {
@@ -665,7 +668,7 @@ class Router
             if ($etagHeader) {
                 if ($etagHeader===$etagFile) {
                     include_once $this->cfg['dir']. '/core/layout/Site.php';
-                    $site = new Site($this);
+                    $site = new \Site($this);
                     $site->handleCacheActions();
 
                     header("HTTP/1.1 304 Not Modified");
@@ -676,9 +679,10 @@ class Router
             }
 
             //check if page has changed. If not, send 304 and exit            
-            if (@strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE'])>=$lastModifiedDate) {                
+            if (@strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE'])>=$lastModifiedDate) 
+            {          
                 include_once $this->cfg['dir']. '/core/layout/Site.php';
-                $site = new Site($this);
+                $site = new \Site($this);
                 $site->handleCacheActions();
                 header("HTTP/1.1 304 Not Modified");
                exit;      

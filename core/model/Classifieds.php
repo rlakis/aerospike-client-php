@@ -1,11 +1,13 @@
 <?php
+namespace Core\Model;
+
 require 'vendor/autoload.php';
 use libphonenumber\PhoneNumber;
 use libphonenumber\PhoneNumberToCarrierMapper;
 use libphonenumber\PhoneNumberUtil;
 
-
-class Classifieds {
+class Classifieds 
+{
 
     const ID                    = 0;
     const HELD                  = 1;
@@ -158,7 +160,8 @@ class Classifieds {
         
         self::$stmt_get_ad->execute(array($id));
         
-        if (($row = self::$stmt_get_ad->fetch(PDO::FETCH_NUM)) !== false) {
+        if (($row = Classifieds::$stmt_get_ad->fetch(\PDO::FETCH_NUM)) !== false) 
+        {
             $count = count($row);
             for ($i=0; $i<$count; $i++) {
                 if(is_numeric($row[$i])) $row[$i] = $row[$i]+0;
@@ -221,16 +224,20 @@ class Classifieds {
                 $ad[Classifieds::PRICE] = 0;
             }
 
-            if ($ad[Classifieds::ROOT_ID]==1) {
+            if ($ad[Classifieds::ROOT_ID]==1) 
+            {
                 self::$stmt_get_loc->execute(array($id));
-                while (($locRow = self::$stmt_get_loc->fetch(PDO::FETCH_ASSOC)) !== false) {
+                while (($locRow = self::$stmt_get_loc->fetch(\PDO::FETCH_ASSOC)) !== false) 
+                {
                     $ad[$locRow['LANG']=='ar' ? Classifieds::LOCALITIES_AR : Classifieds::LOCALITIES_EN][$locRow['LOCALITY_ID']+0] =
                             array($locRow['NAME'], $locRow['CITY_ID'], $locRow['PARENT_ID']);
                 }
             }
-            elseif ($ad[Classifieds::ROOT_ID]==2) {
+            elseif ($ad[Classifieds::ROOT_ID]==2) 
+            {
                 self::$stmt_get_ext->execute(array($id));
-                while (($extRow = self::$stmt_get_ext->fetch(PDO::FETCH_ASSOC)) !== false) {
+                while (($extRow = self::$stmt_get_ext->fetch(\PDO::FETCH_ASSOC)) !== false) 
+                {
                     $ad[$extRow['LANG']=='ar' ? Classifieds::EXTENTED_AR : Classifieds::EXTENTED_EN] = $extRow['SECTION_TAG_ID']+0;
                 }
             }
@@ -252,7 +259,7 @@ class Classifieds {
     
     public function normalizeContacts(&$ad) {
         if ($this->mobileValidator==NULL) {
-            $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
+            $this->mobileValidator = \libphonenumber\PhoneNumberUtil::getInstance();
         }
         $telNumbers = [];
         $tmpContent = $ad[Classifieds::CONTENT];

@@ -1,8 +1,8 @@
 <?php
+namespace Core\Lib;
 
-class MCCache extends Redis 
+class MCCache extends \Redis 
 {
-    
     private $buffer;
     private $writeBuffering;
     
@@ -26,8 +26,8 @@ class MCCache extends Redis
             error_log("Could not connect to redis ". (($conf['memstore']['tcp']) ? $conf['memstore']['host']."/".$conf['memstore']['port'] : "unix socket " . $conf['memstore']['socket']));
         }
             
-        $this->setOption(Redis::OPT_SERIALIZER, $conf['memstore']['serializer']);
-        $this->setOption(Redis::OPT_PREFIX, $conf['memstore']['prefix']);
+        $this->setOption(\Redis::OPT_SERIALIZER, $conf['memstore']['serializer']);
+        $this->setOption(\Redis::OPT_PREFIX, $conf['memstore']['prefix']);
         $this->select($conf['memstore']['db']);
     }
 

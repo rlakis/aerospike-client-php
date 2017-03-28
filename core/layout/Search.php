@@ -1,9 +1,11 @@
 <?php
 include_once $config['dir'] . '/core/layout/Page.php';
-//include_once $config['dir'] . '/core/model/WebTitle.php';
 
-class Search extends Page {
-    
+use Core\Model\Classifieds;
+use Core\Lib\SphinxQL;
+
+class Search extends Page 
+{    
     const ID                    = 0;
     const CONTENT               = 1;
     const KEYWORDS              = 2;
@@ -55,16 +57,19 @@ class Search extends Page {
         $pageThumb = '', $partnerSection = '', $watchName = '', $formatNumbers=false, $mobileValidator=null, $phoneNumber=null;
     var $isRT = 0;
     
-    function __construct($router) {
+    function __construct(Core\Model\Router $router) 
+    {
         header('Vary: User-Agent');
         parent::__construct($router); 
         
         $this->tmpPurposeId = 0;
         $this->tmpRootId = 0;
         
-        if(isset($_GET['rt'])){
+        if(isset($_GET['rt']))
+        {
             $this->isRT = 1;
         }
+        
         if(!$this->isMobile){
             $this->inlineCss .= '.cct > a{white-space:nowrap;float:'.($this->urlRouter->siteLanguage == 'ar' ? 'right':'left').'}';
             $this->inlineCss .= '.sfilter .order,.sfilter .olang{background-color:#f8f8f8}.sfilter .order.ov,.sfilter .olang.ov{background-color:#ff9000}ul.sfilter{background-color:gold}';

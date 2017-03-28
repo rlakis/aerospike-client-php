@@ -116,6 +116,7 @@ trait UserTrait
             while (!isset($record[USER_PROFILE_ID]) && $time < 2000000);
             
             $record['logged_by_device'] = $device;
+                       
             return $record;
         }
 

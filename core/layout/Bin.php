@@ -5,6 +5,11 @@ require_once $config['dir'].'/core/model/NoSQL.php';
 
 use MaxMind\Db\Reader;
 use Core\Model\NoSQL;
+use Core\Model\DB;
+use Core\Model\Router;
+use Core\Model\Classifieds;
+use Core\Lib\SphinxQL;
+
 
 class AjaxHandler extends Site {
 
@@ -15,7 +20,8 @@ class AjaxHandler extends Site {
     var $dir='';
     var $host='';
 
-    function __construct($router){
+    function __construct(Router $router)
+    {
         parent::__construct($router);
         $this->dir=$router->cfg['dir'];
         $this->host=$router->cfg['host'];
