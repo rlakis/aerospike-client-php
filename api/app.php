@@ -4,100 +4,100 @@ header('Cache-Control: no-cache, must-revalidate');
 header('Expires: Mon, 26 Jul 1997 00:00:00 GMT');
 header('Content-type: application/json');
 
-const ERR_INVALID_REQUEST_PARAMS    = 1000;
-const ERR_INVALID_PHONE_NUMBER      = 1001;
-const ERR_INVALID_COUNTRY_CODE      = 1002;
+const ERR_INVALID_REQUEST_PARAMS                = 1000;
+const ERR_INVALID_PHONE_NUMBER                  = 1001;
+const ERR_INVALID_COUNTRY_CODE                  = 1002;
 
-const API_DATA                      = 1;
-const API_COUNTS                    = 2;
-const API_REGISTER                  = 3;
-const API_SEARCH                    = 4;
-const API_FAVORITES                 = 5;
-const API_WATCHLIST                 = 6;
-const API_BOOKMARK                  = 7;
-const API_ACTIVATE                  = 8;
-const API_PASSWORD                  = 9;
-const API_AUTHENTICATE              = 10;
-const API_TOTALS                    = 11;
-const API_SET_NOTIFICATION          = 12;
-const API_APNS_TOKEN                = 13;
-const API_UNREGISTER                = 14;
-const API_CHANGE_NUMBER             = 15;
-const API_COUNTRY_LOCS              = 16;
-const API_PHONE_VALIDATION          = 17;
-const API_WATCHLIST_VISITED         = 18;
+const API_DATA                                  = 1;
+const API_COUNTS                                = 2;
+const API_REGISTER                              = 3;
+const API_SEARCH                                = 4;
+const API_FAVORITES                             = 5;
+const API_WATCHLIST                             = 6;
+const API_BOOKMARK                              = 7;
+const API_ACTIVATE                              = 8;
+const API_PASSWORD                              = 9;
+const API_AUTHENTICATE                          = 10;
+const API_TOTALS                                = 11;
+const API_SET_NOTIFICATION                      = 12;
+const API_APNS_TOKEN                            = 13;
+const API_UNREGISTER                            = 14;
+const API_CHANGE_NUMBER                         = 15;
+const API_COUNTRY_LOCS                          = 16;
+const API_PHONE_VALIDATION                      = 17;
+const API_WATCHLIST_VISITED                     = 18;
 
-const API_USER_ADS_STAT             = 19;
-const API_USER_DRAFT_ADS            = 20;
-const API_USER_PENDING_ADS          = 21;
-const API_USER_APPROVED_ADS         = 22;
-const API_USER_REJECTCED_ADS        = 23;
-const API_USER_ACTIVE_ADS           = 27;
-const API_USER_ARCHIVED_ADS         = 29;
+const API_USER_ADS_STAT                         = 19;
+const API_USER_DRAFT_ADS                        = 20;
+const API_USER_PENDING_ADS                      = 21;
+const API_USER_APPROVED_ADS                     = 22;
+const API_USER_REJECTCED_ADS                    = 23;
+const API_USER_ACTIVE_ADS                       = 27;
+const API_USER_ARCHIVED_ADS                     = 29;
 
-const API_USER_SAVE_AD              = 30;
-const API_USER_PUBLISH_AD           = 31;
-const API_USER_RENEW_AD             = 32;
+const API_USER_SAVE_AD                          = 30;
+const API_USER_PUBLISH_AD                       = 31;
+const API_USER_RENEW_AD                         = 32;
 
-const API_REVERSE_GEO_IP            = 33;
-const API_USER_HOLD_AD              = 34;
-const API_MAKE_TOP_AD               = 35;
-const API_USER_DELETE_AD            = 36;
-const API_STOP_TOP_AD               = 37;
+const API_REVERSE_GEO_IP                        = 33;
+const API_USER_HOLD_AD                          = 34;
+const API_MAKE_TOP_AD                           = 35;
+const API_USER_DELETE_AD                        = 36;
+const API_STOP_TOP_AD                           = 37;
 
-const API_IOS_PRODUCTS              = 40;
-const API_IOS_PURCHASE              = 41;
+const API_IOS_PRODUCTS                          = 40;
+const API_IOS_PURCHASE                          = 41;
 
-const API_GET_NOTES                 = 47;
-const API_UNIFY_UID                 = 48;
-const API_LOGIN_AS_MOBILE           = 49;
-const API_COINS_STATEMENT           = 50;
+const API_GET_NOTES                             = 47;
+const API_UNIFY_UID                             = 48;
+const API_LOGIN_AS_MOBILE                       = 49;
+const API_COINS_STATEMENT                       = 50;
 
-const API_ANDROID_WATCHLIST_ADD     = 51;
-const API_ANDROID_WATCHLIST_REMOVE  = 52;
-const API_ANDROID_WATCHLIST_TOUCH   = 53;
-const API_ANDROID_FAVORITE          = 54;
-const API_ANDROID_FLAG_AD           = 55;
-const API_ANDROID_PARSE_URI         = 56;
-const API_ANDROID_CHECK_FIX_CONNECTION_FAILURE = 57;
-const API_ANDROID_POST_AD           = 58;
-const API_ANDROID_DELETE_AD         = 59;
-const API_ANDROID_GET_AD            = 60;
-const API_ANDROID_HOLD_AD           = 61;
-const API_ANDROID_RENEW_AD          = 62;
+const API_ANDROID_WATCHLIST_ADD                 = 51;
+const API_ANDROID_WATCHLIST_REMOVE              = 52;
+const API_ANDROID_WATCHLIST_TOUCH               = 53;
+const API_ANDROID_FAVORITE                      = 54;
+const API_ANDROID_FLAG_AD                       = 55;
+const API_ANDROID_PARSE_URI                     = 56;
+const API_ANDROID_CHECK_FIX_CONNECTION_FAILURE  = 57;
+const API_ANDROID_POST_AD                       = 58;
+const API_ANDROID_DELETE_AD                     = 59;
+const API_ANDROID_GET_AD                        = 60;
+const API_ANDROID_HOLD_AD                       = 61;
+const API_ANDROID_RENEW_AD                      = 62;
 
-const API_GET_STATS_AD_SUMMARY      = 63;
-const API_GET_STATS_AD_BY_ID        = 64;
+const API_GET_STATS_AD_SUMMARY                  = 63;
+const API_GET_STATS_AD_BY_ID                    = 64;
 
-const API_ANDROID_SIGN_OUT          = 65;
-const API_ANDROID_SYNC_ACCOUNT      = 66;
+const API_ANDROID_SIGN_OUT                      = 65;
+const API_ANDROID_SYNC_ACCOUNT                  = 66;
     
-const API_COINS_TOTAL               = 67;
-const API_ANDROID_PURCHASE          = 68;
+const API_COINS_TOTAL                           = 67;
+const API_ANDROID_PURCHASE                      = 68;
 
-const API_ANDROID_CANCEL_PREMIUM    = 69;
-const API_ANDROID_MAKE_PREMIUM      = 70;
-const API_ANDROID_STATEMENT         = 71;
-const API_ANDROID_GET_PRODUCTS      = 72;
+const API_ANDROID_CANCEL_PREMIUM                = 69;
+const API_ANDROID_MAKE_PREMIUM                  = 70;
+const API_ANDROID_STATEMENT                     = 71;
+const API_ANDROID_GET_PRODUCTS                  = 72;
 
-const API_ANDROID_GET_PROMO         = 73;
-const API_ANDROID_CLAIM_PROMO       = 74;
+const API_ANDROID_GET_PROMO                     = 73;
+const API_ANDROID_CLAIM_PROMO                   = 74;
 
-const API_ANDROID_SYNC_WATCHLIST      = 75;
+const API_ANDROID_SYNC_WATCHLIST                = 75;
 
-const API_ANDROID_SET_NOTE      = 76;
-const API_ANDROID_VERIFY_BILLING      = 77;
+const API_ANDROID_SET_NOTE                      = 76;
+const API_ANDROID_VERIFY_BILLING                = 77;
 
-const API_ANDROID_SIGN_IN      = 78;
-const API_ANDROID_SIGN_UP      = 79;
-const API_ANDROID_SET_PASSWORD      = 80;
-const API_ANDROID_CHANGE_ACCOUNT      = 81;
-const API_ANDROID_PUSH_RECEIPT      = 82;
-const API_ANDROID_VERIFY_NUMBER      = 83;
-const API_ANDROID_USER_NUMBER      = 84;
+const API_ANDROID_SIGN_IN                       = 78;
+const API_ANDROID_SIGN_UP                       = 79;
+const API_ANDROID_SET_PASSWORD                  = 80;
+const API_ANDROID_CHANGE_ACCOUNT                = 81;
+const API_ANDROID_PUSH_RECEIPT                  = 82;
+const API_ANDROID_VERIFY_NUMBER                 = 83;
+const API_ANDROID_USER_NUMBER                   = 84;
 
-const API_DB_EVENT                  = 998;
-const API_LOG                       = 999;
+const API_DB_EVENT                              = 998;
+const API_LOG                                   = 999;
 
 
 $appVersion=filter_input(INPUT_GET, 'av', FILTER_SANITIZE_STRING, ['options'=>['default'=>'1.0']]);
@@ -141,12 +141,14 @@ $timer = new ElapseTime();
 $timer->start();
 $api = new MobileApi($config);
 
-if (!$api->hasError()) {
+if (!$api->hasError()) 
+{
     
     $action = filter_input(INPUT_GET, 'm', FILTER_VALIDATE_INT)+0;
     $api->command = $action;
     
-    switch ($action) {
+    switch ($action) 
+    {
         case API_DATA:
             $api->getDatabase();
             break;
@@ -330,6 +332,7 @@ if (!$api->hasError()) {
         case 100:
             $api->sphinxTotalsQL();
             break;
+        
         case 101:
             $api->sendSMS('9613287168', 'SMS test message');
             break;
@@ -363,7 +366,6 @@ if (!$api->hasError()) {
 
 $timer->stop();
 $api->result['elapsed-time']=$timer->get_elapse();
-//$api->result['includes']=  get_included_files();
 $api->done();
 
 

@@ -941,7 +941,7 @@ class MobileApi
                 $opts->user_level = $this->user->getLevel();
                 $opts->secret = $this->user->getMobile()->getSecret();
                 $opts->phone_number = $this->user->getMobile()->getNumber();
-                $opts->disallow_purchase = $this->user->device->isPurchaseEnabled();
+                $opts->disallow_purchase = !$this->user->device->isPurchaseEnabled();
                 $opts->cuid = $this->user->device->getChangedToUID();
                 $opts->full_name = $this->user->getFullName();
                 $opts->email = $this->user->getUserMail() ? $this->user->getUserMail() : $this->user->getEMail();                

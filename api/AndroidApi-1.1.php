@@ -1253,15 +1253,19 @@ class AndroidApi {
                 
                 case API_ANDROID_USER_NUMBER:
                     $keyCode=0;
-                    //$number = filter_input(INPUT_POST, 'tel');
-                    $number = filter_input(INPUT_POST, 'tel', FILTER_VALIDATE_INT)+0;
+                    $number = filter_input(INPUT_POST, 'tel');
+                    //$number = filter_input(INPUT_POST, 'tel', FILTER_VALIDATE_INT)+0;
                     $keyCode = filter_input(INPUT_POST, 'code');
                     $keyCode = is_numeric($keyCode) ? $keyCode : 0;
                     $language = filter_input(INPUT_GET, 'hl', FILTER_SANITIZE_STRING , ['options'=>['default'=>'en']]);
-                    $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                    $signature = trim(filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
                     $appVersion = filter_input(INPUT_GET, 'apv', FILTER_SANITIZE_STRING , ['options'=>['default'=>'']]);
                     
-                    if($number && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY)))
+                    $parity = strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY));
+                    error_log(sprintf("%s\t%d\t%s\t%s", date("Y-m-d H:i:s"), $number, $signature, json_encode($_POST)).PHP_EOL, 3, "/var/log/mourjan/sms.log");
+                    error_log(sprintf("%s\tS: %s", date("Y-m-d H:i:s"), base64_decode($signature)).PHP_EOL, 3, "/var/log/mourjan/sms.log");
+                    error_log(sprintf("%s\tP: %s", date("Y-m-d H:i:s"), $parity).PHP_EOL, 3, "/var/log/mourjan/sms.log");
+                    if($number && base64_decode($signature) == $parity)
                     {
                         
                         if($keyCode)
@@ -1610,7 +1614,8 @@ class AndroidApi {
                             else
                             {
                                 $this->api->result['d']['check'] = false;
-                            } 
+                            }
+                            error_log(sprintf("%s\t%s", date("Y-m-d H:i:s"), json_encode($this->api->result)).PHP_EOL, 3, "/var/log/mourjan/sms.log");
                         }
                     }
                     break;
