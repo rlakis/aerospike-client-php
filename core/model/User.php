@@ -141,7 +141,9 @@ class User
         return $params;
     }
 
-    function __construct($db, $config, $site, $init=1){
+    
+    function __construct($db, $config, $site, $init=1)
+    {
 
         //$uu = new MCUser();
         //$uu->loadFromAreoSpike(2);
@@ -149,7 +151,9 @@ class User
         $this->db=$db;
         $this->cfg=$config;
         $this->reset();
-        if($init){
+        
+        if($init)
+        {
             $this->site=$site;
             
             $this->populate();
@@ -280,6 +284,7 @@ class User
             }
         }
     }
+    
     
     function isSuperUser()
     {
@@ -1924,26 +1929,34 @@ order by m.activation_timestamp desc',
     }
     
     
-    function setUserParams($result){        
-            $this->info['id']=$result[0]['ID'];
-            $this->info['idKey']=$this->encodeId($result[0]['ID']);
-            $this->info['name']=$result[0]['USER_NAME'] ? $result[0]['USER_NAME'] :$result[0]['DISPLAY_NAME'];
-            $this->info['provider']=$result[0]['PROVIDER'];
-            $this->info['level']=$result[0]['LVL'];
-            $this->info['rank']=$result[0]['USER_RANK'];
-            if($this->info['level']==6){
-                $this->info['email']='';
-            }else{
-                $this->info['email']=$result[0]['USER_EMAIL'] ? $result[0]['USER_EMAIL'] : $result[0]['EMAIL'];
-            }
-            if(strpos($this->info['email'], '@')===false) $this->info['email']='';
-            if ($result[0]['PREV_VISIT']) $this->params['last_visit']=  strtotime($result[0]['PREV_VISIT']);
-            if ($result[0]['OPTS']=='') {
-                $this->info['options']=array();
-            }else {
-                $this->info['options']=json_decode($result[0]['OPTS'],true);
-            }            
+    function setUserParams($result)
+    { 
+        $this->info['id']=$result[0]['ID'];
+        $this->info['idKey']=$this->encodeId($result[0]['ID']);
+        $this->info['name']=$result[0]['USER_NAME'] ? $result[0]['USER_NAME'] :$result[0]['DISPLAY_NAME'];
+        $this->info['provider']=$result[0]['PROVIDER'];
+        $this->info['level']=$result[0]['LVL'];
+        $this->info['rank']=$result[0]['USER_RANK'];
+        if($this->info['level']==6)
+        {
+            $this->info['email']='';
+        }
+        else
+        {
+            $this->info['email']=$result[0]['USER_EMAIL'] ? $result[0]['USER_EMAIL'] : $result[0]['EMAIL'];
+        }
+        if(strpos($this->info['email'], '@')===false) $this->info['email']='';
+        if ($result[0]['PREV_VISIT']) $this->params['last_visit']=  strtotime($result[0]['PREV_VISIT']);
+        if ($result[0]['OPTS']=='') 
+        {
+            $this->info['options']=array();
+        }
+        else 
+        {
+            $this->info['options']=json_decode($result[0]['OPTS'],true);
+        }            
     }
+    
     
     function reloadData($id){
         $q='select identifier,id,lvl,display_name,provider, email, user_rank,user_name,user_email,opts,prev_visit,last_visit 
@@ -1966,20 +1979,26 @@ order by m.activation_timestamp desc',
         }
     }
     
-    function sysAuthById($id){
-        if($this->session_id==''){
+    
+    function sysAuthById($id)
+    {
+        if($this->session_id=='')
+        {
             $this->session_id = session_id();
         }
         /*$q='select identifier,id,lvl,display_name,provider,email,user_rank,user_name,user_email,opts,prev_visit,last_visit 
             from web_users where id = ?';*/
-        $q = 'update web_users set last_visit = current_timestamp where id = ? returning identifier,id,lvl,display_name,provider,email,user_rank,user_name,user_email,opts,prev_visit,last_visit';
+        $q = 'update web_users set last_visit=current_timestamp where id=? returning identifier, id, lvl, display_name, provider, email, user_rank, user_name, user_email, opts, prev_visit, last_visit';
         $result=$this->db->queryResultArray($q, [$id]);
-        if ($result && isset($result[0]) && $result[0]['ID']) {
+        if ($result && isset($result[0]) && $result[0]['ID']) 
+        {
             $this->setUserParams($result);
             $this->update();
             return 1;
-        }else return 0;
+        }
+        else return 0;
     }
+    
     
     function authenticateUserAccount($account, $pass){
         $pass = md5($this->md5_prefix.$pass);

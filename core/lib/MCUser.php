@@ -226,7 +226,7 @@ class MCUser extends MCJsonMapper
     
     public function isMobileVerified():bool
     {
-        return $this->getMobile()->isVerified();
+        return $this->getMobile(TRUE)->isVerified();
     }
     
     
@@ -385,11 +385,12 @@ class MCUser extends MCJsonMapper
         if ($this->mobile->getNumber()<=0 || $refresh)
         {
             if ($_mobiles = NoSQL::getInstance()->mobileFetchByUID( $this->getID() ))
-            {
+            {                
                 $this->mobile = new MCMobile( $_mobiles[0] );
             }
         }
-        $this->mobile->setUser($this);
+
+        $this->mobile->setUser($this);               
         return $this->mobile;
     }
     

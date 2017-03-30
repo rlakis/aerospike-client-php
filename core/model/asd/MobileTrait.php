@@ -107,7 +107,6 @@ trait MobileTrait
             \Aerospike::OPT_READ_TIMEOUT => 5000,
             \Aerospike::OPT_SCAN_PERCENTAGE => 100,
             \Aerospike::OPT_SCAN_NOBINS => TRUE,
-            
             ];
         
         $sort_by = ['id' => ['data'=>[], 'direction' => SORT_DESC, 'type' => SORT_NUMERIC]];
