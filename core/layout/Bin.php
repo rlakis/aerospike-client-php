@@ -3833,14 +3833,14 @@ class Bin extends AjaxHandler{
                                 if($mcUser->isMobileVerified()){
                                     $status = $mcUser->isSuspended() ? 1:0;
                                 }else{
-                                    $status = $this->user->detectDuplicateSuspension($ad['cui'],$mcUser->isMobileVerified()); 
+                                    $status = $this->user->detectDuplicateSuspension($ad['cui'],$mcUser->isMobileVerified());                                     
+                                }
+                                if($status == 1){
                                     if($ad['rtl']){
                                         $msg = 'لقد تم ايقاف حسابك بشكل مؤقت نظراً للتكرار';
                                     }else{
                                         $msg = 'your account is suspended due to repetition';
                                     }
-                                }
-                                if($status == 1){
                                     $renew= false;
                                     $this->user->rejectAd($id,$msg);
                                 }else if(in_array($section_id,array(190,1179,540,1114))){
