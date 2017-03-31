@@ -341,7 +341,7 @@ class Search extends Page
             //if ($this->isMobileAd) {
             //$this->set_ad(array('Leaderboard'=>array('/1006833/mourjan-mobile', 320, 50, 'div-gpt-ad-1326381096859-0-'.$this->urlRouter->cfg['server_id'])));
             
-            //$this->inlineCss.='.w300,.w650{width:100%;display:block}.w650, .w650 div{margin:0 auto;display: block}.ad100{display:inline-block;width:320px;height:100px}.w650, .w650 div{width:650px;height:120px}.card{overflow-x:hidden}.lbad{text-align:center;overflow:visible!important;background-color:transparent!important;border:0!important}.ad.ad_dt{margin:0}@media all and (max-width: 649px){.w650 {display: none!important}}';
+            $this->inlineCss.='.w300,.w650{width:100%;display:block}.w650, .w650 div{margin:0 auto;display: block}.ad100{display:inline-block;width:320px;height:100px}.w650, .w650 div{width:650px;height:120px}.card{overflow-x:hidden}.lbad{text-align:center;overflow:visible!important;background-color:transparent!important;border:0!important}.ad.ad_dt{margin:0}@media all and (max-width: 649px){.w650 {display: none!important}}';
 
             if (isset($this->user->params['screen'][0]) && $this->user->params['screen'][0]) {
                 $width = $this->user->params['screen'][0];
