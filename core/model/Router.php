@@ -651,9 +651,11 @@ class Router
         if (!$this->cfg['site_production']) return;
         if(isset($_GET['provider']))return;
         //header("X-Mourjan-ID: ".$_SESSION['info']['id'] );
-        if ( isset($_SESSION['info']['id']) && $_SESSION['info']['id'] && $this->module!='homescreen') return;
+        //error_log($_SESSION['info']['id']);
+        $SESSION = $_SESSION['_u'];
+        if ( isset($SESSION['info']['id']) && $SESSION['info']['id'] && $this->module!='homescreen') return;
         if ($lastModifiedDate) {
-            $etag = isset($_SESSION['params']['etag']) && isset($_SESSION['params']['mobile']) && $_SESSION['params']['mobile'] ? $_SESSION['params']['etag'] : $this->cfg['etag'];
+            $etag = isset($SESSION['params']['etag']) && isset($SESSION['params']['mobile']) && $SESSION['params']['mobile'] ? $SESSION['params']['etag'] : $this->cfg['etag'];
             //$ifModifiedSince=(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) ? $_SERVER['HTTP_IF_MODIFIED_SINCE'] : false);
                            
             $etagFile = sprintf('%x%x-%x-%x-%x-%x-%x-%x-%x', $this->isMobile, $etag,
