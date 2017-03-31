@@ -2437,13 +2437,16 @@ class Bin extends AjaxHandler{
                             $ad['ip']=$ip;   
                             $geo = $this->urlRouter->getIpLocation($ip);
                             $XX='';
-                            if($geo) {
+                            
+                            if($geo && isset($geo['country'])) 
+                            {
                             	$ad['userLOC'] = isset($geo['city']['names']['en']) ? $geo['city']['names']['en'].', ' : '';
                                 $ad['userLOC'].=$geo['country']['iso_code'];
                                 $ad['userLOC'].=': '. implode(" ,",$geo['location']);
                                 
                                 $XX = $geo['country']['iso_code'];                                
-                            } else $ad['userLOC']=0;
+                            } 
+                            else $ad['userLOC']=0;
                             
                             if($mcUser->isMobileVerified()){
                                 $uNum = $mcUser->getMobileNumber();

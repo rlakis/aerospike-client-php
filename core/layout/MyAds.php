@@ -1571,10 +1571,13 @@ var rtMsgs={
             ?></p><?php            
             $this->renderEditorsBox($state, true);
             
-            if($this->user->info['level']==9 && $mcUser && $mcUser->isBlocked()){
+            if($this->user->info['level']==9 && $mcUser && $mcUser->isBlocked())
+            {
                 $msg = 'User is Blocked';
-                $reason = preg_replace(['/\</','/\>/'],['&#60;','&#62;'],$this->user->getBlockingReason($mcUser->getMobileNumber()));
-                if($reason){
+                $reason = preg_replace(['/\</','/\>/'],['&#60;','&#62;'], Core\Model\NoSQL::getInstance()->getBlackListedReason($mcUser->getMobileNumber()));
+                //$reason = preg_replace(['/\</','/\>/'],['&#60;','&#62;'],$this->user->getBlockingReason($mcUser->getMobileNumber()));
+                if($reason)
+                {
                     $msg = $msg.'<br />'.$reason;
                 }
             }

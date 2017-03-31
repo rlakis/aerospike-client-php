@@ -4,6 +4,7 @@ namespace Core\Model;
 require_once 'asd/UserTrait.php';
 require_once 'asd/MobileTrait.php';
 require_once 'asd/DeviceTrait.php';
+require_once 'asd/BlackListTrait.php';
 
 
 class NoSQL 
@@ -11,6 +12,7 @@ class NoSQL
     use \Core\Model\ASD\UserTrait;    
     use \Core\Model\ASD\MobileTrait;  
     use \Core\Model\ASD\DeviceTrait;
+    use \Core\Model\ASD\BlackListTrait;
     
     private static $instance = null;
     private $cluster;
