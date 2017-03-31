@@ -707,7 +707,7 @@ class Detail extends Search
         
         //$this->processTextNumbers($this->detailAd[Classifieds::CONTENT],$this->detailAd[Classifieds::PUBLICATION_ID],$this->detailAd[Classifieds::COUNTRY_CODE],$numMatches);
 
-        $this->replacePhonetNumbers($this->detailAd[Classifieds::CONTENT], $this->detailAd[Classifieds::PUBLICATION_ID], $this->detailAd[Classifieds::COUNTRY_CODE], $this->detailAd[Classifieds::TELEPHONES][0], $this->detailAd[Classifieds::TELEPHONES][1], $this->detailAd[Classifieds::TELEPHONES][2],$this->detailAd[Classifieds::EMAILS]);
+        $this->replacePhonetNumbers($this->detailAd[Classifieds::CONTENT], $this->detailAd[Classifieds::PUBLICATION_ID], $this->detailAd[Classifieds::COUNTRY_CODE], $this->detailAd[Classifieds::TELEPHONES][0], $this->detailAd[Classifieds::TELEPHONES][1], $this->detailAd[Classifieds::TELEPHONES][2],$this->detailAd[Classifieds::EMAILS],$numMatches);
 
         
                 ?><div id="<?= $this->detailAd[Classifieds::ID] ?>" class="dt sh"<?= $itemScope ?>><?php 
@@ -840,20 +840,14 @@ class Detail extends Search
                     }  
                 
                 //$initNum=false;
-                if ($numMatches && count($numMatches)) {
-                    foreach ($numMatches as $num){
-                        /*$num=preg_split('/[\s\/-]/', $num);
-                        if (count($num)>1) {
-                            if (strlen($num[0]>$num[1])) $num=$num[1].$num[0];
-                            else $num=$num[0].$num[1];
-                        }else {
-                            $num=$num[0];
-                        }*/
+                if ($numMatches) {
+                    echo $numMatches;
+                    /*foreach ($numMatches as $num){
                         //if ($initNum) echo '<br /><br />';
                         //echo '<a class="bt" href=\'tel:',$num,'\'>',$this->lang['call'],' <span class="pn">',$num,'</span></a>';
                         echo '<a class="bt" href=\'tel:',$num,'\'><span class="k call"></span> <span class="pn">',$num,'</span></a>';
                         //$initNum=true;
-                    }
+                    }*/
                 }
                 if ($hasEmail) {
                     foreach ($emails as $email){
@@ -876,9 +870,9 @@ class Detail extends Search
                         ?><div onclick="aF(this)" class="button" <?= $favSpan ? 'style="display:none"':'' ?>><span class="k fav"></span><label><?= $this->lang['m_addFav'] ?></label></div><?php
                         ?><div onclick="rF(this)"  class="button" <?= $favSpan ? '':'style="display:none"' ?>><span class="k fav on"></span><label><?= $this->lang['removeFav'] ?></label></div><?php    
                     }else {
-                        ?><div id="dFB" onclick="pF(this)" class="button"><span class="k fav"></span><label><?= $this->lang['m_addFav'] ?></label></div><?php
+                        /*?><div id="dFB" onclick="pF(this)" class="button"><span class="k fav"></span><label><?= $this->lang['m_addFav'] ?></label></div><?php*/
                     }
-                    ?><div onclick="share(this)" class="button"><span class="k share"></span><label><?= $this->lang['share'] ?></label></div><?php 
+                    /*?><div onclick="share(this)" class="button"><span class="k share"></span><label><?= $this->lang['share'] ?></label></div><?php */
                     if($this->user->info['id'] && $this->user->info['level']==9){
                         if(!$isFeatured && !$isFeatureBooked){
                             ?><div onclick="rpA(this)" class="button"><span class="k spam"></span><label><?= $this->lang['reportAbuse'] ?></label></div><?php 
@@ -886,6 +880,12 @@ class Detail extends Search
                     }else{
                         ?><div onclick="rpA(this)" class="button"><span class="k spam"></span><label><?= $this->lang['reportAbuse'] ?></label></div><?php
                     }
+                    
+                    $subj=($this->urlRouter->siteLanguage=='ar'?'وجدت هذا الاعلان على مرجان':'found this ad on mourjan');
+                    $msg= urlencode($subj.' '.'https://www.mourjan.com/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage+'/').$this->detailAd[Classifieds::ID]);
+                    
+                    ?><a class="shr shr-wats" href="whatsapp://send?text=<?= $msg ?>" data-action="share/whatsapp/share"></a><?php
+                    ?><a class="shr shr-vb" href="viber://forward?text=<?= $msg ?>"></a><?php
                     /*?><div><span class="k eye"></span><label><?= $this->lang['m_addFollow'] ?></label></div><?php 
                     ?><div><span class="k eye on"></span><label><?= $this->lang['m_Followed'] ?></label></div><?php*/
                 ?></div><?php

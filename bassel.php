@@ -1,7 +1,19 @@
 <?php
-exit(0);
 require_once 'vendor/autoload.php';
 require_once get_cfg_var('mourjan.path'). '/config/cfg.php';
+include_once $config['dir']. '/core/model/Db.php';
+use Core\Model\DB;
+
+
+$db = new DB($config);
+$row = $db->queryResultArray(
+        "SELECT * from WEB_USERS d
+                    where 
+                    d.id = 891337", null);
+        var_dump($row);
+exit(0);
+
+
 include_once $config['dir'].'/core/lib/MourjanNexmo.php';
 
 $sms = new MourjanNexmo();

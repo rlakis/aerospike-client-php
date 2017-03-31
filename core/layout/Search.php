@@ -76,9 +76,12 @@ class Search extends Page
             $this->inlineCss.='.ad600{display:inline-block;width:300px;height:600px}.adsawa{border:0;display:inline-block;width:300px;height:250px}';                
             $this->inlineCss .= '.rpd input[type="email"]{direction:ltr;display: block;width:624px;padding:5px 10px;margin-bottom:15px}';
         }else{
-            /*$this->isMobileCssLegacy=false;
-            $this->clear_require('css');*/
-            $this->set_require('css', 'search');
+            if(!$this->userFavorites && !$this->urlRouter->watchId){
+                $this->isMobileCssLegacy=false;
+                $this->clear_require('css');
+                $this->set_require('css', 's_home');
+                $this->set_require('css', 'search');
+            }
             $this->inlineCss .= '.thb.prem{height:50px}';
             $this->inlineCss .= '.txtd input[type="email"]{direction:ltr;width:90%;margin:10px auto;padding:5px 10px;border: 1px solid #CCC}';
         }
@@ -338,7 +341,7 @@ class Search extends Page
             //if ($this->isMobileAd) {
             //$this->set_ad(array('Leaderboard'=>array('/1006833/mourjan-mobile', 320, 50, 'div-gpt-ad-1326381096859-0-'.$this->urlRouter->cfg['server_id'])));
             
-            $this->inlineCss.='.w300,.w650{width:100%;display:block}.w650, .w650 div{margin:0 auto;display: block}.ad100{display:inline-block;width:320px;height:100px}.w650, .w650 div{width:650px;height:120px}.card{overflow-x:hidden}.lbad{text-align:center;overflow:visible!important;background-color:transparent!important;border:0!important}.ad.ad_dt{margin:0}@media all and (max-width: 649px){.w650 {display: none!important}}';
+            //$this->inlineCss.='.w300,.w650{width:100%;display:block}.w650, .w650 div{margin:0 auto;display: block}.ad100{display:inline-block;width:320px;height:100px}.w650, .w650 div{width:650px;height:120px}.card{overflow-x:hidden}.lbad{text-align:center;overflow:visible!important;background-color:transparent!important;border:0!important}.ad.ad_dt{margin:0}@media all and (max-width: 649px){.w650 {display: none!important}}';
 
             if (isset($this->user->params['screen'][0]) && $this->user->params['screen'][0]) {
                 $width = $this->user->params['screen'][0];
@@ -957,7 +960,7 @@ class Search extends Page
                         $smallBanner = false;
                     }
                     
-                    ?><li <?= $id ?> itemprop="itemListElement" <?= $liClass . $itemScope ?>><?= '<p '.( $detailAd ? '': 'onclick="wo(\'' . $_link . '\')" ') . $itemDesc . ' class="button ' . $textClass . '">' . $pic . $newSpan . $ad[Classifieds::CONTENT] . '</p>' ?><span class="src <?= $this->urlRouter->siteLanguage ?>"><?= (($feature||$isFeatured) ? ( ($paid||$isFeatured) ? '<span class="vpdi '.$this->urlRouter->siteLanguage.'"></span><b>'.$this->lang['premium_ad'].'</b>' : '<span class="ovp '.$this->urlRouter->siteLanguage.'"></span>') : "<time st='" . $ad[Classifieds::UNIXTIME] . "'></time>") . $optSpan. $locSpan . $favSpan  ?></span></li><?php
+                    ?><li <?= $id ?> itemprop="itemListElement" <?= $liClass . $itemScope ?>><?= '<p '.( $detailAd ? '': 'onclick="wo(\'' . $_link . '\')" ') . $itemDesc . ' class="button ' . $textClass . '">' . $pic . $newSpan . $ad[Classifieds::CONTENT] . '</p>' ?><span class="src <?= $this->urlRouter->siteLanguage ?>"><?= (($feature||$isFeatured) ? ( ($paid||$isFeatured) ? '<span class="ic r102"></span><b>'.$this->lang['premium_ad'].'</b>' : '<span class="ovp '.$this->urlRouter->siteLanguage.'"></span>') : "<time st='" . $ad[Classifieds::UNIXTIME] . "'></time>") . $optSpan. $locSpan . $favSpan  ?></span></li><?php
                     
                     $idx++;
                    
@@ -1639,12 +1642,18 @@ class Search extends Page
                     ?><div onclick="aF(this)" class="button"><span class="k fav"></span><label><?= $this->lang['m_addFav'] ?></label></div><?php
                     ?><div onclick="rF(this)" class="button"><span class="k fav on"></span><label><?= $this->lang['m_removeFav'] ?></label></div><?php
                 } else {
-                    ?><div id="pFB" onclick="pF(this)" class="button"><span class="k fav"></span><label><?= $this->lang['m_addFav'] ?></label></div><?php
-                    ?><div><span class="k fav on"></span><label><?= $this->lang['removeFav'] ?></label></div><?php
+                    /*?><div id="pFB" onclick="pF(this)" class="button"><span class="k fav"></span><label><?= $this->lang['m_addFav'] ?></label></div><?php
+                    ?><div><span class="k fav on"></span><label><?= $this->lang['removeFav'] ?></label></div><?php*/
                 }
                 
-                ?><div onclick="share(this)" class="button"><span class="k share"></span><label><?= $this->lang['share'] ?></label></div><?php
-                ?><div onclick="rpA(this)" class="button"><span class="k spam"></span><label><?= $this->lang['reportAbuse'] ?></label></div><?php
+                /*?><div onclick="share(this)" class="button"><span class="k share"></span><label><?= $this->lang['share'] ?></label></div><?php*/
+                    ?><div onclick="rpA(this)" class="button"><span class="k spam"></span><label><?= $this->lang['reportAbuse'] ?></label></div><?php
+                    //$subj=($this->urlRouter->siteLanguage=='ar'?'وجدت هذا الاعلان على مرجان':'found this ad on mourjan');
+                    //$msg= urlencode($subj.' '.'https://www.mourjan.com/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage+'/').$this->detailAd[Classifieds::ID]);
+                    
+                    ?><a class="shr shr-wats" data-action="share/whatsapp/share"></a><?php
+                    ?><a class="shr shr-vb"></a><?php
+                
                 /* ?><div><span class="k eye"></span><label><?= $this->lang['m_addFollow'] ?></label></div><?php 
                   ?><div><span class="k eye on"></span><label><?= $this->lang['m_Followed'] ?></label></div><?php */
                 ?></div><?php
@@ -2179,7 +2188,7 @@ class Search extends Page
         return $formatNumber;
     }
 
-  function replacePhonetNumbers(&$text, $pubId=0, $countryCode=0, $mobiles, $phones, $undefined, $email=null){
+  function replacePhonetNumbers(&$text, $pubId=0, $countryCode=0, $mobiles, $phones, $undefined, $email=null,&$matches=''){
         $REGEX_MATCH='/((?:(?:[ .,;:\-\/،])(?:mobile|viber|whatsapp|phone|fax|telefax|للتواصل|جوال|موبايل|واتساب|للاستفسار|للأستفسار|للإستفسار|فايبر|هاتف|فاكس|تلفاكس|الاتصال|للتواصل|للمفاهمة|للاتصال|الاتصال على|اتصال|(?:(?:tel|call|ت|ه|ج)(?:\s|):))(?:(?:\s|):|\+|\/|)(?: |$)))/ui';
         $REGEX_CATCH='/(?:(?:(?:[ .,;:\-\/،])(?:mobile|viber|whatsapp|phone|fax|telefax|للتواصل|جوال|موبايل|واتساب|للاستفسار|للأستفسار|للإستفسار|فايبر|هاتف|فاكس|تلفاكس|الاتصال|للتواصل|للمفاهمة|للاتصال|الاتصال على|اتصال|(?:(?:tel|call|ت|ه|ج)(?:\s|):))(?:(?:\s|):|\+|\/|)(?: |$)))(.*)/ui';
         
@@ -2273,21 +2282,29 @@ class Search extends Page
                 foreach ($mobiles as $num) {
                     $number = $this->formatPhoneNumber($num[0]);
                     if ($num[0]!=$number) {
+                        $org = $num[0];
                         $num[0]= preg_replace('/\+/','\\+' , $num[0]);
                         $text = preg_replace('/'.$num[0].'/', $number, $text);
+                        $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                     } else {
+                        $org = $num[0];
                         $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
                         $text = preg_replace('/\<span class="pn(?:[\sa-z0-9]*)">'.$num[0].'\<\/span\>/', '<span class="vn">'.$number.'</span>', $text);
+                        $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                     }
                 }
                 foreach ($phones as $num) {
                     $number = $this->formatPhoneNumber($num[0]);
                      if ($num[0]!=$number) {
+                         $org = $num[0];
                         $num[0]= preg_replace('/\+/','\\+' , $num[0]);
                         $text = preg_replace('/'.$num[0].'/', $number, $text);
+                        $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                     } else {
+                        $org = $num[0];
                         $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
                         $text = preg_replace('/\<span class="pn(?:[\sa-z0-9]*)">'.$num[0].'\<\/span\>/', '<span class="vn">'.$number.'</span>', $text);
+                        $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                     }
                 }
             /*}*/
@@ -2378,21 +2395,29 @@ class Search extends Page
                 foreach ($mobiles as $num) {
                     $number = $this->formatPhoneNumber($num[1]);
                      if ($num[0]!=$number) {
+                         $org = $num[0];
                         $num[0]= preg_replace('/\+/','\\+' , $num[0]);                        
                         $text = preg_replace('/'.$num[0].'/', '<span class="pn">'.$number.'</span>', $text);
+                        $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                     } else {
+                        $org = $num[0];
                         $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
                         $text = preg_replace('/'.$num[0].'/', '<span class="vn">'.$number.'</span>', $text);
+                        $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                     }
                 }
                 foreach ($phones as $num) {
                     $number = $this->formatPhoneNumber($num[1]);
                      if ($num[0]!=$number) {
+                         $org = $num[0];
                         $num[0]= preg_replace('/\+/','\\+' , $num[0]);
                         $text = preg_replace('/'.$num[0].'/', '<span class="pn">'.$number.'</span>', $text);
+                        $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                     } else {
+                        $org = $num[0];
                         $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
                         $text = preg_replace('/'.$num[0].'/', '<span class="vn">'.$number.'</span>', $text);
+                        $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                     }
                 }
 
