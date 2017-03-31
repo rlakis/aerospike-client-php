@@ -188,35 +188,40 @@ class User
             
             $this->authenticate();
             $this->setCookieData();
-            if (!isset($this->params['visit']) || $site->urlRouter->module=='oauth') {
-                //$countryId=0;
-                //if (isset($this->params['country'])) $countryId=  $this->params['country'];
+            if (!isset($this->params['visit']) || $site->urlRouter->module=='oauth') 
+            {
                 $this->getCookieData();
                 
-                if(!$this->info['id'] && isset($_COOKIE['__uvme']) && $_COOKIE['__uvme']){
+                if(!$this->info['id'] && isset($_COOKIE['__uvme']) && $_COOKIE['__uvme'])
+                {
                     $cmd = $this->decodeRequest($_COOKIE['__uvme']);
-                    if($cmd && $cmd['request']=='keepme_in'){
-                        if(is_numeric($cmd['params'][0])){
+                    if($cmd && $cmd['request']=='keepme_in')
+                    {
+                        if(is_numeric($cmd['params'][0]))
+                        {
                             $this->sysAuthById($cmd['params'][0]);
                         }
                     }
                 }
                 
-                //if (!$countryId && ($site->urlRouter->uri=='' || $site->urlRouter->uri=='/') && isset($this->params['country']) && !$this->isSpider()){
-                //    $site->urlRouter->countryId=$this->params['country'];
-                //}
 
                 $device = new Mobile_Detect();
-                if($device->isMobile()){
-                    if( $device->isiOS() ){
-                        if(preg_replace('/_.*/','',$device->version('iPhone')) > 7){
+                if($device->isMobile())
+                {
+                    if( $device->isiOS() )
+                    {
+                        if(preg_replace('/_.*/','',$device->version('iPhone')) > 7)
+                        {
                             $this->params['mobile_ios_app_bottom_banner']=1;
                         }
                     }
-                    if( $device->isAndroidOS() ){
+                    if( $device->isAndroidOS() )
+                    {
                         $this->params['mobile_android_app_bottom_banner']=1;
                     }
-                }else{
+                }
+                else
+                {
                 
                     include_once $config['dir'].'/core/lib/Browser.php';
                     $browser = new Browser();
@@ -410,7 +415,7 @@ class User
          */
     }
     
-    
+    /*
     function isMobileVerified($uid){
         $mobile = $this->db->queryResultArray(
             'select * from web_users_linked_mobile m
@@ -424,7 +429,7 @@ order by m.activation_timestamp desc',
         error_log("{$uid} ".__FUNCTION__.": " . Core\Model\NoSQL::getInstance()->getVerifiedMobile($uid));
         return $verified;
     }
-    
+    */
     function checkAccount($email){
         $user = $this->db->queryResultArray(
             'select * from web_users where IDENTIFIER=?',
@@ -439,7 +444,9 @@ order by m.activation_timestamp desc',
         return $user;
     }
     
-    function getBlockingReason($number){
+    /*
+    function getBlockingReason($number)
+    {
         $res = $this->db->queryResultArray(
             'select subject from bl_phone where telephone=?',
             [$number]);
@@ -450,6 +457,7 @@ order by m.activation_timestamp desc',
         }
         return $res;
     }
+    */
     
     function resetPassword($userId, $pass){
         $original = $pass;
@@ -1700,19 +1708,23 @@ order by m.activation_timestamp desc',
         return $id;
     }
     
-    function block($uid, $number, $msg){
-        $q = 'update or insert into bl_phone (telephone,subject,web_user_id) values (?,?,?) matching(telephone) returning id';
-        $block = $this->db->queryResultArray($q, [
-            $number,
-            $msg,
-            $uid
-        ]);
-        $pass=0;
-        if(isset($block[0]['ID']) && $block[0]['ID']){
-            $pass=1;
+    
+    function block($uid, $number, $msg)
+    {
+        if (Core\Model\NoSQL::getInstance()->blacklistInsert($number, $msg, $uid))
+        {
+            $q = 'update or insert into bl_phone (telephone,subject,web_user_id) values (?,?,?) matching(telephone) returning id';
+            $block = $this->db->queryResultArray($q, [$number, $msg, $uid]);
+            $pass=0;
+        
+            if(isset($block[0]['ID']) && $block[0]['ID']){
+                $pass=1;
+            }
+            return $pass;
         }
-        return $pass;
+        return 0;
     }
+    
     
     function suspend($uid, $hours, $newModel=0){
         $pass=false;
@@ -1986,9 +1998,29 @@ order by m.activation_timestamp desc',
         {
             $this->session_id = session_id();
         }
-        /*$q='select identifier,id,lvl,display_name,provider,email,user_rank,user_name,user_email,opts,prev_visit,last_visit 
-            from web_users where id = ?';*/
-        $q = 'update web_users set last_visit=current_timestamp where id=? returning identifier, id, lvl, display_name, provider, email, user_rank, user_name, user_email, opts, prev_visit, last_visit';
+        $bins = Core\Model\NoSQL::getInstance()->fetchUser($id);
+        if (isset($bins[\Core\Model\ASD\USER_PROFILE_ID]))
+        {
+            $pv = $bins[Core\Model\ASD\USER_LAST_VISITED] ?? 0;
+            if ((time()-$pv)>1800)
+            {
+                Core\Model\NoSQL::getInstance()->setVisitUnixtime($id);
+                if ($this->site==null || $this->site->urlRouter->module=='ajax-pi' || $this->site->urlRouter->module=='ajax-screen')
+                {
+                    $q='select identifier, id, lvl, display_name, provider, email, user_rank, user_name, user_email, opts, prev_visit, last_visit from web_users where id=?';
+                }
+                else 
+                {
+                    error_log(var_export($this->site->urlRouter->module, TRUE));
+                    $q = 'update web_users set last_visit=current_timestamp where id=? returning identifier, id, lvl, display_name, provider, email, user_rank, user_name, user_email, opts, prev_visit, last_visit';
+                }
+            }
+            else
+            {
+                $q='select identifier, id, lvl, display_name, provider, email, user_rank, user_name, user_email, opts, prev_visit, last_visit from web_users where id=?';
+            }
+        }
+        
         $result=$this->db->queryResultArray($q, [$id]);
         if ($result && isset($result[0]) && $result[0]['ID']) 
         {
@@ -2789,8 +2821,10 @@ order by m.activation_timestamp desc',
             }
         }*/
     }
+    
 
-    function setCookieData(){
+    function setCookieData()
+    {
         if($this->cfg['modules'][$this->site->urlRouter->module][0]=='Bin')return;
         $info=array(
             'lv'=>time(), 
@@ -2881,14 +2915,16 @@ order by m.activation_timestamp desc',
     }
     
     
-    function refreshCache($uid=0){
+    function refreshCache($uid=0)
+    {
         if(!$uid) $uid = $this->info['id'];
-        if($uid){
-            
+        if($uid){            
         }
     }
+    
 
-    function isSpider(){
+    function isSpider()
+    {
         if (isset ($this->params['spider'])) return $this->params['spider'];
         $pattern="/Googlebot|Yammybot|MJ12bot|Openbot|Yahoo|BingBot|Slurp|msnbot|ia_archiver|Lycos|Scooter|AltaVista|Teoma|Gigabot|Googlebot-Mobile/i";
         if (array_key_exists('HTTP_USER_AGENT', $_SERVER) && preg_match($pattern, $_SERVER['HTTP_USER_AGENT'])) {
