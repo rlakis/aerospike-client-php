@@ -1457,19 +1457,27 @@ order by m.activation_timestamp desc',
         return $result;
     }
 
-    function saveAd($publish=0,$user_id=0,$runtime=0){
+    
+    function saveAd($publish=0, $user_id=0, $runtime=0)
+    {
         $id=0;
         if($user_id)
+        {
             $userId=$user_id;
+        }
         else
+        {
             $userId=isset($this->pending['post']['user']) && $this->pending['post']['user'] ? $this->pending['post']['user'] : 0;
+        }
+        
         $this->pending['post']['title']='test';
-        try{
+        
+        try
+        {
 
-            if ($userId) {
-                //include_once $this->cfg['dir'] . '/core/lib/MCAdTextHandler.php';
+            if ($userId) 
+            {
                 include_once $this->cfg['dir'] . '/core/lib/MCSaveHandler.php';
-                //$textHandler = new AdTextFormatter();
                 
                 $normalizer = new MCSaveHandler($this->cfg);
 
@@ -1480,31 +1488,17 @@ order by m.activation_timestamp desc',
                 if ($normalized)                    
                 {
                     $content = $normalized;
+                    
                     if ($content['se']!=$this->pending['post']['se'])
                     {
                         $this->pending['post']['se']=$content['se'];
                     }
+                    
                     if ($content['pu']=$this->pending['post']['pu'])
                     {
                         $this->pending['post']['pu']=$content['pu'];
                     }
                 }
-                
-                /*
-                if (isset($content['other'])) {
-                    $textHandler->setText($content['other']);
-                    $textHandler->format();                
-                    $content['other'] = $textHandler->text;
-                    //error_log($textHandler->text);
-                }
-
-                if (isset($content['altother'])) {
-                    $textHandler->setText($content['altother']);
-                    $textHandler->format();                
-                    $content['altother'] = $textHandler->text;
-                }
-                
-                */
                 
                 $this->pending['post']['content']=json_encode($content);
 
@@ -1526,9 +1520,10 @@ order by m.activation_timestamp desc',
                     $attrs = isset($content['attrs']) ? $content['attrs'] : NULL;
                     
                     $q='update ad_user set
-                        content=?,title=?,purpose_id=?,section_id=?,rtl=?,
-                        country_id=?,city_id=?,latitude=?,longitude=?,state=?,media=? ';
-                    if( $this->info['id']==$userId && ($publish==1 || $publish==4)){
+                        content=?, title=?, purpose_id=?, section_id=?, rtl=?,
+                        country_id=?, city_id=?, latitude=?, longitude=?, state=?, media=? ';
+                    if ($this->info['id']==$userId && ($publish==1 || $publish==4))
+                    {
                         $q.=',date_added=current_timestamp ';
                     }
                     $q.='where id=? ';
@@ -1536,76 +1531,89 @@ order by m.activation_timestamp desc',
                     $q.='returning state, web_user_id';
                     
                     $tries = 0;
-                    if ($this->pending['post']['se']>0) {
-                    	//do {
-                    		$tries++;
+                    
+                    if ($this->pending['post']['se']>0) 
+                    {
+                        $tries++;
                     		
-                    		$stmt=$this->db->prepareQuery($q);
-	                    	$stmt->bindValue(1, $this->pending['post']['content'],PDO::PARAM_STR);
-    	                	$stmt->bindValue(2, $this->pending['post']['title']);
-        	            	$stmt->bindValue(3, $this->pending['post']['pu']);
-            	        	$stmt->bindValue(4, $this->pending['post']['se']);
-                	    	$stmt->bindValue(5, $this->pending['post']['rtl']);
-                    		$stmt->bindValue(6, $this->pending['post']['cn']);
-                    		$stmt->bindValue(7, $this->pending['post']['c']);
-                    		$stmt->bindValue(8, $this->pending['post']['lat']);
-                    		$stmt->bindValue(9, $this->pending['post']['lon']);
-	                    	$stmt->bindValue(10, $publish, PDO::PARAM_INT);
-    	                	$stmt->bindValue(11, $media, PDO::PARAM_INT);
-        	            	$stmt->bindValue(12, $id, PDO::PARAM_INT);
+                        $stmt=$this->db->prepareQuery($q);
+                        $stmt->bindValue(1, $this->pending['post']['content'],PDO::PARAM_STR);
+                        $stmt->bindValue(2, $this->pending['post']['title']);
+                        $stmt->bindValue(3, $this->pending['post']['pu']);
+                        $stmt->bindValue(4, $this->pending['post']['se']);
+                        $stmt->bindValue(5, $this->pending['post']['rtl']);
+                        $stmt->bindValue(6, $this->pending['post']['cn']);
+                        $stmt->bindValue(7, $this->pending['post']['c']);
+                        $stmt->bindValue(8, $this->pending['post']['lat']);
+                        $stmt->bindValue(9, $this->pending['post']['lon']);
+                        $stmt->bindValue(10, $publish, PDO::PARAM_INT);
+                        $stmt->bindValue(11, $media, PDO::PARAM_INT);
+                        $stmt->bindValue(12, $id, PDO::PARAM_INT);
 
-            	        	if ($this->info['level']!=9)$stmt->bindValue(13,$userId, PDO::PARAM_INT);
+                        if ($this->info['level']!=9)$stmt->bindValue(13, $userId, PDO::PARAM_INT);
 
-                	    	$result=null;
+                        $result=null;
                                 
-                    		try 
+                        try 
+                        {
+                            if (!$this->db->inTransaction())
+                            {
+                                error_log('User.SaveAd ('. $id .'): Not in transaction (1)' );
+                            }
+                                                    
+                            if ($this->db->executeStatement($stmt)) 
+                            {
+                                $result=$stmt->fetchAll(PDO::FETCH_ASSOC);
+                            
+                                if ($attrs)
                                 {
                                     if (!$this->db->inTransaction())
                                     {
-                                        error_log('User.SaveAd ('. $id .'): Not in transaction (1)' );
+                                        error_log('User.SaveAd ('. $id .'): Not in transaction (2)' );
                                     }
-                                    if ($this->db->executeStatement($stmt)) {
-                                        $result=$stmt->fetchAll(PDO::FETCH_ASSOC);
-                                        if ($attrs)
-                                        {
-                                            if (!$this->db->inTransaction())
-                                            {
-                                                error_log('User.SaveAd ('. $id .'): Not in transaction (2)' );
-                                            }
                                             
-                                            $st=$this->db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
-                                            $st->bindValue(1, $id, PDO::PARAM_INT);
-                                            $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
-                                            $st->execute();  
-                                            $this->db->executeStatement($st);
-                                        }
-                                    }
-                    		} catch (Exception $e) {
-                                    error_log('User.SaveAd ('. $id .'): ' .  $e->getMessage());
-                                    error_log('User.SaveAd ('. $id .'): ' .  $e->getTraceAsString());
-                                    error_log('User.SaveAd ('. $id .') Transaction: ' . $this->db->getTransactionIsolationMessage());
+                                    $st=$this->db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
+                                    $st->bindValue(1, $id, PDO::PARAM_INT);
+                                    $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
+                                    $st->execute();  
+                                    $this->db->executeStatement($st);
+                                }
+                            }
+                        } 
+                        catch (Exception $e) 
+                        {
+                            $result = null;
+                            error_log('User.SaveAd ('. $id .'): ' .  $e->getMessage());
+                            error_log('User.SaveAd ('. $id .'): ' .  $e->getTraceAsString());
+                            error_log('User.SaveAd ('. $id .') Transaction: ' . $this->db->getTransactionIsolationMessage());
 
-                                    $this->db->getInstance()->rollBack();
-                    		}	
-							
-                    	//} 
-                    	//while (isset($result) || $tries>2);
+                            $this->db->getInstance()->rollBack();
+                        }							
                     }
                     
                     
-                    if (!empty($result)){
+                    if (!empty($result))
+                    {
                         $state=(int)$result[0]['STATE'];
-                        if ($this->pending['post']['state']!=$state) {
+                    
+                        if ($this->pending['post']['state']!=$state) 
+                        {
                             $this->pending['post']['state']=$state;
                             $updateOptions=false;
-                            if ($state==1 || $state==2){
+                        
+                            if ($state==1 || $state==2)
+                            {
                                 $uId = (int)$result[0]['WEB_USER_ID'];
                                 $content = json_decode($this->pending['post']['content'],true);
-                                if(isset($content['version']) && $content['version']==2){
-                                    if ($this->info['id']==$uId) {
+                            
+                                if(isset($content['version']) && $content['version']==2)
+                                {
+                                    if ($this->info['id']==$uId) 
+                                    {
                                         $options=$this->info['options'];
                                         if ( (!isset($options['cut']) || json_encode($options['cut']) !=  json_encode($content['cut'])) ||
-                                              (!isset($options['cui']) || json_encode($options['cui']) !=  json_encode($content['cui']))  ){
+                                              (!isset($options['cui']) || json_encode($options['cui']) !=  json_encode($content['cui']))  )
+                                        {
                                             $options['cut']=$content['cut'];
                                             $options['cui']=$content['cui'];
                                             $options['cts']=time();
@@ -1613,7 +1621,9 @@ order by m.activation_timestamp desc',
                                             $this->info['options']=$options;
                                             $updateOptions=true;
                                         }
-                                    }else {                            
+                                    }
+                                    else 
+                                    { 
                                         $options = $this->getOptions($uId);
                                         if ($options!==false) {
                                             if ($options) $options = json_decode($options, true);
@@ -1629,8 +1639,11 @@ order by m.activation_timestamp desc',
                                             }
                                         }
                                     }
-                                }else {
-                                    if ($this->info['id']==$uId) {
+                                }
+                                else 
+                                {
+                                    if ($this->info['id']==$uId) 
+                                    {
                                         $options=$this->info['options'];
                                         if (!isset($options['contact']))
                                             $options['contact']=array();
@@ -1646,9 +1659,12 @@ order by m.activation_timestamp desc',
                                         $options['contact']['email']=$content['fields']['email'];
                                         $this->info['options']=$options;
                                         $updateOptions=true;
-                                    }else {                            
+                                    }
+                                    else 
+                                    {                            
                                         $options = $this->getOptions($uId);
-                                        if ($options!==false) {
+                                        if ($options!==false) 
+                                        {
                                             if ($options) $options = json_decode ($options, true);
                                             else $options=array();
                                             if (!isset($options['contact']))
@@ -1672,8 +1688,11 @@ order by m.activation_timestamp desc',
                             if ($updateOptions) $this->updateOptions();
                         }
                     }
-                } else {
-                    if ($this->pending['post']['se']>0) {
+                } 
+                else 
+                {
+                    if ($this->pending['post']['se']>0) 
+                    {
                     	$q='insert into ad_user
                         	(web_user_id,content,title,purpose_id,section_id,rtl,country_id,city_id,latitude,longitude,media)
                         	values (?,?,?,?,?,?,?,?,?,?,?) returning id';
@@ -1691,17 +1710,20 @@ order by m.activation_timestamp desc',
                     	$stmt->bindValue(11, $media, PDO::PARAM_INT);
                     	$result=null;
                     	if ($stmt->execute()) $result=$stmt->fetchAll(PDO::FETCH_ASSOC);
-                    	if (!empty ($result)) {
-                        	$this->pending['post']['id']=$id=$result[0]['ID'];
-                        	$this->update();
+                    	if (!empty ($result)) 
+                        {
+                            $this->pending['post']['id']=$id=$result[0]['ID'];
+                            $this->update();
                     	}
                     }
-                }                
+                }      
 
             }
             $this->db->commit();
 
-        }catch(Exception $e){
+        }
+        catch(Exception $e)
+        {
             $this->db->getInstance()->rollBack(); 
             $id=0;
         }
@@ -1941,8 +1963,50 @@ order by m.activation_timestamp desc',
     }
     
     
-    function setUserParams($result)
+    function setUserParams($result, $asbins=FALSE)
     { 
+        if ($asbins)
+        {
+            $this->info['id']=$result[Core\Model\ASD\USER_PROFILE_ID];
+            $this->info['idKey']=$this->encodeId($this->info['id']);
+            $this->info['name']=$result[Core\Model\ASD\USER_NAME] ? $result[Core\Model\ASD\USER_NAME] : $result[\Core\Model\ASD\USER_DISPLAY_NAME];
+            $this->info['provider']=$result[Core\Model\ASD\USER_PROVIDER];
+            $this->info['level']=$result[\Core\Model\ASD\USER_LEVEL];
+            $this->info['rank']=$result[Core\Model\ASD\USER_RANK];
+            
+            if($this->info['level']==6)
+            {
+                $this->info['email']='';
+            }
+            else
+            {
+                $this->info['email']=$result[Core\Model\ASD\USER_EMAIL] ? $result[Core\Model\ASD\USER_EMAIL] : $result[\Core\Model\ASD\USER_PROVIDER_EMAIL];
+            }
+            
+            if(strpos($this->info['email'], '@')===false) 
+            {
+                $this->info['email']='';
+            }
+            
+            if ($result[\Core\Model\ASD\USER_PRIOR_VISITED])
+            {
+                $this->params['last_visit'] = $result[\Core\Model\ASD\USER_PRIOR_VISITED];
+            }
+            
+            
+            if ($result[Core\Model\ASD\USER_OPTIONS]=='') 
+            {
+                $this->info['options']=[];
+            }
+            else 
+            {
+                //error_log(var_export($result[Core\Model\ASD\USER_OPTIONS], true));
+                $this->info['options']=$result[Core\Model\ASD\USER_OPTIONS];
+            }
+            
+            return;
+        }
+        
         $this->info['id']=$result[0]['ID'];
         $this->info['idKey']=$this->encodeId($result[0]['ID']);
         $this->info['name']=$result[0]['USER_NAME'] ? $result[0]['USER_NAME'] :$result[0]['DISPLAY_NAME'];
@@ -1980,7 +2044,18 @@ order by m.activation_timestamp desc',
         }
     }
     
-    function authenticateById($id, $key){
+    
+    function authenticateById($id, $key)
+    {
+        $bins = Core\Model\NoSQL::getInstance()->fetchUser($id);
+        if (isset($bins[\Core\Model\ASD\USER_PROFILE_ID]) && isset($bins[Core\Model\ASD\USER_PROVIDER_ID]))
+        {
+            if (md5($bins[Core\Model\ASD\USER_PROVIDER_ID])==$key)
+            {
+                
+            }
+            
+        }
         /*$q='select identifier,id,lvl,display_name,provider, email, user_rank,user_name,user_email,opts,prev_visit,last_visit 
             from web_users where id = ?';*/
         $q = 'update web_users set last_visit = current_timestamp where id = ? returning identifier,id,lvl,display_name,provider,email,user_rank,user_name,user_email,opts,prev_visit,last_visit';
@@ -2005,22 +2080,28 @@ order by m.activation_timestamp desc',
             if ((time()-$pv)>1800)
             {
                 Core\Model\NoSQL::getInstance()->setVisitUnixtime($id);
+                $this->setUserParams($bins, TRUE);
+                $this->update();
+                
                 if ($this->site==null || $this->site->urlRouter->module=='ajax-pi' || $this->site->urlRouter->module=='ajax-screen')
                 {
                     $q='select identifier, id, lvl, display_name, provider, email, user_rank, user_name, user_email, opts, prev_visit, last_visit from web_users where id=?';
                 }
                 else 
                 {
-                    error_log(var_export($this->site->urlRouter->module, TRUE));
+                    //error_log(var_export($this->site->urlRouter->module, TRUE));
                     $q = 'update web_users set last_visit=current_timestamp where id=? returning identifier, id, lvl, display_name, provider, email, user_rank, user_name, user_email, opts, prev_visit, last_visit';
+                    $result=$this->db->queryResultArray($q, [$id]);
                 }
             }
             else
             {
                 $q='select identifier, id, lvl, display_name, provider, email, user_rank, user_name, user_email, opts, prev_visit, last_visit from web_users where id=?';
             }
+            return 1;
         }
-        
+        return 0;
+        /*
         $result=$this->db->queryResultArray($q, [$id]);
         if ($result && isset($result[0]) && $result[0]['ID']) 
         {
@@ -2029,6 +2110,8 @@ order by m.activation_timestamp desc',
             return 1;
         }
         else return 0;
+         * 
+         */
     }
     
     
