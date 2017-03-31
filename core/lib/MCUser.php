@@ -238,14 +238,17 @@ class MCUser extends MCJsonMapper
     
     public function isSuspended():bool
     {
-        return $this->getOptions()->isSuspended();
+        return ($this->getMobile()->getSuspendSeconds()>0);
+        //return $this->getOptions()->isSuspended();
     }
     
     
     public function getSuspensionTime():int
     {
-        return $this->getOptions()->getSuspensionTime();
+        return $this->getMobile()->getSuspendSeconds();
+        //return $this->getOptions()->getSuspensionTime();
     }
+    
     
     public function getProvider() : string
     {
@@ -309,6 +312,7 @@ class MCUser extends MCJsonMapper
             $this->lvl=0;
         return $this->lvl;
     }
+    
     
     public function isBlocked() : bool
     {
@@ -685,10 +689,12 @@ class MCMobile extends MCJsonMapper
         return $this->number ? $this->number : 0;
     }
 
+    
     public function getCode() : string
     {
         return $this->code ? $this->code : '';
     }
+    
     
     public function getSecret() : string
     {
@@ -718,8 +724,10 @@ class MCMobile extends MCJsonMapper
     
     public function isVerified() : bool
     {
-        //error_log("verified: <".($this->number && ($this->ats+31556926)>time()).">");
-
+        if ($this->flag==2)
+        {
+            return ($this->number>0);
+        }
         return ($this->number && ($this->ats+31556926)>time());
     }
     
@@ -755,6 +763,30 @@ class MCMobile extends MCJsonMapper
             return NoSQL::getInstance()->mobileUpdate($this->user->getID(), $this->number, [ASD\USER_MOBILE_SECRET => $password]);
         }
         return FALSE;
+    }
+    
+    
+    public function getSuspendSeconds() : int
+    {
+        if ($this->number)
+        {
+            $redis = new \Redis();
+            
+            if ($redis->connect('138.201.28.229', 6379, 2, NULL, 20)) 
+            {
+                $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
+                $redis->setOption(\Redis::OPT_PREFIX, 'mm_');
+                $redis->setOption(\Redis::OPT_READ_TIMEOUT, 10);
+            
+                $ttl = $redis->ttl($this->number); 
+                if($ttl<0)
+                {
+                    $ttl=0;
+                }
+            }
+            return $ttl;
+        }
+        return 0;
     }
 }
 
