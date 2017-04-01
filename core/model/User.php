@@ -197,7 +197,7 @@ class User
                     $cmd = $this->decodeRequest($_COOKIE['__uvme']);
                     if($cmd && $cmd['request']=='keepme_in')
                     {
-                        error_log("auto login: ".$cmd['params'][0]);
+                        //error_log("auto login: ".$cmd['params'][0]);
                         if(is_numeric($cmd['params'][0]))
                         {
                             $this->sysAuthById($cmd['params'][0]);
@@ -2078,19 +2078,18 @@ order by m.activation_timestamp desc',
         if (isset($bins[\Core\Model\ASD\USER_PROFILE_ID]))
         {
             $pv = $bins[Core\Model\ASD\USER_LAST_VISITED] ?? 0;
+            $this->setUserParams($bins, TRUE);
+            $this->update();
+
             if ((time()-$pv)>1800)
             {
-                Core\Model\NoSQL::getInstance()->setVisitUnixtime($id);
-                $this->setUserParams($bins, TRUE);
-                $this->update();
-                
+                Core\Model\NoSQL::getInstance()->setVisitUnixtime($id);                
                 if ($this->site==null || $this->site->urlRouter->module=='ajax-pi' || $this->site->urlRouter->module=='ajax-screen')
                 {
                     $q='select identifier, id, lvl, display_name, provider, email, user_rank, user_name, user_email, opts, prev_visit, last_visit from web_users where id=?';
                 }
                 else 
                 {
-                    //error_log(var_export($this->site->urlRouter->module, TRUE));
                     $q = 'update web_users set last_visit=current_timestamp where id=? returning identifier, id, lvl, display_name, provider, email, user_rank, user_name, user_email, opts, prev_visit, last_visit';
                     $result=$this->db->queryResultArray($q, [$id]);
                 }
