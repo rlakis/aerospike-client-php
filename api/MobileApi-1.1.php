@@ -1685,10 +1685,11 @@ class MobileApi
             
             if ( $opts->user_status==1) 
             {
-                if (session_status() == PHP_SESSION_NONE) 
-                {
-                    session_start();
-                }
+                //new MCSessionHandler();
+                //if (session_status() == PHP_SESSION_NONE)
+                //{
+                //    session_start();
+                //}
 
                 include $this->config['dir'] .'/core/model/User.php';
                 $user = new User($this->db, $this->config, null, 0);
@@ -1699,8 +1700,12 @@ class MobileApi
                 $this->result['d']['uid']=  $this->uid;
                 
                 $this->getBalance();
-                //error_log('App: ' . PHP_EOL . json_encode($user->info), 0);
-                //error_log('App: ' . PHP_EOL . json_encode($_SESSION), 0);
+                
+                if ($this->getUID()==2)
+                {
+                    error_log('App: ' . PHP_EOL . json_encode($user->info), 0);
+                    error_log('App: ' . PHP_EOL . json_encode($_SESSION), 0);
+                }
             }
             
             
@@ -2793,22 +2798,24 @@ class MobileApi
         
         $opts = $this->userStatus($status);
                 
-        if ($status==1) {
+        if ($status==1)
+        {
             
             // Register session            
-            if ( $opts->user_status==1) {
+            if ( $opts->user_status==1)
+            {
                 new MCSessionHandler(TRUE);
-                //$handler = new MCSessionHandler(TRUE);
-                //session_set_save_handler($handler, true);
-    
-                //session_start();
 
                 include $this->config['dir'] .'/core/model/User.php';
                 $user = new User($this->db, $this->config, null, 0);
                 $user->sysAuthById($this->uid);
                 $user->params['app']=1;
                 $user->update();
-            
+                if ($this->uid==2)
+                {
+                    error_log(var_export($user->params, TRUE));
+                    error_log(var_export($_SESSION, TRUE));
+                }
             }
             
             $lang=filter_input(INPUT_GET, 'dl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
