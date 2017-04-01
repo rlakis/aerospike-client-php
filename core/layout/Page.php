@@ -47,9 +47,12 @@ class Page extends Site
         //var_dump($this->user->info);
         /*$mcUser = new MCUser(876007);
         var_dump($mcUser);
-        $row = $this->urlRouter->db->queryResultArray(
-        "select * from web_users where id = ?", ['876007']);
-        var_dump($row);*/
+        */
+        /*$row = $this->urlRouter->db->queryResultArray(
+        "select * from web_users_linked_mobile where uid = ?", ['888552']);
+        var_dump($row);
+        $record = \Core\Model\NoSQL::getInstance()->fetchUserByUUID('ABC13D8A-5FD2-4A72-854F-55FC075BC52F');
+        var_dump($record);*/        
         
         $cdn = $this->urlRouter->cfg['url_resources'];
         
@@ -2185,10 +2188,11 @@ class Page extends Site
                 }
                 break;
             case 'detail':
-                if (!$this->detailAdExpired) {
-                    $headTitle=$this->title;
+                //if (!$this->detailAdExpired) {
+                    //$headTitle=$this->title;
+                    $headTitle='';
                     break;
-                }
+                //}
             case 'search':
                 $headTitle=  $this->title;
                 /*

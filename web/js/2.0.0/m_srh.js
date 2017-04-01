@@ -21,16 +21,26 @@ function ado(e){
         $(e).removeClass('aup');
         //e.className="adn";
     }else{
+        var subj=(lang=='ar'?'وجدت هذا الاعلان على مرجان':'found this ad on mourjan');
+        var msg=encodeURIComponent(subj+' https://www.mourjan.com/'+(lang=='ar'?'':lang+'/')+z.attr("id"));
         fdT(li,0,'edit');
+        
+        var s=$('.shr-wats',leb);
+        s[0].setAttribute('href', "whatsapp://send?text=" + msg);
+        s=$('.shr-vb',leb);
+        s[0].setAttribute('href', "viber://forward?text=" + msg);
+        
         $(e).addClass('aup');
         //e.className="adn aup";
-        var c=$c($f(leb));
-        if (z.hasClass('fav')){
-            c[0].style.display='none';
-            c[1].style.display='block';
-        }else{
-            c[1].style.display='none';
-            c[0].style.display='block';
+        if(uid){
+            var c=$c($f(leb));
+            if (z.hasClass('fav')){
+                c[0].style.display='none';
+                c[1].style.display='block';
+            }else{
+                c[1].style.display='none';
+                c[0].style.display='block';
+            }
         }
         li.appendChild(leb);
         leb.style.display="block";
@@ -71,6 +81,7 @@ function bshare(s,x){
         stWidget.addEntry(n)
     }
 }
+/*
 var dsh,dele;
 function share(e){
     if(dsh){
@@ -114,21 +125,6 @@ function share(e){
                         }
                     }
                 });
-                /*posA('/ajax-ads/','id='+li.id+'&l='+lang,function(rp){
-                    if(rp && rp.RP){
-                        var x=rp.DATA.i;
-                        cad[li.id]=x;
-                        bshare(s,x);
-                        eLD(e);
-                        acls(d);
-                        e.className='on';
-                        s.style.display='block';
-                        aht(li)
-                    }else {
-                        eLD(e);
-                        sms(d,xF,2)
-                    }
-                })*/
             }
         }
         if(z.hasClass('on')){
@@ -152,7 +148,7 @@ function share(e){
             dsh=0;
         }
     }
-}
+}*/
 function sms(d,m,s){
     acls(d);
     $c(d,3).innerHTML='<h2>'+(s? '<span class="'+(s==1?'done':'fail')+'"></span>':'')+m+'</h2>';

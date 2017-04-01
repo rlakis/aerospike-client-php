@@ -8,8 +8,10 @@ session_id($sess_id);
 
 include_once get_cfg_var("mourjan.path") . '/config/cfg.php';
 include_once get_cfg_var("mourjan.path") . '/core/model/User.php';
+include_once get_cfg_var("mourjan.path") . '/core/model/Db.php';
 include_once get_cfg_var("mourjan.path") . '/core/lib/MCSessionHandler.php';
 
+use Core\Model\DB;
 
 $handler = new MCSessionHandler($sh);
 //session_set_save_handler($handler, true);
