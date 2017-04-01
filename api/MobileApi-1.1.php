@@ -1397,9 +1397,11 @@ class MobileApi
     }
 
 
-    function watchListVisited() {
+    function watchListVisited() 
+    {
         $wId = filter_input(INPUT_GET, 'wid', FILTER_VALIDATE_INT)+0;
-        if ($wId) {
+        if ($wId) 
+        {
             $this->db->setWriteMode();
             $this->db->queryResultArray("update subscription set badge_count=0, last_visit=current_timestamp where id=?", [$wId], TRUE);
         }
@@ -1416,7 +1418,6 @@ class MobileApi
                 ];
             
         $this->db->setWriteMode();
-        new MCSessionHandler(TRUE);
         $current_name="";
         
         $device_name  = filter_input(INPUT_GET, 'dn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
@@ -1458,18 +1459,7 @@ class MobileApi
             if ($_device && isset($_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]) && $_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]=='Android')
             {
                 $this->uid = $_device[\Core\Model\ASD\USER_UID];
-            }
-            /*
-            $oldUid = $this->db->queryResultArray(
-                    "select uid from WEB_USERS_DEVICE where uuid=? and device_sysname='Android'",
-                    [$this->uuid], TRUE);
-            
-            if ($oldUid && count($oldUid)) 
-            {
-                $this->uid = $oldUid[0]['UID'];
-            }
-             * 
-             */
+            }           
         }
         //End of Android Fix for lost UID
         
@@ -1510,9 +1500,12 @@ class MobileApi
                     }
                 }
                 
-            }else{
+            }
+            else
+            {
                 $this->result['d']['a_release'] = '1.0.0';
             }
+            
             $this->result['d']['a_force'] = $this->config['android_app_release_enforce'];
             $this->result['d']['ed'] = $this->config['android_enabled_banner_detail']+0;
             $this->result['d']['edn'] = $this->config['android_enabled_banner_detail_native']+0;
@@ -1525,12 +1518,14 @@ class MobileApi
             $this->result['d']['eslf'] = $this->config['android_banner_search_native_list_first_idx']+0;
             $this->result['d']['eslg'] = $this->config['android_banner_search_native_list_gap']+0;
             $this->result['d']['eslz'] = $this->config['android_banner_search_native_list_freq']+0;
-            if($device_appversion > '1.3.0' && $device_appversion != '1.8.8'){                
+            if($device_appversion > '1.3.0' && $device_appversion != '1.8.8')
+            {                
                 $this->result['d']['edn'] = 0;
                 $this->result['d']['esn'] = 0;
                 $this->result['d']['esl'] = 0;
             }
-            if (isset($opts->push)){
+            if (isset($opts->push))
+            {
                 $this->result['d']['push'] = $opts->push;
             }
             
@@ -1685,6 +1680,11 @@ class MobileApi
             
             if ( $opts->user_status==1) 
             {
+                if (!$isAndroid && (session_status() == PHP_SESSION_NONE))
+                {
+                    new MCSessionHandler(TRUE);
+                }
+                
                 //new MCSessionHandler();
                 //if (session_status() == PHP_SESSION_NONE)
                 //{
@@ -1701,11 +1701,11 @@ class MobileApi
                 
                 $this->getBalance();
                 
-                if ($this->getUID()==2)
-                {
-                    error_log('App: ' . PHP_EOL . json_encode($user->info), 0);
-                    error_log('App: ' . PHP_EOL . json_encode($_SESSION), 0);
-                }
+                //if ($this->getUID()==2)
+                //{
+                //    error_log('App: ' . PHP_EOL . json_encode($user->info), 0);
+                //    error_log('App: ' . PHP_EOL . json_encode($_SESSION), 0);
+                //}
             }
             
             
@@ -2790,14 +2790,16 @@ class MobileApi
     }
 
 
-    public function getUserAdStat() {
-        if ($this->demo) {
+    public function getUserAdStat() 
+    {
+        if ($this->demo) 
+        {
             $this->getDemoUserAdStat();
             return;
         }
         
         $opts = $this->userStatus($status);
-                
+        
         if ($status==1)
         {
             
@@ -2810,12 +2812,7 @@ class MobileApi
                 $user = new User($this->db, $this->config, null, 0);
                 $user->sysAuthById($this->uid);
                 $user->params['app']=1;
-                $user->update();
-                if ($this->uid==2)
-                {
-                    error_log(var_export($user->params, TRUE));
-                    error_log(var_export($_SESSION, TRUE));
-                }
+                $user->update();                
             }
             
             $lang=filter_input(INPUT_GET, 'dl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
