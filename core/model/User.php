@@ -197,6 +197,7 @@ class User
                     $cmd = $this->decodeRequest($_COOKIE['__uvme']);
                     if($cmd && $cmd['request']=='keepme_in')
                     {
+                        error_log("auto login: ".$cmd['params'][0]);
                         if(is_numeric($cmd['params'][0]))
                         {
                             $this->sysAuthById($cmd['params'][0]);
