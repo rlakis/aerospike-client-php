@@ -365,7 +365,7 @@ class Search extends Page
                 } elseif ($width >= 353) {
                     $this->inlineCss .= '.w336 > div{width:336px;height:280px}';
                     $this->inlineCss .= '.w320 > div{width:320px;height:50px}';
-                    $this->inlineCss .= '.ad100 > div{width:320px;height:100px}';
+                    $this->inlineCss .= '.ad100{width:320px;height:100px}';
                     $this->inlineCss .= '@media all and (max-width:352px){.w336{display: none}}';
                     $this->set_ad(array('Square' => array('/1006833/M336x280', 336, 280, 'ad-' . $this->urlRouter->cfg['server_id'])));
                     //$this->set_ad(array('Leaderboard' => array('/1006833/M300x100', 300, 100, 'lad-' . $this->urlRouter->cfg['server_id'])));
@@ -373,7 +373,7 @@ class Search extends Page
                 } else {
                     $this->inlineCss .= '.w300 > div{width:300px;height:250px}';
                     $this->inlineCss .= '.w320 > div{width:320px;height:50px}';
-                    $this->inlineCss .= '.ad100 > div{width:320px;height:100px}';
+                    $this->inlineCss .= '.ad100{width:320px;height:100px}';
                     $this->set_ad(array('Square' => array('/1006833/M300x250', 300, 250, 'ad-' . $this->urlRouter->cfg['server_id'])));
                     //$this->set_ad(array('Leaderboard' => array('/1006833/M300x100', 300, 100, 'lad-' . $this->urlRouter->cfg['server_id'])));
                     $this->set_ad(array('Leaderboard' => array('/1006833/M320x50', 320, 50, 'lad-' . $this->urlRouter->cfg['server_id'])));
@@ -386,7 +386,7 @@ class Search extends Page
             } else {
                 $this->inlineCss .= '.w300 > div{width:300px;height:250px}';
                 $this->inlineCss .= '.w320 > div{width:320px;height:50px}';
-                $this->inlineCss .= '.ad100 > div{width:320px;height:100px}';
+                $this->inlineCss .= '.ad100{width:320px;height:100px}';
                 $this->set_ad(array('Square' => array('/1006833/M300x250', 300, 250, 'ad-' . $this->urlRouter->cfg['server_id'])));
                 $this->set_ad(array('Leaderboard' => array('/1006833/M320x50', 320, 50, 'lad-' . $this->urlRouter->cfg['server_id'])));
             }
@@ -964,7 +964,8 @@ class Search extends Page
                     
                     if(!$isFeatured && !$feature && $idx > 1 && $smallBanner){
                         if($this->urlRouter->cfg['enabled_ads'] && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<470)){
-                            ?><li class="lbad"><ins class="adsbygoogle ad100" data-ad-client="ca-pub-2427907534283641" data-ad-slot="5711519829"></ins></li><?php
+                            /* ?><li class="lbad"><div class="ad100"><ins class="adsbygoogle" data-ad-client="ca-pub-2427907534283641" data-ad-slot="5711519829"></ins></div></li><?php */
+                            ?><li class="lbad"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7294487825" data-ad-format="auto"></ins></li><?php
                         }else{
                             $banner = $this->fill_ad('Leaderboard', 'ad_dt');
                             if($banner){

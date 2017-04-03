@@ -7,9 +7,9 @@ use Core\Model\DB;
 
 $db = new DB($config);
 $row = $db->queryResultArray(
-        "SELECT * from WEB_USERS d
+        "SELECT * from WEB_USERS_linked_mobile d
                     where 
-                    d.id = 891337", null);
+                    d.mobile = '971507967441'", null);
         var_dump($row);
 exit(0);
 
