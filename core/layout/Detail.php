@@ -882,10 +882,11 @@ class Detail extends Search
                     }
                     
                     $subj=($this->urlRouter->siteLanguage=='ar'?'وجدت هذا الاعلان على مرجان':'found this ad on mourjan');
-                    $msg= urlencode($subj.' '.'https://www.mourjan.com/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage+'/').$this->detailAd[Classifieds::ID]);
+                    $whats_msg= urlencode($subj.' '.'https://www.mourjan.com/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage+'/').$this->detailAd[Classifieds::ID].'/?utm_source=whatsapp');
+                    $viber_msg= urlencode($subj.' '.'https://www.mourjan.com/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage+'/').$this->detailAd[Classifieds::ID].'/?utm_source=viber');
                     
-                    ?><a class="shr shr-wats" href="whatsapp://send?text=<?= $msg ?>" data-action="share/whatsapp/share"></a><?php
-                    ?><a class="shr shr-vb" href="viber://forward?text=<?= $msg ?>"></a><?php
+                    ?><a class="shr shr-wats" href="whatsapp://send?text=<?= $whats_msg ?>" data-action="share/whatsapp/share"></a><?php
+                    ?><a class="shr shr-vb" href="viber://forward?text=<?= $viber_msg ?>"></a><?php
                     /*?><div><span class="k eye"></span><label><?= $this->lang['m_addFollow'] ?></label></div><?php 
                     ?><div><span class="k eye on"></span><label><?= $this->lang['m_Followed'] ?></label></div><?php*/
                 ?></div><?php

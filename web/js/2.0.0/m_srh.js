@@ -21,12 +21,15 @@ function ado(e){
         $(e).removeClass('aup');
         //e.className="adn";
     }else{
+        
+        var ctx=subj+' https://www.mourjan.com/'+(lang=='ar'?'':lang+'/')+z.attr("id")+'/';
         var subj=(lang=='ar'?'وجدت هذا الاعلان على مرجان':'found this ad on mourjan');
-        var msg=encodeURIComponent(subj+' https://www.mourjan.com/'+(lang=='ar'?'':lang+'/')+z.attr("id"));
+        var msg=encodeURIComponent(ctx+'?utm_source=whatsapp');
         fdT(li,0,'edit');
         
         var s=$('.shr-wats',leb);
         s[0].setAttribute('href', "whatsapp://send?text=" + msg);
+        msg=encodeURIComponent(ctx+'?utm_source=viber');
         s=$('.shr-vb',leb);
         s[0].setAttribute('href', "viber://forward?text=" + msg);
         
