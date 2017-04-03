@@ -1,18 +1,26 @@
 <?php
 require_once 'Page.php';
 
-class Admin extends Page{
+class Admin extends Page
+{
     
     var $action='',$liOpen='';
-
-    function __construct($router){
+    private $uid = 0;
+    private $userdata = 0;
+    
+    function __construct($router)
+    {
         parent::__construct($router);
-        if($this->isMobile || !$this->user->isSuperUser()){
+        
+        if($this->isMobile || !$this->user->isSuperUser())
+        {
             $this->user->redirectTo('/notfound/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
         }     
+        
         $this->load_lang(array("account"));
         
-        $this->inlineCss .= '.ts .bt{width:auto;padding:5px 30px!important}'
+        $this->inlineCss .= 
+                '.ts .bt{width:auto;padding:5px 30px!important}'
                 . '.ts .lm{overflow:visible}'
                 . '.hy li{float:right;width:475px;border:0!important}'
                 . '.hy label{margin-bottom:10px}'
@@ -30,16 +38,103 @@ class Admin extends Page{
         $this->forceNoIndex=true;
         $this->urlRouter->cfg['enabled_sharing']=0;
         $this->urlRouter->cfg['enabled_ads']=0;
+        $parameter = filter_input(INPUT_GET, 'p', FILTER_SANITIZE_NUMBER_INT);
+        if ($parameter)
+        {
+            $date = new DateTime();
+            
+            $len = strlen($parameter);
+            $this->uid = intval($parameter);
+
+            $this->userdata = \Core\Model\NoSQL::getInstance()->fetchUser($this->uid);
+            $this->userdata[Core\Model\ASD\USER_DATE_ADDED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_DATE_ADDED]);
+            $this->userdata[Core\Model\ASD\USER_LAST_VISITED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_LAST_VISITED]);
+            $this->userdata[Core\Model\ASD\USER_PRIOR_VISITED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_PRIOR_VISITED]);
+            $this->userdata[Core\Model\ASD\USER_LAST_AD_RENEWED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_LAST_AD_RENEWED]);
+            $this->userdata[Core\Model\ASD\USER_OPTIONS][Core\Model\ASD\USER_OPTIONS_CTS] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_OPTIONS][Core\Model\ASD\USER_OPTIONS_CTS]);
+
+            unset($this->userdata['mobile']);
+            $_mobiles = \Core\Model\NoSQL::getInstance()->mobileFetchByUID($this->uid);
+            $_devices = \Core\Model\NoSQL::getInstance()->getUserDevices($this->uid);
+            
+            for ($i=0; $i<count($_mobiles); $i++)
+            {
+                unset($_mobiles[$i][\Core\Model\ASD\USER_UID]);
+                $_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_REQUESTED] = $this->unixTimestampToDateTime($_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_REQUESTED]);
+                if (isset($_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]>0)
+                {
+                    $_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED] = $this->unixTimestampToDateTime($_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]);
+                }
+                
+                switch ($_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG]) 
+                {
+                    case 0:
+                        $_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG] = 'Android app';
+                        break;
+                    case 1:
+                        $_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG] = 'Website';
+                        break;
+                    case 2:
+                        $_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG] = 'IOS app';
+                        break;
+
+                    default:
+                        break;
+                }
+
+                $ttl = MCSessionHandler::checkSuspendedMobile($_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], $reason);
+                if ($ttl)
+                {
+                    $_mobiles[$i]['suspended']['till'] = gmdate("Y-m-d H:i:s T", time()+$ttl); 
+                    $_mobiles[$i]['suspended']['reason'] = $reason; 
+                }
+            }
+            
+            for ($i=0; $i<count($_devices); $i++)
+            {
+                unset($_devices[$i][\Core\Model\ASD\USER_UID]);
+                $_devices[$i][Core\Model\ASD\USER_DEVICE_DATE_ADDED] = $this->unixTimestampToDateTime($_devices[$i][Core\Model\ASD\USER_DEVICE_DATE_ADDED]);
+                $_devices[$i][Core\Model\ASD\USER_DEVICE_LAST_VISITED] = $this->unixTimestampToDateTime($_devices[$i][Core\Model\ASD\USER_DEVICE_LAST_VISITED]);
+                if (isset($_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS]) && $_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS][0]!='{')
+                {
+                    $_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS] = base64_decode($_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS]);
+                }
+            }
+            
+            $this->userdata['mobiles'] = $_mobiles;
+            $this->userdata['devices'] = $_devices;
+            
+        }
+        
         $this->render();
     }
    
-    function mainMobile(){
+    
+    function unixTimestampToDateTime(int $ts) : string
+    {
+        $date = new DateTime();
+        $date->setTimestamp($ts);
+        return $date->format("Y-m-d H:i:s T");
     }
     
-    function main_pane(){
+    
+    function mainMobile()
+    {
+    }
+    
+    
+    function main_pane()
+    {
         $language = 'en';
         
         ?><div><?php
+        if ($this->userdata)
+        {
+            echo '<div dir="ltr"><pre style="font-size:14pt;">';
+            echo json_encode($this->userdata, JSON_PRETTY_PRINT);
+            echo '</pre></div></div>';
+            return;
+        }
         ?><ul class="ts"><?php
             ?><li><?php 
             ?><div class="lm"><label><?= $this->lang['country'] ?></label><select onchange="CC()" id="country"><?php 
