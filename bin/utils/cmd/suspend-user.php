@@ -29,7 +29,7 @@ elseif (isset($options['unixtime']))
     $unixtime = intval($options['unixtime'], 10);
 }
 
-if ($uid > 0 && $unixtime >= 0)
+if ($uid > 0 && $unixtime >= -1)
 {
     include get_cfg_var("mourjan.path") . '/config/cfg.php';
     $db = new DB($config);
@@ -61,11 +61,15 @@ if ($uid > 0 && $unixtime >= 0)
             {
                 $db->queryResultArray("delete from log_account_action where uid={$uid}");
             }
-            $opts->suspend = $unixtime;
-            $db->queryResultArray("update web_users set opts = ? where id={$uid}", [json_encode($opts)]);
-            $db->commit();
-            echo "Done\n";
+            if ($unixtime!=-1)
+            {
+                $opts->suspend = $unixtime;
+                $db->queryResultArray("update web_users set opts = ? where id={$uid}", [json_encode($opts)]);
+                $db->commit();
+                echo "Done\n";
+            }
         } else {
+            echo "Suspend is expired: ", $suspendTill->format("Y-m-d H:i:s.u"), "\n";
             echo "Nothing to do\n";
         }
     }

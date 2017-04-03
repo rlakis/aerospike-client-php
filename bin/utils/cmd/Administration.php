@@ -8,15 +8,18 @@ class Administration {
     private $args=null,$db=null;
     
             
-    function __construct($argv) {
+    function __construct($argv)
+    {
         global $config;
         $this->args = $argv;
-        $this->db = new DB($config);
-        if(isset($argv[1]) && $argv[1]){
+        $this->db = new \Core\Model\DB($config);
+        if(isset($argv[1]) && $argv[1])
+        {
             $this->ACTION = $argv[1];
         }
         $this->_run();
     }
+
     
     function _run(){
         global $config;
