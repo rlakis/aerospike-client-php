@@ -58,56 +58,20 @@ error_log(sprintf("%s\t%d\t%s\t%d\t%s\t%f\t%s\t%d\t%d\t%s\t%d\t%s", date("Y-m-d 
 if ($errCode==0 && strlen($reference)>1 && ($to=="Mourjan"||$to=="12242144077"||$to=="mourjan"||$to=="33644630401"))
 {
     $uid = 0;
-    //$ios = FALSE;
-    //$isAndroidValidate=false;
     $reference = html_entity_decode($reference);
-    //if ( substr($reference, 0, 1) === "{" )
-    //{
-        $json = json_decode($reference, false);
-        
+    $json = json_decode($reference, false);
+    if (isset($json->uid))
+    {
         $uid = $json->uid;
         $reference = intval($json->mid); 
-        $ios = ($json->platform==='ios');
-        
-    //}
-    //else
-    //if(substr($reference, 0, 1) === "m")
-    //{
-     //   $reference = substr($reference, 1);
-        //$ioisAndroidValidate=true;
-    //}
-    $db = new DB($config);
-    
-    if (NoSQL::getInstance()->mobileSetDeliveredCode($uid, $msisdn))
-    {
-        $db->queryResultArray("UPDATE WEB_USERS_LINKED_MOBILE SET DELIVERED=1 WHERE ID=? and DELIVERED=0", [$reference], TRUE);
-    }
-    
-    /*
-    if(!$ios)
-    {
-        $db->queryResultArray("UPDATE WEB_USERS_LINKED_MOBILE SET DELIVERED=1 WHERE ID=? and DELIVERED=0", [$reference], TRUE);
-        NoSQL::getInstance()->mobileSetDeliveredSMS(intval($reference), $msisdn);
-    }
-    else
-    {
-        $rs = $db->queryResultArray("UPDATE WEB_USERS_MOBILE SET DELIVERED=1 WHERE ID=? and MOBILE=? and DELIVERED=0 returning UID", [$reference, $msisdn], TRUE);
-        if (count($rs)==1)
+        $ios = ($json->platform==='ios');        
+
+        if (!empty($uid) && NoSQL::getInstance()->mobileSetDeliveredCode($uid, $msisdn))
         {
-            $rs = $db->queryResultArray("SELECT ID from WEB_USERS_LINKED_MOBILE WHERE UID=? and MOBILE=?", [$rs[0]['UID'], $msisdn], TRUE);
-            if (count($rs)==1)
-            {
-                NoSQL::getInstance()->mobileSetDeliveredSMS(intval($rs[0]['ID']), $msisdn);
-            }
-        }
-        
-        if ($uid)
-        {
-            NoSQL::getInstance()->mobileSetDeliveredCode($uid, $msisdn);
+            $db = new DB($config);
+            $db->queryResultArray("UPDATE WEB_USERS_LINKED_MOBILE SET DELIVERED=1 WHERE ID=? and DELIVERED=0", [$reference], TRUE);
         }
     }
-     * 
-     */
     error_log(sprintf("%s\t%d\tis written", date("Y-m-d H:i:s"), $msisdn).PHP_EOL, 3, "/var/log/mourjan/sms.log");
     $db->close();
 }
