@@ -158,7 +158,7 @@ class MCSessionHandler implements \SessionHandlerInterface
     }
 
     
-    public static function checkSuspendedMobile($number)
+    public static function checkSuspendedMobile($number, &$reason="")
     {   
         $redis = new Redis();
             
@@ -171,6 +171,8 @@ class MCSessionHandler implements \SessionHandlerInterface
             $ttl = $redis->ttl($number);            
             if($ttl<0){
                 $ttl=0;
+            } else {
+                $reason = $redis->get($number);
             }
         }
         return $ttl;
