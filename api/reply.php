@@ -10,7 +10,7 @@ class Messenger {
     private $messenger, $db;
     
     function __construct($config) {
-        $this->db = new DB($config, TRUE);
+        $this->db = new Core\Model\DB($config, TRUE);
         $this->messenger = new GCM(1);     
     }
     

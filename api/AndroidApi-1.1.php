@@ -527,16 +527,16 @@ class AndroidApi {
                 break;
                 
             case API_ANDROID_POST_AD:         
-                if($this->api->config['active_maintenance']){
+                if($this->api->config['active_maintenance'])
+                {
                     $this->api->result['e'] = "503";
                     break;
                 }            
                 $opts = $this->api->userStatus($status);   
-                //$userData = MCSessionHandler::getUser($this->api->getUID());
-                //$mcUser = new MCUser($userData);
                 $mcUser = new MCUser($this->api->getUID());
                 
-                if ($status == 1 && !$mcUser->isBlocked()) {
+                if ($status == 1 && !$mcUser->isBlocked()) 
+                {
                     $this->api->db->setWriteMode();  
                     
                     $direct_publish = filter_input(INPUT_POST, 'pub', FILTER_VALIDATE_INT) + 0;
@@ -552,7 +552,8 @@ class AndroidApi {
                     $hasMajorFailure = 0;
                     
                     $stmt = null;
-                    if(count($ad) > 0){    
+                    if(count($ad) > 0)
+                    {    
                         
                         if($ad['se']>0 && $ad['pu']==0){
                             $ad['pu']=5;
@@ -996,6 +997,8 @@ class AndroidApi {
                     unset($stmt);
                 }
                 break;
+                
+                
                 case API_ANDROID_GET_AD:                
                 $this->api->userStatus($status);
                 if ($status == 1) {                  
