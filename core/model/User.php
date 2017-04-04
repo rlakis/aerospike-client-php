@@ -297,7 +297,9 @@ class User
         return in_array($this->info['id'], array(1,2,2100));
     }
     
-    function getAdminFilters(){
+    
+    function getAdminFilters()
+    {
         $filters=[];
         $filters['root'] = (isset($_GET['fro']) && $_GET['fro']) ? $_GET['fro'] : 0;
         $filters['purpose'] = (isset($_GET['fpu']) && $_GET['fpu']) ? $_GET['fpu'] : 0;
@@ -678,7 +680,9 @@ order by m.activation_timestamp desc',
         return $ad;
     }
 
-    function getPendingAds($id=0, $state=0,$pagination=0, $commit=false){
+    
+    function getPendingAds($id=0, $state=0,$pagination=0, $commit=false)
+    {
         $res=false;
         
         $pagination_str = '';
@@ -739,7 +743,7 @@ order by m.activation_timestamp desc',
                                 ', array($aid,$state), $commit);
                         }elseif ($state){
                             $res=$this->db->queryResultArray(
-                            'select '.$pagination_str.' a.*,u.full_name,u.lvl,u.DISPLAY_NAME,u.profile_url, u.user_rank,u.provider  from ad_user a left join web_users u on u.id=a.web_user_id where a.state=3 and a.admin_id='.$aid.' order by a.state asc,a.date_added desc');
+                            'select '.$pagination_str.' a.*, u.full_name, u.lvl, u.DISPLAY_NAME, u.profile_url, u.user_rank, u.provider from ad_user a left join web_users u on u.id=a.web_user_id where a.state=3 and a.admin_id='.$aid.' order by a.state asc,a.date_added desc');
                         }else {
                             $res=$this->db->queryResultArray(
                             'select '.$pagination_str.' a.*,u.full_name,u.lvl,u.DISPLAY_NAME,u.profile_url, u.user_rank,u.provider  from ad_user a left join web_users u on u.id=a.web_user_id where a.admin_id=? and a.state=? order by a.date_added desc',
@@ -1002,32 +1006,40 @@ order by m.activation_timestamp desc',
         return $result;
     }
 
-    function rejectAd($id,$msg='',$warn=0){
+    
+    function rejectAd($id, $msg='', $warn=0)
+    {
         $result=false;
         $ad=$this->getPendingAds($id);
-        if (!empty($ad)){
+        if (!empty($ad))
+        {
             $ad=$ad[0];
             $adContent=json_decode($ad['CONTENT'],true);
             $lang='en';
             if ($ad['RTL']) $lang='ar';
             $loadedLang=false;
-            if (preg_match('/(?:http|https):\/\/www\.mourjan\.com\//u', $msg)){
+            if (preg_match('/(?:http|https):\/\/www\.mourjan\.com\//u', $msg))
+            {
                 $loadedLang=true;
                 $this->site->load_lang(array('ad_notices'), $lang);
                 $msg=preg_replace('/{link}/u', $msg, $this->site->lang['dup']);
             }
-            if ($warn) {
+            if ($warn) 
+            {
                 if (!$loadedLang) $this->site->load_lang(array('ad_notices'), $lang);
                 $msg.=$this->site->lang['warn'];
             }
             $adContent['msg']=$msg;
             $adContent=json_encode($adContent);
             $res=$this->db->queryResultArray(
-                'update ad_user set state=3,admin_id=?,admin_stamp=current_timestamp,content=? where id=? returning state',
-                array($this->info['id'],$adContent,$id),true);
-            if (!empty($res)) {
+                'update ad_user set state=3, admin_id=?, admin_stamp=current_timestamp, content=? where id=? returning state',
+                [$this->info['id'], $adContent, $id], true);
+            error_log(__FUNCTION__. ": update ad_user set state=3, admin_id={$this->info['id']}, admin_stamp=current_timestamp, content=? where id={$id} returning state");
+            if (!empty($res)) 
+            {
                 $result=true;
-                if ($warn) {
+                if ($warn) 
+                {
                     if(!$this->setLevel($warn, 4)) $result=false;
                 }
             }
@@ -1042,7 +1054,8 @@ order by m.activation_timestamp desc',
         $result=false;
         $ad=$this->getPendingAds($id);
         
-        if (!empty($ad)){
+        if (!empty($ad))
+        {
             $ad=$ad[0];
             include_once $this->cfg['dir'] . '/core/lib/MCSaveHandler.php';                
             $normalizer = new MCSaveHandler($this->cfg);
@@ -1062,28 +1075,22 @@ order by m.activation_timestamp desc',
                     $content['ro']=$sections[$sections[$sectionId][5]][4];
                     $purposeId=$content['pu']=$sections[$sectionId][9];
                     $sectionId=$content['se']=$sections[$sectionId][5];
-                }
+                }                                
                 
-                
-                
-                if(isset($content['altother']) && $content['altother']){
-                    if($this->site->isRTL($content['altother'])){
-                        $content['altRtl']=1;
-                    }else {
-                        $content['altRtl']=0;
-                    }
+                if(isset($content['altother']) && $content['altother'])
+                {
+                    $content['altRtl'] = $this->site->isRTL($content['altother']) ? 1 : 0;
+                    $content['rtl'] = $this->site->isRTL($content['other']) ? 1 : 0;
 
-                    if($this->site->isRTL($content['other'])){
-                        $content['rtl']=1;
-                    }else{ $content['rtl']=0;}
-
-                    if($content['rtl'] == $content['altRtl']){
+                    if($content['rtl'] == $content['altRtl'])
+                    {
                         $content['extra']['t']=2;
                         unset($content['altRtl']);
                         unset($content['altother']);
                     }
 
-                    if(isset($content['altRtl']) && $content['altRtl']){
+                    if(isset($content['altRtl']) && $content['altRtl'])
+                    {
                         $tmp=$content['other'];
                         $content['other']=$content['altother'];
                         $content['altother']=$tmp;
@@ -1091,6 +1098,7 @@ order by m.activation_timestamp desc',
                         $content['altRtl']=0;
                     }
                 }
+                
                 $content['state']=$state;
                 $normalized = $normalizer->getFromContentObject($content);
                 if ($normalized)                    
@@ -1121,27 +1129,31 @@ order by m.activation_timestamp desc',
                         array($content, $sectionId, $purposeId, $id,$this->info['id']),true);
                 }
                 
-            }else{
+            }
+            else
+            {
+                // new ad version
                 $content = json_decode($ad['CONTENT'], true);
                 $content['state']=$state;
                 $normalized = $normalizer->getFromContentObject($content);
+                
                 if ($normalized)
                 {
                     
                     if($this->info['level']==9)
                     {
-                        $res=$this->db->queryResultArray('update ad_user set state='.$state.', content=?, date_added=current_timestamp where id=? returning id', [json_encode($normalized), $id],true);
+                        $res=$this->db->queryResultArray("update ad_user set state={$state}, content=?, date_added=current_timestamp where id=? returning id", [json_encode($normalized), $id], true);
                     }
                     else
                     {
-                        $res=$this->db->queryResultArray('update ad_user set state='.$state.', content=?, date_added=current_timestamp where id=? and web_user_id=? returning id', [json_encode($normalized), $id, $this->info['id']], true);
+                        $res=$this->db->queryResultArray("update ad_user set state={$state}, content=?, date_added=current_timestamp where id=? and web_user_id=? returning id", [json_encode($normalized), $id, $this->info['id']], true);
                     }                    
                 }
                 else
                 {
                     if($this->info['level']==9)
                     {
-                        $res=$this->db->queryResultArray('update ad_user set state='.$state.', date_added=current_timestamp where id=? returning id', [$id],true);
+                        $res=$this->db->queryResultArray('update ad_user set state='.$state.', date_added=current_timestamp where id=? returning id', [$id], true);
                     }
                     else
                     {
@@ -1160,40 +1172,14 @@ order by m.activation_timestamp desc',
                     $st->bindValue(1, $id, PDO::PARAM_INT);
                     $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($normalized['attrs'], JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
                     $st->execute();
-                }
-                
+                }                
             }
-            
-            /*$q='insert into ad_user
-                (web_user_id,state,content,title,purpose_id,section_id,
-                rtl,country_id,city_id,latitude,longitude,active_country_id,active_city_id)
-                values (?,'.$state.',?,?,?,?,?,?,?,?,?,?,?) returning id';
-            $stmt=$this->db->prepareQuery($q);
-            $stmt->bindValue(1, $ad['WEB_USER_ID']);
-            $stmt->bindValue(2, $ad['CONTENT']);
-            $stmt->bindValue(3, $ad['TITLE']);
-            $stmt->bindValue(4, $ad['PURPOSE_ID']);
-            $stmt->bindValue(5, $ad['SECTION_ID']);
-            $stmt->bindValue(6, $ad['RTL']);
-            $stmt->bindValue(7, $ad['COUNTRY_ID']);
-            $stmt->bindValue(8, $ad['CITY_ID']);
-            $stmt->bindValue(9, $ad['LATITUDE']);
-            $stmt->bindValue(10,$ad['LONGITUDE']);
-            $stmt->bindValue(11, $ad['ACTIVE_COUNTRY_ID']);
-            $stmt->bindValue(12, $ad['ACTIVE_CITY_ID']);
-            $result=null;
-            if ($stmt->execute()) $res=$stmt->fetchAll(PDO::FETCH_ASSOC);
-            if (!empty ($res)) {
-                $this->info['pending_ads']++;
-                $this->hideAd($id);
-                $result=$res;
-            }else{
-                $result=false;
-            }*/
+                       
         }
         return $result;
     }
 
+    
     function deletePendingAd($id,$hide=false){
         $result=false;
         if($hide){
@@ -1767,9 +1753,12 @@ order by m.activation_timestamp desc',
         return $pass;
     }
     
-    function detectDuplicateSuspension($contactInfo=array(),$isMobileVerified=0){
+    
+    function detectDuplicateSuspension($contactInfo=array(),$isMobileVerified=0)
+    {
         $status = 0;
-        if(!$isMobileVerified){
+        if(!$isMobileVerified)
+        {
             if(count($contactInfo) && $this->info['id']){
                 $q='
                 select distinct u.id,u.lvl,u.opts from ad_attribute t
@@ -1834,7 +1823,9 @@ order by m.activation_timestamp desc',
                         $this->info['options']['autoblock']="reference {$blockAccount} date:".date("d.m.y");
                         $this->update();
                         $this->updateOptions();
-                    }elseif($time != $current_time){
+                    }elseif($time != $current_time)
+                    {
+                        error_log(__FILE__ . '.' . __FUNCTION__ . '.'.__LINE__);
                         if(!is_array($this->info['options']))
                             $this->info['options']=array();
                         $this->info['options']['suspend']=$time;
@@ -2986,14 +2977,17 @@ order by m.activation_timestamp desc',
         if($this->info['id'])
         {
             $this->data = new MCUser($this->info['id']);
+            
             if($this->data->getID())
             {
                 $this->info['level'] = $this->data->getLevel();
                 $this->info['verified'] = $this->data->isMobileVerified();
                 $this->info['options']['suspend'] = $this->data->getSuspensionTime();
+                $this->data->getOptions()->setSuspensionTime($this->info['options']['suspend']);
                 $this->data->createToken();
                 $this->update();
             }
+            //var_dump($this->data);
         }
     }
     
@@ -3018,7 +3012,9 @@ order by m.activation_timestamp desc',
         return FALSE;
     }
 
-    function isUser(){
+    
+    function isUser()
+    {
         $check = false;
         if (!isset($this->params['is_human']) || (isset($_SERVER['HTTP_USER_AGENT']) &&
                 (stristr($_SERVER['HTTP_USER_AGENT'], 'MSIE') ||

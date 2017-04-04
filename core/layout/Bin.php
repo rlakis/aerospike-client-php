@@ -2301,6 +2301,7 @@ class Bin extends AjaxHandler{
                 $this->user->update();
                 $this->process();
                 break;
+                
             case "ajax-adsave":
                 //if (isset($this->user->params['mobile']) && $this->user->params['mobile']){
                     if($this->user->info['id'] && isset($_POST['o'])){
@@ -2312,15 +2313,22 @@ class Bin extends AjaxHandler{
 //                        error_log('--------------------------------------------------------------------------------------------------------'.PHP_EOL,3,$error_path);                    
                         
                         if(!is_array($ad))
+                        {
                             $ad = array();
+                        }
                         
                         if(!isset($ad['id']))
+                        {
                             $ad['id']=0;
+                        }
+                        
                         if(!$ad['id'] || !isset($this->user->pending['post']['state']) || !isset($this->user->pending['post']['id']) 
                                 || ($ad['id'] && $ad['id']!=$this->user->pending['post']['id'])
-                            ){
+                            )
+                        {
                             $this->user->loadAdToSession($ad['id']);
                         }
+                        
                         $sContent=json_decode($this->user->pending['post']['content'],true);
                         
                         if(isset($sContent['ip']))
@@ -2365,9 +2373,9 @@ class Bin extends AjaxHandler{
                             $ad['mobile']=0;
                         }
                         
-                        
-                        
-                        if(!$ad['id']){
+                                                
+                        if(!$ad['id'])
+                        {
                             $this->user->pending['post']['user']=$this->user->info['id'];
                         }
                         
@@ -2383,16 +2391,15 @@ class Bin extends AjaxHandler{
                         $countryId=0;
                         $currentCid = 0;
                         $isMultiCountry = false;
-                        
-                        
-                        //$userData = MCSessionHandler::getUser($this->user->pending['post']['user']);
-                        //$mcUser = new MCUser($userData);
+                                                
                         $mcUser = new MCUser($this->user->pending['post']['user']);
-                        if($mcUser->isBlocked()){
+                        if($mcUser->isBlocked())
+                        {
                             $this->fail('101');
                         }
                         
-                        if(count($ad['pubTo'])){
+                        if(count($ad['pubTo']))
+                        {
                             foreach($ad['pubTo'] as $key => $val){
                                 if(!is_numeric($key)){
                                     unset($ad['pubTo'][$key]);
@@ -2426,12 +2433,16 @@ class Bin extends AjaxHandler{
                         $validator = libphonenumber\PhoneNumberUtil::getInstance();
                         
                         if ($this->user->info['level']!=9) $ad['userLvl']=$this->user->info['level'];
-                        if ($this->user->info['id'] == $this->user->pending['post']['user']){
+                        if ($this->user->info['id'] == $this->user->pending['post']['user'])
+                        {
                             
                             $ad['agent']=$_SERVER['HTTP_USER_AGENT'];
-                            if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])){
+                            if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR']))
+                            {
                                 $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-                            }else {
+                            }
+                            else 
+                            {
                                 $ip = $_SERVER['REMOTE_ADDR'];
                             }
                             $ad['ip']=$ip;   
@@ -2448,7 +2459,8 @@ class Bin extends AjaxHandler{
                             } 
                             else $ad['userLOC']=0;
                             
-                            if($mcUser->isMobileVerified()){
+                            if($mcUser->isMobileVerified())
+                            {
                                 $uNum = $mcUser->getMobileNumber();
                                 if($uNum){
                                     $uNum = $validator->parse('+'.$uNum, 'LB');
@@ -2478,7 +2490,8 @@ class Bin extends AjaxHandler{
                                 'TN',
                                 'TR',
                                 'OM'
-                                ])){
+                                ]))
+                            {
                                 $requireReview = 1;
                             }
                         }
@@ -2486,13 +2499,15 @@ class Bin extends AjaxHandler{
                         $publish=(isset($_POST['pub']) && $_POST['pub'] ? (int)$_POST['pub'] : 0);
                         if ($publish!=1 && ($publish!=2 || ($publish==2 && $this->user->info['level']!=9)))$publish=0;
                         $tmpPublish=$publish;
-                        if ($this->user->info['level']==9 && $ad['user']!=$this->user->info['id'] && 
-                                $this->user->pending['post']['state']==1 && $publish==0) {
+                        
+                        if ($this->user->info['level']==9 && $ad['user']!=$this->user->info['id'] && $this->user->pending['post']['state']==1 && $publish==0) 
+                        {
                             $publish=1;
                         }
                         
                         //switching all rental cars to rental services
-                        if($publish==1 && $ad['ro']==2 && $ad['pu']==2){
+                        if($publish==1 && $ad['ro']==2 && $ad['pu']==2)
+                        {
                             $this->user->pending['post']['ro']=$ad['ro']=4;
                             $this->user->pending['post']['pu']=$ad['pu']=5;
                             $this->user->pending['post']['se']=$ad['se']=431;
@@ -2502,56 +2517,55 @@ class Bin extends AjaxHandler{
                         $textHandler->format();                
                         $ad['other'] = $textHandler->text;
                             
-                        if($this->isRTL($ad['other'])){
-                            $ad['rtl']=1;
-                        }else{
-                            $ad['rtl']=0;
-                        }
+                        $ad['rtl'] = $this->isRTL($ad['other']) ? 1 : 0;
                         
-                        if(isset($ad['altother']) && $ad['altother']){
+                        if(isset($ad['altother']) && $ad['altother'])
+                        {
                             $textHandler->setText($ad['altother']);
                             $textHandler->format();                
                             $ad['altother'] = $textHandler->text;
-                            if($this->isRTL($ad['altother'])){
-                                $ad['altRtl']=1;
-                            }else{
-                                $ad['altRtl']=0;
-                            }
+                            $ad['altRtl'] = $this->isRTL($ad['altother']) ? 1 : 0;
                             
-                            if($ad['rtl'] == $ad['altRtl']){
+                            if($ad['rtl'] == $ad['altRtl'])
+                            {
                                 $ad['extra']['t']=2;
                                 unset($ad['altRtl']);
                                 unset($ad['altother']);
                             }
                             
-                            if(isset($ad['altRtl']) && $ad['altRtl']){
+                            if(isset($ad['altRtl']) && $ad['altRtl'])
+                            {
                                 $tmp=$ad['other'];
                                 $ad['other']=$ad['altother'];
                                 $ad['altother']=$tmp;
                                 $ad['rtl']=1;
-                                $ad['altRtl']=0;
-                                
+                                $ad['altRtl']=0;                                
                             }
                         }
+                        
                         $this->user->pending['post']['rtl']=$ad['rtl'];
                         
-                        if(isset($ad['loc']) && $ad['loc']){
+                        if(isset($ad['loc']) && $ad['loc'])
+                        {
                             $ad['sloc']=$ad['loc'];
                         }
                         
                         
-                        if($publish == 1){                            
+                        if($publish == 1)
+                        {                  
                             $sections = $this->urlRouter->db->getSections();
-                            if(isset($sections[$sectionId]) && $sections[$sectionId][5] && $sections[$sectionId][8]==$purposeId){
+                            if(isset($sections[$sectionId]) && $sections[$sectionId][5] && $sections[$sectionId][8]==$purposeId)
+                            {
                                 $this->user->pending['post']['ro']=$ad['ro']=$sections[$sections[$sectionId][5]][4];
                                 $this->user->pending['post']['se']=$ad['se']=$sections[$sectionId][5];
                                 $this->user->pending['post']['pu']=$ad['pu']=$sections[$sectionId][9];
-                            }
-                            
-                            
+                            }                                                        
                         }
+                        
                         $wrongPhoneNumber = false;
-                        if($publish== 1 && isset($ad['cui']['p']) && count($ad['cui']['p'])){
+                        
+                        if($publish== 1 && isset($ad['cui']['p']) && count($ad['cui']['p']))
+                        {
                                 $numbers = [];
                                 foreach($ad['cui']['p'] as $number){
                                     if(isset($number['v']) && trim($number['v'])!=''){
@@ -2727,55 +2741,69 @@ class Bin extends AjaxHandler{
                                 }else{
                                     $wrongPhoneNumber = true;
                                 }
-                            }                            
+                        }
+                        
                         $this->user->pending['post']['content']=json_encode($ad);
                         
                         $json_error = json_last_error();
                         
-                        if($json_error==5){
-                            if(isset($ad['userLOC'])){
+                        if($json_error==5)
+                        {
+                            if(isset($ad['userLOC']))
+                            {
                                 $ad['userLOC']=$ad['ip'];
                                 $this->user->pending['post']['content']=json_encode($ad);
                                 $json_error = json_last_error();
                             }
                         }
+                        
                         $isSCAM = 0;
-                        if($publish== 1 && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0){
+                        
+                        if($publish== 1 && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0)
+                        {
                             $blockedEmailPatterns = addcslashes(implode('|', $this->urlRouter->cfg['restricted_email_domains']),'.');
                             $isSCAM = preg_match('/'.$blockedEmailPatterns.'/ui', $ad['cui']['e']);
                         }
-                        if(!$isSCAM && !$requireReview && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0){
+                        
+                        if(!$isSCAM && !$requireReview && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0)
+                        {
                             $requireReview = preg_match('/\+.*@/', $ad['cui']['e']);
-                            if(!$requireReview){
+                            if(!$requireReview)
+                            {
                                 $requireReview = preg_match('/hotel/', $ad['cui']['e']);
                             }
-                            if(!$requireReview){
+                            if(!$requireReview)
+                            {
                                 $requireReview = preg_match('/\..*\..*@/', $ad['cui']['e']);
                             }
                         }
                         
-                        if($publish == 1 && isset($ad['budget']) && is_numeric($ad['budget']) && $ad['budget']> 0){
+                        if($publish == 1 && isset($ad['budget']) && is_numeric($ad['budget']) && $ad['budget']> 0)
+                        {
                             $publish = 4;
                         } 
                         
                         $adId = $this->user->pending['post']['id'];
                         
-                        if($publish == 1){
+                        if($publish == 1)
+                        {
                             $dbAd = $this->user->getPendingAds($adId,0,0,true);
-                            if(isset($dbAd[0]['ID']) && $dbAd[0]['ID']){
+                            if(isset($dbAd[0]['ID']) && $dbAd[0]['ID'])
+                            {
                                 $dbAd=$dbAd[0];
                                 $current_time = time();
                                 $isFeatured = isset($dbAd['FEATURED_DATE_ENDED']) && $dbAd['FEATURED_DATE_ENDED'] ? ($current_time < $dbAd['FEATURED_DATE_ENDED']) : false;
                                 $isFeatureBooked = isset($dbAd['BO_DATE_ENDED']) && $dbAd['BO_DATE_ENDED'] ? ($current_time < $dbAd['BO_DATE_ENDED']) : false;
-                                if($isFeatured || $isFeatureBooked){
+                                if($isFeatured || $isFeatureBooked)
+                                {
                                     $publish = 4;
                                 }
-                            }
-                 
+                            }                 
                         }
                         
                         $this->user->update();
-                        if(!$isSCAM){
+                        if(!$isSCAM)
+                        {
                             $this->user->saveAd($publish);
                             $this->logAdmin($this->user->pending['post']['id'], $publish);
                         }
@@ -2815,38 +2843,57 @@ class Bin extends AjaxHandler{
                         
                         $section_id = $this->user->pending['post']['se'];
                         
-                        if( ($publish==1 || $publish==4) && $this->user->info['level']!=9) {
+                        if( ($publish==1 || $publish==4) && $this->user->info['level']!=9) 
+                        {
                             unset($this->user->pending['post']);
                             $this->user->update();
                         }
+                        
                         $this->setData($result,'I');
                         $this->process();
                         
-                        if($isSCAM){
-                            if($mcUser->isMobileVerified()){
-                                $this->user->block($this->user->info['id'],$mcUser->getMobileNumber(),'scam detection by system based on certain email keywords');
-                            }else{
-                                $this->user->setLevel($this->user->info['id'],5);
+                        if($isSCAM)
+                        {
+                            if($mcUser->isMobileVerified())
+                            {
+                                $this->user->block($this->user->info['id'], $mcUser->getMobileNumber(), 'scam detection by system based on certain email keywords');
                             }
-                        }elseif($requireReview){
+                            else
+                            {
+                                $this->user->setLevel($this->user->info['id'], 5);
+                            }
+                        }
+                        elseif($requireReview)
+                        {
                             $this->user->referrToSuperAdmin($adId);
-                        }else{
-                            
+                        }
+                        else
+                        {                            
                             $status = 0;
-                            if($publish==1 && $this->user->info['level']!=9 && $adId) {
-                                if($mcUser->isMobileVerified()){
-                                    $status = $mcUser->isSuspended() ? 1:0;
-                                }else{
+                            if($publish==1 && $this->user->info['level']!=9 && $adId) 
+                            {
+                                if($mcUser->isMobileVerified())
+                                {
+                                    $status = $mcUser->isSuspended() ? 1 : 0;
+                                }
+                                else
+                                {
                                     $status = $this->user->detectDuplicateSuspension($ad['cui']);
                                 }
-                                if($status == 1){ 
-                                    if($ad['rtl']){
+                                
+                                if($status == 1)
+                                { 
+                                    if($ad['rtl'])
+                                    {
                                         $msg = 'لقد تم ايقاف حسابك بشكل مؤقت نظراً للتكرار';
-                                    }else{
+                                    }
+                                    else
+                                    {
                                         $msg = 'your account is suspended due to repetition';
                                     }
-                                    $this->user->rejectAd($adId,$msg);
-                                }else if(in_array($section_id,array(190,1179,540,1114))){
+                                    $this->user->rejectAd($adId, $msg);
+                                }
+                                else if(in_array($section_id,array(190,1179,540,1114))){
                                     $dupliactePending = $this->user->detectIfAdInPending($adId, $section_id, $ad['cui']);
                                     if($dupliactePending){
                                         if($ad['rtl']){

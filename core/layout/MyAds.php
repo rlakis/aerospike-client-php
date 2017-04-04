@@ -12,7 +12,7 @@ class MyAds extends Page {
         if($this->urlRouter->cfg['active_maintenance']) {
             $this->user->redirectTo('/maintenance/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
         }
-        
+
         $this->checkBlockedAccount();
         $this->forceNoIndex=true;
         $this->urlRouter->cfg['enabled_sharing']=0;
@@ -226,8 +226,10 @@ class MyAds extends Page {
             }
         }
     }
-        
-    function pendingMobileAds($state=0){
+      
+    
+    function pendingMobileAds($state=0)
+    {
         $lang='';
         if ($this->urlRouter->siteLanguage!='ar') $lang=$this->urlRouter->siteLanguage.'/';
         $ads=$this->user->getPendingAds(0,$state);
@@ -369,15 +371,20 @@ class MyAds extends Page {
                         
                         $isSuspended = isset($this->user->info['options']['suspend']) && ($this->user->info['options']['suspend']>time());                        
                         
-                        if ($state<7 && !$isSystemAd) {
-                            if(!$isSuspended){
+                        $isSuspended = $this->user->data->getOptions()->isSuspended();
+                        if ($state<7 && !$isSystemAd) 
+                        {
+                            if(!$isSuspended)
+                            {
                                 ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$ad['ID'] : '') ?>" method="post"><?php
-                                        ?><input type="hidden" name="ad" /><?php 
-                                        ?><div onclick="$b(this).value=eid;$p(this).submit()" class="button"><span class="k aedi"></span><label><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></label></div><?php
-                                    ?></form><?php
+                                    ?><input type="hidden" name="ad" /><?php 
+                                    ?><div onclick="$b(this).value=eid;$p(this).submit()" class="button"><span class="k aedi"></span><label><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></label></div><?php
+                                ?></form><?php
                             }
                             ?><div onclick="adel(this,0,event)" class="button"><span class="k spam"></span><label><?= $this->lang['delete'] ?></label></div><?php
-                        }elseif($state==7){
+                        }
+                        elseif($state==7)
+                        {
                             if($this->urlRouter->cfg['enabled_charts']){
                                 ?><div onclick="aStat(this,event)" class="button"><span class="k stat"></span><label><?= $this->lang['stats'] ?></label></div><?php
                             }
@@ -388,12 +395,16 @@ class MyAds extends Page {
                                     ?><div onclick="$b(this).value=eid;$p(this).submit()" class="button"><span class="k aedi"></span><label><?= $this->lang['edit_ad'] ?></label></div><?php
                                 ?></form><?php
                             }
-                        }elseif($state==9){
+                        }
+                        elseif($state==9)
+                        {
                             if($this->urlRouter->cfg['enabled_charts']){
                                 ?><div onclick="aStat(this,event)" class="button"><span class="k stat"></span><label><?= $this->lang['stats'] ?></label></div><?php
                             }
-                            if(!$isSystemAd){
-                                if(!$isSuspended){
+                            if(!$isSystemAd)
+                            {
+                                if(!$isSuspended)
+                                {
                                     ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$ad['ID'] : '') ?>" method="post"><?php
                                         ?><input type="hidden" name="adr" /><?php
                                         ?><div onclick="$b(this).value=eid;$p(this).submit()" class="button"><span class="k aedi"></span><label><?= $this->lang['edit_republish'] ?></label></div><?php
@@ -410,7 +421,9 @@ class MyAds extends Page {
                         ?><div class="txtd statH rc" onclick="se()"><div id="statAiv" class="statDiv load"></div></div><?php 
                     }
                 ?></div><?php 
-        }else{
+        }
+        else
+        {
             echo '<h2 class="ctr">';
             switch($this->subSection){
                 case 'pending':
@@ -432,6 +445,7 @@ class MyAds extends Page {
             echo '<p class="ctr"><a class="bt btw ok" href="/post/">'.$this->lang['start_publish'].'</a></p><br />';
         }
     }
+    
     
     function summerizeAds($count){
         $formatted=number_format($count);
@@ -1216,14 +1230,17 @@ var rtMsgs={
                 ?>><?=  $this->getAdSection($ad, $content['ro'],$isMultiCountry).($state>6?'<a class="com" href="'.$link.'#disqus_thread" data-disqus-identifier="'.$ad['ID'].'" rel="nofollow"></a>':'') ?></div><?php
             
                 $isSuspended = isset($this->user->info['options']['suspend']) && ($this->user->info['options']['suspend']>time());
-                        
+                $isSuspended = $this->user->data->getOptions()->isSuspended();
+                //var_dump("Suspemded ".$isSuspended); 
+                //var_dump($this->user->data->getOptions());
                 
                 $isSystemAd = (isset($ad['DOC_ID']) && $ad['DOC_ID']) ? true : false;
                         
                 ?><div class='oc'><?php
-                if ($state<7) { 
-                    
-                    if(!$isSystemAd){
+                if ($state<7) 
+                {                                        
+                    if(!$isSystemAd)
+                    {
                         //if($this->user->info['level']==9) {
                             if(!$isSuspended) {
                                 ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$ad['ID'] : '') ?>" method="post"><?php
@@ -1238,17 +1255,24 @@ var rtMsgs={
                     if(!$isSystemAd && (!$isAdmin || ($isAdmin && $isAdminOwner))){
                         ?><span class="lnk" onclick="adel(this)"><span class="rj del"></span><?= $this->lang['delete'] ?></span><?php
                     }
-                }elseif($state==7){
+                }
+                elseif($state==7)
+                {
                     /*?><input type="button" class="lnk" onclick="ahld(this)" value="<?= $this->lang['hold'] ?>" /><?php*/
                     $ad_hold=0;
-                    if(isset($this->user->params['hold']) && $this->user->params['hold']==$ad['ID']){
-                        if($this->user->holdAd($ad['ID'])){
+                    if(isset($this->user->params['hold']) && $this->user->params['hold']==$ad['ID'])
+                    {
+                        if($this->user->holdAd($ad['ID']))
+                        {
                             $ad_hold=1;
                             ?><b class="anb"><span class="done"></span><?= $this->lang['retired'] ?></b><?php
                         }
                     }
-                    if(!$ad_hold){
-                        if ((!$isAdmin || ($isAdmin && $isAdminOwner)) && (!$isFeatured || !$isFeatureBooked)){
+                    
+                    if(!$ad_hold)
+                    {
+                        if ((!$isAdmin || ($isAdmin && $isAdminOwner)) && (!$isFeatured || !$isFeatureBooked))
+                        {
                             ?><span class="lnk" onclick="<?= $isMultiCountry ? 'mCPrem()' : ($this->userBalance ? 'askPremium(this)':'noPremium()') ?>"><span class="mc24"></span><?= $this->lang['make_premium'] ?></span><?php                                    
                         }
                         if ((!$isAdmin || ($isAdmin && $isAdminOwner)) && $isFeatureBooked){
@@ -1587,17 +1611,22 @@ var rtMsgs={
             ?></div><?php
         }
     }
+    
 
-    function renderUserTypeSelector(&$user=null){
-        if ($this->user->info['id'] && $this->user->info['level']==9){
+    function renderUserTypeSelector(&$user=null)
+    {
+        if ($this->user->info['id'] && $this->user->info['level']==9)
+        {
             $userId = $this->user->info['id'];
             $type = 0;
-            if(isset($_GET['u']) && is_numeric($_GET['u']) && $_GET['u']){
+            if(isset($_GET['u']) && is_numeric($_GET['u']) && $_GET['u'])
+            {
                 $userId = $_GET['u'];
                 $type = $this->user->getType($userId);
             }
             $user = new MCUser($userId); //(MCSessionHandler::getUser($userId));
-            if($user->isSuspended()){
+            if($user->isSuspended())
+            {
                 $time = MCSessionHandler::checkSuspendedMobile($user->getMobileNumber());
                 $hours=0;
                 $lang=$this->urlRouter->siteLanguage;

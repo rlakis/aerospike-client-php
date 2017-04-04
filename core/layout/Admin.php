@@ -86,7 +86,7 @@ class Admin extends Page
                 if ($ttl)
                 {
                     $_mobiles[$i]['suspended']['till'] = gmdate("Y-m-d H:i:s T", time()+$ttl); 
-                    $_mobiles[$i]['suspended']['reason'] = $reason; 
+                    $_mobiles[$i]['suspended']['reason'] = strpos($reason, ':') ? trim(substr($reason, strpos($reason, ':')+1)) : $reason; 
                 }
             }
             
@@ -130,7 +130,7 @@ class Admin extends Page
         ?><div><?php
         if ($this->userdata)
         {
-            echo '<div dir="ltr"><pre style="font-size:14pt;">';
+            echo '<div dir="ltr"><pre style="font-size:12pt;font-family:arial;line-height:18pt;">';
             echo json_encode($this->userdata, JSON_PRETTY_PRINT);
             echo '</pre></div></div>';
             return;

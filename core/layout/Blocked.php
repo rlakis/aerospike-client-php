@@ -17,8 +17,10 @@ class Blocked extends Page{
         if($this->urlRouter->module=='held'){
             $this->title=$this->lang['title_held'];
             $hours = '24';
-            if(isset($this->user->info['options']['suspend'])){
-                $time = $this->user->info['options']['suspend']-time();
+            $isSuspended = $this->user->data->getOptions()->isSuspended();
+            //if(isset($this->user->info['options']['suspend'])){
+            if ($isSuspended) {
+                $time = $this->user->data->getOptions()->getSuspensionTime()-time(); // $this->user->info['options']['suspend']-time();
                 if($time>0){
                     $hours = $time / 3600;
                     if(ceil($hours)>1){

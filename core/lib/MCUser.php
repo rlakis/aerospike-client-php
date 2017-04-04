@@ -224,7 +224,7 @@ class MCUser extends MCJsonMapper
     
     
     
-    public function isMobileVerified():bool
+    public function isMobileVerified() : bool
     {
         return $this->getMobile(TRUE)->isVerified();
     }
@@ -236,17 +236,15 @@ class MCUser extends MCJsonMapper
     }
     
     
-    public function isSuspended():bool
+    public function isSuspended() : bool
     {
-        return ($this->getMobile()->getSuspendSeconds()>0);
-        //return $this->getOptions()->isSuspended();
+        return ($this->getMobile(TRUE)->getSuspendSeconds()>0);
     }
     
     
-    public function getSuspensionTime():int
+    public function getSuspensionTime() : int
     {
-        return $this->getMobile()->getSuspendSeconds();
-        //return $this->getOptions()->getSuspensionTime();
+        return $this->getMobile(TRUE)->getSuspendSeconds();
     }
     
     
@@ -630,6 +628,10 @@ class MCUserOptions extends MCJsonMapper
         return $this->suspend ? $this->suspend : 0;
     }
 
+    public function setSuspensionTime(int $ttl) 
+    {
+        $this->suspend = time()+$ttl;
+    }
         
 }
 
@@ -768,10 +770,10 @@ class MCMobile extends MCJsonMapper
     
     public function getSuspendSeconds() : int
     {
+        $ttl = 0;
         if ($this->number)
         {
-            $redis = new \Redis();
-            
+            $redis = new \Redis();            
             if ($redis->connect('138.201.28.229', 6379, 2, NULL, 20)) 
             {
                 $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
@@ -784,9 +786,8 @@ class MCMobile extends MCJsonMapper
                     $ttl=0;
                 }
             }
-            return $ttl;
         }
-        return 0;
+        return $ttl;
     }
 }
 

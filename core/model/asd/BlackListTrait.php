@@ -58,7 +58,7 @@ trait BlackListTrait
     {
         if (($rec = $this->getBins($this->asKey($contact), [BLACK_LIST_REASON]))!==FALSE)
         {
-            return $rec[BLACK_LIST_REASON];
+            return $rec[BLACK_LIST_REASON] ?? '<Old days block method>';
         }
         return FALSE;
     }
