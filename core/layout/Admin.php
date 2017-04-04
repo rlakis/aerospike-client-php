@@ -130,7 +130,14 @@ class Admin extends Page
         ?><div><?php
         if ($this->userdata)
         {
-            echo '<div dir="ltr"><pre style="font-size:12pt;font-family:arial;line-height:18pt;">';
+            echo '<div dir="ltr">';
+            echo '<ul>';
+            echo '<li style="float:left;width:80px;"><a href="/myads/?sub=drafts&u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Drafts</a></li>';
+            echo '<li style="float:left;width:80px;"><a href="/myads/?sub=pending&u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Pending</a></li>';
+            echo '<li style="float:left;width:80px;"><a href="/myads/?u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Active</a></li>';
+            echo '<li style="float:left;width:80px;"><a href="/myads/?sub=archive&u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Archived</a></li>';
+            echo '</ul><br/>';
+            echo '<pre style="font-size:12pt;font-family:arial;line-height:18pt;">';
             echo json_encode($this->userdata, JSON_PRETTY_PRINT);
             echo '</pre></div></div>';
             return;

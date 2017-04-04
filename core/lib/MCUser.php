@@ -378,6 +378,10 @@ class MCUser extends MCJsonMapper
     
     public function getOptions() : MCUserOptions
     {
+        if ($this->opts==null)
+        {
+            $this->opts = new MCUserOptions();
+        }
         return $this->opts;
     }
     
@@ -614,7 +618,7 @@ class MCUserOptions extends MCJsonMapper
         
     public function isSuspended() : bool
     {
-        return time() <= $this->suspend;
+        return time() < $this->suspend;
     }
         
     

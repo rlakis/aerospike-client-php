@@ -681,23 +681,29 @@ order by m.activation_timestamp desc',
     }
 
     
-    function getPendingAds($id=0, $state=0,$pagination=0, $commit=false)
+    function getPendingAds($id=0, $state=0, $pagination=0, $commit=false)
     {
         $res=false;
         
         $pagination_str = '';
-        if($pagination){
+        if($pagination)
+        {
             $recNum = 50;
             $offset = $this->site->get('o','uint');
-            if(is_numeric($offset) && $offset){
+            if(is_numeric($offset) && $offset)
+            {
                 $pagination_str = 'first '.($recNum+1).' skip '.($offset*$recNum);
-            }else{
+            }
+            else
+            {
                 $pagination_str = 'first '.($recNum+1);
             }
         }        
         
-        if ($this->info['id']) {
-            if ($id) {
+        if ($this->info['id']) 
+        {
+            if ($id) 
+            {
                 if ($this->info['level']==9)
                 {
                     $res=$this->db->queryResultArray('
@@ -709,8 +715,7 @@ order by m.activation_timestamp desc',
                         left join web_users u on u.id=a.web_user_id 
                         left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
                         left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
-                        where a.id=?',
-                        [$id], $commit);
+                        where a.id=?', [$id], $commit);
                 }
                 else 
                 {
@@ -722,16 +727,18 @@ order by m.activation_timestamp desc',
                          left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
                          left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
                          where a.web_user_id=? and a.id=?',
-                        array($this->info['id'],$id), $commit);
+                        [$this->info['id'], $id], $commit);
                 }
             }
             else 
-            {
-                if ($this->info['level']==9){
+            {                
+                if ($this->info['level']==9)
+                {
                     
                     $aid=0;
                     if (isset ($_GET['a']) && is_numeric($_GET['a'])) $aid=(int)$_GET['a'];
-                    if($aid){
+                    if($aid)
+                    {
                         if ($state>6){
                             $res=$this->db->queryResultArray(
                                 'select '.$pagination_str.' a.*, u.full_name, u.lvl, 
@@ -750,16 +757,19 @@ order by m.activation_timestamp desc',
                             array($aid,$state), $commit);
                         }
                         
-                    }else{
-                        
+                    }
+                    else
+                    {
                         $uid=$this->info['id'];
                         if (isset ($_GET['u']) && is_numeric($_GET['u'])) $uid=(int)$_GET['u'];
-                        if ($state>6){
+
+                        if ($state>6)
+                        {
                             $res=$this->db->queryResultArray(
                                 'select '.$pagination_str.' a.*, u.full_name, u.lvl, 
                                     u.DISPLAY_NAME, u.profile_url, u.user_rank, 
                                     IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
-                    IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended,
+                                    IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended,
                                 u.provider  
                                 from ad_user a
                                 left join web_users u on u.id=a.web_user_id 
@@ -767,10 +777,13 @@ order by m.activation_timestamp desc',
                                 left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
                                 where a.web_user_id=? and a.state=? 
                                 ORDER BY bo_date_ended desc, a.DATE_ADDED desc
-                                ', array($uid,$state), $commit);
-                        }elseif ($state){
+                                ', [$uid, $state], $commit);
+                        }
+                        elseif ($state)
+                        {
                             $adLevel=0;
-                            if($this->isSuperUser()){
+                            if($this->isSuperUser())
+                            {
                                 $adLevel=1;
                             }
                             $filters = $this->getAdminFilters();
@@ -786,31 +799,53 @@ order by m.activation_timestamp desc',
                                 . 'left join ad_object ao on ao.id = a.id '
                                 . 'left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 '
                                 . 'left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date ';
-                                if($filters['root']){
-                                    $q .= 'left join section s on a.section_id = s.id ';
-                                }
-                                $q .= 'where ';
+                            
+                            if($filters['root'])
+                            {
+                                $q .= 'left join section s on a.section_id = s.id ';
+                            }
+                            
+                            $q .= 'where ';
                                     
-                                    if($filters['uid']){
-                                        $q.= '( (a.state in (1,2,4)) and a.web_user_id='.$filters['uid'].' ) ';
-                                    }else{
-                                        $q.= '( (a.state in (1,2,4)) or (a.state=3 and a.web_user_id='.$uid.') ) ';
-                                    }
-                                    $q .= ' and (ao.super_admin is null or ao.super_admin <= '.$adLevel.') ';
-                                    if($filters['purpose']){
-                                        $q.='and a.purpose_id='.$filters['purpose'].' ';
-                                    }
-                                    if($filters['lang']==1){                                        
-                                        $q.='and (a.rtl in (1,2)) ';
-                                    }
-                                    if($filters['lang']==2){                                        
-                                        $q.='and (a.rtl in (0,2)) ';
-                                    }
-                                    if($filters['root']){
-                                        $q.='and s.root_id = '.$filters['root'].' ';
-                                    }
-                                    $q.= 'order by primo desc,a.state asc,bo_date_ended desc,ao.super_admin desc, ppn,a.date_added desc';                               
-                            //echo $q;
+                            if (preg_match("/https.*\.mourjan\.com\/admin\/?\?p=\d+/", $_SERVER['HTTP_REFERER']))
+                            {
+                                $q.=" (a.state between 1 and 4) and a.web_user_id={$uid} ";
+                            }
+                            else
+                            {
+                                if($filters['uid'])
+                                {
+                                    $q.= '( (a.state in (1,2,4)) and a.web_user_id='.$filters['uid'].' ) ';
+                                }
+                                else
+                                {
+                                    $q.= '( (a.state in (1,2,4)) or (a.state=3 and a.web_user_id='.$uid.') ) ';
+                                }
+                            }
+                            $q .= ' and (ao.super_admin is null or ao.super_admin <= '.$adLevel.') ';
+                            if($filters['purpose'])
+                            {
+                                $q.='and a.purpose_id='.$filters['purpose'].' ';
+                            }
+                            
+                            if($filters['lang']==1)
+                            { 
+                                $q.='and (a.rtl in (1,2)) ';
+                            }
+                            
+                            if($filters['lang']==2)
+                            {
+                                $q.='and (a.rtl in (0,2)) ';
+                            }
+                            
+                            if($filters['root'])
+                            {
+                                $q.='and s.root_id = '.$filters['root'].' ';
+                            }
+                            
+                            $q.= 'order by primo desc,a.state asc, bo_date_ended desc, ao.super_admin desc, ppn, a.date_added desc';
+                            //echo $_SERVER['HTTP_REFERER'];
+                            //        die($q);
                             $res=$this->db->queryResultArray($q,null, $commit);
                         }else {
                             $res=$this->db->queryResultArray(
@@ -859,102 +894,113 @@ order by m.activation_timestamp desc',
     }
     
     
-    function getPendingAdsCount($state=0){
+    function getPendingAdsCount($state=0)
+    {
         $res=false;
-        if ($this->info['id']) {
-            if ($this->info['level']==9){
-                $aid=0;
-                if (isset ($_GET['a']) && is_numeric($_GET['a'])) $aid=(int)$_GET['a'];
-                if($aid){
-                    if ($state>6){
-                        $res=$this->db->queryResultArray(
-                            'select count(*) 
-                            from ad_user 
-                            where admin_id=? and state=?', array($aid,$state));
-                    }elseif ($state){
-                        $res=$this->db->queryResultArray(
-                        'select count(*)
-                            from ad_user 
-                            where state=3 and admin_id='.$aid);
-                    }else {
-                        $res=$this->db->queryResultArray(
-                        'select count(*) from ad_user 
-                            where admin_id=? and state=?',
-                        array($aid,$state));
+        if ($this->info['id']) 
+        {
+            if ($this->info['level']==9)
+            {
+                $aid=intval(filter_input(INPUT_GET, 'a', FILTER_VALIDATE_INT));
+                //if (isset ($_GET['a']) && is_numeric($_GET['a'])) $aid=(int)$_GET['a'];
+                if($aid)
+                {
+                    if ($state>6)
+                    {
+                        $res=$this->db->queryResultArray('select count(*) from ad_user where admin_id=? and state=?', [$aid, $state]);
+                    }
+                    elseif ($state)
+                    {
+                        $res=$this->db->queryResultArray('select count(*) from ad_user where state=3 and admin_id='.$aid);
+                    }
+                    else 
+                    {
+                        $res=$this->db->queryResultArray('select count(*) from ad_user where admin_id=? and state=?', [$aid, $state]);
                     }
 
-                }else{
-
+                }
+                else
+                {
                     $uid=$this->info['id'];
                     if (isset ($_GET['u']) && is_numeric($_GET['u'])) $uid=(int)$_GET['u'];
-                    if ($state>6){
-                        $res=$this->db->queryResultArray(
-                            'select count(*) 
-                            from ad_user 
-                            where web_user_id=? and state=?
-                            ', array($uid,$state));
-                    }elseif ($state){
-                        
+                    
+                    if ($state>6)
+                    {
+                        $res=$this->db->queryResultArray('select count(*) from ad_user where web_user_id=? and state=?', [$uid, $state]);
+                    }
+                    elseif ($state)
+                    {                        
                         $adLevel=0;
-                        if($this->isSuperUser()){
+                        if($this->isSuperUser())
+                        {
                             $adLevel=1;
                         }
+                        
                         $filters=  $this->getAdminFilters();
                         $q = 'select count(*) from ad_user a ';
-                        if($filters['root']){
+                        if($filters['root'])
+                        {
                             $q .= 'left join section s on a.section_id = s.id ';
                         }
                         $q .= 'left join ad_object ao on ao.id = a.id ';
                         $q .= 'where ';
-                        if($filters['uid']){
+                        
+                        if($filters['uid'])
+                        {
                             $q.= '( (a.state in (1,2,4)) and a.web_user_id='.$filters['uid'].' ) ';
-                        }else{
+                        }
+                        else
+                        {
                             $q.= '( (a.state in (1,2,4)) or (a.state=3 and a.web_user_id='.$uid.') ) ';
                         }
                         $q .= ' and (ao.super_admin is null or ao.super_admin <= '.$adLevel.') ';
                                     
-                        if($filters['purpose']){
+                        if($filters['purpose'])
+                        {
                             $q.='and a.purpose_id='.$filters['purpose'].' ';
                         }
-                        if($filters['lang']==1){                                        
+                        if($filters['lang']==1)
+                        { 
                             $q.='and (a.rtl in (1,2)) ';
                         }
-                        if($filters['lang']==2){                                        
+                        if($filters['lang']==2)
+                        { 
                             $q.='and (a.rtl in (0,2)) ';
                         }
-                        if($filters['root']){
+                        if($filters['root'])
+                        {
                             $q.='and s.root_id = '.$filters['root'].' ';
                         }
                         $res=$this->db->queryResultArray($q);
-                    }else {
-                        $res=$this->db->queryResultArray(
-                        'select count(*) from ad_user 
-                            where web_user_id=? and state=?',
-                        array($uid,$state));
                     }
-
+                    else 
+                    {
+                        $res=$this->db->queryResultArray('select count(*) from ad_user where web_user_id=? and state=?', [$uid, $state]);
+                    }
                 }
-            }else {
-                if ($state>6) {
+            }
+            else 
+            {
+                if ($state>6) 
+                {
+                    $res=$this->db->queryResultArray('select count(*) from ad_user where web_user_id=? and state=?', array($this->info['id'],$state));
+                }
+                elseif ($state) 
+                {
                     $res=$this->db->queryResultArray(
-                    'select count(*) from ad_user where web_user_id=? and state=?',
-                    array($this->info['id'],$state));
-                }elseif ($state) {
-                    $res=$this->db->queryResultArray(
-                    'select count(*) from ad_user where web_user_id=? and state in (1,2,3,4)',
-                    array($this->info['id']));
-                }else {
-                    $res=$this->db->queryResultArray(
-                    'select count(*) from ad_user where web_user_id=? and state=?',
-                    array($this->info['id'],$state));
+                    'select count(*) from ad_user where web_user_id=? and state in (1,2,3,4)', array($this->info['id']));
+                }
+                else 
+                {
+                    $res=$this->db->queryResultArray('select count(*) from ad_user where web_user_id=? and state=?', array($this->info['id'],$state));
                 }
             }
         }
-        if($res && isset($res[0]['COUNT']))
-            return $res[0]['COUNT'];
-        else return false;
+
+        return ($res && isset($res[0]['COUNT'])) ? $res[0]['COUNT'] : FALSE;
     }
 
+    
     function hideAd($id){
         $res=false;
         $res=$this->db->queryResultArray(
@@ -1034,7 +1080,7 @@ order by m.activation_timestamp desc',
             $res=$this->db->queryResultArray(
                 'update ad_user set state=3, admin_id=?, admin_stamp=current_timestamp, content=? where id=? returning state',
                 [$this->info['id'], $adContent, $id], true);
-            error_log(__FUNCTION__. ": update ad_user set state=3, admin_id={$this->info['id']}, admin_stamp=current_timestamp, content=? where id={$id} returning state");
+            //error_log(__FUNCTION__. ": update ad_user set state=3, admin_id={$this->info['id']}, admin_stamp=current_timestamp, content=? where id={$id} returning state");
             if (!empty($res)) 
             {
                 $result=true;
@@ -1823,11 +1869,13 @@ order by m.activation_timestamp desc',
                         $this->info['options']['autoblock']="reference {$blockAccount} date:".date("d.m.y");
                         $this->update();
                         $this->updateOptions();
-                    }elseif($time != $current_time)
+                    }
+                    elseif($time != $current_time)
                     {
-                        error_log(__FILE__ . '.' . __FUNCTION__ . '.'.__LINE__);
                         if(!is_array($this->info['options']))
+                        {
                             $this->info['options']=array();
+                        }
                         $this->info['options']['suspend']=$time;
                         $status = 1;
                         error_log('DESKTOP SUSPENDED '.$this->info['id']);
@@ -2982,8 +3030,7 @@ order by m.activation_timestamp desc',
             {
                 $this->info['level'] = $this->data->getLevel();
                 $this->info['verified'] = $this->data->isMobileVerified();
-                $this->info['options']['suspend'] = $this->data->getSuspensionTime();
-                $this->data->getOptions()->setSuspensionTime($this->info['options']['suspend']);
+                $this->data->getOptions()->setSuspensionTime($this->data->getMobile(TRUE)->getSuspendSeconds());
                 $this->data->createToken();
                 $this->update();
             }

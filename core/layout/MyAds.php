@@ -2,14 +2,17 @@
 
 include $config['dir'].'/core/layout/Page.php';
 
-class MyAds extends Page {
+class MyAds extends Page 
+{
     
     var $subSection='',$userBalance=0;
 
-    function __construct($router) {
+    function __construct($router) 
+    {
         parent::__construct($router);       
         
-        if($this->urlRouter->cfg['active_maintenance']) {
+        if($this->urlRouter->cfg['active_maintenance']) 
+        {
             $this->user->redirectTo('/maintenance/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
         }
 
@@ -17,51 +20,70 @@ class MyAds extends Page {
         $this->forceNoIndex=true;
         $this->urlRouter->cfg['enabled_sharing']=0;
         $this->title=$this->lang['myAds'];
-        if (isset ($this->user->pending['post'])) {
+        
+        if (isset ($this->user->pending['post'])) 
+        {
             unset($this->user->pending['post']);
             $this->user->update();
         }
+        
         $sub='';
-        if ($this->isMobile) {
+        
+        if ($this->isMobile) 
+        {
             $this->urlRouter->cfg['enabled_ads']=0;
             $this->inlineCss.='time{margin:0 10px}p.nd{border-top:1px solid #ececec}.ls p{margin-top:0;padding-top:10px}';
             
             if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
-            switch($sub){
+            
+            switch($sub)
+            {
                 case 'pending':
                     $this->subSection='pending';
                     $this->title=$this->lang['ads_pending'];
                     break;
+                
                 case 'drafts':
                     $this->subSection='drafts';
                     $this->title=$this->lang['ads_drafts'];
                     break;
+                
                 case 'archive':
                     $this->subSection='archive';
                     $this->title=$this->lang['ads_archive'];
                     break;
-                case '':
+                
                 default:
                     $this->subSection='';
                     $this->title=$this->lang['ads_active'];
                     break;
             }
-        } else {
+        } 
+        else 
+        {
             if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
             $this->globalScript.='var SOUND="beep.mp3",';
-            if(isset($this->user->params['mute'])&&$this->user->params['mute']){
+
+            if(isset($this->user->params['mute'])&&$this->user->params['mute'])
+            {
                 $this->globalScript.='MUTE=1';
-            }else{
+            }
+            else
+            {
                 $this->globalScript.='MUTE=0';
             }
+            
             $this->globalScript.=';';
             
-            if($this->user->info['id'] && $this->user->info['level']==9) {
+            if($this->user->info['id'] && $this->user->info['level']==9) 
+            {
                 
                 if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
                 
                 $this->inlineCss .= '.oc .lnk {padding:0 15px!important}li.owned{background-color: #D9FAC8 !important}';
-                if($sub=='pending'){
+                
+                if($sub=='pending')
+                {
                     $this->inlineCss.='li.owned .oc{visibility:visible}.oc, li.activeForm .oc{visibility:hidden}';
                 }
                 
@@ -148,7 +170,9 @@ class MyAds extends Page {
                         text-overflow: ellipsis;padding:0 10px
                     }
                 ';
-                if($this->urlRouter->siteLanguage=='ar'){
+                
+                if ($this->urlRouter->siteLanguage=='ar')
+                {
                     $this->inlineCss.='
                         .btzone .bt{
                             float:right
@@ -156,8 +180,7 @@ class MyAds extends Page {
                         .sndTgl{
                             right:555px;
                             left:auto;
-                        }';
-                    
+                        }';                    
                 }
                 
                 $this->globalScript.='
@@ -180,7 +203,8 @@ class MyAds extends Page {
                     };
                 ';
                 
-                if($sub===''){
+                if($sub==='')
+                {
                     $this->globalScript.='
                         function mCPrem(){
                             Dialog.show("alert_dialog",\'<span class="fail"></span>'.$this->lang['multi_premium_no'].'\');
@@ -188,21 +212,27 @@ class MyAds extends Page {
                     ';
                 }
             }
+            
             $this->set_ad(array('zone_0'=>array('/1006833/PublicRelation', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->urlRouter->cfg['server_id'])));
         
             $this->inlineCss.='.htf.db{width:720px!important}.ig{-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none}.ww{font-size:16px}.cct .k{float:none}.rpd{padding-top:5px!important}.rpd .bt{width:auto!important}.cct{height:auto}.ls p{padding-bottom:5px}.alt{border-top:1px solid #ccc;padding:5px!important}.en .ig{float:left;margin:0 10px 5px 0}.ar .ig{float:right;margin:0 0 5px 10px}';
-            if($this->user->info['id'] && $this->user->info['level']==9){
+            
+            if($this->user->info['id'] && $this->user->info['level']==9)
+            {
                 $this->inlineCss.='#rejS{width:640px;padding:5px;margin-bottom:10px;}.adminNB{position:fixed;cursor:pointer;bottom:0;'.($this->urlRouter->siteLanguage=='ar'?'left':'right').':5px;background-color:#D9FAC8;padding:5px 15px;border:1px solid #ccc;border-bottom:0;font-weight:bold;color:#00e}.adminNB:hover{text-decoration:underline}';
             }
         }
+        
         $this->render();
         
         
-        if(isset($this->user->params['hold'])) {
+        if(isset($this->user->params['hold'])) 
+        {
             unset($this->user->params['hold']);
             $this->user->update();
         }
     }
+    
     
     function mainMobile() {
         if ($this->user->info['id']) {
@@ -369,9 +399,16 @@ class MyAds extends Page {
                         ?><div><span class="k eye on"></span><label><?= $this->lang['m_Followed'] ?></label></div><?php*/
                         $state=$ad['STATE'];
                         
-                        $isSuspended = isset($this->user->info['options']['suspend']) && ($this->user->info['options']['suspend']>time());                        
+                        //$isSuspended =  isset($this->user->info['options']['suspend']) && ($this->user->info['options']['suspend']>time());                        
                         
-                        $isSuspended = $this->user->data->getOptions()->isSuspended();
+                         $isSuspended = FALSE;
+                        if ($this->user->data)
+                        {
+                            $isSuspended = $this->user->data->getOptions()->isSuspended();
+                        } else {
+                            error_log("this->user->data is null for user: ".$this->user->info['id'] . ' at line '.__LINE__);
+                        }
+                        //$isSuspended = $this->user->data->getOptions()->isSuspended();
                         if ($state<7 && !$isSystemAd) 
                         {
                             if(!$isSuspended)
@@ -775,21 +812,24 @@ var rtMsgs={
     }
     
     
-    function pendingAds($state=0) {
+    function pendingAds($state=0) 
+    {
         $isAdmin = false;
         $isAdminOwner = false;
         $isSuperAdmin = $this->user->isSuperUser();
         $current_time = time();
-        if($this->user->info['level']==9) {
+        
+        if($this->user->info['level']==9) 
+        {
             $isAdmin = true;
             $mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
         }
         
         $filters = $this->user->getAdminFilters();
-        
+
+        $sub='';        
         $lang='';
         if($this->urlRouter->siteLanguage!='ar')$lang=$this->urlRouter->siteLanguage.'/';
-        $sub='';
         if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
         
         echo '<ul class="tbs abs w t4">';
@@ -810,23 +850,26 @@ var rtMsgs={
         
         $this->renderBalanceBar();
         
-        $lang='';
-        if ($this->urlRouter->siteLanguage!='ar') $lang=$this->urlRouter->siteLanguage.'/';
-        $ads=$this->user->getPendingAds(0,$state,true);
+        $ads=$this->user->getPendingAds(0, $state, true);
         $count=0;
         if (!empty($ads))$count=count($ads);
         $this->user->update();
-        if ($count) {
+        
+        if ($count) 
+        {
             
             $currentOffset = $this->get('o','uint');
             $hasPrevious=false;
             $hasNext=false;
             $recNum=50;
-            if(is_numeric($currentOffset) && $currentOffset){
+            
+            if(is_numeric($currentOffset) && $currentOffset)
+            {
                 $hasPrevious = true;
             }
             
-            if($count==51){
+            if($count==51)
+            {
                 $hasNext=true;
                 $count=50;
             }
@@ -834,29 +877,29 @@ var rtMsgs={
             $allCounts = $this->user->getPendingAdsCount($state);
         
             ?><p class="ph phb"><?php
-            switch ($state){
+            
+            switch ($state)
+            {
                 case 9:
-                    //$this->user->info['archive_ads']=$count;
                     ?><?= $this->lang['ads_archive'].($allCounts ? ' ('.$allCounts.')':'').' '.$this->renderUserTypeSelector() ?></p><div class="fl"><p class="phc"><?= $this->lang['ads_archive_desc'] ?><?php
                     break;
-                case 7:
-                    
+                
+                case 7:                    
                     $this->userBalance = $this->user->getStatement(0, 0, true);
-                    if(isset($this->userBalance['balance'])){
+                    if(isset($this->userBalance['balance']))
+                    {
                         $this->userBalance = $this->userBalance['balance'];
                     }
-                    //$this->user->info['active_ads']=$count;
                     ?><?= $this->lang['ads_active'].($allCounts ? ' ('.$allCounts.')':'').' '.$this->renderUserTypeSelector() ?></p><div class="fl"><p class="phc"><?= $this->lang['ads_active_desc'] ?><?php
                     break;
+                    
                 case 1:
                 case 2:
                 case 3:
-                    //$this->user->info['pending_ads']=$count;
                     ?><?= $this->lang['ads_pending'].($allCounts ? ' ('.$allCounts.')':'') ?></p><div class="fl"><p class="phc"><?= $lang? preg_replace('/\/myads\//', '/myads/'.$lang,$this->lang['ads_pending_desc']):$this->lang['ads_pending_desc'] ?><?php
                     break;
                 case 0:
                 default:
-                    //$this->user->info['draft_ads']=$count;
                     ?><?= $this->lang['ads_drafts'].($allCounts ? ' ('.$allCounts.')':'').' '.$this->renderUserTypeSelector() ?></p><div class="fl"><p class="phc"><?= $this->lang['ads_drafts_desc'] ?><?php
                     break;
             }
@@ -931,7 +974,8 @@ var rtMsgs={
                  
             }
             
-            if ($state==7) {
+            if ($state==7) 
+            {
                 if ($this->urlRouter->cfg['enabled_charts'] && !$isAdminProfiling) {                    
                     ?><div class="stin <?= $this->urlRouter->siteLanguage ?>"></div><?php                    
                     $this->renderEditorsBox($state);
@@ -952,7 +996,9 @@ var rtMsgs={
             $idx=0;
             $this->globalScript.='var sic=[];';
             $linkLang=  $this->urlRouter->siteLanguage == 'ar' ? '':$this->urlRouter->siteLanguage.'/';
-            for ($i=0;$i<$count;$i++) {
+            
+            for ($i=0; $i<$count; $i++) 
+            {
                 $phoneValidErr=false;
                 $link='';
                 $altlink='';
@@ -1050,12 +1096,10 @@ var rtMsgs={
                 
                 $onlySuper = ($isAdmin && isset($ad['SUPER_ADMIN']) && $ad['SUPER_ADMIN']==1) ? 1 : 0;  
                                 
-                if($this->user->info['level']==9) {
-
+                if($this->user->info['level']==9) 
+                {
                     $mcUser = new MCUser((int)$ad['WEB_USER_ID']);
-                    //$userData = MCSessionHandler::getUser($ad['WEB_USER_ID']);
-                    //$mcUser = new MCUser($userData);
-                    $userMobile = $mcUser->getMobile()->getNumber();
+                    $userMobile = $mcUser->getMobile(TRUE)->getNumber();
                     
                     $needNumberDisplayFix=false;
                     if(!preg_match('/span class="pn/u', $text)){
@@ -1144,9 +1188,9 @@ var rtMsgs={
                     if ($ad['LVL']==4) $style=' style="color:orange"';
                     elseif ($ad['LVL']==5) $style=' style="color:red"';
                     
-                    //var_dump($this->user);
                     $profileLabel =  isset($ad['PROVIDER']) ? $ad['PROVIDER']:'profile';
-                    if($userMobile){
+                    if ($userMobile)
+                    {
                         $unum = $mobileValidator->parse('+'.$userMobile,'LB');
                         $XX = $mobileValidator->getRegionCodeForNumber($unum);
                         $profileLabel = '+'.$userMobile;
@@ -1156,38 +1200,50 @@ var rtMsgs={
                     }
                     
                     $title='<div class="oct"><a target="blank" onclick="openW(this.href);return false" href="'.$ad['PROFILE_URL'].'">'.$profileLabel.'</a><a target="blank"'.$style.' onclick="openW(this.href);return false;" href="/myads/'.$lang.'?u='.$ad['WEB_USER_ID'].'">'.$name.'</a>';
-                    if(isset($content['userLOC'])){
+                    if(isset($content['userLOC']))
+                    {
                         $geo = preg_replace('/[0-9\.]|(?:^|\s|,)[a-zA-Z]{1,3}\s/','',$content['userLOC']);
                         $geo = preg_replace('/,/', '' , $geo);
                         $title.='<span class="inf">'.$geo.'</span>';
-                    }else{
+                    }
+                    else
+                    {
                         $title.='<span class="inf err">No Geo</span>';
                     }
+                    
                     $title.=($state==1 && $ad['DATE_ADDED']==$ad['LAST_UPDATE'] ? '<span class="inf"><span class="rj ren"></span></span>' : '');
                     $title.=($phoneValidErr!==false ? ($phoneValidErr ==0 ? '<span class="inf">T:<span class="done"></span></span>' :  '<span class="inf">T:<span class="fail"></span></span>'):'' );
                     $class= '';
-                    if($isFeatured){
+                    
+                    if($isFeatured)
+                    {
                         $class = ' style="color:#FFF;background-color:green"';
-                    }else if($isFeatureBooked){
+                    }
+                    else if($isFeatureBooked)
+                    {
                         $class = ' style="color:#FFF;background-color:blue"';
                     }
+                    
                     $title.='<b'.$class.'>#'.$ad['ID'].'#</b>';
                     $title.='</div>';
                 
                 }
                     
 
-                if ($state==7) {
+                if ($state==7) 
+                {
                     $liClass.='atv';
                     $link=($ad['RTL']?'/':'/en/').$ad['ID'].'/';
                     if($altText) $altlink='/en/'.$ad['ID'].'/';                        
                         
-                    if($isFeatured || $isFeatureBooked){
+                    if ($isFeatured || $isFeatureBooked)
+                    {
                         $liClass.= ' vp';
                     }
                 }
                 
-                if($state>6) {
+                if($state>6) 
+                {
                     $ad['CITY_ID']=$ad['ACTIVE_CITY_ID'];
                     $ad['COUNTRY_ID']=$ad['ACTIVE_COUNTRY_ID'];
                 }
@@ -1195,14 +1251,22 @@ var rtMsgs={
                 if ($liClass) $liClass='class="'.trim($liClass).'"';
                     
                 ?><li id="<?= $ad['ID'] ?>" <?= $liClass ?><?= $ad['STATE']==2 ? ' status="2" class="approved"' : ($ad['STATE']==3 ? ' status="3" class="approved"' : '') ?><?= ($this->user->info['level']==9 ? ' ro="'.$content['ro'].'" se="'.$content['se'].'" pu="'.$content['pu'].'"':'') ?>><?php
-                if ($ad['STATE']==1 || $ad['STATE']==4) {
+                
+                if ($ad['STATE']==1 || $ad['STATE']==4) 
+                {
                     echo '<div class="nb nbw">' .($onlySuper ? '<span class="fail"></span>' : '<span class="wait"></span>') ,$this->lang['pendingMsg'],'</div>';
-                }elseif ($ad['STATE']==2) {
+                }
+                elseif ($ad['STATE']==2) 
+                {
                     echo '<div class="nb nbg"><span class="done"></span>',$this->lang['approvedMsg'],'</div>';
-                }elseif ($ad['STATE']==3){
+                }
+                elseif ($ad['STATE']==3)
+                {
                     echo '<div class="nb nbr"><span class="fail"></span>',$this->lang['rejectedMsg'],(isset($content['msg']) && $content['msg']? ': '.$content['msg']:''),'</div>';
                 }
-                if($this->user->info['level']==9) {
+                
+                if($this->user->info['level']==9) 
+                {
                     echo $title;
                 }
                 $userLang = '';
@@ -1229,8 +1293,14 @@ var rtMsgs={
                 $isMultiCountry = false;
                 ?>><?=  $this->getAdSection($ad, $content['ro'],$isMultiCountry).($state>6?'<a class="com" href="'.$link.'#disqus_thread" data-disqus-identifier="'.$ad['ID'].'" rel="nofollow"></a>':'') ?></div><?php
             
-                $isSuspended = isset($this->user->info['options']['suspend']) && ($this->user->info['options']['suspend']>time());
-                $isSuspended = $this->user->data->getOptions()->isSuspended();
+                //$isSuspended = isset($this->user->info['options']['suspend']) && ($this->user->info['options']['suspend']>time());
+                $isSuspended = FALSE;
+                if ($this->user->data)
+                {
+                    $isSuspended = $this->user->data->getOptions()->isSuspended();
+                } else {
+                    error_log("this->user->data is null for user: ".$this->user->info['id'] . ' at line '.__LINE__);
+                }
                 //var_dump("Suspemded ".$isSuspended); 
                 //var_dump($this->user->data->getOptions());
                 
@@ -1388,9 +1458,11 @@ var rtMsgs={
                 
                 ?></div><?php   
                         
-                if(0 && $this->user->info['level']==9 && $state<7){
+                if(0 && $this->user->info['level']==9 && $state<7)
+                {
                             
-                    if (!in_array($ad['SECTION_ID'],array(19,29,63,105,114))) {
+                    if (!in_array($ad['SECTION_ID'],array(19,29,63,105,114))) 
+                    {
                         $section=$this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex].' - ';
                         $section.=$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex];
                         if ($link) echo '<div class="ccm"><span class="k">'.$this->getAdSection($ad, $content['ro']).'</span><a class="com" href="'.$link.'#disqus_thread" data-disqus-identifier="'.$ad['ID'].'" rel="nofollow"></a></div>';
