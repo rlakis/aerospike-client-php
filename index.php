@@ -67,9 +67,13 @@ if (php_sapi_name()!='cli')
 {
     //$handler = new MCSessionHandler(isset($_GET['app']) && $_GET['app']==1 && preg_match('/\/post\//', $_SERVER['REQUEST_URI']));
     $handler = new MCSessionHandler();
+    //require_once( $config['dir'].'/core/model/User.php');
+    //$user = new User(new DB($config), $config, null, 0);
+    //$user->sysAuthById(717151);
 }
 
 $router = new Router($config);
+
 
 if (!isset($argc))
 {
@@ -79,7 +83,7 @@ if (!isset($argc))
     if (isset($_GET['provider']))
     {
         $provider=strtolower($_GET["provider"]);
-        if(in_array($provider,array('facebook','twitter','google','linkedin','yahoo','live','mourjan')))
+        if(in_array($provider, ['facebook','twitter','google','linkedin','yahoo','live','mourjan']))
         {
             try
             {
