@@ -13,9 +13,7 @@ include_once get_cfg_var("mourjan.path") . '/core/lib/MCSessionHandler.php';
 
 use Core\Model\DB;
 
-$handler = new MCSessionHandler($sh);
-//session_set_save_handler($handler, true);
-//session_start();
+$handler = new MCSessionHandler(TRUE); //$sh);
 
 //error_log('SESSION ' . var_export($_SESSION, TRUE));
 
