@@ -614,8 +614,9 @@ class Page extends Site
     
     function checkSuspendedAccount()
     {
-        $isSuspended = $this->user->info['id'] && $this->user->data->getOptions()->isSuspended();
-        if ($isSuspended) { //$this->user->info['id'] && isset($this->user->info['options']['suspend']) && $this->user->info['options']['suspend']>time()){            
+        $isSuspended = $this->user->getProfile() ? $this->user->getProfile()->isSuspended() : FALSE;
+        if ($isSuspended) 
+        { //$this->user->info['id'] && isset($this->user->info['options']['suspend']) && $this->user->info['options']['suspend']>time()){            
             $this->user->redirectTo('/held/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
         }
     }

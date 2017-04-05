@@ -103,7 +103,12 @@ class MCUser extends MCJsonMapper
                     //$this->getDevices();
                 }
             }
-        }   
+        }
+        
+        if (!($this->opts instanceof MCUserOptions))
+        {
+            $this->opts = new MCUserOptions();
+        }
     }
     
 
@@ -527,8 +532,7 @@ class MCUser extends MCJsonMapper
     {        
         $this->createToken();
         return $this->jwt['token'];
-    }   
-    
+    }               
     
 }
 

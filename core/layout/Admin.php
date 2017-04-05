@@ -47,6 +47,8 @@ class Admin extends Page
             $this->uid = intval($parameter);
 
             $this->userdata = \Core\Model\NoSQL::getInstance()->fetchUser($this->uid);
+            $release = intval(filter_input(INPUT_GET, 'a', FILTER_SANITIZE_NUMBER_INT));
+        
             $this->userdata[Core\Model\ASD\USER_DATE_ADDED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_DATE_ADDED]);
             $this->userdata[Core\Model\ASD\USER_LAST_VISITED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_LAST_VISITED]);
             $this->userdata[Core\Model\ASD\USER_PRIOR_VISITED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_PRIOR_VISITED]);
@@ -85,8 +87,18 @@ class Admin extends Page
                 $ttl = MCSessionHandler::checkSuspendedMobile($_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], $reason);
                 if ($ttl)
                 {
-                    $_mobiles[$i]['suspended']['till'] = gmdate("Y-m-d H:i:s T", time()+$ttl); 
-                    $_mobiles[$i]['suspended']['reason'] = strpos($reason, ':') ? trim(substr($reason, strpos($reason, ':')+1)) : $reason; 
+                    if ($release===-1)
+                    {
+                        MCSessionHandler::setSuspendMobile($this->uid, $_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], 60, TRUE);
+                        $_mobiles[$i]['suspended']['realease']='within 60 seconds';
+                        $this->userdata['suspended']='60s';
+                    }
+                    else 
+                    {
+                        $_mobiles[$i]['suspended']['till'] = gmdate("Y-m-d H:i:s T", time()+$ttl); 
+                        $_mobiles[$i]['suspended']['reason'] = strpos($reason, ':') ? trim(substr($reason, strpos($reason, ':')+1)) : $reason;      
+                        $this->userdata['suspended']='YES';
+                    }
                 }
             }
             
@@ -103,6 +115,14 @@ class Admin extends Page
             
             $this->userdata['mobiles'] = $_mobiles;
             $this->userdata['devices'] = $_devices;
+            if (isset($this->userdata['password']))
+            {
+                unset($this->userdata['password']);
+            }
+            if (isset($this->userdata['jwt']))
+            {
+                unset($this->userdata['jwt']);
+            }
             
         }
         
@@ -136,6 +156,10 @@ class Admin extends Page
             echo '<li style="float:left;width:80px;"><a href="/myads/?sub=pending&u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Pending</a></li>';
             echo '<li style="float:left;width:80px;"><a href="/myads/?u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Active</a></li>';
             echo '<li style="float:left;width:80px;"><a href="/myads/?sub=archive&u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Archived</a></li>';
+            if (isset($this->userdata['suspended']) && $this->userdata['suspended']=='YES')
+            {
+                echo '<li style="float:left;width:80px;"><a href="/admin/?p='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '&a=-1">Release</a></li>';
+            }
             echo '</ul><br/>';
             echo '<pre style="font-size:12pt;font-family:arial;line-height:18pt;">';
             echo json_encode($this->userdata, JSON_PRETTY_PRINT);

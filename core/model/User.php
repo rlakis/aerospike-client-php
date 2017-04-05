@@ -140,7 +140,7 @@ class User
         }
         return $params;
     }
-
+    
     
     function __construct($db, $config, $site, $init=1)
     {
@@ -295,6 +295,32 @@ class User
     function isSuperUser()
     {
         return in_array($this->info['id'], array(1,2,2100));
+    }
+    
+    
+    public function isRegistered() : bool
+    {
+        return ($this->info['id']>0);
+    }
+    
+    
+    public function getProfile()
+    {
+        if ($this->info['id'])
+        {
+            
+            if ($this->data && $this->data->getID()==$this->info['id'])
+            {
+                return $this->data;
+            }
+            
+            $this->data = new MCUser($this->info['id']);
+            $this->info['level'] = $this->data->getLevel();
+            $this->info['verified'] = $this->data->isMobileVerified();
+            $this->data->getOptions()->setSuspensionTime($this->data->getMobile()->getSuspendSeconds());
+            return $this->data;
+        }
+        return NULL;
     }
     
     
@@ -3024,9 +3050,10 @@ order by m.activation_timestamp desc',
 
         if($this->info['id'])
         {
+            
             $this->data = new MCUser($this->info['id']);
             
-            if($this->data->getID())
+            if($this->data->getID()==$this->info['id'])
             {
                 $this->info['level'] = $this->data->getLevel();
                 $this->info['verified'] = $this->data->isMobileVerified();

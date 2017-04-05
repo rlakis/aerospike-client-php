@@ -402,9 +402,9 @@ class MyAds extends Page
                         //$isSuspended =  isset($this->user->info['options']['suspend']) && ($this->user->info['options']['suspend']>time());                        
                         
                          $isSuspended = FALSE;
-                        if ($this->user->data)
+                        if ($this->user->getProfile())
                         {
-                            $isSuspended = $this->user->data->getOptions()->isSuspended();
+                            $isSuspended = $this->user->getProfile()->isSuspended();
                         } else {
                             error_log("this->user->data is null for user: ".$this->user->info['id'] . ' at line '.__LINE__);
                         }
@@ -1294,11 +1294,9 @@ var rtMsgs={
                 ?>><?=  $this->getAdSection($ad, $content['ro'],$isMultiCountry).($state>6?'<a class="com" href="'.$link.'#disqus_thread" data-disqus-identifier="'.$ad['ID'].'" rel="nofollow"></a>':'') ?></div><?php
             
                 //$isSuspended = isset($this->user->info['options']['suspend']) && ($this->user->info['options']['suspend']>time());
-                $isSuspended = FALSE;
-                if ($this->user->data)
+                $isSuspended = $this->user->getProfile() ? $this->user->getProfile()->isSuspended() : FALSE;
+                if (!$this->user->getProfile())
                 {
-                    $isSuspended = $this->user->data->getOptions()->isSuspended();
-                } else {
                     error_log("this->user->data is null for user: ".$this->user->info['id'] . ' at line '.__LINE__);
                 }
                 //var_dump("Suspemded ".$isSuspended); 
