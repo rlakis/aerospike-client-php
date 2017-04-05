@@ -133,6 +133,9 @@ span.bt {
     display: inline-block;
     vertical-align: top
 }
+.menu span{
+    font-size:14px
+}
 .dt {
     background-color: #FFF;
     position: relative;

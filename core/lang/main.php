@@ -366,6 +366,7 @@ $lang=array(
     'ads_drafts'        =>  'Drafts',
     'ads_drafts_desc'   =>  'Click <b>edit</b> to continue editing / publishing a saved draft, or click <b>delete</b> if you want to remove a draft permanently',
     'ads_pending'       =>  'Pending Ads',
+    'ads_deleted'       =>  'Deleted',
     'ads_pending_desc'  =>  'This is a list of ads that are pending Administrator Approval / Mourjan system Processing',
     'ads_active'        =>  'Active Ads',
     'ads_active_desc'   =>  'This is a list of active ads, and active ads will be active for a period of 30 days from publish date',

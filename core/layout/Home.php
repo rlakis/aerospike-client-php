@@ -14,6 +14,7 @@ class Home extends Page{
             $this->clear_require('css');
             $this->set_require('css', 's_home');
             if($this->urlRouter->rootId){
+                $this->set_require('css', 's_ro');
                 $this->set_require('css', 's_root_'.$this->urlRouter->rootId.'_m');
             }
             if($this->user->info['id']){
@@ -273,18 +274,120 @@ class Home extends Page{
                         case 99:
                             $cssPre='u u';
                             break;
-        }        
+        } 
         foreach ($this->urlRouter->pageSections as $key=>$section) {
+            $this->urlRouter->pageSections[$key]['id']=$key;
+        }
+        if(isset($this->user->params['catsort']) && $this->user->params['catsort']){
+            usort($this->urlRouter->pageSections, function($a, $b){
+                return $b['counter'] > $a['counter'];
+            });
+        }
+        foreach ($this->urlRouter->pageSections as $section) {
             $count=$this->checkNewUserContent($section['unixtime']) ? '<b>'.$section['counter'].'</b>' : $section['counter'];
             $purposeId = (count($section['purposes'])==1) ? array_keys($section['purposes'])[0] : 0;
             //$purposeId=(is_numeric($section[3]) ? (int)$section[3]:0);
-            $_link = $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $key, $purposeId);
-            echo '<li><a href="', $_link, '">',
-                    "<span class='{$cssPre}{$key}'></span>",
+            $_link = $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $section['id'], $purposeId);
+            echo '<li'.(in_array($section['id'],[29,63,105,117]) ? ' class="ozer"':'').'><a href="', $_link, '">',
+                    "<span class='{$cssPre}{$section['id']}'></span>",
                     $section['name'], '<span class="to"></span><span class="n">', $count, '</span></a></li>';
             $i++;
         }
         echo '</ul>';
+        ?> <!--googleoff: index --> <?php
+        if(isset($this->user->params['catsort']) && $this->user->params['catsort']==1){
+            ?><span onclick="setOrder(this)" class="rbt subit az">Az</span><?php  
+        }else{
+            ?><span onclick="setOrder(this)" class="rbt subit numz">9-1</span><?php            
+        }
+        $this->globalScript.='
+            
+var ulList=[];
+var setOrder=function(e)
+{
+    var elem = $(e);
+    var ul = elem.prev();
+    if(ulList.length==0){
+        ul.children().each(function(i,f){
+            var g = f.childNodes[0];
+            if(g.childNodes.length==3){
+                ulList[ulList.length] = {
+                    c : parseInt(g.childNodes[2].innerHTML.replace(/[^0-9]/g,"")),
+                    t : g.childNodes[0].nodeValue,
+                    n : f
+                };
+            }else{
+                ulList[ulList.length] = {
+                    c : parseInt(g.childNodes[3].innerHTML.replace(/[^0-9]/g,"")),
+                    t : g.childNodes[1].nodeValue,
+                    n : f
+                };
+            }
+        });
+    }
+    window.scroll(0,0);
+    var f=function(){    
+        elem.removeClass("spin").addClass("rspin");
+        setTimeout(function(){elem.html("Az")},250);
+    };    
+    var z=function(){        
+        f();
+        history.back()
+    };
+    var s = elem.hasClass("numz");
+    var l = ulList.length;
+    var sort=0;
+    if(s){   
+        sort=1;
+        ulList.sort(function(a,b){
+            if (b.c > a.c) return 1;
+            if (b.c < a.c) return -1;
+            if(a.t < b.t) return -1;
+            if(a.t > b.t) return 1;
+            return 0; 
+        });
+        ul.empty();
+        for(var i=0; i<l; i++){
+            ul.append(ulList[i].n);
+        }
+        elem.removeClass("numz");
+        elem.addClass("az");
+        toast(lang=="ar"?"تم الترتيب حسب عدد الاعلانات":"order by ads\" count");
+        f();
+    }else{
+        ulList.sort(function(a,b){
+            if(a.t < b.t) return -1;
+            if(a.t > b.t) return 1;
+            if (b.c > a.c)return 1;
+            if (b.c < a.c)return -1;
+            return 0;
+        });
+        ul.empty();
+        var t,n;
+        for(var i=0; i<l; i++){
+            n=ulList[i].n;
+            if(n.className=="ozer"){
+                t=n;
+            }else{
+                ul.append(ulList[i].n);
+            }
+        }
+        ul.append(t);
+        elem.removeClass("az");
+        elem.addClass("numz");        
+        toast(lang=="ar"?"تم الترتيب حسب الابجدية":"order by alphabets");
+        
+        elem.removeClass("rspin").addClass("spin");
+        setTimeout(function(){elem.html("9-1")},250);
+    }
+    $.ajax({
+        type:"GET",
+        url:"/ajax-sorting/?or="+sort,           
+        dataType:"json"
+    })
+}
+        ';
+        ?> <!--googleon: index --> <?php
     }
 
     

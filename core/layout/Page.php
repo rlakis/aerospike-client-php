@@ -2573,15 +2573,15 @@ class Page extends Site
                     
                     if ($this->extendedId || $this->localityId) {
                         if ($selected) {
-                            echo '<b>', $purpose['name'], '</b>';
+                            echo '<b>', $purpose['name'], ' <span>('.$purpose['counter'].')</span></b>';
                         } else {
-                            echo '<a href="'. $extended_uri . $this->urlRouter->purposes[$pid][3] . $append_uri . '/' . '">', $purpose['name'], '</a>';
+                            echo '<a href="'. $extended_uri . $this->urlRouter->purposes[$pid][3] . $append_uri . '/' . '">', $purpose['name'], ' <span>('.$purpose['counter'].')</span></a>';
                         }                        
                     } else {
                         if ($selected) {
-                            echo '<b>', $purpose['name'], '</b>';
+                            echo '<b>', $purpose['name'], ' <span>('.$purpose['counter'].')</span></b>';
                         } else {
-                            echo '<a href="' . $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $this->urlRouter->sectionId, $pid) . $q . '">', $purpose['name'], '</a>';
+                            echo '<a href="' . $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $this->urlRouter->sectionId, $pid) . $q . '">', $purpose['name'], ' <span>('.$purpose['counter'].')</span></a>';
                         }
                     }
                     $i++;

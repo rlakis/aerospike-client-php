@@ -35,7 +35,6 @@ class MyAds extends Page
             $this->inlineCss.='time{margin:0 10px}p.nd{border-top:1px solid #ececec}.ls p{margin-top:0;padding-top:10px}';
             
             if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
-            
             switch($sub)
             {
                 case 'pending':
@@ -62,6 +61,9 @@ class MyAds extends Page
         else 
         {
             if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
+            if($sub == 'deleted' && $this->user->info['level']!=9){
+                $sub = '';
+            }
             $this->globalScript.='var SOUND="beep.mp3",';
 
             if(isset($this->user->params['mute'])&&$this->user->params['mute'])
@@ -523,6 +525,9 @@ class MyAds extends Page
 
         $sub='';
         if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
+        if($sub == 'deleted' && $this->user->info['level']!=9){
+            $sub = '';
+        }
         switch($sub){
             case '':
                 $this->pendingAds(7);
@@ -608,6 +613,9 @@ var rtMsgs={
                 break;
             case 'archive':
                 $this->pendingAds(9);
+                break;
+            case 'deleted':
+                $this->pendingAds(8);
                 break;
             default:
                 $this->pendingAds(7);
@@ -880,6 +888,9 @@ var rtMsgs={
             
             switch ($state)
             {
+                case 8:
+                    ?><?= $this->lang['ads_deleted'].($allCounts ? ' ('.$allCounts.')':'').' '.$this->renderUserTypeSelector() ?></p><div class="fl"><p class="phc"><?php
+                    break;
                 case 9:
                     ?><?= $this->lang['ads_archive'].($allCounts ? ' ('.$allCounts.')':'').' '.$this->renderUserTypeSelector() ?></p><div class="fl"><p class="phc"><?= $this->lang['ads_archive_desc'] ?><?php
                     break;

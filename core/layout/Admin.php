@@ -11,6 +11,7 @@ class Admin extends Page
     function __construct($router)
     {
         parent::__construct($router);
+        $this->uid = 0;
         $this->sub = $_GET['sub'] ?? '';
         $this->mobile_param = $_GET['t'] ?? '';
         
@@ -35,6 +36,7 @@ class Admin extends Page
                 . '.options li{cursor:pointer;border-bottom:1px solid #aaa;direction:rtl;text-align:right;padding:10px;}'
                 . '.options li:hover{background-color:#00e;color:#FFF}'
                 . '#msg{height:40px;display:block}'
+                . '.rpd{display:block}.rpd textarea{width:740px}'
                 . '.tbs{width:750px}.tbs li{float:left;width:80px}'
                 . '.load{width: 30px;height: 30px;display: inline-block;vertical-align: middle}';
         
@@ -423,59 +425,67 @@ class Admin extends Page
                 
                 default:
                     
-                    if ($this->userdata)
-                    {
-                        echo '<ul class="tbs">';
-                        echo '<li><a href="/myads/?sub=drafts&u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Drafts</a></li>';
-                        echo '<li><a href="/myads/?sub=pending&u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Pending</a></li>';
-                        echo '<li><a href="/myads/?u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Active</a></li>';
-                        echo '<li><a href="/myads/?sub=archive&u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Archived</a></li>';
-                        if (isset($this->userdata['suspended']) && $this->userdata['suspended']=='YES')
-                        {
-                            echo '<li><a href="/admin/?p='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '&a=-1">Release</a></li>';
+                    ?><form method="get"><?php
+                    ?><ul class="ts"><?php                                
+                    ?><li><?php 
+                    ?><div class="lm"><label>ID:</label><input name="p" type="text" value="<?= $this->uid ? $this->uid : '' ?>" /><?php
+                    ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
+                    ?></div></li><?php
+                    ?></ul><?php
+                    ?></form><?php
+
+                    ?><form method="get"><?php
+                    ?><ul class="ts"><?php                                
+                    ?><li><?php 
+                    ?><div class="lm"><label><?= $this->lang['labelP0'] ?>:</label><input name="t" type="tel" value="<?= $this->mobile_param ?>" /><?php
+                    ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
+                    ?></div></li><?php
+                    ?></ul><?php
+                    ?></form><?php
+                    if ($this->userdata && count($this->userdata) && $this->userdata[0])
+                    {                        
+                        foreach($this->userdata as $record){
+                            $this->parseUserRecordData($record);
+                            echo '<br/>';
                         }
-                        echo '</ul>';
-                        ?><form method="get"><input id="id" type="hidden" /><?php
-                        ?><ul class="ts"><?php                                
-                        ?><li><?php 
-                        ?><div class="lm"><label>ID:</label><input name="p" type="text" value="<?= $this->uid ?>" /><?php
-                        ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
-                        ?></div></li><?php
-                        ?></ul><?php
-                        ?></form><?php
                         
-                        ?><form method="get"><?php
-                        ?><ul class="ts"><?php                                
-                        ?><li><?php 
-                        ?><div class="lm"><label><?= $this->lang['labelP0'] ?>:</label><input name="t" type="tel" value="<?= $this->mobile_param ?>" /><?php
-                        ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
-                        ?></div></li><?php
-                        ?></ul><?php
-                        ?></form><?php
+                        $this->globalScript .= '
+                            var block=function(id,e){
+                                e=$(e).parent().parent();
+                                if(e.next().hasClass("rpd")){
+                                    e.next().remove()
+                                }else{
+                                    var d=$("<div class=\'rpd cct\'><b>سبب الايقاف؟</b><textarea onkeydown=\'idir(this)\' onchange=\'idir(this,1)\'></textarea><input type=\'button\' onclick=\'rpa("+id+",this)\' class=\'bt\' value=\'ايقاف\'><input type=\'button\' onclick=\'closeA(this)\' class=\'bt cl\' value=\'إلغاء\'></div>");                                
+                                    d.insertAfter(e);
+                                }
+                            };
+                            var closeA=function(e){
+                                e=$(e).parent().remove()
+                            };
+                            var rpa=function(id,e){
+                                e=$(e);
+                                var m=$("textarea",e.parent()).val();
+                                e.parent().remove();
+                                if(m.length>0){
+                                    $.ajax({
+                                        type:"POST",
+                                        url:"/ajax-ublock/",
+                                        data:{
+                                            i:id,
+                                            msg:"Blocked From Admin Panel By Admin "+UID+" reason <<"+m+">>"
+                                        },
+                                        dataType:"json",
+                                        success:function(rp){
+                                            document.location="";
+                                        }
+                                    });
+                                }
+                            };
+                        ';
                         
-                        echo '<div dir="ltr">';
-                        echo '<pre style="font-size:12pt;font-family:arial;line-height:18pt;">';
-                        echo json_encode($this->userdata, JSON_PRETTY_PRINT);
-                        echo '</pre></div>';
                     }else{
-                        ?><div><?php
-                        ?><form method="get"><?php
-                        ?><ul class="ts"><?php                                
-                        ?><li><?php 
-                        ?><div class="lm"><label>ID:</label><input name="p" type="text" value="<?= $this->uid ?>" /><?php
-                        ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
-                        ?></div></li><?php
-                        ?></ul><?php
-                        ?></form><?php
-                        ?><form method="get"><?php
-                        ?><ul class="ts"><?php                                
-                        ?><li><?php 
-                        ?><div class="lm"><label><?= $this->lang['labelP0'] ?>:</label><input name="t" type="tel" value="<?= $this->mobile_param ?>" /><?php
-                        ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
-                        ?></div></li><?php
-                        ?></ul><?php
-                        ?></form><?php
-                        if($this->uid){
+                        ?><div class="ctr"><?php
+                        if($this->uid || $this->mobile_param!=''){
                             ?><h4>NO DATA FOUND</h4><?php
                         }
                         ?></div><?php 
@@ -483,6 +493,29 @@ class Admin extends Page
         
                     break;
         }
+    }
+    
+    function parseUserRecordData($record){
+        echo '<ul class="tbs">';
+        echo '<li><a href="/myads/?sub=drafts&u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Drafts</a></li>';
+        echo '<li><a href="/myads/?sub=pending&u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Pending</a></li>';
+        echo '<li><a href="/myads/?u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Active</a></li>';
+        echo '<li><a href="/myads/?sub=archive&u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Archived</a></li>';
+        echo '<li><a href="/myads/?sub=deleted&u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Deleted</a></li>';
+        if (isset($record['suspended']) && $record['suspended']=='YES')
+        {
+            echo '<li><a href="/admin/?p='. $record[\Core\Model\ASD\SET_RECORD_ID] . '&a=-1">Release</a></li>';
+        }
+        if(0 && $record[\Core\Model\ASD\USER_LEVEL]==5){
+            echo '<li style="float:right"><a style="border-left:1px solid #CCC" onclick="unblock('.$record[\Core\Model\ASD\SET_RECORD_ID].',this)" href="javascript:void(0);">Unblock</a></li>';
+        }else{
+            echo '<li style="float:right"><a style="border-left:1px solid #CCC" onclick="block('.$record[\Core\Model\ASD\SET_RECORD_ID].',this)" href="javascript:void(0);">Block</a></li>';
+        }
+        echo '</ul>';
+        echo '<div dir="ltr">';
+        echo '<pre style="font-size:12pt;font-family:arial;line-height:18pt;">';
+        echo json_encode($record, JSON_PRETTY_PRINT);
+        echo '</pre></div>';
     }
 
     
