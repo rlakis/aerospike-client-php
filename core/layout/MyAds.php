@@ -650,7 +650,7 @@ var rtMsgs={
                     break;
             }
             ?><style><?php
-            ?>.stin,.phc{display:none}.prx h4{margin-bottom:5px}.prx{display:block;height:320px;clear:both;width:300px}.prx a{color:#00e}.prx a:hover{text-decoration:underline}<?php
+            ?>.stin,.phc{display:none}.prx h4{margin-bottom:5px}.prx{display:block;clear:both;width:300px}.prx a{color:#00e}.prx a:hover{text-decoration:underline}<?php
             ?>.pfrx{height:auto}.prx select{width:260px;padding:3px 5px;margin:10px}.pfrx input{padding:5px 20px;margin:5px 0 10px}<?php            
             if($filters['active']){
                 ?>.pfrx{background-color:#D9FAC8}<?php
@@ -703,6 +703,8 @@ var rtMsgs={
                 ?><li class="b2ixe8tahr"><a href="<?= $link ?>53456">Editor 3</a></li><?php
                 ?><li class="hvn50s5hk"><a href="<?= $link ?>166772">Editor 4</a></li><?php
                 ?><li class="j1nz09nf5t"><a href="<?= $link ?>516064">Editor 5</a></li><?php
+                ?><li class="x1arwii533"><a href="<?= $link ?>897143">Editor 6</a></li><?php
+                ?><li class="hvn517t2q"><a href="<?= $link ?>897182">Editor 7</a></li><?php
                 ?></ul></div><?php
             
             }
