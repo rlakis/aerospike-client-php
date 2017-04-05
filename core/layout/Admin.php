@@ -11,6 +11,10 @@ class Admin extends Page
     function __construct($router)
     {
         parent::__construct($router);
+        $this->sub = $_GET['sub'] ?? '';
+        $this->mobile_param = $_GET['t'] ?? '';
+        
+        $this->hasLeadingPane=true;
         
         if($this->isMobile || !$this->user->isSuperUser())
         {
@@ -22,7 +26,8 @@ class Admin extends Page
         $this->inlineCss .= 
                 '.ts .bt{width:auto;padding:5px 30px!important}'
                 . '.ts .lm{overflow:visible}'
-                . '.hy li{float:right;width:475px;border:0!important}'
+                . '.ts label{vertical-align:middle}'
+                . '.hy li{float:right;width:370px;border:0!important}'
                 . '.hy label{margin-bottom:10px}'
                 . 'textarea{width:300px;height:200px;padding:3px}'
                 . '.action{width:800px!important;text-align:center}'
@@ -30,6 +35,7 @@ class Admin extends Page
                 . '.options li{cursor:pointer;border-bottom:1px solid #aaa;direction:rtl;text-align:right;padding:10px;}'
                 . '.options li:hover{background-color:#00e;color:#FFF}'
                 . '#msg{height:40px;display:block}'
+                . '.tbs{width:750px}.tbs li{float:left;width:80px}'
                 . '.load{width: 30px;height: 30px;display: inline-block;vertical-align: middle}';
         
         $this->set_require('css', 'account');
@@ -47,86 +53,151 @@ class Admin extends Page
             $this->uid = intval($parameter);
 
             $this->userdata = \Core\Model\NoSQL::getInstance()->fetchUser($this->uid);
-            $release = intval(filter_input(INPUT_GET, 'a', FILTER_SANITIZE_NUMBER_INT));
+            
+            if($this->userdata && count($this->userdata)){
+            
+                $release = intval(filter_input(INPUT_GET, 'a', FILTER_SANITIZE_NUMBER_INT));
         
-            $this->userdata[Core\Model\ASD\USER_DATE_ADDED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_DATE_ADDED]);
-            $this->userdata[Core\Model\ASD\USER_LAST_VISITED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_LAST_VISITED]);
-            $this->userdata[Core\Model\ASD\USER_PRIOR_VISITED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_PRIOR_VISITED]);
-            $this->userdata[Core\Model\ASD\USER_LAST_AD_RENEWED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_LAST_AD_RENEWED]);
-            $this->userdata[Core\Model\ASD\USER_OPTIONS][Core\Model\ASD\USER_OPTIONS_CTS] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_OPTIONS][Core\Model\ASD\USER_OPTIONS_CTS]);
+                $this->userdata[Core\Model\ASD\USER_DATE_ADDED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_DATE_ADDED]);
+                $this->userdata[Core\Model\ASD\USER_LAST_VISITED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_LAST_VISITED]);
+                $this->userdata[Core\Model\ASD\USER_PRIOR_VISITED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_PRIOR_VISITED]);
+                $this->userdata[Core\Model\ASD\USER_LAST_AD_RENEWED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_LAST_AD_RENEWED]);
+                $this->userdata[Core\Model\ASD\USER_OPTIONS][Core\Model\ASD\USER_OPTIONS_CTS] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_OPTIONS][Core\Model\ASD\USER_OPTIONS_CTS]);
 
-            unset($this->userdata['mobile']);
-            $_mobiles = \Core\Model\NoSQL::getInstance()->mobileFetchByUID($this->uid);
-            $_devices = \Core\Model\NoSQL::getInstance()->getUserDevices($this->uid);
-            
-            for ($i=0; $i<count($_mobiles); $i++)
-            {
-                unset($_mobiles[$i][\Core\Model\ASD\USER_UID]);
-                $_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_REQUESTED] = $this->unixTimestampToDateTime($_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_REQUESTED]);
-                if (isset($_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]>0)
-                {
-                    $_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED] = $this->unixTimestampToDateTime($_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]);
-                }
-                
-                switch ($_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG]) 
-                {
-                    case 0:
-                        $_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG] = 'Android app';
-                        break;
-                    case 1:
-                        $_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG] = 'Website';
-                        break;
-                    case 2:
-                        $_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG] = 'IOS app';
-                        break;
+                unset($this->userdata['mobile']);
+                $_mobiles = \Core\Model\NoSQL::getInstance()->mobileFetchByUID($this->uid);
+                $_devices = \Core\Model\NoSQL::getInstance()->getUserDevices($this->uid);
 
-                    default:
-                        break;
-                }
-
-                $ttl = MCSessionHandler::checkSuspendedMobile($_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], $reason);
-                if ($ttl)
+                for ($i=0; $i<count($_mobiles); $i++)
                 {
-                    if ($release===-1)
+                    unset($_mobiles[$i][\Core\Model\ASD\USER_UID]);
+                    $_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_REQUESTED] = $this->unixTimestampToDateTime($_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_REQUESTED]);
+                    if (isset($_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]>0)
                     {
-                        MCSessionHandler::setSuspendMobile($this->uid, $_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], 60, TRUE);
-                        $_mobiles[$i]['suspended']['realease']='within 60 seconds';
-                        $this->userdata['suspended']='60s';
+                        $_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED] = $this->unixTimestampToDateTime($_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]);
                     }
-                    else 
+
+                    switch ($_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG]) 
                     {
-                        $_mobiles[$i]['suspended']['till'] = gmdate("Y-m-d H:i:s T", time()+$ttl); 
-                        $_mobiles[$i]['suspended']['reason'] = strpos($reason, ':') ? trim(substr($reason, strpos($reason, ':')+1)) : $reason;      
-                        $this->userdata['suspended']='YES';
+                        case 0:
+                            $_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG] = 'Android app';
+                            break;
+                        case 1:
+                            $_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG] = 'Website';
+                            break;
+                        case 2:
+                            $_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG] = 'IOS app';
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                    $ttl = MCSessionHandler::checkSuspendedMobile($_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], $reason);
+                    if ($ttl)
+                    {
+                        if ($release===-1)
+                        {
+                            MCSessionHandler::setSuspendMobile($this->uid, $_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], 60, TRUE);
+                            $_mobiles[$i]['suspended']['realease']='within 60 seconds';
+                            $this->userdata['suspended']='60s';
+                        }
+                        else 
+                        {
+                            $_mobiles[$i]['suspended']['till'] = gmdate("Y-m-d H:i:s T", time()+$ttl); 
+                            $_mobiles[$i]['suspended']['reason'] = strpos($reason, ':') ? trim(substr($reason, strpos($reason, ':')+1)) : $reason;      
+                            $this->userdata['suspended']='YES';
+                        }
                     }
                 }
-            }
-            
-            for ($i=0; $i<count($_devices); $i++)
-            {
-                unset($_devices[$i][\Core\Model\ASD\USER_UID]);
-                $_devices[$i][Core\Model\ASD\USER_DEVICE_DATE_ADDED] = $this->unixTimestampToDateTime($_devices[$i][Core\Model\ASD\USER_DEVICE_DATE_ADDED]);
-                $_devices[$i][Core\Model\ASD\USER_DEVICE_LAST_VISITED] = $this->unixTimestampToDateTime($_devices[$i][Core\Model\ASD\USER_DEVICE_LAST_VISITED]);
-                if (isset($_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS]) && $_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS][0]!='{')
+
+                for ($i=0; $i<count($_devices); $i++)
                 {
-                    $_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS] = base64_decode($_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS]);
+                    unset($_devices[$i][\Core\Model\ASD\USER_UID]);
+                    $_devices[$i][Core\Model\ASD\USER_DEVICE_DATE_ADDED] = $this->unixTimestampToDateTime($_devices[$i][Core\Model\ASD\USER_DEVICE_DATE_ADDED]);
+                    $_devices[$i][Core\Model\ASD\USER_DEVICE_LAST_VISITED] = $this->unixTimestampToDateTime($_devices[$i][Core\Model\ASD\USER_DEVICE_LAST_VISITED]);
+                    if (isset($_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS]) && $_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS][0]!='{')
+                    {
+                        $_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS] = base64_decode($_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS]);
+                    }
                 }
+
+                $this->userdata['mobiles'] = $_mobiles;
+                $this->userdata['devices'] = $_devices;
+                if (isset($this->userdata['password']))
+                {
+                    unset($this->userdata['password']);
+                }
+                if (isset($this->userdata['jwt']))
+                {
+                    unset($this->userdata['jwt']);
+                }
+            }else{
+                $this->userdata = '';
             }
             
-            $this->userdata['mobiles'] = $_mobiles;
-            $this->userdata['devices'] = $_devices;
-            if (isset($this->userdata['password']))
+        }else{
+            $parameter = filter_input(INPUT_GET, 't', FILTER_SANITIZE_NUMBER_INT,['options'=>['default'=>0]]);
+            if ($parameter)
             {
-                unset($this->userdata['password']);
+                //$this->userdata = \Core\Model\NoSQL::getInstance()->fetchUser($i);
             }
-            if (isset($this->userdata['jwt']))
-            {
-                unset($this->userdata['jwt']);
-            }
-            
         }
         
         $this->render();
+    }    
+    
+    function side_pane(){
+        $this->renderSideAdmin();
+        //$this->renderSideUserPanel();
+    }
+    
+    function renderSideAdmin(){
+        $sub = $this->sub;
+        $lang=$this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/';
+        ?><h4><?= $this->lang['myPanel'] ?></h4><?php
+        echo '<ul class=\'sm\'>';
+        //echo '<li><a href=\'', $this->urlRouter->getURL($countryId,$cityId), '\'>', $this->lang['homepage'], '</a></li>';
+
+        if ($sub=='')
+            echo '<li class=\'on\'><b>', $this->lang['label_users'], '</b></li>';
+        else
+            echo '<li><a href=\'/admin/', $lang, '\'>', $this->lang['label_users'], '</a></li>';
+        
+        if ($sub=='areas')
+            echo '<li class=\'on\'><b>', $this->lang['label_areas'], '</b></li>';
+        else
+            echo '<li><a href=\'/admin/', $lang, '?sub=areas\'>', $this->lang['label_areas'], '</a></li>';
+        /*
+        if ($this->urlRouter->module=='about')
+            echo '<li class=\'on\'><b>', $this->lang['aboutUs'], '</b></li>';
+        else
+            echo '<li><a href=\'/about/', $lang, '\'>', $this->lang['aboutUs'], '</a></li>';
+        if ($this->urlRouter->module=='contact')
+            echo '<li class=\'on\'><b>', $this->lang['contactUs'], '</b></li>';
+        else
+            echo '<li><a href=\'/contact/', $lang, '\'>', $this->lang['contactUs'], '</a></li>';
+        if ($this->urlRouter->module=='gold')
+            echo '<li class=\'on\'><b>', $this->lang['gold_title'], '</b></li>';
+        else
+            echo '<li><a href=\'/gold/', $lang, '\'>', $this->lang['gold_title'], '</a></li>';
+        if ($this->urlRouter->module=='privacy')
+            echo '<li class=\'on\'><b>', $this->lang['privacyPolicy'], '</b></li>';
+        else
+            echo '<li><a href=\'/privacy/', $lang, '\'>', $this->lang['privacyPolicy'], '</a></li>';
+        if ($this->urlRouter->module=='terms')
+            echo '<li class=\'on\'><b>', $this->lang['termsConditions'], '</b></li>';
+        else
+            echo '<li><a href=\'/terms/', $lang, '\'>', $this->lang['termsConditions'], '</a></li>';
+        /*if ($this->urlRouter->module=='advertise')
+            echo '<li class=\'on\'><b>', $this->lang['advertiseUs'], '</b></li>';
+        else
+            echo '<li><a href=\'/advertise/', $lang, '\'>', $this->lang['advertiseUs'], '</a></li>';
+        if ($this->urlRouter->module=='publication-prices')
+            echo '<li class=\'on\'><b>', $this->lang['pricelist'], '</b></li>';
+        else
+            echo '<li><a href=\'/publication-prices/', $lang, '\'>', $this->lang['pricelist'], '</a></li>';*/ 
+        echo "</ul><br />";
     }
    
     
@@ -147,26 +218,11 @@ class Admin extends Page
     {
         $language = 'en';
         
-        ?><div><?php
-        if ($this->userdata)
-        {
-            echo '<div dir="ltr">';
-            echo '<ul>';
-            echo '<li style="float:left;width:80px;"><a href="/myads/?sub=drafts&u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Drafts</a></li>';
-            echo '<li style="float:left;width:80px;"><a href="/myads/?sub=pending&u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Pending</a></li>';
-            echo '<li style="float:left;width:80px;"><a href="/myads/?u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Active</a></li>';
-            echo '<li style="float:left;width:80px;"><a href="/myads/?sub=archive&u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Archived</a></li>';
-            if (isset($this->userdata['suspended']) && $this->userdata['suspended']=='YES')
-            {
-                echo '<li style="float:left;width:80px;"><a href="/admin/?p='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '&a=-1">Release</a></li>';
-            }
-            echo '</ul><br/>';
-            echo '<pre style="font-size:12pt;font-family:arial;line-height:18pt;">';
-            echo json_encode($this->userdata, JSON_PRETTY_PRINT);
-            echo '</pre></div></div>';
-            return;
-        }
-        ?><ul class="ts"><?php
+        switch($this->sub){
+            case 'areas':
+            
+            ?><div><?php        
+                    ?><ul class="ts"><?php
             ?><li><?php 
             ?><div class="lm"><label><?= $this->lang['country'] ?></label><select onchange="CC()" id="country"><?php 
                 foreach($this->urlRouter->countries as $country){
@@ -344,6 +400,74 @@ class Admin extends Page
                     $("#msg").html("<span class=\'fail\'></span> فشلت عملية الحفظ");
                 }
                 ';
+                    
+                break;
+            
+                
+                
+                
+                default:
+                    
+                    if ($this->userdata)
+                    {
+                        echo '<ul class="tbs">';
+                        echo '<li><a href="/myads/?sub=drafts&u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Drafts</a></li>';
+                        echo '<li><a href="/myads/?sub=pending&u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Pending</a></li>';
+                        echo '<li><a href="/myads/?u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Active</a></li>';
+                        echo '<li><a href="/myads/?sub=archive&u='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '">Archived</a></li>';
+                        if (isset($this->userdata['suspended']) && $this->userdata['suspended']=='YES')
+                        {
+                            echo '<li><a href="/admin/?p='. $this->userdata[\Core\Model\ASD\SET_RECORD_ID] . '&a=-1">Release</a></li>';
+                        }
+                        echo '</ul>';
+                        ?><form method="get"><input id="id" type="hidden" /><?php
+                        ?><ul class="ts"><?php                                
+                        ?><li><?php 
+                        ?><div class="lm"><label>ID:</label><input name="p" type="text" value="<?= $this->uid ?>" /><?php
+                        ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
+                        ?></div></li><?php
+                        ?></ul><?php
+                        ?></form><?php
+                        
+                        ?><form method="get"><?php
+                        ?><ul class="ts"><?php                                
+                        ?><li><?php 
+                        ?><div class="lm"><label><?= $this->lang['labelP0'] ?>:</label><input name="t" type="tel" value="<?= $this->mobile_param ?>" /><?php
+                        ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
+                        ?></div></li><?php
+                        ?></ul><?php
+                        ?></form><?php
+                        
+                        echo '<div dir="ltr">';
+                        echo '<pre style="font-size:12pt;font-family:arial;line-height:18pt;">';
+                        echo json_encode($this->userdata, JSON_PRETTY_PRINT);
+                        echo '</pre></div>';
+                    }else{
+                        ?><div><?php
+                        ?><form method="get"><?php
+                        ?><ul class="ts"><?php                                
+                        ?><li><?php 
+                        ?><div class="lm"><label>ID:</label><input name="p" type="text" value="<?= $this->uid ?>" /><?php
+                        ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
+                        ?></div></li><?php
+                        ?></ul><?php
+                        ?></form><?php
+                        ?><form method="get"><?php
+                        ?><ul class="ts"><?php                                
+                        ?><li><?php 
+                        ?><div class="lm"><label><?= $this->lang['labelP0'] ?>:</label><input name="t" type="tel" value="<?= $this->mobile_param ?>" /><?php
+                        ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
+                        ?></div></li><?php
+                        ?></ul><?php
+                        ?></form><?php
+                        if($this->uid){
+                            ?><h4>NO DATA FOUND</h4><?php
+                        }
+                        ?></div><?php 
+                    }
+        
+                    break;
+        }
     }
 
     

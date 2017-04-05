@@ -743,6 +743,10 @@ $lang=array(
     
     'install'   =>  'INSTALL',
     'mourjan_app'   =>  'mourjan app',
-    'app_desc'      =>  'Faster, easier, and more features'
+    'app_desc'      =>  'Faster, easier, and more features',
+    
+    'label_users'   =>  'Users',
+    'label_areas'   =>  'Localities',
+    'review'        =>  'Review'
     
 );
