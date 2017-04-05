@@ -82,7 +82,7 @@ class Search extends Page
                 $this->set_require('css', 's_home');
                 $this->set_require('css', 'search');
             }
-            $this->inlineCss .= '.thb.prem{height:50px}';
+            $this->inlineCss .= '.thb.prem{height:50px}h3{margin:10px}';
             $this->inlineCss .= '.txtd input[type="email"]{direction:ltr;width:90%;margin:10px auto;padding:5px 10px;border: 1px solid #CCC}';
         }
         if (!$this->isMobile && !$this->urlRouter->userId && !$this->userFavorites && !$this->urlRouter->watchId) {
@@ -1636,10 +1636,110 @@ class Search extends Page
                     echo $this->fill_ad('Leaderboard', 'ad_dt');
                 }
             }
+            
+            
+            if ( ($this->urlRouter->module=='search' || $this->urlRouter->module=='detail') && !$this->userFavorites && !$this->urlRouter->watchId && !$this->urlRouter->userId ){
+                $followStr='';
+                if($this->urlRouter->sectionId){
+                    $followUp = $this->urlRouter->db->getSectionFollowUp($this->urlRouter->countryId,$this->urlRouter->cityId,$this->urlRouter->sectionId,$this->urlRouter->purposeId);      
+                    $fup = array();
+                    if(isset($this->urlRouter->sections[$this->urlRouter->sectionId][6]) && $this->urlRouter->sections[$this->urlRouter->sectionId][6]){
+                        $tmpSec = explode(',', $this->urlRouter->sections[$this->urlRouter->sectionId][6]);
+                        $fup = array();
+                        foreach($tmpSec as $sec){
+                            $fup[] = array($sec,0);
+                        }
+                    }
+                    if($followUp){
+                        $followUp = array_merge($fup,$followUp);
+                    }else{
+                        $followUp = $fup;
+                    }
 
+                    if($followUp && count($followUp)){
+                        $procSec=array();
+                        $k=0;
+                        foreach($followUp as $section){
+                            if(!isset($procSec[$section[0]])){
+                                $uri=$this->urlRouter->getURL($this->urlRouter->countryId,$this->urlRouter->cityId,0,$section[0],$section[1]);
+                                $sName=$this->urlRouter->sections[$section[0]][$this->fieldNameIndex];
+                                if($section[1]){
+                                    $pName=$this->urlRouter->purposes[$section[1]][$this->fieldNameIndex];
+                                    switch ($section[1]) {
+                                        case 1:
+                                        case 2:
+                                        case 8:
+                                            $sName = $sName . ' ' . $pName;
+                                            break;
+                                        case 6:
+                                        case 7:
+                                            $sName = $pName . ' ' . $sName;
+                                            break;
+                                        case 3:
+                                            if ($this->urlRouter->siteLanguage == "ar")
+                                                    $sName = 'وظائف ' . $sName;
+                                            else
+                                                    $sName = $sName . ' jobs';
+                                            break;
+                                        case 4:
+                                            $in = "";
+                                            if ($this->urlRouter->siteLanguage == "en")
+                                                $in = " {$this->lang['in']}";
+                                            $sName = $pName . $in . " " . $sName;
+                                            break;
+                                        case 5:
+                                            if ($this->urlRouter->siteLanguage == "ar"){                                               
+                                                $tmp='خدمات';
+                                                if(!preg_match('/'.$tmp.'/u',$sName)){
+                                                    $sName = $tmp . ' ' . $sName;
+                                                }
+                                            }else{
+                                                $tmp='services';  
+                                                if(!preg_match('/'.$tmp.'/',$sName)){
+                                                    $sName = $sName . ' ' . $tmp;
+                                                }
+                                            }
+                                            break;
+                                        case 999:
+                                            $sName = $sName . ' ' . ($this->urlRouter->siteLanguage =='en' ? 'misc':'متفرقات');
+                                            break;
+                                    }
+                                }
+
+                                $iTmp='';
+                                /*if($this->urlRouter->sections[$section[0]][4]==1){
+                                    $iTmp.='<span class="x x'.$section[0].'"></span>';
+                                }elseif($this->urlRouter->sections[$section[0]][4]==2){
+                                    $iTmp.='<span class="z z'.$section[0].'"></span>';
+                                }elseif($this->urlRouter->sections[$section[0]][4]==3){
+                                    $iTmp.='<span class="v v'.$section[0].'"></span>';
+                                }elseif($this->urlRouter->sections[$section[0]][4]==4){
+                                    $iTmp.='<span class="y y'.$section[0].'"></span>';
+                                }elseif($this->urlRouter->sections[$section[0]][4]==99){
+                                    $iTmp.='<span class="u u'.$section[0].'"></span>';
+                                }else {
+                                    $iTmp.='<span class="v'.$section[0].'"></span>';
+                                }*/
+
+                                $followStr.='<li><a href="'.$uri.'">'.$iTmp.$sName.' <span class="to"></span></a></li>';
+                                //echo '<li><a  href="' . $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $this->urlRouter->sectionId, $pid) . $q . '">', $purpose['name'], '</a></li>';
+                                $procSec[$section[0]]=1;
+                                $k++;
+                                if($k==5)break;
+                            }
+                        }
+                        if($followStr){
+                            ?> <!--googleoff: index --> <?php 
+                            echo '<br /><h3>'.$this->lang['interestSection'].'</h3><ul class="ls">'.$followStr.'</ul></div>';
+                            ?> <!--googleon: index --> <?php 
+                        }
+                    }
+                }
+            }
+/*
             if ($this->urlRouter->purposeId && $hasResults)
                 $this->filterPurposesMobile();
-
+*/
                                         
                 /*        
                 if (!$this->urlRouter->watchId && !$this->userFavorites){ 
