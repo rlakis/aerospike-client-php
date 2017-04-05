@@ -54,6 +54,29 @@ trait MobileTrait
     }
     
     
+    public function mobileGetLinkedUIDs(int $number) : array
+    {
+        $matches=[];
+        $keys=[];
+        $where = \Aerospike::predicateEquals(USER_MOBILE_NUMBER, $number);
+        $this->getConnection()->query(NS_USER, TS_MOBILE, $where, function ($record) use (&$matches, &$keys)
+        {
+            if (!isset($record['bins'][USER_MOBILE_DATE_ACTIVATED]))
+            {
+                $record['bins'][USER_MOBILE_DATE_ACTIVATED]=0;
+            }
+                       
+            $matches[$record['bins'][USER_UID]] = $record['bins'];
+            $keys[$record['bins'][USER_UID]] = $record['bins'][USER_MOBILE_DATE_ACTIVATED];
+        });
+        array_multisort($keys, SORT_DESC, SORT_NUMERIC, $matches);
+        unset($keys);
+        
+        return array_values($matches);
+    }
+    
+    
+    
     private function getDigest(string $index_field_name, $value, array $filter, array &$out=[]) : array
     {
         $matches=[];
