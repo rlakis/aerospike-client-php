@@ -52,100 +52,115 @@ class Admin extends Page
             $len = strlen($parameter);
             $this->uid = intval($parameter);
 
-            $this->userdata = \Core\Model\NoSQL::getInstance()->fetchUser($this->uid);
-            
-            if($this->userdata && count($this->userdata)){
-            
-                $release = intval(filter_input(INPUT_GET, 'a', FILTER_SANITIZE_NUMBER_INT));
-        
-                $this->userdata[Core\Model\ASD\USER_DATE_ADDED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_DATE_ADDED]);
-                $this->userdata[Core\Model\ASD\USER_LAST_VISITED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_LAST_VISITED]);
-                $this->userdata[Core\Model\ASD\USER_PRIOR_VISITED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_PRIOR_VISITED]);
-                $this->userdata[Core\Model\ASD\USER_LAST_AD_RENEWED] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_LAST_AD_RENEWED]);
-                $this->userdata[Core\Model\ASD\USER_OPTIONS][Core\Model\ASD\USER_OPTIONS_CTS] = $this->unixTimestampToDateTime($this->userdata[Core\Model\ASD\USER_OPTIONS][Core\Model\ASD\USER_OPTIONS_CTS]);
-
-                unset($this->userdata['mobile']);
-                $_mobiles = \Core\Model\NoSQL::getInstance()->mobileFetchByUID($this->uid);
-                $_devices = \Core\Model\NoSQL::getInstance()->getUserDevices($this->uid);
-
-                for ($i=0; $i<count($_mobiles); $i++)
-                {
-                    unset($_mobiles[$i][\Core\Model\ASD\USER_UID]);
-                    $_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_REQUESTED] = $this->unixTimestampToDateTime($_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_REQUESTED]);
-                    if (isset($_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]>0)
-                    {
-                        $_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED] = $this->unixTimestampToDateTime($_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]);
-                    }
-
-                    switch ($_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG]) 
-                    {
-                        case 0:
-                            $_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG] = 'Android app';
-                            break;
-                        case 1:
-                            $_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG] = 'Website';
-                            break;
-                        case 2:
-                            $_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG] = 'IOS app';
-                            break;
-
-                        default:
-                            break;
-                    }
-
-                    $ttl = MCSessionHandler::checkSuspendedMobile($_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], $reason);
-                    if ($ttl)
-                    {
-                        if ($release===-1)
-                        {
-                            MCSessionHandler::setSuspendMobile($this->uid, $_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], 60, TRUE);
-                            $_mobiles[$i]['suspended']['realease']='within 60 seconds';
-                            $this->userdata['suspended']='60s';
-                        }
-                        else 
-                        {
-                            $_mobiles[$i]['suspended']['till'] = gmdate("Y-m-d H:i:s T", time()+$ttl); 
-                            $_mobiles[$i]['suspended']['reason'] = strpos($reason, ':') ? trim(substr($reason, strpos($reason, ':')+1)) : $reason;      
-                            $this->userdata['suspended']='YES';
-                        }
-                    }
-                }
-
-                for ($i=0; $i<count($_devices); $i++)
-                {
-                    unset($_devices[$i][\Core\Model\ASD\USER_UID]);
-                    $_devices[$i][Core\Model\ASD\USER_DEVICE_DATE_ADDED] = $this->unixTimestampToDateTime($_devices[$i][Core\Model\ASD\USER_DEVICE_DATE_ADDED]);
-                    $_devices[$i][Core\Model\ASD\USER_DEVICE_LAST_VISITED] = $this->unixTimestampToDateTime($_devices[$i][Core\Model\ASD\USER_DEVICE_LAST_VISITED]);
-                    if (isset($_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS]) && $_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS][0]!='{')
-                    {
-                        $_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS] = base64_decode($_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS]);
-                    }
-                }
-
-                $this->userdata['mobiles'] = $_mobiles;
-                $this->userdata['devices'] = $_devices;
-                if (isset($this->userdata['password']))
-                {
-                    unset($this->userdata['password']);
-                }
-                if (isset($this->userdata['jwt']))
-                {
-                    unset($this->userdata['jwt']);
-                }
-            }else{
-                $this->userdata = '';
-            }
-            
-        }else{
+            $this->userdata = [$this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($this->uid))];
+           
+        }
+        else
+        {
             $parameter = filter_input(INPUT_GET, 't', FILTER_SANITIZE_NUMBER_INT,['options'=>['default'=>0]]);
             if ($parameter)
             {
-                //$this->userdata = \Core\Model\NoSQL::getInstance()->fetchUser($i);
+                $this->userdata = [];
+                $uids = \Core\Model\NoSQL::getInstance()->mobileGetLinkedUIDs($parameter);
+                foreach ($uids as $bins) 
+                {
+                    $this->userdata[] = $this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
+                }                
             }
         }
         
         $this->render();
     }    
+    
+    
+    private function parseUserBins($bins)
+    {
+        if($bins && count($bins))
+        {            
+            $release = intval(filter_input(INPUT_GET, 'a', FILTER_SANITIZE_NUMBER_INT));
+        
+            $bins[Core\Model\ASD\USER_DATE_ADDED] = $this->unixTimestampToDateTime($bins[Core\Model\ASD\USER_DATE_ADDED]);
+            $bins[Core\Model\ASD\USER_LAST_VISITED] = $this->unixTimestampToDateTime($bins[Core\Model\ASD\USER_LAST_VISITED]);
+            $bins[Core\Model\ASD\USER_PRIOR_VISITED] = $this->unixTimestampToDateTime($bins[Core\Model\ASD\USER_PRIOR_VISITED]);
+            $bins[Core\Model\ASD\USER_LAST_AD_RENEWED] = $this->unixTimestampToDateTime($bins[Core\Model\ASD\USER_LAST_AD_RENEWED]);
+            $bins[Core\Model\ASD\USER_OPTIONS][Core\Model\ASD\USER_OPTIONS_CTS] = $this->unixTimestampToDateTime($bins[Core\Model\ASD\USER_OPTIONS][Core\Model\ASD\USER_OPTIONS_CTS]);
+
+            unset($bins['mobile']);
+            $_mobiles = \Core\Model\NoSQL::getInstance()->mobileFetchByUID($bins[\Core\Model\ASD\USER_PROFILE_ID]);
+            $_devices = \Core\Model\NoSQL::getInstance()->getUserDevices($bins[\Core\Model\ASD\USER_PROFILE_ID]);
+
+            for ($i=0; $i<count($_mobiles); $i++)
+            {
+                unset($_mobiles[$i][\Core\Model\ASD\USER_UID]);
+                $_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_REQUESTED] = $this->unixTimestampToDateTime($_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_REQUESTED]);
+                if (isset($_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]>0)
+                {
+                    $_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED] = $this->unixTimestampToDateTime($_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]);
+                }
+
+                switch ($_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG]) 
+                {
+                    case 0:
+                        $_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG] = 'Android app';
+                        break;
+                    case 1:
+                        $_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG] = 'Website';
+                        break;
+                    case 2:
+                        $_mobiles[$i][Core\Model\ASD\USER_MOBILE_FLAG] = 'IOS app';
+                        break;
+                    default:
+                        break;
+                }
+
+                $ttl = MCSessionHandler::checkSuspendedMobile($_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], $reason);
+                if ($ttl)
+                {
+                    if ($release===-1)
+                    {
+                        MCSessionHandler::setSuspendMobile($bins[\Core\Model\ASD\USER_PROFILE_ID], $_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], 60, TRUE);
+                        $_mobiles[$i]['suspended']['realease']='within 60 seconds';
+                        $bins['suspended']='60s';
+                    }
+                    else 
+                    {
+                        $_mobiles[$i]['suspended']['till'] = gmdate("Y-m-d H:i:s T", time()+$ttl); 
+                        $_mobiles[$i]['suspended']['reason'] = strpos($reason, ':') ? trim(substr($reason, strpos($reason, ':')+1)) : $reason;      
+                        $bins['suspended']='YES';
+                    }
+                }
+            }
+
+            for ($i=0; $i<count($_devices); $i++)
+            {
+                unset($_devices[$i][\Core\Model\ASD\USER_UID]);
+                $_devices[$i][Core\Model\ASD\USER_DEVICE_DATE_ADDED] = $this->unixTimestampToDateTime($_devices[$i][Core\Model\ASD\USER_DEVICE_DATE_ADDED]);
+                $_devices[$i][Core\Model\ASD\USER_DEVICE_LAST_VISITED] = $this->unixTimestampToDateTime($_devices[$i][Core\Model\ASD\USER_DEVICE_LAST_VISITED]);
+                if (isset($_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS]) && $_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS][0]!='{')
+                {
+                    $_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS] = base64_decode($_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS]);
+                }
+            }
+
+            $bins['mobiles'] = $_mobiles;
+            $bins['devices'] = $_devices;
+               
+            if (isset($bins['password']))
+            {
+                unset($bins['password']);
+            }
+            if (isset($bins['jwt']))
+            {
+                unset($bins['jwt']);
+            }
+        }
+        else
+        {
+            $bins = '';
+        }
+        return $bins;        
+    }
+    
     
     function side_pane(){
         $this->renderSideAdmin();
