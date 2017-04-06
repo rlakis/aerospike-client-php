@@ -10,6 +10,7 @@ class Home extends Page{
         parent::__construct($router);
         $this->lang['description']=$this->lang['home_description'];
         if ($this->isMobile) {
+            $this->inlineCss.='h2{margin-top:10px}';
             $this->isMobileCssLegacy=false;
             $this->clear_require('css');
             $this->set_require('css', 's_home');
@@ -206,7 +207,6 @@ class Home extends Page{
         //echo $this->fill_ad('zone_4','ad_m');
     }
    
-    
     function renderMobileCountry(){
         if ($this->urlRouter->rootId) return;
         if ($this->urlRouter->countryId){
@@ -214,25 +214,46 @@ class Home extends Page{
             echo '<li><a href="/', $this->appendLang ,'"><span class="cf c', $this->urlRouter->countryId, '"></span>',
                 $this->countryCounter, ' ',$this->lang['in'],' ',($this->urlRouter->cityId?$this->cityName:$this->countryName),
                 '<span class="et"></span></a></li>';
+            echo '</ul>';
         }else {
             echo '<h2 class="ctr">'.$this->lang['mobileChooseCountry'].'</h2>';
+            
+            $userCountry = $this->user->params['user_country'] ?? 0;
+            if($userCountry){
+                foreach ($this->urlRouter->countries as $country_id => $country) {
+                    if($userCountry == $country['uri']){
+                        echo '<ul class="cls bbr">';
+                        echo '<li><a href="/', $country['uri'], '/'.$this->appendLang.'"><span class="cf c'.$country_id.'"></span>', $country['name'], '<span class="to"></span></a>';
+                        if (!empty($country['cities'])) {
+                            echo '<ul class="sls">';
+                            foreach ($country['cities'] as $city_id => $city) {
+                                echo '<li><a href="/'.$country['uri'].'/'.$city['uri'].'/'.$this->appendLang.'">'.$city['name'].'<span class="to"></span></a></li>';                    
+                            }
+                            echo '</ul>';
+                        }
+                        echo '</li></ul>';  
+                        break;
+                    }
+                }         
+            }
             echo '<ul class="cls">';
             foreach ($this->urlRouter->countries as $country_id => $country) {
-                echo '<li><a href="/', $country['uri'], '/'.$this->appendLang.'"><span class="cf c'.$country_id.'"></span>', $country['name'], '<span class="to"></span></a>';
-                if (!empty($country['cities'])) {
-                    echo '<ul class="sls">';
-                    foreach ($country['cities'] as $city_id => $city) {
-                        echo '<li><a href="/'.$country['uri'].'/'.$city['uri'].'/'.$this->appendLang.'">'.$city['name'].'<span class="to"></span></a></li>';                    
+                if(!$userCountry || $userCountry != $country['uri']){
+                    echo '<li><a href="/', $country['uri'], '/'.$this->appendLang.'"><span class="cf c'.$country_id.'"></span>', $country['name'], '<span class="to"></span></a>';
+                    if (!empty($country['cities'])) {
+                        echo '<ul class="sls">';
+                        foreach ($country['cities'] as $city_id => $city) {
+                            echo '<li><a href="/'.$country['uri'].'/'.$city['uri'].'/'.$this->appendLang.'">'.$city['name'].'<span class="to"></span></a></li>';                    
+                        }
+                        echo '</ul>';
                     }
-                    echo '</ul>';
+                    echo '</li>';                
                 }
-                echo '</li>';                
-            }                        
+            }
+            echo '</ul>';                        
         }
-        echo '</ul>';
     }
-    
-
+       
     function renderMobileRoots(){
         if (!$this->urlRouter->countryId || $this->urlRouter->rootId) return;
         
