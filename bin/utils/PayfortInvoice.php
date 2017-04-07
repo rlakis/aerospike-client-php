@@ -1,13 +1,15 @@
 <?php
 include get_cfg_var('mourjan.path').'/config/cfg.php';
 include_once get_cfg_var('mourjan.path').'/core/model/Db.php';
-$db = new Db($config);
-$rs = $db->queryResultArray(
-                "select t.ID, t.CURRENCY_ID, t.AMOUNT, cast(t.DATED as date) dated, t.TRANSACTION_DATE, t.TRANSACTION_ID, t.UID, t.XREF_ID, t.net, p.DATA
+$db = new Core\Model\Db($config);
+$db->queryResultArray("update T_PAYFORT set fort_id=JSONGET('fort_id', data) where fort_id=''", null, TRUE);
+
+$rs = $db->queryResultArray("
+                select t.ID, t.CURRENCY_ID, t.AMOUNT, cast(t.DATED as date) dated, t.TRANSACTION_DATE, t.TRANSACTION_ID, t.UID, t.XREF_ID, t.net, p.DATA
                 from T_TRAN t
                 left JOIN T_PAYFORT p on p.FORT_ID=t.TRANSACTION_ID
-                where t.GATEWAY = 'PAYFORT'
-                and t.DATED between '01.01.2017 00:00:00.000' and '28.02.2017 23:59:59.999'
+                where t.GATEWAY='PAYFORT'
+                and t.DATED between '01.03.2017 00:00:00.000' and '31.03.2017 23:59:59.999'
                 order by t.ID
             ");
 
@@ -20,6 +22,10 @@ foreach ($rs as $d)
     if (!isset($data->customer_name))
     {
         $data->customer_name = $data->customer_email;
+    }
+    if ($db->queryResultArray("select 1 from t_invoice where TRANSACTION_ID=? and PAYMENT_GATEWAY='PAYFORT'", [$data->fort_id]))
+    {
+        continue;
     }
     $db->queryResultArray(
             "INSERT INTO T_INVOICE (
