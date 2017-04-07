@@ -18,7 +18,7 @@ class NoSQL
     private $cluster;
     private $configuration = ["hosts" => [["addr"=>"148.251.184.77", "port"=>3000], ["addr"=>"138.201.28.229", "port"=>3000]]];
     private $options = [
-                \Aerospike::OPT_READ_TIMEOUT => 1500,
+                \Aerospike::OPT_READ_TIMEOUT => 2000,
                 \Aerospike::OPT_WRITE_TIMEOUT => 2000,
                 \Aerospike::OPT_POLICY_KEY => \Aerospike::POLICY_KEY_SEND, 
                 \Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE, 
@@ -80,23 +80,23 @@ class NoSQL
     }
     
    
-    public function getBins($pk, array $bins=[]) 
+    public function getBins(array $pk, array $bins=[]) 
     {
         $record=[];
         if ($bins)
         {
-            $status = $this->getConnection()->get($pk, $record, $bins);
+            $status = $this->getConnection()->get($pk, $record, $bins, [\Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE, \Aerospike::OPT_READ_TIMEOUT => 2000]);
         }         
         else 
         {
-            $status = $this->getConnection()->get($pk, $record);
+            $status = $this->getConnection()->get($pk, $record);//, [\Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE, \Aerospike::OPT_READ_TIMEOUT => 2000]);           
         }
         
         if ($status != \Aerospike::OK)
         {
             if ($status!= \Aerospike::ERR_RECORD_NOT_FOUND)
             {
-                $this->logError(__FUNCTION__, $pk);
+                $this->logError(__CLASS__ .'->'. __FUNCTION__, $pk);
                 return FALSE;
             }
             return [];

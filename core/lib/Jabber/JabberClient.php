@@ -125,6 +125,7 @@ class JabberClient
         $error= curl_error($ch);
         curl_close($ch);
 
+        /*
         if ($error)
         {
             error_log(__CLASS__.'.'.__FUNCTION__.': '. $error);
@@ -133,7 +134,8 @@ class JabberClient
             error_log(var_export($response,TRUE));
 
         }
-
+        */
+        
         if ($this->debug)
         {
             error_log(var_export($command, true));

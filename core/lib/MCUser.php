@@ -84,42 +84,64 @@ class MCUser extends MCJsonMapper
         $this->opts = new MCUserOptions();
         $this->mobile = new MCMobile();
 
-        if (is_numeric($source_data)) 
+        if ($source_data!==FALSE)
         {
-            $this->parseArray(NoSQL::getInstance()->fetchUser($source_data));
-        }         
-        elseif (is_string($source_data) && $source_data) 
-        {
-            if ($source_data[0]=='{')
+            if (is_numeric($source_data)) 
             {
-                $this->set($source_data);
-            }
-            else
+                $this->parseArray(NoSQL::getInstance()->fetchUser($source_data));
+            }         
+            elseif (is_string($source_data) && $source_data) 
             {
-                if (($user_data = NoSQL::getInstance()->fetchUserByUUID($source_data))!==FALSE)
+                if ($source_data[0]=='{')
                 {
-                    $this->parseArray($user_data);
-                    //$this->devices = FALSE;
-                    //$this->getDevices();
+                    $this->set($source_data);
+                }
+                else
+                {
+                    if (($user_data = NoSQL::getInstance()->fetchUserByUUID($source_data))!==FALSE)
+                    {
+                        $this->parseArray($user_data);
+                        //$this->devices = FALSE;
+                        //$this->getDevices();
+                    }
                 }
             }
-        }
         
-        if (!($this->opts instanceof MCUserOptions))
-        {
-            $this->opts = new MCUserOptions();
+            if (!($this->opts instanceof MCUserOptions))
+            {
+                $this->opts = new MCUserOptions();
+            }
         }
     }
     
 
+    public static function getByUUID(string $uuid) : MCUser
+    {
+        $result = new MCUser();
+        if (($bins = NoSQL::getInstance()->fetchUserByUUID($uuid))!==FALSE)
+        {
+            $result->parseArray($bins);
+            if (!($result->opts instanceof MCUserOptions))
+            {
+                $result->opts = new MCUserOptions();
+            }
+        }
+        else
+        {
+            error_log("Could not fetch user from device ".$uuid);
+        }        
+       
+        return $result;        
+    }
 
+    
     public function set($json)
     {
         $this->mapper($this, $json);
     }
 
 
-    private function parseArray(array $record)
+    protected function parseArray(array $record)
     {
         if (empty($record))
         {

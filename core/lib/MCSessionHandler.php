@@ -396,7 +396,7 @@ class MCSessionHandler implements \SessionHandlerInterface
     {        
         $this->savePath = $savePath;
 
-        if (MCSessionHandler::FULL_CACHE === 0)
+        if (MCSessionHandler::FULL_CACHE===0)
         {
             if (!is_dir($this->savePath)) 
             {
@@ -449,8 +449,7 @@ class MCSessionHandler implements \SessionHandlerInterface
         {
             if (MCSessionHandler::AEROSPIKE_STORAGE)
             {                
-                $status = $this->storage->get($this->as_key($id), $record);
-                //error_log($id.PHP_EOL.json_encode($record['bins']));                
+                $status = $this->storage->get($this->as_key($id), $record);             
                 if ($status == \Aerospike::OK && isset($record['bins']))
                 {
                     return $record['bins']['PHP_SESSION'] ?? '';
@@ -501,11 +500,15 @@ class MCSessionHandler implements \SessionHandlerInterface
         {
             if (MCSessionHandler::AEROSPIKE_STORAGE)
             {
-                $status = $this->storage->put($this->as_key($id), ["PHP_SESSION" => $data], $this->ttl, []);
-                if ($status == \Aerospike::OK)
+                if ($this->storage->put($this->as_key($id), 
+                            ["PHP_SESSION" => $data], $this->ttl, 
+                            [\Aerospike::OPT_POLICY_EXISTS=>\Aerospike::POLICY_EXISTS_UPDATE, 
+                            \Aerospike::OPT_POLICY_RETRY=>\Aerospike::POLICY_RETRY_ONCE,
+                            \Aerospike::OPT_WRITE_TIMEOUT=>5000])==\Aerospike::OK)
                 {
                     return TRUE;
                 }
+                
                 error_log("Session {$id} write error [{$this->storage->errorno()}] ".$this->storage->error());
                 return FALSE;
             }

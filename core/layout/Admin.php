@@ -6,6 +6,7 @@ class Admin extends Page
     
     var $action='',$liOpen='';
     private $uid = 0;
+    private $aid = 0;
     private $userdata = 0;
     
     function __construct($router)
@@ -14,6 +15,7 @@ class Admin extends Page
         $this->uid = 0;
         $this->sub = $_GET['sub'] ?? '';
         $this->mobile_param = $_GET['t'] ?? '';
+        $this->aid = filter_input(INPUT_GET, 'r', FILTER_SANITIZE_NUMBER_INT,['options'=>['default'=>0]]);
         
         $this->hasLeadingPane=true;
         
@@ -68,6 +70,21 @@ class Admin extends Page
                 {
                     $this->userdata[] = $this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
                 }                
+            }
+            else 
+            {
+                if ($this->aid)
+                {
+                    $this->userdata = [];
+                    include_once $this->urlRouter->cfg['dir'].'/core/lib/MCSaveHandler.php';
+                    $handler = new MCSaveHandler($this->urlRouter->cfg);
+                    $this->userdata = $handler->checkFromDatabase($this->aid);
+                    //$uids = \Core\Model\NoSQL::getInstance()->mobileGetLinkedUIDs($parameter);
+                    //foreach ($uids as $bins) 
+                    {
+                        //$this->userdata[] = $this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
+                    }                
+                }
             }
         }
         
@@ -164,10 +181,12 @@ class Admin extends Page
     }
     
     
-    function side_pane(){
+    function side_pane()
+    {
         $this->renderSideAdmin();
         //$this->renderSideUserPanel();
     }
+    
     
     function renderSideAdmin(){
         $sub = $this->sub;
@@ -235,24 +254,25 @@ class Admin extends Page
     {
         $language = 'en';
         
-        switch($this->sub){
-            case 'areas':
-            
-            ?><div><?php        
-                    ?><ul class="ts"><?php
-            ?><li><?php 
-            ?><div class="lm"><label><?= $this->lang['country'] ?></label><select onchange="CC()" id="country"><?php 
-                foreach($this->urlRouter->countries as $country){
-                    echo "<option value=".  strtoupper($country['uri']).">{$country['name']}</option>";
+        switch ($this->sub)
+        {
+            case 'areas':            
+                ?><div><?php        
+                ?><ul class="ts"><?php
+                ?><li><?php 
+                ?><div class="lm"><label><?= $this->lang['country'] ?></label><select onchange="CC()" id="country"><?php 
+                foreach($this->urlRouter->countries as $country)
+                {
+                    echo "<option value=". strtoupper($country['uri']).">{$country['name']}</option>";
                 }
                 ?></select><input id="rotate" type="button" class="bt" onclick="rotate(this)" style="margin:0 30px" value="<?= $this->lang['rotate']?>" /></div><?php
-             ?></li><?php
-            ?><li><?php 
-            ?><div class="lm"><label><?= $this->lang['keyword'] ?></label><input onfocus="build()" onkeydown="idir(this)" onkeyup="load(this)" onchange="idir(this,1)" id="keyword" type="text" /><?php
-            ?><input onclick="nek(this)" type="button" class="bt" style="margin:0 30px" value="<?= $this->lang['new_key']?>" /><?php 
-            ?></div></li><?php
-        ?></ul><?php 
-        ?><form onsubmit="save();return false"><input id="id" type="hidden" value="0" /><?php
+                 ?></li><?php
+                ?><li><?php 
+                ?><div class="lm"><label><?= $this->lang['keyword'] ?></label><input onfocus="build()" onkeydown="idir(this)" onkeyup="load(this)" onchange="idir(this,1)" id="keyword" type="text" /><?php
+                ?><input onclick="nek(this)" type="button" class="bt" style="margin:0 30px" value="<?= $this->lang['new_key']?>" /><?php 
+                ?></div></li><?php
+                ?></ul><?php 
+                ?><form onsubmit="save();return false"><input id="id" type="hidden" value="0" /><?php
                 ?><ul class="ts hy"><?php
                 ?><li id="msg" class="action">كلمة جديدة</li><?php
                 ?><li><label>عربي</label><input onchange="rmsg()" id="ar" class="ar" type="text" /></li><?php
@@ -262,173 +282,171 @@ class Admin extends Page
                 ?><li class="action"><input id="submit" type="submit" class="bt" value="<?= $this->lang['save']?>" disabled="true"/></li><?php
                 ?></ul><?php
                 ?></form><?php
-        ?></div><?php 
-        $this->inlineQueryScript.='$("body").click(function(e){if(e.target.id!="keyword")clear()});';
-        $this->globalScript.='
-                var xhr=null,locs=[];
-                function nek(e){
-                    $("#id").val(0);
-                    $("#ar").val("");
-                    $("#en").val("");
-                    $("#ten").val("");
-                    $("#tar").val("");
-                    $("#submit").removeAttr("disabled");
-                    $("#msg").html("كلمة جديدة");
-                };
-                function rotate(e){
-                    e=$(e);
-                    var c=$("#country").val();
-                    e.next().remove();
-                    e.css("visibility","hidden");
-                    e.parent().append("<span class=\'load\'></span>");
-                    xhr = $.ajax({
-                        type:"GET",
-                        url: "/ajax-keyword/",
-                        data:{rotate:1,c:c},
-                        success: function(rp) {
-                            if(rp && rp.RP){
-                                var d=("<span class=\'done\'></span>");
-                                e.next().remove();
-                                e.css("visibility","visible");
-                                e.parent().append(d);
-                            }else{
-                                frot(e);
-                            }
-                        },
-                        error:function(rc) {
-                            frot(e);
-                        }
-                    });
-                };
-                function frot(){                    
-                    var d=("<span class=\'fail\'></span>");
-                    e.next().remove();
-                    e.css("visibility","visible");
-                    e.parent().append(d);
-                }
-                function CC(){
-                    clear();
-                    rmsg();
-                    $("#id").val(0);
-                    $("#ar").val("");
-                    $("#en").val("");
-                    $("#ten").val("");
-                    $("#tar").val("");
-                    $("#submit").removeAttr("disabled");
-                    $("#rotate").next().remove();
-                    locs=[];
-                    load($("#keyword")[0],1);
-                    $("#msg").html("كلمة جديدة");
-                };
-                function load(e,nop){
-                    var c=$("#country").val();
-                    var v=e.value;
-                    if(v!=""){
-                        if(xhr && xhr.readyState != 4){
-                            xhr.abort();
-                        }
-                        clear();
+                ?></div><?php 
+                $this->inlineQueryScript.='$("body").click(function(e){if(e.target.id!="keyword")clear()});';
+                $this->globalScript.='
+                    var xhr=null,locs=[];
+                    function nek(e){
+                        $("#id").val(0);
+                        $("#ar").val("");
+                        $("#en").val("");
+                        $("#ten").val("");
+                        $("#tar").val("");
+                        $("#submit").removeAttr("disabled");
+                        $("#msg").html("كلمة جديدة");
+                    };
+                    function rotate(e){
+                        e=$(e);
+                        var c=$("#country").val();
+                        e.next().remove();
+                        e.css("visibility","hidden");
+                        e.parent().append("<span class=\'load\'></span>");
                         xhr = $.ajax({
                             type:"GET",
                             url: "/ajax-keyword/",
-                            data:{k:v,c:c},
+                            data:{rotate:1,c:c},
                             success: function(rp) {
                                 if(rp && rp.RP){
-                                    locs=rp.DATA.keys;
-                                    if(typeof nop==="undefined"){
-                                        build(e);
-                                    }
+                                    var d=("<span class=\'done\'></span>");
+                                    e.next().remove();
+                                    e.css("visibility","visible");
+                                    e.parent().append(d);
                                 }else{
-                                    clear();
+                                    frot(e);
                                 }
                             },
                             error:function(rc) {
-                                clear();
+                                frot(e);
                             }
                         });
-                    }
-                };
-                function build(){  
-                    if(typeof e === "undefined"){
-                        e=("#keyword");
-                    }else{
-                        e=$(e);
-                    }
-                    if(locs.length>0){
-                        var dv=$("<ul id=\'list\' class=\'options\'></ul>");
-                        for(var i in locs){
-                            var o=$("<li onclick=\'edit("+i+")\'>"+locs[i].KEYWORD+"</li>");
-                            dv.append(o);
-                            if(i>6)break;
-                        }
-                        $("body").append(dv);
-                        var p=e.offset();
-                        var t=p.top+e.height()+8;
-                        dv.css({top:t+"px", left: p.left+"px"});
-                    }else{
-                        clear();
-                    }
-                };
-                function clear(){
-                    $("#list").remove();
-                };
-                function rmsg(){
-                    $("#msg").html("");
-                };
-                function edit(i){
-                    rmsg();
-                    var o=locs[i];
-                    $("#id").val(o.ID);
-                    $("#ar").val(o.KEYWORD);
-                    $("#en").val(o.EN);
-                    $("#ten").val(o.EN_FORM);
-                    $("#tar").val(o.AR_FORM);
-                    $("#submit").removeAttr("disabled");
-                    $("#msg").html("");
-                };
-                function save(){
-                    var d={
-                        id:$("#id").val(),
-                        ar:$("#ar").val(),
-                        en:$("#en").val(),
-                        ten:$("#ten").val(),
-                        tar:$("#tar").val(),
-                        cc:$("#country").val()
                     };
-                    $.ajax({
-                        type:"POST",
-                        url: "/ajax-keyword/",
-                        data:d,
-                        success: function(rp) {
-                            if(rp && rp.RP){
-                                $("#rotate").next().remove();
-                                $("#msg").html("<span class=\'done\'></span> تم الحفظ");
-                                load($("#keyword")[0],1);
-                            }else{
+                    function frot(){                    
+                        var d=("<span class=\'fail\'></span>");
+                        e.next().remove();
+                        e.css("visibility","visible");
+                        e.parent().append(d);
+                    }
+                    function CC(){
+                        clear();
+                        rmsg();
+                        $("#id").val(0);
+                        $("#ar").val("");
+                        $("#en").val("");
+                        $("#ten").val("");
+                        $("#tar").val("");
+                        $("#submit").removeAttr("disabled");
+                        $("#rotate").next().remove();
+                        locs=[];
+                        load($("#keyword")[0],1);
+                        $("#msg").html("كلمة جديدة");
+                    };
+                    function load(e,nop){
+                        var c=$("#country").val();
+                        var v=e.value;
+                        if(v!=""){
+                            if(xhr && xhr.readyState != 4){
+                                xhr.abort();
+                            }
+                            clear();
+                            xhr = $.ajax({
+                                type:"GET",
+                                url: "/ajax-keyword/",
+                                data:{k:v,c:c},
+                                success: function(rp) {
+                                    if(rp && rp.RP){
+                                        locs=rp.DATA.keys;
+                                        if(typeof nop==="undefined"){
+                                            build(e);
+                                        }
+                                    }else{
+                                        clear();
+                                    }
+                                },
+                                error:function(rc) {
+                                    clear();
+                                }
+                            });
+                        }
+                    };
+                    function build(){  
+                        if(typeof e === "undefined"){
+                            e=("#keyword");
+                        }else{
+                            e=$(e);
+                        }
+                        if(locs.length>0){
+                            var dv=$("<ul id=\'list\' class=\'options\'></ul>");
+                            for(var i in locs){
+                                var o=$("<li onclick=\'edit("+i+")\'>"+locs[i].KEYWORD+"</li>");
+                                dv.append(o);
+                                if(i>6)break;
+                            }
+                            $("body").append(dv);
+                            var p=e.offset();
+                            var t=p.top+e.height()+8;
+                            dv.css({top:t+"px", left: p.left+"px"});
+                        }else{
+                            clear();
+                        }
+                    };
+                    function clear(){
+                        $("#list").remove();
+                    };
+                    function rmsg(){
+                        $("#msg").html("");
+                    };
+                    function edit(i){
+                        rmsg();
+                        var o=locs[i];
+                        $("#id").val(o.ID);
+                        $("#ar").val(o.KEYWORD);
+                        $("#en").val(o.EN);
+                        $("#ten").val(o.EN_FORM);
+                        $("#tar").val(o.AR_FORM);
+                        $("#submit").removeAttr("disabled");
+                        $("#msg").html("");
+                    };
+                    function save(){
+                        var d={
+                            id:$("#id").val(),
+                            ar:$("#ar").val(),
+                            en:$("#en").val(),
+                            ten:$("#ten").val(),
+                            tar:$("#tar").val(),
+                            cc:$("#country").val()
+                        };
+                        $.ajax({
+                            type:"POST",
+                            url: "/ajax-keyword/",
+                            data:d,
+                            success: function(rp) {
+                                if(rp && rp.RP){
+                                    $("#rotate").next().remove();
+                                    $("#msg").html("<span class=\'done\'></span> تم الحفظ");
+                                    load($("#keyword")[0],1);
+                                }else{
+                                    fail();
+                                }
+                            },
+                            error:function(rc) {
                                 fail();
                             }
-                        },
-                        error:function(rc) {
-                            fail();
-                        }
-                    });
-                };
-                function fail(){
-                    $("#msg").html("<span class=\'fail\'></span> فشلت عملية الحفظ");
-                }
-                ';
+                        });
+                    };
+                    function fail(){
+                        $("#msg").html("<span class=\'fail\'></span> فشلت عملية الحفظ");
+                    }
+                    ';
                     
                 break;
-            
-                
-                
+                                         
                 
                 default:
                     
                     ?><form method="get"><?php
                     ?><ul class="ts"><?php                                
                     ?><li><?php 
-                    ?><div class="lm"><label>ID:</label><input name="p" type="text" value="<?= $this->uid ? $this->uid : '' ?>" /><?php
+                    ?><div class="lm"><label>UID:</label><input name="p" type="text" value="<?= $this->uid ? $this->uid : '' ?>" /><?php
                     ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
                     ?></div></li><?php
                     ?></ul><?php
@@ -442,11 +460,41 @@ class Admin extends Page
                     ?></div></li><?php
                     ?></ul><?php
                     ?></form><?php
-                    if ($this->userdata && count($this->userdata) && $this->userdata[0])
-                    {                        
-                        foreach($this->userdata as $record){
+                    
+                    ?><form method="get"><?php
+                    ?><ul class="ts"><?php                                
+                    ?><li><?php 
+                    ?><div class="lm"><label>AID:</label><input name="r" type="ad" value="<?= $this->aid?$this->aid:'' ?>" /><?php
+                    ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
+                    ?></div></li><?php
+                    ?></ul><?php
+                    ?></form><?php
+                    
+                    if ($this->userdata && count($this->userdata) && (($this->aid==0 && $this->userdata[0]) || ($this->aid)))
+                    {
+                        if ($this->aid==0)
+                        {
+                        foreach($this->userdata as $record)
+                        {
                             $this->parseUserRecordData($record);
                             echo '<br/>';
+                        }
+                        }
+                        else
+                        {
+                            echo '<div dir="ltr">';
+                            echo '<pre style="font-size:12pt;font-family:arial;line-height:18pt;">';
+                            $str = preg_replace_callback('/\\\\u([0-9a-fA-F]{4})/', function ($match) {
+                                        return mb_convert_encoding(pack('H*', $match[1]), 'UTF-8', 'UTF-16BE');
+                                    }, json_encode($this->userdata));
+                                    
+                            $this->userdata = json_decode($str);
+                            if (isset($this->userdata->TITLE))
+                            {
+                                unset($this->userdata->TITLE);
+                            }
+                            echo json_encode($this->userdata, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE);
+                            echo '</pre></div>';
                         }
                         
                         $this->globalScript .= '
@@ -483,9 +531,12 @@ class Admin extends Page
                             };
                         ';
                         
-                    }else{
+                    }
+                    else
+                    {
                         ?><div class="ctr"><?php
-                        if($this->uid || $this->mobile_param!=''){
+                        if($this->uid || $this->mobile_param!='')
+                        {
                             ?><h4>NO DATA FOUND</h4><?php
                         }
                         ?></div><?php 
@@ -495,7 +546,9 @@ class Admin extends Page
         }
     }
     
-    function parseUserRecordData($record){
+    
+    function parseUserRecordData($record)
+    {
         echo '<ul class="tbs">';
         echo '<li><a href="/myads/?sub=drafts&u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Drafts</a></li>';
         echo '<li><a href="/myads/?sub=pending&u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Pending</a></li>';
@@ -506,9 +559,12 @@ class Admin extends Page
         {
             echo '<li><a href="/admin/?p='. $record[\Core\Model\ASD\SET_RECORD_ID] . '&a=-1">Release</a></li>';
         }
-        if(0 && $record[\Core\Model\ASD\USER_LEVEL]==5){
+        if(0 && $record[\Core\Model\ASD\USER_LEVEL]==5)
+        {
             echo '<li style="float:right"><a style="border-left:1px solid #CCC" onclick="unblock('.$record[\Core\Model\ASD\SET_RECORD_ID].',this)" href="javascript:void(0);">Unblock</a></li>';
-        }else{
+        }
+        else
+        {
             echo '<li style="float:right"><a style="border-left:1px solid #CCC" onclick="block('.$record[\Core\Model\ASD\SET_RECORD_ID].',this)" href="javascript:void(0);">Block</a></li>';
         }
         echo '</ul>';

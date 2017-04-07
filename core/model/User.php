@@ -304,7 +304,7 @@ class User
     }
     
     
-    public function getProfile()
+    public function getProfile() : MCUser
     {
         if ($this->info['id'])
         {
@@ -320,7 +320,7 @@ class User
             $this->data->getOptions()->setSuspensionTime($this->data->getMobile()->getSuspendSeconds());
             return $this->data;
         }
-        return NULL;
+        return new MCUser();
     }
     
     
@@ -833,7 +833,7 @@ order by m.activation_timestamp desc',
                             
                             $q .= 'where ';
                                     
-                            if (preg_match("/https.*\.mourjan\.com\/admin\/?\?p=\d+/", $_SERVER['HTTP_REFERER']))
+                            if (preg_match("/https.*\.mourjan\.com\/admin\/?\?p=\d+/", $_SERVER['HTTP_REFERER'] ?? 'DIRECT_ACCESS'))
                             {
                                 $q.=" (a.state between 1 and 4) and a.web_user_id={$uid} ";
                             }
@@ -2166,17 +2166,6 @@ order by m.activation_timestamp desc',
             return 1;
         }
         return 0;
-        /*
-        $result=$this->db->queryResultArray($q, [$id]);
-        if ($result && isset($result[0]) && $result[0]['ID']) 
-        {
-            $this->setUserParams($result);
-            $this->update();
-            return 1;
-        }
-        else return 0;
-         * 
-         */
     }
     
     
@@ -2274,7 +2263,7 @@ order by m.activation_timestamp desc',
     
     function connectDeviceToAccount($info, $provider, $uid, $uuid, $newUid=0)
     {
-        $newUserId = 0;
+        $newUserId=0;
         if($newUid==0)
         {
             $provider=strtolower($provider);
@@ -2294,44 +2283,35 @@ order by m.activation_timestamp desc',
                     (IDENTIFIER, email, provider, full_name, display_name, profile_url, last_visit)
                     values (?, ?, ?, ?, ?, ?, current_timestamp)
                     matching (identifier, provider) returning id');
-            }else{
-                //$updateTransRecords = $this->db->prepareQuery('update T_TRAN t set t.UID=? where t.UID=?');
             }
-	/*
-            $updateDeviceRecord=$this->db->prepareQuery('update web_users_device set uid = ? where (uid = ? or uid = ?) and uuid = ? returning uid');
-            $deleteFavorites=$this->db->prepareQuery('delete from web_users_favs where web_user_id = ? and ad_id = ?');
-            $deleteNotes=$this->db->prepareQuery('delete from web_users_notes where web_user_id = ? and ad_id = ?');
-            $updateFavorites=$this->db->prepareQuery('update web_users_favs set web_user_id = ? where web_user_id = ?');
-            $updateNotes=$this->db->prepareQuery('update web_users_notes set web_user_id = ? where web_user_id = ?');
-            $selectAllUserFavorite = $this->db->prepareQuery('select ad_id from web_users_favs where web_user_id = ?');
-            $selectAllUserNotes = $this->db->prepareQuery('select ad_id from web_users_notes where web_user_id = ?');
-            $selectUserFavorite = $this->db->prepareQuery('select ad_id from web_users_favs where web_user_id = ? and deleted = 0');
-            $getFavoritesUserList=$this->db->prepareQuery('select list(web_user_id) from web_users_favs where deleted=0 and ad_id=?');
-            $updateSubscriptions=$this->db->prepareQuery('update subscription set web_user_id = ? where web_user_id = ?');
-            $selectPrevSubscriptions=$this->db->prepareQuery('select * from subscription where web_user_id = ?');
-            $deletePrevSubscriptions=$this->db->prepareQuery('delete from subscription where web_user_id = ? and country_id = ? and city_id = ? and section_id = ? and purpose_id = ? and section_tag_id = ? and locality_id = ? and query_term = ?');
-            $getMyAds=$this->db->prepareQuery('select id, content from ad_user where web_user_id = ?');
-            $updateMyAd=$this->db->prepareQuery('update ad_user set web_user_id = ?, content = ? where id = ?');
-            $updateOffers=$this->db->prepareQuery('update t_promotion_users set uid = ? where uid = ? and claimed = 0 and expiry_date > current_timestamp');
-         */
    
             $result = false;
             
             if($newUid==0)
             {
-                if($getUserRecord->execute([$identifier, $email, $provider, $fullName, $dispName, $infoStr])) {
+                if($getUserRecord->execute([$identifier, $email, $provider, $fullName, $dispName, $infoStr])) 
+                {
                     $result = $getUserRecord->fetch(PDO::FETCH_NUM);
                 }
-                if($result !== false && !empty($result)){
+                
+                if($result!==false && !empty($result))
+                {
                     $newUserId = $result[0];
-                }else{
+                }
+                else
+                {
                     error_log("User Device Update/Insert Failure");
                 }				
-            }else{
+            }
+            else
+            {
                 $result = $this->db->queryResultArray('select id from web_users where id = ?', array($newUid), false, PDO::FETCH_NUM);
-                if($result !== false && isset($result[0][0]) && $result[0][0]>0){
+                if($result !== false && isset($result[0][0]) && $result[0][0]>0)
+                {
                     $newUserId = $result[0][0];
-                }else{
+                }
+                else
+                {
                     error_log("User Record Not Found");
                 }
             }
@@ -2340,15 +2320,17 @@ order by m.activation_timestamp desc',
 
             if($newUserId)
             {
-            	$updateDeviceRecord=$this->db->prepareQuery('update web_users_device set uid = ?, cuid=0 where (uid = ? or uid = ?) and uuid = ? returning uid');
+            	$updateDeviceRecord=$this->db->prepareQuery('update web_users_device set uid=?, cuid=0 where (uid=? or uid=?) and uuid=? returning uid');
+                
                 if($updateDeviceRecord instanceOf  PDOStatement && $updateDeviceRecord->execute([$newUserId, $uid, $newUserId, $uuid]))
                 {
                     $result = $updateDeviceRecord->fetch(PDO::FETCH_NUM);
                     unset($updateDeviceRecord);
                     
-                    if($result !== false && !empty($result)){
-                        
-                        $newUserId = $result[0];
+                    if($result!==false && !empty($result))
+                    {
+                        //error_log(__FILE__.'.'.__FUNCTION__.'.'.__LINE__.PHP_EOL. var_export($result, TRUE));
+                        //$newUserId = $result[0];
                         if (\Core\Model\NoSQL::getInstance()->deviceSetUID($uuid, $newUserId, $uid))
                         {                            
                         }
@@ -2407,9 +2389,11 @@ order by m.activation_timestamp desc',
                             //Clean up previous subscription duplicates
                             $selectPrevSubscriptions=$this->db->prepareQuery('select * from subscription where web_user_id=?');
                             $subs = $selectPrevSubscriptions->execute([$uid]);
-                            if($subs !== false){
+                            if($subs!==false)
+                            {
                              	$deletePrevSubscriptions=$this->db->prepareQuery('delete from subscription where web_user_id=? and country_id=? and city_id=? and section_id=? and purpose_id=? and section_tag_id=? and locality_id=? and query_term=?');
-                                while(($row = $selectPrevSubscriptions->fetch(PDO::FETCH_ASSOC)) !== false){
+                                while(($row = $selectPrevSubscriptions->fetch(PDO::FETCH_ASSOC)) !== false)
+                                {
                                     $deletePrevSubscriptions->execute([$newUserId, $row['COUNTRY_ID'], $row['CITY_ID'], $row['SECTION_ID'], $row['PURPOSE_ID'], $row['SECTION_TAG_ID'], $row['LOCALITY_ID'], $row['QUERY_TERM'] ]);
                                 }
                                 unset($deletePrevSubscriptions);
@@ -2420,14 +2404,14 @@ order by m.activation_timestamp desc',
                             $updateSubscriptions = $this->db->prepareQuery('update subscription set web_user_id=? where web_user_id=?');
                             $updateSubscriptions->execute([$newUserId, $uid]);
                             unset($updateSubscriptions);
-                            
-                            
-                            
+                                                                                    
                             //MERGE MYADS
                             $getMyAds=$this->db->prepareQuery('select id, content from ad_user where web_user_id=?');
-                            if($getMyAds->execute([$uid])){
+                            if($getMyAds->execute([$uid]))
+                            {
                             	$updateMyAd=$this->db->prepareQuery('update ad_user set web_user_id=?, content=? where id=?');
-                                while(($row = $getMyAds->fetch(PDO::FETCH_NUM)) !== false){
+                                while(($row = $getMyAds->fetch(PDO::FETCH_NUM)) !== false)
+                                {
                                     $id = $row[0];
                                     $content = json_decode($row[1], true);
                                     $content['user']=$newUserId;
@@ -2435,17 +2419,21 @@ order by m.activation_timestamp desc',
                                     $updateMyAd->execute([$newUserId, $content, $id]);
                                 }
                                 unset($updateMyAd);
-                            }else{
+                            }
+                            else
+                            {
                                 error_log("get ads on connect failure");
                             }
                             unset($getMyAds);
                             
                             //Clean up previous notes
                             $selectAllUserNotes = $this->db->prepareQuery('select ad_id from web_users_notes where web_user_id=?');
-                            $notes = $selectAllUserNotes->execute([$uid]);
-                            if($notes !== false){
+                            $notes = $selectAllUserNotes->execute([$uid]);                            
+                            if($notes!==false)
+                            {
                             	$deleteNotes=$this->db->prepareQuery('delete from web_users_notes where web_user_id=? and ad_id=?');
-                                while(($row = $selectAllUserNotes->fetch(PDO::FETCH_NUM)) !== false){
+                                while(($row = $selectAllUserNotes->fetch(PDO::FETCH_NUM)) !== false)
+                                {
                                     $ad_id = $row[0];
                                     $deleteNotes->execute([$newUserId, $ad_id]);
                                 }
@@ -2459,7 +2447,8 @@ order by m.activation_timestamp desc',
                             unset($updateNotes);
                             
                             
-                            if($newUserId>0){
+                            if($newUserId>0)
+                            {
                                 //MERGE DEVICE FAVORITES
                                 $updateTransRecords = $this->db->prepareQuery('update T_TRAN t set t.UID=? where t.UID=?');
                                 $updateTransRecords->execute([$newUserId, $uid]);
@@ -2467,46 +2456,37 @@ order by m.activation_timestamp desc',
                             }
                             
                             $mcUser = new MCUser($uid);
-                            if($mcUser->isMobileVerified()){
+                            if($mcUser->isMobileVerified())
+                            {
                                 $mobile = $mcUser->getMobile(true);                                
                                 \Core\Model\NoSQL::getInstance()->mobileCopyRecord($uid, $mobile->getNumber(), $newUserId);
                             }
                             
-                        }else{
+                        }
+                        else
+                        {
                             error_log("User ID is null on after connect");
                         }
-                    }else{
+                    }
+                    else
+                    {
                         error_log("Device Update Record empty");
                     }
-                }else{
+                }
+                else
+                {
                     error_log("Device Update Record Failure");
                 }
             }
-        }catch(Exception $e){
+        }
+        catch(Exception $e)
+        {
             error_log( $e->getMessage() );
             $this->db->getInstance()->rollBack();
             $newUserId=0;
-        }finally{
-            if($newUid==0){
-                //$getUserRecord->closeCursor();
-            }else{
-               // $updateTransRecords->closeCursor();
-            }
-            //$selectAllUserFavorite->closeCursor();
-            //$selectAllUserNotes->closeCursor();
-            //$deleteFavorites->closeCursor();
-            //$deleteNotes->closeCursor();
-            //$updateDeviceRecord->closeCursor();
-            //$getFavoritesUserList->closeCursor();
-            //$updateFavorites->closeCursor();
-            //$updateNotes->closeCursor();
-            //$selectPrevSubscriptions->closeCursor();
-            //$deletePrevSubscriptions->closeCursor();
-            //$updateSubscriptions->closeCursor();
-            //$updateMyAd->closeCursor();
-            //$getMyAds->closeCursor();
-            //$selectUserFavorite->closeCursor();
-            //$updateOffers->closeCursor();
+        }
+        finally
+        {            
         }
         return $newUserId;
     }

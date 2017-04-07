@@ -111,9 +111,8 @@ trait UserTrait
                     usleep(500);
                     $time+=500;
                 }
-                
-            } 
-            while (!isset($record[USER_PROFILE_ID]) && $time < 2000000);
+            }
+            while (!isset($record[USER_PROFILE_ID]) && $time<2000000);
             
             $record['logged_by_device'] = $device;
                        
