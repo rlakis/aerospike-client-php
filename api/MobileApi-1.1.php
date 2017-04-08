@@ -41,10 +41,17 @@ class MobileApi
 
         $this->uid = filter_input(INPUT_GET, 'uid', FILTER_VALIDATE_INT)+0;
         $this->uuid = filter_input(INPUT_GET, 'uuid', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-        
-        $this->user = new MCUser($this->uuid);
-        $this->config=$config;
+        if ($this->uuid)
+        {
+            $this->user = MCUser::getByUUID($this->getUUID());//  new MCUser($this->uuid);        
+        }
+        else
+        {
+            //error_log("No uuid");
+            $this->user = new MCUser();
+        }
 
+        $this->config=$config;
         $this->db = new DB($this->config, TRUE);
         $this->result['server'] = $this->config['server_id'];
     }
@@ -927,11 +934,11 @@ class MobileApi
     function userStatus(&$status, &$name=null, $device_name = null) 
     {
         $name=null;
+        $status = 0;
         $opts = new \stdClass();
 
         if (!empty($this->uuid) && $this->uid>0) 
-        {
-            $status = 0;
+        {            
             if ($this->user->getID()>0)
             {
                 $opts->prefs = $this->user->device->getPreferences();
@@ -965,12 +972,15 @@ class MobileApi
                     }
                 }
                 
+                $opts->suspend = $this->user->isSuspended() ? time() + $this->user->getMobile()->getSuspendSeconds() : 0;
+
+                /*
                 if($opts->phone_number)
                 {
                     $opts->suspend = MCSessionHandler::checkSuspendedMobile($opts->phone_number);
                     $opts->suspend = ($opts->suspend > 0) ? time() + $opts->suspend : 0;                 
                 }
-                
+                */
                 
                 if ($this->uid==$this->user->getID())
                 {
@@ -984,9 +994,9 @@ class MobileApi
                         $status = 9;
                         $name = '';
                     }
-                    //return $opts;
                 }
             }
+          
            
             /*
             $q = $this->db->queryResultArray(
@@ -1090,7 +1100,6 @@ class MobileApi
         }
         else
         {
-            $opts = json_decode("{}");
             $status = -9;
         }
         
@@ -1133,12 +1142,12 @@ class MobileApi
                 return null;
             }
         }
-         */
-        
+        */        
     }
     
 
-    function clearWebuserDeviceRecord($uid=0){
+    function clearWebuserDeviceRecord($uid=0)
+    {
         if($uid > 0) {
             
             //delete subscriptions
@@ -1321,10 +1330,12 @@ class MobileApi
     }
 
 
-    function bookMark() {        
+    function bookMark() 
+    { 
         $this->userStatus($status);
 
-        if ($status==1) {
+        if ($status==1) 
+        {
             $wId = filter_input(INPUT_GET, 'wid', FILTER_VALIDATE_INT)+0;
             $delete = filter_input(INPUT_GET, 'del', FILTER_VALIDATE_INT)+0;
 
@@ -1338,7 +1349,8 @@ class MobileApi
             $pt = filter_input(INPUT_GET, 'publisher_type', FILTER_VALIDATE_INT)+0;
 
             $this->db->setWriteMode();
-            if ($delete!=1) {
+            if ($delete!=1) 
+            {
                 $rs = $this->db->queryResultArray(
                         "update or insert into SUBSCRIPTION "
                         . "(WEB_USER_ID, COUNTRY_ID, CITY_ID, SECTION_ID, SECTION_TAG_ID, LOCALITY_ID, PURPOSE_ID, QUERY_TERM, TITLE, ADDED, EMAIL, PUBLISHER_TYPE) "
@@ -1346,17 +1358,22 @@ class MobileApi
                         . "matching (WEB_USER_ID, COUNTRY_ID, CITY_ID, SECTION_ID, SECTION_TAG_ID, LOCALITY_ID, PURPOSE_ID, QUERY_TERM, PUBLISHER_TYPE) "
                         . "returning id", [$this->uid, $countryId, $cityId, $sectionId, $section_tag_id, $locality_id, $purpose_id, $terms, '', $pt], TRUE);
 
-                if ($rs && is_array($rs) && count($rs)==1) {
+                if ($rs && is_array($rs) && count($rs)==1) 
+                {
                     $this->result['d']['id']=$rs[0]['ID']+0;
-                } else {
+                } 
+                else 
+                {
                     $this->result['d']['id']=0;
                     $this->result['e']='Unable to add to your watch list';
                 }
-            } else {
-                if ($wId>0) {
+            } 
+            else 
+            {
+                if ($wId>0) 
+                {
                     $rs = $this->db->queryResultArray(
                         "delete from SUBSCRIPTION WHERE id=? and web_user_id=?", [$wId, $this->uid], TRUE);
-
 
                     $this->result['d']['id']=$wId;
 
@@ -1366,7 +1383,8 @@ class MobileApi
     }
 
 
-    function watchList() {
+    function watchList() 
+    {
         $this->userStatus($status);
 
         if ($status==1) {
@@ -1410,7 +1428,8 @@ class MobileApi
 
     function register() 
     {
-        $this->result['d']['info']=[
+        $this->result['d']['info']=
+                [
                 'version'=>'1.0.2',
                 'force_update'=>0, 
                 'upload'=>'upload.mourjan.com',
@@ -1420,20 +1439,23 @@ class MobileApi
         $this->db->setWriteMode();
         $current_name="";
         
-        $device_name  = filter_input(INPUT_GET, 'dn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-        if(strlen($device_name) > 50) {
+        $device_name = filter_input(INPUT_GET, 'dn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);        
+        if(strlen($device_name) > 50) 
+        {
             $device_name = substr($device_name, 0, 50);
         }
+        
         $device_model = filter_input(INPUT_GET, 'dm', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-        if(strlen($device_model) > 50) {
+        if(strlen($device_model) > 50) 
+        {
             $device_model = substr($device_model, 0, 50);
         }
 
-        if ($device_model=='Calypso AppCrawler') {
+        if ($device_model=='Calypso AppCrawler') 
+        {
             //error_log("Calypso AppCrawler {$this->uuid}");
             $this->uid = 284300;
             $this->uuid = '31D052EF-DCC8-4FBA-B180-4C7C50AECBC6';
-
         }
 
         $device_sysname = filter_input(INPUT_GET, 'sn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
@@ -1479,21 +1501,28 @@ class MobileApi
             $this->result['d']['u_nas'] = $this->config['android_url_node_ad_stage'];
             $this->result['d']['e_support'] = $this->config['android_email_support'];
             
-            if($device_appversion > '1.3.0'){
+            if($device_appversion > '1.3.0')
+            {
                 $this->result['d']['a_release'] = $this->config['android_app_release'];
                 $this->result['d']['a_rel_en'] = '';
                 $this->result['d']['a_rel_ar'] = '';
-                foreach ($this->config['android_releases_en'] as $release => $msg){
-                    if($device_appversion < $release){
-                        if($this->result['d']['a_rel_en']!=''){
+                foreach ($this->config['android_releases_en'] as $release => $msg)
+                {
+                    if($device_appversion < $release)
+                    {
+                        if($this->result['d']['a_rel_en']!='')
+                        {
                             $this->result['d']['a_rel_en'].='<br><br>';
                         }
                         $this->result['d']['a_rel_en'] .= $msg;
                     }
                 }
-                foreach ($this->config['android_releases_ar'] as $release => $msg){
-                    if($device_appversion < $release){
-                        if($this->result['d']['a_rel_ar']!=''){
+                foreach ($this->config['android_releases_ar'] as $release => $msg)
+                {
+                    if($device_appversion < $release)
+                    {
+                        if($this->result['d']['a_rel_ar']!='')
+                        {
                             $this->result['d']['a_rel_ar'].='<br><br>';
                         }
                         $this->result['d']['a_rel_ar'] .= $msg;
@@ -1537,15 +1566,6 @@ class MobileApi
                 {
                     $this->result['d']['mobile']=$_mobile->getNumber();
                 }
-                /*
-                $mobile = $this->db->queryResultArray(
-                        "select m.ID, m.MOBILE
-                        from WEB_USERS_LINKED_MOBILE m
-                        where m.uid=? and m.ACTIVATION_TIMESTAMP > CURRENT_date - 366 order by m.ACTIVATION_TIMESTAMP desc",
-                        [$this->uid], TRUE);
-                if(is_array($mobile) && isset($mobile[0]['ID']) && $mobile[0]['ID']){
-                    $this->result['d']['mobile']=$mobile[0]['MOBILE'];
-                }*/
             }
         }
 
@@ -1618,23 +1638,37 @@ class MobileApi
                 //user level
                 $this->result['d']['level'] = $opts->user_level+0;
                 //provider
-                if(isset($opts->provider)){
+                if(isset($opts->provider))
+                {
                     $this->result['d']['provider']=$opts->provider;
-                }else{
+                }
+                else
+                {
                     $this->result['d']['provider']='';
                 }
                 //account name
-                if(isset($opts->account)){
+                if(isset($opts->account))
+                {
                     $this->result['d']['account']=$opts->account;
-                }else{
+                }
+                else
+                {
                     $this->result['d']['account']='';
                 }
-                if (isset($opts->suspend)){
-                    $time = time();
-                    if ($opts->suspend > $time){
-                        $this->result['d']['suspend']=$opts->suspend+0;
-                    }
+
+                if ($this->user->isSuspended())
+                {
+                    $this->result['d']['suspend'] = time()+$this->user->getSuspensionTime();
                 }
+
+                //if (isset($opts->suspend))
+                //{
+                //    $time = time();
+                //    if ($opts->suspend > $time)
+                //    {
+                //        $this->result['d']['suspend']=$opts->suspend+0;
+                //    }
+                //}
             }
             
             $this->result['d']['blp'] = $opts->disallow_purchase+0;            
@@ -1680,7 +1714,7 @@ class MobileApi
             
             if ( $opts->user_status==1) 
             {
-                if (!$isAndroid && (session_status() == PHP_SESSION_NONE))
+                if (!$isAndroid && (session_status()==PHP_SESSION_NONE))
                 {
                     new MCSessionHandler(TRUE);
                 }
@@ -1707,20 +1741,21 @@ class MobileApi
                 //    error_log('App: ' . PHP_EOL . json_encode($_SESSION), 0);
                 //}
             }
-            
-            
+                        
         } 
-        elseif (!$this->user->exists() && !empty ($this->uuid)) 
+        elseif (!$this->user->exists() && !empty($this->uuid)) 
         {
              //($status==-9 && !empty ($this->uuid)) 
             $q = $this->db->queryResultArray(
-                    "insert into web_users (identifier, email, provider, full_name, profile_url, opts, user_name, user_email) "
-                    . "values (?, '', '".($isAndroid?'mourjan-android':'mourjan-iphone')."', '', 'https://www.mourjan.com/', '{}', '', '')  returning id,lvl", [$this->uuid], TRUE);
+                    "insert into web_users (identifier, email, provider, full_name, profile_url, opts, user_name, user_email) 
+                    values (?, '', '".($isAndroid?'mourjan-android':'mourjan-iphone')."', '', 'https://www.mourjan.com/', '{}', '', '')  
+                    returning id, lvl", 
+                    [$this->uuid], FALSE);
             
             if ($q && is_array($q) && count($q)==1) 
             {
-
                 $this->result['d']['uid']=$q[0]['ID']+0;
+                
                 NoSQL::getInstance()->userUpdate([
                     Core\Model\ASD\USER_PROVIDER_ID => $this->uuid,
                     Core\Model\ASD\USER_EMAIL => '',
@@ -1734,7 +1769,7 @@ class MobileApi
                 
                 //return user level. nb: even if it's a new a record, taking into consideration
                 //any triggers that might be implemented in future that might affect user status
-                if($device_sysname == 'Android')
+                if ($isAndroid)
                 {
                     $this->result['d']['level']=$q[0]['LVL'];
                     $this->result['d']['status']=10;
