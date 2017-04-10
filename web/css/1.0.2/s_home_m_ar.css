@@ -103,6 +103,7 @@ textarea {
 .k,
 .back,
 .srch .k,
+.wow span,
 .qb,
 .nw,
 .adn,
@@ -122,7 +123,8 @@ textarea {
     left: 0;
     right: 0;
     width: 100%;
-    z-index: 50002
+    z-index: 50002;
+    overflow:hidden
 }
 .top-shd {
     position: fixed;
@@ -133,7 +135,7 @@ textarea {
     z-index: 50003
 }
 .back,
-.srch {
+.srch{
     position: absolute;
     top: 0;
     right: 0;
@@ -286,6 +288,9 @@ h1.a {
 .ls li.on {
     background-color: indianred;
     color: #FFF
+}
+.ls li.on.vp {
+    color: #333
 }
 .ls li.h {
     background-color: #369;

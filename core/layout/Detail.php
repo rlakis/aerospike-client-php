@@ -714,7 +714,7 @@ class Detail extends Search
                 
                 
             if($isFeatured){
-                ?><div class="dtf"><span class="vpdi ar"></span> <?= $this->lang['premium_ad_dt'] ?></div><?php
+                ?><div class="dtf"><span class="ic r102"></span> <?= $this->lang['premium_ad_dt'] ?></div><?php
             }
                 $hasMap=false;
                 $hasMap = ($this->detailAd[Classifieds::PUBLICATION_ID] == 1 && ($this->detailAd[Classifieds::LATITUDE] || $this->detailAd[Classifieds::LONGITUDE]));

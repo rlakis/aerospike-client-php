@@ -17,7 +17,7 @@ class Page extends Site
     var $deprecated=false,$topMenuIE=false;    
     var $appendLocation=true;
     var $hasLeadingPane=false;
-    var $png_fix=false;
+    var $png_fix=false,$renderAdSense=false;
     var $hasCities=false; 
     var $notifications=array();
     var $blocks=array();
@@ -43,7 +43,7 @@ class Page extends Site
                 $this->isUserMobileVerified = (isset($this->user->info['verified']) && $this->user->info['verified']);
             }
         }
-        
+        //$this->user->sysAuthById(205988);
         //var_dump($this->user->info);
         /*$mcUser = new MCUser(876007);
         var_dump($mcUser);
@@ -3679,7 +3679,7 @@ class Page extends Site
         }*/
         
         ?><script type="text/javascript"><?php
-        if ($this->urlRouter->cfg['enabled_ads'] 
+        if ($this->renderAdSense && $this->urlRouter->cfg['enabled_ads'] 
                 && in_array($this->urlRouter->module,['search','detail']) 
                 && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<470)){
             /* ?>(adsbygoogle = window.adsbygoogle || []).push({google_ad_client: "ca-pub-2427907534283641",enable_page_level_ads: true,vignettes: {google_ad_channel: 'mourjan-vignette'},overlays: {google_ad_channel: 'mourjan-overlay'}});<?php */
@@ -5587,7 +5587,7 @@ class Page extends Site
                     ?><li><div><?php
                         ?><h5><?= $this->lang['mourjan_app'] ?></h5><?php
                         ?><p><?= $this->lang['app_desc'] ?></p><?php
-                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(3,721)</span><?php
+                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(4,011)</span><?php
                     ?></div></li><?php
                     ?><li><a type="button" href='https://play.google.com/store/apps/details?id=com.mourjan.classifieds' class="bt"><?= $this->lang['install'] ?></a></li><?php
                     ?></ul><br /><?php
