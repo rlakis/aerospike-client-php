@@ -4519,7 +4519,7 @@ if($isFeatured){
                             $bread=$this->getBreadCrumb($forceRebuild, $count);
                         if(!$this->urlRouter->isPriceList && ($this->urlRouter->module!='detail' || ($this->urlRouter->module=='detail' && $this->detailAdExpired))){
                         if ($count) {
-                            /*$hasEye=0;
+                            $hasEye=0;
                             if ($this->urlRouter->module == 'search' && !$this->userFavorites && !$this->urlRouter->watchId && !$forceRebuild) {
                                 if (($this->urlRouter->countryId && $this->urlRouter->sectionId && $this->urlRouter->purposeId) || ($this->urlRouter->params['q'] && $this->searchResults['body']['total_found'] < 100)) {
                                     $hasEye=1;
@@ -4531,7 +4531,7 @@ if($isFeatured){
                                 $bread.= "<p class='ph phb'><span>";
                             }else {
                                 $bread.= '<p class="ph'.($hasEye ? ' phx':'').'"><span>';
-                            }*/
+                            }
                           $bread.='<b>';
                           if ($this->urlRouter->siteLanguage=="ar") {
                           if ($count>10) {
