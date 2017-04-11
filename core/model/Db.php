@@ -97,15 +97,18 @@ class DB
     }
     
     
-    public function inTransaction() {
-        if (self::$Instance === NULL) {
+    public function inTransaction() 
+    {
+        if (DB::$Instance===NULL) 
+        {
             return FALSE;
         }
-        return self::$Instance->inTransaction();
+        
+        return DB::$Instance->inTransaction();
     }
     
     
-    public function commit($restartTransaction=FALSE)
+    public function commit(bool $restartTransaction=FALSE)
     {
         if($this->inTransaction())
         {
@@ -146,7 +149,7 @@ class DB
     }
 
 
-    public static function getDatabase() : DB
+    public static function getDatabase() : \PDO
     {
         if (!self::$Instance) 
         {
@@ -223,6 +226,12 @@ class DB
     }
     
     
+    public static function isReadOnly() : bool
+    {
+        return DB::$Readonly;
+    }
+    
+    
     public static function getCache() {
         return self::$Cache;
     }
@@ -246,69 +255,91 @@ class DB
     }	
 
 
-    function checkCorrectWriteMode($query){
-        if (stristr($query, "update ") || stristr($query, "insert ") || stristr($query, "execute procedure") || stristr($query, "delete ") ){
+    function checkCorrectWriteMode($query)
+    {
+        if (preg_match('/^(insert|update|delete|execute)/i', trim($query)))
+        {
             $this->setTransactionIsolation(false);
         }
     }
 
+    
+    function get(string $query, $params=null, bool $commit=false, $fetch_mode=\PDO::FETCH_ASSOC)
+    {
+        $fbquery = new FBQuery($this, $query, $params, [FBQuery::FB_DIRECT_COMMIT=>$commit]);
+        return $fbquery->get();        
+    }
 
-    function queryResultArray($query, $params=null, $commit=false, $fetch_mode=\PDO::FETCH_ASSOC, $runtime=0) 
+    
+    function queryResultArray(string $query, $params=null, bool $commit=false, $fetch_mode=\PDO::FETCH_ASSOC, int $runtime=0) 
     {
         $this->checkCorrectWriteMode($query);
         $this->getInstance();
         $result=array();
         
-        try {
+        try 
+        {
             $stmt = $this->getInstance()->prepare($query);
+            //error_log(get_class($stmt)); // PDOStatement
+            
             if ($params)
+            {
                 $stmt->execute($params);
+            }
             else                      
+            {
                 $stmt->execute();
-            if ($stmt) {
-                $query = trim($query);
-                if (!stristr($query, " returning ") && ( preg_match('/^update/', $query) ||preg_match('/^insert/', $query) || stristr($query, "execute procedure") || preg_match('/^delete/', $query) ) ){
+            }
+            
+            if ($stmt) 
+            {
+                $query = trim($query);               
+                if (!stristr($query, " returning ") && preg_match('/^(insert|update|delete|execute)/i', $query))
+                {
                     $result = TRUE;
-                }else {
-
-                    if ($fetch_mode==\PDO::FETCH_NUM)
-                    {
-                        if (($row = $stmt->fetch(\PDO::FETCH_NUM)) !== false)
-                        {
-                            //$count = count($row);
-                            do {
-                                //for ($i=0; $i < $count; $i++)
-                                //    if(is_numeric($row[$i])) $row[$i] = $row[$i] + 0;
-                                $result[]=$row;
-                                //break;
-                            } while($row = $stmt->fetch(\PDO::FETCH_NUM));
-                        }
-                    } else $result = $stmt->fetchAll($fetch_mode);
+                }
+                else 
+                {
+                    $result = $stmt->fetchAll($fetch_mode);
                 }
             }
 
             if ($commit)
             {
-                self::$Instance->commit();
+                $this->commit();
                 $stmt=null;
             }
                     
-        } catch (Exception $ex) {
-            self::$Instance->rollBack();          
-            $result=FALSE;
-            if( (strpos($ex->getMessage(), '913 deadlock') > -1) && $runtime < 5){
-                //error_log('RETRY: '. $runtime . ' | CODE: '. $ex->getCode() . ' | '.$ex->getMessage() . PHP_EOL . $query . PHP_EOL . var_export($params, TRUE));
-                usleep(100);
+        }
+        catch (\PDOException $pdoException)
+        {
+            $result = FALSE;
+            
+            if ($runtime<5 && preg_match('/913 deadlock/', $pdoException->getMessage()))
+            {
+                self::$Instance->rollBack();
+                usleep(200);
+                error_log('RETRY: '. $runtime+1 .' | CODE: '.$pdoException->getCode(). ' | '.$pdoException->getMessage().PHP_EOL.$query.PHP_EOL.var_export($params, TRUE));
                 $this->getInstance();
-                return $this->queryResultArray($query, $params, $commit, $fetch_mode, $runtime+1);
-            }else{
-                error_log('CODE: '. $ex->getCode() . ' | '.$ex->getMessage() . PHP_EOL . $query . PHP_EOL . var_export($params, TRUE));
+                return $this->queryResultArray($query, $params, $commit, $fetch_mode, $runtime+1);                
+            } 
+            else
+            {
+                self::$Instance->rollBack();
+                error_log('CODE: '.$runtime.'/'.$pdoException->getCode().' | '.$pdoException->getMessage().PHP_EOL.$query.PHP_EOL.var_export($params, TRUE));
             }
+        }
+        catch (Exception $ex) 
+        {
+            self::$Instance->rollBack();
+            $result=FALSE;
         }
         return $result;
     }
     
-    function executeStatement($stmt,$params=null, $runtime=0){
+    
+    function executeStatement($stmt, $params=null, $runtime=0)
+    {
         $result = false;
         try{
             if($params){
@@ -317,10 +348,10 @@ class DB
                 $result = $stmt->execute();
             }            
         } catch (Exception $ex) {  
-            self::$Instance->rollBack();    
+            //self::$Instance->rollBack();    
             if( (strpos($ex->getMessage(), '913 deadlock') > -1) && $runtime < 5){
                 usleep(100);
-                $this->getInstance();
+                //$this->getInstance();
                 return $this->executeStatement($stmt,$params, $runtime+1);
             }else{
                 error_log('CODE: '. $ex->getCode() . ' | '.$ex->getMessage() . PHP_EOL);
@@ -1001,6 +1032,136 @@ class DB
     }
     
    
+}
+
+class FBQuery
+{
+    const FB_USLEEP         = 1;
+    const FB_DIRECT_COMMIT  = 2;
+    const FB_MAX_RETRY      = 3;
+    const FB_FETCH_MODE     = 4;
+
+    protected $query;
+    protected $statement;
+    protected $sleepMicroSeconds;
+    protected $fetchMode;
+    protected $single;
+    protected $maxTrials;
+    protected $params;
+    protected $result;
+    
+    protected $owner;
+    
+    private $isReturningMode; 
+    private $isWriteMode;
+    
+    function __construct(DB $db, string $query='', $params, array $options=[]) 
+    {        
+        $this->owner = $db;
+        $this->query = trim($query);
+        $this->params = $params;
+        $this->sleepMicroSeconds = $options[FBQuery::FB_USLEEP] ?? 200;
+        $this->fetchMode = $options[FBQuery::FB_FETCH_MODE] ?? \PDO::FETCH_ASSOC;
+        $this->single = $options[FBQuery::FB_DIRECT_COMMIT] ?? FALSE;
+        $this->maxTrials = $options[FBQuery::FB_MAX_RETRY] ?? 5;
+        
+        if ($this->single===FALSE)
+        {
+            $this->maxTrials = 1;
+        }
+        
+        $this->isWriteMode = preg_match('/^(insert|update|delete|execute)/i', $this->query);
+        $this->isReturningMode = preg_match('/^(select)/i', $this->query) || (preg_match("/\sreturning\s/i", $this->query) && $this->isWriteMode);                
+    }
+   
+    
+    private function prepare() : bool
+    {        
+        try
+        {
+            if ($this->isWriteMode && DB::isReadOnly())
+            {
+                $this->statement = null;
+                $this->owner->setWriteMode(TRUE);
+                $this->single = TRUE;
+                $this->maxTrials = 5;                
+            }
+            
+            if ($this->statement)
+            {
+                return TRUE;
+            }
+   
+            $this->statement = $this->owner->getInstance()->prepare($this->query);
+            return TRUE;
+        }
+        catch (PDOException $ex)
+        {
+            $this->statement = NULL;
+            error_log($ex->getMessage());
+        }
+        return FALSE;
+    }
+    
+    
+    private function execute(int $trial=0) : bool
+    {
+        if ($this->prepare())
+        {
+            try
+            {
+                $executed = $this->statement->execute($this->params);                
+                return $executed;
+            } 
+            catch (PDOException $ex)
+            {
+                if ($trial<$this->maxTrials && preg_match('/913 deadlock/', $ex->getMessage()))
+                {
+                    //if ($this->single)
+                    //{
+                    //    $this->owner->getInstance()->rollBack();
+                    //}
+                    //else
+                    //{
+                        $this->statement->closeCursor();
+                    //}
+                    $this->statement = null;
+                    
+                    usleep($this->sleepMicroSeconds);
+                    error_log('RETRY: '. $trial+1 .' | CODE: '.$ex->getCode().' | '.$ex->getMessage().PHP_EOL. $this->query.PHP_EOL.var_export($this->params, TRUE));
+                    return $this->execute($trial+1);                
+                }
+                else
+                {
+                    if ($this->single)
+                    {
+                        $this->owner->getInstance()->rollBack();
+                    }
+                    error_log('CODE: '.$trial.'/'.$ex->getCode().' | '.$ex->getMessage().PHP_EOL.$this->query.PHP_EOL.var_export($this->params, TRUE));
+                }
+            }
+        }
+        return FALSE;
+    }
+    
+    
+    public function get()
+    {
+        //error_log(PHP_EOL.$this->query);
+        $this->result = false;
+        if ($this->execute())
+        {
+            $this->result = ($this->isReturningMode) ? $this->statement->fetchAll($this->fetchMode) : TRUE;
+            if ($this->single)
+            {
+                $this->owner->commit();
+            }
+        }
+        
+        return $this->result;
+    }
+    
+    
 }
 
 ?>
