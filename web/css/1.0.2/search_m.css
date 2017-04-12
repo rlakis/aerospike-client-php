@@ -686,8 +686,9 @@ b .pub {
 .prem{
     background-color:#FFF;
     position:relative;
-    text-align:center;    
-    margin-bottom: 20px;
+    text-align:center;     
+    margin:20px 0;
+    overflow:hidden;
 }
 .prem .hdr{
     padding: 5px;

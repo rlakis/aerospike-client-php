@@ -127,6 +127,86 @@ class Doc extends Page{
                     .ar{line-height:25px}
                 ';            
             }
+        }else{
+            $this->inlineCss.='h2{margin-top:10px;display:inline-block}'
+                    . '.doc{margin:10px;padding:5px;background-color:#FFF}'
+                    . 'p{padding:10px 0;}';
+            if($this->urlRouter->module=='gold'){
+                
+                $this->inlineCss.=
+                        '.prices{padding-bottom:20px;list-style:none}'
+                        . '.prices li{overflow:hidden;padding:0px 5px}'
+                        . '.prices ul li{float:right;list-style:none;padding:5px 20px}'
+                        . '.pad{text-align:right;padding:5px 10px;margin:15px 0 0}'
+                        . '.alt{background-color:#ececec}'
+                        . 'ul{list-style: disc inside}'
+                        . '.credits {
+    width: 300px;
+    height: 110px;
+    margin-bottom: 20px;
+    display: inline-block;
+    background: url('.$this->urlRouter->cfg['url_css'].'/i/creditcards.jpg) no-repeat center;
+}';
+            }
+            
+            if($this->urlRouter->module=='buy' || $this->urlRouter->module=='buyu'){
+                $this->inlineCss.='
+                    .prices{margin:0!important;list-style:disc inside!important;padding:0 40px;}
+                    .prices ul{display:inline-block;line-height:1em;margin:0!important}
+                    .prices ul li{float:left;width:100px;list-style:none}
+                    p.pad{margin:0;padding:5px 10px}
+                    .ar .prices ul li{float:right}
+                    li.ctr{width:50px!important}
+                    .alt{background-color:#ececec;}
+                    .alinks{overflow:hidden;margin:0!important;list-style:none!important}
+                    .alinks li{float:left;width:50%;text-align:center;}
+                    .android{margin:0}
+                    .ar{line-height:25px}
+                    .btH{text-align:center;margin-top:20px}
+                    .bt{color:#FFF!important}
+                    .bt:hover{text-decoration:none!important}
+                    .table{list-style:none!important;overflow:hidden}
+                    .table li{float:left;width:25%;height:60px;line-height:60px;white-space:nowrap;
+                    border-bottom:1px solid seagreen;padding:0 10px}
+                    .ar .table li{float:right;text-align:right}
+                    .table input{vertical-align:middle;padding:0;border:0}
+                    .tt{text-align:right!important}
+                    .ar .tt{text-align:left!important}
+                    .dialog-box{text-align:center}
+                    .dialog .load{display:inline-block}
+                ';    
+            }
+            
+            
+            if($this->urlRouter->module=='premium'){
+                $this->inlineCss.='
+                    .uln{
+                        list-style-type: none!important;  
+                    }
+                    .uln ul{
+                        list-style:none;
+                        margin:0
+                    }
+                    .uld{
+                        list-style:disc inside!important;
+                        margin:0
+                    }
+                    .doc li{padding: 5px 10px}
+                    .alt{background-color:#ececec;}
+                    li.clr{list-style:none;padding:0;padding-top:15px;margin-bottom:30px}
+                    li.clr ul{display:inline-block}
+                    li.clr li{padding:0}
+                    ul.g3 li{width:210px}
+                    ul.g2 li{width:315px}
+                    li.clr li{float:left;text-align:center}
+                    .ar li.clr li{float:right}
+                    .vpdi{vertical-align:bottom}
+                    .btH{text-align:center;margin-top:20px}
+                    .bt{color:#FFF!important}
+                    .bt:hover{text-decoration:none!important}
+                    .ar{line-height:25px}
+                        ';
+            }
         }
         if($this->urlRouter->module=='iguide'){
             $this->forceNoIndex = true;
@@ -541,7 +621,7 @@ class Doc extends Page{
                         //<form action='/checkout/' METHOD='POST'><input type='image' name='paypal_submit' id='sub{$j}'  
                         //src='https://www.paypal.com/en_US/i/btn/btn_dg_pay_w_paypal.gif' border='0' align='top' alt='Pay with PayPal'/>
                         //<input type='hidden' name='product' value='{$product[0]}' /></form></li>";
-                        echo "<li>{$product[ $this->urlRouter->siteLanguage == 'ar' ? 1 : 2]}</li><li>{$product[3]} USD</li><li class='tt'>";
+                        echo "<li>{$product[ $this->urlRouter->siteLanguage == 'ar' ? 1 : 2]}</li><li>".number_format($product[3],2)." USD</li><li class='tt'>";
                         $this->paypalButton($product[0], $product[3]);
                         echo "</li>";
                         $j++;
@@ -621,14 +701,16 @@ class Doc extends Page{
                 echo "<hr /><h2 id='how-to'>{$this->lang['buy_gold']}</h2><br />";
                 echo "<p>{$this->lang['gold_p2_5_0']}</p>";
                 echo "<p>{$this->lang['gold_p2_5']}</p>";
-                echo "<p>{$this->lang['gold_p2_6']}</p>";
+                echo "<p>".$this->lang['gold_p2_6'.($this->isMobile ? '_m':'')]."</p>";
                 ?><div class="btH"><a href="/buy/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>"><img width="228" height="44" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png" alt="Buy now with PayPal" /></a></div><br /><?php 
                 ?><div class="btH"><a href="/buy/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>"><img width="319" height="110" src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg" alt="Buy now with PayPal" /></a></div><br /><?php 
-                echo "<p>{$this->lang['gold_p2_4']}</p>";
-                echo '<ul class="alinks"><li><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class="android"></span></a></li><li><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class="ios"></span></a></li></ul>';
-                echo "<br /><h2>{$this->lang['buy_gold_0']}</h2>";
-                echo "<p>{$this->lang['buy_gold_1']}</p>";
-                echo '<ul class="alinks"><li><a href="/guide/'.($this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ).'"><img width=119 height=230 src="'.$imgPath.'guide'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" /></a></li><li><a href="/iguide/'.($this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ).'"><img width=119 height=230 src="'.$imgPath.'iguide'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" /></a></li></ul>';
+                if(!$this->isMobile){
+                    echo "<p>{$this->lang['gold_p2_4']}</p>";
+                    echo '<ul class="alinks"><li><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class="android"></span></a></li><li><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class="ios"></span></a></li></ul>';
+                    echo "<br /><h2>{$this->lang['buy_gold_0']}</h2>";
+                    echo "<p>{$this->lang['buy_gold_1']}</p>";
+                    echo '<ul class="alinks"><li><a href="/guide/'.($this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ).'"><img width=119 height=230 src="'.$imgPath.'guide'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" /></a></li><li><a href="/iguide/'.($this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ).'"><img width=119 height=230 src="'.$imgPath.'iguide'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" /></a></li></ul>';
+                }
                 break;
             case 'premium':
                 if ($this->urlRouter->siteLanguage=='ar') {

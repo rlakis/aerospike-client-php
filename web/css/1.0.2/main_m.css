@@ -1948,3 +1948,13 @@ li.on .n {
     height: 90px;
     display: inline-block
 }
+.mc24{
+    width:30px!important;
+    height:30px;
+    background-repeat:no-repeat;
+    display:inline-block;
+    vertical-align:middle;
+    margin:0 5px;
+}
+.i,.im,.mc24{background-image:url(i/gen.png)}
+.mc24{background-position:0px -207px}

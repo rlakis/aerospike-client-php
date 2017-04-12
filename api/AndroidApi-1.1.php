@@ -1861,14 +1861,11 @@ class AndroidApi {
                     $username = urldecode(filter_input(INPUT_POST, 'user', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']]));
                     $password = urldecode(filter_input(INPUT_POST, 'pass', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']]));
                     $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                    error_log($username);
                     if($username && $password && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
-                        error_log(__FUNCTION__);
                         require_once $this->api->config['dir'].'/core/model/User.php';
                         $this->api->db->setWriteMode();  
                         $USER = new User($this->api->db, $this->api->config, null, 0);
                         $newUid=$USER->authenticateUserAccount($username, $password);
-                        error_log("new ".$newUid);
                         if($newUid>0){
                             $newUid=$USER->mergeDeviceToAccount($this->api->getUUID(), $this->api->getUID(), $newUid);
                             if(!$newUid){

@@ -555,6 +555,7 @@ class Admin extends Page
         echo '<li><a href="/myads/?u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Active</a></li>';
         echo '<li><a href="/myads/?sub=archive&u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Archived</a></li>';
         echo '<li><a href="/myads/?sub=deleted&u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Deleted</a></li>';
+        echo '<li><a href="/statement/?u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Balance</a></li>';
         if (isset($record['suspended']) && $record['suspended']=='YES')
         {
             echo '<li><a href="/admin/?p='. $record[\Core\Model\ASD\SET_RECORD_ID] . '&a=-1">Release</a></li>';

@@ -5,6 +5,11 @@ class Balance extends Page{
 
     function __construct($router){
         parent::__construct($router);
+        if($this->isMobile){
+            if (!$this->user->info['id']) {
+                $this->user->redirectTo($this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId));
+            }
+        }
         if($this->urlRouter->cfg['active_maintenance']){
             $this->user->redirectTo('/maintenance/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
         }
@@ -78,6 +83,15 @@ class Balance extends Page{
             .ar .hdr{font-size:16px}
         ';
         
+        if($this->isMobile){
+            $this->inlineCss.='.ph{background-color:#FFF;padding:15px 10px;border-bottom:1px solid #afafaf}.ph a{float:left}'
+                    . '.htf.db{background-color:#FFF;text-align:center;padding:20px 10px;}'
+                    . '.stmt .dt0{width:180px;float:right!important}
+            .stmt .et0{float:right!important}
+            .stmt .ct0{width:90px;text-align:center}
+            .stmt .xt0{width:957px;border-top:1px solid #aaa;display:none}';
+        }
+        
         $this->inlineQueryScript.='
             $("ul.ck").click(function(){
                 $(this).toggleClass("exp");
@@ -88,7 +102,24 @@ class Balance extends Page{
     }
     
     function mainMobile() {
-        
+        if ($this->user->info['id']) {
+
+            if (!$this->urlRouter->cfg['enabled_post']) {
+                $this->renderDisabledPage();
+                return;
+            }
+
+            switch($this->urlRouter->module){
+                case 'statement':
+                    $this->showMobileStatement();
+                    break;
+                default:
+                    break;
+            }
+
+        }else{
+            //$this->renderLoginPage();
+        }
     }
     
     function main_pane(){
@@ -111,6 +142,133 @@ class Balance extends Page{
             $this->renderLoginPage();
         }
     } 
+    
+    function showMobileStatement(){ 
+        $lang = $this->urlRouter->siteLanguage;
+        $uid = 0;
+        if(isset($_GET['u']) && is_numeric($_GET['u'])){
+            $uid = $_GET['u'];
+        }
+        $data = $this->user->getStatement($uid, 0, false, null, $this->urlRouter->siteLanguage);
+        $hasError = 0;
+        if($data && $data['balance']!==null){
+            $subHeader = $this->lang['current_balance'].'<span class="mc24"></span>'.$data['balance'].' '.$this->lang['gold'];
+        }else{
+            $subHeader = '<br />';
+            $hasError = 1;
+        }
+        
+        ?><p class="ph phb db bph"><?php
+            echo $subHeader.' ';
+            ?><a class="buL" href="/gold/<?= $lang=='ar' ? '':$lang.'/' ?>"><span class="rj add"></span><?= $this->lang['get_gold'] ?></a><?php
+        ?></p><?php 
+        if($hasError){
+            ?><div class="htf db"><?= $this->lang['get_balance_error'] ?></div><?php
+        }else{
+            $pass=false;
+            if(isset($data['recs'])){
+                $fieldId        = 0;
+                $fieldDated     = 1;
+                $fieldCredit    = 2;
+                $fieldDebit     = 3;
+                $fieldBalance   = 4;
+                $fieldTitle     = 5;
+                $fieldSection   = 6;
+                $fieldDesc      = 7;
+                $fieldRtl       = 8;
+                $fieldState     = 9;
+                $fieldCurrency  = 10;
+                $count = count($data['recs']);
+                if($count){
+                    $pass=true;
+                    
+                    $startDate = preg_split('/ /', $data['recs'][0][$fieldDated]);
+                    $startDate = $startDate[0];
+                    
+                    $canFilter = false;
+                    
+//                    $startTime = strtotime($startDate);
+//                    $ago31DaysTime = time()-2678400;
+//                    if($startTime < $ago31DaysTime){
+//                        $canFilter = true;
+//                    }
+                    
+                    $endDate = date("Y-m-d");
+                    
+                    echo '<div class="stmt'.($lang=='ar' ? ' ar':'').'">';
+                    //echo '<div class="filters">'.$this->lang['from'].': <input value="'.$startDate.'" name="from" type="date" '.($canFilter ? '':'disabled="disabled"').' /><span class="sep"></span> '.$this->lang['till'].': <input value="'.$endDate.'" name="till" type="date" '.($canFilter ? '':'disabled="disabled"').' /></div>';
+                    echo '<ul class="hdr"><li class="dt0">'.$this->lang['date'].'</li>';
+                    //echo '<li class="ct0">Amount</li>';
+                    echo '<li class="ct0">'.$this->lang['balance'].'</li><li class="ct0">'.$this->lang['credit'].'</li><li class="ct0">'.$this->lang['debit'].'</li><li class="et0">'.(ucfirst($this->lang['detailMore_'.$lang])).'</li></ul>';
+                    
+                    $alt = 0;
+                    for($i=0;$i<$count;$i++){
+                        echo '<ul class="'.($data['recs'][$i][$fieldCredit] > 0 ? 'ps': ($alt ? 'ck a':'ck') ).'">';
+                        
+                        if($data['recs'][$i][$fieldCredit]==0){
+                            $alt++;
+                            if($alt > 1){
+                                $alt = 0;
+                            }
+                        }
+                        
+                        echo '<li class="dt0">'.date('G:i T d/m/Y',$data['recs'][$i][$fieldDated]).'</li>';
+                        //echo '<li class="ct0">'.( $data['recs'][$i]['AMOUNT']==0 ? '<ct>-</ct>' : (int)$data['recs'][$i]['AMOUNT'].' '.$data['recs'][$i]['CURRENCY_ID']).'</li>';
+                        echo '<li class="ct0">'.$data['recs'][$i][$fieldBalance].'</li>';
+                        echo '<li class="ct0">'.($data['recs'][$i][$fieldCredit] == 0 ? '<ct>-</ct>' : '+'.((int)$data['recs'][$i][$fieldCredit]).'<span class="mc24"></span>').'</li>';
+                        echo '<li class="ct0">'.($data['recs'][$i][$fieldDebit]==0 ? '<ct>-</ct>':'-'.((int)$data['recs'][$i][$fieldDebit])).'</li>';
+                        echo '<li class="et0">';
+                        //'.($data['recs'][$i][$fieldState]==8 ? ' sj':'').'
+                        echo '<b>';
+                        if( $data['recs'][$i][$fieldCredit] > 0){
+                            if($data['recs'][$i][$fieldCurrency] == 'MCU'){
+                                echo $this->lang['collection_of'];
+                            }else{
+                                echo $this->lang['purchase_of'];
+                            }
+                            echo ' ';
+                        }
+                        echo ($data['recs'][$i][$fieldTitle]);
+                        echo '</b>';
+                        echo '</li>';
+                        if($data['recs'][$i][$fieldDebit] > 0){
+                            if($data['recs'][$i][$fieldId] && $data['recs'][$i][$fieldDesc]=='NA' || $data['recs'][$i][$fieldDesc]==''){  
+                                echo '<li class="xt0 '.($this->urlRouter->siteLanguage ? 'ar':'en' ).'">';                              
+                                echo $this->lang['unavailable_balance_detail'];
+                            }else{
+                                echo '<li class="xt0 '.($data['recs'][$i][$fieldRtl] ? 'ar':'en' ).'">';
+                                switch($data['recs'][$i][$fieldState]){
+                                    case 7:
+                                        echo '<a class="a7" href="/myads/#'.$data['recs'][$i][$fieldId].'">'.$this->lang['st_active'].'</a> ';
+                                        break;
+                                    case 9:
+                                        echo '<a class="a9" href="/myads/?sub=archive#'.$data['recs'][$i][$fieldId].'">'.$this->lang['st_archive'].'</a> ';
+                                        break;
+                                    case 6:
+                                    case 8:
+                                        echo '<span class="a8">'.$this->lang['st_deleted'].'</span> ';
+                                        break;
+                                    case 1:
+                                        echo '<a class="a1" href="/myads/?sub=pending#'.$data['recs'][$i][$fieldId].'">'.$this->lang['st_pending'].'</a> ';
+                                        break;
+                                    case 0:
+                                        echo '<a class="a0" href="/myads/?sub=drafts#'.$data['recs'][$i][$fieldId].'">'.$this->lang['st_draft'].'</a> ';
+                                        break;
+                                }
+                                echo $data['recs'][$i][$fieldDesc];
+                            }
+                            echo '</li>';
+                        }
+                        echo '</ul>';
+                    }
+                    echo '</div>';
+                }
+            }
+            if(!$pass){
+                ?><div class="htf db"><?= $this->lang['no_statement_history'] ?><br /><br /><input onclick="document.location='/gold/<?= $lang=='ar' ? '':$lang.'/' ?>'" class="bt" type="button" value="<?= $this->lang['get_gold'] ?>" /></div><?php
+            }
+        }
+    }
     
     function showStatement(){ 
         $lang = $this->urlRouter->siteLanguage;
