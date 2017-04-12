@@ -21,7 +21,7 @@ class User
     
     var $md5_prefix='ZGr63LE02Ad';
     
-    var $idBase=array(
+    static $idBase=array(
         5632795166432,
         9943557972664,
         2479658558292,
@@ -399,11 +399,22 @@ class User
     }
     
         
+    public static function encodeUID($id)
+    {
+        $intToChar=array('a','f','h','x','j','d','b','o','n','k');
+        $idx=$id % 10;
+        $id = $id + User::$idBase[$idx];
+        $id = base_convert( $id , 10, 36);
+        $id = $intToChar[$idx].$id;
+        return $id;
+    }
+    
+    
     function encodeId($id)
     {
         $intToChar=array('a','f','h','x','j','d','b','o','n','k');
         $idx=$id % 10;
-        $id = $id + $this->idBase[$idx];
+        $id = $id + User::$idBase[$idx];
         $id = base_convert( $id , 10, 36);
         $id = $intToChar[$idx].$id;
         return $id;
@@ -419,7 +430,7 @@ class User
             $idx = $charToInt[$idx];
             $id = substr($id, 1);
             $id = base_convert( $id , 36, 10);
-            $id = $id - $this->idBase[$idx];
+            $id = $id - User::$idBase[$idx];
             if($id<0) $id =0;
         }
         else 
@@ -2411,10 +2422,10 @@ class User
             }
             else
             {
-                $result = $this->db->get('select id from web_users where id=?', array($newUid), false, PDO::FETCH_NUM);
-                if($result !== false && isset($result[0][0]) && $result[0][0]>0)
+                $result = $this->db->get('select id from web_users where id=?', [$newUid], false);
+                if($result !== false && isset($result[0]['ID']) && $result[0]['ID']>0)
                 {
-                    $newUserId = $result[0][0];
+                    $newUserId = $result[0]['ID'];
                 }
                 else
                 {

@@ -1113,8 +1113,9 @@ class FBQuery
                 $executed = $this->statement->execute($this->params);                
                 return $executed;
             } 
-            catch (PDOException $ex)
+            catch (\Exception $ex)
             {
+                error_log($ex->getMessage());
                 if ($trial<$this->maxTrials && preg_match('/913 deadlock/', $ex->getMessage()))
                 {
                     //if ($this->single)

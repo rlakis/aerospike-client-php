@@ -91,6 +91,15 @@ trait UserTrait
             error_log( "Error [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" );
             return [];
         }
+        
+        //error_log(var_export($record['bins'], TRUE));
+        
+        if (isset($record['bins'][USER_DEVICES]) && !empty($record['bins'][USER_DEVICES]))
+        {
+            $record['bins'][USER_DEVICES]=[];
+        }
+        
+        
         return $record['bins'];
     }
 
