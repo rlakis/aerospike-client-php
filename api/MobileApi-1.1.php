@@ -1190,46 +1190,59 @@ class MobileApi
     }
     
 
-    function editFavorites() {        
+    function editFavorites() 
+    {      
         $this->userStatus($status);
-        if ($status==1) {
+        if ($status==1) 
+        {
             $adid = filter_input(INPUT_GET, 'adid', FILTER_VALIDATE_INT)+0;
             $state = filter_input(INPUT_GET, 'del', FILTER_VALIDATE_INT)+0;
             $note = filter_input(INPUT_GET, 'note', FILTER_SANITIZE_STRING, ['options'=>['default'=>""]]);
             $flag = filter_input(INPUT_GET, 'flag', FILTER_VALIDATE_INT)+0;
-            
-            if ($adid) {
+                        
+            if ($adid) 
+            {
                 $this->db->setWriteMode();
                 $succeed=false;
                 
-                switch ($flag) {
+                switch ($flag) 
+                {
                     case 0:
                         // Favorite Only
                         $q="update or insert into web_users_favs (web_user_id, ad_id, deleted) values (?, ?, ?) matching (web_user_id, ad_id) returning id";
-                        $rs = $this->db->queryResultArray($q, [$this->uid, $adid, $state], TRUE);
+                        $rs = $this->db->get($q, [$this->uid, $adid, $state], TRUE);
 
-                        if ($rs && is_array($rs) && count($rs)==1) {
+                        if ($rs && is_array($rs) && count($rs)==1) 
+                        {
                             include_once $this->config['dir'] . '/core/lib/SphinxQL.php';
                             $sphinx = new SphinxQL($this->config['sphinxql'], $this->config['search_index']);
 
-                            $q="select list(web_user_id) from web_users_favs where deleted=0 and ad_id={$adid}";
-                            $st = $this->db->getInstance()->query($q);                    
-                            if ($st) {                        
-                                if ($users=$st->fetch(PDO::FETCH_NUM)) {
-                                    $q = "update {$this->config['search_index']} set starred=({$users[0]}) where id={$adid}";
-                                } else {
+                            $users = $this->db->get("select list(web_user_id) ULIST from web_users_favs where deleted=0 and ad_id=?", [$adid], TRUE);
+                            //$st = $this->db->getInstance()->query($q);
+                            if ($users && is_array($users)) 
+                            {
+                                //error_log(var_export($users, TRUE));
+                                if (count($users)) 
+                                {
+                                    $q = "update {$this->config['search_index']} set starred=({$users[0]['ULIST']}) where id={$adid}";
+                                } 
+                                else 
+                                {
                                     $q = "update {$this->config['search_index']} set starred=() where id={$adid}";   
                                 }
                                 $succeed= $sphinx->directUpdateQuery($q);
                             }
                     
-                            if (!$succeed) {
+                            if (!$succeed) 
+                            {
                                 $this->result['e'] = 'Could not add this advert to our search engine';
                             }               
 
                             $this->result['d']['id']=$rs[0]['ID']+0;
 
-                        } else {
+                        } 
+                        else 
+                        {
                             $this->result['d']=0;
                             $this->result['e']='Unable to add this advert to your favorite list';
                         }
@@ -1239,7 +1252,7 @@ class MobileApi
                     case 1:
                         // Note and Farorite
                         $q="update or insert into web_users_favs (web_user_id, ad_id, deleted) values (?, ?, ?) matching (web_user_id, ad_id) returning id";
-                        $rs = $this->db->queryResultArray($q, [$this->uid, $adid, $state], TRUE);
+                        $rs = $this->db->get($q, [$this->uid, $adid, $state], TRUE);
                         
                         if ($rs && is_array($rs) && count($rs)==1) {
                             include_once $this->config['dir'] . '/core/lib/SphinxQL.php';
@@ -1602,11 +1615,9 @@ class MobileApi
              * 9: retired
              * 10: does not have web_users_mobile record (not activated mobile user)
              */
-            if ($is_ping==0) 
-            {
-            	$isUTF8 = preg_match('//u', $device_name);
+            $isUTF8 = preg_match('//u', $device_name);
                 
-                NoSQL::getInstance()->deviceInsert([
+            NoSQL::getInstance()->deviceInsert([
                     Core\Model\ASD\USER_DEVICE_UUID => $this->uuid,
                     Core\Model\ASD\USER_UID => $this->getUID(),
                     Core\Model\ASD\USER_DEVICE_MODEL => $device_model,
@@ -1619,18 +1630,16 @@ class MobileApi
                 ]);
 
                                 
-                $this->db->queryResultArray("update or insert into WEB_USERS_DEVICE "
+            $this->db->get("update or insert into WEB_USERS_DEVICE "
                     . "(uuid, uid, device_model, device_name, device_sysname, "
                     . "device_sysversion, last_visit, CARRIER_COUNTRY, APP_VERSION, APP_PREFS) "
                     . "values (?, ?, ?, ?, ?, ?, current_timestamp, ?, ?, ?)",
-                    [$this->uuid, $this->uid, $device_model, ($isUTF8 ? $device_name : ''), $device_sysname,
+                    [$this->uuid, $this->getUID(), $device_model, ($isUTF8 ? $device_name : ''), $device_sysname,
                     $device_sysversion, $carrier_country, $device_appversion, $app_prefs], TRUE);
-                
-            }
-            
+                            
             if($isAndroid)
             {
-                $this->result['d']['uid']=  $this->uid;
+                $this->result['d']['uid']=  $this->getUID();
                 //device last visit
                 $this->result['d']['dlv'] = $opts->device_last_visit+0;
                 //user last visit
@@ -1659,16 +1668,7 @@ class MobileApi
                 if ($this->user->isSuspended())
                 {
                     $this->result['d']['suspend'] = time()+$this->user->getSuspensionTime();
-                }
-
-                //if (isset($opts->suspend))
-                //{
-                //    $time = time();
-                //    if ($opts->suspend > $time)
-                //    {
-                //        $this->result['d']['suspend']=$opts->suspend+0;
-                //    }
-                //}
+                }               
             }
             
             $this->result['d']['blp'] = $opts->disallow_purchase+0;            
@@ -1714,39 +1714,29 @@ class MobileApi
             
             if ( $opts->user_status==1) 
             {
+                include $this->config['dir'] .'/core/model/User.php';
                 if (!$isAndroid && (session_status()==PHP_SESSION_NONE))
                 {
                     new MCSessionHandler(TRUE);
+                    
+                    $user = new User($this->db, $this->config, null, 0);
+                    $user->sysAuthById($this->uid);
+                    $user->params['app']=1;
+                    $user->update();
                 }
                 
-                //new MCSessionHandler();
-                //if (session_status() == PHP_SESSION_NONE)
-                //{
-                //    session_start();
-                //}
 
-                include $this->config['dir'] .'/core/model/User.php';
-                $user = new User($this->db, $this->config, null, 0);
-                $user->sysAuthById($this->uid);
-                $user->params['app']=1;
-                $user->update();
-                $this->result['d']['kuid'] = $user->encodeId($this->uid);
+                $this->result['d']['kuid'] = User::encodeUID($this->getUID());
                 $this->result['d']['uid']=  $this->uid;
                 
-                $this->getBalance();
-                
-                //if ($this->getUID()==2)
-                //{
-                //    error_log('App: ' . PHP_EOL . json_encode($user->info), 0);
-                //    error_log('App: ' . PHP_EOL . json_encode($_SESSION), 0);
-                //}
+                $this->getBalance();                
             }
                         
         } 
         elseif (!$this->user->exists() && !empty($this->uuid)) 
         {
              //($status==-9 && !empty ($this->uuid)) 
-            $q = $this->db->queryResultArray(
+            $q = $this->db->get(
                     "insert into web_users (identifier, email, provider, full_name, profile_url, opts, user_name, user_email) 
                     values (?, '', '".($isAndroid?'mourjan-android':'mourjan-iphone')."', '', 'https://www.mourjan.com/', '{}', '', '')  
                     returning id, lvl", 
@@ -1754,6 +1744,7 @@ class MobileApi
             
             if ($q && is_array($q) && count($q)==1) 
             {
+                $this->uid = $q[0]['ID'];
                 $this->result['d']['uid']=$q[0]['ID']+0;
                 
                 NoSQL::getInstance()->userUpdate([
@@ -1765,7 +1756,7 @@ class MobileApi
                     Core\Model\ASD\USER_OPTIONS => '{}',
                     Core\Model\ASD\USER_NAME => '',
                     Core\Model\ASD\USER_PROVIDER_EMAIL => ''
-                    ], $this->result['d']['uid']);
+                    ], $this->uid);
                 
                 //return user level. nb: even if it's a new a record, taking into consideration
                 //any triggers that might be implemented in future that might affect user status
@@ -1785,9 +1776,9 @@ class MobileApi
 
                 $isUTF8 = preg_match('//u', $device_name);
 
-                NoSQL::getInstance()->deviceInsert([
+                if (NoSQL::getInstance()->deviceInsert([
                     Core\Model\ASD\USER_DEVICE_UUID => $this->uuid,
-                    Core\Model\ASD\USER_UID => $q[0]['ID'],
+                    Core\Model\ASD\USER_UID => $this->uid,
                     Core\Model\ASD\USER_DEVICE_MODEL => $device_model,
                     Core\Model\ASD\USER_DEVICE_NAME => ($isUTF8 ? $device_name : ''),
                     Core\Model\ASD\USER_DEVICE_SYS_NAME => $device_sysname,
@@ -1795,22 +1786,27 @@ class MobileApi
                     Core\Model\ASD\USER_DEVICE_ISO_COUNTRY => $carrier_country,
                     Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
                     Core\Model\ASD\USER_DEVICE_APP_SETTINGS => '{}'
-                ]);
-
-                $this->db->queryResultArray(
+                    ]))
+                {
+                    $this->db->queryResultArray(
                         "insert into WEB_USERS_DEVICE "
                         . "(uuid, uid, device_model, device_name, device_sysname, device_sysversion, "
                         . "last_visit, push_id, NOTIFICATION_ENABLED, CARRIER_COUNTRY, APP_VERSION) "
                         . "values (?, ?, ?, ?, ?, ?, current_timestamp, '', 1, ?, ?)",
-                        [$this->uuid, $q[0]['ID'], $device_model, $device_name, $device_sysname,
+                        [$this->uuid, $this->uid, $device_model, $device_name, $device_sysname,
                             $device_sysversion, $carrier_country, $device_appversion], TRUE);
-                
+                }
                 
             } 
             else 
             {
                 $this->result['e'] = 'System error!';
             }
+        }
+        
+        if ($isAndroid && isset($this->result['d']['uid']) && $this->result['d']['uid']==0)
+        {
+            unset($this->result['d']['uid']);
         }
 
     }
