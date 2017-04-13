@@ -131,9 +131,24 @@ trait UserTrait
         return $record;
     }
 
+        
+    public function fetchUserByProviderId(string $identifier, string $provider='mourjan') : array
+    {
+        $bins = [];
+        $where = \Aerospike::predicateEquals(USER_PROVIDER_ID, $identifier);
+        $this->getConnection()->query(NS_USER, TS_USER, $where,  
+                function ($record) use (&$bins, &$uid, $provider) 
+                {
+                    if ($record['bins'][USER_PROVIDER]==$provider)
+                    {
+                        $bins[] = $record['bins'];
+                    }
+                });
+        return $bins;
+    }
     
     
-    public function userUpdate(array $bins, int $uid=0)
+    public function userUpdate(array $bins, int $uid=0, bool $as_visit=FALSE)
     {
         if ($uid==0)
         {
@@ -161,8 +176,8 @@ trait UserTrait
                     USER_NAME => '',
                     USER_EMAIL => '',
                     USER_PASSWORD => '',
-                    USER_RANK => 0,
-                    USER_PRIOR_VISITED => 0,
+                    USER_RANK => 1,
+                    USER_PRIOR_VISITED => $now,
                     USER_PUBLISHER_STATUS => 0,
                     USER_LAST_AD_RENEWED => 0,
                     USER_XMPP_CREATED => 0,
@@ -171,25 +186,30 @@ trait UserTrait
                     USER_MOBILE => [],
                     USER_DEVICES => []
                 ];
+                
                 foreach ($bins as $k => $v)
                 {
                     $record[$k] = $v;
                 }
                 $bins = $record;
-            } else {
-                if (isset($bins[USER_LAST_VISITED]))
+            } 
+            else 
+            {
+                if ($as_visit && isset($bins[USER_LAST_VISITED]))
                 {
-                    $this->setVisitUnixtime($uid);
+                    $this->setVisitUnixtime($uid, $pk);
                 }
             }
-
-            //error_log(__CLASS__.'.' . __FUNCTION__ . PHP_EOL . json_encode($bins));
 
             if ($this->setBins($pk, $bins))
             {
                 return $this->getBins($pk);
             }
             
+        }
+        else
+        {
+            error_log("Invalid UID - Counld not update user record!!");
         }
         
         return FALSE;
@@ -224,13 +244,13 @@ trait UserTrait
         {
             $pk = $this->initKey($uid);            
             $this->setBins($pk, $bins);
-            $this->setVisitUnixtime($uid);            
+            $this->setVisitUnixtime($uid, $pk);            
         }
         else
         {
             $bins[USER_PROVIDER_ID] = $identifier;
             $bins[USER_PROVIDER] = $provider;
-            $this->createUser($bins);
+            $this->userUpdate($bins);
         }
                 
     }
@@ -242,16 +262,59 @@ trait UserTrait
     }    
     
     
-    public function setVisitUnixtime(int $uid)
+    public function setVisitUnixtime(int $uid, array $pk=[])
     {
-        $pk = $this->initKey($uid);
-        $record = $this->getBins($pk, [USER_LAST_VISITED]);
-        if ($record)
+        if (empty($pk))
+        {
+            $pk = $this->initKey($uid);
+        }
+        
+        if (($record = $this->getBins($pk, [USER_LAST_VISITED]))!==FALSE)        
         {        
             $this->setBins($pk, [USER_LAST_VISITED=>time(), USER_PRIOR_VISITED=>$record[USER_LAST_VISITED]]);
         }
     }
     
+    
+    public function setUserBin(int $uid, string $bin, $value) : bool
+    {
+        if ($uid<=0)
+        {
+            error_log("Could not set user bin for zero uid");
+            return FALSE;
+        }
+        $pk = $this->initKey($uid);
+        return $this->setBins($pk, [$bin => $value]);
+    }
+    
+    
+    public function setOptions(int $uid, array $opts) : bool
+    {
+        $pk = $this->initKey($uid);
+        return $this->setBins($pk, [USER_OPTIONS => $password]);
+    }
+    
+    
+    public function setPassword(int $uid, string $password) : bool
+    {
+        $pk = $this->initKey($uid);
+        return $this->setBins($pk, [USER_PASSWORD => $password]);
+    }
+    
+    
+    public function setUserLevel(int $uid, int $level) : bool
+    {
+        $pk = $this->initKey($uid);
+        return $this->setBins($pk, [USER_LEVEL => $level]);
+    }
+    
+
+    public function setUserPublisherStatus(int $uid, int $type) : bool
+    {
+        $pk = $this->initKey($uid);
+        return $this->setBins($pk, [USER_PUBLISHER_STATUS => $type]);
+    }
+
     
     public function setEnabledXMPP(int $uid)
     {
@@ -305,17 +368,33 @@ trait UserTrait
     public function getOptions(int $uid) : array
     {
         $pk = $this->initKey($uid);
-        $record=$this->getBins($pk, [USER_OPTIONS]);
-        return isset($record[USER_OPTIONS]) ? $record[USER_OPTIONS] : $record;
+        if (($record=$this->getBins($pk, [USER_OPTIONS]))!==FALSE)
+        {
+            return $record[USER_OPTIONS];
+        }
+        error_log("Could nor get user options for UID {$uid}");
+        return [];
     }
 
     
     public function getRank(int $uid) : int
     {
         $pk = $this->initKey($uid);
-        $record=$this->getBins($pk, [USER_RANK]);        
-        return $record[USER_RANK] ?? 0;
+        if (($record=$this->getBins($pk, [USER_RANK]))!==FALSE)
+        {
+            return $record[USER_RANK];
+        }
+        return 1;
     }
     
     
+    public function getUserPublisherStatus(int $uid) 
+    {
+        $pk = $this->initKey($uid);
+        if (($record=$this->getBins($pk, [USER_PUBLISHER_STATUS]))!==FALSE)
+        {
+            return $record[USER_PUBLISHER_STATUS];
+        }
+        return FALSE;
+    }
 }
