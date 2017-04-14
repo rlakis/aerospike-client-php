@@ -931,245 +931,97 @@ class MobileApi
     
 
 
-    function userStatus(&$status, &$name=null, $device_name = null) 
+    function userStatus(&$status, &$name=null, $device_name=null) 
     {
         $name=null;
         $status = 0;
         $opts = new \stdClass();
 
-        if (!empty($this->uuid) && $this->uid>0) 
+        if (!empty($this->uuid) && $this->getUID()>0 && $this->user->getID()==$this->getUID()) 
         {            
-            if ($this->user->getID()>0)
+            $opts->prefs = $this->user->device->getPreferences();
+            $opts->device_last_visit = $this->user->device->getLastVisitedUnixtime();
+            $opts->user_last_visit = $this->user->getLastVisitUnixtime();
+            $opts->user_status = $this->user->getMobile()->getStatus();
+            $opts->user_level = $this->user->getLevel();
+            $opts->secret = $this->user->getMobile()->getSecret();
+            $opts->phone_number = $this->user->getMobile()->getNumber();
+            $opts->disallow_purchase = !$this->user->device->isPurchaseEnabled();
+            $opts->cuid = $this->user->device->getChangedToUID();
+            $opts->full_name = $this->user->getFullName();
+            $opts->email = $this->user->getUserMail() ? $this->user->getUserMail() : $this->user->getEMail();                
+            $opts->push = $this->user->device->getToken();
+            $opts->appVersion = $this->user->device->getAppVersion();
+                
+            if (in_array($this->user->getProvider(), ['mourjan','facebook','twitter','yahoo','google','live','linkedin']))
             {
-                $opts->prefs = $this->user->device->getPreferences();
-                $opts->device_last_visit = $this->user->device->getLastVisitedUnixtime();
-                $opts->user_last_visit = $this->user->getLastVisitUnixtime();
-                $opts->user_status = $this->user->getMobile()->getStatus();
-                $opts->user_level = $this->user->getLevel();
-                $opts->secret = $this->user->getMobile()->getSecret();
-                $opts->phone_number = $this->user->getMobile()->getNumber();
-                $opts->disallow_purchase = !$this->user->device->isPurchaseEnabled();
-                $opts->cuid = $this->user->device->getChangedToUID();
-                $opts->full_name = $this->user->getFullName();
-                $opts->email = $this->user->getUserMail() ? $this->user->getUserMail() : $this->user->getEMail();                
-                $opts->push = $this->user->device->getToken();
-                $opts->appVersion = $this->user->device->getAppVersion();
-                
-                if (in_array($this->user->getProvider(), ['mourjan','facebook','twitter','yahoo','google','live','linkedin']))
+                $opts->provider = $this->user->getProvider();
+                if($opts->provider=='mourjan')
                 {
-                    $opts->provider = $this->user->getProvider();
-                    if($opts->provider=='mourjan')
-                    {
-                        $opts->account = $this->user->getProviderIdentifier();
-                    }
-                    else if($opts->provider=='twitter')
-                    {
-                        $opts->account = preg_replace('/http(?:s|)::\/\/twitter\.com\//', '', $this->user->getProfileURL());
-                    }
-                    else
-                    {
-                        $opts->account = $this->user->getEMail();
-                    }
+                    $opts->account = $this->user->getProviderIdentifier();
                 }
-                
-                $opts->suspend = $this->user->isSuspended() ? time() + $this->user->getMobile()->getSuspendSeconds() : 0;
-
-                /*
-                if($opts->phone_number)
+                else if($opts->provider=='twitter')
                 {
-                    $opts->suspend = MCSessionHandler::checkSuspendedMobile($opts->phone_number);
-                    $opts->suspend = ($opts->suspend > 0) ? time() + $opts->suspend : 0;                 
-                }
-                */
-                
-                if ($this->uid==$this->user->getID())
-                {
-                    if ($this->user->getLevel()!=5)
-                    {
-                        $status = 1;
-                        $name = $this->user->getFullName(); 
-                    }
-                    else
-                    {
-                        $status = 9;
-                        $name = '';
-                    }
-                }
-            }
-          
-           
-            /*
-            $q = $this->db->queryResultArray(
-                    "select d.uid, d.push_id, d.device_sysname, d.app_prefs, u.opts, u.full_name, u.identifier, u.email, u.user_email, u.provider, u.profile_url, IIF(m.STATUS IS NULL, 10, m.STATUS) STATUS, "
-                    . "IIF(m.SECRET is null, '', m.SECRET) secret, "
-                    . "IIF(m.MOBILE is null, 0, m.MOBILE) mobile, "
-                    . "IIF(lm.MOBILE is null, 0, lm.MOBILE) linked_mobile, "
-                    . "u.lvl, "
-                    . "DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', d.last_visit) as device_last_visit, "
-                    . "DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', u.last_visit) as user_last_visit, "
-                    . "d.disallow_purchase, d.cuid, d.app_version "
-                    . "from web_users_device d "
-                    . "left join web_users_mobile m on m.uid=d.uid "
-                    . "left join web_users_linked_mobile lm on lm.uid=d.uid "
-                    . "left join web_users u on u.id = d.uid "
-                    . "where d.uuid=? order by IIF(m.STATUS=1,1,0) desc, m.id desc", [$this->uuid]);
-
-            if ($q && count($q) ) 
-            {
-                $opts = json_decode($q[0]['OPTS']);
-                if(is_null($opts) || !is_object($opts))
-                {
-                    $opts = json_decode("{}");
-                }
-                if($q[0]['APP_PREFS'])
-                {
-                    $opts->prefs = json_decode(base64_decode($q[0]['APP_PREFS']),true);
+                    $opts->account = preg_replace('/http(?:s|)::\/\/twitter\.com\//', '', $this->user->getProfileURL());
                 }
                 else
                 {
-                    $opts->prefs = [];
+                    $opts->account = $this->user->getEMail();
                 }
-
-                $opts->device_last_visit = $q[0]['DEVICE_LAST_VISIT'];
-                $opts->user_last_visit = $q[0]['USER_LAST_VISIT'];
-                $opts->user_status = $q[0]['STATUS']+0;
-                $opts->user_level = $q[0]['LVL']+0;
-                $opts->secret = $q[0]['SECRET'];
-                $opts->phone_number = $q[0]['MOBILE']+0;
-                if($q[0]['LINKED_MOBILE']+0)
-                {
-                    $opts->phone_number = $q[0]['LINKED_MOBILE'];
-                }
-                $opts->disallow_purchase = $q[0]['DISALLOW_PURCHASE']+0;
-                $opts->cuid = $q[0]['CUID'];
-                $opts->full_name = $q[0]['FULL_NAME'];
-                $opts->email = $q[0]['USER_EMAIL'] ? $q[0]['USER_EMAIL'] : $q[0]['EMAIL'];                
-                $opts->push = $q[0]['PUSH_ID'];
-                $opts->appVersion = $q[0]['APP_VERSION'];
-                
-                if(in_array($q[0]['PROVIDER'], array('mourjan','facebook','twitter','yahoo','google','live','linkedin')))
-                {
-                    $opts->provider=$q[0]['PROVIDER'];
-                    if($opts->provider=='mourjan')
-                    {
-                        $opts->account=$q[0]['IDENTIFIER'];
-                    }
-                    else if($opts->provider=='twitter')
-                    {
-                        $opts->account=preg_replace('/http(?:s|)::\/\/twitter\.com\//','',$q[0]['PROFILE_URL']);
-                    }
-                    else
-                    {
-                        $opts->account=$q[0]['EMAIL'];
-                    }
-                }
-                
-                if($opts->phone_number)
-                {
-                    $opts->suspend = MCSessionHandler::checkSuspendedMobile($opts->phone_number);
-                    if($opts->suspend > 0)
-                    {
-                        $opts->suspend = time() + $opts->suspend;
-                    }
-                    else
-                    {
-                        $opts->suspend = 0;
-                    }
-                }
-                
-                if ($this->uid==$q[0]['UID']) 
-                {
-                    if ($q[0]['LVL']!=5) 
-                    {
-                        $status=1;
-                        $name=$q[0]['FULL_NAME'];
-                    } 
-                    else 
-                    {
-                        $status=9;
-                        $name='';
-                    }
-                    return $opts;
-                }               
             }
-            else 
+                
+            $opts->suspend = $this->user->isSuspended() ? time() + $this->user->getMobile()->getSuspendSeconds() : 0;
+                
+            if ($this->user->getLevel()!=5)
             {
-                $opts = json_decode("{}");
+                $status = 1;
+                $name = $this->user->getFullName(); 
             }
-            */
+            else
+            {
+                $status = 9;
+                $name = '';
+            }                    
         }
         else
         {
             $status = -9;
         }
         
-        return $opts;
-        
-        //DO NOT DELETE <<<<<<<<<<<<<---------------------
-        /*
-         *  else if($device_name == 'Android' && $this->uid == 0 && !empty($this->uuid)){
-            $status = 0;
-            $q = $this->db->queryResultArray(
-                "select d.uid, u.opts, u.full_name, IIF(m.STATUS IS NULL, 10, m.STATUS) STATUS, "
-                . "IIF(m.SECRET is null, '', m.SECRET) secret, IIF(m.MOBILE is null, 0, m.MOBILE) mobile, u.lvl, "
-                . "DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', d.last_visit) as device_last_visit, "
-                . "DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', u.last_visit) as user_last_visit "
-                . "from web_users_device d "
-                . "left join web_users_mobile m on m.uid=d.uid "
-                . "left join web_users u on u.id = d.uid "
-                . "where d.uuid=? order by m.id desc", [$this->uuid]);
-            if (!empty($q)) {
-                $opts = json_decode($q[0]['OPTS']);
-                //$opts->dump = $q;
-                $opts->device_last_visit = $q[0]['DEVICE_LAST_VISIT'];
-                $opts->user_last_visit = $q[0]['USER_LAST_VISIT'];
-                $opts->user_status = $q[0]['STATUS']+0;
-                $opts->user_level = $q[0]['LVL']+0;
-                $opts->secret = $q[0]['SECRET'];
-                $opts->phone_number = $q[0]['MOBILE']+0;
-                $this->uid = $q[0]['UID'];
-                if ($q[0]['LVL']!=5) {
-                    $status=1;
-                    $name=$q[0]['FULL_NAME'];
-                } else {
-                    $status=9;
-                    $name='';
-                }
-                $this->cleanWebuserDeviceRecord($this->uid);
-                return $opts;
-            }else{
-                $status=-9;
-                return null;
-            }
-        }
-        */        
+        return $opts;               
     }
     
 
     function clearWebuserDeviceRecord($uid=0)
     {
-        if($uid > 0) {
+        if($uid > 0) 
+        {
             
             //delete subscriptions
-            $q="delete from subscription where web_user_id = ?";
-            $this->db->queryResultArray($q, [$uid]);
-            
+            $this->db->get("delete from subscription where web_user_id=?", [$uid]);            
             
             // delete favorites and update index
-            $q="update web_users_favs set deleted = 1 where web_user_id = ? and deleted = 0 returning ad_id";
-            $rs = $this->db->queryResultArray($q, [$uid], true);
-            if ($rs && is_array($rs) && count($rs)>0) {
+            $q="update web_users_favs set deleted=1 where web_user_id=? and deleted=0 returning ad_id";
+            $rs = $this->db->get($q, [$uid], true);
+            if ($rs && is_array($rs) && count($rs)>0) 
+            {
                 include_once $this->config['dir'] . '/core/lib/SphinxQL.php';
                 $sphinx = new SphinxQL($this->config['sphinxql'], $this->config['search_index']);
 
+                
                 $q="select list(web_user_id) from web_users_favs where deleted=0 and ad_id=?";
                 $st = $this->db->getInstance()->prepare($q); 
                 
-                foreach ($rs as $rec) {        
-                    if ($st->execute([$rec['AD_ID']])) {                        
-                        if ($users=$st->fetch(PDO::FETCH_NUM)) {
+                foreach ($rs as $rec) 
+                {                     
+                    if ($st->execute([$rec['AD_ID']])) 
+                    { 
+                        if ($users=$st->fetch(PDO::FETCH_NUM)) 
+                        {
                             $q = "update {$this->config['search_index']} set starred=({$users[0]}) where id={$rec['AD_ID']}";
-                        } else {
+                        } 
+                        else 
+                        {
                             $q = "update {$this->config['search_index']} set starred=() where id={$rec['AD_ID']}";   
                         }
                         $sphinx->directUpdateQuery($q);
@@ -1179,13 +1031,10 @@ class MobileApi
                 $st->closeCursor();
             }
             //delete active ads
-            $this->db->queryResultArray(
-                "update ad a set a.hold = 1 where a.hold = 0 and ((select d.web_user_id from ad_user d where d.id = ?) = ?)", [$uid, $uid],true
-            );
+            $this->db->get("update ad a set a.hold=1 where a.hold=0 and ((select d.web_user_id from ad_user d where d.id=?)=?)", [$uid, $uid], true);
+            
             //delete ad_user ads
-            $this->db->queryResultArray(
-                "update ad_user set state = 8 where web_user_id = ?", [$uid]
-            );
+            $this->db->get("update ad_user set state=8 where web_user_id=?", [$uid]);
         }
     }
     
@@ -1254,7 +1103,8 @@ class MobileApi
                         $q="update or insert into web_users_favs (web_user_id, ad_id, deleted) values (?, ?, ?) matching (web_user_id, ad_id) returning id";
                         $rs = $this->db->get($q, [$this->uid, $adid, $state], TRUE);
                         
-                        if ($rs && is_array($rs) && count($rs)==1) {
+                        if ($rs && is_array($rs) && count($rs)==1) 
+                        {
                             include_once $this->config['dir'] . '/core/lib/SphinxQL.php';
                             $sphinx = new SphinxQL($this->config['sphinxql'], $this->config['search_index']);
 
@@ -1298,46 +1148,7 @@ class MobileApi
 
                     default:
                         break;
-                }
-                
-                /*
-                $q="update or insert into web_users_favs (web_user_id, ad_id, deleted) values (?, ?, ?) matching (web_user_id, ad_id) returning id";
-                $rs = $this->db->queryResultArray($q, [$this->uid, $adid, $state], TRUE);
-
-                if ($rs && is_array($rs) && count($rs)==1) {
-                    $succeed=false;
-                    include_once $this->config['dir'] . '/core/lib/SphinxQL.php';
-                    $sphinx = new SphinxQL($this->config['sphinxql'], $this->config['search_index']);
-
-                    $attributes = array('starred');
-                    $q="select list(web_user_id) from web_users_favs where deleted=0 and ad_id={$adid}";
-                    $st = $this->db->getInstance()->query($q);                    
-                    if ($st) {                        
-                        if ($users=$st->fetch(PDO::FETCH_NUM)) {
-                            $q = "update {$this->config['search_index']} set starred=({$users[0]}) where id={$adid}";
-                        } else {
-                            $q = "update {$this->config['search_index']} set starred=() where id={$adid}";   
-                        }
-                        $succeed= $sphinx->directUpdateQuery($q);
-                    }
-                    
-                    if (!$succeed) {
-                        $this->result['e'] = 'Could not add this advert to our search engine';
-                    } else {
-                       
-                        $n = $this->api->db->queryResultArray(
-                                    "update or insert into web_users_notes (web_user_id, ad_id, content, deleted) values (?,?,?,?) matching(web_user_id, ad_id) returning id", [$this->api->getUID(), $ad_id, $note], true
-                                );  
-                        
-                    }
-
-                    $this->result['d']['id']=$rs[0]['ID']+0;
-
-                } else {
-                    $this->result['d']=0;
-                    $this->result['e']='Unable to add this advert to your favorite list';
-                }
-                */
+                }                             
             }
         }
     }
@@ -1683,7 +1494,7 @@ class MobileApi
                 
                 $user = new User($this->db, $this->config, null, 0);
                         
-                $ok = $user->mergeDeviceToAccount($this->uuid, $this->uid, $opts->cuid);
+                $ok = $user->mergeDeviceToAccount($this->uuid, $this->getUID(), $opts->cuid);
                 if ($ok) 
                 {
                     //$this->db->getInstance()->commit();
@@ -1691,23 +1502,20 @@ class MobileApi
                     $opts = $this->userStatus($status);
                     $this->result['d']['pwset']=!empty($opts->secret);
                     $this->result['d']['uid']=$opts->cuid;
-                }
-                
-            	/*
-            	$this->result['d']['uid'] = $opts->cuid;
-            	update WEB_USERS_DEVICE set uid=?, cuid=0 where UUID = '?';
- 
-            	*/
+                }                
             }
 
             $uname = filter_input(INPUT_GET, 'uname', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
             if ($uname && $uname!=$current_name) 
             {
-                $this->db->queryResultArray("update web_users set full_name=?, display_name=? where id=?", [$uname, $uname, $this->uid], true);
+                NoSQL::getInstance()->userUpdate([\Core\Model\ASD\USER_FULL_NAME=>$uname, Core\Model\ASD\USER_DISPLAY_NAME=>$uname], $this->getUID());
+                $this->db->get("update web_users set full_name=?, display_name=? where id=?", [$uname, $uname, $this->getUID()], true);
             }
-            if (empty($uname) && $is_ping==0) 
+            
+            if (empty($uname)) 
             {
-                $this->db->queryResultArray("update web_users set last_visit=current_timestamp where id=?", [$this->uid], TRUE);
+                NoSQL::getInstance()->setVisitUnixtime($this->getUID());
+                $this->db->get("update web_users set last_visit=current_timestamp where id=?", [$this->getUID()], TRUE);
             }
 
             //error_log(json_encode($this->result['d']), 0);
@@ -1815,69 +1623,7 @@ class MobileApi
             {
                 $this->result['e'] = 'System error!';
             }
-            
-            /*
-            if ($q && is_array($q) && count($q)==1) 
-            {
-                $this->uid = $q[0]['ID'];
-                $this->result['d']['uid']=$q[0]['ID']+0;
-                
-                NoSQL::getInstance()->userUpdate([
-                    Core\Model\ASD\USER_PROVIDER_ID => $this->uuid,
-                    Core\Model\ASD\USER_EMAIL => '',
-                    Core\Model\ASD\USER_PROVIDER => $isAndroid ? 'mourjan-android' : 'mourjan-iphone',
-                    Core\Model\ASD\USER_FULL_NAME => '',
-                    Core\Model\ASD\USER_PROFILE_URL => 'https://www.mourjan.com/',
-                    Core\Model\ASD\USER_OPTIONS => '{}',
-                    Core\Model\ASD\USER_NAME => '',
-                    Core\Model\ASD\USER_PROVIDER_EMAIL => ''
-                    ], $this->uid);
-                
-                //return user level. nb: even if it's a new a record, taking into consideration
-                //any triggers that might be implemented in future that might affect user status
-                if ($isAndroid)
-                {
-                    $this->result['d']['level']=$q[0]['LVL'];
-                    $this->result['d']['status']=10;
-                    
-                    //device last visit
-                    $this->result['d']['dlv'] = 0;
-                    //user last visit
-                    $this->result['d']['ulv'] = 0;
-                }
-                
-                //disallow purchase default 0
-                $this->result['d']['blp'] = 0;
-
-                $isUTF8 = preg_match('//u', $device_name);
-
-                if (NoSQL::getInstance()->deviceInsert([
-                    Core\Model\ASD\USER_DEVICE_UUID => $this->uuid,
-                    Core\Model\ASD\USER_UID => $this->uid,
-                    Core\Model\ASD\USER_DEVICE_MODEL => $device_model,
-                    Core\Model\ASD\USER_DEVICE_NAME => ($isUTF8 ? $device_name : ''),
-                    Core\Model\ASD\USER_DEVICE_SYS_NAME => $device_sysname,
-                    Core\Model\ASD\USER_DEVICE_SYS_VERSION => $device_sysversion,
-                    Core\Model\ASD\USER_DEVICE_ISO_COUNTRY => $carrier_country,
-                    Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
-                    Core\Model\ASD\USER_DEVICE_APP_SETTINGS => '{}'
-                    ]))
-                {
-                    $this->db->queryResultArray(
-                        "insert into WEB_USERS_DEVICE "
-                        . "(uuid, uid, device_model, device_name, device_sysname, device_sysversion, "
-                        . "last_visit, push_id, NOTIFICATION_ENABLED, CARRIER_COUNTRY, APP_VERSION) "
-                        . "values (?, ?, ?, ?, ?, ?, current_timestamp, '', 1, ?, ?)",
-                        [$this->uuid, $this->uid, $device_model, $device_name, $device_sysname,
-                            $device_sysversion, $carrier_country, $device_appversion], TRUE);
-                }
-                
-            } 
-            else 
-            {
-                $this->result['e'] = 'System error!';
-            }
-            */
+                       
         }
         
         if ($isAndroid && isset($this->result['d']['uid']) && $this->result['d']['uid']==0)
@@ -1895,14 +1641,14 @@ class MobileApi
 
         if ($status==1 || $status==-9) 
         {
-            $this->db->setWriteMode();
             $token=filter_input(INPUT_GET, 'tk', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-            $rs = $this->db->queryResultArray("update WEB_USERS_DEVICE set PUSH_ID=? where uuid=? and PUSH_ID<>?", [$token, $this->uuid, $token], TRUE);
-            if ($rs===FALSE) {
-                $this->result['e']='Could not register notification token';
+                                           
+            if (NoSQL::getInstance()->deviceSetToken($this->uuid, $token))
+            {
+                $this->db->setWriteMode();
+                $this->db->get("update WEB_USERS_DEVICE set PUSH_ID=? where uuid=? and PUSH_ID!=?", [$token, $this->uuid, $token], TRUE);
             }
-        
-            if (!NoSQL::getInstance()->deviceSetToken($this->uuid, $token))
+            else
             {
                 $this->result['e']='Could not register notification token';                
             }
@@ -1920,14 +1666,13 @@ class MobileApi
         $this->userStatus($status);
         $this->result['status']=$status;
         if ($status==1) 
-        {
-            $this->db->setWriteMode();
-            $enabled=filter_input(INPUT_GET, 'enabled', FILTER_VALIDATE_INT)+0;
-            $this->db->queryResultArray("update WEB_USERS_DEVICE set NOTIFICATION_ENABLED=? where uuid=?", [$enabled, $this->uuid], TRUE);
+        {            
+            $enabled=filter_input(INPUT_GET, 'enabled', FILTER_VALIDATE_INT)+0;            
             
-            if (!NoSQL::getInstance()->deviceSetNotificationStatus($this->uuid, $enabled))
+            if (NoSQL::getInstance()->deviceSetNotificationStatus($this->uuid, $enabled))
             {
-                
+                $this->db->setWriteMode();
+                $this->db->get("update WEB_USERS_DEVICE set NOTIFICATION_ENABLED=? where uuid=?", [$enabled, $this->uuid], TRUE);                
             }
         }
         $this->db->close();
@@ -1945,25 +1690,12 @@ class MobileApi
             
             if (!empty($cp) && !empty($np) && strlen($cp)==32 && ($cp==$np) && ($op==$opts->secret || empty($opts->secret))) 
             {
-                //error_log(var_export($this->user, TRUE));
                 if ($this->user->getMobile()->setSecret($np))
                 {
                    $this->result['d']['status'] = $this->user->getMobile(TRUE)->getStatus();
                    $this->result['d']['pwset'] = !empty($this->user->getMobile()->getSecret());
                    return;
                 }
-                /*
-                $this->db->setWriteMode();
-                
-                $rs = $this->db->queryResultArray("update WEB_USERS_MOBILE set SECRET=? where uid=? returning status, secret", [$np, $this->uid], TRUE);
-                if ($rs) {
-                    $this->result['d']['status']=$rs[0]['STATUS']+0;
-                    $this->result['d']['pwset']=!empty($rs[0]['SECRET']);
-                    
-                   
-                    return;
-                }
-                */
             }
         }
         $this->result['e']='Could not set new password!';
@@ -1979,9 +1711,7 @@ class MobileApi
             $secret=filter_input(INPUT_GET, 'secret', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
 
             if ($mobile_no>0 && !empty($secret)) 
-            {
-                //$rs = $this->db->queryResultArray("select * from WEB_USERS_MOBILE where mobile=? and secret=?", [$mobile_no, $secret]);
-                
+            {                
                 if (NoSQL::getInstance()->mobileVerifySecret($number, $secret, $userId) && $this->user->getMobile()->getActicationUnixtime())
                 {
                     $this->result['d']['status']=1;
@@ -1991,14 +1721,14 @@ class MobileApi
                         if (NoSQL::getInstance()->deviceSetUID($this->uuid, $userId, $this->uid))
                         {
                             $this->db->setWriteMode();
-                            $ok = $this->db->queryResultArray(
+                            $ok = $this->db->get(
                                     "update web_users_favs a set a.web_user_id=? "
                                     . "where a.web_user_id=? "
                                     . "and not exists (select 1 from web_users_favs b "
                                     . "where b.web_user_id=? and b.ad_id=a.ad_id)", [$userId, $this->uid, $userId], true);
                             if ($ok) 
                             {
-                                $ok = $this->db->queryResultArray(
+                                $ok = $this->db->get(
                                     "update subscription a set a.web_user_id=? "
                                     . "where a.web_user_id = ? and "
                                     . "not exists (select 1 from subscription b "
@@ -2011,16 +1741,16 @@ class MobileApi
                                 if ($ok) 
                                 {
                                     
-                                    $this->db->queryResultArray("update T_PROMOTION_USERS t set t.UID=? where t.UID=?", [$userId, $this->uid], true);
-                                    $this->db->queryResultArray("update T_TRAN t set t.UID=? where t.UID=?", [$userId, $this->uid], true);
+                                    $this->db->get("update T_PROMOTION_USERS t set t.UID=? where t.UID=?", [$userId, $this->uid], true);
+                                    $this->db->get("update T_TRAN t set t.UID=? where t.UID=?", [$userId, $this->uid], true);
                                     
-                                    $ok = $this->db->queryResultArray("delete from web_users_favs where web_user_id=?", [$this->uid], true);
+                                    $ok = $this->db->get("delete from web_users_favs where web_user_id=?", [$this->uid], true);
                                     if ($ok) 
                                     {
-                                        $ok = $this->db->queryResultArray("delete from subscription where web_user_id=?", [$this->uid], true);
+                                        $ok = $this->db->get("delete from subscription where web_user_id=?", [$this->uid], true);
                                         if ($ok) 
                                         {
-                                            $ok = $this->db->queryResultArray("delete from web_users where id=?", [$this->uid], true);
+                                            $ok = $this->db->get("delete from web_users where id=?", [$this->uid], true);
                                         }
                                     }
                                 }
@@ -2028,14 +1758,14 @@ class MobileApi
 
                             if ($ok) 
                             {
-                                $this->db->getInstance()->commit();
+                                $this->db->commit();
                                 $this->uid=$userId;
                                 $opts = $this->userStatus($status);
                                 $this->result['d']['pwset']=!empty($opts->secret);
                             } 
                             else 
                             {
-                                $this->db->getInstance()->rollBack();
+                                $this->db->rollback();
                                 $this->result['e']="Could not activate your device due to internal system error!";
                                 error_log($this->result['e'] . " " . $mobile_no . " to uid: " . $userId);
                             }
@@ -2045,73 +1775,7 @@ class MobileApi
                     return;
                 }
             }
-                
-                
-/*
-                if (!empty($rs) && isset($rs[0]['STATUS']) && $rs[0]['STATUS']==1) {
-                    $userId=$rs[0]['UID']+0;
-
-                    $this->result['d']['status']=1;
-                    $this->result['d']['uid']=($this->uid!=$userId) ? $userId : 0;
-
-
-                    if ($this->uid!=$userId) {
-                        $this->db->setWriteMode();
-
-                        if ($this->db->queryResultArray("update web_users_device set uid=? where uuid=?", [$userId, $this->uuid], true)) {
-
-                            $ok = $this->db->queryResultArray(
-                                    "update web_users_favs a set a.web_user_id=? "
-                                    . "where a.web_user_id=? "
-                                    . "and not exists (select 1 from web_users_favs b "
-                                    . "where b.web_user_id=? and b.ad_id=a.ad_id)", [$userId, $this->uid, $userId], true);
-                            if ($ok) {
-                                $ok = $this->db->queryResultArray(
-                                    "update subscription a set a.web_user_id=? "
-                                    . "where a.web_user_id = ? and "
-                                    . "not exists (select 1 from subscription b "
-                                    . "where b.web_user_id=? "
-                                    . "and b.country_id=a.country_id and b.city_id=a.city_id and b.section_id=a.section_id "
-                                    . "and b.purpose_id=a.purpose_id and b.section_tag_id=a.section_tag_id "
-                                    . "and b.locality_id=a.locality_id and b.purpose_id=a.purpose_id and b.query_term=a.query_term)",
-                                    [$userId, $this->uid, $userId], true);
-
-                                if ($ok) {
-                                    
-                                    $this->db->queryResultArray("update T_PROMOTION_USERS t set t.UID=? where t.UID=?", [$userId, $this->uid], true);
-                                    $this->db->queryResultArray("update T_TRAN t set t.UID=? where t.UID=?", [$userId, $this->uid], true);
-                                    
-                                    $ok = $this->db->queryResultArray("delete from web_users_favs where web_user_id=?", [$this->uid], true);
-                                    if ($ok) {
-                                        $ok = $this->db->queryResultArray("delete from subscription where web_user_id=?", [$this->uid], true);
-                                        if ($ok) {
-                                            $ok = $this->db->queryResultArray("delete from web_users where id=?", [$this->uid], true);
-                                        }
-                                    }
-                                }
-                            }                           
-
-                            if ($ok) 
-                            {
-                                $this->db->getInstance()->commit();
-                                $this->uid=$userId;
-                                $opts = $this->userStatus($status);
-                                $this->result['d']['pwset']=!empty($opts->secret);
-                            } 
-                            else 
-                            {
-                                $this->db->getInstance()->rollBack();
-                                $this->result['e']="Could not activate your device due to internal system error!";
-                                error_log($this->result['e'] . " " . $mobile_no . " to uid: " . $userId);
-                            }
-                        }
-
-                    }
-
-                    return;
-                }
-            }
-*/
+                           
             $this->result['e']="Invalid user and password for {$mobile_no}!";
         } 
         else 
@@ -2185,7 +1849,6 @@ class MobileApi
                         $this->result['d']['kuid'] = $user->encodeId($this->uid);
                         $this->getBalance();
                         
-                        //$this->db->queryResultArray("update WEB_USERS_MOBILE set status=1, activation_timestamp=current_timestamp where id=? returning status", [$record[Core\Model\ASD\SET_RECORD_ID]], TRUE);
                     }
                     else 
                     {
@@ -2248,163 +1911,18 @@ class MobileApi
                     \Core\Model\ASD\USER_MOBILE_FLAG => 2,
                     ]))
             {
-                //$this->db->queryResultArray(
-                //        "INSERT INTO WEB_USERS_MOBILE (UID, MOBILE, CODE, STATUS, DELIVERED, SMS_COUNT)
-                //        VALUES (?, ?, ?, 5, 0, 0) RETURNING ID", [$this->getUID(), $mobile_no, $pin], TRUE);
                 
                 $response = ShortMessageService::send("+{$mobile_no}", "{$pin} is your mourjan confirmation code", ['uid' => $this->getUID(), 'mid' => $mobile_id, 'platform'=>'ios']);
                 if ($response) 
                 {
                     NoSQL::getInstance()->mobileIncrSMS($this->uid, $mobile_no);
                         
-                    //$this->db->queryResultArray("update WEB_USERS_MOBILE set status=0, sms_count=sms_count+1 where id=?", [$mobile_id], TRUE);
                     $this->result['d']['status']='sent';
                 }
             }
             
         }
        
-        /*
-        $rs = $this->db->queryResultArray(
-                "select m.ID, m.UID, m.MOBILE, m.STATUS, m.DELIVERED, m.CODE, m.SMS_COUNT, "
-                . "datediff(SECOND from m.REQUEST_TIMESTAMP to CURRENT_TIMESTAMP) req_age "
-                . "from WEB_USERS_MOBILE m "
-                . "left join WEB_USERS_DEVICE d on d.UID=m.UID "
-                . "where m.mobile=? and d.uuid=?", [$mobile_no, $this->uuid]);
-
-        if (is_array($rs)) 
-        {
-            $this->db->setWriteMode();
-                
-            if (count($rs)==0) 
-            {               
-                //echo $mobile_no;
-                $pin = mt_rand(1000, 9999);
-                
-                NoSQL::getInstance()->mobileInsert([
-                    \Core\Model\ASD\USER_UID => $this->uid,
-                    \Core\Model\ASD\USER_MOBILE_NUMBER => $mobile_no,
-                    \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $pin,
-                    \Core\Model\ASD\USER_MOBILE_FLAG => 2,
-                    ]);
-                
-                $iq = $this->db->queryResultArray(
-                        "INSERT INTO WEB_USERS_MOBILE (UID, MOBILE, CODE, STATUS, DELIVERED, SMS_COUNT)
-                        VALUES (?, ?, ?, 5, 0, 0) RETURNING ID", [$this->uid, $mobile_no, $pin], TRUE);
-                if ($iq[0]['ID']>0) 
-                {
-                    $response = ShortMessageService::send("+{$mobile_no}", "{$pin} is your mourjan confirmation code", ['uid' => $this->getUID(), 'mid' => $iq[0]['ID'], 'platform'=>'ios']);
-                    //$sms = new MourjanNexmo();
-                        
-                    //$response = $sms->sendSMS( "+{$mobile_no}", 
-                    //            $pin." is your mourjan confirmation code",
-                    //                    $iq[0]['ID']);
-                    //var_dump($response);
-                    if ($response) 
-                    {
-                        NoSQL::getInstance()->mobileIncrSMS($this->uid, $mobile_no);
-                        
-                        $this->db->queryResultArray("update WEB_USERS_MOBILE set status=0, sms_count=sms_count+1 where id=?", [$iq[0]['ID']], TRUE);
-                        $this->result['d']['status']='sent';
-                    }
-                }
-            } 
-            else 
-            {
-                //var_dump($rs);
-                if ($rs[0]['MOBILE']!=$mobile_no) 
-                {
-                    $this->result['e']='Not a valid mobile for you';
-                    return;
-                }
-
-                // Must not pass anymore after left join device matching uuid
-                if ($rs[0]['UID']!=$this->uid) 
-                {
-                    if ($rs[0]['STATUS']==1) 
-                    {
-                        $this->result['d']['status']='validate';
-                        $this->result['e']='This mobile number already exists. Enter your password to activate your device';
-                        return;
-                    }
-                }
-
-                $pin_code = filter_input(INPUT_GET, 'code', FILTER_VALIDATE_INT)+0;
-                if ($pin_code>999) 
-                {
-                    if ($pin_code==$rs['0']['CODE']+0) 
-                    {
-                            
-                        if ($this->db->queryResultArray("update WEB_USERS_MOBILE set status=1, activation_timestamp=current_timestamp where id=? returning status", [$rs[0]['ID']], TRUE)) 
-                        {
-                            $this->result['d']['status']='activated';
-
-                            include $this->config['dir'] .'/core/model/User.php';
-                            $user = new User($this->db, $this->config, null, 0);
-                            $user->sysAuthById($this->uid);
-                            $user->params['app']=1;
-                            $user->update();
-                            $this->result['d']['kuid'] = $user->encodeId($this->uid);
-                            $this->getBalance();
-                
-                            NoSQL::getInstance()->mobileActivation($this->uid, $mobile_no, $pin_code);
-                            return;
-                        } 
-                        else 
-                        {
-                            $this->result['e'] = 'This mobile number is used on different device';
-                            $this->result['d']['status']='invalid';
-                            return;
-                        }
-                    } 
-                    else 
-                    {
-                        $this->result['e'] = 'Activation code is not valid';
-                        $this->result['d']['status']='invalid';
-                        return;
-                    }
-                } 
-                else 
-                {
-                    if ($rs[0]['STATUS']==5) 
-                    { // No sent SMS
-                        $sms = new MourjanNexmo();
-                        $pin = $rs[0]['CODE'];
-                        $response = $sms->sendSMS( "+{$mobile_no}", 
-                                $pin." is your mourjan confirmation code",
-                                        $rs[0]['ID']);
-                        //var_dump($response);
-                        if ($response) 
-                        {
-                            $this->db->queryResultArray("update WEB_USERS_MOBILE set status=0, sms_count=sms_count+1 where id=?", [$rs[0]['ID']], TRUE);
-                            $this->result['d']['status']='sent';
-                            NoSQL::getInstance()->mobileIncrSMS($this->uid, $mobile_no);
-                        }
-
-                    }
-                }
-
-                if ($rs[0]['DELIVERED']==1) 
-                {
-                    $this->result['e'] = 'Activation code is already delivered to this mobile sms inbox';
-                    $this->result['d']['status']='delivered';
-                    return;
-                }
-
-                if ($rs[0]['REQ_AGE']<120) 
-                {
-                    $this->result['e'] = 'Activation code is already sent, but not delivered yet.\nPlease wait a few minutes';
-                    return;
-                }
-
-                if ($rs[0]['STATUS']==0 && $rs[0]['DELIVERED']==0 && $rs[0]['SMS_COUNT']>0) 
-                {
-                    $this->result['e'] = 'Invalid mobile number! Please enter well formed mobile number to proceed.';
-                    return;
-                }
-            }
-        }
-        */
     }
 
 
@@ -2414,42 +1932,46 @@ class MobileApi
     }
 
 
-    function done() {
+    function done() 
+    {
         $this->db->close();
-        if ($this->uuid=="B066D32F-08F6-4C2E-973C-9658CA745F09") {
+        if ($this->uuid=="B066D32F-08F6-4C2E-973C-9658CA745F09") 
+        {
             $this->result['l']=1;
         }
         echo json_encode($this->result, JSON_UNESCAPED_UNICODE );
         flush();
     }
 
-
-    function detectEmail($ad){
+    
+    function detectEmail($ad)
+    {
         $matches=null;
         preg_match_all('/(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/i', $ad, $matches);
         return $matches;
     }
 
 
-    function cutOfContacts(&$text) {
+    function cutOfContacts(&$text) 
+    {
         $phone = '/((?:\+|)(?:[0-9]){7,14})/';
         $content=null;
         preg_match('/(?: mobile(?::| \+) | viber(?::| \+) | whatsapp(?::| \+) | phone(?::| \+) | fax(?::| \+) | telefax(?::| \+) | جوال(?::| \+) | موبايل(?::| \+) | واتساب(?::| \+) | فايبر(?::| \+) | هاتف(?::| \+) | فاكس(?::| \+) | تلفاكس(?::| \+) | tel(?:\s|): | call(?:\s|): | ت(?:\s|): | الاتصال | للمفاهمه: | للمفاهمه | ج\/| للمفاهمة: | للاتصال | للاتصال: | ه: )(.*)/ui', $text, $content);
         
-        if(!($content && count($content))){
+        if(!($content && count($content)))
+        {
             preg_match($phone, $text, $content);
-            if(!($content && count($content))){
+            if(!($content && count($content)))
+            {
                 return $text;
             }
         }
 
-        if($content && count($content)){
-            //$str=$content[1];
-
+        if($content && count($content))
+        {
             $strpos = strpos($text, $content[0]);
             $text = trim(substr($text,0, $strpos));
-            $text = trim(preg_replace('/[-\/\\\]$/', '', $text));
-        
+            $text = trim(preg_replace('/[-\/\\\]$/', '', $text));        
         }
     }
 
@@ -2664,32 +2186,38 @@ class MobileApi
     }
 
 
-    public function changeNumber() {        
+    public function changeNumber() 
+    {      
         $opts = $this->userStatus($status);
-        if ($status==1 && $opts->phone_number>0) {
+        if ($status==1 && $opts->phone_number>0) 
+        {
             $phone_number=filter_input(INPUT_GET, 'tel', FILTER_VALIDATE_INT)+0;
             $current_phone_number=filter_input(INPUT_GET, 'ctel', FILTER_VALIDATE_INT)+0;
 
-            if ($current_phone_number!=$opts->phone_number ) {
+            if ($current_phone_number!=$opts->phone_number) 
+            {
                 $this->result['e']='Invalid user old phone number!';
                 return;
             }
 
-            if ($phone_number<999999) {
+            if ($phone_number<999999) 
+            {
                 $this->result['e'] = 'Invalid mobile registration request';
                 return;
             }
 
             include_once $this->config['dir'].'/core/lib/MourjanNexmo.php';
-            $rs = $this->db->queryResultArray(
-                    "select m.ID, m.UID, m.MOBILE, m.STATUS, m.DELIVERED, m.CODE, SMS_COUNT, "
-                    . "datediff(SECOND from m.REQUEST_TIMESTAMP to CURRENT_TIMESTAMP) req_age "
-                    . "from WEB_USERS_MOBILE m where m.mobile=?", [$phone_number]);
+            $rs = $this->db->get(
+                    "select m.ID, m.UID, m.MOBILE, m.STATUS, m.DELIVERED, m.CODE, SMS_COUNT, 
+                    datediff(SECOND from m.REQUEST_TIMESTAMP to CURRENT_TIMESTAMP) req_age 
+                    from WEB_USERS_MOBILE m where m.mobile=?", [$phone_number]);
+            
             $this->result['d']['rs']=$rs;
-            if (is_array($rs)) {
+            if (is_array($rs)) 
+            {
                 $this->db->setWriteMode();
-                if (count($rs)==0) {
-                    //echo $mobile_no;
+                if (count($rs)==0) 
+                {
                     $pin = mt_rand(1000, 9999);
                     $iq = $this->db->queryResultArray(
                             "UPDATE WEB_USERS_MOBILE
@@ -2707,15 +2235,19 @@ class MobileApi
                             $this->result['d']['status']='sent';
                         }
                     }
-                } else {
-                    //var_dump($rs);
-                    if ($rs[0]['MOBILE']!=$phone_number) {
+                } 
+                else 
+                {
+                    if ($rs[0]['MOBILE']!=$phone_number) 
+                    {
                         $this->result['e']='Not a valid mobile for you';
                         return;
                     }
 
-                    if ($rs[0]['UID']!=$this->uid) {
-                        if ($rs[0]['STATUS']==1) {
+                    if ($rs[0]['UID']!=$this->uid) 
+                    {
+                        if ($rs[0]['STATUS']==1) 
+                        {
                             $this->result['d']['status']='validate';
                             $this->result['e']='This mobile number is already exists. Enter your password to activate your device';
                             return;
@@ -2723,24 +2255,32 @@ class MobileApi
                     }
 
                     $pin_code = filter_input(INPUT_GET, 'code', FILTER_VALIDATE_INT)+0;
-                    if ($pin_code>999) {
-                        if ($pin_code==$rs['0']['CODE']) {
-                            if ($this->db->queryResultArray("update WEB_USERS_MOBILE set status=1, activation_timestamp=current_timestamp where id=? returning status", [$rs[0]['ID']], TRUE)) {
+                    if ($pin_code>999) 
+                    {
+                        if ($pin_code==$rs['0']['CODE']) 
+                        {
+                            if ($this->db->queryResultArray("update WEB_USERS_MOBILE set status=1, activation_timestamp=current_timestamp where id=? returning status", [$rs[0]['ID']], TRUE)) 
+                            {
                                 $this->result['d']['status']='activated';
                                 return;
-                            } else {
+                            } 
+                            else 
+                            {
                                 $this->result['e'] = 'This mobile number is used on different device';
                                 $this->result['d']['status']='invalid';
                                 return;
                             }
-                        } else {
+                        } 
+                        else 
+                        {
                             $this->result['e'] = 'Activation code is not valid';
                             $this->result['d']['status']='invalid';
                             return;
                         }
                     }
 
-                    if ($rs[0]['DELIVERED']==1) {
+                    if ($rs[0]['DELIVERED']==1) 
+                    {
                         $this->result['e'] = 'Activation code is already delivered to this mobile sms inbox';
                         $this->result['d']['status']='delivered';
                         return;
@@ -2752,7 +2292,6 @@ class MobileApi
                     }
                 }
             } else $this->result['e']='Internal system error!';
-            //$this->result['opts']=$opts;
         }
         else $this->result['e']='Invalid user request!';
     }
@@ -2782,31 +2321,40 @@ class MobileApi
     }
 
 
-    public function getCountryIsoByIp(){
+    public function getCountryIsoByIp()
+    {
         $ip = false;
-        if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])){
+        if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR']))
+        {
             $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        }else {
+        }
+        else 
+        {
             $ip = $_SERVER['REMOTE_ADDR'];
         }
 
         $country_code='';		
-		if ($ip) {
-			$databaseFile = '/home/db/GeoLite2-City.mmdb';
-        	$reader = new Reader($databaseFile);
-        	$geo = $reader->get($ip);
-        	$reader->close();
+        if ($ip) 
+        {
+            $databaseFile = '/home/db/GeoLite2-City.mmdb';
+            $reader = new Reader($databaseFile);
+            $geo = $reader->get($ip);
+            $reader->close();
         
-            if ($geo) {
+            if ($geo) 
+            {
                 $country_code = trim(strtoupper(trim($geo['country']['iso_code'])));
                 if(strlen($country_code)!=2)$country_code='';
             }
+            
             $this->result['d']['iso']=$country_code;
-        }else $this->result['e']='Bad Request!';
+        }
+        else $this->result['e']='Bad Request!';
     }
 
     
-    public function validatePhoneNumber(){
+    public function validatePhoneNumber()
+    {
         $phone_number=filter_input(INPUT_GET, 'tel', FILTER_VALIDATE_FLOAT)+0;
         $country_code=filter_input(INPUT_GET, 'code', FILTER_VALIDATE_INT)+0;
 
@@ -2923,14 +2471,12 @@ class MobileApi
             }
             
             $lang=filter_input(INPUT_GET, 'dl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
-            $rs = $this->db->queryResultArray(
-                "select state id,
-                count(*) ads
-                from AD_USER
+            $rs = $this->db->get("select state id, count(*) ads from AD_USER
                 where web_user_id=? and state in (0,1,2,3,7,9)
-                group by 1", [$this->uid], TRUE, PDO::FETCH_NUM);
+                group by 1", [$this->uid], TRUE, \PDO::FETCH_NUM);
 
-            foreach ($rs as $row) {
+            foreach ($rs as $row) 
+            {
                 $name = "";
                 switch ($row[0]) {
                     case 0:
@@ -2974,7 +2520,8 @@ class MobileApi
     }
 
 
-    public function getDemoUserAdStat() {
+    public function getDemoUserAdStat() 
+    {
         $lang=filter_input(INPUT_GET, 'dl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
         $name = $lang=='en' ? 'Demo Active ads' : 'تجربه - الاعلانات الفعاله';
         $this->result['d'][] = [7, $name, 10];
@@ -3035,16 +2582,20 @@ class MobileApi
     }
     
     
-    public function getMyAds($states) {
-        if ($this->demo==1 && $states=='7') {
+    public function getMyAds($states) 
+    {
+        if ($this->demo==1 && $states=='7') 
+        {
             $this->getDemoMyAds();
             return;
         }
         
         $opts = $this->userStatus($status);
-        if ($status==1) {
+        if ($status==1) 
+        {
             
-            if ($states=="7") {
+            if ($states=="7") 
+            {
                 $this->getStatsAdSummary($opts, $status);
                 $views = $this->result['d']['ads'];
                 unset($this->result['d']['ads']);                
@@ -3061,17 +2612,23 @@ class MobileApi
                     "left join T_OFFER f on f.id=bo.offer_id " .
                     "where a.web_user_id=? and a.state in ({$states}) order by a.date_added desc", [$this->uid], TRUE, PDO::FETCH_NUM);
                     
-            foreach ($rs as $row) {
+            foreach ($rs as $row) 
+            {
                 $data = json_decode($row[0]);
-                if(!is_object($data)){
+                if(!is_object($data))
+                {
                     $data = json_decode("{}");
                 }
-                if (isset($data->other)) {
+                if (isset($data->other)) 
+                {
                     $tl = mb_strlen(strip_tags($data->other));
-                    if ($tl<60) {
+                    if ($tl<60) 
+                    {
                         $data->other.=mb_substr("                                                                                                            ",0,60-$tl);                   
                     }                    
-                } else {
+                } 
+                else 
+                {
                     if (isset($data->text)) {
                         $tl = mb_strlen(strip_tags($data->text));
                         if ($tl<60) {
@@ -3108,15 +2665,19 @@ class MobileApi
     }
 
 
-    public function userHoldAd() {        
+    public function userHoldAd() 
+    { 
         $opts = $this->userStatus($status);
-        if ($status==1) {
+        if ($status==1) 
+        {
             $this->result['d']=[0];
             $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT)+0;
-            if ($id) {
+            if ($id) 
+            {
                 $this->db->setWriteMode();
-                $rs = $this->db->queryResultArray("select WEB_USER_ID from ad_user where id=?", [$id], FALSE, PDO::FETCH_ASSOC);
-                if ((empty($rs)==false) && ($rs[0]['WEB_USER_ID']==$this->uid)) {
+                $rs = $this->db->get("select WEB_USER_ID from ad_user where id=?", [$id], FALSE, PDO::FETCH_ASSOC);
+                if ((empty($rs)==false) && ($rs[0]['WEB_USER_ID']==$this->uid)) 
+                {
                     $rs = $this->db->queryResultArray("update ad set hold=1 where id=? and hold=0 returning id", [$id], TRUE, PDO::FETCH_NUM);
                     $this->result['d']=$rs[0];
                 }
@@ -3170,16 +2731,19 @@ class MobileApi
     }
 
 
-    public function getBalance() {
-        $rs = $this->db->queryResultArray("select sum(credit-debit) balance from T_TRAN where uid=?", [($this->demo===1?93778:$this->uid)]);
+    public function getBalance() 
+    {
+        $rs = $this->db->get("select sum(credit-debit) balance from T_TRAN where uid=?", [($this->demo===1?93778:$this->uid)]);
         $this->result['balance'] = $rs[0]['BALANCE']+0.0;
     }
 
 
-    public function getStatment() {
+    public function getStatment() 
+    {
         $opts = $this->userStatus($status);
         $this->result['d']['state']=-1;
-        if ($status==1) {
+        if ($status==1) 
+        {
             $rs = $this->db->queryResultArray(
                 "SELECT r.ID, r.DATED, r.CURRENCY_ID, r.AMOUNT, r.DEBIT,
                 r.CREDIT, r.USD_VALUE, r.XREF_ID, r.PRODUCT_ID, r.TRANSACTION_ID,
@@ -3203,20 +2767,17 @@ class MobileApi
         }
     }
     
-    public function getCreditTotal() {
+    
+    public function getCreditTotal() 
+    {
         $opts = $this->userStatus($status);
         $this->result['d']=-1;
-        if ($status==1) {
-            $rs = $this->db->queryResultArray(
-                "SELECT sum(r.credit - r.debit)
-                FROM T_TRAN r
-                where r.UID=?", [$this->uid], true);
-            if($rs && count($rs) && $rs[0]['SUM']!=null){
-                if($rs[0]['SUM']){                    
-                    $this->result['d']=$rs[0]['SUM']+0;
-                }else{
-                    $this->result['d']=0;                    
-                }
+        if ($status==1) 
+        {
+            $rs = $this->db->get("SELECT sum(r.credit-r.debit) FROM T_TRAN r where r.UID=?", [$this->uid], true);
+            if($rs && count($rs) && $rs[0]['SUM']!=null)
+            {
+                $this->result['d']=($rs[0]['SUM'])?$rs[0]['SUM']+0:0;
             }
         }
     }
@@ -3234,19 +2795,26 @@ class MobileApi
                     "(?, ?, ?, current_timestamp, current_timestamp, 0, 1) RETURNING ID", [$adId, 1, 0.1], TRUE);
                 $this->result['d']['order_id']=$rs[0]['ID']+0;
             
-        } else {
+        } 
+        else 
+        {
             $opts = $this->userStatus($status);
             $this->result['d']['order_id']=0;
-            if ($status==1) {                
-                $ad = $this->db->queryResultArray('select * from ad_user where id = ?', [$adId], TRUE);
-                if($ad && count($ad)){
+            if ($status==1) 
+            {       
+                $ad = $this->db->get('select * from ad_user where id = ?', [$adId], TRUE);
+                if($ad && count($ad))
+                {
                     $content = json_decode($ad[0]['CONTENT'],true);                    
                     $currentCid = 0;
                     $isMultiCountry = false;
                     $cities = $this->db->getCitiesDictionary();
-                    foreach($content['pubTo'] as $key => $val){
-                        if($key && isset($cities[$key])){
-                            if($currentCid && $currentCid != $cities[$key][4]){
+                    foreach($content['pubTo'] as $key => $val)
+                    {
+                        if($key && isset($cities[$key]))
+                        {
+                            if($currentCid && $currentCid != $cities[$key][4])
+                            {
                                 $isMultiCountry = true;
                                 break;
                             }
@@ -3254,17 +2822,20 @@ class MobileApi
                         }
                     }
                     
-                    if($isMultiCountry){
+                    if($isMultiCountry)
+                    {
                         if(isset($opts->prefs['lang']) && $opts->prefs['lang']=='ar'){
                             $msg = 'عذراً ولكن لا يمكن تمييز الاعلان في اكثر من بلد واحد';
                         }else{
                             $msg = 'Sorry, you cannot publish premium ads targetting more than ONE country';
                         }
                         $this->result['e']=$msg;
-                    }else{                
+                    }
+                    else
+                    {
                         $start_date = date('Y-m-d h:i:s', $start);
                         $this->result['start']=$start_date;
-                        $rs = $this->db->queryResultArray(
+                        $rs = $this->db->get(
                             "INSERT INTO T_AD_BO (AD_ID, OFFER_ID, CREDIT, DATED, START_DATE, BLOCKED, DEMO) VALUES ".
                             "(?, ?, ?, current_timestamp, ?, 0, 0) RETURNING ID", [$adId, 1, $days, $start_date], TRUE);
                         $this->result['d']['order_id']=$rs[0]['ID']+0;
@@ -3276,7 +2847,8 @@ class MobileApi
     }
 
 
-    public function stopAdFeature() {
+    public function stopAdFeature() 
+    {
         $adId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT)+0;
         $orderId = filter_input(INPUT_GET, 'order_id', FILTER_VALIDATE_INT)+0;        
         $opts = $this->userStatus($status);
@@ -3291,7 +2863,8 @@ class MobileApi
     }
 
 
-    public function iPhoneTransaction() {
+    public function iPhoneTransaction() 
+    {
         include_once 'ITransaction.php';
         $itran = new ITransaction($this);
     }
@@ -3469,7 +3042,8 @@ class MobileApi
     }
     
     
-    function signInAsMobile() {
+    function signInAsMobile() 
+    {
         $opts = $this->userStatus($status);
         if ($status==1) {
             $sess_id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_STRING);
@@ -3491,7 +3065,6 @@ class MobileApi
                     if ($host_id==99) {
                         $host = "https://dev.mourjan.com";
                     } else {
-                        //$host = "https://h{$host_id}.mourjan.com";
                         $host = "https://www.mourjan.com";
                     }
                 
@@ -3506,7 +3079,8 @@ class MobileApi
     }
     
     
-    function makeMobileUserIdAsOfDesktop() {
+    function makeMobileUserIdAsOfDesktop() 
+    {
         $opts = $this->userStatus($status);
         if ($status==1) {
             $sess_id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_STRING);
@@ -3533,50 +3107,8 @@ class MobileApi
                         return;
                     }
                     
-                    if ($userId>0 && $userId!=$this->uid) {
-                        /*
-                        
-                        
-                        $this->db->setWriteMode();
-
-                        if ($this->db->queryResultArray("update web_users_device set uid=? where uuid=?", [$userId, $this->uuid], true)) {
-
-                            $ok = $this->db->queryResultArray(
-                                    "update web_users_favs a set a.web_user_id=? "
-                                    . "where a.web_user_id=? "
-                                    . "and not exists (select 1 from web_users_favs b "
-                                    . "where b.web_user_id=? and b.ad_id=a.ad_id)", [$userId, $this->uid, $userId],true);
-                            if ($ok) {
-                                $ok = $this->db->queryResultArray(
-                                    "update subscription a set a.web_user_id=? "
-                                    . "where a.web_user_id = ? and "
-                                    . "not exists (select 1 from subscription b "
-                                    . "where b.web_user_id=? "
-                                    . "and b.country_id=a.country_id and b.city_id=a.city_id and b.section_id=a.section_id "
-                                    . "and b.purpose_id=a.purpose_id and b.section_tag_id=a.section_tag_id "
-                                    . "and b.locality_id=a.locality_id and b.purpose_id=a.purpose_id and b.query_term=a.query_term)",
-                                    [$userId, $this->uid, $userId],true);
-
-                                if ($ok) {
-                                    
-                                    $this->db->queryResultArray("update T_PROMOTION_USERS t set t.UID=? where t.UID=?", [$userId, $this->uid], true);
-                                    $this->db->queryResultArray("update T_TRAN t set t.UID=? where t.UID=?", [$userId, $this->uid], true);
-                                    
-                                    $ok = $this->db->queryResultArray("delete from web_users_favs where web_user_id=?", [$this->uid], true);
-                                    if ($ok) {
-                                        $ok = $this->db->queryResultArray("delete from subscription where web_user_id=?", [$this->uid], true);
-                                        if ($ok) {
-                                            $ok = $this->db->queryResultArray("delete from web_users where id=?", [$this->uid], true);
-                                        }
-                                    }
-                                }
-                            }
-                         * 
-                         * 
-                         */
-                            //error_log("Status: ". $ok ? "1":"0");
-
-                        
+                    if ($userId>0 && $userId!=$this->uid) 
+                    {                                             
                         include $this->config['dir'] .'/core/model/User.php';
                         $user = new User($this->db, $this->config, null, 0);
                         
@@ -3597,7 +3129,9 @@ class MobileApi
                          
                     }
                 }
-            } else {
+            } 
+            else 
+            {
                 $this->result['e'] = 'Your session is expired!';
             }
         }
@@ -3605,25 +3139,26 @@ class MobileApi
     }
     
     
-    function getFavoriteAds() {
-        
+    function getFavoriteAds() 
+    {        
     }
     
     
-    function getAdUserNote() {
+    function getAdUserNote() 
+    {
         $ad_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT)+0;
-
         
         if ($ad_id>0)
-            $rs = $this->db->queryResultArray("select ad_id, web_users_notes.content from web_users_notes left join ad on ad.id=web_users_notes.ad_id where web_user_id=? and deleted=0 and ad.hold=0 and ad_id=?", [$this->uid, $ad_id]);
+            $rs = $this->db->get("select ad_id, web_users_notes.content from web_users_notes left join ad on ad.id=web_users_notes.ad_id where web_user_id=? and deleted=0 and ad.hold=0 and ad_id=?", [$this->uid, $ad_id]);
         else 
-            $rs = $this->db->queryResultArray("select ad_id, web_users_notes.content from web_users_notes left join ad on ad.id=web_users_notes.ad_id where web_user_id=? and deleted=0 and ad.hold=0", [$this->uid]);
+            $rs = $this->db->get("select ad_id, web_users_notes.content from web_users_notes left join ad on ad.id=web_users_notes.ad_id where web_user_id=? and deleted=0 and ad.hold=0", [$this->uid]);
                     
         
         if ($rs)
+        {
             $this->result['d'] = $rs;
-        
-        
+        }                
     }
+    
 }
 
