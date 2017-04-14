@@ -128,7 +128,7 @@ class NoSQL
         {
             return 0;
         }
-        return intval($metadata['generation']);        
+        return intval($metadata['generation'])?intval($metadata['generation']):1; 
     }
     
     

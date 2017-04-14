@@ -289,7 +289,7 @@ class DB
     
     function get(string $query, $params=null, bool $commit=false, $fetch_mode=\PDO::FETCH_ASSOC)
     {
-        $fbquery = new FBQuery($this, $query, $params, [FBQuery::FB_DIRECT_COMMIT=>$commit]);
+        $fbquery = new FBQuery($this, $query, $params, [FBQuery::FB_DIRECT_COMMIT=>$commit, FBQuery::FB_FETCH_MODE=>$fetch_mode]);
         return $fbquery->get();        
     }
 
@@ -1127,51 +1127,56 @@ class FBQuery
     }
     
     
-    private function execute(int $trial=0) : bool
+    private function execute() : bool
     {
-        if ($this->prepare())
+        $success = FALSE;
+        $trial=0;
+        do
         {
-            try
+            $trial++;
+            if ($this->prepare())
             {
-                $executed = $this->statement->execute($this->params);                
-                return $executed;
-            } 
-            catch (\Exception $ex)
-            {
-                error_log($ex->getMessage());
-                if ($trial<$this->maxTrials && preg_match('/913 deadlock/', $ex->getMessage()))
+                try
                 {
-                    //if ($this->single)
-                    //{
-                    //    $this->owner->getInstance()->rollBack();
-                    //}
-                    //else
-                    //{
-                        $this->statement->closeCursor();
-                    //}
-                    $this->statement = null;
-                    
-                    usleep($this->sleepMicroSeconds);
-                    error_log('RETRY: '. $trial+1 .' | CODE: '.$ex->getCode().' | '.$ex->getMessage().PHP_EOL. $this->query.PHP_EOL.var_export($this->params, TRUE));
-                    return $this->execute($trial+1);                
-                }
-                else
+                    $executed = $this->statement->execute($this->params);                
+                    return $executed;
+                } 
+                catch (\Exception $ex)
                 {
-                    if ($this->single)
+                    if (preg_match('/913 deadlock/', $ex->getMessage()))
                     {
-                        $this->owner->getInstance()->rollBack();
+                        //if ($this->single)
+                        //{
+                        //    $this->owner->getInstance()->rollBack();
+                        //}
+                        //else
+                        //{
+                        $this->statement->closeCursor();
+                        //}
+                        $this->statement = null;
+                    
+                        usleep($this->sleepMicroSeconds);
+                        error_log('RETRY no: '. $trial .' | CODE: '.$ex->getCode().' | '.$ex->getMessage().PHP_EOL. $this->query.PHP_EOL.var_export($this->params, TRUE));
+                        //return $this->execute($trial+1);                
                     }
-                    error_log('CODE: '.$trial.'/'.$ex->getCode().' | '.$ex->getMessage().PHP_EOL.$this->query.PHP_EOL.var_export($this->params, TRUE));
+                    else
+                    {
+                        error_log('CODE retry no: '.$trial.'/'.$ex->getCode().' | '.$ex->getMessage().PHP_EOL.$this->query.PHP_EOL.var_export($this->params, TRUE));
+                        if ($this->single)
+                        {
+                            $this->owner->rollBack();
+                        }
+                        break;
+                    }
                 }
             }
-        }
+        } while ($trial<$this->maxTrials);
         return FALSE;
     }
     
     
     public function get()
     {
-        //error_log(PHP_EOL.$this->query);
         $this->result = false;
         if ($this->execute())
         {

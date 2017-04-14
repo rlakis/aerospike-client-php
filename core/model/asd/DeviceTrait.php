@@ -76,7 +76,7 @@ trait DeviceTrait
     {
         if (empty($uuid) || (isset($bins[USER_UID]) && $bins[USER_UID]<=0))
         {
-            error_log("Could not insert device: " . json_encode($bins));
+            error_log("Could not update device: <{$uuid}>" . json_encode($bins));
             return false;
         }
         
