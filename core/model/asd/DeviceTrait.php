@@ -80,7 +80,7 @@ trait DeviceTrait
             return false;
         }
         
-        $pk = $this->initDeviceKey($bins[USER_DEVICE_UUID]);
+        $pk = $this->initDeviceKey($uuid);
         if ($this->exists($pk))
         {
             return $this->setBins($pk, $bins); 
