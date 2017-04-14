@@ -5,8 +5,9 @@ use MaxMind\Db\Reader;
 use Core\Model\NoSQL;
 use Core\Lib\SphinxQL;
 
-class AndroidApi {
-
+class AndroidApi 
+{
+ 
     private $api;
     var $mobileValidator=null;
 
@@ -370,9 +371,11 @@ class AndroidApi {
                 }
                 $this->api->result['d'] = $params;
                 break;
+                
             case API_ANDROID_FAVORITE:                
                 $this->api->userStatus($status);
-                if ($status == 1) {
+                if ($status == 1) 
+                {
                     $this->api->db->setWriteMode();
                     $data = urldecode(filter_input(INPUT_GET, 'data', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '']]));
                     $data = json_decode($data, true);
@@ -1670,36 +1673,56 @@ class AndroidApi {
                             }else{
                                 $newId = -2;
                             }
-                        }else{                        
-                            $USER = new User($this->api->db, $this->api->config, null, 0);
-                            $user=$USER->checkAccount($username);
+                        }
+                        else
+                        { 
+                            //$USER = new User($this->api->db, $this->api->config, null, 0);
+                            $user = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($username, 'mourjan');// $USER->checkAccount($username);
                             $sendCode=false;
                             $date = date('Ymd');
-                            if(isset($user[0]['ID']) && $user[0]['ID']){
-                                $newId = $user[0]['ID'];
-                                $opt = json_decode($user[0]['OPTS'], true);
+                            if(isset($user[\Core\Model\ASD\USER_PROFILE_ID]) && $user[\Core\Model\ASD\USER_PROFILE_ID])
+                            {
+                                $newId = $user[\Core\Model\ASD\USER_PROFILE_ID];
+                                //$opt = json_decode($user[0]['OPTS'], true);
+                                $opt = $user[Core\Model\ASD\USER_OPTIONS];
 
-                                if(isset($opt['validating'])){
-                                    if(!isset($opt['validating'][$date]) || (isset($opt['validating'][$date]) && $opt['validating'][$date]<2)){
+                                if(isset($opt['validating']))
+                                {
+                                    if(!isset($opt['validating'][$date]) || (isset($opt['validating'][$date]) && $opt['validating'][$date]<2))
+                                    {
                                         $sendCode=true;
                                     }
-                                }else{
+                                }
+                                else
+                                {
                                     $sendCode=true;
                                 } 
-                                if(isset($opt['accountKey']) && $opt['accountKey']){
+                                
+                                if(isset($opt['accountKey']) && $opt['accountKey'])
+                                {
                                     $keyCode=$opt['accountKey'];
                                 }
-                            }else{           
+                                
+                            }
+                            else
+                            { 
+                                $USER = new User($this->api->db, $this->api->config, null, 0);
                                 $user = $USER->createNewAccount($username);
-                                if(isset($user[0]['ID']) && $user[0]['ID']){
-                                    $newId = $user[0]['ID'];
-                                    $opt = json_decode($user[0]['OPTS'], true);
+                                if($user && isset($user[\Core\Model\ASD\USER_PROFILE_ID]) && $user[\Core\Model\ASD\USER_PROFILE_ID])
+                                {
+                                    $newId = $user[\Core\Model\ASD\USER_PROFILE_ID];
+                                    //$opt = json_decode($user[0]['OPTS'], true);
+                                    $opt = $user[\Core\Model\ASD\USER_OPTIONS];
                                     $sendCode=true;
-                                }else{
+                                }
+                                else
+                                {
                                     $newId=-2;
                                 }
                             }
-                            if($sendCode){
+                            
+                            if($sendCode)
+                            {
                                 $isEmail = preg_match('/@/ui', $username);
                                 $sent=false;
                                 if(!$keyCode){
@@ -1715,17 +1738,24 @@ class AndroidApi {
                                     $num = $validator->parse($username, 'LB');
                                     if($num && $validator->isValidNumber($num)){
                                         $numberType = $validator->getNumberType($num);
-                                        if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE){
+                                        if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE)
+                                        {
                                             include_once $this->api->config['dir'].'/core/lib/MourjanNexmo.php';
                                             $sent = ShortMessageService::send($username, "{$keyCode} is your mourjan confirmation code");                                            
-                                        }else{
+                                        }
+                                        else
+                                        {
                                             $sent = false;
                                         }
-                                    }else{
+                                    }
+                                    else
+                                    {
                                         $sent=false;
                                     }
                                 }
-                                if($sent){
+                                
+                                if($sent)
+                                {
                                     if(!isset($opt['validating'])) $opt['validating'] = array();
                                     if(isset($opt['validating'][$date]) && is_numeric($opt['validating'][$date])){
                                         $opt['validating'][$date]++;
@@ -1734,7 +1764,9 @@ class AndroidApi {
                                     }
                                     $opt['accountKey']=$keyCode;
                                     $USER->updateOptions($newId,$opt);
-                                }else{
+                                }
+                                else
+                                {
                                     $newId=-2;
                                 }
                             }
@@ -1743,64 +1775,106 @@ class AndroidApi {
                     $this->api->result['d']['id']=$newId;
                     $this->api->result['d']['code']=$keyCode;
                     break;
+                    
                 case API_ANDROID_CHANGE_ACCOUNT:
                     $this->api->result['d'] = [];
                     $newId = -2;
                     $id = filter_input(INPUT_POST, 'nuid', FILTER_VALIDATE_INT) + 0;
                     $code = filter_input(INPUT_POST, 'code', FILTER_VALIDATE_INT) + 0;
                     $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                    if($id && $code && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                    
+                    if($id && $code && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY)))
+                    {
                         require_once $this->api->config['dir'].'/core/model/User.php';
                         $this->api->db->setWriteMode();  
                         $USER = new User($this->api->db, $this->api->config, null, 0);
-                        $user=$USER->getAccount($id);
-                        if(isset($user[0]['ID']) && $user[0]['ID']){
-                            $opt = json_decode($user[0]['OPTS'], true);
-                            if(isset($opt['accountKey']) && $opt['accountKey']==$code){
+                        //$user=$USER->getAccount($id);
+                        $user = NoSQL::getInstance()->fetchUser($id);
+                        if(isset($user[\Core\Model\ASD\USER_PROFILE_ID]) && $user[\Core\Model\ASD\USER_PROFILE_ID] /*isset($user[0]['ID']) && $user[0]['ID']*/)
+                        {
+                            $opt = $user[Core\Model\ASD\USER_OPTIONS];// json_decode($user[0]['OPTS'], true);
+                            if(isset($opt['accountKey']) && $opt['accountKey']==$code)
+                            {
                             	//error_log("API_ANDROID_CHANGE_ACCOUNT - before");                            	
                                 $USER->mergeDeviceToAccount($this->api->getUUID(), $this->api->getUID(), $id);
                                 //error_log("API_ANDROID_CHANGE_ACCOUNT - after");
-                                $old=$USER->getAccount($this->api->getUID());
-                                if(isset($old[0]['ID']) && $old[0]['ID']){
-                                    $old=$old[0];
-                                    try{
-                                        $opts = json_decode($old['OPTS'],true);
-                                    }catch(Exception $e){
-                                        $opts = [];
-                                    }
-                                    if(isset($opts['validating'])){
+                                $old = NoSQL::getInstance()->fetchUser($this->api->getUID()); //$USER->getAccount($this->api->getUID());
+                                if(isset($old[\Core\Model\ASD\USER_PROFILE_ID]) && $old[\Core\Model\ASD\USER_PROFILE_ID])
+                                {
+                                    //$old=$old[0];
+                                    //try
+                                    //{
+                                    //    $opts = json_decode($old['OPTS'],true);
+                                    //}
+                                    //catch(Exception $e)
+                                    //{
+                                    //    $opts = [];
+                                    //}
+                                    $opts = $old[Core\Model\ASD\USER_OPTIONS];
+                                    if(isset($opts['validating']))
+                                    {
                                         unset($opts['validating']);
                                     }
-                                    if(isset($opts['accountKey'])){
+                                    if(isset($opts['accountKey']))
+                                    {
                                         unset($opts['accountKey']);
                                     }
-                                    $opts = json_encode($opts);
+                                    //$opts = json_encode($opts);
                                     $USER->copyUserData($id, $old['USER_PASS'], $old['USER_RANK'], $old['LVL'], $old['USER_PUBLISHER'], $opts);
-                                }else{                                    
-                                    if(isset($opt['validating'])){
+                                }
+                                else
+                                {
+                                    if(isset($opt['validating']))
+                                    {
                                         unset($opt['validating']);
                                     }
-                                    if(isset($opt['accountKey'])){
+                                    if(isset($opt['accountKey']))
+                                    {
                                         unset($opt['accountKey']);
                                     }
-                                    $USER->updateOptions($user[0]['ID'], $opt);
+                                    $USER->updateOptions($user[\Core\Model\ASD\USER_PROFILE_ID], $opt);
                                 }
-                                if(substr($user[0]['IDENTIFIER'],0,1)=='+'){
-                                    $USER->updateUserLinkedMobile($id,$user[0]['IDENTIFIER']);
+                                
+                                if(substr($user[\Core\Model\ASD\USER_PROVIDER_ID], 0, 1)=='+')
+                                {
+                                    $USER->updateUserLinkedMobile($id, $user[\Core\Model\ASD\USER_PROVIDER_ID]);
                                 }
+                                
                                 $newId=$id;
-                                $this->api->result['d']['provider']=$user[0]['PROVIDER'];
-                                if($user[0]['PROVIDER']=='mourjan'){
-                                    $this->api->result['d']['account']=$user[0]['IDENTIFIER'];
-                                }else if($user[0]['PROVIDER']=='twitter'){
+                                $this->api->result['d']['provider']=$user[Core\Model\ASD\USER_PROVIDER];
+                                switch ($user[Core\Model\ASD\USER_PROVIDER]) 
+                                {
+                                    case 'mourjan':
+                                        $this->api->result['d']['account']=$user[Core\Model\ASD\USER_PROVIDER_ID];
+                                        break;
+
+                                    case 'twitter':
+                                        $this->api->result['d']['account']=preg_replace('/http(?:s|)::\/\/twitter\.com\//','',$user[Core\Model\ASD\USER_PROFILE_URL]);
+                                        break;
+                                    
+                                    default:
+                                        $this->api->result['d']['account']=$user[\Core\Model\ASD\USER_EMAIL];
+                                        break;
+                                }
+                                /*
+                                if($user[Core\Model\ASD\USER_PROVIDER]=='mourjan')
+                                {
+                                    $this->api->result['d']['account']=$user[Core\Model\ASD\USER_PROVIDER_ID];
+                                }
+                                else if($user[0]['PROVIDER']=='twitter')
+                                {
                                     $this->api->result['d']['account']=preg_replace('/http(?:s|)::\/\/twitter\.com\//','',$user[0]['PROFILE_URL']);
                                 }else{
                                     $this->api->result['d']['account']=$user[0]['EMAIL'];
-                                }
-                            }else{
+                                }*/
+                            }
+                            else
+                            {
                                 $newId=-1;
                             }
-                        }else{
+                        }
+                        else
+                        {
                             $newId=-1;
                         }
                     }
@@ -1820,35 +1894,47 @@ class AndroidApi {
                         require_once $this->api->config['dir'].'/core/model/User.php';
                         $this->api->db->setWriteMode();  
                         $USER = new User($this->api->db, $this->api->config, null, 0);
-                        $user=$USER->getAccount($id);
-                        if(isset($user[0]['ID']) && $user[0]['ID'])
+                        //$user=$USER->getAccount($id);
+                        $user = NoSQL::getInstance()->fetchUser($id);
+                        if(isset($user[\Core\Model\ASD\USER_PROFILE_ID]) && $user[\Core\Model\ASD\USER_PROFILE_ID])
                         {
-                            $opt = json_decode($user[0]['OPTS'], true);
+                            //$opt = json_decode($user[0]['OPTS'], true);
+                            $opt = $user[Core\Model\ASD\USER_OPTIONS];
                             if(isset($opt['accountKey']) && $opt['accountKey']==$code)
                             {
-                                if($USER->resetPassword($id, $password)){
+                                if($USER->resetPassword($id, $password))
+                                {
                                     $USER->mergeDeviceToAccount($this->api->getUUID(), $this->api->getUID(), $id);
                                     $newId=$id;
                                     
-                                    if(substr($user[0]['IDENTIFIER'],0,1)=='+'){
-                                        $USER->updateUserLinkedMobile($id,$user[0]['IDENTIFIER']);
+                                    if(substr($user[\Core\Model\ASD\USER_PROVIDER_ID],0,1)=='+')
+                                    {
+                                        $USER->updateUserLinkedMobile($id, $user[\Core\Model\ASD\USER_PROVIDER_ID]);
                                     }
                                     
-                                    $this->api->result['d']['provider']=$user[0]['PROVIDER'];
-                                    if($user[0]['PROVIDER']=='mourjan'){
-                                        $this->api->result['d']['account']=$user[0]['IDENTIFIER'];
-                                    }else if($user[0]['PROVIDER']=='twitter'){
-                                        $this->api->result['d']['account']=preg_replace('/http(?:s|)::\/\/twitter\.com\//','',$user[0]['PROFILE_URL']);
-                                    }else{
-                                        $this->api->result['d']['account']=$user[0]['EMAIL'];
+                                    $this->api->result['d']['provider']=$user[\Core\Model\ASD\USER_PROVIDER];
+                                    if($user[\Core\Model\ASD\USER_PROVIDER]=='mourjan')
+                                    {
+                                        $this->api->result['d']['account']=$user[\Core\Model\ASD\USER_PROVIDER_ID];
                                     }
-                                }else{
+                                    else if($user[\Core\Model\ASD\USER_PROVIDER]=='twitter'){
+                                        $this->api->result['d']['account']=preg_replace('/http(?:s|)::\/\/twitter\.com\//','',$user[\Core\Model\ASD\USER_PROFILE_URL]);
+                                    }else{
+                                        $this->api->result['d']['account']=$user[\Core\Model\ASD\USER_EMAIL];
+                                    }
+                                }
+                                else
+                                {
                                     $newId=-2;
                                 }
-                            }else{
+                            }
+                            else
+                            {
                                 $newId=-1;
                             }
-                        }else{
+                        }
+                        else
+                        {
                             $newId=-1;
                         }
                     }
@@ -2578,18 +2664,29 @@ class AndroidApi {
         return $state;
     }
     
-    function referrToSuperAdmin($id){
+    
+    function referrToSuperAdmin($id)
+    {
         $result=false;
-        $res=$this->api->db->queryResultArray(
-                    'update ad_object set super_admin=1 where id=?',
-                    array($id),true);
-        if ($res!==false) {
+        $res=$this->api->db->get('update ad_object set super_admin=1 where id=?', [$id], true);
+        if ($res!==false) 
+        {
             $result=true;
         }
         return $result;
     }    
     
-    function block($uid, $number, $msg){
+    
+    function block($uid, $number, $msg)
+    {
+        if (Core\Model\NoSQL::getInstance()->blacklistInsert($number, $msg, $uid))
+        {
+            $q = 'update or insert into bl_phone (telephone, subject, web_user_id) values (?, ?, ?) matching(telephone) returning id';
+            $this->db->get($q, [$number, $msg, $uid]);        
+            return 1;
+        }
+        return 0;
+        /*
         $q = 'update or insert into bl_phone (telephone,subject,web_user_id) values (?,?,?) matching(telephone) returning id';
         $block = $this->api->db->queryResultArray($q, [
             $number,
@@ -2601,9 +2698,25 @@ class AndroidApi {
             $pass=1;
         }
         return $pass;
+         * 
+         */
     }
     
-    function setLevel($id,$level){
+    
+    function setLevel($id, $level)
+    {
+        $succeed=false;
+        if($id && is_numeric($level)) 
+        {
+            if (\Core\Model\NoSQL::getInstance()->setUserLevel($id, $level))
+            {
+                $q="update web_users set lvl=? where id=?";
+                $this->db->get($q, [$level, $id], true);
+                $succeed=true;
+            }
+        }
+        return $succeed;
+        /*
         $succeed=false;
         if($id && is_numeric($level)) {
             $q="update web_users set lvl=? where id=?";
@@ -2612,9 +2725,13 @@ class AndroidApi {
             }
         }
         return $succeed;
+         * 
+         */
     }
     
-    function suspendUser($id, $time){
+    
+    function suspendUser($id, $time)
+    {
         $succeed=false;
         
         $options = $this->api->db->queryResultArray("select opts from web_users where id = ?", array($id));
@@ -2632,6 +2749,7 @@ class AndroidApi {
         }
         return $succeed;
     }
+    
     
     function faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0)
     {
