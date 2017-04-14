@@ -101,9 +101,6 @@ h1,.wow{
     float:left;
     margin:0 10px
 }
-.wow .eye{
-    background-position: -75px -251px
-}
 .wow .share{
     background-position: -198px -168px;
 }
@@ -229,9 +226,6 @@ li.vp,
 }
 .ic.k.fav.on {
     background-position: -34px -20px
-}
-.ic.k.eye.on {
-    background-position: -80px -219px
 }
 .lnk {
     color: #00E;
@@ -377,7 +371,6 @@ time{
 .bts .spam,
 b .spam,
 b .pub,
-.bts .eye,
 .bts .share,
 .bts .aedi,
 .bts .ref {
@@ -483,7 +476,6 @@ b .spam {
 .bts .spam,
 b .spam,
 b .pub,
-.bts .eye,
 .bts .share,
 .bts .aedi,
 .bts .ref {
@@ -508,12 +500,6 @@ b .pub {
 }
 .bts .share {
     background-position: -121px -58px
-}
-.bts .eye {
-    background-position: -80px -191px
-}
-.bts .eye.on {
-    background-position: -80px -221px
 }
 .shad {
     display: none
@@ -779,6 +765,19 @@ p.sde img{
 }
 .shr-em{
     background-position:-150px 0;
+}
+
+.nw {
+    background-position: -32px -1px;
+    width: 33px;
+    height: 15px;
+    display: inline-block
+}
+.en .nw {
+    margin-right: 5px
+}
+.ar .nw {
+    margin-left: 5px
 }
 .ovp.en {
     background-image: url(./i/ftroe.png)

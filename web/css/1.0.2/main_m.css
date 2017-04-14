@@ -204,6 +204,7 @@ span.ps,
     background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAyCAYAAACd+7GKAAAAdUlEQVQIW33MOw7EIAwEUDQHSbf32ttScgcaJEoo+NgmG5MVSqQoFE/jQRrsx4Mx5qN8lU2ZHS+a0pW6Ur9//JOIdBybsyMw8zzp7FprhDFGRymFT1JKjForIcZIyDkzQggM7z3DOSew1oruDcUs9tf0dF4GfsAmWGYOautYAAAAAElFTkSuQmCC) repeat-x 0 -10px
 }
 .ic,
+.mc24,
 .to,
 .et,
 .k,
@@ -214,6 +215,15 @@ span.ps,
 .adn,
 .w {
     background: url(./i/main_m.png) no-repeat center
+}
+.mc24{
+    width:30px!important;
+    height:30px;
+    background-repeat:no-repeat;
+    background-position:-83px -258px;
+    display:inline-block;
+    vertical-align:middle;
+    margin:0 5px;
 }
 .cbx,
 .rbx {
@@ -1948,13 +1958,3 @@ li.on .n {
     height: 90px;
     display: inline-block
 }
-.mc24{
-    width:30px!important;
-    height:30px;
-    background-repeat:no-repeat;
-    display:inline-block;
-    vertical-align:middle;
-    margin:0 5px;
-}
-.i,.im,.mc24{background-image:url(i/gen.png)}
-.mc24{background-position:0px -207px}

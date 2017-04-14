@@ -596,13 +596,14 @@ $lang=array(
     . '<li class="alt">Finally, premium ads have a <b>premium ad</b> <span class="vpdi en"></span> label which reflects more credibility to the ad listing.</li>',
     'back_to_gold'      =>  'Back To Mourjan Gold',
     'gold_p2'       =>  'One Mourjan gold <span class="mc24"></span> is equal to one day of premium ad listing. click on <a href="/premium/en/">premium ad</a> to find out more about premium listing service.',
-    'gold_p2_0'       =>  '<b>Also please note</b> that if for example you choose to make your ad premium for 10 days for the value of 10 gold, the 10 gold will not be instantly deducted from your balance. Instead 1 gold will be deducted on daily basis for each new day of premium listing until:<ul><li>the specified 10 days have expired</li><li>you have 0 gold left in your balance</li><li>you chose to end the premium listing</li><li>you chose to stop the ad</li></ul>',
+    'gold_p2_0'       =>  '<b>Also please note</b> that if for example you choose to make your ad premium for 10 days for the value of 10 gold, the 10 gold will not be instantly deducted from your balance. Instead 1 gold will be deducted on daily basis for each new day of premium listing until:<ul class="listnote"><li>the specified 10 days have expired</li><li>you have 0 gold left in your balance</li><li>you chose to end the premium listing</li><li>you chose to stop the ad</li></ul>',
     'gold_p2_1'       =>  'Pricing for Mourjan gold packages are as follows:',
     'gold_p2_2'       =>  '<li><ul><li>1 Gold</li><li class="ctr">=</li><li>1 USD</li></ul></li>'
     . '<li><ul><li>7 Gold</li><li class="ctr">=</li><li>5 USD</li></ul></li>'
     . '<li><ul><li>14 Gold</li><li class="ctr">=</li><li>9 USD</li></ul></li>'
     . '<li><ul><li>21 Gold</li><li class="ctr">=</li><li>13 USD</li></ul></li>'
-    . '<li><ul><li>30 Gold</li><li class="ctr">=</li><li>18 USD</li></ul></li>',
+    . '<li><ul><li>30 Gold</li><li class="ctr">=</li><li>18 USD</li></ul></li>'
+    . '<li><ul><li>100 Gold</li><li class="ctr">=</li><li>50 USD</li></ul></li>',
     'gold_p2_3'       =>  '<b>nb: prices are in US dollar and may be subject to VAT (value added tax)</b>',
     'gold_p2_5_0'       =>  'Mourjan gold can be purchased directly using your credit card. Click on the cards to choose/purchase the package that is best suitable for you or keep on reading to find out other payment options.<div class="btH"><a href="/buyu/en/"><span class="credits"></span></a></div>',
     'gold_p2_5'       =>  'Also, Mourjan gold can be purchased using <a href="https://www.paypal.com/" target="_blank"><img width=100 height=26 class="ick" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/PP_logo_h_100x26.png" alt="PayPal" /></a>',// OR <a href="https://sandbox.cashu.com/" target="_blank"><img class="ick" src="https://images.cashu.com/images/cashULogo/en/92-54.jpg" border="0" width="92" height="54" ></a>',
@@ -715,6 +716,8 @@ $lang=array(
     'paypal_failure'       =>  'Failed to proceed with your payment. Reason:',
     'payfort_fail_msg'  => 'I have a problem with my Purchase and my transaction id is ',
     'buy_now'       =>  'Buy Now',
+    'buy_paypal'       =>  'Buy With PayPal',
+    'buy_credit'       =>  'Buy With Credit Card',
     
     'switch_lang'       =>  'تبديل الى العربية',
     'user_type_label'   =>  'User Type',

@@ -2080,6 +2080,14 @@ class Page extends Site
         //$headTitle='<a href="'.$this->urlRouter->getURL($this->urlRouter->countryId,$cityId).'">Mourjan.com</a>';
         $headTitle='Mourjan.com';
         switch ($this->urlRouter->module) {
+            case 'buy':
+            case 'buyu':            
+            case 'statement':            
+            case 'gold':            
+            case 'premium':            
+                $backButton = '<a class="back" href="javascript:history.back()"></a>';
+                $hasBack=true;
+                break;
             case "detail":
                 $tmpUrl='';
                 if (isset($this->urlRouter->params['tag_id']) && $this->urlRouter->params['tag_id']){
@@ -2415,11 +2423,11 @@ class Page extends Site
             }else{
                 ?><li class="on"><b><span class="ic k fav on"></span><?= $this->lang['myFavorites'] ?></b></li><?php 
             }
-            if($this->urlRouter->module != 'search' || !$this->urlRouter->watchId) {
+            /*if($this->urlRouter->module != 'search' || !$this->urlRouter->watchId) {
                    ?><li><a href="/watchlist/<?= $lang ?>"><span class="ic k eye on"></span><?= $this->lang['myList'] ?><span class="to"></span></a></li><?php 
             }else{
                 ?><li class="on"><b><span class="ic k eye on"></span><?= $this->lang['myList'] ?></b></li><?php 
-            }
+            }*/
             ?></ul><?php
             ?><ul class="ls us br"><?php
                 ?><li class="h"><b><?= $this->lang['myAds'] ?></b></li><?php
@@ -2460,7 +2468,7 @@ class Page extends Site
             ?><li><a class="bt cl" href="?logout=<?= $this->user->info['provider'] ?>"><?= $this->lang['signout'] ?></a></li><?php
             ?></ul><?php
             
-        }elseif($this->requireLogin) {
+        }/*elseif($this->requireLogin) {
             if ($loginErr) {
                 ?><div class="nb ctr err"><?= $this->lang['signin_error'] ?></div><?php
             }
@@ -2476,12 +2484,12 @@ class Page extends Site
             if (!$this->requireLogin){ ?><li><span onclick="csif()" class="button bt cl"><?= $this->lang['cancel'] ?></span></li><?php } 
             else { ?><br /><?php }
             ?></ul><?php 
-        }
+        }*/
     }
     /* end not isApp */
         /* ?></div><?php */
         if (!$this->urlRouter->isApp) {
-            if($this->requireLogin){
+            if($this->user->info['id']==0 && $this->requireLogin){
                 ?><div class="si blk"><h2 class="ctr"><?= $this->lang['signin_m'] ?></h2><?php
                 ?><ul><?php
                 ?><li><a class="bt mj" href="/signin/<?= $lang ?>">Mourjan</a></li><?php
@@ -2492,9 +2500,9 @@ class Page extends Site
                 ?><li><a class="bt lk" href="?provider=linkedin">LinkedIn</a></li><?php
                 ?><li><a class="bt wi" href="?provider=live">Windows Live</a></li><?php
                 ?></ul></div><?php 
-            }else{
-                $this->renderNotificationsMobile();
             }
+            $this->renderNotificationsMobile();
+            
         }
         /* if ($this->urlRouter->module!='contact') {
             $uri='';
@@ -3637,6 +3645,7 @@ class Page extends Site
         ?><ul class="ls br"><?php
          ?><li><a href="/about/<?= $lang ?>"><span class="ic r102"></span><?= $this->lang['aboutUs'] ?><span class="to"></span></a></li><? 
          ?><li><a href="/contact/<?= $lang ?>"><span class="ic r100"></span><?= $this->lang['contactUs'] ?><span class="to"></span></a></li><? 
+         ?><li><a href="/gold/<?= $lang ?>"><span class="mc24"></span><?= $this->lang['gold_title'] ?><span class="to"></span></a></li><? 
         ?></ul><?php
         ?><ul class="ls br"><?php
 
@@ -5455,10 +5464,16 @@ class Page extends Site
                 }else{
                     ?><li class="on"><b><span class="ic k fav on"></span><?= $this->lang['myFavorites'] ?></b></li><?php 
                 }
-                if($this->urlRouter->module != 'search' || !$this->urlRouter->watchId) {
+                /*if($this->urlRouter->module != 'search' || !$this->urlRouter->watchId) {
                        ?><li><a href="/watchlist/<?= $lang ?>"><span class="ic k eye on"></span><?= $this->lang['myList'] ?></a></li><?php 
                 }else{
                     ?><li class="on"><b><span class="ic k eye on"></span><?= $this->lang['myList'] ?></b></li><?php 
+                }*/
+                ?><li class="sep"></li><?php
+                if($this->urlRouter->module != 'balance') {
+                    ?><li><a href="/statement/<?= $lang ?>"><span class="mc24"></span><?= $this->lang['myBalance'] ?><span class="n"></span></a></li><?php 
+                }else{
+                    ?><li class="on"><b><span class="mc24"></span><?= $this->lang['myBalance'] ?></b></li><?php 
                 }
                 ?><li class="sep"></li><?php
                 

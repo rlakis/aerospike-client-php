@@ -14,6 +14,7 @@ class Doc extends Page{
                 $this->user->redirectTo('/signin/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
             }*/
         }
+        $isRTL = $this->urlRouter->siteLanguage == 'ar' ? true : false;
         if(!$this->isMobile) {
             if ($this->urlRouter->module=='about') { 
                 $this->inlineCss.='span.ctr{display:block}.cb,.cb ul{list-style:none!important;margin:0 !important;overflow:hidden}.cb label{font-weight:bold}.cb .cb1{width:515px;float:left}.cb .cb2{width:200px;float:right;color:#666}.cb2 li{padding:0px 5px;background-color:#FFFFBF}h2 {display:block;margin-bottom:15px !important}.pf{font-size:12px;line-height:20px;margin-bottom:15px;overflow:hidden;width:260px;padding:5px;border:1px solid #CEDAF4;color:#333 !important}.pf img{float:left}.pf ul{float:left;margin:0 0 0 10px;list-style:none}.pf li{padding:2px 0}.pf p{font-style:italic;background-color:#ECECEC;padding:5px;clear:both;margin:0}.pf:hover {-moz-box-shadow:3px 3px 3px #999;-o-box-shadow:3px 3px 3px #999;-webkit-box-shadow:3px 3px 3px #999;box-shadow:3px 3px 3px #999}.pfa{float:left;margin-right:50px}.pfa:hover{text-decoration:none!important}';
@@ -128,22 +129,31 @@ class Doc extends Page{
                 ';            
             }
         }else{
+            
+            if(in_array($this->urlRouter->module,['buy','buyu'])){
+                $this->requireLogin = true;
+            }
+            
             $this->inlineCss.='h2{margin-top:10px;display:inline-block}'
                     . '.doc{margin:10px;padding:5px;background-color:#FFF}'
                     . 'p{padding:10px 0;}';
             if($this->urlRouter->module=='gold'){
                 
                 $this->inlineCss.=
-                        '.prices{padding-bottom:20px;list-style:none}'
-                        . '.prices li{overflow:hidden;padding:0px 5px}'
-                        . '.prices ul li{float:right;list-style:none;padding:5px 20px}'
-                        . '.pad{text-align:right;padding:5px 10px;margin:15px 0 0}'
-                        . '.alt{background-color:#ececec}'
-                        . 'ul{list-style: disc inside}'
+                        '.prices{list-style:none;margin-top:15px}'
+                        . '.prices > li{overflow:hidden;list-style:none;padding:5px 5px;border-bottom:1px solid #FFF}'
+                        . '.prices ul li{float:'.($isRTL ? 'right':'left').';width:80px;list-style:none;padding:5px 20px}'
+                        . '.prices ul li:nth-child(2){width:20px}'
+                        . '.pad{text-align:'.($isRTL ? 'right':'left').';padding:5px 10px;margin:15px 0 0}'
+                        . '.alt{
+background: rgb(234,239,181);
+background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1) 100%);
+}'
+                        . '.doc ul{list-style: disc inside}'
+                        . '.listnote li{padding:10px}'
                         . '.credits {
     width: 300px;
     height: 110px;
-    margin-bottom: 20px;
     display: inline-block;
     background: url('.$this->urlRouter->cfg['url_css'].'/i/creditcards.jpg) no-repeat center;
 }';
@@ -167,13 +177,15 @@ class Doc extends Page{
                     .bt:hover{text-decoration:none!important}
                     .table{list-style:none!important;overflow:hidden}
                     .table li{float:left;width:25%;height:60px;line-height:60px;white-space:nowrap;
-                    border-bottom:1px solid seagreen;padding:0 10px}
+                    border-bottom:1px solid seagreen}
                     .ar .table li{float:right;text-align:right}
+                    li.tt{width:50%}
                     .table input{vertical-align:middle;padding:0;border:0}
                     .tt{text-align:right!important}
                     .ar .tt{text-align:left!important}
                     .dialog-box{text-align:center}
                     .dialog .load{display:inline-block}
+                    .ph{background-color:#FFF;padding:15px 10px;border-bottom:1px solid #afafaf}
                 ';    
             }
             
@@ -194,12 +206,7 @@ class Doc extends Page{
                     .doc li{padding: 5px 10px}
                     .alt{background-color:#ececec;}
                     li.clr{list-style:none;padding:0;padding-top:15px;margin-bottom:30px}
-                    li.clr ul{display:inline-block}
-                    li.clr li{padding:0}
-                    ul.g3 li{width:210px}
-                    ul.g2 li{width:315px}
-                    li.clr li{float:left;text-align:center}
-                    .ar li.clr li{float:right}
+                    li.clr li{text-align:center;margin:10px;padding:0}
                     .vpdi{vertical-align:bottom}
                     .btH{text-align:center;margin-top:20px}
                     .bt{color:#FFF!important}
@@ -422,8 +429,23 @@ class Doc extends Page{
             case 'buyu':
                 if($this->user->info['id']==0){ 
                     echo '<div>';
-                    $this->renderLoginPage();
+                    if(!$this->isMobile)
+                        $this->renderLoginPage();
                 }else{
+                    if($this->isMobile){                        
+                        $uid = $this->user->info['id'];
+                        $data = $this->user->getStatement($uid, 0, false, null, $this->urlRouter->siteLanguage);
+                        $hasError = 0;
+                        if($data && $data['balance']!==null){
+                            $subHeader = '<span class="mc24"></span>'.$data['balance'].' '.$this->lang['gold'];
+                        }else{
+                            $subHeader = '<br />';
+                            $hasError = 1;
+                        }
+                        ?><p class="ph phb db bph"><?php
+                            echo $subHeader.' ';
+                        ?></p><?php 
+                    }
                     if ($this->urlRouter->siteLanguage=='ar') {
                         echo '<div class="doc ar">';
                     }else{
@@ -576,8 +598,23 @@ class Doc extends Page{
             case 'buy':
                 if($this->user->info['id']==0){ 
                     echo '<div>';
-                    $this->renderLoginPage();
+                    if(!$this->isMobile)
+                        $this->renderLoginPage();
                 }else{
+                    if($this->isMobile){                        
+                        $uid = $this->user->info['id'];
+                        $data = $this->user->getStatement($uid, 0, false, null, $this->urlRouter->siteLanguage);
+                        $hasError = 0;
+                        if($data && $data['balance']!==null){
+                            $subHeader = '<span class="mc24"></span>'.$data['balance'].' '.$this->lang['gold'];
+                        }else{
+                            $subHeader = '<br />';
+                            $hasError = 1;
+                        }
+                        ?><p class="ph phb db bph"><?php
+                            echo $subHeader.' ';
+                        ?></p><?php 
+                    }
                     if ($this->urlRouter->siteLanguage=='ar') {
                         echo '<div class="doc ar">';
                     }else{
@@ -693,9 +730,9 @@ class Doc extends Page{
                 $imgPath = $this->urlRouter->cfg['url_img'].'/presentation2/';
                 echo "<h2>{$this->lang['gold_subtitle']}</h2><br />";
                 echo "<p>{$this->lang['gold_p2']}</p>";
-                echo "<p class='pad alt'>{$this->lang['gold_p2_1']}</p>";
-                echo "<ul class='prices alt'>{$this->lang['gold_p2_2']}</ul>";
-                echo "<p class='pad alt'>{$this->lang['gold_p2_3']}</p>";
+                echo "<p class='pad alt rc'>{$this->lang['gold_p2_1']}</p>";
+                echo "<ul class='prices alt rc'>{$this->lang['gold_p2_2']}</ul>";
+                echo "<p class='pad alt rc'>{$this->lang['gold_p2_3']}</p>";
                 echo "<br /><p>{$this->lang['gold_p2_0']}</p>";
                 /* ?><div class="btH"><a href="/buy/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>" class="bt"><?= substr($this->lang['buy_gold'],0,-1)  ?></a></div><?php */
                 echo "<hr /><h2 id='how-to'>{$this->lang['buy_gold']}</h2><br />";

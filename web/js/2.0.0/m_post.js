@@ -4,10 +4,13 @@ function hasCanvas(){
   return !!(elem.getContext && elem.getContext('2d'));
 };
 var saveXHR;
-function savAd(p){  
+function savAd(p,clr){  
     if(saveXHR){
         saveXHR.abort();
         saveXHR=null;
+    }
+    if(typeof(clr)!=='undefined' && clr){
+        ad.budget=0;
     }
     ad.extra=extra;
     if(cut.t<0)cut.t=0;
@@ -3205,3 +3208,91 @@ if(hNum)
     var s = document.getElementsByTagName('head')[0];
     s.appendChild(sh);
 })();
+
+function savAdP(){
+    //check if multi country selected
+    var u=$('#cnu > li'),mu=0,ck=0,i=0,j=0,k=0,l=0,n;
+    l=u.length;
+    for(i=0;i<l;i++){
+        if($(u[i]).hasClass("on")){
+            if(ck){
+                mu=1;
+                break;
+            }else{
+                ck=1;
+            }
+        }
+    }
+    if(!mu){
+        u=$('.sls');
+        l=u.length;
+        for(i=0;i<l;i++){
+            n=u[i].childNodes;
+            k=n.length;
+            for(j=0;j<k;j++){
+                if($(n[j]).hasClass("on")){
+                    if(ck){
+                        mu=1;
+                        break;
+                    }else{
+                        ck=1;
+                        break;
+                    }
+                }
+            }
+            if(mu){
+                break;
+            }
+        }
+    }
+    if(mu){
+        mCPrem()
+    }else{
+        var sp = $('#spinner').SelectNumber();
+        Dialog.show("make_premium",null,function(){confirmPremium(sp)});
+    }
+}
+function confirmPremium(sp){
+    var str='',x='',y='';
+    var v = sp.val();
+    if(lang=='ar'){
+        str='تمييز الاعلان لمدة ';
+        if(v==1){
+            x='ذهبية واحدة';
+            y='يوم واحد';
+        }else if(v == 2){            
+            x='ذهبيتين';
+            y='يومين';
+        }else if(v < 11){
+            x=v+' ذهبيات';
+            y=v+' ايام';            
+        }else{
+            x=v+' ذهبية';
+            y=v+'يوم ';
+        }
+        str+=y;
+        str+=' لقاء ';
+        str+=x+'؟';
+    }else{
+        str='Activate premium listing for ';
+        if(v==1){
+            x='1 Gold';
+            y='1 Day';
+        }else{
+            x=v+' Golds';
+            y=v+' Days';
+        }
+        str+=y;
+        str+=' for the value of ';
+        str+=x+'?';
+    }
+    Dialog.show("confirm_premium",str,function(){
+        makePremium(v);
+    },function(){
+        savAdP();
+    });
+}
+function makePremium(c){
+    ad.budget = c;
+    savAd(1);
+}

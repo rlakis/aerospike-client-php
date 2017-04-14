@@ -463,7 +463,7 @@ class MyAds extends Page
         }
         else
         {
-            echo '<h2 class="ctr">';
+            echo '<br /><h2 class="ctr">';
             switch($this->subSection){
                 case 'pending':
                     echo $this->lang['no_ads_pending'];

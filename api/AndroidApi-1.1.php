@@ -1676,7 +1676,7 @@ class AndroidApi
                         }
                         else
                         { 
-                            //$USER = new User($this->api->db, $this->api->config, null, 0);
+                            $USER = new User($this->api->db, $this->api->config, null, 0);
                             $user = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($username, 'mourjan');// $USER->checkAccount($username);
                             $sendCode=false;
                             $date = date('Ymd');
@@ -1706,7 +1706,6 @@ class AndroidApi
                             }
                             else
                             { 
-                                $USER = new User($this->api->db, $this->api->config, null, 0);
                                 $user = $USER->createNewAccount($username);
                                 if($user && isset($user[\Core\Model\ASD\USER_PROFILE_ID]) && $user[\Core\Model\ASD\USER_PROFILE_ID])
                                 {

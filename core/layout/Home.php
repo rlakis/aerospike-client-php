@@ -176,8 +176,13 @@ class Home extends Page{
                 ?><li><a href="/favorites/<?= $lang ?>"><span class="ic k fav on"></span><?= $this->lang['myFavorites'] ?><span class="to"></span></a></li><?php 
           /*  ?></ul><?php
             ?><ul class="ls us br"><?php */
-                ?><li><a href="/watchlist/<?= $lang ?>"><span class="ic k eye on"></span><?= $this->lang['myList'] ?><span class="to"></span></a></li><?php 
+                /* ?><li><a href="/watchlist/<?= $lang ?>"><span class="ic k eye on"></span><?= $this->lang['myList'] ?><span class="to"></span></a></li><?php */
             ?></ul><?php
+            
+            ?><ul class="ls us br"><?php 
+                ?><li><a href="/statement/<?= $lang ?>"><span class="mc24"></span><?= $this->lang['myBalance'] ?><span class="to"></span></a></li><?php 
+           ?></ul><?php
+            
             ?><ul class="ls us br"><?php
                 ?><li class="h"><b><?= $this->lang['myAds'] ?></b></li><?php 
                 ?><li><a href="/myads/<?= $lang ?>"><span class="ic aon"></span><?= $this->lang['ads_active'] ?><span class="to"></span></a></li><?php

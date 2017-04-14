@@ -208,7 +208,9 @@ textarea {
     -webkit-box-shadow: 3px 3px 10px #999;
     box-shadow: 3px 3px 10px #999
 }
+
 .ic,
+.mc24,
 .to,
 .et,
 .k,
@@ -219,6 +221,15 @@ textarea {
 .adn,
 .w {
     background: url(./i/main_m.png) no-repeat center
+}
+.mc24{
+    width:30px!important;
+    height:30px;
+    background-repeat:no-repeat;
+    background-position:-78px -258px;
+    display:inline-block;
+    vertical-align:middle;
+    margin:0 5px;
 }
 .cbx,
 .rbx {

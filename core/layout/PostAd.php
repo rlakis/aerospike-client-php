@@ -27,7 +27,8 @@ class PostAd extends Page{
         $this->urlRouter->cfg['enabled_sharing']=0;
         if($this->isMobile){
             $this->urlRouter->cfg['enabled_ads']=0;
-            $this->inlineCss.='.ls li.alt{background-color:#FFF}li.h b{height:auto}.bt.ah{white-space:normal}';
+            $this->inlineCss.='.ls li.alt{background-color:#FFF}li.h b{height:auto}.bt.ah{white-space:normal}'
+                    . '.bt.gold{background-color:orange}';
         }else{
             $this->set_ad(array('zone_0'=>array('/1006833/PublicRelation', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->urlRouter->cfg['server_id'])));
         }
@@ -893,7 +894,7 @@ class PostAd extends Page{
             if(!$hasMap && $uMap!=2) $seqHide=true;
             ?><ul class="ls cls nsh po<?= (!$seqHide ? '':' hid') ?>"><?php 
                 ?><li class="pid nobd"><p><?= $this->lang['ad_review'] ?></p></li><?php  
-                if(!$this->isMobile && $budget && $this->userBalance && $this->user->pending['post']['user'] == $this->user->info['id']){
+                if($budget && $this->userBalance && $this->user->pending['post']['user'] == $this->user->info['id']){
                     $with = '';
                     if($this->urlRouter->siteLanguage == 'ar'){
                         if($budget == 1){
@@ -915,7 +916,7 @@ class PostAd extends Page{
                     ?><li class="pid"><b class="ah ctr"><span onclick="savAd(1)" class="button bt btw gold"><?= $this->lang['publish_ad_premium'].' '.$this->lang['with'].$with ?></span><br /><br /></b></li><?php
                 }
                 ?><li class="pid"><b class="ah ctr"><span onclick="savAd(1<?= ($this->user->pending['post']['user'] == $this->user->info['id']) ? ',true':'' ?>)" class="button bt btw ok"><?= $this->lang['publish_ad_free'] ?></span></b></li><?php
-                if(!$this->isMobile && $this->userBalance && $this->user->pending['post']['user'] == $this->user->info['id']){
+                if($this->userBalance && $this->user->pending['post']['user'] == $this->user->info['id']){
                     //$this->globalScript.='uqss="'.$this->urlRouter->cfg['url_jquery_ui'].'";';
                     ?><li class="pid"><b class="ah ctr"><span onclick="savAdP()" class="button bt btw gold"><?= $this->lang['publish_ad_premium'] ?></span></b></li><?php
                 }
@@ -935,7 +936,7 @@ class PostAd extends Page{
                     ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
                 ?></div><?php
             }
-            if(!$this->isMobile && $this->userBalance && ($this->user->info['level']!=9 || ($this->user->pending['post']['user'] == $this->user->info['id']) )){
+            if($this->userBalance && ($this->user->info['level']!=9 || ($this->user->pending['post']['user'] == $this->user->info['id']) )){
                 ?><div id="make_premium" class="dialog premium"><?php
                         ?><div class="dialog-title"><?= $this->lang['balance'].': '.$this->userBalance ?> <span class='mc24'></span></div><?php
                         ?><div class="dialog-hint"><?= $this->lang['premium_hint'] ?></div><?php 

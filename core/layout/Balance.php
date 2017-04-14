@@ -2,20 +2,30 @@
 require_once 'Page.php';
 
 class Balance extends Page{
+    
+    private $statementMode = false;
 
     function __construct($router){
         parent::__construct($router);
-        if($this->isMobile){
+        /*if($this->isMobile){
             if (!$this->user->info['id']) {
                 $this->user->redirectTo($this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId));
             }
-        }
+        }*/
         if($this->urlRouter->cfg['active_maintenance']){
             $this->user->redirectTo('/maintenance/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
         }
-        $title = $this->lang['account_balance'];
+        
+        $title = $this->lang['myBalance'];
+        
+        if(isset($_GET['list']) && $_GET['list']==1){
+            $this->statementMode = true;
+            $title = $this->lang['account_balance'];
+        }
+        
         $this->forceNoIndex=true;
         $this->title=$title;
+        $this->requireLogin = true;
         $this->urlRouter->cfg['enabled_ads']=0;
         
         $this->inlineCss.='
@@ -86,10 +96,12 @@ class Balance extends Page{
         if($this->isMobile){
             $this->inlineCss.='.ph{background-color:#FFF;padding:15px 10px;border-bottom:1px solid #afafaf}.ph a{float:left}'
                     . '.htf.db{background-color:#FFF;text-align:center;padding:20px 10px;}'
-                    . '.stmt .dt0{width:180px;float:right!important}
-            .stmt .et0{float:right!important}
-            .stmt .ct0{width:90px;text-align:center}
-            .stmt .xt0{width:957px;border-top:1px solid #aaa;display:none}';
+                    . '.stmt li{border:0!important}
+                        .stmt .dt0{width:180px;float:right!important;text-align:inherit!important}
+            .stmt .et0{float:right!important;width:180px}
+            .stmt .ct0{width:90px;text-align:center;float:left}
+            .stmt .xt0{border:0!important;border-top:1px solid #aaa!important;width:auto!important;display:none}
+            .doc .bt{width:70%;margin:25px}';
         }
         
         $this->inlineQueryScript.='
@@ -108,10 +120,34 @@ class Balance extends Page{
                 $this->renderDisabledPage();
                 return;
             }
-
+            $lang= $this->urlRouter->siteLanguage;
             switch($this->urlRouter->module){
                 case 'statement':
-                    $this->showMobileStatement();
+                    if($this->statementMode){
+                        $this->showMobileStatement();
+                    }else{
+                        $uid = $this->user->info['id'];
+                        $data = $this->user->getStatement($uid, 0, false, null, $this->urlRouter->siteLanguage);
+                        $hasError = 0;
+                        if($data && $data['balance']!==null){
+                            $subHeader = '<span class="mc24"></span>'.$data['balance'].' '.$this->lang['gold'];
+                        }else{
+                            $subHeader = '<br />';
+                            $hasError = 1;
+                        }
+
+                        ?><p class="ph phb db bph"><?php
+                            echo $subHeader.' ';
+                            ?><a class="buL" href="/gold/<?= $lang=='ar' ? '':$lang.'/' ?>"><span class="rj add"></span><?= $this->lang['get_gold'] ?></a><?php
+                        ?></p><?php 
+                        ?><div class="doc ctr"><br /><?php
+                        ?><a class="bt go" href="?list=1"><?= $this->lang['account_balance'] ?></a><?php
+                        ?><br /><?php
+                        ?><a class="bt mj" href="/buyu/<?= $lang=='ar' ? '':$lang.'/' ?>"><?= $this->lang['buy_credit'] ?></a><?php
+                        ?><br /><?php
+                        ?><a class="bt mj" href="/buy/<?= $lang=='ar' ? '':$lang.'/' ?>"><?= $this->lang['buy_paypal'] ?></a><?php
+                        ?></div><?php
+                    }
                     break;
                 default:
                     break;
@@ -159,8 +195,7 @@ class Balance extends Page{
         }
         
         ?><p class="ph phb db bph"><?php
-            echo $subHeader.' ';
-            ?><a class="buL" href="/gold/<?= $lang=='ar' ? '':$lang.'/' ?>"><span class="rj add"></span><?= $this->lang['get_gold'] ?></a><?php
+            echo $subHeader;
         ?></p><?php 
         if($hasError){
             ?><div class="htf db"><?= $this->lang['get_balance_error'] ?></div><?php
@@ -197,9 +232,9 @@ class Balance extends Page{
                     
                     echo '<div class="stmt'.($lang=='ar' ? ' ar':'').'">';
                     //echo '<div class="filters">'.$this->lang['from'].': <input value="'.$startDate.'" name="from" type="date" '.($canFilter ? '':'disabled="disabled"').' /><span class="sep"></span> '.$this->lang['till'].': <input value="'.$endDate.'" name="till" type="date" '.($canFilter ? '':'disabled="disabled"').' /></div>';
-                    echo '<ul class="hdr"><li class="dt0">'.$this->lang['date'].'</li>';
+                    //echo '<ul class="hdr"><li class="dt0">'.$this->lang['date'].'</li>';
                     //echo '<li class="ct0">Amount</li>';
-                    echo '<li class="ct0">'.$this->lang['balance'].'</li><li class="ct0">'.$this->lang['credit'].'</li><li class="ct0">'.$this->lang['debit'].'</li><li class="et0">'.(ucfirst($this->lang['detailMore_'.$lang])).'</li></ul>';
+                    //echo '<li class="ct0">'.$this->lang['balance'].'</li><li class="ct0">'.$this->lang['credit'].'</li><li class="ct0">'.$this->lang['debit'].'</li><li class="et0">'.(ucfirst($this->lang['detailMore_'.$lang])).'</li></ul>';
                     
                     $alt = 0;
                     for($i=0;$i<$count;$i++){
@@ -211,26 +246,50 @@ class Balance extends Page{
                                 $alt = 0;
                             }
                         }
-                        
-                        echo '<li class="dt0">'.date('G:i T d/m/Y',$data['recs'][$i][$fieldDated]).'</li>';
-                        //echo '<li class="ct0">'.( $data['recs'][$i]['AMOUNT']==0 ? '<ct>-</ct>' : (int)$data['recs'][$i]['AMOUNT'].' '.$data['recs'][$i]['CURRENCY_ID']).'</li>';
-                        echo '<li class="ct0">'.$data['recs'][$i][$fieldBalance].'</li>';
-                        echo '<li class="ct0">'.($data['recs'][$i][$fieldCredit] == 0 ? '<ct>-</ct>' : '+'.((int)$data['recs'][$i][$fieldCredit]).'<span class="mc24"></span>').'</li>';
-                        echo '<li class="ct0">'.($data['recs'][$i][$fieldDebit]==0 ? '<ct>-</ct>':'-'.((int)$data['recs'][$i][$fieldDebit])).'</li>';
-                        echo '<li class="et0">';
-                        //'.($data['recs'][$i][$fieldState]==8 ? ' sj':'').'
-                        echo '<b>';
-                        if( $data['recs'][$i][$fieldCredit] > 0){
-                            if($data['recs'][$i][$fieldCurrency] == 'MCU'){
-                                echo $this->lang['collection_of'];
-                            }else{
-                                echo $this->lang['purchase_of'];
+                        if($this->isMobile){
+                            echo '<li class="et0">';
+                            //'.($data['recs'][$i][$fieldState]==8 ? ' sj':'').'
+                            echo '<b>';
+                            if( $data['recs'][$i][$fieldCredit] > 0){
+                                if($data['recs'][$i][$fieldCurrency] == 'MCU'){
+                                    echo $this->lang['collection_of'];
+                                }else{
+                                    echo $this->lang['purchase_of'];
+                                }
+                                echo ' ';
                             }
-                            echo ' ';
+                            echo ($data['recs'][$i][$fieldTitle]);
+                            echo '</b>';
+                            echo '</li>';
+                            if($data['recs'][$i][$fieldCredit]){
+                                echo '<li class="ct0">'.($data['recs'][$i][$fieldCredit] == 0 ? '<ct>-</ct>' : '+'.((int)$data['recs'][$i][$fieldCredit]).'<span class="mc24"></span>').'</li>';
+                            }else{
+                                echo '<li class="ct0">'.($data['recs'][$i][$fieldDebit]==0 ? '<ct>-</ct>':'-'.((int)$data['recs'][$i][$fieldDebit])).'</li>';
+                            }
+                            echo '<li class="dt0">'.date('G:i T d/m/Y',$data['recs'][$i][$fieldDated]).'</li>';
+                            echo '<li class="ct0">'.$data['recs'][$i][$fieldBalance].'</li>';
+                            
+                        }else{
+                            echo '<li class="dt0">'.date('G:i T d/m/Y',$data['recs'][$i][$fieldDated]).'</li>';
+                            //echo '<li class="ct0">'.( $data['recs'][$i]['AMOUNT']==0 ? '<ct>-</ct>' : (int)$data['recs'][$i]['AMOUNT'].' '.$data['recs'][$i]['CURRENCY_ID']).'</li>';
+                            echo '<li class="ct0">'.$data['recs'][$i][$fieldBalance].'</li>';
+                            echo '<li class="ct0">'.($data['recs'][$i][$fieldCredit] == 0 ? '<ct>-</ct>' : '+'.((int)$data['recs'][$i][$fieldCredit]).'<span class="mc24"></span>').'</li>';
+                            echo '<li class="ct0">'.($data['recs'][$i][$fieldDebit]==0 ? '<ct>-</ct>':'-'.((int)$data['recs'][$i][$fieldDebit])).'</li>';
+                            echo '<li class="et0">';
+                            //'.($data['recs'][$i][$fieldState]==8 ? ' sj':'').'
+                            echo '<b>';
+                            if( $data['recs'][$i][$fieldCredit] > 0){
+                                if($data['recs'][$i][$fieldCurrency] == 'MCU'){
+                                    echo $this->lang['collection_of'];
+                                }else{
+                                    echo $this->lang['purchase_of'];
+                                }
+                                echo ' ';
+                            }
+                            echo ($data['recs'][$i][$fieldTitle]);
+                            echo '</b>';
+                            echo '</li>';
                         }
-                        echo ($data['recs'][$i][$fieldTitle]);
-                        echo '</b>';
-                        echo '</li>';
                         if($data['recs'][$i][$fieldDebit] > 0){
                             if($data['recs'][$i][$fieldId] && $data['recs'][$i][$fieldDesc]=='NA' || $data['recs'][$i][$fieldDesc]==''){  
                                 echo '<li class="xt0 '.($this->urlRouter->siteLanguage ? 'ar':'en' ).'">';                              

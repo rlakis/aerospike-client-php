@@ -98,6 +98,7 @@ textarea {
     box-shadow: 0 3px 3px #999
 }
 .ic,
+.mc24,
 .to,
 .et,
 .k,
@@ -110,6 +111,15 @@ textarea {
 .ovp,
 .w {
     background: url(./i/main_m.png) no-repeat center
+}
+.mc24{
+    width:30px!important;
+    height:30px;
+    background-repeat:no-repeat;
+    background-position:-78px -258px;
+    display:inline-block;
+    vertical-align:middle;
+    margin:0 5px;
 }
 .top {
     background-color: #143D55;
