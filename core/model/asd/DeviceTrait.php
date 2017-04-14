@@ -71,6 +71,23 @@ trait DeviceTrait
         return $this->setBins($pk, $bins);                
     }
     
+    
+    public function deviveUpdate(string $uuid, array $bins)
+    {
+        if (empty($uuid) || (isset($bins[USER_UID]) && $bins[USER_UID]<=0))
+        {
+            error_log("Could not insert device: " . json_encode($bins));
+            return false;
+        }
+        
+        $pk = $this->initDeviceKey($bins[USER_DEVICE_UUID]);
+        if ($this->exists($pk))
+        {
+            return $this->setBins($pk, $bins); 
+        }
+        error_log("Could update not existing device: {$uuid} " . json_encode($bins));
+        return FALSE;                
+    }
 
 
     public function deviceFetch(string $uuid)

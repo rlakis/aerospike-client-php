@@ -2,9 +2,12 @@
 
 require_once 'vendor/autoload.php';
 include_once '/home/www/mourjan/core/lib/MCUser.php';
+include_once '/home/www/mourjan/core/model/NoSQL.php';
+
 use mourjan\Hybrid;
 use mobiledetect\MobileDetect;
 use Core\Lib\SphinxQL;
+use Core\Model\NoSQL;
 
 class User 
 {
@@ -241,7 +244,6 @@ class User
                     }
                 }
                 
-
                 $device = new Mobile_Detect();
                 if($device->isMobile())
                 {
@@ -374,6 +376,7 @@ class User
             $this->data->getOptions()->setSuspensionTime($this->data->getMobile()->getSuspendSeconds());
             return $this->data;
         }
+        
         return new MCUser();
     }
     
@@ -456,11 +459,11 @@ class User
             {
                 if ($mobile[Core\Model\ASD\SET_RECORD_ID] = Core\Model\NoSQL::getInstance()->
                         mobileInsert([
-                                    \Core\Model\ASD\USER_UID=> $uid,
-                                    \Core\Model\ASD\USER_MOBILE_NUMBER=> $number,
+                                    \Core\Model\ASD\USER_UID=>$uid,
+                                    \Core\Model\ASD\USER_MOBILE_NUMBER=>$number,
                                     \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>111,
                                     \Core\Model\ASD\USER_MOBILE_FLAG=>0,
-                                    \Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED=> time(),
+                                    \Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED=>time(),
                                     ]))
                 {
                     $this->db->get('insert into web_users_linked_mobile '
@@ -474,29 +477,49 @@ class User
         return FALSE;       
     }
     
-
+/*
     function checkAccount($email)
     {
-        $user = $this->db->get('select * from web_users where IDENTIFIER=?', [$email]);
-        return $user;
+        return Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email, 'mourjan');
+        
+        //$user = $this->db->get('select * from web_users where IDENTIFIER=?', [$email]);
+        //return $user;
     }
-    
+
     
     function getAccount($id)
     {
         $user = $this->db->get('select * from web_users where id=?', [$id]);
         return $user;
     }
-    
+*/    
 
     function resetPassword($userId, $pass)
     {
         $original = $pass;
         $pass = md5($this->md5_prefix.$pass);
-        $user = $this->db->get("update web_users set user_pass=? where id=? returning id, opts", [$pass,  $userId]);
         $passOk=0;
+        $bins = \Core\Model\NoSQL::getInstance()->fetchUser($userId);
+        if (!empty($bins) && \Core\Model\NoSQL::getInstance()->setPassword($userId, $pass))
+        {
+            $user = $this->db->get("update web_users set user_pass=? where id=? returning id, opts", [$pass,  $userId]);
+            
+            $opt = $bins[Core\Model\ASD\USER_OPTIONS] ?? [];
+            if(isset($opt['validating'])) unset($opt['validating']);
+            if(isset($opt['resetting'])) unset($opt['resetting']);
+            if(isset($opt['accountKey'])) unset($opt['accountKey']);
+            if(isset($opt['resetKey'])) unset($opt['resetKey']);
+            if(is_null($opt) || count($opt)==0) $opt=array();
+            $this->updateOptions($bins[\Core\Model\ASD\USER_PROFILE_ID], $opt);
+            
+            $passOk=1;
+        }
+        
+        
+        /*
         try
         {
+            $user = $this->db->get("update web_users set user_pass=? where id=? returning id, opts", [$pass,  $userId]);
             if(isset($user[0]['ID']) && $user[0]['ID'])
             {
                 $opt = json_decode($user[0]['OPTS'], true);
@@ -516,32 +539,54 @@ class User
         catch(Exception $e)
         {
             $passOk=0; 
-        }
+        }*/
         return $passOk;
     }
 
 
     function createNewByEmail($email)
     {
-        $user = $this->db->get(
-            "insert into web_users
-            (IDENTIFIER, email, user_email, provider, full_name, display_name, profile_url, last_visit)
-            values (?,'',?, 'mourjan', '', '', 'https://www.mourjan.com/', current_timestamp)
-            returning id, opts",
-            [$email,$email]);
-        return $user;
+        
+        $bins = [
+            \Core\Model\ASD\USER_PROVIDER_ID=>$email, 
+            \Core\Model\ASD\USER_PROVIDER=>'mourjan', 
+            \Core\Model\ASD\USER_EMAIL=>$email, 
+            \Core\Model\ASD\USER_PROFILE_URL=>'https://www.mourjan.com/'
+            ];
+        
+        if (($bins = \Core\Model\NoSQL::getInstance()->userUpdate($bins))!==FALSE)
+        {
+            $user = $this->db->get(
+                "insert into web_users
+                (ID, IDENTIFIER, email, user_email, provider, full_name, display_name, profile_url, last_visit)
+                values (?, ?,'',?, 'mourjan', '', '', 'https://www.mourjan.com/', current_timestamp)
+                returning id, opts",
+                [$bins[\Core\Model\ASD\USER_PROFILE_ID], $email, $email]);
+
+        }
+        return $bins;
+        
+//        return $user;
     }
 
 
     function createNewByPhone($number)
     {
-        $user = $this->db->get(
-            "insert into web_users
-            (IDENTIFIER, email, user_email, provider, full_name, display_name, profile_url, last_visit)
-            values (?,'','', 'mourjan', '', '', 'https://www.mourjan.com/', current_timestamp)
-            returning id, opts",
-            [$number]);
-        return $user;
+        $bins = [
+            \Core\Model\ASD\USER_PROVIDER_ID=>strval($number), 
+            \Core\Model\ASD\USER_PROVIDER=>'mourjan', 
+            \Core\Model\ASD\USER_PROFILE_URL=>'https://www.mourjan.com/'
+            ];
+        if (($bins = \Core\Model\NoSQL::getInstance()->userUpdate($bins))!==FALSE)
+        {
+            $this->db->get(
+                "insert into web_users
+                (ID, IDENTIFIER, email, user_email, provider, full_name, display_name, profile_url, last_visit)
+                values (?, ?,'','', 'mourjan', '', '', 'https://www.mourjan.com/', current_timestamp)
+                returning id, opts", [$bins[\Core\Model\ASD\USER_PROFILE_ID], $number]);            
+        }        
+       
+        return $bins;
     }
 
 
@@ -565,6 +610,38 @@ class User
         $original = $pass;
         $userId = $this->pending['user_id'];
         $pass = md5($this->md5_prefix.$pass);
+        $passOk=0;
+        $bins = \Core\Model\NoSQL::getInstance()->fetchUser($userId);
+        if (!empty($bins) && \Core\Model\NoSQL::getInstance()->setPassword($userId, $pass))
+        {
+            $this->db->get("update web_users set user_pass=? where id=?", [$pass,  $userId], TRUE);
+            
+            $opt = $bins[Core\Model\ASD\USER_OPTIONS];
+            if(isset($opt['validating'])) unset($opt['validating']);
+            if(isset($opt['resetting'])) unset($opt['resetting']);
+            if(isset($opt['accountKey'])) unset($opt['accountKey']);
+            if(isset($opt['resetKey'])) unset($opt['resetKey']);
+            if(is_null($opt) || count($opt)==0) $opt=array();
+            $this->updateOptions($bins[\Core\Model\ASD\USER_PROFILE_ID], $opt);
+            
+            if(isset($this->pending['user_id']))unset($this->pending['user_id']);
+            if($this->sysAuthById($bins[\Core\Model\ASD\USER_PROFILE_ID]))
+            {
+                $passOk=1;
+            }
+            else
+            {
+                $passOk=0;
+                error_log('password reset sysauth failure | >'.$userId .':'.$original.'< >'.$pass.'<'."\n", 3, "/var/log/mourjan/password.log");
+                //error_log(var_export($this->db->getInstance()->errorInfo(),true)."\n",3, "/var/log/mourjan/password.log");
+            }
+        }
+        else
+        {
+            error_log('password reset failed > on query | >'.$userId .':'.$original.'< >'.$pass.'<'."\n", 3, "/var/log/mourjan/password.log");
+        }
+        
+        /*
         $user = $this->db->get("update web_users set user_pass=? where id=? returning id, opts", [$pass, $this->pending['user_id']], true);
         $passOk=0;
         try
@@ -600,6 +677,8 @@ class User
         {
             error_log('password reset failed > on exception | >'.$e->getMessage()."\n", 3, "/var/log/mourjan/password.log");
         }
+         * 
+         */
         return $passOk;
     }
 
@@ -654,6 +733,23 @@ class User
         }
         
         $info = false;
+        $user = \Core\Model\NoSQL::getInstance()->fetchUser($id);
+        if (isset($user[\Core\Model\ASD\USER_PROFILE_ID]) && isset($user[\Core\Model\ASD\USER_LEVEL]) && in_array($user[\Core\Model\ASD\USER_LEVEL], [1,2,3,9]))
+        {
+            $options=$user[Core\Model\ASD\USER_OPTIONS];
+            $info=isset($options['page']) ? $options['page'] : array();
+            if(isset($options['stats']) && count($options['stats'])) 
+            {
+                $info['stats']=$options['stats'];
+            }
+            if(!(isset($info['uri']) && $info['uri'])) 
+            {
+                $info['uri']=$id+$this->site->urlRouter->basePartnerId;
+            }
+            
+            $this->db->getCache()->set('partner_'.$id, $info);           
+        }
+        /*
         if (($user = $this->db->get("select * from web_users where id=? and lvl in (1,2,3,9)", [$id]))!==FALSE)
         {
             if (!empty($user))
@@ -672,7 +768,7 @@ class User
                 $this->db->getCache()->set('partner_'.$id, $info);                
             }
         }
-              
+        */    
         return $info;
     }
 
@@ -798,15 +894,23 @@ class User
                                 from ad_user a
                                 left join web_users u on u.id=a.web_user_id
                                 where a.admin_id=? and a.state=? 
-                                ORDER BY a.DATE_ADDED desc
-                                ', array($aid,$state), $commit);
-                        }elseif ($state){
+                                ORDER BY a.DATE_ADDED desc', 
+                                [$aid, $state], $commit);
+                        }
+                        elseif ($state)
+                        {
                             $res=$this->db->get(
-                            'select '.$pagination_str.' a.*, u.full_name, u.lvl, u.DISPLAY_NAME, u.profile_url, u.user_rank, u.provider from ad_user a left join web_users u on u.id=a.web_user_id where a.state=3 and a.admin_id='.$aid.' order by a.state asc,a.date_added desc');
-                        }else {
+                                'select '.$pagination_str.' a.*, u.full_name, u.lvl, u.DISPLAY_NAME, u.profile_url, u.user_rank, u.provider 
+                                from ad_user a 
+                                left join web_users u on u.id=a.web_user_id 
+                                where a.state=3 and a.admin_id='.$aid.' order by a.state asc,a.date_added desc');
+                        }
+                        else 
+                        {
                             $res=$this->db->get(
-                            'select '.$pagination_str.' a.*,u.full_name,u.lvl,u.DISPLAY_NAME,u.profile_url, u.user_rank,u.provider  from ad_user a left join web_users u on u.id=a.web_user_id where a.admin_id=? and a.state=? order by a.date_added desc',
-                            array($aid, $state), $commit);
+                                'select '.$pagination_str.' a.*,u.full_name,u.lvl,u.DISPLAY_NAME,u.profile_url, u.user_rank,u.provider  
+                                from ad_user a left join web_users u on u.id=a.web_user_id where a.admin_id=? and a.state=? order by a.date_added desc',
+                                [$aid, $state], $commit);
                         }
                         
                     }
@@ -819,17 +923,17 @@ class User
                         {
                             $res=$this->db->get(
                                 'select '.$pagination_str.' a.*, u.full_name, u.lvl, 
-                                    u.DISPLAY_NAME, u.profile_url, u.user_rank, 
-                                    IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
-                                    IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended,
+                                u.DISPLAY_NAME, u.profile_url, u.user_rank, 
+                                IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
+                                IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended,
                                 u.provider  
                                 from ad_user a
                                 left join web_users u on u.id=a.web_user_id 
                                 left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
                                 left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
                                 where a.web_user_id=? and a.state=? 
-                                ORDER BY bo_date_ended desc, a.DATE_ADDED desc
-                                ', [$uid, $state], $commit);
+                                ORDER BY bo_date_ended desc, a.DATE_ADDED desc', 
+                                [$uid, $state], $commit);
                         }
                         elseif ($state)
                         {
@@ -901,7 +1005,10 @@ class User
                         {
                             $res=$this->db->get(
                                     'select '.$pagination_str.' a.*, u.full_name, u.lvl, u.DISPLAY_NAME, u.profile_url, u.user_rank 
-                                    from ad_user a left join web_users u on u.id=a.web_user_id where a.web_user_id=? and a.state=? order by a.date_added desc',
+                                    from ad_user a 
+                                    left join web_users u on u.id=a.web_user_id 
+                                    where a.web_user_id=? and a.state=? 
+                                    order by a.date_added desc',
                                     array($uid, $state), $commit);
                         }
                         
@@ -935,7 +1042,9 @@ class User
                             left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date '
                             . 'where a.web_user_id=? and a.state in (1,2,3,4) order by a.date_added desc',
                             array($this->info['id']), $commit);
-                    }else {
+                    }
+                    else 
+                    {
                         // Draft
                         $res=$this->db->get('select '.$pagination_str.' * from ad_user where web_user_id=? and state=? order by date_added desc',
                                             [$this->info['id'], $state], $commit);
@@ -1056,7 +1165,7 @@ class User
     function hideAd($id)
     {
         $res=false;
-        $res=$this->db->get('update ad_user set state=8 where id=? and web_user_id=? and state=9 returning id, content, state', [$id,$this->info['id']], true);
+        $res=$this->db->get('update ad_user set state=8 where id=? and web_user_id=? and state=9 returning id, content, state', [$id, $this->info['id']], true);
         if($res) 
         {
             $this->update();
@@ -1311,7 +1420,7 @@ class User
         return $result;
     }
 
-    
+    /*
     function getOptions($id)
     {
         $q = 'select opts from web_users where id=?';
@@ -1344,7 +1453,7 @@ class User
         }
         return $result;
     }
-    
+    */
     
     function getStatement($user_id=0, $offset=0, $balanceOnly=false, $startDate=null, $language='ar')
     {
@@ -1364,7 +1473,7 @@ class User
         
         if($userId)
         {
-            $q='select sum(credit - debit) as balance from t_tran where uid=?';
+            $q='select sum(credit-debit) as balance from t_tran where uid=?';
             $res=$this->db->get($q, [$userId]);
             if($res && isset($res[0]['BALANCE']) && $res[0]['BALANCE']!=null)
             {
@@ -1725,10 +1834,11 @@ class User
                                     }
                                     else 
                                     { 
-                                        $options = $this->getOptions($uId);
-                                        if ($options!==false) {
-                                            if ($options) $options = json_decode($options, true);
-                                            else $options=array();
+                                        $options = NoSQL::getInstance()->getOptions($uId);// $this->getOptions($uId);
+                                        if ($options!==false) 
+                                        {
+                                            //if ($options) $options = json_decode($options, true);
+                                            //else $options=array();
                                             if ( (!isset($options['cut']) || json_encode($options['cut']) !=  json_encode($content['cut'])) ||
                                               (!isset($options['cui']) || json_encode($options['cui']) !=  json_encode($content['cui']))  ){
                                                 $options['cut']=$content['cut'];
@@ -1763,11 +1873,11 @@ class User
                                     }
                                     else 
                                     {                            
-                                        $options = $this->getOptions($uId);
+                                        $options = NoSQL::getInstance()->getOptions($uId);//$this->getOptions($uId);
                                         if ($options!==false) 
                                         {
-                                            if ($options) $options = json_decode ($options, true);
-                                            else $options=array();
+                                            //if ($options) $options = json_decode ($options, true);
+                                            //else $options=array();
                                             if (!isset($options['contact']))
                                                 $options['contact']=array();
                                             $options['contact']['ct']=$content['fields']['ct'];
@@ -1855,7 +1965,7 @@ class User
         $pass=false;
         if($newModel)
         {
-            if(substr($newModel, 0,1)=='+')
+            if(substr($newModel, 0, 1)=='+')
             {
                 $newModel = substr($newModel, 1);
             }
@@ -1863,10 +1973,10 @@ class User
         }
         else
         {
-            $options = $this->getOptions($uid);
+            $options = NoSQL::getInstance()->getOptions($uid);//$this->getOptions($uid);
             if($options) 
              {
-                $options =  json_decode($options,true);
+                //$options =  json_decode($options,true);
                 $options['suspend']=time()+($hours*3600);
                 $pass=$this->updateOptions($uid,$options);
             }
@@ -1984,7 +2094,7 @@ class User
         $active_ads = 0;
         if(count($contactInfo) && $this->info['id'])
         {
-            $q='select a.id from ad_user a where (a.id!='.$adId.' and a.section_id ='.$sectionId.' and a.state in (1,2)) and ( ';
+            $q='select a.id from ad_user a where (a.id!='.$adId.' and a.section_id='.$sectionId.' and a.state in (1,2)) and ( ';
             $params=array();
             $pass = 0;
             if(isset($contactInfo['p']) && count($contactInfo['p']))
@@ -2051,7 +2161,7 @@ class User
                     $auth_info = $adapter->getUserProfile();
                     
                     
-                    $this->updateUserRecord($auth_info,$provider);
+                    $this->updateUserRecord($auth_info, $provider);
                 }
             }
             
@@ -2080,16 +2190,17 @@ class User
     }
     
     
-    function setLevel($id,$level)
+    function setLevel($id, $level)
     {
         $succeed=false;
         if($id && is_numeric($level)) 
         {
-            $q="update web_users set lvl=? where id=?";
-            if ($this->db->get($q, [$level, $id], true)) 
+            if (\Core\Model\NoSQL::getInstance()->setUserLevel($id, $level))
             {
+                $q="update web_users set lvl=? where id=?";
+                $this->db->get($q, [$level, $id], true);
                 $succeed=true;
-            }        
+            }
         }
         return $succeed;
     }
@@ -2101,17 +2212,17 @@ class User
         if($id && is_numeric($type)) 
         {
             $q="update web_users set user_publisher=? where id=?";
-            if ($this->db->get($q, [$type, $id],true)) 
-            {
-                $succeed=true;
-            }
+            $this->db->get($q, [$type, $id],true);
+            return \Core\Model\NoSQL::getInstance()->setUserPublisherStatus($id, $type); 
         }
         return $succeed;
     }
     
-    
+    /*
     function getType($id)
     {
+        return \Core\Model\NoSQL::getInstance()->getUserPublisherStatus($id);
+        
         $q='select id, user_publisher from web_users where id=?';
         $result=$this->db->get($q, [$id]);
         if ($result && isset($result[0]) && $result[0]['ID']) 
@@ -2120,7 +2231,7 @@ class User
         }
         return false;
     }
-    
+    */
     
     function setUserParams($result, $asbins=FALSE)
     { 
@@ -2194,6 +2305,14 @@ class User
     
     function reloadData($id)
     {
+        $bins= \Core\Model\NoSQL::getInstance()->fetchUser($id);
+        if (!empty($bins))
+        {
+            $this->setUserParams($bins, TRUE);
+            $this->update();
+            return;
+        }
+        
         $q='select identifier, id, lvl, display_name, provider, email, user_rank, user_name, user_email, opts, prev_visit, last_visit from web_users where id=?';
         $result=$this->db->get($q, [$id]);
         if ($result && isset($result[0]) && $result[0]['ID']) 
@@ -2206,16 +2325,22 @@ class User
     
     function authenticateById($id, $key)
     {
+        Core\Model\NoSQL::getInstance()->setVisitUnixtime($id);
         $bins = Core\Model\NoSQL::getInstance()->fetchUser($id);
         if (isset($bins[\Core\Model\ASD\USER_PROFILE_ID]) && isset($bins[Core\Model\ASD\USER_PROVIDER_ID]))
         {
             if (md5($bins[Core\Model\ASD\USER_PROVIDER_ID])==$key)
             {
-                
-            }            
+                $this->setUserParams($bins, TRUE);
+                $this->update();
+                        
+                $q = 'update web_users set last_visit=current_timestamp where id=?';
+                $this->db->get($q, array($id));
+
+                return;
+            }
         }
-        /*$q='select identifier,id,lvl,display_name,provider, email, user_rank,user_name,user_email,opts,prev_visit,last_visit 
-            from web_users where id = ?';*/
+
         $q = 'update web_users set last_visit=current_timestamp where id=? returning identifier, id, lvl, display_name, provider, email, user_rank, user_name, user_email, opts, prev_visit, last_visit';
         $result=$this->db->get($q, array($id));
         if ($result && isset($result[0]) && $result[0]['ID'] && md5($result[0]['IDENTIFIER'])==$key) 
@@ -2241,7 +2366,8 @@ class User
 
             if ((time()-$pv)>1800)
             {
-                Core\Model\NoSQL::getInstance()->setVisitUnixtime($id);                
+                Core\Model\NoSQL::getInstance()->setVisitUnixtime($id);
+                /*
                 if ($this->site==null||$this->site->urlRouter->module=='ajax-pi'||$this->site->urlRouter->module=='ajax-screen')
                 {
                     $q='select identifier, id, lvl, display_name, provider, email, user_rank, user_name, user_email, opts, prev_visit, last_visit from web_users where id=?';
@@ -2250,12 +2376,13 @@ class User
                 {
                     $q = 'update web_users set last_visit=current_timestamp where id=? returning identifier, id, lvl, display_name, provider, email, user_rank, user_name, user_email, opts, prev_visit, last_visit';
                     $result=$this->db->get($q, [$id]);
-                }
+                }*/
             }
+            /*
             else
             {
                 $q='select identifier, id, lvl, display_name, provider, email, user_rank, user_name, user_email, opts, prev_visit, last_visit from web_users where id=?';
-            }
+            }*/
             return 1;
         }
         return 0;
@@ -2265,8 +2392,32 @@ class User
     function authenticateUserAccount($account, $pass)
     {
         $pass = md5($this->md5_prefix.$pass);
-        
-        $q='select id from web_users where identifier=? and  user_pass=? and provider=\'mourjan\'';
+        $bins = \Core\Model\NoSQL::getInstance()->fetchUserByProviderId(trim($account));
+        if (!empty($bins))
+        {
+            if (isset($bins[\Core\Model\ASD\USER_PROFILE_ID]) && $bins[\Core\Model\ASD\USER_PROFILE_ID]>0)
+            {
+                if (isset($bins[Core\Model\ASD\USER_PASSWORD]) && $bins[Core\Model\ASD\USER_PASSWORD]==$pass)
+                {
+                    return $bins[\Core\Model\ASD\USER_PROFILE_ID];
+                }
+                else
+                {
+                    return 0; // wrong password
+                }
+                
+            }
+            else
+            {
+                return -1; //account not found
+            }            
+        }
+        else
+        {
+            return -2;//server error
+        }
+        /*
+        $q='select id from web_users where identifier=? and user_pass=? and provider=\'mourjan\'';
         $q2='select id from web_users where identifier=? and provider=\'mourjan\'';
         if(!preg_match('/@/',$account))
         {
@@ -2275,7 +2426,8 @@ class User
             $q2='select id from web_users where identifier containing ? and provider=\'mourjan\'';
         }
         
-        $result=$this->db->get($q, array($account,$pass));
+        $result=$this->db->get($q, [$account, $pass]);
+        
         if($result!==false)
         {
             if (isset($result[0]) && $result[0]['ID']) 
@@ -2306,12 +2458,53 @@ class User
         else
         {
             return -2;//server error
-        }
+        }*/
     }
     
     
     function authenticateByEmail($email, $pass)
     {
+        $_status = $this->authenticateUserAccount($email, $pass);
+        if ($_status==0)
+        {
+            $bins = \Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email);
+            \Core\Model\NoSQL::getInstance()->setVisitUnixtime($bins[\Core\Model\ASD\USER_PROFILE_ID]);
+            $bins = \Core\Model\NoSQL::getInstance()->fetchUser($bins[\Core\Model\ASD\USER_PROFILE_ID]);
+            
+            $this->setUserParams($bins, TRUE);
+            if (isset($this->pending['fav'])) 
+            {
+                $this->updateFavorite($this->pending['fav'],0);
+                unset($this->pending['fav']);
+            }
+            $checkWatchMail=false;
+            $updateOptions=false;
+            if (isset($this->pending['watch'])) 
+            {
+                $this->insertWatch($this->pending['watch']);
+                unset($this->pending['watch']);
+                $updateOptions=true;
+                $checkWatchMail=true;
+            }      
+            
+            $this->update();
+            
+            if ($updateOptions)
+            {
+                $this->updateOptions();
+                if ($checkWatchMail) 
+                {
+                    $watchArray=isset($this->info['options']['watch']) ? $this->info['options']['watch'] : array();
+                    $mailFrequency=(isset($this->info['options']['mailEvery']) && $this->info['options']['mailEvery']) ? $this->info['options']['mailEvery'] : 1;
+                    $this->checkWatchMailSetting($this->info['id'], $mailFrequency);
+                }
+            }
+            $this->db->get("update web_users set last_visit=current_timestamp where id=?", [$bins[\Core\Model\ASD\USER_PROFILE_ID]], TRUE);
+            return 1;
+        }
+        return 0;
+        
+        /*
         $pass = md5($this->md5_prefix.$pass);
         
         $q='update web_users set last_visit=current_timestamp  
@@ -2360,16 +2553,32 @@ class User
             
             return 1;
         }
-        else return 0;
+        else return 0;*/
     }
     
     
     function copyUserData($id, $pass, $rank, $level, $pubType, $opts)
     {
-        $q = 'update web_users set user_pass=?, user_rank=?, lvl=?, user_publisher=?, opts=? where id=?';
-        $result=$this->db->get($q, [$pass, $rank, $level, $pubType, $opts, $id]);
-        return $result;
+       
+        
+        $bins = [
+            \Core\Model\ASD\USER_PASSWORD=>$pass,
+            \Core\Model\ASD\USER_RANK=>$rank,
+            \Core\Model\ASD\USER_LEVEL=>$level,
+            \Core\Model\ASD\USER_PUBLISHER_STATUS=>$pubType,
+            \Core\Model\ASD\USER_OPTIONS=> is_array($opts) ? $opts : json_decode($opts, TRUE),            
+            ];
+        
+        if (\Core\Model\NoSQL::getInstance()->userUpdate($bins, $id))
+        {
+            $q = 'update web_users set user_pass=?, user_rank=?, lvl=?, user_publisher=?, opts=? where id=?';
+            $this->db->get($q, [$pass, $rank, $level, $pubType, is_array($opts)?json_encode($opts):$opts, $id]);
+            return TRUE;
+        }
+        
+        return FALSE;
     }
+         
     
     
     function mergeDeviceToAccount($uuid, $uid, $newUid)
@@ -2396,14 +2605,76 @@ class User
         {
             if($newUid==0)
             {
-                $getUserRecord=$this->db->prepareQuery('update or insert into web_users
-                    (IDENTIFIER, email, provider, full_name, display_name, profile_url, last_visit)
-                    values (?, ?, ?, ?, ?, ?, current_timestamp)
-                    matching (identifier, provider) returning id');
+                $userBins = \Core\Model\NoSQL::getInstance()->fetchUserByProviderId($identifier, $provider);
+                if (isset($userBins[\Core\Model\ASD\USER_PROFILE_ID]) && $userBins[\Core\Model\ASD\USER_PROFILE_ID])
+                {
+                    // user aleady exists
+                    $bins = \Core\Model\NoSQL::getInstance()->userUpdate([
+                                    \Core\Model\ASD\USER_PROVIDER_ID => $identifier,
+                                    \Core\Model\ASD\USER_EMAIL => $email,
+                                    \Core\Model\ASD\USER_PROVIDER => $provider,
+                                    \Core\Model\ASD\USER_FULL_NAME => $fullName,
+                                    \Core\Model\ASD\USER_DISPLAY_NAME => $dispName,
+                                    \Core\Model\ASD\USER_PROFILE_URL => $infoStr,
+                                    \Core\Model\ASD\USER_LAST_VISITED => time(),
+                                    ],
+                                    $userBins[\Core\Model\ASD\USER_PROFILE_ID], TRUE);       
+                }
+                else
+                {
+                    $bins = \Core\Model\NoSQL::getInstance()->userUpdate([
+                                    \Core\Model\ASD\USER_PROVIDER_ID => $identifier,
+                                    \Core\Model\ASD\USER_EMAIL => $email,
+                                    \Core\Model\ASD\USER_PROVIDER => $provider,
+                                    \Core\Model\ASD\USER_FULL_NAME => $fullName,
+                                    \Core\Model\ASD\USER_DISPLAY_NAME => $dispName,
+                                    \Core\Model\ASD\USER_PROFILE_URL => $infoStr,
+                                    \Core\Model\ASD\USER_LAST_VISITED => time(),
+                                    ], 0, TRUE);
+                    $q='update or insert into web_users
+                        (ID, IDENTIFIER, email, provider, full_name, display_name, profile_url, last_visit)
+                        values (?, ?, ?, ?, ?, ?, ?, current_timestamp)
+                        matching (identifier, provider)';
+                    if (isset($bins) && isset($bins[\Core\Model\ASD\USER_PROFILE_ID]) && $bins[\Core\Model\ASD\USER_PROFILE_ID])
+                    {
+                        $this->db->get($q, [$bins[\Core\Model\ASD\USER_PROFILE_ID], $identifier, $email, $provider, $fullName, $dispName, $infoStr], TRUE);
+                    }
+                    
+                }
+                
+                if (isset($bins) && isset($bins[\Core\Model\ASD\USER_PROFILE_ID]) && $bins[\Core\Model\ASD\USER_PROFILE_ID])
+                {
+                    $newUserId = $bins[\Core\Model\ASD\USER_PROFILE_ID];
+                    //$this->db->get("update web_users set last_visit=current_timestamp where id=?", [$newUserId], TRUE);
+                }
+                else 
+                {
+                    error_log("User Device Update/Insert Failure");
+                }
+                
+                //$getUserRecord=$this->db->prepareQuery('update or insert into web_users
+                //    (IDENTIFIER, email, provider, full_name, display_name, profile_url, last_visit)
+                //    values (?, ?, ?, ?, ?, ?, current_timestamp)
+                //    matching (identifier, provider) returning id');
             }
-   
-            $result = false;
+            else
+            {
+                $bins = \Core\Model\NoSQL::getInstance()->fetchUser($newUid);
+                if (isset($bins) && isset($bins[\Core\Model\ASD\USER_PROFILE_ID]) && $bins[\Core\Model\ASD\USER_PROFILE_ID])
+                {
+                    $newUserId = $bins[\Core\Model\ASD\USER_PROFILE_ID];
+                    //$this->db->get("update web_users set last_visit=current_timestamp where id=?", [$newUserId], TRUE);
+                }
+                else 
+                {
+                    error_log("User Record Not Found");
+                }
+                
+            }
             
+            
+            $result = false;
+            /*
             if($newUid==0)
             {
                 if($getUserRecord->execute([$identifier, $email, $provider, $fullName, $dispName, $infoStr])) 
@@ -2434,9 +2705,150 @@ class User
             }
             
             if (isset($getUserRecord)) unset($getUserRecord);
-
+            */
+            
             if($newUserId)
             {
+                if (NoSQL::getInstance()->deviveUpdate($uuid, [\Core\Model\ASD\USER_UID=>$newUserId]))
+                {
+                    include_once $this->cfg['dir'] . '/core/lib/SphinxQL.php';
+                    $sphinx = new SphinxQL($this->cfg['sphinxql'], $this->cfg['search_index']);
+                            
+                    //Clean up previous favorites
+                    $selectAllUserFavorite = $this->db->prepareQuery('select ad_id from web_users_favs where web_user_id=?');
+                    $deleteFavorites = $this->db->prepareQuery('delete from web_users_favs where web_user_id=? and ad_id=?');
+                    $favs = $selectAllUserFavorite->execute([$uid]);
+                    if($favs !== false)
+                    {
+                        while(($row = $selectAllUserFavorite->fetch(PDO::FETCH_NUM)) !== false)
+                        {
+                            $ad_id = $row[0];
+                            $deleteFavorites->execute([$newUserId, $ad_id]);
+                        }
+                    }
+                    unset($deleteFavorites);
+                    unset($selectAllUserFavorite);
+                    
+                    //MERGE DEVICE FAVORITES
+                    $updateFavorites = $this->db->prepareQuery('update web_users_favs set web_user_id=? where web_user_id=?');
+                    if($updateFavorites->execute([$newUserId, $uid]))
+                    {
+                        $selectUserFavorite = $this->db->prepareQuery('select ad_id from web_users_favs where web_user_id=? and deleted=0');
+                        if($selectUserFavorite->execute([$newUserId]))
+                        {                                	
+                            while( ($row = $selectUserFavorite->fetch(PDO::FETCH_NUM)) !== false)
+                            {
+                                $ad_id = $row[0];
+                
+                                $getFavoritesUserList = $this->db->prepareQuery('select cast(list(web_user_id) as varchar(2048)) from web_users_favs where deleted=0 and ad_id=?');
+                                if ($getFavoritesUserList->execute([$ad_id])) 
+                                { 
+                                    if( ($user_list = $getFavoritesUserList->fetch(PDO::FETCH_NUM)) !== false)
+                                    {
+                                        if(isset($user_list[0]) && $user_list[0])
+                                        {
+                                            $ql = "update {$this->cfg['search_index']} set starred=({$user_list[0]}) where id={$ad_id}";
+                                        }
+                                        else
+                                        {
+                                            $ql = "update {$this->cfg['search_index']} set starred=() where id={$ad_id}"; 
+                                        }
+                                        $sphinx->directUpdateQuery($ql);
+                                    }
+                                }
+                                unset($getFavoritesUserList);
+                            }
+                            unset($selectUserFavorite);
+                            $sphinx->close();
+                        }
+                    }
+                    unset($updateFavorites);
+                    
+                    //MERGE PROMOTIONS
+                    $updateOffers=$this->db->prepareQuery('update t_promotion_users set uid=? where uid=? and claimed=0 and expiry_date>current_timestamp');
+                    $updateOffers->execute([$newUserId, $uid]);
+                    unset($updateOffers);
+
+                    //Clean up previous subscription duplicates
+                    $selectPrevSubscriptions=$this->db->prepareQuery('select * from subscription where web_user_id=?');
+                    $subs = $selectPrevSubscriptions->execute([$uid]);
+                    if($subs!==false)
+                    {
+                        $deletePrevSubscriptions=$this->db->prepareQuery('delete from subscription where web_user_id=? and country_id=? and city_id=? and section_id=? and purpose_id=? and section_tag_id=? and locality_id=? and query_term=?');
+                        while(($row = $selectPrevSubscriptions->fetch(PDO::FETCH_ASSOC)) !== false)
+                        {
+                            $deletePrevSubscriptions->execute([$newUserId, $row['COUNTRY_ID'], $row['CITY_ID'], $row['SECTION_ID'], $row['PURPOSE_ID'], $row['SECTION_TAG_ID'], $row['LOCALITY_ID'], $row['QUERY_TERM'] ]);
+                        }
+                        unset($deletePrevSubscriptions);
+                    }
+                    unset($selectPrevSubscriptions);
+
+                    //MERGE SUBSCRIPTION LIST
+                    $updateSubscriptions = $this->db->prepareQuery('update subscription set web_user_id=? where web_user_id=?');
+                    $updateSubscriptions->execute([$newUserId, $uid]);
+                    unset($updateSubscriptions);
+                    
+                    //MERGE MYADS
+                    $getMyAds=$this->db->prepareQuery('select id, content from ad_user where web_user_id=?');
+                    if($getMyAds->execute([$uid]))
+                    {
+                        $updateMyAd=$this->db->prepareQuery('update ad_user set web_user_id=?, content=? where id=?');
+                        while(($row = $getMyAds->fetch(PDO::FETCH_NUM)) !== false)
+                        {
+                            $id = $row[0];
+                            $content = json_decode($row[1], true);
+                            $content['user']=$newUserId;
+                            $content = json_encode($content);
+                            $updateMyAd->execute([$newUserId, $content, $id]);
+                        }
+                        unset($updateMyAd);
+                    }
+                    else
+                    {
+                        error_log("get ads on connect failure");
+                    }
+                    unset($getMyAds);
+                            
+                    //Clean up previous notes
+                    $selectAllUserNotes = $this->db->prepareQuery('select ad_id from web_users_notes where web_user_id=?');
+                    $notes = $selectAllUserNotes->execute([$uid]);                            
+                    if($notes!==false)
+                    {
+                        $deleteNotes=$this->db->prepareQuery('delete from web_users_notes where web_user_id=? and ad_id=?');
+                        while(($row = $selectAllUserNotes->fetch(PDO::FETCH_NUM)) !== false)
+                        {
+                            $ad_id = $row[0];
+                            $deleteNotes->execute([$newUserId, $ad_id]);
+                        }
+                        unset($deleteNotes);
+                    }
+                    unset($selectAllUserNotes);
+                            
+                    //MERGE DEVICE FAVORITES
+                    $updateNotes=$this->db->prepareQuery('update web_users_notes set web_user_id=? where web_user_id=?');
+                    $updateNotes->execute([$newUserId, $uid]);
+                    unset($updateNotes);
+                            
+                            
+                    //MERGE DEVICE FAVORITES
+                    $updateTransRecords = $this->db->prepareQuery('update T_TRAN t set t.UID=? where t.UID=?');
+                    $updateTransRecords->execute([$newUserId, $uid]);
+                    unset($updateTransRecords);
+                            
+                    $mcUser = new MCUser($uid);
+                    if($mcUser->isMobileVerified())
+                    {
+                        $mobile = $mcUser->getMobile(true);                                
+                        \Core\Model\NoSQL::getInstance()->mobileCopyRecord($uid, $mobile->getNumber(), $newUserId);
+                    }
+                }
+                else
+                {
+                    error_log("Device Update Record Failure");
+                }
+
+
+                /*
             	$updateDeviceRecord=$this->db->prepareQuery('update web_users_device set uid=?, cuid=0 where (uid=? or uid=?) and uuid=? returning uid');
                 
                 if($updateDeviceRecord instanceOf  PDOStatement && $updateDeviceRecord->execute([$newUserId, $uid, $newUserId, $uuid]))
@@ -2602,7 +3014,7 @@ class User
                 else
                 {
                     error_log("Device Update Record Failure");
-                }
+                }*/
             }
         }
         catch(Exception $e)
@@ -2620,10 +3032,8 @@ class User
 
     function updateUserRecord($info, $provider)
     {
-        //Core\Model\NoSQL::getInstance()->updateUser($info, $provider);
-
         $updateOptions=false;
-        $provider=strtolower($provider);
+        $provider=strtolower(trim($provider));
         $identifier=$info->identifier;
         $email=is_null($info->emailVerified) ? (is_null($info->email ? '' : $info->email)) :$info->emailVerified;
         if(strpos($email, '@')===false) $email='';
@@ -2631,6 +3041,84 @@ class User
         $dispName=(!is_null($info->displayName) ? $info->displayName : '');
         $infoStr=(!is_null($info->profileURL) ? $info->profileURL : '');
         
+        $userBins = \Core\Model\NoSQL::getInstance()->fetchUserByProviderId($identifier, $provider);
+        if (isset($userBins[\Core\Model\ASD\USER_PROFILE_ID]) && $userBins[\Core\Model\ASD\USER_PROFILE_ID])
+        {
+            // user aleady exists
+            $bins = \Core\Model\NoSQL::getInstance()->userUpdate([
+                                    \Core\Model\ASD\USER_PROVIDER_ID => $identifier,
+                                    \Core\Model\ASD\USER_EMAIL => $email,
+                                    \Core\Model\ASD\USER_PROVIDER => $provider,
+                                    \Core\Model\ASD\USER_FULL_NAME => $fullName,
+                                    \Core\Model\ASD\USER_DISPLAY_NAME => $dispName,
+                                    \Core\Model\ASD\USER_PROFILE_URL => $infoStr,
+                                    \Core\Model\ASD\USER_LAST_VISITED => time(),
+                                    ],
+                                    $userBins[\Core\Model\ASD\USER_PROFILE_ID]);       
+        }
+        else
+        {
+            $this->pending['social_new']=1; 
+            $bins = \Core\Model\NoSQL::getInstance()->userUpdate([
+                                    \Core\Model\ASD\USER_PROVIDER_ID => $identifier,
+                                    \Core\Model\ASD\USER_EMAIL => $email,
+                                    \Core\Model\ASD\USER_PROVIDER => $provider,
+                                    \Core\Model\ASD\USER_FULL_NAME => $fullName,
+                                    \Core\Model\ASD\USER_DISPLAY_NAME => $dispName,
+                                    \Core\Model\ASD\USER_PROFILE_URL => $infoStr,
+                                    \Core\Model\ASD\USER_LAST_VISITED => time(),
+                                    ]);
+        }
+        
+        
+        if (isset($bins[\Core\Model\ASD\USER_PROFILE_ID]) && $bins[\Core\Model\ASD\USER_PROFILE_ID])
+        {
+            $q='update or insert into web_users
+                (ID, IDENTIFIER, email, provider, full_name, display_name, profile_url, last_visit)
+                values (?, ?, ?, ?, ?, ?, ?, current_timestamp)
+                matching (identifier, provider)';
+            
+            $this->setUserParams($bins, TRUE);
+            
+            if (isset($this->pending['fav'])) 
+            {
+                $this->updateFavorite($this->pending['fav'],0);
+                unset($this->pending['fav']);
+            }
+            
+            $checkWatchMail=false;
+            if (isset($this->pending['watch'])) 
+            {
+                $this->insertWatch($this->pending['watch']);
+                unset($this->pending['watch']);
+                $updateOptions=true;
+                $checkWatchMail=true;
+            }
+            
+            if (!isset($this->info['options']['lang']))
+            {
+                $this->info['options']['lang']=  $this->site->urlRouter->siteLanguage;
+                $updateOptions=true;
+            }            
+            
+            $this->update();
+
+            if ($updateOptions)
+            {  
+                $this->updateOptions();
+                if ($checkWatchMail) 
+                {
+                    $watchArray=isset($this->info['options']['watch']) ? $this->info['options']['watch'] : array();
+                    $mailFrequency=(isset($this->info['options']['mailEvery']) && $this->info['options']['mailEvery']) ? $this->info['options']['mailEvery'] : 1;
+                    $this->checkWatchMailSetting($this->info['id'], $mailFrequency);
+                }
+            }
+            
+            $this->db->get($q, [$bins[\Core\Model\ASD\USER_PROFILE_ID], $identifier, $email, $provider, $fullName, $dispName, $infoStr], true);
+        }
+
+        
+        /*
         $userRec=$this->db->get("select id from web_users where identifier=? and provider=?", array($identifier,$provider));
         if ($userRec!==false)
         {
@@ -2690,7 +3178,7 @@ class User
                     $this->checkWatchMailSetting($this->info['id'], $mailFrequency);
                 }
             }
-        }
+        }*/
     }
     
 
@@ -2705,6 +3193,34 @@ class User
             $this->info['options']['nb']=array('ads'=>1,'coms'=>1,'news'=>1,'third'=>1);
         }
         $succeed=false;
+        $bins = [\Core\Model\ASD\USER_EMAIL=>$email, Core\Model\ASD\USER_OPTIONS=>$this->info['options']];
+        if (($record= \Core\Model\NoSQL::getInstance()->userUpdate($bins, $this->info['id']))!==FALSE)
+        {
+            $succeed=true;
+            if($this->info['level']==6)
+            {
+                $this->info['level']=0;
+                $this->setLevel($this->info['id'], 0);
+            }
+            
+            $this->info['email']=$email;
+            $this->update();
+            $watchArray=isset($this->info['options']['watch']) ? $this->info['options']['watch'] : array();
+            $mailFrequency=(isset($this->info['options']['mailEvery']) && $this->info['options']['mailEvery']) ? $this->info['options']['mailEvery'] : 1;
+            $this->checkWatchMailSetting($this->info['id'], $mailFrequency);
+            
+            $q="update web_users set user_email=?, opts=? where id=?";
+            $options=json_encode($this->info['options']);
+            $this->db->get($q, [$email, $options, $this->info['id']], true);
+        }
+        else
+        {
+            $this->info['options']['email']=$email;
+            $this->info['options']['emailKey']=$emailKey;
+            $this->update();
+        }
+        
+        /*
         $q="update web_users set user_email=?,opts=? where id=?";
         $options=json_encode($this->info['options']);
         if ($this->db->get($q, array($email,$options,$this->info['id']),true)) 
@@ -2726,7 +3242,7 @@ class User
             $this->info['options']['email']=$email;
             $this->info['options']['emailKey']=$emailKey;
             $this->update();
-        }
+        }*/
         return $succeed;
     }
     
@@ -2763,23 +3279,36 @@ class User
     function updateOptions($id=0, $options=null)
     {
         $succeed=false;
-
-        $q=$this->db->prepareQuery("update web_users set opts=:options where id=:id");
         if (!is_null($options) && is_array($options))
-            $options = json_encode($options);
-        else
-            $options = json_encode($this->info['options']);
-        if (!$id)
-            $id= $this->info['id'];
-        $q->bindParam(':options', $options, PDO::PARAM_LOB);
-        $q->bindParam(':id', $id, PDO::PARAM_INT);
-
-        if ($q->execute()) 
         {
-            $succeed=true;
+            $options = json_encode($options);
+        } else {
+            $options = json_encode($this->info['options']);
         }
-        $q->closeCursor();
-        $this->db->commit();
+        
+        if (!$id)
+        {
+            $id= $this->info['id'];
+        }
+        
+        if (\Core\Model\NoSQL::getInstance()->setUserBin($id, Core\Model\ASD\USER_OPTIONS, json_decode($options, TRUE)))
+        {
+            $succeed = TRUE;
+            try
+            {
+                $q=$this->db->prepareQuery("update web_users set opts=:options where id=:id");
+                
+                $q->bindParam(':options', $options, PDO::PARAM_LOB);
+                $q->bindParam(':id', $id, PDO::PARAM_INT);
+
+                $q->execute();
+               
+                $q->closeCursor();
+                $this->db->commit();
+            }
+            catch (Exception $e) {}
+        }
+        
         
         return $succeed;
     }
@@ -2925,7 +3454,7 @@ class User
     function updateWatch($id, $title, $email)
     {
         $succeed=false;
-        $q="update subscription set title = ?,email=? where id = ? and web_user_id = ?";
+        $q="update subscription set title=?, email=? where id=? and web_user_id=?";
         if ($this->db->get($q, array($title,$email, $id, $this->info['id']),true) ) 
         {
             $succeed=true;
@@ -2938,7 +3467,7 @@ class User
     {
         $succeed=false;
         $q="update or insert into web_users_favs (web_user_id, ad_id, deleted) values (?, ?, ?) matching (web_user_id, ad_id)";
-        if ($this->db->get($q, array($this->info['id'],$id, $state), true, PDO::FETCH_NUM ) ) 
+        if ($this->db->get($q, array($this->info['id'], $id, $state), true, PDO::FETCH_NUM ) ) 
         {
             $q="select list(web_user_id) from web_users_favs where deleted=0 and ad_id=$id";
             $st = $this->db->getInstance()->query($q);

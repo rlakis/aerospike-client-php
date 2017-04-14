@@ -1,8 +1,10 @@
 <?php
+include_once '/home/www/mourjan/core/model/NoSQL.php';
 
 use Core\Model\Router;
 use Core\Model\Classifieds;
-    
+use Core\Model\NoSQL;
+
 class Site 
 {
     var $lang=array(),$xss_hash='',$watchInfo=false; 

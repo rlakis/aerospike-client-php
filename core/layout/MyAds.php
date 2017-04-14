@@ -1705,7 +1705,7 @@ var rtMsgs={
             if(isset($_GET['u']) && is_numeric($_GET['u']) && $_GET['u'])
             {
                 $userId = $_GET['u'];
-                $type = $this->user->getType($userId);
+                $type = \Core\Model\NoSQL::getInstance()->getUserPublisherStatus($userId); //$this->user->getType($userId);
             }
             $user = new MCUser($userId); //(MCSessionHandler::getUser($userId));
             if($user->isSuspended())

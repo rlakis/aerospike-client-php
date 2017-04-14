@@ -4998,40 +4998,38 @@ class Bin extends AjaxHandler{
                 break;
                 
             case 'ajax-ususpend':
-                if ($this->user->info['level']==9 && isset ($_POST['i'])) {
+                if ($this->user->info['level']==9 && isset ($_POST['i'])) 
+                {
                     $id=$_POST['i'];
                     $hours=(int)$_POST['v'];
-                    if (is_numeric($id) && $hours){
+                    if (is_numeric($id) && $hours)
+                    {
                         //$userData = MCSessionHandler::getUser($id);
                         //$mcUser = new MCUser($userData);
                         $mcUser = new MCUser($id);
-                        if($mcUser->isMobileVerified()){
+                        if($mcUser->isMobileVerified())
+                        {
                             if($this->user->suspend($id,$hours,$mcUser->getMobileNumber())){
                                 $this->process();
                             }else{
                                 $this->fail('104');
                             }
-                        }else{
-                            /*$options = $this->user->getOptions($id);
-                            if($options) {
-                                $options =  json_decode($options,true);
-                                $options['suspend']=time()+($hours*3600);
-                                if($this->user->updateOptions($id,$options)) {
-                                    //$q = 'update ad_user set state = 0 where web_user_id = ? and state = 1';
-                                    //$this->urlRouter->db->queryResultArray($q,array($id));
-                                    //$this->user->setReloadFlag($id);
-                                    $this->process();
-                                }else $this->fail('104');
-                            }else $this->fail('103');*/
-                            if($this->user->suspend($id,$hours)){
+                        }
+                        else
+                        {
+                            if($this->user->suspend($id,$hours))
+                            {
                                 $this->process();
-                            }else{
+                            }
+                            else
+                            {
                                 $this->fail('104');
                             }
                         }
                     }else $this->fail('102');
                 }else $this->fail('101');
                 break;
+                
             case 'ajax-ublock':
                 if ($this->user->info['level']==9 && isset ($_POST['i'])) {
                     $id=$_POST['i'];
@@ -5052,15 +5050,19 @@ class Bin extends AjaxHandler{
                                 $this->fail('103');
                             }
                         }else{
-                            if($msg){
-                                $options = $this->user->getOptions($id);
-                                if($options) {
-                                    $options =  json_decode($options,true);
+                            if($msg)
+                            {
+                                $options = NoSQL::getInstance()->getOptions($id);// $this->user->getOptions($id);
+                                if($options) 
+                                {
+                                    //$options =  json_decode($options,true);
                                     if(!isset($options['block']))$options['block']=array();
                                     $options['block'][]=$msg;
-                                    if($this->user->updateOptions($id,$options)) {
+                                    if($this->user->updateOptions($id, $options)) 
+                                    {
                                         //$this->user->setReloadFlag($id);
-                                    }else$this->fail('105');
+                                    }
+                                    else $this->fail('105');
                                 }else $this->fail('104');
                             }
                             if ($this->user->setLevel($id,5)) 
@@ -5070,6 +5072,7 @@ class Bin extends AjaxHandler{
                     }else $this->fail('102');
                 }else $this->fail('101');
                 break;
+                
             case 'ajax-video-upload':
             case 'video-upload':
                 if ($this->user->info['id'] && isset($this->user->pending['post']['id'])){
@@ -5420,6 +5423,7 @@ class Bin extends AjaxHandler{
                     $this->fail('101');
                 }
                 break;
+                
             case 'ajax-preset':
                 $email=$this->post('v');
                 $user_id = 0;
@@ -5428,53 +5432,70 @@ class Bin extends AjaxHandler{
                 if($tLang=='ar'||$tLang=='en')$lang=$tLang;
                 $date = date('Ymd');
                 $send_email=false;
-                if (!$this->user->info['id']){
-                    if ($email && $this->isEmail($email) ){
-                        $user = $this->user->checkAccount($email);
-                        if($user===false){
+                if (!$this->user->info['id'])
+                {
+                    if ($email && $this->isEmail($email) )
+                    {
+                        $user = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email, 'mourjan'); //$this->user->checkAccount($email);
+                        if($user===false)
+                        {
                             $this->fail("103");
-                        }else{
-                            if(count($user)){
-                                $user = $user[0];
-                                $user_id = $user['ID'];
-                                $opt = json_decode($user['OPTS'], true);
-                                if(isset($opt['validating'])){
+                        }
+                        else
+                        {
+                            if(!empty($user))
+                            {
+                                //$user = $user[0];
+                                $user_id = $user[\Core\Model\ASD\USER_PROFILE_ID]; //$user['ID'];
+                                $opt = $user[Core\Model\ASD\USER_OPTIONS]; //json_decode($user['OPTS'], true);
+                                if(isset($opt['validating']))
+                                {
                                     $this->fail('106');
-                                }elseif(!isset($opt['resetting']) || (isset($opt['resetting']) && !isset($opt['resetting'][$date])) ){
+                                }
+                                elseif(!isset($opt['resetting']) || (isset($opt['resetting']) && !isset($opt['resetting'][$date])) )
+                                {
                                     $send_email=true;
                                     if(isset($opt['lang']))$lang=$opt['lang'];
                                 }
-                                if(!$send_email){
+                                
+                                if(!$send_email)
+                                {
                                     $this->fail('105');
-                                }else{
+                                }
+                                else
+                                {
                                     require_once $this->dir.'/bin/utils/MourjanMail.php';
                                     $mailer=new MourjanMail($this->urlRouter->cfg, $lang);
 
                                     $verifyLink='';
 
                                     $sessionKey=md5($this->sid.$user_id.time());
-                                    
-                                    //if(isset($opt['resetting']))
-                                    //    $sessionKey=$opt['resetting'];
-                                    
+                                                                        
                                     $sKey=$this->user->encodeRequest('reset_password',array($user_id));
                                     $verifyLink=$this->host.'/a/'.($lang=='ar'?'':$lang.'/').'?k='.$sKey.'&key='.urlencode($sessionKey);
                                     
-                                    if ($mailer->sendResetPass($email,$verifyLink)){
+                                    if ($mailer->sendResetPass($email,$verifyLink))
+                                    {
                                         if(!isset($opt['resetting'])) $opt['resetting'] = array();
                                         $opt['resetting'][$date]=1;
                                         $opt['resetKey']=$sessionKey;
                                         $this->user->updateOptions($user_id,$opt);
                                         $this->process();
-                                    }else{
+                                    }
+                                    else
+                                    {
                                         $this->fail('107');
                                     }
                                 }
-                            }else $this->fail('104');
+                            }
+                            else $this->fail('104');
                         }
-                    }else $this->fail('102');
-                }else $this->fail('101');
+                    }
+                    else $this->fail('102');
+                }
+                else $this->fail('101');
                 break;
+                
             case 'ajax-register':
                 $email=$this->post('v');
                 $user_id = 0;
@@ -5482,49 +5503,73 @@ class Bin extends AjaxHandler{
                 $tLang=$this->post('lang');
                 if($tLang=='ar'||$tLang=='en')$lang=$tLang;
                 $date = date('Ymd');
-                if (!$this->user->info['id']){
-                    if ($email && $this->isEmail($email) ){
-                        $user = $this->user->checkAccount($email);
-                        if($user===false){
+                if (!$this->user->info['id'])
+                {
+                    if ($email && $this->isEmail($email) )
+                    {
+                        $user = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email, 'mourjan'); //$this->user->checkAccount($email);
+                        if($user===false)
+                        {
                             $this->fail("103");
-                        }else{
+                        }
+                        else
+                        {
                             $send_email= false;
                             $user_exists = false;
-                            if(count($user)){
-                                $user = $user[0];
-                                if($user['USER_PASS']){
+                            if(!empty($user))
+                            {
+                                //$user = $user[0];
+                                if($user[Core\Model\ASD\USER_PASSWORD] /* 'USER_PASS']*/)
+                                {
                                     $user_exists=true;
-                                }else{
-                                    $user_id = $user['ID'];
-                                    $opt = json_decode($user['OPTS'], true);
-                                    if(isset($opt['validating'])){
-                                        if(!isset($opt['validating'][$date]) || (isset($opt['validating'][$date]) && $opt['validating'][$date]<2)){
+                                }
+                                else
+                                {
+                                    $user_id = $user[\Core\Model\ASD\USER_PROFILE_ID]; //['ID'];
+                                    $opt = $user[\Core\Model\ASD\USER_OPTIONS];//json_decode($user['OPTS'], true);
+                                    if(isset($opt['validating']))
+                                    {
+                                        if(!isset($opt['validating'][$date]) || (isset($opt['validating'][$date]) && $opt['validating'][$date]<2))
+                                        {
                                             $send_email=true;
                                             if(isset($opt['lang']))$lang=$opt['lang'];
                                         }
-                                    }else{
+                                    }
+                                    else
+                                    {
                                         $send_email=true;
                                         if(isset($opt['lang']))$lang=$opt['lang'];
                                     }                                    
                                 }
-                            }else{  
+                            }
+                            else
+                            {  
                                 //create new record
                                 $send_email=true;
                             }
-                            if($user_exists){
+                            
+                            if($user_exists)
+                            {
                                 $this->fail('103');
-                            }elseif(!$send_email){
+                            }
+                            elseif(!$send_email)
+                            {
                                 $this->fail('104');
-                            }else{
-                                
-                                if(!$user_id){
+                            }
+                            else
+                            {                                
+                                if(!$user_id)
+                                {
                                     $user = $this->user->createNewByEmail($email);
-                                    if($user && count($user)){
-                                        $user_id = $user[0]['ID'];
-                                        $opt = json_decode($user[0]['OPTS'], true);
+                                    if($user && !empty($user))
+                                    {
+                                        $user_id = $user[\Core\Model\ASD\USER_PROFILE_ID];
+                                        //$opt = json_decode($user[0]['OPTS'], true);
+                                        $opt = $user[\Core\Model\ASD\USER_OPTIONS];
                                     }
                                 }
-                                if($user_id){
+                                if($user_id)
+                                {
                                     require_once $this->dir.'/bin/utils/MourjanMail.php';
                                     $mailer=new MourjanMail($this->urlRouter->cfg, $lang);
 
@@ -5547,17 +5592,24 @@ class Bin extends AjaxHandler{
                                         $opt['accountKey']=$sessionKey;
                                         $this->user->updateOptions($user_id,$opt);
                                         $this->process();
-                                    }else{
+                                    }
+                                    else
+                                    {
                                         $this->fail('105');
                                     }
-                                }else{
+                                }
+                                else
+                                {
                                     $this->fail('106');
                                 }
                             }
                         }
-                    }else $this->fail("102");
-                }else $this->fail('101');
+                    }
+                    else $this->fail("102");
+                }
+                else $this->fail('101');
                 break;
+                
             case 'ajax-js-error':
                 $error=$this->post('e');
                 if($error){

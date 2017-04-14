@@ -2,7 +2,10 @@
 
 require_once 'vendor/autoload.php';
 require_once 'Site.php';
+require_once $config['dir']. '/core/model/NoSQL.php';
+
 use Core\Model\Router;
+use Core\Model\NoSQL;
 use Core\Model\DB;
 
 class Redirect extends Site
@@ -161,9 +164,9 @@ class Redirect extends Site
                     case 'reset_password':
                         $userId=$cmd['params'][0];
                         if(is_numeric($userId) && $userId && !$this->user->info['id']){
-                            $userOptions = $this->user->getOptions($userId);
+                            $userOptions = NoSQL::getInstance()->getOptions($userId); //$this->user->getOptions($userId);
                             if($userOptions){
-                                $userOptions = json_decode($userOptions,true);
+                                //$userOptions = json_decode($userOptions,true);
                                 if(is_array($userOptions)){
                                     if (isset($userOptions['accountKey'])){
                                         if ((isset($_GET['key']) && $_GET['key']==$userOptions['accountKey'])){
@@ -217,9 +220,9 @@ class Redirect extends Site
                                     //invalid ticket
                                 }
                             }else{
-                                $userOptions = $this->user->getOptions($userId);
+                                $userOptions = NoSQL::getInstance()->getOptions($userId);//$this->user->getOptions($userId);
                                 if($userOptions){
-                                    $userOptions = json_decode($userOptions,true);
+                                    //$userOptions = json_decode($userOptions,true);
                                     if(is_array($userOptions)){
                                         if (isset($userOptions['emailKey'])){
                                             if ((isset($_GET['key']) && $_GET['key']==$userOptions['emailKey'])){

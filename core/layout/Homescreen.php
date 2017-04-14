@@ -77,11 +77,13 @@ class Homescreen extends Site{
                 if(isset($this->user->params['HS']) && $this->user->params['HS']['id']==$partner){
                     $this->pageOptions=$this->user->params['HS'];
                 }else{
-                    if(is_numeric($partner)){
-                        $options = $this->user->getOptions($partner);
+                    if (is_numeric($partner))
+                    {
+                        $options = NoSQL::getInstance()->getOptions($partner); //$this->user->getOptions($partner);
                         if($options){
-                            $options = json_decode($options,true);
-                            if(isset($options['HS'])){
+                            //$options = json_decode($options,true);
+                            if(isset($options['HS']))
+                            {
                                 $this->pageOptions=$this->user->params['HS']=$options['HS'];
                                 $this->user->params['HS']['id']=$partner;
                             }
