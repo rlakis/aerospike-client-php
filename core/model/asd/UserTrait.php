@@ -137,11 +137,11 @@ trait UserTrait
         $bins = [];
         $where = \Aerospike::predicateEquals(USER_PROVIDER_ID, $identifier);
         $this->getConnection()->query(NS_USER, TS_USER, $where,  
-                function ($record) use (&$bins, &$uid, $provider) 
+                function ($record) use (&$bins, $provider) 
                 {
-                    if ($record['bins'][USER_PROVIDER]==$provider)
+                    if ($record['bins'][USER_PROVIDER]==$provider && empty($bin))
                     {
-                        $bins[] = $record['bins'];
+                        $bins = $record['bins'];
                     }
                 });
         return $bins;
@@ -202,7 +202,7 @@ trait UserTrait
             }
 
             if ($this->setBins($pk, $bins))
-            {
+            {                
                 return $this->getBins($pk);
             }
             
@@ -215,7 +215,7 @@ trait UserTrait
         return FALSE;
     }
     
-    
+    /*
     public function updateUser($info, string $provider)
     {
         $provider = strtolower($provider);
@@ -254,12 +254,18 @@ trait UserTrait
         }
                 
     }
-    
+    */
     
     private function initKey(int $uid) 
     {
         return $this->getConnection()->initKey(NS_USER, TS_USER, $uid);
     }    
+    
+    
+    public function userExists(int $uid) : bool
+    {
+        return $this->exists($this->initKey($uid));
+    }
     
     
     public function setVisitUnixtime(int $uid, array $pk=[])
