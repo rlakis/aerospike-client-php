@@ -2578,7 +2578,8 @@ class User
         
         return FALSE;
     }
-         
+    
+     
     
     
     function mergeDeviceToAccount($uuid, $uid, $newUid)
