@@ -119,6 +119,29 @@ class DB
                 {
                     DB::$Instance->beginTransaction();           
                 }
+                return TRUE;
+            } 
+            catch (Exception $ex) 
+            {
+                error_log($ex->getMessage());
+            }
+        }
+        return FALSE;
+    }
+    
+    
+    public function rollback(bool $restartTransaction=FALSE)
+    {
+        if($this->inTransaction())
+        {
+            try 
+            {
+                DB::$Instance->rollBack();
+                if ($restartTransaction==TRUE) 
+                {
+                    DB::$Instance->beginTransaction();           
+                }
+                return TRUE;
             } 
             catch (Exception $ex) 
             {
