@@ -1,8 +1,10 @@
 <?php
-include_once dirname(__FILE__).'/../../../config/cfg.php';
+include_once get_cfg_var("mourjan.path") .'/config/cfg.php';
 include_once $config['dir'].'/core/model/Db.php';
+include_once $config['dir'].'/core/model/NoSQL.php';
 
-class Administration {
+class Administration 
+{
     
     private $ACTION = ''; 
     private $args=null,$db=null;
@@ -21,16 +23,20 @@ class Administration {
     }
 
     
-    function _run(){
+    function _run()
+    {
         global $config;
         //include_once $config['dir'].'/core/model/User.php';
         //$USER = new User($this->db, $config, null, false);
         $start = time();
         $pass= true;
-        switch($this->ACTION){
+        switch($this->ACTION)
+        {
             case "grant":
-                if(isset($this->args[2]) && $this->args[2]){
-                    if(isset($this->args[3]) && $this->args[3]){
+                if(isset($this->args[2]) && $this->args[2])
+                {
+                    if(isset($this->args[3]) && $this->args[3])
+                    {
                         $userId = $this->args[2];
                         $amount = $this->args[3];
 
@@ -38,26 +44,38 @@ class Administration {
                         
                         $users = $this->db->queryResultArray('select id, opts from web_users where id in ('.$userId.') and lvl != 5');
 
-                        if($users!==false){
+                        if($users!==false)
+                        {
                             $updateStmt = $this->db->prepareQuery("insert into t_tran (uid,currency_id,amount,debit,credit,usd_value) values ({$userId},'MCU',{$amount},0,{$amount},{$amount})");
-                             if($updateStmt->execute()){
+                             if($updateStmt->execute())
+                             {
                                 unset($updateStmt);
                                 echo "{$userId} was granted {$amount} gold successfully".PHP_EOL;
-                             }else{
+                             }
+                             else
+                             {
                                 $failure[]=$user['ID'];
                              }
-                        }else{
+                        }
+                        else
+                        {
                             echo "system error: failed to grant gold".PHP_EOL;
                         }
-                    }else{
+                    }
+                    else
+                    {
                         echo "grant gold error: missing amount".PHP_EOL;
                     }                    
-                }else{
+                }
+                else
+                {
                     echo "grant gold error: missing id".PHP_EOL;
                 }
                 break;
+                
             case "block":
-                if(isset($this->args[2]) && $this->args[2]){
+                if(isset($this->args[2]) && $this->args[2])
+                {
                     if(isset($this->args[3]) && $this->args[3]){
                         $userId = $this->args[2];
                         $msg = $this->args[3];
@@ -97,8 +115,10 @@ class Administration {
                     echo "block error: missing  \"id1,id2,...\"".PHP_EOL;
                 }
                 break;
+                
             case "unblock":
-                if(isset($this->args[2]) && is_numeric($this->args[2])){
+                if(isset($this->args[2]) && is_numeric($this->args[2]))
+                {
                     $userId = $this->args[2];
 
                     $accounts = [
@@ -110,17 +130,23 @@ class Administration {
                     $this->getUserAccounts($accounts);
                     $ids=  array_keys($accounts);
 
-                    $q='update web_users set lvl = 0 where id in ('.  implode(',', $ids).')';
+                    $q='update web_users set lvl=0 where id in ('.  implode(',', $ids).')';
 
-                    if($this->db->queryResultArray($q)){
+                    if($this->db->get($q))
+                    {
                         echo "{$userId} unblocked successfully".PHP_EOL;
-                    }else{
+                    }
+                    else
+                    {
                         echo "system error: failed to unblock".PHP_EOL;
                     }
-                }else{
+                }
+                else
+                {
                     echo "unblock error: missing {web_user_id}".PHP_EOL;
                 }
                 break;
+                
             case "yBlocked":
                 if(isset($this->args[2]) && is_numeric($this->args[2])){
                     $userId = $this->args[2];
@@ -165,7 +191,9 @@ class Administration {
         echo "------------------------------------------------------".PHP_EOL;
     }
     
-    function getUserAccounts(&$accounts){
+    
+    function getUserAccounts(&$accounts)
+    {
         $ids = array_keys($accounts);        
         $accountCount = count($accounts);
         
@@ -228,6 +256,7 @@ class Administration {
             $this->getUserAccounts($accounts);
         }
     }
+    
     
     function displayUserAccounts($accounts){
         $q = 'select id, email, user_email from web_users where lvl = 9';

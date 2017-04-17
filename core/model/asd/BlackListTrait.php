@@ -37,7 +37,9 @@ trait BlackListTrait
             $bins[USER_UID] = $uid;
         }
         $bins[BLACK_LIST_REASON] = $reason;
-        return $this->setBins($this->asKey($contact), $bins) ? 1 : 0;
+        $success = $this->setBins($this->asKey($contact), $bins);
+        
+        return $success ? 1 : 0;
     }
     
     
