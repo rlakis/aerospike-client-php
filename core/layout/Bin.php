@@ -5525,7 +5525,7 @@ class Bin extends AjaxHandler{
                 $error=$this->post('e');
                 if($error){
                     $url=$this->post('u');
-                    if(!preg_match('/facebook|google|sharethis/i',$url)){
+                    if(!preg_match('/facebook|google|sharethis/i',$url) && !preg_match('/__show__deepen/',$error)){
                         $line=$this->post('ln');
                         $msg='JAVASCRIPT'.(isset($this->user->params['mobile']) && $this->user->params['mobile'] ? ' MOBILE':'').' ERROR: '.$error.' >> LINE: '.$line.' >> URL: '.$url. ' >> USER AGENT: '.$_SERVER['HTTP_USER_AGENT'].' >> USER_ID: '.$this->user->info['id'];
                         error_log($msg);
