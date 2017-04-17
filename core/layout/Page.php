@@ -5602,7 +5602,7 @@ class Page extends Site
                     ?><li><div><?php
                         ?><h5><?= $this->lang['mourjan_app'] ?></h5><?php
                         ?><p><?= $this->lang['app_desc'] ?></p><?php
-                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(4,011)</span><?php
+                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(4,108)</span><?php
                     ?></div></li><?php
                     ?><li><a type="button" href='https://play.google.com/store/apps/details?id=com.mourjan.classifieds' class="bt"><?= $this->lang['install'] ?></a></li><?php
                     ?></ul><br /><?php
