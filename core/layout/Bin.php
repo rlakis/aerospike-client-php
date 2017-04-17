@@ -321,18 +321,23 @@ class Bin extends AjaxHandler{
                 break;         
                 
             case 'ajax-mobile':
-                if($this->user->info['id'] && $this->user->info['level']!=5){
+                if($this->user->info['id'] && $this->user->info['level']!=5)
+                {
                     $keyCode=0;
                     $lang=filter_input(INPUT_POST, 'hl');
-                    if(!in_array($lang, ['en','ar'])){
+                    if(!in_array($lang, ['en','ar']))
+                    {
                         $lang='en';
                     }
                     $number = filter_input(INPUT_POST, 'tel');
                     $keyCode = filter_input(INPUT_POST, 'code');
                     $keyCode = is_numeric($keyCode) ? $keyCode : 0;
-                    if($number){                        
-                        if($keyCode){
-                            if(substr($number,0,1)=='+'){
+                    if($number)
+                    { 
+                        if($keyCode)
+                        {
+                            if(substr($number,0,1)=='+')
+                            {
                                 $number = substr($number,1);
                             }
                             
@@ -343,57 +348,47 @@ class Bin extends AjaxHandler{
                                 unset($this->user->pending['mobile']);
                                 $this->user->update();
                                 
-                                $this->urlRouter->db->queryResultArray(
+                                $this->urlRouter->db->get(
                                     "UPDATE WEB_USERS_LINKED_MOBILE set "
                                     . "ACTIVATION_TIMESTAMP=current_timestamp "
-                                    . "where uid = ? and code = ? and mobile = ? RETURNING ID", 
+                                    . "where uid=? and code=? and mobile=? RETURNING ID", 
                                     [$this->user->info['id'],$keyCode,$number], TRUE);
                                 
                             }else{                                
                                 $this->setData(0,'verified');
                             }
-                            
-                            /*
-                            $ns = $this->urlRouter->db->queryResultArray(
-                                "UPDATE WEB_USERS_LINKED_MOBILE set "
-                                . "ACTIVATION_TIMESTAMP=current_timestamp "
-                                . "where uid = ? and code = ? and mobile = ? RETURNING ID", 
-                            [$this->user->info['id'],$keyCode,$number], TRUE);
-                            if($ns!==false && isset($ns[0]['ID']) && $ns[0]['ID']){
-                                $this->setData(1,'verified');
-                                $this->user->info['verified']=true;
-                                unset($this->user->pending['mobile']);
-                                $this->user->update();
-                            }else{                                
-                                $this->setData(0,'verified');
-                            }
-                            Core\Model\NoSQL::getInstance()->mobileActivation($this->user->info['id'], $number, $keyCode);
-                             * 
-                             */
-                        }else{
+                                                       
+                        }
+                        else
+                        {
                             $validator = libphonenumber\PhoneNumberUtil::getInstance();
                             $num = $validator->parse($number, 'LB');
                             
-                            if($num && $validator->isValidNumber($num)){
+                            if($num && $validator->isValidNumber($num))
+                            {
                                 $numberType = $validator->getNumberType($num);
-                                if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE){
+                                if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE)
+                                {
                                     
                                     if(substr($number,0,1)=='+'){
                                         $number = substr($number,1);
                                     }
                                     
                                     /*check if number is blocked*/
-                                    $prv = $this->urlRouter->db->queryResultArray(
+                                    $prv = $this->urlRouter->db->get(
                                             'select * from bl_phone where telephone = ?',
-                                            [$number],
-                                            true
+                                            [$number], true
                                     );
-                                    if($prv !== false && isset($prv[0]['ID']) && $prv[0]['ID']){
+                                    
+                                    if($prv !== false && isset($prv[0]['ID']) && $prv[0]['ID'])
+                                    {
                                         $this->fail('403');
                                     }
+                                    
                                     /*check if number is suspended*/
                                     $time = MCSessionHandler::checkSuspendedMobile($number);
-                                    if($time){
+                                    if($time)
+                                    {
                                         $hours = $time / 3600;
                                         if(ceil($hours)>1){
                                             $hours = ceil($hours);
@@ -498,9 +493,9 @@ class Bin extends AjaxHandler{
                                                 {
                                                     $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
 
-                                                    $ns = $this->urlRouter->db->queryResultArray(
-                                                            "INSERT INTO WEB_USERS_LINKED_MOBILE (ID, UID, MOBILE, CODE, DELIVERED, SMS_COUNT, ACTIVATION_TIMESTAMP)
-                                                             VALUES (?, ?, ?, ?, 0, 0, null) RETURNING ID", [$sendSms, $this->user->info['id'], $number, $keyCode], TRUE);
+                                                    $ns = $this->urlRouter->db->get(
+                                                            "UPDATE OR INSERT INTO WEB_USERS_LINKED_MOBILE (ID, UID, MOBILE, CODE, DELIVERED, SMS_COUNT, ACTIVATION_TIMESTAMP)
+                                                             VALUES (?, ?, ?, ?, 0, 0, null) MATCHING(UID, MOBILE) RETURNING ID", [$sendSms, $this->user->info['id'], $number, $keyCode], TRUE);
                                                 } 
                                                 else
                                                 {
@@ -520,97 +515,7 @@ class Bin extends AjaxHandler{
                                         $keyCode=0;
                                         $number=0;
                                     }
-                                    
-                                    
-                                    /*
-                                    $rs = $this->urlRouter->db->queryResultArray(
-                                    "select m.ID, m.UID, m.MOBILE, m.DELIVERED, m.CODE, m.SMS_COUNT,m.ACTIVATION_TIMESTAMP, "
-                                    . "datediff(SECOND from m.ACTIVATION_TIMESTAMP to CURRENT_TIMESTAMP) active_age, "
-                                    . "datediff(SECOND from m.REQUEST_TIMESTAMP to CURRENT_TIMESTAMP) request_age "
-                                    . "from WEB_USERS_LINKED_MOBILE m "
-                                    . "where m.mobile=? and m.uid=? order by m.REQUEST_TIMESTAMP desc", [$number, $this->user->info['id']]);
-
-                                    
-
-                                    if($rs!==false){
-                                        if(count($rs)){
-                                            $expiredDelivery = $rs[0]['DELIVERED']==0 && $rs[0]['REQUEST_AGE']>86400 && $rs[0]['SMS_COUNT']<5;
-                                            $expiredValidity = ($rs[0]['DELIVERED']==1 && $rs[0]['ACTIVATION_TIMESTAMP'] && $rs[0]['ACTIVE_AGE']>86400*365);
-                                            $stillValid = ($rs[0]['DELIVERED']==1 && $rs[0]['ACTIVATION_TIMESTAMP'] && $rs[0]['ACTIVE_AGE']<=86400*365);
-                                            if($expiredDelivery){
-                                                //resend sms since it was not delivered after 1 hour
-                                                $ns = $this->urlRouter->db->queryResultArray(
-                                                "UPDATE WEB_USERS_LINKED_MOBILE set "
-                                                        . "SMS_COUNT=sms_count+1,"
-                                                        . "REQUEST_TIMESTAMP=current_timestamp "
-                                                        . "where id = ? RETURNING ID,CODE", 
-                                                    [$rs[0]['ID']], TRUE);
-                                                if($ns!==false && isset($ns[0]['ID']) && $ns[0]['ID']){
-                                                    $sendSms = $ns[0]['ID'];
-                                                    $keyCode = $ns[0]['CODE'];
-                                                }else{
-                                                    $keyCode=0;
-                                                    $number=0;
-                                                }
-                                            }else if($expiredValidity){
-                                                //re-validate by sending sms with new code
-                                                $keyCode=mt_rand(1000, 9999);
-                                                $ns = $this->urlRouter->db->queryResultArray(
-                                                "UPDATE WEB_USERS_LINKED_MOBILE set "
-                                                        . "code = ?, "
-                                                        . "SMS_COUNT=sms_count+1,"
-                                                        . "REQUEST_TIMESTAMP=current_timestamp "
-                                                        . "where id = ? RETURNING ID", 
-                                                    [$keyCode, $rs[0]['ID']], TRUE);
-                                                if($ns!==false && isset($ns[0]['ID']) && $ns[0]['ID']){
-                                                    $sendSms = $ns[0]['ID'];
-                                                }else{
-                                                    $keyCode=0;
-                                                    $number=0;
-                                                }
-                                            }elseif($stillValid){
-                                                $this->setData(1,'verified');
-                                                $number = 0;
-                                                $keyCode = 0;
-                                            }else{
-                                                //sms is still valid but not delivered
-                                                $keyCode = $rs[0]['CODE'];
-                                            }                                        
-                                        }else{
-                                            $keyCode=mt_rand(1000, 9999);
-                                           
-                                            
-                                            if (NoSQL::getInstance()->mobileInsert([
-                                                    \Core\Model\ASD\USER_UID=> $this->user->info['id'],
-                                                    \Core\Model\ASD\USER_MOBILE_NUMBER=> $number,
-                                                    \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>$keyCode,
-                                                    \Core\Model\ASD\USER_MOBILE_FLAG=>1]))
-                                            {
-                                                if ($_mobile = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number))
-                                                {
-                                                    $sendSms = $_mobile[\Core\Model\ASD\SET_RECORD_ID];
-                                                    
-                                                    $ns = $this->urlRouter->db->queryResultArray(
-                                                        "INSERT INTO WEB_USERS_LINKED_MOBILE (ID, UID, MOBILE, CODE, DELIVERED, SMS_COUNT, ACTIVATION_TIMESTAMP)
-                                                         VALUES (?, ?, ?, ?, 0, 0, null) RETURNING ID", [$mobile_id, $this->user->info['id'], $number, $keyCode], TRUE);
-                                                } 
-                                                else
-                                                {
-                                                    $keyCode=0;
-                                                    $number=0;
-                                                }
-                                            } 
-                                            else
-                                            {
-                                                $keyCode=0;
-                                                $number=0;
-                                            }
-                                        }
-                                    }else{
-                                        $number = 0;
-                                        $keyCode = 0;
-                                    }
-                                    */
+                                                                                                        
                                     if ($sendSms && $number && $keyCode)
                                     {
                                                                                 
@@ -5031,22 +4936,28 @@ class Bin extends AjaxHandler{
                 break;
                 
             case 'ajax-ublock':
-                if ($this->user->info['level']==9 && isset ($_POST['i'])) {
+                if ($this->user->info['level']==9 && isset($_POST['i'])) 
+                {
                     $id=$_POST['i'];
                     $msg=trim($_POST['msg']);
                     if($msg=='')$msg='Scam Detection';
-                    if(!preg_match('/by admin/ui',$msg)){
+                    if(!preg_match('/by admin/ui',$msg))
+                    {
                         $msg .= ' by admin '.$this->user->info['id'];
                     }
                     $msg.=' date:'.date("d.m.y");
-                    if (is_numeric($id)){
-                        //$userData = MCSessionHandler::getUser($id);
-                        //$mcUser = new MCUser($userData);
+
+                    if (is_numeric($id))
+                    {
                         $mcUser = new MCUser($id);
-                        if($mcUser->isMobileVerified()){
-                            if($this->user->block($id, $mcUser->getMobileNumber(),$msg)){
+                        if($mcUser->isMobileVerified())
+                        {
+                            if($this->user->block($id, $mcUser->getMobileNumber(), $msg))
+                            {
                                 $this->process();
-                            }else{
+                            }
+                            else
+                            {
                                 $this->fail('103');
                             }
                         }else{

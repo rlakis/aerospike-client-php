@@ -1946,6 +1946,13 @@ class User
     {
         if (Core\Model\NoSQL::getInstance()->blacklistInsert($number, $msg, $uid))
         {
+            $linked = NoSQL::getInstance()->mobileGetLinkedUIDs($number);
+            foreach ($linked as $bins) 
+            {
+                NoSQL::getInstance()->setUserLevel($bins[\Core\Model\ASD\USER_UID], 5);
+            }
+            
+            
             $q = 'update or insert into bl_phone (telephone, subject, web_user_id) values (?, ?, ?) matching(telephone) returning id';
             $block = $this->db->get($q, [$number, $msg, $uid]);
             $pass=0;
@@ -1954,6 +1961,8 @@ class User
             {
                 $pass=1;
             }
+            
+            
             return $pass;
         }
         return 0;
