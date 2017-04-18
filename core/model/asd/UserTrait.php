@@ -191,6 +191,10 @@ trait UserTrait
                 {
                     $record[$k] = $v;
                 }
+                if (isset($record[USER_PROVIDER_ID]) && is_int($record[USER_PROVIDER_ID]))
+                {
+                    $record[USER_PROVIDER_ID] = "{$record[USER_PROVIDER_ID]}";
+                }
                 $bins = $record;
             } 
             else 
