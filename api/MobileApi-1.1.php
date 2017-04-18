@@ -59,7 +59,13 @@ class MobileApi
     
     function getUID() : int
     {
-        return $this->uid ? $this->uid : $this->user->getID();
+        if ($this->uid)
+        {
+            return $this->uid;
+        }
+
+        $this->uid = $this->user->getID();
+        return $this->uid;
     }
 
     
@@ -1420,6 +1426,7 @@ class MobileApi
             $carrier_country = (isset($geo['country']['iso_code']) && strlen(trim($geo['country']['iso_code']))==2) ? strtoupper(trim($geo['country']['iso_code'])) : 'XX';
         }
         
+
         if ($status==1) 
         {
             /* opts->user_status
@@ -2471,7 +2478,7 @@ class MobileApi
 
                 include $this->config['dir'] .'/core/model/User.php';
                 $user = new User($this->db, $this->config, null, 0);
-                $user->sysAuthById($this->uid);
+                $user->sysAuthById($this->getUID());
                 $user->params['app']=1;
                 $user->update();                
             }
