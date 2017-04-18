@@ -502,7 +502,7 @@ class User
         $bins = \Core\Model\NoSQL::getInstance()->fetchUser($userId);
         if (!empty($bins) && \Core\Model\NoSQL::getInstance()->setPassword($userId, $pass))
         {
-            $user = $this->db->get("update web_users set user_pass=? where id=? returning id, opts", [$pass,  $userId]);
+            //$user = $this->db->get("update web_users set user_pass=? where id=? returning id, opts", [$pass,  $userId]);
             
             $opt = $bins[Core\Model\ASD\USER_OPTIONS] ?? [];
             if(isset($opt['validating'])) unset($opt['validating']);
@@ -614,7 +614,7 @@ class User
         $bins = \Core\Model\NoSQL::getInstance()->fetchUser($userId);
         if (!empty($bins) && \Core\Model\NoSQL::getInstance()->setPassword($userId, $pass))
         {
-            $this->db->get("update web_users set user_pass=? where id=?", [$pass,  $userId], TRUE);
+            //$this->db->get("update web_users set user_pass=? where id=?", [$pass,  $userId], TRUE);
             
             $opt = $bins[Core\Model\ASD\USER_OPTIONS];
             if(isset($opt['validating'])) unset($opt['validating']);
@@ -2206,8 +2206,8 @@ class User
         {
             if (\Core\Model\NoSQL::getInstance()->setUserLevel($id, $level))
             {
-                $q="update web_users set lvl=? where id=?";
-                $this->db->get($q, [$level, $id], true);
+                //$q="update web_users set lvl=? where id=?";
+                //$this->db->get($q, [$level, $id], true);
                 $succeed=true;
             }
         }
@@ -2220,8 +2220,8 @@ class User
         $succeed=false;
         if($id && is_numeric($type)) 
         {
-            $q="update web_users set user_publisher=? where id=?";
-            $this->db->get($q, [$type, $id],true);
+            //$q="update web_users set user_publisher=? where id=?";
+            //$this->db->get($q, [$type, $id],true);
             return \Core\Model\NoSQL::getInstance()->setUserPublisherStatus($id, $type); 
         }
         return $succeed;
@@ -2343,20 +2343,20 @@ class User
                 $this->setUserParams($bins, TRUE);
                 $this->update();
                         
-                $q = 'update web_users set last_visit=current_timestamp where id=?';
-                $this->db->get($q, array($id));
+                //$q = 'update web_users set last_visit=current_timestamp where id=?';
+                //$this->db->get($q, array($id));
 
-                return;
+                //return;
             }
         }
-
+/*
         $q = 'update web_users set last_visit=current_timestamp where id=? returning identifier, id, lvl, display_name, provider, email, user_rank, user_name, user_email, opts, prev_visit, last_visit';
         $result=$this->db->get($q, array($id));
         if ($result && isset($result[0]) && $result[0]['ID'] && md5($result[0]['IDENTIFIER'])==$key) 
         {
             $this->setUserParams($result);
             $this->update();
-        }
+        }*/
     }
     
     
@@ -2508,7 +2508,7 @@ class User
                     $this->checkWatchMailSetting($this->info['id'], $mailFrequency);
                 }
             }
-            $this->db->get("update web_users set last_visit=current_timestamp where id=?", [$bins[\Core\Model\ASD\USER_PROFILE_ID]], TRUE);
+            //$this->db->get("update web_users set last_visit=current_timestamp where id=?", [$bins[\Core\Model\ASD\USER_PROFILE_ID]], TRUE);
             return 1;
         }
         return 0;
@@ -2580,8 +2580,8 @@ class User
         
         if (\Core\Model\NoSQL::getInstance()->userUpdate($bins, $id))
         {
-            $q = 'update web_users set user_pass=?, user_rank=?, lvl=?, user_publisher=?, opts=? where id=?';
-            $this->db->get($q, [$pass, $rank, $level, $pubType, is_array($opts)?json_encode($opts):$opts, $id]);
+            //$q = 'update web_users set user_pass=?, user_rank=?, lvl=?, user_publisher=?, opts=? where id=?';
+            //$this->db->get($q, [$pass, $rank, $level, $pubType, is_array($opts)?json_encode($opts):$opts, $id]);
             return TRUE;
         }
         
@@ -3219,9 +3219,9 @@ class User
             $mailFrequency=(isset($this->info['options']['mailEvery']) && $this->info['options']['mailEvery']) ? $this->info['options']['mailEvery'] : 1;
             $this->checkWatchMailSetting($this->info['id'], $mailFrequency);
             
-            $q="update web_users set user_email=?, opts=? where id=?";
-            $options=json_encode($this->info['options']);
-            $this->db->get($q, [$email, $options, $this->info['id']], true);
+            //$q="update web_users set user_email=?, opts=? where id=?";
+            //$options=json_encode($this->info['options']);
+            //$this->db->get($q, [$email, $options, $this->info['id']], true);
         }
         else
         {
@@ -3304,6 +3304,7 @@ class User
         if (\Core\Model\NoSQL::getInstance()->setUserBin($id, Core\Model\ASD\USER_OPTIONS, json_decode($options, TRUE)))
         {
             $succeed = TRUE;
+            /*
             try
             {
                 $q=$this->db->prepareQuery("update web_users set opts=:options where id=:id");
@@ -3316,7 +3317,7 @@ class User
                 $q->closeCursor();
                 $this->db->commit();
             }
-            catch (Exception $e) {}
+            catch (Exception $e) {}*/
         }
         
         
