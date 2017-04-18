@@ -2402,6 +2402,7 @@ class User
     {
         $pass = md5($this->md5_prefix.$pass);
         $bins = \Core\Model\NoSQL::getInstance()->fetchUserByProviderId(trim($account));
+        
         if (!empty($bins))
         {
             if (isset($bins[\Core\Model\ASD\USER_PROFILE_ID]) && $bins[\Core\Model\ASD\USER_PROFILE_ID]>0)
@@ -2473,10 +2474,12 @@ class User
     
     function authenticateByEmail($email, $pass)
     {
+        //error_log($email.':'.$pass);
         $_status = $this->authenticateUserAccount($email, $pass);
-        if ($_status==0)
+        if ($_status>0)
         {
             $bins = \Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email);
+            
             \Core\Model\NoSQL::getInstance()->setVisitUnixtime($bins[\Core\Model\ASD\USER_PROFILE_ID]);
             $bins = \Core\Model\NoSQL::getInstance()->fetchUser($bins[\Core\Model\ASD\USER_PROFILE_ID]);
             
