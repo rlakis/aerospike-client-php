@@ -2237,13 +2237,11 @@ class MobileApi
                              SET CODE=?, MOBILE=?, STATUS=5, DELIVERED=0, SMS_COUNT=0
                              WHERE UID=? AND MOBILE=?
                              RETURNING ID", [$pin, $phone_number, $this->uid, $current_phone_number], TRUE);
-                    if ($iq[0]['ID']>0) {
-                        $sms = new MourjanNexmo();
-                        $response = $sms->sendSMS( "+{$phone_number}", 
-                                $pin." is your mourjan confirmation code",
-                                        $iq[0]['ID']);
-                        //var_dump($response);
-                        if ($response) {
+                    if ($iq[0]['ID']>0) 
+                    {
+                        
+                        if (ShortMessageService::send("+{$phone_number}", "{$pin} is your mourjan confirmation code", $iq[0]['ID'])) 
+                        {
                             $this->db->queryResultArray("update WEB_USERS_MOBILE set status=0, sms_count=sms_count+1 where id=?", [$iq[0]['ID']], TRUE);
                             $this->result['d']['status']='sent';
                         }
@@ -2907,14 +2905,13 @@ class MobileApi
     
     public function sendSMS($phone_number, $text, $callback_reference=0) 
     {
-        try {
+        try 
+        {
             include_once $this->config['dir'].'/core/lib/MourjanNexmo.php';
-            $sms = new MourjanNexmo();
-            $phone_number=strval($phone_number);
-            $response = $sms->sendSMS( "+{$phone_number}", $text, $callback_reference);
-            return $response;    
-        } catch (Exception $e) {
-            
+            return ShortMessageService::send(strval($phone_number), $text, $callback_reference);
+        }                 
+        catch (Exception $e) 
+        {            
         }
         return FALSE;
     }
