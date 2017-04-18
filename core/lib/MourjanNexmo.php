@@ -48,8 +48,28 @@ class ShortMessageService
         $num = libphonenumber\PhoneNumberUtil::getInstance()->parse($to, 'LB');
         $countryCode = $num->getCountryCode();
         $carrier = libphonenumber\PhoneNumberToCarrierMapper::getInstance()->getNameForNumber($num, "en");
-        
-        $from = ($countryCode==1 || ($countryCode==974 && $carrier=='ooredoo')) ? '12242144077' : ($countryCode==212) ? '33644630401' : 'mourjan';
+        $from = 'mourjan';
+        switch ($countryCode) 
+        {
+            case 1:
+                $from = '12242144077';
+                break;
+            
+            case 212:
+                $from = '33644630401';
+                break;
+
+            case 974:
+                if ($carrier=='ooredoo')
+                {
+                    $from = '12242144077';
+                }
+                break;
+                
+            default:
+                break;
+        }
+        //$from = ($countryCode==1 || ($countryCode==974 && $carrier=='ooredoo')) ? '12242144077' : ($countryCode==212) ? '33644630401' : 'mourjan';
         if (is_array($clientReference))
         {
             $clientReference = json_encode($clientReference);

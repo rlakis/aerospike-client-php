@@ -2400,14 +2400,53 @@ class User
     
     function authenticateUserAccount($account, $pass)
     {
-        $pass = md5($this->md5_prefix.$pass);
-        $bins = \Core\Model\NoSQL::getInstance()->fetchUserByProviderId(trim($account));
+        $identifier = trim($account);
+        //error_log($identifier.':'.$pass);
+        $bins = FALSE;
+        if (preg_match('/@/',$identifier) || preg_match('/^\+/', $identifier))
+        {
+            $bins = \Core\Model\NoSQL::getInstance()->fetchUserByProviderId($identifier);
+        }
+        else if (is_numeric($identifier))
+        {       
+            $q='select id from web_users where identifier containing ? and  user_pass=? and provider=\'mourjan\'';
+            $result=$this->db->get($q, [$identifier, md5($this->md5_prefix.$pass)]);
+            if($result!==false)
+            {
+                if (isset($result[0]) && $result[0]['ID']) 
+                {
+                    return $result[0]['ID'];//success return user id
+                }
+                $q = 'select id from web_users where identifier containing ? and provider=\'mourjan\'';
+                $result=$this->db->get($q, [$identifier]);
+                if($result!==false)
+                {
+                    if (isset($result[0]['ID']) && $result[0]['ID']) 
+                    {
+                        return 0;//wrong password
+                    }
+                    else
+                    {
+                        return -1;//account not found
+                    }                    
+                }
+                else
+                {
+                    return -2;//server error
+                }                
+            }
+            else
+            {
+                return -2;//server error
+            }
+            //$bins = \Core\Model\NoSQL::getInstance()->fetchUserByProviderId($identifier);
+        }
         
         if (!empty($bins))
         {
             if (isset($bins[\Core\Model\ASD\USER_PROFILE_ID]) && $bins[\Core\Model\ASD\USER_PROFILE_ID]>0)
             {
-                if (isset($bins[Core\Model\ASD\USER_PASSWORD]) && $bins[Core\Model\ASD\USER_PASSWORD]==$pass)
+                if (isset($bins[Core\Model\ASD\USER_PASSWORD]) && $bins[Core\Model\ASD\USER_PASSWORD]==md5($this->md5_prefix.$pass))
                 {
                     return $bins[\Core\Model\ASD\USER_PROFILE_ID];
                 }
@@ -2619,6 +2658,7 @@ class User
             if($newUid==0)
             {
                 $userBins = \Core\Model\NoSQL::getInstance()->fetchUserByProviderId($identifier, $provider);
+                
                 if (isset($userBins[\Core\Model\ASD\USER_PROFILE_ID]) && $userBins[\Core\Model\ASD\USER_PROFILE_ID])
                 {
                     // user aleady exists
@@ -2644,6 +2684,7 @@ class User
                                     \Core\Model\ASD\USER_PROFILE_URL => $infoStr,
                                     \Core\Model\ASD\USER_LAST_VISITED => time(),
                                     ], 0, TRUE);
+                    /*
                     $q='update or insert into web_users
                         (ID, IDENTIFIER, email, provider, full_name, display_name, profile_url, last_visit)
                         values (?, ?, ?, ?, ?, ?, ?, current_timestamp)
@@ -2652,6 +2693,8 @@ class User
                     {
                         $this->db->get($q, [$bins[\Core\Model\ASD\USER_PROFILE_ID], $identifier, $email, $provider, $fullName, $dispName, $infoStr], TRUE);
                     }
+                     * 
+                     */
                     
                 }
                 

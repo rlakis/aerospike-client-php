@@ -88,7 +88,7 @@ trait UserTrait
         $record = [];
         if ($this->getConnection()->get($this->initKey($uid), $record) != \Aerospike::OK)
         {
-            error_log( "Error [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" );
+            error_log( "UID: {$uid} Error [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" );
             return [];
         }
         
