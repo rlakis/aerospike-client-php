@@ -1295,11 +1295,11 @@ class AndroidApi
                                 {
                                     $this->api->result['d']['verified']=true;
 
-                                    $this->api->db->queryResultArray(
-                                        "UPDATE WEB_USERS_LINKED_MOBILE set "
-                                        . "ACTIVATION_TIMESTAMP=current_timestamp "
-                                        . "where uid = ? and code = ? and mobile = ? RETURNING ID", 
-                                        [$this->api->getUID(), $keyCode, $number], TRUE);
+                                    //$this->api->db->queryResultArray(
+                                    //    "UPDATE WEB_USERS_LINKED_MOBILE set "
+                                    //    . "ACTIVATION_TIMESTAMP=current_timestamp "
+                                    //    . "where uid = ? and code = ? and mobile = ? RETURNING ID", 
+                                    //    [$this->api->getUID(), $keyCode, $number], TRUE);
                                 }
                                 else 
                                 {
@@ -1401,6 +1401,7 @@ class AndroidApi
                                                     if (NoSQL::getInstance()->mobileUpdate($this->api->getUID(), $number, [\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $keyCode, \Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()]))
                                                     {
                                                         $sendSms = $rs[\Core\Model\ASD\SET_RECORD_ID];
+                                                        /*
                                                         $this->api->db->queryResultArray(
                                                             "UPDATE WEB_USERS_LINKED_MOBILE set "
                                                             . "code = ?, "
@@ -1409,6 +1410,8 @@ class AndroidApi
                                                             . "where id = ? RETURNING ID", 
                                                             [$keyCode, $rs[Core\Model\ASD\SET_RECORD_ID]], 
                                                             TRUE);
+                                                         * 
+                                                         */
 
                                                     } 
                                                     else
@@ -1441,10 +1444,13 @@ class AndroidApi
                                                     if ($record)
                                                     {
                                                         $sendSms = $record[\Core\Model\ASD\SET_RECORD_ID];
+                                                        /*
                                                         $this->api->db->queryResultArray(
                                                             "INSERT INTO WEB_USERS_LINKED_MOBILE (ID, UID, MOBILE, CODE, DELIVERED, SMS_COUNT,ACTIVATION_TIMESTAMP)
                                                             VALUES (?, ?, ?, ?, 0, 0,null) RETURNING ID",
                                                             [$sendSms, $this->api->getUID(), $number, $keyCode], TRUE);
+                                                         * 
+                                                         */
                                                     }
                                                     else
                                                     {
@@ -1966,25 +1972,24 @@ class AndroidApi
                     $this->api->result['d'] = [];
                     $this->api->result['d']['id'] = 0;
                     $default_id = filter_input(INPUT_POST, 'did', FILTER_VALIDATE_INT) + 0;
-                    $this->api->db->setWriteMode();  
+                    //$this->api->db->setWriteMode();  
                     if($default_id > 0)
                     {
                         if (NoSQL::getInstance()->deviceSetUID($this->api->getUUID(), $default_id, $this->api->getUID()))
                         {
-                            $result = $this->api->db->queryResultArray(
-                                "update web_users_device set uid = ? where uuid = ? and (uid = ? or uid = ?) returning uid", [$default_id, $this->api->getUUID(), $default_id, $this->api->getUID()], true
-                            );
+                            //$result = $this->api->db->queryResultArray(
+                            //    "update web_users_device set uid=? where uuid= ? and (uid = ? or uid = ?) returning uid", [$default_id, $this->api->getUUID(), $default_id, $this->api->getUID()], true
+                            //);
                         
                         
-                            if($result && isset($result[0]['UID']))
-                            {
-                                $this->api->result['d']['id'] = $result[0]['UID'];
+                            //if($result && isset($result[0]['UID']))
+                            //{
+                                $this->api->result['d']['id'] = $default_id; //$result[0]['UID'];
                             
                                 //get total
-                                $rs = $this->api->db->queryResultArray(
-                                "SELECT sum(r.credit - r.debit)
-                                FROM T_TRAN r
-                                where r.UID=?", [$result[0]['UID']], true);
+                                $rs = $this->api->db->get(
+                                    "SELECT sum(r.credit-r.debit) FROM T_TRAN r
+                                    where r.UID=?", [$default_id], true);
                         
                                 $this->api->result['d']['balance'] = -1;
                                 if($rs && count($rs) && $rs[0]['SUM']!=null)
@@ -1998,7 +2003,7 @@ class AndroidApi
                                         $this->api->result['d']['balance']=0;                    
                                     }
                                 }
-                            }
+                            //}
                         }
                     }
                 break;
@@ -2008,6 +2013,8 @@ class AndroidApi
                     $this->api->result['d']['id'] = 0;
                     if (NoSQL::getInstance()->deviceSetUID($this->api->getUUID(), $this->api->getUID()))
                     {
+                        $this->api->result['d']['id'] = $this->api->getUID();
+                        /*
                         $this->api->db->setWriteMode();   
                         $result = $this->api->db->queryResultArray("select uid from web_users_device where uid=? and uuid=?", [$this->api->getUID(), $this->api->getUUID()], true);
                     
@@ -2018,7 +2025,7 @@ class AndroidApi
                             {
                                 $this->api->result['d']['id'] = $result[0]['UID'];
                             }
-                        }
+                        }*/
                     }
                     break;
                                         
