@@ -1441,13 +1441,15 @@ class MobileApi
                 ]))
             {
 
-                                
+            /*
             $this->db->get("update or insert into WEB_USERS_DEVICE "
                     . "(uuid, uid, device_model, device_name, device_sysname, "
                     . "device_sysversion, last_visit, CARRIER_COUNTRY, APP_VERSION, APP_PREFS) "
                     . "values (?, ?, ?, ?, ?, ?, current_timestamp, ?, ?, ?)",
                     [$this->uuid, $this->getUID(), $device_model, ($isUTF8 ? $device_name : ''), $device_sysname,
                     $device_sysversion, $carrier_country, $device_appversion, $app_prefs], TRUE);
+             *
+             */
             }      
             
             if($isAndroid)
@@ -1509,13 +1511,13 @@ class MobileApi
             if ($uname && $uname!=$current_name) 
             {
                 NoSQL::getInstance()->userUpdate([\Core\Model\ASD\USER_FULL_NAME=>$uname, Core\Model\ASD\USER_DISPLAY_NAME=>$uname], $this->getUID());
-                $this->db->get("update web_users set full_name=?, display_name=? where id=?", [$uname, $uname, $this->getUID()], true);
+                //$this->db->get("update web_users set full_name=?, display_name=? where id=?", [$uname, $uname, $this->getUID()], true);
             }
             
             if (empty($uname)) 
             {
                 NoSQL::getInstance()->setVisitUnixtime($this->getUID());
-                $this->db->get("update web_users set last_visit=current_timestamp where id=?", [$this->getUID()], TRUE);
+                //$this->db->get("update web_users set last_visit=current_timestamp where id=?", [$this->getUID()], TRUE);
             }
 
             //error_log(json_encode($this->result['d']), 0);
@@ -1582,8 +1584,10 @@ class MobileApi
                     Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
                     Core\Model\ASD\USER_DEVICE_APP_SETTINGS => '{}'
                     ]);
-                
+
+                /*
                 $iteration=0;
+
                 $this->db->commit(TRUE);
                 
                 while ($iteration<5)
@@ -1616,8 +1620,10 @@ class MobileApi
                     {
                         error_log($ex->getMessage());
                         $this->db->rollback($iteration<5);
-                    } 
-                }
+                    }
+
+
+                }*/
             }
             else
             {
@@ -1645,8 +1651,8 @@ class MobileApi
                                            
             if (NoSQL::getInstance()->deviceSetToken($this->uuid, $token))
             {
-                $this->db->setWriteMode();
-                $this->db->get("update WEB_USERS_DEVICE set PUSH_ID=? where uuid=? and PUSH_ID!=?", [$token, $this->uuid, $token], TRUE);
+                //$this->db->setWriteMode();
+                //$this->db->get("update WEB_USERS_DEVICE set PUSH_ID=? where uuid=? and PUSH_ID!=?", [$token, $this->uuid, $token], TRUE);
             }
             else
             {
@@ -1671,8 +1677,8 @@ class MobileApi
             
             if (NoSQL::getInstance()->deviceSetNotificationStatus($this->uuid, $enabled))
             {
-                $this->db->setWriteMode();
-                $this->db->get("update WEB_USERS_DEVICE set NOTIFICATION_ENABLED=? where uuid=?", [$enabled, $this->uuid], TRUE);                
+                //$this->db->setWriteMode();
+                //$this->db->get("update WEB_USERS_DEVICE set NOTIFICATION_ENABLED=? where uuid=?", [$enabled, $this->uuid], TRUE);
             }
         }
         $this->db->close();
