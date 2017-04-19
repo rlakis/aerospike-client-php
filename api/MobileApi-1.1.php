@@ -41,19 +41,13 @@ class MobileApi
 
         $this->uid = filter_input(INPUT_GET, 'uid', FILTER_VALIDATE_INT)+0;
         $this->uuid = filter_input(INPUT_GET, 'uuid', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-        if ($this->uuid)
-        {
-            $this->user = MCUser::getByUUID($this->getUUID());//  new MCUser($this->uuid);        
-        }
-        else
-        {
-            //error_log("No uuid");
-            $this->user = new MCUser();
-        }
-
+        
         $this->config=$config;
         $this->db = new DB($this->config, TRUE);
-        $this->result['server'] = $this->config['server_id'];
+        
+        $this->result['server'] = $this->config['server_id']; 
+        
+        $this->user = ($this->uuid && $this->command!=API_DATA) ? MCUser::getByUUID($this->uuid) : new MCUser();
     }
 
     
@@ -83,23 +77,26 @@ class MobileApi
     
     function getDatabase() 
     {
-        $this->result['unixtime']=$this->db->queryResultArray(
+        $this->result['unixtime']=$this->db->get(
                 "SELECT DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', CURRENT_TIMESTAMP) FROM RDB\$DATABASE",
-                null, false, PDO::FETCH_NUM)[0][0];
+                null, false, \PDO::FETCH_NUM)[0][0];
 
         $dict = $this->db->getCountriesDictionary();
         $ds = [];
         foreach ($dict as $id=>$record) 
         {
-            if ($record[10] > $this->unixtime) {
+            if ($record[10] > $this->unixtime) 
+            {
                 $ds[] = [$id, $record[1], $record[2], strtoupper($record[3]), 0, $record[7], $record[8], $record[5], $record[4], $record[9]];
             }
         }
         $this->result['d']['country'] = $ds;
      
         $dict = $this->db->getCitiesDictionary(TRUE); $ds = [];
-        foreach ($dict as $id=>$record) {
-            if ($record[8] > $this->unixtime) {
+        foreach ($dict as $id=>$record) 
+        {
+            if ($record[8] > $this->unixtime) 
+            {
                 $ds[] = [$id, $record[1], $record[2], 0, $record[4], $record[5], $record[6], $record[7], $record[3]];
             }            
         }
@@ -107,8 +104,10 @@ class MobileApi
 
        
         $dict = $this->db->getPurposes(); $ds = [];
-        foreach ($dict as $id=>$record) {
-            if ($record[4] > $this->unixtime) {
+        foreach ($dict as $id=>$record) 
+        {
+            if ($record[4] > $this->unixtime) 
+            {
                 $ds[] = [$id, $record[1], $record[2], 0, $record[3]];
             }            
         }
@@ -116,26 +115,28 @@ class MobileApi
         
      
         $dict = $this->db->getRoots(); $ds = [];
-        foreach ($dict as $id=>$record) {
-            if ($record[6] > $this->unixtime) {
+        foreach ($dict as $id=>$record) 
+        {
+            if ($record[6] > $this->unixtime) 
+            {
                 $ds[] = [$id, $record[1], $record[2], $record[3], $record[4]];
             }            
         }
         $this->result['d']['root']=$ds;
    
-        $this->result['d']['root_purpose_xref']=$this->db->queryResultArray(
-                "SELECT ID, ROOT_ID, PURPOSE_ID FROM ROOT_PURPOSE_XREF WHERE UNIXTIME > ?",
-                [$this->unixtime], false, PDO::FETCH_NUM);
+        $this->result['d']['root_purpose_xref']=$this->db->get(
+                "SELECT ID, ROOT_ID, PURPOSE_ID FROM ROOT_PURPOSE_XREF WHERE UNIXTIME>?",
+                [$this->unixtime], false, \PDO::FETCH_NUM);
 
-        $this->result['d']['section']=$this->db->queryResultArray(
-                "SELECT ID, NAME_AR, NAME_EN, ROOT_ID, BLOCKED, uri FROM SECTION WHERE UNIXTIME > ?",
-                [$this->unixtime], false, PDO::FETCH_NUM);
+        $this->result['d']['section']=$this->db->get(
+                "SELECT ID, NAME_AR, NAME_EN, ROOT_ID, BLOCKED, uri FROM SECTION WHERE UNIXTIME>?",
+                [$this->unixtime], false, \PDO::FETCH_NUM);
 
-        $this->result['d']['tag'] = $this->db->queryResultArray(
-                "SELECT ID, SECTION_ID, LANG, NAME, BLOCKED, uri FROM SECTION_TAG WHERE UNIXTIME > ?",
-                [$this->unixtime], FALSE, PDO::FETCH_NUM);
+        $this->result['d']['tag'] = $this->db->get(
+                "SELECT ID, SECTION_ID, LANG, NAME, BLOCKED, uri FROM SECTION_TAG WHERE UNIXTIME>?",
+                [$this->unixtime], FALSE, \PDO::FETCH_NUM);
 
-        $this->result['d']['geo'] = $this->db->queryResultArray(
+        $this->result['d']['geo'] = $this->db->get(
                 "SELECT ID, COUNTRY_ID, CITY_ID, PARENT_ID, LANG, NAME, BLOCKED, ALTER_ID, uri FROM GEO_TAG WHERE COUNTRY_ID=? and UNIXTIME>?",
                 [$this->countryId, $this->unixtime], FALSE, PDO::FETCH_NUM);
 
@@ -211,7 +212,7 @@ class MobileApi
                 left join t_ad_bo bo on bo.ad_id=ad.id and bo.blocked=0 
                 left join web_users wu on wu.id = ad_user.web_user_id 
                 left join t_ad_featured featured on featured.ad_id=ad.id and current_timestamp between featured.added_date and featured.ended_date  
-                where ad.id = ?"
+                where ad.id=?"
                 );
 
             self::$stmt_get_ext = $this->db->getInstance()->prepare("
@@ -1299,13 +1300,12 @@ class MobileApi
         $device_sysversion = filter_input(INPUT_GET, 'sv', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
         $carrier_country = filter_input(INPUT_GET, 'cc', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
         $device_appversion = filter_input(INPUT_GET, 'bv', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-        $is_ping = filter_input(INPUT_GET, 'ping', FILTER_VALIDATE_INT)+0;
         $app_prefs = html_entity_decode(filter_input(INPUT_GET, 'prefs', FILTER_SANITIZE_STRING, ['options'=>['default'=>'{}']]));
         
         //Android Fix for lost UID
-        if($isAndroid && $this->uid==0 && $this->uuid)
+        if($isAndroid && $this->getUID()==0 && $this->uuid && $this->user->getID()>0)
         {
-            //error_log("Verifying if previous record exists for UUID {$this->uuid} with UID NIL\n");
+            error_log("Verifying if previous record exists for UUID {$this->uuid} with UID NIL\n");
             $_device = NoSQL::getInstance()->deviceFetch($this->uuid);
          
             if ($_device && isset($_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]) && $_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]=='Android')
@@ -1389,7 +1389,7 @@ class MobileApi
             }
             
             //check if android user has mobile validated
-            if($this->uid)
+            if($this->getUID())
             {
                 $_mobile = $this->user->getMobile();
                 if ($_mobile && $_mobile->isVerified())
@@ -1554,56 +1554,60 @@ class MobileApi
         } 
         elseif (!$this->user->exists() && !empty($this->uuid)) 
         {
+            
              //($status==-9 && !empty ($this->uuid)) 
             $bins = [
                 \Core\Model\ASD\USER_PROVIDER_ID=>$this->uuid,
-                \Core\Model\ASD\USER_PROVIDER=>$isAndroid?'mourjan-android':'mourjan-iphone',
+                \Core\Model\ASD\USER_PROVIDER=>$isAndroid ? \Core\Model\ASD\USER_PROVIDER_ANDROID : \Core\Model\ASD\USER_PROVIDER_IPHONE,
                 \Core\Model\ASD\USER_PROFILE_URL=>'https://www.mourjan.com/',                
                 ];
             
-            if (($record=NoSQL::getInstance()->userUpdate($bins))!==FALSE)
-            {
-                $this->uid = $record[\Core\Model\ASD\USER_PROFILE_ID];
-                $this->result['d']['uid'] = $this->uid;
-                
-                if ($isAndroid)
+            
+            if (($userRecord=NoSQL::getInstance()->fetchUserByProviderId($this->uuid, $bins[\Core\Model\ASD\USER_PROVIDER]))==FALSE)
+            {            
+                if (($record=NoSQL::getInstance()->userUpdate($bins))!==FALSE)
                 {
-                    $this->result['d']['level']=$record[\Core\Model\ASD\USER_LEVEL];
-                    $this->result['d']['status']=10;
-                    
-                    //device last visit
-                    $this->result['d']['dlv'] = 0;
-                    //user last visit
-                    $this->result['d']['ulv'] = 0;
-                }
-                //disallow purchase default 0
-                $this->result['d']['blp'] = 0;
-
-                $isUTF8 = preg_match('//u', $device_name);
-                $deviceAdded = NoSQL::getInstance()->deviceInsert([
-                    Core\Model\ASD\USER_DEVICE_UUID => $this->uuid,
-                    Core\Model\ASD\USER_UID => $this->uid,
-                    Core\Model\ASD\USER_DEVICE_MODEL => $device_model,
-                    Core\Model\ASD\USER_DEVICE_NAME => ($isUTF8 ? $device_name : ''),
-                    Core\Model\ASD\USER_DEVICE_SYS_NAME => $device_sysname,
-                    Core\Model\ASD\USER_DEVICE_SYS_VERSION => $device_sysversion,
-                    Core\Model\ASD\USER_DEVICE_ISO_COUNTRY => $carrier_country,
-                    Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
-                    Core\Model\ASD\USER_DEVICE_APP_SETTINGS => '{}'
-                    ]);
-
-                /*
-                $iteration=0;
-
-                $this->db->commit(TRUE);
+                    $this->uid = $record[\Core\Model\ASD\USER_PROFILE_ID];
+                    $this->result['d']['uid'] = $this->uid;
                 
-                while ($iteration<5)
-                {
-                    $iteration++;
-                    
-                    try 
+                    if ($isAndroid)
                     {
+                        $this->result['d']['level']=$record[\Core\Model\ASD\USER_LEVEL];
+                        $this->result['d']['status']=10;
+                    
+                        //device last visit
+                        $this->result['d']['dlv'] = 0;
+                        //user last visit
+                        $this->result['d']['ulv'] = 0;
+                    }
+                    //disallow purchase default 0
+                    $this->result['d']['blp'] = 0;
+
+                    $isUTF8 = preg_match('//u', $device_name);
+                    $deviceAdded = NoSQL::getInstance()->deviceInsert([
+                        Core\Model\ASD\USER_DEVICE_UUID => $this->uuid,
+                        Core\Model\ASD\USER_UID => $this->uid,
+                        Core\Model\ASD\USER_DEVICE_MODEL => $device_model,
+                        Core\Model\ASD\USER_DEVICE_NAME => ($isUTF8 ? $device_name : ''),
+                        Core\Model\ASD\USER_DEVICE_SYS_NAME => $device_sysname,
+                        Core\Model\ASD\USER_DEVICE_SYS_VERSION => $device_sysversion,
+                        Core\Model\ASD\USER_DEVICE_ISO_COUNTRY => $carrier_country,
+                        Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
+                        Core\Model\ASD\USER_DEVICE_APP_SETTINGS => '{}'
+                        ]);
+
+                    /*
+                    $iteration=0;
+                    
+                    $this->db->commit(TRUE);
                         
+                    while ($iteration<5)
+                    {
+                        $iteration++;
+                            
+                            try     
+                        {
+                    
                         $this->db->get(
                             "insert into web_users (ID, identifier, email, provider, full_name, profile_url, opts, user_name, user_email) 
                             values (?, ?, '', '".($isAndroid?'mourjan-android':'mourjan-iphone')."', '', 'https://www.mourjan.com/', '{}', '', '')  
@@ -1630,11 +1634,18 @@ class MobileApi
                     }
 
 
-                }*/
+                    }*/
+                } 
+                else
+                {
+                    $this->result['e'] = 'System error [1000]!';
+                    error_log("could not write: ".json_encode($bins));
+                }
             }
             else
             {
-                $this->result['e'] = 'System error!';
+                $this->result['e'] = 'System error [1001]!';
+                error_log("User provider exists: ".json_encode($bins));
             }
                        
         }

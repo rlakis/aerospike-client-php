@@ -16,6 +16,7 @@ trait DeviceTrait
     abstract public function getConnection();
     abstract public function genId(string $generator, &$sequence);
     abstract public function getBins($pk, array $bins);
+    abstract public function getRecord(array $pk, &$record, array $bins=[]);
     abstract public function setBins($pk, array $bins);
     abstract public function exists($pk) : int;
     
@@ -94,6 +95,13 @@ trait DeviceTrait
     {
         $pk = $this->initDeviceKey($uuid);
         return $this->getBins($pk);
+    }
+    
+    
+    public function getDeviceRecord(string $uuid, &$record) : int
+    {
+        $pk = $this->initDeviceKey($uuid);
+        return $this->getRecord($pk, $record);
     }
     
     

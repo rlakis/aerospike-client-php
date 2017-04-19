@@ -2,7 +2,7 @@
 ob_start();
 header('Cache-Control: no-cache, must-revalidate');
 header('Expires: Mon, 26 Jul 1997 00:00:00 GMT');
-header('Content-type: application/json');
+header('Content-type: application/json; charset=UTF-8');
 
 const ERR_INVALID_REQUEST_PARAMS                = 1000;
 const ERR_INVALID_PHONE_NUMBER                  = 1001;

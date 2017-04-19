@@ -98,11 +98,9 @@ class MCUser extends MCJsonMapper
                 }
                 else
                 {
-                    if (($user_data = NoSQL::getInstance()->fetchUserByUUID($source_data))!==FALSE)
+                    if (NoSQL::getInstance()->fetchUserByUUID($source_data, $user_data)==NoSQL::OK)
                     {
                         $this->parseArray($user_data);
-                        //$this->devices = FALSE;
-                        //$this->getDevices();
                     }
                 }
             }
@@ -118,7 +116,7 @@ class MCUser extends MCJsonMapper
     public static function getByUUID(string $uuid) : MCUser
     {
         $result = new MCUser();
-        if (($bins = NoSQL::getInstance()->fetchUserByUUID($uuid))!==FALSE)
+        if (NoSQL::getInstance()->fetchUserByUUID($uuid, $bins)==NoSQL::OK)
         {
             $result->parseArray($bins);
             if (!($result->opts instanceof MCUserOptions))
@@ -126,10 +124,6 @@ class MCUser extends MCJsonMapper
                 $result->opts = new MCUserOptions();
             }
         }
-        else
-        {
-            error_log("Could not fetch user from device ".$uuid);
-        }        
        
         return $result;        
     }

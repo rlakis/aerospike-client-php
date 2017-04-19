@@ -11,6 +11,7 @@ trait BlackListTrait
     abstract public function getConnection();
     abstract public function genId(string $generator, &$sequence);
     abstract public function getBins($pk, array $bins);
+    abstract public function getRecord(array $pk, &$record, array $bins=[]);
     abstract public function setBins($pk, array $bins);
     abstract public function exists($pk) : int;
     
@@ -58,7 +59,8 @@ trait BlackListTrait
     
     public function getBlackListedReason($contact) 
     {
-        if (($rec = $this->getBins($this->asKey($contact), [BLACK_LIST_REASON]))!==FALSE)
+        if ($this->getRecord($this->asKey($contact), $rec, [BLACK_LIST_REASON]) == \Core\Model\NoSQL::OK)
+        //if (($rec = $this->getBins($this->asKey($contact), [BLACK_LIST_REASON]))!==FALSE)
         {
             return $rec[BLACK_LIST_REASON] ?? '<Old days block method>';
         }

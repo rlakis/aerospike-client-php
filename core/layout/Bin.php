@@ -348,11 +348,11 @@ class Bin extends AjaxHandler{
                                 unset($this->user->pending['mobile']);
                                 $this->user->update();
                                 
-                                $this->urlRouter->db->get(
-                                    "UPDATE WEB_USERS_LINKED_MOBILE set "
-                                    . "ACTIVATION_TIMESTAMP=current_timestamp "
-                                    . "where uid=? and code=? and mobile=? RETURNING ID", 
-                                    [$this->user->info['id'],$keyCode,$number], TRUE);
+                                //$this->urlRouter->db->get(
+                                //    "UPDATE WEB_USERS_LINKED_MOBILE set "
+                                //    . "ACTIVATION_TIMESTAMP=current_timestamp "
+                                //    . "where uid=? and code=? and mobile=? RETURNING ID", 
+                                //    [$this->user->info['id'],$keyCode,$number], TRUE);
                                 
                             }else{                                
                                 $this->setData(0,'verified');
@@ -493,9 +493,9 @@ class Bin extends AjaxHandler{
                                                 {
                                                     $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
 
-                                                    $ns = $this->urlRouter->db->get(
-                                                            "UPDATE OR INSERT INTO WEB_USERS_LINKED_MOBILE (ID, UID, MOBILE, CODE, DELIVERED, SMS_COUNT, ACTIVATION_TIMESTAMP)
-                                                             VALUES (?, ?, ?, ?, 0, 0, null) MATCHING(UID, MOBILE) RETURNING ID", [$sendSms, $this->user->info['id'], $number, $keyCode], TRUE);
+                                                    //$ns = $this->urlRouter->db->get(
+                                                    //        "UPDATE OR INSERT INTO WEB_USERS_LINKED_MOBILE (ID, UID, MOBILE, CODE, DELIVERED, SMS_COUNT, ACTIVATION_TIMESTAMP)
+                                                    //         VALUES (?, ?, ?, ?, 0, 0, null) MATCHING(UID, MOBILE) RETURNING ID", [$sendSms, $this->user->info['id'], $number, $keyCode], TRUE);
                                                 } 
                                                 else
                                                 {
