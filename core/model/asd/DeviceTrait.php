@@ -146,6 +146,14 @@ trait DeviceTrait
         {
             if (($record = $this->getBins($pk, [USER_UID]))!== FALSE)
             {            
+                if ((($oldUserRecord=\Core\Model\NoSQL::getInstance()->fetchUserByProviderId($uuid, ''))!==FALSE) && !empty($oldUserRecord))
+                {
+                    if ($oldUserRecord[USER_PROVIDER]==USER_PROVIDER_ANDROID || $oldUserRecord[USER_PROVIDER]==USER_PROVIDER_IPHONE)
+                    {
+                        $bins = ['duid'=>$oldUserRecord[USER_PROFILE_ID], 'uid'=>$uid];
+                    }
+                }
+                
                 if ($record[USER_UID]==$oldUID || $oldUID==0)
                 {
                     return $this->setBins($pk, [USER_UID => $uid]);

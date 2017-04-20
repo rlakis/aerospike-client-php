@@ -189,7 +189,9 @@ class NoSQL
         else 
         {
             if ($status==\Aerospike::OK)
-            $record = $record['bins'];
+            {
+                $record = $record['bins'];
+            }
         }
         
         return $status; 
@@ -198,6 +200,11 @@ class NoSQL
     
     public function setBins($pk, array $bins) : bool
     {
+        if (isset($bins[USER_PROVIDER_ID]) && is_numeric($bins[USER_PROVIDER_ID]))
+        {
+            $bins[USER_PROVIDER_ID] = "{$bins[USER_PROVIDER_ID]}";
+        }
+        
         $status = $this->getConnection()->put($pk, $bins);
         if ($status != \Aerospike::OK) 
         {

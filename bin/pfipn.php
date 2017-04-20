@@ -62,14 +62,21 @@ if(isset($payment['error_msg']))
 
 $orderId = 0;
 $userId = 0;
+$sourceId = 0;
 
 if (isset($payment['merchant_reference']))
 {
     $orderId = preg_split('/-/', $payment['merchant_reference']);
-    if($orderId && count($orderId)==2 && is_numeric($orderId[0]) && is_numeric($orderId[1]))
+    if($orderId && (count($orderId)==2||count($orderId)==3) && is_numeric($orderId[0]) && is_numeric($orderId[1]))
     {
+        if (isset($orderId[2]))
+        {
+            $sourceId=(int)$orderId[2];
+        }
+    
         $userId = (int)$orderId[0];
-        $orderId = (int)$orderId[1];        
+        $orderId = (int)$orderId[1];   
+        
     }
     else
     {
@@ -83,9 +90,8 @@ if($orderId)
 {
     if($success)
     {
-        $res = $db->queryResultArray(
-                    "update t_order set state=?, msg=? where id=? and uid=? and state=0 returning id",
-                    [2, $payment['fort_id'], $orderId, $userId], TRUE);
+        $res = $db->get("update t_order set state=?, msg=?, flag=? where id=? and uid=? and state=0 returning id",
+                    [2, $payment['fort_id'], $sourceId, $orderId, $userId], TRUE);
     }
     else
     {
@@ -95,14 +101,12 @@ if($orderId)
             $state = 1;
         }
 
-        $res = $db->queryResultArray(
-                    "update t_order set state=?, msg=? where id=? and uid=? and state=0 returning id",
-                    [$state, $payment['error_msg'], $orderId, $userId], TRUE);
+        $res = $db->get("update t_order set state=?, msg=?, flag=? where id=? and uid=? and state=0 returning id",
+                    [$state, $payment['error_msg'], $sourceId, $orderId, $userId], TRUE);
     }
 }
 
 $db->queryResultArray("INSERT INTO T_PAYFORT (DATA) VALUES (?)", [json_encode($_POST)], TRUE);
-
 
 
 ?>

@@ -158,12 +158,12 @@ trait UserTrait
 
     public function fetchUserByProviderId(string $identifier, string $provider='mourjan') 
     {
-        $bins = [];
-        $where = \Aerospike::predicateEquals(USER_PROVIDER_ID, $identifier);
+        $bins = FALSE;
+        $where = \Aerospike::predicateEquals(USER_PROVIDER_ID, "{$identifier}");
         $status = $this->getConnection()->query(NS_USER, TS_USER, $where,  
                     function ($record) use (&$bins, $provider) 
                     {
-                        if ($bins==FALSE && $record['bins'][USER_PROVIDER]==$provider)
+                        if ($bins==FALSE && (empty($provider) || $record['bins'][USER_PROVIDER]==$provider))
                         {
                             $bins = $record['bins'];
                         }
@@ -173,9 +173,10 @@ trait UserTrait
         {
             error_log("An error occured while querying {$identifier}:{$provider} [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}");
             return FALSE;
-        } 
-        
-        return $bins;
+        } else
+        {
+            return [];
+        }        
     }
     
     

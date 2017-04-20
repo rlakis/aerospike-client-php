@@ -2755,6 +2755,8 @@ class User
             
             if($newUserId)
             {
+                NoSQL::getInstance()->deviceSetUID($uuid, $newUserId, $uid);
+                        
                 if (NoSQL::getInstance()->deviceUpdate($uuid, [\Core\Model\ASD\USER_UID=>$newUserId]))
                 {
                     include_once $this->cfg['dir'] . '/core/lib/SphinxQL.php';
@@ -3083,7 +3085,7 @@ class User
 
         $updateOptions=false;
         $provider=strtolower(trim($provider));
-        $identifier=$info->identifier;
+        $identifier="{$info->identifier}";
         $email=is_null($info->emailVerified) ? (is_null($info->email ? '' : $info->email)) :$info->emailVerified;
         if(strpos($email, '@')===false) $email='';
         $fullName=trim(($info->firstName ? $info->firstName : '').' '.($info->lastName ? $info->lastName : ''));
@@ -3097,7 +3099,7 @@ class User
                 // new user;
                 $this->pending['social_new']=1; 
                 $bins = \Core\Model\NoSQL::getInstance()->userUpdate([
-                                    \Core\Model\ASD\USER_PROVIDER_ID => $identifier,
+                                    \Core\Model\ASD\USER_PROVIDER_ID => "{$identifier}",
                                     \Core\Model\ASD\USER_EMAIL => $email,
                                     \Core\Model\ASD\USER_PROVIDER => $provider,
                                     \Core\Model\ASD\USER_FULL_NAME => $fullName,
@@ -3110,7 +3112,7 @@ class User
             {
                 // user aleady exists
                 $bins = \Core\Model\NoSQL::getInstance()->userUpdate([
-                                    \Core\Model\ASD\USER_PROVIDER_ID => $identifier,
+                                    \Core\Model\ASD\USER_PROVIDER_ID => "{$identifier}",
                                     \Core\Model\ASD\USER_EMAIL => $email,
                                     \Core\Model\ASD\USER_PROVIDER => $provider,
                                     \Core\Model\ASD\USER_FULL_NAME => $fullName,
