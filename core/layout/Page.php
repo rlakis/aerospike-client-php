@@ -47,12 +47,12 @@ class Page extends Site
         //var_dump($this->user->info);
         /*$mcUser = new MCUser(876007);
         var_dump($mcUser);
-        */
-        /*$row = $this->urlRouter->db->queryResultArray(
-        "select * from web_users_linked_mobile where uid = ?", ['888552']);
+        *//*
+        $row = $this->urlRouter->db->queryResultArray(
+        "select * from web_users_device where uid = ?", ['829241']);
         var_dump($row);
         $record = \Core\Model\NoSQL::getInstance()->fetchUserByUUID('ABC13D8A-5FD2-4A72-854F-55FC075BC52F');
-        var_dump($record);*/        
+        var_dump($record);*/       
         
         $cdn = $this->urlRouter->cfg['url_resources'];
         
@@ -5602,7 +5602,7 @@ class Page extends Site
                     ?><li><div><?php
                         ?><h5><?= $this->lang['mourjan_app'] ?></h5><?php
                         ?><p><?= $this->lang['app_desc'] ?></p><?php
-                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(4,108)</span><?php
+                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(4,164)</span><?php
                     ?></div></li><?php
                     ?><li><a type="button" href='https://play.google.com/store/apps/details?id=com.mourjan.classifieds' class="bt"><?= $this->lang['install'] ?></a></li><?php
                     ?></ul><br /><?php

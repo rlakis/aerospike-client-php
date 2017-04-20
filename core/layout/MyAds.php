@@ -263,6 +263,7 @@ class MyAds extends Page
     function pendingMobileAds($state=0)
     {
         $lang='';
+        $current_time = time();
         if ($this->urlRouter->siteLanguage!='ar') $lang=$this->urlRouter->siteLanguage.'/';
         $ads=$this->user->getPendingAds(0,$state);
         $count=0;
@@ -278,6 +279,12 @@ class MyAds extends Page
             ?><ul id="resM" class="ls"><?php
                 for($i=0;$i<$count;$i++){
                     $ad=$ads[$i];
+                    $isFeatured = isset($ad['FEATURED_DATE_ENDED']) && $ad['FEATURED_DATE_ENDED'] ? ($current_time < $ad['FEATURED_DATE_ENDED']) : false;
+                    $isFeatureBooked = isset($ad['BO_DATE_ENDED']) && $ad['BO_DATE_ENDED'] ? ($current_time < $ad['BO_DATE_ENDED']) : false;
+                    
+                    if (!$isFeatureBooked && $ad['STATE']==4) {
+                        $isFeatureBooked = true;
+                    }
                     $ad_state=$ad['STATE'];
                     $content=json_decode($ad['CONTENT'],true);
                     if(!isset($content['other']) && isset($content['fields']['other']))
@@ -298,6 +305,9 @@ class MyAds extends Page
                     $link='';
                     $liClass='button ';
                     $textClass='en';
+                    if($isFeatured){
+                        $liClass.="vp ";
+                    }
                     if ($idx%2) {
                         $liClass.="alt ";
                     }

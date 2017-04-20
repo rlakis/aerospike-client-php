@@ -475,11 +475,15 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                         }
                         
                         $orderId = 0;
+                        $flag_id=0;
                         if(isset($payment['merchant_reference'])){
                             $orderId = preg_split('/-/', $payment['merchant_reference']);
-                            if($orderId && count($orderId)==2 && is_numeric($orderId[0]) && is_numeric($orderId[1])){
+                            if($orderId && (count($orderId)==2 || count($orderId)==3) && is_numeric($orderId[0]) && is_numeric($orderId[1])){
                                 if($orderId[0] == $this->user->info['id']){
                                     $orderId = (int)$orderId[1];
+                                    if(isset($orderId[2]) && $orderId[2]){
+                                        $flag_id = $orderId[2];
+                                    }
                                 }else{
                                     $orderId=0;
                                 }
@@ -490,8 +494,8 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                         if($orderId){
                             if($success){
                                 $res = $this->urlRouter->db->queryResultArray(
-                                            "update t_order set state = ?, msg = ? where id = ? and uid = ? and state = 0 returning id",
-                                            [2, $payment['fort_id'], $orderId, $this->user->info['id']], TRUE);
+                                            "update t_order set state = ?, msg = ?,flag=? where id = ? and uid = ? and state = 0 returning id",
+                                            [2, $payment['fort_id'],$flag_id, $orderId, $this->user->info['id']], TRUE);
                                 if($res !== false){
                                     $goldCount = preg_replace('/[^0-9]/', '', $payment['order_description']);
                                     $msg = preg_replace('/{gold}/', $goldCount, $this->lang['paypal_ok']);
@@ -510,8 +514,8 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                                 echo "<div class='mnb rc'><p><span class='fail'></span> {$this->lang['paypal_failure']} {$payment['error_msg']}</p></div>";
 
                                 $res = $this->urlRouter->db->queryResultArray(
-                                            "update t_order set state = ?, msg = ? where id = ? and uid = ? and state = 0 returning id",
-                                            [$state, $payment['error_msg'], $orderId, $this->user->info['id']], TRUE);
+                                            "update t_order set state = ?, msg = ?,flag=? where id = ? and uid = ? and state = 0 returning id",
+                                            [$state, $payment['error_msg'], $flag_id, $orderId, $this->user->info['id']], TRUE);
 
                                 $this->user->update();
                             }

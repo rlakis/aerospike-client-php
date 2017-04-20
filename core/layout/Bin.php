@@ -3847,7 +3847,7 @@ class Bin extends AjaxHandler{
                                     $this->urlRouter->cfg['server_id']
                                 ], true);
                             if(isset($order[0]['ID']) && $order[0]['ID']){
-                                $orderId=$this->user->info['id'].'-'.$order[0]['ID'];   
+                                $orderId=$this->user->info['id'].'-'.$order[0]['ID'].'-'.( isset($this->user->params['mobile']) && $this->user->params['mobile'] ? 1:0);   
                                 
                                 require_once $this->urlRouter->cfg['dir'].'/core/lib/PayfortIntegration.php';
                                 
