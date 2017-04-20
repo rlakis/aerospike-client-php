@@ -175,10 +175,31 @@ trait UserTrait
             return FALSE;
         } else
         {
-            return [];
+            return ($bins === false ? [] : $bins);
         }        
     }
     
+    
+    public function fetchUsersByProvider(string $identifier, string $provider) 
+    {
+        $bins = [];
+        $where = \Aerospike::predicateEquals(USER_PROVIDER_ID, strval($identifier));
+        $status = $this->getConnection()->query(NS_USER, TS_USER, $where,  
+                    function ($record) use (&$bins, $provider) 
+                    {
+                        if ($record['bins'][USER_PROVIDER]==$provider)
+                        {                            
+                            $bins[] = $record['bins'];
+                        }
+                    });
+             
+        if ($status !== \Aerospike::OK) 
+        {
+            error_log("An error occured while querying {$identifier}:{$provider} [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}");
+            return FALSE;
+        } 
+        return $bins;       
+    }
     
     public function userUpdate(array $bins, int $uid=0, bool $as_visit=FALSE)
     {
@@ -224,24 +245,22 @@ trait UserTrait
                     $record[$k] = $v;
                 }
                 
-                if (isset($record[USER_PROVIDER_ID]) && is_int($record[USER_PROVIDER_ID]))
-                {
-                    $record[USER_PROVIDER_ID] = "{$record[USER_PROVIDER_ID]}";
-                }
-                
                 if (!isset($record[USER_PROVIDER_ID]) || !isset($record[USER_PROVIDER]))
                 {
                     error_log("Invalid Unique key - Counld not update user record!! ". json_encode($record));
                     return FALSE;
                 }
                 
-                if (($up=$this->fetchUserByProviderId($record[USER_PROVIDER_ID], $record[USER_PROVIDER]))!==FALSE)
+                if (isset($record[USER_PROVIDER_ID]) && is_numeric($record[USER_PROVIDER_ID]))
                 {
-                    if (isset($up[USER_PROFILE_ID]))
-                    {
-                        error_log("User Profile Unique key violation!!! ". json_encode($record));
-                        return FALSE;
-                    }
+                    $record[USER_PROVIDER_ID] = strval($record[USER_PROVIDER_ID]);
+                }                
+               
+                
+                if (($up=$this->fetchUserByProviderId($record[USER_PROVIDER_ID], $record[USER_PROVIDER]))!==FALSE && !empty($up))
+                {
+                    error_log("User Profile Unique key violation!!! ". json_encode($record));
+                    return FALSE;
                 }
                 $bins = $record;
             } 

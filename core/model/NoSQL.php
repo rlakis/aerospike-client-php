@@ -200,9 +200,9 @@ class NoSQL
     
     public function setBins($pk, array $bins) : bool
     {
-        if (isset($bins[USER_PROVIDER_ID]) && is_numeric($bins[USER_PROVIDER_ID]))
+        if (isset($bins["provider_id"]) && is_numeric($bins["provider_id"]))
         {
-            $bins[USER_PROVIDER_ID] = "{$bins[USER_PROVIDER_ID]}";
+            $bins["provider_id"] = strval($bins["provider_id"]);
         }
         
         $status = $this->getConnection()->put($pk, $bins);
