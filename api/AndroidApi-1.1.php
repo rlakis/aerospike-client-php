@@ -1847,6 +1847,7 @@ class AndroidApi
                                 
                                 $newId=$id;
                                 $this->api->result['d']['provider']=$user[Core\Model\ASD\USER_PROVIDER];
+                                
                                 switch ($user[Core\Model\ASD\USER_PROVIDER]) 
                                 {
                                     case 'mourjan':
@@ -1854,7 +1855,7 @@ class AndroidApi
                                         break;
 
                                     case 'twitter':
-                                        $this->api->result['d']['account']=preg_replace('/http(?:s|)::\/\/twitter\.com\//','',$user[Core\Model\ASD\USER_PROFILE_URL]);
+                                        $this->api->result['d']['account']=preg_replace('/http(?:s|)::\/\/twitter\.com\//', '', $user[Core\Model\ASD\USER_PROFILE_URL]);
                                         break;
                                     
                                     default:
@@ -1905,6 +1906,7 @@ class AndroidApi
                         {
                             //$opt = json_decode($user[0]['OPTS'], true);
                             $opt = $user[Core\Model\ASD\USER_OPTIONS];
+                            
                             if(isset($opt['accountKey']) && $opt['accountKey']==$code)
                             {
                                 if($USER->resetPassword($id, $password))
@@ -1922,9 +1924,12 @@ class AndroidApi
                                     {
                                         $this->api->result['d']['account']=$user[\Core\Model\ASD\USER_PROVIDER_ID];
                                     }
-                                    else if($user[\Core\Model\ASD\USER_PROVIDER]=='twitter'){
-                                        $this->api->result['d']['account']=preg_replace('/http(?:s|)::\/\/twitter\.com\//','',$user[\Core\Model\ASD\USER_PROFILE_URL]);
-                                    }else{
+                                    else if($user[\Core\Model\ASD\USER_PROVIDER]=='twitter')
+                                    {
+                                        $this->api->result['d']['account']=preg_replace('/http(?:s|)::\/\/twitter\.com\//', '', $user[\Core\Model\ASD\USER_PROFILE_URL]);
+                                    }
+                                    else
+                                    {
                                         $this->api->result['d']['account']=$user[\Core\Model\ASD\USER_EMAIL];
                                     }
                                 }
@@ -1952,14 +1957,18 @@ class AndroidApi
                     $username = urldecode(filter_input(INPUT_POST, 'user', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']]));
                     $password = urldecode(filter_input(INPUT_POST, 'pass', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']]));
                     $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                    if($username && $password && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                    
+                    if($username && $password && base64_decode($signature)==strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY)))
+                    {
                         require_once $this->api->config['dir'].'/core/model/User.php';
                         $this->api->db->setWriteMode();  
                         $USER = new User($this->api->db, $this->api->config, null, 0);
                         $newUid=$USER->authenticateUserAccount($username, $password);
-                        if($newUid>0){
+                        if($newUid>0)
+                        {
                             $newUid=$USER->mergeDeviceToAccount($this->api->getUUID(), $this->api->getUID(), $newUid);
-                            if(!$newUid){
+                            if(!$newUid)
+                            {
                                 $newUid=-2;
                             }
                         }
@@ -2036,36 +2045,46 @@ class AndroidApi
                     $transaction_id = filter_input(INPUT_POST, 'transaction_id', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
                     $transaction_date = date("Y-m-d H:i:s", filter_input(INPUT_POST, 'transaction_date', FILTER_VALIDATE_INT)+0);                    
                     $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                    IF( ( ($product_id && $transaction_date && $transaction_id) || $transaction) && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                    
+                    if( ( ($product_id && $transaction_date && $transaction_id) || $transaction) && base64_decode($signature)==strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY)))
+                    {
                         
                         $transaction_signature = '';
                         $transaction_payload = '';
-                        if($transaction != ''){
+                        if($transaction!='')
+                        {
                             $tran = json_decode($transaction, true);
                             
-                            if(isset($tran['json'])){
+                            if(isset($tran['json']))
+                            {
                                 $tranO = json_decode($tran['json'], true);
                             }
                             
-                            if(isset($tran['sig'])){
+                            if(isset($tran['sig']))
+                            {
                                 $transaction_signature = trim($tran['sig']);
                             }
                             
                             
-                            if(isset($tranO['orderId'])){
+                            if(isset($tranO['orderId']))
+                            {
                                 $transaction_id = trim($tranO['orderId']);
                             }
-                            if(isset($tranO['purchaseTime'])){
+                            if(isset($tranO['purchaseTime']))
+                            {
                                 $transaction_date = $tranO['purchaseTime'];
                             }
-                            if(isset($tranO['developerPayload'])){
+                            if(isset($tranO['developerPayload']))
+                            {
                                 $transaction_payload = trim($tranO['developerPayload']);
                             }
-                            if(isset($tranO['productId'])){
+                            if(isset($tranO['productId']))
+                            {
                                 $product_id = trim($tranO['productId']);
                             }
                             
-                            if($transaction_id && $transaction_date && $product_id && $transaction_payload){
+                            if($transaction_id && $transaction_date && $product_id && $transaction_payload)
+                            {
                                 
                                 require_once $this->api->config['dir'].'/core/model/User.php';
                                 $USER = new User(null, null, null, 0);
@@ -2073,18 +2092,17 @@ class AndroidApi
                                 
                                 //if (trim(base64_encode('com.mourjan.classifieds'.$uidKey.$product_id)) == $transaction_payload){
                                     
-                                    $public_key_base64 = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAo//5OB8WpXTlsD5TEA5S+JK/I4xuYNOCGpGen07GKUpNdHcIVxSejoKiTmszUjsRgR1NC5H6Xu+5YMxfsPzQWwqyGMaQbvdLYOW2xQ5gnK4HEqp1ZP74HkNrnBCpyaGEuap4XcHu+37xNxZNRZpTgtr34dPcMIsN2GGANMNTy5aWlAPsl1BTYkDOCMu2f+Tyq2eqIkOvlHS09717JwNrx6NyI+CI7y8AAuLLZOp8usXWA/Lx3H6COts9IXMXE/+eNiFkaGsaolxzvO/aBg9w/0iYWGTinInOyHqwjcxazmoNJxxYbS/iTAlcPMrXzjn3UUepcq2WZ/+HWI0bzf4mVQIDAQAB";
-                                    $key =  "-----BEGIN PUBLIC KEY-----\n" .
+                                $public_key_base64 = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAo//5OB8WpXTlsD5TEA5S+JK/I4xuYNOCGpGen07GKUpNdHcIVxSejoKiTmszUjsRgR1NC5H6Xu+5YMxfsPzQWwqyGMaQbvdLYOW2xQ5gnK4HEqp1ZP74HkNrnBCpyaGEuap4XcHu+37xNxZNRZpTgtr34dPcMIsN2GGANMNTy5aWlAPsl1BTYkDOCMu2f+Tyq2eqIkOvlHS09717JwNrx6NyI+CI7y8AAuLLZOp8usXWA/Lx3H6COts9IXMXE/+eNiFkaGsaolxzvO/aBg9w/0iYWGTinInOyHqwjcxazmoNJxxYbS/iTAlcPMrXzjn3UUepcq2WZ/+HWI0bzf4mVQIDAQAB";
+                                $key =  "-----BEGIN PUBLIC KEY-----\n" .
                                         chunk_split($public_key_base64, 64, "\n") .
                                         '-----END PUBLIC KEY-----';
-                                    $key = openssl_pkey_get_public($key);
+                                
+                                $key = openssl_pkey_get_public($key);
                                     
-                                    $transaction_signature = base64_decode($transaction_signature);
+                                $transaction_signature = base64_decode($transaction_signature);
                                     
-                                    $verification = openssl_verify($tran['json'], $transaction_signature, $key, OPENSSL_ALGO_SHA1);
-                                    if($verification === 1){
-                                        $proceed = true;
-                                    }
+                                $verification = openssl_verify($tran['json'], $transaction_signature, $key, OPENSSL_ALGO_SHA1);
+                                $proceed=($verification===1);
                                 //}
                             }
                         }
@@ -2093,7 +2111,9 @@ class AndroidApi
                             $proceed = true;
                         }
                         */
-                        if($proceed){
+                        
+                        if($proceed)
+                        {
                         
                             error_log(sprintf("Authorized %s\t%s\t%d\t%s\t%s\t%s", date("Y-m-d H:i:s"), $this->api->getUUID(), $this->api->getUID(), $product_id, $transaction_id, $transaction_date).PHP_EOL, 3, "/var/log/mourjan/purchase.log");
                             //$this->api->sendSMS('9613287168', "Authorized Android purchase UID {$this->api->getUID()}\nServer: {$this->api->config['server_id']}\nProduct: {$product_id}\nTransaction: {$transaction_id}\nDate: {$transaction_date}");
@@ -2102,14 +2122,18 @@ class AndroidApi
                             $product_rs = $this->api->db->queryResultArray("select * from product where product_id=?", [$product_id]);
 
                             $this->api->result['transaction_id'] = 0;
-                            if (!empty($product_rs)) {
+                            if (!empty($product_rs)) 
+                            {
                                 $this->api->db->setWriteMode();
                                 $product_rs=$product_rs[0];
 
                                 $old_transaction = $this->api->db->queryResultArray("select id from t_tran where TRANSACTION_ID=?", [$transaction_id]);
-                                if($old_transaction && count($old_transaction)){
+                                if($old_transaction && count($old_transaction))
+                                {
                                     $this->api->result['transaction_id'] = $transaction_id;
-                                }else{
+                                }
+                                else
+                                {
                                     $transaction_date = date("Y-m-d H:i:s",floor($transaction_date / 1000));
                                     $server_id = intval(get_cfg_var('mourjan.server_id')) ;
                                     $coins = $this->api->db->queryResultArray(
@@ -2117,32 +2141,38 @@ class AndroidApi
                                         "(?, current_timestamp, 'USD', ?, 0, ?, 0, ?, ?, ?, ?, 'ANDROID') RETURNING ID", 
                                         [$this->api->getUID(), $product_rs['USD_PRICE']+0.0, $product_rs['MCU']+0.0, $transaction_id, $transaction_date, $product_id, $server_id], 
                                         TRUE, PDO::FETCH_NUM);
-                                    if($coins && count($coins)){
+                                    if($coins && count($coins))
+                                    {
                                         $this->api->result['transaction_id'] = $transaction_id;
-                                    }else{
+                                    }
+                                    else
+                                    {
                                         $this->api->result['e'] = "500";
                                     }
                                 }
-                            }else{
+                            }
+                            else
+                            {
                                 $this->api->result['e'] = "404";
                             }
 
                             //$this->api->sendSMS('9613287168', "iOS purchase UID {$this->api->getUID()}\nServer: {$this->api->config['server_id']}\nProduct: {$product_id}\nTransaction: {$transaction_id}\nDate: {$transaction_date}");
                             $this->api->getCreditTotal();
                         
-                        }else{
-                            
+                        }
+                        else
+                        {                            
                             error_log(sprintf("Declined %s\t%s\t%d\t%s\t%s\t%s", date("Y-m-d H:i:s"), $this->api->getUUID(), $this->api->getUID(), $product_id, $transaction_id, $transaction_date).PHP_EOL, 3, "/var/log/mourjan/purchase.log");
-                            //$this->api->sendSMS('9613287168', "Declined Android purchase UID {$this->api->getUID()}\nServer: {$this->api->config['server_id']}\nProduct: {$product_id}\nTransaction: {$transaction_id}\nDate: {$transaction_date}");
                             $this->api->sendSMS('96171750413', "Declined Android purchase UID {$this->api->getUID()}\nServer: {$this->api->config['server_id']}\nProduct: {$product_id}\nTransaction: {$transaction_id}\nDate: {$transaction_date}");
-
                             
                             $this->api->result['e'] = "501";
                         }
 
                         //notify devices of total update
 
-                    }else{
+                    }
+                    else
+                    {
                         $this->api->result['e'] = "401";
                     }
                     break;

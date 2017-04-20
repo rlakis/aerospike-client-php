@@ -496,7 +496,7 @@ class User
 
     function resetPassword($userId, $pass)
     {
-        error_log(__FUNCTION__. " [{$userId}:{$pass}]");
+        //error_log(__FUNCTION__. " [{$userId}:{$pass}]");
         $original = $pass;
         $pass = md5($this->md5_prefix.$pass);
         $passOk=0;
@@ -2335,7 +2335,7 @@ class User
     
     function authenticateById($id, $key)
     {
-        error_log(__FUNCTION__. " [{$id}:{$key}]");
+        //error_log(__FUNCTION__. " [{$id}:{$key}]");
         Core\Model\NoSQL::getInstance()->setVisitUnixtime($id);
         $bins = Core\Model\NoSQL::getInstance()->fetchUser($id);
         if (isset($bins[\Core\Model\ASD\USER_PROFILE_ID]) && isset($bins[Core\Model\ASD\USER_PROVIDER_ID]))
@@ -2403,8 +2403,7 @@ class User
     function authenticateUserAccount($account, $pass)
     {
         $identifier = trim($account);
-        error_log(__FUNCTION__. " [{$identifier}:{$pass}]");
-        //error_log($identifier.':'.$pass);
+        //error_log(__FUNCTION__. " [{$identifier}:{$pass}]");
         $bins = FALSE;
         if (preg_match('/@/',$identifier) || preg_match('/^\+/', $identifier))
         {
@@ -2516,8 +2515,7 @@ class User
     
     function authenticateByEmail($email, $pass)
     {
-        //error_log($email.':'.$pass);
-        error_log(__FUNCTION__. " [{$email}:{$pass}]");
+        //error_log(__FUNCTION__. " [{$email}:{$pass}]");
         $_status = $this->authenticateUserAccount($email, $pass);
         if ($_status>0)
         {
@@ -2757,7 +2755,7 @@ class User
             
             if($newUserId)
             {
-                if (NoSQL::getInstance()->deviveUpdate($uuid, [\Core\Model\ASD\USER_UID=>$newUserId]))
+                if (NoSQL::getInstance()->deviceUpdate($uuid, [\Core\Model\ASD\USER_UID=>$newUserId]))
                 {
                     include_once $this->cfg['dir'] . '/core/lib/SphinxQL.php';
                     $sphinx = new SphinxQL($this->cfg['sphinxql'], $this->cfg['search_index']);
@@ -2878,6 +2876,7 @@ class User
                     unset($updateNotes);
                             
                             
+                    // must update balance cache
                     //MERGE DEVICE FAVORITES
                     $updateTransRecords = $this->db->prepareQuery('update T_TRAN t set t.UID=? where t.UID=?');
                     $updateTransRecords->execute([$newUserId, $uid]);
@@ -3080,7 +3079,7 @@ class User
 
     function updateUserRecord($info, $provider)
     {
-        error_log(__FUNCTION__. " [{$info->identifier}:{$provider}]");
+        //error_log(__FUNCTION__. " [{$info->identifier}:{$provider}]");
 
         $updateOptions=false;
         $provider=strtolower(trim($provider));

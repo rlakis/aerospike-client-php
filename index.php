@@ -15,12 +15,14 @@ if (isset($_GET['provider']) && isset($_GET['connect']))
 {
     try 
     {
-    	$connect = $_GET['connect'];
-    	$provider=strtolower($_GET["provider"]);
+        
+        $connect = strtolower(filter_input(INPUT_GET, 'connect', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
+        $provider = strtolower(filter_input(INPUT_GET, 'provider', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
+
     	$uid = filter_input(INPUT_GET, 'uid', FILTER_VALIDATE_INT)+0;
     	$uuid = urldecode(filter_input(INPUT_GET, 'uuid', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
     	
-    	if($uid > 0 && $uuid && $connect == 'android' && in_array($provider,array('facebook','twitter','google','linkedin','yahoo','live')))
+    	if($uid>0 && $uuid && $connect=='android' && in_array($provider, ['facebook', 'twitter', 'google', 'linkedin', 'yahoo', 'live']))
     	{
             new MCSessionHandler();
             try 
@@ -31,12 +33,12 @@ if (isset($_GET['provider']) && isset($_GET['connect']))
             	$failed=0;
             	if ($hybridauth->isConnectedWith( $provider ))
             	{
-                    require_once( $config['dir'].'/core/model/User.php');
+                    require_once($config['dir'].'/core/model/User.php');
                     $auth_info = $adapter->getUserProfile();
                     $db = new DB($config);
                     $user = new User($db, $config, null, 0);
                     $newId = $user->connectDeviceToAccount($auth_info, $provider, $uid, $uuid);
-                    if($newId == 0) 
+                    if($newId==0) 
                     {
                         $failed = 1;
                     }
@@ -66,7 +68,7 @@ if (isset($_GET['provider']) && isset($_GET['connect']))
 if (php_sapi_name()!='cli') 
 {
     //$handler = new MCSessionHandler(isset($_GET['app']) && $_GET['app']==1 && preg_match('/\/post\//', $_SERVER['REQUEST_URI']));
-    $handler = new MCSessionHandler();
+    new MCSessionHandler();
     //require_once( $config['dir'].'/core/model/User.php');
     //$user = new User(new DB($config), $config, null, 0);
     //$user->sysAuthById(717151);
@@ -79,19 +81,19 @@ if (!isset($argc))
 {
     $router->decode();
     $stop=false;
+    $provider = strtolower(filter_input(INPUT_GET, 'provider', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
     
-    if (isset($_GET['provider']))
+    if ($provider)
     {
-        $provider=strtolower($_GET["provider"]);
-        if(in_array($provider, ['facebook','twitter','google','linkedin','yahoo','live','mourjan']))
+        if(in_array($provider, ['facebook', 'twitter', 'google', 'linkedin', 'yahoo', 'live', 'mourjan']))
         {
             try
             {
                 $hybridauth = new Hybrid_Auth( $config['dir'].'/web/lib/hybridauth/config.php' );
-                $provider=$_GET["provider"];
                 $adapter = $hybridauth->authenticate( $provider );
                 $failed=0;
-                if($hybridauth->isConnectedWith( $provider ) )
+                
+                if($hybridauth->isConnectedWith($provider))
                 {
                     require_once( $config['dir'].'/core/layout/Site.php' );
                     require_once( $config['dir'].'/core/model/User.php' );
@@ -132,7 +134,7 @@ if (!isset($argc))
                 }
                 else
                 {
-                    if(!$router->isMobile && !in_array($router->uri, array('/favorites/','/account/','/myads/','/post/','/watchlist/','/statement/','/buy/','/buyu/')))
+                    if(!$router->isMobile && !in_array($router->uri, ['/favorites/','/account/','/myads/','/post/','/watchlist/','/statement/','/buy/','/buyu/']))
                     {
                         $uri='/home/';
                     }
@@ -140,6 +142,7 @@ if (!isset($argc))
                     {
                         $uri = $router->uri;
                     }
+                    
                     $hasParam=0;
                     if($router->siteLanguage!='ar')$uri.=$router->siteLanguage.'/';
                     if($router->id)$uri.=$router->id.'/';
@@ -159,7 +162,7 @@ if (!isset($argc))
                 }
 		  //if($router->params['start'])$uri.='$router->params['q'];
                 //var_dump($router->uri);
-                $router->redirect($uri,302);
+                $router->redirect($uri, 302);
             }
             catch( Exception $e )
             {
@@ -173,7 +176,7 @@ if (!isset($argc))
                         $uri.='?signin=error';
                         break;
                 }
-                $router->redirect($uri,302);
+                $router->redirect($uri, 302);
             }
         }
         else
@@ -204,5 +207,3 @@ if (!isset($argc))
     
     $router->close();
 }
-
-?>

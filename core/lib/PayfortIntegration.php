@@ -196,10 +196,14 @@ class PayfortIntegration
 
     public function processResponse()
     {
-        $fortParams = $_REQUEST;
+        $fortParams = array_merge($_GET, $_POST);
         
         $debugMsg = "Fort Redirect Response Parameters \n".print_r($fortParams, 1);
         $this->log($debugMsg);
+        //$fortParams = $_REQUEST;
+        
+        //$debugMsg = "Fort Redirect Response Parameters \n".print_r($fortParams, 1);
+        //$this->log($debugMsg);
 
         $reason        = '';
         $response_code = '';
@@ -215,10 +219,10 @@ class PayfortIntegration
             $params        = $fortParams;
             $responseSignature     = $fortParams['signature'];
             $merchantReference = $params['merchant_reference'];
-            unset($params['payfort']);
+            unset($params['r']);
             unset($params['signature']);
             unset($params['integration_type']);
-            $calculatedSignature = $this->calculateSignature($params, 'response');
+            $calculatedSignature = $this->calculateSignature($params, 'response');            
             $success       = true;
             $reason        = '';
 
@@ -255,7 +259,7 @@ class PayfortIntegration
 
     public function processMerchantPageResponse()
     {
-        $fortParams = $_REQUEST;
+        $fortParams = array_merge($_GET, $_POST);
 
         $debugMsg = "Fort Merchant Page Response Parameters \n".print_r($fortParams, 1);
         $this->log($debugMsg);

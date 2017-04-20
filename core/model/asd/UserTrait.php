@@ -87,6 +87,7 @@ trait UserTrait
     abstract public function isReadError(int $status) : bool;
 
     
+    
     public function fetchUser(int $uid)
     {
         $record = [];

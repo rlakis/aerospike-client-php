@@ -73,7 +73,7 @@ trait DeviceTrait
     }
     
     
-    public function deviveUpdate(string $uuid, array $bins)
+    public function deviceUpdate(string $uuid, array $bins)
     {
         if (empty($uuid) || (isset($bins[USER_UID]) && $bins[USER_UID]<=0))
         {
