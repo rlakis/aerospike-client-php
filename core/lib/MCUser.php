@@ -149,7 +149,7 @@ class MCUser extends MCJsonMapper
         
         
         $this->id = $record[ASD\USER_PROFILE_ID] ?? 0;
-        $this->pid = $record[ASD\USER_PROVIDER_ID] ?? $record['provide_id'] ?? '';
+        $this->pid = ($record[ASD\USER_PROVIDER_ID] ?? '')."";
         $this->email = $record[ASD\USER_PROVIDER_EMAIL] ?? '';
         $this->prvdr = $record[ASD\USER_PROVIDER] ?? '';
         $this->fn = $record[ASD\USER_FULL_NAME] ?? '';
