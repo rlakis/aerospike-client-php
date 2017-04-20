@@ -113,6 +113,8 @@ include_once $config['dir'].'/core/model/NoSQL.php';
 include_once $config['dir']. '/core/lib/MCSessionHandler.php';
 include_once $config['dir']. '/core/lib/MCUser.php';
 
+ini_set('memory_limit', '256M');
+
 class ElapseTime 
 {
     private $_total = 0;
