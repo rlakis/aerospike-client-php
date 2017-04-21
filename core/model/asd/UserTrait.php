@@ -4,6 +4,7 @@ namespace Core\Model\ASD;
 
 const NS_USER               = 'users';
 const TS_USER               = 'profiles';
+const TS_USER_PROVIDER      = 'profiles-uq';
 
 const SET_RECORD_ID         = 'id';
 const USER_UID              = 'uid';
@@ -201,8 +202,11 @@ trait UserTrait
         return $bins;       
     }
     
+    
     public function userUpdate(array $bins, int $uid=0, bool $as_visit=FALSE)
     {
+        $inserting = ($uid==0);
+        
         if ($uid==0)
         {
             $this->genId('profile_id', $uid);
@@ -251,11 +255,20 @@ trait UserTrait
                     return FALSE;
                 }
                 
+                $uk = $this->asUserUniqueKey($record[USER_PROVIDER_ID], $record[USER_PROVIDER]);
+                if ($this->exists($uk))
+                {
+                    error_log("User Profile Unique key violation!!! ". PHP_EOL . var_export($uk, TRUE) . PHP_EOL . json_encode($record));
+                }
+                
+                $this->setUniqueKey($uk, $uid);
+                
                 if (isset($record[USER_PROVIDER_ID]) && is_numeric($record[USER_PROVIDER_ID]))
                 {
                     $record[USER_PROVIDER_ID] = strval($record[USER_PROVIDER_ID]);
                 }                
                
+                
                 
                 if (($up=$this->fetchUserByProviderId($record[USER_PROVIDER_ID], $record[USER_PROVIDER]))!==FALSE && !empty($up))
                 {
@@ -293,6 +306,14 @@ trait UserTrait
     }    
     
     
+    public function asUserUniqueKey(string $uuid, string $provider)
+    {
+        $n_provider = trim(strtolower($provider));
+        $n_uuid = ($n_provider==='mourjan') ? strtolower(trim($uuid)) : trim($uuid);
+        return $this->getConnection()->initKey(NS_USER, TS_USER_PROVIDER, "{$n_uuid}-{$n_provider}");
+    }
+    
+    
     private function initKey(int $uid) 
     {
         return $this->getConnection()->initKey(NS_USER, TS_USER, $uid);
@@ -316,6 +337,61 @@ trait UserTrait
         {        
             $this->setBins($pk, [USER_LAST_VISITED=>time(), USER_PRIOR_VISITED=>$record[USER_LAST_VISITED]]);
         }
+    }
+    
+    
+    private function setUniqueKey(array $uniqueKey, int $uid) : int
+    {
+        if ($uid<=0)
+        {
+            error_log("Could not set user bin for zero uid");
+            return \Core\Model\NoSQL::INVALID_FIELD;
+        }
+        if ($this->exists($uniqueKey))
+        {
+            $rec = $this->getBins($uniqueKey);
+            if (($rec[USER_UID])!==$uid)
+            {
+                echo "{$rec[USER_UID]}, {$uid}", "\n";
+                $this->setBins($uniqueKey, [USER_UID=>$uid]);
+            }
+            return 0;
+        }
+        $status = $this->getConnection()->put($uniqueKey, [USER_UID=>$uid], 0, [\Aerospike::OPT_POLICY_EXISTS=>\Aerospike::POLICY_EXISTS_CREATE]);        
+        if ($status !== \Aerospike::OK) 
+        {
+            error_log(__FUNCTION__ . ": An error occured {$uid} [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" . PHP_EOL . json_encode($uniqueKey));
+        }
+        return $status;
+    }
+    
+    
+    public function setUserUniqueKey(string $uuid, string $provider, int $uid) : int
+    {
+        $pk = $this->asUserUniqueKey($uuid, $provider);
+        return $this->setUniqueKey($pk, $uid);
+    }
+        
+    
+    public function scan()
+    {
+        $options = 
+            [
+            \Aerospike::OPT_SCAN_PRIORITY => \Aerospike::SCAN_PRIORITY_MEDIUM,
+            \Aerospike::OPT_READ_TIMEOUT => 5000,
+            \Aerospike::OPT_SCAN_PERCENTAGE => 100,
+            \Aerospike::OPT_SCAN_NOBINS => TRUE,
+            ];
+        
+        $result = [];
+        
+        $status = $this->getConnection()->scan(NS_USER, TS_USER, 
+                    function ($record) use (&$result) 
+                    {
+                        $result[] = $record['bins'][USER_PROFILE_ID];                       
+                    }, [], $options);
+                    
+        return $result;        
     }
     
     

@@ -3086,6 +3086,10 @@ class User
         $updateOptions=false;
         $provider=strtolower(trim($provider));
         $identifier="{$info->identifier}";
+        if ($provider==='mourjan')
+        {
+            $identifier = strtolower(trim($identifier));
+        }
         $email=is_null($info->emailVerified) ? (is_null($info->email ? '' : $info->email)) :$info->emailVerified;
         if(strpos($email, '@')===false) $email='';
         $fullName=trim(($info->firstName ? $info->firstName : '').' '.($info->lastName ? $info->lastName : ''));
