@@ -1555,18 +1555,20 @@ class MobileApi
         elseif (!$this->user->exists() && !empty($this->uuid)) 
         {
             
-             //($status==-9 && !empty ($this->uuid)) 
             $bins = [
                 \Core\Model\ASD\USER_PROVIDER_ID=>$this->uuid,
                 \Core\Model\ASD\USER_PROVIDER=>$isAndroid ? \Core\Model\ASD\USER_PROVIDER_ANDROID : \Core\Model\ASD\USER_PROVIDER_IPHONE,
                 \Core\Model\ASD\USER_PROFILE_URL=>'https://www.mourjan.com/',                
                 ];
             
+            $nosqlStatus = NoSQL::getInstance()->fetchUserByProviderId1($this->uuid, $bins[\Core\Model\ASD\USER_PROVIDER], $userRecord);
             
-            if (($userRecord=NoSQL::getInstance()->fetchUserByProviderId($this->uuid, $bins[\Core\Model\ASD\USER_PROVIDER]))==FALSE)
-            {            
+            if ($nosqlStatus==NoSQL::ERR_RECORD_NOT_FOUND)
+            {
+                
                 if (($record=NoSQL::getInstance()->userUpdate($bins))!==FALSE)
                 {
+                    
                     $this->uid = $record[\Core\Model\ASD\USER_PROFILE_ID];
                     $this->result['d']['uid'] = $this->uid;
                 
@@ -1595,59 +1597,64 @@ class MobileApi
                         Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
                         Core\Model\ASD\USER_DEVICE_APP_SETTINGS => '{}'
                         ]);
-
-                    /*
-                    $iteration=0;
-                    
-                    $this->db->commit(TRUE);
-                        
-                    while ($iteration<5)
-                    {
-                        $iteration++;
-                            
-                            try     
-                        {
-                    
-                        $this->db->get(
-                            "insert into web_users (ID, identifier, email, provider, full_name, profile_url, opts, user_name, user_email) 
-                            values (?, ?, '', '".($isAndroid?'mourjan-android':'mourjan-iphone')."', '', 'https://www.mourjan.com/', '{}', '', '')  
-                            returning id, lvl", 
-                            [$this->uid, $this->uuid], FALSE);
-
-                        if ($this->db->get(
-                            "insert into WEB_USERS_DEVICE 
-                            (uuid, uid, device_model, device_name, device_sysname, device_sysversion, 
-                            last_visit, push_id, NOTIFICATION_ENABLED, CARRIER_COUNTRY, APP_VERSION) 
-                            values (?, ?, ?, ?, ?, ?, current_timestamp, '', 1, ?, ?)",
-                            [$this->uuid, $this->uid, $device_model, $device_name, $device_sysname,
-                            $device_sysversion, $carrier_country, $device_appversion], FALSE))
-                        {
-                            $this->db->commit();
-                            break;
-                        }
-                        
-                    } 
-                    catch (Exception $ex) 
-                    {
-                        error_log($ex->getMessage());
-                        $this->db->rollback($iteration<5);
-                    }
-
-
-                    }*/
                 } 
-                else
+                else 
                 {
-                    $this->result['e'] = 'System error [1000]!';
-                    error_log("could not write: ".json_encode($bins));
+                    $this->result['e'] = 'System error [1003]!';
+                    error_log("could not write [1003]: ".json_encode($bins));       
+                }
+            }
+            else if ($nosqlStatus== NoSQL::OK)
+            {
+                $this->uid = $userRecord[\Core\Model\ASD\USER_PROFILE_ID];
+                error_log("User provider exists {$this->uid} [1001]: ".PHP_EOL.json_encode($bins).PHP_EOL. json_encode($userRecord));
+                
+                if (!NoSQL::getInstance()->deviceExists($this->uuid))
+                {
+                    //$this->result['e'] = 'System error [1002]!';
+                    error_log("could not write [1002]: ".json_encode($bins));  
+                    
+                    
+                    $this->result['d']['uid'] = $this->uid;
+                
+                    if ($isAndroid)
+                    {
+                        $this->result['d']['level']=$userRecord[\Core\Model\ASD\USER_LEVEL];
+                        $this->result['d']['status']=10;
+                    
+                        //device last visit
+                        $this->result['d']['dlv'] = 0;
+                        //user last visit
+                        $this->result['d']['ulv'] = 0;
+                    }
+                    //disallow purchase default 0
+                    $this->result['d']['blp'] = 0;
+                    
+                    $isUTF8 = preg_match('//u', $device_name);
+                    $deviceAdded = NoSQL::getInstance()->deviceInsert([
+                        Core\Model\ASD\USER_DEVICE_UUID => $this->uuid,
+                        Core\Model\ASD\USER_UID => $this->uid,
+                        Core\Model\ASD\USER_DEVICE_MODEL => $device_model,
+                        Core\Model\ASD\USER_DEVICE_NAME => ($isUTF8 ? $device_name : ''),
+                        Core\Model\ASD\USER_DEVICE_SYS_NAME => $device_sysname,
+                        Core\Model\ASD\USER_DEVICE_SYS_VERSION => $device_sysversion,
+                        Core\Model\ASD\USER_DEVICE_ISO_COUNTRY => $carrier_country,
+                        Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
+                        Core\Model\ASD\USER_DEVICE_APP_SETTINGS => '{}'
+                        ]);
+                    
+                    if ($deviceAdded==FALSE)
+                    {
+                        $this->result['e'] = 'System error [1001]!';
+                        error_log('DEVIVE ADDED'.PHP_EOL.json_encode($deviceAdded));
+                    }
                 }
             }
             else
             {
-                $this->result['e'] = 'System error [1001]!';
-                error_log("User provider exists: ".json_encode($bins));
-            }
-                       
+                $this->result['e'] = 'System error [1000]!';
+                error_log("could not write [1000]: ".json_encode($bins));                
+            }                                       
         }
         
         if ($isAndroid && isset($this->result['d']['uid']) && $this->result['d']['uid']==0)

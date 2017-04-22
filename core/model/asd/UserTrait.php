@@ -157,16 +157,45 @@ trait UserTrait
     }
 
 
+    public function fetchUserByProviderId1(string $identifier, string $provider, &$bins) : int
+    {
+        $uk = $this->asUserUniqueKey($identifier, $provider);
+        $status = $this->getConnection()->get($uk, $uv);
+        
+        if ($status == \Aerospike::OK)
+        {
+            $bins = $this->fetchUser($uv['bins'][USER_UID]);
+        }
+        else if ($status == \Aerospike::ERR_RECORD_NOT_FOUND)
+        {
+        } 
+        else 
+        {
+            error_log(__FUNCTION__ . PHP_EOL . $identifier.'-'.$provider. ' Error');
+                        
+        }
+        return $status;
+    }
+    
+    
     public function fetchUserByProviderId(string $identifier, string $provider='mourjan') 
     {
         $bins = FALSE;
-        $uq = $this->asUserUniqueKey($identifier, $provider);
-        if (($uv = $this->getBins($uq))!==FALSE)
+        $uk = $this->asUserUniqueKey($identifier, $provider);
+        $status = $this->getConnection()->get($uk, $uv);
+        
+        if ($status == \Aerospike::OK)
+        {            
+            return $this->fetchUser($uv['bins'][USER_UID]);
+        }
+        else if ($status == \Aerospike::ERR_RECORD_NOT_FOUND)
         {
-            if (!empty($uv))
-            {
-                return $this->fetchUser($uv[USER_UID]);
-            }
+            return [];
+        } 
+        else 
+        {
+            error_log(__FUNCTION__ . PHP_EOL . $identifier.'-'.$provider. ' Error');
+            return FALSE;
         }
         
         $where = \Aerospike::predicateEquals(USER_PROVIDER_ID, "{$identifier}");
@@ -223,13 +252,15 @@ trait UserTrait
         $uk = $this->asUserUniqueKey($bins[USER_PROVIDER_ID], $bins[USER_PROVIDER]);
 
         $status = $this->getConnection()->exists($uk, $ukMetadata);
+        
         if ($status == \Aerospike::OK)
         {
             error_log("A user with key ". $uk['key']. " exist in the database");
-            error_log("Add User Profile Unique key violation!!! ". PHP_EOL . json_encode($uk) . PHP_EOL . json_encode($bins));
+            error_log("Add User Profile Unique key violation!!! ". PHP_EOL . json_encode($uk) . PHP_EOL . json_encode($bins));           
         }
         elseif ($status == \Aerospike::ERR_RECORD_NOT_FOUND)
         {
+            
             $options = [\Aerospike::OPT_POLICY_RETRY=>\Aerospike::POLICY_RETRY_ONCE, \Aerospike::OPT_POLICY_EXISTS=>\Aerospike::POLICY_EXISTS_CREATE];
 
             $this->genId('profile_id', $uid);
@@ -263,8 +294,10 @@ trait UserTrait
                 {
                     $record[$binName] = $binValue;
                 }
-                $pk=$this->asUserKey($uid);
+                $pk=$this->initKey($uid);
+                
                 $status = $this->getConnection()->put($pk, $record, 0, $options);
+                
                 if ($status==\Aerospike::OK)
                 {
                     if ($this->getConnection()->put($uk, [USER_UID=>$uid], 0, $options) !== \Aerospike::OK)
@@ -272,7 +305,20 @@ trait UserTrait
                         error_log(__FUNCTION__ . ": An error occured {$uid} [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" . PHP_EOL . json_encode($uk));
                     }
                     $status = $this->getConnection()->get($pk, $bins);
+                    if ($status==\Aerospike::OK)
+                    {
+                        $bins=$bins['bins'];
+                    }
                 }
+                else 
+                {
+                    error_log(__FUNCTION__ . ": An error occured {$uid} [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" . PHP_EOL . json_encode($pk));
+                }
+            }
+            else 
+            {
+                error_log("Could not get UID generator");
+                $status = \Aerospike::ERR_INVALID_COMMAND;
             }
         }
         else
@@ -329,132 +375,19 @@ trait UserTrait
     {
         if ($uid==0)
         {
-            if ($this->addUser($bins)==\Aerospike::OK)
-            {
-                return $bins;
-            }
-            else
-            {
-                return FALSE;
-            }
-        } else {
+            return ($this->addUser($bins)==\Aerospike::OK) ? $bins : FALSE;
+        } 
+        else 
+        {
             if ($this->modUser($uid, $bins, $as_visit)==\Aerospike::OK)
             {
-                //return $bins;
-                return $this->fetchUser($uid);
+                return $this->getBins( $this->initKey($uid) );
             }
             else
             {
                 return FALSE;
             }
         }
-
-
-        if (isset($bins[USER_PROVIDER]) && $bins[USER_PROVIDER]==='mourjan' && preg_match('/@/', $bins[USER_PROVIDER_ID]))
-        {
-            $bins[USER_PROVIDER_ID] = strtolower(filter_var($bins[USER_PROVIDER_ID], FILTER_SANITIZE_EMAIL));
-        }
-
-        if ($uid==0)
-        {
-            $uk = $this->asUserUniqueKey($bins[USER_PROVIDER_ID], $bins[USER_PROVIDER]);
-            if ($this->exists($uk))
-            {
-                error_log("Add User Profile Unique key violation!!! ". PHP_EOL . json_encode($uk) . PHP_EOL . json_encode($bins));
-                return FALSE;
-            }
-
-            $this->genId('profile_id', $uid);
-        }
-        
-        if ($uid>0)
-        {
-            $pk = $this->initKey($uid);
-            
-            if (!$this->exists($pk))
-            {            
-                $now = time();
-                $record = [
-                    USER_PROFILE_ID => $uid,
-                    USER_PROVIDER_ID => '',
-                    USER_PROVIDER_EMAIL => '',
-                    USER_PROVIDER => '',
-                    USER_FULL_NAME => '',
-                    USER_DISPLAY_NAME => '',
-                    USER_PROFILE_URL => '',
-                    USER_DATE_ADDED => $now,
-                    USER_LAST_VISITED => $now,
-                    USER_LEVEL => 0,
-                    USER_NAME => '',
-                    USER_EMAIL => '',
-                    USER_PASSWORD => '',
-                    USER_RANK => 1,
-                    USER_PRIOR_VISITED => $now,
-                    USER_PUBLISHER_STATUS => 0,
-                    USER_LAST_AD_RENEWED => 0,
-                    USER_XMPP_CREATED => 0,
-                    USER_DEPENDANTS => [],
-                    USER_OPTIONS => [],
-                    USER_MOBILE => [],
-                    USER_DEVICES => []
-                ];
-                
-                foreach ($bins as $k => $v)
-                {
-                    $record[$k] = $v;
-                }
-                
-                if (!isset($record[USER_PROVIDER_ID]) || !isset($record[USER_PROVIDER]))
-                {
-                    error_log("Invalid Unique key - Counld not update user record!! ". json_encode($record));
-                    return FALSE;
-                }
-                
-                $record[USER_PROVIDER] = trim(strtolower($record[USER_PROVIDER]));
-
-                
-
-                $uk = $this->asUserUniqueKey($record[USER_PROVIDER_ID], $record[USER_PROVIDER]);
-                if ($this->exists($uk))
-                {
-                    error_log("User Profile Unique key violation!!! ". PHP_EOL . json_encode($uk) . PHP_EOL . json_encode($record));
-                }
-                
-                $this->setUniqueKey($uk, $uid);
-                
-                if (isset($record[USER_PROVIDER_ID]) && is_numeric($record[USER_PROVIDER_ID]))
-                {
-                    $record[USER_PROVIDER_ID] = strval($record[USER_PROVIDER_ID]);
-                }               
-                
-                
-                if (($up=$this->fetchUserByProviderId($record[USER_PROVIDER_ID], $record[USER_PROVIDER]))!==FALSE && !empty($up))
-                {
-                    error_log("User Profile Unique key violation!!! ". json_encode($record));
-                    return FALSE;
-                }
-                $bins = $record;
-            } 
-            else 
-            {
-                if ($as_visit && isset($bins[USER_LAST_VISITED]))
-                {
-                    $this->setVisitUnixtime($uid, $pk);
-                }
-            }
-
-            if ($this->setBins($pk, $bins))
-            {                
-                return $this->getBins($pk);
-            }
-            
-        }
-        else
-        {
-            error_log("Invalid UID - Counld not update user record!!");
-        }
-        
-        return FALSE;
     }
        
     
