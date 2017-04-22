@@ -4,7 +4,7 @@ namespace Core\Model\ASD;
 
 const NS_USER               = 'users';
 const TS_USER               = 'profiles';
-const TS_USER_PROVIDER      = 'profiles-uq';
+const TS_USER_PROVIDER      = 'profiles-uk';
 
 const SET_RECORD_ID         = 'id';
 const USER_UID              = 'uid';
@@ -205,10 +205,20 @@ trait UserTrait
     
     public function userUpdate(array $bins, int $uid=0, bool $as_visit=FALSE)
     {
-        $inserting = ($uid==0);
-        
+        if ($bins[USER_PROVIDER]==='mourjan' && preg_match('/@/', $bins[USER_PROVIDER_ID]))
+        {
+            $bins[USER_PROVIDER_ID] = strtolower(filter_var($bins[USER_PROVIDER_ID], FILTER_SANITIZE_EMAIL));
+        }
+
         if ($uid==0)
         {
+            $uk = $this->asUserUniqueKey($bins[USER_PROVIDER_ID], $bins[USER_PROVIDER]);
+            if ($this->exists($uk))
+            {
+                error_log("Add User Profile Unique key violation!!! ". PHP_EOL . json_encode($uk) . PHP_EOL . json_encode($bins));
+                return FALSE;
+            }
+
             $this->genId('profile_id', $uid);
         }
         
@@ -255,10 +265,14 @@ trait UserTrait
                     return FALSE;
                 }
                 
+                $record[USER_PROVIDER] = trim(strtolower($record[USER_PROVIDER]));
+
+                
+
                 $uk = $this->asUserUniqueKey($record[USER_PROVIDER_ID], $record[USER_PROVIDER]);
                 if ($this->exists($uk))
                 {
-                    error_log("User Profile Unique key violation!!! ". PHP_EOL . var_export($uk, TRUE) . PHP_EOL . json_encode($record));
+                    error_log("User Profile Unique key violation!!! ". PHP_EOL . json_encode($uk) . PHP_EOL . json_encode($record));
                 }
                 
                 $this->setUniqueKey($uk, $uid);
@@ -266,8 +280,7 @@ trait UserTrait
                 if (isset($record[USER_PROVIDER_ID]) && is_numeric($record[USER_PROVIDER_ID]))
                 {
                     $record[USER_PROVIDER_ID] = strval($record[USER_PROVIDER_ID]);
-                }                
-               
+                }               
                 
                 
                 if (($up=$this->fetchUserByProviderId($record[USER_PROVIDER_ID], $record[USER_PROVIDER]))!==FALSE && !empty($up))
@@ -373,25 +386,29 @@ trait UserTrait
     }
         
     
-    public function scan()
+    public function scan(string $setName, array $bins)
     {
-        $options = 
-            [
-            \Aerospike::OPT_SCAN_PRIORITY => \Aerospike::SCAN_PRIORITY_MEDIUM,
-            \Aerospike::OPT_READ_TIMEOUT => 5000,
-            \Aerospike::OPT_SCAN_PERCENTAGE => 100,
-            \Aerospike::OPT_SCAN_NOBINS => TRUE,
-            ];
-        
+        $options = [\Aerospike::OPT_SCAN_PRIORITY=>\Aerospike::SCAN_PRIORITY_MEDIUM, \Aerospike::OPT_SCAN_PERCENTAGE=>100];
         $result = [];
         
-        $status = $this->getConnection()->scan(NS_USER, TS_USER, 
+        $status = $this->getConnection()->scan(
+                    NS_USER, $setName,
                     function ($record) use (&$result) 
                     {
-                        $result[] = $record['bins'][USER_PROFILE_ID];                       
-                    }, [], $options);
-                    
-        return $result;        
+                        $result[] = $record['bins'];                       
+                    },
+                    $bins, $options);
+
+        if ($status == \Aerospike::ERR_SCAN_ABORTED)
+        {
+            echo "Aborted", "\n";
+        }
+        else if ($status !== \Aerospike::OK)
+        {
+            error_log(__FUNCTION__ . ": An error occured [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}");
+        }
+
+        return $result;
     }
     
     
@@ -410,7 +427,7 @@ trait UserTrait
     public function setOptions(int $uid, array $opts) : bool
     {
         $pk = $this->initKey($uid);
-        return $this->setBins($pk, [USER_OPTIONS => $password]);
+        return $this->setBins($pk, [USER_OPTIONS => $opts]);
     }
     
     
@@ -515,5 +532,52 @@ trait UserTrait
             return $record[USER_PUBLISHER_STATUS];
         }
         return FALSE;
+    }
+
+
+    public function getUserLastVisited(int $uid) : int
+    {
+        $pk = $this->initKey($uid);
+        if (($record=$this->getBins($pk, [USER_LAST_VISITED]))!==FALSE)
+        {
+            return $record[USER_LAST_VISITED];
+        }
+        return -1;
+    }
+
+    /*
+    public function delUser(int $uid) : bool
+    {
+        $status = $this->getConnection()->remove($this->initKey($uid));
+        if ($status==\Aerospike::OK)
+        {
+            return TRUE;
+        }
+        return FALSE;
+
+    }
+     *
+    */
+    
+
+    public function debugDeviceItegrity()
+    {
+        $_devices = $this->scan(TS_DEVICE, [USER_DEVICE_UUID, USER_UID]);
+        foreach ($_devices as $_dv)
+        {
+            if (($_u=$this->fetchUser($_dv[USER_UID]))!==FALSE)
+            {
+                if (empty($_u))
+                {
+                    echo __FUNCTION__, "\tNot found user record!\t". json_encode($_dv), "\n";
+                }
+
+            }
+            else
+            {
+                echo __FUNCTION__, "\tError getting user record!\t". json_encode($_dv);
+            }
+
+        }
     }
 }
