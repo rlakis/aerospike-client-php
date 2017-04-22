@@ -160,6 +160,15 @@ trait UserTrait
     public function fetchUserByProviderId(string $identifier, string $provider='mourjan') 
     {
         $bins = FALSE;
+        $uq = $this->asUserUniqueKey($identifier, $provider);
+        if (($uv = $this->getBins($uq))!==FALSE)
+        {
+            if (!empty($uv))
+            {
+                return $this->fetchUser($uv[USER_UID]);
+            }
+        }
+        
         $where = \Aerospike::predicateEquals(USER_PROVIDER_ID, "{$identifier}");
         $status = $this->getConnection()->query(NS_USER, TS_USER, $where,  
                     function ($record) use (&$bins, $provider) 
@@ -201,11 +210,147 @@ trait UserTrait
         } 
         return $bins;       
     }
-    
-    
+
+
+    public function addUser(array &$bins) : int
+    {
+        if (!isset($bins[USER_PROVIDER_ID]) || !isset($bins[USER_PROVIDER]))
+        {
+            error_log("Invalid Unique key - Counld not update user record!!! ". PHP_EOL . json_encode($bins));
+            return \Aerospike::ERR_INVALID_COMMAND;
+        }
+
+        $uk = $this->asUserUniqueKey($bins[USER_PROVIDER_ID], $bins[USER_PROVIDER]);
+
+        $status = $this->getConnection()->exists($uk, $ukMetadata);
+        if ($status == \Aerospike::OK)
+        {
+            error_log("A user with key ". $uk['key']. " exist in the database");
+            error_log("Add User Profile Unique key violation!!! ". PHP_EOL . json_encode($uk) . PHP_EOL . json_encode($bins));
+        }
+        elseif ($status == \Aerospike::ERR_RECORD_NOT_FOUND)
+        {
+            $options = [\Aerospike::OPT_POLICY_RETRY=>\Aerospike::POLICY_RETRY_ONCE, \Aerospike::OPT_POLICY_EXISTS=>\Aerospike::POLICY_EXISTS_CREATE];
+
+            $this->genId('profile_id', $uid);
+            if ($uid)
+            {
+                $now = time();
+                $record = [
+                    USER_PROFILE_ID => $uid,
+                    USER_PROVIDER_EMAIL => '',
+                    USER_FULL_NAME => '',
+                    USER_DISPLAY_NAME => '',
+                    USER_PROFILE_URL => '',
+                    USER_DATE_ADDED => $now,
+                    USER_LAST_VISITED => $now,
+                    USER_LEVEL => 0,
+                    USER_NAME => '',
+                    USER_EMAIL => '',
+                    USER_PASSWORD => '',
+                    USER_RANK => 1,
+                    USER_PRIOR_VISITED => $now,
+                    USER_PUBLISHER_STATUS => 0,
+                    USER_LAST_AD_RENEWED => 0,
+                    USER_XMPP_CREATED => 0,
+                    USER_DEPENDANTS => [],
+                    USER_OPTIONS => [],
+                    USER_MOBILE => [],
+                    USER_DEVICES => []
+                ];
+
+                foreach ($bins as $binName => $binValue)
+                {
+                    $record[$binName] = $binValue;
+                }
+                $pk=$this->asUserKey($uid);
+                $status = $this->getConnection()->put($pk, $record, 0, $options);
+                if ($status==\Aerospike::OK)
+                {
+                    if ($this->getConnection()->put($uk, [USER_UID=>$uid], 0, $options) !== \Aerospike::OK)
+                    {
+                        error_log(__FUNCTION__ . ": An error occured {$uid} [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" . PHP_EOL . json_encode($uk));
+                    }
+                    $status = $this->getConnection()->get($pk, $bins);
+                }
+            }
+        }
+        else
+        {
+            error_log(__CLASS__.'->'.__FUNCTION__. " [{$this->getConnection()->errorno()}] ".$this->getConnection()->error());
+        }
+
+        return $status;
+    }
+
+
+    public function modUser(int $uid, array &$bins, bool $setNewVisit=FALSE)
+    {
+        if (isset($bins[USER_PROVIDER_ID]))
+        {
+            unset($bins[USER_PROVIDER_ID]);
+        }
+
+        if (isset($bins[USER_PROVIDER]))
+        {
+            unset($bins[USER_PROVIDER]);
+        }
+
+        if (isset($bins[USER_PROFILE_ID]))
+        {
+            unset($bins[USER_PROFILE_ID]);
+        }
+
+        if (empty($bins))
+        {
+            error_log ("Empty user bins for {$uid}");
+            return \Aerospike::ERR_INVALID_COMMAND;
+        }
+
+        $pk = $this->asUserKey($uid);
+
+        $status = $this->getConnection()->put($pk, $bins, 0,
+                        [\Aerospike::OPT_POLICY_RETRY=>\Aerospike::POLICY_RETRY_ONCE,
+                         \Aerospike::OPT_POLICY_EXISTS=>\Aerospike::POLICY_EXISTS_UPDATE]);
+
+        if ($status != \Aerospike::OK)
+        {
+            $this->logError(__CLASS__ .'->'. __FUNCTION__, $pk, $bins);
+        }
+        else if ($setNewVisit)
+        {
+            $this->setVisitUnixtime($uid);
+        }
+        return $status;
+    }
+
+
     public function userUpdate(array $bins, int $uid=0, bool $as_visit=FALSE)
     {
-        if ($bins[USER_PROVIDER]==='mourjan' && preg_match('/@/', $bins[USER_PROVIDER_ID]))
+        if ($uid==0)
+        {
+            if ($this->addUser($bins)==\Aerospike::OK)
+            {
+                return $bins;
+            }
+            else
+            {
+                return FALSE;
+            }
+        } else {
+            if ($this->modUser($uid, $bins, $as_visit)==\Aerospike::OK)
+            {
+                //return $bins;
+                return $this->fetchUser($uid);
+            }
+            else
+            {
+                return FALSE;
+            }
+        }
+
+
+        if (isset($bins[USER_PROVIDER]) && $bins[USER_PROVIDER]==='mourjan' && preg_match('/@/', $bins[USER_PROVIDER_ID]))
         {
             $bins[USER_PROVIDER_ID] = strtolower(filter_var($bins[USER_PROVIDER_ID], FILTER_SANITIZE_EMAIL));
         }
@@ -319,11 +464,11 @@ trait UserTrait
     }    
     
     
-    public function asUserUniqueKey(string $uuid, string $provider)
+    public function asUserUniqueKey(string &$uuid, string &$provider)
     {
-        $n_provider = trim(strtolower($provider));
-        $n_uuid = ($n_provider==='mourjan') ? strtolower(trim($uuid)) : trim($uuid);
-        return $this->getConnection()->initKey(NS_USER, TS_USER_PROVIDER, "{$n_uuid}-{$n_provider}");
+        $provider = trim(strtolower($provider));
+        $uuid = ($provider==='mourjan') ? strtolower(trim($uuid)) : trim($uuid);
+        return $this->getConnection()->initKey(NS_USER, TS_USER_PROVIDER, "{$uuid}-{$provider}");
     }
     
     
@@ -560,7 +705,7 @@ trait UserTrait
     */
     
 
-    public function debugDeviceItegrity()
+    public function debugDeviceIntegrity()
     {
         $_devices = $this->scan(TS_DEVICE, [USER_DEVICE_UUID, USER_UID]);
         foreach ($_devices as $_dv)
@@ -571,13 +716,42 @@ trait UserTrait
                 {
                     echo __FUNCTION__, "\tNot found user record!\t". json_encode($_dv), "\n";
                 }
-
             }
             else
             {
                 echo __FUNCTION__, "\tError getting user record!\t". json_encode($_dv);
             }
-
         }
     }
+
+
+    public function debugMobileIntegrity()
+    {
+        $_records = $this->scan(TS_MOBILE, [USER_MOBILE_NUMBER, USER_UID]);
+        echo count($_records), " ", TS_MOBILE, " records", "\n";
+        $no_user_err=0;
+        $sys_err=0;
+        foreach ($_records as $_rec)
+        {
+            if (($_u=$this->fetchUser($_rec[USER_UID]))!==FALSE)
+            {
+                if (empty($_u))
+                {
+                    $no_user_err++;
+                    echo __FUNCTION__, "\tNot found user record!\t". json_encode($_rec), "\n";
+                    $mk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, "{$_rec[USER_UID]}-{$_rec[USER_MOBILE_NUMBER]}");
+                    $this->getConnection()->remove($mk);
+                }
+            }
+            else
+            {
+                $sys_err++;
+                echo __FUNCTION__, "\tError getting user record!\t". json_encode($_rec);
+            }
+        }
+
+        echo "\nUsers not found: ", $no_user_err, "\n";
+        echo "\nUsers err fetch: ", $sys_err, "\n";
+    }
+
 }
