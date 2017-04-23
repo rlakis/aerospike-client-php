@@ -80,7 +80,7 @@ const USER_PROVIDER_IPHONE          = 'mourjan-iphone';
 trait UserTrait
 {
 
-    abstract public function getConnection();
+    abstract public function getConnection() : \Aerospike;
     abstract public function genId(string $generator, &$sequence);
     abstract public function getBins($pk, array $bins);
     abstract public function setBins($pk, array $bins);
@@ -255,8 +255,8 @@ trait UserTrait
         
         if ($status == \Aerospike::OK)
         {
-            error_log("A user with key ". $uk['key']. " exist in the database");
-            error_log("Add User Profile Unique key violation!!! ". PHP_EOL . json_encode($uk) . PHP_EOL . json_encode($bins));           
+            error_log("A user with unique key '". $uk['key']. "' exist in the database");
+            return \Aerospike::ERR_USER_ALREADY_EXISTS;
         }
         elseif ($status == \Aerospike::ERR_RECORD_NOT_FOUND)
         {
@@ -294,6 +294,7 @@ trait UserTrait
                 {
                     $record[$binName] = $binValue;
                 }
+                
                 $pk=$this->initKey($uid);
                 
                 $status = $this->getConnection()->put($pk, $record, 0, $options);
@@ -304,8 +305,7 @@ trait UserTrait
                     {
                         error_log(__FUNCTION__ . ": An error occured {$uid} [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" . PHP_EOL . json_encode($uk));
                     }
-                    $status = $this->getConnection()->get($pk, $bins);
-                    if ($status==\Aerospike::OK)
+                    if (($status=$this->getConnection()->get($pk, $bins))==\Aerospike::OK)
                     {
                         $bins=$bins['bins'];
                     }
@@ -473,6 +473,7 @@ trait UserTrait
                     NS_USER, $setName,
                     function ($record) use (&$result) 
                     {
+                        $record['bins']['digest']=base64_encode($record['key']['digest']);
                         $result[] = $record['bins'];                       
                     },
                     $bins, $options);
@@ -687,4 +688,41 @@ trait UserTrait
         echo "\nUsers err fetch: ", $sys_err, "\n";
     }
 
+    
+    public function debugUniqueUserIntegrity()
+    {
+        $no_user_err=0;
+        $sys_err=0;
+/*        
+        $_records = $this->scan(TS_USER_PROVIDER, [USER_UID]);
+        echo count($_records), " ", TS_USER_PROVIDER, " records", "\n";
+        foreach ($_records as $_rec)
+        {
+            $pk = $this->asUserKey($_rec[USER_UID]);
+            if (!$this->exists($pk))
+            {
+                $no_user_err++;
+                echo __FUNCTION__, "\tNot found user record!\t". json_encode($_rec), "\n";
+                //$mk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, "{$_rec[USER_UID]}-{$_rec[USER_MOBILE_NUMBER]}");
+                //$this->getConnection()->remove($mk);
+            }
+        }
+
+        echo "\nUsers not found: ", $no_user_err, "\n";
+        echo "\nUsers err fetch: ", $sys_err, "\n";
+        */
+        $_records = $this->scan(TS_USER, [USER_PROVIDER_ID, USER_PROVIDER, USER_PROFILE_ID]);
+        echo count($_records), " ", TS_USER, " records", "\n";
+        foreach ($_records as $_rec)
+        {
+            $pk = $this->asUserUniqueKey($_rec[USER_PROVIDER_ID], $_rec[USER_PROVIDER]);
+            if (!$this->exists($pk))
+            {
+                $no_user_err++;
+                echo __FUNCTION__, "\tUnique Key Not found user for record!\t". json_encode($_rec), "\n";             
+            }
+        }
+        echo "\nUsers not found: ", $no_user_err, "\n";
+        
+    }
 }

@@ -13,7 +13,7 @@ const USER_DEVICE_BAN_TRANSACTIONS  = 'ban_tran';
 
 trait DeviceTrait
 {
-    abstract public function getConnection();
+    abstract public function getConnection() : \Aerospike;
     abstract public function genId(string $generator, &$sequence);
     abstract public function getBins($pk, array $bins);
     abstract public function getRecord(array $pk, &$record, array $bins=[]);

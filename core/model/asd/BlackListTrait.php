@@ -8,7 +8,7 @@ const BLACK_LIST_REASON     = 'reason';
 
 trait BlackListTrait
 {
-    abstract public function getConnection();
+    abstract public function getConnection() : \Aerospike;
     abstract public function genId(string $generator, &$sequence);
     abstract public function getBins($pk, array $bins);
     abstract public function getRecord(array $pk, &$record, array $bins=[]);

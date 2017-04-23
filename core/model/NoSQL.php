@@ -81,8 +81,6 @@ class NoSQL
     private $cluster;
     private $configuration = ["hosts" => [["addr"=>"148.251.184.77", "port"=>3000], ["addr"=>"138.201.28.229", "port"=>3000]]];
     private $options = [
-                \Aerospike::OPT_READ_TIMEOUT => 2000,
-                \Aerospike::OPT_WRITE_TIMEOUT => 2000,
                 \Aerospike::OPT_POLICY_KEY => \Aerospike::POLICY_KEY_SEND, 
                 \Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE, 
                 ];
@@ -115,7 +113,7 @@ class NoSQL
     }
     
     
-    public function getConnection()
+    public function getConnection() : \Aerospike
     {
         if (!$this->cluster->isConnected())
         {
