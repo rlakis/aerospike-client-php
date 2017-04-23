@@ -1612,7 +1612,7 @@ class MobileApi
                 if (!NoSQL::getInstance()->deviceExists($this->uuid))
                 {
                     //$this->result['e'] = 'System error [1002]!';
-                    error_log("could not write [1002]: ".json_encode($bins));  
+                    error_log("Device record is missed [1002]: ".json_encode($bins));
                     
                     
                     $this->result['d']['uid'] = $this->uid;
