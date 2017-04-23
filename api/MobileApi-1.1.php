@@ -1561,7 +1561,7 @@ class MobileApi
                 \Core\Model\ASD\USER_PROFILE_URL=>'https://www.mourjan.com/',                
                 ];
             
-            $nosqlStatus = NoSQL::getInstance()->fetchUserByProviderId1($this->uuid, $bins[\Core\Model\ASD\USER_PROVIDER], $userRecord);
+            $nosqlStatus = NoSQL::getInstance()->fetchUserByProviderId1($this->uuid, $bins[\Core\Model\ASD\USER_PROVIDER], $userRecord);                        
             
             if ($nosqlStatus==NoSQL::ERR_RECORD_NOT_FOUND)
             {
@@ -1606,6 +1606,11 @@ class MobileApi
             }
             else if ($nosqlStatus== NoSQL::OK)
             {
+                if (empty($userRecord))
+                {
+                    $userRecord=NoSQL::getInstance()->userUpdate($bins);
+                }
+                
                 $this->uid = $userRecord[\Core\Model\ASD\USER_PROFILE_ID];
                 error_log("User provider exists {$this->uid} [1001]: ".PHP_EOL.json_encode($bins).PHP_EOL. json_encode($userRecord));
                 
