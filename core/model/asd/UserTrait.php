@@ -136,23 +136,16 @@ trait UserTrait
     public function fetchUserByUUID(string $uuid, &$record) 
     {
         $status = \Core\Model\NoSQL::getInstance()->getDeviceRecord($uuid, $device);
-        if ($status==\Core\Model\NoSQL::OK)
-        {
-            $time = 0;
-            do
-            {
-                $status = $this->getProfileRecord($device[USER_UID], $record);
-                if (!$this->isReadError($status))
-                {
-                    $record['logged_by_device'] = $device;
-                    break;
-                }
 
-                usleep(500);
-                $time+=500;                
+        if ($status==\Aerospike::OK)
+        {
+            $status = $this->getProfileRecord($device[USER_UID], $record);
+            if ($status==\Aerospike::OK)
+            {
+                $record['logged_by_device'] = $device;
             }
-            while ($time<2000000);            
         }
+
         return $status;
     }
 
@@ -260,10 +253,14 @@ trait UserTrait
         }
         elseif ($status == \Aerospike::ERR_RECORD_NOT_FOUND)
         {
-            
-            $options = [\Aerospike::OPT_POLICY_RETRY=>\Aerospike::POLICY_RETRY_ONCE, \Aerospike::OPT_POLICY_EXISTS=>\Aerospike::POLICY_EXISTS_CREATE];
+            //\Aerospike::OPT_POLICY_KEY => \Aerospike::POLICY_KEY_SEND,
+            $options = [
+                        \Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE,
+                        \Aerospike::OPT_POLICY_EXISTS => \Aerospike::POLICY_EXISTS_CREATE];
 
             $this->genId('profile_id', $uid);
+            $_uid = $this->genDistributedUID();
+
             if ($uid)
             {
                 $now = time();
@@ -287,7 +284,8 @@ trait UserTrait
                     USER_DEPENDANTS => [],
                     USER_OPTIONS => [],
                     USER_MOBILE => [],
-                    USER_DEVICES => []
+                    USER_DEVICES => [],
+                    USER_UID=>$_uid
                 ];
 
                 foreach ($bins as $binName => $binValue)
@@ -301,6 +299,7 @@ trait UserTrait
                 
                 if ($status==\Aerospike::OK)
                 {
+                    error_log("{$uid}-{$_uid} added successfuly");
                     if ($this->getConnection()->put($uk, [USER_UID=>$uid], 0, $options) !== \Aerospike::OK)
                     {
                         error_log(__FUNCTION__ . ": An error occured {$uid} [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" . PHP_EOL . json_encode($uk));
@@ -409,7 +408,18 @@ trait UserTrait
     {
         return $this->getConnection()->initKey(NS_USER, TS_USER, $uid);
     }    
-    
+
+    private function getUserIP()
+    {
+        if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR']))
+        {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        }
+        else
+        {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        }
+    }
     
     public function userExists(int $uid) : bool
     {
@@ -724,5 +734,69 @@ trait UserTrait
         }
         echo "\nUsers not found: ", $no_user_err, "\n";
         
+    }
+
+
+    public function genDistributedUID()
+    {
+        $millis = round(microtime(true) * 1000)-1483228800000;
+
+        $server=get_cfg_var('mourjan.server_id');
+        $this->genId("user_id-{$server}", $sq);
+        $id = $millis << 22 | $server << 11 | $sq;
+        //error_log( $id."-".$server."-".$sq.'-'.strlen("{$id}"));
+        return $id;
+    }
+
+
+    public function genDistributedUID1()
+    {
+        $base = 1483228800000; //2017-01-01
+        
+        $millis = round(microtime(true) * 1000);
+
+        $server=2;
+        $this->genId("user_id-{$server}", $sq);
+        $id = $millis-$base << 22 | $server << 11 | $sq;
+        echo $id, "\t", $server, "\t", $sq, "\t", strlen("{$id}"), "\n";
+
+        $server=2;
+        $this->genId("user_id-{$server}", $sq);
+        $millis = round(microtime(true) * 1000);
+        $id = $millis-$base << 22 | $server << 11 | $sq;
+        echo $id, "\t", $server, "\t", $sq, "\t", strlen("{$id}"), "\n";
+
+        $server=2;
+        $this->genId("user_id-{$server}", $sq);
+        $millis = round(microtime(true) * 1000);
+        $id = $millis-$base << 22 | $server << 11 | $sq;
+        echo $id, "\t", $server, "\t", $sq, "\t", strlen("{$id}"), "\n";
+
+
+        $server=4;
+        $this->genId("user_id-{$server}", $sq);
+        $id = $millis-$base << 22 | $server << 11 | $sq;
+        echo $id, "\t", $server, "\t", $sq, "\t", strlen("{$id}"), "\n";
+
+        $server=99;
+        $this->genId("user_id-{$server}", $sq);
+        $id = $millis-$base << 22 | $server << 11 | $sq;
+        echo $id, "\t", $server, "\t", $sq, "\t", strlen("{$id}"), "\n";
+
+        $server=2;
+        $this->genId("user_id-{$server}", $sq);
+        $id = $millis << 22 | $server << 11 | $sq;
+        echo $id, "\t", $server, "\t", $sq, "\t", strlen("{$id}"), "\n";
+
+        $server=4;
+        $this->genId("user_id-{$server}", $sq);
+        $id = $millis << 22 | $server << 11 | $sq;
+        echo $id, "\t", $server, "\t", $sq, "\t", strlen("{$id}"), "\n";
+
+        $server=99;
+        $this->genId("user_id-{$server}", $sq);
+        $id = $millis << 22 | $server << 11 | $sq;
+        echo $id, "\t", $server, "\t", $sq, "\t", strlen("{$id}"), "\n";
+
     }
 }

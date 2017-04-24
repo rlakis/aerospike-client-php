@@ -124,7 +124,7 @@ class NoSQL
     }
     
     
-    public function genId(string $generator, &$sequence)
+    public function genId(string $generator, &$sequence) : int
     {
         $sequence = 0;
         $record = [];
@@ -137,7 +137,8 @@ class NoSQL
         if ($this->getConnection()->operate($key, $operations, $record)== \Aerospike::OK)
         {
             $sequence = $record['sequence'];
-        }   
+        }
+        return $status;
     }
             
     
