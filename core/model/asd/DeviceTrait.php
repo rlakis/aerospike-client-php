@@ -14,7 +14,7 @@ const USER_DEVICE_BAN_TRANSACTIONS  = 'ban_tran';
 trait DeviceTrait
 {
     abstract public function getConnection() : \Aerospike;
-    abstract public function genId(string $generator, &$sequence);
+    abstract public function genId(string $generator, &$sequence) : int;
     abstract public function getBins($pk, array $bins);
     abstract public function getRecord(array $pk, &$record, array $bins=[]);
     abstract public function setBins($pk, array $bins);
@@ -51,8 +51,8 @@ trait DeviceTrait
             $bins[USER_DEVICE_LAST_VISITED] = time();
             if ($this->getConnection()->increment($pk, USER_DEVICE_VISITS_COUNT, 1)==\Aerospike::OK)
             {
-                error_log(sprintf("%s", json_encode(['mt'=> microtime(TRUE), 'pk'=>$pk, 'inc'=>[USER_DEVICE_VISITS_COUNT, 1]])).PHP_EOL, 3, "/var/log/mourjan/aerospike.set");
             }
+
             if (isset($bins[USER_DEVICE_PUSH_TOKEN]) && !isset($bins[USER_DEVICE_PUSH_ENABLED]))
             {
                 $bins[USER_DEVICE_PUSH_ENABLED] = 1;
@@ -144,15 +144,9 @@ trait DeviceTrait
         $pk = $this->initDeviceKey($uuid);
         if ($this->exists($pk))
         {
-            if (($record = $this->getBins($pk, [USER_UID]))!== FALSE)
+            if (($record = $this->getBins($pk, [USER_UID, USER_DEVICE_SYS_NAME]))!==FALSE)
             {            
-                if ((($oldUserRecord=\Core\Model\NoSQL::getInstance()->fetchUserByProviderId($uuid, ''))!==FALSE) && !empty($oldUserRecord))
-                {
-                    if ($oldUserRecord[USER_PROVIDER]==USER_PROVIDER_ANDROID || $oldUserRecord[USER_PROVIDER]==USER_PROVIDER_IPHONE)
-                    {
-                        $bins = ['duid'=>$oldUserRecord[USER_PROFILE_ID], 'uid'=>$uid];
-                    }
-                }
+                $bins = ['duid'=>$record[USER_UID], 'uid'=>$uid];
                 
                 if ($record[USER_UID]==$oldUID || $oldUID==0)
                 {

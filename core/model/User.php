@@ -476,23 +476,7 @@ class User
         }
         return FALSE;       
     }
-    
-/*
-    function checkAccount($email)
-    {
-        return Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email, 'mourjan');
-        
-        //$user = $this->db->get('select * from web_users where IDENTIFIER=?', [$email]);
-        //return $user;
-    }
 
-    
-    function getAccount($id)
-    {
-        $user = $this->db->get('select * from web_users where id=?', [$id]);
-        return $user;
-    }
-*/    
 
     function resetPassword($userId, $pass)
     {
@@ -549,45 +533,35 @@ class User
     {
         
         $bins = [
-            \Core\Model\ASD\USER_PROVIDER_ID=>$email, 
-            \Core\Model\ASD\USER_PROVIDER=>'mourjan', 
-            \Core\Model\ASD\USER_EMAIL=>$email, 
-            \Core\Model\ASD\USER_PROFILE_URL=>'https://www.mourjan.com/'
-            ];
+                \Core\Model\ASD\USER_PROVIDER_ID=>$email, 
+                \Core\Model\ASD\USER_PROVIDER=>'mourjan', 
+                \Core\Model\ASD\USER_EMAIL=>$email, 
+                \Core\Model\ASD\USER_PROFILE_URL=>'https://www.mourjan.com/'
+                ];
         
-        if (($bins = \Core\Model\NoSQL::getInstance()->userUpdate($bins))!==FALSE)
+        if (NoSQL::getInstance()->addProfile($bins)== NoSQL::OK)
         {
-            //$user = $this->db->get(
-            //    "insert into web_users
-            //    (ID, IDENTIFIER, email, user_email, provider, full_name, display_name, profile_url, last_visit)
-            //    values (?, ?,'',?, 'mourjan', '', '', 'https://www.mourjan.com/', current_timestamp)
-            //    returning id, opts",
-            //    [$bins[\Core\Model\ASD\USER_PROFILE_ID], $email, $email]);
-
+            return $bins;
         }
-        return $bins;
         
-//        return $user;
+        return FALSE;
     }
 
 
     function createNewByPhone($number)
     {
         $bins = [
-            \Core\Model\ASD\USER_PROVIDER_ID=>strval($number), 
-            \Core\Model\ASD\USER_PROVIDER=>'mourjan', 
-            \Core\Model\ASD\USER_PROFILE_URL=>'https://www.mourjan.com/'
-            ];
-        if (($bins = \Core\Model\NoSQL::getInstance()->userUpdate($bins))!==FALSE)
+                \Core\Model\ASD\USER_PROVIDER_ID=>strval($number), 
+                \Core\Model\ASD\USER_PROVIDER=>'mourjan', 
+                \Core\Model\ASD\USER_PROFILE_URL=>'https://www.mourjan.com/'
+                ];
+
+        if (NoSQL::getInstance()->addProfile($bins)== NoSQL::OK)
         {
-            //$this->db->get(
-            //    "insert into web_users
-            //    (ID, IDENTIFIER, email, user_email, provider, full_name, display_name, profile_url, last_visit)
-            //    values (?, ?,'','', 'mourjan', '', '', 'https://www.mourjan.com/', current_timestamp)
-            //    returning id, opts", [$bins[\Core\Model\ASD\USER_PROFILE_ID], $number]);            
-        }        
-       
-        return $bins;
+            return $bins;
+        }
+
+        return FALSE;
     }
 
 
@@ -2336,7 +2310,7 @@ class User
     function authenticateById($id, $key)
     {
         //error_log(__FUNCTION__. " [{$id}:{$key}]");
-        Core\Model\NoSQL::getInstance()->setVisitUnixtime($id);
+        Core\Model\NoSQL::getInstance()->updateProfileVisitTime([\Core\Model\ASD\USER_UID=>$id]);
         $bins = Core\Model\NoSQL::getInstance()->fetchUser($id);
         if (isset($bins[\Core\Model\ASD\USER_PROFILE_ID]) && isset($bins[Core\Model\ASD\USER_PROVIDER_ID]))
         {
@@ -2377,7 +2351,7 @@ class User
 
             if ((time()-$pv)>1800)
             {
-                Core\Model\NoSQL::getInstance()->setVisitUnixtime($id);
+                Core\Model\NoSQL::getInstance()->updateProfileVisitTime([\Core\Model\ASD\USER_UID=>$id]);
                 /*
                 if ($this->site==null||$this->site->urlRouter->module=='ajax-pi'||$this->site->urlRouter->module=='ajax-screen')
                 {
@@ -2404,10 +2378,15 @@ class User
     {
         $identifier = trim($account);
         //error_log(__FUNCTION__. " [{$identifier}:{$pass}]");
+        
         $bins = FALSE;
         if (preg_match('/@/',$identifier) || preg_match('/^\+/', $identifier))
         {
-            $bins = \Core\Model\NoSQL::getInstance()->fetchUserByProviderId($identifier);
+            if (Core\Model\NoSQL::getInstance()->fetchUserByProviderId($identifier, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $bins)!==NoSQL::OK)
+            {
+                $bins=FALSE;
+            }
+            //$bins = \Core\Model\NoSQL::getInstance()->fetchUser By ProviderId($identifier);
         }
         else if (is_numeric($identifier))
         {       
@@ -2441,7 +2420,7 @@ class User
             {
                 return -2;//server error
             }
-            //$bins = \Core\Model\NoSQL::getInstance()->fetchUserByProviderId($identifier);
+            //$bins = \Core\Model\NoSQL::getInstance()->fetchUser By ProviderId($identifier);
         }
         
         if (!empty($bins))
@@ -2519,117 +2498,57 @@ class User
         $_status = $this->authenticateUserAccount($email, $pass);
         if ($_status>0)
         {
-            $bins = \Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email);
-            
-            \Core\Model\NoSQL::getInstance()->setVisitUnixtime($bins[\Core\Model\ASD\USER_PROFILE_ID]);
-            $bins = \Core\Model\NoSQL::getInstance()->fetchUser($bins[\Core\Model\ASD\USER_PROFILE_ID]);
-            
-            $this->setUserParams($bins, TRUE);
-            if (isset($this->pending['fav'])) 
-            {
-                $this->updateFavorite($this->pending['fav'],0);
-                unset($this->pending['fav']);
-            }
-            $checkWatchMail=false;
-            $updateOptions=false;
-            if (isset($this->pending['watch'])) 
-            {
-                $this->insertWatch($this->pending['watch']);
-                unset($this->pending['watch']);
-                $updateOptions=true;
-                $checkWatchMail=true;
-            }      
-            
-            $this->update();
-            
-            if ($updateOptions)
-            {
-                $this->updateOptions();
-                if ($checkWatchMail) 
+            Core\Model\NoSQL::getInstance()->updateProfileVisitTime([\Core\Model\ASD\USER_PROVIDER_ID=>$email, \Core\Model\ASD\USER_PROVIDER=>\Core\Model\ASD\USER_PROVIDER_MOURJAN]);
+            $_ret = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $bins);
+            if ($_ret==NoSQL::OK)
+            {        
+                $this->setUserParams($bins, TRUE);
+                if (isset($this->pending['fav'])) 
                 {
-                    $watchArray=isset($this->info['options']['watch']) ? $this->info['options']['watch'] : array();
-                    $mailFrequency=(isset($this->info['options']['mailEvery']) && $this->info['options']['mailEvery']) ? $this->info['options']['mailEvery'] : 1;
-                    $this->checkWatchMailSetting($this->info['id'], $mailFrequency);
+                    $this->updateFavorite($this->pending['fav'],0);
+                    unset($this->pending['fav']);
                 }
-            }
-            //$this->db->get("update web_users set last_visit=current_timestamp where id=?", [$bins[\Core\Model\ASD\USER_PROFILE_ID]], TRUE);
-            return 1;
+                $checkWatchMail=false;
+                $updateOptions=false;
+                if (isset($this->pending['watch'])) 
+                {
+                    $this->insertWatch($this->pending['watch']);
+                    unset($this->pending['watch']);
+                    $updateOptions=true;
+                    $checkWatchMail=true;
+                }      
+    
+                $this->update();
+            
+                if ($updateOptions)
+                {
+                    $this->updateOptions();
+                    if ($checkWatchMail) 
+                    {
+                        $watchArray=isset($this->info['options']['watch']) ? $this->info['options']['watch'] : array();
+                        $mailFrequency=(isset($this->info['options']['mailEvery']) && $this->info['options']['mailEvery']) ? $this->info['options']['mailEvery'] : 1;
+                        $this->checkWatchMailSetting($this->info['id'], $mailFrequency);
+                    }
+                }
+                
+                return 1;
+            } 
         }
         return 0;
-        
-        /*
-        $pass = md5($this->md5_prefix.$pass);
-        
-        $q='update web_users set last_visit=current_timestamp  
-            where identifier=? and  user_pass=? and provider=\'mourjan\' 
-            returning id,provider,lvl,display_name, email, user_rank,user_name,user_email,opts,prev_visit,last_visit';
-        
-        if(!preg_match('/@/',$email))
-        {
-            $email = (int)$email;
-            $q='update web_users set last_visit=current_timestamp  
-                where identifier containing ? and user_pass=? and provider=\'mourjan\' 
-                returning id, provider, lvl, display_name, email, user_rank, user_name, user_email,opts, prev_visit, last_visit';
-        }
-        
-        $result=$this->db->get($q, array($email,$pass),true);
-        if ($result && isset($result[0]) && $result[0]['ID']) 
-        {
-            $this->setUserParams($result);
-            
-            if (isset($this->pending['fav'])) 
-            {
-                $this->updateFavorite($this->pending['fav'],0);
-                unset($this->pending['fav']);
-            }
-            $checkWatchMail=false;
-            $updateOptions=false;
-            if (isset($this->pending['watch'])) 
-            {
-                $this->insertWatch($this->pending['watch']);
-                unset($this->pending['watch']);
-                $updateOptions=true;
-                $checkWatchMail=true;
-            }      
-            
-            $this->update();
-            if ($updateOptions)
-            {
-                $this->updateOptions();
-                if ($checkWatchMail) 
-                {
-                    $watchArray=isset($this->info['options']['watch']) ? $this->info['options']['watch'] : array();
-                    $mailFrequency=(isset($this->info['options']['mailEvery']) && $this->info['options']['mailEvery']) ? $this->info['options']['mailEvery'] : 1;
-                    $this->checkWatchMailSetting($this->info['id'], $mailFrequency);
-                }
-            }
-            
-            return 1;
-        }
-        else return 0;*/
     }
     
     
     function copyUserData($id, $pass, $rank, $level, $pubType, $opts)
     {
-       
-        
         $bins = [
-            \Core\Model\ASD\USER_PASSWORD=>$pass,
-            \Core\Model\ASD\USER_RANK=>$rank,
-            \Core\Model\ASD\USER_LEVEL=>$level,
-            \Core\Model\ASD\USER_PUBLISHER_STATUS=>$pubType,
-            \Core\Model\ASD\USER_OPTIONS=> is_array($opts) ? $opts : json_decode($opts, TRUE),            
-            ];
-        
-        if (\Core\Model\NoSQL::getInstance()->userUpdate($bins, $id))
-        {
-            //$q = 'update web_users set user_pass=?, user_rank=?, lvl=?, user_publisher=?, opts=? where id=?';
-            //$this->db->get($q, [$pass, $rank, $level, $pubType, is_array($opts)?json_encode($opts):$opts, $id]);
-            return TRUE;
-        }
-        
-        return FALSE;
+                \Core\Model\ASD\USER_PASSWORD=>$pass,
+                \Core\Model\ASD\USER_RANK=>$rank,
+                \Core\Model\ASD\USER_LEVEL=>$level,
+                \Core\Model\ASD\USER_PUBLISHER_STATUS=>$pubType,
+                \Core\Model\ASD\USER_OPTIONS=> is_array($opts) ? $opts : json_decode($opts, TRUE),            
+                ];
+       
+        return (NoSQL::getInstance()->modProfile([\Core\Model\ASD\USER_UID=>$id], $bins)==NoSQL::OK);
     }
     
      
@@ -2653,105 +2572,69 @@ class User
             $fullName=trim(($info->firstName ? $info->firstName : '').' '.($info->lastName ? $info->lastName : ''));
             $dispName=(!is_null($info->displayName) ? $info->displayName : '');
             $infoStr=(!is_null($info->profileURL) ? $info->profileURL : '');
+            $status = NoSQL::getInstance()->getProfileRecord([\Core\Model\ASD\USER_PROVIDER_ID=>$identifier, \Core\Model\ASD\USER_PROVIDER=>$provider], $profile);
         }
         
         try
         {
             if($newUid==0)
             {
-                if (($userBins = \Core\Model\NoSQL::getInstance()->fetchUserByProviderId($identifier, $provider))!==FALSE)
+                if ($status==NoSQL::OK)
                 {
-                    if (isset($userBins[\Core\Model\ASD\USER_PROFILE_ID]) && $userBins[\Core\Model\ASD\USER_PROFILE_ID])
+                    // user aleady exists
+                    if (($ret=NoSQL::getInstance()->modProfile(
+                                    [\Core\Model\ASD\USER_PROVIDER_ID=>$identifier, \Core\Model\ASD\USER_PROVIDER=>$provider],
+                                    [\Core\Model\ASD\USER_PROVIDER_ID => $identifier,
+                                     \Core\Model\ASD\USER_EMAIL => $email,
+                                     \Core\Model\ASD\USER_PROVIDER => $provider,
+                                     \Core\Model\ASD\USER_FULL_NAME => $fullName,
+                                     \Core\Model\ASD\USER_DISPLAY_NAME => $dispName,
+                                     \Core\Model\ASD\USER_PROFILE_URL => $infoStr], 
+                                    TRUE))==NoSQL::OK)
                     {
-                        // user aleady exists
-                        $bins = \Core\Model\NoSQL::getInstance()->userUpdate([
-                                    \Core\Model\ASD\USER_PROVIDER_ID => $identifier,
-                                    \Core\Model\ASD\USER_EMAIL => $email,
-                                    \Core\Model\ASD\USER_PROVIDER => $provider,
-                                    \Core\Model\ASD\USER_FULL_NAME => $fullName,
-                                    \Core\Model\ASD\USER_DISPLAY_NAME => $dispName,
-                                    \Core\Model\ASD\USER_PROFILE_URL => $infoStr,
-                                    \Core\Model\ASD\USER_LAST_VISITED => time(),
-                                    ],
-                                    $userBins[\Core\Model\ASD\USER_PROFILE_ID], TRUE);       
+                        $ret = NoSQL::getInstance()->getProfileRecord([\Core\Model\ASD\USER_PROVIDER_ID=>$identifier, \Core\Model\ASD\USER_PROVIDER=>$provider], $bins);
                     }
-                    else
-                    {
-                        $bins = \Core\Model\NoSQL::getInstance()->userUpdate([
-                                    \Core\Model\ASD\USER_PROVIDER_ID => $identifier,
-                                    \Core\Model\ASD\USER_EMAIL => $email,
-                                    \Core\Model\ASD\USER_PROVIDER => $provider,
-                                    \Core\Model\ASD\USER_FULL_NAME => $fullName,
-                                    \Core\Model\ASD\USER_DISPLAY_NAME => $dispName,
-                                    \Core\Model\ASD\USER_PROFILE_URL => $infoStr,
-                                    \Core\Model\ASD\USER_LAST_VISITED => time(),
-                                    ], 0, TRUE);
-                    }
+                }
+                else if ($status==NoSQL::ERR_RECORD_NOT_FOUND)
+                {
+                    // user not found
+                    $bins = [\Core\Model\ASD\USER_PROVIDER_ID => $identifier,
+                            \Core\Model\ASD\USER_EMAIL => $email,
+                            \Core\Model\ASD\USER_PROVIDER => $provider,
+                            \Core\Model\ASD\USER_FULL_NAME => $fullName,
+                            \Core\Model\ASD\USER_DISPLAY_NAME => $dispName,
+                            \Core\Model\ASD\USER_PROFILE_URL => $infoStr];
                     
-                    if ($bins!==FALSE && isset($bins[\Core\Model\ASD\USER_PROFILE_ID]))
-                    {
-                        $newUserId = $bins[\Core\Model\ASD\USER_PROFILE_ID];
-                    }
-                    else 
-                    {
-                        error_log("User Device Update/Insert Failure [1]");
-                    }
-                }
-                else
+                    $ret = NoSQL::getInstance()->addProfile($bins);                                  
+                } 
+                else 
                 {
-                    error_log("User Device Update/Insert Failure [2]");
+                    $ret = $status;
                 }
-                                                              
-            }
-            else
-            {
-                $bins = \Core\Model\NoSQL::getInstance()->fetchUser($newUid);
-                if (isset($bins) && isset($bins[\Core\Model\ASD\USER_PROFILE_ID]) && $bins[\Core\Model\ASD\USER_PROFILE_ID])
+                
+                if ($ret==NoSQL::OK)
                 {
                     $newUserId = $bins[\Core\Model\ASD\USER_PROFILE_ID];
-                    //$this->db->get("update web_users set last_visit=current_timestamp where id=?", [$newUserId], TRUE);
                 }
                 else 
                 {
-                    error_log("User Record Not Found");
-                }
-                
-            }
-            
-            
-            //$result = false;
-            /*
-            if($newUid==0)
-            {
-                if($getUserRecord->execute([$identifier, $email, $provider, $fullName, $dispName, $infoStr])) 
-                {
-                    $result = $getUserRecord->fetch(PDO::FETCH_NUM);
-                }
-                
-                if($result!==false && !empty($result))
-                {
-                    $newUserId = $result[0];
-                }
-                else
-                {
-                    error_log("User Device Update/Insert Failure");
-                }				
+                     error_log("User Device Update/Insert Failure [1]");
+                }                                         
             }
             else
             {
-                $result = $this->db->get('select id from web_users where id=?', [$newUid], false);
-                if($result !== false && isset($result[0]['ID']) && $result[0]['ID']>0)
-                {
-                    $newUserId = $result[0]['ID'];
-                }
+                $ret = NoSQL::getInstance()->getProfileRecord([\Core\Model\ASD\USER_UID=>$newUid], $bins);
+                if ($ret== NoSQL::OK)
+                {                    
+                    $newUserId = $bins[\Core\Model\ASD\USER_PROFILE_ID];                
+                    NoSQL::getInstance()->updateProfileVisitTime([\Core\Model\ASD\USER_UID=>$newUserId]);
+                } 
                 else
                 {
-                    error_log("User Record Not Found");
-                }
+                     error_log(__FUNCTION__ ." User Record Not Found");
+                }                                               
             }
-            
-            if (isset($getUserRecord)) unset($getUserRecord);
-            */
+                     
             
             if($newUserId)
             {
@@ -3095,46 +2978,41 @@ class User
         $fullName=trim(($info->firstName ? $info->firstName : '').' '.($info->lastName ? $info->lastName : ''));
         $dispName=(!is_null($info->displayName) ? $info->displayName : '');
         $infoStr=(!is_null($info->profileURL) ? $info->profileURL : '');
+
+        $bins = [\Core\Model\ASD\USER_PROVIDER_ID => strval($identifier),
+                \Core\Model\ASD\USER_EMAIL => $email,
+                \Core\Model\ASD\USER_PROVIDER => $provider,
+                \Core\Model\ASD\USER_FULL_NAME => $fullName,
+                \Core\Model\ASD\USER_DISPLAY_NAME => $dispName,
+                \Core\Model\ASD\USER_PROFILE_URL => $infoStr];
         
-        if (($userBins=\Core\Model\NoSQL::getInstance()->fetchUserByProviderId($identifier, $provider))!==FALSE)
+        $status = NoSQL::getInstance()->getProfileRecord([\Core\Model\ASD\USER_PROVIDER_ID=>$identifier, \Core\Model\ASD\USER_PROVIDER=>$provider], $profile);
+        switch ($status) 
         {
-            if (empty($userBins))
+            case NoSQL::OK:
             {
-                // new user;
-                $this->pending['social_new']=1; 
-                $bins = \Core\Model\NoSQL::getInstance()->userUpdate([
-                                    \Core\Model\ASD\USER_PROVIDER_ID => "{$identifier}",
-                                    \Core\Model\ASD\USER_EMAIL => $email,
-                                    \Core\Model\ASD\USER_PROVIDER => $provider,
-                                    \Core\Model\ASD\USER_FULL_NAME => $fullName,
-                                    \Core\Model\ASD\USER_DISPLAY_NAME => $dispName,
-                                    \Core\Model\ASD\USER_PROFILE_URL => $infoStr,
-                                    \Core\Model\ASD\USER_LAST_VISITED => time(),
-                                    ]);                
-            }
-            else
-            {
-                // user aleady exists
-                $bins = \Core\Model\NoSQL::getInstance()->userUpdate([
-                                    \Core\Model\ASD\USER_PROVIDER_ID => "{$identifier}",
-                                    \Core\Model\ASD\USER_EMAIL => $email,
-                                    \Core\Model\ASD\USER_PROVIDER => $provider,
-                                    \Core\Model\ASD\USER_FULL_NAME => $fullName,
-                                    \Core\Model\ASD\USER_DISPLAY_NAME => $dispName,
-                                    \Core\Model\ASD\USER_PROFILE_URL => $infoStr,
-                                    \Core\Model\ASD\USER_LAST_VISITED => time(),
-                                    ], $userBins[\Core\Model\ASD\USER_PROFILE_ID]);       
-            }
-        }
-        
-        
-        if (isset($bins[\Core\Model\ASD\USER_PROFILE_ID]) && $bins[\Core\Model\ASD\USER_PROFILE_ID])
-        {
-            //$q='update or insert into web_users
-            //    (ID, IDENTIFIER, email, provider, full_name, display_name, profile_url, last_visit)
-            //    values (?, ?, ?, ?, ?, ?, ?, current_timestamp)
-            //    matching (identifier, provider)';
+                $ret = NoSQL::getInstance()->modProfile([\Core\Model\ASD\USER_PROVIDER_ID=>$identifier, \Core\Model\ASD\USER_PROVIDER=>$provider], $bins, TRUE); 
+                if ($ret==NoSQL::OK)
+                {
+                    $ret = NoSQL::getInstance()->getProfileRecord([\Core\Model\ASD\USER_PROVIDER_ID=>$identifier, \Core\Model\ASD\USER_PROVIDER=>$provider], $bins);
+                }
+            } break;
             
+            case NoSQL::ERR_RECORD_NOT_FOUND:
+            {
+                $this->pending['social_new']=1;                                                  
+                $ret = NoSQL::getInstance()->addProfile($bins);    
+            } break;
+
+            default:
+                $ret = $status;
+                break;
+        }
+                        
+        
+        
+        if ($ret==NoSQL::OK && isset($bins[\Core\Model\ASD\USER_PROFILE_ID]) && $bins[\Core\Model\ASD\USER_PROFILE_ID])
+        {            
             $this->setUserParams($bins, TRUE);
             
             if (isset($this->pending['fav'])) 
@@ -3249,9 +3127,11 @@ class User
         {
             $this->info['options']['nb']=array('ads'=>1,'coms'=>1,'news'=>1,'third'=>1);
         }
+        
         $succeed=false;
         $bins = [\Core\Model\ASD\USER_EMAIL=>$email, Core\Model\ASD\USER_OPTIONS=>$this->info['options']];
-        if (($record= \Core\Model\NoSQL::getInstance()->userUpdate($bins, $this->info['id']))!==FALSE)
+        $status = NoSQL::getInstance()->modProfile([\Core\Model\ASD\USER_UID=>$this->info['id']], $bins);
+        if ($status==NoSQL::OK)
         {
             $succeed=true;
             if($this->info['level']==6)
@@ -3266,9 +3146,6 @@ class User
             $mailFrequency=(isset($this->info['options']['mailEvery']) && $this->info['options']['mailEvery']) ? $this->info['options']['mailEvery'] : 1;
             $this->checkWatchMailSetting($this->info['id'], $mailFrequency);
             
-            //$q="update web_users set user_email=?, opts=? where id=?";
-            //$options=json_encode($this->info['options']);
-            //$this->db->get($q, [$email, $options, $this->info['id']], true);
         }
         else
         {

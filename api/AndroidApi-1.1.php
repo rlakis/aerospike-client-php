@@ -1682,10 +1682,55 @@ class AndroidApi
                         }
                         else
                         { 
-                            $USER = new User($this->api->db, $this->api->config, null, 0);
-                            $user = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($username, 'mourjan');// $USER->checkAccount($username);
                             $sendCode=false;
                             $date = date('Ymd');
+                            $USER = new User($this->api->db, $this->api->config, null, 0);
+                            $_ret = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($username, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);
+                            //$user = Core\Model\NoSQL::getInstance()->fetchUserBy ProviderId($username, 'mourjan');// $USER->checkAccount($username);
+                           
+                            if ($_ret==NoSQL::OK)
+                            {
+                                $newId = $user[\Core\Model\ASD\USER_PROFILE_ID];
+                                $opt = $user[Core\Model\ASD\USER_OPTIONS];
+
+                                if(isset($opt['validating']))
+                                {
+                                    if(!isset($opt['validating'][$date]) || (isset($opt['validating'][$date]) && $opt['validating'][$date]<2))
+                                    {
+                                        $sendCode=true;
+                                    }
+                                }
+                                else
+                                {
+                                    $sendCode=true;
+                                } 
+                                
+                                if(isset($opt['accountKey']) && $opt['accountKey'])
+                                {
+                                    $keyCode=$opt['accountKey'];
+                                }
+                            }
+                            else if ($_ret== NoSQL::ERR_RECORD_NOT_FOUND)
+                            {
+                                $user = $USER->createNewAccount($username);
+                                if($user && isset($user[\Core\Model\ASD\USER_PROFILE_ID]) && $user[\Core\Model\ASD\USER_PROFILE_ID])
+                                {
+                                    $newId = $user[\Core\Model\ASD\USER_PROFILE_ID];
+                                    //$opt = json_decode($user[0]['OPTS'], true);
+                                    $opt = $user[\Core\Model\ASD\USER_OPTIONS];
+                                    $sendCode=true;
+                                }
+                                else
+                                {
+                                    $newId=-2;
+                                }
+                            }
+                            else
+                            {
+                                $newId=-2;
+                            }
+                            
+                            /*
                             if(isset($user[\Core\Model\ASD\USER_PROFILE_ID]) && $user[\Core\Model\ASD\USER_PROFILE_ID])
                             {
                                 $newId = $user[\Core\Model\ASD\USER_PROFILE_ID];
@@ -1725,6 +1770,7 @@ class AndroidApi
                                     $newId=-2;
                                 }
                             }
+                            */
                             
                             if($sendCode)
                             {
@@ -1793,9 +1839,8 @@ class AndroidApi
                         require_once $this->api->config['dir'].'/core/model/User.php';
                         $this->api->db->setWriteMode();  
                         $USER = new User($this->api->db, $this->api->config, null, 0);
-                        //$user=$USER->getAccount($id);
-                        $user = NoSQL::getInstance()->fetchUser($id);
-                        if(isset($user[\Core\Model\ASD\USER_PROFILE_ID]) && $user[\Core\Model\ASD\USER_PROFILE_ID] /*isset($user[0]['ID']) && $user[0]['ID']*/)
+                        $_ret =  NoSQL::getInstance()->getProfileRecord([\Core\Model\ASD\USER_UID=>$id], $user);
+                        if($_ret==NoSQL::OK) 
                         {
                             $opt = $user[Core\Model\ASD\USER_OPTIONS];// json_decode($user[0]['OPTS'], true);
                             if(isset($opt['accountKey']) && $opt['accountKey']==$code)
@@ -1803,8 +1848,8 @@ class AndroidApi
                             	//error_log("API_ANDROID_CHANGE_ACCOUNT - before");                            	
                                 $USER->mergeDeviceToAccount($this->api->getUUID(), $this->api->getUID(), $id);
                                 //error_log("API_ANDROID_CHANGE_ACCOUNT - after");
-                                $old = NoSQL::getInstance()->fetchUser($this->api->getUID()); //$USER->getAccount($this->api->getUID());
-                                if(isset($old[\Core\Model\ASD\USER_PROFILE_ID]) && $old[\Core\Model\ASD\USER_PROFILE_ID])
+                                $_ret =  NoSQL::getInstance()->getProfileRecord([\Core\Model\ASD\USER_UID=>$this->api->getUID()], $old);
+                                if($_ret==NoSQL::OK /*isset($old[\Core\Model\ASD\USER_PROFILE_ID]) && $old[\Core\Model\ASD\USER_PROFILE_ID]*/)
                                 {
                                     //$old=$old[0];
                                     //try
@@ -1861,18 +1906,7 @@ class AndroidApi
                                     default:
                                         $this->api->result['d']['account']=$user[\Core\Model\ASD\USER_EMAIL];
                                         break;
-                                }
-                                /*
-                                if($user[Core\Model\ASD\USER_PROVIDER]=='mourjan')
-                                {
-                                    $this->api->result['d']['account']=$user[Core\Model\ASD\USER_PROVIDER_ID];
-                                }
-                                else if($user[0]['PROVIDER']=='twitter')
-                                {
-                                    $this->api->result['d']['account']=preg_replace('/http(?:s|)::\/\/twitter\.com\//','',$user[0]['PROFILE_URL']);
-                                }else{
-                                    $this->api->result['d']['account']=$user[0]['EMAIL'];
-                                }*/
+                                }                              
                             }
                             else
                             {

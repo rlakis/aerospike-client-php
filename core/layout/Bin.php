@@ -1955,7 +1955,7 @@ class Bin extends AjaxHandler{
                                                             try{
                                                                 $updateDuplicateStmt->execute(array($loc['name'],$loc['latitude'],$loc['longitude'],$city['ID']));
                                                             }catch(Exception $e){
-                                                                error_log('AJAX Location: '.$e->getMessage().PHP_EOL);
+                                                                error_log(__CLASS__.'::'.__FUNCTION__.' AJAX Location: '.$e->getMessage().PHP_EOL);
                                                             }
                                                             break;
                                                         }
@@ -2198,8 +2198,10 @@ class Bin extends AjaxHandler{
                     $this->process();
                 }else $this->fail('101');
                 break;
+                
             case 'ajax-pi':
-                if(!isset($this->user->info['inc'])){
+                if(!isset($this->user->info['inc']))
+                {
                     $this->user->info['inc']=0;
                 }
                 $this->user->info['inc']++;
@@ -3341,8 +3343,9 @@ class Bin extends AjaxHandler{
                 }
                 else {
                     if ($handle)
-                        error_log($handle->error);
-                    else error_log('no user session');
+                        error_log(__CLASS__.'::'.__FUNCTION__.' '.$handle->error);
+                    else 
+                        error_log(__CLASS__.'::'.__FUNCTION__.' no user session');
                     ?><script type="text/javascript" language="javascript" defer>top.uploadCallback();</script><?php
                 }
                 break;
@@ -3441,8 +3444,8 @@ class Bin extends AjaxHandler{
                 }
                 else {
                     if ($handle)
-                        error_log($handle->error);
-                    else error_log('no user session');
+                        error_log(__CLASS__.'::'.__FUNCTION__.' '.$handle->error);
+                    else error_log(__CLASS__.'::'.__FUNCTION__.' no user session');
                     ?><script type="text/javascript" language="javascript" defer>top.uploadCallback();</script><?php
                 }
                 break;
@@ -5336,7 +5339,7 @@ class Bin extends AjaxHandler{
                 break;
                 
             case 'ajax-preset':
-                $email=$this->post('v');
+                $email=trim(strtolower(filter_var($this->post('v'), FILTER_SANITIZE_EMAIL)));
                 $user_id = 0;
                 $lang='ar';
                 $tLang=$this->post('lang');
@@ -5347,8 +5350,9 @@ class Bin extends AjaxHandler{
                 {
                     if ($email && $this->isEmail($email) )
                     {
-                        $user = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email, 'mourjan'); //$this->user->checkAccount($email);
-                        if($user===false)
+                        $_ret = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);
+                        //$user = Core\Model\NoSQL::getInstance()->fetchUserByProvider Id($email, 'mourjan'); //$this->user->checkAccount($email);
+                        if($_ret!==NoSQL::OK)
                         {
                             $this->fail("103");
                         }
@@ -5408,7 +5412,7 @@ class Bin extends AjaxHandler{
                 break;
                 
             case 'ajax-register':
-                $email=$this->post('v');
+                $email=trim(strtolower(filter_var($this->post('v'), FILTER_SANITIZE_EMAIL)));
                 $user_id = 0;
                 $lang='ar';
                 $tLang=$this->post('lang');
@@ -5418,8 +5422,9 @@ class Bin extends AjaxHandler{
                 {
                     if ($email && $this->isEmail($email) )
                     {
-                        $user = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email, 'mourjan'); //$this->user->checkAccount($email);
-                        if($user===false)
+                        $_ret = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);
+                        //$user = Core\Model\NoSQL::getInstance()->fetchUser By Provider Id($email, 'mourjan'); //$this->user->checkAccount($email);
+                        if($user!==NoSQL::OK)
                         {
                             $this->fail("103");
                         }

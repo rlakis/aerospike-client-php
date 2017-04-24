@@ -124,7 +124,6 @@ class MCUser extends MCJsonMapper
                 $result->opts = new MCUserOptions();
             }
         }
-       
         return $result;        
     }
 

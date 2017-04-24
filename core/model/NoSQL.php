@@ -134,7 +134,9 @@ class NoSQL
             ["op" => \Aerospike::OPERATOR_READ, "bin" => "sequence"],
         ];
         
-        if ($this->getConnection()->operate($key, $operations, $record)== \Aerospike::OK)
+        $status = $this->getConnection()->operate($key, $operations, $record);
+                
+        if ($status==\Aerospike::OK)
         {
             $sequence = $record['sequence'];
         }

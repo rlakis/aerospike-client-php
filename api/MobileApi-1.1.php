@@ -29,6 +29,7 @@ class MobileApi
 
     var $uid;
     var $uuid;
+    public $provider;
     public $user = null;
 
     function __construct($config) 
@@ -889,7 +890,7 @@ class MobileApi
             }
      
         }
-        if (isset($msg)) error_log ($msg);
+        if (isset($msg)) error_log (__FUNCTION__ . ' ' . $msg);
         
         return $arr;
     }
@@ -943,7 +944,8 @@ class MobileApi
         $name=null;
         $status = 0;
         $opts = new \stdClass();
-
+        $opts->disallow_purchase = 0;
+        
         if (!empty($this->uuid) && $this->getUID()>0 && $this->user->getID()==$this->getUID()) 
         {            
             $opts->prefs = $this->user->device->getPreferences();
@@ -1296,6 +1298,7 @@ class MobileApi
         }
         
         $isAndroid = ($device_sysname == 'Android');
+        $this->provider = $isAndroid ? Core\Model\ASD\USER_PROVIDER_ANDROID : Core\Model\ASD\USER_PROVIDER_IPHONE;
         
         $device_sysversion = filter_input(INPUT_GET, 'sv', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
         $carrier_country = filter_input(INPUT_GET, 'cc', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
@@ -1311,6 +1314,7 @@ class MobileApi
             if ($_device && isset($_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]) && $_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]=='Android')
             {
                 $this->uid = $_device[\Core\Model\ASD\USER_UID];
+                $this->provider = Core\Model\ASD\USER_PROVIDER_ANDROID;                
             }           
         }
         //End of Android Fix for lost UID
@@ -1447,16 +1451,6 @@ class MobileApi
                     Core\Model\ASD\USER_DEVICE_APP_SETTINGS => $app_prefs
                 ]))
             {
-
-            /*
-            $this->db->get("update or insert into WEB_USERS_DEVICE "
-                    . "(uuid, uid, device_model, device_name, device_sysname, "
-                    . "device_sysversion, last_visit, CARRIER_COUNTRY, APP_VERSION, APP_PREFS) "
-                    . "values (?, ?, ?, ?, ?, ?, current_timestamp, ?, ?, ?)",
-                    [$this->uuid, $this->getUID(), $device_model, ($isUTF8 ? $device_name : ''), $device_sysname,
-                    $device_sysversion, $carrier_country, $device_appversion, $app_prefs], TRUE);
-             *
-             */
             }      
             
             if($isAndroid)
@@ -1517,18 +1511,15 @@ class MobileApi
             $uname = filter_input(INPUT_GET, 'uname', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
             if ($uname && $uname!=$current_name) 
             {
-                NoSQL::getInstance()->userUpdate([\Core\Model\ASD\USER_FULL_NAME=>$uname, Core\Model\ASD\USER_DISPLAY_NAME=>$uname], $this->getUID());
-                //$this->db->get("update web_users set full_name=?, display_name=? where id=?", [$uname, $uname, $this->getUID()], true);
+                NoSQL::getInstance()->modProfile(
+                            [\Core\Model\ASD\USER_PROVIDER_ID=>$this->uuid, \Core\Model\ASD\USER_PROVIDER=>$this->provider], 
+                            [\Core\Model\ASD\USER_FULL_NAME=>$uname, Core\Model\ASD\USER_DISPLAY_NAME=>$uname]);
             }
             
             if (empty($uname)) 
             {
-                NoSQL::getInstance()->setVisitUnixtime($this->getUID());
-                //$this->db->get("update web_users set last_visit=current_timestamp where id=?", [$this->getUID()], TRUE);
+                NoSQL::getInstance()->updateProfileVisitTime([\Core\Model\ASD\USER_PROVIDER_ID=>$this->uuid, \Core\Model\ASD\USER_PROVIDER=>$this->provider]);
             }
-
-            //error_log(json_encode($this->result['d']), 0);
-            //!empty($opts->secret) &&            
             
             
             if ( $opts->user_status==1) 
@@ -1557,11 +1548,100 @@ class MobileApi
             
             $bins = [
                 \Core\Model\ASD\USER_PROVIDER_ID=>$this->uuid,
-                \Core\Model\ASD\USER_PROVIDER=>$isAndroid ? \Core\Model\ASD\USER_PROVIDER_ANDROID : \Core\Model\ASD\USER_PROVIDER_IPHONE,
+                \Core\Model\ASD\USER_PROVIDER=>$this->provider,
                 \Core\Model\ASD\USER_PROFILE_URL=>'https://www.mourjan.com/',                
                 ];
             
-            $nosqlStatus = NoSQL::getInstance()->fetchUserByProviderId1($this->uuid, $bins[\Core\Model\ASD\USER_PROVIDER], $userRecord);                        
+            if (NoSQL::getInstance()->profileExists($bins))
+            {
+                $ret = NoSQL::getInstance()->getProfileRecord($bins, $record);
+                
+                if ($ret==NoSQL::OK && !NoSQL::getInstance()->deviceExists($this->uuid))
+                {
+                    //$this->result['e'] = 'System error [1002]!';
+                    error_log(__FUNCTION__ . " Device record is missed [1002]: ".json_encode($bins));
+                    
+                    $this->uid=$record[\Core\Model\ASD\USER_PROFILE_ID];
+                    $this->result['d']['uid'] = $this->uid;
+                
+                    if ($isAndroid)
+                    {
+                        $this->result['d']['level']=$record[\Core\Model\ASD\USER_LEVEL];
+                        $this->result['d']['status']=10;
+                    
+                        //device last visit
+                        $this->result['d']['dlv'] = 0;
+                        //user last visit
+                        $this->result['d']['ulv'] = 0;
+                    }
+                    //disallow purchase default 0
+                    $this->result['d']['blp'] = 0;
+                    
+                    $isUTF8 = preg_match('//u', $device_name);
+                    if (!NoSQL::getInstance()->deviceInsert([
+                        Core\Model\ASD\USER_DEVICE_UUID => $this->uuid,
+                        Core\Model\ASD\USER_UID => $this->uid,
+                        Core\Model\ASD\USER_DEVICE_MODEL => $device_model,
+                        Core\Model\ASD\USER_DEVICE_NAME => ($isUTF8 ? $device_name : ''),
+                        Core\Model\ASD\USER_DEVICE_SYS_NAME => $device_sysname,
+                        Core\Model\ASD\USER_DEVICE_SYS_VERSION => $device_sysversion,
+                        Core\Model\ASD\USER_DEVICE_ISO_COUNTRY => $carrier_country,
+                        Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
+                        Core\Model\ASD\USER_DEVICE_APP_SETTINGS => '{}'
+                        ]))
+                    {
+                        $this->result['e'] = 'System error [1001]!';
+                        error_log(__FUNCTION__ . ' DEVIVE ADDED Failed');
+                    }
+                }
+                else
+                {
+                    $this->result['e'] = 'System error [1011]!';
+                }
+            }
+            else
+            if (NoSQL::getInstance()->addProfile($bins)==NoSQL::OK)
+            {
+                $this->uid = $bins[\Core\Model\ASD\USER_PROFILE_ID];
+                $this->result['d']['uid'] = $this->uid;
+                
+                if ($isAndroid)
+                {
+                    $this->result['d']['level']=$bins[\Core\Model\ASD\USER_LEVEL];
+                    $this->result['d']['status']=10;
+                    
+                    //device last visit
+                    $this->result['d']['dlv'] = 0;
+                    
+                    //user last visit
+                    $this->result['d']['ulv'] = 0;
+                }
+                
+                //disallow purchase default 0
+                $this->result['d']['blp'] = 0;
+
+                $isUTF8 = preg_match('//u', $device_name);
+                
+                $deviceAdded = NoSQL::getInstance()->deviceInsert([
+                        Core\Model\ASD\USER_DEVICE_UUID => $this->uuid,
+                        Core\Model\ASD\USER_UID => $this->uid,
+                        Core\Model\ASD\USER_DEVICE_MODEL => $device_model,
+                        Core\Model\ASD\USER_DEVICE_NAME => ($isUTF8 ? $device_name : ''),
+                        Core\Model\ASD\USER_DEVICE_SYS_NAME => $device_sysname,
+                        Core\Model\ASD\USER_DEVICE_SYS_VERSION => $device_sysversion,
+                        Core\Model\ASD\USER_DEVICE_ISO_COUNTRY => $carrier_country,
+                        Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
+                        Core\Model\ASD\USER_DEVICE_APP_SETTINGS => '{}'
+                        ]);                           
+            } 
+            else 
+            {
+                $this->result['e'] = 'System error [1010]!';
+                error_log(__FUNCTION__ . " could not write [1010]: ".json_encode($bins));                
+            }
+            
+            /*
+            $nosqlStatus = NoSQL::getInstance()->fetchUserBy ProviderId1($this->uuid, $bins[\Core\Model\ASD\USER_PROVIDER], $userRecord);                        
             
             if ($nosqlStatus==NoSQL::ERR_RECORD_NOT_FOUND)
             {
@@ -1613,7 +1693,7 @@ class MobileApi
                 
                 $this->uid = $userRecord[\Core\Model\ASD\USER_PROFILE_ID];
                 error_log("User provider exists {$this->uid} [1001]: ".PHP_EOL.json_encode($bins).PHP_EOL. json_encode($userRecord));
-                
+                /*
                 if (!NoSQL::getInstance()->deviceExists($this->uuid))
                 {
                     //$this->result['e'] = 'System error [1002]!';
@@ -1654,12 +1734,13 @@ class MobileApi
                         error_log('DEVIVE ADDED'.PHP_EOL.json_encode($deviceAdded));
                     }
                 }
+                
             }
             else
             {
                 $this->result['e'] = 'System error [1000]!';
                 error_log("could not write [1000]: ".json_encode($bins));                
-            }                                       
+            }     */                                  
         }
         
         if ($isAndroid && isset($this->result['d']['uid']) && $this->result['d']['uid']==0)
@@ -1803,7 +1884,7 @@ class MobileApi
                             {
                                 $this->db->rollback();
                                 $this->result['e']="Could not activate your device due to internal system error!";
-                                error_log($this->result['e'] . " " . $mobile_no . " to uid: " . $userId);
+                                error_log(__FUNCTION__ . ' ' .$this->result['e'] . " " . $mobile_no . " to uid: " . $userId);
                             }
                         }
                         

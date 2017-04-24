@@ -8,7 +8,7 @@ const TS_MOBILE = 'mobiles';
 trait MobileTrait
 {
     abstract public function getConnection() : \Aerospike;
-    abstract public function genId(string $generator, &$sequence);
+    abstract public function genId(string $generator, &$sequence) : int;
     abstract public function getBins($pk, array $bins);
     abstract public function setBins($pk, array $bins);
     abstract public function exists($pk) : int;
@@ -279,14 +279,16 @@ trait MobileTrait
         if (!isset($bins[SET_RECORD_ID]))
         {
             $mobile_id=0;
-            $this->genId('mobile_id', $mobile_id);
-            $bins[SET_RECORD_ID]=$mobile_id;
-            $bins[USER_MOBILE_DATE_REQUESTED]=time();
-            $bins[USER_MOBILE_CODE_DELIVERED]=0;
-            $bins[USER_MOBILE_SENT_SMS_COUNT]=0;
-            if (!isset($bins[USER_MOBILE_FLAG]))
+            if ($this->genId('mobile_id', $mobile_id)==\Aerospike::OK)
             {
-                $bins[USER_MOBILE_FLAG]=0;
+                $bins[SET_RECORD_ID]=$mobile_id;
+                $bins[USER_MOBILE_DATE_REQUESTED]=time();
+                $bins[USER_MOBILE_CODE_DELIVERED]=0;
+                $bins[USER_MOBILE_SENT_SMS_COUNT]=0;
+                if (!isset($bins[USER_MOBILE_FLAG]))
+                {
+                    $bins[USER_MOBILE_FLAG]=0;
+                }
             }
         } 
         else 
