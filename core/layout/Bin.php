@@ -1800,17 +1800,20 @@ class Bin extends AjaxHandler{
                     $this->process();
                 }else $this->fail('101');
                 break;
+
             case 'ajax-location':
-                //if (isset($this->user->params['mobile']) && $this->user->params['mobile']){
-                     
-                    if (isset ($_POST['loc'])){
+                //if (isset($this->user->params['mobile']) && $this->user->params['mobile']){                     
+                    if (isset ($_POST['loc']))
+                    {
                         $locations= (is_array($_POST['loc']) ? $_POST['loc'] : json_decode($_POST['loc'],true) );
                         $lang=strtoupper($_POST['lang']);
                         
                         $isSearch = (isset($_POST['search'])&&$_POST['search']==1) ? true : false;
-                        if($isSearch) {
+                        if($isSearch)
+                        {
                             $this->fail('110');
                         }
+
                         $level=0;
                         $lastLat=0;
                         $lastLong=0;
@@ -1819,9 +1822,8 @@ class Bin extends AjaxHandler{
                         $parentId=0;
                         
                         $types=$this->urlRouter->db->queryCacheResultSimpleArray(
-                        'map_types',
-                        'select name,id from gtypes',
-                        null, 0, $this->urlRouter->cfg['ttl_long']);
+                                        'map_types', 'select name,id from gtypes',
+                                        null, 0, $this->urlRouter->cfg['ttl_long']);
 
                         $stmt=$this->urlRouter->db->prepareQuery(
                             "update or insert into gmap (type_id,name_{$lang},short_name_{$lang},latitude,longitude,parent_id) values (?,?,?,?,?,?) matching(type_id,latitude,longitude) returning id"
@@ -1833,11 +1835,11 @@ class Bin extends AjaxHandler{
                         );
                             
                         $getParentStmt=$this->urlRouter->db->prepareQuery(
-                            'select * from city c where c.parent_id = ? and country_id = ?'
+                            'select * from city c where c.parent_id=? and country_id=?'
                         );
                         
                         $updateDuplicateStmt = $this->urlRouter->db->prepareQuery(
-                                'update city set name_'.$lang.' = ?, latitude = ?, longitude = ? where id = ?'
+                                'update city set name_'.$lang.'=?, latitude=?, longitude=? where id=?'
                                 );
                             
                         $len=count($locations);
@@ -1850,8 +1852,10 @@ class Bin extends AjaxHandler{
                         
                         $len=count($locations);
                         
-                        if($isSearch && $len){
-                            foreach ($locations as $loc){
+                        if($isSearch && $len)
+                        {
+                            foreach ($locations as $loc)
+                            {
                                 if (isset ($types[$loc['type']])) {
                                     $loc['latitude']=  number_format($loc['latitude'], 8);
                                     $loc['longitude']=  number_format($loc['longitude'], 8);
@@ -1905,25 +1909,38 @@ class Bin extends AjaxHandler{
                             }                            
                         }elseif($len) {
                         
-                            foreach ($locations as $loc){
-                                if (isset ($types[$loc['type']])) {
+                            foreach ($locations as $loc)
+                            {
+                                if (isset ($types[$loc['type']]))
+                                {
                                     $loc['latitude']=  number_format($loc['latitude'], 8);
                                     $loc['longitude']=  number_format($loc['longitude'], 8);
                                     $type=$types[$loc['type']][1];
                                     
                                     //error_log("\n>>{$loc['type']}<<\n");
                                     //error_log(">>{$loc['name']}<<\n\n");
-                                    
-                                    if ($type==5) {
-                                        $miniStmt=$this->urlRouter->db->prepareQuery("update or insert into country
-                                                (name_{$lang},id_2,latitude,longitude)
+                                    if (strlen($loc['name']>50))
+                                    {
+                                        error_log(__CLASS__.'::'.__FUNCTION__. " >>{$loc['name']}<<\n\n");
+                                        $loc['name'] = mb_substr(0, 50);
+
+                                    }
+
+                                    if ($type==5) 
+                                    {
+                                        $miniStmt=$this->urlRouter->db->prepareQuery(
+                                                "update or insert into country
+                                                (name_{$lang}, id_2, latitude, longitude)
                                                 values
-                                                (?,?,?,?) matching(id_2) returning id,code,blocked");
-                                        if($miniStmt->execute(array($loc['name'],$loc['short'],$loc['latitude'],$loc['longitude']))){
+                                                (?, ?, ?, ?) matching(id_2) returning id,code,blocked");
+                                        if($miniStmt->execute([$loc['name'],$loc['short'],$loc['latitude'],$loc['longitude']]))
+                                        {
                                             $tmp=$miniStmt->fetch(PDO::FETCH_NUM);
                                             $countryId=$tmp[0];
                                         }
-                                    }else{
+                                    }
+                                    else
+                                    {
                                         if($level != $type && in_array($type,array(6,7,8,9,10,11,12,23,24,25,26,27,28,29)) && $countryId){
                                             $level=$type;
                                             $loc['name']=preg_replace('/\(.*\)?/', '', $loc['name']);
