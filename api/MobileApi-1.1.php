@@ -1184,7 +1184,7 @@ class MobileApi
             $this->db->setWriteMode();
             if ($delete!=1) 
             {
-                $rs = $this->db->queryResultArray(
+                $rs = $this->db->get(
                         "update or insert into SUBSCRIPTION "
                         . "(WEB_USER_ID, COUNTRY_ID, CITY_ID, SECTION_ID, SECTION_TAG_ID, LOCALITY_ID, PURPOSE_ID, QUERY_TERM, TITLE, ADDED, EMAIL, PUBLISHER_TYPE) "
                         . "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, current_timestamp, 0, ?) "
@@ -1205,11 +1205,8 @@ class MobileApi
             {
                 if ($wId>0) 
                 {
-                    $rs = $this->db->queryResultArray(
-                        "delete from SUBSCRIPTION WHERE id=? and web_user_id=?", [$wId, $this->uid], TRUE);
-
+                    $this->db->get("delete from SUBSCRIPTION WHERE id=? and web_user_id=?", [$wId, $this->uid], TRUE);
                     $this->result['d']['id']=$wId;
-
                 }
             }
         }
@@ -1254,7 +1251,7 @@ class MobileApi
         if ($wId) 
         {
             $this->db->setWriteMode();
-            $this->db->queryResultArray("update subscription set badge_count=0, last_visit=current_timestamp where id=?", [$wId], TRUE);
+            $this->db->get("update subscription set badge_count=0, last_visit=current_timestamp where id=?", [$wId], TRUE);
         }
     }
 

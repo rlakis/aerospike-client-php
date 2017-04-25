@@ -1138,7 +1138,11 @@ class FBQuery
             {
                 try
                 {
-                    $executed = $this->statement->execute($this->params);                
+                    $executed = $this->statement->execute($this->params);
+                    if ($executed && $trial>1)
+                    {
+                        error_log(PHP_EOL.$this->query.PHP_EOL.'Executed in trial '.$trial);
+                    }
                     return $executed;
                 } 
                 catch (\Exception $ex)
@@ -1156,7 +1160,7 @@ class FBQuery
                         $this->statement = null;
                     
                         usleep($this->sleepMicroSeconds);
-                        error_log('RETRY no: '. $trial .' | CODE: '.$ex->getCode().' | '.$ex->getMessage().PHP_EOL. $this->query.PHP_EOL.var_export($this->params, TRUE));
+                        //error_log('RETRY no: '. $trial .' | CODE: '.$ex->getCode().' | '.$ex->getMessage().PHP_EOL. $this->query.PHP_EOL.var_export($this->params, TRUE));
                         //return $this->execute($trial+1);                
                     }
                     else

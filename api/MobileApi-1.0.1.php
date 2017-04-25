@@ -744,14 +744,16 @@ class MobileApi {
     }
     
     
-    function editFavorites() {
+    function editFavorites() 
+    {
         $this->userStatus($status);
         if ($status==1) {
             $adid = filter_input(INPUT_GET, 'adid', FILTER_VALIDATE_INT)+0;
             $state = filter_input(INPUT_GET, 'del', FILTER_VALIDATE_INT)+0;
-            if ($adid) {
+            if ($adid) 
+            {
                 $q="update or insert into web_users_favs (web_user_id, ad_id, deleted) values (?, ?, ?) matching (web_user_id, ad_id) returning id";
-                $rs = $this->db->queryResultArray($q, [$this->uid, $adid, $state], TRUE);
+                $rs = $this->db->get($q, [$this->uid, $adid, $state], TRUE);
                 
                 if ($rs && is_array($rs) && count($rs)==1) {
                     $succeed=false;
@@ -777,7 +779,9 @@ class MobileApi {
                     
                     $this->result['d']['id']=$rs[0]['ID']+0;
                     
-                } else {
+                }
+                else 
+                {
                     $this->result['d']=0;
                     $this->result['e']='Unable to add this advert to your favorite list';
                 }

@@ -92,7 +92,8 @@ trait UserTrait
     {
         if (!isset($bins[USER_PROVIDER_ID]) || !isset($bins[USER_PROVIDER]))
         {
-            error_log("Invalid Profile key!!! ". PHP_EOL . json_encode($bins));
+            \Core\Model\NoSQL::Log(['Invalid Profile Key!', $bins]);
+            //error_log("Invalid Profile key!!! ". PHP_EOL . json_encode($bins));
             return \Aerospike::ERR_INVALID_COMMAND;
         }
 
@@ -156,7 +157,7 @@ trait UserTrait
         } 
         else
         {
-            error_log(__CLASS__.'->'.__FUNCTION__. " Gen Failure [{$this->getConnection()->errorno()}] ".$this->getConnection()->error());
+            \Core\Model\NoSQL::Log(['Message'=>'Id Generator Failure', 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
         }
         return $status;
     }    
@@ -183,7 +184,7 @@ trait UserTrait
 
         if (empty($bins))
         {
-            error_log ("Empty user bins for ". $pk['key']);            
+            \Core\Model\NoSQL::Log(['Key'=>$pk['key'], 'Error'=>"Empty user profile bins"]);
             return \Aerospike::ERR_INVALID_COMMAND;
         }
 
@@ -210,7 +211,7 @@ trait UserTrait
         $status = $this->getConnection()->get($pk, $record);
         if ($status!==\Aerospike::OK && $status!==\Aerospike::ERR_RECORD_NOT_FOUND)
         {
-            error_log( __FUNCTION__ . " KEY: {$pk['key']} Error [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" );
+            \Core\Model\NoSQL::Log(['Key'=>$pk['key'], 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
         }
         return $status;
     }
@@ -227,8 +228,9 @@ trait UserTrait
         else
         if ($status!==\Aerospike::ERR_RECORD_NOT_FOUND)
         {
-            error_log(__CLASS__.'::'. __FUNCTION__ . " KEY: {$pk['key']} Error [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" );
+            \Core\Model\NoSQL::Log(['Key'=>$pk['key'], 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
         }
+        
         return $status;
     }
 
@@ -246,7 +248,7 @@ trait UserTrait
                     function ($_record) use (&$record) {$record=$_record;}, $bins);
         if ($status!==\Aerospike::OK)
         {
-            error_log( __FUNCTION__ . "UID: {$uid} Error [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}" );
+            \Core\Model\NoSQL::Log(['UID'=>$uid, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
         }
         return $status;
     }
@@ -281,8 +283,7 @@ trait UserTrait
                 $trial++;
             } 
         } while ($trial<3);
-
-        error_log( "UID: {$uid} Error [{$this->getConnection()->errorno()}] {$this->getConnection()->error()} -- trial {$trial}" );
+        \Core\Model\NoSQL::Log(['UID'=>$uid, 'trials'=>$trial, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
         return FALSE;
     }
     
@@ -653,9 +654,9 @@ trait UserTrait
                 {
                     $no_user_err++;
                     echo __FUNCTION__, "\tNot found user record!\t". json_encode($_rec), "\n";
-                    $mk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, "{$_rec[USER_UID]}-{$_rec[USER_MOBILE_NUMBER]}");
-                    $this->getConnection()->remove($mk);
-                }
+                    //$mk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, "{$_rec[USER_UID]}-{$_rec[USER_MOBILE_NUMBER]}");
+                    //$this->getConnection()->remove($mk);
+                }              
             }
             else
             {

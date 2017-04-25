@@ -1918,39 +1918,72 @@ class Bin extends AjaxHandler{
                                     $type=$types[$loc['type']][1];
                                     
                                     //error_log("\n>>{$loc['type']}<<\n");
-                                    //error_log(">>{$loc['name']}<<\n\n");
-                                    if (strlen($loc['name']>50))
-                                    {
-                                        error_log(__CLASS__.'::'.__FUNCTION__. " >>{$loc['name']}<<\n\n");
-                                        $loc['name'] = mb_substr(0, 50);
-
-                                    }
-
+                                    //error_log(">>{$loc['name']}<<\n\n");                                    
                                     if ($type==5) 
                                     {
-                                        $miniStmt=$this->urlRouter->db->prepareQuery(
-                                                "update or insert into country
-                                                (name_{$lang}, id_2, latitude, longitude)
-                                                values
-                                                (?, ?, ?, ?) matching(id_2) returning id,code,blocked");
-                                        if($miniStmt->execute([$loc['name'],$loc['short'],$loc['latitude'],$loc['longitude']]))
+                                        if (strlen($loc['short']!==2))
                                         {
-                                            $tmp=$miniStmt->fetch(PDO::FETCH_NUM);
-                                            $countryId=$tmp[0];
+                                            
+                                            switch ($loc['short']) 
+                                            {
+                                                case 'Bahrain':
+                                                case 'البحرين':
+                                                    $loc['short']='BH';
+                                                    break;
+                                                
+                                                case 'Kuwait':
+                                                    $loc['short']='KW';
+                                                    break;
+                                                
+                                                case 'Lebanon':
+                                                    $loc['short']='LB';
+                                                    break;
+                                                
+                                                case 'السعودية':
+                                                    $loc['short']='SA';
+                                                    break;
+                                                
+                                                case 'قطر':
+                                                    $loc['short']='QA';
+                                                    break;
+                                                
+                                                case 'الإمارات العربية المتحدة':
+                                                    $loc['short']='AE';
+                                                    break;
+                                                default:
+                                                    NoSQL::Log($loc);
+                                                    break;
+                                            }
                                         }
+                                        
+                                        $country_q = "update or insert into country (name_{$lang}, id_2, latitude, longitude) values (?, ?, ?, ?) matching(id_2) returning id, code, blocked";
+                                        if (($tmp=$this->urlRouter->db->get($country_q, [$loc['name'],$loc['short'],$loc['latitude'],$loc['longitude']], FALSE, \PDO::FETCH_NUM))!==FALSE)
+                                        {
+                                            $countryId=$tmp[0][0];
+                                        }
+                                        //$miniStmt=$this->urlRouter->db->prepareQuery( $country_q );
+                                        //if($miniStmt->execute([$loc['name'],$loc['short'],$loc['latitude'],$loc['longitude']]))
+                                        //{
+                                        //    $tmp=$miniStmt->fetch(PDO::FETCH_NUM);
+                                        //    $countryId=$tmp[0];
+                                        //}
                                     }
                                     else
                                     {
-                                        if($level != $type && in_array($type,array(6,7,8,9,10,11,12,23,24,25,26,27,28,29)) && $countryId){
+                                        if($level != $type && in_array($type,array(6,7,8,9,10,11,12,23,24,25,26,27,28,29)) && $countryId)
+                                        {
                                             $level=$type;
                                             $loc['name']=preg_replace('/\(.*\)?/', '', $loc['name']);
                                             $loc['name']=preg_replace('/[\x{0600}-\x{061E}]/u', '', $loc['name']);
                                             $loc['name']=preg_replace('/[\x{064B}-\x{065E}\x{06D4}-\x{06ED}\x{0730}-\x{074C}\x{07A6}-\x{07AF}\x{0816}-\x{082D}]/u', '', $loc['name']);
                                             $loc['short']=preg_replace('/\(.*\)?/', '', $loc['short']);
                                             $short=$loc['short'];
-                                            if ($lang=='AR' || ($lang=='EN' && !preg_match('/[\x{0621}-\x{064a}]/u', $short))){
+                                            
+                                            if ($lang=='AR' || ($lang=='EN' && !preg_match('/[\x{0621}-\x{064a}]/u', $short)))
+                                            {
                                                 //error_log("\n\n11".$loc['name']."\n\n");
-                                                if ($lastLat!=$loc['latitude'] || $lastLong!=$loc['longitude']) {
+                                                if ($lastLat!=$loc['latitude'] || $lastLong!=$loc['longitude']) 
+                                                {
                                                     //error_log("\n\n22".$loc['name']."\n\n");
                                                     
                                                     $getParentStmt->execute([$cityId,$countryId]);

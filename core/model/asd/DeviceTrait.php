@@ -77,7 +77,7 @@ trait DeviceTrait
     {
         if (empty($uuid) || (isset($bins[USER_UID]) && $bins[USER_UID]<=0))
         {
-            error_log("Could not update device: <{$uuid}>" . json_encode($bins));
+            \Core\Model\NoSQL::Log(['error'=>"Could update device: {$uuid}", 'bins'=>$bins]);
             return false;
         }
         
@@ -86,7 +86,7 @@ trait DeviceTrait
         {
             return $this->setBins($pk, $bins); 
         }
-        error_log("Could update not existing device: {$uuid} " . json_encode($bins));
+        \Core\Model\NoSQL::Log(['error'=>"Could update not existing device: {$uuid}", 'bins'=>$bins]);
         return FALSE;                
     }
 

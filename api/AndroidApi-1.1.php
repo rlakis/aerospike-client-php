@@ -573,6 +573,7 @@ class AndroidApi
                         }
                         */
 
+                        $_original_ad=$ad;
                         include_once $this->api->config['dir'] . '/core/lib/MCSaveHandler.php';                
                         $normalizer = new MCSaveHandler($this->api->config);
                         $normalized = $normalizer->getFromContentObject($ad);
@@ -583,6 +584,11 @@ class AndroidApi
                             $attrs = $normalized['attrs'];
                         }                
 
+                        if (!isset($ad['other']))
+                        {
+                            NoSQL::Log($ad);
+                            NoSQL::Log($_original_ad);
+                        }
                         $ad['rtl'] = ($this->isRTL($ad['other'])) ? 1 : 0;
                         
                         if(isset($ad['altother']) && $ad['altother']){
@@ -2934,7 +2940,9 @@ class AndroidApi
         return $res;*/
     }
     
-    function isRTL($text){
+    
+    function isRTL($text)
+    {
         $rtlChars = preg_replace('/[^\x{0621}-\x{064a}\x{0750}-\x{077f}]|[:\\\\\/\-;.,؛،?!؟*@#$%^&_+\'"|0-9\s]/u', '', $text);
         $ltrChars = preg_replace('/[\x{0621}-\x{064a}\x{0750}-\x{077f}]|[:\\\\\/\-;.,؛،?!؟*@#$%^&_+\'"|0-9\s]/u', '', $text);
         if(strlen($rtlChars) > (strlen($ltrChars)*0.5)){

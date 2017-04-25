@@ -155,18 +155,18 @@ class NoSQL
         $record=[];
         if ($bins)
         {
-            $status = $this->getConnection()->get($pk, $record, $bins, [\Aerospike::OPT_POLICY_RETRY=>\Aerospike::POLICY_RETRY_ONCE, \Aerospike::OPT_READ_TIMEOUT=>2000]);
+            $status = $this->getConnection()->get($pk, $record, $bins);
         }         
         else 
         {
-            $status = $this->getConnection()->get($pk, $record, NULL, [\Aerospike::OPT_POLICY_RETRY=>\Aerospike::POLICY_RETRY_ONCE, \Aerospike::OPT_READ_TIMEOUT=>2000]);           
+            $status = $this->getConnection()->get($pk, $record, NULL);           
         }
 
         if ($status != \Aerospike::OK)
         {
             if ($status!= \Aerospike::ERR_RECORD_NOT_FOUND)
             {
-                $this->logError(__CLASS__ .'->'. __FUNCTION__, $pk);
+                NoSQL::Log(['Key'=>$pk, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
                 return FALSE;
             }
             return [];
@@ -179,13 +179,12 @@ class NoSQL
     public function getRecord(array $pk, &$record, array $bins=[]) : int
     {
         $status = $this->getConnection()->get($pk, $record, 
-                empty($bins) ? NULL : $bins, 
-                [\Aerospike::OPT_POLICY_RETRY=>\Aerospike::POLICY_RETRY_ONCE, 
-                \Aerospike::OPT_READ_TIMEOUT=>2000]);
+                empty($bins) ? NULL : $bins);
 
         if ($status!=\Aerospike::OK && $status!=\Aerospike::ERR_RECORD_NOT_FOUND)
         {
             $this->logError(__CLASS__ .'->'. __FUNCTION__, $pk);
+            NoSQL::Log(['Key'=>$pk, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
         } 
         else 
         {
@@ -254,6 +253,22 @@ class NoSQL
         }
     }
     
+    
+    public static function Log($message)
+    {
+        $dbt = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 2);
+        if (!empty($dbt))
+        {
+            unset($dbt[0]['function']);
+            unset($dbt[0]['class']);
+            unset($dbt[0]['type']);
+            error_log(PHP_EOL.json_encode($dbt[0], JSON_PRETTY_PRINT).PHP_EOL);
+            if (isset($dbt[1]))
+            {
+                error_log(PHP_EOL.json_encode($dbt[1], JSON_PRETTY_PRINT));
+            }
+        }
+    }
     
     
 }

@@ -1651,6 +1651,7 @@ class User
         
         $this->pending['post']['title']='test';
         
+        $ad_is_saved=FALSE;
         try
         {
 
@@ -1709,14 +1710,17 @@ class User
                         country_id=?, city_id=?, latitude=?, longitude=?, state=?, media=? ';
                     if ($this->info['id']==$userId && ($publish==1||$publish==4))
                     {
-                        $q.=',date_added=current_timestamp ';
+                        $q.=', date_added=current_timestamp ';
                     }
                     $q.='where id=? ';
-                    if ($this->info['level']!=9) $q.='and web_user_id+0=? ';
+                    if ($this->info['level']!=9) 
+                    {
+                        $q.='and web_user_id+0=? ';
+                    }
                     $q.='returning state, web_user_id';
                     
-                    $tries = 0;
-                    
+                    $tries=0;
+                    $result=null;
                     if ($this->pending['post']['se']>0) 
                     {
                         $tries++;
@@ -1735,34 +1739,38 @@ class User
                         $stmt->bindValue(11, $media, PDO::PARAM_INT);
                         $stmt->bindValue(12, $id, PDO::PARAM_INT);
 
-                        if ($this->info['level']!=9)$stmt->bindValue(13, $userId, PDO::PARAM_INT);
-
-                        $result=null;
+                        if ($this->info['level']!=9)
+                        {
+                            $stmt->bindValue(13, $userId, PDO::PARAM_INT);
+                        }                        
                                 
                         try 
-                        {
-                            if (!$this->db->inTransaction())
-                            {
-                                error_log('User.SaveAd ('. $id .'): Not in transaction (1)' );
-                            }
-                                                    
+                        {                                                                               
                             if ($this->db->executeStatement($stmt)) 
                             {
-                                $result=$stmt->fetchAll(PDO::FETCH_ASSOC);
-                            
-                                if ($attrs)
+                                if (($result=$stmt->fetch(PDO::FETCH_ASSOC))!==FALSE)
                                 {
-                                    if (!$this->db->inTransaction())
-                                    {
-                                        error_log('User.SaveAd ('. $id .'): Not in transaction (2)' );
+                                    //$result=$stmt->fetchAll(PDO::FETCH_ASSOC);
+                            
+                                    if ($attrs)
+                                    {                                            
+                                        $st=$this->db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
+                                        $st->bindValue(1, $id, PDO::PARAM_INT);
+                                        $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
+                                        $st->execute();  
+                                        $this->db->executeStatement($st);
                                     }
-                                            
-                                    $st=$this->db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
-                                    $st->bindValue(1, $id, PDO::PARAM_INT);
-                                    $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
-                                    $st->execute();  
-                                    $this->db->executeStatement($st);
+                                    $this->db->commit();
+                                    $ad_is_saved=TRUE;
                                 }
+                                else
+                                {
+                                    $result=NULL;
+                                }
+                            }
+                            else
+                            {
+                                $this->db->rollBack();
                             }
                         } 
                         catch (Exception $e) 
@@ -1772,14 +1780,14 @@ class User
                             error_log('User.SaveAd ('. $id .'): ' .  $e->getTraceAsString());
                             error_log('User.SaveAd ('. $id .') Transaction: ' . $this->db->getTransactionIsolationMessage());
 
-                            $this->db->getInstance()->rollBack();
-                        }							
+                            $this->db->rollBack();
+                        }					
                     }
                     
                     
                     if (!empty($result))
                     {
-                        $state=(int)$result[0]['STATE'];
+                        $state=(int)$result['STATE'];
                     
                         if ($this->pending['post']['state']!=$state) 
                         {
@@ -1788,7 +1796,7 @@ class User
                         
                             if ($state==1 || $state==2)
                             {
-                                $uId = (int)$result[0]['WEB_USER_ID'];
+                                $uId = (int)$result['WEB_USER_ID'];
                                 $content = json_decode($this->pending['post']['content'],true);
                             
                                 if(isset($content['version']) && $content['version']==2)
@@ -1832,7 +1840,9 @@ class User
                                     {
                                         $options=$this->info['options'];
                                         if (!isset($options['contact']))
+                                        {
                                             $options['contact']=array();
+                                        }
                                         $options['contact']['ct']=$content['fields']['ct'];
                                         $options['contact']['ct1']=$content['fields']['ct1'];
                                         $options['contact']['ct2']=$content['fields']['ct2'];
@@ -1854,7 +1864,9 @@ class User
                                             //if ($options) $options = json_decode ($options, true);
                                             //else $options=array();
                                             if (!isset($options['contact']))
+                                            {
                                                 $options['contact']=array();
+                                            }
                                             $options['contact']['ct']=$content['fields']['ct'];
                                             $options['contact']['ct1']=$content['fields']['ct1'];
                                             $options['contact']['ct2']=$content['fields']['ct2'];
@@ -1870,8 +1882,13 @@ class User
                                     }
                                 }
                             }
+                            
                             $this->update();
-                            if ($updateOptions) $this->updateOptions();
+                            
+                            if ($updateOptions) 
+                            {
+                                $this->updateOptions();
+                            }
                         }
                     }
                 } 
@@ -1880,8 +1897,9 @@ class User
                     if ($this->pending['post']['se']>0) 
                     {
                     	$q='insert into ad_user
-                        	(web_user_id,content,title,purpose_id,section_id,rtl,country_id,city_id,latitude,longitude,media)
-                        	values (?,?,?,?,?,?,?,?,?,?,?) returning id';
+                        	(web_user_id, content, title, purpose_id, section_id, rtl, country_id, city_id, latitude, longitude, media)
+                        	values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) returning id';
+                        
                     	$stmt=$this->db->prepareQuery($q);
                     	$stmt->bindValue(1, $userId);
                     	$stmt->bindValue(2, $this->pending['post']['content'], PDO::PARAM_STR);
@@ -1895,23 +1913,48 @@ class User
                     	$stmt->bindValue(10, $this->pending['post']['lon']);
                     	$stmt->bindValue(11, $media, PDO::PARAM_INT);
                     	$result=null;
-                    	if ($stmt->execute()) $result=$stmt->fetchAll(PDO::FETCH_ASSOC);
-                    	if (!empty ($result)) 
+                        
+                        $id=0;
+                    	if ($stmt->execute()) 
                         {
-                            $this->pending['post']['id']=$id=$result[0]['ID'];
-                            $this->update();
-                    	}
+                            if (($result=$stmt->fetch(PDO::FETCH_ASSOC))!==FALSE)
+                            {
+                                $this->pending['post']['id']=$id=$result['ID'];
+                                $this->update();
+                            }
+                            $this->db->commit();
+                            $ad_is_saved = true;
+                        }
+                        else
+                        {
+                            $this->db->rollBack();
+                        }
+                        
+                    	//if (!empty ($result)) 
+                        //{
+                        //    $this->pending['post']['id']=$id=$result[0]['ID'];
+                        //    $this->update();
+                    	//}
                     }
                 }      
 
             }
-            $this->db->commit();
+            else
+            {
+                NoSQL::Log("Saving ad with user id 000000!!!!!");
+            }
+            
 
         }
         catch(Exception $e)
         {
-            $this->db->getInstance()->rollBack(); 
+            $this->db->rollBack(); 
             $id=0;
+        }
+        
+        if ($id==0)
+        {
+            NoSQL::Log(['Error'=>"Failed to save ad", 'data'=>$this->pending['post']??'']);
         }
         return $id;
     }

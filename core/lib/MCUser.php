@@ -90,7 +90,8 @@ class MCUser extends MCJsonMapper
             {
                 $this->parseArray(NoSQL::getInstance()->fetchUser($source_data));
             }         
-            elseif (is_string($source_data) && $source_data) 
+            else
+            if (is_string($source_data) && $source_data) 
             {
                 if ($source_data[0]=='{')
                 {
@@ -98,11 +99,17 @@ class MCUser extends MCJsonMapper
                 }
                 else
                 {
+                    
                     if (NoSQL::getInstance()->fetchUserByUUID($source_data, $user_data)==NoSQL::OK)
                     {
                         $this->parseArray($user_data);
                     }
                 }
+            }
+            else
+            if (is_array($source_data) && isset($source_data[ASD\USER_PROFILE_ID]) && isset($source_data[ASD\USER_PROVIDER_ID]))
+            {
+                $this->parseArray($source_data);
             }
         
             if (!($this->opts instanceof MCUserOptions))
@@ -146,7 +153,6 @@ class MCUser extends MCJsonMapper
             error_log(json_encode($record));
         }
         
-        
         $this->id = $record[ASD\USER_PROFILE_ID] ?? 0;
         $this->pid = ($record[ASD\USER_PROVIDER_ID] ?? '')."";
         $this->email = $record[ASD\USER_PROVIDER_EMAIL] ?? '';
@@ -168,7 +174,7 @@ class MCUser extends MCJsonMapper
 
         $this->opts->parseAssoc($record[ASD\USER_OPTIONS] ?? []);
 
-        $this->mobile = new MCMobile($record['mobile'] ?? NULL);
+        $this->mobile = new MCMobile();
 
         $uuid = '';
         if (isset($record['logged_by_device']))

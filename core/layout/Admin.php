@@ -101,7 +101,12 @@ class Admin extends Page
             $bins[Core\Model\ASD\USER_DATE_ADDED] = $this->unixTimestampToDateTime($bins[Core\Model\ASD\USER_DATE_ADDED]);
             $bins[Core\Model\ASD\USER_LAST_VISITED] = $this->unixTimestampToDateTime($bins[Core\Model\ASD\USER_LAST_VISITED]);
             $bins[Core\Model\ASD\USER_PRIOR_VISITED] = $this->unixTimestampToDateTime($bins[Core\Model\ASD\USER_PRIOR_VISITED]);
-            $bins[Core\Model\ASD\USER_LAST_AD_RENEWED] = $this->unixTimestampToDateTime($bins[Core\Model\ASD\USER_LAST_AD_RENEWED]);
+            
+            if (isset($bins[Core\Model\ASD\USER_LAST_AD_RENEWED]))
+            {
+                $bins[Core\Model\ASD\USER_LAST_AD_RENEWED] = $this->unixTimestampToDateTime($bins[Core\Model\ASD\USER_LAST_AD_RENEWED]);
+            }
+            
             if (isset($bins[Core\Model\ASD\USER_OPTIONS][Core\Model\ASD\USER_OPTIONS_CTS]))
             {
                 $bins[Core\Model\ASD\USER_OPTIONS][Core\Model\ASD\USER_OPTIONS_CTS] = $this->unixTimestampToDateTime($bins[Core\Model\ASD\USER_OPTIONS][Core\Model\ASD\USER_OPTIONS_CTS]);
