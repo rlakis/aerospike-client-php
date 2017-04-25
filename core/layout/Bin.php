@@ -1920,42 +1920,7 @@ class Bin extends AjaxHandler{
                                     //error_log("\n>>{$loc['type']}<<\n");
                                     //error_log(">>{$loc['name']}<<\n\n");                                    
                                     if ($type==5) 
-                                    {
-                                        if (strlen($loc['short']!==2))
-                                        {
-                                            
-                                            switch ($loc['short']) 
-                                            {
-                                                case 'Bahrain':
-                                                case 'البحرين':
-                                                    $loc['short']='BH';
-                                                    break;
-                                                
-                                                case 'Kuwait':
-                                                    $loc['short']='KW';
-                                                    break;
-                                                
-                                                case 'Lebanon':
-                                                    $loc['short']='LB';
-                                                    break;
-                                                
-                                                case 'السعودية':
-                                                    $loc['short']='SA';
-                                                    break;
-                                                
-                                                case 'قطر':
-                                                    $loc['short']='QA';
-                                                    break;
-                                                
-                                                case 'الإمارات العربية المتحدة':
-                                                    $loc['short']='AE';
-                                                    break;
-                                                default:
-                                                    NoSQL::Log($loc);
-                                                    break;
-                                            }
-                                        }
-                                        
+                                    {                                        
                                         $country_q = "update or insert into country (name_{$lang}, id_2, latitude, longitude) values (?, ?, ?, ?) matching(id_2) returning id, code, blocked";
                                         if (($tmp=$this->urlRouter->db->get($country_q, [$loc['name'],$loc['short'],$loc['latitude'],$loc['longitude']], FALSE, \PDO::FETCH_NUM))!==FALSE)
                                         {

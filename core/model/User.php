@@ -1652,6 +1652,7 @@ class User
         $this->pending['post']['title']='test';
         
         $ad_is_saved=FALSE;
+        
         try
         {
 
@@ -1744,8 +1745,8 @@ class User
                             $stmt->bindValue(13, $userId, PDO::PARAM_INT);
                         }                        
                                 
-                        try 
-                        {                                                                               
+                        //try 
+                        //{                                                                               
                             if ($this->db->executeStatement($stmt)) 
                             {
                                 if (($result=$stmt->fetch(PDO::FETCH_ASSOC))!==FALSE)
@@ -1772,16 +1773,16 @@ class User
                             {
                                 $this->db->rollBack();
                             }
-                        } 
-                        catch (Exception $e) 
-                        {
-                            $result = null;
-                            error_log('User.SaveAd ('. $id .'): ' .  $e->getMessage());
-                            error_log('User.SaveAd ('. $id .'): ' .  $e->getTraceAsString());
-                            error_log('User.SaveAd ('. $id .') Transaction: ' . $this->db->getTransactionIsolationMessage());
-
-                            $this->db->rollBack();
-                        }					
+//                        } 
+//                        catch (Exception $e) 
+//                        {
+//                            $result = null;
+//                            error_log('User.SaveAd ('. $id .'): ' .  $e->getMessage());
+//                            error_log('User.SaveAd ('. $id .'): ' .  $e->getTraceAsString());
+//                            error_log('User.SaveAd ('. $id .') Transaction: ' . $this->db->getTransactionIsolationMessage());
+//
+//                            $this->db->rollBack();
+//                        }					
                     }
                     
                     
@@ -1947,7 +1948,7 @@ class User
 
         }
         catch(Exception $e)
-        {
+        {            
             $this->db->rollBack(); 
             $id=0;
         }
