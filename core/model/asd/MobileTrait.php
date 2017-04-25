@@ -37,17 +37,33 @@ trait MobileTrait
         $matches=[];
         $keys=[];
         $where = \Aerospike::predicateEquals(USER_UID, $uid);
-        $this->getConnection()->query(NS_USER, TS_MOBILE, $where, function ($record) use (&$matches, &$keys, $order_by_req)
-        {
-            if (!isset($record['bins'][$order_by_req ? USER_MOBILE_DATE_REQUESTED : USER_MOBILE_DATE_ACTIVATED]))
-            {
-                $record['bins'][$order_by_req ? USER_MOBILE_DATE_REQUESTED : USER_MOBILE_DATE_ACTIVATED]=0;
-            }
+        $status = $this->getConnection()->query(NS_USER, TS_MOBILE, $where,
+                function ($record) use (&$matches, &$keys, $order_by_req)
+                {
+                    if (!isset($record['bins'][$order_by_req ? USER_MOBILE_DATE_REQUESTED : USER_MOBILE_DATE_ACTIVATED]))
+                    {
+                        $record['bins'][$order_by_req ? USER_MOBILE_DATE_REQUESTED : USER_MOBILE_DATE_ACTIVATED]=0;
+                    }
                        
-            $matches[$record['bins'][USER_MOBILE_NUMBER]] = $record['bins'];
-            $keys[$record['bins'][USER_MOBILE_NUMBER]] = $record['bins'][$order_by_req ? USER_MOBILE_DATE_REQUESTED : USER_MOBILE_DATE_ACTIVATED];
-        });
-        array_multisort($keys, SORT_DESC, SORT_NUMERIC, $matches);
+                    $matches[$record['bins'][USER_MOBILE_NUMBER]] = $record['bins'];
+                    $keys[$record['bins'][USER_MOBILE_NUMBER]] = $record['bins'][$order_by_req ? USER_MOBILE_DATE_REQUESTED : USER_MOBILE_DATE_ACTIVATED];
+                });
+
+        if ($status===\Aerospike::OK)
+        {
+            if (!empty($matches))
+            {
+                array_multisort($keys, SORT_DESC, SORT_NUMERIC, $matches);
+            }
+            else
+            {
+                //error_log(PHP_EOL. __CLASS__.'::'.__FUNCTION__." could not find mobile record by UID {$uid}" );
+            }
+        }
+        else
+        {
+            error_log(PHP_EOL. __CLASS__.'::'.__FUNCTION__."An error occured while getting mobile for UID {$uid} [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}");
+        }
         unset($keys);
         
         return array_values($matches);

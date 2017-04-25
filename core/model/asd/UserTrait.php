@@ -582,10 +582,13 @@ trait UserTrait
                     function ($record) use (&$result, &$i) 
                     {
                         //$record['bins']['digest']=base64_encode($record['key']['digest']);
-                        //$result[] = $record['bins'];   
-                        //$i++;
-                        echo ".";
-                        $this->addProfile($record['bins'], $record['bins'][USER_PROFILE_ID]);   
+                        $result[] = $record['bins'];   
+                        $i++;
+                        if ($i % 1000==0)
+                        {
+                            echo ".";
+                        }
+                        //$this->addProfile($record['bins'], $record['bins'][USER_PROFILE_ID]);
                     },
                     $bins, $options);
 
@@ -600,6 +603,7 @@ trait UserTrait
 
         return $result;
     }
+
     /*
     public function delUser(int $uid) : bool
     {
