@@ -2433,31 +2433,21 @@ class User
         }
         else if (is_numeric($identifier))
         {       
-            $q='select id from web_users where identifier containing ? and  user_pass=? and provider=\'mourjan\'';
-            $result=$this->db->get($q, [$identifier, md5($this->md5_prefix.$pass)]);
+            $q='select id,user_pass from web_users where identifier containing ? and provider=\'mourjan\'';
+            $result=$this->db->get($q, [$identifier]);
             if($result!==false)
             {
                 if (isset($result[0]) && $result[0]['ID']) 
                 {
-                    return $result[0]['ID'];//success return user id
-                }
-                $q = 'select id from web_users where identifier containing ? and provider=\'mourjan\'';
-                $result=$this->db->get($q, [$identifier]);
-                if($result!==false)
-                {
-                    if (isset($result[0]['ID']) && $result[0]['ID']) 
-                    {
+                    if($result[0]['USER_PASS'] == md5($this->md5_prefix.$pass)){
+                        error_log($result[0]['ID']);
+                        return $result[0]['ID'];//success return user id
+                    }else{
                         return 0;//wrong password
-                    }
-                    else
-                    {
-                        return -1;//account not found
                     }                    
-                }
-                else
-                {
-                    return -2;//server error
-                }                
+                }else{
+                    return -1;//account not found
+                }             
             }
             else
             {
