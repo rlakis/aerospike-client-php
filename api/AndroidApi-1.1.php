@@ -1994,7 +1994,7 @@ class AndroidApi
                 case API_ANDROID_SIGN_IN: 
                     $this->api->result['d'] = [];
                     $this->api->result['d']['id'] = -2;
-                    $username = urldecode(filter_input(INPUT_POST, 'user', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']]));
+                    $username = trim(strtolower(urldecode(filter_input(INPUT_POST, 'user', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']]))));
                     $password = urldecode(filter_input(INPUT_POST, 'pass', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']]));
                     $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
                     
