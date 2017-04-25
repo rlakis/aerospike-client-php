@@ -5473,19 +5473,17 @@ class Bin extends AjaxHandler{
                     if ($email && $this->isEmail($email) )
                     {
                         $_ret = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);
-                        //$user = Core\Model\NoSQL::getInstance()->fetchUser By Provider Id($email, 'mourjan'); //$this->user->checkAccount($email);
-                        if($user!==NoSQL::OK)
+                        if($_ret!==NoSQL::OK && $_ret!==NoSQL::ERR_RECORD_NOT_FOUND)
                         {
                             $this->fail("103");
                         }
-                        else
+                        else  
                         {
                             $send_email= false;
                             $user_exists = false;
-                            if(!empty($user))
+                            if($_ret==NoSQL::OK)
                             {
-                                //$user = $user[0];
-                                if($user[Core\Model\ASD\USER_PASSWORD] /* 'USER_PASS']*/)
+                                if($user[Core\Model\ASD\USER_PASSWORD])
                                 {
                                     $user_exists=true;
                                 }
@@ -5530,7 +5528,6 @@ class Bin extends AjaxHandler{
                                     if($user && !empty($user))
                                     {
                                         $user_id = $user[\Core\Model\ASD\USER_PROFILE_ID];
-                                        //$opt = json_decode($user[0]['OPTS'], true);
                                         $opt = $user[\Core\Model\ASD\USER_OPTIONS];
                                     }
                                 }
@@ -5542,7 +5539,8 @@ class Bin extends AjaxHandler{
                                     $verifyLink='';
 
                                     $sessionKey=md5($this->sid.$user_id.time());
-                                    if(isset($opt['accountKey'])){
+                                    if(isset($opt['accountKey']))
+                                    {
                                         $sessionKey=$opt['accountKey'];
                                     }
                                     $sKey=$this->user->encodeRequest('reset_password',array($user_id));
