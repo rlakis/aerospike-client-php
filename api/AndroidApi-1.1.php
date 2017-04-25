@@ -2011,6 +2011,10 @@ class AndroidApi
                             {
                                 $newUid=-2;
                             }
+                            if ($this->api->getUUID()=='773FDB13-965C-4A5D-B7F7-83B7852FA567')
+                            {
+                                NoSQL::Log( NoSQL::getInstance()->deviceFetch($this->api->getUUID()));
+                            }
                         }
                         $this->api->result['d']['id']=$newUid;
                     }

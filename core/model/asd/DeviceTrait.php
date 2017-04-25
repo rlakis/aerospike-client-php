@@ -77,17 +77,21 @@ trait DeviceTrait
     {
         if (empty($uuid) || (isset($bins[USER_UID]) && $bins[USER_UID]<=0))
         {
-            \Core\Model\NoSQL::Log(['error'=>"Could update device: {$uuid}", 'bins'=>$bins]);
+            \Core\Model\NoSQL::Log(['error'=>"Could not update device: {$uuid}", 'bins'=>$bins]);
             return false;
         }
         
         $pk = $this->initDeviceKey($uuid);
-        if ($this->exists($pk))
+        $status = $this->getConnection()->put($pk, $bins, 0,
+                            [\Aerospike::OPT_POLICY_RETRY=>\Aerospike::POLICY_RETRY_ONCE,
+                             \Aerospike::OPT_POLICY_EXISTS=>\Aerospike::POLICY_EXISTS_UPDATE]);
+        if ($status !== \Aerospike::OK)
         {
-            return $this->setBins($pk, $bins); 
+            \Core\Model\NoSQL::Log(['key'=>$pk['key'], 'bins'=>$bins, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
+            return FALSE;
         }
-        \Core\Model\NoSQL::Log(['error'=>"Could update not existing device: {$uuid}", 'bins'=>$bins]);
-        return FALSE;                
+        
+        return TRUE;                
     }
 
 

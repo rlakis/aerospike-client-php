@@ -946,6 +946,7 @@ class MobileApi
         $opts = new \stdClass();
         $opts->disallow_purchase = 0;
         
+        
         if (!empty($this->uuid) && $this->getUID()>0 && $this->user->getID()==$this->getUID()) 
         {            
             $opts->prefs = $this->user->device->getPreferences();
@@ -1427,7 +1428,6 @@ class MobileApi
             $carrier_country = (isset($geo['country']['iso_code']) && strlen(trim($geo['country']['iso_code']))==2) ? strtoupper(trim($geo['country']['iso_code'])) : 'XX';
         }
         
-
         if ($status==1) 
         {
             /* opts->user_status

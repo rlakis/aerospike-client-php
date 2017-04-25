@@ -2671,7 +2671,13 @@ class User
             
             if($newUserId)
             {
-                NoSQL::getInstance()->deviceSetUID($uuid, $newUserId, $uid);
+                if (!NoSQL::getInstance()->deviceSetUID($uuid, $newUserId, $uid))
+                {
+                    if ($newUid==393142 || $uuid=='773FDB13-965C-4A5D-B7F7-83B7852FA567')
+                    {
+                        NoSQL::Log('Falied');
+                    }
+                }
                         
                 if (NoSQL::getInstance()->deviceUpdate($uuid, [\Core\Model\ASD\USER_UID=>$newUserId]))
                 {

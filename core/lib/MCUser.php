@@ -124,7 +124,7 @@ class MCUser extends MCJsonMapper
     {
         $result = new MCUser();
         if (NoSQL::getInstance()->fetchUserByUUID($uuid, $bins)==NoSQL::OK)
-        {
+        {            
             $result->parseArray($bins);
             if (!($result->opts instanceof MCUserOptions))
             {

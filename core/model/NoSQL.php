@@ -262,10 +262,13 @@ class NoSQL
             unset($dbt[0]['function']);
             unset($dbt[0]['class']);
             unset($dbt[0]['type']);
+            if (isset($dbt[0]['object']))
+                unset($dbt[0]['object']);
+            
             error_log(PHP_EOL.json_encode($dbt[0], JSON_PRETTY_PRINT).PHP_EOL);
             if (isset($dbt[1]))
             {
-                error_log(PHP_EOL.json_encode($dbt[1], JSON_PRETTY_PRINT));
+               // error_log(PHP_EOL.json_encode($dbt[1], JSON_PRETTY_PRINT));
             }
         }
     }

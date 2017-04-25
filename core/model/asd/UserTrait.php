@@ -192,9 +192,9 @@ trait UserTrait
                             [\Aerospike::OPT_POLICY_RETRY=>\Aerospike::POLICY_RETRY_ONCE,
                              \Aerospike::OPT_POLICY_EXISTS=>\Aerospike::POLICY_EXISTS_UPDATE]);
         
-        if ($status != \Aerospike::OK)
+        if ($status !== \Aerospike::OK)
         {
-            $this->logError(__CLASS__ .'->'. __FUNCTION__, $pk, $bins);
+            \Core\Model\NoSQL::Log(['key'=>$pk['key'], 'bins'=>$bins, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
         }
         else if ($setNewVisit)
         {
@@ -291,11 +291,17 @@ trait UserTrait
     public function fetchUserByUUID(string $uuid, &$record) 
     {
         $status = \Core\Model\NoSQL::getInstance()->getDeviceRecord($uuid, $device);
-
+        
         if ($status==\Aerospike::OK)
         {
-            $status = $this->getProfile([USER_PROVIDER_ID=>$uuid, USER_PROVIDER=>$device[USER_DEVICE_SYS_NAME]=='Android' ? USER_PROVIDER_ANDROID : USER_PROVIDER_IPHONE], $record);
-            if ($status==\Aerospike::OK)
+            $status= $this->getProfileBasicRecord($device[USER_UID], $record);
+            //if ($uuid=='773FDB13-965C-4A5D-B7F7-83B7852FA567')
+            //{
+            //    \Core\Model\NoSQL::Log([__FUNCTION__, $device, $uuid, $device[USER_DEVICE_SYS_NAME]=='Android' ? USER_PROVIDER_ANDROID : USER_PROVIDER_IPHONE]);
+            //}
+        
+            //$status = $this->getProfile([USER_PROVIDER_ID=>$uuid, USER_PROVIDER=>$device[USER_DEVICE_SYS_NAME]=='Android' ? USER_PROVIDER_ANDROID : USER_PROVIDER_IPHONE], $record);
+            if ($status==\Aerospike::OK && !empty($record))
             {
                 $record=$record['bins'];
                 $record['logged_by_device'] = $device;
@@ -726,7 +732,6 @@ trait UserTrait
         $server=get_cfg_var('mourjan.server_id');
         $this->genId("user_id-{$server}", $sq);
         $id = $millis << 22 | $server << 11 | $sq;
-        //error_log( $id."-".$server."-".$sq.'-'.strlen("{$id}"));
         return $id;
     }
 
