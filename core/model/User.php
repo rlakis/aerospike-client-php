@@ -180,7 +180,7 @@ class User
         if($init)
         {
             $this->site=$site;
-            
+            //$this->sysAuthById(480301);
             $this->populate();
             $this->getSessionHandlerCookieData();
             
@@ -1637,6 +1637,12 @@ class User
     }
 
     
+    private function writeAdModification() : int
+    {
+        
+    }
+    
+    
     function saveAd($publish=0, $user_id=0, $runtime=0)
     {
         $id=0;
@@ -1745,44 +1751,30 @@ class User
                             $stmt->bindValue(13, $userId, PDO::PARAM_INT);
                         }                        
                                 
-                        //try 
-                        //{                                                                               
-                            if ($this->db->executeStatement($stmt)) 
-                            {
-                                if (($result=$stmt->fetch(PDO::FETCH_ASSOC))!==FALSE)
-                                {
-                                    //$result=$stmt->fetchAll(PDO::FETCH_ASSOC);
-                            
-                                    if ($attrs)
-                                    {                                            
-                                        $st=$this->db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
-                                        $st->bindValue(1, $id, PDO::PARAM_INT);
-                                        $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
-                                        $st->execute();  
-                                        $this->db->executeStatement($st);
-                                    }
-                                    $this->db->commit();
-                                    $ad_is_saved=TRUE;
+                        if ($this->db->executeStatement($stmt)) 
+                        {
+                            if (($result=$stmt->fetch(PDO::FETCH_ASSOC))!==FALSE)
+                            {                            
+                                if ($attrs)
+                                {                                            
+                                    $st=$this->db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
+                                    $st->bindValue(1, $id, PDO::PARAM_INT);
+                                    $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
+                                    $st->execute();  
+                                    $this->db->executeStatement($st);
                                 }
-                                else
-                                {
-                                    $result=NULL;
-                                }
+                                $this->db->commit();
+                                $ad_is_saved=TRUE;
                             }
                             else
                             {
-                                $this->db->rollBack();
+                                $result=NULL;
                             }
-//                        } 
-//                        catch (Exception $e) 
-//                        {
-//                            $result = null;
-//                            error_log('User.SaveAd ('. $id .'): ' .  $e->getMessage());
-//                            error_log('User.SaveAd ('. $id .'): ' .  $e->getTraceAsString());
-//                            error_log('User.SaveAd ('. $id .') Transaction: ' . $this->db->getTransactionIsolationMessage());
-//
-//                            $this->db->rollBack();
-//                        }					
+                        }
+                        else
+                        {
+                            $this->db->rollBack();
+                        }
                     }
                     
                     
@@ -1929,13 +1921,7 @@ class User
                         else
                         {
                             $this->db->rollBack();
-                        }
-                        
-                    	//if (!empty ($result)) 
-                        //{
-                        //    $this->pending['post']['id']=$id=$result[0]['ID'];
-                        //    $this->update();
-                    	//}
+                        }                                            	
                     }
                 }      
 
@@ -1948,14 +1934,20 @@ class User
 
         }
         catch(Exception $e)
-        {            
+        {        
+            $ex_msg = $e->getMessage();
             $this->db->rollBack(); 
             $id=0;
         }
         
         if ($id==0)
         {
-            NoSQL::Log(['Error'=>"Failed to save ad", 'data'=>$this->pending['post']??'']);
+            $_obj = $this->pending['post']??'';
+            if ($_obj && isset($_obj['content']))
+            {
+                $_obj['content'] = json_decode($_obj['content']);
+            }
+            NoSQL::Log(['Error'=>"Failed to save ad! ".($ex_msg??''), 'data'=>$_obj]);
         }
         return $id;
     }
@@ -2225,8 +2217,6 @@ class User
         {
             if (\Core\Model\NoSQL::getInstance()->setUserLevel($id, $level))
             {
-                //$q="update web_users set lvl=? where id=?";
-                //$this->db->get($q, [$level, $id], true);
                 $succeed=true;
             }
         }
@@ -2239,27 +2229,11 @@ class User
         $succeed=false;
         if($id && is_numeric($type)) 
         {
-            //$q="update web_users set user_publisher=? where id=?";
-            //$this->db->get($q, [$type, $id],true);
             return \Core\Model\NoSQL::getInstance()->setUserPublisherStatus($id, $type); 
         }
         return $succeed;
     }
-    
-    /*
-    function getType($id)
-    {
-        return \Core\Model\NoSQL::getInstance()->getUserPublisherStatus($id);
         
-        $q='select id, user_publisher from web_users where id=?';
-        $result=$this->db->get($q, [$id]);
-        if ($result && isset($result[0]) && $result[0]['ID']) 
-        {
-            return $result[0]['USER_PUBLISHER'];
-        }
-        return false;
-    }
-    */
     
     function setUserParams($result, $asbins=FALSE)
     { 
@@ -2454,7 +2428,6 @@ class User
             {
                 return -2;//server error
             }
-            //$bins = \Core\Model\NoSQL::getInstance()->fetchUser By ProviderId($identifier);
         }
         
         if (!empty($bins))
@@ -2479,50 +2452,7 @@ class User
         else
         {
             return -2;//server error
-        }
-        /*
-        $q='select id from web_users where identifier=? and user_pass=? and provider=\'mourjan\'';
-        $q2='select id from web_users where identifier=? and provider=\'mourjan\'';
-        if(!preg_match('/@/',$account))
-        {
-            $account = (int)$account;
-            $q='select id from web_users where identifier containing ? and  user_pass=? and provider=\'mourjan\'';
-            $q2='select id from web_users where identifier containing ? and provider=\'mourjan\'';
-        }
-        
-        $result=$this->db->get($q, [$account, $pass]);
-        
-        if($result!==false)
-        {
-            if (isset($result[0]) && $result[0]['ID']) 
-            {
-                return $result[0]['ID'];//success return user id
-            }
-            else 
-            { 
-                $q=$q2;
-                $result=$this->db->get($q, array($account));
-                if($result!==false)
-                {
-                    if (isset($result[0]['ID']) && $result[0]['ID']) 
-                    {
-                        return 0;//wrong password
-                    }
-                    else
-                    {
-                        return -1;//account not found
-                    }                    
-                }
-                else
-                {
-                    return -2;//server error
-                }
-            }
-        }
-        else
-        {
-            return -2;//server error
-        }*/
+        }      
     }
     
     

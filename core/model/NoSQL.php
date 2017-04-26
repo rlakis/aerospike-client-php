@@ -265,7 +265,9 @@ class NoSQL
             if (isset($dbt[0]['object']))
                 unset($dbt[0]['object']);
             
-            error_log(PHP_EOL.json_encode($dbt[0], JSON_PRETTY_PRINT).PHP_EOL);
+            error_log(PHP_EOL.json_encode($dbt[0], JSON_PRETTY_PRINT).PHP_EOL.'>');
+            
+            error_log(PHP_EOL.json_encode($dbt[0], JSON_PRETTY_PRINT).PHP_EOL, 3, "/var/log/mourjan/LogFile.txt");
             if (isset($dbt[1]))
             {
                // error_log(PHP_EOL.json_encode($dbt[1], JSON_PRETTY_PRINT));
