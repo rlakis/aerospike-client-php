@@ -8,6 +8,7 @@ use mourjan\Hybrid;
 use mobiledetect\MobileDetect;
 use Core\Lib\SphinxQL;
 use Core\Model\NoSQL;
+use Sinergi\BrowserDetector\Browser;
 
 class User 
 {
@@ -263,56 +264,53 @@ class User
                 else
                 {
                 
-                    include_once $config['dir'].'/core/lib/Browser.php';
                     $browser = new Browser();
-                    $bname = strtolower($browser->getBrowser());
+                    $bname = $browser->getName();
                     $bversion = (int)$browser->getVersion();
-                    $bplatform=  strtolower($browser->getPlatform());
-
-                    if($bplatform=='windows')
+                    switch($bname)
                     {
-                        switch($bname)
-                        {
-                            case 'internet explorer':
-                                if($bversion < 10)
-                                {
-                                    $this->params['browser_alert']=1;
-                                }
-                                if($bversion < 8)
-                                {
-                                    $this->params['include_JSON']=1;
-                                }
-                                break;
-                                
-                            case 'firefox':
-                                if($bversion < 18)
-                                {
-                                    $this->params['browser_alert']=1;
-                                }
-                                break;
-                                
-                            case 'chrome':
-                                if($bversion < 10)
-                                {
-                                    $this->params['browser_alert']=1;
-                                }
-                                break;
-                                
-                            default:
-                                break;
-                        }
-                        
-                        if(isset($this->params['browser_alert']))
-                        {
-                            if(isset($_SERVER['HTTP_ACCEPT_LANGUAGE']))
+                        case Browser::IE:
+                            if($bversion < 10)
                             {
-                                $blang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
-                                $this->params['browser_link']='https://www.google.com/intl/'.$blang.'/chrome/browser/?brand=CHMO#eula';
+                                $this->params['browser_alert']=1;
                             }
-                            else
+                            if($bversion < 8)
                             {
+                                $this->params['include_JSON']=1;
+                            }
+                            break;
+
+                        case Browser::FIREFOX:
+                            if($bversion < 18)
+                            {
+                                $this->params['browser_alert']=1;
+                            }
+                            break;
+
+                        case Browser::CHROME:
+                            if($bversion < 10)
+                            {
+                                $this->params['browser_alert']=1;
+                            }
+                            break;                                
+                        default:
+                            break;
+                    }
+
+                    if(isset($this->params['browser_alert']))
+                    {
+                        if(isset($_SERVER['HTTP_ACCEPT_LANGUAGE']))
+                        {
+                            $blang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+                            if($blang){
+                                $this->params['browser_link']='https://www.google.com/intl/'.$blang.'/chrome/browser/?brand=CHMO#eula';
+                            }else{
                                 $this->params['browser_link']='https://www.google.com/intl/en/chrome/browser/?brand=CHMO#eula';
                             }
+                        }
+                        else
+                        {
+                            $this->params['browser_link']='https://www.google.com/intl/en/chrome/browser/?brand=CHMO#eula';
                         }
                     }
                 }
