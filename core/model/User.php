@@ -1637,9 +1637,81 @@ class User
     }
 
     
-    private function writeAdModification() : int
+    private function writeAdModification(int $publish, int $media, int &$id, int $uid, $attrs, string $q)
     {
+        $iteration = 0;
+        $result = null;
+        $saved=FALSE;
+        do
+        {
+            $iteration++;
+            
+            try
+            {
+                $stmt=$this->db->prepareQuery($q);
+                $stmt->bindValue(1, $this->pending['post']['content'], PDO::PARAM_STR);
+                $stmt->bindValue(2, $this->pending['post']['title']);
+                $stmt->bindValue(3, $this->pending['post']['pu']);
+                $stmt->bindValue(4, $this->pending['post']['se']);
+                $stmt->bindValue(5, $this->pending['post']['rtl']);
+                $stmt->bindValue(6, $this->pending['post']['cn']);
+                $stmt->bindValue(7, $this->pending['post']['c']);
+                $stmt->bindValue(8, $this->pending['post']['lat']);
+                $stmt->bindValue(9, $this->pending['post']['lon']);
+                $stmt->bindValue(10, $publish, PDO::PARAM_INT);
+                $stmt->bindValue(11, $media, PDO::PARAM_INT);
+                $stmt->bindValue(12, $id, PDO::PARAM_INT);
+
+                if ($this->info['level']!=9)
+                {
+                    $stmt->bindValue(13, $uid, PDO::PARAM_INT);
+                }                        
+
+                if ($this->db->executeStatement($stmt)) 
+                {
+                    if (($result=$stmt->fetch(PDO::FETCH_ASSOC))!==FALSE)
+                    {                            
+                        if ($attrs)
+                        {                                            
+                            $st=$this->db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
+                            $st->bindValue(1, $id, PDO::PARAM_INT);
+                            $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
+                            $st->execute();  
+                            $this->db->executeStatement($st);
+                        }                        
+                        $this->db->commit();
+                        $saved=TRUE;
+                    }
+                }
+            }
+            catch (\PDOException $e)
+            {
+                if (preg_match('/deadlock update conflicts with concurrent update/', $e->getMessage()))
+                {
+                    $this->db->rollBack(TRUE);
+                    usleep(2000);                    
+                }
+                else
+                {
+                    $this->db->rollBack();
+                    break;
+                }
+            }
+        } while ($saved===FALSE || $iteration>3);
         
+        if (!$saved)
+        {
+            $this->db->rollBack();
+            NoSQL::Log([$id, $e->getMessage()??'WEIRED']);
+            $id=0;
+        }
+        else
+        if ($iteration>1)
+        {
+            NoSQL::Log(['alert'=>"Ad {$id} is saved at iteration {$iteration}"]);
+        }
+       
+        return $result;
     }
     
     
@@ -1726,10 +1798,13 @@ class User
                     }
                     $q.='returning state, web_user_id';
                     
+                    
                     $tries=0;
                     $result=null;
                     if ($this->pending['post']['se']>0) 
                     {
+                        $result = $this->writeAdModification($publish, $media, $id, $userId, $attrs, $q);
+                        /*
                         $tries++;
                     		
                         $stmt=$this->db->prepareQuery($q);
@@ -1774,7 +1849,7 @@ class User
                         else
                         {
                             $this->db->rollBack();
-                        }
+                        }*/
                     }
                     
                     
