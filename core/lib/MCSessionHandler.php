@@ -278,7 +278,7 @@ class MCSessionHandler implements \SessionHandlerInterface
     
     private function initAerospike()
     {
-        $configuration = ["hosts" => [["addr"=>"148.251.184.77", "port"=>3000], ["addr"=>"138.201.28.229", "port"=>3000]]];
+        $configuration = ["hosts" => [["addr"=>"138.201.28.229", "port"=>3000], ["addr"=>"88.99.164.79", "port"=>3000]]];
         $options = [\Aerospike::OPT_READ_TIMEOUT => 1500,
                     \Aerospike::OPT_WRITE_TIMEOUT => 2000,
                     \Aerospike::OPT_POLICY_KEY => \Aerospike::POLICY_KEY_SEND,

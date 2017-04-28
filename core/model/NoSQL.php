@@ -79,7 +79,7 @@ class NoSQL
     
     private static $instance = null;
     private $cluster;
-    private $configuration = ["hosts" => [["addr"=>"148.251.184.77", "port"=>3000], ["addr"=>"138.201.28.229", "port"=>3000]]];
+    private $configuration = ["hosts" => [["addr"=>"138.201.28.229", "port"=>3000], ["addr"=>"88.99.164.79", "port"=>3000]]];
     private $options = [
                 \Aerospike::OPT_POLICY_KEY => \Aerospike::POLICY_KEY_SEND, 
                 \Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE, 

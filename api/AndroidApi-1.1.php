@@ -534,11 +534,12 @@ class AndroidApi
                 {
                     $this->api->result['e'] = "503";
                     break;
-                }            
+                }
+                
                 $opts = $this->api->userStatus($status);   
                 $mcUser = new MCUser($this->api->getUID());
                 
-                if ($status == 1 && !$mcUser->isBlocked()) 
+                if ($status==1 && !$mcUser->isBlocked()) 
                 {
                     $this->api->db->setWriteMode();  
                     
@@ -547,7 +548,7 @@ class AndroidApi
                     $rid = filter_input(INPUT_POST, 'rid', FILTER_VALIDATE_INT) + 0;
                     $ad_id = filter_input(INPUT_POST, 'adid', FILTER_VALIDATE_INT) + 0;
                     $state = 0;
-                    $ad = json_decode(urldecode(filter_input(INPUT_POST, 'ad', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']])),true);
+                    $ad = json_decode(urldecode(filter_input(INPUT_POST, 'ad', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']])), true);
                     
                     $userState = 0;
                     
@@ -555,10 +556,12 @@ class AndroidApi
                     $hasMajorFailure = 0;
                     
                     $stmt = null;
-                    if(count($ad) > 0)
+                    
+                    if(count($ad)>0)
                     {    
-                        
-                        if($ad['se']>0 && $ad['pu']==0){
+                    
+                        if($ad['se']>0 && $ad['pu']==0)
+                        {
                             $ad['pu']=5;
                         }
                         
@@ -589,18 +592,22 @@ class AndroidApi
                             NoSQL::Log($ad);
                             NoSQL::Log($_original_ad);
                         }
+                        
                         $ad['rtl'] = ($this->isRTL($ad['other'])) ? 1 : 0;
                         
-                        if(isset($ad['altother']) && $ad['altother']){
+                        if(isset($ad['altother']) && $ad['altother'])
+                        {
                             $ad['altRtl'] = ($this->isRTL($ad['altother'])) ? 1 : 0;
 
-                            if($ad['rtl'] == $ad['altRtl']){
+                            if($ad['rtl'] == $ad['altRtl'])
+                            {
                                 $ad['extra']['t']=2;
                                 unset($ad['altRtl']);
                                 unset($ad['altother']);
                             }
 
-                            if(isset($ad['altRtl']) && $ad['altRtl']){
+                            if(isset($ad['altRtl']) && $ad['altRtl'])
+                            {
                                 $tmp=$ad['other'];
                                 $ad['other']=$ad['altother'];
                                 $ad['altother']=$tmp;
@@ -623,26 +630,29 @@ class AndroidApi
                         }
                         $ad['ip']=$ip;                            
                         $databaseFile = '/home/db/GeoLite2-City.mmdb';
-        				$reader = new Reader($databaseFile);
-        				$geo = $reader->get($ip);
-        				$reader->close(); 	
+                        $reader = new Reader($databaseFile);
+                        $geo = $reader->get($ip);
+                        $reader->close(); 	
                         
                         $XX='';                
-                        if($geo) {
+                        if($geo) 
+                        {
                             $ad['userLOC'] = isset($geo['city']['names']['en']) && $geo['city']['names']['en'] ? $geo['city']['names']['en'].', ' : '';
                             $ad['userLOC'].=$geo['country']['iso_code'];
                             $ad['userLOC'].=': '. implode(" ,",$geo['location']);                            
-                            $XX=$geo['country']['iso_code'];
-                            
+                            $XX=$geo['country']['iso_code'];                            
                         } else $ad['userLOC']=0;
                         
-                        if($mcUser->isMobileVerified()){
+                        if($mcUser->isMobileVerified())
+                        {
                             $uNum = $mcUser->getMobileNumber();
-                            if($uNum){
+                            if($uNum)
+                            {
                                 $validator = libphonenumber\PhoneNumberUtil::getInstance();
                                 $uNum = $validator->parse('+'.$uNum, 'LB');
                                 $TXX = $validator->getRegionCodeForNumber($uNum);
-                                if($TXX){
+                                if($TXX)
+                                {
                                     $XX=$TXX;
                                 }
                             }
@@ -667,117 +677,164 @@ class AndroidApi
                                 'TN',
                                 'TR',
                                 'OM'
-                                ])){
-                                $requireReview = 1;
-                            }
+                                ]))
+                        {
+                            $requireReview = 1;
+                        }
                             
                         $city_id = 0;
                         $country_id = 0;
                         $currentCid = 0;
                         $isMultiCountry = false;
                         $cities = $this->api->db->getCitiesDictionary();
-                        foreach($ad['pubTo'] as $key => $val){
-                            if(!$city_id && isset($cities[$city_id])){
+                        
+                        foreach($ad['pubTo'] as $key => $val)
+                        {
+                            if(!$city_id && isset($cities[$city_id]))
+                            {
                                 $city_id=$key;
                             }
-                            if($key && isset($cities[$key])){
-                                if($currentCid && $currentCid != $cities[$key][4]){
+                            
+                            if($key && isset($cities[$key]))
+                            {
+                                if($currentCid && $currentCid != $cities[$key][4])
+                                {
                                     $isMultiCountry = true;
                                 }
                                 $currentCid = $cities[$key][4];
                             }
                         }
-                        foreach($ad['pubTo'] as $key => $val){
+                        
+                        foreach($ad['pubTo'] as $key => $val)
+                        {
                             $city_id=$key;
                             break;
                         }
-                        if($city_id){
+                        
+                        if($city_id)
+                        {
                             $country_id=$cities[$city_id][4];
                         }
                         
                         $isSCAM = 0;
-                        if(isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0){
+                        if(isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0)
+                        {
                             $blockedEmailPatterns = addcslashes(implode('|', $this->api->config['restricted_email_domains']),'.');
                             $isSCAM = preg_match('/'.$blockedEmailPatterns.'/ui', $ad['cui']['e']);
-                        }elseif($requireReview && $country_id && !$isMultiCountry){
+                        }
+                        elseif($requireReview && $country_id && !$isMultiCountry)
+                        {
                             $countries = $this->api->db->getCountriesData('en');
-                            if(isset($countries[$country_id]['code'])){
+                            if(isset($countries[$country_id]['code']))
+                            {
                                 $countryCode = '+'.$countries[$country_id]['code'];
                                 //error_log("mobile check #{$ad['id']}# ".$countryCode);
                                 $differentCodes = false;
-                                foreach($ad['cui']['p'] as $number){
+                                foreach($ad['cui']['p'] as $number)
+                                {
                                     //error_log("number ".$number['v']);
                                     //error_log("with ".substr($number['v'], 0, strlen($countryCode)));
-                                    if(substr($number['v'], 0, strlen($countryCode)) != $countryCode){
+                                    if(substr($number['v'], 0, strlen($countryCode)) != $countryCode)
+                                    {
                                         $differentCodes = true;
                                     }
                                 }
-                                if(!$differentCodes){
+                                
+                                if(!$differentCodes)
+                                {
                                     //error_log("rollback review");
                                     $requireReview = 0;
                                 }
                             }
-                        }   
-                        if(!$isSCAM && !$requireReview && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0){
+                        }
+                        
+                        if(!$isSCAM && !$requireReview && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0)
+                        {
                             $requireReview = preg_match('/\+.*@/', $ad['cui']['e']);
-                            if(!$requireReview){
+                            if(!$requireReview)
+                            {
                                 $requireReview = preg_match('/hotel/', $ad['cui']['e']);
                             }
-                            if(!$requireReview){
+                            if(!$requireReview)
+                            {
                                 $requireReview = preg_match('/\..*\..*@/', $ad['cui']['e']);
                             }
                         }
                         
                         
-                        if($ad['se']==0 || $ad['pu']==0 || count($ad['pubTo'])==0){
+                        if($ad['se']==0 || $ad['pu']==0 || count($ad['pubTo'])==0)
+                        {
                             $hasFailure=1;
                             $hasMajorFailure=1;
-                            if($ad['rtl']){
+                            if($ad['rtl'])
+                            {
                                 $msg = 'يرجى تعديل الاعلان وادخال التفاصيل الناقصة';
-                            }else{
+                            }
+                            else
+                            {
                                 $msg = 'please edit ad and complete missing details';
                             }
                             $ad['msg'] = $msg;
                         }
                         
-                        if(isset($ad['SYS_CRAWL']) && $ad['SYS_CRAWL']){
+                        if(isset($ad['SYS_CRAWL']) && $ad['SYS_CRAWL'])
+                        {
                             $hasFailure=1;
-                            if($ad['rtl']){
+                            if($ad['rtl'])
+                            {
                                 $msg = 'يرجى استخدام PropSpace لتعديل هذا الاعلان';
-                            }else{
+                            }
+                            else
+                            {
                                 $msg = 'please use PropSpace to edit this ad';
                             }
                             $ad['msg'] = $msg;
                         }
                         
-                        if($opts->appVersion < '1.3.4' || $opts->appVersion=='1.8.8'){
+                        if($opts->appVersion < '1.3.4' || $opts->appVersion=='1.8.8')
+                        {
                             $hasFailure=1;
-                            if($ad['rtl']){
+                            if($ad['rtl'])
+                            {
                                 $msg = 'يرجى تحديث تطبيق مرجان لنشر الاعلانات';
-                            }else{
+                            }
+                            else
+                            {
                                 $msg = 'please update mourjan app to publish ads';
                             }
                             $ad['msg'] = $msg;
                         }
                         
-                        if ($isSCAM){
-                            if($mcUser->isMobileVerified()){
+                        if ($isSCAM)
+                        {
+                            if($mcUser->isMobileVerified())
+                            {
                                 $this->block($this->api->getUID(), $mcUser->getMobileNumber(), 'scam detection by system based on certain email keywords');
-                            }else{
+                            }
+                            else
+                            {
                                 $this->setLevel($this->api->getUID(),5);
                             }                            
-                        }elseif($requireReview && $ad_id){
+                        }
+                        elseif($requireReview && $ad_id)
+                        {
                             $this->referrToSuperAdmin($ad_id);
-                        }else if($hasMajorFailure){
+                        }
+                        else if($hasMajorFailure)
+                        {
                             $ad_id = 0;
                             $state = 3;
-                        }else{                        
-                            if($ad_id > 0) {                                  
+                        }
+                        else
+                        { 
+                            if($ad_id>0) 
+                            {
                                 $this->api->db->queryResultArray(
-                                    "update ad a set a.hold = 1 where a.id = ? and hold=0 and ((select web_user_id from ad_user d where d.id = ?) = ?) returning id", [$ad_id,$ad_id, $this->api->getUID()], false
+                                    "update ad set hold=1 where id=? and hold=0 and (exists (select 1 from ad_user d where d.id=? and d.web_user_id=?)) returning id", [$ad_id, $ad_id, $this->api->getUID()], false
                                 );
                                 
-                                if($ad['state'] == 1 && isset($ad['budget']) && $ad['budget']+0 > 0){
+                                if($ad['state'] == 1 && isset($ad['budget']) && $ad['budget']+0 > 0)
+                                {
                                     $ad['state'] = 4;
                                 }
                                 $state = $ad['state'];
@@ -791,9 +848,11 @@ class AndroidApi
 
                                 $json_error = json_last_error();
 
-                                if($json_error==5){
+                                if($json_error==5)
+                                {
                                     error_log("JSON ERROR");
-                                    if(isset($ad['userLOC']) && $ad['userLOC']){
+                                    if(isset($ad['userLOC']) && $ad['userLOC'])
+                                    {
                                         $ad['userLOC']=$ad['ip'];
                                         $encodedAd = json_encode($ad);
                                         $json_error = json_last_error();
@@ -824,27 +883,34 @@ class AndroidApi
                                     ])) 
                                 {
                                     $result=$stmt->fetchAll(PDO::FETCH_ASSOC);
+                                    
                                 }
                                     
-                                    if (!empty($result)) {
+                                if (!empty($result)) 
+                                {                                        
+                                    $state=$result[0]['STATE'];
+                                    //$ad_id = (int)$result[0]['ID'];
                                         
-                                        $state=(int)$result[0]['STATE'];
-                                        $ad_id = (int)$result[0]['ID'];
-                                        
-                                        $st = $this->api->db->getInstance()->prepare("update or insert into ad_object (id, attributes) values (?, ?)");
-                                        $st->bindValue(1, $ad_id, PDO::PARAM_INT);
-                                        $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
-                                        $this->api->db->executeStatement($st);
-                                    }                                
+                                    $st = $this->api->db->getInstance()->prepare("update or insert into ad_object (id, attributes) values (?, ?)");
+                                    $st->bindValue(1, $ad_id, PDO::PARAM_INT);
+                                    $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
+                                    $this->api->db->executeStatement($st);
+                                }                                
 
-                                    if( $ad['state']==1 ) {
-                                        if($mcUser->isMobileVerified()){
-                                            $userState = $mcUser->isSuspended() ? 1:0;
-                                        }else{
-                                            $userState = $this->detectDuplicateSuspension($ad['cui']);                            
-                                        }
+                                if( $ad['state']==1 ) 
+                                {
+                                    if($mcUser->isMobileVerified())
+                                    {
+                                        $userState = $mcUser->isSuspended() ? 1:0;
                                     }
-                            }else {
+                                    else
+                                    {
+                                        $userState = $this->detectDuplicateSuspension($ad['cui']);                            
+                                    }
+                                }
+                            }
+                            else 
+                            {
                                 $state = 0;
                                 if($direct_publish){
                                     $state = 1;
@@ -1856,16 +1922,7 @@ class AndroidApi
                                 //error_log("API_ANDROID_CHANGE_ACCOUNT - after");
                                 $_ret =  NoSQL::getInstance()->getProfileRecord([\Core\Model\ASD\USER_UID=>$this->api->getUID()], $old);
                                 if($_ret==NoSQL::OK /*isset($old[\Core\Model\ASD\USER_PROFILE_ID]) && $old[\Core\Model\ASD\USER_PROFILE_ID]*/)
-                                {
-                                    //$old=$old[0];
-                                    //try
-                                    //{
-                                    //    $opts = json_decode($old['OPTS'],true);
-                                    //}
-                                    //catch(Exception $e)
-                                    //{
-                                    //    $opts = [];
-                                    //}
+                                {                                    
                                     $opts = $old[Core\Model\ASD\USER_OPTIONS];
                                     if(isset($opts['validating']))
                                     {
@@ -1875,7 +1932,6 @@ class AndroidApi
                                     {
                                         unset($opts['accountKey']);
                                     }
-                                    //$opts = json_encode($opts);
                                     $USER->copyUserData($id, $old['USER_PASS'], $old['USER_RANK'], $old['LVL'], $old['USER_PUBLISHER'], $opts);
                                 }
                                 else
@@ -1940,11 +1996,9 @@ class AndroidApi
                         require_once $this->api->config['dir'].'/core/model/User.php';
                         $this->api->db->setWriteMode();  
                         $USER = new User($this->api->db, $this->api->config, null, 0);
-                        //$user=$USER->getAccount($id);
                         $user = NoSQL::getInstance()->fetchUser($id);
                         if(isset($user[\Core\Model\ASD\USER_PROFILE_ID]) && $user[\Core\Model\ASD\USER_PROFILE_ID])
                         {
-                            //$opt = json_decode($user[0]['OPTS'], true);
                             $opt = $user[Core\Model\ASD\USER_OPTIONS];
                             
                             if(isset($opt['accountKey']) && $opt['accountKey']==$code)
@@ -2684,11 +2738,15 @@ class AndroidApi
         return $active_ads;
     }
     
-    function detectDuplicateSuspension($contactInfo=array(),$isMobileVerified=0){
+    
+    function detectDuplicateSuspension($contactInfo=array(), $isMobileVerified=0)
+    {
         $state = 0;        
-        if(!$isMobileVerified){
-            if(count($contactInfo) && $this->api->getUID()){
-                $q='select distinct u.id,u.lvl,u.opts from ad_attribute t
+        if(!$isMobileVerified)
+        {
+            if(count($contactInfo) && $this->api->getUID())
+            {
+                $q='select distinct u.id, u.lvl from ad_attribute t
                 left join ad_user a on a.id = t.ad_id
                 left join web_users u on u.id = a.web_user_id
                 where
@@ -2696,7 +2754,8 @@ class AndroidApi
                 a.id <> '.$this->api->getUID().' and ( ';
                 $params=array();
                 $pass = 0;
-                if(isset($contactInfo['p']) && count($contactInfo['p'])){
+                if(isset($contactInfo['p']) && count($contactInfo['p']))
+                {
                     foreach($contactInfo['p'] as $number){
                         if(isset($number['v']) && trim($number['v'])!=''){
                             if($pass) $q.= ' or ';
@@ -2714,29 +2773,40 @@ class AndroidApi
                 }
                 $q.=')';
 
-                if(count($params)){
+                if(count($params))
+                {
                     $users = $this->api->db->queryResultArray($q, $params);
                     $time = $current_time = time();
                     $blockAccount = false;
-                    if($users && count($users)){
-                        foreach($users as $user){
-                            if($user['LVL']==5){
+                
+                    if($users && count($users))
+                    {
+                        foreach($users as $user)
+                        {
+                            if($user['LVL']==5)
+                            {
                                 $blockAccount=true;
                                 break;
-                            }elseif($user['OPTS']){
-                                $options = json_decode($user['OPTS'],true);
-                                if(isset($options['suspend']) && $options['suspend'] > $time){
-                                    $time = $options['suspend'];
-                                }
                             }
+//                            elseif($user['OPTS'])
+//                            {
+//                                $options = json_decode($user['OPTS'],true);
+//                                if(isset($options['suspend']) && $options['suspend'] > $time){
+//                                    $time = $options['suspend'];
+//                                }
+//                            }
                         }
                     }
-                    if($blockAccount){
+                    
+                    if($blockAccount)
+                    {
                         $state = 5;
                         $this->setLevel($this->api->getUID(),5);
-                    }elseif($time != $current_time){
+                    }
+                    elseif($time != $current_time)
+                    {
                         $state = 1;
-                        $this->suspendUser($this->api->getUID(),$time);
+                        //$this->suspendUser($this->api->getUID(),$time);
                     }
                 }
             }
@@ -2765,21 +2835,7 @@ class AndroidApi
             $this->db->get($q, [$number, $msg, $uid]);        
             return 1;
         }
-        return 0;
-        /*
-        $q = 'update or insert into bl_phone (telephone,subject,web_user_id) values (?,?,?) matching(telephone) returning id';
-        $block = $this->api->db->queryResultArray($q, [
-            $number,
-            $msg,
-            $uid
-        ]);
-        $pass=0;
-        if(isset($block[0]['ID']) && $block[0]['ID']){
-            $pass=1;
-        }
-        return $pass;
-         * 
-         */
+        return 0;       
     }
     
     
@@ -2796,20 +2852,9 @@ class AndroidApi
             }
         }
         return $succeed;
-        /*
-        $succeed=false;
-        if($id && is_numeric($level)) {
-            $q="update web_users set lvl=? where id=?";
-            if ($this->api->db->queryResultArray($q, array($level,$id), true)) {
-                $succeed=true;
-            }
-        }
-        return $succeed;
-         * 
-         */
     }
     
-    
+    /*
     function suspendUser($id, $time)
     {
         $succeed=false;
@@ -2829,7 +2874,7 @@ class AndroidApi
         }
         return $succeed;
     }
-    
+    */
     
     function faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0)
     {
@@ -2901,7 +2946,9 @@ class AndroidApi
         
     }
 
-    function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account = '',$reference=0, $helpTopic=1) {
+    
+    function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account = '',$reference=0, $helpTopic=1) 
+    {
         return $this->faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference, $helpTopic);
         /*
         $mail = new PHPMailer(true);

@@ -133,7 +133,7 @@ trait UserTrait
                 USER_PRIOR_VISITED => $now,
                 USER_PUBLISHER_STATUS => 0,
                 USER_XMPP_CREATED => 0,
-                USER_OPTIONS => [],
+                USER_OPTIONS => [USER_OPTIONS_CTS=>$now],
                 ];
 
             foreach ($bins as $binName => $binValue)
