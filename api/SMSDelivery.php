@@ -1,7 +1,7 @@
 <?php
 
 require get_cfg_var('mourjan.path'). '/config/cfg.php';
-require get_cfg_var('mourjan.path'). '/core/model/NoSQL.php';
+require_once get_cfg_var('mourjan.path'). '/core/model/NoSQL.php';
 
 use Core\Model\NoSQL;
 use Core\Model\DB;

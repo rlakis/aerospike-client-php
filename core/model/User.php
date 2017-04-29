@@ -1380,7 +1380,7 @@ class User
             {
                 $res=$this->db->get(
                         'update ad_user set state=6 where id=? and web_user_id=? returning id, content, state',
-                        [$id,$this->info['id']], true);
+                        [$id, $this->info['id']], true);
             }
         }
         

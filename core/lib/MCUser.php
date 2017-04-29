@@ -130,6 +130,7 @@ class MCUser extends MCJsonMapper
             {
                 $result->opts = new MCUserOptions();
             }
+            $result->getMobile();
         }
         return $result;        
     }

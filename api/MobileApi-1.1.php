@@ -47,10 +47,26 @@ class MobileApi
         $this->db = new DB($this->config, TRUE);
         
         $this->result['server'] = $this->config['server_id']; 
+        $this->command = filter_input(INPUT_GET, 'm', FILTER_VALIDATE_INT);
         
-        $this->user = ($this->uuid && $this->command!=API_DATA) ? MCUser::getByUUID($this->uuid) : new MCUser();
+        if ($this->uuid && $this->command!=API_DATA && $this->command!=API_TOTALS)
+        {
+            $this->user = MCUser::getByUUID($this->uuid);
+            if ($this->user->getID()<=0 && !($this->command==API_REGISTER && $this->uid==0) && $this->command!==API_APNS_TOKEN)
+            {            
+                NoSQL::Log(['Error'=>'User device not found!', 'Command'=>$this->command, 'UUID'=> $this->uuid]);
+            }            
+        }
+        else 
+        {
+            $this->user = new MCUser();
+            
+        }
+        //$this->user = ($this->uuid && $this->command!=API_DATA && $this->command!=API_TOTALS) ? MCUser::getByUUID($this->uuid) : new MCUser();
+        
+        
     }
-
+    
     
     function getUID() : int
     {
@@ -2409,23 +2425,32 @@ class MobileApi
     public function unregister() 
     { 
         $opts = $this->userStatus($status);
-        if ($status==1 && $opts->phone_number>0) {
+        if ($status==1 && $opts->phone_number>0) 
+        {
             $phone_number=filter_input(INPUT_GET, 'tel', FILTER_VALIDATE_INT)+0;
 
-            if ($phone_number!=$opts->phone_number ) {
+            if ($phone_number!=$opts->phone_number ) 
+            {
                 $this->result['e']='Not a valid phone number!';
                 return;
             }
 
-            $this->db->setWriteMode();
-            $q = $this->db->queryResultArray("update WEB_USERS_MOBILE set status=9 where uid=? and mobile=? returning status", [$this->uid, $phone_number], TRUE);
-            if ($q[0]['STATUS']==9) {
+            if (NoSQL::getInstance()->mobileUpdate($this->getUID(), $phone_number, [NoSQL::USER_DEVICE_UNINSTALLED=>1]))
+            //$this->db->setWriteMode();
+            //$q = $this->db->queryResultArray("update WEB_USERS_MOBILE set status=9 where uid=? and mobile=? returning status", [$this->uid, $phone_number], TRUE);
+            //if ($q[0]['STATUS']==9) 
+            {
                 $this->result['d']['status']='deleted';
-            } else {
+            } 
+            else 
+            {
                 $this->result['d']['status']='failed';
             }
         }
-        else $this->result['e']='Invalid user request!';
+        else 
+        {
+            $this->result['e']='Invalid user request!';
+        }
 
     }
 

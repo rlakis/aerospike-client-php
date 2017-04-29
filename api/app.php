@@ -147,6 +147,7 @@ if (!$api->hasError())
 {
     
     $action = filter_input(INPUT_GET, 'm', FILTER_VALIDATE_INT)+0;
+
     $api->command = $action;
     
     switch ($action) 

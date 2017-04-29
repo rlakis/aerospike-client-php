@@ -3,9 +3,11 @@ namespace Core\Model;
 
 include_once dirname(__DIR__).'/lib/MCCache.php';
 include_once dirname(__DIR__).'/lib/SphinxQL.php';
+include_once 'NoSQL.php';
 
 use Core\Lib\MCCache;
 use Core\Lib\SphinxQL;
+use Core\Model\NoSQL;
 
 class DB 
 {
@@ -1141,7 +1143,7 @@ class FBQuery
                     $executed = $this->statement->execute($this->params);
                     if ($executed && $trial>1)
                     {
-                        error_log(PHP_EOL.$this->query.PHP_EOL.'Executed in trial '.$trial);
+                        NoSQL::Log(['query'=>$this->query, 'iteration'=>$trial]);
                     }
                     return $executed;
                 } 

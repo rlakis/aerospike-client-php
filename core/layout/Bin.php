@@ -3931,17 +3931,34 @@ class Bin extends AjaxHandler{
                     }else $this->fail('102');
                 }else $this->fail('101');
                 break;
+                
             case 'ajax-adel':
-                if ($this->user->info['id'] && isset ($_POST['i'])) {
+                if ($this->user->info['id'] && isset ($_POST['i'])) 
+                {
                     $id=$_POST['i'];
                     $hide=$this->post('h','numeric');
-                    if (is_numeric($id)){
-                        if ($this->user->deletePendingAd($id,$hide)) 
-                                $this->process();
-                        else $this->fail('103');
-                    }else $this->fail('102');
-                }else $this->fail('101');
+                    if (is_numeric($id))
+                    {
+                        if ($this->user->deletePendingAd($id, $hide)) 
+                        {
+                            $this->process();
+                        }
+                        else 
+                        {
+                            $this->fail('103');
+                        }
+                    }
+                    else 
+                    {
+                        $this->fail('102');
+                    }
+                }
+                else 
+                {
+                    $this->fail('101');
+                }
                 break;
+                
             case "ajax-sections":
                 $rootId=$this->post('ro', 'uint');
                 $siteLanguage=strtolower($this->post('sl', 'filter'));
