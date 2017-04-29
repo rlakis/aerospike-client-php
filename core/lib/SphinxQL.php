@@ -15,14 +15,55 @@ class SphinxQL
     private $offset = 0;
     private $limit = 10;
     private $max_matches = 1000;
-    private $filters = array();
-    private $groupby = array();
-    private $facets = array();
+    private $filters = [];
+    private $groupby = [];
+    private $facets = [];
     public $metaData = null;
     public $_query;
-    public $_batch = array();
+    public $_batch = [];
     
-    
+    /**
+     * An array of escaped characters for escapeMatch()
+     * @var array
+     */
+    protected $escape_full_chars = [
+        '\\' => '\\\\',
+        '(' => '\(',
+        ')' => '\)',
+        '|' => '\|',
+        '-' => '\-',
+        '!' => '\!',
+        '@' => '\@',
+        '~' => '\~',
+        '"' => '\"',
+        '&' => '\&',
+        '/' => '\/',
+        '^' => '\^',
+        '$' => '\$',
+        '=' => '\=',
+        '<' => '\<',
+    ];
+
+    /**
+     * An array of escaped characters for fullEscapeMatch()
+     * @var array
+     */
+    protected $escape_half_chars = [
+        '\\' => '\\\\',
+        '(' => '\(',
+        ')' => '\)',
+        '!' => '\!',
+        '@' => '\@',
+        '~' => '\~',
+        '&' => '\&',
+        '/' => '\/',
+        '^' => '\^',
+        '$' => '\$',
+        '=' => '\=',
+        '<' => '\<',
+    ];
+
+
     function __construct($host, $index, $port=0)
     {
         $this->indexName = $index;
@@ -49,7 +90,7 @@ class SphinxQL
             } 
             catch (Exception $e)
             {
-                error_log($e->getMessage()+" (Server {$this->server})");
+                $this->Log(['server'=> $this->server, 'Exception'=>$e]);
             }
         }
     }
@@ -65,7 +106,7 @@ class SphinxQL
             //}
             if ($this->_sphinx->connect_error)
             {
-            	error_log(__CLASS__.'::'.__FUNCTION__. ' Connect Error ' . $this->server['host'] .' (' . $this->_sphinx->connect_errno . ') ' . $this->_sphinx->connect_error);
+                $this->Log(['host'=>$this->server['host'], 'error'=>'['.$this->_sphinx->connect_errno . '] ' . $this->_sphinx->connect_error]);
             	die('Connect Error ' . $this->server['host'] .' (' . $this->_sphinx->connect_errno . ') ' . $this->_sphinx->connect_error);
             }
         }     
@@ -221,21 +262,26 @@ class SphinxQL
     }
     
     
-    function setFacet($facet, $clearALL=FALSE) {
-        if ($clearALL)            
+    function setFacet($facet, $clearALL=FALSE)
+    {
+        if ($clearALL)
+        {
             $this->facets = array();
+        }
         $facet = strtolower($facet);
         $this->facets[$facet]="facet {$facet} limit 10000";
        
     }
     
     
-    function addDirectQuery($name, $q, $assoc=FALSE) {
+    function addDirectQuery($name, $q, $assoc=FALSE)
+    {
         $this->_batch[$name] = [$q, $assoc];
     }
     
     
-    function addQuery($name, $keywords='', $assoc=FALSE) {
+    function addQuery($name, $keywords='', $assoc=FALSE)
+    {
         $this->build($keywords);
         $this->_batch[$name] = [$this->_query, $assoc];
 
@@ -256,20 +302,26 @@ class SphinxQL
         {
             if ($this->_sphinx->multi_query($queryQL))
             {
-                do {
+                do
+                {
                     $i= 0;
-                    if ($rs = $this->_sphinx->store_result()) {
-                        while($row = $rs->fetch_row()){
+                    if ($rs = $this->_sphinx->store_result())
+                    {
+                        while($row = $rs->fetch_row())
+                        {
                             $row[0] = (int)$row[0];
                             $records[$i][$row[0]] = $row;
                         }
                         $i++;
                         $rs->free();
                     }
-                    if(!$this->_sphinx->more_results()){
+
+                    if(!$this->_sphinx->more_results())
+                    {
                         break;
                     }
-                } while ($this->_sphinx->next_result());
+                }
+                while ($this->_sphinx->next_result());
             }
             
             if (count($records)==1)
@@ -279,7 +331,7 @@ class SphinxQL
         } 
         catch (Exception $ex)
         {
-            error_log( $ex->getMessage() );
+            $this->Log($ex);
         } 
         
         return $records;
@@ -300,7 +352,8 @@ class SphinxQL
         {
             if ($this->_sphinx->multi_query($queryQL)) 
             {
-                do {
+                do
+                {
                     if ($rs = $this->_sphinx->store_result()) 
                     {
                         $result['matches'][] = $rs->fetch_all($fetchMode);
@@ -312,13 +365,17 @@ class SphinxQL
                         break;
                     }
                     
-                } while ($this->_sphinx->next_result());
+                }
+                while ($this->_sphinx->next_result());
             }
             
             if ($this->_sphinx->error) 
             {
-                error_log(__FILE__  .'::' . __FUNCTION__ . ' --> ['. $this->_sphinx->errno.'] '.$this->_sphinx->error. PHP_EOL .'[ '. $queryQL .']');
-                error_log(__FILE__  .'::' . __FUNCTION__ . PHP_EOL . json_encode($result));
+                $this->Log(['host'=>$this->server['host'],
+                            'function'=>__FUNCTION__,
+                            'error'=>'['.$this->_sphinx->connect_errno . '] ' . $this->_sphinx->connect_error,
+                            'query'=>$queryQL,
+                            'result'=>$result]);
             }
             
             if (count($result['matches'])==1) 
@@ -328,14 +385,13 @@ class SphinxQL
             
         } 
         catch (Exception $ex) 
-        {            
-            error_log( $ex->getMessage() . PHP_EOL . $queryQL);
+        {
+            $this->Log(['Exception'=>$ex, 'query'=>$queryQL]);
         } 
         finally
         {
             $this->fetchMetaData($result);
         }
-        //error_log('Search: ' . PHP_EOL . var_export($result, TRUE) . PHP_EOL);
         return $result;
     }
     
@@ -347,36 +403,49 @@ class SphinxQL
     }
     
     
-    function executeBatch($fullRow=FALSE) {
+    function executeBatch($fullRow=FALSE)
+    {
         $result = [];        
-        foreach ($this->_batch as $name => $info) {
+        foreach ($this->_batch as $name => $info)
+        {
             $q = $info[0];
             $assoc = $info[1];
             $rs = array('error' => '', 'warning' => '', 'total' => 0, 'total_found' => 0, 'time' => 0, 'matches' => array (), 'facet'=>array(), 'sql'=>$q);
             $resource = $this->_sphinx->multi_query($q);
-            if ($this->_sphinx->error) {
-                $rs['error'] = '['.$this->_sphinx->errno.'] '.$this->_sphinx->error.' [ '.$q.']';
-                error_log(PHP_EOL . $rs['error'] . PHP_EOL);
-                $result[$name] = $rs;
+            if ($this->_sphinx->error)
+            {
+                $this->Log(['query'=>$q, 'error'=>'['.$this->_sphinx->connect_errno . '] ' . $this->_sphinx->connect_error]);
+                $result[$name] = '['.$this->_sphinx->errno.'] '.$this->_sphinx->error.' [ '.$q.']';
                 continue;
             }
+
             $facet_index = -1;
-            do {
-                if ($res = $this->_sphinx->store_result()) {
+            do
+            {
+                if ($res = $this->_sphinx->store_result())
+                {
                     $field_names = mysqli_fetch_fields ($res);
-                    if ($fullRow||$assoc) {
-                        while ($row=$res->fetch_assoc()) {
-                            
+                    if ($fullRow||$assoc)
+                    {
+                        while ($row=$res->fetch_assoc())
+                        {
                             $rs['matches'][ $row[$field_names[0]->name] ]=$row;
                         }                        
-                    } else {
-                        if ($field_names[0]->name=='id') {
-                            while ($row=$res->fetch_assoc()) {
+                    } 
+                    else
+                    {
+                        if ($field_names[0]->name=='id')
+                        {
+                            while ($row=$res->fetch_assoc())
+                            {
                                 $rs['matches'][]=$row['id'];
                             }
-                        } else {
+                        } 
+                        else
+                        {
                             $facet_index++;
-                            while ($row=$res->fetch_assoc()) {
+                            while ($row=$res->fetch_assoc())
+                            {
                                 $rs['facet'][$facet_index]=$row;
                             }
                         }
@@ -384,34 +453,44 @@ class SphinxQL
                     $res->free();
                 }
                 
-                if (!$this->_sphinx->more_results()) {
+                if (!$this->_sphinx->more_results())
+                {
                     $this->fetchMetaData($rs);                    
                     $result[$name]=$rs;
-                    //error_log(PHP_EOL.$name. ' Elapsed time '.$rs['time']);
                     break;
                 }
-            } while ($this->_sphinx->next_result());
+            }
+            while ($this->_sphinx->next_result());
             
         }
         return $result;
     }
     
     
-    function singleSelectQuery($q, $assoc=FALSE) {
-        $result = array('error' => '', 'warning' => '', 'total' => 0, 'total_found' => 0, 'time' => 0, 'matches' => array (), 'sql'=>  $q);
-        try {
+    function singleSelectQuery($q, $assoc=FALSE)
+    {
+        $result = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'time'=>0, 'matches'=>[], 'sql'=>$q];
+
+        try
+        {
             $resource = $this->_sphinx->query($q);
             
-            if ($this->_sphinx->error) {
+            if ($this->_sphinx->error)
+            {
                 throw new Exception('['.$this->_sphinx->errno.'] '.$this->_sphinx->error.' [ '.$this->_query.']');
             }
             
-            if ($resource instanceof \mysqli_result) {                
+            if ($resource instanceof \mysqli_result)
+            {
                 $field_names = mysqli_fetch_fields ($resource);
-                while ($row = $resource->fetch_assoc()) {
-                    if ($assoc) {
+                while ($row = $resource->fetch_assoc())
+                {
+                    if ($assoc)
+                    {
                         $result['matches'][ $row[ $field_names[0]->name] ]=$row;
-                    } else {
+                    } 
+                    else
+                    {
                         $result['matches'][] = $row[$field_names[0]->name];
                     }
                 }
@@ -419,8 +498,10 @@ class SphinxQL
                 $resource->free_result();                
             }
             $this->fetchMetaData($result);
-        } catch (Exception $ex) {
-            error_log($ex->getMessage());
+        }
+        catch (Exception $ex)
+        {
+            $this->Log($ex);
             return FALSE;
         }
         return $result;
@@ -430,39 +511,41 @@ class SphinxQL
     function getAds($keywords="")
     {
         $this->build($keywords);
-        $result = array('error' => '', 'warning' => '', 'total' => 0, 'total_found' => 0, 'time' => 0, 'matches' => array (), 'sql'=>  $this->_query);
-        try {
+        $result = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'time'=>0, 'matches'=>[], 'sql'=>$this->_query];
+
+        try
+        {
             $resource = $this->_sphinx->query($this->_query);
             
-            if ($this->_sphinx->error) {
+            if ($this->_sphinx->error)
+            {
                 throw new Exception('['.$this->_sphinx->errno.'] '.$this->_sphinx->error.' [ '.$this->_query.']');
             }
             
-            if ($resource instanceof \mysqli_result) {                
-
-                while ($row = $resource->fetch_assoc()) {
+            if ($resource instanceof \mysqli_result)
+            {
+                while ($row = $resource->fetch_assoc())
+                {
                     $result['matches'][$row['id']] = $row;
                 }
 
-                $resource->free_result();
-
-                
-                
+                $resource->free_result();                                
             }
+
             $this->fetchMetaData($result);
-            // Sphinx doesn't return insert_id and only the number of rows affected.
-            //return $this->_sphinx->affected_rows;
-        } catch (Exception $ex) {
-            error_log($ex->getMessage());
+        } 
+        catch (Exception $ex)
+        {
+            $this->Log($ex);
             return FALSE;
         }
+
         return $result;
     }
     
-    
-
-    
-    function setLimits ($offset=0, $limit=10, $max = 1000) {
+        
+    function setLimits ($offset=0, $limit=10, $max = 1000)
+    {
         assert( is_int($offset) );
         assert( is_int($limit) );
         assert( $offset>=0 );
@@ -473,7 +556,8 @@ class SphinxQL
     }
     
     
-    function setSortBy ($sortby) {
+    function setSortBy ($sortby)
+    {
         assert(is_string($sortby));
         $this->sortby = $sortby;
     }
@@ -494,8 +578,10 @@ class SphinxQL
     function status() 
     {
         $result = array();
-        if ($rs = $this->_sphinx->query('SHOW STATUS')) {
-            while ($value = $rs->fetch_array(MYSQLI_NUM)) {
+        if ($rs = $this->_sphinx->query('SHOW STATUS'))
+        {
+            while ($value = $rs->fetch_array(MYSQLI_NUM))
+            {
                 $result[$value[0]] = $value[1];
             }
             $rs->close();
@@ -503,28 +589,27 @@ class SphinxQL
         return $result;
     }
     
-    
-    function updateAttributes ( string $index , array $attributes , array $values , $mva = false ) {
-        echo "update Attributes deprecated!";
-        if ($this->connection==NULL) {
-            $this->connection = new PDO( $this->server, '', '' );
-        }       
-        return FALSE;
-    }
-    
-    
-    function updateHoldAd($id) {
-        if ($this->_sphinx->real_query("update {$this->indexName} set hold=1 where id={$id} and hold=0")) {
+         
+    function updateHoldAd($id)
+    {
+        if ($this->_sphinx->real_query("update {$this->indexName} set hold=1 where id={$id} and hold=0"))
+        {
             //echo "ad: {$id} has been set on hold state in index" . PHP_EOL;
-        } else {
+        } 
+        else
+        {
             //echo "Failed to set ad: {$id} on hold state!" . PHP_EOL;
         }
     }
     
-    function directUpdateQuery($q) {
-        if ($this->_sphinx->real_query($q)) {
+    function directUpdateQuery($q)
+    {
+        if ($this->_sphinx->real_query($q))
+        {
             return $this->_sphinx->affected_rows;
-        } else {
+        } 
+        else
+        {
             return FALSE;
         }
     }
@@ -541,17 +626,50 @@ class SphinxQL
      */
     public function escape($value)
     {
-        //$this->ping();
-
-        if (($value = $this->_sphinx->real_escape_string((string) $value)) === false) {
+        if (($value = $this->_sphinx->real_escape_string((string) $value)) === false)
+        {
             throw new Exception($this->_sphinx->error, $this->_sphinx->errno);
         }
 
         return "'".$value."'";
     }
 
+    /**
+     * Escapes the query for the MATCH() function
+     * Allows some of the control characters to pass through for use with a search field: -, |, "
+     * It also does some tricks to wrap/unwrap within " the string and prevents errors
+     *
+     * @param string $string The string to escape for the MATCH
+     *
+     * @return string The escaped string
+     */
+    public function halfEscapeMatch(string $string) : string
+    {
+        //if ($string instanceof Expression) {
+        //    return $string->value();
+        //}
+        $string = str_replace(array_keys($this->escape_half_chars), array_values($this->escape_half_chars), $string);
+        // this manages to lower the error rate by a lot
+        if (mb_substr_count($string, '"', 'utf8') % 2 !== 0)
+        {
+            $string .= '"';
+        }
 
-    public function build($keywords="") 
+        $string = preg_replace('/-[\s-]*-/u', '-', $string);
+        $from_to_preg = [
+            '/([-|])\s*$/u'        => '\\\\\1',
+            '/\|[\s|]*\|/u'        => '|',
+            '/(\S+)-(\S+)/u'       => '\1\-\2',
+            '/(\S+)\s+-\s+(\S+)/u' => '\1 \- \2',
+        ];
+
+        $string = mb_strtolower(preg_replace(array_keys($from_to_preg), array_values($from_to_preg), $string), 'utf8');
+        return $string;
+    }
+
+
+
+    public function build(string $keywords="")
     {
         if ($this->indexName=='classifier') 
         {
@@ -575,8 +693,11 @@ class SphinxQL
                 $keywords = 'qwerty '.$keywords;
             }
 
-            $keywords=$this->escape($keywords);
-            $this->_query.="and match({$keywords}) ";
+            $_o=$keywords;
+            //$keywords=$this->escape($keywords);
+            //$this->Log([$_o,$keywords, $this->halfEscapeMatch($_o)]);
+            $keywords=$this->halfEscapeMatch($keywords);
+            $this->_query.="and match('{$keywords}') ";
         }
         
         if (count($this->groupby)>0) 
@@ -611,6 +732,25 @@ class SphinxQL
                 $resultQuery[$value[0]] = $value[1];
             }
             $rs->close();
+        }
+    }
+
+
+    private function Log($message)
+    {
+        $dbt = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 2);
+        if (!empty($dbt))
+        {
+            unset($dbt[0]['function']);
+            unset($dbt[0]['class']);
+            unset($dbt[0]['type']);
+            if (isset($dbt[0]['object']))
+            {
+                unset($dbt[0]['object']);
+            }
+
+            error_log(PHP_EOL.json_encode($dbt[0], JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE).PHP_EOL.'>');
+            error_log(PHP_EOL.json_encode($dbt[0], JSON_PRETTY_PRINT).PHP_EOL, 3, "/var/log/mourjan/LogFile.txt");
         }
     }
     
