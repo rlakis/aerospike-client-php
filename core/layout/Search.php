@@ -423,6 +423,9 @@ class Search extends Page
                         /*'zone_3' => array('/1006833/mourjan-navigator-square', 200, 200, 'div-gpt-ad-1349258304441-0-' . $this->urlRouter->cfg['server_id'])));*/
                 //}
         }
+        if($this->urlRouter->sectionId == 10){
+            $this->num = $this->num * 2;
+        }
 
         if ($this->urlRouter->rootId && isset($this->urlRouter->roots[$this->urlRouter->rootId]))
             $this->rootName = $this->urlRouter->roots[$this->urlRouter->rootId][$this->fieldNameIndex];
