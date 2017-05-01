@@ -65,10 +65,12 @@ class Admin extends Page
             if ($parameter)
             {
                 $this->userdata = [];
-                $uids = \Core\Model\NoSQL::getInstance()->mobileGetLinkedUIDs($parameter);
-                foreach ($uids as $bins) 
+                if (\Core\Model\NoSQL::getInstance()->mobileGetLinkedUIDs($parameter, $uids)== Core\Model\NoSQL::OK)
                 {
-                    $this->userdata[] = $this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
+                    foreach ($uids as $bins) 
+                    {
+                        $this->userdata[] = $this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
+                    }
                 }                
             }
             else 

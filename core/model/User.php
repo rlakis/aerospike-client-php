@@ -1640,10 +1640,11 @@ class User
         $iteration = 0;
         $result = null;
         $saved=FALSE;
+        
         do
         {
             $iteration++;
-            
+            $msg="";
             try
             {
                 $stmt=$this->db->prepareQuery($q);
@@ -1684,24 +1685,26 @@ class User
             }
             catch (\PDOException $e)
             {
-                if (preg_match('/deadlock update conflicts with concurrent update/', $e->getMessage()))
-                {
-                    $this->db->rollBack(TRUE);
-                    usleep(2000);                    
+                $saved = FALSE;
+                $msg=$e->getMessage();
+                $this->db->rollBack();
+                
+                if (preg_match('/deadlock update conflicts with concurrent update/', $msg))
+                {                    
+                    usleep(500);                    
                 }
                 else
                 {
-                    $this->db->rollBack();
-                    break;
+                    $iteration=100;
                 }
             }
-        } while ($saved===FALSE || $iteration>3);
+        } while ($saved===FALSE && $iteration<4);
         
         if (!$saved)
         {
-            $this->db->rollBack();
-            NoSQL::Log([$id, $e->getMessage()??'WEIRED']);
             $id=0;
+            $this->db->rollBack();
+            NoSQL::Log([$id, $msg]);
         }
         else
         if ($iteration>1)
@@ -1713,7 +1716,7 @@ class User
     }
     
     
-    function saveAd($publish=0, $user_id=0, $runtime=0)
+    function saveAd($publish=0, $user_id=0)
     {
         $id=0;
         if($user_id)
@@ -1799,55 +1802,10 @@ class User
                     
                     $tries=0;
                     $result=null;
+                    
                     if ($this->pending['post']['se']>0) 
                     {
                         $result = $this->writeAdModification($publish, $media, $id, $userId, $attrs, $q);
-                        /*
-                        $tries++;
-                    		
-                        $stmt=$this->db->prepareQuery($q);
-                        $stmt->bindValue(1, $this->pending['post']['content'], PDO::PARAM_STR);
-                        $stmt->bindValue(2, $this->pending['post']['title']);
-                        $stmt->bindValue(3, $this->pending['post']['pu']);
-                        $stmt->bindValue(4, $this->pending['post']['se']);
-                        $stmt->bindValue(5, $this->pending['post']['rtl']);
-                        $stmt->bindValue(6, $this->pending['post']['cn']);
-                        $stmt->bindValue(7, $this->pending['post']['c']);
-                        $stmt->bindValue(8, $this->pending['post']['lat']);
-                        $stmt->bindValue(9, $this->pending['post']['lon']);
-                        $stmt->bindValue(10, $publish, PDO::PARAM_INT);
-                        $stmt->bindValue(11, $media, PDO::PARAM_INT);
-                        $stmt->bindValue(12, $id, PDO::PARAM_INT);
-
-                        if ($this->info['level']!=9)
-                        {
-                            $stmt->bindValue(13, $userId, PDO::PARAM_INT);
-                        }                        
-                                
-                        if ($this->db->executeStatement($stmt)) 
-                        {
-                            if (($result=$stmt->fetch(PDO::FETCH_ASSOC))!==FALSE)
-                            {                            
-                                if ($attrs)
-                                {                                            
-                                    $st=$this->db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
-                                    $st->bindValue(1, $id, PDO::PARAM_INT);
-                                    $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
-                                    $st->execute();  
-                                    $this->db->executeStatement($st);
-                                }
-                                $this->db->commit();
-                                $ad_is_saved=TRUE;
-                            }
-                            else
-                            {
-                                $result=NULL;
-                            }
-                        }
-                        else
-                        {
-                            $this->db->rollBack();
-                        }*/
                     }
                     
                     
@@ -2030,24 +1988,24 @@ class User
     {
         if (Core\Model\NoSQL::getInstance()->blacklistInsert($number, $msg, $uid))
         {
-            $linked = NoSQL::getInstance()->mobileGetLinkedUIDs($number);
-            foreach ($linked as $bins) 
+            if (NoSQL::getInstance()->mobileGetLinkedUIDs($number, $linked)== NoSQL::OK)
             {
-                NoSQL::getInstance()->setUserLevel($bins[\Core\Model\ASD\USER_UID], 5);
-            }
-            
-            
-            $q = 'update or insert into bl_phone (telephone, subject, web_user_id) values (?, ?, ?) matching(telephone) returning id';
-            $block = $this->db->get($q, [$number, $msg, $uid]);
-            $pass=0;
+                foreach ($linked as $bins) 
+                {
+                    NoSQL::getInstance()->setUserLevel($bins[\Core\Model\ASD\USER_UID], 5);
+                }
+                        
+                $q = 'update or insert into bl_phone (telephone, subject, web_user_id) values (?, ?, ?) matching(telephone) returning id';
+                $block = $this->db->get($q, [$number, $msg, $uid]);
+                $pass=0;
         
-            if(isset($block[0]['ID']) && $block[0]['ID'])
-            {
-                $pass=1;
+                if(isset($block[0]['ID']) && $block[0]['ID'])
+                {
+                    $pass=1;
+                }
+                        
+                return $pass;
             }
-            
-            
-            return $pass;
         }
         return 0;
     }
