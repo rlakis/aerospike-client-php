@@ -249,15 +249,18 @@ class SphinxQL
     }
     
     
-    function setGroupBy($attribute) {
+    function setGroupBy($attribute)
+    {
         $attribute = strtolower($attribute);
-        if (!in_array($attribute, $this->groupby)) {
+        if (!in_array($attribute, $this->groupby))
+        {
             $this->groupby[]=$attribute;
         }
     }
     
     
-    function clearFacets() {
+    function clearFacets()
+    {
         $this->facets = array();
     }
     
@@ -346,7 +349,7 @@ class SphinxQL
             $queryQL = $this->_query;            
         }
 
-        $result = ['error' => '', 'warning' => '', 'total' => 0, 'total_found' => 0, 'time' => 0, 'matches' => array (), 'sql'=>$queryQL];
+        $result = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'time'=>0, 'matches'=>[], 'sql'=>$queryQL];
 
         try 
         {
@@ -410,7 +413,7 @@ class SphinxQL
         {
             $q = $info[0];
             $assoc = $info[1];
-            $rs = array('error' => '', 'warning' => '', 'total' => 0, 'total_found' => 0, 'time' => 0, 'matches' => array (), 'facet'=>array(), 'sql'=>$q);
+            $rs = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'time'=>0, 'matches'=>[], 'facet'=>[], 'sql'=>$q];
             $resource = $this->_sphinx->multi_query($q);
             if ($this->_sphinx->error)
             {
@@ -455,7 +458,7 @@ class SphinxQL
                 
                 if (!$this->_sphinx->more_results())
                 {
-                    $this->fetchMetaData($rs);                    
+                    $this->fetchMetaData($rs);
                     $result[$name]=$rs;
                     break;
                 }
@@ -544,7 +547,7 @@ class SphinxQL
     }
     
         
-    function setLimits ($offset=0, $limit=10, $max = 1000)
+    function setLimits (int $offset=0, int $limit=10, int $max=1000)
     {
         assert( is_int($offset) );
         assert( is_int($limit) );
@@ -693,7 +696,7 @@ class SphinxQL
                 $keywords = 'qwerty '.$keywords;
             }
 
-            $_o=$keywords;
+            //$_o=$keywords;
             //$keywords=$this->escape($keywords);
             //$this->Log([$_o,$keywords, $this->halfEscapeMatch($_o)]);
             $keywords=$this->halfEscapeMatch($keywords);
