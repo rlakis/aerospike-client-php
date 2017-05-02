@@ -22,38 +22,68 @@ use Core\Model\DB;
  * HTTP/1.1" 200 5 "-" "Nexmo/MessagingHUB/v1.0" "-"
  */
 
-if (filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_STRING)=='GET')
+if (preg_match('/Apache-HttpClient/', $_SERVER['HTTP_USER_AGENT']))
 {
-    $msisdn = filter_input(INPUT_GET, 'msisdn', FILTER_VALIDATE_INT)+0;
-    $to = filter_input(INPUT_GET, 'to', FILTER_SANITIZE_STRING);
-    $networkcode = filter_input(INPUT_GET, 'network-code', FILTER_VALIDATE_INT)+0;
-    $messageId = filter_input(INPUT_GET, 'messageId', FILTER_SANITIZE_STRING);
-    $price = filter_input(INPUT_GET, 'price', FILTER_VALIDATE_FLOAT)+0;
-    $status = filter_input(INPUT_GET, 'status', FILTER_SANITIZE_STRING);
-    $scts = filter_input(INPUT_GET, 'scts', FILTER_VALIDATE_INT)+0;
-    $errCode = filter_input(INPUT_GET, 'err-code', FILTER_VALIDATE_INT)+0;
-    $messageTimestamp = filter_input(INPUT_GET, 'message-timestamp', FILTER_SANITIZE_STRING);
-    $reference = filter_input(INPUT_GET, 'client-ref', FILTER_SANITIZE_STRING);
-    $text = filter_input(INPUT_GET, 'text', FILTER_SANITIZE_STRING);
-    error_log(json_encode($_GET).PHP_EOL, 3, "/var/log/mourjan/sms.log");
+    $request_body = file_get_contents('php://input');
+    error_log(sprintf("%s\t%s", date("Y-m-d H:i:s"), $request_body).PHP_EOL, 3, "/var/log/mourjan/sms.log");
+
+    $json_request= json_decode( $request_body, TRUE ); //convert JSON into array    
+    if (isset($json_request['deliveryInfoNotification']))
+    {
+        $to='mourjan';
+        $networkcode=0;
+        $address=$json_request['deliveryInfoNotification']['deliveryInfo']['address'];
+        $msisdn = str_replace('tel:','',$address);    
+        $deliveryStatus = $json_request['deliveryInfoNotification']['deliveryInfo']['deliveryStatus'];
+        $messageId=$json_request['deliveryInfoNotification']['callbackData'];
+        if ($deliveryStatus==='DeliveredToTerminal')
+        {
+            $errCode=0;
+            $to='mourjan';
+        }
+        else
+        {
+            $errCode=1;
+        }
+    }
 }
 else
 {
-    $msisdn = filter_input(INPUT_POST, 'msisdn', FILTER_VALIDATE_INT)+0;
-    $to = filter_input(INPUT_POST, 'to', FILTER_SANITIZE_STRING);
-    $networkcode = filter_input(INPUT_POST, 'network-code', FILTER_VALIDATE_INT)+0;
-    $messageId = filter_input(INPUT_POST, 'messageId', FILTER_SANITIZE_STRING);
-    $price = filter_input(INPUT_POST, 'price', FILTER_VALIDATE_FLOAT)+0;
-    $status = filter_input(INPUT_POST, 'status', FILTER_SANITIZE_STRING);
-    $scts = filter_input(INPUT_POST, 'scts', FILTER_VALIDATE_INT)+0;
-    $errCode = filter_input(INPUT_POST, 'err-code', FILTER_VALIDATE_INT)+0;
-    $messageTimestamp = filter_input(INPUT_POST, 'message-timestamp', FILTER_SANITIZE_STRING);
-    $reference = filter_input(INPUT_POST, 'client-ref', FILTER_SANITIZE_STRING);
-    $text = filter_input(INPUT_POST, 'text', FILTER_SANITIZE_STRING);
-    error_log(json_encode($_POST).PHP_EOL, 3, "/var/log/mourjan/sms.log");    
-}
+    if (filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_STRING)=='GET')
+    {
+        $msisdn = filter_input(INPUT_GET, 'msisdn', FILTER_VALIDATE_INT)+0;
+        $to = filter_input(INPUT_GET, 'to', FILTER_SANITIZE_STRING);
+        $networkcode = filter_input(INPUT_GET, 'network-code', FILTER_VALIDATE_INT)+0;
+        $messageId = filter_input(INPUT_GET, 'messageId', FILTER_SANITIZE_STRING);
+        $price = filter_input(INPUT_GET, 'price', FILTER_VALIDATE_FLOAT)+0;
+        $status = filter_input(INPUT_GET, 'status', FILTER_SANITIZE_STRING);
+        $scts = filter_input(INPUT_GET, 'scts', FILTER_VALIDATE_INT)+0;
+        $errCode = filter_input(INPUT_GET, 'err-code', FILTER_VALIDATE_INT)+0;
+        $messageTimestamp = filter_input(INPUT_GET, 'message-timestamp', FILTER_SANITIZE_STRING);
+        $reference = filter_input(INPUT_GET, 'client-ref', FILTER_SANITIZE_STRING);
+        $text = filter_input(INPUT_GET, 'text', FILTER_SANITIZE_STRING);
+        error_log(json_encode($_GET).PHP_EOL, 3, "/var/log/mourjan/sms.log");
+    }
+    else
+    {
+        $msisdn = filter_input(INPUT_POST, 'msisdn', FILTER_VALIDATE_INT)+0;
+        $to = filter_input(INPUT_POST, 'to', FILTER_SANITIZE_STRING);
+        $networkcode = filter_input(INPUT_POST, 'network-code', FILTER_VALIDATE_INT)+0;
+        $messageId = filter_input(INPUT_POST, 'messageId', FILTER_SANITIZE_STRING);
+        $price = filter_input(INPUT_POST, 'price', FILTER_VALIDATE_FLOAT)+0;
+        $status = filter_input(INPUT_POST, 'status', FILTER_SANITIZE_STRING);
+        $scts = filter_input(INPUT_POST, 'scts', FILTER_VALIDATE_INT)+0;
+        $errCode = filter_input(INPUT_POST, 'err-code', FILTER_VALIDATE_INT)+0;
+        $messageTimestamp = filter_input(INPUT_POST, 'message-timestamp', FILTER_SANITIZE_STRING);
+        $reference = filter_input(INPUT_POST, 'client-ref', FILTER_SANITIZE_STRING);
+        $text = filter_input(INPUT_POST, 'text', FILTER_SANITIZE_STRING);
+        error_log(json_encode($_POST).PHP_EOL, 3, "/var/log/mourjan/sms.log");    
+    }
+    error_log(sprintf("%s\t%d\t%s\t%d\t%s\t%f\t%s\t%d\t%d\t%s\t%d\t%s", date("Y-m-d H:i:s"), $msisdn, $to, $networkcode, $messageId, $price, $status, $scts, $errCode, $messageTimestamp, $reference, $text).PHP_EOL, 3, "/var/log/mourjan/sms.log");
 
-error_log(sprintf("%s\t%d\t%s\t%d\t%s\t%f\t%s\t%d\t%d\t%s\t%d\t%s", date("Y-m-d H:i:s"), $msisdn, $to, $networkcode, $messageId, $price, $status, $scts, $errCode, $messageTimestamp, $reference, $text).PHP_EOL, 3, "/var/log/mourjan/sms.log");
+}
+//Apache-HttpClient
+
 
 if ($errCode==0 && strlen($reference)>1 && ($to=="Mourjan"||$to=="12242144077"||$to=="mourjan"||$to=="33644630401"))
 {
@@ -68,8 +98,8 @@ if ($errCode==0 && strlen($reference)>1 && ($to=="Mourjan"||$to=="12242144077"||
 
         if (!empty($uid) && NoSQL::getInstance()->mobileSetDeliveredCode($uid, $msisdn))
         {
-            $db = new DB($config);
-            $db->queryResultArray("UPDATE WEB_USERS_LINKED_MOBILE SET DELIVERED=1 WHERE ID=? and DELIVERED=0", [$reference], TRUE);
+            //$db = new DB($config);
+            //$db->queryResultArray("UPDATE WEB_USERS_LINKED_MOBILE SET DELIVERED=1 WHERE ID=? and DELIVERED=0", [$reference], TRUE);
         }
     }
     error_log(sprintf("%s\t%d\tis written", date("Y-m-d H:i:s"), $msisdn).PHP_EOL, 3, "/var/log/mourjan/sms.log");
