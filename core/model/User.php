@@ -3135,7 +3135,7 @@ class User
         }
         
         $succeed=false;
-        $bins = [\Core\Model\ASD\USER_EMAIL=>$email, Core\Model\ASD\USER_OPTIONS=>$this->info['options']];
+        $bins = [\Core\Model\ASD\USER_PROVIDER_EMAIL=>$email, Core\Model\ASD\USER_OPTIONS=>$this->info['options']];
         $status = NoSQL::getInstance()->modProfile([\Core\Model\ASD\USER_UID=>$this->info['id']], $bins);
         if ($status==NoSQL::OK)
         {
