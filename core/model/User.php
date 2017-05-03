@@ -2767,6 +2767,11 @@ class User
                     $updateTransRecords = $this->db->prepareQuery('update T_TRAN t set t.UID=? where t.UID=?');
                     $updateTransRecords->execute([$newUserId, $uid]);
                     unset($updateTransRecords);
+                    
+                    $invalidateStatement = $this->db->prepareQuery('insert into invalidate (table_id,record_id) values (18,?)');
+                    $invalidateStatement->execute([$newUserId]);
+                    $invalidateStatement->execute([$uid]);
+                    unset($invalidateStatement);
                             
                     $mcUser = new MCUser($uid);
                     if($mcUser->isMobileVerified())
