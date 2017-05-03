@@ -752,6 +752,15 @@ $lang=array(
     
     'label_users'   =>  'Users',
     'label_areas'   =>  'Localities',
-    'review'        =>  'Review'
+    'label_ads_monitor'   =>  'Ad Stats',
+    'review'        =>  'Review',
+    
+    'ad_detail'     =>  'View Ad Page',
+    'ad_share_wats'     =>  'Send using Whatsapp...',
+    'ad_share_viber'     =>  'Send using Viber...',
+    'premium_cancel'    =>  'Cancel Premium',
+    
+    'all_pubs'      =>  'All Publications',
+    'other_sources'         =>  'Other Sources'
     
 );

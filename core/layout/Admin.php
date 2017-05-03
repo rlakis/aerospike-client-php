@@ -28,6 +28,7 @@ class Admin extends Page
         
         $this->inlineCss .= 
                 '.ts .bt{width:auto;padding:5px 30px!important}'
+                . '#statDv{width:760px}'
                 . '.ts .lm{overflow:visible}'
                 . '.ts label{vertical-align:middle}'
                 . '.hy li{float:right;width:370px;border:0!important}'
@@ -40,7 +41,8 @@ class Admin extends Page
                 . '#msg{height:40px;display:block}'
                 . '.rpd{display:block}.rpd textarea{width:740px}'
                 . '.tbs{width:750px}.tbs li{float:left;width:80px}'
-                . '.load{width: 30px;height: 30px;display: inline-block;vertical-align: middle}';
+                . '.load{width: 30px;height: 30px;display: inline-block;vertical-align: middle}'
+                . '.filters{background-color:#ECECEC}.filters select{padding:2px 10px;margin:10px 20px}';
         
         $this->set_require('css', 'account');
         $this->title=$this->lang['title'];
@@ -214,6 +216,10 @@ class Admin extends Page
             echo '<li class=\'on\'><b>', $this->lang['label_areas'], '</b></li>';
         else
             echo '<li><a href=\'/admin/', $lang, '?sub=areas\'>', $this->lang['label_areas'], '</a></li>';
+        if ($sub=='ads')
+            echo '<li class=\'on\'><b>', $this->lang['label_ads_monitor'], '</b></li>';
+        else
+            echo '<li><a href=\'/admin/', $lang, '?sub=ads\'>', $this->lang['label_ads_monitor'], '</a></li>';
         /*
         if ($this->urlRouter->module=='about')
             echo '<li class=\'on\'><b>', $this->lang['aboutUs'], '</b></li>';
@@ -266,6 +272,161 @@ class Admin extends Page
         
         switch ($this->sub)
         {
+            case 'ads':
+                $langIndex = $this->urlRouter->siteLanguage == 'ar' ? 1 : 2;
+                ?><div class="filters"><?php
+                    ?><select onchange="fetchStat()" id="pubId"><?php
+                        ?><option value="0"><?= $this->lang['all_pubs'] ?></option><?php
+                        ?><option value="1"><?= $this->lang['mourjan'] ?></option><?php
+                        ?><option value="-1"><?= $this->lang['other_sources'] ?></option><?php
+                        foreach($this->urlRouter->publications as $id => $pub){
+                            if($id != 1){
+                                ?><option value="<?= $id ?>"><?= $pub[$langIndex] ?></option><?php
+                            }
+                        }
+                    ?></select><?php
+                    ?><select onchange="fetchStat()" id="cnId" style="display:none"><?php
+                        ?><option value="0"><?= $this->lang['opt_all_countries'] ?></option><?php
+                        foreach($this->urlRouter->countries as $id => $pub){
+                            ?><option value="<?= $id ?>"><?= $pub['name'] ?></option><?php
+                        }
+                    ?></select><?php
+                    ?><select onchange="fetchStat()" id="cId" style="display:none"><?php
+                        ?><option value="0"><?= $this->lang['all_cities'] ?></option><?php
+                        foreach($this->urlRouter->cities as $id => $pub){
+                            ?><option value="<?= $pub[4].'_'.$id ?>"><?= $pub[$langIndex] ?></option><?php
+                        }
+                    ?></select><?php
+                    ?><select onchange="fetchStat()" id="secId"><?php
+                        ?><option value="0"><?= $this->lang['opt_all_categories'] ?></option><?php
+                        foreach($this->urlRouter->sections as $id => $section){
+                            ?><option value="<?= $id ?>"><?= $section[$langIndex] ?></option><?php
+                        }
+                    ?></select><?php
+                ?></div><?php
+                ?><div id="statDv" class="load"></div><?php
+                
+                        $this->globalScript.="
+var HSLD=0; 
+var fetchStat = function(){
+var sec=$('#secId').val();
+var pub=$('#pubId').val();
+var cn=$('#cnId');
+var c=$('#cId');
+if(pub==1 || pub==-1){
+    cn.css('display','inline-block');
+    var j=0,cnv=cn.val(),cnl=cnv.length+1;
+    c.children().each(function(i,e){
+        var v=e.value;
+        if(v=='0' || v.substring(0,cnl)==cnv+'_'){
+            e.style.display='block';
+            j++;
+        }else{
+            e.style.display='none';
+            if(e.selected){
+                c.val(0);
+            }
+        } 
+    });
+    if(j>2){
+        c.css('display','inline-block');
+    }else{
+        c.css('display','none');
+    }
+}else{
+    cn.css('display','none');
+    c.css('display','none');
+    cn.val(0);
+    c.val(0);
+}
+var cnh=cn.val();
+$.ajax({
+           type:'POST',
+            url:'/ajax-ga/',
+            data:{
+                ads:1,
+                sec:sec,
+                pub:pub,
+                cn:cnh,
+                c:c.val().substring(cnh.length+1)
+            },
+            dataType:'json',
+            success:function(rp){
+                if(rp.RP){ 
+                    if(rp.DATA.d){
+                        var x =$('#statDv');
+                        x.removeClass('hxf');
+                        var gS={
+                            chart: {
+                                spacingRight:0,
+                                spacingLeft:0
+                            },
+                            title: {
+                                text: (lang=='ar'?'الاعلانات الفعالة':'active ads'),
+                                style:{
+                                    'font-weight':'bold',
+                                    'font-family':(lang=='ar'?'tahoma,arial':'verdana,arial'),
+                                    'direction':(lang=='ar'?'rtl':'ltr')
+                                }
+                            },
+                            xAxis: {
+                                type: 'datetime',
+                                title: {
+                                    text: null
+                                }
+                            },
+                            yAxis: {
+                                title: {
+                                    text: null
+                                }
+                            },
+                            tooltip: {
+                                shared: true
+                            },
+                            legend: {
+                                enabled: false
+                            },    
+                            colors:[
+                                '#2f7ed8',
+                                '#ff9000'
+                            ]
+                        };
+                        var series = [{
+                            type: 'line',
+                            name: 'Impressions',
+                            pointInterval:24 * 1000,
+                            pointStart: rp.DATA.d,
+                            data: rp.DATA.c
+                        }];
+                        
+                        gS['series']=series;
+                        x.highcharts(gS);
+                    }else{
+                        var x=$('#statDv');
+                        x.removeClass('load');
+                        x.addClass('hxf');
+                        x.html(lang=='ar'?'لا يوجد إحصائية عدد مشاهدات للعرض':'No impressions data to display');
+                    }
+                }else{
+                    var x=$('#statDv');
+                    x.removeClass('load');
+                    x.addClass('hxf');
+                    x.html(lang=='ar'?'فشل محرك مرجان بالحصول على الاحصائيات':'Mourjan system failed to load statistics');
+                }
+            }
+       });
+};
+(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='".$this->urlRouter->cfg['url_highcharts']."/min.js';
+        sh.onload=sh.onreadystatechange=function(){
+        if (!HSLD && (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete')){
+            HSLD=1;  
+       fetchStat();
+   }};head.insertBefore(sh,head.firstChild)})();
+                                
+                        ";
+                        
+                break;
+            
             case 'areas':            
                 ?><div><?php        
                 ?><ul class="ts"><?php

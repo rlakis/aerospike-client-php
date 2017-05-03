@@ -1061,7 +1061,74 @@ class Bin extends AjaxHandler{
             case 'ajax-ga':
                 $uid=$this->post('u', 'uint');
                 $archive = $this->post('x', 'boolean');
-                if($this->user->info['id'] && ($this->user->info['id']==$uid || $this->user->info['level']==9)){
+                $adStats = $this->post('ads', 'boolean');
+                if($adStats && $this->user->info['level']==9){
+                    $pubId = $this->post('pub', 'int');
+                    $secId = $this->post('sec', 'int');
+                    $countryId = $this->post('cn', 'int');
+                    $cityId = $this->post('c', 'int');
+                    $data=[];
+                    $dt=0;
+                    $q='select cast(x.dated as date) as d, sum(x.counter) as c
+                        from ad_pub_stat x ';
+                    if($pubId || $secId || $countryId){
+                        $q.= 'where ';
+                    }
+                    $append = false;
+                    if($pubId){
+                        $append = true;
+                        $q.=' publication_id '.($pubId==-1 ? '!= 1' : '='.$pubId);
+                    }
+                    if($countryId){
+                        if($append){
+                            $q.=' and ';
+                        }
+                        $append = true;
+                        $q.=' country_id ='.$countryId;
+                    }
+                    if($cityId){
+                        if($append){
+                            $q.=' and ';
+                        }
+                        $append = true;
+                        $q.=' city_id ='.$cityId;
+                    }
+                    if($secId){
+                        if($append){
+                            $q.=' and ';
+                        }
+                        $append = true;
+                        $q.=' section_id ='.$secId;
+                    }
+                    $q.=' group by 1';
+                    $res=$this->urlRouter->db->queryResultArray($q);
+                    if($res && count($res)){
+                        $i=0;
+                        $curDt=0;
+                        $prevDt=0;
+                        foreach($res as $rec){
+                            $curDt=strtotime($rec['D']);
+                            if($i==0)$dt=$curDt;
+                            else{
+                                $ddif = $curDt-$prevDt;
+                                if($ddif>86400){
+                                    $span = $ddif / 86400;
+                                    for($k=0;$k<$span-1;$k++){
+                                        $data[]=0;   
+                                        $i++;
+                                    }
+                                }
+                            }
+                            $prevDt=$curDt;
+                            $data[]=$rec['C'];
+                            $i++;
+                        }
+                    }
+                    $this->setData($data,'c');
+                    $this->setData($dt*1000,'d');
+                    $this->process();
+                    
+                }elseif($this->user->info['id'] && ($this->user->info['id']==$uid || $this->user->info['level']==9)){
                     
                     $aid = $this->post('a', 'uint');
                     
