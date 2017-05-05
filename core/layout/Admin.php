@@ -28,6 +28,7 @@ class Admin extends Page
         
         $this->inlineCss .= 
                 '.ts .bt{width:auto;padding:5px 30px!important}'
+                . '#cron{direction:ltr;margin-top:5px}#cron a{color:#00e;margin-right:30px}#cron a:hover{text-decoration:underline}'
                 . '#statDv{width:760px}'
                 . '.ts .lm{overflow:visible}'
                 . '.ts label{vertical-align:middle}'
@@ -278,14 +279,9 @@ class Admin extends Page
                     ?><select onchange="fetchStat()" id="pubId"><?php
                         ?><option value="0"><?= $this->lang['all_pubs'] ?></option><?php
                         ?><option value="1"><?= $this->lang['mourjan'] ?></option><?php
-                        ?><option value="-1"><?= $this->lang['other_sources'] ?></option><?php
-                        foreach($this->urlRouter->publications as $id => $pub){
-                            if($id != 1){
-                                ?><option value="<?= $id ?>"><?= $pub[$langIndex] ?></option><?php
-                            }
-                        }
+                        ?><option value="2"><?= $this->lang['other_sources'] ?></option><?php
                     ?></select><?php
-                    ?><select onchange="fetchStat()" id="cnId" style="display:none"><?php
+                    ?><select onchange="fetchStat()" id="cnId"><?php
                         ?><option value="0"><?= $this->lang['opt_all_countries'] ?></option><?php
                         foreach($this->urlRouter->countries as $id => $pub){
                             ?><option value="<?= $id ?>"><?= $pub['name'] ?></option><?php
@@ -304,16 +300,18 @@ class Admin extends Page
                         }
                     ?></select><?php
                 ?></div><?php
+                ?><div id="cron"><a href="javascript:fetchStat(0);">today</a><a href="javascript:fetchStat(7);">7 days</a><a href="javascript:fetchStat(15);">15 days</a><a href="javascript:fetchStat(30);">30 days</a><a href="javascript:fetchStat(90);">3 months</a><a href="javascript:fetchStat(180);">6 months</a><a href="javascript:fetchStat(365);">1 year</a></div><?php
                 ?><div id="statDv" class="load"></div><?php
                 
                         $this->globalScript.="
 var HSLD=0; 
-var fetchStat = function(){
+var fetchStat = function(x){
+if(typeof x === 'undefined')x=30;
 var sec=$('#secId').val();
 var pub=$('#pubId').val();
 var cn=$('#cnId');
 var c=$('#cId');
-if(pub==1 || pub==-1){
+
     cn.css('display','inline-block');
     var j=0,cnv=cn.val(),cnl=cnv.length+1;
     c.children().each(function(i,e){
@@ -333,12 +331,7 @@ if(pub==1 || pub==-1){
     }else{
         c.css('display','none');
     }
-}else{
-    cn.css('display','none');
-    c.css('display','none');
-    cn.val(0);
-    c.val(0);
-}
+
 var cnh=cn.val();
 $.ajax({
            type:'POST',
@@ -348,7 +341,8 @@ $.ajax({
                 sec:sec,
                 pub:pub,
                 cn:cnh,
-                c:c.val().substring(cnh.length+1)
+                c:c.val().substring(cnh.length+1),
+                span:x
             },
             dataType:'json',
             success:function(rp){
@@ -362,7 +356,7 @@ $.ajax({
                                 spacingLeft:0
                             },
                             title: {
-                                text: (lang=='ar'?'الاعلانات الفعالة':'active ads'),
+                                text: (lang=='ar'?'الاعلانات الواردة':'incoming ads'),
                                 style:{
                                     'font-weight':'bold',
                                     'font-family':(lang=='ar'?'tahoma,arial':'verdana,arial'),
@@ -393,8 +387,8 @@ $.ajax({
                         };
                         var series = [{
                             type: 'line',
-                            name: 'Impressions',
-                            pointInterval:24 * 1000,
+                            name: 'ads',
+                            pointInterval:24 * 3600 * 1000,
                             pointStart: rp.DATA.d,
                             data: rp.DATA.c
                         }];

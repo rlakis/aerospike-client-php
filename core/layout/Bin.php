@@ -1067,38 +1067,24 @@ class Bin extends AjaxHandler{
                     $secId = $this->post('sec', 'int');
                     $countryId = $this->post('cn', 'int');
                     $cityId = $this->post('c', 'int');
+                    $span = $this->post('span','int');
                     $data=[];
                     $dt=0;
                     $q='select cast(x.dated as date) as d, sum(x.counter) as c
-                        from ad_pub_stat x ';
-                    if($pubId || $secId || $countryId){
-                        $q.= 'where ';
-                    }
-                    $append = false;
+                        from ad_pub_stat x 
+                        where dated >= current_date'.($span>0 ? ' -'.$span : '');
+                    
                     if($pubId){
-                        $append = true;
-                        $q.=' publication_id '.($pubId==-1 ? '!= 1' : '='.$pubId);
+                        $q.=' and publication_id '.($pubId==-1 ? '!= 1' : '='.$pubId);
                     }
                     if($countryId){
-                        if($append){
-                            $q.=' and ';
-                        }
-                        $append = true;
-                        $q.=' country_id ='.$countryId;
+                        $q.=' and country_id ='.$countryId;
                     }
                     if($cityId){
-                        if($append){
-                            $q.=' and ';
-                        }
-                        $append = true;
-                        $q.=' city_id ='.$cityId;
+                        $q.=' and city_id ='.$cityId;
                     }
                     if($secId){
-                        if($append){
-                            $q.=' and ';
-                        }
-                        $append = true;
-                        $q.=' section_id ='.$secId;
+                        $q.=' and section_id ='.$secId;
                     }
                     $q.=' group by 1';
                     $res=$this->urlRouter->db->queryResultArray($q);
