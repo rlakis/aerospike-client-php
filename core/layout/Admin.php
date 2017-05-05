@@ -304,9 +304,10 @@ class Admin extends Page
                 ?><div id="statDv" class="load"></div><?php
                 
                         $this->globalScript.="
-var HSLD=0; 
+var HSLD=0,span=30; 
 var fetchStat = function(x){
-if(typeof x === 'undefined')x=30;
+if(typeof x === 'undefined')x=span;
+span=x;
 var sec=$('#secId').val();
 var pub=$('#pubId').val();
 var cn=$('#cnId');
