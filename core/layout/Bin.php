@@ -1966,6 +1966,7 @@ class Bin extends AjaxHandler{
                             {
                                 if (isset ($types[$loc['type']]))
                                 {
+                                    //error_log($loc['name']);
                                     $loc['latitude']=  number_format($loc['latitude'], 8);
                                     $loc['longitude']=  number_format($loc['longitude'], 8);
                                     $type=$types[$loc['type']][1];
@@ -2023,7 +2024,7 @@ class Bin extends AjaxHandler{
                                                             try{
                                                                 $updateDuplicateStmt->execute(array($loc['name'],$loc['latitude'],$loc['longitude'],$city['ID']));
                                                             }catch(Exception $e){
-                                                                error_log(__CLASS__.'::'.__FUNCTION__.' AJAX Location: '.$e->getMessage().PHP_EOL);
+                                                                //error_log(__CLASS__.'::'.__FUNCTION__.' AJAX Location: '.$e->getMessage().PHP_EOL);
                                                             }
                                                             break;
                                                         }
