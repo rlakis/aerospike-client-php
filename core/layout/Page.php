@@ -47,12 +47,13 @@ class Page extends Site
         //var_dump($this->user->info);
         /*$mcUser = new MCUser(876007);
         var_dump($mcUser);
-        *//*
-        $row = $this->urlRouter->db->queryResultArray(
-        "select * from web_users_device where uid = ?", ['829241']);
+        */
+        //var_dump($this->user->encodeID(879286));
+        /*$row = $this->urlRouter->db->queryResultArray(
+        "select count(*) from ad where hold = 0");
         var_dump($row);
-        $record = \Core\Model\NoSQL::getInstance()->fetchUserByUUID('ABC13D8A-5FD2-4A72-854F-55FC075BC52F');
-        var_dump($record);*/       
+        $record = \Core\Model\NoSQL::getInstance()->fetchUser(929012);
+        var_dump($record);*/
         
         $cdn = $this->urlRouter->cfg['url_resources'];
         
@@ -3199,7 +3200,7 @@ class Page extends Site
         }
         if ($this->urlRouter->userId) {
             $year = date('Y');
-            ?><div class="ftr"><div class="cr">© 2010-2016<?= $year ?> Mourjan.com Classifieds Aggregator - All Rights Reserved.<?php        
+            ?><div class="ftr"><div class="cr">© 2010-<?= $year ?> Mourjan.com Classifieds Aggregator - All Rights Reserved.<?php        
         }else {
             ?><div class="ftr"><div class="w"><?php
             ?><div class="q0 q1 fl"><?php
@@ -3399,7 +3400,7 @@ class Page extends Site
 
                 /* ?><div class="fr"><div id="google_translate_element"></div></div><?php */
                 $year = date('Y');
-                ?><div class="cr">© 2010-2016<?= $year ?> Mourjan.com Classifieds Aggregator - All Rights Reserved.</div><?php                    
+                ?><div class="cr">© 2010-<?= $year ?> Mourjan.com Classifieds Aggregator - All Rights Reserved.</div><?php                    
             //}
             
         }
@@ -5602,7 +5603,7 @@ class Page extends Site
                     ?><li><div><?php
                         ?><h5><?= $this->lang['mourjan_app'] ?></h5><?php
                         ?><p><?= $this->lang['app_desc'] ?></p><?php
-                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(4,164)</span><?php
+                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(4,385)</span><?php
                     ?></div></li><?php
                     ?><li><a type="button" href='https://play.google.com/store/apps/details?id=com.mourjan.classifieds' class="bt"><?= $this->lang['install'] ?></a></li><?php
                     ?></ul><br /><?php
