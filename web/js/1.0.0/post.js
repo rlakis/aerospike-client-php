@@ -2846,7 +2846,6 @@ function cacheLoc(loc,isSearch){
         data:{
             lang:lang,
             loc:obj,
-            raw:loc,
             search:isSearch
         },
         type:'POST'
