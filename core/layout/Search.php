@@ -3581,7 +3581,7 @@ if($isFeatured){
         }
         
         
-        ?><div class="rs"><?php
+        ?><div id="results" class="rs"><?php
             $hasResults = $this->searchResults['body']['total_found'] > 0 && isset($this->searchResults['body']['matches']) && count($this->searchResults['body']['matches']) > 0;
 
             //echo $this->renderNotifications();

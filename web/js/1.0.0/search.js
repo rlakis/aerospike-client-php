@@ -863,9 +863,13 @@ function cFtr(e,key){
 }
 
 var siad=$("#siAd"),
+    resd=$("#results"),
+    resh=resd.height(),
+    rest=resd.offset().top,
     a600=$(".a600",siad),
     hiad=siad.height(),
     wiad=siad.width(),
+    fiad,
     wHeight,
     wWidth,
     tTop,
@@ -874,7 +878,13 @@ var siad=$("#siAd"),
 function triad(){ 
     if(toFix){
         var st=window.pageYOffset || document.documentElement.scrollTop;
-        if(st>tTop){
+        if(st+fiad>=rest+resh){
+            toFix.css({
+                position:'absolute',
+                left:'0px',
+                top:(rest+resh-hiad)+'px'
+            });
+        }else if(st>tTop){
             toFix.css({
                 position:'fixed',
                 left:liad+'px',
@@ -921,6 +931,7 @@ function reriad(){
         tTop=a600.offset().top;
     }
     if(bind){
+        fiad=toFix.height();
         triad()
     }else{
         toFix=null;
