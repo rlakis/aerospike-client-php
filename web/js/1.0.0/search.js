@@ -862,97 +862,71 @@ function cFtr(e,key){
     $('.'+key,ul).slideToggle();
 }
 
-var Chat = function () 
-{
-    var self = this;
-    this.connection = false;
-    this.jid = false;
-    this.BOSH_SERVICE = 'https://dv.mourjan.com:5280/http-bind';
-    
-    this.init = function () 
-    {
-        self.connection = new Strophe.Connection(this.BOSH_SERVICE);
-        self.connection.xmlInput = this.log;
-        self.connection.xmlOutput = this.log;
-        if (UID>0)
-        {        
-            self.jid = UID;
-            console.log(JWT);
-            self.connection.connect(UID+"@mourjan.com",
-                        JWT,
-                        self.events.onConnect
-                    );
-        } else {
-            self.connection.disconnect();
+var siad=$("#siAd"),
+    a600=$(".a600",siad),
+    hiad=siad.height(),
+    wiad=siad.width(),
+    wHeight,
+    wWidth,
+    tTop,
+    liad,
+    toFix;
+function triad(){ 
+    if(toFix){
+        var st=window.pageYOffset || document.documentElement.scrollTop;
+        if(st>tTop){
+            toFix.css({
+                position:'fixed',
+                left:liad+'px',
+                top:'0px'
+            });
+        }else{
+            toFix.css({
+                position:'relative',
+                left:'0px',
+                top:'0px'
+            });
         }
-    };
-    
-    this.log = function( message ) 
-    {
-        console.log( message );
-    };
-    
-    this.out = function( message ) 
-    {
-        console.info( message );
-    };
-    
-    this.events = {
-        "onConnect": function (status) {
-            if (status == Strophe.Status.CONNECTING) {
-                        /*$('#log').html('');*/
-                self.out('Connecting chat server...');
-            } else if (status == Strophe.Status.CONNFAIL) {
-                self.out('Failed to connect.');
-                /*$('#connect').get(0).value = 'connect';*/
-            } else if (status == Strophe.Status.DISCONNECTING) {
-                self.out('Disconnecting from chat server...');
-            } else if (status == Strophe.Status.DISCONNECTED) {
-                self.out('Disconnected.');
-                /*
-                $('#connect').get(0).value = 'connect';
-                $('#messageForm').hide();
-                $('#loginForm').show();*/
-            } else if (status == Strophe.Status.CONNECTED) {
-                self.out('Connected.');
-                self.out('ECHOBOT: Send a message to ' + self.connection.jid +
-                    ' to talk to me.');
-                self.connection.addHandler(
-                        function (msg) {
-                            return self.events.onMessage( msg );
-                        }, null, 'message', null, null, null);
-                        
-                self.connection.send($pres().tree());
-                /*$('#loginForm').hide();
-                $('#messageForm').show();*/
-
-                /*self.groupchat.join();*/
-
-            }
-        },
-
-        "onMessage": function( msg ) {
-            if(jQuery(msg).attr("type") == "chat") {
-                self.out( "<strong>" + jQuery(msg).attr("from") + ": </strong>" + jQuery(msg).find("body:first").text() );
-            }
-
-            return true;
-        }
-    };
-    
-    this.sendMessage = function( recipient, message ) {
-            var reply = $msg({to: recipient, type: "chat"})
-                            .c("body")
-                            .t(message);
-            console.log("SENDING MESSAGE: " + message);
-            self.connection.send(reply.tree());
-            self.out( "<strong>" + self.connection.jid + ": </strong>" + message );
-    };
-        
-        
-    this.init();
+    }
 }
-function doChat()
-{
-    window.chat = new Chat();
+function reriad(){  
+    siad.css({
+        position:'relative',
+        left:'0px',
+        top:'0px'
+    });
+    if(a600.length){
+        a600.css({
+            position:'relative',
+            left:'0px',
+            top:'0px'
+        });
+    }
+    var w=$(window);
+    wHeight=w.height(),
+    wWidth=w.width();
+    if(lang=='ar'){        
+        liad=siad.parents('.col1').offset().left;
+    }else{
+        liad=siad.offset().left;
+    }
+    var bind=0;
+    if(wHeight>=hiad){
+        bind=1;
+        toFix=siad;
+        tTop=siad.offset().top;
+    }else if(a600.length>0 && wHeight>=600){
+        bind=1;
+        toFix=a600;
+        tTop=a600.offset().top;
+    }
+    if(bind){
+        triad()
+    }else{
+        toFix=null;
+        $(window).unbind('scroll',triad);
+    }
 }
+$(window).bind('scroll',triad);
+$(window).bind('resize',reriad);
+reriad();

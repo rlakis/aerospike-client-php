@@ -74,7 +74,7 @@ class Search extends Page
             $this->inlineCss .= '.cct > a{white-space:nowrap;float:'.($this->urlRouter->siteLanguage == 'ar' ? 'right':'left').'}';
             $this->inlineCss .= '.sfilter .order,.sfilter .olang{background-color:#f8f8f8}.sfilter .order.ov,.sfilter .olang.ov{background-color:#ff9000}ul.sfilter{background-color:gold}';
             $this->inlineCss.='.ad600{display:inline-block;width:300px;height:600px}.adsawa{border:0;display:inline-block;width:300px;height:250px}';                
-            $this->inlineCss .= '.rpd input[type="email"]{direction:ltr;display: block;width:624px;padding:5px 10px;margin-bottom:15px}';
+            $this->inlineCss .= '#sideFtr{position:relative;z-index:10000}.rpd input[type="email"]{direction:ltr;display: block;width:624px;padding:5px 10px;margin-bottom:15px}';
         }else{
             if(!$this->userFavorites && !$this->urlRouter->watchId){
                 $this->isMobileCssLegacy=false;
@@ -5458,7 +5458,7 @@ if($isFeatured){
                 }
             }            
         }
-            ?><ul class="list"><?php
+        ?><ul id="siAd" class="list"><?php
             
             
                 if($this->user->info['id'] && $this->user->info['level']==9 && !$this->urlRouter->userId && $this->urlRouter->module=='detail' && isset($this->detailAd[( $this->urlRouter->siteLanguage=='ar' ? Classifieds::EXTENTED_AR : Classifieds::EXTENTED_EN )]) && !$this->detailAdExpired 
@@ -5504,13 +5504,13 @@ if($isFeatured){
                             break;
                         case 2:
                         case 3:
-                            ?><li class="lad"><?php echo $this->fill_ad("zone_10", 'ad_x') ?></li><?php
+                            ?><li class="lad a600"><?php echo $this->fill_ad("zone_10", 'ad_x') ?></li><?php
                             $this->renderSideFeatures();
                             break;
                         default:
                             ?><li class="lad"><?php echo $this->fill_ad("zone_6", 'ad_m') ?></li><?php 
                             $this->renderSideFeatures();
-                            ?><li class="lad"><?php echo $this->fill_ad("zone_10", 'ad_x') ?></li><?php
+                            ?><li class="lad a600"><?php echo $this->fill_ad("zone_10", 'ad_x') ?></li><?php
                             break;
                     }
                     /*

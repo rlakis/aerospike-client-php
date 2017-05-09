@@ -2836,6 +2836,9 @@ function cacheLoc(loc,isSearch){
     var k=0;
     for (var i=l-1;i>=0;i--) {
         obj[k]={latitude:loc[i].geometry.location.lat(),longitude:loc[i].geometry.location.lng(),type:loc[i].types[0],name:loc[i].address_components[0].long_name,short:loc[i].address_components[0].short_name,formatted:loc[i].formatted_address,vw_ne_lat:loc[i].geometry.viewport.getNorthEast().lat(),vw_ne_lon:loc[i].geometry.viewport.getNorthEast().lng(),vw_sw_lat:loc[i].geometry.viewport.getSouthWest().lat(),vw_sw_lon:loc[i].geometry.viewport.getSouthWest().lng()};
+        if(loc[i].types[0]=='country' && obj[k].short.length > 2){
+            obj[k].short=loc[0].address_components[loc[0].address_components.length-1].short_name
+        }
         k++;
     }
     $.ajax({
@@ -2843,6 +2846,7 @@ function cacheLoc(loc,isSearch){
         data:{
             lang:lang,
             loc:obj,
+            raw:loc,
             search:isSearch
         },
         type:'POST'
