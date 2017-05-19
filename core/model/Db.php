@@ -43,11 +43,11 @@ class DB
         self::$TagsVersion=FALSE;
         self::$LocalitiesVersion=FALSE;
 
-        $versions=self::$Cache->getMulti(['section-counts-version', 'locality-counts-version', 'tag-counts-version']);
+        $versions=self::$Cache->getMulti(['SECTION-counts-version', 'LOCALITY-counts-version', 'TAG-counts-version']);
 
-        self::$SectionsVersion = $versions['section-counts-version'];
-        self::$LocalitiesVersion = $versions['locality-counts-version'];
-        self::$TagsVersion = $versions['tag-counts-version'];
+        self::$SectionsVersion = $versions['SECTION-counts-version'];
+        self::$LocalitiesVersion = $versions['LOCALITY-counts-version'];
+        self::$TagsVersion = $versions['TAG-counts-version'];
         
         $this->ql = new SphinxQL($cfg['sphinxql'], $cfg['search_index']);    
     }
