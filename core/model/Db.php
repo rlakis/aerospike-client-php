@@ -43,11 +43,11 @@ class DB
         self::$TagsVersion=FALSE;
         self::$LocalitiesVersion=FALSE;
 
-        $versions=self::$Cache->getMulti(['SECTION-counts-version', 'LOCALITY-counts-version', 'TAG-counts-version']);
+        $versions=self::$Cache->getMulti(['section-counts-version', 'locality-counts-version', 'tag-counts-version']);
 
-        self::$SectionsVersion = $versions['SECTION-counts-version'];
-        self::$LocalitiesVersion = $versions['LOCALITY-counts-version'];
-        self::$TagsVersion = $versions['TAG-counts-version'];
+        self::$SectionsVersion = $versions['section-counts-version'];
+        self::$LocalitiesVersion = $versions['locality-counts-version'];
+        self::$TagsVersion = $versions['tag-counts-version'];
         
         $this->ql = new SphinxQL($cfg['sphinxql'], $cfg['search_index']);    
     }
@@ -827,11 +827,13 @@ class DB
     }
     
     
-    function getSectionsData($countryId, $cityId, $rootId, $lang) {
+    function getSectionsData($countryId, $cityId, $rootId, $lang) 
+    {
         $vv = ($this->slaveOfRedis) ? self::$SectionsVersion : self::$SectionsVersion+1;
         $label = "section-data-{$countryId}-{$cityId}-{$rootId}-{$lang}-{$vv}";
         $result = self::$Cache->get($label);
-        if ($result!==FALSE) {
+        if ($result!==FALSE) 
+        {
             return $result;
         }
         
