@@ -2075,6 +2075,28 @@ class AndroidApi
                     //error_log(var_export($this->api->result['d'],true));
                     break;
                     
+                case API_ANDROID_SIGN_IN_GOOGLE: 
+                    $this->api->result['d'] = [];
+                    $this->api->result['d']['id'] = -2;
+                    $provider = 'google';
+                    $auth_info = json_decode(trim(urldecode(filter_input(INPUT_POST, 'auth', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '']]))));
+                    $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                    if(isset($auth_info->identifier) && $auth_info->identifier && base64_decode($signature)==strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY)))
+                    {
+                        $auth_info->email = strtolower($auth_info->email);
+                        $auth_info->emailVerified=true;
+                        $auth_info->profileURL='';
+                        require_once $this->api->config['dir'].'/core/model/User.php';
+                        $this->api->db->setWriteMode();  
+                        $USER = new User($this->api->db, $this->api->config, null, 0);
+                        $newId = $USER->connectDeviceToAccount($auth_info, $provider, $this->api->getUID(), $this->api->getUUID());
+                        if($newId>0)
+                        {
+                            $this->api->result['d']['id']=$newId;
+                        }
+                    }
+                    break;
+                    
                 case API_ANDROID_SIGN_OUT: 
                     $this->api->result['d'] = [];
                     $this->api->result['d']['id'] = 0;

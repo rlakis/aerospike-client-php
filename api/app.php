@@ -95,6 +95,7 @@ const API_ANDROID_CHANGE_ACCOUNT                = 81;
 const API_ANDROID_PUSH_RECEIPT                  = 82;
 const API_ANDROID_VERIFY_NUMBER                 = 83;
 const API_ANDROID_USER_NUMBER                   = 84;
+const API_ANDROID_SIGN_IN_GOOGLE                = 85;
 
 const API_DB_EVENT                              = 998;
 const API_LOG                                   = 999;
@@ -305,6 +306,7 @@ if (!$api->hasError())
         case API_ANDROID_PARSE_URI:
         case API_ANDROID_SIGN_OUT:
         case API_ANDROID_SIGN_IN:
+        case API_ANDROID_SIGN_IN_GOOGLE:
         case API_ANDROID_SIGN_UP:
         case API_ANDROID_SET_PASSWORD:
         case API_ANDROID_CHANGE_ACCOUNT:
