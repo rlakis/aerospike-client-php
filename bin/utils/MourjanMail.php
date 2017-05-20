@@ -812,37 +812,52 @@ class MourjanMail extends PHPMailer
             $link_2='<a href="'.$link_2.'" style="text-align:center;font-family:'.$fontFamily.';font-size:'.$fontSize.'px;display:block;padding:5px 0;color:#fff;text-decoration:none;">'.($this->mLanguage =='ar' ? 'إيقاف العرض' :'Stop Ad').'</a>';
         }
         
-        if (isset($adContent['pubTo'])) {
+        
+        $countries = $this->db->getCountriesDictionary();
+        if (isset($adContent['pubTo'])) 
+        {
             $countriesArray=array();
-            $cities=$this->db->getCities();
-            $countries = $this->db->getCountries($this->mLanguage);
-            foreach ($adContent['pubTo'] as $city => $value){
-                if (isset($cities[$city])) {
-                    if (!isset($countriesArray[$cities[$city][6]])){
-                        $ccs=$this->db->getCountryCities($cities[$city][6], $this->mLanguage);
-                        if ($ccs && count($ccs)>1){
-                            $countriesArray[$cities[$city][6]]=array($countries[$cities[$city][6]][$fieldIndex],array());
-                        }else {
-                            $countriesArray[$cities[$city][6]]=array($countries[$cities[$city][6]][$fieldIndex],false);
+            $cities=$this->db->getCitiesDictionary();
+            
+            foreach ($adContent['pubTo'] as $city => $value)
+            {
+                if (isset($cities[$city])) 
+                {
+                    if (!isset($countriesArray[ $cities[$city][5] ]))
+                    {
+                        $ccs = $countries[ $cities[$city][5] ][6];   // $this->db->getCountryCities($cities[$city][5], $this->mLanguage);
+                        if ($ccs && count($ccs)>1)
+                        {
+                            $countriesArray[$cities[$city][5]] = [$countries[ $cities[$city][5] ][$fieldIndex], []];
+                        }
+                        else 
+                        {
+                            $countriesArray[$cities[$city][5]] = [$countries[ $cities[$city][5] ][$fieldIndex], false];
                         }
                     }
-                    if ($countriesArray[$cities[$city][6]][1]!==false) $countriesArray[$cities[$city][6]][1][]=$cities[$city][$fieldIndex];
+                    
+                    if ($countriesArray[$cities[$city][5]][1]!==false) $countriesArray[$cities[$city][5]][1][]=$cities[$city][$fieldIndex];
                 }
             }
+            
             $i=0;
-            foreach ($countriesArray as $key => $value) {
+            foreach ($countriesArray as $key => $value) 
+            {
                 if ($i)$section.=' - '.$value[0];
                 else $section.=' '.($this->mLanguage=='ar'?'في':'in').' '.$value[0];
                 if ($value[1]!==false) $section.='('.implode ($comma, $value[1]).')';
                 $i++;
             }
-        }else {
-            $ccs=$this->db->getCountryCities($ad['COUNTRY_ID'], $this->mLanguage);
-            if ($ccs && count($ccs)>1){
+        } 
+        else 
+        {
+            $ccs = $countries[$ad['COUNTRY_ID']][6]; // $this->db->getCountryCities($ad['COUNTRY_ID'], $this->mLanguage);
+            if ($ccs && count($ccs)>1)
+            {
                 $section.=' '.($this->mLanguage=='ar'?'في '.$ad['CITY_NAME_AR']:'in '.$ad['CITY_NAME_EN']).$comma;
-                }
-                $section.=' '.($this->mLanguage=='ar'?'في '.$ad['COUNTRY_NAME_AR']:'in '.$ad['COUNTRY_NAME_EN']);
             }
+            $section.=' '.($this->mLanguage=='ar'?'في '.$ad['COUNTRY_NAME_AR']:'in '.$ad['COUNTRY_NAME_EN']);
+        }
         
         
         

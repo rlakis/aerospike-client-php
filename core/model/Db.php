@@ -198,10 +198,13 @@ class DB
     }
     
     
-    public function getInstance($try=0) {
-       if (self::$Instance === NULL) {            
+    public function getInstance($try=0) 
+    {
+       if (self::$Instance === NULL) 
+       { 
             $this->newInstance();
-            if (!self::$Instance->inTransaction()) {
+            if (!self::$Instance->inTransaction()) 
+            {
                 //error_log("new Instance beginTransaction Read: ". (self::$Readonly ? 'YES' : 'NO') ." Wait timeout: ".self::$WaitTimeout. PHP_EOL);
                 self::$Instance->beginTransaction();
             }
@@ -219,7 +222,9 @@ class DB
             }
              * 
              */
-        } else {            
+        } 
+        else 
+        { 
             if (!self::$Instance->inTransaction()) 
             {   
                 //error_log("old Instance beginTransaction Read: ". (self::$Readonly ? 'YES' : 'NO') ." Wait timeout: ".self::$WaitTimeout. PHP_EOL);
@@ -229,16 +234,23 @@ class DB
                 self::$Instance->beginTransaction();
             } 
         }
-        if(self::$Instance->inTransaction()){
+        
+        if(self::$Instance->inTransaction())
+        {
             //error_log(self::getTransactionIsolationMessage());
             return self::$Instance;
-        }else{
-            if($try === 3){
+        }
+        else
+        {
+            if($try === 3)
+            {
                 error_log("############################");
                 error_log("UNABLE TO BEGIN TRANSACTION");
                 error_log("############################");
                 return false;
-            }else{
+            }
+            else
+            {
                 usleep(100);
                 return $this->getInstance($try+1);
             }
@@ -257,7 +269,8 @@ class DB
     }
     
     
-    public static function getCache() {
+    public static function getCache() 
+    {
         return self::$Cache;
     }
     
@@ -366,19 +379,28 @@ class DB
     function executeStatement($stmt, $params=null, $runtime=0)
     {
         $result = false;
-        try{
-            if($params){
+        try
+        {
+            if($params)
+            {
                 $result = $stmt->execute($params);
-            }else{
+            }
+            else
+            {
                 $result = $stmt->execute();
             }            
-        } catch (Exception $ex) {  
+        } 
+        catch (Exception $ex) 
+        { 
             //self::$Instance->rollBack();    
-            if( (strpos($ex->getMessage(), '913 deadlock') > -1) && $runtime < 5){
+            if( (strpos($ex->getMessage(), '913 deadlock') > -1) && $runtime < 5)
+            {
                 usleep(100);
                 //$this->getInstance();
                 return $this->executeStatement($stmt,$params, $runtime+1);
-            }else{
+            }
+            else
+            {
                 error_log('CODE: '. $ex->getCode() . ' | '.$ex->getMessage() . PHP_EOL);
             }
         }
@@ -386,7 +408,8 @@ class DB
     }
     
     
-    function stmtCacheResultSimpleArray($label, $stmt, $params=null, $key=0, $lifetime=86400, $forceSetting=false){
+    function stmtCacheResultSimpleArray($label, $stmt, $params=null, $key=0, $lifetime=86400, $forceSetting=false)
+    {
         $records=array();
         $foo = self::$Cache->get($label);
                         
@@ -520,7 +543,7 @@ class DB
                 order by year_make desc", null, 0, 86400, $force);
     }
     
-    
+    /*
     function getCountries($lang='ar',$force=0){
         return $this->queryCacheResultSimpleArray(
                 'countries_'.$lang,
@@ -565,7 +588,7 @@ class DB
                  order by NAME_".  strtoupper($lang),
                 null, 0, 86400,$force);
     }
-    
+    */
     
     function queryQLCacheResultSimpleArray($label, $query, $params=null, $key=0, $lifetime=86400, $forceSetting=false, $forceIfEmpty=false)
     {
@@ -619,20 +642,25 @@ class DB
     }
 
     /* New data block */
-    function getCountriesDictionary($force=FALSE) {
-        if(!$this->slaveOfRedis){
+    function getCountriesDictionary($force=FALSE) 
+    {
+        if(!$this->slaveOfRedis)
+        {
             $force = true;
         }
+        
         $countries = $this->queryCacheResultSimpleArray('countries-dictionary',
                     'select ID, NAME_AR, NAME_EN, lower(trim(id_2)) URI, ' .
                     'trim(currency_id) currency_id, code, '.
-                    '(select list(ID) from city where country_id=country.id and blocked=0) cities, '.
+                    '(select list(ID) from f_city where country_id=country.id and blocked=0) cities, '.
                     'LONGITUDE, LATITUDE, LOCKED, UNIXTIME ' .
                     'from country where blocked=0',
                     null, 0, 86400, $force);
 
-        if (!empty($countries) && !is_array($countries[key($countries)][6])) {
-            foreach ($countries as $country_id => $country) {
+        if (!empty($countries) && !is_array($countries[key($countries)][6])) 
+        {
+            foreach ($countries as $country_id => $country) 
+            {
                 $cities = explode(",", $country[6]);
                 if (count($cities)>1) {
                     $countries[$country_id][6]=$cities;
@@ -649,17 +677,25 @@ class DB
     
     function getCitiesDictionary($force=FALSE) 
     {
-        if(!$this->slaveOfRedis){
+        if (!$this->slaveOfRedis)
+        {
             $force = true;
         }
+        //                     'select ID, NAME_AR, NAME_EN, URI, COUNTRY_ID, LATITUDE, LONGITUDE, locked, UNIXTIME from city where blocked=0',
+
         return $this->queryCacheResultSimpleArray('cities-dictionary',
-                    'select ID, NAME_AR, NAME_EN, URI, COUNTRY_ID, LATITUDE, LONGITUDE, locked, UNIXTIME from city where blocked=0',
-                    null, 0, 86400, $force);        
+                'select f_city.ID, lg.NAME NAME_AR, f_city.NAME NAME_EN, URI, COUNTRY_ID, LATITUDE, LONGITUDE, 1 locked, UNIXTIME 
+                from f_city 
+                left join nlang lg on lg.TABLE_ID=201 and lg.lang=\'ar\' and lg.ID=F_CITY.ID
+                where blocked=0',
+                null, 0, 86400, $force);        
     }
     
     
-    function getPublications($force=FALSE) {
-        if(!$this->slaveOfRedis){
+    function getPublications($force=FALSE) 
+    {
+        if(!$this->slaveOfRedis)
+        {
             $force = true;
         }
         return $this->queryCacheResultSimpleArray('publications',
@@ -689,14 +725,18 @@ class DB
     }
     
     
-    function getSections($forceSetting=false){
+    function getSections($forceSetting=false)
+    {
         $label = 'sections';
         $records = false;
-        if(!$forceSetting){
+        
+        if(!$forceSetting)
+        {
             $records = self::$Cache->get($label);
         }
         
-        if ($forceSetting || $records===FALSE) {
+        if ($forceSetting || $records===FALSE) 
+        {
             $records = $this->ql->directQuery(
                     "select id, section_name_ar as name_ar, section_name_en as name_en, "
                     . " section_uri as uri, root_id, "
@@ -709,15 +749,19 @@ class DB
     }
 
         
-    function getCountriesData($lang) {
+    function getCountriesData($lang) 
+    {
         $vv = ($this->slaveOfRedis) ? self::$SectionsVersion : self::$SectionsVersion+1;
         $label = "country-data-{$lang}-{$vv}";        
         $result = self::$Cache->get($label);
-        if ($result!==FALSE) {
+        if ($result!==FALSE) 
+        {
             return $result;
         }
-        
-        $result=array();
+        else
+        {
+            $result=array();
+        }
         /*
         if ($this->slaveOfRedis) {
         	error_log("Could not get v1:{$label} from cache!!!");
@@ -732,12 +776,15 @@ class DB
         $countries = $this->getCountriesDictionary();
         $f=($lang=='ar')?1:2;
         $resource = $this->ql->getConnection()->query("select groupby(), count(*), max(date_added) from ad group by country limit 1000");
-        if ($this->ql->getConnection()->error) {
+        if ($this->ql->getConnection()->error) 
+        {
             throw new Exception('['.$this->ql->getConnection()->errno.'] '.$this->ql->getConnection()->error.' [ '.$label.']');
         }
         
-        if ($resource instanceof \mysqli_result) {                
-            while ($row = $resource->fetch_array()) {
+        if ($resource instanceof \mysqli_result) 
+        { 
+            while ($row = $resource->fetch_array()) 
+            {
                 $purposes = $this->getPurpusesData($row[0], 0, 0, 0, $lang);
                 $result[$row[0]]=['name'=>$countries[$row[0]][$f], 'counter'=>$row[1], 'unixtime'=>$row[2], 
                                   'uri'=>$countries[$row[0]][3], 'currency'=>$countries[$row[0]][4], 'code'=>$countries[$row[0]][5],
@@ -745,7 +792,9 @@ class DB
             }
             $resource->free_result();                
         }
-        if (!empty($result)) {
+        
+        if (!empty($result)) 
+        {
             asort($result);
             self::$Cache->set($label, $result);
         }
@@ -753,23 +802,32 @@ class DB
     }
     
     
-    function getCitiesData($countryId, $lang) {
+    function getCitiesData($countryId, $lang) 
+    {
         $vv = ($this->slaveOfRedis) ? self::$SectionsVersion : self::$SectionsVersion+1;
         $label = "city-data-{$countryId}-{$lang}-{$vv}";
         $result = self::$Cache->get($label);
-        if ($result!==FALSE) {
+        if ($result!==FALSE) 
+        {
             return $result;
         }
-
-        $result=array();
-        if ($this->slaveOfRedis) {
-            return $result;
+        else
+        {
+            $result=[];
+            if ($this->slaveOfRedis) 
+            {
+                return $result;
+            }
         }
+        
         $cities = $this->getCitiesDictionary();
         $f=($lang=='ar')?1:2;
-        $resource = $this->ql->getConnection()->query("select groupby(), sum(counter), max(unixtime) from section_counts where country_id={$countryId} and city_id>0 group by city_id limit 1000");
-        if ($resource instanceof \mysqli_result) {                
-            while ($row = $resource->fetch_array()) {
+        
+        $resource = $this->ql->getConnection()->query("select groupby(), sum(counter), max(unixtime) from section_counts where country_id={$countryId} and city_id>0 group by city_id limit 1000");        
+        if ($resource instanceof \mysqli_result) 
+        {        
+            while ($row = $resource->fetch_array()) 
+            {
                 $purposes = $this->getPurpusesData($countryId, $row[0], 0, 0, $lang);
                 $result[$row[0]]=['name'=>$cities[$row[0]][$f], 'counter'=>$row[1], 'unixtime'=>$row[2], 
                                   'uri'=>$cities[$row[0]][3], 'latitude'=>$cities[$row[0]][5], 
@@ -777,12 +835,13 @@ class DB
             }
             $resource->free_result();                
         }
-        if (!empty($result)) {
+        
+        if (!empty($result)) 
+        {
             asort($result);
             self::$Cache->set($label, $result);
         }
-        return $result;
-        
+        return $result;        
     }
     
     
@@ -836,11 +895,16 @@ class DB
         {
             return $result;
         }
-        
-        $result=array();
-        if ($this->slaveOfRedis) {
-            return $result;
+        else
+        {        
+            $result=[];
+            if ($this->slaveOfRedis) 
+            {
+                return $result;
+            }
         }
+        
+        
         $q = "select groupby(), section_name_{$lang}, sum(counter), max(unixtime) from section_counts where root_id={$rootId} ";
         if ($cityId) {
             $q.="and city_id={$cityId} ";
@@ -850,22 +914,27 @@ class DB
         $q.="group by section_id order by section_name_{$lang} asc limit 1000";
         
         $resource = $this->ql->getConnection()->query($q);
-        if ($this->ql->getConnection()->error) {
+        if ($this->ql->getConnection()->error) 
+        {
             throw new Exception('['.$this->ql->getConnection()->errno.'] '.$this->ql->getConnection()->error.' [ '.$q.']');
         }
         
-        if ($resource instanceof \mysqli_result) {                
-            while ($row = $resource->fetch_array()) {
+        if ($resource instanceof \mysqli_result) 
+        {           
+            while ($row = $resource->fetch_array()) 
+            {
                 $purposes = $this->getPurpusesData($countryId, $cityId, $rootId, $row[0], $lang);
                 $result[$row[0]]=['name'=>$row[1], 'counter'=>$row[2], 'unixtime'=>$row[3], 'purposes'=>$purposes];                
             }
             $resource->free_result();                
         }
 
-        if (!empty($result)) {
+        if (!empty($result)) 
+        {
             $roots = $this->getRoots();
             $df = $roots[$rootId][4];
-            if (isset($result[$df])) {
+            if (isset($result[$df])) 
+            {
                 $tdf = $result[$df];
                 unset($result[$df]);
                 $result[$df] = $tdf;
