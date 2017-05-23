@@ -177,30 +177,42 @@ class Router
             $this->isMobile = $_session_params['mobile'];
         }
 
-        if (preg_match('/\/en(?:\/|$)/',$_SERVER['REQUEST_URI'])) {
+        $_request_uri = filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_URL);
+
+        if (\preg_match('/\/en(?:\/|$)/',$_request_uri)) 
+        {
             $this->siteLanguage = 'en';
             //$this->uri = rtrim(parse_url(str_replace('/en/', '/', $_SERVER['REQUEST_URI']), PHP_URL_PATH), '/');
-            $this->uri = rtrim(parse_url(preg_replace('/\/en(?:\/|$)/','/',$_SERVER['REQUEST_URI']), PHP_URL_PATH), '/');
-        } elseif (preg_match('/\/fr(?:\/|$)/',$_SERVER['REQUEST_URI'])) {
+            $this->uri = rtrim(parse_url(preg_replace('/\/en(?:\/|$)/', '/', $_request_uri), PHP_URL_PATH), '/');
+        } 
+        elseif (preg_match('/\/fr(?:\/|$)/', $_request_uri)) 
+        {
             $this->siteLanguage = 'en';
             $this->extendedLanguage = 'fr';
             //$this->uri = rtrim(parse_url(str_replace('/en/', '/', $_SERVER['REQUEST_URI']), PHP_URL_PATH), '/');
-            $this->uri = rtrim(parse_url(preg_replace('/\/fr(?:\/|$)/','/',$_SERVER['REQUEST_URI']), PHP_URL_PATH), '/');
-        } else {
+            $this->uri = rtrim(parse_url(preg_replace('/\/fr(?:\/|$)/','/', $_request_uri), PHP_URL_PATH), '/');
+        } 
+        else 
+        {
             $this->siteLanguage = 'ar';
-            $this->uri = rtrim( parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+            $this->uri = rtrim( parse_url($_request_uri, PHP_URL_PATH), '/');
         }
         
         $_session_params['lang']=$this->siteLanguage;
-        
-        if (isset($_SERVER['HTTP_REFERER']) && preg_match('/translate\.google\.com/', $_SERVER['HTTP_REFERER'])){
+                
+        if (isset($_SERVER['HTTP_REFERER']) && preg_match('/translate\.google\.com/', $_SERVER['HTTP_REFERER']))
+        {
             $toLang=null;
             preg_match('/&langpair\=[a-z]{2}(?:\||%7C)([a-z]{2})/', $_SERVER['HTTP_REFERER'], $toLang);
-            if ($toLang && count($toLang)>1){
+            if ($toLang && count($toLang)>1)
+            {
                 $this->siteTranslate=$toLang[1];
-            }else {
+            }
+            else 
+            {
                 preg_match('/&tl\=([a-z]{2})/', $_SERVER['HTTP_REFERER'], $toLang);
-                if ($toLang && count($toLang)>1){
+                if ($toLang && count($toLang)>1)
+                {
                     $this->siteTranslate=$toLang[1];
                 }
             }
@@ -217,7 +229,9 @@ class Router
         }
         
         if (substr($this->uri, -10)=='/index.php')
+        {
             $this->uri = substr($this->uri, 0, strlen ($this->uri)-10);
+        }
                     
         $_args = explode('&', $_SERVER['QUERY_STRING']);
                         
@@ -254,12 +268,16 @@ class Router
                 }
             }                        
         }
-        if(isset($_GET['aid']) && isset($_GET['q'])){
+        
+        if(isset($_GET['aid']) && isset($_GET['q']))
+        {
             $this->force_search=true;
         }
             
         if ($this->params['start'] && !array_key_exists('start', $_GET))
+        {
             $_GET['start']=  $this->params['start'];
+        }
              
 
         $_args = explode('/', $this->uri);
@@ -361,7 +379,7 @@ class Router
                 }
             }            
         }        
-        
+                
 
 	if ((!$this->internal_referer || strstr($this->referer, '/oauth/')) &&  empty($_GET) && ($this->uri=='' || $this->uri=='/')  && !$this->userId && !$this->watchId) 
         {
@@ -476,7 +494,6 @@ class Router
         {
             $_session_params['lang']=$this->siteLanguage;
         }
-        
         $_SESSION['_u']['params'] = $_session_params;
     }
     

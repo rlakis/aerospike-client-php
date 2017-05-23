@@ -7,19 +7,24 @@ class PostAd extends Page{
     var $pageGlobal='',$pageInline='',$ad=null, $loadColorBox=false, $sectionCrumb='', $userBalance=0;
     
     
-    function __construct($router){
+    function __construct($router)
+    {
         parent::__construct($router);
-        if($this->urlRouter->cfg['active_maintenance']){
+        
+        if($this->urlRouter->cfg['active_maintenance'])
+        {
             $this->user->redirectTo('/maintenance/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
         }
+        
         $this->checkBlockedAccount();
         $this->checkSuspendedAccount();
         
         $tmp = $this->get('ad');
-        if($tmp=='new'){
+        if($tmp=='new')
+        {
             unset($this->user->pending['post']);
             $this->user->update();
-            $this->urlRouter->redirect($this->urlRouter->uri,302);
+            //$this->urlRouter->redirect($this->urlRouter->uri . ($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'), 302);
         }
         
         //syslog(LOG_INFO, json_encode($this->user->info));
