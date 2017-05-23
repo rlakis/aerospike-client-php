@@ -454,18 +454,18 @@ class Detail extends Search
                 if ($this->detailAd[Classifieds::ROOT_ID]==1){
                     $hasSchema=true;
                     $itemDesc='itemprop="description" ';
-                    $itemScope=' itemprop="mainContentOfPage" itemscope itemtype="http://schema.org/Product"';
+                    $itemScope=' itemprop="mainContentOfPage" itemscope itemtype="https://schema.org/Product"';
                 }elseif ($this->detailAd[Classifieds::ROOT_ID]==2){
                     $hasSchema=true;
                     $itemDesc='itemprop="description" ';
-                    $itemScope=' itemprop="mainContentOfPage" itemscope itemtype="http://schema.org/Product"';
+                    $itemScope=' itemprop="mainContentOfPage" itemscope itemtype="https://schema.org/Product"';
                 }elseif ($this->detailAd[Classifieds::ROOT_ID]==3){
                     if ($this->detailAd[Classifieds::PURPOSE_ID]==3) {
                         $itemDesc='itemprop="description" ';
-                        $itemScope=' itemprop="mainContentOfPage" itemscope itemtype="http://schema.org/JobPosting"';
+                        $itemScope=' itemprop="mainContentOfPage" itemscope itemtype="https://schema.org/JobPosting"';
                    }elseif ($this->detailAd[Classifieds::PURPOSE_ID]==4) {
                       $itemDesc='itemprop="description" ';
-                      $itemScope=' itemprop="mainContentOfPage" itemscope itemtype="http://schema.org/Person"';
+                      $itemScope=' itemprop="mainContentOfPage" itemscope itemtype="https://schema.org/Person"';
                     }
                 }
             if($this->detailAd[Classifieds::LATITUDE] || $this->detailAd[Classifieds::LONGITUDE]) {
@@ -643,18 +643,18 @@ class Detail extends Search
                 if ($this->detailAd[Classifieds::ROOT_ID]==1){
                     $hasSchema=true;
                     $itemDesc='itemprop="description" ';
-                    $itemScope=' itemscope itemtype="http://schema.org/Product"';
+                    $itemScope=' itemscope itemtype="https://schema.org/Product"';
                 }elseif ($this->detailAd[Classifieds::ROOT_ID]==2){
                     $hasSchema=true;
                     $itemDesc='itemprop="description" ';
-                    $itemScope=' itemscope itemtype="http://schema.org/Product"';
+                    $itemScope=' itemscope itemtype="https://schema.org/Product"';
                 }elseif ($this->detailAd[Classifieds::ROOT_ID]==3){
                     if ($this->detailAd[Classifieds::PURPOSE_ID]==3) {
                         $itemDesc='itemprop="description" ';
-                        $itemScope=' itemscope itemtype="http://schema.org/JobPosting"';
+                        $itemScope=' itemscope itemtype="https://schema.org/JobPosting"';
                    }elseif ($this->detailAd[Classifieds::PURPOSE_ID]==4) {
                       $itemDesc='itemprop="description" ';
-                      $itemScope=' itemscope itemtype="http://schema.org/Person"';
+                      $itemScope=' itemscope itemtype="https://schema.org/Person"';
                     }
                 }
     

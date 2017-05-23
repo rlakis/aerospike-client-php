@@ -871,18 +871,18 @@ class Search extends Page
                     if ($ad[Classifieds::ROOT_ID] == 1) {
                         $hasSchema = true;
                         $itemDesc = 'itemprop="description" ';
-                        $itemScope = ' itemscope itemtype="http://schema.org/Product"';
+                        $itemScope = ' itemscope itemtype="https://schema.org/Product"';
                     } elseif ($ad[Classifieds::ROOT_ID] == 2) {
                         $hasSchema = true;
                         $itemDesc = 'itemprop="description" ';
-                        $itemScope = ' itemscope itemtype="http://schema.org/Product"';
+                        $itemScope = ' itemscope itemtype="https://schema.org/Product"';
                     } elseif ($ad[Classifieds::ROOT_ID] == 3) {
                         if ($ad[Classifieds::PURPOSE_ID] == 3) {
                             $itemDesc = 'itemprop="description" ';
-                            $itemScope = ' itemscope itemtype="http://schema.org/JobPosting"';
+                            $itemScope = ' itemscope itemtype="https://schema.org/JobPosting"';
                         } elseif ($ad[Classifieds::PURPOSE_ID] == 4) {
                             $itemDesc = 'itemprop="description" ';
-                            $itemScope = ' itemscope itemtype="http://schema.org/Person"';
+                            $itemScope = ' itemscope itemtype="https://schema.org/Person"';
                         }
                     }
 
@@ -1222,7 +1222,7 @@ class Search extends Page
                 /* ?><div class="hd"><?php echo $this->summerizeSearchMobile() ?></div><?php */
                 
                 $this->paginationMobile();
-                ?><ul itemscope itemtype="http://schema.org/ItemList" class='ls card rsl<?= $this->paginationString == '' ? ' sh' : '' ?>'><?php
+                ?><ul itemscope itemtype="https://schema.org/ItemList" class='ls card rsl<?= $this->paginationString == '' ? ' sh' : '' ?>'><?php
                 $this->renderResults($keywords);
                 ?></ul><?php
                 echo $this->paginationMobile();
@@ -3261,18 +3261,18 @@ class Search extends Page
                 if ($ad[Classifieds::ROOT_ID] == 1) {
                     $hasSchema = true;
                     $itemDesc = 'itemprop="description" ';
-                    $itemScope = ' itemscope itemtype="http://schema.org/Product"';
+                    $itemScope = ' itemscope itemtype="https://schema.org/Product"';
                 } elseif ($ad[Classifieds::ROOT_ID] == 2) {
                     $hasSchema = true;
                     $itemDesc = 'itemprop="description" ';
-                    $itemScope = ' itemscope itemtype="http://schema.org/Product"';
+                    $itemScope = ' itemscope itemtype="https://schema.org/Product"';
                 } elseif ($ad[Classifieds::ROOT_ID] == 3) {
                     if ($ad[Classifieds::PURPOSE_ID] == 3) {
                         $itemDesc = 'itemprop="description" ';
-                        $itemScope = ' itemscope itemtype="http://schema.org/JobPosting"';
+                        $itemScope = ' itemscope itemtype="https://schema.org/JobPosting"';
                     } elseif ($ad[Classifieds::PURPOSE_ID] == 4) {
                         $itemDesc = 'itemprop="description" ';
-                        $itemScope = ' itemscope itemtype="http://schema.org/Person"';
+                        $itemScope = ' itemscope itemtype="https://schema.org/Person"';
                     }
                 }
                 
@@ -3679,7 +3679,7 @@ if($isFeatured){
                             $this->displayDetail();
                         }
                     }
-                    ?><ul class="ls"<?= $this->urlRouter->module == 'detail' ? '' : ' itemprop="mainContentOfPage" ' ?>itemscope itemtype="http://schema.org/ItemList"><?php
+                    ?><ul class="ls"<?= $this->urlRouter->module == 'detail' ? '' : ' itemprop="mainContentOfPage" ' ?>itemscope itemtype="https://schema.org/ItemList"><?php
                         echo '<meta itemprop="name" content="' . $this->subTitle . '" />';
                         $this->renderDResults($keywords);
                         ?></ul><?php 

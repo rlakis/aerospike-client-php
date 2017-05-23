@@ -28,7 +28,7 @@ class Page extends Site
     var $detailAd, $isNewMobile=false, $detailAdExpired=false,$requireLogin=false,$forceNoIndex=false,$isAdminSearch=0;
     var $cityName='',$rootName='', $countryName='', $categoryName='', $sectionName='', $purposeName='',$backLink='';
     
-    var $pageItemScope='itemscope itemtype="http://schema.org/WebPage"';
+    var $pageItemScope='itemscope itemtype="https://schema.org/WebPage"';
 
     
     function __construct(Core\Model\Router $router)
@@ -3955,7 +3955,7 @@ class Page extends Site
                 $country = $this->urlRouter->countries[$this->urlRouter->countryId]['uri'];
             }
             ?><script type="application/ld+json"><?php
-                ?>{"@context": "http://schema.org",<?php
+                ?>{"@context": "https://schema.org",<?php
                 ?>"@type": "WebSite",<?php
                 ?>"url": "https://www.mourjan.com/<?= ($country ? $country.'/' :'').($this->urlRouter->siteLanguage=='ar' ?'':$this->urlRouter->siteLanguage.'/') ?>",<?php
                 ?>"potentialAction":{<?php
@@ -4236,7 +4236,7 @@ class Page extends Site
         if($this->urlRouter->module == 'index')
         {
             ?><script type="application/ld+json"><?php
-                ?>{"@context": "http://schema.org",<?php
+                ?>{"@context": "https://schema.org",<?php
                 ?>"@type": "WebSite",<?php
                 ?>"url": "https://www.mourjan.com/",<?php
                 ?>"potentialAction":{<?php
@@ -4529,7 +4529,7 @@ class Page extends Site
                 $country = $this->urlRouter->countries[$this->urlRouter->countryId]['uri'];
             }
             ?><script type="application/ld+json"><?php
-                ?>{"@context": "http://schema.org",<?php
+                ?>{"@context": "https://schema.org",<?php
                 ?>"@type": "WebSite",<?php
                 ?>"url": "https://www.mourjan.com/<?= ($country ? $country.'/' :'').($this->urlRouter->siteLanguage=='ar' ?'':$this->urlRouter->siteLanguage.'/') ?>",<?php
                 ?>"potentialAction":{<?php
@@ -4998,7 +4998,7 @@ class Page extends Site
                 $country = $this->urlRouter->countries[$this->urlRouter->countryId]['uri'];
             }
             ?><script type="application/ld+json"><?php
-                ?>{"@context": "http://schema.org",<?php
+                ?>{"@context": "https://schema.org",<?php
                 ?>"@type": "WebSite",<?php
                 ?>"url": "https://www.mourjan.com/<?= ($country ? $country.'/' :'').($this->urlRouter->siteLanguage=='ar' ?'':$this->urlRouter->siteLanguage.'/') ?>",<?php
                 ?>"potentialAction":{<?php
