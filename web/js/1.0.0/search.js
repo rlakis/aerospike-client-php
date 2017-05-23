@@ -915,6 +915,10 @@ function reriad(){
     var w=$(window);
     wHeight=w.height(),
     wWidth=w.width();
+    if(wWidth<970){
+        toFix=null;
+        return;
+    }
     if(lang=='ar'){        
         liad=siad.parents('.col1').offset().left;
     }else{
