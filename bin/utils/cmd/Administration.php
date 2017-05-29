@@ -42,7 +42,7 @@ class Administration
 
                         echo "granting '{$userId}' > {$amount} gold".PHP_EOL;
                         
-                        $users = $this->db->queryResultArray('select id, opts from web_users where id in ('.$userId.') and lvl != 5');
+                        $users = $this->db->queryResultArray('select id from web_users where id in ('.$userId.') and lvl != 5');
 
                         if($users!==false)
                         {

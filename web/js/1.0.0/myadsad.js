@@ -1387,9 +1387,126 @@ function adelOK(e,h){
         }
     })
 }
-
+var load_sections=1,SECTIONS,ROOTS;
+if(STO){
+    if(typeof(sessionStorage['SECTIONS'+lang])!=="undefined"){
+        eval(sessionStorage['SECTIONS'+lang]);
+        load_sections=0;
+    }
+}
+var loadSections=function(){
+    $.ajax({
+        type:'GET',
+        url:'/ajax-menu/',
+        data:{
+            sections:lang
+        },
+        dataType:'html',
+        success:function(d){
+            if(d.length){ 
+                try{
+                    sessionStorage.setItem('SECTIONS'+lang, d);
+                    eval(d);
+                }catch(ex){}
+            }
+        }
+    });
+};
+if(load_sections){
+    loadSections();
+}
+var renderPU=function(){
+    $('.b_pu',AZONE).remove();
+    if(ARO!=4){
+        for (var i in ROPU[ARO]) {
+            var p = ROPU[ARO][i];
+            if (p[0] != APU) {
+                var a = $("<div class=\'btrk bt b_pu\' pu=\'" + p[0] + "\' aid=\'" + AID + "\'>" + p[1] + "</div>");
+                a.click(function (ck) {
+                    ck.preventDefault();
+                    ck.stopPropagation();
+                    var b = $(this);
+                    preClick(AE, b);
+                    changePu(AE, b.attr("aid"), ARO, ASE, b.attr("pu"));
+                });
+                AZONE.prepend(a);
+            }else{
+                var a = $("<div class=\'btrk bt on b_pu\'>" + p[1] + "</div>");
+                AZONE.prepend(a);
+            }
+        }
+    }
+};
+var TON;
+var renderSecs=function(ro,e){   
+    e.empty();
+    ARO = ro;
+    $('.b_ro',AZONE).remove();
+    
+    var tmp=$('.on',TON);
+    tmp.removeClass('on');
+    tmp=$('#r'+ro,TON);
+    tmp.addClass('on');
+    
+    var ul=[$('<ul></ul>'),$('<ul></ul>'),$('<ul></ul>'),$('<ul></ul>')];
+    var j=0;
+    var cs= (ro==1?'x x':(ro==2?'z z':(ro==3?'v v':(ro==4?'y y':(ro==99?'u u':'')))));
+    for(var i in SECTIONS){
+        if(ro==SECTIONS[i][2]){
+            var r=$("<li id='s"+SECTIONS[i][0]+"'"+(ASE==SECTIONS[i][0]?' class=\'on\'':'')+"><span><span class='"+cs+SECTIONS[i][0]+"'></span>"+SECTIONS[i][1]+"</span></li>");
+            r.click(function(ck){
+                ck.preventDefault();
+                ck.stopPropagation();
+                $('.on',e).removeClass('on');
+                var sid=$(this).attr('id').substring(1);
+                if($('.b_pu.on',AZONE).length || ro==4){
+                    if(ro==4){
+                        APU=5;
+                    }
+                    var b = $(this);
+                    preClick(AE, b);
+                    changePu(AE, AID, ARO, sid, APU);
+                }else{
+                    ASE=sid;
+                    $(this).addClass('on');
+                    renderPU();
+                    $('.b_pu',AZONE).css('background-color','red');
+                }
+            });
+            ul[j++].append(r);
+            if(j==4)j=0;
+        }
+    }
+    e.append(ul[0]);
+    e.append(ul[1]);
+    e.append(ul[2]);    
+    e.append(ul[3]);    
+    
+    renderPU();
+    
+    for (var i in ROTN) {
+        if (i == ro) {
+            var mxn = ROTN[i];
+            for (var j in mxn) {
+                var p = mxn[j];
+                var a = $("<div class=\'btrk bt gold b_ro\' ro=\'" + p[0] + "\' se=\'" + p[1] + "\' pu=\'" + p[2] + "\' aid=\'" + AID + "\'>" + p[3] + "</div>");
+                a.click(function (ck) {
+                    ck.preventDefault();
+                    ck.stopPropagation();
+                    var b = $(this);
+                    preClick(AE, b);
+                    changePu(AE, b.attr("aid"), b.attr("ro"), b.attr("se"), b.attr("pu"));
+                });
+                AZONE.append(a);
+            }
+        }
+    }
+};
+var AID=0,ARO=0,ASE=0,APU=0,AE,ALI,AZONE,ADSK;
 var quickSwitch = function (e) {
+    AE=e;
     var li = $(e.parentNode);
+    ALI=li;
     if (li.hasClass("focus")) {
         return;
     }
@@ -1397,57 +1514,52 @@ var quickSwitch = function (e) {
             ro = li.attr("ro"),
             se = li.attr("se"),
             pu = li.attr("pu");
-    if (ro == 4) {
-        return;
-    }
+    AID = id;
+    ARO=ro;
+    ASE=se;
+    APU=pu;
+    
     li.addClass("focus");
     var co = li.offset();
+    window.scrollTo(0,co.top);
     var bdy = $("body");
     var dsk = $("<div id=\'dialog-mask\'></div>");
     var zone = $("<div class=\'btzone\'></div>");
-    zone.css("top", co.top + "px");
-    if (lang == "ar") {
-        zone.css("left", (co.left - 200) + "px");
-    } else {
-        zone.css("left", (co.left + 656) + "px");
-    }
-    for (var i in ROPU[ro]) {
-        var p = ROPU[ro][i];
-        if (p[0] != pu) {
-            var a = $("<div class=\'btrk bt\' pu=\'" + p[0] + "\' aid=\'" + id + "\'>" + p[1] + "</div>");
-            a.click(function (ck) {
-                ck.preventDefault();
-                ck.stopPropagation();
-                var b = $(this);
-                preClick(e, b, li, zone, dsk);
-                changePu(e, b.attr("aid"), 0, 0, b.attr("pu"));
+    AZONE=zone;
+    ADSK=dsk;
+    if(!TON){
+        TON=$("<div class='ton "+lang+"'><ul><li class='roots'><ul></ul></li><li class='sections'></li></ul></div>");
+        var tmp=$('.roots ul',TON);
+        var secs=$('.sections',TON);
+        var ph=Math.floor(100/ROOTS.length);
+        for(var i in ROOTS){
+            var r=$("<li id='r"+ROOTS[i][0]+"'><span>"+ROOTS[i][1]+"</span></li>");
+            tmp.append(r);
+            r.click(function(){
+                renderSecs(this.id.substring(1),secs);
             });
-            zone.append(a);
         }
+    }else{
+        TON.show();
     }
+    renderSecs(ro,$('.sections',TON));
+    
+    zone.css("top", co.top + "px");
+    TON.css("top", co.top + "px");
+    if (lang == "ar") {
+        zone.css("left", (co.left - 330) + "px");
+        TON.css("left", (co.left-182) + "px");
+    } else {
+        zone.css("left", (co.left + 836) + "px");
+        TON.css("left", (co.left) + "px");
+    }
+    
     for (var i in SETN) {
         if (i == se) {
             var mxn = SETN[i];
             for (var j in mxn) {
                 var p = mxn[j];
-                var a = $("<div class=\'btrk bt gold\' ro=\'" + p[0] + "\' se=\'" + p[1] + "\' pu=\'" + p[2] + "\' aid=\'" + id + "\'>" + p[3] + "</div>");
-                a.click(function (ck) {
-                    ck.preventDefault();
-                    ck.stopPropagation();
-                    var b = $(this);
-                    preClick(e, b, li, zone, dsk);
-                    changePu(e, b.attr("aid"), b.attr("ro"), b.attr("se"), b.attr("pu"));
-                });
-                zone.append(a);
-            }
-        }
-    }
-    for (var i in ROTN) {
-        if (i == ro) {
-            var mxn = ROTN[i];
-            for (var j in mxn) {
-                var p = mxn[j];
-                var a = $("<div class=\'btrk bt gold\' ro=\'" + p[0] + "\' se=\'" + p[1] + "\' pu=\'" + p[2] + "\' aid=\'" + id + "\'>" + p[3] + "</div>");
+                var a = $("<div class=\'btrk bt gold b_se\' ro=\'" + p[0] + "\' se=\'" + p[1] + "\' pu=\'" + p[2] + "\' aid=\'" + id + "\'>" + p[3] + "</div>");
                 a.click(function (ck) {
                     ck.preventDefault();
                     ck.stopPropagation();
@@ -1465,14 +1577,17 @@ var quickSwitch = function (e) {
         li.removeClass("focus");
         zone.remove();
         dsk.remove();
+        TON.hide();
     });
     bdy.append(dsk);
     bdy.append(zone);
+    bdy.append(TON);
 };
-var preClick = function (e, b, li, zone, dsk) {
-    li.removeClass("focus");
-    zone.remove();
-    dsk.remove();
+var preClick = function (e, b) {
+    ALI.removeClass("focus");
+    AZONE.remove();
+    ADSK.remove();
+    TON.hide();
     if ($(e.childNodes[0]).hasClass("k")) {
         $(e).prepend($("<div class=\'loads load\'></div>"));
     } else {
@@ -1488,7 +1603,7 @@ var changePu = function (e, id, ro, se, pu) {
         success: function (rp) {
             if (rp.RP) {
                 var dt = rp.DATA,
-                        li = $("#" + id);
+                li = $("#" + id);
                 li.attr("ro", dt.ro);
                 li.attr("se", dt.se);
                 li.attr("pu", dt.pu);
@@ -1535,7 +1650,7 @@ function tglSound(e,r){
 
 function errDialog(){
     Dialog.show('alert_dialog','<span class="fail"></span>'+(lang=='ar'?'فشل محرك مرجان باتمام العملية<br />يرجى المحاولة مجدداً<br />او <a href="/contact/">اطلعنا بالامر</a>':'Your request has failed<br />please try again<br />or <a href="/contact/en/">Tell us about it</a>'));
-}
+};
  
 var ALT = 0,MULTI=0,pext="";
 $(document).keydown(function(e){
@@ -1552,7 +1667,7 @@ $(document).keyup(function(){
 
 function MSAD(e){
     console.log(e);
-}
+};
 
 function EAD(e,idx){
     if(ALT){

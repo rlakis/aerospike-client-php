@@ -4449,7 +4449,7 @@ class Page extends Site
                             if($this->user->info['id']){
                                 if($this->user->info['level']==9){     
                                     if($this->urlRouter->cfg['site_production']){
-                                        ?>sh.src='https://h5.mourjan.com/js/3.1.5/myadsad.js';<?php
+                                        ?>sh.src='https://h5.mourjan.com/js/3.2.8/myadsad.js';<?php
                                     }else{
                                         ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/myadsad.js';<?php 
                                     }
@@ -4954,7 +4954,7 @@ class Page extends Site
                     ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_jquery'] ?>socket.io-1.4.5.js"></script><?php
                     if($this->user->info['level']==9){     
                         if($this->urlRouter->cfg['site_production']){
-                            ?><script type="text/javascript" defer="true" src="https://h5.mourjan.com/js/3.1.5/myadsad.js"></script><?php
+                            ?><script type="text/javascript" defer="true" src="https://h5.mourjan.com/js/3.2.8/myadsad.js"></script><?php
                         }else{
                             ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/myadsad.js"></script><?php
                         }
@@ -5603,7 +5603,7 @@ class Page extends Site
                     ?><li><div><?php
                         ?><h5><?= $this->lang['mourjan_app'] ?></h5><?php
                         ?><p><?= $this->lang['app_desc'] ?></p><?php
-                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(4,385)</span><?php
+                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(4,585)</span><?php
                     ?></div></li><?php
                     ?><li><a type="button" href='https://play.google.com/store/apps/details?id=com.mourjan.classifieds' class="bt"><?= $this->lang['install'] ?></a></li><?php
                     ?></ul><br /><?php
