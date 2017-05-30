@@ -3185,7 +3185,7 @@ class Page extends Site
         }else{
             $this->globalScript.='var upem=0;';
         }
-        if ( ($this->urlRouter->module=='index' || $this->urlRouter->module=='about' || ($this->urlRouter->module=='search' && $this->searchResults['body']['total_found']) ) && !$this->userFavorites && !$this->urlRouter->watchId && !$this->urlRouter->userId && $this->urlRouter->cfg['enabled_sharing']){
+        if ( ($this->urlRouter->module=='index' || $this->urlRouter->module=='about' || ($this->urlRouter->module=='search' && isset($this->searchResults['body']['total_found']) && $this->searchResults['body']['total_found']) ) && !$this->userFavorites && !$this->urlRouter->watchId && !$this->urlRouter->userId && $this->urlRouter->cfg['enabled_sharing']){
             ?><div class="sha sh <?= $this->urlRouter->siteLanguage ?> rc w"><?php
                 ?><div class="fr"><?php 
                     ?><label><?= $this->urlRouter->module=='search' ? $this->lang['shareUsSearch']:$this->lang['shareUs'] ?></label><?php 
@@ -3924,7 +3924,7 @@ class Page extends Site
                     ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_post.js"></script><?php
                 }elseif($renderMobileVerifyPage){
                     ?><script defer="true" type="text/javascript" onload="inlineQS()" src="<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>jquery.mob.min.js"></script><?php
-                    ?><script defer="true" type="text/javascript" onload="$('#code').select2({language:'<?= $this->urlRouter->siteLanguage ?>',dir:'rtl'})" src="<?= $this->urlRouter->cfg['url_jquery'] ?>select2.min.js"></script><?php
+                    ?><script defer="true" type="text/javascript" onload="$('#code').select2({language:'<?= $this->urlRouter->siteLanguage ?>',dir:'<?= $this->urlRouter->siteLanguage=='ar'?'rtl':'ltr' ?>'})" src="<?= $this->urlRouter->cfg['url_jquery'] ?>select2.min.js"></script><?php
                 }
                 break;
             case 'detail':
@@ -4979,7 +4979,7 @@ class Page extends Site
                     }
                     ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/post.js"></script><?php
                 }elseif($this->user->info['id']){
-                    ?><script type="text/javascript" onload="$('#code').select2({language:'<?= $this->urlRouter->siteLanguage ?>',dir:'rtl'})" defer="true" src="<?= $this->urlRouter->cfg['url_jquery'] ?>select2.min.js"></script><?php
+                    ?><script type="text/javascript" onload="$('#code').select2({language:'<?= $this->urlRouter->siteLanguage ?>',dir:'<?= $this->urlRouter->siteLanguage=='ar'?'rtl':'ltr' ?>'})" defer="true" src="<?= $this->urlRouter->cfg['url_jquery'] ?>select2.min.js"></script><?php
                 }
                 break;
             case 'password':

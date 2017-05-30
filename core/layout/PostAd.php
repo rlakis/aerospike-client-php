@@ -59,14 +59,27 @@ class PostAd extends Page{
             if(!$this->isUserMobileVerified){
                 $this->title=$this->lang['verify_mobile'];
                 $this->set_require('css', array('select2'));
-                $this->inlineCss.='div.row{display:block}.phwrap{padding:0 20px}p.ph{padding-bottom:15px;line-height:28px;border:0px;background-color:transparent;width:100%}#main{background-color:#FFF;border:0;padding-bottom:20px}';
+                $this->inlineCss.='div.row{display:block}.phwrap{padding:0 20px}p.ph{padding-bottom:15px;line-height:28px;border:0px;background-color:transparent;width:100%}p.corr{padding-bottom:0px;margin-bottom:0px}#main{background-color:#FFF;border:0;padding-bottom:20px}';
                 $this->inlineCss.='
                     .ph.num{direction:ltr}
                     .row .bt{width:200px}
                     .row.err{padding:10px 0;color:red}
                     #code{width:272px;visibility:hidden;height:28px}
                         #number,#vcode{direction:ltr;font-size:22px;width:250px;padding:10px;border:1px solid #aaa;border-radius:4px;text-align:center}
+                        #mb_check ul{display:block;width:100%;overflow:hidden;background-color:#ececec;margin-bottom:5px}
+                        #mb_check li{padding:15px 10px;height: 60px;line-height: 50px}                        
                         ';
+                if($this->urlRouter->siteLanguage=='ar'){                    
+                    $this->inlineCss.='
+                        #mb_check li{float:right}
+                        #mb_check li:last-child{float:left}
+                    ';
+                }else{
+                    $this->inlineCss.='
+                        #mb_check li{float:left}
+                        #mb_check li:last-child{float:right}
+                    ';
+                }
                 if(isset($this->user->pending['mobile'])){
                     $this->inlineCss .= '#mb_notice{display:none}';                
                 }else{                
@@ -991,7 +1004,7 @@ class PostAd extends Page{
                     ?><p class="ph"><?= $this->lang['notice_mobile_required'] ?><br /></p><?php 
                     ?><form onsubmit="dcheck();return false"><?php
                     ?><div class="ctr row"><?php
-                        ?><select id="code"><?php 
+                    ?><select id="code" dir="ltr"><?php 
                             foreach($cc as $country){
                                 $country[2]= preg_replace('/\x{200E}/u','',trim($country[2]));
                                 ?><option value="<?= $country[0] ?>"<?= $this->user->params['country']==$country[1]?' selected':'' ?>><?= $country[2] ?> (<?= ($this->urlRouter->siteLanguage=='ar'?'':'+').$country[0].($this->urlRouter->siteLanguage=='ar'?'+':'') ?>)</option><?php
@@ -1008,20 +1021,27 @@ class PostAd extends Page{
                     ?></form><?php
                 ?></div><?php
                 ?><div id="mb_check"><?php 
-                    ?><p class="ph ctr num" id="num_string"></p><?php 
-                    ?><p class="ph ctr"><?= $this->lang['notice_check_number'] ?><br /></p><?php                     
-                    ?><div id="error_smsg" class="ctr row err"><br /></div><?php
-                    ?><div class="ctr row"><?php
-                    ?><input type="button" onclick="verify()" value="<?= $this->lang['send_code'] ?>" class="bt ok" /><?php
-                    ?></div><br /><?php
+                    ?><p class="ph ctr num corr" id="num_string"></p><?php 
                     ?><div class="ctr row"><?php
                     ?><a href="javascript:ncorrect()" class="lnk"><?= $this->lang['correct'] ?></a><?php
+                    ?></div><br /><?php
+                    /* ?><p class="ph ctr"><?= $this->lang['notice_check_number'] ?><br /></p><?php */
+                    ?><p class="ph ctr"><?= $this->lang['choose_mobile_validation'] ?><br /></p><?php                     
+                    ?><div id="error_smsg" class="ctr row err"><br /></div><?php
+                    ?><div class="ctr row"><?php
+                        ?><ul><?php
+                            ?><li>1.</li><li><?= $this->lang['validate_mobile_by_call'] ?></li><li><input type="button" onclick="verify(1)" value="<?= $this->lang['call_me'] ?>" class="bt ok" /></li><?php
+                        ?></ul><?php
+                        ?><ul><?php
+                            ?><li>2.</li><li><?= $this->lang['validate_mobile_by_sms'] ?></li><li><input type="button" onclick="verify()" value="<?= $this->lang['send_code'] ?>" class="bt ok" /></li><?php
+                        ?></ul><?php
+                    ?><br /><?php
                     ?></div><?php
                 ?></div><?php
                 ?><form onsubmit="validate();return false"><?php
                 ?><div id="mb_validate"><?php 
                     ?><p class="ph ctr num" id="val_string"></p><?php 
-                    ?><p class="ph ctr" id="sms_text"><?= isset($this->user->pending['mobile']) ? $this->lang['notice_sent_sms_prev'].'<br />' :'' ?></p><?php 
+                    ?><p class="ph ctr" id="sms_text"><?= isset($this->user->pending['mobile']) ? (isset($this->user->pending['mobile_call']) ? $this->lang['notice_sent_call'].$this->lang['notice_sent_call_prev'] : $this->lang['notice_sent_sms_prev']).'<br />' :'' ?></p><?php 
                     ?><div class="ctr row"><?php
                     ?><input type="text" placeholder="0000" id="vcode" /><?php
                     ?></div><?php
@@ -1052,7 +1072,9 @@ class PostAd extends Page{
                     var cont=function(){
                         document.location="";
                     };
-                    var verify=function(){
+                    var vCall='.(isset($this->user->pending['mobile'])&&isset($this->user->pending['mobile_call'])?1:0).';
+                    var verify=function(vc){
+                        if(typeof vc !== "undefined")vCall=1;
                         $("#mb_check").hide();
                         $("#mb_load").show();
                         sctop();
@@ -1062,7 +1084,8 @@ class PostAd extends Page{
                             url:"/ajax-mobile/",
                             data:{
                                 tel:curNumber,
-                                hl:lang
+                                hl:lang,
+                                vc:vCall
                             },
                             dataType:"json",
                             success:function(rp){
@@ -1079,7 +1102,12 @@ class PostAd extends Page{
                                         }
                                     }else{
                                         if(rp.DATA.number>0){
-                                            sentW(1);
+                                            if(vCall){
+                                                setTimeout(function(){hangup(curNumber)},2000);
+                                                sentW(2);
+                                            }else{
+                                                sentW(1);
+                                            }
                                         }else{
                                             sysErr();
                                         }
@@ -1102,6 +1130,20 @@ class PostAd extends Page{
                             error:function(rp){sysErr()}
                         })
                     };
+                    var hangup=function(num){
+                        $.ajax({
+                            type:"POST",
+                            url:"/ajax-mobile/",
+                            data:{
+                                tel:curNumber,
+                                hl:lang,
+                                hang:1
+                            },
+                            dataType:"json",
+                            success:function(rp){
+                            }
+                        });
+                    };
                     var doneW=function(){
                         $("#mb_load").hide();
                         $("#mb_check").hide();
@@ -1112,10 +1154,16 @@ class PostAd extends Page{
                     var sentW=function(nw){
                         $("#val_string").html(curNumber);
                         var m;
-                        if(nw){
-                            m ="'.$this->lang['notice_sent_sms'].'";
-                        }else{
-                            m = "'.$this->lang['notice_sent_sms_prev'].'";
+                        switch(nw){
+                            case 2:
+                                m ="'.$this->lang['notice_sent_call'].'";
+                                break;
+                            case 1:
+                                m ="'.$this->lang['notice_sent_sms'].'";
+                                break;
+                            default:
+                                m = "'.$this->lang['notice_sent_sms_prev'].'";
+                                break;
                         }
                         $("#sms_text").html(m+"<br />");
                         $("#mb_load").hide();
@@ -1162,7 +1210,8 @@ class PostAd extends Page{
                                     url:"/ajax-mobile/",
                                     data:{
                                         tel:curNumber,
-                                        code:v
+                                        code:v,
+                                        vc:vCall
                                     },
                                     dataType:"json",
                                     success:function(rp){

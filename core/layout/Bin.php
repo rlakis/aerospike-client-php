@@ -323,6 +323,7 @@ class Bin extends AjaxHandler{
             case 'ajax-mobile':
                 if($this->user->info['id'] && $this->user->info['level']!=5)
                 {
+                    include_once $this->urlRouter->cfg['dir'].'/core/lib/MourjanNexmo.php';
                     $keyCode=0;
                     $lang=filter_input(INPUT_POST, 'hl');
                     if(!in_array($lang, ['en','ar']))
@@ -330,34 +331,84 @@ class Bin extends AjaxHandler{
                         $lang='en';
                     }
                     $number = filter_input(INPUT_POST, 'tel');
+                    $validateByCall = filter_input(INPUT_POST, 'vc');
                     $keyCode = filter_input(INPUT_POST, 'code');
                     $keyCode = is_numeric($keyCode) ? $keyCode : 0;
+                    
+                    $hangup = filter_input(INPUT_POST,'hang');
                     if($number)
                     { 
                         if($keyCode)
+                        {                            
+                            if($validateByCall){
+                                $validator = libphonenumber\PhoneNumberUtil::getInstance();
+                                $num = $validator->parse($number, 'LB');
+
+                                if($num && $validator->isValidNumber($num))
+                                {
+                                    $numberType = $validator->getNumberType($num);
+                                    if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE)
+                                    {
+
+                                        if(substr($number,0,1)=='+'){
+                                            $number = substr($number,1);
+                                        }
+                                        
+                                        $mrs = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number);
+                                        if ($mrs!==FALSE)
+                                        {
+                                            $response = CheckMobiRequest::verifyPin($mrs[Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);
+                                            if (isset($response['status']) && $response['status']==200 && isset($response['response']))
                         {
-                            if(substr($number,0,1)=='+')
-                            {
-                                $number = substr($number,1);
-                            }
-                            
-                            if (Core\Model\NoSQL::getInstance()->mobileActivation($this->user->info['id'], $number, $keyCode))
-                            {
-                                $this->setData(1,'verified');
-                                $this->user->info['verified']=true;
-                                unset($this->user->pending['mobile']);
-                                $this->user->update();
-                                
-                                //$this->urlRouter->db->get(
-                                //    "UPDATE WEB_USERS_LINKED_MOBILE set "
-                                //    . "ACTIVATION_TIMESTAMP=current_timestamp "
-                                //    . "where uid=? and code=? and mobile=? RETURNING ID", 
-                                //    [$this->user->info['id'],$keyCode,$number], TRUE);
-                                
+                                                if ($response['response']['validated'])
+                                                {
+                                                    $activated = NoSQL::getInstance()->mobileActivationByRequestId($this->user->info['id'], $number, $keyCode, $mrs[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
+                                                    if($activated){
+                                                        $this->setData(1,'verified');
+                                                        $this->user->info['verified']=true;
+                                                        unset($this->user->pending['mobile']);
+                                                        unset($this->user->pending['mobile_call']);
+                                                        $this->user->update();
+                                                    }else{
+                                                        $this->setData(0,'verified');
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    $this->setData(0,'verified');
+                                                }
+                                            }
+                                        }else{
+                                            $this->setData(0,'verified');
+                                        }
+                                    }else{
+                                        $this->setData(0,'verified');
+                                    }
+                                }else{
+                                    $this->setData(0,'verified');
+                                }
                             }else{                                
-                                $this->setData(0,'verified');
-                            }
-                                                       
+                                if(substr($number,0,1)=='+')
+                                {
+                                    $number = substr($number,1);
+                                }
+                                if (Core\Model\NoSQL::getInstance()->mobileActivation($this->user->info['id'], $number, $keyCode))
+                                {
+                                    $this->setData(1,'verified');
+                                    $this->user->info['verified']=true;
+                                    unset($this->user->pending['mobile']);
+                                    $this->user->update();
+
+                                    //$this->urlRouter->db->get(
+                                    //    "UPDATE WEB_USERS_LINKED_MOBILE set "
+                                    //    . "ACTIVATION_TIMESTAMP=current_timestamp "
+                                    //    . "where uid=? and code=? and mobile=? RETURNING ID", 
+                                    //    [$this->user->info['id'],$keyCode,$number], TRUE);
+
+                                }else{                                
+                                    $this->setData(0,'verified');
+                                }
+                            }                      
                         }
                         else
                         {
@@ -434,7 +485,14 @@ class Bin extends AjaxHandler{
                                     $mrs = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number);
                                     if ($mrs!==FALSE)
                                     {
-                                        if ($mrs)
+                                        if($hangup){
+                                            
+                                            CheckMobiRequest::hangUpCall($mrs[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
+                                            $this->process();
+                                            return;
+                                        }
+                                        
+                                        if (!$validateByCall && $mrs)
                                         {
                                             $mcMobile = new MCMobile($mrs);
                                             $expiredDelivery = !$mcMobile->isSMSDelivered() && (time()-$mcMobile->getRquestedUnixtime())>86400 && $mcMobile->getSentSMSCount()<3;
@@ -482,31 +540,40 @@ class Bin extends AjaxHandler{
                                         {
                                             // Record not found
                                             $keyCode=mt_rand(1000, 9999);
-                                            if (NoSQL::getInstance()->mobileInsert([
-                                                        \Core\Model\ASD\USER_UID=> $this->user->info['id'],
-                                                        \Core\Model\ASD\USER_MOBILE_NUMBER=> $number,
-                                                        \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>$keyCode,
-                                                        \Core\Model\ASD\USER_MOBILE_FLAG=>1]))
-                                            {
-                                                $mrs = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number);
-                                                if ($mrs)
+                                            if($validateByCall){
+                                                
+                                                $response = CheckMobiRequest::reverseCallerId($number, $this->user->info['id']);
+                                                if (!(isset($response['status']) && $response['status']==200 && isset($response['saved']))){                                                
+                                                    $keyCode=0;
+                                                    $number=0;
+                                                }
+                                            }else{
+                                                if (NoSQL::getInstance()->mobileInsert([
+                                                            \Core\Model\ASD\USER_UID=> $this->user->info['id'],
+                                                            \Core\Model\ASD\USER_MOBILE_NUMBER=> $number,
+                                                            \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>$keyCode,
+                                                            \Core\Model\ASD\USER_MOBILE_FLAG=>1]))
                                                 {
-                                                    $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
+                                                    $mrs = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number);
+                                                    if ($mrs)
+                                                    {
+                                                        $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
 
-                                                    //$ns = $this->urlRouter->db->get(
-                                                    //        "UPDATE OR INSERT INTO WEB_USERS_LINKED_MOBILE (ID, UID, MOBILE, CODE, DELIVERED, SMS_COUNT, ACTIVATION_TIMESTAMP)
-                                                    //         VALUES (?, ?, ?, ?, 0, 0, null) MATCHING(UID, MOBILE) RETURNING ID", [$sendSms, $this->user->info['id'], $number, $keyCode], TRUE);
+                                                        //$ns = $this->urlRouter->db->get(
+                                                        //        "UPDATE OR INSERT INTO WEB_USERS_LINKED_MOBILE (ID, UID, MOBILE, CODE, DELIVERED, SMS_COUNT, ACTIVATION_TIMESTAMP)
+                                                        //         VALUES (?, ?, ?, ?, 0, 0, null) MATCHING(UID, MOBILE) RETURNING ID", [$sendSms, $this->user->info['id'], $number, $keyCode], TRUE);
+                                                    } 
+                                                    else
+                                                    {
+                                                        $keyCode=0;
+                                                        $number=0;
+                                                    }
                                                 } 
                                                 else
                                                 {
                                                     $keyCode=0;
                                                     $number=0;
                                                 }
-                                            } 
-                                            else
-                                            {
-                                                $keyCode=0;
-                                                $number=0;
                                             }
                                         }
                                     }
@@ -519,7 +586,7 @@ class Bin extends AjaxHandler{
                                     if ($sendSms && $number && $keyCode)
                                     {
                                                                                 
-                                        include_once $this->urlRouter->cfg['dir'].'/core/lib/MourjanNexmo.php';
+                                        
                                         if (ShortMessageService::send($number, "{$keyCode} is your mourjan confirmation code", ['uid' => $this->user->info['id'], 'mid' => $sendSms, 'platform'=>'website']))
                                         {
                                             Core\Model\NoSQL::getInstance()->mobileIncrSMS($this->user->info['id'], $number);    
@@ -530,7 +597,12 @@ class Bin extends AjaxHandler{
                                     }
                                     $this->setData($number,'number');
                                     if($number){
-                                        $this->user->pending['mobile']=$number;                                        
+                                        $this->user->pending['mobile']=$number;
+                                        if($validateByCall){
+                                            $this->user->pending['mobile_call']=true;
+                                        }else{
+                                            unset($this->user->pending['mobile_call']);
+                                        }
                                     }else{
                                         unset($this->user->pending['mobile']);
                                     }
