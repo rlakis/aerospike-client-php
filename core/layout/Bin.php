@@ -1380,20 +1380,41 @@ class Bin extends AjaxHandler{
                 }else $this->fail('101');
                 break;
             case 'ajax-menu':
-                if(isset($_GET['c'])){
-                    $c = $this->get('c','boolean');
-                    if($c){
-                        $this->user->params['hasCanvas']=1;
-                    }else{
-                        $this->user->params['hasCanvas']=0;
+                if(isset($_GET['sections'])){
+                    $lang=$_GET['sections'];
+                    $nameIdx = ($lang == 'ar' ?1:2);
+                    $result='ROOTS=[';
+                    $i=0;
+                    foreach ($this->urlRouter->roots as $root){
+                        if($i)$result.=',';
+                        $result.="[{$root[0]},'{$root[$nameIdx]}']";
+                        $i++;
                     }
-                    $this->user->update();
+                    $i=0;
+                    $result.='];SECTIONS=[';
+                    foreach ($this->urlRouter->sections as $root){
+                        if($i)$result.=',';
+                        $result.="[{$root[0]},'{$root[$nameIdx]}','{$root[4]}']";
+                        $i++;
+                    }
+                    $result.='];';
+                    echo $result;
+                }else{
+                    if(isset($_GET['c'])){
+                        $c = $this->get('c','boolean');
+                        if($c){
+                            $this->user->params['hasCanvas']=1;
+                        }else{
+                            $this->user->params['hasCanvas']=0;
+                        }
+                        $this->user->update();
+                    }
+                    $hash=$this->get('h');
+                    if ($hash){
+                        $content=eval('?'.'>'.file_get_contents( dirname( $this->urlRouter->cfg['dir'] ) .'/tmp/gen/'.$hash.'99.php').'<'.'?');
+                        echo $content;
+                    }else $this->fail('101');
                 }
-                $hash=$this->get('h');
-                if ($hash){
-                    $content=eval('?'.'>'.file_get_contents( dirname( $this->urlRouter->cfg['dir'] ) .'/tmp/gen/'.$hash.'99.php').'<'.'?');
-                    echo $content;
-                }else $this->fail('101');
                 break;
             case 'ajax-prog':
                 $id = $this->post('id', 'uint');

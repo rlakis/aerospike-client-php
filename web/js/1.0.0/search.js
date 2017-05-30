@@ -912,9 +912,8 @@ function reriad(){
             top:'0px'
         });
     }
-    var w=$(window);
-    wHeight=w.height(),
-    wWidth=w.width();
+    wHeight=window.innerHeight,
+    wWidth=window.innerWidth;
     if(wWidth<970){
         toFix=null;
         return;
@@ -939,7 +938,6 @@ function reriad(){
         triad()
     }else{
         toFix=null;
-        $(window).unbind('scroll',triad);
     }
 }
 $(window).bind('scroll',triad);
