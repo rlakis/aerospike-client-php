@@ -22,33 +22,33 @@ use Core\Model\DB;
  * HTTP/1.1" 200 5 "-" "Nexmo/MessagingHUB/v1.0" "-"
  */
 
-if (preg_match('/Apache-HttpClient/', $_SERVER['HTTP_USER_AGENT']))
-{
-    $request_body = file_get_contents('php://input');
-    error_log(sprintf("%s\t%s", date("Y-m-d H:i:s"), $request_body).PHP_EOL, 3, "/var/log/mourjan/sms.log");
-
-    $json_request= json_decode( $request_body, TRUE ); //convert JSON into array    
-    if (isset($json_request['deliveryInfoNotification']))
-    {
-        $to='mourjan';
-        $networkcode=0;
-        $address=$json_request['deliveryInfoNotification']['deliveryInfo']['address'];
-        $msisdn = str_replace('tel:','',$address);    
-        $deliveryStatus = $json_request['deliveryInfoNotification']['deliveryInfo']['deliveryStatus'];
-        $messageId=$json_request['deliveryInfoNotification']['callbackData'];
-        if ($deliveryStatus==='DeliveredToTerminal')
-        {
-            $errCode=0;
-            $to='mourjan';
-        }
-        else
-        {
-            $errCode=1;
-        }
-    }
-}
-else
-{
+//if (preg_match('/Apache-HttpClient/', $_SERVER['HTTP_USER_AGENT']))
+//{
+//    $request_body = file_get_contents('php://input');
+//    error_log(sprintf("%s\t%s", date("Y-m-d H:i:s"), $request_body).PHP_EOL, 3, "/var/log/mourjan/sms.log");
+//
+//    $json_request= json_decode( $request_body, TRUE ); //convert JSON into array    
+//    if (isset($json_request['deliveryInfoNotification']))
+//    {
+//        $to='mourjan';
+//        $networkcode=0;
+//        $address=$json_request['deliveryInfoNotification']['deliveryInfo']['address'];
+//        $msisdn = str_replace('tel:','',$address);    
+//        $deliveryStatus = $json_request['deliveryInfoNotification']['deliveryInfo']['deliveryStatus'];
+//        $messageId=$json_request['deliveryInfoNotification']['callbackData'];
+//        if ($deliveryStatus==='DeliveredToTerminal')
+//        {
+//            $errCode=0;
+//            $to='mourjan';
+//        }
+//        else
+//        {
+//            $errCode=1;
+//        }
+//    }
+//}
+//else
+//{
     if (filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_STRING)=='GET')
     {
         $msisdn = filter_input(INPUT_GET, 'msisdn', FILTER_VALIDATE_INT)+0;
@@ -66,6 +66,8 @@ else
     }
     else
     {
+        error_log(sprintf("%s", var_export($_POST, TRUE).PHP_EOL));
+        
         $msisdn = filter_input(INPUT_POST, 'msisdn', FILTER_VALIDATE_INT)+0;
         $to = filter_input(INPUT_POST, 'to', FILTER_SANITIZE_STRING);
         $networkcode = filter_input(INPUT_POST, 'network-code', FILTER_VALIDATE_INT)+0;
@@ -81,8 +83,7 @@ else
     }
     error_log(sprintf("%s\t%d\t%s\t%d\t%s\t%f\t%s\t%d\t%d\t%s\t%d\t%s", date("Y-m-d H:i:s"), $msisdn, $to, $networkcode, $messageId, $price, $status, $scts, $errCode, $messageTimestamp, $reference, $text).PHP_EOL, 3, "/var/log/mourjan/sms.log");
 
-}
-//Apache-HttpClient
+//}
 
 
 if ($errCode==0 && strlen($reference)>1 && ($to=="Mourjan"||$to=="12242144077"||$to=="mourjan"||$to=="33644630401"))

@@ -1,6 +1,13 @@
 <?php
 include get_cfg_var("mourjan.path") . "/config/cfg.php";
 include_once $config['dir'].'/core/lib/MourjanNexmo.php';
+use checkmobi\CheckMobiRest;
+
+testCheckMobi(9613287168);
+
+if (1)    return;
+
+
 
 $arguments = getopt("i::n::t::");
 print_r($arguments);
@@ -10,6 +17,7 @@ if ($argc<2)
     echo 'Usage php SendSMS.php -iWEB_USERS_MOBILE.ID -nMobileNumber -tSMSTextMessage', "\n";
     return;
 }
+
 $linked=FALSE;
 $id = isset($arguments['i']) ? intval($arguments['i'], 10) : 0;
 if ($id<0)
@@ -79,4 +87,41 @@ elseif (isset($arguments['n']) && isset($arguments['t']))
         $response = $sms->sendSMS("+{$mobile_number}", $text, 0);
         print_r($response); 
     }
+}
+
+
+function testCheckMobi($num=96171750413)
+{
+    $api = new CheckMobiRest("D38D5D58-572B-49EC-BAB5-63B6081A55E6");
+    
+    /*
+    //get list of countries & flags
+    $response = $api->GetCountriesList();
+    var_dump($response);
+    */
+    
+    /*
+    //get account details
+    $response = $api->GetAccountDetails();
+    var_dump($response);
+    */
+
+    /*
+    //get prefixes
+    $response = $api->GetPrefixes();
+    var_dump($response);     
+    */
+
+    /*
+    //checking a number for being valid
+    $response = $api->CheckNumber(array("number" => "+{$num}"));
+    var_dump($response);
+    */
+
+    //validate a number using "Missed call method". (type can be : sms, ivr, cli, reverse_cli)
+    //$response = $api->RequestValidation(array("type" => "cli", "number" => "+{$num}", "notification_callback"=>"https://dv.mourjan.com/api/checkMobi.php"));
+    $response = CheckMobiRequest::sendSMS("+9613287168", "Your mourjan activation code is 1212");
+            
+    var_dump($response);
+   
 }
