@@ -2,13 +2,11 @@
 require_once 'vendor/autoload.php';
 $dir = get_cfg_var('mourjan.path');
 include_once $dir.'/core/lib/nexmo/NexmoMessage.php';
+include_once $dir.'/core/model/NoSQL.php';
 
-use Mediumart\Orange\SMS\SMS;
-use Mediumart\Orange\SMS\Http\SMSClient;
+use checkmobi\CheckMobiRest;
+use Core\Model\NoSQL;
 
-/*" "*/
-
-ShortMessageService::send(201110110013, 'testing orange');
 
 class MourjanNexmo extends NexmoMessage
 {
@@ -39,13 +37,13 @@ class MourjanNexmo extends NexmoMessage
         }
         
         return parent::sendText($to, $from, $message, $clienRef, $unicode);
-    }
-    
+    }    
 }
+
 
 class ShortMessageService
 {
-    public static function send($to, $message, $clientReference=null, $unicode=null)
+    public static function send($to, $message, $clientReference=null, $unicode=null, $full_response=false)
     {
         if(!preg_match('/^(?:00|\+)/', $to))
         {
@@ -71,53 +69,7 @@ class ShortMessageService
                 {
                     $from = '12242144077';
                 }
-                break;
-                
-            case 20:
-                var_dump($carrier); //"Mobinil"
-                $client = SMSClient::getInstance('bXaLeeX6DnNlAU8dla7YDaCabJl81T35', '1qCiFyaekg4Z3oOG');
-                $sms = new SMS($client);
-                $response = $sms->to($to)
-                    ->from('+201202939706', 'mourjan')
-                    ->message('Hello, my dear...')
-                    ->send();
-                var_dump($response);
-                // setting the SMS DR notification endpoint
-                // '<your_backend_notification_url>' $url
-                // '<sender address>' $sender = '+237690000000'
-                //$response = $sms->setDeliveryReceiptNotificationUrl('https://dv.mourjan.com/api/SMSDelivery.php', '+201202939706');
-
-                //var_dump($response);
-                // checking the SMS DR notification endpoint
-                // '<your_last_registered_endpoint_ID>' $id
-                $response = $sms->checkDeliveryReceiptNotificationUrl('5908ae547970e9a955838e48');
-                var_dump($response);
-                /*
-                $osms = new Orange(['clientId'=>"bXaLeeX6DnNlAU8dla7YDaCabJl81T35", 'clientSecret'=>"1qCiFyaekg4Z3oOG"]);
-                $osms->getTokenFromConsumerKey();
-                //var_dump($response);
-                //$token=$response['access_token'];
-                //echo "\n", $to, "\ttel:+{$to}", "\n";
-                $response = $osms->sendSms("tel:{$to}", "tel:{$to}", $message, $from);
-                var_dump($response);
-                if (empty($response['error'])) 
-                {
-                    echo 'Done!', "\n";
-                } 
-                else 
-                {
-                    echo $response['error'];
-                }
-
-                var_dump($osms->getAdminStats());
-                 */
-/*                $to_orange = curl_init( $orange_uri );
-                curl_setopt( $to_orange, CURLOPT_POST, true );
-                curl_setopt( $to_orange, CURLOPT_RETURNTRANSFER, true );
-                curl_setopt( $to_orange, CURLOPT_HTTPHEADER, ['Authorization: '.$auth, 'Content-Type: application/json']);
-                curl_setopt( $to_orange, CURLOPT_POSTFIELDS, json_encode($body) );*/
-                return;
-                //break;
+                break;                           
             
             default:
                 break;
@@ -130,387 +82,112 @@ class ShortMessageService
         
         $provider = new NexmoMessage('8984ddf8', 'CVa3tHey3js6');
         $response = $provider->sendText($to, $from, $message, $clientReference, $unicode);
-        return $response->messagecount ?? 0;
+       
+        return $full_response ? $response : $response->messagecount ?? 0;
     }
 }
 
 
-class Orange
+class CheckMobiRequest
 {
-    const BASE_URL = 'https://api.orange.com';
+    private static $secret = "D38D5D58-572B-49EC-BAB5-63B6081A55E6";
+    // platform	string	Optional. One of the following values: ios, android, web, desktop
     
-    /**
-     * Client Identifier. Unique ID provided by the Orange backend server to identify 
-     * your application.
-     *
-     * @var string
-     */
-    protected $clientId = '';
-
-    /**
-     * Client Secret. Used to sign/crypt the requests.
-     *
-     * @var string
-     */
-    protected $clientSecret = '';
-
-    /**
-     * The Token will be used for all further API calls.
-     *
-     * @var string
-     */
-    protected $token = '';
-
-    /**
-     * cURL option for whether to verify the peer's certificate or not.
-     *
-     * @var bool
-     */
-    protected $verifyPeerSSL = true;
-
-    /**
-     * Creates a new Osms instance. If the user doesn't know his token or doesn't have a
-     * token yet, he can leave $token empty and retrieve a token with
-     * getTokenFromConsumerKey() method later.
-     *
-     * @param  array  $config  An associative array that can contain clientId, clientSecret, 
-     *                         token, and verifyPeerSSL
-     *
-     * @return void
-     */
-    public function __construct($config = array())
+    public static function getCallerId($to, $uid=0, $platform='web')
     {
-        if (array_key_exists('clientId', $config)) {
-            $this->clientId = $config['clientId'];
-        }
-        if (array_key_exists('clientSecret', $config)) {
-            $this->clientSecret = $config['clientSecret'];
-        }
-        if (array_key_exists('token', $config)) {
-            $this->token = $config['token'];
-        }
-        if (array_key_exists('verifyPeerSSL', $config)) {
-            $this->verifyPeerSSL = $config['verifyPeerSSL'];
-        } else {
-            $this->verifyPeerSSL = true;
-        }
-    }
-
-    /**
-     * Retrieves a token from Orange server, that will be used for all further API calls.
-     *
-     * @return array
-     */
-    public function getTokenFromConsumerKey()
-    {   
-        $url = self::BASE_URL . '/oauth/v2/token';
-
-        $credentials = $this->getClientId() . ':' . $this->getClientSecret();
-
-        $headers = array('Authorization: Basic ' . base64_encode($credentials));
-
-        $args = array('grant_type' => 'client_credentials');
-
-        $response = $this->callApi($headers, $args, $url, 'POST', 200);
-
-        if (!empty($response['access_token'])) {
-            $this->setToken($response['access_token']);
-        }
-
-        return $response;
-    }
-
-    /**
-     * Sends SMS.
-     *
-     * @param  string  $senderAddress    The receiver address in this format:
-     *                                   "tel:+22500000000"
-     * @param  string  $receiverAddress  The receiver address in this format:
-     *                                   "tel:+22500000000"
-     * @param  string  $message          The content of the SMS, must not exceed
-     *                                   160 characters         
-     * @param  string  $senderName       The sender name
-     *
-     * @return array
-     */
-    public function sendSms(
-        $senderAddress,
-        $receiverAddress,
-        $message,
-        $senderName = ''
-    ) {
-        $url = self::BASE_URL . '/smsmessaging/v1/outbound/' . urlencode($senderAddress)
-            . '/requests';
-
-        $headers = array(
-            'Authorization: Bearer ' . $this->getToken(),
-            'Content-Type: application/json'
-        );
-
-        if (!empty($senderName)) {
-            $args = array(
-                'outboundSMSMessageRequest' => array(
-                    'address'                   => $receiverAddress,
-                    'senderAddress'             => $senderAddress,
-                    'senderName'                => urlencode($senderName),
-                    'outboundSMSTextMessage'    => array(
-                        'message' => $message
-                    )
-                )
-            );
-        } else {
-            $args = array(
-                'outboundSMSMessageRequest' => array(
-                    'address'                   => $receiverAddress,
-                    'senderAddress'             => $senderAddress,
-                    'outboundSMSTextMessage'    => array(
-                        'message' => $message
-                    )
-                )
-            );
-        }
-
-        return $this->callApi($headers, $args, $url, 'POST', 201, true);
-    }
-
-    /**
-     * Lists SMS usage statistics per application.
-     *
-     * @param  array  $args  An associative array to filter the results, containing
-     *                       country (the international 3 digits country code) and/or
-     *                       appid (you can retrieve your application ID from your 
-     *                       dashboard application)
-     *
-     * @return array
-     */
-    public function getAdminStats($args = null)
-    {   
-        $url = self::BASE_URL . '/sms/admin/v1/statistics';
-
-        $headers = array('Authorization: Bearer ' . $this->getToken());
-
-        return $this->callApi($headers, $args, $url, 'GET', 200);
-    }
-
-    /**
-     * Displays how many SMS you can still send.
-     *
-     * @param  string  $country  The country to filter on (the international 3 digits 
-     *                           country)
-     *
-     * @return array
-     */
-    public function getAdminContracts($country = '')
-    {
-        $url = self::BASE_URL . '/sms/admin/v1/contracts';
-
-        $headers = array('Authorization: Bearer ' . $this->getToken());
-
-        $args = null;
-
-        if (!empty($country)) {
-            $args = array('country' => $country);
-        }
-
-        return $this->callApi($headers, $args, $url, 'GET', 200);
-    }
-
-    /**
-     *  Lists your purchase history.
-     *
-     * @param  string  $country  The country to filter on (the international 3 digits
-     *                           country)
-     *
-     * @return array
-     */
-    public function getAdminPurchasedBundles($country = '')
-    {
-        $url = self::BASE_URL . '/sms/admin/v1/purchaseorders';
-
-        $headers = array('Authorization: Bearer ' . $this->getToken());
-
-        $args = null;
-
-        if (!empty($country)) {
-            $args = array('country' => $country);
-        }
-
-        return $this->callApi($headers, $args, $url, 'GET', 200);
-    }
-
-    /**
-     *  Calls API Endpoints.
-     *
-     * @param  array   $headers         An array of HTTP header fields to set
-     * @param  array   $args            The data to send
-     * @param  string  $url             The URL to fetch
-     * @param  string  $method          Whether to do a HTTP POST or a HTTP GET
-     * @param  int     $successCode     The HTTP code that will be returned on
-     *                                  success
-     * @param  bool    $jsonEncodeArgs  Whether or not to json_encode $args
-     *
-     * @return array   Contains the results returned by the endpoint or an error
-     *                 message
-     */
-    public function callApi(
-        $headers,
-        $args,
-        $url,
-        $method,
-        $successCode,
-        $jsonEncodeArgs = false
-    ) {
-        $ch = curl_init();
-    
-        if ($method === 'POST') {
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_POST, true);
-
-            if (!empty($args)) {
-                if ($jsonEncodeArgs === true) {
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($args));
-                } else {
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($args));
+        $number = intval($to);
+        $api = new CheckMobiRest(CheckMobiRequest::$secret);
+        $response = $api->RequestValidation(["type" => "cli", "number" => "+{$number}", "platform"=>$platform]);    // , "notification_callback"=>"https://dv.mourjan.com/api/checkMobi.php"
+        if ($uid>0)
+        {
+            $flag = ($platform=='web') ? 1 : ($platform=='ios' ? 2 : 0);
+            if (isset($response['status']) && $response['status']==200 && isset($response['response']))
+            {
+                $bins = [\Core\Model\ASD\USER_UID => $uid, 
+                        \Core\Model\ASD\USER_MOBILE_NUMBER => $number,
+                        \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => intval($response['response']['dialing_number']),
+                        \Core\Model\ASD\USER_MOBILE_FLAG => $flag,
+                        \Core\Model\ASD\USER_MOBILE_REQUEST_ID => $response['response']['id'],
+                        \Core\Model\ASD\USER_MOBILE_VALIDATION_TYPE => 1,
+                    ];
+                
+                if (NoSQL::getInstance()->mobileInsert($bins)>0)
+                {
+                    $response['saved']=1;
                 }
             }
-        } else /* $method === 'GET' */ {
-            if (!empty($args)) {
-                curl_setopt($ch, CURLOPT_URL, $url . '?' . http_build_query($args));
-            } else {
-                curl_setopt($ch, CURLOPT_URL, $url);
-            }
         }
-
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        if ($this->getVerifyPeerSSL() === false) {
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        }
-        // Make sure we can access the response when we execute the call
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        $data = curl_exec($ch);
-
-        if ($data === false) {
-            return array('error' => 'API call failed with cURL error: ' . curl_error($ch));
-        }
-
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
- 
-        curl_close($ch);
-
-        $response = json_decode($data, true);
-
-        $jsonErrorCode = json_last_error();
-        if ($jsonErrorCode !== JSON_ERROR_NONE) {
-            return array(
-                'error' => 'API response not well-formed (json error code: '
-                    . $jsonErrorCode . ')'
-            );
-        }
-
-        if ($httpCode !== $successCode) {
-            $errorMessage = '';
-
-            if (!empty($response['error_description'])) {
-                $errorMessage = $response['error_description'];
-            } elseif (!empty($response['error'])) {
-                $errorMessage = $response['error'];
-            } elseif (!empty($response['description'])) {
-                $errorMessage = $response['description'];
-            } elseif (!empty($response['message'])) {
-                $errorMessage = $response['message'];
-            } elseif (!empty($response['requestError']['serviceException'])) {
-                $errorMessage = $response['requestError']['serviceException']['text']
-                    . ' ' . $response['requestError']['serviceException']['variables'];
-            } elseif (!empty($response['requestError']['policyException'])) {
-                $errorMessage = $response['requestError']['policyException']['text']
-                    . ' ' . $response['requestError']['policyException']['variables'];
-            }
-
-            return array('error' => $errorMessage);
-        }
-
         return $response;
     }
 
-    /**
-     *  Gets the Cliend ID.
-     *
-     * @return string
-     */
-    public function getClientId()
+    
+    public static function reverseCallerId($to, $uid=0, $platform='web')
     {
-        return $this->clientId;
+        $number = intval($to);
+        $api = new CheckMobiRest(CheckMobiRequest::$secret);
+        $response = $api->RequestValidation(["type" => "reverse_cli", "number" => "+{$number}"]); //, "notification_callback"=>"https://dv.mourjan.com/api/checkMobi.php"
+        
+        if ($uid>0)
+        {
+            $flag = ($platform=='web') ? 1 : ($platform=='ios' ? 2 : 0);
+            if (isset($response['status']) && $response['status']==200 && isset($response['response']))
+            {
+                $bins = [\Core\Model\ASD\USER_UID => $uid, 
+                        \Core\Model\ASD\USER_MOBILE_NUMBER => $number,
+                        \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => intval($response['response']['cli_prefix']),
+                        \Core\Model\ASD\USER_MOBILE_FLAG => $flag,
+                        \Core\Model\ASD\USER_MOBILE_REQUEST_ID => $response['response']['id'],
+                        \Core\Model\ASD\USER_MOBILE_VALIDATION_TYPE => 2,
+                        \Core\Model\ASD\USER_MOBILE_PIN_HASH => $response['response']['pin_hash'],
+                    ];
+                
+                if (NoSQL::getInstance()->mobileInsert($bins)>0)
+                {
+                    $response['saved']=1;
+                }
+            }
+        }
+        return $response;
+    }
+    
+    
+    public static function verifyStatus($requestId)
+    {
+        $api = new CheckMobiRest(CheckMobiRequest::$secret);
+        error_log($requestId);
+        $response = $api->ValidationStatus(['id'=>$requestId]);
+        error_log(json_encode($response));
+        
+        return $response;
     }
 
-    /**
-     *  Sets the Client ID.
-     *
-     * @param  string  $clientId  the Client ID
-     */
-    public function setClientId($clientId)
+    
+    public static function verifyPin($requestId, $pin)
     {
-        $this->clientId = $clientId;
+        $api = new CheckMobiRest(CheckMobiRequest::$secret);
+        $response = $api->VerifyPin(['id'=>$requestId, 'pin'=>$pin]);
+        error_log(json_encode($response));
+        
+        return $response;
     }
 
-    /**
-     *  Gets the Client Secret.
-     *
-     * @return string
-     */
-    public function getClientSecret()
+    
+    public static function hangUpCall($requestId)
     {
-        return $this->clientSecret;
+        $api = new CheckMobiRest(CheckMobiRequest::$secret);
+        $response = $api->HangUpCall( ['id'=>$requestId] );
+        error_log(json_encode($response));
+        
+        return $response;
+        
     }
-
-    /**
-     *  Sets the Client Secret.
-     *
-     * @param  string  $clientSecret  the Client Secret
-     */
-    public function setClientSecret($clientSecret)
+    
+    
+    public static function sendSMS($to, $message)
     {
-        $this->clientSecret = $clientSecret;
-    }
-
-    /**
-     *  Gets the (local/current) Token.
-     *
-     * @return string
-     */
-    public function getToken()
-    {
-        return $this->token;
-    }
-
-    /**
-     *  Sets the Token value.
-     *
-     * @param  string  $token  the token
-     */
-    public function setToken($token)
-    {
-        $this->token = $token;
-    }
-
-    /**
-     *  Gets the CURLOPT_SSL_VERIFYPEER value.
-     *
-     * @return bool
-     */
-    public function getVerifyPeerSSL()
-    {
-        return $this->verifyPeerSSL;
-    }
-
-    /**
-     *  Sets the CURLOPT_SSL_VERIFYPEER value.
-     *
-     * @param  bool  $verifyPeerSSL  FALSE to stop cURL from verifying the
-     *                               peer's certificate. TRUE otherwise.
-     */
-    public function setVerifyPeerSSL($verifyPeerSSL)
-    {
-        $this->verifyPeerSSL = $verifyPeerSSL;
+        $number = intval($to);
+        $api = new CheckMobiRest(CheckMobiRequest::$secret);
+        $response = $api->SendSMS(array("to" => "+{$number}", "text"=>$message, "notification_callback"=>"https://dv.mourjan.com/api/checkMobi.php"));
+        return $response;
     }
 }

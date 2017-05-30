@@ -49,6 +49,10 @@ const USER_MOBILE_CODE_DELIVERED    = 'delivered';
 const USER_MOBILE_SENT_SMS_COUNT    = 'sms_count';
 const USER_MOBILE_FLAG              = 'flag';
 const USER_MOBILE_SECRET            = 'secret';
+const USER_MOBILE_REQUEST_ID        = 'request_id';
+const USER_MOBILE_VALIDATION_TYPE   = 'request_type';
+const USER_MOBILE_PIN_HASH          = 'pin_hash';
+
 
 const USER_DEVICES          = 'devices';
 const USER_DEVICE_UUID              = 'uuid';

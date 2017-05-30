@@ -131,6 +131,7 @@ trait MobileTrait
                     }
                     
                 }, $bins);
+                
         return $matches;
     }
     
@@ -263,7 +264,18 @@ trait MobileTrait
         return FALSE;
     }
     
+    
+    public function mobileSetVerified(string $request_id, $number) : bool
+    {
+        $keys = $this->getDigest(USER_MOBILE_REQUEST_ID, $request_id, []);
+        if ($keys)
+        {
+            return $this->setBins($keys[0], [USER_MOBILE_CODE_DELIVERED=>1]);
+        }
+        return FALSE;
+    }
 
+    
     public function mobileSetDeliveredCode(int $uid, int $number) : bool
     {
         $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
@@ -364,6 +376,15 @@ trait MobileTrait
         return FALSE;
     }
     
+    public function mobileActivationByRequestId(int $uid, int $number, int $code, string $requestId) : bool
+    {
+        $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [USER_UID=>$uid, USER_MOBILE_REQUEST_ID=>$requestId]);
+        if ($keys)
+        {
+            return $this->setBins($keys[0], [USER_MOBILE_ACTIVATION_CODE=>$code, USER_MOBILE_DATE_ACTIVATED=>time()]);
+        }
+        return FALSE;
+    }
     
     public function assignNewActicationCode(int $mobile_id, int $uid, int $number) : int
     {
@@ -387,7 +408,6 @@ trait MobileTrait
         {
             if ($this->getConnection()->increment($pk, USER_MOBILE_SENT_SMS_COUNT, 1, [\Aerospike::OPT_POLICY_KEY=>\Aerospike::POLICY_EXISTS_UPDATE])==\Aerospike::OK)
             {
-                error_log(sprintf("%s", json_encode(['mt'=> microtime(TRUE), 'pk'=>$pk, 'inc'=>[USER_MOBILE_SENT_SMS_COUNT, 1]])).PHP_EOL, 3, "/var/log/mourjan/aerospike.set");
                 return TRUE;
             }
             return FALSE;
