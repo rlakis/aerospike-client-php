@@ -1041,7 +1041,7 @@ class PostAd extends Page{
                 ?><form onsubmit="validate();return false"><?php
                 ?><div id="mb_validate"><?php 
                     ?><p class="ph ctr num" id="val_string"></p><?php 
-                    ?><p class="ph ctr" id="sms_text"><?= isset($this->user->pending['mobile']) ? (isset($this->user->pending['mobile_call']) ? $this->lang['notice_sent_call'].$this->lang['notice_sent_call_prev'] : $this->lang['notice_sent_sms_prev']).'<br />' :'' ?></p><?php 
+                    ?><p class="ph ctr" id="sms_text"><?= isset($this->user->pending['mobile']) ? (isset($this->user->pending['mobile_call']) ? preg_replace('/{pre}/',$this->user->pending['mobile_call'],$this->lang['notice_sent_call']).$this->lang['notice_sent_call_prev'] : $this->lang['notice_sent_sms_prev']).'<br />' :'' ?></p><?php 
                     ?><div class="ctr row"><?php
                     ?><input type="text" placeholder="0000" id="vcode" /><?php
                     ?></div><?php
@@ -1104,7 +1104,7 @@ class PostAd extends Page{
                                         if(rp.DATA.number>0){
                                             if(vCall){
                                                 setTimeout(function(){hangup(curNumber)},5000);
-                                                sentW(2);
+                                                sentW(2,rp.DATA.pre);
                                             }else{
                                                 sentW(1);
                                             }
@@ -1151,12 +1151,12 @@ class PostAd extends Page{
                         $("#mb_done").show();
                         sctop();
                     };
-                    var sentW=function(nw){
+                    var sentW=function(nw,pre){
                         $("#val_string").html(curNumber);
                         var m;
                         switch(nw){
                             case 2:
-                                m ="'.$this->lang['notice_sent_call'].'";
+                                m ="'.$this->lang['notice_sent_call'].'".replace("{pre}",pre);
                                 break;
                             case 1:
                                 m ="'.$this->lang['notice_sent_sms'].'";

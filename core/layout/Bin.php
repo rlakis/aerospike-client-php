@@ -546,6 +546,8 @@ class Bin extends AjaxHandler{
                                                 if (!(isset($response['status']) && $response['status']==200 && isset($response['saved']))){                                                
                                                     $keyCode=0;
                                                     $number=0;
+                                                }else{
+                                                    $keyCode=$response['response']['cli_prefix'];
                                                 }
                                             }else{
                                                 if (NoSQL::getInstance()->mobileInsert([
@@ -599,7 +601,8 @@ class Bin extends AjaxHandler{
                                     if($number){
                                         $this->user->pending['mobile']=$number;
                                         if($validateByCall){
-                                            $this->user->pending['mobile_call']=true;
+                                            $this->user->pending['mobile_call']=$keyCode;
+                                            $this->setData($keyCode,'pre');
                                         }else{
                                             unset($this->user->pending['mobile_call']);
                                         }
