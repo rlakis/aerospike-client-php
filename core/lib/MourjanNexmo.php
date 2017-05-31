@@ -60,18 +60,29 @@ class ShortMessageService
                 $from = '12242144077';
                 break;
             
+            case 20:
             case 212:
-                $from = '33644630401';
-                break;
+            case 971:                
+                $response = CheckMobiRequest::sendSMS($to, $message);
+                if ($full_response)
+                {
+                    $response['messagecount'] = isset($response['status']) && $response['status']==200 && isset($response['response']['id']);
+                    return $response;
+                }
+                else
+                {
+                    return isset($response['status']) && $response['status']==200 && isset($response['response']['id']);
+                }
+                
+            //case 212:
+            //    $from = '33644630401';
+            //    break;
 
             case 974:
                 if ($carrier=='ooredoo')
                 {
                     $from = '12242144077';
                 }
-                break;                           
-            
-            default:
                 break;
         }
         //$from = ($countryCode==1 || ($countryCode==974 && $carrier=='ooredoo')) ? '12242144077' : ($countryCode==212) ? '33644630401' : 'mourjan';
@@ -82,7 +93,7 @@ class ShortMessageService
         
         $provider = new NexmoMessage('8984ddf8', 'CVa3tHey3js6');
         $response = $provider->sendText($to, $from, $message, $clientReference, $unicode);
-       
+      
         return $full_response ? $response : $response->messagecount ?? 0;
     }
 }
@@ -150,6 +161,35 @@ class CheckMobiRequest
         return $response;
     }
     
+    public static function SMS($to, $uid=0, $platform='web')
+    {
+        $number = intval($to);
+        $api = new CheckMobiRest(CheckMobiRequest::$secret);
+        $response = $api->RequestValidation(["type" => "sms", "number" => "+{$number}", "notification_callback"=>"https://dv.mourjan.com/api/checkMobi.php"]); //, 
+        
+        if ($uid>0)
+        {
+            $flag = ($platform=='web') ? 1 : ($platform=='ios' ? 2 : 0);
+            if (isset($response['status']) && $response['status']==200 && isset($response['response']))
+            {
+                $bins = [\Core\Model\ASD\USER_UID => $uid, 
+                        \Core\Model\ASD\USER_MOBILE_NUMBER => $number,
+                        \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => intval($response['response']['validation_info']['country_code']),
+                        \Core\Model\ASD\USER_MOBILE_FLAG => $flag,
+                        \Core\Model\ASD\USER_MOBILE_REQUEST_ID => $response['response']['id'],
+                        \Core\Model\ASD\USER_MOBILE_VALIDATION_TYPE => 0,
+                    ];
+                
+                if (NoSQL::getInstance()->mobileInsert($bins)>0)
+                {
+                    $response['saved']=1;
+                }
+            }
+        }
+        var_dump($response);
+        
+        return $response;
+    }
     
     public static function verifyStatus($requestId)
     {
@@ -175,11 +215,7 @@ class CheckMobiRequest
     public static function hangUpCall($requestId)
     {
         $api = new CheckMobiRest(CheckMobiRequest::$secret);
-        $response = $api->HangUpCall( ['id'=>$requestId] );
-        error_log(json_encode($response));
-        
-        return $response;
-        
+        return $api->HangUpCall( ['id'=>$requestId] );
     }
     
     
@@ -191,3 +227,5 @@ class CheckMobiRequest
         return $response;
     }
 }
+
+//CheckMobiRequest::SMS(201110110013);
