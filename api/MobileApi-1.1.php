@@ -2195,14 +2195,17 @@ class MobileApi
                     $bins[Core\Model\ASD\USER_MOBILE_VALIDATION_TYPE] = 0;
                     $bins[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE] = $pin;
                     if ($mobile_id = NoSQL::getInstance()->mobileInsert($bins))
-                    {             
-                        $response = ShortMessageService::send("+{$mobile_no}", "{$pin} is your mourjan confirmation code", ['uid' => $this->getUID(), 'mid' => $mobile_id, 'platform'=>'ios'], NULL, TRUE);
-                        error_log(var_export($response->messages, TRUE));
-                        if ($response->messagecount) 
+                    {      
+                        $full_response = true;
+                        $response = ShortMessageService::send("+{$mobile_no}", "{$pin} is your mourjan confirmation code", ['uid' => $this->getUID(), 'mid' => $mobile_id, 'platform'=>'ios'], NULL, $full_response);
+                        error_log(var_export($response, TRUE));
+                        if (isset($response->messagecount) || isset($response['response']['id'])) 
                         {
                             if (NoSQL::getInstance()->mobileIncrSMS($this->uid, $mobile_no))
                             {
                                 error_log("Incremented");
+                                $sms_id = isset($response->messagecount) ? $response->messages[0]->messageid : $response['response']['id'];
+                                NoSQL::getInstance()->mobileUpdate($this->getUID(), $mobile_no, [\Core\Model\ASD\USER_MOBILE_REQUEST_ID=>$sms_id]);
                             }
                         
                             $this->result['d']['status']='sent';
@@ -2598,7 +2601,7 @@ class MobileApi
                 return;
             }
 
-            if (NoSQL::getInstance()->mobileUpdate($this->getUID(), $phone_number, [NoSQL::USER_DEVICE_UNINSTALLED=>1]))
+            if (NoSQL::getInstance()->mobileUpdate($this->getUID(), $phone_number, [Core\Model\ASD\USER_DEVICE_UNINSTALLED=>1]))
             //$this->db->setWriteMode();
             //$q = $this->db->queryResultArray("update WEB_USERS_MOBILE set status=9 where uid=? and mobile=? returning status", [$this->uid, $phone_number], TRUE);
             //if ($q[0]['STATUS']==9) 
