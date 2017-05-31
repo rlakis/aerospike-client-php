@@ -1033,7 +1033,7 @@ class PostAd extends Page{
                             ?><li>1.</li><li><?= $this->lang['validate_mobile_by_call'] ?></li><li><input type="button" onclick="verify(1)" value="<?= $this->lang['call_me'] ?>" class="bt ok" /></li><?php
                         ?></ul><?php
                         ?><ul><?php
-                            ?><li>2.</li><li><?= $this->lang['validate_mobile_by_sms'] ?></li><li><input type="button" onclick="verify()" value="<?= $this->lang['send_code'] ?>" class="bt ok" /></li><?php
+                            ?><li>2.</li><li><?= $this->lang['validate_mobile_by_sms'] ?></li><li><input type="button" onclick="verify(0)" value="<?= $this->lang['send_code'] ?>" class="bt ok" /></li><?php
                         ?></ul><?php
                     ?><br /><?php
                     ?></div><?php
@@ -1074,7 +1074,7 @@ class PostAd extends Page{
                     };
                     var vCall='.(isset($this->user->pending['mobile'])&&isset($this->user->pending['mobile_call'])?1:0).';
                     var verify=function(vc){
-                        if(typeof vc !== "undefined")vCall=1;
+                        vCall=vc;
                         $("#mb_check").hide();
                         $("#mb_load").show();
                         sctop();
