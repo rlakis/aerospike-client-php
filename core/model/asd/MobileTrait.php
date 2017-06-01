@@ -97,6 +97,11 @@ trait MobileTrait
     }
     
     
+    public function getMobileDigest(string $index_field_name, $value, array $filter, array &$out=[]) : array
+    {
+        return $this->getDigest($index_field_name, $value, $filter, $out);
+    }
+    
     
     private function getDigest(string $index_field_name, $value, array $filter, array &$out=[]) : array
     {
@@ -419,6 +424,23 @@ trait MobileTrait
         return FALSE;
     }
     
+    
+    public function mobileIncrSMSByKey($pk) : bool
+    {
+        if ($this->exists($pk)) 
+        {
+            if ($this->getConnection()->increment($pk, USER_MOBILE_SENT_SMS_COUNT, 1, [\Aerospike::OPT_POLICY_KEY=>\Aerospike::POLICY_EXISTS_UPDATE])==\Aerospike::OK)
+            {
+                return TRUE;
+            }
+            return FALSE;
+        } 
+        else 
+        {
+            error_log("record does not exists");
+        }
+        return FALSE;
+    }
     
     
     public function mobileSetSecret(int $uid, string $secret) : bool
