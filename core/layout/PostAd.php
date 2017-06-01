@@ -1103,7 +1103,7 @@ class PostAd extends Page{
                                     }else{
                                         if(rp.DATA.number>0){
                                             if(vCall){
-                                                setTimeout(function(){hangup(curNumber)},5000);
+                                                setTimeout(function(){hangup(curNumber)},10000);
                                                 sentW(2,rp.DATA.pre);
                                             }else{
                                                 sentW(1);
