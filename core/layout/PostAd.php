@@ -1056,7 +1056,7 @@ class PostAd extends Page{
                 ?><form onsubmit="validate();return false"><?php
                 ?><div id="mb_validate"><?php 
                     ?><p class="ph ctr num" id="val_string"><?= isset($this->user->pending['mobile']) ? '+'.$this->user->pending['mobile'] : '' ?></p><?php 
-                    ?><p class="ph ctr" id="sms_text"><?= isset($this->user->pending['mobile']) ? (isset($this->user->pending['mobile_call']) ? preg_replace('/{pre}/',' <span dir=ltr>+'.$this->user->pending['mobile_call'].'</span>',$this->lang['notice_sent_call']).$this->lang['notice_sent_call_prev'] : $this->lang['notice_sent_sms_prev']).'<br />' :'' ?></p><?php 
+                    ?><p class="ph ctr" id="sms_text"><?= isset($this->user->pending['mobile']) ? (isset($this->user->pending['mobile_call']) ? preg_replace('/{pre}/','<span dir=ltr>+'.$this->user->pending['mobile_call'].'</span>',$this->lang['notice_sent_call']).$this->lang['notice_sent_call_prev'] : $this->lang['notice_sent_sms_prev']).'<br />' :'' ?></p><?php 
                     ?><div class="ctr row"><?php
                     ?><input type="text" placeholder="0000" id="vcode" /><?php
                     ?></div><?php
@@ -1171,7 +1171,7 @@ class PostAd extends Page{
                         var m;
                         switch(nw){
                             case 2:
-                                m ="'.$this->lang['notice_sent_call'].'".replace("{pre}",pre);
+                                m ="'.$this->lang['notice_sent_call'].'".replace("{pre}","<span dir=ltr>+"+pre+"</span>");
                                 break;
                             case 1:
                                 m ="'.$this->lang['notice_sent_sms'].'";
