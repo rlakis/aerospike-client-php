@@ -18,6 +18,16 @@ if (isset($res['key']) && isset($res['number']))
 
 if (isset($res['id']) && isset($res['to']) && isset($res['status']))
 {
+    //usleep(2000);
+
+    $pk = NoSQL::getInstance()->getMobileDigest(\Core\Model\ASD\USER_MOBILE_REQUEST_ID, $res['id'], [Core\Model\ASD\USER_MOBILE_NUMBER=>intval($res['to'])]);
+    //error_log(sprintf( "%s\t%s", date("Y-m-d H:i:s"), var_export($pk, TRUE) ).PHP_EOL, 3, "/var/log/mourjan/sms.log");
+    
+    if ($res['status']=='sent')
+    {
+        //NoSQL::getInstance()->mobileIncrSMSByKey($pk[0]);
+    }
+    
     if ($res['status']=='delivered')
     {
         
