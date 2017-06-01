@@ -53,7 +53,7 @@ class PostAd extends Page{
         if ($this->user->params["city"]){
             $this->urlRouter->cityId=$this->user->params["city"];
         }
-        
+        //$this->isUserMobileVerified=false;
         $this->hasLeadingPane = $this->user->info['id'] && !$this->isUserMobileVerified;
         if($this->user->info['id']){
             if(!$this->isUserMobileVerified){
@@ -88,6 +88,21 @@ class PostAd extends Page{
                 $this->inlineCss .= '#mb_check{display:none}';
                 $this->inlineCss .= '#mb_load{display:none}';
                 $this->inlineCss .= '#mb_done{display:none}';
+                
+                if($this->isMobile){
+                    $this->inlineCss.='
+                        #mb_check li{padding:5px;height:auto;line-height:25px}
+                    ';
+                    if($this->urlRouter->siteLanguage=='ar'){                    
+                        $this->inlineCss.='
+                            #mb_check li{text-align:right}
+                        ';
+                    }else{
+                        $this->inlineCss.='
+                            #mb_check li{text-align:left}
+                        ';
+                    }
+                }
                 /*if($this->urlRouter->siteLanguage=='ar'){
                     $this->inlineCss.='.select2-selection__rendered,.select2-results__option{unicode-bidi:bidi-override;}';
                 }*/
@@ -1030,18 +1045,18 @@ class PostAd extends Page{
                     ?><div id="error_smsg" class="ctr row err"><br /></div><?php
                     ?><div class="ctr row"><?php
                         ?><ul><?php
-                            ?><li>1.</li><li><?= $this->lang['validate_mobile_by_call'] ?></li><li><input type="button" onclick="verify(1)" value="<?= $this->lang['call_me'] ?>" class="bt ok" /></li><?php
+                            ?><li>1. <?= $this->lang['validate_mobile_by_call'] ?></li><li><input type="button" onclick="verify(1)" value="<?= $this->lang['call_me'] ?>" class="bt ok" /></li><?php
                         ?></ul><?php
                         ?><ul><?php
-                            ?><li>2.</li><li><?= $this->lang['validate_mobile_by_sms'] ?></li><li><input type="button" onclick="verify(0)" value="<?= $this->lang['send_code'] ?>" class="bt ok" /></li><?php
+                            ?><li>2. <?= $this->lang['validate_mobile_by_sms'] ?></li><li><input type="button" onclick="verify(0)" value="<?= $this->lang['send_code'] ?>" class="bt ok" /></li><?php
                         ?></ul><?php
                     ?><br /><?php
                     ?></div><?php
                 ?></div><?php
                 ?><form onsubmit="validate();return false"><?php
                 ?><div id="mb_validate"><?php 
-                    ?><p class="ph ctr num" id="val_string"></p><?php 
-                    ?><p class="ph ctr" id="sms_text"><?= isset($this->user->pending['mobile']) ? (isset($this->user->pending['mobile_call']) ? preg_replace('/{pre}/',$this->user->pending['mobile_call'],$this->lang['notice_sent_call']).$this->lang['notice_sent_call_prev'] : $this->lang['notice_sent_sms_prev']).'<br />' :'' ?></p><?php 
+                    ?><p class="ph ctr num" id="val_string"><?= isset($this->user->pending['mobile']) ? '+'.$this->user->pending['mobile'] : '' ?></p><?php 
+                    ?><p class="ph ctr" id="sms_text"><?= isset($this->user->pending['mobile']) ? (isset($this->user->pending['mobile_call']) ? preg_replace('/{pre}/','<span dir=ltr>+'.$this->user->pending['mobile_call'].'</span>',$this->lang['notice_sent_call']).$this->lang['notice_sent_call_prev'] : $this->lang['notice_sent_sms_prev']).'<br />' :'' ?></p><?php 
                     ?><div class="ctr row"><?php
                     ?><input type="text" placeholder="0000" id="vcode" /><?php
                     ?></div><?php
@@ -1103,7 +1118,7 @@ class PostAd extends Page{
                                     }else{
                                         if(rp.DATA.number>0){
                                             if(vCall){
-                                                setTimeout(function(){hangup(curNumber)},5000);
+                                                setTimeout(function(){hangup(curNumber)},10000);
                                                 sentW(2,rp.DATA.pre);
                                             }else{
                                                 sentW(1);
@@ -1156,7 +1171,7 @@ class PostAd extends Page{
                         var m;
                         switch(nw){
                             case 2:
-                                m ="'.$this->lang['notice_sent_call'].'".replace("{pre}",pre);
+                                m ="'.$this->lang['notice_sent_call'].'".replace("{pre}","<span dir=ltr>+"+pre+"</span>");
                                 break;
                             case 1:
                                 m ="'.$this->lang['notice_sent_sms'].'";
