@@ -113,10 +113,10 @@ class MobileValidation
     }
 
     
-    public static function send($to, $message, $pin, &$result, $clientReference=null, $unicode=null)
+    public static function send($to, $message, $userId, $pin, $clientReference=null, $unicode=null)
     {
         $mv = new MobileValidation(static::NEXMO);
-        $mv->setPin($pin)->setUID($userId);
+        return $mv->setPin($pin)->setUID($userId)->sendSMS($to, $message, $clientReference);
     }
     
     
@@ -286,7 +286,8 @@ trait NexmoTrait
         return FALSE;
     }
 }
-(new MobileValidation(MobileValidation::NEXMO, MobileValidation::IosPlatform))->setUID(2)->setPin(1234)->sendSMS(9613287168, "hello", ['uid'=>2]);
+
+//(new MobileValidation(MobileValidation::NEXMO, MobileValidation::IosPlatform))->setUID(2)->setPin(1234)->sendSMS(9613287168, "hello", ['uid'=>2]);
 //var_dump($mobileValidation->setUID(2)->setPin(1234)->sendSMS(9613287168, "hello", ['uid'=>2]));
 
 //var_dump((new MobileValidation(MobileValidation::CheckMobiProvider))->setUID(2)->sendSMS(9613287168, "hello"));

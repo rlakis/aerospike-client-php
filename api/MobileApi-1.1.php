@@ -7,6 +7,7 @@ use Core\Model\DB;
 use Core\Model\NoSQL;
 use Core\Model\Classifieds;
 use Core\Lib\SphinxQL;
+use \Core\Model\MobileValidation;
 
 class MobileApi
 {
@@ -2087,17 +2088,27 @@ class MobileApi
             
             if ($val_type==1) // Cli
             {
-                $response = CheckMobiRequest::getCallerId($mobile_no, $this->getUID(), 'ios');                    
-                    
-                if (isset($response['status']) && $response['status']==200 && isset($response['saved']))
+                $rec_type = $record[\Core\Model\ASD\USER_MOBILE_VALIDATION_TYPE]??0;
+                if (time()-$record[\Core\Model\ASD\USER_MOBILE_DATE_REQUESTED]<120 && $rec_type==$val_type) 
                 {
                     $this->result['d']['status']='sent';
-                    $this->result['d']['dialing_number'] = $response['response']['dialing_number'];  
-                    $this->result['d']['request_id'] = $response['response']['id'];  
+                    $this->result['d']['dialing_number'] = $record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];  
+                    $this->result['d']['request_id'] = $record[Core\Model\ASD\USER_MOBILE_REQUEST_ID];  
                 }
                 else
                 {
+                    $response = CheckMobiRequest::getCallerId($mobile_no, $this->getUID(), 'ios');
+                                
+                    if (isset($response['status']) && $response['status']==200 && isset($response['saved']))
+                    {
+                        $this->result['d']['status']='sent';
+                        $this->result['d']['dialing_number'] = $response['response']['dialing_number'];  
+                        $this->result['d']['request_id'] = $response['response']['id'];  
+                    }
+                    else
+                    {
                     $this->result['e'] = 'Error, could not complete activation process! Please try again after few seconds...';
+                    }
                 }
                 return;
             }
@@ -2124,10 +2135,14 @@ class MobileApi
             if ($record[Core\Model\ASD\USER_MOBILE_SENT_SMS_COUNT]==0) 
             { // No sent SMS
                 $pin = $record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
-                $response = ShortMessageService::send("+{$mobile_no}", "{$pin} is your mourjan confirmation code", ['uid' => $this->getUID(), 'mid' => $record[Core\Model\ASD\SET_RECORD_ID], 'platform'=>'ios']);
-                if ($response) 
+                $msg_text = "{$pin} is your mourjan confirmation code";
+                
+                if (MobileValidation::send($mobile_no, $msg_text, $this->getUID(), $pin, ['uid'=>$this->getUID(), 'mid'=>$record[Core\Model\ASD\SET_RECORD_ID], 'platform'=>'ios'])==MobileValidation::RESULT_Ok)
                 {
-                    NoSQL::getInstance()->mobileIncrSMS($this->getUID(), $mobile_no);                        
+                //$response = ShortMessageService::send("+{$mobile_no}", "{$pin} is your mourjan confirmation code", ['uid' => $this->getUID(), 'mid' => $record[Core\Model\ASD\SET_RECORD_ID], 'platform'=>'ios']);
+                //if ($response) 
+                //{
+                //    NoSQL::getInstance()->mobileIncrSMS($this->getUID(), $mobile_no);                        
                     $this->result['d']['status']='sent';
                 }
             }
@@ -2191,7 +2206,15 @@ class MobileApi
                     break;
                 
                 default: // SMS
-                    $pin = mt_rand(1000, 9999);
+                    $pin = mt_rand(1000, 9999);                                        
+                    $msg_text = "{$pin} is your mourjan confirmation code";
+                
+                    if (\Core\Model\MobileValidation::send($mobile_no, $msg_text, $this->getUID(), $pin, ['uid'=>$this->getUID(), 'platform'=>'ios'])==\Core\Model\MobileValidation::RESULT_Ok)
+                    {
+                        $this->result['d']['status']='sent';
+                    }
+                
+                    /*
                     $bins[Core\Model\ASD\USER_MOBILE_VALIDATION_TYPE] = 0;
                     $bins[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE] = $pin;
                     if ($mobile_id = NoSQL::getInstance()->mobileInsert($bins))
@@ -2211,7 +2234,7 @@ class MobileApi
                             $this->result['d']['status']='sent';
                         }
                     }
-            
+                    */
                     break;
             }
                        

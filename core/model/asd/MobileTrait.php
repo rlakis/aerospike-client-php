@@ -281,9 +281,22 @@ trait MobileTrait
     }
 
     
-    public function mobileSetDeliveredCode(int $uid, int $number) : bool
+    public function mobileSetDeliveredCode(int $uid, int $number, string $request_id='') : bool
     {
-        $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
+        $pk = null;
+        if ($uid==0 && $request_id)
+        {
+            $keys = $this->getDigest(USER_MOBILE_REQUEST_ID, $request_id, [USER_MOBILE_NUMBER=>$number]);
+            if ($keys)
+            {
+                $pk = $keys[0];
+            }            
+        }
+        else
+        {
+            $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
+        }
+        
         if ($this->exists($pk)) 
         {
             return $this->setBins($pk, [USER_MOBILE_CODE_DELIVERED=>1]);

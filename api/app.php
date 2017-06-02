@@ -108,11 +108,13 @@ if ($appVersion=='1.0.1')
 }
 
 include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
+
 include_once $config['dir']."/api/MobileApi-{$appVersion}.php";
 include_once $config['dir'].'/core/model/Db.php';
 include_once $config['dir'].'/core/model/NoSQL.php';
-include_once $config['dir']. '/core/lib/MCSessionHandler.php';
-include_once $config['dir']. '/core/lib/MCUser.php';
+include_once $config['dir'].'/core/model/MobileValidation.php';
+include_once $config['dir'].'/core/lib/MCSessionHandler.php';
+include_once $config['dir'].'/core/lib/MCUser.php';
 
 ini_set('memory_limit', '256M');
 

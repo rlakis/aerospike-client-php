@@ -4,7 +4,6 @@ require get_cfg_var('mourjan.path'). '/config/cfg.php';
 require_once get_cfg_var('mourjan.path'). '/core/model/NoSQL.php';
 
 use Core\Model\NoSQL;
-use Core\Model\DB;
 
 //echo "sms delivery called";
 /*
@@ -62,12 +61,11 @@ use Core\Model\DB;
         $messageTimestamp = filter_input(INPUT_GET, 'message-timestamp', FILTER_SANITIZE_STRING);
         $reference = filter_input(INPUT_GET, 'client-ref', FILTER_SANITIZE_STRING);
         $text = filter_input(INPUT_GET, 'text', FILTER_SANITIZE_STRING);
+        
         error_log(json_encode($_GET).PHP_EOL, 3, "/var/log/mourjan/sms.log");
     }
     else
-    {
-        error_log(sprintf("%s", var_export($_POST, TRUE).PHP_EOL));
-        
+    {        
         $msisdn = filter_input(INPUT_POST, 'msisdn', FILTER_VALIDATE_INT)+0;
         $to = filter_input(INPUT_POST, 'to', FILTER_SANITIZE_STRING);
         $networkcode = filter_input(INPUT_POST, 'network-code', FILTER_VALIDATE_INT)+0;
@@ -79,32 +77,27 @@ use Core\Model\DB;
         $messageTimestamp = filter_input(INPUT_POST, 'message-timestamp', FILTER_SANITIZE_STRING);
         $reference = filter_input(INPUT_POST, 'client-ref', FILTER_SANITIZE_STRING);
         $text = filter_input(INPUT_POST, 'text', FILTER_SANITIZE_STRING);
+        
         error_log(json_encode($_POST).PHP_EOL, 3, "/var/log/mourjan/sms.log");    
     }
     error_log(sprintf("%s\t%d\t%s\t%d\t%s\t%f\t%s\t%d\t%d\t%s\t%d\t%s", date("Y-m-d H:i:s"), $msisdn, $to, $networkcode, $messageId, $price, $status, $scts, $errCode, $messageTimestamp, $reference, $text).PHP_EOL, 3, "/var/log/mourjan/sms.log");
 
 //}
 
+$uid=0;
 
-if ($errCode==0 && strlen($reference)>1 && ($to=="Mourjan"||$to=="12242144077"||$to=="mourjan"||$to=="33644630401"))
+if ($errCode==0 && ($to=="Mourjan"||$to=="12242144077"||$to=="mourjan"||$to=="33644630401"))
 {
-    $uid = 0;
-    $reference = html_entity_decode($reference);
-    $json = json_decode($reference, false);
-    if (isset($json->uid))
+    if (strlen($reference)>1)
     {
-        $uid = $json->uid;
-        $reference = intval($json->mid); 
-        $ios = ($json->platform==='ios');        
-
-        if (!empty($uid) && NoSQL::getInstance()->mobileSetDeliveredCode($uid, $msisdn))
-        {
-            //$db = new DB($config);
-            //$db->queryResultArray("UPDATE WEB_USERS_LINKED_MOBILE SET DELIVERED=1 WHERE ID=? and DELIVERED=0", [$reference], TRUE);
-        }
+        $json = json_decode($reference, false);
+        $uid = $json->uid ?? 0;
     }
-    error_log(sprintf("%s\t%d\tis written", date("Y-m-d H:i:s"), $msisdn).PHP_EOL, 3, "/var/log/mourjan/sms.log");
-    $db->close();
+    
+    if (NoSQL::getInstance()->mobileSetDeliveredCode($uid, $msisdn, $messageId))
+    {
+        error_log(sprintf("%s\t%d\tis written", date("Y-m-d H:i:s"), $msisdn).PHP_EOL, 3, "/var/log/mourjan/sms.log");
+    }
 }
 else
 {
