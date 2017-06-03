@@ -1988,7 +1988,7 @@ class MobileApi
         
         if ($record)
         {       
-            if (isset($record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]>(time()-(525600*60)))
+            if (isset($record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]>(time()-31536000))
             {
                $this->result['e'] = 'Mobile number already validated';
                $this->result['d']['status']='validated';
@@ -2088,6 +2088,24 @@ class MobileApi
             
             if ($val_type==1) // Cli
             {
+                $mobileValidation = new MobileValidation(MobileValidation::CHECK_MOBI, MobileValidation::IosPlatform);
+                $mv_result = $mobileValidation->setUID($this->getUID())->sendCallerId($mobile_no);
+                switch ($mv_result)
+                {
+                    case MobileValidation::RESULT_Ok:
+                    case MobileValidation::RESULT_ERR_SENT_FEW_MINUTES:
+                        $record = NoSQL::getInstance()->mobileFetch($this->getUID(), $mobile_no);
+                        $this->result['d']['status']='sent';
+                        $this->result['d']['dialing_number'] = $record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
+                        $this->result['d']['request_id'] = $record[Core\Model\ASD\USER_MOBILE_REQUEST_ID];
+                        $this->result['e'] = '';
+                        break;
+
+                    default:
+                        $this->result['e'] = 'Error, could not complete activation process! Please try again after few seconds...';
+                        break;
+                }
+                /*
                 $rec_type = $record[\Core\Model\ASD\USER_MOBILE_VALIDATION_TYPE]??0;
                 if (time()-$record[\Core\Model\ASD\USER_MOBILE_DATE_REQUESTED]<120 && $rec_type==$val_type) 
                 {
@@ -2107,9 +2125,9 @@ class MobileApi
                     }
                     else
                     {
-                    $this->result['e'] = 'Error, could not complete activation process! Please try again after few seconds...';
+                        $this->result['e'] = 'Error, could not complete activation process! Please try again after few seconds...';
                     }
-                }
+                }*/
                 return;
             }
             
@@ -2178,6 +2196,24 @@ class MobileApi
             switch ($val_type) 
             {                
                 case 1: // Cli
+                    $mobileValidation = new MobileValidation(MobileValidation::CHECK_MOBI, MobileValidation::IosPlatform);
+                    $mv_result = $mobileValidation->setUID($this->getUID())->sendCallerId($mobile_no);
+                    switch ($mv_result)
+                    {
+                        case MobileValidation::RESULT_Ok:
+                        case MobileValidation::RESULT_ERR_SENT_FEW_MINUTES:
+                            $record = NoSQL::getInstance()->mobileFetch($this->getUID(), $mobile_no);
+                            $this->result['d']['status']='sent';
+                            $this->result['d']['dialing_number'] = $record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
+                            $this->result['d']['request_id'] = $record[Core\Model\ASD\USER_MOBILE_REQUEST_ID];
+                            $this->result['e'] = '';
+                            break;
+
+                        default:
+                            $this->result['e'] = 'Error, could not complete activation process! Please try again after few seconds...';
+                            break;
+                    }
+                    /*
                     $response = CheckMobiRequest::getCallerId($mobile_no, $this->getUID(), 'ios');                    
                     if (isset($response['status']) && $response['status']==200 && isset($response['saved']))
                     {
@@ -2188,7 +2224,7 @@ class MobileApi
                     else
                     {
                         $this->result['e'] = 'Error, could not complete activation process! Please try again after few seconds...';
-                    }
+                    }*/
                     break;
                 
                 case 2: // ReverseCli

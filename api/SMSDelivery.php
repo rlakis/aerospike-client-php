@@ -61,7 +61,8 @@ use Core\Model\NoSQL;
         $messageTimestamp = filter_input(INPUT_GET, 'message-timestamp', FILTER_SANITIZE_STRING);
         $reference = filter_input(INPUT_GET, 'client-ref', FILTER_SANITIZE_STRING);
         $text = filter_input(INPUT_GET, 'text', FILTER_SANITIZE_STRING);
-        
+
+        $call_id = filter_input(INPUT_GET, 'call-id', FILTER_SANITIZE_STRING);
         error_log(json_encode($_GET).PHP_EOL, 3, "/var/log/mourjan/sms.log");
     }
     else
@@ -83,6 +84,11 @@ use Core\Model\NoSQL;
     error_log(sprintf("%s\t%d\t%s\t%d\t%s\t%f\t%s\t%d\t%d\t%s\t%d\t%s", date("Y-m-d H:i:s"), $msisdn, $to, $networkcode, $messageId, $price, $status, $scts, $errCode, $messageTimestamp, $reference, $text).PHP_EOL, 3, "/var/log/mourjan/sms.log");
 
 //}
+
+if ($call_id)
+{
+    return;
+}
 
 $uid=0;
 
