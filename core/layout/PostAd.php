@@ -1001,7 +1001,7 @@ class PostAd extends Page{
             
             
             
-            }else{
+            }else{                
                 $q='select c.code,c.id,c.name_'.$this->urlRouter->siteLanguage.',c.locked,trim(id_2)    
                         from country c 
                         where id != 109 
@@ -1040,10 +1040,14 @@ class PostAd extends Page{
                     ?><div class="ctr row"><?php
                     ?><a href="javascript:ncorrect()" class="lnk"><?= $this->lang['correct'] ?></a><?php
                     ?></div><br /><?php
-                    /* ?><p class="ph ctr"><?= $this->lang['notice_check_number'] ?><br /></p><?php */
-                    ?><p class="ph ctr"><?= $this->lang['choose_mobile_validation'] ?><br /></p><?php                     
+                    ?><p class="ph ctr single"><?= $this->lang['notice_check_number'] ?><br /></p><?php 
+                    ?><p class="ph ctr multi"><?= $this->lang['choose_mobile_validation'] ?><br /></p><?php                     
                     ?><div id="error_smsg" class="ctr row err"><br /></div><?php
-                    ?><div class="ctr row"><?php
+                    ?><div class="ctr row single"><?php
+                        ?><input type="button" onclick="verify(0)" value="<?= $this->lang['send_code'] ?>" class="bt ok" /><?php
+                    ?><br /><?php
+                    ?></div><?php
+                    ?><div class="ctr row multi"><?php
                         ?><ul><?php
                             ?><li>1. <?= $this->lang['validate_mobile_by_call'] ?></li><li><input type="button" onclick="verify(1)" value="<?= $this->lang['call_me'] ?>" class="bt ok" /></li><?php
                         ?></ul><?php
@@ -1118,7 +1122,7 @@ class PostAd extends Page{
                                     }else{
                                         if(rp.DATA.number>0){
                                             if(vCall){
-                                                setTimeout(function(){hangup(curNumber)},10000);
+                                                /*setTimeout(function(){hangup(curNumber)},10000);*/
                                                 sentW(2,rp.DATA.pre);
                                             }else{
                                                 sentW(1);
@@ -1186,6 +1190,7 @@ class PostAd extends Page{
                         $("#mb_validate").show();
                         sctop();
                     };
+                    var smsOnly=['.implode(',', $this->urlRouter->cfg['nexmoOnlyCountries']).'];
                     var dcheck=function(e){
                         var num=$("#number");
                         var v=num.val();
@@ -1194,12 +1199,21 @@ class PostAd extends Page{
                             if(isNaN(v)){
                                 wNum();
                             }else{
-                                curNumber="+"+$("#code").val()+parseInt(v);
+                                var cc=parseInt($("#code").val());
+                                curNumber="+"+cc+parseInt(v);                                
                                 num.css("border-color","#aaa");
                                 $("#error_msg").html("<br />");
                                 $("#num_string").html(curNumber);
                                 $("#mb_notice").hide();
-                                $("#mb_check").show();
+                                var mb=$("#mb_check");
+                                if(smsOnly.indexOf(cc)>=0){
+                                    $(".single",mb).show();
+                                    $(".multi",mb).hide();
+                                }else{
+                                    $(".single",mb).hide();
+                                    $(".multi",mb).show();                                
+                                }
+                                mb.show();
                                 sctop();
                                 $("#number").val(v);
                             }
