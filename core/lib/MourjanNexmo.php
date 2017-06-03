@@ -59,7 +59,7 @@ class ShortMessageService
             case 1:
                 $from = '12242144077';
                 break;
-            
+            /*
             case 20:
             case 212:
             case 971:                
@@ -73,10 +73,10 @@ class ShortMessageService
                 {
                     return isset($response['status']) && $response['status']==200 && isset($response['response']['id']);
                 }
-                
-            //case 212:
-            //    $from = '33644630401';
-            //    break;
+               */
+            case 212:
+                $from = '33644630401';
+                break;
 
             case 974:
                 if ($carrier=='ooredoo')
