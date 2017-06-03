@@ -34,7 +34,9 @@ class MobileValidation
     const RESULT_ERR_DB_FAILURE         = 6;
     const RESULT_ERR_UNKNOWN            = 9;
 
-    private static $SMS_TYPE            = 0; 
+    private static $SMS_TYPE            = 0;
+    private static $CLI_TYPE            = 1;
+    private static $REVERSE_CLI_TYPE    = 2;
     
     private $api;
     private $uid;
@@ -131,17 +133,16 @@ class MobileValidation
         $mv = new MobileValidation(static::NEXMO);
         return $mv->setPin($pin)->setUID($userId)->sendSMS($to, $message, $clientReference);
     }
-    
-    
-    public function sendSMS($to, $text, $reference=null, $unicode=null)
-    {   
+
+
+    private function checkUserMobileStatus(int $to, int $vt, &$record) : int
+    {
         if (!($this->uid))
         {
             return MobileValidation::RESULT_ERR_NO_USER_ID;
         }
         
-        $num = $this->getE164($to, TRUE);
-        $record = NoSQL::getInstance()->mobileFetch($this->uid, $num);
+        $record = NoSQL::getInstance()->mobileFetch($this->uid, $to);
         if ($record)
         {
             $activation_time = $record[ASD\USER_MOBILE_DATE_ACTIVATED] ?? 0;
@@ -149,12 +150,12 @@ class MobileValidation
             {
                 return MobileValidation::RESULT_ERR_ALREADY_ACTIVE;
             }
-            
+
             $type = $record[ASD\USER_MOBILE_VALIDATION_TYPE] ?? 0;
-            if ($type==MobileValidation::$SMS_TYPE)
+            if ($type==$vt)
             {
                 $age = time()-$record[ASD\USER_MOBILE_DATE_REQUESTED];
-                if ($age<=600)
+                if ($age<=180)
                 {
                     return MobileValidation::RESULT_ERR_SENT_FEW_MINUTES;
                 }
@@ -163,6 +164,52 @@ class MobileValidation
                     return MobileValidation::RESULT_ERR_QOTA_EXCEEDED;
                 }
             }
+        }
+
+        return MobileValidation::RESULT_Ok;
+    }
+    
+    
+    public function sendCallerId($to)
+    {
+        $num = $this->getE164($to, TRUE);
+        $status = $this->checkUserMobileStatus($num, MobileValidation::$CLI_TYPE, $record);
+        if ($status!= MobileValidation::RESULT_Ok)
+        {
+            return $status;
+        }
+
+        $bins = [ASD\USER_UID=>$this->uid,
+                ASD\USER_MOBILE_NUMBER=>$num,
+                ASD\USER_MOBILE_ACTIVATION_CODE=>0,
+                ASD\USER_MOBILE_FLAG=>$this->platform];
+
+        if ($this->api instanceof \checkmobi\CheckMobiRest)
+        {
+            if ($this->sendCheckMobiCallerId($to, $bins))
+            {
+                $res = ($record) ? NoSQL::getInstance()->mobileUpdate($this->uid, $num, $bins) : NoSQL::getInstance()->mobileInsert($bins);
+                if ($res)
+                {
+                    //NoSQL::getInstance()->mobileIncrSMS($this->uid, $num);
+                    return MobileValidation::RESULT_Ok;
+                }
+                return MobileValidation::RESULT_ERR_DB_FAILURE;
+            }
+
+        }
+        return MobileValidation::RESULT_ERR_UNKNOWN;
+        
+    }
+
+
+    public function sendSMS($to, $text, $reference=null, $unicode=null)
+    {   
+        $num = $this->getE164($to, TRUE);
+        $status = $this->checkUserMobileStatus($num, MobileValidation::$SMS_TYPE, $record);
+        if ($status!= MobileValidation::RESULT_Ok)
+        {
+            return $status;
         }
         
         $bins = [ASD\USER_UID=>$this->uid, 
@@ -229,7 +276,7 @@ trait CheckMobiTrait
     
     public function sendCheckMobiMessage($to, $text, &$bins) : bool
     {
-        $response = $this->getClient()->SendSMS(["to" => $this->getE164($to), "text"=>$text, "platform"=>$this->getPlatformName(), "notification_callback"=>"https://dv.mourjan.com/api/checkMobi.php"]);    
+        $response = $this->getClient()->SendSMS(["to"=>$this->getE164($to), "text"=>$text, "platform"=>$this->getPlatformName(), "notification_callback"=>"https://dv.mourjan.com/api/checkMobi.php"]);    
         if ($this->isCheckMobiOk($response))
         {
             if (isset($response['response']['id']))
@@ -237,6 +284,24 @@ trait CheckMobiTrait
                 $bins[ASD\USER_MOBILE_DATE_REQUESTED]=time();
                 $bins[ASD\USER_MOBILE_REQUEST_ID] = $response['response']['id'];
                 $bins[ASD\USER_MOBILE_VALIDATION_TYPE] = 0;
+                return TRUE;
+            }
+        }
+        return FALSE;
+    }
+
+
+    public function sendCheckMobiCallerId($to, &$bins) : bool
+    {
+        $response = $this->getClient()->RequestValidation(["type"=>"cli", "number"=>$this->getE164($to), "platform"=>$this->getPlatformName()]);
+        if ($this->isCheckMobiOk($response))
+        {
+            if (isset($response['response']['id']))
+            {
+                $bins[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE] = intval($response['response']['dialing_number']);
+                $bins[ASD\USER_MOBILE_DATE_REQUESTED]=time();
+                $bins[ASD\USER_MOBILE_REQUEST_ID] = $response['response']['id'];
+                $bins[ASD\USER_MOBILE_VALIDATION_TYPE] = 1;
                 return TRUE;
             }
         }
@@ -252,7 +317,13 @@ trait NexmoTrait
     abstract protected function getAllocatedNumber() : int;
     abstract public function getNumberCountryCode(int $number) : int;
     abstract public function getNumberCarrierName(int $number) : string; 
-    
+
+    private $api_key = '8984ddf8';
+    private $api_secret = 'CVa3tHey3js6';
+    private $base_url = 'https://api.nexmo.com';
+    private $version = '/v1';
+
+
     function generate_jwt( $application_id, $keyfile) 
     {
         $jwt = false;
@@ -313,10 +384,109 @@ trait NexmoTrait
        
         return FALSE;
     }
-    
-    
+
+
+    function applicationsInfo()
+    {
+        $action = '/applications/?';
+        $url = $this->base_url . $this->version . $action . http_build_query([
+                    'api_key' => $this->api_key,
+                    'api_secret' => $this->api_secret
+                ]);
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json'));
+        curl_setopt($ch, CURLOPT_HEADER, 1);
+        $response = curl_exec($ch);
+
+        $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        $header = substr($response, 0, $header_size);
+        $body = substr($response, $header_size);
+
+        if (strpos($header, '200'))
+        {
+            $decoded_response = json_decode($body, true);
+            echo("You have " . $decoded_response['count'] . " applications\n");
+            echo("Page " . $decoded_response['page_index']
+            . " lists " . $decoded_response['page_size'] . " applications\n");
+            echo("Use the links to navigate. For example: "
+            . $this->base_url .  $decoded_response['_links']['last']['href'] . "\n"  );
+
+            $applications = $decoded_response['_embedded']['applications'] ;
+
+            foreach ( $applications as $application )
+            {
+                echo "  Application ID is:" . $application['id'] . "\n"  ;
+                foreach($application['voice']['webhooks'] as $webhook)
+                {
+                    echo ( "    " . $webhook['endpoint_type'] . " is " . $webhook['endpoint'] . "\n"  );
+                }
+            }
+        }
+        else
+        {
+            $error = json_decode($body, true);
+            echo("Your request failed because:\n");
+            echo("  " . $error['type'] . "  " . $error['error_title']   );
+        }
+    }
+
+
+    public function updateApplications($app_id)
+    {
+        $action = '/applications/';
+        
+
+        $url = $this->base_url . $this->version . $action .  $app_id .'?'. http_build_query([
+                'api_key' => $this->api_key,
+                'api_secret' => $this->api_secret,
+                'name' => 'Mourjan',
+                'type' => 'voice',
+                'answer_url' => 'https://dv.mourjan.com/api/nexmo/ncco.php',
+                'event_url' => 'https://dv.mourjan.com/api/nexmo/call_event.php'
+            ]);
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_PUT, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json'));
+        curl_setopt($ch, CURLOPT_HEADER, 1);
+        $response = curl_exec($ch);
+
+        $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        $header = substr($response, 0, $header_size);
+        $body = substr($response, $header_size);
+
+        if (strpos($header, '200'))
+        {
+            $application = json_decode($body, true);
+            echo("Application " . $application['name'] . " has an ID of:" . $application['id'] . "\n" ) ;
+            echo("  Use the links to navigate. For example: " . $this->base_url .  $application['_links']['self']['href'] . "\n"  );
+            foreach($application['voice']['webhooks'] as $webhook)
+                echo ( "  " . $webhook['endpoint_type'] . " is " . $webhook['endpoint'] . "\n"  );
+            echo("  You use your private_key to connect to Nexmo endpoints:\n" ) ;
+            echo("  " . ($application['keys']['private_key'] ?? ''));
+
+        }
+        else
+        {
+            $error = json_decode($body, true);
+            echo("Your request failed because:\n");
+            echo("  " . $error['type'] . "  " . $error['error_title']   );
+        }
+
+        return $this;
+    }
+
+
+
     function reverseNexmoCLI(int $to)
     {
+        //Connection information
+        $action = '/calls';
+
+
         $from = $this->getAllocatedNumber();
         $ncco = '[
         {
@@ -324,15 +494,9 @@ trait NexmoTrait
             "voiceName": "Russell",
             "text": "Hi, Thank you for using mourjan classifieds"
         }
-        ]';
-        //header('Content-Type: application/json');
-        //echo $ncco;
+        ]';       
         
-        //Connection information
-        $base_url = 'https://api.nexmo.com' ;
-        $version = '/v1';
-        $action = '/calls';
-
+      
         //User and application information
         $application_id = "905c1bc6-ff6c-4767-812c-1b39d756bda6";
         $jwt = $this->generate_jwt($application_id, '/root/private.key');
@@ -356,14 +520,14 @@ trait NexmoTrait
                 "type": "phone",
                 "number": "'.$from.'"
             },
-            "answer_url": ["https://nexmo-community.github.io/ncco-examples/first_call_talk.json"],
-            "event_url": ["https://dv.mourjan.com/api/NexmoEvent.php"],
-            "ringing_timer":8
+            "answer_url": ["https://dv.mourjan.com/api/nexmo/ncco.php"],
+            "event_url": ["https://dv.mourjan.com/api/nexmo/call_event.php"],
+            "ringing_timer":10
             }';
         
         //Create the request
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $base_url . $version . $action);
+        curl_setopt($ch, CURLOPT_URL, $this->base_url . $this->version . $action);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_POST, 1);
@@ -372,7 +536,6 @@ trait NexmoTrait
 
         $response = curl_exec($ch);
 
-        echo $jwt, "\n\n";
         //echo $payload, "\n\n";
         echo "\n", $response, "\n\n";
 
@@ -381,7 +544,12 @@ trait NexmoTrait
     }
 }
 
-(new MobileValidation(MobileValidation::NEXMO, MobileValidation::IosPlatform))->setUID(2)->setPin(1234)->reverseNexmoCLI(9613287168);
+if (0)
+{
+    $validator = new MobileValidation(MobileValidation::CHECK_MOBI, MobileValidation::IosPlatform);
+    var_dump($validator->setUID(2)->setPin(1234)->sendCallerId(9613287168));
+}
+        //// reverseNexmoCLI(9613287168);
 //var_dump($mobileValidation->setUID(2)->setPin(1234)->sendSMS(9613287168, "hello", ['uid'=>2]));
 
 //var_dump((new MobileValidation(MobileValidation::CheckMobiProvider))->setUID(2)->sendSMS(9613287168, "hello"));
