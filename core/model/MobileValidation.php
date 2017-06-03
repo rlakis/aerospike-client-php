@@ -8,6 +8,10 @@ include_once $dir.'/core/model/NoSQL.php';
 use checkmobi\CheckMobiRest;
 use \Core\Model\NoSQL;
 
+use Lcobucci\JWT\Builder;
+use Lcobucci\JWT\Signer\Key;
+use Lcobucci\JWT\Signer\Rsa\Sha256;
+
 
 class MobileValidation
 {
@@ -36,6 +40,9 @@ class MobileValidation
     private $uid;
     private $pin;
     private $platform;
+    
+    
+    private $call_center = [12242144077, 33644630401];
     
     
     function __construct(int $provider=MobileValidation::NEXMO, int $platform=MobileValidation::WebPlatform) 
@@ -99,6 +106,12 @@ class MobileValidation
         return $as_int ? $num : "+{$num}";
     }
     
+    
+    protected function getAllocatedNumber() : int
+    {
+        $i = rand(0, count($this->call_center)-1);
+        return $this->call_center[$i];
+    }
     
     public function getNumberCountryCode(int $number) : int
     {
@@ -236,9 +249,24 @@ trait CheckMobiTrait
 trait NexmoTrait
 {
     abstract public function getClient();
+    abstract protected function getAllocatedNumber() : int;
     abstract public function getNumberCountryCode(int $number) : int;
     abstract public function getNumberCarrierName(int $number) : string; 
     
+    function generate_jwt( $application_id, $keyfile) 
+    {
+        $jwt = false;
+        date_default_timezone_set('UTC');    //Set the time for UTC + 0
+        $key = file_get_contents($keyfile);  //Retrieve your private key
+        $signer = new Sha256();
+        $privateKey = new Key($key);
+
+        $jwt = (new Builder())->setIssuedAt(time() - date('Z'))->set('application_id', $application_id)->setId( base64_encode( mt_rand (  )), true)->sign($signer,  $privateKey)->getToken();
+
+        return $jwt;
+    }
+
+
     public function sendNexmoMessage($to, $text, $reference=null, $unicode=null, &$bins)
     {
         $from = 'mourjan';
@@ -285,9 +313,75 @@ trait NexmoTrait
        
         return FALSE;
     }
+    
+    
+    function reverseNexmoCLI(int $to)
+    {
+        $from = $this->getAllocatedNumber();
+        $ncco = '[
+        {
+            "action": "talk",
+            "voiceName": "Russell",
+            "text": "Hi, Thank you for using mourjan classifieds"
+        }
+        ]';
+        //header('Content-Type: application/json');
+        //echo $ncco;
+        
+        //Connection information
+        $base_url = 'https://api.nexmo.com' ;
+        $version = '/v1';
+        $action = '/calls';
+
+        //User and application information
+        $application_id = "905c1bc6-ff6c-4767-812c-1b39d756bda6";
+        $jwt = $this->generate_jwt($application_id, '/root/private.key');
+        
+        //Add the JWT to the request headers
+        $headers =  array('Content-Type: application/json', "Authorization: Bearer " . $jwt ) ;
+        
+        //Change the to parameter to the number you want to call
+    
+        $in = ['to'=>[['type'=>'phone', 'number'=> strval($to)]], 'from'=>[['type'=>'phone', 'number'=> strval($from)]], 
+            'answer_url'=>["https://nexmo-community.github.io/ncco-examples/first_call_talk.json"],
+            'event_url'=>["https://dv.mourjan.com/api/NexmoEvent.php"],
+            ];
+        $payload = json_encode($in, JSON_UNESCAPED_SLASHES);
+        $payload = '{
+            "to":[{
+                "type": "phone",
+                "number": "' .$to.'"
+            }],
+            "from": {
+                "type": "phone",
+                "number": "'.$from.'"
+            },
+            "answer_url": ["https://nexmo-community.github.io/ncco-examples/first_call_talk.json"],
+            "event_url": ["https://dv.mourjan.com/api/NexmoEvent.php"],
+            "ringing_timer":8
+            }';
+        
+        //Create the request
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $base_url . $version . $action);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+
+        $response = curl_exec($ch);
+
+        echo $jwt, "\n\n";
+        //echo $payload, "\n\n";
+        echo "\n", $response, "\n\n";
+
+
+        
+    }
 }
 
-//(new MobileValidation(MobileValidation::NEXMO, MobileValidation::IosPlatform))->setUID(2)->setPin(1234)->sendSMS(9613287168, "hello", ['uid'=>2]);
+(new MobileValidation(MobileValidation::NEXMO, MobileValidation::IosPlatform))->setUID(2)->setPin(1234)->reverseNexmoCLI(9613287168);
 //var_dump($mobileValidation->setUID(2)->setPin(1234)->sendSMS(9613287168, "hello", ['uid'=>2]));
 
 //var_dump((new MobileValidation(MobileValidation::CheckMobiProvider))->setUID(2)->sendSMS(9613287168, "hello"));
