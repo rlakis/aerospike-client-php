@@ -368,6 +368,7 @@ class Bin extends AjaxHandler{
                                                         $this->user->info['verified']=true;
                                                         unset($this->user->pending['mobile']);
                                                         unset($this->user->pending['mobile_call']);
+                                                        unset($this->user->pending['mobile_call_stamp']);
                                                         $this->user->update();
                                                     }else{
                                                         $this->setData(0,'verified');
@@ -540,14 +541,18 @@ class Bin extends AjaxHandler{
                                         {
                                             // Record not found
                                             $keyCode=mt_rand(1000, 9999);
-                                            if($validateByCall){
-                                                
-                                                $response = CheckMobiRequest::reverseCallerId($number, $this->user->info['id']);
-                                                if (!(isset($response['status']) && $response['status']==200 && isset($response['saved']))){                                                
-                                                    $keyCode=0;
-                                                    $number=0;
+                                            if($validateByCall){   
+                                                if(isset($this->user->pending['mobile_call']) && isset($this->user->pending['mobile_call_stamp']) && (time()-$this->user->pending['mobile_call_stamp']<=120)){
+                                                    $keyCode = $this->user->pending['mobile_call'];
                                                 }else{
-                                                    $keyCode=$response['response']['cli_prefix'];
+                                                    $response = CheckMobiRequest::reverseCallerId($number, $this->user->info['id']);
+                                                    if (!(isset($response['status']) && $response['status']==200 && isset($response['saved']))){                                                
+                                                        $keyCode=0;
+                                                        $number=0;
+                                                    }else{
+                                                        $keyCode=$response['response']['cli_prefix'];
+                                                        $this->user->pending['mobile_call_stamp']=time();
+                                                    }
                                                 }
                                             }else{
                                                 if (NoSQL::getInstance()->mobileInsert([
@@ -601,13 +606,16 @@ class Bin extends AjaxHandler{
                                     if($number){
                                         $this->user->pending['mobile']=$number;
                                         if($validateByCall){
-                                            $this->user->pending['mobile_call']=$keyCode;
-                                            $this->setData($keyCode,'pre');
+                                            $this->user->pending['mobile_call']=$keyCode.' xxx <u>XXXX</u>';                                            
+                                            $this->setData($keyCode.' xxx <u>XXXX</u>','pre');
                                         }else{
                                             unset($this->user->pending['mobile_call']);
+                                            unset($this->user->pending['mobile_call_stamp']);
                                         }
                                     }else{
                                         unset($this->user->pending['mobile']);
+                                        unset($this->user->pending['mobile_call']);
+                                        unset($this->user->pending['mobile_call_stamp']);
                                     }
                                     $this->user->update();
                                 }else{
