@@ -2152,15 +2152,20 @@ class MobileApi
             // SMS
             if ($record[Core\Model\ASD\USER_MOBILE_SENT_SMS_COUNT]==0) 
             { // No sent SMS
-                $pin = $record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
+                $pin = mt_rand(1000, 9999); 
+                //$pin = $record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
                 $msg_text = "{$pin} is your mourjan confirmation code";
-                
-                if (MobileValidation::send($mobile_no, $msg_text, $this->getUID(), $pin, ['uid'=>$this->getUID(), 'mid'=>$record[Core\Model\ASD\SET_RECORD_ID], 'platform'=>'ios'])==MobileValidation::RESULT_Ok)
+                if ((new MobileValidation(MobileValidation::NEXMO, MobileValidation::IosPlatform))->
+                        setUID($this->getUID())->
+                        setPin($pin)->
+                        sendSMS($mobile_no, $msg_text, ['uid'=>$this->getUID()])== MobileValidation::RESULT_Ok)
                 {
-                //$response = ShortMessageService::send("+{$mobile_no}", "{$pin} is your mourjan confirmation code", ['uid' => $this->getUID(), 'mid' => $record[Core\Model\ASD\SET_RECORD_ID], 'platform'=>'ios']);
-                //if ($response) 
-                //{
-                //    NoSQL::getInstance()->mobileIncrSMS($this->getUID(), $mobile_no);                        
+                    //if (MobileValidation::send($mobile_no, $msg_text, $this->getUID(), $pin, ['uid'=>$this->getUID(), 'mid'=>$record[Core\Model\ASD\SET_RECORD_ID], 'platform'=>'ios'])==MobileValidation::RESULT_Ok)
+                    //{
+                    //$response = ShortMessageService::send("+{$mobile_no}", "{$pin} is your mourjan confirmation code", ['uid' => $this->getUID(), 'mid' => $record[Core\Model\ASD\SET_RECORD_ID], 'platform'=>'ios']);
+                    //if ($response) 
+                    //{
+                    //    NoSQL::getInstance()->mobileIncrSMS($this->getUID(), $mobile_no);                        
                     $this->result['d']['status']='sent';
                 }
             }
@@ -2245,8 +2250,13 @@ class MobileApi
                     $pin = mt_rand(1000, 9999);                                        
                     $msg_text = "{$pin} is your mourjan confirmation code";
                 
-                    if (\Core\Model\MobileValidation::send($mobile_no, $msg_text, $this->getUID(), $pin, ['uid'=>$this->getUID(), 'platform'=>'ios'])==\Core\Model\MobileValidation::RESULT_Ok)
+                    if ((new MobileValidation(MobileValidation::NEXMO, MobileValidation::IosPlatform))->
+                        setUID($this->getUID())->
+                        setPin($pin)->
+                        sendSMS($mobile_no, $msg_text, ['uid'=>$this->getUID()])== MobileValidation::RESULT_Ok)
                     {
+                    //if (\Core\Model\MobileValidation::send($mobile_no, $msg_text, $this->getUID(), $pin, ['uid'=>$this->getUID(), 'platform'=>'ios'])==\Core\Model\MobileValidation::RESULT_Ok)
+                    //{
                         $this->result['d']['status']='sent';
                     }
                 
