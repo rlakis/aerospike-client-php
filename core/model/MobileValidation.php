@@ -275,7 +275,12 @@ class MobileValidation
     {
         $num = $this->getE164($to, TRUE);
         $status = $this->checkUserMobileStatus($num, MobileValidation::REVERSE_CLI_TYPE, $record);
-        if ($status!= MobileValidation::RESULT_OK)
+        //if ($this->uid==2 && $status==MobileValidation::RESULT_ERR_ALREADY_ACTIVE)
+        //{
+        //    $status = MobileValidation::RESULT_OK;
+        //}
+
+        if ($status!=MobileValidation::RESULT_OK)
         {
             return $status;
         }

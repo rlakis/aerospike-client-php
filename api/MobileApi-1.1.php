@@ -2230,11 +2230,11 @@ class MobileApi
                     $mv_result = $mobileValidation->setUID($this->getUID())->sendCallerId($mobile_no);
                     switch ($mv_result)
                     {
-                        case MobileValidation::RESULT_Ok:
+                        case MobileValidation::RESULT_OK:
                         case MobileValidation::RESULT_ERR_SENT_FEW_MINUTES:
                             $record = NoSQL::getInstance()->mobileFetch($this->getUID(), $mobile_no);
                             $this->result['d']['status']='sent';
-                            $this->result['d']['dialing_number'] = $record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
+                            $this->result['d']['dialing_number'] = '+'.$record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
                             $this->result['d']['request_id'] = $record[Core\Model\ASD\USER_MOBILE_REQUEST_ID];
                             $this->result['e'] = '';
                             break;
@@ -2242,19 +2242,7 @@ class MobileApi
                         default:
                             $this->result['e'] = 'Error, could not complete activation process! Please try again after few seconds...';
                             break;
-                    }
-                    /*
-                    $response = CheckMobiRequest::getCallerId($mobile_no, $this->getUID(), 'ios');                    
-                    if (isset($response['status']) && $response['status']==200 && isset($response['saved']))
-                    {
-                        $this->result['d']['status']='sent';
-                        $this->result['d']['dialing_number'] = $response['response']['dialing_number'];  
-                        $this->result['d']['request_id'] = $response['response']['id'];  
-                    }
-                    else
-                    {
-                        $this->result['e'] = 'Error, could not complete activation process! Please try again after few seconds...';
-                    }*/
+                    }                  
                     break;
                 
                 case MobileValidation::REVERSE_CLI_TYPE:

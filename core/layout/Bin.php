@@ -566,13 +566,11 @@ class Bin extends AjaxHandler{
                                                     //$response = CheckMobiRequest::reverseCallerId($number, $this->user->info['id']);
                                                     $ret = MobileValidation::getInstance(MobileValidation::NEXMO)->
                                                             setUID($this->user->info['id'])->
-                                                            setPin($keyCode)->
                                                             setPlatform(MobileValidation::WEB)->
                                                             requestReverseCLI($number, $response);
-                                                            
-//r everseCallerId($number, $this->user->info['id']);
-                                                    // && isset($response['saved'])
-                                                    if ($ret!==MobileValidation::RESULT_OK || !(isset($response['status']) && $response['status']==200))
+
+
+                                                    if ($ret!==MobileValidation::RESULT_OK || !(isset($response['status']) && ($response['status']==200||$response['status']==201)))
                                                     {                                                
                                                         $keyCode=0;
                                                         $number=0;
