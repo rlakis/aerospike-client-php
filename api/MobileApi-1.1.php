@@ -1944,9 +1944,10 @@ class MobileApi
         }
         else
         {
-            $pin_code = intval(filter_input(INPUT_GET, 'code', FILTER_VALIDATE_INT));
+            $pin_code = intval(filter_input(INPUT_GET, 'code', FILTER_SANITIZE_STRING));
         }
-        
+
+        error_log("Type: {$val_type}, Pin: {$pin_code}, Mobile:{$mobile_no}");
         
         try
         {
@@ -2003,6 +2004,8 @@ class MobileApi
                         if ($pin_code==$record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE])
                         {
                             $response = CheckMobiRequest::verifyStatus( $record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID] );
+                            error_log(json_encode($response, JSON_PRETTY_PRINT));
+                            
                             if (isset($response['status']) && $response['status']==200 && isset($response['response']))
                             {
                                 if ($response['response']['validated'])
