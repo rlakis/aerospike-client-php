@@ -148,18 +148,29 @@ class CheckMobiRequest
                         \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => intval($response['response']['cli_prefix']),
                         \Core\Model\ASD\USER_MOBILE_FLAG => $flag,
                         \Core\Model\ASD\USER_MOBILE_REQUEST_ID => $response['response']['id'],
-                        \Core\Model\ASD\USER_MOBILE_VALIDATION_TYPE => 2,
-                        \Core\Model\ASD\USER_MOBILE_PIN_HASH => $response['response']['pin_hash'],
+                        \Core\Model\ASD\USER_MOBILE_VALIDATION_TYPE => 2
                     ];
-                
-                if (NoSQL::getInstance()->mobileInsert($bins)>0)
+
+                if (NoSQL::getInstance()->mobileExists($uid, $number))
                 {
-                    $response['saved']=1;
+                    if (NoSQL::getInstance()->mobileUpdate($uid, $number, $bins))
+                    {
+                        $response['saved']=1;
+                    }
+
+                }
+                else
+                {
+                    if (NoSQL::getInstance()->mobileInsert($bins))
+                    {
+                        $response['saved']=1;
+                    }
                 }
             }
         }
         return $response;
     }
+
     
     public static function SMS($to, $uid=0, $platform='web')
     {
