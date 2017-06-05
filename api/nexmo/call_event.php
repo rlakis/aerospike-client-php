@@ -1,15 +1,13 @@
 <?php
 
-/*
- *  Place this script at event_url for your Nexmo application
- */
+include_once get_cfg_var('mourjan.path').'/core/model/NoSQL.php';
+
+use \Core\Model\NoSQL;
+
+
 $method = $_SERVER['REQUEST_METHOD'];
-// work with get or post
 $request = array_merge($_GET, $_POST);
 
-/*
- *  Do something for changed call status
-*/
 function handle_call_status()
 {
     $decoded_request = json_decode(file_get_contents('php://input'), true);
@@ -21,15 +19,17 @@ function handle_call_status()
         switch ($decoded_request['status']) 
         {
             case 'ringing':
-                
-                error_log("Handle conversation_uuid, this return parameter identifies the Conversation");
+                NoSQL::getInstance()->outboundCall($decoded_request);
+                //error_log("Handle conversation_uuid, this return parameter identifies the Conversation");
                 break;
         
             case 'answered':
-                error_log("You use the uuid returned here for all API requests on individual calls");
+                NoSQL::getInstance()->outboundCall($decoded_request);
+                //error_log("You use the uuid returned here for all API requests on individual calls");
                 break;
       
             case 'complete':
+                NoSQL::getInstance()->outboundCall($decoded_request);
                 //if you set eventUrl in your NCCO. The recording download URL
                 //is returned in recording_url. It has the following format
                 //https://api.nexmo.com/media/download?id=52343cf0-342c-45b3-a23b-ca6ccfe234b0
@@ -38,6 +38,7 @@ function handle_call_status()
                 break;
             
             default:
+                NoSQL::getInstance()->outboundCall($decoded_request);
                 break;
         }
         return;

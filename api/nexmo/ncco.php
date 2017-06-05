@@ -1,7 +1,6 @@
 <?php
 
 $method = filter_input(INPUT_SERVER, 'REQUEST_METHOD');
-error_log($method);
 
 switch ($method)
 {

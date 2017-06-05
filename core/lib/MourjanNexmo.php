@@ -205,9 +205,9 @@ class CheckMobiRequest
     public static function verifyStatus($requestId)
     {
         $api = new CheckMobiRest(CheckMobiRequest::$secret);
-        error_log($requestId);
+        //error_log($requestId);
         $response = $api->ValidationStatus(['id'=>$requestId]);
-        error_log(json_encode($response));
+        //error_log(json_encode($response));
         
         return $response;
     }

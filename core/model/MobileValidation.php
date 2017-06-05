@@ -5,12 +5,12 @@ $dir = get_cfg_var('mourjan.path');
 include_once $dir.'/core/model/NoSQL.php';
 
 
-use checkmobi\CheckMobiRest;
+use \checkmobi\CheckMobiRest;
 use \Core\Model\NoSQL;
 
-use Lcobucci\JWT\Builder;
-use Lcobucci\JWT\Signer\Key;
-use Lcobucci\JWT\Signer\Rsa\Sha256;
+use \Lcobucci\JWT\Builder;
+use \Lcobucci\JWT\Signer\Key;
+use \Lcobucci\JWT\Signer\Rsa\Sha256;
 
 
 class MobileValidation
@@ -19,14 +19,14 @@ class MobileValidation
     use NexmoTrait;
     
     
-    const CHECK_MOBI                = 1;
-    const NEXMO                     = 2;
+    const CHECK_MOBI                    = 1;
+    const NEXMO                         = 2;
     
-    const AndroidPlatform           = 0;
-    const WebPlatform               = 1;
-    const IosPlatform               = 2;
+    const ANDROID                       = 0;
+    const WEB                           = 1;
+    const IOS                           = 2;
     
-    const RESULT_Ok                     = 1;
+    const RESULT_OK                     = 1;
     const RESULT_ERR_ALREADY_ACTIVE     = 2;
     const RESULT_ERR_SENT_FEW_MINUTES   = 3;
     const RESULT_ERR_QOTA_EXCEEDED      = 4;
@@ -34,33 +34,87 @@ class MobileValidation
     const RESULT_ERR_DB_FAILURE         = 6;
     const RESULT_ERR_UNKNOWN            = 9;
 
-    private static $SMS_TYPE            = 0;
-    private static $CLI_TYPE            = 1;
-    private static $REVERSE_CLI_TYPE    = 2;
+    const SMS_TYPE                      = 0;
+    const CLI_TYPE                      = 1;
+    const REVERSE_CLI_TYPE              = 2;
     
-    private $api;
+    private static $check_mobi_api;
+    private static $nexmo_api;
+    
     private $uid;
     private $pin;
     private $platform;
+    private $provider;
     
     
-    private $call_center = [12242144077, 33644630401];
+    private $call_center = [
+        12035802081, 
+        12035802081, 
+        12048192528, 
+        12242144077, 
+        18198035589, 
+        19892591790, 
+        33644630401, 
+        447520619658, 
+        447520632358, 
+        447520635627, 
+        46769436340, 
+        48732232145, 
+        48799353706, 
+        601117227104];
     
+    private static $instance = null;
     
-    function __construct(int $provider=MobileValidation::NEXMO, int $platform=MobileValidation::WebPlatform) 
+    function __construct(int $provider=MobileValidation::NEXMO, int $platform=MobileValidation::WEB) 
     {
+        $this->provider = $provider;
         if ($provider==static::NEXMO)
         {
-            $this->api = new \Nexmo\Client(new \Nexmo\Client\Credentials\Basic('8984ddf8', 'CVa3tHey3js6'));
+            $this->getNexmoClient();            
         }
         
         if ($provider==static::CHECK_MOBI)
         {
-            $this->api = new CheckMobiRest('D38D5D58-572B-49EC-BAB5-63B6081A55E6');
+            $this->getCheckMobiClient();
         }
         
         $this->platform = $platform;    
         return $this;
+    }
+    
+    
+    protected function getNexmoClient()
+    {
+        if (!(MobileValidation::$nexmo_api))
+        {
+            MobileValidation::$nexmo_api = new \Nexmo\Client(new \Nexmo\Client\Credentials\Basic('8984ddf8', 'CVa3tHey3js6'));
+        }
+        return MobileValidation::$nexmo_api;        
+    }
+    
+    
+    protected function getCheckMobiClient()
+    {
+        if (!(MobileValidation::$check_mobi_api))
+        {
+            MobileValidation::$check_mobi_api = new CheckMobiRest('D38D5D58-572B-49EC-BAB5-63B6081A55E6');
+        }
+        return MobileValidation::$check_mobi_api;        
+    }
+
+    
+    public static function getInstance(int $provider=MobileValidation::NEXMO) : MobileValidation
+    {        
+        if (!MobileValidation::$instance)
+        {
+            static::$instance = new MobileValidation($provider);            
+        }
+        else
+        {
+            static::$instance->provider=$provider;   
+        }
+        return static::$instance;
+        
     }
     
     
@@ -77,16 +131,20 @@ class MobileValidation
         return $this;
     }
     
-    
-    protected function getClient()
+
+    public function setPlatform(int $platform)
     {
-        return $this->api;
+        $this->platform = $platform;
+        return $this;
     }
+    
+    
     
     protected function getPlatform() : int
     {
         return $this->platform;
     }
+    
     
     protected function getPlatformName() : string
     {
@@ -97,10 +155,18 @@ class MobileValidation
         return $result;
     }
     
+    
+    protected function getUID() : int
+    {
+        return $this->uid;
+    }
+    
+    
     protected function getPin() : int
     {
         return $this->pin;
     }
+    
     
     protected function getE164($number, $as_int=false)
     {
@@ -115,11 +181,13 @@ class MobileValidation
         return $this->call_center[$i];
     }
     
+    
     public function getNumberCountryCode(int $number) : int
     {
         $num = \libphonenumber\PhoneNumberUtil::getInstance()->parse("+{$number}", 'LB');
         return $num->getCountryCode();
     }
+    
     
     public function getNumberCarrierName(int $number) : string
     {
@@ -130,8 +198,9 @@ class MobileValidation
     
     public static function send($to, $message, $userId, $pin, $clientReference=null, $unicode=null)
     {
-        $mv = new MobileValidation(static::NEXMO);
-        return $mv->setPin($pin)->setUID($userId)->sendSMS($to, $message, $clientReference);
+        return MobileValidation::getInstance(MobileValidation::NEXMO)->setPin($pin)->setUID($userId)->sendSMS($to, $message, $clientReference);
+        //$mv = new MobileValidation(static::NEXMO);
+        //return $mv->setPin($pin)->setUID($userId)->sendSMS($to, $message, $clientReference);
     }
 
 
@@ -166,15 +235,15 @@ class MobileValidation
             }
         }
 
-        return MobileValidation::RESULT_Ok;
+        return MobileValidation::RESULT_OK;
     }
     
     
     public function sendCallerId($to)
     {
         $num = $this->getE164($to, TRUE);
-        $status = $this->checkUserMobileStatus($num, MobileValidation::$CLI_TYPE, $record);
-        if ($status!= MobileValidation::RESULT_Ok)
+        $status = $this->checkUserMobileStatus($num, MobileValidation::CLI_TYPE, $record);
+        if ($status!=MobileValidation::RESULT_OK)
         {
             return $status;
         }
@@ -184,15 +253,14 @@ class MobileValidation
                 ASD\USER_MOBILE_ACTIVATION_CODE=>0,
                 ASD\USER_MOBILE_FLAG=>$this->platform];
 
-        if ($this->api instanceof \checkmobi\CheckMobiRest)
+        if ($this->provider==MobileValidation::CHECK_MOBI)
         {
             if ($this->sendCheckMobiCallerId($to, $bins))
             {
-                $res = ($record) ? NoSQL::getInstance()->mobileUpdate($this->uid, $num, $bins) : NoSQL::getInstance()->mobileInsert($bins);
+                $res = ($record) ? NoSQL::getInstance()->mobileUpdate($this->getUID(), $num, $bins) : NoSQL::getInstance()->mobileInsert($bins);
                 if ($res)
                 {
-                    //NoSQL::getInstance()->mobileIncrSMS($this->uid, $num);
-                    return MobileValidation::RESULT_Ok;
+                    return MobileValidation::RESULT_OK;
                 }
                 return MobileValidation::RESULT_ERR_DB_FAILURE;
             }
@@ -203,11 +271,34 @@ class MobileValidation
     }
 
 
+    public function requestReverseCLI($to, &$response) : int
+    {
+        $num = $this->getE164($to, TRUE);
+        $status = $this->checkUserMobileStatus($num, MobileValidation::REVERSE_CLI_TYPE, $record);
+        if ($status!= MobileValidation::RESULT_OK)
+        {
+            return $status;
+        }
+        
+        if ($this->provider==static::NEXMO)
+        {
+            $response = $this->reverseNexmoCLI($to);
+            return MobileValidation::RESULT_OK;
+        }
+        else if ($this->provider==static::CHECK_MOBI)
+        {
+            
+        }
+        return MobileValidation::RESULT_ERR_UNKNOWN;
+        
+    }
+    
+    
     public function sendSMS($to, $text, $reference=null, $unicode=null)
     {   
         $num = $this->getE164($to, TRUE);
-        $status = $this->checkUserMobileStatus($num, MobileValidation::$SMS_TYPE, $record);
-        if ($status!= MobileValidation::RESULT_Ok)
+        $status = $this->checkUserMobileStatus($num, MobileValidation::SMS_TYPE, $record);
+        if ($status!= MobileValidation::RESULT_OK)
         {
             return $status;
         }
@@ -216,8 +307,8 @@ class MobileValidation
                 ASD\USER_MOBILE_NUMBER=>$num, 
                 ASD\USER_MOBILE_ACTIVATION_CODE=>$this->pin, 
                 ASD\USER_MOBILE_FLAG=>$this->platform];
-        
-        if ($this->api instanceof \Nexmo\Client)
+            
+        if ($this->provider==static::NEXMO)
         {
             if ($this->sendNexmoMessage($num, $text, $reference, $unicode, $bins))
             {
@@ -225,13 +316,13 @@ class MobileValidation
                 if ($res)
                 {
                     NoSQL::getInstance()->mobileIncrSMS($this->uid, $num);
-                    return MobileValidation::RESULT_Ok;
+                    return MobileValidation::RESULT_OK;
                 }
                 return MobileValidation::RESULT_ERR_DB_FAILURE;
             }
         }
         
-        if ($this->api instanceof \checkmobi\CheckMobiRest)
+        else if ($this->provider==static::CHECK_MOBI)
         {            
             if ($this->sendCheckMobiMessage($to, $text, $bins))
             {            
@@ -239,7 +330,7 @@ class MobileValidation
                 if ($res)
                 {
                     NoSQL::getInstance()->mobileIncrSMS($this->uid, $num);
-                    return MobileValidation::RESULT_Ok;
+                    return MobileValidation::RESULT_OK;
                 }
                 return MobileValidation::RESULT_ERR_DB_FAILURE;
             }
@@ -253,7 +344,7 @@ class MobileValidation
 
 trait CheckMobiTrait
 {
-    abstract protected function getClient();
+    abstract protected function getCheckMobiClient();
     abstract protected function getE164($number);
     abstract protected function getPlatformName();
     abstract protected function getPin();
@@ -262,7 +353,6 @@ trait CheckMobiTrait
     {
         if (isset($response['status']))
         {
-            var_dump($response);
             if ($response['status']==200)
             {
                 return isset($response['response']) && is_array($response['response']);
@@ -276,7 +366,7 @@ trait CheckMobiTrait
     
     public function sendCheckMobiMessage($to, $text, &$bins) : bool
     {
-        $response = $this->getClient()->SendSMS(["to"=>$this->getE164($to), "text"=>$text, "platform"=>$this->getPlatformName(), "notification_callback"=>"https://dv.mourjan.com/api/checkMobi.php"]);    
+        $response = $this->getCheckMobiClient()->SendSMS(["to"=>$this->getE164($to), "text"=>$text, "platform"=>$this->getPlatformName(), "notification_callback"=>"https://dv.mourjan.com/api/checkMobi.php"]);    
         if ($this->isCheckMobiOk($response))
         {
             if (isset($response['response']['id']))
@@ -293,7 +383,7 @@ trait CheckMobiTrait
 
     public function sendCheckMobiCallerId($to, &$bins) : bool
     {
-        $response = $this->getClient()->RequestValidation(["type"=>"cli", "number"=>$this->getE164($to), "platform"=>$this->getPlatformName()]);
+        $response = $this->getCheckMobiClient()->RequestValidation(["type"=>"cli", "number"=>$this->getE164($to), "platform"=>$this->getPlatformName()]);
         if ($this->isCheckMobiOk($response))
         {
             if (isset($response['response']['id']))
@@ -313,7 +403,10 @@ trait CheckMobiTrait
 
 trait NexmoTrait
 {
-    abstract public function getClient();
+    abstract public function getNexmoClient();
+    abstract protected function getUID() : int;
+    abstract protected function getPlatform() : int;
+    abstract protected function getE164($number);
     abstract protected function getAllocatedNumber() : int;
     abstract public function getNumberCountryCode(int $number) : int;
     abstract public function getNumberCarrierName(int $number) : string; 
@@ -367,7 +460,7 @@ trait NexmoTrait
         }
         
         
-        $message = $this->getClient()->message()->send([
+        $message = $this->getNexmoClient()->message()->send([
                         'to' => $to,
                         'from' => $from,
                         'text' => $text,
@@ -378,7 +471,7 @@ trait NexmoTrait
         {
             $bins[ASD\USER_MOBILE_DATE_REQUESTED]=time();
             $bins[ASD\USER_MOBILE_REQUEST_ID] = $message->getMessageId();
-            $bins[ASD\USER_MOBILE_VALIDATION_TYPE] = 0;
+            $bins[ASD\USER_MOBILE_VALIDATION_TYPE] = MobileValidation::SMS_TYPE;
             return TRUE;
         }
        
@@ -481,36 +574,35 @@ trait NexmoTrait
 
 
 
-    function reverseNexmoCLI(int $to)
+    function reverseNexmoCLI(int $to) : array
     {
-        //Connection information
+        
         $action = '/calls';
 
-
-        $from = $this->getAllocatedNumber();
-        $ncco = '[
-        {
-            "action": "talk",
-            "voiceName": "Russell",
-            "text": "Hi, Thank you for using mourjan classifieds"
-        }
-        ]';       
-        
+        $from = $this->getAllocatedNumber();        
       
+        $bins = [];
+        if (($record = NoSQL::getInstance()->mobileFetch($this->getUID(), $to))!==FALSE)
+        {
+            if (empty($record))
+            {
+                $bins[ASD\USER_UID] = $this->getUID();
+                $bins[ASD\USER_MOBILE_NUMBER] = $to;
+            }
+        }
+        $bins[ASD\USER_MOBILE_ACTIVATION_CODE] = 0;
+        $bins[ASD\USER_MOBILE_FLAG] = $this->getPlatform();
+        $bins[ASD\USER_MOBILE_DATE_REQUESTED] = time();
+        $bins[ASD\USER_MOBILE_REQUEST_ID] = "";
+        $bins[ASD\USER_MOBILE_VALIDATION_TYPE] = MobileValidation::REVERSE_CLI_TYPE;
+        
         //User and application information
         $application_id = "905c1bc6-ff6c-4767-812c-1b39d756bda6";
-        $jwt = $this->generate_jwt($application_id, '/root/private.key');
+        $jwt = $this->generate_jwt($application_id, '/opt/ssl/nexmo.key');
         
         //Add the JWT to the request headers
         $headers =  array('Content-Type: application/json', "Authorization: Bearer " . $jwt ) ;
         
-        //Change the to parameter to the number you want to call
-    
-        $in = ['to'=>[['type'=>'phone', 'number'=> strval($to)]], 'from'=>[['type'=>'phone', 'number'=> strval($from)]], 
-            'answer_url'=>["https://nexmo-community.github.io/ncco-examples/first_call_talk.json"],
-            'event_url'=>["https://dv.mourjan.com/api/NexmoEvent.php"],
-            ];
-        $payload = json_encode($in, JSON_UNESCAPED_SLASHES);
         $payload = '{
             "to":[{
                 "type": "phone",
@@ -534,22 +626,73 @@ trait NexmoTrait
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
 
-        $response = curl_exec($ch);
-
-        //echo $payload, "\n\n";
-        echo "\n", $response, "\n\n";
-
-
+        $res = curl_exec($ch);
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if ($res === FALSE)
+        {
+            $err = curl_error($ch);
+            return array("status" => $status, "response" => array("error" => $err));
+        }
         
+        $result = json_decode($res, TRUE);
+        NoSQL::getInstance()->outboundCall($result, $this->getUID());
+
+        $response = [
+            'id'=>$result['conversation_uuid'],
+            'type'=>'reverse_cli',
+            'cli_prefix'=>substr($from, 0, 5),
+            'pin_hash'=>sha1(substr($from, -3, 3))
+            ];
+        
+        if ($status==201)
+        {            
+            $bins[ASD\USER_MOBILE_ACTIVATION_CODE] = intval(substr($from, -4, 4));
+            $bins[ASD\USER_MOBILE_REQUEST_ID] = $response['id'];
+            $bins[ASD\USER_MOBILE_PIN_HASH] = $response['pin_hash'];   
+            
+            if (isset($bins[ASD\USER_UID]))
+            {
+                $ok = NoSQL::getInstance()->mobileInsert($bins);
+            }
+            else
+            {
+                $ok = NoSQL::getInstance()->mobileUpdate($this->getUID(), $to, $bins);
+            }
+        }
+        return array("status" => $status, "response" => $response);
     }
+    
+    
+    public function verifyNexmoCallPin(string $id, int $pin) : array
+    {
+        $response = ["number"=>NULL, "validated"=>false, "validation_date"=>NULL, "charged_amount"=>0];
+        $status = 404;
+        if (($call = NoSQL::getInstance()->getCall($id))!==FALSE)
+        {
+            $status = 200;
+            $response['number'] = $this->getE164( $call['to'] );
+            $response['uid'] = $call[ASD\USER_UID];
+            $response['charged_amount'] = 2.0*$call['price'];
+            if (isset($call['validated']) && $call['validated'])
+            {
+                $response['validated'] = true;
+                $response['validation_date'] = $call['valid_epoch'];     
+            }
+            else if ($pin===intval(substr($call['from'],-4,4)))
+            {
+                $response['validated'] = true;
+                $response['validation_date'] = time();        
+                NoSQL::getInstance()->outboundCall(['conversation_uuid'=>$id, 'direction'=>'outbound', 'status'=>'validated', 'validation_date'=>time()]);
+            }
+        }
+        
+        return ['status'=>$status, 'response'=>$response];
+    }
+    
 }
 
-if (0)
+if (php_sapi_name()=='cli')
 {
-    $validator = new MobileValidation(MobileValidation::CHECK_MOBI, MobileValidation::IosPlatform);
-    var_dump($validator->setUID(2)->setPin(1234)->sendCallerId(9613287168));
+    var_dump( MobileValidation::getInstance()->setUID(2)->setPin(1234)->reverseNexmoCLI("+9613287168") );
+    //echo MobileValidation::getInstance()->setUID(2)->setPin(1234)->verifyNexmoCallPin("CON-8403beab-327c-4945-abb2-45e3b4627b08", 4077), "\n";
 }
-        //// reverseNexmoCLI(9613287168);
-//var_dump($mobileValidation->setUID(2)->setPin(1234)->sendSMS(9613287168, "hello", ['uid'=>2]));
-
-//var_dump((new MobileValidation(MobileValidation::CheckMobiProvider))->setUID(2)->sendSMS(9613287168, "hello"));

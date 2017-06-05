@@ -7,6 +7,7 @@ require_once 'asd/UserTrait.php';
 require_once 'asd/MobileTrait.php';
 require_once 'asd/DeviceTrait.php';
 require_once 'asd/BlackListTrait.php';
+require_once 'asd/CallTrait.php';
 
 
 class NoSQL 
@@ -15,6 +16,7 @@ class NoSQL
     use \Core\Model\ASD\MobileTrait;  
     use \Core\Model\ASD\DeviceTrait;
     use \Core\Model\ASD\BlackListTrait;
+    use \Core\Model\ASD\CallTrait;
     
     const ERR_INVALID_HOST              = \Aerospike::ERR_INVALID_HOST;
     const ERR_PARAM                     = \Aerospike::ERR_PARAM;

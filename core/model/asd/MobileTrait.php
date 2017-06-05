@@ -70,6 +70,26 @@ trait MobileTrait
     }
     
     
+    public function mobileFetchByRequestID(string $requestId)
+    {
+        $matches=[];
+        $where = \Aerospike::predicateEquals(USER_MOBILE_REQUEST_ID, $requestId);
+        $status = $this->getConnection()->query(NS_USER, TS_MOBILE, $where,
+                function ($record) use (&$matches)
+                {                   
+                    $matches[] = $record['bins'];
+                });
+
+        if ($status!==\Aerospike::OK)
+        {
+            $matches = FALSE;
+            error_log(PHP_EOL. __CLASS__.'::'.__FUNCTION__."An error occured while getting mobile for RequestID {$requestId} [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}");
+        }
+        
+        return $matches;
+    }
+    
+    
     public function mobileGetLinkedUIDs(int $number, &$result) : int
     {
         $matches=[];
@@ -394,6 +414,7 @@ trait MobileTrait
         return FALSE;
     }
     
+    
     public function mobileActivationByRequestId(int $uid, int $number, int $code, string $requestId) : bool
     {
         $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [USER_UID=>$uid, USER_MOBILE_REQUEST_ID=>$requestId]);
@@ -403,6 +424,7 @@ trait MobileTrait
         }
         return FALSE;
     }
+    
     
     public function assignNewActicationCode(int $mobile_id, int $uid, int $number) : int
     {
