@@ -12,10 +12,17 @@ switch ($method)
 
         //For more advanced Conversations you use the paramaters to personalize the NCCO
         //Dynamically create the NCCO to run a conversation from your virtual number
+        $pin = substr($from, -4);
+        $speech = "";
+        for ($i=0; $i<4; $i++)
+        {
+            $speech.=$pin[$i]." . ";
+        }
+        
         $ncco='[
             {
             "action": "talk",
-            "text": "Welcome to a mourjan classifieds"
+            "text": "Your Mourjan code is  ' . $speech .'"
             }
             ]';
 

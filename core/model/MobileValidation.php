@@ -671,8 +671,8 @@ trait NexmoTrait
     public function verifyNexmoCallPin(string $id, int $pin) : array
     {
         $response = ["number"=>NULL, "validated"=>false, "validation_date"=>NULL, "charged_amount"=>0];
-        $status = 404;
-        if (($call = NoSQL::getInstance()->getCall($id))!==FALSE)
+        $status = 400;
+        if (($call = NoSQL::getInstance()->getCall($id))!==FALSE && !empty($call))
         {
             $status = 200;
             $response['number'] = $this->getE164( $call['to'] );
@@ -698,6 +698,6 @@ trait NexmoTrait
 
 if (php_sapi_name()=='cli')
 {
-    var_dump( MobileValidation::getInstance()->setUID(2)->setPin(1234)->reverseNexmoCLI("+9613287168") );
+    var_dump( MobileValidation::getInstance()->setUID(2)->setPin(1234)->reverseNexmoCLI("+96171750413") );
     //echo MobileValidation::getInstance()->setUID(2)->setPin(1234)->verifyNexmoCallPin("CON-8403beab-327c-4945-abb2-45e3b4627b08", 4077), "\n";
 }

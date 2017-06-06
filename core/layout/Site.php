@@ -803,32 +803,7 @@ class Site
             //$ticket->priority='High';
             $myvars['subject'].= " - {$reference}";
         }
-
-
-       //$myvars['first_name']='Sami';
-       //$myvars['last_name']='Lakis';
         
-        /*
-        $myvars.= '&sla=1';
-        $myvars.= '&priority=2';
-        $myvars.= '&dept=2';
-        
-        $myvars = 'api_key=' . $key;
-        $myvars.= '&user_id=' . $auth->user_id;
-        $myvars.= '&token=' . $auth->token;
-        
-        $myvars.= '&subject=User&nbsp;Feedback';// . htmlentities( $subject );
-        $myvars.= '&body=' . 'test';// '<div dir="auto">' . $message . '</div>';
-        $myvars.= '&helptopic=1';
-        $myvars.= '&sla=1';
-        $myvars.= '&priority=2';
-        $myvars.= '&dept=2';
-        
-        $myvars.= '&first_name=robert' ;//. htmlentities($fromName);
-        
-        error_log($url);
-        error_log($myvars);
-        */
         $ch = curl_init( $url );
         curl_setopt( $ch, CURLOPT_POST, 1);
         curl_setopt( $ch, CURLOPT_POSTFIELDS, $myvars);
@@ -838,19 +813,29 @@ class Site
         curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
 
         $response = curl_exec( $ch );
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if ($res === FALSE || $status!=200)
+        {
+            $err = curl_error($ch);
+            error_log($err);
+            return 0;
+        }
         curl_close($ch);
         
-
-        if(preg_match('/HTTP\/.* ([0-9]+) .*/', $response, $status)) 
-        {
-            if ($status[1]!=200)
-            {
-                error_log($response);
-                return 0;
-            }
-        }
+        //error_log($status);
         
         return 1;
+        
+        //if(preg_match('/HTTP\/.* ([0-9]+) .*/', $response, $status)) 
+        //{
+        //    if ($status[1]!=200)
+        //    {
+        //        error_log($response);
+        //        return 0;
+        //    }
+        //}
+        
+        //return 1;
         
     }
     
@@ -961,55 +946,6 @@ class Site
     function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0, $helpTopic=1)
     {
         return $this->faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference, $helpTopic);
-        //return $this->createTicket($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference);
-        /*
-    	require 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';
-        $mail = new PHPMailer(true);
-        $mail->IsSMTP();
-        $res=0;
-        try {
-            $mail->Host       = $this->urlRouter->cfg['smtp_server'];
-            $mail->SMTPAuth   = true;
-            $mail->Port       = $this->urlRouter->cfg['smtp_port'];
-            $mail->Username   = ($sender_account) ? $sender_account : $this->urlRouter->cfg['smtp_user'];
-            $mail->Password   = $this->urlRouter->cfg['smtp_pass'];
-            $mail->SMTPSecure = 'ssl';
-            $mail->Sender = $fromEmail;
-            $mail->SetFrom($fromEmail, $fromName);
-            //$mail->SetFrom($fromName, $fromEmail);
-            if (is_array($toEmail)) 
-            {
-                foreach ($toEmail as $email) 
-                {
-                    $mail->AddAddress($email,'');
-                }
-            }
-            else
-            {
-                $mail->AddAddress($toEmail,$toName);
-            }
-            $mail->IsHTML(true);
-            $mail->CharSet='UTF-8';
-            $mail->Subject = $subject;
-            $mail->Body    = $message;
-            if ($mail->send())
-            {
-                $res = 1;
-            }
-         } catch (phpmailerException $e) {
-         	$res= 0;
-                //trigger_error($mail->ErrorInfo);
-                error_log($e->getMessage());
-         } catch (Exception $e) {
-            $res= 0;
-            error_log($e->getMessage());
-         }
-         $mail->ClearAddresses();
-         $mail->ClearAllRecipients();
-         $mail->ClearAttachments();
-         return $res;
-         * 
-         */
     }
     
     
