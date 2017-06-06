@@ -409,7 +409,11 @@ trait MobileTrait
         $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [USER_UID=>$uid, USER_MOBILE_ACTIVATION_CODE=>$code]);
         if ($keys)
         {
-            return $this->setBins($keys[0], [USER_MOBILE_DATE_ACTIVATED=>time()]);
+            $res = $this->setBins($keys[0], [USER_MOBILE_DATE_ACTIVATED=>time()]);
+            if ($res)
+            {
+                $this->getConnection()->removeBin($keys[0], [USER_MOBILE_PIN_HASH]);
+            }
         }
         return FALSE;
     }
@@ -420,7 +424,12 @@ trait MobileTrait
         $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [USER_UID=>$uid, USER_MOBILE_REQUEST_ID=>$requestId]);
         if ($keys)
         {
-            return $this->setBins($keys[0], [USER_MOBILE_ACTIVATION_CODE=>$code, USER_MOBILE_DATE_ACTIVATED=>time()]);
+            $res = $this->setBins($keys[0], [USER_MOBILE_ACTIVATION_CODE=>$code, USER_MOBILE_DATE_ACTIVATED=>time()]);
+            if ($res)
+            {
+                $this->getConnection()->removeBin($keys[0], [USER_MOBILE_PIN_HASH]);
+            }
+            return $res;
         }
         return FALSE;
     }
