@@ -1,45 +1,83 @@
 <?php
 
 include_once get_cfg_var('mourjan.path').'/core/model/NoSQL.php';
+include_once get_cfg_var('mourjan.path').'/core/model/MobileValidation.php';
 
 use \Core\Model\NoSQL;
+use Core\Model\MobileValidation;
 
 
-$method = $_SERVER['REQUEST_METHOD'];
+$method = filter_input(INPUT_SERVER, 'REQUEST_METHOD');
 $request = array_merge($_GET, $_POST);
 
 function handle_call_status()
 {
     $decoded_request = json_decode(file_get_contents('php://input'), true);
     error_log(json_encode($decoded_request, JSON_PRETTY_PRINT).PHP_EOL, 3, "/var/log/mourjan/sms.log");
+    
     // Work with the call status
-  
+    $direction = $decoded_request['direction'] ?? 'outbound';
+    
     if (isset($decoded_request['status'])) 
     {
-        switch ($decoded_request['status']) 
+        if ($direction=='outbound')
         {
-            case 'ringing':
-                NoSQL::getInstance()->outboundCall($decoded_request);
-                //error_log("Handle conversation_uuid, this return parameter identifies the Conversation");
-                break;
-        
-            case 'answered':
-                NoSQL::getInstance()->outboundCall($decoded_request);
-                //error_log("You use the uuid returned here for all API requests on individual calls");
-                break;
-      
-            case 'complete':
-                NoSQL::getInstance()->outboundCall($decoded_request);
-                //if you set eventUrl in your NCCO. The recording download URL
-                //is returned in recording_url. It has the following format
-                //https://api.nexmo.com/media/download?id=52343cf0-342c-45b3-a23b-ca6ccfe234b0
-                //Make a GET request to this URL using a JWT as authentication to download
-                //the Recording. For more information, see Recordings.
-                break;
-            
-            default:
-                NoSQL::getInstance()->outboundCall($decoded_request);
-                break;
+            switch ($decoded_request['status']) 
+            {
+                case 'ringing':
+                    NoSQL::getInstance()->outboundCall($decoded_request);
+                    //error_log("Handle conversation_uuid, this return parameter identifies the Conversation");
+                    break;
+
+                case 'answered':
+                    NoSQL::getInstance()->outboundCall($decoded_request);
+                    //error_log("You use the uuid returned here for all API requests on individual calls");
+                    break;
+
+                case 'complete':
+                    NoSQL::getInstance()->outboundCall($decoded_request);
+                    //if you set eventUrl in your NCCO. The recording download URL
+                    //is returned in recording_url. It has the following format
+                    //https://api.nexmo.com/media/download?id=52343cf0-342c-45b3-a23b-ca6ccfe234b0
+                    //Make a GET request to this URL using a JWT as authentication to download
+                    //the Recording. For more information, see Recordings.
+                    break;
+
+                default:
+                    NoSQL::getInstance()->outboundCall($decoded_request);
+                    break;
+            }
+        }
+        else 
+        {
+            error_log("Inbound status: ".$decoded_request['status']);
+            switch ($decoded_request['status']) 
+            {
+                case 'started':
+                case 'ringing':
+                    MobileValidation::getInstance(MobileValidation::NEXMO)->modifyNexmoCall($decoded_request['uuid']);
+                    //NoSQL::getInstance()->outboundCall($decoded_request);
+                    //error_log("Handle conversation_uuid, this return parameter identifies the Conversation");
+                    break;
+
+                case 'answered':
+                    //NoSQL::getInstance()->outboundCall($decoded_request);
+                    //error_log("You use the uuid returned here for all API requests on individual calls");
+                    break;
+
+                case 'complete':
+                    //NoSQL::getInstance()->outboundCall($decoded_request);
+                    //if you set eventUrl in your NCCO. The recording download URL
+                    //is returned in recording_url. It has the following format
+                    //https://api.nexmo.com/media/download?id=52343cf0-342c-45b3-a23b-ca6ccfe234b0
+                    //Make a GET request to this URL using a JWT as authentication to download
+                    //the Recording. For more information, see Recordings.
+                    break;
+
+                default:
+                    //NoSQL::getInstance()->outboundCall($decoded_request);
+                    break;
+            }
         }
         return;
     }

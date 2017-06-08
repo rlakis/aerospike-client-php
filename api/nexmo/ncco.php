@@ -10,6 +10,11 @@ switch ($method)
         $from = filter_input(INPUT_GET, 'from', FILTER_VALIDATE_INT); //The endpoint you are calling from
         $uuid = filter_input(INPUT_GET, 'conversation_uuid', FILTER_SANITIZE_STRING); //The unique ID for this Call
 
+        //error_log($uuid .": ". $from);
+        if ($from=='9611487521')
+        {
+            sleep(3);
+        }
         //For more advanced Conversations you use the paramaters to personalize the NCCO
         //Dynamically create the NCCO to run a conversation from your virtual number
         $pin = substr($from, -4);

@@ -694,10 +694,49 @@ trait NexmoTrait
         return ['status'=>$status, 'response'=>$response];
     }
     
+    
+    public function modifyNexmoCall(string $uuid)
+    {
+        $action = '/calls';
+        $application_id = "905c1bc6-ff6c-4767-812c-1b39d756bda6";
+        $basic  = new \Nexmo\Client\Credentials\Basic('8984ddf8', 'CVa3tHey3js6');
+        
+        $keypair = new \Nexmo\Client\Credentials\Keypair(file_get_contents('/opt/ssl/nexmo.key'), $application_id);
+        $api = new \Nexmo\Client(new \Nexmo\Client\Credentials\Container($basic, $keypair));
+        if ($uuid)
+        {            
+            //$call = $api->calls->get($id);
+            $jwt = $this->generate_jwt($application_id, '/opt/ssl/nexmo.key');
+       
+            //Hangup the call
+            $payload = '{
+              "action": "hangup"
+            }';
+            //error_log(json_encode($call, JSON_PRETTY_PRINT));
+            $hangup = new \Nexmo\Call\Hangup();
+            //$call->put(json_encode($hangup));
+            error_log($this->base_url . $this->version . $action  . "/" . $uuid);
+            $ch = curl_init($this->base_url . $this->version . $action  . "/" . $uuid );
+            curl_setopt($ch, CURLOPT_PUT, 1);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($hangup));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', "Authorization: Bearer " . $jwt ));
+            $response = curl_exec($ch);
+            error_log(json_encode($response));
+
+        }
+        
+        //$json = json_decode(json_encode($hangup));
+        //var_dump($json);
+        
+    }
+    
 }
 
 if (php_sapi_name()=='cli')
 {
-    var_dump( MobileValidation::getInstance()->setUID(2)->setPin(1234)->reverseNexmoCLI("+96171750413") );
+    //var_dump( MobileValidation::getInstance()->setUID(2)->setPin(1234)->reverseNexmoCLI("+96171750413") );
+    MobileValidation::getInstance()->modifyNexmoCall("");
     //echo MobileValidation::getInstance()->setUID(2)->setPin(1234)->verifyNexmoCallPin("CON-8403beab-327c-4945-abb2-45e3b4627b08", 4077), "\n";
 }
