@@ -74,7 +74,7 @@ class MCUser extends MCJsonMapper
     protected $prps;              // MCPropSpace
     protected $xmpp = 0;
      
-    private $jwt = ['token'=>false, 'secret'=>'', 'claim'=>[]];
+    private $jwt = ['token'=>false, 'secret'=>false]; //, 'claim'=>[]];
     
     public $device = null; // used to deal with current logged in device
     
@@ -197,8 +197,8 @@ class MCUser extends MCJsonMapper
         }
         
         $this->jwt['token'] = $record['jwt']['token'] ?? FALSE;
-        $this->jwt['secret'] = $record['jwt']['secret'] ?? '';
-        $this->jwt['claim'] = $record['jwt']['claim'] ?? [];
+        $this->jwt['secret'] = $record['jwt']['secret'] ?? FALSE;
+        //$this->jwt['claim'] = $record['jwt']['claim'] ?? [];
         
         $this->xmpp = $record[ASD\USER_XMPP_CREATED] ?? 0;
     }   
@@ -467,41 +467,50 @@ class MCUser extends MCJsonMapper
     }        
 
     
+    public function genDistributedXMPPassword() : bool
+    {
+        if (!is_int($this->jwt['secret']))
+        {
+            $this->jwt['secret']=FALSE;
+        }
+        
+        if ($this->jwt['secret']===FALSE)
+        {
+            $this->jwt['token'] = FALSE;
+        }
+        else if (time()-$this->jwt['secret']>172800)
+        {
+            $this->jwt['token'] = FALSE;          
+        }
+        
+        if (!$this->jwt['token'])
+        {
+            $this->jwt['secret'] = time();
+            $millis = round(microtime(true) * 1000)-1483228800000;
+            $server=get_cfg_var('mourjan.server_id');        
+            $this->jwt['token'] = $millis << 22 | $server << 11 | $this->id;
+            return TRUE;
+        }
+        return FALSE;
+    }
+    
+    
     public function createToken()
     {
-        if ( !$this->isValidJsonWebToken($this->jwt['token']) )
+        if ($this->genDistributedXMPPassword())
         {
-            $this->jwt['secret'] = hash('sha256', random_bytes(512), FALSE);
-            $this->jwt['claim'] = [
-                        "iss" => "mourjan", /* issuer */
-                        "sub" => "any", /* subject */
-                        "nbf" => time(), /* not before time */
-                        "exp" => time(NULL) + 86400, /* expiration */
-                        "iat" => time(), /* issued at */
-                        "typ" => "jabber", /* type */
-                        "pid" => getmypid(),
-                        "mob" => $this->getMobileNumber(), 
-                        "urd" => $this->getRegisterUnixtime(), 
-                        "uid" => $this->getProviderIdentifier(), 
-                        "pvd" => $this->getProvider()
-                    ];
-            
-            $this->jwt['token'] = JWT::encode($this->jwt['claim'], $this->jwt['secret']);
-            
             NoSQL::getInstance()->setJsonWebToken($this->getID(), $this->jwt);
-            
-        
             $jabber = new JabberClient(['server'=>'https://dv.mourjan.com:5280/api']);
             if ($this->xmpp)
             {
-                $jabber->changePassword((string)$this->getID(), $this->jwt['token']);
+                $jabber->changePassword((string)$this->getID(), strval($this->jwt['token']));
             } 
             else 
             {            
                 if ($jabber->checkAccount( (string) $this->getID()) )
                 {
                     NoSQL::getInstance()->setEnabledXMPP($this->getID());
-                    $jabber->changePassword((string)$this->getID(), $this->jwt['token']);
+                    $jabber->changePassword((string)$this->getID(), strval($this->jwt['token']));
                 }
                 else
                 {
@@ -513,29 +522,9 @@ class MCUser extends MCJsonMapper
                     catch (Exception $e) {}
                 }
             }
-            
-        }
+        }              
     }
     
-    
-    public function isValidJsonWebToken(string $token) : bool
-    {
-        if (!is_string($token)) return false;
-        if (empty($this->jwt['secret']) || empty($this->jwt['claim'])) return false;
-                
-        try
-        {
-            JWT::$leeway = 60; // $leeway in seconds
-            $decoded = (array) JWT::decode($token, $this->jwt['secret'], array('HS256'));
-        }
-        catch (Exception $e)
-        {
-            //error_log(__CLASS__.".".__FUNCTION__.' <'.$e->getMessage().'>');
-            return FALSE;
-        }
-        
-        return ($this->jwt['claim']==$decoded && $token===$this->jwt['token']);
-    }
     
     
     public function destroyToken()
