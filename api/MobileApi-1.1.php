@@ -1951,8 +1951,7 @@ class MobileApi
         {
             $pin_code = intval(filter_input(INPUT_GET, 'code', FILTER_SANITIZE_STRING));
         }
-
-        error_log("Type: {$val_type}, Pin: {$pin_code}, Mobile:{$mobile_no}");
+        
         
         try
         {
@@ -1996,11 +1995,12 @@ class MobileApi
         {       
             if (isset($record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]>(time()-31536000))
             {
-               $this->result['e'] = 'Mobile number already validated';
-               $this->result['d']['status']='validated';
-               return;
+                // mira
+               //$this->result['e'] = 'Mobile number already validated';
+               //$this->result['d']['status']='validated';
+               //return;
             }
-            
+            error_log("Here Type: {$val_type}, Pin: {$pin_code}, Mobile:{$mobile_no}");
             if ($pin_code) 
             {
                 switch ($val_type) 
@@ -2008,6 +2008,16 @@ class MobileApi
                     case MobileValidation::CLI_TYPE:
                         if ($pin_code==$record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE])
                         {
+                            if (MobileValidation::getInstance()->verifyStatus($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]))
+                            {
+                                $activated = NoSQL::getInstance()->mobileActivation($this->getUID(), $mobile_no, $pin_code);
+                            }
+                            else 
+                            {
+                                $this->result['e'] = 'Invalid activation request';
+                                $this->result['d']['status']='invalid';
+                            }
+                            /*
                             $response = CheckMobiRequest::verifyStatus( $record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID] );
                             error_log(json_encode($response, JSON_PRETTY_PRINT));
                             
@@ -2022,7 +2032,7 @@ class MobileApi
                                     $this->result['e'] = 'Invalid activation request';
                                     $this->result['d']['status']='invalid';
                                 }
-                            }   
+                            }   */
                         }
                         else
                         {
@@ -2098,33 +2108,24 @@ class MobileApi
             
             if ($val_type==MobileValidation::CLI_TYPE)
             {       
-                
-                if (substr( $record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], 0, 3)=='CLI')
+                if (MobileValidation::getInstance()->verifyStatus($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]))
                 {
-                   $response = CheckMobiRequest::verifyStatus( $record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID] );
-                    //error_log(json_encode($response, JSON_PRETTY_PRINT));
-                    if (isset($response['status']) && $response['status']==200 && isset($response['response']))
+                    if (NoSQL::getInstance()->mobileActivationByRequestId($this->getUID(), $mobile_no, $record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE], $record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]))
                     {
-                        if ($response['response']['validated'])
-                        {
-                            if (NoSQL::getInstance()->mobileActivationByRequestId($this->getUID(), $mobile_no, $record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE], $record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]))
-                            {
-                                $this->result['d']['status']='validated';
+                        $this->result['d']['status']='validated';
 
-                                include $this->config['dir'] .'/core/model/User.php';
-                                $user = new User($this->db, $this->config, null, 0);
-                                $user->sysAuthById($this->getUID());
-                                $user->params['app']=1;
-                                $user->update();
-                                $this->result['d']['kuid'] = $user->encodeId($this->uid);
-                                $this->getBalance();
-                                return;
-                            }
-                        }
+                        include $this->config['dir'] .'/core/model/User.php';
+                        $user = new User($this->db, $this->config, null, 0);
+                        $user->sysAuthById($this->getUID());
+                        $user->params['app']=1;
+                        $user->update();
+                        $this->result['d']['kuid'] = $user->encodeId($this->uid);
+                        $this->getBalance();
+                        return;
                     }
                 }
-            
-                $mv_result = MobileValidation::getInstance(MobileValidation::CHECK_MOBI)->setUID($this->getUID())->setPlatform(MobileValidation::IOS)->sendCallerId($mobile_no);
+                                           
+                $mv_result = MobileValidation::getInstance(MobileValidation::NEXMO)->setUID($this->getUID())->setPlatform(MobileValidation::IOS)->sendCallerId($mobile_no);
                 
                 switch ($mv_result)
                 {

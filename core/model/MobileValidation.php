@@ -1,5 +1,6 @@
 <?php
 namespace Core\Model;
+
 require_once "vendor/autoload.php";
 $dir = get_cfg_var('mourjan.path');
 include_once $dir.'/core/model/NoSQL.php';
@@ -62,6 +63,12 @@ class MobileValidation
         48732232145, 
         48799353706, 
         601117227104];
+    
+    private $cli_numbers = [
+        358841542210,
+        442039061160,
+        46850927966];
+    
     
     private static $instance = null;
     
@@ -175,10 +182,18 @@ class MobileValidation
     }
     
     
-    protected function getAllocatedNumber() : int
+    protected function getAllocatedNumber(bool $reverse=true) : int
     {
-        $i = rand(0, count($this->call_center)-1);
-        return $this->call_center[$i];
+        if ($reverse)
+        {
+            $i = rand(0, count($this->call_center)-1);
+            return $this->call_center[$i];
+        }
+        else
+        {
+            $i = rand(0, count($this->cli_numbers)-1);
+            return $this->cli_numbers[$i];
+        }
     }
     
     
@@ -239,13 +254,36 @@ class MobileValidation
     }
     
     
+    public function verifyStatus(string $requestId) : int 
+    {
+        if (substr($requestId, 0, 3)=='CLI') 
+        {
+            $response = $this->getCheckMobiClient()->ValidationStatus(['id'=>$requestId]);            
+            //error_log(json_encode($response, JSON_PRETTY_PRINT));
+            if (isset($response['status']) && $response['status']==200 && isset($response['response']) && isset($response['response']['validated']))
+            {
+                if ($response['response']['validated'])
+                {
+                    return 1;
+                }
+            }
+        }
+        else if (substr($requestId, 0, 5)=='NXCLI')
+        {
+            error_log("here");
+        }    
+        return 0;
+    }
+    
+    
     public function sendCallerId($to)
     {
         $num = $this->getE164($to, TRUE);
         $status = $this->checkUserMobileStatus($num, MobileValidation::CLI_TYPE, $record);
         if ($status!=MobileValidation::RESULT_OK)
         {
-            return $status;
+            // mira
+            //return $status;
         }
 
         $bins = [ASD\USER_UID=>$this->uid,
@@ -266,6 +304,19 @@ class MobileValidation
             }
 
         }
+        else if ($this->provider==static::NEXMO)
+        {
+            if ($this->nexmoCLI($to, $bins))
+            {
+                $res = ($record) ? NoSQL::getInstance()->mobileUpdate($this->getUID(), $num, $bins) : NoSQL::getInstance()->mobileInsert($bins);
+                if ($res)
+                {
+                    return MobileValidation::RESULT_OK;
+                }
+                return MobileValidation::RESULT_ERR_DB_FAILURE;
+            }            
+        }
+        
         return MobileValidation::RESULT_ERR_UNKNOWN;
         
     }
@@ -412,7 +463,7 @@ trait NexmoTrait
     abstract protected function getUID() : int;
     abstract protected function getPlatform() : int;
     abstract protected function getE164($number);
-    abstract protected function getAllocatedNumber() : int;
+    abstract protected function getAllocatedNumber(bool $reverse) : int;
     abstract public function getNumberCountryCode(int $number) : int;
     abstract public function getNumberCarrierName(int $number) : string; 
 
@@ -578,13 +629,61 @@ trait NexmoTrait
     }
 
 
+    private function genValidationUUID() 
+    {
+        return sprintf( '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+            // 32 bits for "time_low"
+            mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ),
 
+            // 16 bits for "time_mid"
+            mt_rand( 0, 0xffff ),
+
+            // 16 bits for "time_hi_and_version",
+            // four most significant bits holds version number 4
+            mt_rand( 0, 0x0fff ) | 0x4000,
+
+            // 16 bits, 8 bits for "clk_seq_hi_res",
+            // 8 bits for "clk_seq_low",
+            // two most significant bits holds zero and one for variant DCE1.1
+            mt_rand( 0, 0x3fff ) | 0x8000,
+
+            // 48 bits for "node"
+            mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff )
+        );
+    }
+
+    public function nexmoCLI($to, &$bins) : bool
+    {
+        //$response = $this->getCheckMobiClient()->RequestValidation(["type"=>"cli", "number"=>$this->getE164($to), "platform"=>$this->getPlatformName()]);
+        //if ($this->isCheckMobiOk($response))
+        //{
+        //    if (isset($response['response']['id']))
+        //    {
+                $bins[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE] = $this->getAllocatedNumber(FALSE);;
+                $bins[ASD\USER_MOBILE_DATE_REQUESTED]=time();
+                $bins[ASD\USER_MOBILE_REQUEST_ID] = 'NXCLI-'.$this->genValidationUUID();
+                $bins[ASD\USER_MOBILE_VALIDATION_TYPE] = MobileValidation::CLI_TYPE;
+                NoSQL::getInstance()->inboundCall([
+                    'conversation_uuid'=>$bins[ASD\USER_MOBILE_REQUEST_ID],
+                    'direction'=>'inbound',
+                    'date_added'=>time(),
+                    'status'=>'started',
+                    'from'=>$to,
+                    'to'=>$bins[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE]
+                    ], $this->getUID());
+                return TRUE;
+        //    }
+        //}
+        //return FALSE;
+    }
+    
+    
     function reverseNexmoCLI(int $to) : array
     {
         
         $action = '/calls';
 
-        $from = $this->getAllocatedNumber();        
+        $from = $this->getAllocatedNumber(TRUE);        
       
         $bins = [];
         if (($record = NoSQL::getInstance()->mobileFetch($this->getUID(), $to))!==FALSE)
@@ -736,7 +835,7 @@ trait NexmoTrait
 
 if (php_sapi_name()=='cli')
 {
-    //var_dump( MobileValidation::getInstance()->setUID(2)->setPin(1234)->reverseNexmoCLI("+96171750413") );
-    MobileValidation::getInstance()->modifyNexmoCall("");
+    var_dump( MobileValidation::getInstance(MobileValidation::NEXMO)->setUID(2)->setPin(1234)->sendCallerId("+9613287168") );
+    //MobileValidation::getInstance()->modifyNexmoCall("");
     //echo MobileValidation::getInstance()->setUID(2)->setPin(1234)->verifyNexmoCallPin("CON-8403beab-327c-4945-abb2-45e3b4627b08", 4077), "\n";
 }
