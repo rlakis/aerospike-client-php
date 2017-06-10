@@ -873,7 +873,8 @@ trait NexmoTrait
 
 if (php_sapi_name()=='cli')
 {
-    var_dump( MobileValidation::getInstance(MobileValidation::NEXMO)->setUID(2)->setPin(1234)->fastCallText(442039061160, 447520619658) );
+    NoSQL::getInstance()->tkey();
+    //var_dump( MobileValidation::getInstance(MobileValidation::NEXMO)->setUID(2)->setPin(1234)->fastCallText(442039061160, 447520619658) );
     //MobileValidation::getInstance()->modifyNexmoCall("");
     //echo MobileValidation::getInstance()->setUID(2)->setPin(1234)->verifyNexmoCallPin("CON-8403beab-327c-4945-abb2-45e3b4627b08", 4077), "\n";
 }
