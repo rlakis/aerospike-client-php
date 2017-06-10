@@ -11,26 +11,40 @@ switch ($method)
         $uuid = filter_input(INPUT_GET, 'conversation_uuid', FILTER_SANITIZE_STRING); //The unique ID for this Call
 
         //error_log($uuid .": ". $from);
-        if ($from=='9611487521')
+
+        if ($from=='442039061160' && $to=='447520619658')
         {
-            sleep(3);
+            $ncco='[
+            {
+            "action": "connect",            
+            "from":"'.$from.'",
+            "endpoint": [
+                {
+                "type": "sip",
+                "uri": "sip:1000@51.255.175.173"
+                }
+            ]
+            }
+            ]';
         }
-        //For more advanced Conversations you use the paramaters to personalize the NCCO
-        //Dynamically create the NCCO to run a conversation from your virtual number
-        $pin = substr($from, -4);
-        $speech = "";
-        for ($i=0; $i<4; $i++)
+        else
         {
-            $speech.=$pin[$i]." . ";
-        }
+            //For more advanced Conversations you use the paramaters to personalize the NCCO
+            //Dynamically create the NCCO to run a conversation from your virtual number
+            $pin = substr($from, -4);
+            $speech = "";
+            for ($i=0; $i<4; $i++)
+            {
+                $speech.=$pin[$i]." . ";
+            }
         
-        $ncco='[
+            $ncco='[
             {
             "action": "talk",
             "text": "Your Mourjan code is  ' . $speech .'"
             }
             ]';
-
+        }
         header('Content-Type: application/json');
         echo $ncco;
         break;

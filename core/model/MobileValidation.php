@@ -677,7 +677,45 @@ trait NexmoTrait
         //return FALSE;
     }
     
-    
+
+    function fastCallText(int $from, int $to)
+    {
+        $action = '/calls';
+        $application_id = "905c1bc6-ff6c-4767-812c-1b39d756bda6";
+        $jwt = $this->generate_jwt($application_id, '/opt/ssl/nexmo.key');
+        //Add the JWT to the request headers
+        $headers =  array('Content-Type: application/json', "Authorization: Bearer " . $jwt ) ;
+
+        $payload = '{
+            "to":[{
+                "type": "phone",
+                "number": "' .$to.'"
+            }],
+            "from": {
+                "type": "phone",
+                "number": "'.$from.'"
+            },
+            "answer_url": ["https://dv.mourjan.com/api/nexmo/ncco.php"],
+            "event_url": ["https://dv.mourjan.com/api/nexmo/call_event.php"],
+            "ringing_timer":10
+            }';
+
+        //Create the request
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $this->base_url . $this->version . $action);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+
+        $res = curl_exec($ch);
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        echo $status, "\n";
+        var_dump($res);
+    }
+
+
     function reverseNexmoCLI(int $to) : array
     {
         
@@ -835,7 +873,7 @@ trait NexmoTrait
 
 if (php_sapi_name()=='cli')
 {
-    var_dump( MobileValidation::getInstance(MobileValidation::NEXMO)->setUID(2)->setPin(1234)->sendCallerId("+9613287168") );
+    var_dump( MobileValidation::getInstance(MobileValidation::NEXMO)->setUID(2)->setPin(1234)->fastCallText(442039061160, 447520619658) );
     //MobileValidation::getInstance()->modifyNexmoCall("");
     //echo MobileValidation::getInstance()->setUID(2)->setPin(1234)->verifyNexmoCallPin("CON-8403beab-327c-4945-abb2-45e3b4627b08", 4077), "\n";
 }
