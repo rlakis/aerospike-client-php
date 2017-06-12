@@ -202,11 +202,6 @@ class NoSQL
     
     public function setBins($pk, array $bins) : bool
     {
-        if (isset($bins["provider_id"]) && is_numeric($bins["provider_id"]))
-        {
-            $bins["provider_id"] = strval($bins["provider_id"]);
-        }
-        
         $status = $this->getConnection()->put($pk, $bins);
         if ($status != \Aerospike::OK) 
         {

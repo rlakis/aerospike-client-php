@@ -1986,7 +1986,7 @@ class MobileApi
             return;
         }
         
-        include_once $this->config['dir'].'/core/lib/MourjanNexmo.php';
+        //include_once $this->config['dir'].'/core/lib/MourjanNexmo.php';
 
         $record = NoSQL::getInstance()->mobileFetch($this->getUID(), $mobile_no);
     
@@ -2001,22 +2001,26 @@ class MobileApi
                //return;
             }
             error_log("Here Type: {$val_type}, Pin: {$pin_code}, Mobile:{$mobile_no}");
+            
             if ($pin_code) 
             {
                 switch ($val_type) 
                 {
                     case MobileValidation::CLI_TYPE:
-                        if ($pin_code==$record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE])
-                        {
+                        //if ($pin_code==$record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE])
+                        //{
                             if (MobileValidation::getInstance()->verifyStatus($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]))
                             {
-                                $activated = NoSQL::getInstance()->mobileActivation($this->getUID(), $mobile_no, $pin_code);
+                                error_log("verified");
+                                $activated = NoSQL::getInstance()->mobileActivationByRequestId($this->getUID(), $mobile_no, $pin_code, $record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
                             }
                             else 
                             {
-                                $this->result['e'] = 'Invalid activation request';
+                                $this->result['e'] = 'Not a valid activation request';
                                 $this->result['d']['status']='invalid';
+                                return;
                             }
+                            
                             /*
                             $response = CheckMobiRequest::verifyStatus( $record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID] );
                             error_log(json_encode($response, JSON_PRETTY_PRINT));
@@ -2033,22 +2037,15 @@ class MobileApi
                                     $this->result['d']['status']='invalid';
                                 }
                             }   */
-                        }
-                        else
-                        {
-                            $this->result['e'] = 'Activation code is not valid';
-                            $this->result['d']['status']='invalid';
-                        }
+                        //}
+                        //else
+                        //{
+                        //    $this->result['e'] = 'Activation code is not valid';
+                        //    $this->result['d']['status']='invalid';
+                        //}
                         break;
 
-                    case MobileValidation::REVERSE_CLI_TYPE: 
-                        if ($pin_code=='hangup')
-                        {
-                        //    $response = CheckMobiRequest::hangUpCall($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
-                            $this->result['d']['status']='hangup';
-                            return;
-                        }
-                        
+                    case MobileValidation::REVERSE_CLI_TYPE:                         
                         $response = MobileValidation::getInstance()->setUID($this->getUID())->verifyNexmoCallPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $pin_code);
                                                 
                         //$response = CheckMobiRequest::verifyPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $pin_code);
@@ -2108,22 +2105,22 @@ class MobileApi
             
             if ($val_type==MobileValidation::CLI_TYPE)
             {       
-                if (MobileValidation::getInstance()->verifyStatus($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]))
-                {
-                    if (NoSQL::getInstance()->mobileActivationByRequestId($this->getUID(), $mobile_no, $record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE], $record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]))
-                    {
-                        $this->result['d']['status']='validated';
-
-                        include $this->config['dir'] .'/core/model/User.php';
-                        $user = new User($this->db, $this->config, null, 0);
-                        $user->sysAuthById($this->getUID());
-                        $user->params['app']=1;
-                        $user->update();
-                        $this->result['d']['kuid'] = $user->encodeId($this->uid);
-                        $this->getBalance();
-                        return;
-                    }
-                }
+//                if (MobileValidation::getInstance()->verifyStatus($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]))
+//                {
+//                    if (NoSQL::getInstance()->mobileActivationByRequestId($this->getUID(), $mobile_no, $record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE], $record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]))
+//                    {
+//                        $this->result['d']['status']='validated';
+//
+//                        include $this->config['dir'] .'/core/model/User.php';
+//                        $user = new User($this->db, $this->config, null, 0);
+//                        $user->sysAuthById($this->getUID());
+//                        $user->params['app']=1;
+//                        $user->update();
+//                        $this->result['d']['kuid'] = $user->encodeId($this->uid);
+//                        $this->getBalance();
+//                        return;
+//                    }
+//                }
                                            
                 $mv_result = MobileValidation::getInstance(MobileValidation::NEXMO)->setUID($this->getUID())->setPlatform(MobileValidation::IOS)->sendCallerId($mobile_no);
                 
@@ -2131,6 +2128,7 @@ class MobileApi
                 {
                     case MobileValidation::RESULT_OK:
                     case MobileValidation::RESULT_ERR_SENT_FEW_MINUTES:
+                        //MobileValidation::getInstance()->getIssuedData($id)
                         $record = NoSQL::getInstance()->mobileFetch($this->getUID(), $mobile_no);
                         $this->result['d']['status']='sent';
                         $this->result['d']['dialing_number'] = '+'.$record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
@@ -2182,39 +2180,41 @@ class MobileApi
             }
             
             // SMS
-            if ($record[Core\Model\ASD\USER_MOBILE_SENT_SMS_COUNT]==0) 
-            { // No sent SMS
-                $pin = mt_rand(1000, 9999); 
-                $msg_text = "{$pin} is your mourjan confirmation code";
-                if (MobileValidation::getInstance(MobileValidation::NEXMO)->
-                        setPlatform(MobileValidation::IOS)->
-                        setPin($pin)->setUID($this->getUID())->
-                        sendSMS($mobile_no, $msg_text, ['uid'=>$this->getUID()])== MobileValidation::RESULT_OK)
+            if ($val_type==MobileValidation::SMS_TYPE)
+            {
+                if ($record[Core\Model\ASD\USER_MOBILE_SENT_SMS_COUNT]==0) 
+                { // No sent SMS
+                    $pin = mt_rand(1000, 9999); 
+                    $msg_text = "{$pin} is your mourjan confirmation code";
+                    if (MobileValidation::getInstance(MobileValidation::NEXMO)->
+                            setPlatform(MobileValidation::IOS)->
+                            setPin($pin)->setUID($this->getUID())->
+                            sendSMS($mobile_no, $msg_text, ['uid'=>$this->getUID()])== MobileValidation::RESULT_OK)
+                    {
+                        $this->result['d']['status']='sent';
+                    }
+                }
+
+
+                if ($record[Core\Model\ASD\USER_MOBILE_CODE_DELIVERED]) 
                 {
-                    $this->result['d']['status']='sent';
+                    $this->result['e'] = 'Activation code is already delivered to this mobile sms inbox';
+                    $this->result['d']['status']='delivered';
+                    return;
+                }
+
+                if (time()-$record[Core\Model\ASD\USER_MOBILE_DATE_REQUESTED]<120) 
+                {
+                    $this->result['e'] = 'Activation code is already sent, but not delivered yet.\nPlease wait a few minutes';
+                    return;
+                }
+
+                if (!isset($record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $record[Core\Model\ASD\USER_MOBILE_CODE_DELIVERED]==0 && $record[Core\Model\ASD\USER_MOBILE_SENT_SMS_COUNT]>0) 
+                {
+                    $this->result['e'] = 'Invalid mobile number! Please enter well formed mobile number to proceed.';
+                    return;
                 }
             }
-               
- 
-            if ($record[Core\Model\ASD\USER_MOBILE_CODE_DELIVERED]) 
-            {
-                $this->result['e'] = 'Activation code is already delivered to this mobile sms inbox';
-                $this->result['d']['status']='delivered';
-                return;
-            }
-
-            if (time()-$record[Core\Model\ASD\USER_MOBILE_DATE_REQUESTED]<120) 
-            {
-                $this->result['e'] = 'Activation code is already sent, but not delivered yet.\nPlease wait a few minutes';
-                return;
-            }
-
-            if (!isset($record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $record[Core\Model\ASD\USER_MOBILE_CODE_DELIVERED]==0 && $record[Core\Model\ASD\USER_MOBILE_SENT_SMS_COUNT]>0) 
-            {
-                $this->result['e'] = 'Invalid mobile number! Please enter well formed mobile number to proceed.';
-                return;
-            }
-            
         }
         else
         {

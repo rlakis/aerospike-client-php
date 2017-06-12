@@ -47,6 +47,28 @@ class MobileValidation
     private $platform;
     private $provider;
     
+    private $issued                     = [];
+    
+    
+    const NUMBERS                       = [
+        12046743098     => ['type'=>'Mobile', 'voice'=>1, 'sms'=>1],
+        12048192528     => ['type'=>'Mobile', 'voice'=>1, 'sms'=>1],
+        18198035589     => ['type'=>'Mobile', 'voice'=>1, 'sms'=>1],
+        358841542210    => ['type'=>'Land Line', 'voice'=>1, 'sms'=>0],
+        33644630401	=> ['type'=>'Mobile', 'voice'=>1, 'sms'=>1],
+        601117227104	=> ['type'=>'Mobile', 'voice'=>1, 'sms'=>1],
+        48732232145	=> ['type'=>'Mobile', 'voice'=>1, 'sms'=>1],
+        48799353706	=> ['type'=>'Mobile', 'voice'=>1, 'sms'=>1],
+        46769436340	=> ['type'=>'Mobile', 'voice'=>1, 'sms'=>1],
+        46850927966	=> ['type'=>'Land Line', 'voice'=>1, 'sms'=>0],
+        442039061160	=> ['type'=>'Land Line', 'voice'=>1, 'sms'=>0],
+        447520619658	=> ['type'=>'Mobile', 'voice'=>1, 'sms'=>1],
+        447520632358	=> ['type'=>'Mobile', 'voice'=>1, 'sms'=>1],
+        447520635627	=> ['type'=>'Mobile', 'voice'=>1, 'sms'=>1],
+        12035802081	=> ['type'=>'Mobile', 'voice'=>1, 'sms'=>1],
+        12242144077	=> ['type'=>'Mobile', 'voice'=>1, 'sms'=>1],
+        19892591790	=> ['type'=>'Mobile', 'voice'=>1, 'sms'=>1],        
+    ];
     
     private $call_center = [
         12035802081, 
@@ -184,16 +206,20 @@ class MobileValidation
     
     protected function getAllocatedNumber(bool $reverse=true) : int
     {
-        if ($reverse)
-        {
-            $i = rand(0, count($this->call_center)-1);
-            return $this->call_center[$i];
-        }
-        else
-        {
-            $i = rand(0, count($this->cli_numbers)-1);
-            return $this->cli_numbers[$i];
-        }
+        $i = rand(0, count(MobileValidation::NUMBERS)-1);
+        $number = array_keys(MobileValidation::NUMBERS)[$i];
+        return $number;
+        
+//        if ($reverse)
+//        {
+//            $i = rand(0, count($this->call_center)-1);
+//            return $this->call_center[$i];
+//        }
+//        else
+//        {
+//            $i = rand(0, count($this->cli_numbers)-1);
+//            return $this->cli_numbers[$i];
+//        }
     }
     
     
@@ -268,11 +294,25 @@ class MobileValidation
                 }
             }
         }
-        else if (substr($requestId, 0, 5)=='NXCLI')
+        else if (substr($requestId, 0, 2)=='1-')
         {
-            error_log("here");
+            $response = $this->nexmoStatus($requestId);
+            error_log(json_encode($response));
+            if (isset($response['status']) && $response['status']==200 && isset($response['response']) && isset($response['response']['validated']))
+            {
+                if ($response['response']['validated'])
+                {
+                    return 1;
+                }
+            }
         }    
         return 0;
+    }
+    
+    
+    public function getIssuedData(string $id)
+    {
+        return $this->issued[$id] ?? FALSE;
     }
     
     
@@ -306,7 +346,9 @@ class MobileValidation
         }
         else if ($this->provider==static::NEXMO)
         {
-            if ($this->nexmoCLI($to, $bins))
+            $req = $this->nexmoCLI($to, $bins);
+            $req_status = $req['status'] ?? 400; 
+            if ($req_status==200)
             {
                 $res = ($record) ? NoSQL::getInstance()->mobileUpdate($this->getUID(), $num, $bins) : NoSQL::getInstance()->mobileInsert($bins);
                 if ($res)
@@ -447,7 +489,7 @@ trait CheckMobiTrait
                 $bins[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE] = intval($response['response']['dialing_number']);
                 $bins[ASD\USER_MOBILE_DATE_REQUESTED]=time();
                 $bins[ASD\USER_MOBILE_REQUEST_ID] = $response['response']['id'];
-                $bins[ASD\USER_MOBILE_VALIDATION_TYPE] = 1;
+                $bins[ASD\USER_MOBILE_VALIDATION_TYPE] = MobileValidation::CLI_TYPE;
                 return TRUE;
             }
         }
@@ -652,29 +694,34 @@ trait NexmoTrait
         );
     }
 
-    public function nexmoCLI($to, &$bins) : bool
+    
+    public function nexmoCLI($to, &$bins) : array
     {
-        //$response = $this->getCheckMobiClient()->RequestValidation(["type"=>"cli", "number"=>$this->getE164($to), "platform"=>$this->getPlatformName()]);
-        //if ($this->isCheckMobiOk($response))
-        //{
-        //    if (isset($response['response']['id']))
-        //    {
-                $bins[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE] = $this->getAllocatedNumber(FALSE);;
-                $bins[ASD\USER_MOBILE_DATE_REQUESTED]=time();
-                $bins[ASD\USER_MOBILE_REQUEST_ID] = 'NXCLI-'.$this->genValidationUUID();
-                $bins[ASD\USER_MOBILE_VALIDATION_TYPE] = MobileValidation::CLI_TYPE;
-                NoSQL::getInstance()->inboundCall([
-                    'conversation_uuid'=>$bins[ASD\USER_MOBILE_REQUEST_ID],
-                    'direction'=>'inbound',
-                    'date_added'=>time(),
-                    'status'=>'started',
-                    'from'=>$to,
-                    'to'=>$bins[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE]
-                    ], $this->getUID());
-                return TRUE;
-        //    }
-        //}
-        //return FALSE;
+        $result = [
+            'status'=>400, 
+            'response'=>['id'=>'', 'type'=>'cli', 'dialing_number'=>'', 
+                'number_info'=>['country_code'=>0, 'country_iso_code'=>'', 'carrier'=>'', 'is_mobile'=>false, 'e164_format'=>$this->getE164($to), 'formatting'=>'']]];
+        $dialing_number = $this->getAllocatedNumber(FALSE);
+        $id = NoSQL::getInstance()->issueNewValidataionRequestKey(MobileValidation::CLI_TYPE, $this->getE164($to, TRUE), $dialing_number, 'mourjan', $this->getUID(), $this->getPlatform());
+        if ($id)
+        {
+            $result['status'] = 200;
+            $result['response']['id']=$id;
+            $result['response']['dialing_number']=$this->getE164($dialing_number);
+            $bins[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE] = $dialing_number;
+            $bins[ASD\USER_MOBILE_DATE_REQUESTED]=time();
+            $bins[ASD\USER_MOBILE_REQUEST_ID] = $id;
+            $bins[ASD\USER_MOBILE_VALIDATION_TYPE] = MobileValidation::CLI_TYPE;
+//            NoSQL::getInstance()->inboundCall([
+//                    'conversation_uuid'=>$bins[ASD\USER_MOBILE_REQUEST_ID],
+//                    'direction'=>'inbound',
+//                    'date_added'=>time(),
+//                    'status'=>'started',
+//                    'from'=>$to,
+//                    'to'=>$bins[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE]
+//                    ], $this->getUID());
+        }
+        return $result;
     }
     
 
@@ -756,7 +803,8 @@ trait NexmoTrait
             },
             "answer_url": ["https://dv.mourjan.com/api/nexmo/ncco.php"],
             "event_url": ["https://dv.mourjan.com/api/nexmo/call_event.php"],
-            "ringing_timer":10
+            "length_timer": 8,
+            "ringing_timer": 10
             }';
         
         //Create the request
@@ -829,6 +877,32 @@ trait NexmoTrait
         }
         
         return ['status'=>$status, 'response'=>$response];
+    }
+    
+    
+    public function nexmoStatus(string $id)
+    {
+        $response = ["number"=>NULL, "validated"=>false, "validation_date"=>NULL, "charged_amount"=>0];
+        $status = 400;
+        if (($call = NoSQL::getInstance()->getCall($id))!==FALSE && !empty($call))
+        {
+            $status = 200;
+            $response['number'] = $this->getE164( $call['from'] );
+            $response['uid'] = $call[ASD\USER_UID];
+            $response['charged_amount'] = 0;
+            if (isset($call['validated']) && $call['validated'])
+            {
+                $response['validated'] = true;
+                $response['validation_date'] = $call['valid_epoch'];     
+            }
+            else 
+            {
+                $response['validated'] = true;
+                $response['validation_date'] = time();        
+                NoSQL::getInstance()->inboundCall(['conversation_uuid'=>$id, 'direction'=>'inbound', 'status'=>'validated', 'validation_date'=>time()]);
+            }
+            return ['status'=>$status, 'response'=>$response];            
+        }
     }
     
     

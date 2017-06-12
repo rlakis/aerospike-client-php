@@ -29,30 +29,30 @@ trait CallTrait
                           '[0-9a-f]{4}\-?[0-9a-f]{12}\}?$/i', $uuid) === 1;
     }
     
-    	/**
-	 * 
-	 * Generate v4 UUID
-	 * 
-	 * Version 4 UUIDs are pseudo-random.
-	 */
-	public static function v4() 
-	{
-		return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-		// 32 bits for "time_low"
-		mt_rand(0, 0xffff), mt_rand(0, 0xffff),
-		// 16 bits for "time_mid"
-		mt_rand(0, 0xffff),
-		// 16 bits for "time_hi_and_version",
-		// four most significant bits holds version number 4
-		mt_rand(0, 0x0fff) | 0x4000,
-		// 16 bits, 8 bits for "clk_seq_hi_res",
-		// 8 bits for "clk_seq_low",
-		// two most significant bits holds zero and one for variant DCE1.1
-		mt_rand(0, 0x3fff) | 0x8000,
-		// 48 bits for "node"
-		mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
-		);
-	}
+    /**
+     * 
+     * Generate v4 UUID
+     * 
+     * Version 4 UUIDs are pseudo-random.
+     */
+    public static function v4() 
+    {
+        return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+            // 32 bits for "time_low"
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+            // 16 bits for "time_mid"
+            mt_rand(0, 0xffff),
+            // 16 bits for "time_hi_and_version",
+            // four most significant bits holds version number 4
+            mt_rand(0, 0x0fff) | 0x4000,
+            // 16 bits, 8 bits for "clk_seq_hi_res",
+            // 8 bits for "clk_seq_low",
+            // two most significant bits holds zero and one for variant DCE1.1
+            mt_rand(0, 0x3fff) | 0x8000,
+            // 48 bits for "node"
+            mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+        );
+    }
 
     
     /**
@@ -96,11 +96,82 @@ trait CallTrait
         );
     }
         
-    private function asRequestValidationKey(int $type, int $number, string $app='', int $platform=0)
+    
+    public function issueNewValidataionRequestKey(int $type, int $number, int $did_number=0, string $app='', int $uid, int $platform=0) : string
+    {
+        $request_id = static::v5(static::v4(), "{$type}-{$number}-{$app}-{$platform}");
+        $bins = [
+            'type'=>$type,
+            'request_id'=>$request_id,
+            'date_added'=>time(),
+            'number'=>$number,
+            'did'=>$did_number,
+            'app'=>$app,
+            'uid'=>$uid,
+            'platform'=>$platform                
+        ];
+        
+        switch ($type) 
+        {
+            case 0: // SMS
+                $bins['timeout']=48*60*60;
+                break;
+            
+            case 1: // CLI
+                $bins['timeout']=3*60;
+                break;
+            
+            case 2: // REVERSE CLI
+                $bins['timeout']=5*60;
+                break;
+        }
+        
+        $pk = $this->asRequestValidationKey($type, $request_id);
+        if ($this->setBins($pk, $bins))
+        {            
+            return $pk['key'];
+        }
+        return '';
+    }
+    
+    
+    public function getValidNumberCallRequests(int $type, int $number, int $did, &$result) : int
+    {
+        $result=[];
+        
+        $where = \Aerospike::predicateEquals('number', $number);
+        $status = $this->getConnection()->query(NS_USER, TS_VALIDATION_REQUEST, $where, 
+                    function ($record) use (&$result, $type, $did)
+                    {
+                        $epoch = $record['bins']['date_added']+$record['bins']['timeout'];
+                        
+                        if ($record['bins']['type']==$type && $record['bins']['did']==$did && $epoch>time())
+                        {
+                            $result[] = $record['bins'];                            
+                        }                                               
+                    });
+        if (empty($result) && preg_match("/^1/", $number))
+        {
+            $number = intval(substr($number, 1));
+            $where = \Aerospike::predicateEquals('number', $number);
+            $status = $this->getConnection()->query(NS_USER, TS_VALIDATION_REQUEST, $where, 
+                    function ($record) use (&$result, $type, $did)
+                    {
+                        $epoch = $record['bins']['date_added']+$record['bins']['timeout'];
+                        
+                        if ($record['bins']['type']==$type && $record['bins']['did']==$did && $epoch>time())
+                        {
+                            $result[] = $record['bins'];                            
+                        }                                               
+                    });
+        }
+        return $status;    
+    }
+    
+    
+    private function asRequestValidationKey(int $type, string $request_id)
     {        
-        echo "{$type}-".static::v5(static::v4(), "{$type}-{$number}-{$app}-{$platform}"), "\n";
-        $m=microtime(true);
-        return $this->getConnection()->initKey(NS_VALIDATION, TS_VALIDATION_REQUEST, "{$type}-{$number}-{$app}-{$platform}-{$m}");        
+        return $this->getConnection()->initKey(NS_USER, TS_VALIDATION_REQUEST, "{$type}-{$request_id}");        
     }   
     
     
@@ -179,7 +250,7 @@ trait CallTrait
     }
     
     
-    public function inboundCall(array $call, int $uid=0) : int
+    public function inboundCall(array $call, array $req=[], int $uid=0) : int
     {
         $success = false;
         $bins=[];
@@ -188,28 +259,26 @@ trait CallTrait
             $bins['uid']=$uid;
         }
         
-        if (isset($call['conversation_uuid']) && $call['direction']=='inbound')
+        if (isset($call['uuid']) || isset($call['conversation_uuid']) && $call['direction']=='inbound')
         {     
-            $bins['direction']= \Core\Model\MobileValidation::CLI_TYPE;
-            if (isset($call['from']))
-            {
-                $bins['from'] = intval($call['from']);
-            }
             
-            if (isset($call['to']))
-            {
-                $bins['to'] = intval($call['to']);
-            }
+//            if (isset($call['from']))
+//            {
+//                $bins['from'] = intval($call['from']);
+//            }
+//            
+//            if (isset($call['to']))
+//            {
+//                $bins['to'] = intval($call['to']);
+//            }
             
             switch ($call['status']) 
-            {
-                case 'started':
-                    $bins['uuid'] = $call['conversation_uuid'];
-                    $bins['date_added'] = time();
-                    $bins[$call['status']] = 1;
-                    break;
-                
+            {                      
                 case 'completed':
+                    
+                    $bins['uid'] = $req['uid'];
+                    $bins['uuid'] = substr($call['uuid'],0,8).'-'.substr($call['uuid'],8,4).'-'.substr($call['uuid'],12,4).'-'.substr($call['uuid'],16,4).'-'.substr($call['uuid'],20);
+                    $bins['date_added'] = $req['date_added'];
                     $bins[$call['status']] = 1;
                     $bins['duration'] = floatval($call['duration']);  
                     if ($call['start_time'])
@@ -218,22 +287,31 @@ trait CallTrait
                     }
                     $bins['rate'] = floatval($call['rate']);
                     $bins['price'] = floatval($call['price']);
-                    //$bins['fee'] = 2.0 * $bins['price'];
                     $bins['from'] = intval($call['from']);
                     $bins['to'] = intval($call['to']);
                     $bins['network'] = intval($call['network']);
+                    
+                    $reqPK = $this->asRequestValidationKey($req['type'], $req['request_id']);
+                    $this->setBins($reqPK, ['completed'=>1]);
+                    error_log($reqPK['key']);
+                    $bins['direction']= \Core\Model\MobileValidation::CLI_TYPE;
+                    $success = $this->setBins($this->asCallKey($reqPK['key']), $bins);
                     break;
                 
                 case 'validated':
                     $bins[$call['status']] = 1;
                     $bins['valid_epoch'] = $call['validation_date'];
-                    
+                    error_log(json_encode($bins));
+                    $success = $this->setBins($this->asCallKey($call['conversation_uuid']), $bins);
+                    error_log("Result [{$success}] ".$this->asCallKey($call['conversation_uuid'])['key']);
+                    break;
+                
                 default:
                     $bins[$call['status']] = 1;
                     break;
             }
               
-            $success = $this->setBins($this->asCallKey($call['conversation_uuid']), $bins);
+            
         }
         return $success ? 1 : 0;
     }
@@ -248,9 +326,10 @@ trait CallTrait
         return FALSE;
     }
     
+    
     public function tkey()
     {
-        $key = $this->asRequestValidationKey(1, 9613287168, 'mourjan', 2);
+        $key = $this->issueNewValidataionRequestKey(1, 9613287168, 'mourjan', 2);
         var_dump($key);
     }
 }

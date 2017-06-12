@@ -13,9 +13,9 @@ $request = array_merge($_GET, $_POST);
 function handle_call_status()
 {
     $decoded_request = json_decode(file_get_contents('php://input'), true);
+    
     error_log(json_encode($decoded_request, JSON_PRETTY_PRINT).PHP_EOL, 3, "/var/log/mourjan/sms.log");
     
-    // Work with the call status
     $direction = $decoded_request['direction'] ?? 'outbound';
     
     if (isset($decoded_request['status'])) 
@@ -26,15 +26,14 @@ function handle_call_status()
             {
                 case 'ringing':
                     NoSQL::getInstance()->outboundCall($decoded_request);
-                    //error_log("Handle conversation_uuid, this return parameter identifies the Conversation");
                     break;
 
                 case 'answered':
                     NoSQL::getInstance()->outboundCall($decoded_request);
-                    //error_log("You use the uuid returned here for all API requests on individual calls");
                     break;
 
                 case 'complete':
+                case 'completed':
                     NoSQL::getInstance()->outboundCall($decoded_request);
                     //if you set eventUrl in your NCCO. The recording download URL
                     //is returned in recording_url. It has the following format
@@ -50,12 +49,13 @@ function handle_call_status()
         }
         else 
         {
-            error_log("Inbound status: ".$decoded_request['status']);
+            //error_log("Inbound status: ".$decoded_request['status']);
             switch ($decoded_request['status']) 
             {
                 case 'started':
                 case 'ringing':
-                    MobileValidation::getInstance(MobileValidation::NEXMO)->modifyNexmoCall($decoded_request['uuid']);
+                    //NoSQL::getInstance()->getValidNumberCallRequests(MobileValidation::CLI_TYPE, $number, $did, $result)
+                    //MobileValidation::getInstance(MobileValidation::NEXMO)->modifyNexmoCall($decoded_request['uuid']);
                     //NoSQL::getInstance()->outboundCall($decoded_request);
                     //error_log("Handle conversation_uuid, this return parameter identifies the Conversation");
                     break;
@@ -66,6 +66,13 @@ function handle_call_status()
                     break;
 
                 case 'complete':
+                case 'completed':
+                    if (NoSQL::getInstance()->getValidNumberCallRequests(MobileValidation::CLI_TYPE, intval($decoded_request['from']), intval($decoded_request['to']), $result)==\Aerospike::OK)
+                    {                                                
+                        NoSQL::getInstance()->inboundCall($decoded_request, $result[0]);                        
+                    }
+                    
+                    
                     //NoSQL::getInstance()->outboundCall($decoded_request);
                     //if you set eventUrl in your NCCO. The recording download URL
                     //is returned in recording_url. It has the following format

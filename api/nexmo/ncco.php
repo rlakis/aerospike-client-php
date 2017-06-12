@@ -1,4 +1,5 @@
 <?php
+include_once get_cfg_var('mourjan.path').'/core/model/MobileValidation.php';
 
 $method = filter_input(INPUT_SERVER, 'REQUEST_METHOD');
 
@@ -10,22 +11,23 @@ switch ($method)
         $from = filter_input(INPUT_GET, 'from', FILTER_VALIDATE_INT); //The endpoint you are calling from
         $uuid = filter_input(INPUT_GET, 'conversation_uuid', FILTER_SANITIZE_STRING); //The unique ID for this Call
 
-        //error_log($uuid .": ". $from);
-
-        if ($from=='442039061160' && $to=='447520619658')
+        if (key_exists(intval($to), \Core\Model\MobileValidation::NUMBERS))
         {
             $ncco='[
             {
             "action": "connect",            
             "from":"'.$from.'",
+            "eventUrl": [
+            "https://dv.mourjan.com/api/nexmo/sip.php"
+            ],
             "endpoint": [
                 {
                 "type": "sip",
                 "uri": "sip:1000@51.255.175.173"
                 }
             ]
-            }
-            ]';
+            }            
+            ]';               
         }
         else
         {
@@ -45,6 +47,7 @@ switch ($method)
             }
             ]';
         }
+        
         header('Content-Type: application/json');
         echo $ncco;
         break;
