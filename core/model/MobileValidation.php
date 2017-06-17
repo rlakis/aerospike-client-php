@@ -33,6 +33,7 @@ class MobileValidation
     const RESULT_ERR_QOTA_EXCEEDED      = 4;
     const RESULT_ERR_NO_USER_ID         = 5;
     const RESULT_ERR_DB_FAILURE         = 6;
+    const RESULT_ERR_CALL_DONE          = 7;
     const RESULT_ERR_UNKNOWN            = 9;
 
     const SMS_TYPE                      = 0;
@@ -69,28 +70,7 @@ class MobileValidation
         12242144077	=> ['type'=>'Mobile', 'voice'=>1, 'sms'=>1],
         19892591790	=> ['type'=>'Mobile', 'voice'=>1, 'sms'=>1],        
     ];
-    
-    private $call_center = [
-        12035802081, 
-        12035802081, 
-        12048192528, 
-        12242144077, 
-        18198035589, 
-        19892591790, 
-        33644630401, 
-        447520619658, 
-        447520632358, 
-        447520635627, 
-        46769436340, 
-        48732232145, 
-        48799353706, 
-        601117227104];
-    
-    private $cli_numbers = [
-        358841542210,
-        442039061160,
-        46850927966];
-    
+        
     
     private static $instance = null;
     
@@ -208,18 +188,7 @@ class MobileValidation
     {
         $i = rand(0, count(MobileValidation::NUMBERS)-1);
         $number = array_keys(MobileValidation::NUMBERS)[$i];
-        return $number;
-        
-//        if ($reverse)
-//        {
-//            $i = rand(0, count($this->call_center)-1);
-//            return $this->call_center[$i];
-//        }
-//        else
-//        {
-//            $i = rand(0, count($this->cli_numbers)-1);
-//            return $this->cli_numbers[$i];
-//        }
+        return $number;        
     }
     
     
@@ -267,6 +236,15 @@ class MobileValidation
                 $age = time()-$record[ASD\USER_MOBILE_DATE_REQUESTED];
                 if ($age<=180)
                 {
+                    if (($call=NoSQL::getInstance()->getCall($record[ASD\USER_MOBILE_REQUEST_ID]))!==FALSE)
+                    {
+                        error_log(json_encode($call, JSON_PRETTY_PRINT));
+                        if (isset($call['completed']) && $call['completed']==1)
+                        {
+                            $record['from'] = $call['from'] ?? '00000000000000';
+                            return MobileValidation::RESULT_ERR_CALL_DONE;
+                        }
+                    }
                     return MobileValidation::RESULT_ERR_SENT_FEW_MINUTES;
                 }
                 if ($record[ASD\USER_MOBILE_SENT_SMS_COUNT]>10)
@@ -285,7 +263,6 @@ class MobileValidation
         if (substr($requestId, 0, 3)=='CLI') 
         {
             $response = $this->getCheckMobiClient()->ValidationStatus(['id'=>$requestId]);            
-            //error_log(json_encode($response, JSON_PRETTY_PRINT));
             if (isset($response['status']) && $response['status']==200 && isset($response['response']) && isset($response['response']['validated']))
             {
                 if ($response['response']['validated'])
@@ -297,7 +274,6 @@ class MobileValidation
         else if (substr($requestId, 0, 2)=='1-')
         {
             $response = $this->nexmoStatus($requestId);
-            error_log(json_encode($response));
             if (isset($response['status']) && $response['status']==200 && isset($response['response']) && isset($response['response']['validated']))
             {
                 if ($response['response']['validated'])
@@ -322,8 +298,7 @@ class MobileValidation
         $status = $this->checkUserMobileStatus($num, MobileValidation::CLI_TYPE, $record);
         if ($status!=MobileValidation::RESULT_OK)
         {
-            // mira
-            //return $status;
+            return $status;
         }
 
         $bins = [ASD\USER_UID=>$this->uid,
@@ -373,11 +348,27 @@ class MobileValidation
         //    $status = MobileValidation::RESULT_OK;
         //}
 
-        if ($status!=MobileValidation::RESULT_OK)
+       
+        if ($status!=MobileValidation::RESULT_OK && $status!==MobileValidation::RESULT_ERR_CALL_DONE)
         {
             return $status;
         }
         
+        if ($status==MobileValidation::RESULT_ERR_CALL_DONE)
+        {
+            $data = [
+                'id'=>$record[ASD\USER_MOBILE_REQUEST_ID],
+                'type'=>'reverse_cli',
+                'cli_prefix'=>substr($record['from'], 0, 5),
+                'pin_hash'=>$record[ASD\USER_MOBILE_PIN_HASH],
+                'length'=>strlen($record['from']),
+                'called'=>1
+            ];
+        
+            $response = array("status" => 200, "response" => $data);
+            return MobileValidation::RESULT_OK;
+        }
+
         if ($this->provider==static::NEXMO)
         {
             $response = $this->reverseNexmoCLI($to);
@@ -396,7 +387,7 @@ class MobileValidation
     {   
         $num = $this->getE164($to, TRUE);
         $status = $this->checkUserMobileStatus($num, MobileValidation::SMS_TYPE, $record);
-        if ($status!= MobileValidation::RESULT_OK)
+        if ($status!=MobileValidation::RESULT_OK) // && $status!=MobileValidation::RESULT_ERR_ALREADY_ACTIVE
         {
             return $status;
         }
@@ -831,7 +822,8 @@ trait NexmoTrait
             'id'=>$result['conversation_uuid'],
             'type'=>'reverse_cli',
             'cli_prefix'=>substr($from, 0, 5),
-            'pin_hash'=>sha1(substr($from, -3, 3))
+            'pin_hash'=>sha1(substr($from, -3, 3)),
+            'length'=>strlen($from)
             ];
         
         if ($status==201)

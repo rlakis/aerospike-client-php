@@ -226,7 +226,7 @@ class NoSQL
     
     private function logError($fnc, $obj, $bins=NULL)
     {
-        error_log( "Error {$fnc} [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}".PHP_EOL.json_encode($obj).(($bins)?PHP_EOL.json_encode($bins):''));
+        error_log( "Error {$fnc} [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}".PHP_EOL. var_export($obj, TRUE).(($bins)?PHP_EOL.json_encode($bins):''));
     }
     
     

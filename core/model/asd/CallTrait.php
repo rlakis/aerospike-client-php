@@ -293,7 +293,7 @@ trait CallTrait
                     
                     $reqPK = $this->asRequestValidationKey($req['type'], $req['request_id']);
                     $this->setBins($reqPK, ['completed'=>1]);
-                    error_log($reqPK['key']);
+                   
                     $bins['direction']= \Core\Model\MobileValidation::CLI_TYPE;
                     $success = $this->setBins($this->asCallKey($reqPK['key']), $bins);
                     break;
@@ -301,7 +301,7 @@ trait CallTrait
                 case 'validated':
                     $bins[$call['status']] = 1;
                     $bins['valid_epoch'] = $call['validation_date'];
-                    error_log(json_encode($bins));
+                    
                     $success = $this->setBins($this->asCallKey($call['conversation_uuid']), $bins);
                     error_log("Result [{$success}] ".$this->asCallKey($call['conversation_uuid'])['key']);
                     break;

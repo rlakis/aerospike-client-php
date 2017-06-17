@@ -141,11 +141,7 @@ trait MobileTrait
                     {
                         foreach ($filter as $key => $val) 
                         {
-                            if ($record['bins'][$key]!=$val)
-                            {
-                                $matched = FALSE;
-                                break;
-                            }
+                            $matched = $matched && (isset($record['bins'][$key]) && $record['bins'][$key]==$val);
                         }
                     }
                     
@@ -406,14 +402,14 @@ trait MobileTrait
     
     public function mobileActivation(int $uid, int $number, int $code) : bool
     {
-        $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [USER_UID=>$uid, USER_MOBILE_ACTIVATION_CODE=>$code]);
-                
+        $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [USER_UID=>$uid, USER_MOBILE_ACTIVATION_CODE=>$code]);  
         if ($keys)
         {
             $res = $this->setBins($keys[0], [USER_MOBILE_DATE_ACTIVATED=>time()]);
             if ($res)
             {
                 $this->getConnection()->removeBin($keys[0], [USER_MOBILE_PIN_HASH]);
+                return TRUE;
             }
         }
         return FALSE;
@@ -423,7 +419,6 @@ trait MobileTrait
     public function mobileActivationByRequestId(int $uid, int $number, int $code, string $requestId) : bool
     {
         $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [USER_UID=>$uid, USER_MOBILE_REQUEST_ID=>$requestId]);
-        error_log(var_export($keys, TRUE));
         if ($keys)
         {
             $res = $this->setBins($keys[0], [USER_MOBILE_ACTIVATION_CODE=>$code, USER_MOBILE_DATE_ACTIVATED=>time()]);
