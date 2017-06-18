@@ -1995,11 +1995,8 @@ class MobileApi
             $this->result['e'] = $ex->getMessage();
             return;
         }
-        
 
         $record = NoSQL::getInstance()->mobileFetch($this->getUID(), $mobile_no);
-    
-        //error_log("One Type: {$val_type}, Pin: {$pin_code}, Mobile:{$mobile_no}");
         
         if ($record)
         {       
@@ -2009,7 +2006,7 @@ class MobileApi
                 $this->result['d']['status']='validated';
                 return;
             }
-            error_log("One Type: {$val_type}, Pin: {$pin_code}, Mobile:{$mobile_no}");
+            //error_log("One Type: {$val_type}, Pin: {$pin_code}, Mobile:{$mobile_no}");
             
             if ($pin_code) 
             {
@@ -2047,7 +2044,7 @@ class MobileApi
                         break;
                     
                     default: // SMS
-                        error_log("{$pin_code}=={$record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE]}");
+                        //error_log("{$pin_code}=={$record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE]}");
                         if ($pin_code==$record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE])
                         {
                             $activated = NoSQL::getInstance()->mobileActivation($this->getUID(), $mobile_no, $pin_code);
@@ -2239,7 +2236,7 @@ class MobileApi
                 
                 case MobileValidation::REVERSE_CLI_TYPE:
                     $ret = MobileValidation::getInstance(MobileValidation::NEXMO)->setUID($this->getUID())->setPlatform(MobileValidation::IOS)->requestReverseCLI($mobile_no, $response); 
-                    error_log(json_encode($response, JSON_PRETTY_PRINT));
+                    //error_log(json_encode($response, JSON_PRETTY_PRINT));
                     if ($ret==MobileValidation::RESULT_OK)
                     {
                         $this->result['d']['status']='sent';

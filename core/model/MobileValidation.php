@@ -183,11 +183,49 @@ class MobileValidation
         return $as_int ? $num : "+{$num}";
     }
     
+    public function tt()
+    {
+        return $this->getAllocatedNumber();
+    }
+
     
     protected function getAllocatedNumber(bool $reverse=true) : int
     {
-        $i = rand(0, count(MobileValidation::NUMBERS)-1);
-        $number = array_keys(MobileValidation::NUMBERS)[$i];
+
+        $success=false;
+        $counter=0;
+        do
+        {
+            $i = rand(0, count(MobileValidation::NUMBERS)-1);
+            $number = array_keys(MobileValidation::NUMBERS)[$i];
+            $key = NoSQL::getInstance()->getConnection()->initKey(ASD\NS_USER, 'did', $number);
+            if (($rec = NoSQL::getInstance()->getBins($key)) != FALSE)
+            {
+                if ($rec['locked']==0)
+                {
+                    $success = TRUE;
+                }
+                else
+                {
+                    $last_used = $rec['last_used'] ?? 0;
+                    if (time()-$last_used>120)
+                    {
+                        $success = true;
+                    }
+                }
+
+                if ($success)
+                {
+                    NoSQL::getInstance()->setBins($key, ['locked'=>1, 'last_used'=>time()]);
+                }
+                else
+                {
+                    usleep(100);
+                    $counter++;
+                    $success = ($counter>10);
+                }
+            }
+        } while (!$success);
         return $number;        
     }
     
@@ -214,7 +252,7 @@ class MobileValidation
     }
 
 
-    private function checkUserMobileStatus(int $to, int $vt, &$record) : int
+    private function checkUserMobileStatus(int $to, int $vt, &$record=[]) : int
     {
         if (!($this->uid))
         {
@@ -233,20 +271,24 @@ class MobileValidation
             $type = $record[ASD\USER_MOBILE_VALIDATION_TYPE] ?? 0;
             if ($type==$vt)
             {
-                $age = time()-$record[ASD\USER_MOBILE_DATE_REQUESTED];
-                if ($age<=180)
+                if (isset($record[ASD\USER_MOBILE_DATE_REQUESTED]))
                 {
-                    if (($call=NoSQL::getInstance()->getCall($record[ASD\USER_MOBILE_REQUEST_ID]))!==FALSE)
+                    $age = time()-$record[ASD\USER_MOBILE_DATE_REQUESTED];
+                    if ($age<=180)
                     {
-                        error_log(json_encode($call, JSON_PRETTY_PRINT));
-                        if (isset($call['completed']) && $call['completed']==1)
+                        if (($vt!= MobileValidation::SMS_TYPE) && (($call=NoSQL::getInstance()->getCall($record[ASD\USER_MOBILE_REQUEST_ID]))!==FALSE))
                         {
-                            $record['from'] = $call['from'] ?? '00000000000000';
-                            return MobileValidation::RESULT_ERR_CALL_DONE;
+                            //error_log(json_encode($call, JSON_PRETTY_PRINT));
+                            if (isset($call['completed']) && $call['completed']==1)
+                            {
+                                $record['from'] = $call['from'] ?? '00000000000000';
+                                return MobileValidation::RESULT_ERR_CALL_DONE;
+                            }
                         }
+                        return MobileValidation::RESULT_ERR_SENT_FEW_MINUTES;
                     }
-                    return MobileValidation::RESULT_ERR_SENT_FEW_MINUTES;
                 }
+
                 if ($record[ASD\USER_MOBILE_SENT_SMS_COUNT]>10)
                 {
                     return MobileValidation::RESULT_ERR_QOTA_EXCEEDED;
@@ -384,8 +426,10 @@ class MobileValidation
     
     
     public function sendSMS($to, $text, $reference=null, $unicode=null)
-    {   
+    {
+        //error_log(__FUNCTION__ . ": {$to} \n{$text}");
         $num = $this->getE164($to, TRUE);
+        $record=[];
         $status = $this->checkUserMobileStatus($num, MobileValidation::SMS_TYPE, $record);
         if ($status!=MobileValidation::RESULT_OK) // && $status!=MobileValidation::RESULT_ERR_ALREADY_ACTIVE
         {
@@ -939,7 +983,8 @@ trait NexmoTrait
 
 if (php_sapi_name()=='cli')
 {
-    NoSQL::getInstance()->tkey();
+    echo MobileValidation::getInstance()->tt(), "\n";
+    //NoSQL::getInstance()->tkey();
     //var_dump( MobileValidation::getInstance(MobileValidation::NEXMO)->setUID(2)->setPin(1234)->fastCallText(442039061160, 447520619658) );
     //MobileValidation::getInstance()->modifyNexmoCall("");
     //echo MobileValidation::getInstance()->setUID(2)->setPin(1234)->verifyNexmoCallPin("CON-8403beab-327c-4945-abb2-45e3b4627b08", 4077), "\n";

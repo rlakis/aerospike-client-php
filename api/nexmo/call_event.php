@@ -35,6 +35,13 @@ function handle_call_status()
                 case 'complete':
                 case 'completed':
                     NoSQL::getInstance()->outboundCall($decoded_request);
+                    $key = NoSQL::getInstance()->getConnection()->initKey(Core\Model\ASD\NS_USER, 'did', intval($decoded_request['from']));
+                    $operations = [
+                        ["op" => \Aerospike::OPERATOR_INCR, "bin" => "outbound", "val" => 1],
+                        ["op" => \Aerospike::OPERATOR_WRITE, "bin" => "locked", "val" => 0],
+                    ];
+                    NoSQL::getInstance()->getConnection()->operate($key, $operations, $record);
+                
                     //if you set eventUrl in your NCCO. The recording download URL
                     //is returned in recording_url. It has the following format
                     //https://api.nexmo.com/media/download?id=52343cf0-342c-45b3-a23b-ca6ccfe234b0
@@ -69,7 +76,13 @@ function handle_call_status()
                 case 'completed':
                     if (NoSQL::getInstance()->getValidNumberCallRequests(MobileValidation::CLI_TYPE, intval($decoded_request['from']), intval($decoded_request['to']), $result)==\Aerospike::OK)
                     {                                                
-                        NoSQL::getInstance()->inboundCall($decoded_request, $result[0]);                        
+                        NoSQL::getInstance()->inboundCall($decoded_request, $result[0]);
+                        $key = NoSQL::getInstance()->getConnection()->initKey(Core\Model\ASD\NS_USER, 'did', intval($decoded_request['to']));
+                        $operations = [
+                            ["op" => \Aerospike::OPERATOR_INCR, "bin" => "inbound", "val" => 1],
+                            ["op" => \Aerospike::OPERATOR_WRITE, "bin" => "locked", "val" => 0],
+                        ];
+                        NoSQL::getInstance()->getConnection()->operate($key, $operations, $record);
                     }
                     
                     
