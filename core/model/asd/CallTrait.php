@@ -100,16 +100,17 @@ trait CallTrait
     public function issueNewValidataionRequestKey(int $type, int $number, int $did_number=0, string $app='', int $uid, int $platform=0) : string
     {
         $request_id = static::v5(static::v4(), "{$type}-{$number}-{$app}-{$platform}");
-        $bins = [
-            'type'=>$type,
-            'request_id'=>$request_id,
-            'date_added'=>time(),
-            'number'=>$number,
-            'did'=>$did_number,
-            'app'=>$app,
-            'uid'=>$uid,
-            'platform'=>$platform                
-        ];
+        $bins = 
+                [
+                    'type'=>$type,
+                    'request_id'=>$request_id,
+                    'date_added'=>time(),
+                    'number'=>(int)$number,
+                    'did'=>(int)$did_number,
+                    'app'=>$app,
+                    'uid'=>$uid,
+                    'platform'=>$platform                
+                ];
         
         switch ($type) 
         {
@@ -137,9 +138,12 @@ trait CallTrait
     
     public function getValidNumberCallRequests(int $type, int $number, int $did, &$result) : int
     {
+        error_log(__FUNCTION__." type {$type} {$number}/{$did}");
+        
         $result=[];
         
         $where = \Aerospike::predicateEquals('number', $number);
+        
         $status = $this->getConnection()->query(NS_USER, TS_VALIDATION_REQUEST, $where, 
                     function ($record) use (&$result, $type, $did)
                     {
@@ -147,9 +151,10 @@ trait CallTrait
                         
                         if ($record['bins']['type']==$type && $record['bins']['did']==$did && $epoch>time())
                         {
-                            $result[] = $record['bins'];                            
-                        }                                               
+                            $result[] = $record['bins'];
+                        }
                     });
+
         if (empty($result) && preg_match("/^1/", $number))
         {
             $number = intval(substr($number, 1));

@@ -2087,7 +2087,10 @@ class MobileApi
             switch ($val_type) 
             {
                 case MobileValidation::CLI_TYPE:
-                    $mv_result = MobileValidation::getInstance(MobileValidation::CHECK_MOBI)->setUID($this->getUID())->setPlatform(MobileValidation::IOS)->sendCallerId($mobile_no);
+                    $mv_result = MobileValidation::getInstance(MobileValidation::NEXMO)->
+                        setUID($this->getUID())->
+                        setPlatform(MobileValidation::IOS)->
+                        sendCallerId($mobile_no);
                 
                     switch ($mv_result)
                     {
@@ -2212,7 +2215,7 @@ class MobileApi
             switch ($val_type) 
             {                
                 case MobileValidation::CLI_TYPE: 
-                    $ret = MobileValidation::getInstance(MobileValidation::CHECK_MOBI)->
+                    $ret = MobileValidation::getInstance(MobileValidation::NEXMO)->
                         setPlatform(MobileValidation::IOS)->
                         setUID($this->getUID())->
                         sendCallerId($mobile_no);

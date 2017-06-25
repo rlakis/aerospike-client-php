@@ -35,7 +35,7 @@ class MCSaveHandler
     {
         $this->cfg = $config;
         // per-client-object settings
-        $this->_host		= $this->cfg['db_host'];
+        $this->_host		= 'h8.mourjan.com'; /* $this->cfg['db_host'];*/
         $this->_port		= 1337;
         $this->_path		= false;
         $this->_socket		= false;

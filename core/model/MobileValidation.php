@@ -76,6 +76,7 @@ class MobileValidation
     
     function __construct(int $provider=MobileValidation::NEXMO, int $platform=MobileValidation::WEB) 
     {
+        $this->uid = 0;
         $this->provider = $provider;
         if ($provider==static::NEXMO)
         {
@@ -732,12 +733,22 @@ trait NexmoTrait
     
     public function nexmoCLI($to, &$bins) : array
     {
+        error_log(__FUNCTION__);
         $result = [
             'status'=>400, 
             'response'=>['id'=>'', 'type'=>'cli', 'dialing_number'=>'', 
-                'number_info'=>['country_code'=>0, 'country_iso_code'=>'', 'carrier'=>'', 'is_mobile'=>false, 'e164_format'=>$this->getE164($to), 'formatting'=>'']]];
+                'number_info'=>[
+                    'country_code'=>0, 
+                    'country_iso_code'=>'', 
+                    'carrier'=>'', 
+                    'is_mobile'=>false, 
+                    'e164_format'=>$this->getE164($to), 
+                    'formatting'=>'']]];
+        
         $dialing_number = $this->getAllocatedNumber(FALSE);
+        
         $id = NoSQL::getInstance()->issueNewValidataionRequestKey(MobileValidation::CLI_TYPE, $this->getE164($to, TRUE), $dialing_number, 'mourjan', $this->getUID(), $this->getPlatform());
+        
         if ($id)
         {
             $result['status'] = 200;
@@ -895,6 +906,9 @@ trait NexmoTrait
         $status = 400;
         if (($call = NoSQL::getInstance()->getCall($id))!==FALSE && !empty($call))
         {
+            
+            error_log(__FUNCTION__.PHP_EOL.json_encode($call, JSON_PRETTY_PRINT));
+            
             $status = 200;
             $response['number'] = $this->getE164( $call['to'] );
             $response['uid'] = $call[ASD\USER_UID];

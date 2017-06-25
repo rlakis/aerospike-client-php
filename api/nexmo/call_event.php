@@ -74,24 +74,30 @@ function handle_call_status()
 
                 case 'complete':
                 case 'completed':
-                    if (NoSQL::getInstance()->getValidNumberCallRequests(MobileValidation::CLI_TYPE, intval($decoded_request['from']), intval($decoded_request['to']), $result)==\Aerospike::OK)
-                    {                                                
-                        NoSQL::getInstance()->inboundCall($decoded_request, $result[0]);
-                        $key = NoSQL::getInstance()->getConnection()->initKey(Core\Model\ASD\NS_USER, 'did', intval($decoded_request['to']));
-                        $operations = [
-                            ["op" => \Aerospike::OPERATOR_INCR, "bin" => "inbound", "val" => 1],
-                            ["op" => \Aerospike::OPERATOR_WRITE, "bin" => "locked", "val" => 0],
-                        ];
-                        NoSQL::getInstance()->getConnection()->operate($key, $operations, $record);
+                    $to = intval($decoded_request['to']);
+                    $from = intval($decoded_request['from']);
+                    
+                    if (NoSQL::getInstance()->getValidNumberCallRequests(MobileValidation::CLI_TYPE, $from, $to, $result)==\Aerospike::OK)
+                    {                                      
+                        if ($result)
+                        {
+                            error_log(var_export($result, TRUE));
+                            
+                            NoSQL::getInstance()->inboundCall($decoded_request, $result[0]);
+                            $key = NoSQL::getInstance()->getConnection()->initKey(Core\Model\ASD\NS_USER, 'did', $to);
+                            $operations = 
+                                [
+                                    ["op" => \Aerospike::OPERATOR_INCR, "bin" => "inbound", "val" => 1],
+                                    ["op" => \Aerospike::OPERATOR_WRITE, "bin" => "locked", "val" => 0],
+                                ];
+                            NoSQL::getInstance()->getConnection()->operate($key, $operations, $record);
+                        }
+                        else 
+                        {
+                            error_log(" type cli {$from}/{$to}");
+                        }
                     }
                     
-                    
-                    //NoSQL::getInstance()->outboundCall($decoded_request);
-                    //if you set eventUrl in your NCCO. The recording download URL
-                    //is returned in recording_url. It has the following format
-                    //https://api.nexmo.com/media/download?id=52343cf0-342c-45b3-a23b-ca6ccfe234b0
-                    //Make a GET request to this URL using a JWT as authentication to download
-                    //the Recording. For more information, see Recordings.
                     break;
 
                 default:
