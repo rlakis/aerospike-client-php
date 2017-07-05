@@ -1511,6 +1511,13 @@ class Bin extends AjaxHandler{
                     }
                     $i=0;
                     $result.='];SECTIONS=[';
+                    
+                    $nameArray = [];
+                    foreach ($this->urlRouter->sections as $key => $root){
+                        $nameArray[$key] = $root[$nameIdx];
+                    }
+                    array_multisort($nameArray, SORT_ASC, SORT_STRING, $this->urlRouter->sections);
+                    
                     foreach ($this->urlRouter->sections as $root){
                         if($i)$result.=',';
                         $result.="[{$root[0]},'{$root[$nameIdx]}','{$root[4]}']";
