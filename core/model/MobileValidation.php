@@ -403,6 +403,7 @@ class MobileValidation
                 'id'=>$record[ASD\USER_MOBILE_REQUEST_ID],
                 'type'=>'reverse_cli',
                 'cli_prefix'=>substr($record['from'], 0, 5),
+                'cli_full'=>$record['from'],
                 'pin_hash'=>$record[ASD\USER_MOBILE_PIN_HASH],
                 'length'=>strlen($record['from']),
                 'called'=>1
@@ -887,6 +888,7 @@ trait NexmoTrait
             'id'=>$result['conversation_uuid'],
             'type'=>'reverse_cli',
             'cli_prefix'=>substr($from, 0, 5),
+            'cli_full'=>$from,
             'pin_hash'=>sha1(substr($from, -3, 3)),
             'length'=>strlen($from)
             ];
