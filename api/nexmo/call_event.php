@@ -26,6 +26,7 @@ function handle_call_status()
             {
                 case 'ringing':
                     NoSQL::getInstance()->outboundCall($decoded_request);
+                    //MobileValidation::modifyNexmoCall($decoded_request['uuid']);
                     break;
 
                 case 'answered':
@@ -40,13 +41,7 @@ function handle_call_status()
                         ["op" => \Aerospike::OPERATOR_INCR, "bin" => "outbound", "val" => 1],
                         ["op" => \Aerospike::OPERATOR_WRITE, "bin" => "locked", "val" => 0],
                     ];
-                    NoSQL::getInstance()->getConnection()->operate($key, $operations, $record);
-                
-                    //if you set eventUrl in your NCCO. The recording download URL
-                    //is returned in recording_url. It has the following format
-                    //https://api.nexmo.com/media/download?id=52343cf0-342c-45b3-a23b-ca6ccfe234b0
-                    //Make a GET request to this URL using a JWT as authentication to download
-                    //the Recording. For more information, see Recordings.
+                    NoSQL::getInstance()->getConnection()->operate($key, $operations, $record);                
                     break;
 
                 default:

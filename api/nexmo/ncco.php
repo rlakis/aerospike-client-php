@@ -1,5 +1,6 @@
 <?php
 include_once get_cfg_var('mourjan.path').'/core/model/MobileValidation.php';
+include_once get_cfg_var('mourjan.path').'/core/model/NoSQL.php';
 
 $method = filter_input(INPUT_SERVER, 'REQUEST_METHOD');
 
@@ -11,6 +12,8 @@ switch ($method)
         $from = filter_input(INPUT_GET, 'from', FILTER_VALIDATE_INT); //The endpoint you are calling from
         $uuid = filter_input(INPUT_GET, 'conversation_uuid', FILTER_SANITIZE_STRING); //The unique ID for this Call
 
+        
+        
         if (key_exists(intval($to), \Core\Model\MobileValidation::NUMBERS))
         {
             $ncco='[
@@ -31,6 +34,7 @@ switch ($method)
         }
         else
         {
+            error_log(var_export($_GET, TRUE));
             //For more advanced Conversations you use the paramaters to personalize the NCCO
             //Dynamically create the NCCO to run a conversation from your virtual number
             $pin = substr($from, -4);
@@ -46,6 +50,9 @@ switch ($method)
             "text": "Your Mourjan code is  ' . $speech .'"
             }
             ]';
+
+            \Core\Model\NoSQL::getInstance()->textCall(['conversation_uuid'=>$uuid, 'from'=>$from, 'to'=>$to]);
+            
         }
         
         header('Content-Type: application/json');

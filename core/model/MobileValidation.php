@@ -871,6 +871,16 @@ trait NexmoTrait
         }
         
         $result = json_decode($res, TRUE);
+        error_log(var_export($result, TRUE));
+        if (!isset($result['from']))
+        {
+            $result['from'] = $from;
+        }
+        if (!isset($result['to']))
+        {
+            $result['to'] = $to;
+        }
+        
         NoSQL::getInstance()->outboundCall($result, $this->getUID());
 
         $response = [
@@ -904,14 +914,17 @@ trait NexmoTrait
     {
         $response = ["number"=>NULL, "validated"=>false, "validation_date"=>NULL, "charged_amount"=>0];
         $status = 400;
-        if (($call = NoSQL::getInstance()->getCall($id))!==FALSE && !empty($call))
-        {
-            
+        if ( ($call = NoSQL::getInstance()->getCall($id))!==FALSE && !empty($call))
+        {            
             error_log(__FUNCTION__.PHP_EOL.json_encode($call, JSON_PRETTY_PRINT));
+            if (!isset($call['price']))
+            {
+                $call['price'] = 0.0;
+            }
             
             $status = 200;
             $response['number'] = $this->getE164( $call['to'] );
-            $response['uid'] = $call[ASD\USER_UID];
+            $response['uid'] = $call[ASD\USER_UID];           
             $response['charged_amount'] = 2.0*$call['price'];
             if (isset($call['validated']) && $call['validated'])
             {
@@ -956,7 +969,7 @@ trait NexmoTrait
     }
     
     
-    public function modifyNexmoCall(string $uuid)
+    public static function modifyNexmoCall(string $uuid)
     {
         $action = '/calls';
         $application_id = "905c1bc6-ff6c-4767-812c-1b39d756bda6";
@@ -965,9 +978,22 @@ trait NexmoTrait
         $keypair = new \Nexmo\Client\Credentials\Keypair(file_get_contents('/opt/ssl/nexmo.key'), $application_id);
         $api = new \Nexmo\Client(new \Nexmo\Client\Credentials\Container($basic, $keypair));
         if ($uuid)
-        {            
+        {        
+            error_log(__FUNCTION__."\t".$uuid);
             //$call = $api->calls->get($id);
-            $jwt = $this->generate_jwt($application_id, '/opt/ssl/nexmo.key');
+            $jwt = false;
+            date_default_timezone_set('UTC');    //Set the time for UTC + 0
+            $key = file_get_contents('/opt/ssl/nexmo.key');  //Retrieve your private key
+            $signer = new Sha256();
+            $privateKey = new Key($key);
+
+            $jwt = (new Builder())->
+                    setIssuedAt(time() - date('Z'))->
+                    set('application_id', $application_id)->setId( base64_encode( mt_rand (  )), true)->
+                    sign($signer,  $privateKey)->
+                    getToken();
+
+            //$jwt = $this->generate_jwt($application_id, '/opt/ssl/nexmo.key');
        
             //Hangup the call
             $payload = '{
@@ -975,15 +1001,21 @@ trait NexmoTrait
             }';
             //error_log(json_encode($call, JSON_PRETTY_PRINT));
             $hangup = new \Nexmo\Call\Hangup();
+            error_log(json_encode($hangup));
+            
             //$call->put(json_encode($hangup));
-            error_log($this->base_url . $this->version . $action  . "/" . $uuid);
-            $ch = curl_init($this->base_url . $this->version . $action  . "/" . $uuid );
+            //error_log($this->base_url . $this->version . $action  . "/" . $uuid);
+            $ch = curl_init('https://api.nexmo.com' . '/v1' . $action  . "/" . $uuid );
+            
+            //error_log($ch);
+            
             curl_setopt($ch, CURLOPT_PUT, 1);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($hangup));
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', "Authorization: Bearer " . $jwt ));
             $response = curl_exec($ch);
+            
             error_log(json_encode($response));
 
         }

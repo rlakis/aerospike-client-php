@@ -128,6 +128,7 @@ trait CallTrait
         }
         
         $pk = $this->asRequestValidationKey($type, $request_id);
+        error_log(__FUNCTION__ . PHP_EOL . var_export($pk, TRUE));
         if ($this->setBins($pk, $bins))
         {            
             return $pk['key'];
@@ -204,6 +205,21 @@ trait CallTrait
     }
     
     
+    public function textCall(array $call) : int
+    {
+        $success = FALSE;
+        if (isset($call['conversation_uuid']) && 
+            isset($call['from']) &&
+            isset($call['to']) &&
+            strlen($call['conversation_uuid'])>10)
+        {
+            $bins = ['from'=> intval($call['from']), 'to'=> intval($call['to'])];
+            $success = $this->setBins($this->asCallKey($call['conversation_uuid']), $bins);            
+        }
+        return $success ? 1 : 0;
+    }
+    
+    
     public function outboundCall(array $call, int $uid=0) : int
     {
         $success = false;
@@ -216,12 +232,23 @@ trait CallTrait
         if (isset($call['conversation_uuid']) && $call['direction']=='outbound')
         {            
             $bins['direction']= \Core\Model\MobileValidation::REVERSE_CLI_TYPE;
+            if (isset($call['from']))
+            {
+                $bins['from'] = intval($call['from']);
+            }
+                    
+            if (isset($call['to']))
+            {
+                $bins['to'] = intval($call['to']);
+            }
+
             switch ($call['status']) 
             {
                 case 'started':
                     $bins['uuid'] = $call['uuid'];
                     $bins['date_added'] = time();
                     $bins[$call['status']] = 1;
+                    
                     break;
                 
                 case 'completed':
@@ -234,8 +261,8 @@ trait CallTrait
                     $bins['rate'] = floatval($call['rate']);
                     $bins['price'] = floatval($call['price']);
                     //$bins['fee'] = 2.0 * $bins['price'];
-                    $bins['from'] = intval($call['from']);
-                    $bins['to'] = intval($call['to']);
+                    
+                    
                     $bins['network'] = intval($call['network']);
                     break;
                 
