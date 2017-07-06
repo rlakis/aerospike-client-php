@@ -93,6 +93,16 @@ function handle_call_status()
                         }
                     }
                     
+                    $ch = curl_init("https://h9.mourjan.com/v1/nexmo/event");
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/json', 'Content-Type: application/json', 'Authorization: D38D5D58-572B-49EC-BAB5-63B6081A55E6']);
+                    curl_setopt($ch, CURLOPT_HEADER, 1);
+                    curl_setopt($ch, CURLOPT_NOBODY, 1);
+                    $response = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                    curl_close($ch); // Don't forget to close the connection
+                    error_log("h9 nexmo status: {$response}");
+                    
+                    
                     break;
 
                 default:
