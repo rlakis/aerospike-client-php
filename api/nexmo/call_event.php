@@ -98,10 +98,11 @@ function handle_call_status()
                     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/json', 'Content-Type: application/json', 'Authorization: D38D5D58-572B-49EC-BAB5-63B6081A55E6']);
                     curl_setopt($ch, CURLOPT_HEADER, 1);
                     curl_setopt($ch, CURLOPT_NOBODY, 1);
-                    $response = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                    curl_setopt($ch, CURLOPT_POST, 1);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($decoded_request));
+                    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);                    
+                    error_log("h9 nexmo status: {$code}");
                     curl_close($ch); // Don't forget to close the connection
-                    error_log("h9 nexmo status: {$response}");
-                    
                     
                     break;
 
