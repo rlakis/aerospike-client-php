@@ -1625,7 +1625,7 @@ class AndroidApi
                                             if (isset($rs[Core\Model\ASD\SET_RECORD_ID]) && $rs[Core\Model\ASD\SET_RECORD_ID])
                                             {
                                                 $mcMobile = new MCMobile($rs);
-                                                $expiredDelivery = !$mcMobile->isSMSDelivered() && (time()-$mcMobile->getRquestedUnixtime())>86400 && $mcMobile->getSentSMSCount()<3;
+                                                $expiredDelivery = !$mcMobile->isSMSDelivered() && (time()-$mcMobile->getRquestedUnixtime())>180 && $mcMobile->getSentSMSCount()<3;
                                                 $expiredValidity = $mcMobile->isSMSDelivered() && $mcMobile->getActicationUnixtime() &&  (time()-$mcMobile->getActicationUnixtime())>365*86400;
                                                 $stillValid = $mcMobile->isVerified();
                                                 
@@ -1834,14 +1834,13 @@ class AndroidApi
                                         }
                                         
                                         */
-
+                                        
                                         if ($sendSms && $number && $keyCode)
                                         {
-                                           
-                                            if (!MobileValidation::getInstance(MobileValidation::NEXMO)->
+                                            if (!($status = MobileValidation::getInstance(MobileValidation::NEXMO)->
                                                 setPlatform(MobileValidation::ANDROID)->
                                                 setPin($keyCode)->setUID($this->api->getUID())->
-                                                sendSMS($number, "{$keyCode} is your mourjan confirmation code", ['uid'=>$this->api->getUID()]) == MobileValidation::RESULT_OK)
+                                                sendSMS($number, "{$keyCode} is your mourjan confirmation code", ['uid'=>$this->api->getUID()])) == MobileValidation::RESULT_OK)
                                             {
                                                 $keyCode=0;
                                                 $number=0;
