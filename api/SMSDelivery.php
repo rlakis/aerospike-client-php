@@ -6,8 +6,10 @@ require_once get_cfg_var('mourjan.path'). '/core/model/NoSQL.php';
 use Core\Model\NoSQL;
 
 $call_id=null;
+$method = filter_input(INPUT_SERVER, 'REQUEST_METHOD');
+//$request = array_merge($_GET, $_POST);
 
-if (filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_STRING)=='GET')
+if ($method=='GET')
 {
     $msisdn = filter_input(INPUT_GET, 'msisdn', FILTER_VALIDATE_INT)+0;
     $to = filter_input(INPUT_GET, 'to', FILTER_SANITIZE_STRING);
@@ -79,6 +81,10 @@ if ($errCode==0 && ($to=="Mourjan"||$to=="12242144077"||$to=="mourjan"||$to=="33
     if (NoSQL::getInstance()->mobileSetDeliveredCode($uid, $msisdn, $messageId))
     {
         error_log(sprintf("%s\t%d\tis written", date("Y-m-d H:i:s"), $msisdn).PHP_EOL, 3, "/var/log/mourjan/sms.log");
+    }
+    else
+    {
+        error_log(sprintf("%s\t%d\t%d\t%s\twrite failed", date("Y-m-d H:i:s"), $msisdn, $uid, $messageId).PHP_EOL, 3, "/var/log/mourjan/sms.log");
     }
 }
 else
