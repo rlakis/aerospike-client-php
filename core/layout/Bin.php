@@ -638,7 +638,7 @@ class Bin extends AjaxHandler{
                                         $this->user->pending['mobile']=$number;
                                         if($validateByCall)
                                         {
-                                            if(!preg_match('/XXXX/',$keyCode)){
+                                            if($keyCode && !preg_match('/XXXX/',$keyCode)){
                                                 $keyCode=$keyCode.' xxx <u>XXXX</u>';  
                                             }               
                                             $this->user->pending['mobile_call']=$keyCode;

@@ -4,6 +4,7 @@ require_once 'vendor/autoload.php';
 use MaxMind\Db\Reader;
 use Core\Model\NoSQL;
 use Core\Lib\SphinxQL;
+use Core\Model\MobileValidation;
 
 class AndroidApi 
 {
@@ -1328,6 +1329,180 @@ class AndroidApi
                     }
                 
                 break;  
+                
+                case API_ANDROID_USER_MAKE_CALL:
+                    $number = filter_input(INPUT_POST, 'tel');
+                    $reverseCall = filter_input(INPUT_POST, 'reverse', FILTER_SANITIZE_NUMBER_INT);
+                    $keyCode = filter_input(INPUT_POST, 'code',FILTER_SANITIZE_STRING , ['options'=>['default'=>'']]);                    
+                    $language = filter_input(INPUT_GET, 'hl', FILTER_SANITIZE_STRING , ['options'=>['default'=>'en']]);
+                    $signature = trim(filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
+                    $appVersion = filter_input(INPUT_GET, 'apv', FILTER_SANITIZE_STRING , ['options'=>['default'=>'']]);
+                    $parity = strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY));                    
+                    
+                    if($number && base64_decode($signature) == $parity)
+                    {
+                        $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
+                        $num = $this->mobileValidator->parse($number, 'LB');
+                        if (!is_array($this->api->result['d']))
+                        {
+                            $this->api->result['d']=[];
+                        }
+
+                        if ($num && $this->mobileValidator->isValidNumber($num))
+                        {
+                            $numberType = $this->mobileValidator->getNumberType($num);
+                            if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE)
+                            {
+                                if($keyCode){
+                                    $defNumber = $number;
+                                    $number = intval($number);
+                                    
+                                    $record = NoSQL::getInstance()->mobileFetch($this->api->getUID(), $number);
+                                    if($record){
+                                        if (isset($record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]>(time()-31536000))
+                                        {
+                                            $this->api->result['d']['verified'] = true;
+                                        }else{
+                                            
+                                            if($reverseCall){
+                                                 $response = MobileValidation::getInstance()->setUID($this->api->getUID())->verifyNexmoCallPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);                                                
+                                                if (isset($response['status']) && $response['status']==200 && isset($response['response']))
+                                                {
+                                                    if ($response['response']['validated'])
+                                                    {
+                                                        $activated = NoSQL::getInstance()->mobileActivationByRequestId($this->api->getUID(), $number, $keyCode, $record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
+                                                        if($activated){
+                                                            $this->api->result['d']['verified'] = true;
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        $this->api->result['d']['verified']=false;
+                                                    }
+                                                }
+                                            }else{                                            
+                                                if (MobileValidation::getInstance()->verifyStatus($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]))
+                                                {
+                                                    $activated = NoSQL::getInstance()->mobileActivationByRequestId($this->api->getUID(), $number, $keyCode, $record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
+                                                    if($activated){
+                                                        $this->api->result['d']['verified'] = true;
+                                                    }
+                                                }else{
+                                                    $this->api->result['d']['pending'] = true;
+                                                }     
+                                            }
+                                        }
+                                    }
+                                    $number = $defNumber;
+                                    
+                                }else{
+                                
+                                    if(substr($number,0,1)=='+')
+                                    {
+                                        $number = substr($number,1);
+                                    }
+                                    /*check if number is blocked*/
+                                    $prv = $this->api->db->queryResultArray('select * from bl_phone where telephone = ?', [$number], true);
+
+                                    if ($prv !== false && isset($prv[0]['ID']) && $prv[0]['ID'])
+                                    {
+                                        $number=0;
+                                        $this->api->result['d']['blocked']=true;
+                                    }
+
+                                    if($number)
+                                    {
+                                        /*check if number is suspended*/
+                                        $time = MCSessionHandler::checkSuspendedMobile($number);
+                                        if($time>60)
+                                        {
+                                            $number=0;
+                                            $this->api->result['d']['suspended']=$time;
+                                        }
+                                    }                                 
+
+                                    if($number)
+                                    {               
+                                        $makeCall= false;
+                                        
+                                        if($reverseCall){
+                                            
+                                            $ret = MobileValidation::getInstance(MobileValidation::NEXMO)->setUID($this->api->getUID())->setPlatform(MobileValidation::ANDROID)->requestReverseCLI($number, $response);
+                                            switch ($ret) 
+                                            {
+                                                case MobileValidation::RESULT_OK:
+                                                case MobileValidation::RESULT_ERR_SENT_FEW_MINUTES:
+                                                    $this->api->result['d']['pending_call'] = true;
+                                                    if (isset($response['response']['called']))
+                                                    {
+                                                        $this->api->result['d']['pending_call'] = false;
+                                                    }
+                                                    $inCall = $response['response']['cli_full'];
+                                                    $inCall = substr($inCall, 0, strlen($inCall)-7);
+                                                    $inCall = $inCall . 'yyyXXXX';
+                                                    $this->api->result['d']['dial'] = '+'.$inCall;
+                                                    break;                        
+
+                                                case MobileValidation::RESULT_ERR_ALREADY_ACTIVE:
+                                                    $this->api->result['d']['verified'] = true;
+                                                    break;
+
+                                                default:
+                                                    $number=0;
+                                                    $this->api->result['d']['code'] = 0;
+                                                    break;
+                                            }      
+                                            
+                                            
+                                        }else{
+                                            //$result = MobileValidation::getInstance(MobileValidation::CHECK_MOBI)->setUID($this->api->getUID())->setPlatform(MobileValidation::ANDROID)->sendCallerId($number);
+                                            $result = MobileValidation::getInstance(MobileValidation::NEXMO)->
+                                                setUID($this->api->getUID())->
+                                                setPlatform(MobileValidation::ANDROID)->
+                                                sendCallerId($number);
+                                            switch ($result)
+                                            {
+                                                case MobileValidation::RESULT_OK:
+                                                case MobileValidation::RESULT_ERR_SENT_FEW_MINUTES:
+                                                    $record = NoSQL::getInstance()->mobileFetch($this->api->getUID(), $number);
+                                                    $this->api->result['d']['dial'] = '+'.$record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
+                                                    $this->api->result['d']['code'] = $record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
+                                                    break;
+
+                                                case MobileValidation::RESULT_ERR_ALREADY_ACTIVE:
+                                                    $this->api->result['d']['verified'] = true;
+                                                    break;
+
+                                                default:
+                                                    $number=0;
+                                                    $this->api->result['d']['code'] = 0;
+                                                    break;
+                                            } 
+                                        }
+
+                                        if($number){               
+                                            if(substr($number,0,1)!='+'){
+                                                $number = '+'.$number;
+                                            }
+                                        }
+
+                                    }
+                                }
+                                
+                                $this->api->result['d']['number']=$number;
+
+                            }
+                            else
+                            {
+                                $this->api->result['d']['check'] = false;
+                            }
+                        }
+                        else
+                        {
+                            $this->api->result['d']['check'] = false;
+                        }
+                    }
+                    break;
                 
                 case API_ANDROID_USER_NUMBER:
                     $keyCode=0;

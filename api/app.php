@@ -96,6 +96,8 @@ const API_ANDROID_PUSH_RECEIPT                  = 82;
 const API_ANDROID_VERIFY_NUMBER                 = 83;
 const API_ANDROID_USER_NUMBER                   = 84;
 const API_ANDROID_SIGN_IN_GOOGLE                = 85;
+const API_ANDROID_USER_MAKE_CALL                = 86;
+const API_ANDROID_USER_RECEIVE_CALL             = 87;
 
 const API_DB_EVENT                              = 998;
 const API_LOG                                   = 999;
@@ -315,6 +317,8 @@ if (!$api->hasError())
         case API_ANDROID_PUSH_RECEIPT:
         case API_ANDROID_VERIFY_NUMBER:
         case API_ANDROID_USER_NUMBER:
+        case API_ANDROID_USER_MAKE_CALL:            
+        case API_ANDROID_USER_RECEIVE_CALL:
         case API_ANDROID_CHECK_FIX_CONNECTION_FAILURE:
             $api->androidTransaction($appVersion);
             break;
