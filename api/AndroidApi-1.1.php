@@ -1838,13 +1838,10 @@ class AndroidApi
                                         if ($sendSms && $number && $keyCode)
                                         {
                                            
-                                            if (MobileValidation::getInstance(MobileValidation::NEXMO)->
-                                                setPlatform(MobileValidation::IOS)->
-                                                setPin($keyCode)->setUID($this->getUID())->
-                                                sendSMS($number, "{$keyCode} is your mourjan confirmation code", ['uid'=>$this->getUID()]) == MobileValidation::RESULT_OK)
-                                            {                                               
-                                            }
-                                            else 
+                                            if (!MobileValidation::getInstance(MobileValidation::NEXMO)->
+                                                setPlatform(MobileValidation::ANDROID)->
+                                                setPin($keyCode)->setUID($this->api->getUID())->
+                                                sendSMS($number, "{$keyCode} is your mourjan confirmation code", ['uid'=>$this->api->getUID()]) == MobileValidation::RESULT_OK)
                                             {
                                                 $keyCode=0;
                                                 $number=0;
