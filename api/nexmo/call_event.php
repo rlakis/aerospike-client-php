@@ -12,7 +12,8 @@ $request = array_merge($_GET, $_POST);
 
 function handle_call_status()
 {
-    $decoded_request = json_decode(file_get_contents('php://input'), true);
+    $params = file_get_contents('php://input');
+    $decoded_request = json_decode($params, true);
     
     error_log(json_encode($decoded_request, JSON_PRETTY_PRINT).PHP_EOL, 3, "/var/log/mourjan/sms.log");
     
@@ -93,15 +94,29 @@ function handle_call_status()
                         }
                     }
                     
-                    $ch = curl_init("https://h9.mourjan.com/v1/nexmo/event");
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/json', 'Content-Type: application/json', 'Authorization: D38D5D58-572B-49EC-BAB5-63B6081A55E6']);
-                    curl_setopt($ch, CURLOPT_HEADER, 1);
-                    curl_setopt($ch, CURLOPT_NOBODY, 1);
+                    $ch = curl_init();
+                    $options = [
+                        CURLOPT_URL            => "https://h9.mourjan.com/v1/nexmo/event",
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_HEADER         => true,
+                        CURLOPT_AUTOREFERER    => true,
+                        CURLOPT_CONNECTTIMEOUT => 120,
+                        CURLOPT_TIMEOUT        => 120,
+                        CURLOPT_MAXREDIRS      => 10,
+                        CURLOPT_POST           => TRUE
+                    ];
+                    curl_setopt_array( $ch, $options );
+                    
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                        "Accept: text/plain",
+                        "Content-Type: application/json"
+                        ]);
+
                     curl_setopt($ch, CURLOPT_POST, 1);
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($decoded_request));
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+                    curl_exec($ch); 
                     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);                    
-                    error_log("h9 nexmo status: {$code}");
+                    error_log("h9 nexmo status: {$code}".PHP_EOL.json_encode($decoded_request, JSON_PRETTY_PRINT));
                     curl_close($ch); // Don't forget to close the connection
                     
                     break;
