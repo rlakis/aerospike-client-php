@@ -286,7 +286,14 @@ class MobileValidation
                                 return MobileValidation::RESULT_ERR_CALL_DONE;
                             }
                         }
-                        return MobileValidation::RESULT_ERR_SENT_FEW_MINUTES;
+                        if ($vt>0)
+                        {
+                            return MobileValidation::RESULT_ERR_SENT_FEW_MINUTES;
+                        }
+                        else if (isset($record[ASD\USER_MOBILE_SENT_SMS_COUNT]) && $record[ASD\USER_MOBILE_SENT_SMS_COUNT]>0)
+                        {
+                            return MobileValidation::RESULT_ERR_SENT_FEW_MINUTES;
+                        }
                     }
                 }
 
