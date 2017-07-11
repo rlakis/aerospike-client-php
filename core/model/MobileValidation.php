@@ -857,8 +857,8 @@ trait NexmoTrait
             },
             "answer_url": ["https://dv.mourjan.com/api/nexmo/ncco.php"],
             "event_url": ["https://dv.mourjan.com/api/nexmo/call_event.php"],
-            "length_timer": 8,
-            "ringing_timer": 10
+            "length_timer": 10,
+            "ringing_timer": 4
             }';
         
         //Create the request

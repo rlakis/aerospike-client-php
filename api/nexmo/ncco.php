@@ -20,6 +20,9 @@ switch ($method)
             {
             "action": "connect",            
             "from":"'.$from.'",
+            "timeout": "6",
+            "limit": "10",
+            "machineDetection": "hangup",
             "eventUrl": [
             "https://dv.mourjan.com/api/nexmo/sip.php"
             ],

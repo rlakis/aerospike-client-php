@@ -6,11 +6,15 @@ $db->queryResultArray("update T_PAYFORT set fort_id=JSONGET('fort_id', data) whe
 
 $rs = $db->get("select t.ID, t.CURRENCY_ID, t.AMOUNT, cast(t.DATED as date) dated, 
                 t.TRANSACTION_DATE, t.TRANSACTION_ID, t.UID, t.XREF_ID, t.net, p.DATA,
-                (select first 1 m.mobile from WEB_USERS_LINKED_MOBILE m where m.UID=t.UID and not m.ACTIVATION_TIMESTAMP is null order by m.ACTIVATION_TIMESTAMP desc) phone
+                (select first 1 m.mobile 
+                 from WEB_USERS_LINKED_MOBILE m 
+                 where m.UID=t.UID 
+                 and not m.ACTIVATION_TIMESTAMP is null 
+                 order by m.ACTIVATION_TIMESTAMP desc) phone
                 from T_TRAN t
                 left JOIN T_PAYFORT p on p.FORT_ID=t.TRANSACTION_ID
                 where t.GATEWAY='PAYFORT'
-                and t.DATED between '01.05.2017 00:00:00.000' and '31.05.2017 23:59:59.999'
+                and t.DATED between '01.06.2017 00:00:00.000' and '30.06.2017 23:59:59.999'
                 order by t.ID
             ");
 
@@ -68,6 +72,10 @@ foreach ($rs as $d)
         else if (preg_match("/^20/", "$customer_phone"))
         {
             $customer_country = 'EG';            
+        }
+        else if (preg_match("/^974/", "$customer_phone"))
+        {
+            $customer_country = 'QA';            
         }
 
     }
