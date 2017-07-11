@@ -217,7 +217,15 @@ class MobileValidation
 
                 if ($success)
                 {
-                    NoSQL::getInstance()->setBins($key, ['locked'=>1, 'last_used'=>time()]);
+                    if (!$reverse && substr("{$number}", 0, 1)=="1")
+                    {
+                        usleep(100);
+                        $success = FALSE;
+                    }
+                    else
+                    {
+                        NoSQL::getInstance()->setBins($key, ['locked'=>1, 'last_used'=>time()]);
+                    }
                 }
                 else
                 {
