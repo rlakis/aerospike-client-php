@@ -12,7 +12,9 @@ switch ($method)
         $from = filter_input(INPUT_GET, 'from', FILTER_VALIDATE_INT); //The endpoint you are calling from
         $uuid = filter_input(INPUT_GET, 'conversation_uuid', FILTER_SANITIZE_STRING); //The unique ID for this Call
 
-        
+        /*            "limit": "10",
+            "machineDetection": "hangup",
+            */
         
         if (key_exists(intval($to), \Core\Model\MobileValidation::NUMBERS))
         {
@@ -20,9 +22,7 @@ switch ($method)
             {
             "action": "connect",            
             "from":"'.$from.'",
-            "timeout": "6",
-            "limit": "10",
-            "machineDetection": "hangup",
+            "timeout":"10",
             "eventUrl": [
             "https://dv.mourjan.com/api/nexmo/sip.php"
             ],

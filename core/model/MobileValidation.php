@@ -857,8 +857,8 @@ trait NexmoTrait
             },
             "answer_url": ["https://dv.mourjan.com/api/nexmo/ncco.php"],
             "event_url": ["https://dv.mourjan.com/api/nexmo/call_event.php"],
-            "length_timer": 10,
-            "ringing_timer": 4
+            "length_timer": 12,
+            "ringing_timer": 8
             }';
         
         //Create the request
@@ -877,9 +877,10 @@ trait NexmoTrait
             $err = curl_error($ch);
             return array("status" => $status, "response" => array("error" => $err));
         }
+        error_log($res);
         
         $result = json_decode($res, TRUE);
-        error_log(var_export($result, TRUE));
+        
         if (!isset($result['from']))
         {
             $result['from'] = $from;
@@ -891,6 +892,8 @@ trait NexmoTrait
         
         NoSQL::getInstance()->outboundCall($result, $this->getUID());
 
+        error_log (var_export($result, TRUE));
+        
         $response = [
             'id'=>$result['conversation_uuid'],
             'type'=>'reverse_cli',
