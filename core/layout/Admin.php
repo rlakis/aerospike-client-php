@@ -673,6 +673,31 @@ $.ajax({
                                     d.insertAfter(e);
                                 }
                             };
+                            var suspend=function(id,e){
+                                Dialog.show("susp_dialog",null,function(){suspA(e,id)});  
+                            };
+                            var suspA=function(e,usr){
+                                e=$(e);
+                                e.addClass("load");
+                                $.ajax({
+                                    type:"POST",
+                                    url:"/ajax-ususpend/",
+                                    data:{i:usr,v:$("#suspT").val()},
+                                    dataType:"json",
+                                    success:function(rp){
+                                        e.removeClass("load");
+                                        if (rp.RP) {
+                                            e.html("Release");
+                                            e[0].onclick=function(){};
+                                            e.attr("href","?p="+usr+"&a=-1");
+                                            e.parent().css("float","left");
+                                        }
+                                    },
+                                    error:function(){
+                                        e.removeClass("load");
+                                    }
+                                });
+                            };
                             var closeA=function(e){
                                 e=$(e).parent().remove()
                             };
@@ -734,11 +759,21 @@ $.ajax({
         {
             echo '<li style="float:right"><a style="border-left:1px solid #CCC" onclick="block('.$record[\Core\Model\ASD\SET_RECORD_ID].',this)" href="javascript:void(0);">Block</a></li>';
         }
+        if ( !(isset($record['suspended']) && $record['suspended']=='YES'))
+        {
+            echo '<li style="float:right"><a style="border-left:1px solid #CCC" onclick="suspend('.$record[\Core\Model\ASD\SET_RECORD_ID].',this)" href="javascript:void(0);">Suspend</a></li>';
+        }
         echo '</ul>';
         echo '<div dir="ltr">';
         echo '<pre style="font-size:12pt;font-family:arial;line-height:18pt;">';
         echo json_encode($record, JSON_PRETTY_PRINT);
         echo '</pre></div>';
+        ?><div id="susp_dialog" class="dialog"><?php
+        ?><div class="dialog-box ctr"><select id="suspT" style="direction:ltr;width:200px"><option value="1">1 hour</option><option value="6">6 hours</option><option value="12">12 hours</option><option value="18">18 hours</option><option value="24">24 hours</option><option value="30">30 hours</option><option value="36">36 hours</option><option value="42">42 hours</option><option value="48">48 hours</option><option value="54">54 hours</option><option value="60">60 hours</option><option value="66">66 hours</option><option value="72">72 hours</option></select></div><?php
+        ?><div class="dialog-action"><?php
+        ?><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['suspend'] ?>" /><?php
+        ?></div><?php
+        ?></div><?php
     }
 
     
