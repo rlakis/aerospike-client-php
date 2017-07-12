@@ -289,3 +289,17 @@ if( (typeof showBalance !== 'undefined') && showBalance==1){
             }
        });
 }
+
+function wsp() {
+    $.ajax({
+        type: 'POST',
+        url: '/ajax-screen/',
+        dataType: 'json',
+        data: {
+            w: document.body.clientWidth,
+            h: document.body.clientHeight,
+            c: hasCvs
+        }
+    })
+};
+wsp();

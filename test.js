@@ -1,1 +1,94 @@
-var head = document.getElementsByTagName("head")[0] || document.documentElement;function loadCss(fn,cb){var l=document.createElement('link');l.rel='stylesheet';l.type="text/css";l.media="all";if(typeof cb !== 'undefined'){l.setAttribute('onload', function(){cb()})}l.href=fn;head.parentNode.insertBefore(l,head)}var ucss='https://dv.mourjan.com/web/css/1.0.0',uimg='https://mourjan.r.worldssl.net',hasCvs=1,AID=0,UID=0,PID=0,ULV=0,ujs='https://dv.mourjan.com/web/js/1.0.0',lang='ar',share=1,hads=1,SCLD=0,ITC=0,jsLog=0,MOD="index",STO=(typeof(Storage)==="undefined"?0:1),WSO=(typeof(WebSocket)==="undefined"?0:1),tmr,tmu,tmd,func,fupc,mul,menu,mp,stat=0,ICH='lb-ar-0-',LSM='1471133880';loadCss(ucss+"/gen_ar.css",function(){});loadCss(ucss+"/imgs.css");var upem=0;function inlineQS(){}
+(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src=uhc+'/min.js';
+        sh.onload=sh.onreadystatechange=function(){
+        if (!HSLD && (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete')){
+            HSLD=1;  
+       $.ajax({
+           type:'POST',
+            url:'/ajax-ga/',
+            data:{
+                ads:1
+            },
+            dataType:'json',
+            success:function(rp){
+                if(rp.RP){ 
+                    if(rp.DATA.d){
+                        var x =$('#statDv');
+                        var gS={
+                            chart: {
+                                spacingRight:0,
+                                spacingLeft:0
+                            },
+                            title: {
+                                text: (lang=='ar'?'الاعلانات الفعالة':'active ads'),
+                                style:{
+                                    'font-weight':'bold',
+                                    'font-family':(lang=='ar'?'tahoma,arial':'verdana,arial'),
+                                    'direction':(lang=='ar'?'rtl':'ltr')
+                                }
+                            },
+                            xAxis: {
+                                type: 'datetime',
+                                title: {
+                                    text: null
+                                }
+                            },
+                            yAxis: {
+                                title: {
+                                    text: null
+                                }
+                            },
+                            tooltip: {
+                                shared: true
+                            },
+                            legend: {
+                                enabled: false
+                            },    
+                            colors:[
+                                '#2f7ed8',
+                                '#ff9000'
+                            ]
+                        };
+                        var series;
+                        if(typeof(rp.DATA.k) === 'undefined'){
+                            series = [{
+                                type: 'line',
+                                name: 'Impressions',
+                                pointInterval:24 * 1000,
+                                pointStart: rp.DATA.d,
+                                data: rp.DATA.c
+                            }];
+                        }else{
+                            series = [{
+                                type: 'line',
+                                name: 'Impressions',
+                                pointInterval:24 * 3600 * 1000,
+                                pointStart: rp.DATA.d,
+                                data: rp.DATA.c
+                            },
+                            {
+                                type: 'line',
+                                name: 'Interactions',
+                                pointInterval:24 * 3600 * 1000,
+                                pointStart: rp.DATA.d,
+                                data: rp.DATA.k
+                            }
+                            ];
+                        }
+                        gS['series']=series;
+                        x.highcharts(gS);
+                    }else{
+                        var x=$('#statDv');
+                        x.removeClass('load');
+                        x.addClass('hxf');
+                        x.html(lang=='ar'?'لا يوجد إحصائية عدد مشاهدات للعرض':'No impressions data to display');
+                        trePic();
+                    }
+                }else{
+                    var x=$('#statDv');
+                    x.removeClass('load');
+                    x.addClass('hxf');
+                    x.html(lang=='ar'?'فشل محرك مرجان بالحصول على الاحصائيات':'Mourjan system failed to load statistics');
+                }
+            }
+       });
+   }};head.insertBefore(sh,head.firstChild)})();

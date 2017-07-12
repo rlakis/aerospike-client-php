@@ -111,7 +111,7 @@ if ($handle = opendir($jsMobileReadPath)) {
     closedir($handle);
     echo 'Mobile JS files generated', "\n\n";
 }
-exit(0);
+//exit(0);
 echo 'Generating CSS release files', "\n";
 $cssReadPath='/home/www/mourjan/web/css/5.4.3/';
 $cssMobilePath='/home/www/mourjan/web/css/1.0.2/';

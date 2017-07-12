@@ -982,7 +982,7 @@ class PostAd extends Page{
                         ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['make'] ?>" /></div><?php 
                 ?></div><?php
                 ?><div id="confirm_premium" class="dialog premium"><?php
-                        ?><div class="dialog-title"><?= $this->lang['please_confirm'] ?> <span class='mc24'></span></div><?php
+                        ?><div class="dialog-title"><?= $this->lang['please_confirm'] ?>:</div><?php
                         ?><div class="dialog-box"></div><?php 
                         ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['deal'] ?>" /></div><?php 
                 ?></div><?php

@@ -46,7 +46,7 @@ $lang=array(
     'premium_days'   =>  'Days',
     'make'      =>  'make',
     'make_premium'      =>  'make premium',
-    'no_balance_dialog' =>  'You do not have enough golds to make this ad premium.<br />Click on <a href="/gold/en/">mourjan gold</a> to find out more.',
+    'no_balance_dialog' =>  'You do not have enough golds to make this ad premium.<br />Click on <a class="lnk" href="/gold/en/">mourjan gold</a> to find out more.',
     'deal'      =>  'OK, deal',
     'with'      =>  'with ',
     'publish_ad_free'   =>  'Publish Free Ad',

@@ -219,6 +219,8 @@ textarea {
 .qb,
 .nw,
 .adn,
+.dic,
+.close,
 .w {
     background: url(./i/main_m.png) no-repeat center
 }
@@ -944,7 +946,7 @@ p b {
 .src.en .fav.on {
     float: right
 }
-.adn,
+/*.adn,
 .aup {
     width: 46px;
     height: 30px;
@@ -970,6 +972,7 @@ p b {
 .src.en .aup {
     background-position: -112px 3px
 }
+*/
 .sbx {
     overflow: hidden;
     padding: 5px 0;
@@ -1642,16 +1645,31 @@ h2 {
     background-color: #FFFF9F!important
 }
 .statH {
-    position: relative;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    bottom:15px;
+    right:15px;
     overflow: hidden;
-    margin: 0 10px 10px;
     border: 2px solid #efefef;
     background-color: #FFF
 }
 .txtd.statH {
     border: 0;
     margin: 0 5px;
-    border: 1px solid #ccc
+    border: 1px solid #ccc;
+    z-index: 200000;
+}
+.statH.relative{
+    position:relative;
+    border:0px;
+    top:auto;
+    bottom:auto;
+    left:auto;
+    right:auto;
+    margin:10px;
+    margin-top:50px;
+    z-index:50
 }
 .sopt {
     position: absolute;
@@ -1666,8 +1684,13 @@ h2 {
 }
 #statDv,
 .statDiv {
-    height: 200px;
+    height: 100%;
+    width:100%;
     direction: ltr!important
+}
+#statDv{
+    height:200px;
+    width:auto
 }
 .ls .ata {
     height: 30px;
@@ -1712,38 +1735,6 @@ h2 {
 .dt h3 {
     padding-top: 15px;
     margin-bottom: 10px
-}
-.bottom-banner {
-    background-color: #2c2c2c;
-    width: 100%;
-    overflow: visible;
-    position: fixed;
-    bottom: 0px;
-    left: 0px;
-    border-top: 2px solid #999
-}
-.ios-banner {
-    background: #2c2c2c url(i/ios-banner-ar.png) no-repeat center;
-    height: 60px;
-    width: 300px;
-    display: block;
-    margin: 0 auto
-}
-.android-banner {
-    background: #2c2c2c url(i/android-banner-ar.png) no-repeat center;
-    height: 60px;
-    width: 300px;
-    display: block;
-    margin: 0 auto
-}
-.banner-close {
-    cursor: pointer;
-    background: transparent url(i/banner-close.png) no-repeat left center;
-    height: 48px;
-    width: 48px;
-    position: absolute;
-    top: -24px;
-    left: 0px
 }
 .cb .cb1,
 .cb .cb2 {
@@ -1805,11 +1796,14 @@ h2 {
     opacity: 0.6!important;
     z-index: 50000
 }
+#dialog-mask.full{    
+    z-index: 50005
+}
 .dialog {
     display: none;
     position: fixed;
-    background-color: #F4F4F4;
-    z-index: 50001;
+    background-color:#FFF;
+    z-index: 150010;
     padding: 5px;
     min-width: 250px;
     min-height: 150px;
@@ -1824,15 +1818,13 @@ h2 {
 }
 .dialog a,
 .dialog a:visited {
-    color: #00e
+    color:#333;
 }
-.dialog a:hover {
-    text-decoration: underline
+.dialog li{
+    padding: 3px 0;
 }
 .dialog-title {
-    padding: 5px 10px;
-    background-color: #143D55;
-    color: #FFF;
+    padding: 10px 10px;
     font-size: 20px;
     direction: rtl;
     text-align: right;
@@ -1840,7 +1832,6 @@ h2 {
 }
 .dialog-hint {
     padding: 5px 10px;
-    background-color: #ffffbf;
     text-align: center;
     font-size: 18px;
     border-bottom: 2px solid #FF9000
@@ -1854,39 +1845,68 @@ h2 {
 .dialog-action input {
     height: 40px;
     line-height: 35px;
-    font-size: 18px
+    font-size: 18px;
+    padding:5px 20px;
+    background-color: transparent!important;
+    border: 0;
+    color: lightseagreen;    
+    box-shadow: none;
 }
 .dialog-action.dlg2 input {
-    width: 50%
+    
 }
 .dialog-action input:first-child {
-    -webkit-border-radius: 0 0 8px 0;
-    -moz-border-radius: 0 0 8px 0;
-    -o-border-radius: 0 0 8px 0;
-    border-radius: 0 0 8px 0
+    float:left;
 }
 .dialog-action input:last-child {
-    -webkit-border-radius: 0 0 0 8px;
-    -moz-border-radius: 0 0 0 8px;
-    -o-border-radius: 0 0 0 8px;
-    border-radius: 0 0 0 8px
+    float:right
 }
 .dialog-action.dlg1 input {
-    width: 100%;
-    -webkit-border-radius: 0 0 8px 8px !important;
-    -moz-border-radius: 0 0 8px 8px !important;
-    -o-border-radius: 0 0 8px 8px !important;
-    border-radius: 0 0 8px 8px !important
+    float:left
 }
 .dialog-box {
-    padding: 20px 5px 50px 5px;
+    padding: 10px 5px 50px 5px;
     line-height: 30px
+}
+.dialog a.lnk{
+    color:#00E!important
+}
+.dic{    
+    width:40px;
+    height:30px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 10px;
+}
+.dic.coin {
+    background-position: -80px -257px
+}
+.dic.stop {
+    background-position: -120px -89px
+}
+.dic.stats{
+    background-position: -160px -193px
+}
+.dic.detail{
+    background-position: -80px -222px
+}
+.dic.viber{
+    background-position: -202px -170px
+}
+.dic.wats{
+    background-position: -201px -204px
+}
+.dic.edit{
+    background-position: -120px -205px
+}
+.dic.renew{
+    background-position: -121px -236px
 }
 .side {
     background-color: #F4F4F4;
     position: fixed;
     top: 40px;
-    z-index: 50001;
+    z-index: 150001;
     left: 0;
     width: 80%;
     bottom: 0;
@@ -1966,4 +1986,12 @@ li.on .n {
     width: 90px;
     height: 90px;
     display: inline-block
+}
+.close{
+    width:40px;
+    height:40px;
+    position:absolute;
+    top:0px;
+    right:0px;
+    background-position:0px -253px
 }

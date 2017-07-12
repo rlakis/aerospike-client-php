@@ -105,7 +105,7 @@ class MyAds extends Page
                     .btzone{
                     position:absolute;
                     display:block;
-                    width:150px;
+                    width:200px;
                     z-index:50001;
                     }
                     .btzone .bt{
@@ -170,56 +170,6 @@ class MyAds extends Page
                     .oct a{
                         overflow:hidden;white-space:nowrap;max-width:230px;
                         text-overflow: ellipsis;padding:0 10px
-                    }
-                    .ton{
-                        width:840px;
-                        border:1px solid #ff9000;
-                        background-color:#EEE8AA;
-                        position:absolute;
-                        z-index: 60000;
-                    }
-                    .roots{
-                        width:111px;
-                        float:right;
-                        background-color:#143D55;
-                        color:#FFF
-                    }
-                    .roots ul{
-                        width:100%;
-                        display:block;
-                        border-left:1px solid #FF9000
-                    }
-                    .roots li{
-                        border-bottom:1px solid #FF9000
-                    }
-                    .roots li.on{
-                        background-color:indianred
-                    }
-                    .roots li,.sections li{
-                        width:100%;
-                        display:block;
-                        padding:10px 0;
-                        cursor:pointer;
-                    }
-                    .roots li > span{
-                        margin:5px 10px
-                    }
-                    .sections{
-                        width:728px;
-                        float:right
-                    }
-                    .sections > ul{float:right}
-                    .sections li{width:182px}
-                    .sections li:hover,.sections li.on{background-color:#fefefe;color:orange}
-                    .roots li:hover{background-color:#ff9000}
-                    .en .roots,.en .sections,.en .sections > ul{float:left}
-                    .en .roots ul{border:0;border-right:1px solid #FF9000}
-                    .btzone .bt.on{
-                        -moz-box-shadow:none;
-                        -o-box-shadow:none;
-                        -webkit-box-shadow:none;
-                        box-shadow:none;
-                        background-color:indianred!important
                     }
                 ';
                 
@@ -313,12 +263,6 @@ class MyAds extends Page
     function pendingMobileAds($state=0)
     {
         $lang='';
-        $this->userBalance = $this->user->getStatement(0, 0, true);
-        if(isset($this->userBalance['balance'])){
-            $this->userBalance = $this->userBalance['balance'];
-        }else{
-            $this->userBalance = 0;
-        }
         $current_time = time();
         if ($this->urlRouter->siteLanguage!='ar') $lang=$this->urlRouter->siteLanguage.'/';
         $ads=$this->user->getPendingAds(0,$state);
@@ -326,7 +270,7 @@ class MyAds extends Page
         if (!empty($ads))$count=count($ads);
         if($count){
             if($this->urlRouter->cfg['enabled_charts'] && $state==7){
-                ?><div class="statH rc sh relative"><div id="statDv" class="load"></div></div><?php
+                ?><div class="statH rc sh"><div id="statDv" class="load"></div></div><?php
             }
             $idx=0;
             $linkLang=  $this->urlRouter->siteLanguage == 'ar' ? '':$this->urlRouter->siteLanguage.'/';
@@ -361,7 +305,7 @@ class MyAds extends Page
                     $link='';
                     $liClass='button ';
                     $textClass='en';
-                    if($isFeatured || $isFeatureBooked){
+                    if($isFeatured){
                         $liClass.="vp ";
                     }
                     if ($idx%2) {
@@ -432,13 +376,6 @@ class MyAds extends Page
                             $ad_hold=1;
                         }
                     }
-                    
-                    $isMultiCountry = false;
-                    $adSection = $this->getAdSection($ad, $content['ro'], $isMultiCountry);
-                    if($isMultiCountry){
-                        $liClass.='multi ';
-                    }
-                    
                     ?><li id="<?= $ad['ID'] ?>" <?= $ad_hold ?'' :' onclick="ado(this,'.$ad['ID'].',event)"' ?> <?= $liClass ?>><?php 
                     echo '<p class="'.$textClass.'">'.$pic.$text.'</p>';
                     if($altText){
@@ -450,8 +387,7 @@ class MyAds extends Page
                     if($ad_hold){
                         ?><div class="ctr"><b><span class="done"></span><?= $this->lang['retired'] ?></div><?php
                     }else {
-                        /* ?><span class="src <?= $this->urlRouter->siteLanguage ?>"><?= $this->getAdSection($ad) ?><time st='<?= strtotime($ad['DATE_ADDED']) ?>'></time><span class="adn"></span><?= $this->urlRouter->cfg['enabled_ad_stats'] && ($state == 7 || $state==9) ? '<span class="ata load"></span>' :'' ?></span><?php */
-                        ?><span class="src <?= $this->urlRouter->siteLanguage ?>"><?= $adSection ?><time st='<?= strtotime($ad['DATE_ADDED']) ?>'></time><?= $this->urlRouter->cfg['enabled_ad_stats'] && ($state == 7 || $state==9) ? '<span class="ata load"></span>' :'' ?></span><?php 
+                        ?><span class="src <?= $this->urlRouter->siteLanguage ?>"><?= $this->getAdSection($ad) ?><time st='<?= strtotime($ad['DATE_ADDED']) ?>'></time><span class="adn"></span><?= $this->urlRouter->cfg['enabled_ad_stats'] && ($state == 7 || $state==9) ? '<span class="ata load"></span>' :'' ?></span><?php 
                     }
                     ?></li><?php
                     
@@ -474,7 +410,7 @@ class MyAds extends Page
                         switch($state){
                             case 9:
                                 if($this->urlRouter->cfg['enabled_charts']){
-                                    ?><li><div onclick="aStat(this,event)"><span class="dic stats"></span><?= $this->lang['stats'] ?></div></li><?php
+                                    ?><li><div onclick="aStat(this,event)"><?= $this->lang['stats'] ?></div></li><?php
                                 }
                                 if(!$isSystemAd)
                                 {
@@ -482,38 +418,33 @@ class MyAds extends Page
                                     {
                                         ?><li><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$ad['ID'] : '') ?>" method="post"><?php
                                             ?><input type="hidden" name="adr" /><?php
-                                            ?><div onclick="$b(this).value=eid;$p(this).submit()"><span class="dic edit"></span><?= $this->lang['edit_republish'] ?></div><?php
+                                            ?><div onclick="$b(this).value=eid;$p(this).submit()"><?= $this->lang['edit_republish'] ?></div><?php
                                         ?></form></li><?php 
                                         if($this->isUserMobileVerified && isset($content['version']) && $content['version']==2) {
-                                            ?><li><div onclick="are(this,event)"><span class="dic renew"></span><?= $this->lang['renew'] ?></div></li><?php
+                                            ?><li><div onclick="are(this,event)"><?= $this->lang['renew'] ?></div></li><?php
                                         }
                                     }
-                                    ?><li><div onclick="adel(this,1,event)"><span class="dic stop"></span><?= $this->lang['delete'] ?></div></li><?php
+                                    ?><li><div onclick="adel(this,1,event)"><?= $this->lang['delete'] ?></div></li><?php
                                 }
                                 break;
                             case 7:
-                                ?><li><a id="ad_cancel_pre" href="javascript:void(0)" onclick="cancelPremium(this)"><span class="dic stop"></span><?= $this->lang['premium_cancel'] ?></a></li><?php
-                                ?><li><a id="ad_make_pre" href="javascript:void(0)" <?php
-                                if($this->userBalance){
-                                    //check to see if ad is published to multi countries
-                                    ?>onclick="makePre()"<?php
+                                if($isFeatured || $isFeatureBooked){
+                                    ?><li><a id="ad_cancel_pre"><?= $this->lang['premium_cancel'] ?></a></li><?php
                                 }else{
-                                    ?>onclick="noPremium()"<?php
+                                    
                                 }
-                                ?>><span class="dic coin"></span><?= $this->lang['make_premium'] ?></a></li><?php
-                                
                                 if($this->urlRouter->cfg['enabled_charts']){
-                                    ?><li><div onclick="aStat(this,event)"><span class="dic stats"></span><?= $this->lang['stats'] ?></div></li><?php
+                                    ?><li><div onclick="aStat(this,event)"><?= $this->lang['stats'] ?></div></li><?php
                                 }
-                                ?><li><a id="ad_detail"><span class="dic detail"></span><?= $this->lang['ad_detail'] ?></a></li><?php
-                                ?><li><a id="ad_wats" data-action="share/whatsapp/share"><span class="dic wats"></span><?= $this->lang['ad_share_wats'] ?></a></li><?php
-                                ?><li><a id="ad_viber"><span class="dic viber"></span><?= $this->lang['ad_share_viber'] ?></a></li><?php
+                                ?><li><a id="ad_detail"><?= $this->lang['ad_detail'] ?></a></li><?php
+                                ?><li><a id="ad_wats" data-action="share/whatsapp/share"><?= $this->lang['ad_share_wats'] ?></a></li><?php
+                                ?><li><a id="ad_viber"><?= $this->lang['ad_share_viber'] ?></a></li><?php
                                 if(!$isSystemAd){
                                     ?><li><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$ad['ID'] : '') ?>" method="post"><?php
                                         ?><input type="hidden" name="adr" /><?php
-                                        ?><div onclick="$b(this).value=eid;$p(this).submit()"><span class="dic edit"></span><?= $this->lang['edit_ad'] ?></div><?php
+                                        ?><div onclick="$b(this).value=eid;$p(this).submit()"><?= $this->lang['edit_ad'] ?></div><?php
                                     ?></form></li><?php
-                                    ?><li><div onclick="ahld(this,event)"><span class="dic stop"></span><?= $this->lang['hold'] ?></div></li><?php                                    
+                                    ?><li><div onclick="ahld(this,event)"><?= $this->lang['hold'] ?></div></li><?php                                    
                                 }
                                 break;
                             case 0:
@@ -526,10 +457,10 @@ class MyAds extends Page
                                     {
                                         ?><li><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$ad['ID'] : '') ?>" method="post"><?php
                                             ?><input type="hidden" name="ad" /><?php 
-                                            ?><div onclick="$b(this).value=eid;$p(this).submit()" class="button"><span class="dic edit"></span><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></div><?php
+                                            ?><div onclick="$b(this).value=eid;$p(this).submit()" class="button"><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></div><?php
                                         ?></form></li><?php
                                     }
-                                    ?><li><a href="javascript:adel(this,0,event)"><span class="dic stop"></span><?= $this->lang['delete'] ?></a></li><?php
+                                    ?><li><a href="javascript:adel(this,0,event)"><?= $this->lang['delete'] ?></a></li><?php
                                 }
                                 break;
                         }
@@ -537,52 +468,7 @@ class MyAds extends Page
                     ?></div><?php 
                     ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /></div><?php 
                 ?></div><?php
-                if($this->urlRouter->cfg['enabled_charts'] && ($state==7 || $state==9)){
-                    ?><div class="txtd statH rc" onclick="se()"><div id="statAiv" class="statDiv load"></div><div class="close"></div></div><?php 
-                }
                 
-                if($this->userBalance && $state == 7){
-                    ?><div id="make_premium" class="dialog premium"><?php
-                            ?><div class="dialog-title"><?= $this->lang['balance'].': '.$this->userBalance ?> <span class='mc24'></span></div><?php
-                            ?><div class="dialog-hint"><?= $this->lang['premium_hint'] ?></div><?php 
-                            ?><div class="dialog-box"><?php 
-                                ?><ul><?php
-                                ?><li><?= $this->lang['premium_days'] ?>:</li><?php
-                                ?><li><select id="spinner" max="<?= $this->userBalance ?>"></select></li><?php
-                                ?></ul><?php
-                            ?></div><?php 
-                            ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['make'] ?>" /></div><?php 
-                    ?></div><?php
-                    ?><div id="confirm_premium" class="dialog premium"><?php
-                            ?><div class="dialog-title"><?= $this->lang['please_confirm'] ?>:</div><?php
-                            ?><div class="dialog-box"></div><?php 
-                            ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['deal'] ?>" /></div><?php 
-                    ?></div><?php
-                    ?><div id="alert_dialog" class="dialog"><?php
-                        ?><div class="dialog-box"></div><?php 
-                        ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
-                    ?></div><?php
-                    ?><div id="what_premium" class="dialog premium"><?php
-                            ?><div class="dialog-title"><span class='mc24'></span><?= $this->lang['make_premium'] ?></div><?php
-                            ?><div class="dialog-box"><?= $this->lang['no_balance_dialog'] ?></div><?php 
-                            ?><div class="dialog-action"><input type="button" value="<?= $this->lang['back'] ?>" /></div><?php 
-                    ?></div><?php
-                    ?><div id="stop_premium" class="dialog premium"><?php
-                        ?><div class="dialog-box"><?= $this->lang['stop_premium'] ?></div><?php 
-                        ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['stop'] ?>" /></div><?php 
-                    ?></div><?php
-                    ?><div id="alert_dialog" class="dialog"><?php
-                        ?><div class="dialog-box"></div><?php 
-                        ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
-                    ?></div><?php
-                    $this->globalScript.='
-                            function mCPrem(){
-                                Dialog.show("alert_dialog",\'<span class="fail"></span>'.$this->lang['multi_premium_no'].'\');
-                            };
-                        ';
-                }
-            
-            if(0){
                 ?><div id="aopt" class="sbx"><?php 
                     ?><div class="bts"><?php
                         /*
@@ -658,7 +544,6 @@ class MyAds extends Page
                         ?><div class="txtd statH rc" onclick="se()"><div id="statAiv" class="statDiv load"></div></div><?php 
                     }
                 ?></div><?php 
-            }
         }
         else
         {
@@ -769,7 +654,6 @@ var rtMsgs={
         'لا يمكن نشر هذا الاعلان سوى في البلد الذي تتواجد فيه مكاتبكم وخدماتكم',
         'لا يمكن نشر هذا الإعلان سوى في البلد حيث يتواجد فيه العقار، السيارة أو السلعة',
         'group=سياسة الموقع',
-        'لا يمكن نشر اعلانات مماثلة دون ادراج رقم الموبايل المستخدم لتفعيل حسابك مع مرجان ضمن وسائل التواصل',
         'اعلانات زواج المسيار والمتعة مخالفة لسياسة الموقع ولا يمكن نشرها',
         'لا يمكن نشر إعلانات مماثلة طبقاً لسياسة الموقع'
     ],
@@ -801,7 +685,6 @@ var rtMsgs={
         'this ad can only be published in countries where your offices and services are located',
         'this ad cannot be published in countries other than the country of origin (cars, real estate, goods)',
         'group=Website Policy',        
-        'cannot publish similar ads unless you add the mobile number (used to activate your mourjan account) to the contact information',
         'Temporary marriages (Mesyar, Muta\') ads are against the website policy and caanot be published',
         'this type of ads is against the website policy and cannot be published'
     ]
@@ -1753,14 +1636,6 @@ var rtMsgs={
                             ?><div class="dialog-title"><?= $this->lang['make_premium'] ?> <span class='mc24'></span></div><?php
                             ?><div class="dialog-box"><?= $this->lang['no_balance_dialog'] ?></div><?php 
                             ?><div class="dialog-action"><input type="button" value="<?= $this->lang['back'] ?>" /></div><?php 
-                    ?></div><?php
-                    ?><div id="stop_premium" class="dialog premium"><?php
-                        ?><div class="dialog-box"><?= $this->lang['stop_premium'] ?></div><?php 
-                        ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['stop'] ?>" /></div><?php 
-                    ?></div><?php
-                    ?><div id="alert_dialog" class="dialog"><?php
-                        ?><div class="dialog-box"></div><?php 
-                        ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
                     ?></div><?php
                 }
                 ?><div id="stop_ad" class="dialog"><?php

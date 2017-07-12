@@ -2,6 +2,50 @@ var eid=0;
 function ado(e,i,v){
     se(v);
     eid=i;
+    
+    var s=$('#'+eid);
+    
+    var subj=(lang=='ar'?'وجدت هذا الاعلان على مرجان':'found this ad on mourjan');
+    var ctx=subj+' https://www.mourjan.com/'+(lang=='ar'?'':lang+'/')+i+'/';
+    var msg=encodeURIComponent(ctx+'?utm_source=whatsapp');
+        
+    var d=$('#ad_options');
+    if(s.hasClass("vp")){
+        $('#ad_cancel_pre').parent().show();
+        $('#ad_make_pre').parent().hide();
+    }else{        
+        $('#ad_cancel_pre').parent().hide();
+        $('#ad_make_pre').parent().show();
+    }
+    
+    $('#ad_detail',d).attr("href","/"+(lang=='ar'?'':lang+'/')+i);
+    
+    $('#ad_wats',d).attr("href","whatsapp://send?text=" + msg);
+    msg=encodeURIComponent(ctx+'?utm_source=viber');
+    $('#ad_viber',d).attr("href","viber://forward?text=" + msg);
+    
+    Dialog.show("ad_options", null, null, function(){
+        window.removeEventListener("popstate", f, true);
+        history.back();
+    });  
+    
+    var f=function(o){
+        if(o.state === null || (o.state !== null && typeof o.state.adOpts === 'undefined')){
+            window.removeEventListener("popstate", f, true);
+            Dialog.hide();
+        }
+    };
+    
+    var stateObj = {
+        adOpts: 1
+    };
+    history.pushState(stateObj, document.title, document.location);
+    window.addEventListener("popstate", f, true);
+    
+    return;
+    
+    
+    
     if(!statDiv)statDiv=$('#statAiv');
     var li=e;
     var e=$c($c(li,1),2);
@@ -68,13 +112,13 @@ function mask(e,d,m){
 }
 function adel(e,h,v){
     se(v);
+    Dialog.hide();
     if(confirm(lang=='ar'?'حذف هذا الإعلان؟':'Delete this ad?')){
         if(!h)h=0;
-        var l=$p(e,2);
-        var s=$p(l);
-        fdT(l,1,'adn');
-        s.removeChild(l);
-        var d=mask(s);
+        //var l=$p(e,2);
+        var s=$('#'+eid);
+        //s.css('border','2px solid red');
+        var d=mask(s[0]);
         $.ajax({
             type:'POST',
             url:'/ajax-adel/',        
@@ -86,30 +130,24 @@ function adel(e,h,v){
             success:function(rp){
                 if(rp.RP){
                     var m=(lang=='ar'?'تم الحذف':'Deleted');
-                    mask(s,d,m);
+                    mask(s[0],d,m);
                 }else{
-                    s.removeChild(d);
+                    s[0].removeChild(d);
                 }
             }
         });
-        /*posA('/ajax-adel/','i='+eid+'&h='+h,function(rp){
-            if(rp.RP){
-                var m=(lang=='ar'?'تم الحذف':'Deleted');
-                mask(s,d,m);
-            }else{
-                s.removeChild(d);
-            }
-        });*/
     }
 }
 function are(e,v){
     se(v);
+    Dialog.hide();
     if(confirm(lang=='ar'?'تجديد هذا الإعلان؟':'Renew this ad?')){
-        var l=$p(e,2);
-        var s=$p(l);
-        fdT(l,1,'adn');
-        s.removeChild(l);
-        var d=mask(s);
+        //var l=$p(e,2);
+        //var s=$p(l);
+        var s=$('#'+eid);
+        //fdT(l,1,'adn');
+        //s.removeChild(l);
+        var d=mask(s[0]);
         $.ajax({
             type:'POST',
             url:'/ajax-arenew/',        
@@ -120,30 +158,24 @@ function are(e,v){
             success:function(rp){
                 if(rp.RP){
                     var m=(lang=='ar'?'تم تحويل الإعلان للائحة إنتظار النشر':'Ad is pending to be re-published');
-                    mask(s,d,m);
+                    mask(s[0],d,m);
                 }else{
-                    s.removeChild(d);
+                    s[0].removeChild(d);
                 }
             }
         });
-        /*posA('/ajax-arenew/','i='+eid,function(rp){
-            if(rp.RP){
-                var m=(lang=='ar'?'تم تحويل الإعلان للائحة إنتظار النشر':'Ad is pending to be re-published');
-                mask(s,d,m);
-            }else{
-                s.removeChild(d);
-            }
-        });*/
     }
 }
-function ahld(e,v){console.log(v);
+function ahld(e,v){
     se(v);
+    Dialog.hide();
     if(confirm(lang=='ar'?'إيقاف عرض هذا الإعلان؟':'Stop this ad?')){
-        var l=$p(e,2);
-        var s=$p(l);
-        fdT(l,1,'adn');
-        s.removeChild(l);
-        var d=mask(s);
+        //var l=$p(e,2);
+        //var s=$p(l);
+        var s=$('#'+eid);
+        //fdT(l,1,'adn');
+        //s.removeChild(l);
+        var d=mask(s[0]);
         $.ajax({
             type:'POST',
             url:'/ajax-ahold/',        
@@ -154,9 +186,9 @@ function ahld(e,v){console.log(v);
             success:function(rp){
                 if(rp.RP){
                     var m=(lang=='ar'?'تم تحويل الإعلان إلى الأرشيف':'Ad is moved to archive');
-                    mask(s,d,m);
+                    mask(s[0],d,m);
                 }else{
-                    s.removeChild(d);
+                    s[0].removeChild(d);
                 }
             }
         });
@@ -235,29 +267,48 @@ function eLD(e){
     }
 var statDiv;
 function aStat(e,d){
-    se(d);
-    var d=$p(e,2);
+    se(d);   
+    var f=function(o){
+        window.removeEventListener("popstate", f, true);
+        statDiv.parent().css('display','none');
+    };   
+    
+    /*var d=$p(e,2);
     var s=$c(d,1);
     var z=$(e);
     if(z.hasClass('on')){
         s.style.display='none';
         z.removeClass('on');
-    }else{
-        acls(d);
-        z.addClass('on');
-        s.style.display='block';
-        aht(d.parentNode);
+    }else{*/
+    if(!statDiv){
+        statDiv=$('#statAiv');
+        $(".close",statDiv.parent()).click(function(){
+            f();
+            history.back();
+        });
+    }
+        //acls(d);
+        //z.addClass('on');
+        //s.style.display='block';
+        //aht(d.parentNode);
         
         var y=statDiv;
         y.addClass('load');
-        $('.sopt',s).remove();
-        var ix=$p(d).id;
+        y.html("");
+        y.parent().css('display', 'block');
+         
+    var stateObj = {
+        stats: 1
+    };
+    history.pushState(stateObj, document.title, document.location);
+    window.addEventListener("popstate", f, true);
+    
         $.ajax({
             type:'POST',
              url:'/ajax-ga/',
              data:{
                  u:uid,
-                 a:ix
+                 a:eid
              },
              dataType:'json',
              success:function(sp){
@@ -326,7 +377,8 @@ function aStat(e,d){
                         gSA['series']=seriesA;
                         var chart = new Highcharts.Chart(gSA);
                         //y.highcharts(gSA);
-                        if(!isAc){
+                        /*
+                         if(!isAc){
                             var tm=$('<span class="sopt"><span class="bt fb"><span class="k refr"></span></span></span>');
                         y.parent().append(tm);
                         tm.click(function(e){
@@ -382,7 +434,7 @@ function aStat(e,d){
                                  }
                             });
                         });
-                        }
+                        }*/
                      }else{
                         y.addClass('hxf');
                         y.html(lang=='ar'?'لا يوجد إحصائية عدد مشاهدات للعرض':'No impressions data to display');
@@ -394,7 +446,7 @@ function aStat(e,d){
                  y.removeClass('load');
              }
          });
-    }
+    //}
 }
 var isAc=document.location.search.match('archive')!==null?1:0;
 var li=$('li',$('#resM')),lip,ptm,atm={},liCnt,aCnt=0;
@@ -622,4 +674,114 @@ if(uhc){
                 }
             }
        });
+}
+function makePre(){
+    var li = $('#'+eid);
+    if(li.hasClass('multi')){
+        mCPrem();
+    }else{
+        var sp = $('#spinner').SelectNumber();
+        Dialog.show("make_premium",null,function(){confirmPre(sp)});
+    }
+}
+function confirmPre(sp){
+    var str='',x='',y='';
+    var v = sp.val();
+    if(lang=='ar'){
+        str='تمييز الاعلان لمدة ';
+        if(v==1){
+            x='ذهبية واحدة';
+            y='يوم واحد';
+        }else if(v == 2){            
+            x='ذهبيتين';
+            y='يومين';
+        }else if(v < 11){
+            x=v+' ذهبيات';
+            y=v+' ايام';            
+        }else{
+            x=v+' ذهبية';
+            y=v+'يوم ';
+        }
+        str+=y;
+        str+=' لقاء ';
+        str+=x+'؟';
+    }else{
+        str='Activate premium listing for ';
+        if(v==1){
+            x='1 Gold';
+            y='1 Day';
+        }else{
+            x=v+' Golds';
+            y=v+' Days';
+        }
+        str+=y;
+        str+=' for the value of ';
+        str+=x+'?';
+    }
+    Dialog.show("confirm_premium",str,function(){
+        makePremium(v);
+    });
+}
+function makePremium(c){
+    var li = $('#'+eid);
+    var d=mask(li[0]);    
+    var i=li.attr("id");
+    $.ajax({
+        type:"POST",
+        url:"/ajax-mpre/",
+        data:{i:i,c:c,u:UIDK},
+        dataType:"json",
+        success:function(rp){
+            d.remove();
+            if (rp.RP) {
+                Dialog.show('alert_dialog','<span class="done"></span>'+(lang=='ar'?'سيتم تمييز هذا الإعلان خلال لحظات':'This ad will be premium in few moments'));                    
+                li.addClass('vp');
+            }else{
+                errDialog();
+            }
+        },
+        error:function(){
+            d.remove();
+            errDialog();
+        }
+    });
+}
+function cancelPremium(e){
+    Dialog.show("stop_premium",null,function(){cancelPremiumOK(e)});
+}
+function cancelPremiumOK(e){
+    var li=$('#'+eid);
+    var d=mask(li[0]);    
+    var i=li.attr("id");
+    $.ajax({
+        type:"POST",
+        url:"/ajax-spre/",
+        data:{i:i,u:UIDK},
+        dataType:"json",
+        success:function(rp){
+            d.remove();
+            if (rp.RP){
+                var msg='<span class="done"></span>'+(lang=='ar'?'تم الغاء تمييز الاعلان بنجاح':'Premium listing of this ad has been cancelled successfully');
+                if(isDefined(rp.DATA.end) && rp.DATA.end!=''){
+                    msg+= (lang=='ar'?'<br />ولكن الاعلان سيبقى مميز للفترة المكتسبة وهي':'<br />but the ad will remain premium for the earned period of');
+                    msg+=':<br />'+rp.DATA.end;
+                }else{                    
+                    div.removeClass('vp');
+                }
+                Dialog.show('alert_dialog',msg);
+            }else{
+                errDialog();
+            }
+        },
+        error:function(){
+            d.remove();
+            errDialog();
+        }
+    });
+}
+function noPremium(){
+    Dialog.show("what_premium");
+};
+function errDialog(){
+    Dialog.show('alert_dialog','<span class="fail"></span>'+(lang=='ar'?'فشل محرك مرجان باتمام العملية<br />يرجى المحاولة مجدداً<br />او <a class="lnk" href="/contact/">اطلعنا بالامر</a>':'Your request has failed<br />please try again<br />or <a class="lnk" href="/contact/en/">Tell us about it</a>'));
 }

@@ -22,8 +22,8 @@ function ado(e){
         //e.className="adn";
     }else{
         
-        var ctx=subj+' https://www.mourjan.com/'+(lang=='ar'?'':lang+'/')+z.attr("id")+'/';
         var subj=(lang=='ar'?'وجدت هذا الاعلان على مرجان':'found this ad on mourjan');
+        var ctx=subj+' https://www.mourjan.com/'+(lang=='ar'?'':lang+'/')+z.attr("id")+'/';
         var msg=encodeURIComponent(ctx+'?utm_source=whatsapp');
         fdT(li,0,'edit');
         
