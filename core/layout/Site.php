@@ -945,7 +945,52 @@ class Site
     
     function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0, $helpTopic=1)
     {
-        return $this->faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference, $helpTopic);
+        //return $this->faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference, $helpTopic);
+        require 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';
+        $mail = new PHPMailer(true);
+        $mail->IsSMTP();
+        $res=0;
+        try {
+            $mail->Host       = $this->urlRouter->cfg['smtp_server'];
+            $mail->SMTPAuth   = true;
+            $mail->Port       = $this->urlRouter->cfg['smtp_port'];
+            $mail->Username   = ($sender_account) ? $sender_account : $this->urlRouter->cfg['smtp_user'];
+            $mail->Password   = $this->urlRouter->cfg['smtp_pass'];
+            $mail->SMTPSecure = 'ssl';
+            $mail->Sender = $fromEmail;
+            $mail->SetFrom($fromEmail, $fromName);
+            //$mail->SetFrom($fromName, $fromEmail);
+            if (is_array($toEmail)) 
+            {
+                foreach ($toEmail as $email) 
+                {
+                    $mail->AddAddress($email,'');
+                }
+            }
+            else
+            {
+                $mail->AddAddress($toEmail,$toName);
+            }
+            $mail->IsHTML(true);
+            $mail->CharSet='UTF-8';
+            $mail->Subject = $subject;
+            $mail->Body    = $message;
+            if ($mail->send())
+            {
+                $res = 1;
+            }
+         } catch (phpmailerException $e) {
+         	$res= 0;
+                //trigger_error($mail->ErrorInfo);
+                error_log($e->getMessage());
+         } catch (Exception $e) {
+            $res= 0;
+            error_log($e->getMessage());
+         }
+         $mail->ClearAddresses();
+         $mail->ClearAllRecipients();
+         $mail->ClearAttachments();
+         return $res;
     }
     
     

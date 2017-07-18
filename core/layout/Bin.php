@@ -2434,7 +2434,7 @@ class Bin extends AjaxHandler{
                         include_once $this->urlRouter->cfg['dir'] . '/core/lib/MCAdTextHandler.php';
                         $textHandler = new AdTextFormatter();
                         
-                        $error_path = "/var/log/adsave.log";
+                        $error_path = "/var/log/mourjan/editor.log";
                         $ad=(is_array($_POST['o']) ? $_POST['o'] : json_decode($_POST['o'],true) );
 //                        error_log('--------------------------------------------------------------------------------------------------------'.PHP_EOL,3,$error_path);                    
                         
@@ -2465,8 +2465,15 @@ class Bin extends AjaxHandler{
                             $ad['agent']=$sContent['agent'];
                         if(isset($sContent['state']))
                             $ad['state']=$sContent['state'];
-                        if(!isset($ad['other']) && isset($sContent['other'])){
+                        if( (!isset($ad['other']) || (isset($ad['other']) && preg_match('/^undefined/',$ad['other']))) && isset($sContent['other'])){
                             $ad['other']=$sContent['other'];
+                        }
+                        /*$plugins=(isset($_POST['plugs']) && $_POST['plugs'] ? $_POST['plugs'] : '');
+                        if($plugins){
+                            error_log(PHP_EOL.$plugins.PHP_EOL,3,$error_path);
+                        }*/
+                        if($ad['id'] == 0 && preg_match('/^undefined/',$ad['other'])){
+                            error_log(PHP_EOL.'>>>>>>>>>>UNDEFINED<<<<<<<<<<<<'.PHP_EOL,3,$error_path);
                         }
 
                         if(!isset($ad['rtl']) && isset($sContent['rtl'])){
@@ -2475,7 +2482,7 @@ class Bin extends AjaxHandler{
                         if(!isset($ad['loc']) && isset($sContent['loc'])){
                             $ad['loc']=$sContent['loc'];
                         }
-                        if($ad['extra']['t']!=2 && !isset($ad['altother']) && isset($sContent['altother'])){
+                        if($ad['extra']['t']!=2 && (!isset($ad['altother']) || (isset($ad['altother']) && preg_match('/^undefined/',$ad['altother']))) && isset($sContent['altother'])){
                             $ad['altother']=$sContent['altother'];
                         }
                         if($ad['extra']['t']!=2 && !isset($ad['altRtl']) && isset($sContent['altRtl'])){
@@ -2926,6 +2933,10 @@ class Bin extends AjaxHandler{
                                 }
                             }                 
                         }
+                        
+                        /*if($ad['id'] == 0 && preg_match('/^undefined/',$ad['other'])){
+                            error_log(PHP_EOL.'==============='.PHP_EOL.var_export($_POST['o'],true).PHP_EOL,3,$error_path);
+                        }*/
                         
                         $this->user->update();
                         if(!$isSCAM)
@@ -4932,6 +4943,7 @@ class Bin extends AjaxHandler{
                 } else $msg.="</tr>";
                 $msg.="<tr><td><b>Locale</b></td><td>".filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE', FILTER_SANITIZE_STRING)."</td>";
                 $msg.="<td><b>Browser</b></td><td colspan='3'>".filter_input(INPUT_SERVER, 'HTTP_USER_AGENT', FILTER_SANITIZE_STRING)."</td></tr>";
+                $msg.="<td><b>Email:</b></td><td colspan='3'>".$email."</td></tr>";
                 $msg.="<tr><td colspan='6'>{$feed}</td></tr>";
                 $msg.="</table>";
 /*
@@ -5764,10 +5776,16 @@ class Bin extends AjaxHandler{
                 $error=$this->post('e');
                 if($error){
                     $url=$this->post('u');
-                    if(!preg_match('/facebook|google|sharethis/i',$url) && !preg_match('/__show__deepen|Blocked a frame with origin/',$error)){
+                    if($url){
+                        if(!preg_match('/facebook|google|sharethis/i',$url) && !preg_match('/__show__deepen|Blocked a frame with origin/',$error)){
+                            $line=$this->post('ln');
+                            $msg='JAVASCRIPT'.(isset($this->user->params['mobile']) && $this->user->params['mobile'] ? ' MOBILE':'').' ERROR: '.$error.' >> LINE: '.$line.' >> URL: '.$url. ' >> USER AGENT: '.$_SERVER['HTTP_USER_AGENT'].' >> USER_ID: '.$this->user->info['id'];
+                            error_log($msg);
+                        }
+                    }else{
                         $line=$this->post('ln');
-                        $msg='JAVASCRIPT'.(isset($this->user->params['mobile']) && $this->user->params['mobile'] ? ' MOBILE':'').' ERROR: '.$error.' >> LINE: '.$line.' >> URL: '.$url. ' >> USER AGENT: '.$_SERVER['HTTP_USER_AGENT'].' >> USER_ID: '.$this->user->info['id'];
-                        error_log($msg);
+                        $error_path = '/var/log/mourjan/editor.log';
+                        error_log(PHP_EOL.'----------------'.PHP_EOL.'Line: '.$line.PHP_EOL.'plugins: '.$error.PHP_EOL,3,$error_path);
                     }
                 }
                 $this->process();
