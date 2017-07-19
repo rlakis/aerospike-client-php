@@ -1599,7 +1599,8 @@ function nxt(e,c){
             fdT(n[3],0);
             pv=n[4];
             b=$f(n[4]);
-            tar=$f(n[1]);
+            //tar=$f(n[1]);
+            tar=$('textarea',$(p))[0];
             p=$p(p,2);
             extra['t']=1;
             //atxt=tar.value;
@@ -1613,7 +1614,8 @@ function nxt(e,c){
             fdT(n[5],0);
             pv=n[6];
             b=$f(n[6]);
-            tar=$f(n[3]);
+            //tar=$f(n[3]);
+            tar=$('textarea',$(p))[0];
             var h=$f($a(p,2),2);
             var s;
             if(lang=='ar'){
@@ -1722,8 +1724,8 @@ function parseDT(v,d){
             n=(n-12)+' مساءً';
         }
     }else {
-        if(n<12){
-            n+=' AM';
+        if(n<12 || n==24){
+            n=(n>12 ? (n-12) : n)+' AM';
         }else{
             n=(n>12 ? (n-12) : n)+' PM';
         }
