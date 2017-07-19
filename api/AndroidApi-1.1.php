@@ -3155,8 +3155,8 @@ class AndroidApi
     
     function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account = '',$reference=0, $helpTopic=1) 
     {
-        return $this->faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference, $helpTopic);
-        /*
+        //return $this->faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference, $helpTopic);
+        
         $mail = new PHPMailer(true);
         $mail->IsSMTP();
         $res = 0;
@@ -3194,7 +3194,7 @@ class AndroidApi
         $mail->ClearAddresses();
         $mail->ClearAllRecipients();
         $mail->ClearAttachments();
-        return $res;*/
+        return $res;
     }
     
     
