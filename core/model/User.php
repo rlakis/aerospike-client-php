@@ -1,11 +1,10 @@
 <?php
 
-require_once 'vendor/autoload.php';
+//require_once '/home/www/mourjan/deps/autoload.php';
 include_once '/home/www/mourjan/core/lib/MCUser.php';
 include_once '/home/www/mourjan/core/model/NoSQL.php';
 
 use mourjan\Hybrid;
-use mobiledetect\MobileDetect;
 use Core\Lib\SphinxQL;
 use Core\Model\NoSQL;
 use Sinergi\BrowserDetector\Browser;
@@ -245,7 +244,7 @@ class User
                     }
                 }
                 
-                $device = new Mobile_Detect();
+                $device = new \Detection\MobileDetect();
                 if($device->isMobile())
                 {
                     if( $device->isiOS() )

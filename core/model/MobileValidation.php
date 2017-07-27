@@ -1,8 +1,9 @@
 <?php
 namespace Core\Model;
 
-require_once "vendor/autoload.php";
+
 $dir = get_cfg_var('mourjan.path');
+require_once $dir.'/deps/autoload.php';
 include_once $dir.'/core/model/NoSQL.php';
 
 

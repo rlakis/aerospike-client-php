@@ -1,6 +1,6 @@
 <?php
 
-require_once 'vendor/autoload.php';
+require_once 'deps/autoload.php';
 require_once 'Site.php';
 require_once $config['dir']. '/core/model/NoSQL.php';
 

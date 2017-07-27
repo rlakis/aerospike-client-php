@@ -8,7 +8,7 @@
 // ------------------------------------------------------------------------
 //	HybridAuth End Point
 // ------------------------------------------------------------------------
-require 'vendor/autoload.php';
+require get_cfg_var('mourjan.path'). '/deps/autoload.php';
 use mourjan\Hybrid;
 use mourjan\EndPoint;
 use mourjan\Exception;

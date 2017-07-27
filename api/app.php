@@ -108,7 +108,7 @@ if ($appVersion=='1.0.1')
 {
     $appVersion='1.0';
 }
-
+require_once get_cfg_var('mourjan.path') . '/deps/autoload.php';
 include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
 
 include_once $config['dir']."/api/MobileApi-{$appVersion}.php";

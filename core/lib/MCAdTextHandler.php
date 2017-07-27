@@ -1,6 +1,6 @@
 <?php
  
-require 'vendor/autoload.php';
+require 'deps/autoload.php';
 use libphonenumber\PhoneNumber;
 use libphonenumber\PhoneNumberToCarrierMapper;
 use libphonenumber\PhoneNumberUtil;

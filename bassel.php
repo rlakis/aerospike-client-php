@@ -1,5 +1,5 @@
 <?php
-require_once 'vendor/autoload.php';
+require_once 'deps/autoload.php';
 require_once get_cfg_var('mourjan.path'). '/config/cfg.php';
 include_once $config['dir']. '/core/model/Db.php';
 use Core\Model\DB;

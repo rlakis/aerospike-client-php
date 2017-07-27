@@ -7,18 +7,19 @@
 // ----------------------------------------------------------------------------------------
 //      HybridAuth Config file: http://hybridauth.sourceforge.net/userguide/Configuration.html
 // ----------------------------------------------------------------------------------------
+
 return [
         "base_url"      => "https://dv.mourjan.com/web/lib/hybridauth/",
-    "proxy"             => "",
+        "proxy"         => "",
         "providers"     => [
-                "OpenID" => ["enabled" => true],
+            "OpenID" => ["enabled" => true],
 
-                "Yahoo" => [
-                        "enabled" => true,
-            "wrapper" => [ "path" => "vendor/hybridauth/hybridauth/additional-providers/hybridauth-yahoo-openid/Providers/Yahoo.php", "class" => "Hybrid_Providers_Yahoo" ]
+            "Yahoo" => [
+                    "enabled" => true,
+                    "wrapper" => [ "path" => "vendor/hybridauth/hybridauth/additional-providers/hybridauth-yahoo-openid/Providers/Yahoo.php", "class" => "Hybrid_Providers_Yahoo" ]
                 ],
 
-                "Google" => [
+            "Google" => [
                         "enabled" => true,
                         "keys"    => [
                                 "id" => "1017340605957-a5e8e6b12v4o5t8v2hjh16i140ju873u.apps.googleusercontent.com",
@@ -26,19 +27,20 @@ return [
                         "scope"   => ""
                 ],
 
-                "Facebook" => [
+            "Facebook" => [
                         "enabled" => true,
                         "keys"    => [
-                "id" => "184370954908428",
-                 "secret" => "e52e8d321c6b9dd828c8e0504b1ec5bd"],
+                            "id" => "184370954908428",
+                             "secret" => "e52e8d321c6b9dd828c8e0504b1ec5bd"
+                            ],
+                           
+                            // A comma-separated list of permissions you want to request from the user. See the Facebook docs for a full list of available permissions: http://developers.facebook.com/docs/reference/api/permissions.
+                            "scope"   => "email",
+                            // The display context to show the authentication page. Options are: page, popup, iframe, touch and wap. Read the Facebook docs for more details: http://developers.facebook.com/docs/reference/dialogs#display. Default: page
+                            "display" => "popup"
+            ],
 
-                        // A comma-separated list of permissions you want to request from the user. See the Facebook docs for a full list of available permissions: http://developers.facebook.com/docs/reference/api/permissions.
-                        "scope"   => "email",
-                        // The display context to show the authentication page. Options are: page, popup, iframe, touch and wap. Read the Facebook docs for more details: http://developers.facebook.com/docs/reference/dialogs#display. Default: page
-                        "display" => "popup"
-                ],
-
-                "Twitter" => [
+            "Twitter" => [
                         "enabled" => true,
                         "keys"    => [
                   "key" => "cNlPKmwj28nhGldSWj8gyLLge",

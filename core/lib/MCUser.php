@@ -1,5 +1,5 @@
 <?php
-require_once 'vendor/autoload.php';
+require_once get_cfg_var('mourjan.path').'/deps/autoload.php';
 require_once get_cfg_var('mourjan.path').'/core/model/NoSQL.php';
 require_once get_cfg_var('mourjan.path').'/core/lib/Jabber/JabberClient.php';
 

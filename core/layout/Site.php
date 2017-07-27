@@ -4,6 +4,9 @@ include_once '/home/www/mourjan/core/model/NoSQL.php';
 use Core\Model\Router;
 use Core\Model\Classifieds;
 use Core\Model\NoSQL;
+use ZammadAPIClient\Client;
+use ZammadAPIClient\ResourceType;
+
 
 class Site 
 {
@@ -742,6 +745,80 @@ class Site
     }
 
     
+    function zammad($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0) : int 
+    {
+        $client = new Client([
+            'url'           => 'http://ws.mourjan.com', // URL to your Zammad installation
+            'username'      => 'admin@berysoft.com',  // Username to use for authentication
+            'password'      => 'GQ71but2',           // Password to use for authentication
+            'debug'         => false,                // Enables debug output
+        ]);      
+        
+        $users = $client->resource( ResourceType::USER )->search($fromEmail);
+        if ( !is_array($users) ) 
+        {
+            if ( $users->hasError() ) 
+            {
+                error_log( $users->getError() );                
+            }
+            return 0;
+        }
+        else
+        {
+            error_log( 'Found ' . count($users) . ' user(s) with email address ' . $fromEmail );
+            if ($users)
+            {
+                $user = $users[0];
+            }
+            else
+            {
+                $name = trim($fromName);
+                $last_name = (strpos($name, ' ') === false) ? '' : preg_replace('#.*\s([\w-]*)$#', '$1', $name);
+                $first_name = trim( preg_replace('#'.$last_name.'#', '', $name ) );
+                $user_data = [
+                    'login' => $fromEmail,
+                    'email' => $fromEmail,
+                    'firstname' => $first_name,
+                    'lastname' => $last_name                
+                ];
+                
+                $user = $client->resource( ResourceType::USER );
+                $user->setValues($user_data);
+                $user->save();
+                if ( $user->hasError() ) 
+                {
+                    error_log( $user->getError() );
+                    return 0;
+                }                        
+            }
+        }        
+        
+        $ticket_data = [
+            'group_id'    => 1,
+            'priority_id' => 2,
+            'state_id'    => 1,
+            'title'       => $subject,
+            'customer_id' => $user->getID(),
+            'article'     => [
+                'content_type' => 'text/html',
+                'subject' => $subject,
+                'body'    => $message,
+            ],
+        ];
+        $ticket = $client->resource( ResourceType::TICKET );
+        $ticket->setValues($ticket_data);
+        $ticket->save();
+        
+        if ( $ticket->hasError() ) 
+        {
+            error_log( $ticket->getError() );
+            return 0;
+        }                
+                
+        return 1;                
+    }
+    
+    
     function faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0)
     {
         $key='mEI5PRfHaBvbn6El48yZcX492NLb5Cu5';
@@ -838,113 +915,15 @@ class Site
         //return 1;
         
     }
-    
-    
-    function createTicket($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0)
-    {
-        $keys = [99=>'BE3B545DE0E7EAB26360CF633269D99A', 2=>'80061F9B6D72FAC2E9D92D6AC5F705AA', 4=>'BE3B545DE0E7EAB26360CF633269D99A'];
-        $osticket = ['url'=>'http://ticket.mourjan.com/api/http.php/tickets.json', 'key'=>$keys[get_cfg_var('mourjan.server_id')]];
+      
         
-        $ticket = json_decode('{"alert":true, "autorespond":false}');
-        $ticket->autorespond = FALSE;
-        $ticket->name = $fromName;
-        $ticket->email = $fromEmail;
-        $ticket->subject = $subject;
-        $ticket->message = "data:text/html;charset=utf-8,{$message}";
         
-        if ($this->user->info['id'])
-        {
-            $ticket->uid = $this->user->info['id'];
-            if ($fromName=='')
-            {
-                $ticket->name = $this->user->info['name'];
-            }
-            
-            if (isset($this->user->info['email']) && strpos($this->user->info['email'], '@')!==FALSE) 
-            {
-                 $ticket->email = $this->user->info['email'];
-            }
-            //$ticket->upage = "<a href='https://www.mourjan.com//myads/?u={$ticket->uid}' target=_blank>User Ads</a>";
-        }
-        
-        if ($fromName=='Abusive Report' && $reference>0)
-        {
-            $ticket->aid = $reference;
-            $ticket->topicId=12;
-            $ticket->priority='High';
-            $ticket->subject.= " - {$reference}";
-        }
-        
-        if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR']))
-        {
-            $ticket->ip = "{$_SERVER['HTTP_X_FORWARDED_FOR']}";
-        } 
-        else 
-        {
-            $ticket->ip = "{$_SERVER['REMOTE_ADDR']}";
-        }
-       
-        #set timeout
-        set_time_limit(10);
-
-        #curl post
-        $ch = curl_init();        
-        curl_setopt($ch, CURLOPT_URL, $osticket['url']);        
-        curl_setopt($ch, CURLOPT_POST, 1);        
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($ticket));
-        curl_setopt($ch, CURLOPT_USERAGENT, 'osTicket API Client v1.10');
-        curl_setopt($ch, CURLOPT_HEADER, TRUE);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array( 'Expect:', 'X-API-Key: '.$osticket['key']));
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, FALSE);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE); 
-        $result=curl_exec($ch);
-        curl_close($ch);
-
-        //Use postfix exit codes...expected by MTA.
-        $code = 75;
-        $status = -1;
-        //error_log(var_export($result, true));
-
-        if(preg_match('/HTTP\/.* ([0-9]+) .*/', $result, $status)) 
-        {
-            //error_log (var_export($status, TRUE));
-            switch($status[1]) 
-            {
-                case 201: //Success
-                    $code = 0;
-                    break;
-
-                case 400:
-                    $code = 66;
-                    break;
-
-                case 401: /* permission denied */
-                case 403:
-                    $code = 77;
-                    break;
-
-                case 415:
-                case 416:
-                case 417:
-                case 501:
-                    $code = 65;
-                    break;
-
-                case 503:
-                    $code = 69;
-                    break;
-
-                case 500: //Server error.
-                default: //Temp (unknown) failure - retry 
-                    $code = 75;
-            }
-        }
-        return ($code==0) ? 1 : 0;
-    }
-    
-    
+      
     function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0, $helpTopic=1)
     {
+        $res = $this->zammad($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account);
+        error_log("res {$res}");
+        /*
         //return $this->faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference, $helpTopic);
         require 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';
         $mail = new PHPMailer(true);
@@ -989,7 +968,7 @@ class Site
          }
          $mail->ClearAddresses();
          $mail->ClearAllRecipients();
-         $mail->ClearAttachments();
+         $mail->ClearAttachments();*/
          return $res;
     }
     

@@ -1,12 +1,14 @@
 <?php 
 
-require_once 'vendor/autoload.php';
+include_once get_cfg_var('mourjan.path').'/deps/autoload.php';
 include_once get_cfg_var('mourjan.path').'/config/cfg.php';
 include_once $config['dir']. '/core/model/Router.php';
 include_once $config['dir']. '/core/model/Db.php';
 include_once $config['dir']. '/core/lib/MCSessionHandler.php';
 
 use hybridauth\Hybrid;
+use MaxMind\Db\Reader;
+use Detection\MobileDetect;
 use Core\Model\Router;
 use Core\Model\DB;
 

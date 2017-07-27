@@ -1,5 +1,5 @@
 <?php
-require_once 'vendor/autoload.php';
+require_once 'deps/autoload.php';
 require_once 'Page.php';
 
 class Signin extends Page

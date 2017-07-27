@@ -1,8 +1,7 @@
 <?php
 namespace Core\Model;
 
-require_once 'vendor/autoload.php';
-use MaxMind\Db\Reader;
+//require_once get_cfg_var('mourjan.path').'/deps/autoload.php';
 
 class Router 
 {
@@ -65,7 +64,7 @@ class Router
 
 	if(isset($_GET['shareapp']))
         {
-            $device = new \Mobile_Detect();
+            $device = new \Detection\MobileDetect();
             if($device->isMobile())
             {
                 if( $device->isiOS() )
@@ -149,7 +148,7 @@ class Router
             }
             else
             {
-                $device = new \Mobile_Detect();
+                $device = new \Detection\MobileDetect();
 
                 if ($device->isMobile() && !$device->isTablet()) 
                 {
@@ -513,7 +512,7 @@ class Router
         }
             
         $databaseFile = '/home/db/GeoLite2-City.mmdb';
-        $reader = new Reader($databaseFile);
+        $reader = new \MaxMind\Db\Reader($databaseFile);
         $ips = explode(',', $ip);
         foreach ($ips as $addr) 
         {
