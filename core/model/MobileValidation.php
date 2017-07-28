@@ -750,7 +750,7 @@ trait NexmoTrait
     
     public function nexmoCLI($to, &$bins) : array
     {
-        error_log(__FUNCTION__);
+        //error_log(__FUNCTION__);
         $result = [
             'status'=>400, 
             'response'=>['id'=>'', 'type'=>'cli', 'dialing_number'=>'', 
@@ -937,7 +937,7 @@ trait NexmoTrait
         $status = 400;
         if ( ($call = NoSQL::getInstance()->getCall($id))!==FALSE && !empty($call))
         {            
-            error_log(__FUNCTION__.PHP_EOL.json_encode($call, JSON_PRETTY_PRINT));
+            //error_log(__FUNCTION__.PHP_EOL.json_encode($call, JSON_PRETTY_PRINT));
             if (!isset($call['price']))
             {
                 $call['price'] = 0.0;

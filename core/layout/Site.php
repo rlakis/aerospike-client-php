@@ -765,7 +765,7 @@ class Site
         }
         else
         {
-            error_log( 'Found ' . count($users) . ' user(s) with email address ' . $fromEmail );
+            //error_log( 'Found ' . count($users) . ' user(s) with email address ' . $fromEmail );
             if ($users)
             {
                 $user = $users[0];

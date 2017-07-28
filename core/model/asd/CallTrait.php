@@ -128,7 +128,7 @@ trait CallTrait
         }
         
         $pk = $this->asRequestValidationKey($type, $request_id);
-        error_log(__FUNCTION__ . PHP_EOL . var_export($pk, TRUE));
+        //error_log(__FUNCTION__ . PHP_EOL . var_export($pk, TRUE));
         if ($this->setBins($pk, $bins))
         {            
             return $pk['key'];
