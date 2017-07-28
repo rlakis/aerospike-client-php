@@ -139,7 +139,7 @@ trait CallTrait
     
     public function getValidNumberCallRequests(int $type, int $number, int $did, &$result) : int
     {
-        error_log(__FUNCTION__." type {$type} {$number}/{$did}");
+        //error_log(__FUNCTION__." type {$type} {$number}/{$did}");
         
         $result=[];
         
@@ -335,7 +335,7 @@ trait CallTrait
                     $bins['valid_epoch'] = $call['validation_date'];
                     
                     $success = $this->setBins($this->asCallKey($call['conversation_uuid']), $bins);
-                    error_log("Result [{$success}] ".$this->asCallKey($call['conversation_uuid'])['key']);
+                    //error_log("Result [{$success}] ".$this->asCallKey($call['conversation_uuid'])['key']);
                     break;
                 
                 default:

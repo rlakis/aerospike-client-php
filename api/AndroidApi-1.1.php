@@ -4,6 +4,9 @@ use MaxMind\Db\Reader;
 use Core\Model\NoSQL;
 use Core\Lib\SphinxQL;
 use Core\Model\MobileValidation;
+use ZammadAPIClient\Client;
+use ZammadAPIClient\ResourceType;
+
 
 class AndroidApi 
 {
@@ -3081,6 +3084,80 @@ class AndroidApi
     }
     */
     
+    function zammad($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0) : int 
+    {
+        $client = new Client([
+            'url'           => 'http://ws.mourjan.com', // URL to your Zammad installation
+            'username'      => 'admin@berysoft.com',  // Username to use for authentication
+            'password'      => 'GQ71but2',           // Password to use for authentication
+            'debug'         => false,                // Enables debug output
+        ]);      
+        
+        $users = $client->resource( ResourceType::USER )->search($fromEmail);
+        if ( !is_array($users) ) 
+        {
+            if ( $users->hasError() ) 
+            {
+                error_log( $users->getError() );                
+            }
+            return 0;
+        }
+        else
+        {
+            //error_log( 'Found ' . count($users) . ' user(s) with email address ' . $fromEmail );
+            if ($users)
+            {
+                $user = $users[0];
+            }
+            else
+            {
+                $name = trim($fromName);
+                $last_name = (strpos($name, ' ') === false) ? '' : preg_replace('#.*\s([\w-]*)$#', '$1', $name);
+                $first_name = trim( preg_replace('#'.$last_name.'#', '', $name ) );
+                $user_data = [
+                    'login' => $fromEmail,
+                    'email' => $fromEmail,
+                    'firstname' => $first_name,
+                    'lastname' => $last_name                
+                ];
+                
+                $user = $client->resource( ResourceType::USER );
+                $user->setValues($user_data);
+                $user->save();
+                if ( $user->hasError() ) 
+                {
+                    error_log( $user->getError() );
+                    return 0;
+                }                        
+            }
+        }        
+        
+        $ticket_data = [
+            'group_id'    => 1,
+            'priority_id' => 2,
+            'state_id'    => 1,
+            'title'       => $subject,
+            'customer_id' => $user->getID(),
+            'article'     => [
+                'content_type' => 'text/html',
+                'subject' => $subject,
+                'body'    => $message,
+            ],
+        ];
+        $ticket = $client->resource( ResourceType::TICKET );
+        $ticket->setValues($ticket_data);
+        $ticket->save();
+        
+        if ( $ticket->hasError() ) 
+        {
+            error_log( $ticket->getError() );
+            return 0;
+        }                
+                
+        return 1;                
+    }
+    
+    
     function faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0)
     {
         $res = 0;
@@ -3155,6 +3232,8 @@ class AndroidApi
     function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account = '',$reference=0, $helpTopic=1) 
     {
         //return $this->faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference, $helpTopic);
+        return $this->zammad($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference, $helpTopic);
+        /*
         
         $mail = new PHPMailer(true);
         $mail->IsSMTP();
@@ -3193,7 +3272,7 @@ class AndroidApi
         $mail->ClearAddresses();
         $mail->ClearAllRecipients();
         $mail->ClearAttachments();
-        return $res;
+        return $res;*/
     }
     
     

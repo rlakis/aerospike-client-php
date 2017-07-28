@@ -886,7 +886,7 @@ trait NexmoTrait
             $err = curl_error($ch);
             return array("status" => $status, "response" => array("error" => $err));
         }
-        error_log($res);
+        //error_log($res);
         
         $result = json_decode($res, TRUE);
         
@@ -901,7 +901,7 @@ trait NexmoTrait
         
         NoSQL::getInstance()->outboundCall($result, $this->getUID());
 
-        error_log (var_export($result, TRUE));
+        //error_log (var_export($result, TRUE));
         
         $response = [
             'id'=>$result['conversation_uuid'],
