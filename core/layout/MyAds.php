@@ -892,13 +892,13 @@ var rtMsgs={
                 ?></ul></div></form><?php
             }
             
-            if(!$filters['active']){
-            
+            if(!$filters['active'])
+            {            
                 ?><div id="adminList" class="prx ar"><h4>تحت طائلة المسؤولية</h4><ul><?php
                 ?><li class="hvn50okt2 d2d9s5pl1g n2u2hbyqsn"><a href="<?= $link ?>69905">Robert</a></li><?php
                 ?><li class="f3iw09ojp5 a1zvo4t2vk"><a href="<?= $link ?>1">Bassel</a></li><?php
                 ?><li class="a1zvo4t4b8"><a href="<?= $link ?>2100">Nooralex</a></li><?php
-                ?><li class="n2u2hc8xil"><a href="<?= $link ?>477618">Sam</a></li><?php
+                ?><li class="n2u2hc8xil"><a href="<?= $link ?>477618">Samir</a></li><?php
                 ?><li class="x1arwhzqsl"><a href="<?= $link ?>38813">Editor 1</a></li><?php
                 ?><li class="d2d9s5p1p2"><a href="<?= $link ?>44835">Editor 2</a></li><?php
                 ?><li class="b2ixe8tahr"><a href="<?= $link ?>53456">Editor 3</a></li><?php
@@ -906,11 +906,12 @@ var rtMsgs={
                 ?><li class="j1nz09nf5t"><a href="<?= $link ?>516064">Editor 5</a></li><?php
                 ?><li class="x1arwii533"><a href="<?= $link ?>897143">Editor 6</a></li><?php
                 ?><li class="hvn517t2q"><a href="<?= $link ?>897182">Editor 7</a></li><?php
-                ?></ul></div><?php
-            
+                ?><li class="hvn517t21"><a href="<?= $link ?>1028732">Editor 8</a></li><?php
+                ?></ul></div><?php            
             }
             
-            if($standalone){                
+            if($standalone)
+            {          
                 ?></div><?php 
             }
         }
