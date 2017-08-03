@@ -218,13 +218,7 @@ class MobileValidation
         return $as_int ? $num : "+{$num}";
     }
     
-    
-    public function tt()
-    {
-        return $this->getAllocatedNumber();
-    }
-
-    
+        
     protected function getAllocatedNumber(bool $reverse=true) : int
     {
 
@@ -302,8 +296,10 @@ class MobileValidation
         {
             return MobileValidation::RESULT_ERR_NO_USER_ID;
         }
+        // robert
+        //return MobileValidation::RESULT_OK;
         
-        $record = NoSQL::getInstance()->mobileFetch($this->uid, $to);
+        $record = NoSQL::getInstance()->mobileFetch($this->getUID(), $to);
         if ($record)
         {
             $activation_time = $record[ASD\USER_MOBILE_DATE_ACTIVATED] ?? 0;
@@ -330,7 +326,7 @@ class MobileValidation
                             }
                         }
                         if ($vt>0)
-                        {
+                        {                            
                             return MobileValidation::RESULT_ERR_SENT_FEW_MINUTES;
                         }
                         else if (isset($record[ASD\USER_MOBILE_SENT_SMS_COUNT]) && $record[ASD\USER_MOBILE_SENT_SMS_COUNT]>0)
@@ -374,7 +370,7 @@ class MobileValidation
                     return 1;
                 }
             }
-        }    
+        }
         return 0;
     }
     
@@ -482,15 +478,21 @@ class MobileValidation
             return MobileValidation::RESULT_OK;
         }
 
-        if ($this->provider==static::NEXMO)
+        switch ($this->provider) 
         {
-            $response = $this->reverseNexmoCLI($to);
-            return MobileValidation::RESULT_OK;
-        }
-        else if ($this->provider==static::CHECK_MOBI)
-        {
+            case static::NEXMO:
+                $response = $this->reverseNexmoCLI($to);
+                return MobileValidation::RESULT_OK;
+                
+            case static::EDIGEAR:
+                return $this->sendEdigearReverseCLI($to, $response);
             
+            case static::CHECK_MOBI:
+                break;
+            default:
+                break;
         }
+
         return MobileValidation::RESULT_ERR_UNKNOWN;
         
     }
@@ -593,6 +595,22 @@ trait EdigearTrait
     
     public function sendEdigearReverseCLI($to, &$response) : int
     {
+        $bins = [];
+        if (($record = NoSQL::getInstance()->mobileFetch($this->getUID(), $to))!==FALSE)
+        {
+            if (empty($record))
+            {
+                $bins[ASD\USER_UID] = $this->getUID();
+                $bins[ASD\USER_MOBILE_NUMBER] = $to;
+            }
+        }
+        $bins[ASD\USER_MOBILE_ACTIVATION_CODE] = 0;
+        $bins[ASD\USER_MOBILE_FLAG] = $this->getPlatform();
+        $bins[ASD\USER_MOBILE_DATE_REQUESTED] = time();
+        $bins[ASD\USER_MOBILE_REQUEST_ID] = "";
+        $bins[ASD\USER_MOBILE_VALIDATION_TYPE] = MobileValidation::REVERSE_CLI_TYPE;
+        
+        
         $req = \Berysoft\EdigearRequest::Create()->
                         setAction(\Berysoft\EGAction::Request)->
                         setChannel(\Berysoft\EGChannel::Outbound)->
@@ -601,16 +619,68 @@ trait EdigearTrait
         
         $res = $this->getEdigearClient()->getInstance()->send($req);
         
+        error_log(json_encode($res));
+        
         if ($res['status']==200 && isset($res['data']))
         {
             $data = $res['data'];
+            $an = substr($data['allocated_number'], 1);
+            $response = [
+                "status" => $res['status'], 
+                "response" => [
+                    'id'=>$data['id'],
+                    'type'=>'reverse_cli',
+                    'cli_prefix'=>substr($an, 0, 5),
+                    'cli_full'=>$an,
+                    'hint'=>$data['allocated_number'],
+                    'length'=>strlen($data['allocated_number'])
+            ]];
+            
+            
+            $bins[ASD\USER_MOBILE_ACTIVATION_CODE] = 0;
+            $bins[ASD\USER_MOBILE_REQUEST_ID] = $data['id'];
+            
+            if (isset($bins[ASD\USER_UID]))
+            {
+                $ok = NoSQL::getInstance()->mobileInsert($bins);
+            }
+            else
+            {
+                $ok = NoSQL::getInstance()->mobileUpdate($this->getUID(), $to, $bins);
+            }
+            
+            
+            return MobileValidation::RESULT_OK;
         }
         
         return MobileValidation::RESULT_ERR_UNKNOWN;
         
     }
+
     
-    
+    public function verifyEdigearPin(string $id, int $pin) : array
+    {
+        $status = 400;
+        $response = ["number"=>NULL, "validated"=>false, "validation_date"=>NULL, "charged_amount"=>0];
+        $req = Berysoft\EdigearRequest::Create()->
+                        setAction(Berysoft\EGAction::Verify)->
+                        setId($id)->
+                        setPin(strval($pin)); 
+        
+        $res = $this->getEdigearClient()->getInstance()->send($req);
+        
+        $status = $res['status'];
+        if ($status==200 && isset($res['data']))
+        {
+            $response['number'] = $this->getE164( $res['data']['number'] );
+            //$response['uid'] = $call[ASD\USER_UID];           
+            $response['charged_amount'] = $res['data']['price'];
+            $response['validated'] = $res['data']['verified'];
+            $response['validation_date'] = $res['data']['timestamp'];                                    
+        }
+                          
+        return ['status'=>$status, 'response'=>$response];
+    }
 }
 
 
@@ -1108,72 +1178,14 @@ trait NexmoTrait
             }
             return ['status'=>$status, 'response'=>$response];            
         }
-    }
-    
-    
-    public static function modifyNexmoCall(string $uuid)
-    {
-        $action = '/calls';
-        $application_id = "905c1bc6-ff6c-4767-812c-1b39d756bda6";
-        $basic  = new \Nexmo\Client\Credentials\Basic('8984ddf8', 'CVa3tHey3js6');
-        
-        $keypair = new \Nexmo\Client\Credentials\Keypair(file_get_contents('/opt/ssl/nexmo.key'), $application_id);
-        $api = new \Nexmo\Client(new \Nexmo\Client\Credentials\Container($basic, $keypair));
-        if ($uuid)
-        {        
-            error_log(__FUNCTION__."\t".$uuid);
-            //$call = $api->calls->get($id);
-            $jwt = false;
-            date_default_timezone_set('UTC');    //Set the time for UTC + 0
-            $key = file_get_contents('/opt/ssl/nexmo.key');  //Retrieve your private key
-            $signer = new Sha256();
-            $privateKey = new Key($key);
-
-            $jwt = (new Builder())->
-                    setIssuedAt(time() - date('Z'))->
-                    set('application_id', $application_id)->setId( base64_encode( mt_rand (  )), true)->
-                    sign($signer,  $privateKey)->
-                    getToken();
-
-            //$jwt = $this->generate_jwt($application_id, '/opt/ssl/nexmo.key');
-       
-            //Hangup the call
-            $payload = '{
-              "action": "hangup"
-            }';
-            //error_log(json_encode($call, JSON_PRETTY_PRINT));
-            $hangup = new \Nexmo\Call\Hangup();
-            error_log(json_encode($hangup));
-            
-            //$call->put(json_encode($hangup));
-            //error_log($this->base_url . $this->version . $action  . "/" . $uuid);
-            $ch = curl_init('https://api.nexmo.com' . '/v1' . $action  . "/" . $uuid );
-            
-            //error_log($ch);
-            
-            curl_setopt($ch, CURLOPT_PUT, 1);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', "Authorization: Bearer " . $jwt ));
-            $response = curl_exec($ch);
-            
-            error_log(json_encode($response));
-
-        }
-        
-        //$json = json_decode(json_encode($hangup));
-        //var_dump($json);
-        
-    }
+    }    
     
 }
 
 if (php_sapi_name()=='cli')
 {
-    echo MobileValidation::getInstance()->tt(), "\n";
+    //echo MobileValidation::getInstance()->tt(), "\n";
     //NoSQL::getInstance()->tkey();
     //var_dump( MobileValidation::getInstance(MobileValidation::NEXMO)->setUID(2)->setPin(1234)->fastCallText(442039061160, 447520619658) );
-    //MobileValidation::getInstance()->modifyNexmoCall("");
     //echo MobileValidation::getInstance()->setUID(2)->setPin(1234)->verifyNexmoCallPin("CON-8403beab-327c-4945-abb2-45e3b4627b08", 4077), "\n";
 }

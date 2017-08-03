@@ -27,7 +27,6 @@ function handle_call_status()
             {
                 case 'ringing':
                     NoSQL::getInstance()->outboundCall($decoded_request);
-                    //MobileValidation::modifyNexmoCall($decoded_request['uuid']);
                     break;
 
                 case 'answered':
@@ -58,7 +57,6 @@ function handle_call_status()
                 case 'started':
                 case 'ringing':
                     //NoSQL::getInstance()->getValidNumberCallRequests(MobileValidation::CLI_TYPE, $number, $did, $result)
-                    //MobileValidation::getInstance(MobileValidation::NEXMO)->modifyNexmoCall($decoded_request['uuid']);
                     //NoSQL::getInstance()->outboundCall($decoded_request);
                     //error_log("Handle conversation_uuid, this return parameter identifies the Conversation");
                     break;

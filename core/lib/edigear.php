@@ -111,7 +111,7 @@ class Edigear
             $is_json = is_string($response) && is_array(json_decode($response, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
             if ($is_json)
             {                
-                $result['data'] = json_decode($response);
+                $result['data'] = json_decode($response, TRUE);
             }
             
         } 

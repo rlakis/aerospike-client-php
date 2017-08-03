@@ -1,10 +1,10 @@
 <?php
 
-use MaxMind\Db\Reader;
-use Core\Model\DB;
-use Core\Model\NoSQL;
-use Core\Model\Classifieds;
-use Core\Lib\SphinxQL;
+use \MaxMind\Db\Reader;
+use \Core\Model\DB;
+use \Core\Model\NoSQL;
+use \Core\Model\Classifieds;
+use \Core\Lib\SphinxQL;
 use \Core\Model\MobileValidation;
 
 class MobileApi
@@ -2001,12 +2001,13 @@ class MobileApi
         
         if ($record)
         {       
-            if (isset($record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]>(time()-31536000))
-            {
-                $this->result['e'] = $this->lang=='ar' ? 'سبق وتم التحقق من رقم الجوال' : 'Mobile number already validated';
-                $this->result['d']['status']='validated';
-                return;
-            }
+            // robert
+//            if (isset($record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]>(time()-31536000))
+//            {
+//                $this->result['e'] = $this->lang=='ar' ? 'سبق وتم التحقق من رقم الجوال' : 'Mobile number already validated';
+//                $this->result['d']['status']='validated';
+//                return;
+//            }
             //error_log("One Type: {$val_type}, Pin: {$pin_code}, Mobile:{$mobile_no}");
             
             if ($pin_code) 
@@ -2027,7 +2028,8 @@ class MobileApi
                         break;
 
                     case MobileValidation::REVERSE_CLI_TYPE:                     
-                        $response = MobileValidation::getInstance()->setUID($this->getUID())->verifyNexmoCallPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $pin_code);
+                        //$response = MobileValidation::getInstance()->setUID($this->getUID())->verifyNexmoCallPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $pin_code);
+                        $response = MobileValidation::getInstance()->setUID($this->getUID())->verifyEdigearPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $pin_code);
                                                 
                         //$response = CheckMobiRequest::verifyPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $pin_code);
                         if (isset($response['status']) && $response['status']==200 && isset($response['response']))
@@ -2117,13 +2119,13 @@ class MobileApi
                     return;
             
                 case \Core\Model\MobileValidation::REVERSE_CLI_TYPE:
-                    $ret = MobileValidation::getInstance()->setUID($this->getUID())->setPlatform(MobileValidation::IOS)->requestReverseCLI($mobile_no, $response);
+                    $ret = MobileValidation::getInstance(MobileValidation::EDIGEAR)->setUID($this->getUID())->setPlatform(MobileValidation::IOS)->requestReverseCLI($mobile_no, $response);
                     switch ($ret) 
                     {
                         case MobileValidation::RESULT_OK:
                         case MobileValidation::RESULT_ERR_SENT_FEW_MINUTES:
                             $this->result['d']['status']='sent';
-                            $this->result['d']['pin_hash'] = $response['response']['pin_hash'];  
+                            $this->result['d']['pin_hash'] = '';//$response['response']['pin_hash'];  
                             $this->result['d']['request_id'] = $response['response']['id'];
                             if ($this->lang=='ar')
                             {
@@ -2136,7 +2138,7 @@ class MobileApi
                             if (isset($response['response']['length']))
                             {
                                 $x = substr('xxxxxxxxxxxxxxxxxxxx', -1*($response['response']['length']-9));
-                                $this->result['d']['message'].=$x.'XXXX';
+                                $this->result['d']['message'].=$x.'XXXX'; // $response['response']['allocated_number'];
                             }
                             if (isset($response['response']['called']))
                             {
