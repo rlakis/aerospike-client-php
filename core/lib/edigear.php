@@ -1,7 +1,8 @@
 <?php
-namespace berysoft;
 
-class EdigearClient
+namespace Berysoft;
+
+class Edigear
 {
     const GEAR_URL      = "https://h9.mourjan.com";
     const GEAR_VERSION  = "v1";
@@ -20,13 +21,13 @@ class EdigearClient
     }
     
     
-    public static function getInstance() : EdigearClient
+    public static function getInstance() : Edigear
     {
-        if (EdigearClient::$instance==null)
+        if (Edigear::$instance==null)
         {
-            EdigearClient::$instance = new EdigearClient();            
+            Edigear::$instance = new Edigear();            
         }
-        return EdigearClient::$instance;
+        return Edigear::$instance;
     }
                
     
@@ -225,7 +226,7 @@ class EdigearRequest
     
     public function getURL() : string
     {
-        $url = EdigearClient::GEAR_URL . '/' . EdigearClient::GEAR_VERSION;
+        $url = Edigear::GEAR_URL . '/' . Edigear::GEAR_VERSION;
         switch ($this->action) 
         {
             case EGAction::Request:
@@ -518,6 +519,6 @@ if (PHP_SAPI=='cli')
             break;
     }        
 
-    $response = EdigearClient::getInstance()->setSecretKey("D38D5D58-572B-49EC-BAB5-63B6081A55E6")->send($request);
+    $response = Edigear::getInstance()->setSecretKey("D38D5D58-572B-49EC-BAB5-63B6081A55E6")->send($request);
     var_dump($response);
 }

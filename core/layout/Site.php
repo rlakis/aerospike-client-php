@@ -794,17 +794,27 @@ class Site
         }        
         
         $ticket_data = [
-            'group_id'    => 1,
-            'priority_id' => 2,
-            'state_id'    => 1,
-            'title'       => $subject,
-            'customer_id' => $user->getID(),
-            'article'     => [
-                'content_type' => 'text/html',
-                'subject' => $subject,
-                'body'    => $message,
+            'group_id'      => 1,
+            'priority_id'   => 2,
+            'state_id'      => 1,
+            'title'         => $subject,
+            /*'customer_id'   => $user->getID(),*/
+            'article'       => [
+                'origin_by_id'  => $user->getID(),
+                'reply_to'      => trim($fromName)." <".trim($fromEmail).">",
+                'subject'       => $subject,
+                'body'          => $message,
+                'content_type'  => 'text/html',
+                'internal'      => FALSE,                
+                /*'in_reply_to'   => trim($fromName)." <".trim($fromEmail).">",*/
+                'type_id'       => 11,
+                'sender_id'     => 2,
+                'time_unit'     => 12,
             ],
         ];
+        
+        error_log(json_encode($ticket_data, JSON_PRETTY_PRINT));
+        
         $ticket = $client->resource( ResourceType::TICKET );
         $ticket->setValues($ticket_data);
         $ticket->save();

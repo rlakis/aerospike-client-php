@@ -5,10 +5,12 @@ namespace Core\Model;
 $dir = get_cfg_var('mourjan.path');
 require_once $dir.'/deps/autoload.php';
 include_once $dir.'/core/model/NoSQL.php';
+include_once $dir.'/core/lib/edigear.php';
 
 
 use \checkmobi\CheckMobiRest;
 use \Core\Model\NoSQL;
+use Berysoft;
 
 use \Lcobucci\JWT\Builder;
 use \Lcobucci\JWT\Signer\Key;
@@ -18,11 +20,13 @@ use \Lcobucci\JWT\Signer\Rsa\Sha256;
 class MobileValidation
 {
     use CheckMobiTrait;
+    use EdigearTrait;
     use NexmoTrait;
     
     
     const CHECK_MOBI                    = 1;
     const NEXMO                         = 2;
+    const EDIGEAR                       = 3;
     
     const ANDROID                       = 0;
     const WEB                           = 1;
@@ -42,6 +46,7 @@ class MobileValidation
     const REVERSE_CLI_TYPE              = 2;
     
     private static $check_mobi_api;
+    private static $edigear_api;
     private static $nexmo_api;
     
     private $uid;
@@ -79,14 +84,23 @@ class MobileValidation
     {
         $this->uid = 0;
         $this->provider = $provider;
-        if ($provider==static::NEXMO)
-        {
-            $this->getNexmoClient();            
-        }
         
-        if ($provider==static::CHECK_MOBI)
+        switch ($this->provider) 
         {
-            $this->getCheckMobiClient();
+            case static::NEXMO:
+                $this->getNexmoClient();
+                break;
+            
+            case static::CHECK_MOBI:
+                $this->getCheckMobiClient();
+                break;
+            
+            case static::EDIGEAR:
+                $this->getEdigearClient();
+                break;
+            
+            default:
+                break;
         }
         
         $this->platform = $platform;    
@@ -113,6 +127,17 @@ class MobileValidation
         return MobileValidation::$check_mobi_api;        
     }
 
+    
+    protected function getEdigearClient() : Berysoft\Edigear
+    {
+        if (!(MobileValidation::$edigear_api))
+        {
+            MobileValidation::$edigear_api = \Berysoft\Edigear::getInstance()->
+                    setSecretKey("D38D5D58-572B-49EC-BAB5-63B6081A55E6");
+        }
+        return MobileValidation::$edigear_api;        
+    }
+    
     
     public static function getInstance(int $provider=MobileValidation::NEXMO) : MobileValidation
     {        
@@ -159,10 +184,18 @@ class MobileValidation
     
     protected function getPlatformName() : string
     {
-        $result = "web";
-        if ($this->platform==0) $result = "android";
-        if ($this->platform==2) $result = "ios";
-        
+        switch ($this->platform)
+        {
+            case 0:
+                $result = "android";
+                break;
+            case 2:
+                $result = "ios";
+                break;
+            default:
+                $result = "web";
+                break;
+        }        
         return $result;
     }
     
@@ -184,6 +217,7 @@ class MobileValidation
         $num= intval($number);        
         return $as_int ? $num : "+{$num}";
     }
+    
     
     public function tt()
     {
@@ -365,34 +399,53 @@ class MobileValidation
                 ASD\USER_MOBILE_ACTIVATION_CODE=>0,
                 ASD\USER_MOBILE_FLAG=>$this->platform];
 
-        if ($this->provider==MobileValidation::CHECK_MOBI)
+        switch ($this->provider) 
         {
-            if ($this->sendCheckMobiCallerId($to, $bins))
-            {
-                $res = ($record) ? NoSQL::getInstance()->mobileUpdate($this->getUID(), $num, $bins) : NoSQL::getInstance()->mobileInsert($bins);
-                if ($res)
+            case static::EDIGEAR:
+                if ($this->sendEdigearCallerId($to, $bins))
                 {
-                    return MobileValidation::RESULT_OK;
+                    $res = ($record) ? 
+                            NoSQL::getInstance()->mobileUpdate($this->getUID(), $num, $bins) : 
+                            NoSQL::getInstance()->mobileInsert($bins);
+                    return ($res) ? static::RESULT_OK : static::RESULT_ERR_DB_FAILURE;
                 }
-                return MobileValidation::RESULT_ERR_DB_FAILURE;
-            }
+                break;
+            
+            case static::CHECK_MOBI:
+                if ($this->sendCheckMobiCallerId($to, $bins))
+                {
+                    $res = ($record) ? NoSQL::getInstance()->mobileUpdate($this->getUID(), $num, $bins) : NoSQL::getInstance()->mobileInsert($bins);
+                    if ($res)
+                    {
+                        return MobileValidation::RESULT_OK;
+                    }
+                    return MobileValidation::RESULT_ERR_DB_FAILURE;
+                }
+                break;
 
-        }
-        else if ($this->provider==static::NEXMO)
-        {
-            $req = $this->nexmoCLI($to, $bins);
-            $req_status = $req['status'] ?? 400; 
-            if ($req_status==200)
-            {
-                $res = ($record) ? NoSQL::getInstance()->mobileUpdate($this->getUID(), $num, $bins) : NoSQL::getInstance()->mobileInsert($bins);
-                if ($res)
+            case static::NEXMO:
+                $req = $this->nexmoCLI($to, $bins);
+                $req_status = $req['status'] ?? 400; 
+                if ($req_status==200)
                 {
-                    return MobileValidation::RESULT_OK;
+                    $res = ($record) ? 
+                            NoSQL::getInstance()->mobileUpdate($this->getUID(), $num, $bins) : 
+                            NoSQL::getInstance()->mobileInsert($bins);
+                    if ($res)
+                    {
+                        return MobileValidation::RESULT_OK;
+                    }
+                    return MobileValidation::RESULT_ERR_DB_FAILURE;
                 }
-                return MobileValidation::RESULT_ERR_DB_FAILURE;
-            }            
+                break;
+
+            
+            default:
+                break;
+                        
         }
         
+                
         return MobileValidation::RESULT_ERR_UNKNOWN;
         
     }
@@ -489,6 +542,74 @@ class MobileValidation
         
         return MobileValidation::RESULT_ERR_UNKNOWN;
     }
+    
+}
+
+
+trait EdigearTrait
+{
+    abstract protected function getEdigearClient() : Berysoft\Edigear;
+    abstract protected function getPlatformName();
+    abstract protected function getE164($number);
+    
+    private function getEdigearPlatform()
+    {
+        switch ($this->getPlatformName()) 
+        {
+            case 'ios':
+                return \Berysoft\EGPlatform::IOS;
+            case 'android':
+                return \Berysoft\EGPlatform::Android;
+        }
+        return \Berysoft\EGPlatform::Website;
+    }
+    
+    
+    public function sendEdigearCallerId($to, &$bins) : bool
+    {
+        
+        $req = Berysoft\EdigearRequest::Create()
+                ->setAction(\Berysoft\EGAction::Request)
+                ->setChannel(\Berysoft\EGChannel::Inbound)
+                ->setPlatform($this->getEdigearPlatform())
+                ->setPhoneNumber(intval($to));
+        
+        
+        $response = $this->getEdigearClient()->getInstance()->send($req);
+        if ($response['status']==200 && isset($response['data']))
+        {
+            $data = $response['data'];
+            
+            $bins[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE] = intval($data['allocated_number']);
+            $bins[ASD\USER_MOBILE_DATE_REQUESTED]=time();
+            $bins[ASD\USER_MOBILE_REQUEST_ID] = $data['id'];
+            $bins[ASD\USER_MOBILE_VALIDATION_TYPE] = MobileValidation::CLI_TYPE;
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    public function sendEdigearReverseCLI($to, &$response) : int
+    {
+        $req = \Berysoft\EdigearRequest::Create()->
+                        setAction(\Berysoft\EGAction::Request)->
+                        setChannel(\Berysoft\EGChannel::Outbound)->
+                        setPlatform($this->getEdigearPlatform())->
+                        setPhoneNumber($this->getE164($to, TRUE));
+        
+        $res = $this->getEdigearClient()->getInstance()->send($req);
+        
+        if ($res['status']==200 && isset($res['data']))
+        {
+            $data = $res['data'];
+        }
+        
+        return MobileValidation::RESULT_ERR_UNKNOWN;
+        
+    }
+    
     
 }
 
