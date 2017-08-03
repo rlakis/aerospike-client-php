@@ -364,7 +364,12 @@ class Bin extends AjaxHandler{
                                         {
                                             //$res
                                             //$response = CheckMobiRequest::verifyPin($mrs[Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);
-                                            $response = MobileValidation::getInstance()->verifyNexmoCallPin($mrs[Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);
+                                            
+
+                                            //$response = MobileValidation::getInstance()->verifyNexmoCallPin($mrs[Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);
+                                            $response = MobileValidation::getInstance()->verifyEdigearPin($mrs[Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);
+                                            //var_dump($response);
+                                            
                                             if (isset($response['status']) && $response['status']==200 && isset($response['response']))
                                             {
                                                 if ($response['response']['validated'])
@@ -564,14 +569,22 @@ class Bin extends AjaxHandler{
                                                 else
                                                 {
                                                     //$response = CheckMobiRequest::reverseCallerId($number, $this->user->info['id']);
-                                                    $ret = MobileValidation::getInstance(MobileValidation::NEXMO)->
+                                                    $ret = MobileValidation::getInstance(MobileValidation::EDIGEAR)->
                                                             setUID($this->user->info['id'])->
                                                             setPlatform(MobileValidation::WEB)->
                                                             requestReverseCLI($number, $response);
-
-
-                                                    if ($ret!==MobileValidation::RESULT_OK || !(isset($response['status']) && ($response['status']==200||$response['status']==201)))
-                                                    {                                                
+                                                    
+                                                    /*$ret = MobileValidation::getInstance(MobileValidation::NEXMO)->
+                                                            setUID($this->user->info['id'])->
+                                                            setPlatform(MobileValidation::WEB)->
+                                                            requestReverseCLI($number, $response);
+*/
+                                                    if ($ret==MobileValidation::RESULT_ERR_ALREADY_ACTIVE){
+                                                        $this->setData(1,'verified');
+                                                        $number = 0;
+                                                        $keyCode = 0;
+                                                    }elseif ($ret!==MobileValidation::RESULT_OK || !(isset($response['status']) && ($response['status']==200||$response['status']==201)))
+                                                    {           
                                                         $keyCode=0;
                                                         $number=0;
                                                     }
