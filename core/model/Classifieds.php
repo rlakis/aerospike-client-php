@@ -1,7 +1,6 @@
 <?php
 namespace Core\Model;
 
-require 'deps/autoload.php';
 use libphonenumber\PhoneNumber;
 use libphonenumber\PhoneNumberToCarrierMapper;
 use libphonenumber\PhoneNumberUtil;
