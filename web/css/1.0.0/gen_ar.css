@@ -594,6 +594,7 @@ input.bt,input.bt.off:active{
 .mul{
     font-size:14px;
     width:940px;
+    width:590px;
     padding:12px;
     position:absolute;
     z-index:100000;
