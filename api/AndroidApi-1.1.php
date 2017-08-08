@@ -1367,7 +1367,9 @@ class AndroidApi
                                         }else{
                                             
                                             if($reverseCall){
-                                                 $response = MobileValidation::getInstance()->setUID($this->api->getUID())->verifyNexmoCallPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);                                                
+                                                //error_log("reverse call with key");
+                                                //$response = MobileValidation::getInstance()->setUID($this->api->getUID())->verifyNexmoCallPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);                                                
+                                                $response = MobileValidation::getInstance()->setUID($this->api->getUID())->verifyEdigearPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode+0);                                                
                                                 if (isset($response['status']) && $response['status']==200 && isset($response['response']))
                                                 {
                                                     if ($response['response']['validated'])
@@ -1428,12 +1430,13 @@ class AndroidApi
                                         $makeCall= false;
                                         
                                         if($reverseCall){
-                                            
-                                            $ret = MobileValidation::getInstance(MobileValidation::NEXMO)->setUID($this->api->getUID())->setPlatform(MobileValidation::ANDROID)->requestReverseCLI($number, $response);
+                                            //error_log("reverse call");
+                                            //$ret = MobileValidation::getInstance(MobileValidation::NEXMO)->setUID($this->api->getUID())->setPlatform(MobileValidation::ANDROID)->requestReverseCLI($number, $response);
+                                            $ret = MobileValidation::getInstance(MobileValidation::EDIGEAR)->setUID($this->api->getUID())->setPlatform(MobileValidation::ANDROID)->requestReverseCLI($number, $response);
                                             switch ($ret) 
                                             {
-                                                case MobileValidation::RESULT_OK:
                                                 case MobileValidation::RESULT_ERR_SENT_FEW_MINUTES:
+                                                case MobileValidation::RESULT_OK:
                                                     $this->api->result['d']['pending_call'] = true;
                                                     if (isset($response['response']['called']))
                                                     {
