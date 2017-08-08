@@ -1369,7 +1369,7 @@ class AndroidApi
                                             if($reverseCall){
                                                 //error_log("reverse call with key");
                                                 //$response = MobileValidation::getInstance()->setUID($this->api->getUID())->verifyNexmoCallPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);                                                
-                                                $response = MobileValidation::getInstance()->setUID($this->api->getUID())->verifyEdigearPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);                                                
+                                                $response = MobileValidation::getInstance()->setUID($this->api->getUID())->verifyEdigearPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode+0);                                                
                                                 if (isset($response['status']) && $response['status']==200 && isset($response['response']))
                                                 {
                                                     if ($response['response']['validated'])
