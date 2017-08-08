@@ -93,6 +93,7 @@ class Edigear
                 case EGMethod::POST:
                     curl_setopt($ch, CURLOPT_POST, true);
                     $jsonPayload = $request->getPayload();
+                    error_log($jsonPayload);
                     curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonPayload);
                     array_push($headers, "Content-Type: application/json");
                     array_push($headers, 'Content-Length: '.strlen($jsonPayload));
@@ -105,6 +106,7 @@ class Edigear
             curl_setopt_array($ch, $options);
             
             $response = \curl_exec($ch);
+            error_log($response);
             //Retrieve Response Status
             $result['status'] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             

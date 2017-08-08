@@ -2001,13 +2001,12 @@ class MobileApi
         
         if ($record)
         {       
-            // robert
-//            if (isset($record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]>(time()-31536000))
-//            {
-//                $this->result['e'] = $this->lang=='ar' ? 'سبق وتم التحقق من رقم الجوال' : 'Mobile number already validated';
-//                $this->result['d']['status']='validated';
-//                return;
-//            }
+            if (isset($record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]>(time()-31536000))
+            {
+                $this->result['e'] = $this->lang=='ar' ? 'سبق وتم التحقق من رقم الجوال' : 'Mobile number already validated';
+                $this->result['d']['status']='validated';
+                return;
+            }
             //error_log("One Type: {$val_type}, Pin: {$pin_code}, Mobile:{$mobile_no}");
             
             if ($pin_code) 

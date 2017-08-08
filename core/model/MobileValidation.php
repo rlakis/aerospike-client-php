@@ -456,7 +456,13 @@ class MobileValidation
         //    $status = MobileValidation::RESULT_OK;
         //}
 
-       
+        if ($status==MobileValidation::RESULT_ERR_SENT_FEW_MINUTES && isset($record[ASD\USER_MOBILE_REQUEST_ID]))
+        {
+            $response = $this->getEdigearRequestStatus($record[ASD\USER_MOBILE_REQUEST_ID]);
+            return $status;
+        }
+        
+        
         if ($status!=MobileValidation::RESULT_OK && $status!==MobileValidation::RESULT_ERR_CALL_DONE)
         {
             return $status;
@@ -679,6 +685,32 @@ trait EdigearTrait
             $response['validation_date'] = $res['data']['timestamp'];                                    
         }
                           
+        return ['status'=>$status, 'response'=>$response];
+    }
+    
+    
+    public function getEdigearRequestStatus(string $id) : array
+    {
+        $req = Berysoft\EdigearRequest::Create()->
+                        setAction(Berysoft\EGAction::Status)->
+                        setId($id);
+        $res = Berysoft\Edigear::getInstance()->send($req);
+        $status = $res['status'];
+        if ($status==200 && isset($res['data']))
+        {
+            $data = $res['data'];
+            $an = substr($data['more']['allocated_number'], 1);
+            $response['id'] = $id;
+            $response['number'] = $this->getE164( $res['data']['number'] );        
+            $response['charged_amount'] = $res['data']['price'];
+            $response['validated'] = $res['data']['verified'];
+            $response['validation_date'] = $res['data']['timestamp'];        
+            $response['type'] = $res['data']['more']['channel'];
+            $response['cli_prefix'] =substr($an, 0, 5);
+            $response['cli_full']= $an;
+            $response['hint'] = $data['more']['allocated_number'];
+            $response['length'] = strlen($response['hint']);
+        }
         return ['status'=>$status, 'response'=>$response];
     }
 }
