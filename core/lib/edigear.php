@@ -93,7 +93,7 @@ class Edigear
                 case EGMethod::POST:
                     curl_setopt($ch, CURLOPT_POST, true);
                     $jsonPayload = $request->getPayload();
-                    error_log($jsonPayload);
+                    //error_log($jsonPayload);
                     curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonPayload);
                     array_push($headers, "Content-Type: application/json");
                     array_push($headers, 'Content-Length: '.strlen($jsonPayload));
@@ -106,7 +106,9 @@ class Edigear
             curl_setopt_array($ch, $options);
             
             $response = \curl_exec($ch);
-            error_log($response);
+
+            //error_log($response);
+            
             //Retrieve Response Status
             $result['status'] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             
@@ -335,11 +337,16 @@ class EdigearRequest
             case EGAction::Request:
                 if ($this->payload['channel']==EGChannel::Message && isset($this->payload['sender']) && !empty($this->payload['sender']))
                 {
-                    return json_encode([
+                    $payl = [
                         'number'=>$this->payload['number'], 
                         'channel'=>$this->payload['channel'], 
                         'platform'=>$this->payload['platform'], 
-                        'sender'=> $this->payload['sender']]);
+                        'sender'=> $this->payload['sender']];
+                    if (isset($this->payload['pin']) && $this->payload['pin'])
+                    {
+                        $payl['code']=$this->payload['pin'];
+                    }
+                    return json_encode($payl);
                 }
                 return json_encode([
                         'number'=>$this->payload['number'], 
