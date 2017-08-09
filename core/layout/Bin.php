@@ -343,8 +343,8 @@ class Bin extends AjaxHandler{
                     { 
                         if($keyCode)
                         {                            
-                            if($validateByCall)
-                            {
+                            //if($validateByCall)
+                            //{
                                 $validator = libphonenumber\PhoneNumberUtil::getInstance();
                                 $num = $validator->parse($number, 'LB');
 
@@ -407,14 +407,19 @@ class Bin extends AjaxHandler{
                                 }else{
                                     $this->setData(0,'verified');
                                 }
-                            }
+                            /*}
                             else
                             { 
                                 if(substr($number,0,1)=='+')
                                 {
                                     $number = substr($number,1);
                                 }
-                                
+                                $mrs = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number);
+                                if ($mrs!==FALSE){
+                                    $response = MobileValidation::getInstance()->verifyEdigearPin($mrs[Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);
+                                }else{
+                                    $this->setData(0,'verified');
+                                }
                                 if (Core\Model\NoSQL::getInstance()->mobileActivation($this->user->info['id'], $number, $keyCode))
                                 {
                                     $this->setData(1,'verified');
@@ -426,7 +431,7 @@ class Bin extends AjaxHandler{
                                 { 
                                     $this->setData(0,'verified');
                                 }
-                            }                      
+                            }  */                    
                         }
                         else
                         {
@@ -626,15 +631,14 @@ class Bin extends AjaxHandler{
                                     {
                                         $keyCode=0;
                                         $number=0;
-                                    }
-                                                                                                        
+                                    }                                                                    
                                     if ($sendSms && $number && $keyCode)
                                     {
-                                        if (MobileValidation::getInstance(MobileValidation::NEXMO)->
+                                        if ( ($returnie = MobileValidation::getInstance(MobileValidation::EDIGEAR)->
                                                 setPlatform(MobileValidation::WEB)->
                                                 setUID($this->user->info['id'])->
                                                 setPin($keyCode)->
-                                                sendSMS($number, "{$keyCode} is your mourjan confirmation code") != MobileValidation::RESULT_OK)
+                                                sendSMS($number, "{$keyCode} is your mourjan confirmation code")) != MobileValidation::RESULT_OK)
                                         {
                                         
                                         //if (ShortMessageService::send($number, "{$keyCode} is your mourjan confirmation code", ['uid' => $this->user->info['id'], 'mid' => $sendSms, 'platform'=>'website']))
@@ -643,6 +647,10 @@ class Bin extends AjaxHandler{
                                             //} else {
                                             $keyCode=0;
                                             $number=0;
+                                            error_log($returnie);
+                                            error_log("AHHH");
+                                        }else{
+                                            error_log("SENT");
                                         }                                        
                                     }
                                     $this->setData($number,'number');
