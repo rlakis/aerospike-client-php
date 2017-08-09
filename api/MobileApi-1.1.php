@@ -1927,7 +1927,7 @@ class MobileApi
 
     
     function activate() 
-    {    
+    {   
         $opts = $this->userStatus($status);
         if ($status!=1)
         {
@@ -1940,7 +1940,7 @@ class MobileApi
             $this->result['e'] = 'Your account is retired.'.chr(10).'Please remove Mourjan app and install it again to reactivate it.';
             return;
         }
-        
+
         $this->result['d']['status']='invalid';
         $mobile_no = intval(filter_input(INPUT_GET, 'tel', FILTER_VALIDATE_INT));                       
         $val_type = intval(filter_input(INPUT_GET, 'vtype',  FILTER_VALIDATE_INT, ["options" => ["default" => 0, "min_range" => 0, "max_range"=>2]]));        
@@ -1998,23 +1998,23 @@ class MobileApi
         }
 
         $record = NoSQL::getInstance()->mobileFetch($this->getUID(), $mobile_no);
-        
+
         if ($record)
         {       
+            
             if (isset($record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $record[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]>(time()-31536000))
             {
                 $this->result['e'] = $this->lang=='ar' ? 'سبق وتم التحقق من رقم الجوال' : 'Mobile number already validated';
                 $this->result['d']['status']='validated';
                 return;
             }
-            //error_log("One Type: {$val_type}, Pin: {$pin_code}, Mobile:{$mobile_no}");
             
             if ($pin_code) 
             {
                 switch ($val_type) 
                 {
                     case MobileValidation::CLI_TYPE:
-                        if (MobileValidation::getInstance()->verifyStatus($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]))
+                        if (MobileValidation::getInstance(MobileValidation::EDIGEAR)->verifyStatus($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]))
                         {
                             $activated = NoSQL::getInstance()->mobileActivationByRequestId($this->getUID(), $mobile_no, $pin_code, $record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
                         }
@@ -2026,6 +2026,7 @@ class MobileApi
                         }                            
                         break;
 
+                    case MobileValidation::SMS_TYPE:
                     case MobileValidation::REVERSE_CLI_TYPE:                     
                         //$response = MobileValidation::getInstance()->setUID($this->getUID())->verifyNexmoCallPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $pin_code);
                         $response = MobileValidation::getInstance()->setUID($this->getUID())->verifyEdigearPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $pin_code);
@@ -2045,18 +2046,18 @@ class MobileApi
                         }
                         break;
                     
-                    default: // SMS
-                        //error_log("{$pin_code}=={$record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE]}");
-                        if ($pin_code==$record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE])
-                        {
-                            $activated = NoSQL::getInstance()->mobileActivation($this->getUID(), $mobile_no, $pin_code);
-                        }
-                        else
-                        {
-                            $this->result['e'] = 'Activation code is not valid';
-                            $this->result['d']['status']='invalid';
-                        }
-                        break;
+//                    default: // SMS
+//                        //error_log("{$pin_code}=={$record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE]}");
+//                        if ($pin_code==$record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE])
+//                        {
+//                            $activated = NoSQL::getInstance()->mobileActivation($this->getUID(), $mobile_no, $pin_code);
+//                        }
+//                        else
+//                        {
+//                            $this->result['e'] = 'Activation code is not valid';
+//                            $this->result['d']['status']='invalid';
+//                        }
+//                        break;
                 }
                                                              
                 
@@ -2086,10 +2087,11 @@ class MobileApi
                 return;
             } // end of pin code received
             
+
             switch ($val_type) 
             {
                 case MobileValidation::CLI_TYPE:
-                    $mv_result = MobileValidation::getInstance(MobileValidation::NEXMO)->
+                    $mv_result = MobileValidation::getInstance(MobileValidation::EDIGEAR)->
                         setUID($this->getUID())->
                         setPlatform(MobileValidation::IOS)->
                         sendCallerId($mobile_no);
@@ -2167,7 +2169,7 @@ class MobileApi
                         $pin = mt_rand(1000, 9999); 
                         $msg_text = "{$pin} is your mourjan confirmation code";
                         
-                        if (MobileValidation::getInstance(MobileValidation::NEXMO)->
+                        if (MobileValidation::getInstance(MobileValidation::EDIGEAR)->
                                 setPlatform(MobileValidation::IOS)->
                                 setPin($pin)->setUID($this->getUID())->
                                 sendSMS($mobile_no, $msg_text, ['uid'=>$this->getUID()]) == MobileValidation::RESULT_OK)
@@ -2217,7 +2219,7 @@ class MobileApi
             switch ($val_type) 
             {                
                 case MobileValidation::CLI_TYPE: 
-                    $ret = MobileValidation::getInstance(MobileValidation::NEXMO)->
+                    $ret = MobileValidation::getInstance(MobileValidation::EDIGEAR)->
                         setPlatform(MobileValidation::IOS)->
                         setUID($this->getUID())->
                         sendCallerId($mobile_no);
@@ -2240,7 +2242,7 @@ class MobileApi
                     break;
                 
                 case MobileValidation::REVERSE_CLI_TYPE:
-                    $ret = MobileValidation::getInstance(MobileValidation::NEXMO)->setUID($this->getUID())->setPlatform(MobileValidation::IOS)->requestReverseCLI($mobile_no, $response); 
+                    $ret = MobileValidation::getInstance(MobileValidation::EDIGEAR)->setUID($this->getUID())->setPlatform(MobileValidation::IOS)->requestReverseCLI($mobile_no, $response); 
                     //error_log(json_encode($response, JSON_PRETTY_PRINT));
                     if ($ret==MobileValidation::RESULT_OK)
                     {
@@ -2273,7 +2275,7 @@ class MobileApi
                     $pin = mt_rand(1000, 9999);                                        
                     $msg_text = "{$pin} is your mourjan confirmation code";
                 
-                    if (MobileValidation::getInstance(MobileValidation::NEXMO)->
+                    if (MobileValidation::getInstance(MobileValidation::EDIGEAR)->
                             setUID($this->getUID())->
                             setPlatform(MobileValidation::IOS)->
                             setPin($pin)->
