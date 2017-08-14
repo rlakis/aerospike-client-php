@@ -486,6 +486,12 @@ class Page extends Site
             $this->urlRouter->cfg['enabled_sharing']=false;
             $this->urlRouter->cfg['enabled_ads']=false;
         }
+        if ($this->urlRouter->params['q']) {
+            $query = trim($this->urlRouter->params['q']);
+            if($query == 'مساج'){
+                $this->urlRouter->cfg['enabled_ads']=false;
+            }
+        }
         if(!$this->isMobile){
             $this->urlRouter->cfg['enabled_sharing']=false;
         }
@@ -5613,7 +5619,7 @@ class Page extends Site
                     ?><li><div><?php
                         ?><h5><?= $this->lang['mourjan_app'] ?></h5><?php
                         ?><p><?= $this->lang['app_desc'] ?></p><?php
-                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(4,823)</span><?php
+                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(5,512)</span><?php
                     ?></div></li><?php
                     ?><li><a type="button" href='https://play.google.com/store/apps/details?id=com.mourjan.classifieds' class="bt"><?= $this->lang['install'] ?></a></li><?php
                     ?></ul><br /><?php
