@@ -1466,7 +1466,7 @@ class User
                                 m.name_{$language} as product_name, 
                                 s.name_{$language} as section_name,
                                 pu.name_{$language} as purpose_name,
-                                a.content, a.state, o.offer_id  
+                                a.content, a.state, o.offer_id, r.gateway   
                                 FROM T_TRAN r
                                 left join T_AD_FEATURED f on f.ID=r.XREF_ID and r.CURRENCY_ID='MCU' and r.DEBIT>0 and r.PRODUCT_ID='' 
                                 left join T_AD_BO o on o.ID=f.BO_ID
@@ -1532,7 +1532,7 @@ class User
                                     }
                                     else
                                     {
-                                        $label = $rs[$i]['PRODUCT_NAME'];
+                                        $label = $rs[$i]['PRODUCT_NAME'].($rs[$i]['GATEWAY']? ' - '. ucfirst(strtolower($rs[$i]['GATEWAY'])):'');
                                     }
                                 }
                                 else
