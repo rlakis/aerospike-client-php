@@ -550,6 +550,10 @@ class AndroidApi
                     
                     $rid = filter_input(INPUT_POST, 'rid', FILTER_VALIDATE_INT) + 0;
                     $ad_id = filter_input(INPUT_POST, 'adid', FILTER_VALIDATE_INT) + 0;
+                    $device_lang = filter_input(INPUT_GET, 'hl');
+                    if(!in_array($device_lang, ['ar','en'])){
+                        $device_lang = 0;
+                    }
                     $state = 0;
                     $ad = json_decode(urldecode(filter_input(INPUT_POST, 'ad', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']])), true);
                     
@@ -596,6 +600,9 @@ class AndroidApi
                             NoSQL::Log($_original_ad);
                         }
                         
+                        if($device_lang){
+                            $ad['hl']=$device_lang;
+                        }
                         $ad['rtl'] = ($this->isRTL($ad['other'])) ? 1 : 0;
                         
                         if(isset($ad['altother']) && $ad['altother'])
@@ -764,12 +771,11 @@ class AndroidApi
                             }
                         }
                         
-                        
                         if($ad['se']==0 || $ad['pu']==0 || count($ad['pubTo'])==0)
                         {
                             $hasFailure=1;
-                            $hasMajorFailure=1;
-                            if($ad['rtl'])
+                            //$hasMajorFailure=1;
+                            if($device_lang=='ar' || $ad['rtl'])
                             {
                                 $msg = 'يرجى تعديل الاعلان وادخال التفاصيل الناقصة';
                             }
@@ -783,7 +789,7 @@ class AndroidApi
                         if(isset($ad['SYS_CRAWL']) && $ad['SYS_CRAWL'])
                         {
                             $hasFailure=1;
-                            if($ad['rtl'])
+                            if($device_lang=='ar' || $ad['rtl'])
                             {
                                 $msg = 'يرجى استخدام PropSpace لتعديل هذا الاعلان';
                             }
@@ -797,7 +803,7 @@ class AndroidApi
                         if($opts->appVersion < '1.3.4' || $opts->appVersion=='1.8.8')
                         {
                             $hasFailure=1;
-                            if($ad['rtl'])
+                            if($device_lang=='ar' || $ad['rtl'])
                             {
                                 $msg = 'يرجى تحديث تطبيق مرجان لنشر الاعلانات';
                             }
@@ -887,8 +893,8 @@ class AndroidApi
                                 {
                                     $result=$stmt->fetchAll(PDO::FETCH_ASSOC);
                                     
-                                }
-                                    
+                                }   
+                                
                                 if (!empty($result)) 
                                 {                                        
                                     $state=$result[0]['STATE'];
@@ -998,7 +1004,7 @@ class AndroidApi
                                     where id=?';
                                     $suspendStmt = $this->api->db->getInstance()->prepare($q);
                                 $state = 3;
-                                if($ad['rtl']){
+                                if($device_lang=='ar' || $ad['rtl']){
                                     $msg = 'عذراً ولكن لا يمكن تمييز الاعلان في اكثر من بلد واحد';
                                 }else{
                                     $msg = 'Sorry, you cannot publish premium ads targetting more than ONE country';
@@ -1021,7 +1027,7 @@ class AndroidApi
                                     where id=?';
                                     $suspendStmt = $this->api->db->getInstance()->prepare($q);
 
-                                if($ad['rtl']){
+                                if($device_lang=='ar' || $ad['rtl']){
                                     $msg = 'لقد تم ايقاف حسابك بشكل مؤقت نظراً للتكرار';
                                 }else{
                                     $msg = 'your account is suspended due to repetition';
@@ -1045,7 +1051,7 @@ class AndroidApi
                                     content=?,state=? 
                                     where id=?';
                                     $suspendStmt = $this->api->db->getInstance()->prepare($q);
-                                    if($ad['rtl']){
+                                    if($device_lang=='ar' || $ad['rtl']){
                                         $msg = 'هنالك اعلان مماثل في لائحة الانتظار وبالنتظار موافقة محرري الموقع';
                                     }else{
                                         $msg = 'There is another similar ad pending Editors\' approval';
@@ -1071,6 +1077,7 @@ class AndroidApi
                     $this->api->result['d']['id'] = $rid;
                     $this->api->result['d']['adid'] = $ad_id;
                     $this->api->result['d']['state'] = $state;
+                    error_log(json_encode($this->api->result['d']));
                     
                     unset($stmt);
                 }
@@ -1280,7 +1287,7 @@ class AndroidApi
                                 {                           
                                     $state = 1;
                                     if($opts->appVersion < '1.3.4' || $opts->appVersion=='1.8.8'){
-                                        if($ad['RTL']){
+                                        if($device_lang=='ar' || $ad['RTL']){
                                             $msg = 'يرجى تحديث تطبيق مرجان لنشر الاعلانات';
                                         }else{
                                             $msg = 'please update mourjan app to publish ads';
@@ -1332,6 +1339,26 @@ class AndroidApi
                 
                 break;  
                 
+                case API_ANDROID_USER_RECEIVE_CALL:
+                    /*$number = filter_input(INPUT_POST, 'tel');
+                    if($number){
+                        $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
+                        $num = $this->mobileValidator->parse($number, 'LB');
+                        if (!is_array($this->api->result['d'])){
+                            $this->api->result['d']=[];
+                        }
+
+                        if ($num && $this->mobileValidator->isValidNumber($num)){
+                            $number = intval($number);
+                            
+                            $record = NoSQL::getInstance()->mobileFetch($this->api->getUID(), $number);
+                            if($record){
+                                
+                            }
+                        }
+                    }*/
+                    break;
+                
                 case API_ANDROID_USER_MAKE_CALL:
                     $number = filter_input(INPUT_POST, 'tel');
                     $reverseCall = filter_input(INPUT_POST, 'reverse', FILTER_SANITIZE_NUMBER_INT);
@@ -1367,6 +1394,7 @@ class AndroidApi
                                         }else{
                                             
                                             if($reverseCall){
+                                                $keycode = 0;
                                                 //error_log("reverse call with key");
                                                 //$response = MobileValidation::getInstance()->setUID($this->api->getUID())->verifyNexmoCallPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);                                                
                                                 $response = MobileValidation::getInstance()->setUID($this->api->getUID())->verifyEdigearPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode+0);                                                
