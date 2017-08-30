@@ -62,7 +62,23 @@ function rePic(){
                     var rxp=new RegExp("/repos/");
                     if(hd && rxp.test(us[idx])){
                     var d=$('<span class="del"></span>');
-                    $(e).append(d);
+                    var im=$(e);
+                    im.append(d);
+                    im.click(function(){
+                        var m = $('img',im);
+                        var s=m.attr('src').replace('/s/','/d/');
+                        var pr = $('<div class="iprev"><div id="dialog-mask"></div><img src="'+s+'" /></div>');
+                        var i = $('img',pr);
+                        if(m.width()>m.height()){
+                            i.css('width','100%');
+                        }else{
+                            i.css('height','100%');
+                        }
+                        $('body').append(pr);
+                        pr.click(function(){
+                            pr.remove()
+                        });
+                    });
                     d.click(function(){
                         var g=$(this).parent();
                         var p=g.parent();

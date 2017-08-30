@@ -4465,7 +4465,7 @@ class Page extends Site
                             if($this->user->info['id']){
                                 if($this->user->info['level']==9){     
                                     if($this->urlRouter->cfg['site_production']){
-                                        ?>sh.src='https://h5.mourjan.com/js/3.2.8/myadsad.js';<?php
+                                        ?>sh.src='https://h5.mourjan.com/js/3.3.6/myadsad.js';<?php
                                     }else{
                                         ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/myadsad.js';<?php 
                                     }
@@ -4970,7 +4970,7 @@ class Page extends Site
                     ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_jquery'] ?>socket.io-1.4.5.js"></script><?php
                     if($this->user->info['level']==9){     
                         if($this->urlRouter->cfg['site_production']){
-                            ?><script type="text/javascript" defer="true" src="https://h5.mourjan.com/js/3.2.8/myadsad.js"></script><?php
+                            ?><script type="text/javascript" defer="true" src="https://h5.mourjan.com/js/3.3.6/myadsad.js"></script><?php
                         }else{
                             ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/myadsad.js"></script><?php
                         }

@@ -138,11 +138,11 @@ class MyAds extends Page
                         min-height:90px;
                     }
                     p.pimgs{
-                        height:90px!important;
                         margin-bottom:10px;
                         border-bottom:1px solid #ccc;
                     }
                     .pimgs .ig{
+                        height:auto!important;
                         margin:0 3px;
                     }
                     .pimgs img{                    
@@ -220,6 +220,18 @@ class MyAds extends Page
                         -webkit-box-shadow:none;
                         box-shadow:none;
                         background-color:indianred!important
+                    }
+                    .iprev{
+                        position: fixed;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                        height: 100%;
+                    }
+                    .iprev img{
+                        height:100%;
+                        position:fixed;
+                        z-index:100000;
                     }
                 ';
                 
