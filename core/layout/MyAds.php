@@ -1260,7 +1260,7 @@ var rtMsgs={
                 }
                     
                 $text='';
-                $text = isset($content['text']) ? $content['text'] : (isset($content['other'])?$content['other']:'');
+                $text = isset($content['text']) && trim($content['text']) ? $content['text'] : (isset($content['other'])?$content['other']:'');
                 $altText='';
                 if(isset($content['extra']['t']) && $content['extra']['t']!=2 && isset($content['altother']) && $content['altother']){
                     $altText=$content['altother'];
@@ -1373,6 +1373,9 @@ var rtMsgs={
                                 $phoneValidErr=2;
                             }
                             if($needNumberDisplayFix){
+                                if(strlen($p['v'])==0){
+                                    $p['v'] = $p['r'];
+                                }
                                 $text = preg_replace('/\\'.$p['v'].'/', '<span class="pn">'.$p['v'].'</span>', $text);
                                 if($altText){
                                     $altText = preg_replace('/\\'.$p['v'].'/', '<span class="pn">'.$p['v'].'</span>', $altText);
