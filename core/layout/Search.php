@@ -118,7 +118,7 @@ class Search extends Page
     .ls{width:673px}
     .dur{width:860px}
     .u2,.u2.uc1{width:317px!important}
-    .mul{width:1176px;width:826px}
+    .mul{width:1176px}
     .mul li{width:230px}
     .mul ul{width:230px}
     .tz{left:330px}

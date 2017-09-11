@@ -59,8 +59,7 @@ class Home extends Page{
         width:317px!important
     }
     .mul{
-        width:1176px;
-        width:826px
+        width:1176px
     }
     .mul li{
         width:230px
