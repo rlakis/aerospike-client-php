@@ -102,10 +102,10 @@ class Detail extends Search
         $this->displayDetailMobile();
         $iDir=  $this->urlRouter->siteLanguage=='ar' ? 'ad_r' :'ad_l';
         if(!$this->detailAdExpired)
-            echo $this->fill_ad('Square','ad_dt '.$iDir);
+            echo '<br />'.$this->fill_ad('Square','ad_dt '.$iDir).'<br />';
         parent::resultsMobile();
         if($this->detailAdExpired && $this->searchResults['body']['total_found'])
-            echo $this->fill_ad('Square', $iDir);
+            echo '<br />'.$this->fill_ad('Square', $iDir).'<br />';
     }
     
     function displayDetail(){

@@ -418,7 +418,10 @@ class Search extends Page
                     }
                 } else {*/
                     $this->set_ad(array('zone_6' => array('/1006833/MeduimRectangle', 300, 250, 'div-gpt-ad-1344944824543-0-' . $this->urlRouter->cfg['server_id']),
-                        'zone_10'=>array('/1006833/HalfPage', 300, 600, 'div-gpt-ad-1351783135410-0-'.$this->urlRouter->cfg['server_id'])));
+                        'zone_10'=>array('/1006833/HalfPage', 300, 600, 'div-gpt-ad-1351783135410-0-'.$this->urlRouter->cfg['server_id']),
+                        'zone_11'=>array('/1006833/HalfPage2', 300, 600, 'div-gpt-ad-1505307438459-0'.$this->urlRouter->cfg['server_id'])
+                        
+                        ));
                         //'zone_7' => array('/1006833/SearchTrailer', 728, 90, 'div-gpt-ad-1334999893723-0-' . $this->urlRouter->cfg['server_id'])));
                         /*'zone_3' => array('/1006833/mourjan-navigator-square', 200, 200, 'div-gpt-ad-1349258304441-0-' . $this->urlRouter->cfg['server_id'])));*/
                 //}
@@ -977,14 +980,25 @@ class Search extends Page
                     /* ?><li <?= $id ?> itemprop="itemListElement" <?= $liClass . $itemScope ?>><?= '<p '.( $detailAd ? '': 'onclick="wo(\'' . $_link . '\')" ') . $itemDesc . ' class="button ' . $textClass . '">' . $pic . $newSpan . $ad[Classifieds::CONTENT] . '</p>' ?><span class="src <?= $this->urlRouter->siteLanguage ?>"><?= (($feature||$isFeatured) ? ( ($paid||$isFeatured) ? '<span class="vpdi '.$this->urlRouter->siteLanguage.'"></span><b>'.$this->lang['premium_ad'].'</b>' : '<span class="ovp '.$this->urlRouter->siteLanguage.'"></span>'.$pub_link) : $pub_link . " <time st='" . $ad[Classifieds::UNIXTIME] . "'></time>") . $optSpan. $locSpan . $favSpan  ?></span></li><?php */
                     
                     if(!$isFeatured && !$feature && $idx > 1 && $smallBanner){
-                        if($this->urlRouter->cfg['enabled_ads'] && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<470)){
+                        if($this->urlRouter->cfg['enabled_ads'] && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745)){
                             /* ?><li class="lbad"><div class="ad100"><ins class="adsbygoogle" data-ad-client="ca-pub-2427907534283641" data-ad-slot="5711519829"></ins></div></li><?php */
                             $this->renderAdSense=true;
-                            ?><li class="lbad"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7294487825" data-ad-format="auto"></ins></li><?php
+                            ?><li class="lbad responsive"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7294487825" data-ad-format="auto"></ins></li><?php
+                            /*$alterAd = $this->weightedRand([30,70]);
+                            
+                            if($alterAd){//70% reponsive banner
+                                ?><li class="lbad responsive"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7294487825" data-ad-format="auto"></ins></li><?php
+                            }else{//30% native banner
+                                if($this->urlRouter->siteLanguage == 'ar'){
+                                    ?><li class="lbad"><ins class="adsbygoogle" style="display:block" data-ad-format="fluid" data-ad-layout="image-side" data-ad-layout-key="-ff+5t+69-jv+eq" data-ad-client="ca-pub-2427907534283641" data-ad-slot="6379463641"></ins></li><?php
+                                }else{
+                                    ?><li class="lbad"><ins class="adsbygoogle" style="display:block" data-ad-format="fluid" data-ad-layout="image-side" data-ad-layout-key="-fg+5e+8s-gl-r" data-ad-client="ca-pub-2427907534283641" data-ad-slot="6674977112"></ins></li><?php
+                                }
+                            }*/
                         }else{
                             $banner = $this->fill_ad('Leaderboard', 'ad_dt');
                             if($banner){
-                                echo '<li class="lbad">'.$banner.'</li>';
+                                echo '<li class="lbad"><br />'.$banner.'<br /></li>';
                             }
                         }
                         $smallBanner = false;
@@ -1002,7 +1016,16 @@ class Search extends Page
             }
         }
 
-        
+        function weightedRand($weights, $weight_sum = 100){
+            $r = rand(1,$weight_sum);
+            $n = count($weights);
+            $i = 0;
+            while($r > 0 && $i < $n){
+                $r -= $weights[$i];
+                $i++;
+            }
+            return $i - 1;
+        }
         
         function _rss() {
             $feed = parent::_rss();
@@ -1642,7 +1665,7 @@ class Search extends Page
             if ($this->searchResults['body']['total_found'] > 2){
                 if($this->urlRouter->module=='search'){
                     $iDir = $this->urlRouter->siteLanguage == 'ar' ? 'ad_r' : 'ad_l';
-                    echo $this->fill_ad('Square', $iDir);
+                    echo '<br />'.$this->fill_ad('Square', $iDir);
                     /*
                     ?><ins class="adsbygoogle"
                          style="display:block"
@@ -1650,7 +1673,7 @@ class Search extends Page
                          data-ad-slot="7294487825"
                          data-ad-format="auto"></ins><?php */
                 }else{
-                    echo $this->fill_ad('Leaderboard', 'ad_dt');
+                    echo '<br />'.$this->fill_ad('Leaderboard', 'ad_dt');
                 }
             }
             
@@ -5511,6 +5534,9 @@ if($isFeatured){
                             ?><li class="lad"><?php echo $this->fill_ad("zone_6", 'ad_m') ?></li><?php 
                             $this->renderSideFeatures();
                             ?><li class="lad a600"><?php echo $this->fill_ad("zone_10", 'ad_x') ?></li><?php
+                            if($countAds > 8){
+                                ?><li class="lad a600"><?php echo $this->fill_ad("zone_11", 'ad_x') ?></li><?php
+                            }
                             break;
                     }
                     /*

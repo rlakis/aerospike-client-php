@@ -3649,7 +3649,7 @@ class Page extends Site
           ?></script><?php
           if ($this->isMobile && $this->urlRouter->cfg['enabled_ads'] 
                   && in_array($this->urlRouter->module,['search','detail'])                   
-                && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<470)){ 
+                && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745)){ 
             ?><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php
           }
 
@@ -3707,7 +3707,7 @@ class Page extends Site
         ?><script type="text/javascript"><?php
         if ($this->renderAdSense && $this->urlRouter->cfg['enabled_ads'] 
                 && in_array($this->urlRouter->module,['search','detail']) 
-                && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<470)){
+                && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745)){
             /* ?>(adsbygoogle = window.adsbygoogle || []).push({google_ad_client: "ca-pub-2427907534283641",enable_page_level_ads: true,vignettes: {google_ad_channel: 'mourjan-vignette'},overlays: {google_ad_channel: 'mourjan-overlay'}});<?php */
             ?>(adsbygoogle = window.adsbygoogle || []).push({});<?php
         }
@@ -5619,7 +5619,7 @@ class Page extends Site
                     ?><li><div><?php
                         ?><h5><?= $this->lang['mourjan_app'] ?></h5><?php
                         ?><p><?= $this->lang['app_desc'] ?></p><?php
-                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(5,512)</span><?php
+                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(5,644)</span><?php
                     ?></div></li><?php
                     ?><li><a type="button" href='https://play.google.com/store/apps/details?id=com.mourjan.classifieds' class="bt"><?= $this->lang['install'] ?></a></li><?php
                     ?></ul><br /><?php
