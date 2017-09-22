@@ -2632,6 +2632,7 @@ class User
             
             if($newUserId)
             {
+                
                 if (!NoSQL::getInstance()->deviceSetUID($uuid, $newUserId, $uid))
                 {
                     if ($newUid==393142 || $uuid=='773FDB13-965C-4A5D-B7F7-83B7852FA567')
@@ -2642,141 +2643,148 @@ class User
                         
                 if (NoSQL::getInstance()->deviceUpdate($uuid, [\Core\Model\ASD\USER_UID=>$newUserId]))
                 {
-                    include_once $this->cfg['dir'] . '/core/lib/SphinxQL.php';
-                    $sphinx = new SphinxQL($this->cfg['sphinxql'], $this->cfg['search_index']);
-                            
-                    //Clean up previous favorites
-                    $selectAllUserFavorite = $this->db->prepareQuery('select ad_id from web_users_favs where web_user_id=?');
-                    $deleteFavorites = $this->db->prepareQuery('delete from web_users_favs where web_user_id=? and ad_id=?');
-                    $favs = $selectAllUserFavorite->execute([$uid]);
-                    if($favs !== false)
-                    {
-                        while(($row = $selectAllUserFavorite->fetch(PDO::FETCH_NUM)) !== false)
-                        {
-                            $ad_id = $row[0];
-                            $deleteFavorites->execute([$newUserId, $ad_id]);
-                        }
-                    }
-                    unset($deleteFavorites);
-                    unset($selectAllUserFavorite);
                     
-                    //MERGE DEVICE FAVORITES
-                    $updateFavorites = $this->db->prepareQuery('update web_users_favs set web_user_id=? where web_user_id=?');
-                    if($updateFavorites->execute([$newUserId, $uid]))
-                    {
-                        $selectUserFavorite = $this->db->prepareQuery('select ad_id from web_users_favs where web_user_id=? and deleted=0');
-                        if($selectUserFavorite->execute([$newUserId]))
-                        {                                	
-                            while( ($row = $selectUserFavorite->fetch(PDO::FETCH_NUM)) !== false)
-                            {
-                                $ad_id = $row[0];
-                
-                                $getFavoritesUserList = $this->db->prepareQuery('select cast(list(web_user_id) as varchar(2048)) from web_users_favs where deleted=0 and ad_id=?');
-                                if ($getFavoritesUserList->execute([$ad_id])) 
-                                { 
-                                    if( ($user_list = $getFavoritesUserList->fetch(PDO::FETCH_NUM)) !== false)
-                                    {
-                                        if(isset($user_list[0]) && $user_list[0])
-                                        {
-                                            $ql = "update {$this->cfg['search_index']} set starred=({$user_list[0]}) where id={$ad_id}";
-                                        }
-                                        else
-                                        {
-                                            $ql = "update {$this->cfg['search_index']} set starred=() where id={$ad_id}"; 
-                                        }
-                                        $sphinx->directUpdateQuery($ql);
-                                    }
-                                }
-                                unset($getFavoritesUserList);
-                            }
-                            unset($selectUserFavorite);
-                            $sphinx->close();
-                        }
-                    }
-                    unset($updateFavorites);
-                    
-                    //MERGE PROMOTIONS
-                    $updateOffers=$this->db->prepareQuery('update t_promotion_users set uid=? where uid=? and claimed=0 and expiry_date>current_timestamp');
-                    $updateOffers->execute([$newUserId, $uid]);
-                    unset($updateOffers);
-
-                    //Clean up previous subscription duplicates
-                    $selectPrevSubscriptions=$this->db->prepareQuery('select * from subscription where web_user_id=?');
-                    $subs = $selectPrevSubscriptions->execute([$uid]);
-                    if($subs!==false)
-                    {
-                        $deletePrevSubscriptions=$this->db->prepareQuery('delete from subscription where web_user_id=? and country_id=? and city_id=? and section_id=? and purpose_id=? and section_tag_id=? and locality_id=? and query_term=?');
-                        while(($row = $selectPrevSubscriptions->fetch(PDO::FETCH_ASSOC)) !== false)
-                        {
-                            $deletePrevSubscriptions->execute([$newUserId, $row['COUNTRY_ID'], $row['CITY_ID'], $row['SECTION_ID'], $row['PURPOSE_ID'], $row['SECTION_TAG_ID'], $row['LOCALITY_ID'], $row['QUERY_TERM'] ]);
-                        }
-                        unset($deletePrevSubscriptions);
-                    }
-                    unset($selectPrevSubscriptions);
-
-                    //MERGE SUBSCRIPTION LIST
-                    $updateSubscriptions = $this->db->prepareQuery('update subscription set web_user_id=? where web_user_id=?');
-                    $updateSubscriptions->execute([$newUserId, $uid]);
-                    unset($updateSubscriptions);
-                    
-                    //MERGE MYADS
-                    $getMyAds=$this->db->prepareQuery('select id, content from ad_user where web_user_id=?');
-                    if($getMyAds->execute([$uid]))
-                    {
-                        $updateMyAd=$this->db->prepareQuery('update ad_user set web_user_id=?, content=? where id=?');
-                        while(($row = $getMyAds->fetch(PDO::FETCH_NUM)) !== false)
-                        {
-                            $id = $row[0];
-                            $content = json_decode($row[1], true);
-                            $content['user']=$newUserId;
-                            $content = json_encode($content);
-                            $updateMyAd->execute([$newUserId, $content, $id]);
-                        }
-                        unset($updateMyAd);
-                    }
-                    else
-                    {
-                        error_log("get ads on connect failure");
-                    }
-                    unset($getMyAds);
-                            
-                    //Clean up previous notes
-                    $selectAllUserNotes = $this->db->prepareQuery('select ad_id from web_users_notes where web_user_id=?');
-                    $notes = $selectAllUserNotes->execute([$uid]);                            
-                    if($notes!==false)
-                    {
-                        $deleteNotes=$this->db->prepareQuery('delete from web_users_notes where web_user_id=? and ad_id=?');
-                        while(($row = $selectAllUserNotes->fetch(PDO::FETCH_NUM)) !== false)
-                        {
-                            $ad_id = $row[0];
-                            $deleteNotes->execute([$newUserId, $ad_id]);
-                        }
-                        unset($deleteNotes);
-                    }
-                    unset($selectAllUserNotes);
-                            
-                    //MERGE DEVICE FAVORITES
-                    $updateNotes=$this->db->prepareQuery('update web_users_notes set web_user_id=? where web_user_id=?');
-                    $updateNotes->execute([$newUserId, $uid]);
-                    unset($updateNotes);
-                            
-                            
-                    // must update balance cache
-                    //MERGE DEVICE FAVORITES
-                    $updateTransRecords = $this->db->prepareQuery('update T_TRAN t set t.UID=? where t.UID=?');
-                    $updateTransRecords->execute([$newUserId, $uid]);
-                    unset($updateTransRecords);
-                    
-                    $invalidateStatement = $this->db->prepareQuery('insert into invalidate (table_id,record_id) values (18,?)');
-                    $invalidateStatement->execute([$newUserId]);
-                    $invalidateStatement->execute([$uid]);
-                    unset($invalidateStatement);
-                            
                     $mcUser = new MCUser($uid);
                     if($mcUser->isMobileVerified())
                     {
                         $mobile = $mcUser->getMobile(true);                                
                         \Core\Model\NoSQL::getInstance()->mobileCopyRecord($uid, $mobile->getNumber(), $newUserId);
+                    }
+                    
+                    if($mcUser->getProvider() == 'mourjan-android'){
+
+                        include_once $this->cfg['dir'] . '/core/lib/SphinxQL.php';
+                        $sphinx = new SphinxQL($this->cfg['sphinxql'], $this->cfg['search_index']);
+
+                        //Clean up previous favorites
+                        $selectAllUserFavorite = $this->db->prepareQuery('select ad_id from web_users_favs where web_user_id=?');
+                        $deleteFavorites = $this->db->prepareQuery('delete from web_users_favs where web_user_id=? and ad_id=?');
+                        $favs = $selectAllUserFavorite->execute([$uid]);
+                        if($favs !== false)
+                        {
+                            while(($row = $selectAllUserFavorite->fetch(PDO::FETCH_NUM)) !== false)
+                            {
+                                $ad_id = $row[0];
+                                $deleteFavorites->execute([$newUserId, $ad_id]);
+                            }
+                        }
+                        unset($deleteFavorites);
+                        unset($selectAllUserFavorite);
+
+                        //MERGE DEVICE FAVORITES
+                        $updateFavorites = $this->db->prepareQuery('update web_users_favs set web_user_id=? where web_user_id=?');
+                        if($updateFavorites->execute([$newUserId, $uid]))
+                        {
+                            $selectUserFavorite = $this->db->prepareQuery('select ad_id from web_users_favs where web_user_id=? and deleted=0');
+                            if($selectUserFavorite->execute([$newUserId]))
+                            {                                	
+                                while( ($row = $selectUserFavorite->fetch(PDO::FETCH_NUM)) !== false)
+                                {
+                                    $ad_id = $row[0];
+
+                                    $getFavoritesUserList = $this->db->prepareQuery('select cast(list(web_user_id) as varchar(2048)) from web_users_favs where deleted=0 and ad_id=?');
+                                    if ($getFavoritesUserList->execute([$ad_id])) 
+                                    { 
+                                        if( ($user_list = $getFavoritesUserList->fetch(PDO::FETCH_NUM)) !== false)
+                                        {
+                                            if(isset($user_list[0]) && $user_list[0])
+                                            {
+                                                $ql = "update {$this->cfg['search_index']} set starred=({$user_list[0]}) where id={$ad_id}";
+                                            }
+                                            else
+                                            {
+                                                $ql = "update {$this->cfg['search_index']} set starred=() where id={$ad_id}"; 
+                                            }
+                                            $sphinx->directUpdateQuery($ql);
+                                        }
+                                    }
+                                    unset($getFavoritesUserList);
+                                }
+                                unset($selectUserFavorite);
+                                $sphinx->close();
+                            }
+                        }
+                        unset($updateFavorites);
+
+                        //MERGE PROMOTIONS
+                        $updateOffers=$this->db->prepareQuery('update t_promotion_users set uid=? where uid=? and claimed=0 and expiry_date>current_timestamp');
+                        $updateOffers->execute([$newUserId, $uid]);
+                        unset($updateOffers);
+
+                        //Clean up previous subscription duplicates
+                        $selectPrevSubscriptions=$this->db->prepareQuery('select * from subscription where web_user_id=?');
+                        $subs = $selectPrevSubscriptions->execute([$uid]);
+                        if($subs!==false)
+                        {
+                            $deletePrevSubscriptions=$this->db->prepareQuery('delete from subscription where web_user_id=? and country_id=? and city_id=? and section_id=? and purpose_id=? and section_tag_id=? and locality_id=? and query_term=?');
+                            while(($row = $selectPrevSubscriptions->fetch(PDO::FETCH_ASSOC)) !== false)
+                            {
+                                $deletePrevSubscriptions->execute([$newUserId, $row['COUNTRY_ID'], $row['CITY_ID'], $row['SECTION_ID'], $row['PURPOSE_ID'], $row['SECTION_TAG_ID'], $row['LOCALITY_ID'], $row['QUERY_TERM'] ]);
+                            }
+                            unset($deletePrevSubscriptions);
+                        }
+                        unset($selectPrevSubscriptions);
+
+                        //MERGE SUBSCRIPTION LIST
+                        $updateSubscriptions = $this->db->prepareQuery('update subscription set web_user_id=? where web_user_id=?');
+                        $updateSubscriptions->execute([$newUserId, $uid]);
+                        unset($updateSubscriptions);
+
+                        //MERGE MYADS
+                        $getMyAds=$this->db->prepareQuery('select id, content from ad_user where web_user_id=?');
+                        if($getMyAds->execute([$uid]))
+                        {
+                            $updateMyAd=$this->db->prepareQuery('update ad_user set web_user_id=?, content=? where id=?');
+                            while(($row = $getMyAds->fetch(PDO::FETCH_NUM)) !== false)
+                            {
+                                $id = $row[0];
+                                $content = json_decode($row[1], true);
+                                $content['user']=$newUserId;
+                                $content = json_encode($content);
+                                $updateMyAd->execute([$newUserId, $content, $id]);
+                            }
+                            unset($updateMyAd);
+                        }
+                        else
+                        {
+                            error_log("get ads on connect failure");
+                        }
+                        unset($getMyAds);
+
+                        //Clean up previous notes
+                        $selectAllUserNotes = $this->db->prepareQuery('select ad_id from web_users_notes where web_user_id=?');
+                        $notes = $selectAllUserNotes->execute([$uid]);                            
+                        if($notes!==false)
+                        {
+                            $deleteNotes=$this->db->prepareQuery('delete from web_users_notes where web_user_id=? and ad_id=?');
+                            while(($row = $selectAllUserNotes->fetch(PDO::FETCH_NUM)) !== false)
+                            {
+                                $ad_id = $row[0];
+                                $deleteNotes->execute([$newUserId, $ad_id]);
+                            }
+                            unset($deleteNotes);
+                        }
+                        unset($selectAllUserNotes);
+
+                        //MERGE DEVICE FAVORITES
+                        $updateNotes=$this->db->prepareQuery('update web_users_notes set web_user_id=? where web_user_id=?');
+                        $updateNotes->execute([$newUserId, $uid]);
+                        unset($updateNotes);
+
+
+                        // must update balance cache
+                        //MERGE DEVICE FAVORITES
+                        $updateTransRecords = $this->db->prepareQuery('update T_TRAN t set t.UID=? where t.UID=?');
+                        $updateTransRecords->execute([$newUserId, $uid]);
+                        unset($updateTransRecords);
+
+                        $invalidateStatement = $this->db->prepareQuery('insert into invalidate (table_id,record_id) values (18,?)');
+                        $invalidateStatement->execute([$newUserId]);
+                        $invalidateStatement->execute([$uid]);
+                        unset($invalidateStatement);
+
+                    }else{
+                        error_log("switching account only - no merge needed");
                     }
                 }
                 else
