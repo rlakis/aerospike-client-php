@@ -1077,7 +1077,7 @@ class AndroidApi
                     $this->api->result['d']['id'] = $rid;
                     $this->api->result['d']['adid'] = $ad_id;
                     $this->api->result['d']['state'] = $state;
-                    error_log(json_encode($this->api->result['d']));
+                    //error_log(json_encode($this->api->result['d']));
                     
                     unset($stmt);
                 }
@@ -2972,7 +2972,7 @@ class AndroidApi
         $client = new Client([
             'url'           => 'http://ws.mourjan.com', // URL to your Zammad installation
             'username'      => 'admin@berysoft.com',  // Username to use for authentication
-            'password'      => 'GQ71but2',           // Password to use for authentication
+            'password'      => 'GQ71BUT2',           // Password to use for authentication
             'debug'         => false,                // Enables debug output
         ]);      
         
