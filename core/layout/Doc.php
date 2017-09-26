@@ -982,9 +982,9 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
     ?></li><li class="cb2" itemscope itemtype="https://schema.org/LocalBusiness"><?php
         /* <img itemprop="image" width="200px" height="54px" src="<?= $this->urlRouter->cfg['url_img'] ?>/berysoft.png" alt="Berysoft logo" /></a> */
         if(!$this->isMobile) { ?><img itemprop="image" width="130px" height="90px" src="<?= $this->urlRouter->cfg['url_css'] ?>/i/logo.jpg" alt="Berysoft logo" /></a><?php }
-        ?><ul><li><p><b itemprop="name"><?php /* Berysoft SARL */ ?>Mourjan.com</b>, <span itemprop="address" itemscope itemtype="https://schema.org/PostalAddress"><span itemprop="streetAddress">Le Point Center, Fouad Shehab Street, Real Estate #273 Section B21</span>, <span itemprop="addressLocality">Dekwaneh</span>, <?php /*registered in */ ?><span itemprop="addressCountry">Lebanon</span></span><?php /* with number 2013375-Baabda */ ?></p></li><?php
+        ?><ul><li><p><b itemprop="name"><?php /* Berysoft SARL */ ?>Mourjan.com</b>, <span itemprop="address" itemscope itemtype="https://schema.org/PostalAddress"><span itemprop="streetAddress">4th floor, Bld 1440, New Slav street</span>, <span itemprop="addressLocality">Dekwaneh</span>, <?php /*registered in */ ?><span itemprop="addressCountry">Lebanon</span></span><?php /* with number 2013375-Baabda */ ?></p></li><?php
             /* <li><p><label>Website:</label> <a itemprop="url" href="http://www.berysoft.com">www.berysoft.com</a></p></li> */ 
-    ?><li><p><label>Phone:</label> <span itemprop="telephone">+961 148 7521</span></p></li>
+        ?><li><p><label>Phone:</label> <span itemprop="telephone">+961 70 424 018</span><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span itemprop="telephone">+20 120 293 9706</span></p></li>
     <li><p><label>Office hours:</label><br /><span class="ctr" itemprop="openingHours">Monday to Friday<br />7:00AM to 3:00PM GMT</span></p></li></ul>
 </li></ul><?php /*
 <h2>Join us on Google+</h2>
