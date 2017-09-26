@@ -750,7 +750,7 @@ class Site
         $client = new Client([
             'url'           => 'http://ws.mourjan.com', // URL to your Zammad installation
             'username'      => 'admin@berysoft.com',  // Username to use for authentication
-            'password'      => 'GQ71but2',           // Password to use for authentication
+            'password'      => 'GQ71BUT2',           // Password to use for authentication
             'debug'         => false,                // Enables debug output
         ]);      
         
@@ -798,7 +798,7 @@ class Site
             'priority_id'   => 2,
             'state_id'      => 1,
             'title'         => $subject,
-            /*'customer_id'   => $user->getID(),*/
+            'customer_id'   => $user->getID(),
             'article'       => [
                 'origin_by_id'  => $user->getID(),
                 'reply_to'      => trim($fromName)." <".trim($fromEmail).">",
@@ -806,7 +806,7 @@ class Site
                 'body'          => $message,
                 'content_type'  => 'text/html',
                 'internal'      => FALSE,                
-                /*'in_reply_to'   => trim($fromName)." <".trim($fromEmail).">",*/
+                'in_reply_to'   => trim($fromName)." <".trim($fromEmail).">",
                 'type_id'       => 11,
                 'sender_id'     => 2,
                 'time_unit'     => 12,
