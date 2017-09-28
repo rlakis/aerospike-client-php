@@ -205,7 +205,7 @@ class Detail extends Search
             if($this->user->info['id'] && $this->user->info['level']==9){
                 if(!$isFeatured && !$isFeatureBooked){
                     $abuseLink="<div class='d2' onclick='rpa(this,0,1)'><span class='i ab'></span><span>{$this->lang['reportAbuse']}</span></div>";
-                    if($this->detailAd[Classifieds::USER_ID] && $this->detailAd[Classifieds::USER_RANK]<2){
+                    if($this->user->isSuperUser() && $this->detailAd[Classifieds::USER_ID] && $this->detailAd[Classifieds::USER_RANK]<2){
                         $abuseLink.="<div class='d2' onclick='rpa(this,0,1,".$this->detailAd[Classifieds::USER_ID].")'><span class='fail'></span><span>{$this->lang['block']}</span></div>";
                     }
                 }

@@ -4,7 +4,7 @@ namespace Berysoft;
 
 class Edigear
 {
-    const GEAR_URL      = "https://h9.mourjan.com";
+    const GEAR_URL      = "https://rest.edigear.com";
     const GEAR_VERSION  = "v1";
     const GEAR_AGENT    = "edigear api client";
     const VERSION       = "1.0";

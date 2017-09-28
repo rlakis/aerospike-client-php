@@ -51,7 +51,63 @@ class Admin extends Page
         $this->forceNoIndex=true;
         $this->urlRouter->cfg['enabled_sharing']=0;
         $this->urlRouter->cfg['enabled_ads']=0;
+        
+        
         $parameter = filter_input(INPUT_GET, 'p', FILTER_SANITIZE_NUMBER_INT);
+        
+        
+        
+        $action = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_STRING);
+        if($action){
+            $redirectWenDone=true;
+            
+            switch ($action){
+                case 'unblock':
+                    $unblockNumbers = [];
+                    $userdata = [$this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($parameter))];
+                    if(isset($userdata[0]['mobiles'])){
+                        $accounts=[];
+                        foreach($userdata[0]['mobiles'] as $number){
+                            $uids=[];
+                            if (\Core\Model\NoSQL::getInstance()->mobileGetLinkedUIDs($number['number']+0, $uids)== Core\Model\NoSQL::OK){
+                                foreach ($uids as $bins) {
+                                    $accounts[] = $this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
+                                }
+                            }
+                        }
+                        
+                        $uids = [];
+                        $numbers = [];
+                        foreach($accounts as $account){
+                            $uids[] = $account['id'];
+                            
+                            foreach($account['mobiles'] as $number){
+                                $numbers[$number['number']] = $number['id']; 
+                            }
+                        }
+                        $this->user->unblock($uids,$numbers);
+                    }
+                    break;
+                    default:
+                        break;
+            }
+            
+            if($redirectWenDone){
+                $url = "";
+                unset($_GET['action']);
+                
+                foreach ($_GET as $key => $value){
+                    if($url){
+                        $url .= '&';
+                    }
+                    $url .= $key.'='.$value;
+                }
+                if($url) $url = '?'.$url;
+                
+                header('Location: '. $url);
+            }
+        }
+        
         if ($parameter)
         {
             $date = new DateTime();
@@ -120,7 +176,8 @@ class Admin extends Page
             unset($bins['mobile']);
             $_mobiles = \Core\Model\NoSQL::getInstance()->mobileFetchByUID($bins[\Core\Model\ASD\USER_PROFILE_ID]);
             $_devices = \Core\Model\NoSQL::getInstance()->getUserDevices($bins[\Core\Model\ASD\USER_PROFILE_ID]);
-
+            
+            
             for ($i=0; $i<count($_mobiles); $i++)
             {
                 unset($_mobiles[$i][\Core\Model\ASD\USER_UID]);
@@ -168,7 +225,7 @@ class Admin extends Page
                 unset($_devices[$i][\Core\Model\ASD\USER_UID]);
                 $_devices[$i][Core\Model\ASD\USER_DEVICE_DATE_ADDED] = $this->unixTimestampToDateTime($_devices[$i][Core\Model\ASD\USER_DEVICE_DATE_ADDED]);
                 $_devices[$i][Core\Model\ASD\USER_DEVICE_LAST_VISITED] = $this->unixTimestampToDateTime($_devices[$i][Core\Model\ASD\USER_DEVICE_LAST_VISITED]);
-                if (isset($_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS]) && $_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS][0]!='{')
+                if (isset($_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS])  && isset($_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS][0]) && $_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS][0]!='{')
                 {
                     $_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS] = base64_decode($_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS]);
                 }
@@ -751,17 +808,17 @@ $.ajax({
         {
             echo '<li><a href="/admin/?p='. $record[\Core\Model\ASD\SET_RECORD_ID] . '&a=-1">Release</a></li>';
         }
-        if(0 && $record[\Core\Model\ASD\USER_LEVEL]==5)
+        if($record[\Core\Model\ASD\USER_LEVEL]==5)
         {
-            echo '<li style="float:right"><a style="border-left:1px solid #CCC" onclick="unblock('.$record[\Core\Model\ASD\SET_RECORD_ID].',this)" href="javascript:void(0);">Unblock</a></li>';
+            echo '<li style="float:right"><a style="border-left:1px solid #CCC" href="?p='.$record[\Core\Model\ASD\SET_RECORD_ID].'&action=unblock">Unblock</a></li>';
         }
         else
         {
             echo '<li style="float:right"><a style="border-left:1px solid #CCC" onclick="block('.$record[\Core\Model\ASD\SET_RECORD_ID].',this)" href="javascript:void(0);">Block</a></li>';
-        }
-        if ( !(isset($record['suspended']) && $record['suspended']=='YES'))
-        {
-            echo '<li style="float:right"><a style="border-left:1px solid #CCC" onclick="suspend('.$record[\Core\Model\ASD\SET_RECORD_ID].',this)" href="javascript:void(0);">Suspend</a></li>';
+            if ( !(isset($record['suspended']) && $record['suspended']=='YES'))
+            {
+                echo '<li style="float:right"><a style="border-left:1px solid #CCC" onclick="suspend('.$record[\Core\Model\ASD\SET_RECORD_ID].',this)" href="javascript:void(0);">Suspend</a></li>';
+            }
         }
         echo '</ul>';
         echo '<div dir="ltr">';

@@ -1982,6 +1982,17 @@ class User
         return $id;
     }
     
+    function unblock($uids, $numbers){
+        $stmt = $this->db->prepareQuery('delete from bl_phone where telephone = ?');
+        foreach($numbers as $number => $bool){
+            Core\Model\NoSQL::getInstance()->removeNumberFromBlacklist($number);            
+            $stmt->execute([$number]);
+        }
+        
+        foreach ($uids as $uid){
+            NoSQL::getInstance()->setUserLevel($uid, 0);
+        }
+    }
     
     function block($uid, $number, $msg)
     {

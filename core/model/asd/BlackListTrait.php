@@ -43,6 +43,9 @@ trait BlackListTrait
         return $success ? 1 : 0;
     }
     
+    public function removeNumberFromBlacklist($number){
+        $this->getConnection()->remove($this->asKey($number));        
+    }
     
     public function isBlacklistedContacts(array $contacts) : bool
     {
