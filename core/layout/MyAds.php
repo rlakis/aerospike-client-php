@@ -1,5 +1,4 @@
 <?php
-
 include $config['dir'].'/core/layout/Page.php';
 
 class MyAds extends Page 
@@ -776,6 +775,7 @@ var rtMsgs={
         'اعلان مكرر',
         'يرجى عدم التكرار لتجنب تعليق حسابك بشكل آلي',
         'لقد تم نشر الإعلان في القسم الأنسب ونرجو عدم التكرار',
+        'لقد تخطيت الحد الاقصى لنشر اعلانات طلب العمل',
         'group=البلد',
         'يرجى النشر ضمن قسم العقارات الدولية',
         'لا يمكن نشر هذا الاعلان سوى في البلد الذي تتواجد فيه مكاتبكم وخدماتكم',
@@ -809,6 +809,7 @@ var rtMsgs={
         'repeated ad',
         'please do not repeat ads so that your account does not get suspended automatically',
         'this ad has already been published in a more suitable section',
+        'you have reached the maximum number of ads that can be posted under LOOKING FOR A JOB',
         'group=Inapplicable Country',
         'please choose \"international real estate\" section to publish your ad',
         'this ad can only be published in countries where your offices and services are located',
