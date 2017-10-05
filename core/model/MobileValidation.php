@@ -716,7 +716,7 @@ trait EdigearTrait
 
     public function verifyEdigearPin(string $id, int $pin) : array
     {
-        $status = 400;
+        //$status = 400;
         $response = ["number"=>NULL, "validated"=>false, "validation_date"=>NULL, "charged_amount"=>0];
         $req = Berysoft\EdigearRequest::Create()->
                         setAction(Berysoft\EGAction::Verify)->
