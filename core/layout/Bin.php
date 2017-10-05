@@ -322,10 +322,11 @@ class Bin extends AjaxHandler{
                 }
                 break;         
                 
+                
             case 'ajax-mobile':
                 if($this->user->info['id'] && $this->user->info['level']!=5)
                 {
-                    include_once $this->urlRouter->cfg['dir'].'/core/lib/MourjanNexmo.php';
+                    //include_once $this->urlRouter->cfg['dir'].'/core/lib/MourjanNexmo.php';
                     $keyCode=0;
                     $lang=filter_input(INPUT_POST, 'hl');
                     if(!in_array($lang, ['en','ar']))
@@ -339,105 +340,58 @@ class Bin extends AjaxHandler{
                     $keyCode = is_numeric($keyCode) ? $keyCode : 0;
                     
                     $hangup = filter_input(INPUT_POST,'hang');
+                    
                     if($number)
                     { 
+                        $validator = libphonenumber\PhoneNumberUtil::getInstance();
+                        $num = $validator->parse($number, 'LB');
+                        
                         if($keyCode)
-                        {                            
-                            //if($validateByCall)
-                            //{
-                                $validator = libphonenumber\PhoneNumberUtil::getInstance();
-                                $num = $validator->parse($number, 'LB');
-
-                                if($num && $validator->isValidNumber($num))
+                        {                                                                                   
+                            
+                            if($num && $validator->isValidNumber($num))
+                            {
+                                $this->setData(0,'verified');
+                                $numberType = $validator->getNumberType($num);
+                                if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE)
                                 {
-                                    $numberType = $validator->getNumberType($num);
-                                    if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE)
+
+                                    if(substr($number,0,1)=='+')
                                     {
-
-                                        if(substr($number,0,1)=='+')
-                                        {
-                                            $number = substr($number,1);
-                                        }
+                                        $number = substr($number,1);
+                                    }
                                         
-                                        $mrs = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number);
-                                        if ($mrs!==FALSE)
+                                    $mrs = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number);
+                                    if ($mrs!==FALSE)
+                                    {
+                                        $response = MobileValidation::getInstance()->verifyEdigearPin($mrs[Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);
+                                            
+                                        if (isset($response['status']) && $response['status']==200 && isset($response['response']))
                                         {
-                                            //$res
-                                            //$response = CheckMobiRequest::verifyPin($mrs[Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);
-                                            
-
-                                            //$response = MobileValidation::getInstance()->verifyNexmoCallPin($mrs[Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);
-                                            $response = MobileValidation::getInstance()->verifyEdigearPin($mrs[Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);
-                                            //var_dump($response);
-                                            
-                                            if (isset($response['status']) && $response['status']==200 && isset($response['response']))
+                                            if ($response['response']['validated'])
                                             {
-                                                if ($response['response']['validated'])
+                                                $activated = NoSQL::getInstance()->mobileActivationByRequestId($this->user->info['id'], $number, $keyCode, $mrs[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
+                                                if($activated)
                                                 {
-                                                    $activated = NoSQL::getInstance()->mobileActivationByRequestId($this->user->info['id'], $number, $keyCode, $mrs[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
-                                                    if($activated)
-                                                    {
-                                                        $this->setData(1,'verified');
-                                                        $this->user->info['verified']=true;
-                                                        unset($this->user->pending['mobile']);
-                                                        unset($this->user->pending['mobile_call']);
-                                                        unset($this->user->pending['mobile_call_stamp']);
-                                                        $this->user->update();
-                                                    }
-                                                    else
-                                                    {
-                                                        $this->setData(0,'verified');
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    $this->setData(0,'verified');
-                                                }
+                                                    $this->setData(1,'verified');
+                                                    $this->user->info['verified']=true;
+                                                    unset($this->user->pending['mobile']);
+                                                    unset($this->user->pending['mobile_call']);
+                                                    unset($this->user->pending['mobile_call_stamp']);
+                                                    $this->user->update();
+                                                }                                                
                                             }
                                         }
-                                        else
-                                        {
-                                            $this->setData(0,'verified');
-                                        }
                                     }
-                                    else
-                                    {
-                                        $this->setData(0,'verified');
-                                    }
-                                }else{
-                                    $this->setData(0,'verified');
                                 }
-                            /*}
+                            }
                             else
-                            { 
-                                if(substr($number,0,1)=='+')
-                                {
-                                    $number = substr($number,1);
-                                }
-                                $mrs = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number);
-                                if ($mrs!==FALSE){
-                                    $response = MobileValidation::getInstance()->verifyEdigearPin($mrs[Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);
-                                }else{
-                                    $this->setData(0,'verified');
-                                }
-                                if (Core\Model\NoSQL::getInstance()->mobileActivation($this->user->info['id'], $number, $keyCode))
-                                {
-                                    $this->setData(1,'verified');
-                                    $this->user->info['verified']=true;
-                                    unset($this->user->pending['mobile']);
-                                    $this->user->update();
-                                }
-                                else
-                                { 
-                                    $this->setData(0,'verified');
-                                }
-                            }  */                    
-                        }
+                            {
+                                $this->setData(0,'verified');
+                            }                           
+                        } // end of KeyCode is positive
                         else
-                        {
-                            $validator = libphonenumber\PhoneNumberUtil::getInstance();
-                            $num = $validator->parse($number, 'LB');
-                            
+                        {                                                                                    
                             if($num && $validator->isValidNumber($num))
                             {
                                 $numberType = $validator->getNumberType($num);
@@ -560,7 +514,7 @@ class Bin extends AjaxHandler{
                                             {
                                                 $keyCode = $mrs[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
                                             }                                                                                
-                                        }
+                                        } // end of SMS block
                                         else
                                         {
                                             // Record not found
@@ -573,22 +527,17 @@ class Bin extends AjaxHandler{
                                                 }
                                                 else
                                                 {
-                                                    //$response = CheckMobiRequest::reverseCallerId($number, $this->user->info['id']);
                                                     $ret = MobileValidation::getInstance(MobileValidation::EDIGEAR)->
                                                             setUID($this->user->info['id'])->
                                                             setPlatform(MobileValidation::WEB)->
                                                             requestReverseCLI($number, $response);
                                                     
-                                                    /*$ret = MobileValidation::getInstance(MobileValidation::NEXMO)->
-                                                            setUID($this->user->info['id'])->
-                                                            setPlatform(MobileValidation::WEB)->
-                                                            requestReverseCLI($number, $response);
-*/
                                                     if ($ret==MobileValidation::RESULT_ERR_ALREADY_ACTIVE){
                                                         $this->setData(1,'verified');
                                                         $number = 0;
                                                         $keyCode = 0;
-                                                    }elseif ($ret!==MobileValidation::RESULT_OK || !(isset($response['status']) && ($response['status']==200||$response['status']==201)))
+                                                    }
+                                                    elseif ($ret!==MobileValidation::RESULT_OK || !(isset($response['status']) && ($response['status']==200||$response['status']==201)))
                                                     {           
                                                         $keyCode=0;
                                                         $number=0;
@@ -631,7 +580,8 @@ class Bin extends AjaxHandler{
                                     {
                                         $keyCode=0;
                                         $number=0;
-                                    }                                                                    
+                                    }
+                                    
                                     if ($sendSms && $number && $keyCode)
                                     {
                                         if ( ($returnie = MobileValidation::getInstance(MobileValidation::EDIGEAR)->
@@ -639,12 +589,7 @@ class Bin extends AjaxHandler{
                                                 setUID($this->user->info['id'])->
                                                 setPin($keyCode)->
                                                 sendSMS($number, "{$keyCode} is your mourjan confirmation code")) != MobileValidation::RESULT_OK)
-                                        {
-                                        
-                                        //if (ShortMessageService::send($number, "{$keyCode} is your mourjan confirmation code", ['uid' => $this->user->info['id'], 'mid' => $sendSms, 'platform'=>'website']))
-                                        //{
-                                            //Core\Model\NoSQL::getInstance()->mobileIncrSMS($this->user->info['id'], $number);    
-                                            //} else {
+                                        {                                        
                                             $keyCode=0;
                                             $number=0;
                                             error_log($returnie);
@@ -653,6 +598,7 @@ class Bin extends AjaxHandler{
                                             error_log("SENT");
                                         }                                        
                                     }
+                                    
                                     $this->setData($number,'number');
                                     if($number)
                                     {
@@ -685,6 +631,7 @@ class Bin extends AjaxHandler{
                                 $this->setData(0,'check');
                             } 
                         }
+                        
                     }else{
                         unset($this->user->pending['mobile']);
                         $this->user->update();
@@ -692,6 +639,7 @@ class Bin extends AjaxHandler{
                     $this->process();
                 }
                 break;
+                
                                 
             case 'ajax-getshouts-private':
                 if($this->user->info['id']){
