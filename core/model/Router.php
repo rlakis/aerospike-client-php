@@ -657,7 +657,14 @@ class Router
         $this->close();
         
         header('Location: '. $url);
-            
+        
+        ob_start();
+        debug_print_backtrace();
+        $trace = ob_get_contents();
+        ob_end_clean();
+    
+        error_log($trace);
+        
         exit(0);
     }
     

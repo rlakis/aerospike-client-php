@@ -114,15 +114,17 @@ class Page extends Site
         ////$this->urlRouter->cfg['url_jquery_mobile'] = 'https://dv.mourjan.com/web/jquery/4.0.0/js/';
         
         //$this->urlRouter->cfg['url_css'] = '/web/css/release';
-        header("Link: <{$this->urlRouter->cfg['url_css']}/gen_ar.css>; rel=preload; as=style;", false);
-        header("Link: <{$this->urlRouter->cfg['url_css']}/imgs.css>; rel=preload; as=style;", false);
-        header("Link: <{$this->urlRouter->cfg['url_css']}/i/logo.jpg>; rel=preload; as=image;", false);
-        header("Link: <{$this->urlRouter->cfg['url_jquery']}/jquery.min.js>; rel=preload; as=script;", false);
+       
         if ($this->urlRouter->isMobile) {
             header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/s_home_m_ar.css>; rel=preload; as=style;", false);
             header("Link: <{$this->urlRouter->cfg['url_jquery_mobile']}zepto.min.js>; rel=preload; as=script;", false);
             header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/main_m.png>; rel=preload; as=image;", false);
-            header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/f/all.png>; rel=preload; as=image;", false);
+            //header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/f/all.png>; rel=preload; as=image;", false);
+        } else {
+            header("Link: <{$this->urlRouter->cfg['url_css']}/gen_ar.css>; rel=preload; as=style;", false);
+            header("Link: <{$this->urlRouter->cfg['url_css']}/imgs.css>; rel=preload; as=style;", false);
+            header("Link: <{$this->urlRouter->cfg['url_css']}/i/logo.jpg>; rel=preload; as=image;", false);
+            header("Link: <{$this->urlRouter->cfg['url_jquery']}jquery.min.js>; rel=preload; as=script;", false);
         }
         //header("Link: </web/css/release/imgs.css>; rel=preload; as=stylesheet;", false);
         //header("Link '<{$this->urlRouter->cfg['url_css']}/imgs.css>; rel=preload; as=stylesheet';");        
@@ -852,11 +854,12 @@ class Page extends Site
         if($this->urlRouter->countryId){
             switch($this->urlRouter->countryId){
                 case 1:
+                    /*
                     $this->inlineCss.='
                         .cf.c1 {
                             background-position: 0px -120px
                         }
-                    ';
+                    ';*/
                     break;
                 case 2:
                     $this->inlineCss.='
@@ -981,6 +984,7 @@ class Page extends Site
                     break;
             }
         }elseif($this->urlRouter->module=='index'){
+            
             $this->inlineCss.='
                 .cf.c1 {
                     background-position: 0px -120px
@@ -5187,7 +5191,7 @@ class Page extends Site
 
         if ($this->isMobile) {
             
-            ?><meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=0"><?php
+            ?><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, maximum-scale=5.0, user-scalable=1" name="viewport"><?php
             /* ?><link rel="apple-touch-icon-precomposed" href="<?= $this->urlRouter->cfg["url_img"]."/mourjan-icon.png" ?>"/><?php
             ?><link rel="apple-touch-icon" href="<?= $this->urlRouter->cfg["url_img"]."/mourjan-icon.png" ?>"/><?php */
             ?><link rel="apple-touch-icon" sizes="57x57" href="<?= $this->urlRouter->cfg["url_img"]."/mourjan-icon-114.png" ?>" /><?php

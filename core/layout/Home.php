@@ -216,7 +216,7 @@ class Home extends Page{
         if ($this->urlRouter->rootId) return;
         if ($this->urlRouter->countryId){
             echo '<ul class="ls">';
-            echo '<li><a href="/', $this->appendLang ,'"><span class="cf c', $this->urlRouter->countryId, '"></span>',
+            echo '<li><a href="/', $this->appendLang ,'"><span class="flag-icon large c', $this->urlRouter->countryId, '"></span>',
                 $this->countryCounter, ' ',$this->lang['in'],' ',($this->urlRouter->cityId?$this->cityName:$this->countryName),
                 '<span class="et"></span></a></li>';
             echo '</ul>';
