@@ -532,3 +532,28 @@ h2, label, h3 {
 .install .rating.ios{background:url(i/rating-ios.jpg) no-repeat top right}
 .install .ilogo{background:url(i/store.jpg) no-repeat center}
 .cf{background-image:url(./i/f/all.png)}
+
+.flag-icon-background {background-size:contain;background-position:50%;background-repeat:no-repeat;}
+.flag-icon {background-size:contain;background-position:50%;background-repeat:no-repeat;position:relative;display:inline-block;width:1.33333333em;line-height:1em;}
+.flag-icon.large{width:2.66666666em;line-height:2em;margin-left:10px;}
+.flag-icon:before{content:"\00a0";}
+.flag-icon.flag-icon-squared {width:1em;}
+
+.c1{background-image:url(../../flags/4x3/lb.svg);}
+.c2{background-image:url(../../flags/4x3/ae.svg);}
+.c3{background-image:url(../../flags/4x3/bh.svg);}
+.c4{background-image:url(../../flags/4x3/sa.svg);}
+.c5{background-image:url(../../flags/4x3/eg.svg);}
+.c6{background-image:url(../../flags/4x3/sy.svg);}
+.c7{background-image:url(../../flags/4x3/kw.svg);}
+.c8{background-image:url(../../flags/4x3/jo.svg);}
+.c9{background-image:url(../../flags/4x3/qa.svg);}
+.c10{background-image:url(../../flags/4x3/sd.svg);}
+.c11{background-image:url(../../flags/4x3/tn.svg);}
+.c12{background-image:url(../../flags/4x3/ye.svg);}
+.c15{background-image:url(../../flags/4x3/dz.svg);}
+.c106{background-image:url(../../flags/4x3/iq.svg);}
+.c122{background-image:url(../../flags/4x3/ly.svg);}
+.c145{background-image:url(../../flags/4x3/ma.svg);}
+.c161{background-image:url(../../flags/4x3/om.svg);}
+
