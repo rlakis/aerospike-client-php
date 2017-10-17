@@ -59,7 +59,7 @@ class Page extends Site
         
         if (isset($this->user->params['user_country']))
         {
-            if ($this->user->params['user_country']==='lb'||
+            if (/*$this->user->params['user_country']==='lb'||*/
                 $this->user->params['user_country']==='ae'||
                 $this->user->params['user_country']==='bh'||
                 $this->user->params['user_country']==='sa'||
@@ -114,8 +114,16 @@ class Page extends Site
         ////$this->urlRouter->cfg['url_jquery_mobile'] = 'https://dv.mourjan.com/web/jquery/4.0.0/js/';
         
         //$this->urlRouter->cfg['url_css'] = '/web/css/release';
-        //header("Link: <{$this->urlRouter->cfg['url_css']}/gen_ar.css>; rel=preload; as=style;", false);
-        //header("Link: <{$this->urlRouter->cfg['url_css']}/imgs.css>; rel=preload; as=style;", false);
+        header("Link: <{$this->urlRouter->cfg['url_css']}/gen_ar.css>; rel=preload; as=style;", false);
+        header("Link: <{$this->urlRouter->cfg['url_css']}/imgs.css>; rel=preload; as=style;", false);
+        header("Link: <{$this->urlRouter->cfg['url_css']}/i/logo.jpg>; rel=preload; as=image;", false);
+        header("Link: <{$this->urlRouter->cfg['url_jquery']}/jquery.min.js>; rel=preload; as=script;", false);
+        if ($this->urlRouter->isMobile) {
+            header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/s_home_m_ar.css>; rel=preload; as=style;", false);
+            header("Link: <{$this->urlRouter->cfg['url_jquery_mobile']}zepto.min.js>; rel=preload; as=script;", false);
+            header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/main_m.png>; rel=preload; as=image;", false);
+            header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/f/all.png>; rel=preload; as=image;", false);
+        }
         //header("Link: </web/css/release/imgs.css>; rel=preload; as=stylesheet;", false);
         //header("Link '<{$this->urlRouter->cfg['url_css']}/imgs.css>; rel=preload; as=stylesheet';");        
         
