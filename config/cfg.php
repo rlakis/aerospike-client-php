@@ -53,13 +53,14 @@ $aws = 'https://doxplxe8wce37.cloudfront.net';
 
 $config=array(
     //Site parameters
-    'site_domain'           => 'www.mourjan.com',
+    'site_production'       => 0,
+    'site_domain'           => 'dv.mourjan.com',
     'slogan'                => '',// ' <span>faster than 82% of websites</span>',
     'slogan_en'             => '<span>The Best Classifieds Website</span>',
     'slogan_ar'             => '<span>أفضل موقع للإعلانات</span>',
     'site_key'              => 'mjn',
     'server_id'             => intval(get_cfg_var('mourjan.server_id')),
-    'site_production'       => 0,
+    
     'enabled_js_log'        => 0,
     //'enabled_ads'           => 1,
     'restricted_section_ads'=> array(
