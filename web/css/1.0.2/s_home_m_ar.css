@@ -531,10 +531,9 @@ h2, label, h3 {
 .install .rating.ar{background:url(i/rating-ar.jpg) no-repeat top right}
 .install .rating.ios{background:url(i/rating-ios.jpg) no-repeat top right}
 .install .ilogo{background:url(i/store.jpg) no-repeat center}
-.cf{background-image:url(./i/f/all.png)}
 
 .flag-icon-background {background-size:contain;background-position:50%;background-repeat:no-repeat;}
-.flag-icon {background-size:contain;background-position:50%;background-repeat:no-repeat;position:relative;display:inline-block;width:1.33333333em;line-height:1em;}
+.flag-icon {border:1px solid #aaa;background-size:contain;background-position:50%;background-repeat:no-repeat;position:relative;display:inline-block;width:1.33333333em;line-height:1em;}
 .flag-icon.large{width:2.66666666em;line-height:2em;margin-left:10px;}
 .flag-icon:before{content:"\00a0";}
 .flag-icon.flag-icon-squared {width:1em;}

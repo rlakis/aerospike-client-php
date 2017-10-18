@@ -407,6 +407,8 @@ $config['url_css_mobile'] = 'https://dv.mourjan.com/web/css/1.0.2';
 $config['dir_css'] = '/home/www/mourjan';
 $config['url_js_mobile'] = 'https://dv.mourjan.com/web/js/2.0.0';
 $config['url_image_lib'] = 'https://dv.mourjan.com/web/lix/2.0.0';
+$config['url_img'] = 'https://dv.mourjan.com/web/img/1.0.3';
+
 
 $config['server_id'] = get_cfg_var('mourjan.server_id');
 $config['active_maintenance']=0;

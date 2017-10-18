@@ -228,7 +228,7 @@ class Home extends Page{
                 foreach ($this->urlRouter->countries as $country_id => $country) {
                     if($userCountry == $country['uri']){
                         echo '<ul class="cls bbr">';
-                        echo '<li><a href="/', $country['uri'], '/'.$this->appendLang.'"><span class="cf c'.$country_id.'"></span>', $country['name'], '<span class="to"></span></a>';
+                        echo '<li><a href="/', $country['uri'], '/'.$this->appendLang.'"><span class="flag-icon large c'.$country_id.'"></span>', $country['name'], '<span class="to"></span></a>';
                         if (!empty($country['cities'])) {
                             echo '<ul class="sls">';
                             foreach ($country['cities'] as $city_id => $city) {
@@ -244,7 +244,7 @@ class Home extends Page{
             echo '<ul class="cls">';
             foreach ($this->urlRouter->countries as $country_id => $country) {
                 if(!$userCountry || $userCountry != $country['uri']){
-                    echo '<li><a href="/', $country['uri'], '/'.$this->appendLang.'"><span class="cf c'.$country_id.'"></span>', $country['name'], '<span class="to"></span></a>';
+                    echo '<li><a href="/', $country['uri'], '/'.$this->appendLang.'"><span class="flag-icon large c'.$country_id.'"></span>', $country['name'], '<span class="to"></span></a>';
                     if (!empty($country['cities'])) {
                         echo '<ul class="sls">';
                         foreach ($country['cities'] as $city_id => $city) {

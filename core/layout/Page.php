@@ -72,7 +72,9 @@ class Page extends Site
                 //$cdn = "https://www.mourjan.com";
                 //$cdn = "https://dv.mourjan.com";
             }
-        }        
+        }    
+        $cdn = "https://www.mourjan.com";
+        
         $this->urlRouter->cfg['url_resources']      = $cdn;
         $this->urlRouter->cfg['url_ad_img']         = $cdn;
         if(strpos($this->urlRouter->cfg['url_img'], 'http')===false){
@@ -115,17 +117,6 @@ class Page extends Site
         
         //$this->urlRouter->cfg['url_css'] = '/web/css/release';
        
-        if ($this->urlRouter->isMobile) {
-            header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/s_home_m_ar.css>; rel=preload; as=style;", false);
-            header("Link: <{$this->urlRouter->cfg['url_jquery_mobile']}zepto.min.js>; rel=preload; as=script;", false);
-            header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/main_m.png>; rel=preload; as=image;", false);
-            //header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/f/all.png>; rel=preload; as=image;", false);
-        } else {
-            header("Link: <{$this->urlRouter->cfg['url_css']}/gen_ar.css>; rel=preload; as=style;", false);
-            header("Link: <{$this->urlRouter->cfg['url_css']}/imgs.css>; rel=preload; as=style;", false);
-            header("Link: <{$this->urlRouter->cfg['url_css']}/i/logo.jpg>; rel=preload; as=image;", false);
-            header("Link: <{$this->urlRouter->cfg['url_jquery']}jquery.min.js>; rel=preload; as=script;", false);
-        }
         //header("Link: </web/css/release/imgs.css>; rel=preload; as=stylesheet;", false);
         //header("Link '<{$this->urlRouter->cfg['url_css']}/imgs.css>; rel=preload; as=stylesheet';");        
         
@@ -1129,9 +1120,44 @@ class Page extends Site
             $this->requires[$type]=array_merge($this->requires[$type], $str);
         }else $this->requires[$type][]=$str;
     }
+    
+    function prepare_css(){
+        $addOn='';
+        $mobileDir='';
+        $source=$this->urlRouter->cfg['url_css'];
+        $sourceFile = '/home/www/css/5.4.2';
+        $sourceFile = $this->urlRouter->cfg['dir_css'].substr($source,strlen($this->urlRouter->cfg['url_resources']));
+        if ($this->isMobile) {
+            $addOn.='_m';
+            $source=$this->urlRouter->cfg['url_css_mobile'];
+            $sourceFile = '/home/www/css/5.2.8g';
+            $sourceFile = $this->urlRouter->cfg['dir_css'].substr($source,strlen($this->urlRouter->cfg['url_resources']));
+            if($this->isMobileCssLegacy){
+                $this->requires['css'][]='mms';
+            }
+        }else{
+            $this->requires['css'][]='imgs';
+        }
+        if ($this->urlRouter->siteTranslate) {
+            if ($this->urlRouter->siteTranslate=='ar') $addOn.='_ar';
+        }elseif ($this->urlRouter->siteLanguage=='ar') $addOn.='_ar'; 
+        $fAddon=$addOn;
+        $csFile = '';
+        $toRequire = [];
+        foreach ($this->requires['css'] as $css) {
+            if (substr($css, 0, 7)=='s_root_' || $css=='ie6' || $css=='ie7' || $css=='imgs' || $css=='mms' || $css == 'home' || $css == 'select2') $addOn='';
+            else $addOn=$fAddon;
+            
+            $toRequire[] = $source . '/' . $css . $addOn . '.css';
+        }
+        $this->requires['css'] = $toRequire;
+    }
 
     protected function load_css(){
-        $addOn='';
+        foreach ($this->requires['css'] as $css) {
+            echo '<link rel=\'stylesheet\' type=\'text/css\' href=\'', $css ,'\' />';
+        }
+        /*$addOn='';
         $mobileDir='';
         $source=$this->urlRouter->cfg['url_css'];
         $sourceFile = '/home/www/css/5.4.2';
@@ -1180,7 +1206,9 @@ class Page extends Site
             $this->requires['css'] = $toRequire;
         }else{
             unset ($this->requires['css']);
-        }
+        }*/
+        $csFile = '';
+        
         if ($this->inlineCss){
             $this->inlineCss= preg_replace('/\n/','',$this->inlineCss);
             $this->inlineCss= preg_replace('/\s+/',' ',$this->inlineCss);
@@ -4570,7 +4598,109 @@ class Page extends Site
         }
     }
     
-    
+    function prepare_js(){     
+        
+        $requires = [];
+        
+        if ($this->urlRouter->isMobile) {   
+            
+            $renderMobileVerifyPage = ($this->urlRouter->module=='post' && $this->user->info['id'] && !$this->isUserMobileVerified);
+            if(!$renderMobileVerifyPage){
+                $requires[] = $this->urlRouter->cfg['url_jquery_mobile'] . '/zepto.min.js';
+            }
+            switch($this->urlRouter->module){
+                case 'myads':
+                    if($this->user->info['id']) {
+                        $requires[] = $this->urlRouter->cfg['url_js_mobile'] . '/m_ads.js';
+                    }
+                    break;
+                case 'post':
+                    if($this->user->info['id'] && $this->isUserMobileVerified) {
+                        $requires[] = $this->urlRouter->cfg['url_js_mobile'] . '/m_post.js';
+                    }elseif($renderMobileVerifyPage){
+                        $requires[] = $this->urlRouter->cfg['url_jquery_mobile'] . '/jquery.mob.min.js';
+                        $requires[] = $this->urlRouter->cfg['url_jquery'] . '/select2.min.js';
+                    }
+                    break;
+                case 'detail':
+                case 'search':
+                    $requires[] = $this->urlRouter->cfg['url_js_mobile'] . '/m_srh.js';
+                    break;
+                case 'account':
+                    if($this->user->info['id']) {
+                    $requires[] = $this->urlRouter->cfg['url_js_mobile'] . '/m_acc.js';
+                    }
+                    break;
+                case 'contact':
+                    $requires[] = $this->urlRouter->cfg['url_js_mobile'] . '/m_cnt.js';
+                    break;
+                case 'password':
+                    $requires[] = $this->urlRouter->cfg['url_js_mobile'] . '/m_pwd.js';
+                    break;
+
+                case 'index':
+                default:
+                    break;
+            }
+
+            
+        }else{
+        
+            switch($this->urlRouter->module){
+                case 'signin':
+                    $requires[] = $this->urlRouter->cfg['url_jquery'] . 'socket.io-1.4.5.js';
+                    $requires[] =  $this->urlRouter->cfg['url_js'] . '/signin.js';
+                    break;
+                case 'detail':
+                case 'search':
+                    $requires[] = $this->urlRouter->cfg['url_js'] . '/search.js';
+                    break;
+                case 'myads':
+                    if($this->user->info['id']){
+                        $requires[] = $this->urlRouter->cfg['url_jquery'] . 'socket.io-1.4.5.js';
+                        if($this->user->info['level']==9){     
+                            if($this->urlRouter->cfg['site_production']){
+                                $requires[] = 'https://h5.mourjan.com/js/3.3.6/myadsad.js';
+                            }else{
+                                $requires[] = $this->urlRouter->cfg['url_js'] . '/myadsad.js';
+                            }
+                        }else{
+                            $requires[] = $this->urlRouter->cfg['url_js'] . '/myads.js';                                          
+                        }
+                    }
+                    break;
+                case 'account':
+                    if($this->user->info['id']){
+                        $requires[] = $this->urlRouter->cfg['url_js'] . '/account.js';
+                    }
+                    break;
+                case 'post':
+                    if($this->user->info['id'] && $this->isUserMobileVerified){                    
+                        if($this->user->info['id'] && $this->user->info['level']==9 && $this->urlRouter->module=='post'){
+                            if($this->urlRouter->cfg['site_production']){
+                                $requires[] ='https://h5.mourjan.com/js/3.0.7/pvc.js';
+                            }else{
+                                $requires[] =  $this->urlRouter->cfg['url_js'] . '/pvc.js';
+                            }
+                        }
+                        $requires[] = $this->urlRouter->cfg['url_js'] . '/post.js';
+                    }elseif($this->user->info['id']){
+                        $requires[] = $this->urlRouter->cfg['url_jquery'] . 'select2.min.js';
+                    }
+                    break;
+                case 'password':
+                    if($this->include_password_js){
+                        $requires[] = $this->urlRouter->cfg['url_js'] . '/pwd.js';
+                    }
+                    break;
+                case 'index':                
+                default:
+                    break;
+            }
+        }
+        
+        $this->requires['js'] = $requires;
+    }
     
     function load_js_classic()
     {
@@ -5181,6 +5311,121 @@ class Page extends Site
         $country_code="";
         if ($this->urlRouter->countryId && array_key_exists($this->urlRouter->countryId, $this->urlRouter->countries)) {
             $country_code = '-'.$this->urlRouter->countries[$this->urlRouter->countryId]['uri'];
+        }
+        
+        $this->prepare_css();
+        $this->prepare_js();
+        
+        foreach($this->requires['css'] as $css){
+            header("Link: <{$css}>; rel=preload; as=style;", false);
+        }
+        
+        if ($this->urlRouter->isMobile) {       
+            
+            header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/main_m.png>; rel=preload; as=image;", false);
+            
+            switch($this->urlRouter->module){
+                case 'search':
+                    if($this->urlRouter->sectionId){
+                        header("Link: <{$this->urlRouter->cfg['url_img']}/90/{$this->urlRouter->sectionId}.png>; rel=preload; as=image;", false);
+                    }
+                    break;
+                case 'detail':
+                    header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/share.png>; rel=preload; as=image;", false);
+                    break;
+                case 'index':
+                    switch($this->urlRouter->rootId){
+                        case 1:
+                            header("Link: <{$this->urlRouter->cfg['url_css']}/i/realestate.png>; rel=preload; as=image;", false);
+                            break;
+                        case 2:
+                            header("Link: <{$this->urlRouter->cfg['url_css']}/i/cars.png>; rel=preload; as=image;", false);
+                            break;
+                        case 3:
+                            header("Link: <{$this->urlRouter->cfg['url_css']}/i/jobs.png>; rel=preload; as=image;", false);
+                            break;
+                        case 4:
+                            header("Link: <{$this->urlRouter->cfg['url_css']}/i/service.png>; rel=preload; as=image;", false);
+                            break;
+                        case 99:
+                            header("Link: <{$this->urlRouter->cfg['url_css']}/i/misc.png>; rel=preload; as=image;", false);
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            foreach($this->requires['js'] as $js){
+                header("Link: <{$js}>; rel=preload; as=script;", false);
+            }
+            
+        } else {
+            //logos
+            header("Link: <{$this->urlRouter->cfg['url_css']}/i/logo.jpg>; rel=preload; as=image;", false);
+            header("Link: <{$this->urlRouter->cfg['url_css']}/i/gen.png>; rel=preload; as=image;", false);
+            header("Link: <{$this->urlRouter->cfg['url_css']}/i/titlebar.png>; rel=preload; as=image;", false);
+            header("Link: <{$this->urlRouter->cfg['url_css']}/i/f/all.png>; rel=preload; as=image;", false);
+            header("Link: <{$this->urlRouter->cfg['url_img']}/abg.jpg>; rel=preload; as=image;", false);
+            if($this->user->info['id']){
+                header("Link: <{$this->urlRouter->cfg['url_css']}/i/geni.png>; rel=preload; as=image;", false);
+            }
+            
+            switch($this->urlRouter->module){
+                case 'search':
+                    header("Link: <{$this->urlRouter->cfg['url_css']}/i/abg.jpg>; rel=preload; as=image;", false);
+                    header("Link: <{$this->urlRouter->cfg['url_css']}/i/gad.jpg>; rel=preload; as=image;", false);
+                    if($this->urlRouter->sectionId){
+                        header("Link: <{$this->urlRouter->cfg['url_img']}/90/{$this->urlRouter->sectionId}.png>; rel=preload; as=image;", false);
+                    }
+                case 'detail':
+                    switch($this->urlRouter->rootId){
+                        case 1:
+                            header("Link: <{$this->urlRouter->cfg['url_css']}/i/realestate.png>; rel=preload; as=image;", false);
+                            break;
+                        case 2:
+                            header("Link: <{$this->urlRouter->cfg['url_css']}/i/cars.png>; rel=preload; as=image;", false);
+                            break;
+                        case 3:
+                            header("Link: <{$this->urlRouter->cfg['url_css']}/i/jobs.png>; rel=preload; as=image;", false);
+                            break;
+                        case 4:
+                            header("Link: <{$this->urlRouter->cfg['url_css']}/i/service.png>; rel=preload; as=image;", false);
+                            break;
+                        case 99:
+                            header("Link: <{$this->urlRouter->cfg['url_css']}/i/misc.png>; rel=preload; as=image;", false);
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case 'index':
+                    header("Link: <{$this->urlRouter->cfg['url_css']}/i/realestate.png>; rel=preload; as=image;", false);
+                    header("Link: <{$this->urlRouter->cfg['url_css']}/i/jobs.png>; rel=preload; as=image;", false);
+                    header("Link: <{$this->urlRouter->cfg['url_css']}/i/service.png>; rel=preload; as=image;", false);
+                    header("Link: <{$this->urlRouter->cfg['url_css']}/i/cars.png>; rel=preload; as=image;", false);
+                    header("Link: <{$this->urlRouter->cfg['url_css']}/i/misc.png>; rel=preload; as=image;", false);
+                    
+                    //header("Link: <{$this->urlRouter->cfg['url_css']}/i/apps.jpg>; rel=preload; as=image;", false);
+                    if (isset($this->user->params['screen'][0])){
+                        if ($this->user->params['screen'][0] > 1249) {
+                            header("Link: <{$this->urlRouter->cfg['url_css']}/i/wbl.jpg>; rel=preload; as=image;", false);
+                        }else{
+                            header("Link: <{$this->urlRouter->cfg['url_css']}/i/bl.jpg>; rel=preload; as=image;", false);
+                        }
+                    }
+                    
+                    break;
+                default:
+                    header("Link: <{$this->urlRouter->cfg['url_img']}/msl.png>; rel=preload; as=image;", false);
+                    break;
+            }
+            
+            header("Link: <{$this->urlRouter->cfg['url_jquery']}jquery.min.js>; rel=preload; as=script;", false);
+            foreach($this->requires['js'] as $js){
+                header("Link: <{$js}>; rel=preload; as=script;", false);
+            }
         }
         
         ?><!doctype html><html lang="<?= $this->urlRouter->siteLanguage . $country_code ?>" xmlns:fb="http://ogp.me/ns/fb#" xmlns:og="http://ogp.me/ns#"<?= (isset($this->detailAd[Classifieds::VIDEO]) && $this->detailAd[Classifieds::VIDEO]) ? ' xmlns:video="http://ogp.me/ns/video#"':'' ?>><head><meta charset="UTF-8"><?php 

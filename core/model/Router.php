@@ -386,7 +386,7 @@ class Router
             
             if (isset($_session_params['visit']) && isset($_session_params['user_country'])) 
             { 
-                if (!$this->countryId) 
+                if (!$this->countryId && strpos($this->cfg['url_base'], 'dv.mourjan.com')===false) 
                 {  
                     $curi = $this->uri;
                     if (isset($this->cookie->cn) && $this->cookie->cn)
