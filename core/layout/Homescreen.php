@@ -1993,7 +1993,7 @@ if($this->urlRouter->params['iq']){
             setTimeout('pi();',300000);
         }
         setTimeout('pi();',300000);
-        var SCLD=0;(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_jquery'] ?>hs.min.js';<?php 
+        var SCLD=0;(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->urlRouter->cfg['url_jquery'] ?>/hs.min.js';<?php 
             ?>var head = document.getElementsByTagName("head")[0] || document.documentElement;sh.onload=sh.onreadystatechange=function(){<?php
                 ?>if (!SCLD && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete")){<?php
                     ?>

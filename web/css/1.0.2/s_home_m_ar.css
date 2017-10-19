@@ -110,7 +110,7 @@ textarea {
 .adn,
 .ovp,
 .w {
-    background: url(./i/main_m.png) no-repeat center
+    background: url(./i/main_m.webp) no-repeat center
 }
 .mc24{
     width:30px!important;
@@ -205,6 +205,7 @@ textarea {
 .k.log.on {
     background-position: -40px -214px
 }
+/*
 .cf {
     width: 32px;
     height: 24px;
@@ -214,6 +215,9 @@ textarea {
     position: relative;
     bottom: -4px
 }
+*/
+.cf{border:1px solid #aaa;background-size:contain;background-position:50%;background-repeat:no-repeat;margin-left:10px;position:relative;display:inline-block;width:1.33333333em;line-height:1em;}
+.cf:before{content:"\00a0";}
 .r1 {
     background-position: -84px -1px
 }

@@ -3966,7 +3966,7 @@ class Page extends Site
         }*/
         ?></script><?php
         $renderMobileVerifyPage = ($this->urlRouter->module=='post' && $this->user->info['id'] && !$this->isUserMobileVerified);
-        if(!$renderMobileVerifyPage){
+        if(!$renderMobileVerifyPage && $this->urlRouter->module!=='index'){
             ?><script type="text/javascript" onload="inlineQS()" defer="true" src="<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>zepto.min.js"></script><?php
         }
         switch($this->urlRouter->module){
@@ -4606,7 +4606,8 @@ class Page extends Site
             
             $renderMobileVerifyPage = ($this->urlRouter->module=='post' && $this->user->info['id'] && !$this->isUserMobileVerified);
             if(!$renderMobileVerifyPage){
-                $requires[] = $this->urlRouter->cfg['url_jquery_mobile'] . '/zepto.min.js';
+                if ($this->urlRouter->module!=='index')
+                    $requires[] = $this->urlRouter->cfg['url_jquery_mobile'] . '/zepto.min.js';
             }
             switch($this->urlRouter->module){
                 case 'myads':
@@ -4648,7 +4649,7 @@ class Page extends Site
         
             switch($this->urlRouter->module){
                 case 'signin':
-                    $requires[] = $this->urlRouter->cfg['url_jquery'] . 'socket.io-1.4.5.js';
+                    $requires[] = $this->urlRouter->cfg['url_jquery'] . '/socket.io-1.4.5.js';
                     $requires[] =  $this->urlRouter->cfg['url_js'] . '/signin.js';
                     break;
                 case 'detail':
@@ -4657,7 +4658,7 @@ class Page extends Site
                     break;
                 case 'myads':
                     if($this->user->info['id']){
-                        $requires[] = $this->urlRouter->cfg['url_jquery'] . 'socket.io-1.4.5.js';
+                        $requires[] = $this->urlRouter->cfg['url_jquery'] . '/socket.io-1.4.5.js';
                         if($this->user->info['level']==9){     
                             if($this->urlRouter->cfg['site_production']){
                                 $requires[] = 'https://h5.mourjan.com/js/3.3.6/myadsad.js';
@@ -4701,6 +4702,7 @@ class Page extends Site
         
         $this->requires['js'] = $requires;
     }
+    
     
     function load_js_classic()
     {
@@ -5321,7 +5323,10 @@ class Page extends Site
         }
         
         if ($this->urlRouter->isMobile) {       
-            
+            if (isset($_SERVER['HTTP_ACCEPT']) && strstr($_SERVER['HTTP_ACCEPT'], 'image/webp'))
+            {
+                header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/main_m.webp>; rel=preload; as=image;", false);
+            } else
             header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/main_m.png>; rel=preload; as=image;", false);
             
             switch($this->urlRouter->module){
