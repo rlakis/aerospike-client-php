@@ -4422,8 +4422,7 @@ class Page extends Site
             
             $renderMobileVerifyPage = ($this->urlRouter->module=='post' && $this->user->info['id'] && !$this->isUserMobileVerified);
             if(!$renderMobileVerifyPage){
-                if ($this->urlRouter->module!=='index')
-                    $requires[] = $this->urlRouter->cfg['url_jquery_mobile'] . 'zepto.min.js';
+                $requires[] = $this->urlRouter->cfg['url_jquery_mobile'] . 'zepto.min.js';
             }
             switch($this->urlRouter->module){
                 case 'myads':
