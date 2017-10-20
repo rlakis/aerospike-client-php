@@ -871,7 +871,7 @@ class MobileApi
             }
         }
 
-        $this->db->getCache()->set($MCKey, $this->result['d'], $this->config['ttl_short']);
+        $this->db->getCache()->setEx($MCKey, $this->config['ttl_short'], $this->result['d']);
     }
 
 
@@ -933,8 +933,6 @@ class MobileApi
         if ($this->countryId) $q.="and country={$this->countryId} ";
         if ($this->cityId) $q.="and city={$this->cityId} ";
         $q.=" group by locality_id limit 0,1000";
-
-        error_log($q);
         
         $batch="";
         foreach ($sections as $sectionId) 
