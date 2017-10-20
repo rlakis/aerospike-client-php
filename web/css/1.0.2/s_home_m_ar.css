@@ -109,9 +109,22 @@ textarea {
 .nw,
 .adn,
 .ovp,
-.w {
-    background: url(./i/main_m.webp) no-repeat center
-}
+.w {background-image: url(./i/main_m.png); background-position: center; background-repeat: no-repeat;}
+
+.wbp .ic,
+.wbp .mc24,
+.wbp .to,
+.wbp .et,
+.wbp .k,
+.wbp .back,
+.wbp .srch .k,
+.wbp .wow span,
+.wbp .qb,
+.wbp .nw,
+.wbp .adn,
+.wbp .ovp,
+.wbp .w {background-image: url(./i/main_m.webp)}
+
 .mc24{
     width:30px!important;
     height:30px;

@@ -1,6 +1,9 @@
 .u {
     background-image: url(./i/misc.png)
 }
+.wbp .u {
+    background-image: url(./i/misc.webp)
+}
 .u62 {
     background-position: -3px 0
 }

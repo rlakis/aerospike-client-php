@@ -29,7 +29,7 @@ class Page extends Site
     var $cityName='',$rootName='', $countryName='', $categoryName='', $sectionName='', $purposeName='',$backLink='';
     
     var $pageItemScope='itemscope itemtype="https://schema.org/WebPage"';
-
+    
     
     function __construct(Core\Model\Router $router)
     {
@@ -842,195 +842,10 @@ class Page extends Site
     }
 
     function includeCssByCountry(){
-        if($this->urlRouter->countryId){
-            switch($this->urlRouter->countryId){
-                case 1:
-                    /*
-                    $this->inlineCss.='
-                        .cf.c1 {
-                            background-position: 0px -120px
-                        }
-                    ';*/
-                    break;
-                case 2:
-                    $this->inlineCss.='
-                        .cf.c2 {
-                            background-position: -32px -168px
-                        }
-                    ';
-                    break;
-                case 3:
-                    $this->inlineCss.='
-                        .cf.c3 {
-                    background-position: 0px 0px
-                }
-                    ';
-                    break;
-                case 4:
-                    $this->inlineCss.='
-                        .cf.c4 {
-    background-position: -32px -72px
-}
-                    ';
-                    break;
-                case 5:
-                    $this->inlineCss.='
-                        .cf.c5 {
-    background-position: 0px -24px
-}
-                    ';
-                    break;
-                case 6:
-                    $this->inlineCss.='
-                        .cf.c6 {
-    background-position: -32px -120px
-}
-                    ';
-                    break;
-                case 7:
-                    $this->inlineCss.='
-                        .cf.c7 {
-    background-position: 0px -96px
-}
-                    ';
-                    break;
-                case 8:
-                    $this->inlineCss.='
-                        .cf.c8 {
-    background-position: 0px -72px
-}
-                    ';
-                    break;
-                case 9:
-                    $this->inlineCss.='
-                        .cf.c9 {
-    background-position: -32px -48px
-}
-                    ';
-                    break;
-                case 10:
-                    $this->inlineCss.='
-                        .cf.c10 {
-    background-position: -32px -96px
-}
-                    ';
-                    break;
-                case 11:
-                    $this->inlineCss.='
-                        .cf.c11 {
-    background-position: -32px -144px
-}
-                    ';
-                    break;
-                case 12:
-                    $this->inlineCss.='
-                        .cf.c12 {
-    background-position: 0px -192px
-}
-                    ';
-                    break;
-                case 15:
-                    $this->inlineCss.='
-                        .cf.c15 {
-    background-position: 0px -216px
-}
-                    ';
-                    break;
-                case 103:
-                    $this->inlineCss.='
-                        .cf.c103 {
-    background-position: -32px -192px
-}
-                    ';
-                    break;
-                case 106:
-                    $this->inlineCss.='
-                        .cf.c106 {
-    background-position: 0px -48px
-}
-                    ';
-                    break;
-                case 122:
-                    $this->inlineCss.='
-                        .cf.c122 {
-    background-position: 0px -144px
-}
-                    ';
-                    break;
-                case 145:
-                    $this->inlineCss.='
-                        .cf.c145 {
-    background-position: 0px -168px
-}
-                    ';
-                    break;
-                case 161:
-                    $this->inlineCss.='
-                        .cf.c161 {
-    background-position: -32px 0px
-}
-                    ';
-                    break;
-                default:
-                    break;
-            }
-        }elseif($this->urlRouter->module=='index'){
+        if(!$this->urlRouter->countryId && $this->urlRouter->module=='index'){
             
             $this->inlineCss.='
-                .cf.c1 {
-                    background-position: 0px -120px
-                }
-                .cf.c12 {
-                    background-position: 0px -192px
-                }
-                .cf.c6 {
-                    background-position: -32px -120px
-                }
-                .cf.c9 {
-                    background-position: -32px -48px
-                }
-                .cf.c5 {
-                    background-position: 0px -24px
-                }
-                .cf.c4 {
-                    background-position: -32px -72px
-                }
-                .cf.c3 {
-                    background-position: 0px 0px
-                }
-                .cf.c2 {
-                    background-position: -32px -168px
-                }
-                .cf.c8 {
-                    background-position: 0px -72px
-                }
-                .cf.c7 {
-                    background-position: 0px -96px
-                }
-                .cf.c10 {
-                    background-position: -32px -96px
-                }
-                .cf.c11 {
-                    background-position: -32px -144px
-                }
-                .cf.c161 {
-                    background-position: -32px 0px
-                }
-                .cf.c103 {
-                    background-position: -32px -192px
-                }
-                .cf.c106 {
-                    background-position: 0px -48px
-                }
-                .cf.c145 {
-                    background-position: 0px -168px
-                }
-                .cf.c15 {
-                    background-position: 0px -216px
-                }
-                .cf.c122 {
-                    background-position: 0px -144px
-                }
+                
                 .cls li {
                     background-color: #FFF;
                     margin-bottom: 10px;
@@ -1042,6 +857,7 @@ class Page extends Site
                     border-width: 1px 0 0 0
                 }
             ';
+            
             if($this->urlRouter->siteLanguage=='ar'){
                 $this->inlineCss.='
                     .sls a {
@@ -3966,7 +3782,7 @@ class Page extends Site
         }*/
         ?></script><?php
         $renderMobileVerifyPage = ($this->urlRouter->module=='post' && $this->user->info['id'] && !$this->isUserMobileVerified);
-        if(!$renderMobileVerifyPage && $this->urlRouter->module!=='index'){
+        if(!$renderMobileVerifyPage){
             ?><script type="text/javascript" onload="inlineQS()" defer="true" src="<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>zepto.min.js"></script><?php
         }
         switch($this->urlRouter->module){
@@ -4607,7 +4423,7 @@ class Page extends Site
             $renderMobileVerifyPage = ($this->urlRouter->module=='post' && $this->user->info['id'] && !$this->isUserMobileVerified);
             if(!$renderMobileVerifyPage){
                 if ($this->urlRouter->module!=='index')
-                    $requires[] = $this->urlRouter->cfg['url_jquery_mobile'] . '/zepto.min.js';
+                    $requires[] = $this->urlRouter->cfg['url_jquery_mobile'] . 'zepto.min.js';
             }
             switch($this->urlRouter->module){
                 case 'myads':
@@ -5315,6 +5131,8 @@ class Page extends Site
             $country_code = '-'.$this->urlRouter->countries[$this->urlRouter->countryId]['uri'];
         }
         
+        $png_ext = ($this->urlRouter->isAcceptWebP) ? ".webp" : ".png";
+        $jpg_ext = ($this->urlRouter->isAcceptWebP) ? ".webp" : ".jpeg";
         $this->prepare_css();
         $this->prepare_js();
         
@@ -5323,11 +5141,7 @@ class Page extends Site
         }
         
         if ($this->urlRouter->isMobile) {       
-            if (isset($_SERVER['HTTP_ACCEPT']) && strstr($_SERVER['HTTP_ACCEPT'], 'image/webp'))
-            {
-                header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/main_m.webp>; rel=preload; as=image;", false);
-            } else
-            header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/main_m.png>; rel=preload; as=image;", false);
+            header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/main_m{$png_ext}>; rel=preload; as=image;", false);
             
             switch($this->urlRouter->module){
                 case 'search':
@@ -5341,19 +5155,19 @@ class Page extends Site
                 case 'index':
                     switch($this->urlRouter->rootId){
                         case 1:
-                            header("Link: <{$this->urlRouter->cfg['url_css']}/i/realestate.png>; rel=preload; as=image;", false);
+                            header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/realestate{$png_ext}>; rel=preload; as=image;", false);
                             break;
                         case 2:
-                            header("Link: <{$this->urlRouter->cfg['url_css']}/i/cars.png>; rel=preload; as=image;", false);
+                            header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/cars{$png_ext}>; rel=preload; as=image;", false);
                             break;
                         case 3:
-                            header("Link: <{$this->urlRouter->cfg['url_css']}/i/jobs.png>; rel=preload; as=image;", false);
+                            header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/jobs{$png_ext}>; rel=preload; as=image;", false);
                             break;
                         case 4:
-                            header("Link: <{$this->urlRouter->cfg['url_css']}/i/service.png>; rel=preload; as=image;", false);
+                            header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/service{$png_ext}>; rel=preload; as=image;", false);
                             break;
                         case 99:
-                            header("Link: <{$this->urlRouter->cfg['url_css']}/i/misc.png>; rel=preload; as=image;", false);
+                            header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/misc{$png_ext}>; rel=preload; as=image;", false);
                             break;
                         default:
                             break;
@@ -5667,7 +5481,7 @@ class Page extends Site
              * 
              */
             
-        ?></head><?php flush() ?><body<?= $this->isAdminSearch ? ' oncontextmenu="return false;"':'' ?> class="<?= ($this->urlRouter->userId ? 'partner':'') ?>" <?= $this->pageItemScope ?>><meta itemprop="isFamilyFriendly" content="true" /><?php
+        ?></head><?php flush() ?><body<?= $this->isAdminSearch ? ' oncontextmenu="return false;"':'' ?> class="<?= ($this->urlRouter->isAcceptWebP ? 'wbp':'') ?>" <?= $this->pageItemScope ?>><meta itemprop="isFamilyFriendly" content="true" /><?php
         /*
         if ($this->isMobile && ($this->urlRouter->module=='search' || $this->urlRouter->module=='detail')) {
             ?><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php

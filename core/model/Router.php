@@ -52,6 +52,7 @@ class Router
     var $last_modified = false;
     var $count = 0;
     var $isPriceList = 0;
+    var $isAcceptWebP = 0;
     
     
     function __construct($params) 
@@ -93,6 +94,15 @@ class Router
         $this->session_key = session_id();
         $_session_params = $_SESSION['_u']['params'] ?? [];
                 
+        $this->isAcceptWebP = (isset($_SERVER['HTTP_ACCEPT']) && strstr($_SERVER['HTTP_ACCEPT'], 'image/webp'));
+        if (isset($_SESSION['webp']) && $_SESSION['webp'])
+        {
+            $this->isAcceptWebP = 1;            
+        } elseif ($this->isAcceptWebP) {
+            $_SESSION['webp'] = 1;
+        }
+        
+        
         if(isset($_GET['app']))
         {
             $this->isApp = $_GET['app'];

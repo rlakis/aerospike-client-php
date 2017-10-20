@@ -1,6 +1,9 @@
 .v {
     background-image: url(./i/jobs.png)
 }
+.wbp .v {
+    background-image: url(./i/jobs.webp)
+}
 .v12,
 .v463 {
     background-position: -3px 0

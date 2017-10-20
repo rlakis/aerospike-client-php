@@ -1,6 +1,9 @@
 .z {
     background-image: url(./i/cars.png)
 }
+.wbp .z {
+    background-image: url(./i/cars.webp)
+}
 .z10 {
     background-position: -3px 0px
 }

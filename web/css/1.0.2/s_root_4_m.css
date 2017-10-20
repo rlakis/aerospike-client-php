@@ -1,6 +1,9 @@
 .y {
     background-image: url(./i/service.png)
 }
+.wbp .y {
+    background-image: url(./i/service.webp)
+}
 .y185,
 .y1201 {
     background-position: -3px 0

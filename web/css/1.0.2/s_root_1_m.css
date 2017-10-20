@@ -1,6 +1,10 @@
 .x {
     background-image: url(./i/realestate.png)
 }
+.wbp .x {
+    background-image: url(./i/realestate.webp)
+}
+
 .x1 {
     background-position: -3px 0
 }
