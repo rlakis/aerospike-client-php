@@ -159,8 +159,15 @@ class MobileApi
                 [$this->unixtime], FALSE, \PDO::FETCH_NUM);
 
         $this->result['d']['geo'] = $this->db->get(
-                "SELECT ID, COUNTRY_ID, CITY_ID, PARENT_ID, LANG, NAME, BLOCKED, ALTER_ID, uri FROM GEO_TAG WHERE COUNTRY_ID=? and UNIXTIME>?",
-                [$this->countryId, $this->unixtime], FALSE, PDO::FETCH_NUM);
+                "select r.LOC_EN_ID ID, r.COUNTRY_ID, r.ID CITY_ID, r.PARENT_ID, cast('en' as varchar(2)) LANG, r.NAME, 0 BLOCKED, r.LOC_AR_ID ALTER_ID, r.URI
+                from F_CITY r
+                where COUNTRY_ID=? and UNIXTIME>? and r.uri>''
+                union ALL
+                select r.LOC_AR_ID ID, r.COUNTRY_ID, r.ID CITY_ID, r.PARENT_ID, CAST('ar' AS VARCHAR(2)) LANG, l.NAME, 0 BLOCKED, r.LOC_EN_ID ALTER_ID, r.URI
+                from F_CITY r
+                left join NLANG l on l.TABLE_ID=201 and l.ID=r.ID
+                where COUNTRY_ID=? and UNIXTIME>? and r.uri>''",
+                [$this->countryId, $this->unixtime, $this->countryId, $this->unixtime], FALSE, PDO::FETCH_NUM);
 
         $this->db->close();
 
@@ -927,6 +934,8 @@ class MobileApi
         if ($this->cityId) $q.="and city={$this->cityId} ";
         $q.=" group by locality_id limit 0,1000";
 
+        error_log($q);
+        
         $batch="";
         foreach ($sections as $sectionId) 
         {
