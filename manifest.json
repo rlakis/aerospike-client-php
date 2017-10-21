@@ -1,0 +1,15 @@
+{
+  "short_name": "mourjan",
+  "name": "mourjan",
+  "icons": [
+    {
+      "src":"mourjan-app.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/?utm_source=homescreen",
+  "background_color": "#F4F4F4",
+  "theme_color": "#143D55",
+  "display": "browser"
+}

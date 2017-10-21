@@ -5251,7 +5251,7 @@ class Page extends Site
         $this->header();
 
         echo '<title>', $this->title, '</title>';
-
+        
         if ($this->isMobile) {
             
             ?><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, maximum-scale=5.0, user-scalable=1" name="viewport"><?php
@@ -5264,6 +5264,7 @@ class Page extends Site
             
             ?><link rel="apple-touch-startup-image" href="<?= $this->urlRouter->cfg["url_img"]."/mourjan-splash.png"?>" /><?php
             ?><meta name="format-detection" content="telephone=no"><?php
+            ?><link rel="manifest" href="/manifest.json"><?php
            /* ?><meta name="apple-mobile-web-app-capable" content="yes"><?php
             ?><meta name="apple-mobile-web-app-status-bar-style" content="black"><?php */
         }
