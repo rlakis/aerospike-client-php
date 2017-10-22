@@ -482,7 +482,7 @@ class Page extends Site
             $this->urlRouter->params['q'] = preg_replace('/\//','',$this->urlRouter->params['q']);
             $this->urlRouter->params['q'] = trim(preg_replace('/\s+/',' ',$this->urlRouter->params['q']));
         }
-        
+        //$this->urlRouter->cfg['enabled_ads']=false;
         if (in_array($this->user->info['id'],array(1,2,2100,38813,44835,53456))) {
             $this->urlRouter->cfg['enabled_sharing']=false;
             $this->urlRouter->cfg['enabled_ads']=false;
@@ -3697,6 +3697,7 @@ class Page extends Site
         if ($this->urlRouter->module=='account'){
             ?>xSaving='<?= $this->lang['savingProgress'] ?>',<?php
         }
+        ?>_wsp=<?= (isset($this->user->params['screen'][0]) && $this->user->params['screen'][0]) ? 0 : 1  ?>,<?php
         ?>ro=<?= $this->urlRouter->rootId ?>,<?php
         ?>cn=<?= $this->urlRouter->countryId ?>,<?php
         ?>c=<?= $this->urlRouter->cityId ?>,<?php
