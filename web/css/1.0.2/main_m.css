@@ -218,6 +218,23 @@ span.ps,
 .w {
     background: url(./i/main_m.png) no-repeat center
 }
+
+.wbp .ic,
+.wbp .mc24,
+.wbp .to,
+.wbp .et,
+.wbp .k,
+.wbp .back,
+.wbp .srch .k,
+.wbp .qb,
+.wbp .nw,
+.wbp .adn,
+.wbp .dic,
+.wbp .close,
+.wbp .w {
+    background: url(./i/main_m.webp) no-repeat center
+}
+
 .mc24{
     width:30px!important;
     height:30px;

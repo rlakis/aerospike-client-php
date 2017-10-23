@@ -111,11 +111,26 @@ textarea {
 .w {
     background: url(./i/main_m.png) no-repeat center
 }
+.wbp .ic,
+.wbp .mc24,
+.wbp .to,
+.wbp .et,
+.wbp .k,
+.wbp .back,
+.wbp .srch .k,
+.wbp .wow span,
+.wbp .qb,
+.wbp .nw,
+.wbp .adn,
+.wbp .ovp,
+.wbp .w {
+    background: url(./i/main_m.webp) no-repeat center
+}
 .mc24{
     width:30px!important;
     height:30px;
     background-repeat:no-repeat;
-    background-position:-83px -258px;
+    background-position:-83px -258px!important; 
     display:inline-block;
     vertical-align:middle;
     margin:0 5px;
@@ -148,7 +163,7 @@ textarea {
     left: 0;
     width: 40px;
     height: 40px;
-    background-position: -36px -99px
+    background-position: -36px -99px!important;
 }
 .hasB .srch {
     left: 45px;
@@ -164,7 +179,7 @@ textarea {
     width: 40px;
     height: 40px;
     display: inline-block;
-    background-position: 5px -138px
+    background-position: 5px -138px!important;
 }
 .srch.on {
     background-color: #6F6F6F;
@@ -204,6 +219,9 @@ textarea {
 .k.log.on {
     background-position: -40px -214px
 }
+.cf{border:1px solid #aaa;background-size:contain;background-position:50%;background-repeat:no-repeat;margin-right:10px;position:relative;display:inline-block;width:1.33333333em;line-height:1em;}
+.cf:before{content:"\00a0";}
+/*
 .cf {
     width: 32px;
     height: 24px;
@@ -212,33 +230,33 @@ textarea {
     margin-right: 10px;
     position: relative;
     bottom: -4px
-}
+}*/
 .r1 {
-    background-position: -84px -1px
+    background-position: -84px -1px!important;
 }
 .r2 {
-    background-position: -82px -38px
+    background-position: -82px -38px!important;
 }
 .r3 {
-    background-position: -81px -118px
+    background-position: -81px -118px!important;
 }
 .r4 {
-    background-position: -81px -157px
+    background-position: -81px -157px!important;
 }
 .r99 {
-    background-position: -81px -79px
+    background-position: -81px -79px!important;
 }
 .r100 {
-    background-position: -122px -117px
+    background-position: -122px -117px!important;
 }
 .r101 {
-    background-position: -160px -130px
+    background-position: -160px -130px!important;
 }
 .r102 {
-    background-position: -201px -39px
+    background-position: -201px -39px!important;
 }
 .apb {
-    background-position: -159px -92px
+    background-position: -159px -92px!important;
 }
 h1 {
     font-weight: normal;
@@ -316,7 +334,7 @@ li.h .n {
 }
 .to,
 .et {
-    background-position: -54px -142px;
+    background-position: -54px -142px!important;
     width: 20px;
     height: 30px;
     float: right
@@ -325,7 +343,7 @@ li.h .n {
     float: left;
     width: 30px;
     margin-right: 10px;
-    background-position: 4px 5px
+    background-position: 4px 5px!important;
 }
 .ls .n {
     float: right;
@@ -536,9 +554,28 @@ h3 {
 .install .rating.ios{background:url(i/rating-ios.jpg) no-repeat top right}
 .install .ilogo{background:url(i/store.jpg) no-repeat center}
 
+
 .flag-icon-background {background-size:contain;background-position:50%;background-repeat:no-repeat;}
 .flag-icon {border:1px solid #aaa;background-size:contain;background-position:50%;background-repeat:no-repeat;position:relative;display:inline-block;width:1.33333333em;line-height:1em;}
+.flag-icon.large{width:2.66666666em;line-height:2em;margin-right:10px;}
 .flag-icon:before{content:"\00a0";}
 .flag-icon.flag-icon-squared {width:1em;}
-.flag-icon-lb{background-image:url(../flags/4x3/lb.svg);}
-.flag-icon-lb.flag-icon-squared{background-image: url(../flags/1x1/lb.svg);}
+
+.c1{background-image:url(../../flags/4x3/lb.svg);}
+.c2{background-image:url(../../flags/4x3/ae.svg);}
+.c3{background-image:url(../../flags/4x3/bh.svg);}
+.c4{background-image:url(../../flags/4x3/sa.svg);}
+.c5{background-image:url(../../flags/4x3/eg.svg);}
+.c6{background-image:url(../../flags/4x3/sy.svg);}
+.c7{background-image:url(../../flags/4x3/kw.svg);}
+.c8{background-image:url(../../flags/4x3/jo.svg);}
+.c9{background-image:url(../../flags/4x3/qa.svg);}
+.c10{background-image:url(../../flags/4x3/sd.svg);}
+.c11{background-image:url(../../flags/4x3/tn.svg);}
+.c12{background-image:url(../../flags/4x3/ye.svg);}
+.c15{background-image:url(../../flags/4x3/dz.svg);}
+.c106{background-image:url(../../flags/4x3/iq.svg);}
+.c122{background-image:url(../../flags/4x3/ly.svg);}
+.c145{background-image:url(../../flags/4x3/ma.svg);}
+.c161{background-image:url(../../flags/4x3/om.svg);}
+
