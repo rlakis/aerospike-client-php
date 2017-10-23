@@ -7,12 +7,22 @@
 .shau {
     background-image: url(i/abg.jpg)
 }
+.wbp .shau {
+    background-image: url(i/abg.webp)
+}
 li.vp,
 .ls li.on,
 .sha,
 .partner .list,
 .dtf {
     background-image: url(i/gad.jpg)
+}
+.wbp li.vp,
+.wbp .ls li.on,
+.wbp .sha,
+.wbp .partner .list,
+.wbp .dtf {
+    background-image: url(i/gad.webp)
 }
 body {
     font-size: 15px;
@@ -241,6 +251,11 @@ p .pn {
 .note a,
 .note p {
     background-image: url(i/titlebar.png);
+    background-repeat: repeat-x;
+    background-position: 0 -10px
+}
+.wbp .note p {
+    background-image: url(i/titlebar.webp);
     background-repeat: repeat-x;
     background-position: 0 -10px
 }
@@ -978,6 +993,15 @@ input.bt.off:active {
     border: 1px solid #060300;
     line-height: 20px;
     background: url(i/cabg.png) repeat top left
+}
+.wbp .qw {
+    float: right;
+    width: 525px;
+    color: #000;
+    margin: 15px 20px 15px;
+    border: 1px solid #060300;
+    line-height: 20px;
+    background: url(i/cabg.webp) repeat top left
 }
 .qw h4 {
     padding-bottom: 5px

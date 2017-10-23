@@ -10,9 +10,12 @@ li.vp,
 .ls li.on,
 .sha,
 .partner .list,
-.dtf {
-    background-image: url(i/gad.jpg)
-}
+.dtf {background-image: url(i/gad.jpg)}
+.wbp li.vp,
+.wbp .ls li.on,
+.wbp .sha,
+.wbp .partner .list,
+.wbp .dtf {background-image: url(i/gad.webp)}
 body {
     text-align: left;
     font-size: 13px;
