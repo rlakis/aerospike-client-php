@@ -2,6 +2,7 @@
 
 namespace Core\Model\ASD;
 
+
 const NS_USER               = 'users';
 const TS_USER               = 'profiles';
 const TS_PROFILE            = 'profile';
@@ -152,6 +153,14 @@ trait UserTrait
                 if (($status=$this->getConnection()->get($primaryKey, $record))==\Aerospike::OK)
                 {
                     $bins=$record['bins'];
+                    
+                    $db_q = "UPDATE OR INSERT INTO WEB_USERS " +
+                        "(ID, IDENTIFIER, EMAIL, PROVIDER, FULL_NAME, DISPLAY_NAME, " +
+                        "PROFILE_URL, REGISTER_DATE, LAST_VISIT, LVL, "+
+                        "USER_NAME, USER_EMAIL, USER_PASS, USER_RANK, PREV_VISIT, "+
+                        "USER_PUBLISHER, LAST_RENEW)\n" +
+                        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    
                 }
             }
             else
@@ -210,7 +219,7 @@ trait UserTrait
     
     
     public function getProfile(array $keyMap, &$record) : int
-    {
+    {        
         $pk = $this->getProfileKeyFromParams($keyMap);
         $status = $this->getConnection()->get($pk, $record);
         if ($status!==\Aerospike::OK && $status!==\Aerospike::ERR_RECORD_NOT_FOUND)
@@ -247,6 +256,18 @@ trait UserTrait
     
     public function getProfileBasicRecord(int $uid, &$record, $bins=[]) : int
     {
+        error_log(get_cfg_var('mourjan.path') . '/config/cfg.php');
+
+        if (true)
+        {
+            include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
+            include_once get_cfg_var('mourjan.path') . '/core/model/Db.php';
+            global $config;
+            $db = new \Core\Model\DB($config);
+            
+            
+            error_log("passed");
+        }
         $where = \Aerospike::predicateEquals(USER_PROFILE_ID, $uid);
         $status = $this->getConnection()->query(NS_USER, TS_PROFILE, $where, 
                     function ($_record) use (&$record) {$record=$_record;}, $bins);
@@ -408,10 +429,7 @@ trait UserTrait
         {        
             $this->setBins($pk, [USER_LAST_VISITED=>time(), USER_PRIOR_VISITED=>$record[USER_LAST_VISITED]]);
         }
-    }
-            
-    
-    
+    }               
     
     
     public function setUserBin(int $uid, string $bin, $value) : bool

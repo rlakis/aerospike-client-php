@@ -399,6 +399,7 @@ if ($globalSettings!==FALSE)
         $config[$key] = $value;
     }
 }
+
 $config['url_resources']='https://dv.mourjan.com';
 $config['url_js'] = 'https://dv.mourjan.com/web/js/1.0.0';
 $config['url_css'] = 'https://dv.mourjan.com/web/css/5.4.3';

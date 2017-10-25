@@ -1,14 +1,11 @@
 <?php
 namespace Core\Model;
 
-
-
 require_once 'asd/UserTrait.php';
 require_once 'asd/MobileTrait.php';
 require_once 'asd/DeviceTrait.php';
 require_once 'asd/BlackListTrait.php';
 require_once 'asd/CallTrait.php';
-
 
 class NoSQL 
 {
