@@ -1428,6 +1428,9 @@ class MobileApi
                 if ($_mobile && $_mobile->isVerified())
                 {
                     $this->result['d']['mobile']=$_mobile->getNumber();
+                    if(trim($this->result['d']['mobile'])==''){
+                        error_log('EMPTY MOBILE IS VALID FOR UID '.$this->getUID());
+                    }
                 }
             }
         }

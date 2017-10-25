@@ -4729,6 +4729,7 @@ class Page extends Site
                     ?>_q='<?= $this->urlRouter->params['q'] ? addcslashes($this->urlRouter->params['q'], "'") :'' ?>',<?php
                 }
             }
+            ?>_wsp=<?= (isset($this->user->params['screen'][0]) && $this->user->params['screen'][0]) ? 0 : 1  ?>,<?php
             ?>ICH='<?= $this->includeHash ?>',<?php
             ?>LSM='<?= $this->urlRouter->last_modified ?>';<?php
             if(0 && in_array($this->urlRouter->module,['index','search','detail'])){ ?>loadCss(ucss+"/gen<?= $this->urlRouter->siteLanguage=='ar'?'_ar':'' ?>.css");<?php }
@@ -5716,7 +5717,7 @@ class Page extends Site
                     ?><li><div><?php
                         ?><h5><?= $this->lang['mourjan_app'] ?></h5><?php
                         ?><p><?= $this->lang['app_desc'] ?></p><?php
-                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(5,644)</span><?php
+                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(6,340)</span><?php
                     ?></div></li><?php
                     ?><li><a type="button" href='https://play.google.com/store/apps/details?id=com.mourjan.classifieds' class="bt"><?= $this->lang['install'] ?></a></li><?php
                     ?></ul><br /><?php
