@@ -161,11 +161,11 @@ trait UserTrait
                         global $config;
                         $DB = new \Core\Model\DB($config);
 
-                        $db_q = "UPDATE OR INSERT INTO WEB_USERS " +
-                            "(ID, IDENTIFIER, EMAIL, PROVIDER, FULL_NAME, DISPLAY_NAME, " +
-                            "PROFILE_URL, REGISTER_DATE, LAST_VISIT, LVL, "+
-                            "USER_NAME, USER_EMAIL, USER_PASS, USER_RANK, PREV_VISIT, "+
-                            "USER_PUBLISHER, LAST_RENEW)\n" +
+                        $db_q = "UPDATE OR INSERT INTO WEB_USERS " .
+                            "(ID, IDENTIFIER, EMAIL, PROVIDER, FULL_NAME, DISPLAY_NAME, " .
+                            "PROFILE_URL, REGISTER_DATE, LAST_VISIT, LVL, " .
+                            "USER_NAME, USER_EMAIL, USER_PASS, USER_RANK, PREV_VISIT, " .
+                            "USER_PUBLISHER, LAST_RENEW) " .
                             " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                         $stmt=$DB->prepareQuery($db_q);
                         
