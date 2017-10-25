@@ -152,14 +152,49 @@ trait UserTrait
             {
                 if (($status=$this->getConnection()->get($primaryKey, $record))==\Aerospike::OK)
                 {
-                    $bins=$record['bins'];
+                    $bins=$record['bins'];                    
                     
-                    $db_q = "UPDATE OR INSERT INTO WEB_USERS " +
-                        "(ID, IDENTIFIER, EMAIL, PROVIDER, FULL_NAME, DISPLAY_NAME, " +
-                        "PROFILE_URL, REGISTER_DATE, LAST_VISIT, LVL, "+
-                        "USER_NAME, USER_EMAIL, USER_PASS, USER_RANK, PREV_VISIT, "+
-                        "USER_PUBLISHER, LAST_RENEW)\n" +
-                        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    try{
+                        
+                        include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
+                        include_once get_cfg_var('mourjan.path') . '/core/model/Db.php';
+                        global $config;
+                        $DB = new \Core\Model\DB($config);
+
+                        $db_q = "UPDATE OR INSERT INTO WEB_USERS " +
+                            "(ID, IDENTIFIER, EMAIL, PROVIDER, FULL_NAME, DISPLAY_NAME, " +
+                            "PROFILE_URL, REGISTER_DATE, LAST_VISIT, LVL, "+
+                            "USER_NAME, USER_EMAIL, USER_PASS, USER_RANK, PREV_VISIT, "+
+                            "USER_PUBLISHER, LAST_RENEW)\n" +
+                            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        $stmt=$DB->prepareQuery($db_q);
+                        
+                        $stmt->execute([
+                            $bins[USER_PROFILE_ID],
+                            $bins[USER_PROVIDER_ID],
+                            $bins[USER_EMAIL],
+                            $bins[USER_PROVIDER],
+                            $bins[USER_FULL_NAME],
+                            $bins[USER_DISPLAY_NAME],
+                            $bins[USER_PROFILE_URL],
+                            $bins[USER_DATE_ADDED],
+                            $bins[USER_LAST_VISITED],
+                            $bins[USER_LEVEL],
+                            $bins[USER_NAME],
+                            $bins[USER_EMAIL],
+                            $bins[USER_PASSWORD],
+                            $bins[USER_RANK],
+                            $bins[USER_PRIOR_VISITED],
+                            $bins[USER_PUBLISHER_STATUS],
+                            $bins[USER_LAST_AD_RENEWED]
+                        ]);
+                        
+                        unset($stmt);
+                    
+                    } catch (Exception $ex) {
+                        error_log($ex->getMessage());
+                    }
+                    
                     
                 }
             }
@@ -256,18 +291,6 @@ trait UserTrait
     
     public function getProfileBasicRecord(int $uid, &$record, $bins=[]) : int
     {
-        error_log(get_cfg_var('mourjan.path') . '/config/cfg.php');
-
-        if (true)
-        {
-            include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
-            include_once get_cfg_var('mourjan.path') . '/core/model/Db.php';
-            global $config;
-            $db = new \Core\Model\DB($config);
-            
-            
-            error_log("passed");
-        }
         $where = \Aerospike::predicateEquals(USER_PROFILE_ID, $uid);
         $status = $this->getConnection()->query(NS_USER, TS_PROFILE, $where, 
                     function ($_record) use (&$record) {$record=$_record;}, $bins);
