@@ -594,9 +594,7 @@ class Bin extends AjaxHandler{
                                             $number=0;
                                             error_log($returnie);
                                             error_log("AHHH");
-                                        }else{
-                                            error_log("SENT");
-                                        }                                        
+                                        }                                      
                                     }
                                     
                                     $this->setData($number,'number');

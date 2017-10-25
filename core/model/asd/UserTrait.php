@@ -163,10 +163,10 @@ trait UserTrait
 
                         $db_q = "UPDATE OR INSERT INTO WEB_USERS " .
                             "(ID, IDENTIFIER, EMAIL, PROVIDER, FULL_NAME, DISPLAY_NAME, " .
-                            "PROFILE_URL, REGISTER_DATE, LAST_VISIT, LVL, " .
-                            "USER_NAME, USER_EMAIL, USER_PASS, USER_RANK, PREV_VISIT, " .
-                            "USER_PUBLISHER, LAST_RENEW) " .
-                            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                            "PROFILE_URL, LVL, " .
+                            "USER_NAME, USER_EMAIL, USER_PASS, USER_RANK, " .
+                            "USER_PUBLISHER) " .
+                            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                         $stmt=$DB->prepareQuery($db_q);
                         
                         $stmt->execute([
@@ -177,19 +177,17 @@ trait UserTrait
                             $bins[USER_FULL_NAME],
                             $bins[USER_DISPLAY_NAME],
                             $bins[USER_PROFILE_URL],
-                            $bins[USER_DATE_ADDED],
-                            $bins[USER_LAST_VISITED],
                             $bins[USER_LEVEL],
                             $bins[USER_NAME],
                             $bins[USER_EMAIL],
                             $bins[USER_PASSWORD],
                             $bins[USER_RANK],
-                            $bins[USER_PRIOR_VISITED],
-                            $bins[USER_PUBLISHER_STATUS],
-                            $bins[USER_LAST_AD_RENEWED]
+                            $bins[USER_PUBLISHER_STATUS]
                         ]);
                         
                         unset($stmt);
+                        
+                        error_log('USER INSERTED '.$bins[USER_PROFILE_ID]);
                     
                     } catch (Exception $ex) {
                         error_log($ex->getMessage());

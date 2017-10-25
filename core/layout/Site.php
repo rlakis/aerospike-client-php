@@ -813,7 +813,7 @@ class Site
             ],
         ];
         
-        error_log(json_encode($ticket_data, JSON_PRETTY_PRINT));
+        //error_log(json_encode($ticket_data, JSON_PRETTY_PRINT));
         
         $ticket = $client->resource( ResourceType::TICKET );
         $ticket->setValues($ticket_data);
@@ -932,7 +932,7 @@ class Site
     function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0, $helpTopic=1)
     {
         $res = $this->zammad($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account);
-        error_log("res {$res}");
+        //error_log("res {$res}");
         /*
         //return $this->faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference, $helpTopic);
         require 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';
