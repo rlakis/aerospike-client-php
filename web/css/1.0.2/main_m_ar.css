@@ -224,6 +224,21 @@ textarea {
 .w {
     background: url(./i/main_m.png) no-repeat center
 }
+.wbp .ic,
+.wbp .mc24,
+.wbp .to,
+.wbp .et,
+.wbp .k,
+.wbp .back,
+.wbp .srch .k,
+.wbp .qb,
+.wbp .nw,
+.wbp .adn,
+.wbp .dic,
+.wbp .close,
+.wbp .w {
+    background-image: url(./i/main_m.webp)
+}
 .mc24{
     width:30px!important;
     height:30px;
@@ -242,6 +257,10 @@ textarea {
     height: 25px;
     display: inline-block
 }
+.wbp .cbx,
+.wbp .rbx {
+    background-image: url(./i/form_m.webp)
+}
 .play {
     width: 88px;
     height: 88px;
@@ -259,8 +278,14 @@ textarea {
     vertical-align: top;
     margin: 0 5px
 }
+.wbp .done{
+    background-image: url(./i/my.webp)
+}
 .fail {
     background-image: url(./i/fail.png)
+}
+.wbp .fail {
+    background-image: url(./i/fail.webp)
 }
 .w {
     display: inline-block;
@@ -566,6 +591,10 @@ input.bt {
 .srch.on {
     background: #6f6f6f url(./i/sbg.png) repeat top left
 }
+.wbp .sef.on,
+.wbp .srch.on {
+    background-image: url(./i/sbg.webp)
+}
 .dq,
 .dqb {
     height: 30px;
@@ -614,7 +643,9 @@ input.bt {
     -o-border-radius: 8px 0 0 8px;
     border-radius: 8px 0 0 8px
 }
-.cf {
+.cf{border:1px solid #aaa;background-size:contain;background-position:50%;background-repeat:no-repeat;margin-left:10px;position:relative;display:inline-block;width:1.33333333em;line-height:1em;}
+.cf:before{content:"\00a0";}
+/*.cf {
     width: 32px;
     height: 24px;
     background-repeat: no-repeat;
@@ -676,7 +707,7 @@ input.bt {
 }
 .cf.c122 {
     background-position: 0px -144px
-}
+}*/
 .x,
 .z,
 .y,
@@ -1404,6 +1435,9 @@ li.h .n {
     background: url(./i/ofi.jpg) no-repeat bottom right;
     overflow: hidden
 }
+.wbp .loader {
+    background-image: url(./i/ofi.webp)
+}
 .loader .in {
     margin: 20px 120px 0 13px;
     text-align: center
@@ -1949,7 +1983,6 @@ li.on .n {
     width: 79px;
     height: 38px;
     display: block;
-    background: url(i/rating-ar.jpg) no-repeat top right;
     font-size: 13px;
     color: #999;
     padding-right: 83px
@@ -1995,3 +2028,28 @@ li.on .n {
     right:0px;
     background-position:0px -253px
 }
+
+
+.flag-icon-background {background-size:contain;background-position:50%;background-repeat:no-repeat;}
+.flag-icon {border:1px solid #aaa;background-size:contain;background-position:50%;background-repeat:no-repeat;position:relative;display:inline-block;width:1.33333333em;line-height:1em;}
+.flag-icon.large{width:2.66666666em;line-height:2em;margin-left:10px;}
+.flag-icon:before{content:"\00a0";}
+.flag-icon.flag-icon-squared {width:1em;}
+
+.c1{background-image:url(../../flags/4x3/lb.svg);}
+.c2{background-image:url(../../flags/4x3/ae.svg);}
+.c3{background-image:url(../../flags/4x3/bh.svg);}
+.c4{background-image:url(../../flags/4x3/sa.svg);}
+.c5{background-image:url(../../flags/4x3/eg.svg);}
+.c6{background-image:url(../../flags/4x3/sy.svg);}
+.c7{background-image:url(../../flags/4x3/kw.svg);}
+.c8{background-image:url(../../flags/4x3/jo.svg);}
+.c9{background-image:url(../../flags/4x3/qa.svg);}
+.c10{background-image:url(../../flags/4x3/sd.svg);}
+.c11{background-image:url(../../flags/4x3/tn.svg);}
+.c12{background-image:url(../../flags/4x3/ye.svg);}
+.c15{background-image:url(../../flags/4x3/dz.svg);}
+.c106{background-image:url(../../flags/4x3/iq.svg);}
+.c122{background-image:url(../../flags/4x3/ly.svg);}
+.c145{background-image:url(../../flags/4x3/ma.svg);}
+.c161{background-image:url(../../flags/4x3/om.svg);}

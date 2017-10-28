@@ -1,82 +1,82 @@
 .install .rating.en {
-    background: url(i/rating-en.jpg) no-repeat top left
+    background: url(i/rating-en.webp) no-repeat top left
 }
 .install .rating.en {
-    background: url(i/rating-en.jpg) no-repeat top left
+    background: url(i/rating-en.webp) no-repeat top left
 }
 .install .rating.ar {
-    background: url(i/rating-ar.jpg) no-repeat top right
+    background: url(i/rating-ar.webp) no-repeat top right
 }
 .install .rating.ios {
-    background: url(i/rating-ios.jpg) no-repeat top right
+    background: url(i/rating-ios.webp) no-repeat top right
 }
 .install .ilogo {
-    background: url(i/store.jpg) no-repeat center
+    background: url(i/store.webp) no-repeat center
 }
 .vpdi.en {
-    background: url(./i/mpd.png) no-repeat left center
+    background: url(./i/mpd.webp) no-repeat left center
 }
 .vpdi.ar {
-    background: url(./i/mpde.png) no-repeat right center
+    background: url(./i/mpde.webp) no-repeat right center
 }
 .ybx {
-    background: transparent url(./i/eye-watch.png) no-repeat center
+    background: transparent url(./i/eye-watch.webp) no-repeat center
 }
 .play {
-    background: transparent url(./i/play.png) no-repeat center
+    background: transparent url(./i/play.webp) no-repeat center
 }
 /*.cf {
-    background-image: url(./i/f/all.png)
+    background-image: url(./i/f/all.webp)
 }*/
 span.na {
-    background-image: url(./i/na.jpg)
+    background-image: url(./i/na.webp)
 }
 .z {
-    background-image: url(./i/cars.png)
+    background-image: url(./i/cars.webp)
 }
 .x {
-    background-image: url(./i/realestate.png)
+    background-image: url(./i/realestate.webp)
 }
 .y {
-    background-image: url(./i/service.png)
+    background-image: url(./i/service.webp)
 }
 .u {
-    background-image: url(./i/misc.png)
+    background-image: url(./i/misc.webp)
 }
 .v {
-    background-image: url(./i/jobs.png)
+    background-image: url(./i/jobs.webp)
 }
 .som {
-    background: url(./i/som.png) no-repeat center
+    background: url(./i/som.webp) no-repeat center
 }
 .bwzen .boa {
-    background: transparent url(./i/bwz_en.png) no-repeat -388px 0
+    background: transparent url(./i/bwz_en.webp) no-repeat -388px 0
 }
 .bwzen .poa {
-    background: transparent url(./i/bwz_en.png) no-repeat 15px 0
+    background: transparent url(./i/bwz_en.webp) no-repeat 15px 0
 }
 .bwzar .boa {
-    background: transparent url(./i/bwz_ar.png) no-repeat -255px 0
+    background: transparent url(./i/bwz_ar.webp) no-repeat -255px 0
 }
 .bwzar .poa {
-    background: transparent url(./i/bwz_ar.png) no-repeat -645px 0
+    background: transparent url(./i/bwz_ar.webp) no-repeat -645px 0
 }
 .ovp.en {
-    background-image: url(./i/ftroe.png)
+    background-image: url(./i/ftroe.webp)
 }
 .ovp.ar {
-    background-image: url(./i/ftro.png)
+    background-image: url(./i/ftro.webp)
 }
 @media all and (min-width: 443px) {
     .ad_r #ad-1,
     .ad_r #ad-2,
     .ad_r #ad-3 {
-        background: url(./i/ofi.jpg) no-repeat bottom left
+        background: url(./i/ofi.webp) no-repeat bottom left
     }
     .ad_l #ad-1,
     .ad_l #ad-2,
     .ad_l #ad-3 {
-        background: url(./i/ofie.jpg) no-repeat bottom right
+        background: url(./i/ofie.webp) no-repeat bottom right
     }
 }
 

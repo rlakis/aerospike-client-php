@@ -979,7 +979,9 @@ class Page extends Site
         foreach ($this->requires['css'] as $css) {
             if (substr($css, 0, 7)=='s_root_' || $css=='ie6' || $css=='ie7' || $css=='imgs' || $css=='mms' || $css == 'home' || $css == 'select2') $addOn='';
             else $addOn=$fAddon;
-            
+            if($css == 'mms' && $this->urlRouter->isAcceptWebP){
+                $addOn = '_wbp';
+            }
             $toRequire[] = $source . '/' . $css . $addOn . '.css';
         }
         $this->requires['css'] = $toRequire;

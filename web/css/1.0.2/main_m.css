@@ -232,7 +232,7 @@ span.ps,
 .wbp .dic,
 .wbp .close,
 .wbp .w {
-    background: url(./i/main_m.webp) no-repeat center
+    background-image: url(./i/main_m.webp)
 }
 
 .mc24{
@@ -253,6 +253,10 @@ span.ps,
     height: 25px;
     display: inline-block
 }
+.wbp .cbx,
+.wbp .rbx {
+    background-image: url(./i/form_m.webp)
+}
 .play {
     width: 88px;
     height: 88px;
@@ -272,6 +276,12 @@ span.ps,
 }
 .fail {
     background-image: url(./i/fail.png)
+}
+.wbp .done{
+    background-image: url(./i/my.webp)
+}
+.wbp .fail {
+    background-image: url(./i/fail.webp)
 }
 .w {
     display: inline-block;
@@ -579,6 +589,10 @@ input.bt {
 .srch.on {
     background: #6f6f6f url(./i/sbg.png) repeat top left
 }
+.wbp .sef.on,
+.wbp .srch.on {
+    background-image:url(./i/sbg.webp)
+}
 .dq,
 .dqb {
     height: 30px;
@@ -627,7 +641,9 @@ input.bt {
     -o-border-radius: 0 8px 8px 0;
     border-radius: 0 8px 8px 0
 }
-.cf {
+.cf{border:1px solid #aaa;background-size:contain;background-position:50%;background-repeat:no-repeat;margin-right:10px;position:relative;display:inline-block;width:1.33333333em;line-height:1em;}
+.cf:before{content:"\00a0";}
+/*.cf {
     width: 32px;
     height: 24px;
     background-repeat: no-repeat;
@@ -689,7 +705,7 @@ input.bt {
 }
 .cf.c122 {
     background-position: 0px -144px
-}
+}*/
 .x,
 .z,
 .y,
@@ -1420,6 +1436,9 @@ li.h .n {
     background: url(./i/ofie.jpg) no-repeat bottom left;
     overflow: hidden
 }
+.wbp .loader {
+    background-image: url(./i/ofie.webp)
+}
 .loader .in {
     margin: 20px 13px 0 120px;
     text-align: center
@@ -2006,3 +2025,21 @@ li.on .n {
     right:0px;
     background-position:0px -253px
 }
+
+.c1{background-image:url(../../flags/4x3/lb.svg);}
+.c2{background-image:url(../../flags/4x3/ae.svg);}
+.c3{background-image:url(../../flags/4x3/bh.svg);}
+.c4{background-image:url(../../flags/4x3/sa.svg);}
+.c5{background-image:url(../../flags/4x3/eg.svg);}
+.c6{background-image:url(../../flags/4x3/sy.svg);}
+.c7{background-image:url(../../flags/4x3/kw.svg);}
+.c8{background-image:url(../../flags/4x3/jo.svg);}
+.c9{background-image:url(../../flags/4x3/qa.svg);}
+.c10{background-image:url(../../flags/4x3/sd.svg);}
+.c11{background-image:url(../../flags/4x3/tn.svg);}
+.c12{background-image:url(../../flags/4x3/ye.svg);}
+.c15{background-image:url(../../flags/4x3/dz.svg);}
+.c106{background-image:url(../../flags/4x3/iq.svg);}
+.c122{background-image:url(../../flags/4x3/ly.svg);}
+.c145{background-image:url(../../flags/4x3/ma.svg);}
+.c161{background-image:url(../../flags/4x3/om.svg);}
