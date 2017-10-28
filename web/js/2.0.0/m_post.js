@@ -1993,7 +1993,7 @@ function renderImage(rp,li){
     s.onclick=(function(i,e){return function(){delP(i,e)}})(rp,s);
 }
 var imgCounter=1;
-function uploadFile(data,type,prog){
+function uploadFile(data,type,prog,file){
     var uuid = uid;
     for (var i = 0; i < 32; i++) {
         uuid += Math.floor(Math.random() * 16).toString(16);
@@ -2001,11 +2001,29 @@ function uploadFile(data,type,prog){
     uuid+=new Date().getTime()+imgCounter;
     var uprog=$('.uprog',prog);
     var uproh=$('.uproh',prog);
+    
+    var rg=new RegExp('.*/');
+    var t=file.type.replace(rg,'');
+    
+    var formdata = new FormData();
+    formdata.append('UPLOAD_IDENTIFIER',uuid);
+    formdata.append("pic", file);
+    var ajax = new XMLHttpRequest();
+    ajax.upload.addEventListener("progress", function(event){progressHandler(event,uproh,uprog)}, false);
+    ajax.addEventListener("load", function(event){completeHandler(this.responseText,$p(prog,2),uuid)}, false);
+    ajax.addEventListener("error", function(event){errorHandler(event,uuid,uproh,uprog,$p(prog,2))}, false);
+    ajax.addEventListener("abort", function(event){abortHandler(event,uuid,uproh,uprog,$p(prog,2))}, false);
+    ajax.open("POST", UP_URL+'/upload/?t='+t+'&s='+USID);
+    ajax.send(formdata);
+    
+    uptimers[uuid]=1;
+    imgCounter++;
+    /*
     var f= dataURLtoBlob(data,type);
     var fd = new FormData();
     fd.append('UPLOAD_IDENTIFIER',uuid);
     fd.append('pic',f);
-    var rg=new RegExp('.*/');
+    var rg=new RegExp('.*\/');
     var t=type.replace(rg,'');
     $.ajax({
        url:UP_URL+'/upload/?t='+t+'&s='+USID,
@@ -2038,8 +2056,33 @@ function uploadFile(data,type,prog){
         },
         1000
     );
-    imgCounter++;
+    imgCounter++;*/
 }
+
+function progressHandler(event,uproh,uprog) {
+  var percent = Math.round((event.loaded / event.total) * 100);
+  uprog.html(percent+'%');
+  uproh.css('background-size',percent+'% 100%');
+}
+
+function completeHandler(event,p2prog,uuid) {
+    uploadCB(event,p2prog,uuid);
+    delete uptimers[uuid];
+    checkUploadLock($p(p2prog,2));
+}
+
+function errorHandler(event,uuid,uproh,uprog,p2prog) {
+    uproFail(0,uproh,uprog); 
+    delete uptimers[uuid];
+    checkUploadLock($p(p2prog,2));
+}
+
+function abortHandler(event,uuid,uproh,uprog,p2prog) {
+    uproFail(0,uproh,uprog);
+    delete uptimers[uuid]; 
+    checkUploadLock($p(p2prog,2));
+}
+
 var curLi,curUid,iframeIdx=0;
 function setFileRow(tul,type){
     var li=$('<li onclick="edOP($p(this,2));" class="button"><ul class="imgRow"><li class="li1"><img class="nopic" src="'+ucss+'/i/photo.png" /></li><li class="li2"></li></ul></li>');
@@ -2139,7 +2182,7 @@ function setFileCanvasRow(file,tul,submit){
                 }else{
                     var st= (lang =='ar'?'جاري الرفع':'uploading');
                     cols[1].innerHTML = '<span class="uproh">'+st+' <span class="uprog">0%</span></span>';
-                        uploadFile(durl,file.type,cols[1]);
+                        uploadFile(durl,file.type,cols[1],file);
                 }
                 $(cols[1]).width( ($(cols[1].parentNode).width()-230) );
             },

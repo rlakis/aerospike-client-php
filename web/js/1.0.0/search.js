@@ -861,7 +861,7 @@ function cFtr(e,key){
     $('span',li).removeClass('arrowU');
     $('.'+key,ul).slideToggle();
 }
-
+/*
 var siad=$("#siAd"),
     resd=$("#results"),
     resh=resd.height(),
@@ -942,4 +942,4 @@ function reriad(){
 }
 $(window).bind('scroll',triad);
 $(window).bind('resize',reriad);
-reriad();
+reriad();*/
