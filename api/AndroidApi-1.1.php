@@ -84,8 +84,7 @@ class AndroidApi
                 break;
             case API_ANDROID_SYNC_ACCOUNT:  
                 $this->api->result['d'] = [];
-                $this->api->userStatus($status);
-                //error_log($status);
+                $opts = $this->api->userStatus($status);                
                 if ($status == 1) {
                     //sync favorites
                     $this->api->search(true);
@@ -211,6 +210,21 @@ class AndroidApi
                             $this->api->result['d']['balance']=0;                    
                         }
                     }
+                    
+                    //get user mobile
+                    $_mobile = $this->api->user->getMobile();
+                    if ($_mobile && $_mobile->isVerified()){
+                        $this->api->result['d']['mobile']=$_mobile->getNumber();
+                    }
+                    
+                    //suspended                    
+                    if ($this->api->user->isSuspended())
+                    {
+                        $this->api->result['d']['suspend'] = time()+$this->api->user->getSuspensionTime();
+                    } 
+                    
+                    //user level
+                    $this->api->result['d']['level'] = $opts->user_level+0;
                 }
                 break;
             case API_ANDROID_FLAG_AD:
