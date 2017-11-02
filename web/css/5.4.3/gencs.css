@@ -587,7 +587,7 @@ li.vp {
     vertical-align: top;
     margin-top: -30px
 }
-.ls .ig {
+.ls .ig,.ls .igz {
     float: left;
     margin: 0 10px 150px 0;
     display: inline-block;
@@ -779,7 +779,7 @@ p.ani {
     position: absolute;
     right: 0px
 }
-p.ani .ig {
+p.ani .ig,p.ani .igz {
     text-align: left;
     width: 123px;
     height: 110px

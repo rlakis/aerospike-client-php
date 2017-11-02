@@ -924,7 +924,7 @@ p b {
 .ar .nw {
     margin-left: 5px
 }
-.thb {
+.thb,.thz {
     position: relative;
     text-align: center;
     overflow: hidden;
@@ -933,19 +933,19 @@ p b {
     display: inline-block;
     margin-bottom: 5px
 }
-.thb img,
+.thb img,.thz img,
 #vid img {
     border: 1px solid #E7E9F0;
     width: 88px
 }
-.thb img.d {
+.thb img.d,.thz img.d {
     border: 0
 }
-.en .thb {
+.en .thb,.en .thz {
     margin-right: 5px;
     float: left
 }
-.ar .thb {
+.ar .thb,.ar .thz {
     margin-left: 5px;
     float: right
 }
@@ -1744,7 +1744,7 @@ h2 {
     direction: ltr!important;
     height: auto
 }
-.thb .cnt {
+.thb .cnt,.thz .cnt {
     position: absolute;
     top: 1px;
     right: 1px;
