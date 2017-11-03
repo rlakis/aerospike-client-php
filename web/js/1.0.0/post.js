@@ -2226,8 +2226,8 @@ function setFileRow(tul,type){
     curLi=li[0];
     var cols = $('ul li',li);
     tul.appendChild(li[0]);
-    var st= (lang =='ar'?'جاري الرفع':'uploading');
-    cols[1].innerHTML = '<span class="uproh">'+st+' <span class="uprog">0%</span></span>';
+    var st=(lang=='ar'?'جاري الرفع':'uploading');
+    cols[1].innerHTML = '<span class="uproh">'+st+'</span>';
     
     var uuid = UID;
     for (var i = 0; i < 32; i++) {
@@ -2245,13 +2245,13 @@ function setFileRow(tul,type){
     $('#upKey').val(uuid);
     uplp=1;
     uForm.submit();
-    
+    /*
     uptimers[uuid] = window.setInterval(
         function () {
             uproF(uuid,uprog,uproh);
         },
         1000
-    );
+    );*/
     imgCounter++;
 }
 function uploadCB(rp,li,uid){
@@ -2425,7 +2425,7 @@ function set2File(e){
                     pass=1;
                     if(canA && hasC){
                         setFileCanvasRow(f,tul);
-                    }else{             
+                    }else{            
                         setFileRow(tul,f.type);
                     }
                 }
