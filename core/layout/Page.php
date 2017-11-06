@@ -3417,8 +3417,108 @@ class Page extends Site
     /*                           rendering components                   */
     /********************************************************************/
 
+    protected function set_analytics_header()
+    {
+        //$this->urlRouter->cfg['enabled_ads']=0;
+        if (isset($this->user->info['level']) && $this->user->info['level']==9)
+        {
+            return;
+        }
+        
+        if (preg_match('/Firefox\/27\.0/ui', $_SERVER['HTTP_USER_AGENT'])) 
+        {
+            $this->urlRouter->cfg['enabled_ads'] = 0;
+        }
+        
+        ?><script type='text/javascript'><?php
+        if ($this->urlRouter->cfg['enabled_ads'] && count($this->googleAds)) 
+        {
+            ?>var googletag=googletag||{};googletag.cmd=googletag.cmd||[];(function(){var gads=document.createElement('script');gads.async=true;gads.type='text/javascript';var useSSL='https:'==document.location.protocol;gads.src=(useSSL?'https:':'http:')+'//www.googletagservices.com/tag/js/gpt.js';var node=document.getElementsByTagName('script')[0];node.parentNode.insertBefore(gads, node);})();googletag.cmd.push(function(){<?php
+            
+            $slot=0;
+            foreach ($this->googleAds as $ad) 
+            {
+                $slot++;
+                echo "var slot{$slot}=googletag.defineSlot('{$ad[0]}',[{$ad[1]},{$ad[2]}],'{$ad[3]}').addService(googletag.pubads());";
+            }
+            echo "googletag.pubads().collapseEmptyDivs();";
+            
+            if ($this->urlRouter->countryId) 
+            {
+                echo "googletag.pubads().setTargeting('country_id','{$this->urlRouter->countryId}');";
+            }
+            
+            if ($this->urlRouter->rootId) 
+            {
+                echo "googletag.pubads().setTargeting('root_id','{$this->urlRouter->rootId}');";
+            }
+            
+            if ($this->urlRouter->sectionId)
+            {
+                echo "googletag.pubads().setTargeting('section_id','{$this->urlRouter->sectionId}');";
+            }
+            
+            if ($this->urlRouter->purposeId)
+            {
+                echo "googletag.pubads().setTargeting('purpose_id','{$this->urlRouter->purposeId}');";
+            }
+            else
+            {
+                echo "googletag.pubads().setTargeting('purpose_id','999');";                
+            }
+            
+            ?>googletag.pubads().enableSingleRequest();googletag.enableServices()});<?php
+        }
+        
+        $module = $this->urlRouter->module;
+        if ($module=='search')
+        {
+            if  ($this->urlRouter->userId)
+            {
+                $module = 'user_page_'.$this->urlRouter->userId;
+            }
+            elseif($this->userFavorites)
+            {
+                $module = 'favorites';
+            }
+            elseif($this->urlRouter->watchId)
+            {
+                $module = 'watchlist';
+            }
+            elseif($this->urlRouter->isPriceList)
+            {
+                $module = 'pricelist';
+            }
+        }
+        
+        ?>
+        window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+        ga('create', 'UA-435731-13', 'auto');
+        ga('set','dimension1',"<?php echo $module ?>");
+        ga('set','dimension2',"<?php echo $this->urlRouter->rootId?$this->urlRouter->roots[$this->urlRouter->rootId][2]:'AnyRoot';?>");
+        ga('set','dimension3',"<?php echo ($this->urlRouter->sectionId && isset($this->urlRouter->sections[$this->urlRouter->sectionId]))?$this->urlRouter->sections[$this->urlRouter->sectionId][2]:'AnySection'; ?>");
+        ga('set','dimension4',"<?php echo ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri']:'Global';?>");
+        ga('set','dimension5',"<?php echo ($this->urlRouter->cityId && isset($this->urlRouter->cities[$this->urlRouter->cityId]))?$this->urlRouter->cities[$this->urlRouter->cityId][3]:(($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].' all cities':'Global');?>");
+        <?php
+        if(isset($this->user->pending['email_watchlist']))
+        {?>
+            ga('set','dimension6','watchlist');<?php
+        }
+        ?>
+        ga('send', 'pageview');  
+        </script>
+        <?php
+        
+        if ($this->isMobile && $this->urlRouter->cfg['enabled_ads'] && in_array($this->urlRouter->module,['search','detail']) && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745))
+        {
+            ?><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php
+        }
+        
+        ?><script async src='https://www.google-analytics.com/analytics.js'></script><?php
+    }
     
-    protected function set_analytics_header(){
+    
+    protected function set_analytics_header_old(){
        /* ?><script type="text/javascript"><?php
         ?>
         var canImp=0;
@@ -5389,7 +5489,7 @@ class Page extends Site
                             else $qPages=ceil($qPages);
                             $qTmp=ceil($this->urlRouter->cfg['search_results_max']/$this->num);
                             if ($qPages>$qTmp) $qPages=(int)$qTmp;
-                            if ($this->urlRouter->params['start']<$qPages) {
+                            if ($this->urlRouter->params['start']<$qPages && !$this->isMobile) {
                                 $next = $this->urlRouter->params['start']+1;
                                 if ($next==1) $next=2;
                                 echo '<link rel="prerender" href="', $this->urlRouter->cfg['url_base'], $currentUrl, $next,'/?q=',urlencode($this->urlRouter->params['q']), '" />';
@@ -5451,7 +5551,7 @@ class Page extends Site
 
                             if ($qPages>$qTmp) $qPages=(int)$qTmp;
 
-                            if ($this->urlRouter->params['start']<$qPages) {
+                            if ($this->urlRouter->params['start']<$qPages && !$this->isMobile) {
                                 $next = $this->urlRouter->params['start']+1;
                                 if ($next==1) $next=2;
                                 echo "<link rel='next' href='", $this->urlRouter->cfg['url_base'], $currentUrl, $next, '/';
