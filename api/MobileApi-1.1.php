@@ -1287,12 +1287,11 @@ class MobileApi
 
     function register() 
     {
-        $this->result['d']['info']=
-                [
+        $this->result['d']['info']= [
                 'version'=>'1.0.4',
                 'force_update'=>0, 
                 'upload'=>'upload.mourjan.com',
-                'images'=>'c1.mourjan.com'
+                'images'=>'cdn.mourjan.com'
                 ];
             
         //$this->db->setWriteMode();
