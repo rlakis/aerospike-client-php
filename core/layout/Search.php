@@ -926,7 +926,7 @@ class Search extends Page
                     if ($ad[Classifieds::RTL]) {
                         $textClass = "ar";
                     }
-                    
+                    $numOfRowsToRenderImgs = 3;
                     $_link = sprintf($ad[Classifieds::URI_FORMAT], ($this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage . '/'), $ad[Classifieds::ID]);
 
                     $pic = '';
@@ -936,18 +936,30 @@ class Search extends Page
                             $picCount='<span class=\"cnt\">'.count($ad[Classifieds::PICTURES]).'</span>';
                         }
                         $pic = $ad[Classifieds::VIDEO][2];
-                        $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img src=\"' . $pic . '\" /><span class=\"play\"></span>'.$picCount.'";';
-                        $pic = '<span class="thb"></span>';
+                        if($idx < $numOfRowsToRenderImgs){
+                            $pic = '<span class="thz"><img src="' . $pic . '" /><span class="play"></span>'.$picCount.'</span>';
+                        }else{
+                            $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img src=\"' . $pic . '\" /><span class=\"play\"></span>'.$picCount.'";';
+                            $pic = '<span class="thb"></span>';
+                        }
                         $liClass.=' pic';
                     } elseif ($ad[Classifieds::PICTURES] && is_array($ad[Classifieds::PICTURES])  && count($ad[Classifieds::PICTURES])) {
                         $picCount=count($ad[Classifieds::PICTURES]);
                         $pic = $ad[Classifieds::PICTURES][0];
-                        $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img src=\"' . $this->urlRouter->cfg['url_ad_img'] . '/repos/s/' . $pic . '\" /><span class=\"cnt\">'.$picCount.'</span>";';
-                        $pic = '<span class="thb"></span>';
+                        if($idx < $numOfRowsToRenderImgs){
+                            $pic = '<span class="thz"><img src="' . $this->urlRouter->cfg['url_ad_img'] . '/repos/s/' . $pic . '" /><span class="cnt">'.$picCount.'</span></span>';
+                        }else{
+                            $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img src=\"' . $this->urlRouter->cfg['url_ad_img'] . '/repos/s/' . $pic . '\" /><span class=\"cnt\">'.$picCount.'</span>";';
+                            $pic = '<span class="thb"></span>';
+                        }
                         $liClass.=' pic';
                     } else {
-                        $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img class=\"d\" src=\"' . $this->urlRouter->cfg['url_img'] . '/90/' . $ad[Classifieds::SECTION_ID] . '.png\" />";';
-                        $pic = '<span class="thb"></span>';
+                        if($idx < $numOfRowsToRenderImgs){
+                            $pic = '<span class="thz"><img class="d" src="' . $this->urlRouter->cfg['url_img'] . '/90/' . $ad[Classifieds::SECTION_ID] . '.png" /></span>';
+                        }else{
+                            $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img class=\"d\" src=\"' . $this->urlRouter->cfg['url_img'] . '/90/' . $ad[Classifieds::SECTION_ID] . '.png\" />";';
+                            $pic = '<span class="thb"></span>';
+                        }
                         $liClass.=' pic';
                     }
 
@@ -3441,19 +3453,32 @@ class Search extends Page
                 if ($this->urlRouter->siteTranslate)
                     $textClass = '';
 
+                $numOfRowsToRenderWithImgs = 3;
                 if (isset($ad[Classifieds::VIDEO]) && $ad[Classifieds::VIDEO] && count($ad[Classifieds::VIDEO])) {
                     $cpn='';
                     if ($ad[Classifieds::PICTURES] && count($ad[Classifieds::PICTURES])) $cpn='<span class=\"cnt\">'.count($ad[Classifieds::PICTURES]).'<span class=\"i sp\"></span></span>';
                     $pic = $ad[Classifieds::VIDEO][2];
-                    $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img width=\"120\" height=\"93\" src=\"' . $pic . '\" /><span class=\"play\"></span>'.$cpn.'";';
-                    $pic = '<span class="ig"></span>';
+                    if($idx < $numOfRowsToRenderWithImgs){
+                        $pic = '<span class="igz"><img width="120" height="93" src="' . $pic . '" /><span class="play"></span>'.$cpn.'</span>';
+                    }else{
+                        $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img width=\"120\" height=\"93\" src=\"' . $pic . '\" /><span class=\"play\"></span>'.$cpn.'";';
+                        $pic = '<span class="ig"></span>';
+                    }
                 } elseif (isset($ad[Classifieds::PICTURES]) && $ad[Classifieds::PICTURES] && count($ad[Classifieds::PICTURES])) {
                     $pic = $ad[Classifieds::PICTURES][0];
-                    $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img width=\"120\" src=\"'.$this->urlRouter->cfg['url_ad_img'].'/repos/s/' . $pic . '\" /><span class=\"cnt\">'.count($ad[Classifieds::PICTURES]).'<span class=\"i sp\"></span></span>";';
-                    $pic = '<span class="ig"></span>';
+                    if($idx < $numOfRowsToRenderWithImgs){
+                        $pic = '<span class="igz"><img width="120" src="'.$this->urlRouter->cfg['url_ad_img'].'/repos/s/' . $pic . '" /><span class="cnt">'.count($ad[Classifieds::PICTURES]).'<span class="i sp"></span></span></span>';
+                    }else{
+                        $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img width=\"120\" src=\"'.$this->urlRouter->cfg['url_ad_img'].'/repos/s/' . $pic . '\" /><span class=\"cnt\">'.count($ad[Classifieds::PICTURES]).'<span class=\"i sp\"></span></span>";';
+                        $pic = '<span class="ig"></span>';
+                    }
                 } else {
-                    $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img class=\"ir\" src=\"'.$this->urlRouter->cfg['url_img'].'/90/' . $ad[Classifieds::SECTION_ID] . '.png\" />";';
-                    $pic = '<span class="ig"></span>';
+                    if($idx < $numOfRowsToRenderWithImgs){
+                        $pic = '<span class="igz"><img class="ir" src="'.$this->urlRouter->cfg['url_img'].'/90/' . $ad[Classifieds::SECTION_ID] . '.png" /></span>';
+                    }else{
+                        $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img class=\"ir\" src=\"'.$this->urlRouter->cfg['url_img'].'/90/' . $ad[Classifieds::SECTION_ID] . '.png\" />";';
+                        $pic = '<span class="ig"></span>';
+                    }
                 }
 
                 $ad[Classifieds::CONTENT] = preg_replace('/www(?!\s+)\.(?!\s+).*(?!\s+)\.(?!\s+)(com|org|net|mil|edu|COM|ORG|NET|MIL|EDU)/', '', $ad[Classifieds::CONTENT]);

@@ -513,7 +513,7 @@ function rePic(){
         if(!atm[i]){
             var r = e.getBoundingClientRect();
             var k=r.top;
-            if(k>=-100 && k<=h+100){
+            if(k>=-300 && k<=h+300){
                 e.innerHTML=sic[c];
                 atm[i]=1;
                 aCnt++;

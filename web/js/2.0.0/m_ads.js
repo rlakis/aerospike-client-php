@@ -581,7 +581,7 @@ if(uhc){
                                         type:'POST',
                                          url:'/ajax-ga/',
                                          data:{
-                                             u:uuid?uuid:uid,
+                                             u:(typeof uuid!=='undefined' && uuid)?uuid:uid,
                                              x:isAc
                                          },
                                          dataType:'json',

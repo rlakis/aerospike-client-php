@@ -418,7 +418,7 @@ function rePic(){
             var r = e.getBoundingClientRect();
             var k=r.top;
             var b=r.bottom;
-            if( (k>=-100 && k<=h+100) || (b>=-100 && b<=h+100)){
+            if( (k>=-300 && k<=h+300) || (b>=-300 && b<=h+300)){
                 e.innerHTML=sic[e.parentNode.parentNode.id];
                 atm[i]=1;
                 aCnt++;
@@ -429,7 +429,7 @@ function rePic(){
         var r = pli[0].getBoundingClientRect();
         var k=r.top;
         var b=r.bottom;
-        if( (k>=-100 && k<=h+100) || (b>=-100 && b<=h+100)){
+        if( (k>=-300 && k<=h+300) || (b>=-300 && b<=h+300)){
             var l = $('.ik',pli);
             l.each(function(i,e){
                 e.innerHTML = sic[e.parentNode.parentNode.id];

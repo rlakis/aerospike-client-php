@@ -257,7 +257,7 @@ p .pn {
 .nos,
 .phx,
 .lgb,
-.ig .cnt {
+.ig .cnt,.igz .cnt {
     cursor: default;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -1534,7 +1534,7 @@ li.vpd .crd {
     -webkit-box-shadow: 0 3px 3px #333;
     box-shadow: 0 3px 3px #333
 }
-.ls .ig {
+.ls .ig,.ls .igz {
     float: left;
     margin: 0 10px 150px 0;
     display: inline-block;
@@ -1544,7 +1544,7 @@ li.vpd .crd {
     position: relative;
     overflow: hidden
 }
-.ig .cnt {
+.ig .cnt,.igz .cnt {
     position: absolute;
     top: 1px;
     right: 1px;
@@ -2960,12 +2960,12 @@ p.ani:hover {
     width: 980px;
     height: 200px!important
 }
-p.ani .ig {
+p.ani .ig,p.ani .igz {
     text-align: left;
     width: 123px;
     height: 110px
 }
-p.ani:hover .ig {
+p.ani:hover .ig,p.ani:hover .igz {
     width: 300px;
     height: 200px
 }
@@ -3030,6 +3030,7 @@ p.ani:hover .igr {
 }
 p.ani,
 p.ani .ig,
+p.ani .igz,
 p.ani img,
 p.ani .igr {
     -webkit-transition: height 300ms ease-in-out, width 300ms ease-in-out;
