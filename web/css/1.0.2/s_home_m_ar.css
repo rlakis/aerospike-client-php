@@ -457,6 +457,9 @@ li.on .n {
     color: #999;
     padding-right: 83px
 }
+.wbp .install .rating{
+    background-image: url(i/rating-ar.webp)
+}
 .install .rating.ios {
     margin-top: 10px
 }
@@ -548,6 +551,10 @@ h2, label, h3 {
 .install .rating.ar{background:url(i/rating-ar.jpg) no-repeat top right}
 .install .rating.ios{background:url(i/rating-ios.jpg) no-repeat top right}
 .install .ilogo{background:url(i/store.jpg) no-repeat center}
+.wbp .install .rating.en{background-image:url(i/rating-en.webp)}
+.wbp .install .rating.ar{background-image:url(i/rating-ar.webp)}
+.wbp .install .rating.ios{background-image:url(i/rating-ios.webp)}
+.wbp .install .ilogo{background:url(i/store.webp)}
 
 .flag-icon-background {background-size:contain;background-position:50%;background-repeat:no-repeat;}
 .flag-icon {border:1px solid #aaa;background-size:contain;background-position:50%;background-repeat:no-repeat;position:relative;display:inline-block;width:1.33333333em;line-height:1em;}

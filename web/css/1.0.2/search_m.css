@@ -199,7 +199,7 @@ li.vp,
     background-repeat: repeat;
     border-top: 0!important;
     margin-bottom: 8px!important;
-    background-image: url(i/gad.jpg)
+    background-image:url(data:image/jpeg;base64,/9j/4QAYRXhpZgAASUkqAAgAAAAAAAAAAAAAAP/sABFEdWNreQABAAQAAAA8AAD/4QMraHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLwA8P3hwYWNrZXQgYmVnaW49Iu+7vyIgaWQ9Ilc1TTBNcENlaGlIenJlU3pOVGN6a2M5ZCI/PiA8eDp4bXBtZXRhIHhtbG5zOng9ImFkb2JlOm5zOm1ldGEvIiB4OnhtcHRrPSJBZG9iZSBYTVAgQ29yZSA1LjMtYzAxMSA2Ni4xNDU2NjEsIDIwMTIvMDIvMDYtMTQ6NTY6MjcgICAgICAgICI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzYgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjEwOEI1OUExRjVFRDExRTI5NEU3QTgyNDM2MUNCREM1IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjEwOEI1OUEyRjVFRDExRTI5NEU3QTgyNDM2MUNCREM1Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6MTA4QjU5OUZGNUVEMTFFMjk0RTdBODI0MzYxQ0JEQzUiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MTA4QjU5QTBGNUVEMTFFMjk0RTdBODI0MzYxQ0JEQzUiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7/7gAOQWRvYmUAZMAAAAAB/9sAhAAGBAQEBQQGBQUGCQYFBgkLCAYGCAsMCgoLCgoMEAwMDAwMDBAMDg8QDw4MExMUFBMTHBsbGxwfHx8fHx8fHx8fAQcHBw0MDRgQEBgaFREVGh8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx//wAARCACCAAEDAREAAhEBAxEB/8QAZgABAAMBAQAAAAAAAAAAAAAAAgABAwQHAQEBAQADAAAAAAAAAAAAAAAAAQIDBQcQAAEEAQIHAAAAAAAAAAAAAABRAhJSAREhYSKSAxMjFBEBAQEBAQAAAAAAAAAAAAAAABEBEiH/2gAMAwEAAhEDEQA/APZ/nwmDy/h31Xo6wmo15eBsY+JymOVrSTy3RJduwuDOeKmaQdyBxNQKOVLANlIJN1SUDRykD9hfRU22FIMWISYOzpOZH//Z)
 }
 .ovp {
     display: inline-block;
@@ -754,6 +754,9 @@ p.sde img{
     margin: 18px 10px 0;
     background-image:url(i/share.png);
 }
+.wbp .shr{
+    background-image:url(i/share.webp);
+}
 .shr-wats{
     background-position:-50px 0;
 }
@@ -782,6 +785,12 @@ p.sde img{
 .ovp.en {
     background-image: url(./i/ftroe.png)
 }
+.wbp .ovp.en {
+    background-image: url(./i/ftroe.webp)
+}
 .ovp.ar {
     background-image: url(./i/ftro.png)
+}
+.wbp .ovp.ar {
+    background-image: url(./i/ftro.webp)
 }

@@ -979,7 +979,7 @@ class Page extends Site
         foreach ($this->requires['css'] as $css) {
             if (substr($css, 0, 7)=='s_root_' || $css=='ie6' || $css=='ie7' || $css=='imgs' || $css=='mms' || $css == 'home' || $css == 'select2') $addOn='';
             else $addOn=$fAddon;
-            if($css == 'mms' && $this->urlRouter->isAcceptWebP){
+            if( ($css == 'mms' ||$css=='imgs' ) && $this->urlRouter->isAcceptWebP){
                 $addOn = '_wbp';
             }
             $toRequire[] = $source . '/' . $css . $addOn . '.css';
@@ -5268,7 +5268,7 @@ class Page extends Site
                     }
                     break;
                 case 'detail':
-                    header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/share.png>; rel=preload; as=image;", false);
+                    header("Link: <{$this->urlRouter->cfg['url_css_mobile']}/i/share{$this->_png}>; rel=preload; as=image;", false);
                     break;
                 case 'index':
                     switch($this->urlRouter->rootId){
@@ -5310,8 +5310,8 @@ class Page extends Site
             
             switch($this->urlRouter->module){
                 case 'search':
-                    header("Link: <{$this->urlRouter->cfg['url_css']}/i/abg.jpg>; rel=preload; as=image;", false);
-                    header("Link: <{$this->urlRouter->cfg['url_css']}/i/gad{$this->_jpg}>; rel=preload; as=image;", false);
+                    //header("Link: <{$this->urlRouter->cfg['url_css']}/i/abg.jpg>; rel=preload; as=image;", false);
+                    //header("Link: <{$this->urlRouter->cfg['url_css']}/i/gad{$this->_jpg}>; rel=preload; as=image;", false);
                     if ($this->urlRouter->sectionId)
                     {
                         header("Link: <{$this->urlRouter->cfg['url_img']}/90/{$this->urlRouter->sectionId}.png>; rel=preload; as=image;", false);

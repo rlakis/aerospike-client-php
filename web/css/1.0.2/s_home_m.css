@@ -553,6 +553,10 @@ h3 {
 .install .rating.ar{background:url(i/rating-ar.jpg) no-repeat top right}
 .install .rating.ios{background:url(i/rating-ios.jpg) no-repeat top right}
 .install .ilogo{background:url(i/store.jpg) no-repeat center}
+.wbp .install .rating.en{background-image:url(i/rating-en.webp)}
+.wbp .install .rating.ar{background-image:url(i/rating-ar.webp)}
+.wbp .install .rating.ios{background-image:url(i/rating-ios.webp)}
+.wbp .install .ilogo{background:url(i/store.webp)}
 
 
 .flag-icon-background {background-size:contain;background-position:50%;background-repeat:no-repeat;}
