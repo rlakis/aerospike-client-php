@@ -152,6 +152,7 @@ class Page extends Site
                 ';
         }
         if ($this->urlRouter->isMobile) {
+            $this->inlineCss.='.str{padding:15px 0}.ls li.h{background-color:cadetblue}';
             $this->includeCssByCountry();
             if($this->urlRouter->module=='signin'){
                 $this->inlineCss.='.g-recaptcha{display:inline-block;min-height:78px}li.recap{text-align:center}';
@@ -3491,23 +3492,19 @@ class Page extends Site
             }
         }
         
-        ?>
-        window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
-        ga('create', 'UA-435731-13', 'auto');
-        ga('set','dimension1',"<?php echo $module ?>");
-        ga('set','dimension2',"<?php echo $this->urlRouter->rootId?$this->urlRouter->roots[$this->urlRouter->rootId][2]:'AnyRoot';?>");
-        ga('set','dimension3',"<?php echo ($this->urlRouter->sectionId && isset($this->urlRouter->sections[$this->urlRouter->sectionId]))?$this->urlRouter->sections[$this->urlRouter->sectionId][2]:'AnySection'; ?>");
-        ga('set','dimension4',"<?php echo ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri']:'Global';?>");
-        ga('set','dimension5',"<?php echo ($this->urlRouter->cityId && isset($this->urlRouter->cities[$this->urlRouter->cityId]))?$this->urlRouter->cities[$this->urlRouter->cityId][3]:(($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].' all cities':'Global');?>");
-        <?php
+        ?>window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;<?php
+        ?>ga('create','UA-435731-13','auto');<?php
+        ?>ga('set','dimension1',"<?php echo $module ?>");<?php
+        ?>ga('set','dimension2',"<?php echo $this->urlRouter->rootId?$this->urlRouter->roots[$this->urlRouter->rootId][2]:'AnyRoot';?>");<?php
+        ?>ga('set','dimension3',"<?php echo ($this->urlRouter->sectionId && isset($this->urlRouter->sections[$this->urlRouter->sectionId]))?$this->urlRouter->sections[$this->urlRouter->sectionId][2]:'AnySection'; ?>");<?php
+        ?>ga('set','dimension4',"<?php echo ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri']:'Global';?>");<?php
+        ?>ga('set','dimension5',"<?php echo ($this->urlRouter->cityId && isset($this->urlRouter->cities[$this->urlRouter->cityId]))?$this->urlRouter->cities[$this->urlRouter->cityId][3]:(($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].' all cities':'Global');?>");<?php
+        
         if(isset($this->user->pending['email_watchlist']))
-        {?>
-            ga('set','dimension6','watchlist');<?php
+        {
+            ?>ga('set','dimension6','watchlist');<?php
         }
-        ?>
-        ga('send', 'pageview');  
-        </script>
-        <?php
+        ?>ga('send', 'pageview');</script><?php
         
         if ($this->isMobile && $this->urlRouter->cfg['enabled_ads'] && in_array($this->urlRouter->module,['search','detail']) && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745))
         {
@@ -3900,7 +3897,7 @@ class Page extends Site
                 break;
         }*/
         ?></script><?php
-        $renderMobileVerifyPage = ($this->urlRouter->module=='post' && $this->user->info['id'] && !$this->isUserMobileVerified);
+        $renderMobileVerifyPage = $this->urlRouter->module=='password' || ($this->urlRouter->module=='post' && $this->user->info['id'] && !$this->isUserMobileVerified);
         if(!$renderMobileVerifyPage){
             ?><script type="text/javascript" onload="inlineQS()" defer="true" src="<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>zepto.min.js"></script><?php
         }
@@ -3931,6 +3928,7 @@ class Page extends Site
                 ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_cnt.js"></script><?php
                 break;
             case 'password':
+                ?><script defer="true" type="text/javascript" onload="inlineQS()" src="<?= $this->urlRouter->cfg['url_jquery_mobile'] ?>jquery.mob.min.js"></script><?php
                 ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js_mobile'] ?>/m_pwd.js"></script><?php
                 break;
 
@@ -4539,7 +4537,7 @@ class Page extends Site
         
         if ($this->urlRouter->isMobile) {   
             
-            $renderMobileVerifyPage = ($this->urlRouter->module=='post' && $this->user->info['id'] && !$this->isUserMobileVerified);
+            $renderMobileVerifyPage = $this->urlRouter->module=='password' || ($this->urlRouter->module=='post' && $this->user->info['id'] && !$this->isUserMobileVerified);
             if(!$renderMobileVerifyPage){
                 $requires[] = $this->urlRouter->cfg['url_jquery_mobile'] . 'zepto.min.js';
             }
@@ -4570,6 +4568,7 @@ class Page extends Site
                     $requires[] = $this->urlRouter->cfg['url_js_mobile'] . '/m_cnt.js';
                     break;
                 case 'password':
+                    $requires[] = $this->urlRouter->cfg['url_jquery_mobile'] . '/jquery.mob.min.js';
                     $requires[] = $this->urlRouter->cfg['url_js_mobile'] . '/m_pwd.js';
                     break;
 
