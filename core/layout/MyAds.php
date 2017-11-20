@@ -422,7 +422,7 @@ class MyAds extends Page
                         
                         $pic = '<span class="thb"></span>';
                     }else{
-                        $pic='<img class=\'d\' src=\''.$this->urlRouter->cfg['url_img'].'/90/'.$ad['SECTION_ID'].'.png\' />';
+                        $pic='<img class=\'d\' src=\''.$this->urlRouter->cfg['url_img'].'/90/'.$ad['SECTION_ID'].$this->urlRouter->_png.'\' />';
                         
                         $this->globalScript.='sic[' . $ad['ID'] . ']="'.$pic.'";';
                         
@@ -1299,7 +1299,7 @@ var rtMsgs={
                     if($images){
                         $images.="||";
                     }
-                    $images.='<img class=\"ir\" src=\"'.$this->urlRouter->cfg['url_img'].'/90/' . $ad['SECTION_ID'] . '.png\" />';
+                    $images.='<img class=\"ir\" src=\"'.$this->urlRouter->cfg['url_img'].'/90/' . $ad['SECTION_ID'] . $this->urlRouter->_png .'\" />';
                     $pic = '<span class="ig"></span>';
                     
                     $this->globalScript.='sic[' . $ad['ID'] . ']="'.$images.'";';
@@ -1318,7 +1318,7 @@ var rtMsgs={
                         $this->globalScript.='sic[' . $ad['ID'] . ']="<img width=\"120\" src=\"'.$this->urlRouter->cfg['url_ad_img'].'/repos/s/' . $pic . '\" /><span class=\"cnt\">'.$picCount.'<span class=\"i sp\"></span></span>";';
                         $pic = '<span class="ig"></span>';
                     } else {
-                        $this->globalScript.='sic[' . $ad['ID'] . ']="<img class=\"ir\" src=\"'.$this->urlRouter->cfg['url_img'].'/90/' . $ad['SECTION_ID'] . '.png\" />";';
+                        $this->globalScript.='sic[' . $ad['ID'] . ']="<img class=\"ir\" src=\"'.$this->urlRouter->cfg['url_img'].'/90/' . $ad['SECTION_ID'] .$this->urlRouter->_png. '\" />";';
                         $pic = '<span class="ig"></span>';
                     }
                 }

@@ -1540,7 +1540,7 @@ if($this->urlRouter->params['iq']){
                         ?></div><?php
                     }else{
                         ?><div id="d_logo" class="d_lg d_lge"><?php
-                            ?><img width="" height="" src="<?= $this->urlRouter->cfg['url_css'] ?>/i/photo.png" /> <?php
+                            ?><img width="" height="" src="<?= $this->urlRouter->cfg['url_css'] ?>/i/photo<?= $this->urlRouter->_png ?>" /> <?php
                             ?><a id="bt_logo" href="">add logo</a><?php
                         ?></div><?php
                     }

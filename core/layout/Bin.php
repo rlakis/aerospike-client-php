@@ -219,7 +219,7 @@ class Bin extends AjaxHandler{
                             if($images){
                                 $images.="||";
                             }
-                            $images.='<img class="ir" src="'.$this->urlRouter->cfg['url_img'].'/90/' . $ad['SECTION_ID'] . '.png" />';
+                            $images.='<img class="ir" src="'.$this->urlRouter->cfg['url_img'].'/90/' . $ad['SECTION_ID'] . $this->urlRouter->_png .'" />';
                             
                         }
                         
@@ -1573,8 +1573,11 @@ class Bin extends AjaxHandler{
                            $result['p']=$ad[Classifieds::VIDEO][2];                           
                        }elseif ($ad[Classifieds::PICTURES] && count($ad[Classifieds::PICTURES])) {
                             $result['p']=$ad[Classifieds::PICTURES][0];
+                            if($this->urlRouter->isAcceptWebP){
+                                $result['p'] = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $result['p']);
+                            }
                        }else{
-                           $result['p']=$this->urlRouter->cfg['url_img'].'/200/'.$ad[Classifieds::SECTION_ID].'.png';
+                           $result['p']=$this->urlRouter->cfg['url_img'].'/200/'.$ad[Classifieds::SECTION_ID].$this->urlRouter->_png;
                        }
                        $this->setData($result,'i');
                        $this->process();
@@ -1597,45 +1600,6 @@ class Bin extends AjaxHandler{
                 }else $this->fail('101');
                 break;
             case 'manifest-mobile':
-                /*$module=$this->get('m');
-                $stamp=$this->get('t');
-                $id=$this->user->info['id'];
-                //if($module == 'post'){
-                        header("HTTP/1.1 410 Gone");
-                        exit(0);
-                //}
-                if(0 && $module == 'favorite'){
-                    header("HTTP/1.1 410 Gone");
-                }else{
-                header('Content-type: text/cache-manifest');
-                header("Cache-Control: max-age=0, no-cache, no-store, must-revalidate");
-                header("Pragma: no-cache");
-                header("Expires: ".date('r'));
-                
-                echo "CACHE MANIFEST\n";
-                echo "# module:{$module} {$stamp}\n";
-                echo "# version:{$this->urlRouter->cfg['etag']}\n";
-                echo "# online:".($id ? 1 : 0)."\n";
-                echo "CACHE:\n";
-                echo "{$this->urlRouter->cfg['url_img']}/favicon.ico\n";
-                echo "{$this->urlRouter->cfg['url_zepto']}\n";
-                echo "{$this->urlRouter->cfg['url_css_mobile']}/main_m".($this->urlRouter->siteLanguage=='en' ? '':'_ar').".css\n";
-                echo "{$this->urlRouter->cfg['url_css_mobile']}/mms.css\n";
-                echo "{$this->urlRouter->cfg['url_js_mobile']}/m_gen.js\n";
-                echo "{$this->urlRouter->cfg['url_css_mobile']}/i/main_m.png\n";
-                echo "{$this->urlRouter->cfg['url_css_mobile']}/i/bbg.png\n"; 
-                echo "{$this->urlRouter->cfg['url_css_mobile']}/i/f/all.png\n";
-                echo "{$this->urlRouter->cfg['url_css_mobile']}/i/realestate.png\n";
-                echo "{$this->urlRouter->cfg['url_css_mobile']}/i/cars.png\n";
-                echo "{$this->urlRouter->cfg['url_css_mobile']}/i/jobs.png\n";
-                echo "{$this->urlRouter->cfg['url_css_mobile']}/i/service.png\n";
-                echo "{$this->urlRouter->cfg['url_css_mobile']}/i/misc.png\n";
-                echo "NETWORK:\n";
-                echo "*\n";
-                echo "FALLBACK:\n";
-                echo "/ {$this->urlRouter->cfg['host']}/check-connection/".($this->urlRouter->siteLanguage=='en' ? 'en/':'')."\n";
-                }
-                exit (0);*/
                 break;
             case 'ajax-post-se':
                 $id=$this->post('r', 'uint');
@@ -4194,13 +4158,13 @@ class Bin extends AjaxHandler{
                                     if(count($this->user->info['options']['HS']['logo'])){
                                         $res='<a href="'.$this->user->info['options']['HS']['url'].'"><img width="'.$this->user->info['options']['HS']['logo'][1].'" height="'.$this->user->info['options']['HS']['logo'][2].'" src="'.$this->urlRouter->cfg['url_resources'].'/usr/logo/'.$this->user->info['options']['HS']['logo'][0].'" /></a><span id="bt_logo" class="edit"></span>';
                                     }else{
-                                        $res='<img height="" src="'.$this->urlRouter->cfg['url_css'].'/i/photo.png" /> <a id="bt_logo" href="">add logo</a>';
+                                        $res='<img height="" src="'.$this->urlRouter->cfg['url_css'].'/i/photo'.$this->urlRouter->_png.'" /> <a id="bt_logo" href="">add logo</a>';
                                     }
                                 }else{
                                     if(count($this->user->info['options']['HS']['logo'])){
                                         $res='<img width="'.$this->user->info['options']['HS']['logo'][1].'" height="'.$this->user->info['options']['HS']['logo'][2].'" src="'.$this->urlRouter->cfg['url_resources'].'/usr/logo/'.$this->user->info['options']['HS']['logo'][0].'" /><span id="bt_logo" class="edit"></span>';
                                     }else{
-                                        $res='<img height="" src="'.$this->urlRouter->cfg['url_css'].'/i/photo.png" /> <a id="bt_logo" href="">add logo</a>';
+                                        $res='<img height="" src="'.$this->urlRouter->cfg['url_css'].'/i/photo'.$this->urlRouter->_png.'" /> <a id="bt_logo" href="">add logo</a>';
                                     }
                                 }
                                 $this->setData($res,'r');

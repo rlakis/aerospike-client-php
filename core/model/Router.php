@@ -54,6 +54,10 @@ class Router
     var $isPriceList = 0;
     var $isAcceptWebP = 0;
     
+    public $_png = '.png';
+    public $_jpg = '.jpg';
+    public $_jpeg = '.jpeg';
+    
     
     function __construct($params) 
     {
@@ -100,6 +104,13 @@ class Router
             $this->isAcceptWebP = 1;            
         } elseif ($this->isAcceptWebP) {
             $_SESSION['webp'] = 1;
+        }
+        
+        if ($this->isAcceptWebP)
+        {
+            $this->_png = ".webp";
+            $this->_jpg = ".webp";
+            $this->_jpeg = ".webp";
         }
         
         

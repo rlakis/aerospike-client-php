@@ -102,7 +102,7 @@ class Doc extends Page{
                     .bt:hover{text-decoration:none!important}
                     .ick{vertical-align:middle}
                     hr{display: block; height: 1px;border: 0; border-top: 1px solid powderblue;margin:20px 0}
-                    .credits{width:338px;height:110px;margin-bottom:20px;display:inline-block;background:url('.$this->urlRouter->cfg['url_css'].'/i/creditcards.jpg) no-repeat center}                
+                    .credits{width:338px;height:110px;margin-bottom:20px;display:inline-block;background:url('.$this->urlRouter->cfg['url_css'].'/i/creditcards'.$this->urlRouter->_jpg.') no-repeat center}                
                 ';            
             }
 
@@ -114,7 +114,7 @@ class Doc extends Page{
                     .alt{background-color:#ececec;}
                     .uld > li > ul{list-style:none;overflow:hidden;margin:0!important}
                     .uld > li > ul > li{float:left;width:210px;text-align:center;margin-bottom:30px}
-                    .uld > li > ul > li:first-child{margin-top:30px;margin-right:10px;width:50px;height:50px;font-size:40px;color:#FFF;line-height:46px;text-shadow: 2px 2px #666;background:url('.$this->urlRouter->cfg['url_img'].'/presentation2/radio.jpg'.') no-repeat top left}  
+                    .uld > li > ul > li:first-child{margin-top:30px;margin-right:10px;width:50px;height:50px;font-size:40px;color:#FFF;line-height:46px;text-shadow: 2px 2px #666;background:url('.$this->urlRouter->cfg['url_img'].'/presentation2/radio'.$this->urlRouter->_jpg.') no-repeat top left}  
                     .uld > li > ul > li.t{margin-top:30px;width:250px;margin-right:10px;text-align:left}
                     .tld{list-style-type:decimal!important;margin:15px 0 10px 30px!important}
                     .tld li{width:100%;height:auto;margin-bottom:15px}
@@ -155,7 +155,7 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
     width: 300px;
     height: 110px;
     display: inline-block;
-    background: url('.$this->urlRouter->cfg['url_css'].'/i/creditcards.jpg) no-repeat center;
+    background: url('.$this->urlRouter->cfg['url_css'].'/i/creditcards'.$this->urlRouter->_jpg.') no-repeat center;
 }';
             }
             
@@ -391,7 +391,7 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
         $sandbox = $this->urlRouter->cfg['server_id']==99 ? true : false;
         $business = $sandbox ? 'nooralex-facilitator@gmail.com' : 'nooralex@gmail.com';
         $webscr = $sandbox ? 'https://www.sandbox.paypal.com/cgi-bin/webscr' : 'https://www.paypal.com/cgi-bin/webscr';
-        $logo = $this->urlRouter->cfg['url_resources'] . '/img/mourjan-logo-120.png';
+        $logo = $this->urlRouter->cfg['url_resources'] . '/img/mourjan-logo-120'.$this->urlRouter->_png;
         $return_url = $this->urlRouter->cfg['host'] . '/buy/' . ($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage . '/' : '') . '?paypal=success&item='.$name;
         $notify_url = $this->urlRouter->cfg['host'] . '/bin/ppipn.php';
         $cancel_url = $this->urlRouter->cfg['host'] . '/buy/' . ($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage . '/' : '') . '?paypal=cancel';
@@ -544,7 +544,7 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                     
                     echo '</ul>';
                     
-                    ?><br /><br /><div class="bth ctr"><img width="288" height="60" src="<?= $this->urlRouter->cfg['url_css'] ?>/i/payfort.jpg" alt="Verified by PAYFORT"></div><br /><?php
+                    ?><br /><br /><div class="bth ctr"><img width="288" height="60" src="<?= $this->urlRouter->cfg['url_css'] ?>/i/payfort<?= $this->urlRouter->_jpg ?>" alt="Verified by PAYFORT"></div><br /><?php
                     
         $this->globalScript .= '
                 var xhr;
@@ -687,16 +687,16 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                 $this->lang['guide_apple'] = preg_replace(
                 ['/{IMG0}/','/{IMG01}/','/{IMG1}/','/{IMG2}/','/{IMG3}/','/{IMG4}/','/{IMG5}/','/{IMG6}/','/{IMG7}/','/{IMG8}/'], 
                 [
-                    '<img class="seic" width=24 height=24 src="'.$imgPath.'settings-icon.jpg" />',
-                    '<img class="seic" width=24 height=24 src="'.$imgPath.'home-icon.jpg" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-home'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-settings'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-account'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-activate'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-activated'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-balance'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-buy'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-coins'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" />',
+                    '<img class="seic" width=24 height=24 src="'.$imgPath.'settings-icon'.$this->urlRouter->_jpg.'" />',
+                    '<img class="seic" width=24 height=24 src="'.$imgPath.'home-icon'.$this->urlRouter->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-home'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-settings'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-account'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-activate'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-activated'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-balance'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-buy'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-coins'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
                 ], 
                 $this->lang['guide_apple']);
                 echo '<p>'.$this->lang['guide_apple_skip'].'</p>';
@@ -712,14 +712,14 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                 $this->lang['guide_droid'] = preg_replace(
                 ['/{IMG0}/','/{IMG1}/','/{IMG2}/','/{IMG3}/','/{IMG4}/','/{IMG5}/','/{IMG6}/','/{IMG7}/'], 
                 [
-                    '<img class="seic" width=24 height=24 src="'.$imgPath.'settings-icon.jpg" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-lang.jpg" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-country'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-home'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-settings'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-connect'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-connected'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-purchase'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" />',
+                    '<img class="seic" width=24 height=24 src="'.$imgPath.'settings-icon'.$this->urlRouter->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-lang'.$this->urlRouter->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-country'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-home'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-settings'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-connect'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-connected'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-purchase'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
                 ], 
                 $this->lang['guide_droid']);
                 echo '<p>'.$this->lang['guide_droid_skip'].'</p>';
@@ -750,7 +750,7 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                     echo '<ul class="alinks"><li><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class="android"></span></a></li><li><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class="ios"></span></a></li></ul>';
                     echo "<br /><h2>{$this->lang['buy_gold_0']}</h2>";
                     echo "<p>{$this->lang['buy_gold_1']}</p>";
-                    echo '<ul class="alinks"><li><a href="/guide/'.($this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ).'"><img width=119 height=230 src="'.$imgPath.'guide'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" /></a></li><li><a href="/iguide/'.($this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ).'"><img width=119 height=230 src="'.$imgPath.'iguide'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.jpg" /></a></li></ul>';
+                    echo '<ul class="alinks"><li><a href="/guide/'.($this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ).'"><img width=119 height=230 src="'.$imgPath.'guide'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" /></a></li><li><a href="/iguide/'.($this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ).'"><img width=119 height=230 src="'.$imgPath.'iguide'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" /></a></li></ul>';
                 }
                 break;
             case 'premium':
@@ -766,12 +766,12 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                         $this->lang['gold_p1_desc'] = preg_replace(
                                 ['/{IMG1}/','/{IMG2}/','/{IMG3}/','/{IMG4}/','/{IMG5}/','/{IMG6}/'], 
                                 [
-                                    '<img width=200 height=150 src="'.$imgPath.'desktop-premium.jpg" />',
-                                    '<img width=74 height=150 src="'.$imgPath.'mobile-site-premium.jpg" />',
-                                    '<img width=74 height=150 src="'.$imgPath.'app-premium.jpg" />',
-                                    '<img width=300 height=228 src="'.$imgPath.'desktop-side-premium'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.png" />',
-                                    '<img width=300 height=228 src="'.$imgPath.'desktop-side-hover-premium'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').'.png" />',
-                                    '<img width=74 height=150 src="'.$imgPath.'mobile-bottom-premium.jpg" />'
+                                    '<img width=200 height=150 src="'.$imgPath.'desktop-premium'.$this->urlRouter->_jpg.'" />',
+                                    '<img width=74 height=150 src="'.$imgPath.'mobile-site-premium'.$this->urlRouter->_jpg.'" />',
+                                    '<img width=74 height=150 src="'.$imgPath.'app-premium'.$this->urlRouter->_jpg.'" />',
+                                    '<img width=300 height=228 src="'.$imgPath.'desktop-side-premium'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_png.'" />',
+                                    '<img width=300 height=228 src="'.$imgPath.'desktop-side-hover-premium'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_png.'" />',
+                                    '<img width=74 height=150 src="'.$imgPath.'mobile-bottom-premium'.$this->urlRouter->_jpg.'" />'
                                 ], 
                                 $this->lang['gold_p1_desc']);
                         
@@ -808,7 +808,7 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                     <li class="v10">
                         مربع كبير
                     </li><li class="v11">336px</li><li class="v12">280px</li><li class="v13">9$</li><li class="v14">-</li><li class="v15">7.2$/CPM</li><li class="v16">6.3$/CPM</li><li class="v17">5.4$/CPM</li>
-                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/large_rectangle_ad.png' ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/large_rectangle_ad.png' ?>" alt="large rectangle ad thumb" /></a>
+                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/large_rectangle_ad'.$this->urlRouter->_png ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/large_rectangle_ad'.$this->urlRouter->_png ?>" alt="large rectangle ad thumb" /></a>
                         <p>أفضل خانة لتسويق منتجك على الصفحة الأولى لموقع مرجان من خلال مربع كبير يعكس تميز شكل وأداء الموقع على منتجك</p>
                         <p><b>متوفر فقط على الصفحة الأولى لموقع مرجان</b></p>
                     </li>
@@ -816,7 +816,7 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                     <li class="v10">
                         مربع متوسط أعلى الصفحة
                     </li><li class="v11">*300px</li><li class="v12">250px</li><li class="v13">9$</li><li class="v14">11$</li><li class="v15">7.2$/CPM</li><li class="v16">6.3$/CPM</li><li class="v17">5.4$/CPM</li>
-                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/top_medium_ad.png' ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/top_medium_ad.png' ?>" alt="top medium rectangle ad thumb" /></a>
+                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/top_medium_ad'.$this->urlRouter->_png ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/top_medium_ad'.$this->urlRouter->_png ?>" alt="top medium rectangle ad thumb" /></a>
                         <p>انطباعات أقل، فعالية أكثر. اعلانك لن يفوت في أهم خانة لعرض الإعلان</p>
                         <p><b>متوفر فقط على الصفحات الخاصة بتفاصيل الإعلانات</b></p>
                         <p><b>*هذه الخانة تتطلب تأمين حجمين من الإعلان 300px*250px و 250px*250px</b></p>
@@ -825,7 +825,7 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                     <li class="v10">
                         راية
                     </li><li class="v11">728px</li><li class="v12">90px</li><li class="v13">7$</li><li class="v14">9$</li><li class="v15">5.6$/CPM</li><li class="v16">4.9$/CPM</li><li class="v17">4.2$/CPM</li>
-                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/leaderboard_ad.png' ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/leaderboard_ad.png' ?>" alt="leaderboard ad thumb" /></a>
+                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/leaderboard_ad'.$this->urlRouter->_png ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/leaderboard_ad'.$this->urlRouter->_png ?>" alt="leaderboard ad thumb" /></a>
                         <p>سوق منتجك في أعلى خانة على أكثر الصفحات مشاهدةً على موقع مرجان</p>
                         <p><b>متوفر فقط من ثاني صفحة وما فوق لصفحات عرض الإعلانات</b></p>
                     </li>
@@ -834,7 +834,7 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                     <li class="v10">
                         مربع متوسط
                     </li><li class="v11">300px</li><li class="v12">250px</li><li class="v13">6$</li><li class="v14">8$</li><li class="v15">4.8$/CPM</li><li class="v16">4.2$/CPM</li><li class="v17">3.6$/CPM</li>
-                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/medium_rectangle_ad.png' ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/medium_rectangle_ad.png' ?>" alt="medium rectangle ad thumb" /></a>
+                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/medium_rectangle_ad'.$this->urlRouter->_png ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/medium_rectangle_ad'.$this->urlRouter->_png ?>" alt="medium rectangle ad thumb" /></a>
                         <p>موقع مميز مع عدد انطباعات يضمن تسويق منتجك بسرعة وفعالية</p>
                         <p><b>متوفر على كافة صفحات عرض الإعلانات</b></p>                        
                     </li>
@@ -842,7 +842,7 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                     <li class="v10">
                         مربع صغير
                     </li><li class="v11">200px</li><li class="v12">200px</li><li class="v13">4$</li><li class="v14">5$</li><li class="v15">3.2$/CPM</li><li class="v16">2.8$/CPM</li><li class="v17">2.4$/CPM</li>
-                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/small_square_ad.png' ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/small_square_ad.png' ?>" alt="small square ad thumb" /></a>
+                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/small_square_ad'.$this->urlRouter->_png ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/small_square_ad'.$this->urlRouter->_png ?>" alt="small square ad thumb" /></a>
                         <p>أفضل صفقة مع سعر تشجيعي، خانة إعلان في أعلى القسم الجانبي لصفحات عرض الإعلانات</p>
                         <p><b>متوفر فقط من ثاني صفحة وما فوق لصفحات عرض الإعلانات</b></p>
                     </li>
@@ -857,33 +857,33 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                     <li class="h v1">Ad Zone</li><li class="h v2">Width</li><li class="h v3">Height</li><li class="h v4">CPM</li><li class="h v5">CPM by section</li><li class="h v6">200 CPM</li><li class="h v7">500 CPM</li><li class="h v8">1000 CPM</li>
                     
                     <li class="v10">Large Rectangle</li><li class="v11">336px</li><li class="v12">280px</li><li class="v13">9$</li><li class="v14">NA</li><li class="v15">7.2$/CPM</li><li class="v16">6.3$/CPM</li><li class="v17">5.4$/CPM</li>
-                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/large_rectangle_ad.png' ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/large_rectangle_ad.png' ?>" alt="large rectangle ad thumb" /></a>
+                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/large_rectangle_ad'.$this->urlRouter->_png ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/large_rectangle_ad'.$this->urlRouter->_png ?>" alt="large rectangle ad thumb" /></a>
                         <p>The best placement to brand your business on Mourjan.com's homepage with a viewable Large rectangle ad that will reflect Mourjan.com's powerful performance and style onto your business identity</p>
                         <p><b>Available only at the homepage of Mourjan.com</b></p>
                     </li>
                     
                     <li class="v10">Top Medium Rectangle</li><li class="v11">300px*</li><li class="v12">250px</li><li class="v13">9$</li><li class="v14">11$</li><li class="v15">7.2$/CPM</li><li class="v16">6.3$/CPM</li><li class="v17">5.4$/CPM</li>
-                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/top_medium_ad.png' ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/top_medium_ad.png' ?>" alt="top medium rectangle ad thumb" /></a>
+                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/top_medium_ad'.$this->urlRouter->_png ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/top_medium_ad'.$this->urlRouter->_png ?>" alt="top medium rectangle ad thumb" /></a>
                         <p>Fewer impressions, more clicks. The focus zone, your ad will not be missed in the most powerful ad zone at Mourjan.com</p>
                         <p><b>Available on all Mourjan.com's ad detail pages</b></p>
                         <p><b>*This ad zone serves 2 ad sizes: 300px*250px and 250px*250px</b></p>
                     </li>
                     
                     <li class="v10">Leaderboard</li><li class="v11">728px</li><li class="v12">90px</li><li class="v13">7$</li><li class="v14">9$</li><li class="v15">5.6$/CPM</li><li class="v16">4.9$/CPM</li><li class="v17">4.2$/CPM</li>
-                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/leaderboard_ad.png' ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/leaderboard_ad.png' ?>" alt="leaderboard ad thumb" /></a>
+                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/leaderboard_ad'.$this->urlRouter->_png ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/leaderboard_ad'.$this->urlRouter->_png ?>" alt="leaderboard ad thumb" /></a>
                         <p>Be on top of Mourjan.com's most viewed pages for maximum and yet powerful exposure for your business</p>
                         <p><b>Available only from the second page and up while browsing search result pages</b></p>
                     </li>
                     
                     
                     <li class="v10">Medium Rectangle</li><li class="v11">300px</li><li class="v12">250px</li><li class="v13">6$</li><li class="v14">8$</li><li class="v15">4.8$/CPM</li><li class="v16">4.2$/CPM</li><li class="v17">3.6$/CPM</li>
-                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/medium_rectangle_ad.png' ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/medium_rectangle_ad.png' ?>" alt="medium rectangle ad thumb" /></a>
+                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/medium_rectangle_ad'.$this->urlRouter->_png ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/medium_rectangle_ad'.$this->urlRouter->_png ?>" alt="medium rectangle ad thumb" /></a>
                         <p>Perfect for maximum exposure while benefitting from thousands of search result pages in a catchy ad placement zone that guarantees exposure for your business</p>
                         <p><b>Available on all Mourjan.com's search result pages</b></p>                        
                     </li>
                     
                     <li class="v10">Small Square</li><li class="v11">200px</li><li class="v12">200px</li><li class="v13">4$</li><li class="v14">5$</li><li class="v15">3.2$/CPM</li><li class="v16">2.8$/CPM</li><li class="v17">2.4$/CPM</li>
-                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/small_square_ad.png' ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/small_square_ad.png' ?>" alt="small square ad thumb" /></a>
+                    <li class="vd"><a target="blank" href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/small_square_ad'.$this->urlRouter->_png ?>"><img width="200px" height="139px" src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/small_square_ad'.$this->urlRouter->_png ?>" alt="small square ad thumb" /></a>
                         <p>Deal of the day, the small square ad zone benefits a top placement on the side bar of search result pages for maximum exposure with an encouraging price</p>
                         <p><b>Available only from the second page and up while browsing search result pages</b></p>
                     </li>
@@ -893,9 +893,9 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                 }
                 /*
                     
-                    <li class="vd"><a href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/medium_rectangle_ad.png' ?>"><img src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/medium_rectangle_ad.png' ?>" alt="medium rectangle ad thumb" /></a><p></p></li>
+                    <li class="vd"><a href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/medium_rectangle_ad'.$this->urlRouter->_png ?>"><img src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/medium_rectangle_ad'.$this->urlRouter->_png ?>" alt="medium rectangle ad thumb" /></a><p></p></li>
                     <li class="v10">Mobile</li><li class="v11">300px</li><li class="v12">50px</li><li class="v13">4$</li><li class="v14">5$</li><li class="v15">3.2$/cpm</li><li class="v16">2.8$/cpm</li><li class="v17">2.4$/cpm</li>
-                    <li class="vd"><a href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/small_square_ad.png' ?>"><img src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/small_square_ad.png' ?>" alt="small square ad thumb" /></a><p></p></li>
+                    <li class="vd"><a href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/small_square_ad'.$this->urlRouter->_png ?>"><img src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/small_square_ad'.$this->urlRouter->_png ?>" alt="small square ad thumb" /></a><p></p></li>
                 <?php */ break;
             case 'publication-prices':
                 echo '<div class="doc '.$this->urlRouter->siteLanguage.'">';
@@ -981,7 +981,7 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
 <p>Currently, we are still working on improving Mourjan.com and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="/contact/<?= $adLang ?>">Let us know your opinion</a>.</p><?php 
     ?></li><li class="cb2" itemscope itemtype="https://schema.org/LocalBusiness"><?php
         /* <img itemprop="image" width="200px" height="54px" src="<?= $this->urlRouter->cfg['url_img'] ?>/berysoft.png" alt="Berysoft logo" /></a> */
-        if(!$this->isMobile) { ?><img itemprop="image" width="130px" height="90px" src="<?= $this->urlRouter->cfg['url_css'] ?>/i/logo.jpg" alt="Berysoft logo" /></a><?php }
+        if(!$this->isMobile) { ?><img itemprop="image" width="130px" height="90px" src="<?= $this->urlRouter->cfg['url_css'] ?>/i/logo<?= $this->urlRouter->_jpg ?>" alt="Berysoft logo" /></a><?php }
         ?><ul><li><p><b itemprop="name"><?php /* Berysoft SARL */ ?>Mourjan.com</b>, <span itemprop="address" itemscope itemtype="https://schema.org/PostalAddress"><span itemprop="streetAddress">4th floor, Bld 1440, New Slav street</span>, <span itemprop="addressLocality">Dekwaneh</span>, <?php /*registered in */ ?><span itemprop="addressCountry">Lebanon</span></span><?php /* with number 2013375-Baabda */ ?></p></li><?php
             /* <li><p><label>Website:</label> <a itemprop="url" href="http://www.berysoft.com">www.berysoft.com</a></p></li> */ 
         ?><li><p><label>Phone:</label> <span itemprop="telephone">+961 70 424 018</span><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span itemprop="telephone">+20 109 136 5353</span></p></li>

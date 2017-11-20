@@ -47,7 +47,7 @@ class Detail extends Search
 //        }elseif (isset($this->detailAd[Classifieds::VIDEO]) && $this->detailAd[Classifieds::VIDEO]){
 //            $pageThumb=$this->detailAd[Classifieds::VIDEO][2];
 //        }else {
-            $pageThumb=$this->urlRouter->cfg["url_img"]."/200/".$this->detailAd[Classifieds::SECTION_ID].'.png';
+            $pageThumb=$this->urlRouter->cfg["url_img"]."/200/".$this->detailAd[Classifieds::SECTION_ID].$this->urlRouter->_png;
 //        }
         
         /*$this->adTitle = "<span itemprop='name'>{$this->urlRouter->sections[$this->detailAd[Classifieds::SECTION_ID]][$this->fieldNameIndex]}</span> - " .
@@ -314,6 +314,9 @@ class Detail extends Search
                         ?><div id="pics" class="pics"><?php
                         for($i=1;$i<=$picsCount;$i++){
                             if(isset($oPics[$i-1][0]) && $oPics[$i-1][1]){
+                                if($this->urlRouter->isAcceptWebP){
+                                    $oPics[$i-1][2] = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $oPics[$i-1][2]);
+                                }
                                 $this->globalScript.='imgs['.$i.']="'.$oPics[$i-1][2].'";';
                                 ?><span class="sp<?= $i ?> load"></span><?php
                             }
@@ -804,6 +807,9 @@ class Detail extends Search
                         ?><div id="pics" class="dim"><?php
                         for($i=1;$i<=$picsCount;$i++){
                             if(isset($oPics[$i-1][0]) && $oPics[$i-1][1]){
+                                if($this->urlRouter->isAcceptWebP){
+                                    $oPics[$i-1][2] = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $oPics[$i-1][2]);
+                                }
                                 $this->globalScript.='imgs['.$i.']="'.$oPics[$i-1][2].'";';
                                 ?><span class="sp<?= $i ?> load"></span><?php
                             }

@@ -946,6 +946,9 @@ class Search extends Page
                     } elseif ($ad[Classifieds::PICTURES] && is_array($ad[Classifieds::PICTURES])  && count($ad[Classifieds::PICTURES])) {
                         $picCount=count($ad[Classifieds::PICTURES]);
                         $pic = $ad[Classifieds::PICTURES][0];
+                        if($this->urlRouter->isAcceptWebP){
+                            $pic = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pic);
+                        }
                         if($idx < $numOfRowsToRenderImgs){
                             $pic = '<span class="thz"><img src="' . $this->urlRouter->cfg['url_ad_img'] . '/repos/s/' . $pic . '" /><span class="cnt">'.$picCount.'</span></span>';
                         }else{
@@ -955,9 +958,9 @@ class Search extends Page
                         $liClass.=' pic';
                     } else {
                         if($idx < $numOfRowsToRenderImgs){
-                            $pic = '<span class="thz"><img class="d" src="' . $this->urlRouter->cfg['url_img'] . '/90/' . $ad[Classifieds::SECTION_ID] . '.png" /></span>';
+                            $pic = '<span class="thz"><img class="d" src="' . $this->urlRouter->cfg['url_img'] . '/90/' . $ad[Classifieds::SECTION_ID]. $this->urlRouter->_png . '" /></span>';
                         }else{
-                            $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img class=\"d\" src=\"' . $this->urlRouter->cfg['url_img'] . '/90/' . $ad[Classifieds::SECTION_ID] . '.png\" />";';
+                            $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img class=\"d\" src=\"' . $this->urlRouter->cfg['url_img'] . '/90/' . $ad[Classifieds::SECTION_ID] . $this->urlRouter->_png . '\" />";';
                             $pic = '<span class="thb"></span>';
                         }
                         $liClass.=' pic';
@@ -1227,7 +1230,7 @@ class Search extends Page
             echo '<h2 class="ctr">' . $this->summerizeSearchMobile(true) . '</h2>';
             echo '<p class="ctr"><span class="na"></span></p>';
             echo '<h2 class="ctr">' . $this->lang['addW1'] . '</h2>';
-            echo '<p class="ctr"><img src="' . $this->urlRouter->cfg['url_css_mobile'] . '/i/t/wat' . ($this->urlRouter->siteLanguage == 'ar' ? '' : 'e') . '.png" /></p>';
+            echo '<p class="ctr"><img src="' . $this->urlRouter->cfg['url_css_mobile'] . '/i/t/wat' . ($this->urlRouter->siteLanguage == 'ar' ? '' : 'e') . $this->urlRouter->_png . '" /></p>';
                 //echo '<h2 class="ctr">' . $this->lang['addF2'] . '</h2>';
                 //echo '<p class="ctr"><img src="' . $this->urlRouter->cfg['url_css_mobile'] . '/i/t/fav' . ($this->urlRouter->siteLanguage == 'ar' ? '' : 'e') . '2.png" /></p>';
                 /*?><div class="str"><?php
@@ -1303,9 +1306,9 @@ class Search extends Page
                     echo '<h2 class="ctr">' . $this->summerizeSearchMobile(true) . '</h2>';
                     echo '<p class="ctr"><span class="na"></span></p>';
                         echo '<h2 class="ctr">' . $this->lang['addF1'] . '</h2>';
-                        echo '<p class="ctr"><img src="' . $this->urlRouter->cfg['url_css_mobile'] . '/i/t/fav' . ($this->urlRouter->siteLanguage == 'ar' ? '' : 'e') . '1.png" /></p>';
+                        echo '<p class="ctr"><img src="' . $this->urlRouter->cfg['url_css_mobile'] . '/i/t/fav' . ($this->urlRouter->siteLanguage == 'ar' ? '' : 'e') . '1' . $this->urlRouter->_png .'" /></p>';
                         echo '<h2 class="ctr">' . $this->lang['addF2'] . '</h2>';
-                        echo '<p class="ctr"><img src="' . $this->urlRouter->cfg['url_css_mobile'] . '/i/t/fav' . ($this->urlRouter->siteLanguage == 'ar' ? '' : 'e') . '2.png" /></p>';
+                        echo '<p class="ctr"><img src="' . $this->urlRouter->cfg['url_css_mobile'] . '/i/t/fav' . ($this->urlRouter->siteLanguage == 'ar' ? '' : 'e') . '2' . $this->urlRouter->_png .'" /></p>';
                     } elseif($this->urlRouter->watchId) {
                         echo '<h2 class="ctr">' . $this->summerizeSearchMobile(true) . '</h2>';
                         echo '<p class="ctr"><span class="na"></span></p>';
@@ -3041,6 +3044,9 @@ class Search extends Page
                         }
                         $picCount=count($ad[Classifieds::PICTURES]);
                         $pic = $ad[Classifieds::PICTURES][0];
+                        if($this->urlRouter->isAcceptWebP){
+                            $pic = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pic);
+                        }
                         //$this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img src=\"' . $this->urlRouter->cfg['url_ad_img'] . '/repos/s/' . $pic . '\" /><span class=\"cnt\">'.$picCount.'</span>";';
                         //$pic = '<span class="thb"></span>';
                         $pic = '<img style="width:'.$width.'px;height:'.$height.'px" src="' . $this->urlRouter->cfg['url_ad_img'] . '/repos/m/' . $pic . '" />';
@@ -3048,7 +3054,7 @@ class Search extends Page
                     } else {
                         //$this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img class=\"d\" src=\"' . $this->urlRouter->cfg['url_img'] . '/90/' . $ad[Classifieds::SECTION_ID] . '.png\" />";';
                         //$pic = '<span class="thb"></span>';
-                        $pic = '<img class="d" src="' . $this->urlRouter->cfg['url_img'] . '/90/' . $ad[Classifieds::SECTION_ID] . '.png" />';
+                        $pic = '<img class="d" src="' . $this->urlRouter->cfg['url_img'] . '/90/' . $ad[Classifieds::SECTION_ID] . $this->urlRouter->_png . '" />';
                         //$liClass.=' pic';
                     }
                 $textClass = ($ad[Classifieds::RTL]) ? "ar" : "en";                
@@ -3147,10 +3153,13 @@ class Search extends Page
                         $hasAnimation = 1;
                     }
                     $pic = $ad[Classifieds::PICTURES][$rand];
+                    if($this->urlRouter->isAcceptWebP){
+                        $pic = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pic);
+                    }
                     $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img height=\"98\" src=\"'.$this->urlRouter->cfg['url_ad_img'].'/repos/d/' . $pic . '\" />";';
                     $pic = '<span class="ig"></span>';
                 } else {
-                    $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img height=\"90\" class=\"ir\" src=\"'.$this->urlRouter->cfg['url_img'].'/200/' . $ad[Classifieds::SECTION_ID] . '.png\" />";';
+                    $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img height=\"90\" class=\"ir\" src=\"'.$this->urlRouter->cfg['url_img'].'/200/' . $ad[Classifieds::SECTION_ID] . $this->urlRouter->_png . '\" />";';
                     $pic = '<span class="ig igr"></span>';
                 }
                 $textClass = ($ad[Classifieds::RTL]) ? "ar" : "en";                
@@ -3466,6 +3475,9 @@ class Search extends Page
                     }
                 } elseif (isset($ad[Classifieds::PICTURES]) && $ad[Classifieds::PICTURES] && count($ad[Classifieds::PICTURES])) {
                     $pic = $ad[Classifieds::PICTURES][0];
+                    if($this->urlRouter->isAcceptWebP){
+                        $pic = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pic);
+                    }
                     if($idx < $numOfRowsToRenderWithImgs){
                         $pic = '<span class="igz"><img width="120" src="'.$this->urlRouter->cfg['url_ad_img'].'/repos/s/' . $pic . '" /><span class="cnt">'.count($ad[Classifieds::PICTURES]).'<span class="i sp"></span></span></span>';
                     }else{
@@ -3474,9 +3486,9 @@ class Search extends Page
                     }
                 } else {
                     if($idx < $numOfRowsToRenderWithImgs){
-                        $pic = '<span class="igz"><img class="ir" src="'.$this->urlRouter->cfg['url_img'].'/90/' . $ad[Classifieds::SECTION_ID] . '.png" /></span>';
+                        $pic = '<span class="igz"><img class="ir" src="'.$this->urlRouter->cfg['url_img'].'/90/' . $ad[Classifieds::SECTION_ID] . $this->urlRouter->_png . '" /></span>';
                     }else{
-                        $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img class=\"ir\" src=\"'.$this->urlRouter->cfg['url_img'].'/90/' . $ad[Classifieds::SECTION_ID] . '.png\" />";';
+                        $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img class=\"ir\" src=\"'.$this->urlRouter->cfg['url_img'].'/90/' . $ad[Classifieds::SECTION_ID] . $this->urlRouter->_png . '\" />";';
                         $pic = '<span class="ig"></span>';
                     }
                 }
@@ -3645,9 +3657,9 @@ if($isFeatured){
                 ?><div class="nad"><p><?php
                     echo $this->lang['toAddToList'];
                     ?></p><br /><?php
-                    ?><img height="143" width="480" src="<?= $this->urlRouter->cfg['url_css_mobile'] . '/i/t/watch' . ($this->urlRouter->siteLanguage == 'ar' ? '' : 'e') ?>0.jpg" /><br /><?php
+                    ?><img height="143" width="480" src="<?= $this->urlRouter->cfg['url_css_mobile'] . '/i/t/watch' . ($this->urlRouter->siteLanguage == 'ar' ? '' : 'e') ?>0<?= $this->urlRouter->_jpg ?>" /><br /><?php
                     ?><p><?= $this->lang['then'] ?></p><?php
-                    ?><img height="165" width="480" src="<?= $this->urlRouter->cfg['url_css_mobile'] . '/i/t/watch' . ($this->urlRouter->siteLanguage == 'ar' ? '' : 'e') ?>1.jpg" /><br /><br /><?php
+                    ?><img height="165" width="480" src="<?= $this->urlRouter->cfg['url_css_mobile'] . '/i/t/watch' . ($this->urlRouter->siteLanguage == 'ar' ? '' : 'e') ?>1<?= $this->urlRouter->_jpg ?>" /><br /><br /><?php
                     ?><a class="bt" href="<?= $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId) ?>"><span class="i h"></span><?= $this->lang['noFavBackLink'] ?></a><?php
                 ?></div><?php
                                                 
@@ -4557,7 +4569,7 @@ if($isFeatured){
                         $bread.='</div>';
                         $bread.='<div class="nad">';
                         $bread.='<p>' . $this->lang['addF0'] . '</p><br />';
-                        $bread.='<img height="150" width="480" src="' . $this->urlRouter->cfg['url_css_mobile'] . '/i/t/fav' . ($this->urlRouter->siteLanguage == 'ar' ? '' : 'e') . '.jpg" /><br />';
+                        $bread.='<img height="150" width="480" src="' . $this->urlRouter->cfg['url_css_mobile'] . '/i/t/fav' . ($this->urlRouter->siteLanguage == 'ar' ? '' : 'e') . $this->urlRouter->_jpg .'" /><br />';
                         $bread.='<a class="bt" href="' . $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId) . '"><span class="i h"></span> ' . $this->lang['noFavBackLink'] . '</a>';                        
                         $bread.='</div>';
                         return $bread;
