@@ -852,6 +852,53 @@ class AndroidApi
                         { 
                             if($ad_id>0) 
                             {
+                                //cleanup ad_media xref 
+                                if(isset($ad['pics']) && is_array($ad['pics']) && count($ad['pics'])){
+                                    $keys = array_keys($ad['pics']);
+                                    $filenames = '';
+                                    foreach($ad['pics'] as $key => $values){
+                                        if($filenames!=''){
+                                            $filenames.=',';
+                                        }
+                                        $filenames .= "'{$key}'";
+                                    }
+
+                                    $records = $this->api->db->queryResultArray(
+                                        "select id from media where filename in ({$filenames})", null, false
+                                    );
+
+                                    if($records !== false){
+                                        $mediaIds = [];
+                                        if($records && is_array($records)){
+                                            foreach ($records as $media){
+                                                $mediaIds[] = $media['ID'];
+                                            }
+                                        }
+
+                                        if(count($mediaIds)){
+                                            $mediaIds = implode(",", $mediaIds);
+
+                                            $this->api->db->queryResultArray(
+                                                "delete from ad_media where ad_id = ? and media_id not in ({$mediaIds})", [$ad_id], false
+                                            );
+
+                                        }else{
+
+                                            $this->api->db->queryResultArray(
+                                                "delete from ad_media where ad_id = ?", [$ad_id], false
+                                            );
+
+                                        }
+                                    }
+
+                                }else{
+                                    $this->api->db->queryResultArray(
+                                        "delete from ad_media where ad_id = ?", [$ad_id], false
+                                    );
+                                }
+                                //end of ad_media cleanup
+                                
+                                
                                 $this->api->db->queryResultArray(
                                     "update ad set hold=1 where id=? and hold=0 and (exists (select 1 from ad_user d where d.id=? and d.web_user_id=?)) returning id", [$ad_id, $ad_id, $this->api->getUID()], false
                                 );
