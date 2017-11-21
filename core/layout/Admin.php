@@ -58,30 +58,41 @@ class Admin extends Page
         
         
         $action = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_STRING);
-        if($action){
+        
+        if($action)
+        {
             $redirectWenDone=true;
             
-            switch ($action){
+            switch ($action)
+            {
                 case 'unblock':
                     $unblockNumbers = [];
-                    $userdata = [$this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($parameter))];
-                    if(isset($userdata[0]['mobiles'])){
+                    $userdata = [$this->parseUserBins( \Core\Model\NoSQL::getInstance()->fetchUser($parameter)) ];
+                    
+                    
+                    if (isset($userdata[0]['mobiles']))
+                    {
                         $accounts=[];
-                        foreach($userdata[0]['mobiles'] as $number){
+                        foreach($userdata[0]['mobiles'] as $number)
+                        {
                             $uids=[];
-                            if (\Core\Model\NoSQL::getInstance()->mobileGetLinkedUIDs($number['number']+0, $uids)== Core\Model\NoSQL::OK){
-                                foreach ($uids as $bins) {
+                            if (\Core\Model\NoSQL::getInstance()->mobileGetLinkedUIDs($number['number']+0, $uids)== Core\Model\NoSQL::OK)
+                            {
+                                foreach ($uids as $bins) 
+                                {
                                     $accounts[] = $this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
                                 }
                             }
                         }
                         
-                        $uids = [];
+                        $uids = [$userdata[0]['id']];
                         $numbers = [];
-                        foreach($accounts as $account){
+                        foreach($accounts as $account)
+                        {
                             $uids[] = $account['id'];
                             
-                            foreach($account['mobiles'] as $number){
+                            foreach($account['mobiles'] as $number)
+                            {
                                 $numbers[$number['number']] = $number['id']; 
                             }
                         }
