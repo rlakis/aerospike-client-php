@@ -67,6 +67,7 @@ class Classifieds
 
     private static $stmt_get_ad = null;
     private static $stmt_mod_title = null;
+    private static $stmt_get_media = null;
     private static $stmt_get_ext = null;
     private static $stmt_get_loc = null;
 
@@ -152,6 +153,13 @@ class Classifieds
                 left join GEO_TAG g on g.ID=r.LOCALITY_ID
                 where r.AD_ID=?
                 ");
+            
+            self::$stmt_get_media = $this->db->prepareQuery("
+                select AD_MEDIA.MEDIA_ID, MEDIA.FILENAME, MEDIA.WIDTH, MEDIA.HEIGHT
+                from AD_MEDIA
+                left join media on media.ID=AD_MEDIA.MEDIA_ID
+                where AD_MEDIA.AD_ID=?
+                ");
                     
         }
         
@@ -185,16 +193,24 @@ class Classifieds
                 
             // parser
             $decoder = json_decode($user_content, TRUE);
-            if (isset($decoder['pics']) && is_array($decoder['pics']) && count($decoder['pics'])) {
-                foreach ($decoder['pics'] as $pic => $is_set) {
-                    if ($is_set){
-                        if(is_array($is_set)){
-                            $ad[Classifieds::PICTURES_DIM][]=$is_set;
-                        }
-                        $ad[Classifieds::PICTURES][] = $pic;
-                    }
-                }
-            }            
+//            if (isset($decoder['pics']) && is_array($decoder['pics']) && count($decoder['pics'])) {
+//                foreach ($decoder['pics'] as $pic => $is_set) {
+//                    if ($is_set){
+//                        if(is_array($is_set)){
+//                            $ad[Classifieds::PICTURES_DIM][]=$is_set;
+//                        }
+//                        $ad[Classifieds::PICTURES][] = $pic;
+//                    }
+//                }
+//            }            
+            
+            self::$stmt_get_media->execute([$id]);
+            while (($media = static::$stmt_get_media->fetch(\PDO::FETCH_ASSOC)) !== false) 
+            {
+                $ad[Classifieds::PICTURES][] = $media['FILENAME'];
+                $ad[Classifieds::PICTURES_DIM][] = [$media['WIDTH'], $media['HEIGHT']];
+            }
+            
             
             if(isset($decoder['cui'])){
                 $ad[Classifieds::CONTACT_INFO] = $decoder['cui'];
@@ -574,4 +590,5 @@ class Classifieds
     }
     
 }
+
 ?>
