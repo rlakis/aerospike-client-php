@@ -332,20 +332,10 @@ class Search extends Page
             }
         }
         if ($this->isMobile) {
-            /*  <script type='text/javascript'>
-              googletag.cmd.push(function() {
-              googletag.defineSlot('/1006833/M336x280', [336, 280], 'div-gpt-ad-1363019259805-0').addService(googletag.pubads());
-              googletag.defineSlot('/1006833/M468x60', [468, 60], 'div-gpt-ad-1363019259805-1').addService(googletag.pubads());
-              googletag.defineSlot('/1006833/M728x90', [728, 90], 'div-gpt-ad-1363019259805-2').addService(googletag.pubads());
-              googletag.enableServices();
-              });
-              </script> */
-
-            //if ($this->isMobileAd) {
-            //$this->set_ad(array('Leaderboard'=>array('/1006833/mourjan-mobile', 320, 50, 'div-gpt-ad-1326381096859-0-'.$this->urlRouter->cfg['server_id'])));
             
-            //$this->inlineCss.='.w300,.w650{width:100%;display:block}.w650, .w650 div{margin:0 auto;display: block}.w650, .w650 div{width:650px;height:120px}.card{overflow-x:hidden}.ad.ad_dt{margin:0}@media all and (max-width: 649px){.w650 {display: none!important}}';
-            $this->inlineCss.='.ad > div{display:inline-block}.lbad{text-align:center;overflow:visible!important;background-color:transparent!important;border:0!important}';
+            $this->inlineCss.='.yad{text-align:center;display:block}.lbad{text-align:center;overflow:visible!important;background-color:transparent!important;border:0!important}.lbad.responsive{margin:-5px auto 5px}';
+            /*
+            $this->inlineCss.='.ad > div{display:inline-block}.yad{text-align:center}.lbad{text-align:center;overflow:visible!important;background-color:transparent!important;border:0!important}.lbad.responsive{margin:-5px auto 5px}';
             if (isset($this->user->params['screen'][0]) && $this->user->params['screen'][0]) {
                 $width = $this->user->params['screen'][0];
                 if ($width >= 745) {
@@ -355,9 +345,6 @@ class Search extends Page
                     $this->inlineCss .= '@media all and (max-width:352px){.w336{display: none}}';
                     $this->set_ad(array('Leaderboard' => array('/1006833/M728x90', 728, 90, 'lad-' . $this->urlRouter->cfg['server_id'])));
                     $this->set_ad(array('Square' => array('/1006833/M336x280', 336, 280, 'ad-' . $this->urlRouter->cfg['server_id'])));
-                //} elseif ($width >= 650) {
-                //    $this->set_ad(array('Leaderboard' => array('/1006833/M650x120', 650, 120, 'lad-' . $this->urlRouter->cfg['server_id'])));
-                //    $this->set_ad(array('Square' => array('/1006833/M336x280', 336, 280, 'ad-' . $this->urlRouter->cfg['server_id'])));
                 } elseif ($width >= 485) {
                     $this->inlineCss .= '.w336 > div{width:336px;height:280px}';
                     $this->inlineCss .= '.w468 > div{width:468px;height:60px}';
@@ -371,31 +358,22 @@ class Search extends Page
                     $this->inlineCss .= '.ad100{width:320px;height:100px}';
                     $this->inlineCss .= '@media all and (max-width:352px){.w336{display: none}}';
                     $this->set_ad(array('Square' => array('/1006833/M336x280', 336, 280, 'ad-' . $this->urlRouter->cfg['server_id'])));
-                    //$this->set_ad(array('Leaderboard' => array('/1006833/M300x100', 300, 100, 'lad-' . $this->urlRouter->cfg['server_id'])));
                     $this->set_ad(array('Leaderboard' => array('/1006833/M320x50', 320, 50, 'lad-' . $this->urlRouter->cfg['server_id'])));
                 } else {
                     $this->inlineCss .= '.w300 > div{width:300px;height:250px}';
                     $this->inlineCss .= '.w320 > div{width:320px;height:50px}';
                     $this->inlineCss .= '.ad100{width:320px;height:100px}';
                     $this->set_ad(array('Square' => array('/1006833/M300x250', 300, 250, 'ad-' . $this->urlRouter->cfg['server_id'])));
-                    //$this->set_ad(array('Leaderboard' => array('/1006833/M300x100', 300, 100, 'lad-' . $this->urlRouter->cfg['server_id'])));
                     $this->set_ad(array('Leaderboard' => array('/1006833/M320x50', 320, 50, 'lad-' . $this->urlRouter->cfg['server_id'])));
                 }
-                /*   if ($width >= 728){
-                  $this->set_ad(array('Leaderboard'=>array('/1006833/M728x90', 728, 90, 'mobile-lad-'.$this->urlRouter->cfg['server_id'])));
-                  }elseif($width >= 468 && $width <600) {
-                  $this->set_ad(array('Leaderboard'=>array('/1006833/M468x60', 468, 60, 'mobile-lad-'.$this->urlRouter->cfg['server_id'])));
-                  } */
             } else {
                 $this->inlineCss .= '.w300 > div{width:300px;height:250px}';
                 $this->inlineCss .= '.w320 > div{width:320px;height:50px}';
                 $this->inlineCss .= '.ad100{width:320px;height:100px}';
                 $this->set_ad(array('Square' => array('/1006833/M300x250', 300, 250, 'ad-' . $this->urlRouter->cfg['server_id'])));
                 $this->set_ad(array('Leaderboard' => array('/1006833/M320x50', 320, 50, 'lad-' . $this->urlRouter->cfg['server_id'])));
-            }
-            /* }else
-              $this->set_ad(array('Leaderboard'=>array('/1006833/Leaderboard', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->urlRouter->cfg['server_id'])));
-             */
+            }*/
+            
             $this->num = 5;
             if (array_key_exists('HTTP_USER_AGENT', $_SERVER) && strstr($_SERVER['HTTP_USER_AGENT'], 'iPad;'))
                 $this->num = 10;
@@ -995,10 +973,10 @@ class Search extends Page
                     /* ?><li <?= $id ?> itemprop="itemListElement" <?= $liClass . $itemScope ?>><?= '<p '.( $detailAd ? '': 'onclick="wo(\'' . $_link . '\')" ') . $itemDesc . ' class="button ' . $textClass . '">' . $pic . $newSpan . $ad[Classifieds::CONTENT] . '</p>' ?><span class="src <?= $this->urlRouter->siteLanguage ?>"><?= (($feature||$isFeatured) ? ( ($paid||$isFeatured) ? '<span class="vpdi '.$this->urlRouter->siteLanguage.'"></span><b>'.$this->lang['premium_ad'].'</b>' : '<span class="ovp '.$this->urlRouter->siteLanguage.'"></span>'.$pub_link) : $pub_link . " <time st='" . $ad[Classifieds::UNIXTIME] . "'></time>") . $optSpan. $locSpan . $favSpan  ?></span></li><?php */
                     
                     if(!$isFeatured && !$feature && $idx > 1 && $smallBanner){
-                        if($this->urlRouter->cfg['enabled_ads'] && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745)){
+                        if($this->urlRouter->cfg['enabled_ads']/* && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745)*/){
                             /* ?><li class="lbad"><div class="ad100"><ins class="adsbygoogle" data-ad-client="ca-pub-2427907534283641" data-ad-slot="5711519829"></ins></div></li><?php */
                             $this->renderAdSense=true;
-                            ?><li class="lbad responsive"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7294487825" data-ad-format="auto"></ins></li><?php
+                            ?><li class="lbad responsive"><br /><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7294487825" data-ad-format="auto"></ins><br /></li><?php
                             /*$alterAd = $this->weightedRand([30,70]);
                             
                             if($alterAd){//70% reponsive banner
@@ -1010,12 +988,12 @@ class Search extends Page
                                     ?><li class="lbad"><ins class="adsbygoogle" style="display:block" data-ad-format="fluid" data-ad-layout="image-side" data-ad-layout-key="-fg+5e+8s-gl-r" data-ad-client="ca-pub-2427907534283641" data-ad-slot="6674977112"></ins></li><?php
                                 }
                             }*/
-                        }else{
+                        }/*else{
                             $banner = $this->fill_ad('Leaderboard', 'ad_dt');
                             if($banner){
                                 echo '<li class="lbad"><br />'.$banner.'<br /></li>';
                             }
-                        }
+                        }*/
                         $smallBanner = false;
                     }
                     
@@ -1247,13 +1225,7 @@ class Search extends Page
             //if (!$this->urlRouter->purposeId && $hasResults)
             //    $this->filterPurposesMobile();
     
-            if ($hasResults) {
-                /*if ( $this->urlRouter->module=='search' && !$this->userFavorites && !$this->urlRouter->watchId && !$this->urlRouter->userId ){
-                    if($this->urlRouter->params['start']>1){
-                        echo $this->fill_ad('Leaderboard', 'ad_dt');
-                    }
-                }*/
-                    
+            if ($hasResults) {                    
                 echo '<div class="sum">', $this->summerizeSearchMobile(), '</div>';
                 //            $this->setNotification($this->summerizeSearchMobile());
                 //            $this->renderNotificationsMobile();
@@ -1677,19 +1649,16 @@ class Search extends Page
                 
                 $this->urlRouter->purposeId = $purposeId;
 
-            if ($this->searchResults['body']['total_found'] > 2){
+            if ($this->urlRouter->cfg['enabled_ads'] && $this->searchResults['body']['total_found'] > 3){
+               //mobile responsive ad 2
+                ?><div class="yad"><br /><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="auto"></ins></div><?php
+                /*
                 if($this->urlRouter->module=='search'){
                     $iDir = $this->urlRouter->siteLanguage == 'ar' ? 'ad_r' : 'ad_l';
                     echo '<br />'.$this->fill_ad('Square', $iDir);
-                    /*
-                    ?><ins class="adsbygoogle"
-                         style="display:block"
-                         data-ad-client="ca-pub-2427907534283641"
-                         data-ad-slot="7294487825"
-                         data-ad-format="auto"></ins><?php */
-                }else{
+                 }else{
                     echo '<br />'.$this->fill_ad('Leaderboard', 'ad_dt');
-                }
+                }*/
             }
             
             
@@ -1857,8 +1826,6 @@ class Search extends Page
 
             if ($this->urlRouter->rootId==1 && $this->urlRouter->countryId && ($this->searchResults['body']['total_found']>20 || $this->localityId) && count($this->localities)) {
                 if ($this->searchResults['body']['total_found'] > 5 || $this->localityId) {
-                    //echo $this->fill_ad('Leaderboard', 'ad_dt');
-                    
                     $this->renderMobileLocalityLinks();
                 }
 

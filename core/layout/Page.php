@@ -3494,7 +3494,7 @@ class Page extends Site
         ?>ga('set','dimension2',"<?php echo $this->urlRouter->rootId?$this->urlRouter->roots[$this->urlRouter->rootId][2]:'AnyRoot';?>");<?php
         ?>ga('set','dimension3',"<?php echo ($this->urlRouter->sectionId && isset($this->urlRouter->sections[$this->urlRouter->sectionId]))?$this->urlRouter->sections[$this->urlRouter->sectionId][2]:'AnySection'; ?>");<?php
         ?>ga('set','dimension4',"<?php echo ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri']:'Global';?>");<?php
-        ?>ga('set','dimension5',"<?php echo ($this->urlRouter->cityId && isset($this->urlRouter->cities[$this->urlRouter->cityId]))?$this->urlRouter->cities[$this->urlRouter->cityId][3]:(($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].' all cities':'Global');?>");<?php
+        ?>ga('set','dimension5',"<?php echo ($this->urlRouter->cityId && isset($this->urlRouter->cities[$this->urlRouter->cityId]))?$this->urlRouter->cities[$this->urlRouter->cityId][3]:(($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].'all cities':'Global');?>");<?php
         
         if(isset($this->user->pending['email_watchlist']))
         {
@@ -3502,7 +3502,7 @@ class Page extends Site
         }
         ?>ga('send', 'pageview');</script><?php
         
-        if ($this->isMobile && $this->urlRouter->cfg['enabled_ads'] && in_array($this->urlRouter->module,['search','detail']) && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745))
+        if ($this->isMobile && $this->urlRouter->cfg['enabled_ads'] && in_array($this->urlRouter->module,['search','detail']) /*&& (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745)*/)
         {
             ?><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php
         }
