@@ -3506,7 +3506,7 @@ class Page extends Site
                 'country': "<?php echo ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri']:'Global';?>",
                 'city': "<?php echo ($this->urlRouter->cityId && isset($this->urlRouter->cities[$this->urlRouter->cityId]))?$this->urlRouter->cities[$this->urlRouter->cityId][3]:(($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].'all cities':'Global');?>"
             });
-        </script>
+        </script>              
 <?php
 
         /*
@@ -4914,15 +4914,7 @@ class Page extends Site
                         ?>po.async = true;<?php
                         ?>po.src = 'https://apis.google.com/js/platform.js';<?php
                         ?>var s = document.getElementsByTagName('script')[0];<?php
-                        ?>s.parentNode.insertBefore(po,s);<?php 
-                        //pagead2.googlesyndication.com/pagead/js/adsbygoogle.js
-                        /*if(in_array($this->urlRouter->module,['search','detail'])){
-                        ?>po = document.createElement('script');<?php
-                        ?>po.type = 'text/javascript';<?php 
-                        ?>po.async = true;<?php
-                        ?>po.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';<?php
-                        ?>s.parentNode.insertBefore(po,s);<?php 
-                        }*/
+                        ?>s.parentNode.insertBefore(po,s);<?php                         
                       ?>});<?php 
                 }
         
