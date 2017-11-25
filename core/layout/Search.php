@@ -1653,12 +1653,19 @@ class Search extends Page
                //mobile responsive ad 2
                 ?><div class="yad">
                 <br />
-                <!--<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="auto"></ins>-->
+                <?php
+                if(time() % 2){?>
+<ins class="adsbygoogle" 
+    style="display:block" 
+    data-ad-client="ca-pub-2427907534283641" 
+    data-ad-slot="7030570808" data-ad-format="auto"></ins><?php
+                } else {?>
                 <!-- Large Mobile End of List Banner -->
 <ins class="adsbygoogle"
      style="display:inline-block;width:320px;height:100px"
      data-ad-client="ca-pub-2427907534283641"
-     data-ad-slot="1890774823"></ins>
+     data-ad-slot="1890774823"></ins><?php
+                }?>
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
