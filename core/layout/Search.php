@@ -1651,10 +1651,9 @@ class Search extends Page
 
             if ($this->urlRouter->cfg['enabled_ads'] && $this->searchResults['body']['total_found'] > 3){
                //mobile responsive ad 2
-                ?><div class="yad">
-                <br />
+                ?><div class="yad"><br />
                 <?php
-                if(time() % 2){?>
+                if(1){?>
 <ins class="adsbygoogle" 
     style="display:block" 
     data-ad-client="ca-pub-2427907534283641" 
