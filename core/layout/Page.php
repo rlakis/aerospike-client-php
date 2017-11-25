@@ -17,7 +17,7 @@ class Page extends Site
     var $deprecated=false,$topMenuIE=false;    
     var $appendLocation=true;
     var $hasLeadingPane=false;
-    var $png_fix=false,$renderAdSense=false;
+    var $png_fix=false,$renderAdSense=0;
     var $hasCities=false; 
     var $notifications=array();
     var $blocks=array();
@@ -3427,6 +3427,7 @@ class Page extends Site
             $this->urlRouter->cfg['enabled_ads'] = 0;
         }
         
+        ?><script async src="https://www.googletagmanager.com/gtag/js?id=UA-435731-13"></script><?php
         ?><script type='text/javascript'><?php
         if ($this->urlRouter->cfg['enabled_ads'] && count($this->googleAds)) 
         {
@@ -3487,27 +3488,22 @@ class Page extends Site
                 $module = 'pricelist';
             }
         }
-        echo "</script>\n\n";
-        ?>            
-        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-435731-13"></script>
-        
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
+        //echo "</script>\n\n";
+            ?>window.dataLayer = window.dataLayer || [];<?php
+            ?>function gtag(){dataLayer.push(arguments);}<?php
+            ?>gtag('js', new Date());<?php
 
-            gtag('config', 'UA-435731-13', {
-                'custom_map': {'dimension1': 'module', 'dimension2': 'root', 'dimension3': 'section', 'dimension4': 'country', 'dimension5': 'city'}
-            });
-            gtag('event', 'dimension_event', {
-                'module': "<?php echo $module ?>", 
-                'root': "<?php echo $this->urlRouter->rootId?$this->urlRouter->roots[$this->urlRouter->rootId][2]:'AnyRoot';?>",
-                'section': "<?php echo ($this->urlRouter->sectionId && isset($this->urlRouter->sections[$this->urlRouter->sectionId]))?$this->urlRouter->sections[$this->urlRouter->sectionId][2]:'AnySection'; ?>",
-                'country': "<?php echo ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri']:'Global';?>",
-                'city': "<?php echo ($this->urlRouter->cityId && isset($this->urlRouter->cities[$this->urlRouter->cityId]))?$this->urlRouter->cities[$this->urlRouter->cityId][3]:(($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].'all cities':'Global');?>"
-            });
-        </script>              
-<?php
+            ?>gtag('config', 'UA-435731-13', {<?php
+                ?>'custom_map': {'dimension1': 'module', 'dimension2': 'root', 'dimension3': 'section', 'dimension4': 'country', 'dimension5': 'city'}<?php
+            ?>});<?php
+            ?>gtag('event', 'dimension_event', {<?php
+                ?>'module': "<?php echo $module ?>",<?php
+                ?>'root': "<?php echo $this->urlRouter->rootId?$this->urlRouter->roots[$this->urlRouter->rootId][2]:'AnyRoot';?>",<?php
+                ?>'section': "<?php echo ($this->urlRouter->sectionId && isset($this->urlRouter->sections[$this->urlRouter->sectionId]))?$this->urlRouter->sections[$this->urlRouter->sectionId][2]:'AnySection'; ?>",<?php
+                ?>'country': "<?php echo ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri']:'Global';?>",<?php
+                ?>'city': "<?php echo ($this->urlRouter->cityId && isset($this->urlRouter->cities[$this->urlRouter->cityId]))?$this->urlRouter->cities[$this->urlRouter->cityId][3]:(($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].'all cities':'Global');?>"<?php
+            ?>});<?php
+        ?></script><?php
 
         /*
         if(isset($this->user->pending['email_watchlist']))
@@ -3576,9 +3572,11 @@ class Page extends Site
         ?><script type="text/javascript"><?php
         if ($this->renderAdSense && $this->urlRouter->cfg['enabled_ads'] 
                 && in_array($this->urlRouter->module,['search','detail']) 
-                && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745)){
+                /*&& (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745)*/){
             /* ?>(adsbygoogle = window.adsbygoogle || []).push({google_ad_client: "ca-pub-2427907534283641",enable_page_level_ads: true,vignettes: {google_ad_channel: 'mourjan-vignette'},overlays: {google_ad_channel: 'mourjan-overlay'}});<?php */
-            ?>(adsbygoogle = window.adsbygoogle || []).push({});<?php
+            for($i=0; $i < $this->renderAdSense;$i++){
+                ?>(adsbygoogle = window.adsbygoogle || []).push({});<?php
+            }
         }
         //has Query Parameter
         ?>var head = document.getElementsByTagName("head")[0] || document.documentElement;<?php
