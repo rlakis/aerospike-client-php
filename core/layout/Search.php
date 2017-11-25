@@ -57,6 +57,7 @@ class Search extends Page
         $pageThumb = '', $partnerSection = '', $watchName = '', $formatNumbers=false, $mobileValidator=null, $phoneNumber=null;
     var $isRT = 0;
     
+    
     function __construct(Core\Model\Router $router) 
     {
         header('Vary: User-Agent');
@@ -975,7 +976,7 @@ class Search extends Page
                     if(!$isFeatured && !$feature && $idx > 1 && $smallBanner){
                         if($this->urlRouter->cfg['enabled_ads']/* && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745)*/){
                             /* ?><li class="lbad"><div class="ad100"><ins class="adsbygoogle" data-ad-client="ca-pub-2427907534283641" data-ad-slot="5711519829"></ins></div></li><?php */
-                            $this->renderAdSense=true;
+                            $this->renderAdSense++;
                             ?><li class="lbad responsive"><br /><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7294487825" data-ad-format="auto"></ins><br /></li><?php
                             /*$alterAd = $this->weightedRand([30,70]);
                             
@@ -1650,25 +1651,14 @@ class Search extends Page
                 $this->urlRouter->purposeId = $purposeId;
 
             if ($this->urlRouter->cfg['enabled_ads'] && $this->searchResults['body']['total_found'] > 3){
-               //mobile responsive ad 2
-                ?><div class="yad"><br />
-                <?php
-                if(1){?>
-<ins class="adsbygoogle" 
-    style="display:block" 
-    data-ad-client="ca-pub-2427907534283641" 
-    data-ad-slot="7030570808" data-ad-format="auto"></ins><?php
-                } else {?>
-                <!-- Large Mobile End of List Banner -->
-<ins class="adsbygoogle"
-     style="display:inline-block;width:320px;height:100px"
-     data-ad-client="ca-pub-2427907534283641"
-     data-ad-slot="1890774823"></ins><?php
-                }?>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-                </div><?php
+               
+               $this->renderAdSense++;
+                ?><div class="yad"><br /><?php
+                    //mobile responsive ad 2
+                     ?><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="auto"></ins><?php 
+                    //Large Mobile End of List Banner
+                    /* ?><ins class="adsbygoogle" style="display:inline-block" data-ad-client="ca-pub-2427907534283641" data-ad-slot="1890774823"></ins><?php */
+                ?></div><?php
                 /*
                 if($this->urlRouter->module=='search'){
                     $iDir = $this->urlRouter->siteLanguage == 'ar' ? 'ad_r' : 'ad_l';
