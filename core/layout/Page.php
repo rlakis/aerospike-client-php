@@ -30,6 +30,7 @@ class Page extends Site
         
     var $pageItemScope='itemscope itemtype="https://schema.org/WebPage"';
     
+    
     function __construct(Core\Model\Router $router)
     {
         parent::__construct($router); 

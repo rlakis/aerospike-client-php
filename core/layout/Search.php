@@ -57,6 +57,7 @@ class Search extends Page
         $pageThumb = '', $partnerSection = '', $watchName = '', $formatNumbers=false, $mobileValidator=null, $phoneNumber=null;
     var $isRT = 0;
     
+    
     function __construct(Core\Model\Router $router) 
     {
         header('Vary: User-Agent');
