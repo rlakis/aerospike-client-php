@@ -3487,141 +3487,43 @@ class Page extends Site
                 $module = 'pricelist';
             }
         }
+        echo "</script>\n\n";
+        ?>            
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-435731-13"></script>
         
-        ?>window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;<?php
-        ?>ga('create','UA-435731-13','auto');<?php
-        ?>ga('set','dimension1',"<?php echo $module ?>");<?php
-        ?>ga('set','dimension2',"<?php echo $this->urlRouter->rootId?$this->urlRouter->roots[$this->urlRouter->rootId][2]:'AnyRoot';?>");<?php
-        ?>ga('set','dimension3',"<?php echo ($this->urlRouter->sectionId && isset($this->urlRouter->sections[$this->urlRouter->sectionId]))?$this->urlRouter->sections[$this->urlRouter->sectionId][2]:'AnySection'; ?>");<?php
-        ?>ga('set','dimension4',"<?php echo ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri']:'Global';?>");<?php
-        ?>ga('set','dimension5',"<?php echo ($this->urlRouter->cityId && isset($this->urlRouter->cities[$this->urlRouter->cityId]))?$this->urlRouter->cities[$this->urlRouter->cityId][3]:(($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].'all cities':'Global');?>");<?php
-        
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'UA-435731-13', {
+                'custom_map': {'dimension1': 'module', 'dimension2': 'root', 'dimension3': 'section', 'dimension4': 'country', 'dimension5': 'city'}
+            });
+            gtag('event', 'dimension_event', {
+                'module': "<?php echo $module ?>", 
+                'root': "<?php echo $this->urlRouter->rootId?$this->urlRouter->roots[$this->urlRouter->rootId][2]:'AnyRoot';?>",
+                'section': "<?php echo ($this->urlRouter->sectionId && isset($this->urlRouter->sections[$this->urlRouter->sectionId]))?$this->urlRouter->sections[$this->urlRouter->sectionId][2]:'AnySection'; ?>",
+                'country': "<?php echo ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri']:'Global';?>",
+                'city': "<?php echo ($this->urlRouter->cityId && isset($this->urlRouter->cities[$this->urlRouter->cityId]))?$this->urlRouter->cities[$this->urlRouter->cityId][3]:(($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].'all cities':'Global');?>"
+            });
+        </script>
+<?php
+
+        /*
         if(isset($this->user->pending['email_watchlist']))
         {
             ?>ga('set','dimension6','watchlist');<?php
         }
-        ?>ga('send', 'pageview');</script><?php
+        ?>ga('send', 'pageview');</script>*/
+           
         
         if ($this->isMobile && $this->urlRouter->cfg['enabled_ads'] && in_array($this->urlRouter->module,['search','detail']) /*&& (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745)*/)
         {
             ?><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php
-        }
-        
-        ?><script async src='https://www.google-analytics.com/analytics.js'></script><?php
+        }        
     }
     
-    
-    protected function set_analytics_header_old(){
-       /* ?><script type="text/javascript"><?php
-        ?>
-        var canImp=0;
-        var head = document.getElementsByTagName("head")[0] || document.documentElement;
-        if('import' in document.createElement('link')){
-            canImp=1;
-            var l = document.createElement('link');        
-            l.rel = 'import';
-            l.href = 'https://h5.mourjan.com/imp/1.0.0/index_ar.html';
-            l.setAttribute('async', 'true');
-            l.onload = function(e) {
-                console.log('loaded');
-            }
-            head.appendChild(l);
-        }
-                <?php
-        ?></script><?php */
-        //error_log($_SERVER['HTTP_USER_AGENT']);
-        if (isset($this->user->info['level']) && $this->user->info['level']==9){
-            return;
-        }
-        if (preg_match('/Firefox\/27\.0/ui', $_SERVER['HTTP_USER_AGENT'])) {
-            $this->urlRouter->cfg['enabled_ads'] = 0;
-        }
-        ?><script type='text/javascript'><?php
-        if ($this->urlRouter->cfg['enabled_ads'] && count($this->googleAds)) {
-                ?>var googletag = googletag||{};googletag.cmd=googletag.cmd||[];(function(){var gads=document.createElement('script');gads.async=true;gads.type='text/javascript';var useSSL='https:'==document.location.protocol;gads.src=(useSSL?'https:':'http:')+'//www.googletagservices.com/tag/js/gpt.js';var node=document.getElementsByTagName('script')[0];node.parentNode.insertBefore(gads, node);})();googletag.cmd.push(function(){<?php
-            
-            $slot=0;
-            foreach ($this->googleAds as $ad) {
-                $slot++;
-                echo "var slot{$slot}=googletag.defineSlot('{$ad[0]}',[{$ad[1]},{$ad[2]}],'{$ad[3]}').addService(googletag.pubads());";
-            }
-            echo "googletag.pubads().collapseEmptyDivs();";
-            if ($this->urlRouter->countryId)
-                echo "googletag.pubads().setTargeting('country_id', '{$this->urlRouter->countryId}');";
-            if ($this->urlRouter->rootId)
-                echo "googletag.pubads().setTargeting('root_id', '{$this->urlRouter->rootId}');";
-            if ($this->urlRouter->sectionId)
-                echo "googletag.pubads().setTargeting('section_id', '{$this->urlRouter->sectionId}');";
-            if ($this->urlRouter->purposeId)
-                echo "googletag.pubads().setTargeting('purpose_id', '{$this->urlRouter->purposeId}');";
-            else
-                echo "googletag.pubads().setTargeting('purpose_id', '999');";
-            ?>googletag.pubads().enableSingleRequest();googletag.enableServices()});<?php
-        }
-        
-        $module = $this->urlRouter->module;
-        if($module=='search'){
-            if  ($this->urlRouter->userId){
-                $module = 'user_page_'.$this->urlRouter->userId;
-            }elseif($this->userFavorites){
-                $module = 'favorites';
-            }elseif($this->urlRouter->watchId){
-                $module = 'watchlist';
-            }elseif($this->urlRouter->isPriceList){
-                $module = 'pricelist';
-            }
-        }
-        
-        ?>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){<?php
-        ?>(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),<?php
-        ?>m=s.getElementsByTagName(o)[0];a.async=true;a.src=g;m.parentNode.insertBefore(a,m)<?php
-        ?>})(window,document,'script','//www.google-analytics.com/analytics.js','ga');<?php
-
-        ?>ga('create','UA-435731-13','mourjan.com');<?php
-        ?>ga('set','dimension1',"<?php echo $module ?>");<?php
-        ?>ga('set','dimension2',"<?php echo $this->urlRouter->rootId?$this->urlRouter->roots[$this->urlRouter->rootId][2]:'AnyRoot';?>");<?php
-        ?>ga('set','dimension3',"<?php echo ($this->urlRouter->sectionId && isset($this->urlRouter->sections[$this->urlRouter->sectionId]))?$this->urlRouter->sections[$this->urlRouter->sectionId][2]:'AnySection'; ?>");<?php
-        ?>ga('set','dimension4',"<?php echo ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri']:'Global';?>");<?php
-        ?>ga('set','dimension5',"<?php echo ($this->urlRouter->cityId && isset($this->urlRouter->cities[$this->urlRouter->cityId]))?$this->urlRouter->cities[$this->urlRouter->cityId][3]:(($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId]))?$this->urlRouter->countries[$this->urlRouter->countryId]['uri'].' all cities':'Global');?>");<?php
-        if(isset($this->user->pending['email_watchlist'])){
-            ?>ga('set','dimension6','watchlist');<?php
-        }
-        ?>ga('send','pageview');<?php 
-        
-        /*
-        $module = $this->urlRouter->module;
-            if($module=='search'){
-                if  ($this->urlRouter->userId){
-                    $module = 'user_page_'.$this->urlRouter->userId;
-                }elseif($this->userFavorites){
-                    $module = 'favorites';
-                }elseif($this->urlRouter->watchId){
-                    $module = 'watchlist';
-                }elseif($this->urlRouter->isPriceList){
-                    $module = 'pricelist';
-                }
-            }
-            ?>var _gaq=_gaq||[];_gaq.push(['_setAccount','UA-435731-13']);
-         * _gaq.push(['_setDomainName','mourjan.com']);
-         * _gaq.push(['_setCustomVar', 1, 'Module', <? echo "'{$module}'";?>, 3]);
-         * _gaq.push(['_setCustomVar', 2,'Root', '<? echo $this->urlRouter->rootId?$this->urlRouter->roots[$this->urlRouter->rootId][2]:'AnyRoot';?>', 3]);
-         * _gaq.push(['_setCustomVar', 3,'Section', '<? echo ($this->urlRouter->sectionId && isset($this->urlRouter->sections[$this->urlRouter->sectionId]))?$this->urlRouter->sections[$this->urlRouter->sectionId][2]:'AnySection'; ?>', 3]);
-         * _gaq.push(['_setCustomVar', 4, 'Country', '<? echo $this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId])?$this->urlRouter->countries[$this->urlRouter->countryId][3]:'Global';?>', 3]);<?php 
-            if(isset($this->user->pending['email_watchlist'])){
-                ?>_gaq.push(['_setCustomVar', 5, 'Campaign', 'watchlist', 3]);<?php
-            }
-            ?>_gaq.push(['_trackPageview']);<?php 
-            ?>(function(){var ga=document.createElement('script');ga.type='text/javascript';ga.async=true;ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(ga,s);})();<?php 
-        */
-          ?></script><?php
-          if ($this->isMobile && $this->urlRouter->cfg['enabled_ads'] 
-                  && in_array($this->urlRouter->module,['search','detail'])                   
-                && (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745)){ 
-            ?><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php
-          }
-
-    }
-
+      
     function renderMobileLinks(){
         if (!$this->urlRouter->countryId || $this->urlRouter->rootId) return;
         $lang=$this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/';
