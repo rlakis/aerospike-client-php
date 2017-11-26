@@ -2945,7 +2945,7 @@ class Page extends Site
                     for ($ptr = 0; $ptr < $j; $ptr++) {
                         $id = $this->searchResults['media']['matches'][$ptr];
                         $ad = $this->classifieds->getById($id,false,$ad_cache);
-                        if(is_null($ad[Classifieds::PICTURES])){
+                        if(is_null($ad[Classifieds::PICTURES]) || count($ad[Classifieds::PICTURES])==0){
                             continue;
                         }
                         if (isset($this->user->info['level'])) {
