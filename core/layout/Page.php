@@ -2945,6 +2945,9 @@ class Page extends Site
                     for ($ptr = 0; $ptr < $j; $ptr++) {
                         $id = $this->searchResults['media']['matches'][$ptr];
                         $ad = $this->classifieds->getById($id,false,$ad_cache);
+                        if(is_null($ad[Classifieds::PICTURES])){
+                            continue;
+                        }
                         if (isset($this->user->info['level'])) {
                             if (!($this->user->info['level'] == 9 || $this->user->info['id'] == $ad[Classifieds::USER_ID])) {
                                 //if(isset($this->mediaResults["matches"][$id])){
@@ -2993,7 +2996,7 @@ class Page extends Site
 
                             }
                             $widths=array();
-
+                            
                             for($i=0;$i<$picsCount;$i++){
                                     $oPics[$i][2]=$pics[$i];
                                     $widths[$i]=$oPics[$i][0];
