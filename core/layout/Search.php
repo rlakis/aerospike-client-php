@@ -3294,8 +3294,19 @@ class Search extends Page
                     }
                 }
                 
-                $isFeatured = $current_time < $ad[Classifieds::FEATURE_ENDING_DATE];
-                $isFeatureBooked = $current_time < $ad[Classifieds::BO_ENDING_DATE];
+                if (isset($ad[Classifieds::FEATURE_ENDING_DATE]))
+                {
+                    $isFeatured = $current_time < $ad[Classifieds::FEATURE_ENDING_DATE];
+                    $isFeatureBooked = $current_time < $ad[Classifieds::BO_ENDING_DATE];
+                }
+                else
+                {
+                    $isFeatured = FALSE;
+                    $isFeatureBooked = FALSE;
+                    error_log(__FILE__. '.' . __FUNCTION__ . '.' . __LINE__ . ' missing fearure_ending_date attribute for ad '.$ad[Classifieds::ID]);
+                    $ad[Classifieds::FEATURE_ENDING_DATE] = 0;
+                    $ad[Classifieds::BO_ENDING_DATE] = 0;
+                }
 
                 $_link = sprintf($ad[Classifieds::URI_FORMAT], ($this->urlRouter->siteLanguage == "ar" ? "" : "{$this->urlRouter->siteLanguage}/"), $ad[Classifieds::ID]);               
 
