@@ -668,7 +668,7 @@ class MobileApi
             $ad[Classifieds::LONGITUDE],//16
             $ad[Classifieds::ALT_CONTENT],//17
             $ad[Classifieds::USER_ID],//18
-            isset($ad[Classifieds::PICTURES]) ? $ad[Classifieds::PICTURES] : "",//19
+            isset($ad[Classifieds::PICTURES]) && count($ad[Classifieds::PICTURES]) ? $ad[Classifieds::PICTURES] : "",//19
             isset($ad[Classifieds::VIDEO]) ? $ad[Classifieds::VIDEO] : "",//20
             isset($ad[Classifieds::EXTENTED_AR]) ? $ad[Classifieds::EXTENTED_AR] : "",//21
             isset($ad[Classifieds::EXTENTED_EN]) ? $ad[Classifieds::EXTENTED_EN] : "",//22
@@ -677,7 +677,7 @@ class MobileApi
             isset($ad[Classifieds::LOCALITIES_EN]) ? $ad[Classifieds::LOCALITIES_EN] : "",//25
             isset($ad[Classifieds::USER_LEVEL]) ? $ad[Classifieds::USER_LEVEL] : 0,//26
             isset($ad[Classifieds::LOCATION]) ? $ad[Classifieds::LOCATION] : "",//27
-            isset($ad[Classifieds::PICTURES_DIM]) ? $ad[Classifieds::PICTURES_DIM] : "",//28
+            isset($ad[Classifieds::PICTURES_DIM]) && count($ad[Classifieds::PICTURES_DIM]) ? $ad[Classifieds::PICTURES_DIM] : "",//28
             $ad[Classifieds::TELEPHONES], //29
             $ad[Classifieds::EMAILS],//30
             //featured flag
