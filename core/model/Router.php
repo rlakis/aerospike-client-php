@@ -1048,6 +1048,21 @@ class Router
         }
     }
 
+    
+    function isBot(&$botname = '')
+    {
+        $bots = array('googlebot', 'aport', 'yahoo', 'msnbot', 'rambler', 'turtle', 'mail.ru', 'omsktele', 'yetibot', 'picsearch', 'sape.bot', 'sape_context', 'gigabot', 'snapbot', '<a class="vglnk" href="http://alexa.com" rel="nofollow"><span>alexa</span><span>.</span><span>com</span></a>', 'megadownload.net', 'askpeter.info', 'igde.ru', '<a class="vglnk" href="http://ask.com" rel="nofollow"><span>ask</span><span>.</span><span>com</span></a>', 'qwartabot', 'yanga.co.uk', 'scoutjet', 'similarpages', 'oozbot', '<a class="vglnk" href="http://shrinktheweb.com" rel="nofollow"><span>shrinktheweb</span><span>.</span><span>com</span></a>', 'aboutusbot', '<a class="vglnk" href="http://followsite.com" rel="nofollow"><span>followsite</span><span>.</span><span>com</span></a>', 'dataparksearch', 'google-sitemaps', 'appEngine-google', 'feedfetcher-google', 'liveinternet.ru', '<a class="vglnk" href="http://xml-sitemaps.com" rel="nofollow"><span>xml</span><span>-</span><span>sitemaps</span><span>.</span><span>com</span></a>', 'agama', '<a class="vglnk" href="http://metadatalabs.com" rel="nofollow"><span>metadatalabs</span><span>.</span><span>com</span></a>', 'h1.hrn.ru', '<a class="vglnk" href="http://googlealert.com" rel="nofollow"><span>googlealert</span><span>.</span><span>com</span></a>', '<a class="vglnk" href="http://seo-rus.com" rel="nofollow"><span>seo</span><span>-</span><span>rus</span><span>.</span><span>com</span></a>', 'yaDirectBot', 'yandeG', 'yandex', 'yandexSomething', '<a class="vglnk" href="http://Copyscape.com" rel="nofollow"><span>Copyscape</span><span>.</span><span>com</span></a>', 'AdsBot-Google', '<a class="vglnk" href="http://domaintools.com" rel="nofollow"><span>domaintools</span><span>.</span><span>com</span></a>', 'Nigma.ru', '<a class="vglnk" href="http://bing.com" rel="nofollow"><span>bing</span><span>.</span><span>com</span></a>', 'dotnetdotcom');
+        foreach ($bots as $bot) 
+        {
+            if (stripos($_SERVER['HTTP_USER_AGENT'], $bot) !== false) 
+            {
+                $botname = $bot;
+                return true;
+            }
+        }
+        return false;
+    }
+    
 
     function distance($lat, $lon, $ulat=0, $ulon=0) 
     {
