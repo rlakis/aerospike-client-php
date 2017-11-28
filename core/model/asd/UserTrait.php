@@ -186,9 +186,7 @@ trait UserTrait
                         ]);
                         
                         unset($stmt);
-                        
-                        error_log('USER INSERTED '.$bins[USER_PROFILE_ID]);
-                    
+                                            
                     } catch (Exception $ex) {
                         error_log($ex->getMessage());
                     }
