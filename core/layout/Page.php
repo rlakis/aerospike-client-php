@@ -3649,7 +3649,7 @@ class Page extends Site
             ?>USID='<?= session_id() ?>',<?php 
             ?>uixf='<?= $this->urlRouter->cfg['url_image_lib'] ?>/load-image.all.min.js',<?php 
         }
-        if ($this->stat){
+        if ($this->stat && !$this->urlRouter->isBot()){
             $this->stat['page']=($this->urlRouter->params['start']) ? $this->urlRouter->params['start'] : 1;
             $this->stat['num']=$this->num;
             ?>stat='<?= isset($this->stat) ? json_encode($this->stat):'' ?>',<?php
@@ -4701,7 +4701,7 @@ class Page extends Site
             }elseif ($this->urlRouter->cfg['enabled_disqus'] && $this->urlRouter->module=='myads'){
                 ?>disqus_shortname = 'mourjan',disqus_config=function(){this.language = 'en'},<?php
             }
-            if ($this->stat){
+            if ($this->stat && $this->urlRouter->isBot()){
                 $this->stat['page']=($this->urlRouter->params['start']) ? $this->urlRouter->params['start'] : 1;
                 $this->stat['num']=$this->num;
                 ?>stat='<?= isset($this->stat) ? json_encode($this->stat):'' ?>',<?php
