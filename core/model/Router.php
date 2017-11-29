@@ -1048,8 +1048,8 @@ class Router
         }
     }
 
-    
-    function isBot(&$botname = '')
+    /*
+    function isBot(&$botname = '') : bool
     {
         $bots = array('googlebot', 'aport', 'yahoo', 'msnbot', 'rambler', 'turtle', 'mail.ru', 'omsktele', 'yetibot', 'picsearch', 'sape.bot', 'sape_context', 'gigabot', 'snapbot', '<a class="vglnk" href="http://alexa.com" rel="nofollow"><span>alexa</span><span>.</span><span>com</span></a>', 'megadownload.net', 'askpeter.info', 'igde.ru', '<a class="vglnk" href="http://ask.com" rel="nofollow"><span>ask</span><span>.</span><span>com</span></a>', 'qwartabot', 'yanga.co.uk', 'scoutjet', 'similarpages', 'oozbot', '<a class="vglnk" href="http://shrinktheweb.com" rel="nofollow"><span>shrinktheweb</span><span>.</span><span>com</span></a>', 'aboutusbot', '<a class="vglnk" href="http://followsite.com" rel="nofollow"><span>followsite</span><span>.</span><span>com</span></a>', 'dataparksearch', 'google-sitemaps', 'appEngine-google', 'feedfetcher-google', 'liveinternet.ru', '<a class="vglnk" href="http://xml-sitemaps.com" rel="nofollow"><span>xml</span><span>-</span><span>sitemaps</span><span>.</span><span>com</span></a>', 'agama', '<a class="vglnk" href="http://metadatalabs.com" rel="nofollow"><span>metadatalabs</span><span>.</span><span>com</span></a>', 'h1.hrn.ru', '<a class="vglnk" href="http://googlealert.com" rel="nofollow"><span>googlealert</span><span>.</span><span>com</span></a>', '<a class="vglnk" href="http://seo-rus.com" rel="nofollow"><span>seo</span><span>-</span><span>rus</span><span>.</span><span>com</span></a>', 'yaDirectBot', 'yandeG', 'yandex', 'yandexSomething', '<a class="vglnk" href="http://Copyscape.com" rel="nofollow"><span>Copyscape</span><span>.</span><span>com</span></a>', 'AdsBot-Google', '<a class="vglnk" href="http://domaintools.com" rel="nofollow"><span>domaintools</span><span>.</span><span>com</span></a>', 'Nigma.ru', '<a class="vglnk" href="http://bing.com" rel="nofollow"><span>bing</span><span>.</span><span>com</span></a>', 'dotnetdotcom');
         foreach ($bots as $bot) 
@@ -1062,8 +1062,63 @@ class Router
         }
         return false;
     }
+    */
     
+    function isBot( $http_user_agent=null, $ip=null ) 
+    {
+        if($ip==null) { 
+            $ip = $_SERVER['REMOTE_ADDR'];
+        }
+        $bots = [
+                    ['name'=>'Google', 'bot'=>'http://www.google.com/bot.html', 'domain'=>'googlebot.com'],
+                    ['name'=>'Media-google', 'bot'=>'Mediapartners-Google', 'domain'=>'googlebot.com'],
+                    ['name'=>'Baidu', 'bot'=>'http://www.baidu.com/search/spider.htm', 'domain'=>'crawl.baidu.com'],
+                    ['name'=>'Yahoo', 'bot'=>'http://help.yahoo.com/help/us/ysearch/slurp', 'domain'=>'crawl.yahoo.net'],
+                    ['name'=>'Msn', 'bot'=>'http://search.msn.com/msnbot.htm', 'domain'=>'search.msn.com'],
+                    ['name'=>'Teoma', 'bot'=>'http://about.ask.com/en/docs/about/webmasters.shtml', 'domain'=>'ask.com'],
+                    ['name'=>'Alexa', 'bot'=>'Alexa Verification Agent', 'domain'=>'amazonaws.com'],
+                    ['name'=>'TweetmemeBot', 'bot'=>'TweetmemeBot', 'domain'=>'favsys.net']
+                    ];
 
+        $http_user_agent = strtolower( $http_user_agent ); 
+        foreach( $bots as $bot ) 
+        {      
+            if( stripos( $http_user_agent, $bot['bot'] ) !== false ) 
+            {            
+                $name = gethostbyaddr( $ip );
+                $host = gethostbyname( $bot['domain'] );
+                
+                if(strpos( $name, $bot['domain'])) 
+                {
+                    if ($host==$ip) 
+                    { 
+                        return $bot['name'];                         
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }            
+            }
+        }
+        return null;
+    }
+
+    
+    private function checkBot( $domain, $ip ) 
+    {    
+        $name = gethostbyaddr( $ip );
+        $host = gethostbyname( $name );
+        if( strpos( $name, $domain ) ) 
+        {        
+            if ($host==$ip ) { return true; }
+            else { return false; }
+
+        }
+        return false;
+    }
+    
+    
     function distance($lat, $lon, $ulat=0, $ulon=0) 
     {
         $_session_params = $_SESSION['_u']['params'];
