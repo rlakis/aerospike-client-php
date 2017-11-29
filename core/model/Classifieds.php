@@ -99,7 +99,7 @@ class Classifieds
                     $this->normalizeContacts($ad);                
                     $this->db->getCache()->set($id, $ad);
                 }
-                if (isset($ad[Classifieds::FEATURE_ENDING_DATE]))
+                if (!isset($ad[Classifieds::FEATURE_ENDING_DATE]))
                 {                    
                     //error_log(__FILE__. '.' . __FUNCTION__ . '.' . __LINE__ . ' missing fearure_ending_date attribute for ad '.$id);
                     $ad[Classifieds::FEATURE_ENDING_DATE] = 0;

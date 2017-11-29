@@ -3071,7 +3071,7 @@ class Search extends Page
     }
     
     function renderSideFeatures(){
-        if (!isset($this->searchResults['zone2']) || $this->searchResults['zone2']['total_found']==0) {
+        if ($this->user->info['level']==9 || !isset($this->searchResults['zone2']) || $this->searchResults['zone2']['total_found']==0) {
             return;
         }
                
