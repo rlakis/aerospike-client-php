@@ -1409,16 +1409,17 @@ class MobileApi
             $this->result['d']['evc'] = $this->config['android_enabled_cli_verification']+0;
             $this->result['d']['evrc'] = $this->config['android_enabled_reverse_cli_verification']+0;
             $this->result['d']['evs'] = $this->config['android_enabled_sms_verification']+0;
-            if($device_appversion > '1.3.0' && $device_appversion != '1.8.8')
+            if($device_appversion < '1.4.8' && $device_appversion != '1.8.8')
             {                
                 $this->result['d']['edn'] = 0;
                 $this->result['d']['esn'] = 0;
                 $this->result['d']['esl'] = 0;
             }
             if($device_appversion > '1.4.7' && $device_appversion != '1.8.8'){
-                $this->result['d']['esl'] = 1;
-                $this->result['d']['eslf'] = 3;//$this->config['android_banner_search_native_list_first_idx']+0;
-                $this->result['d']['eslg'] = 3;//$this->config['android_banner_search_native_list_gap']+0;
+                $this->result['d']['esl'] = $this->config['android_enabled_banner_search_native_list']+0;
+                $this->result['d']['eslf'] = $this->config['android_banner_search_native_list_first_idx']+0;
+                $this->result['d']['eslg'] = $this->config['android_banner_search_native_list_gap']+0;
+                $this->result['d']['eslz'] = $this->config['android_banner_search_native_list_freq']+0;
             }
             if (isset($opts->push))
             {
