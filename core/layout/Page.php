@@ -3835,26 +3835,7 @@ class Page extends Site
             case 'index':
             default:
                 break;
-        }
-        
-         
-        if($this->urlRouter->module == 'index'){
-            $country = '';
-            if ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId])) {
-                $country = $this->urlRouter->countries[$this->urlRouter->countryId]['uri'];
-            }
-            ?><script type="application/ld+json"><?php
-                ?>{"@context": "https://schema.org",<?php
-                ?>"@type": "WebSite",<?php
-                ?>"url": "https://www.mourjan.com/<?= ($country ? $country.'/' :'').($this->urlRouter->siteLanguage=='ar' ?'':$this->urlRouter->siteLanguage.'/') ?>",<?php
-                ?>"potentialAction":{<?php
-                ?>"@type": "SearchAction",<?php
-                ?>"target": "https://www.mourjan.com/<?= ($country ? $country.'/' :'').($this->urlRouter->siteLanguage=='ar' ?'':$this->urlRouter->siteLanguage.'/') ?>?q={search_term_string}",<?php
-                ?>"query-input": "required name=search_term_string"<?php
-                ?>}<?php
-                ?>}<?php
-            ?></script><?php
-        }
+        }                 
     }
 
 
@@ -4120,22 +4101,7 @@ class Page extends Site
         ?>window.onload=function(){<?php      
             echo $this->inlineScript;
         ?>};<?php        
-        ?></script><?php 
-         
-        if($this->urlRouter->module == 'index')
-        {
-            ?><script type="application/ld+json"><?php
-                ?>{"@context": "https://schema.org",<?php
-                ?>"@type": "WebSite",<?php
-                ?>"url": "https://www.mourjan.com/",<?php
-                ?>"potentialAction":{<?php
-                ?>"@type": "SearchAction",<?php
-                ?>"target": "https://www.mourjan.com/?q={search_term_string}",<?php
-                ?>"query-input": "required name=search_term_string"<?php
-                ?>}<?php
-                ?>}<?php
-            ?></script><?php
-        }
+        ?></script><?php          
     }
 
 
@@ -4410,26 +4376,9 @@ class Page extends Site
             }else{
                 ?><script type="text/javascript" async="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/pvc.js"></script><?php
             }
-        }
-        
-        if($this->urlRouter->module == 'index'){
-            $country = '';
-            if ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId])) {
-                $country = $this->urlRouter->countries[$this->urlRouter->countryId]['uri'];
-            }
-            ?><script type="application/ld+json"><?php
-                ?>{"@context": "https://schema.org",<?php
-                ?>"@type": "WebSite",<?php
-                ?>"url": "https://www.mourjan.com/<?= ($country ? $country.'/' :'').($this->urlRouter->siteLanguage=='ar' ?'':$this->urlRouter->siteLanguage.'/') ?>",<?php
-                ?>"potentialAction":{<?php
-                ?>"@type": "SearchAction",<?php
-                ?>"target": "https://www.mourjan.com/<?= ($country ? $country.'/' :'').($this->urlRouter->siteLanguage=='ar' ?'':$this->urlRouter->siteLanguage.'/') ?>?q={search_term_string}",<?php
-                ?>"query-input": "required name=search_term_string"<?php
-                ?>}<?php
-                ?>}<?php
-            ?></script><?php
-        }
+        }                
     }
+    
     
     function prepare_js(){     
         
@@ -4977,24 +4926,7 @@ class Page extends Site
             default:
                 break;
         }
-        
-        if($this->urlRouter->module == 'index'){
-            $country = '';
-            if ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId])) {
-                $country = $this->urlRouter->countries[$this->urlRouter->countryId]['uri'];
-            }
-            ?><script type="application/ld+json"><?php
-                ?>{"@context": "https://schema.org",<?php
-                ?>"@type": "WebSite",<?php
-                ?>"url": "https://www.mourjan.com/<?= ($country ? $country.'/' :'').($this->urlRouter->siteLanguage=='ar' ?'':$this->urlRouter->siteLanguage.'/') ?>",<?php
-                ?>"potentialAction":{<?php
-                ?>"@type": "SearchAction",<?php
-                ?>"target": "https://www.mourjan.com/<?= ($country ? $country.'/' :'').($this->urlRouter->siteLanguage=='ar' ?'':$this->urlRouter->siteLanguage.'/') ?>?q={search_term_string}",<?php
-                ?>"query-input": "required name=search_term_string"<?php
-                ?>}<?php
-                ?>}<?php
-            ?></script><?php
-        }
+                
         /*
         ?><script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script><?php
          * 
@@ -5459,12 +5391,50 @@ class Page extends Site
             case 'index':
                 $currentUrl=$this->urlRouter->getUrl($this->urlRouter->countryId,$this->urlRouter->cityId);
                 $link=  $this->urlRouter->cfg['host'].$currentUrl;
-                if ($link == $this->urlRouter->cfg['host'].$_SERVER['REQUEST_URI']) { 
+                if ($link == $this->urlRouter->cfg['host'].$_SERVER['REQUEST_URI']) 
+                { 
                     $this->includeMetaKeywords();
                     echo '<meta name="robots" content="noodp, noydir, index, follow" />';
-                }else echo '<meta name="robots" content="noindex, follow" />';                                    
+                }
+                else 
+                {
+                    echo '<meta name="robots" content="noindex, follow" />';
+                }
                 echo '<link rel="canonical" href="',$link, '" />';
+                
+                $__cn=null;
+                $__cc=null;
+                if ($this->urlRouter->countryId && isset($this->urlRouter->countries[$this->urlRouter->countryId])) 
+                {
+                    $__cn = $this->urlRouter->countries[$this->urlRouter->countryId]['uri'];
+                }
+                $__name = $country ? 
+                        (
+                         ($this->urlRouter->siteLanguage=='ar' ? 'مرجان ' : 'Mourjan ').
+                        
+                         ($this->urlRouter->siteLanguage=='ar' ? 
+                            $this->urlRouter->countries[$this->urlRouter->countryId]['name_ar'] : 
+                            $this->urlRouter->countries[$this->urlRouter->countryId]['name_en']
+                         )
+                        ) : 
+                        $this->title;                
+                ?><script type="application/ld+json">
+{"@context": "https://schema.org",
+ "@type": "WebSite",
+ "name": "<?= $__name ?>",
+ "alternateName": "mourjan",
+ "url": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/') ?>",
+ "potentialAction":
+ {"@type": "SearchAction",
+  "target": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/') ?>?q={search_term_string}",
+  "query-input": "required name=search_term_string"
+ }
+}
+</script><?php
+        
+        
                 break;
+                
             default:
                 //echo '<meta name="expires" content="never" />';
                 if ($this->urlRouter->module=='notfound') {
