@@ -2851,6 +2851,14 @@ class Page extends Site
     /********************************************************************/
 
     function header(){
+        
+        ?><link rel='dns-prefetch' href='cdn.mourjan.com' /><?php
+        ?><link rel='dns-prefetch' href='www.google.com' /><?php
+        ?><link rel='dns-prefetch' href='www.google-analytics.com' /><?php
+        ?><link rel='dns-prefetch' href='www.googletagmanager.com' /><?php
+        ?><link rel='dns-prefetch' href='pagead2.googlesyndication.com' /><?php
+        ?><link rel='dns-prefetch' href='stats.g.doubleclick.net' /><?php
+        
         ?><meta name="google-site-verification" content="v7TrImfR7LFmP6-6qV2eXLsC1qJSZAeKx2_4oFfxwGg" /><?php
         if ($this->userFavorites){
             $this->lang['description']=$this->lang['home_description'].$this->lang['home_description_all'];
@@ -5408,13 +5416,14 @@ class Page extends Site
                 {
                     $__cn = $this->urlRouter->countries[$this->urlRouter->countryId]['uri'];
                 }
-                $__name = $country ? 
+                //error_log(json_encode( $this->urlRouter->countries[$this->urlRouter->countryId] ));
+                $__name = $__cn ? 
                         (
                          ($this->urlRouter->siteLanguage=='ar' ? 'مرجان ' : 'Mourjan ').
                         
                          ($this->urlRouter->siteLanguage=='ar' ? 
-                            $this->urlRouter->countries[$this->urlRouter->countryId]['name_ar'] : 
-                            $this->urlRouter->countries[$this->urlRouter->countryId]['name_en']
+                            $this->urlRouter->countries[$this->urlRouter->countryId]['name'] : 
+                            $this->urlRouter->countries[$this->urlRouter->countryId]['name']
                          )
                         ) : 
                         $this->title;                
