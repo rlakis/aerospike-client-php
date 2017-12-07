@@ -86,7 +86,7 @@ class Search extends Page
                 }
                 $this->set_require('css', 'search');
             }
-            $this->inlineCss .= '.thb.prem{height:50px}h3{margin:10px}';
+            $this->inlineCss .= '.thb,.thz{width:124px;height:124px}.thb img,.thz img{width:122px}.thb.prem{height:50px}h3{margin:10px}';
             $this->inlineCss .= '.txtd input[type="email"]{direction:ltr;width:90%;margin:10px auto;padding:5px 10px;border: 1px solid #CCC}';
         }
         if (!$this->isMobile && !$this->urlRouter->userId && !$this->userFavorites && !$this->urlRouter->watchId) {
