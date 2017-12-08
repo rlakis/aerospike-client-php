@@ -71,6 +71,12 @@ class Search extends Page
             $this->isRT = 1;
         }
         
+        if ($this->userFavorites && !$this->user->info['id']) {
+            $this->urlRouter->cfg['enabled_ads']=0;
+        } elseif ($this->urlRouter->watchId && !$this->user->info['id']) {
+            $this->urlRouter->cfg['enabled_ads']=0;
+        }
+        
         if(!$this->isMobile){
             $this->inlineCss .= '.cct > a{white-space:nowrap;float:'.($this->urlRouter->siteLanguage == 'ar' ? 'right':'left').'}';
             $this->inlineCss .= '.sfilter .order,.sfilter .olang{background-color:#f8f8f8}.sfilter .order.ov,.sfilter .olang.ov{background-color:#ff9000}ul.sfilter{background-color:gold}';

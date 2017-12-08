@@ -30,8 +30,8 @@ class PostAd extends Page{
         //syslog(LOG_INFO, json_encode($this->user->info));
         
         $this->urlRouter->cfg['enabled_sharing']=0;
+        $this->urlRouter->cfg['enabled_ads']=0;
         if($this->isMobile){
-            $this->urlRouter->cfg['enabled_ads']=0;
             $this->inlineCss.='.ls li.alt{background-color:#FFF}li.h b{height:auto}.bt.ah{white-space:normal}'
                     . '.bt.gold{background-color:orange}';
         }else{

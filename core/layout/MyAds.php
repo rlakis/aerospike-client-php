@@ -59,6 +59,8 @@ class MyAds extends Page
         } 
         else 
         {
+            $this->urlRouter->cfg['enabled_ads']=0;
+            
             if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
             if($sub == 'deleted' && $this->user->info['level']!=9){
                 $sub = '';
