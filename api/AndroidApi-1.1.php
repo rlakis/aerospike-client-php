@@ -2413,7 +2413,7 @@ class AndroidApi
                         else
                         {                            
                             error_log(sprintf("Declined %s\t%s\t%d\t%s\t%s\t%s", date("Y-m-d H:i:s"), $this->api->getUUID(), $this->api->getUID(), $product_id, $transaction_id, $transaction_date).PHP_EOL, 3, "/var/log/mourjan/purchase.log");
-                            $this->api->sendSMS('96171750413', "Declined Android purchase UID {$this->api->getUID()}\nServer: {$this->api->config['server_id']}\nProduct: {$product_id}\nTransaction: {$transaction_id}\nDate: {$transaction_date}");
+                            //$this->api->sendSMS('96171750413', "Declined Android purchase UID {$this->api->getUID()}\nServer: {$this->api->config['server_id']}\nProduct: {$product_id}\nTransaction: {$transaction_id}\nDate: {$transaction_date}");
                             
                             $this->api->result['e'] = "501";
                         }
