@@ -3100,6 +3100,10 @@ class Page extends Site
         if ($this->urlRouter->userId) {
             $year = date('Y');
             ?><div class="ftr"><div class="cr">© 2010-<?= $year ?> Mourjan.com Classifieds Aggregator - All Rights Reserved.<?php        
+            if (!isset($this->user->info['level']) || $this->user->info['level']!=9){
+                ?><br /><?php
+                ?><script language="JavaScript" type="text/javascript">TrustLogo("https://www.mourjan.com/img/1.0.3/comodo.png", "CL1", "none");</script><?php
+            }
         }else {
             ?><div class="ftr"><div class="w"><?php
             ?><div class="q0 q1 fl"><?php
@@ -3299,7 +3303,12 @@ class Page extends Site
 
                 /* ?><div class="fr"><div id="google_translate_element"></div></div><?php */
                 $year = date('Y');
-                ?><div class="cr">© 2010-<?= $year ?> Mourjan.com Classifieds Aggregator - All Rights Reserved.</div><?php                    
+                ?><div class="cr">© 2010-<?= $year ?> Mourjan.com Classifieds Aggregator - All Rights Reserved.<?php 
+                if (!isset($this->user->info['level']) || $this->user->info['level']!=9){
+                    ?><br /><?php
+                    ?><script language="JavaScript" type="text/javascript">TrustLogo("https://www.mourjan.com/img/1.0.3/comodo.png", "CL1", "none");</script><?php
+                }
+                ?></div><?php                    
             //}
             
         }
@@ -3529,6 +3538,12 @@ class Page extends Site
         {
             ?><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php
         }        
+        if (!$this->isMobile){
+        ?><script type="text/javascript"> //<![CDATA[ 
+var tlJsHost = ((window.location.protocol == "https:") ? "https://secure.comodo.com/" : "http://www.trustlogo.com/");
+document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/trustlogo.js' type='text/javascript'%3E%3C/script%3E"));
+//]]></script><?php
+        }
     }
     
       
@@ -5686,7 +5701,7 @@ class Page extends Site
                     ?><li><div><?php
                         ?><h5><?= $this->lang['mourjan_app'] ?></h5><?php
                         ?><p><?= $this->lang['app_desc'] ?></p><?php
-                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(6,340)</span><?php
+                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(7,050)</span><?php
                     ?></div></li><?php
                     ?><li><a type="button" href='https://play.google.com/store/apps/details?id=com.mourjan.classifieds' class="bt"><?= $this->lang['install'] ?></a></li><?php
                     ?></ul><br /><?php
