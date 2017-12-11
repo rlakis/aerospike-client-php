@@ -99,6 +99,7 @@ const API_ANDROID_SIGN_IN_GOOGLE                = 85;
 const API_ANDROID_USER_MAKE_CALL                = 86;
 const API_ANDROID_USER_RECEIVE_CALL             = 87;
 
+const API_RELOAD_INDEX                          = 990;
 const API_DB_EVENT                              = 998;
 const API_LOG                                   = 999;
 
@@ -362,6 +363,10 @@ if (!$api->hasError())
         
         case API_LOGIN_AS_MOBILE:
             $api->signInAsMobile();
+            break;
+        
+        case API_RELOAD_INDEX:
+            $api->reloadIndex();
             break;
         
         case API_LOG:

@@ -593,7 +593,26 @@ class SphinxQL
         return $result;
     }
     
-         
+    
+    
+    function rotate(string $partition='x')
+    {
+        $result = array();
+        error_log("RELOAD INDEX ad{$partition} FROM '/home/db/sphinx/new/mourjan-ad-partition-{$partition}'");
+        if ($this->_sphinx->query("RELOAD INDEX ad{$partition} FROM '/home/db/sphinx/new/mourjan-ad-partition-{$partition}'"))
+        {
+            $result[]="RELOAD INDEX ad{$partition} FROM '/home/db/sphinx/new/mourjan-ad-partition-{$partition}'";
+            /*
+            while ($value = $rs->fetch_array(MYSQLI_NUM))
+            {
+                $result[$value[0]] = $value[1];
+            }*/
+           
+        }        
+        return $result;
+    }
+
+    
     function updateHoldAd($id)
     {
         if ($this->_sphinx->real_query("update {$this->indexName} set hold=1 where id={$id} and hold=0"))

@@ -691,6 +691,21 @@ class MobileApi
     }
 
 
+    function reloadIndex()
+    {
+        include_once $this->config['dir'] . '/core/lib/SphinxQL.php'; 
+        $sphinx = new SphinxQL($this->config['sphinxql'], $this->config['search_index']);
+        $index_name = filter_input(INPUT_GET, 'index', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+        error_log($index_name);
+        if (strlen($index_name)>0)
+        {
+            $partition = substr($index_name, -1);
+            error_log($partition);
+            $this->result['d']=$sphinx->rotate($partition);
+        }
+    }
+    
+    
     function sphinxTotalsQL() 
     {
         if ($this->countryId==0) return;
