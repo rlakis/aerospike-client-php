@@ -6,6 +6,8 @@ use \Core\Model\NoSQL;
 use \Core\Model\Classifieds;
 use \Core\Lib\SphinxQL;
 use \Core\Model\MobileValidation;
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\ServiceAccount;
 
 class MobileApi
 {
@@ -528,7 +530,33 @@ class MobileApi
             $this->result['total']=$query['total_found']+0;
             if (isset($query['matches'])) 
             {
-                $model = new Classifieds($this->db);                
+                $model = new Classifieds($this->db);  
+                
+                /**
+                 * apply shuffling to premium ads
+                 */
+                $newMatches = [];
+                $premiumMatches = [];
+                $current_time=time();
+                foreach ($query['matches'] as $matches) 
+                {
+                    $ad = $model->getById($matches[0]+0);
+                    if ($ad) {                         
+                        $isFeatured = $current_time < $ad[Classifieds::FEATURE_ENDING_DATE];
+                        if($isFeatured){
+                            $premiumMatches[] = $matches;
+                        }else{
+                            $newMatches[] = $matches;
+                        }
+                    }
+                }
+                shuffle($premiumMatches);
+                $query['matches'] = array_merge($premiumMatches, $newMatches);
+                unset ($premiumMatches);                
+                unset ($newMatches);                
+                /**
+                 * end of apply shuffling to premium ads
+                 */
                 
                 //fetch premium ads
                 $premiumAds = [];
@@ -1797,6 +1825,24 @@ class MobileApi
         if ($isAndroid && isset($this->result['d']['uid']) && $this->result['d']['uid']==0)
         {
             unset($this->result['d']['uid']);
+        }
+        
+        if(false && isset($this->result['d']['uid'])){  
+            $path = '/opt/firebase_credentials.json';
+            $content = file_get_contents($path);
+            $apiKey = '1017340605957-6poi0tsvqoib7e3ig68gvc7uslq83sn0.apps.googleusercontent.com';
+            
+            $serviceAccount = ServiceAccount::fromValue($content);
+            
+            $firebase = (new Factory)                    
+                ->withServiceAccountAndApiKey($serviceAccount, $apiKey)
+                ->create();
+
+            $auth = $firebase->getAuth();
+
+            $customToken = $auth->createCustomToken($this->result['d']['uid']);
+            $this->result['d']['fbx'] = '>>>'.$customToken.'<<<';
+            //error_log($this->result['d']['fbx']);
         }
 
     }
