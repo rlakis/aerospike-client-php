@@ -81,7 +81,7 @@ class Page extends Site
         
         //$this->urlRouter->cfg['url_resources']      = $cdn;
         
-        $this->urlRouter->cfg['url_ad_img']         = "https://cdn.mourjan.com";
+        $this->urlRouter->cfg['url_ad_img']         = "https://www.mourjan.com";
         if($this->urlRouter->module == 'myads' || $this->urlRouter->module == 'post'){
             $this->urlRouter->cfg['url_ad_img'] = "https://www.mourjan.com";
         }
