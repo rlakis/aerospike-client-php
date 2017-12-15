@@ -59,7 +59,8 @@ class Page extends Site
         var_dump($record);*/
         
         $cdn = $this->urlRouter->cfg['url_resources'];
-        /*
+        $this->urlRouter->cfg['url_ad_img'] = "https://c5.mourjan.com";
+        
         if (isset($this->user->params['user_country']))
         {
             if ($this->user->params['user_country']==='lb'||
@@ -70,21 +71,22 @@ class Page extends Site
                 $this->user->params['user_country']==='us')
             {
 
-                //$cdn = "https://mourjan.r.worldssl.net";
-                $cdn = "https://cdn.mourjan.com";
+                //$cdn = "https://c1.mourjan.com";
                 //$cdn = "https://www.mourjan.com";
                 //$cdn = "https://dv.mourjan.com";
             }
         }    
-        $cdn = "https://www.mourjan.com";
-        */
+        //$cdn = "https://www.mourjan.com";
+        
         
         //$this->urlRouter->cfg['url_resources']      = $cdn;
         
-        $this->urlRouter->cfg['url_ad_img']         = "https://c5.mourjan.com";
-        if($this->urlRouter->module == 'myads' || $this->urlRouter->module == 'post'){
+        
+        if ($this->urlRouter->module == 'myads' || $this->urlRouter->module == 'post')
+        {
             $this->urlRouter->cfg['url_ad_img'] = "https://www.mourjan.com";
         }
+        
         if(strpos($this->urlRouter->cfg['url_img'], 'http')===false){
             $this->urlRouter->cfg['url_img']            = $cdn.$this->urlRouter->cfg['url_img'];
         }
@@ -123,13 +125,11 @@ class Page extends Site
         ////$this->urlRouter->cfg['url_css_mobile'] = 'https://dv.mourjan.com/web/css/1.0.1';
         ////$this->urlRouter->cfg['url_jquery_mobile'] = 'https://dv.mourjan.com/web/jquery/4.0.0/js/';
         
-        //$this->urlRouter->cfg['url_css'] = '/web/css/release';
-       
-        //header("Link: </web/css/release/imgs.css>; rel=preload; as=stylesheet;", false);
-        //header("Link '<{$this->urlRouter->cfg['url_css']}/imgs.css>; rel=preload; as=stylesheet';");        
-        
+        //$this->urlRouter->cfg['url_css'] = '/web/css/release';                  
         //$this->user->sysAuthById(515496);
-        if(!$this->urlRouter->cfg['enabled_users']){
+        
+        if(!$this->urlRouter->cfg['enabled_users'])
+        {
             if($this->urlRouter->siteLanguage == 'ar'){
                 $this->setNotification('مرجان يواجه بعض المشاكل التقنية والتي يتم معالجتها حالياً. شكراً لتحليكم بالصبر.');
             }else{
