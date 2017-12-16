@@ -59,8 +59,12 @@ class Page extends Site
         var_dump($record);*/
         
         $cdn = $this->urlRouter->cfg['url_resources'];
-        $this->urlRouter->cfg['url_ad_img'] = "https://c5.mourjan.com";
+        //error_log($cdn);
         
+        
+        $this->urlRouter->cfg['url_ad_img'] = "https://c6.mourjan.com";
+        
+        /*
         if (isset($this->user->params['user_country']))
         {
             if ($this->user->params['user_country']==='lb'||
@@ -75,7 +79,9 @@ class Page extends Site
                 //$cdn = "https://www.mourjan.com";
                 //$cdn = "https://dv.mourjan.com";
             }
-        }    
+        }  
+         * */
+          
         //$cdn = "https://www.mourjan.com";
         
         
@@ -2852,7 +2858,7 @@ class Page extends Site
 
     function header(){
         
-        ?><link rel='dns-prefetch' href='cdn.mourjan.com' /><?php
+        ?><link rel='dns-prefetch' href='c6.mourjan.com' /><?php
         ?><link rel='dns-prefetch' href='www.google.com' /><?php
         ?><link rel='dns-prefetch' href='www.google-analytics.com' /><?php
         ?><link rel='dns-prefetch' href='www.googletagmanager.com' /><?php
