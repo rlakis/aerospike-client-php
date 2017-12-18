@@ -4,7 +4,7 @@ include $config['dir'].'/core/layout/Page.php';
 class MyAds extends Page 
 {
     
-    var $subSection='',$userBalance=0;
+    var $subSection='',$userBalance=0, $redis = null, $admins_online=[];
 
     function __construct($router) 
     {
@@ -288,6 +288,16 @@ class MyAds extends Page
             }
         }
         
+        if ($this->user->info['id'] && $this->user->info['level'] == 9 
+                && (isset($_GET['sub']) && $_GET['sub']=='pending')) {
+            $this->redis = $redis = new Redis();
+            $redis->connect("p1.mourjan.com", 6379, 1, NULL, 100);
+            $redis->select(5);
+            $redis->setex('ADMIN-'.$this->user->info['id'], 300, $this->user->info['id']);
+            
+            $this->admins_online = $redis->keys('ADMIN-*');
+        }
+        
         $this->render();
         
         
@@ -296,8 +306,34 @@ class MyAds extends Page
             unset($this->user->params['hold']);
             $this->user->update();
         }
+        
+    }    
+
+    function assignAdToAdmin($ad_id, $admin_id){
+        $admin_id = -1;
+        if($this->redis && count($this->admins_online)){
+            $redis = $this->redis;
+            $ad = $redis->mGet(array('AD-'.$ad_id));
+            if($ad[0] === false){
+                
+                $admin_id = array_shift($this->admins_online);                
+                $redis->setex('AD-'.$ad_id, 120, $admin_id);
+                array_push($this->admins_online, $admin_id);
+                
+            }else{
+                $admin_id = $ad[0];
+            }
+            $admin_id = ($admin_id === 'ADMIN-'.$this->user->info['id'] ? -1 : 0);
+        }
+        return $admin_id;
     }
     
+    function _body() {
+        parent::_body();        
+        if($this->redis){
+            $this->redis->close();
+        }
+    }
     
     function mainMobile() {
         if ($this->user->info['id']) {
@@ -1104,6 +1140,8 @@ var rtMsgs={
             }
             
             $allCounts = $this->user->getPendingAdsCount($state);
+            
+            $renderAssignedAdsOnly = false;
         
             ?><p class="ph phb"><?php
             
@@ -1128,6 +1166,7 @@ var rtMsgs={
                 case 1:
                 case 2:
                 case 3:
+                    $renderAssignedAdsOnly = true;
                     ?><?= $this->lang['ads_pending'].($allCounts ? ' ('.$allCounts.')':'') ?></p><div class="fl"><p class="phc"><?= $lang? preg_replace('/\/myads\//', '/myads/'.$lang,$this->lang['ads_pending_desc']):$this->lang['ads_pending_desc'] ?><?php
                     break;
                 case 0:
@@ -1137,7 +1176,9 @@ var rtMsgs={
             }
             ?></p><?php
             $isAdminProfiling = (boolean)($this->get('a') && $this->user->info['level']==9);
-            
+            if($isAdminProfiling){
+                $renderAssignedAdsOnly = false;
+            }
             if(!$isAdminProfiling && $this->user->info['level']==9 && in_array($state,[1,2,3])){
                 $this->globalScript.='
                     var SETN={
@@ -1229,6 +1270,7 @@ var rtMsgs={
             $this->globalScript.='var sic=[];';
             $linkLang=  $this->urlRouter->siteLanguage == 'ar' ? '':$this->urlRouter->siteLanguage.'/';
             
+            $displayIdx = 0;
             for ($i=0; $i<$count; $i++) 
             {
                 $phoneValidErr=false;
@@ -1240,6 +1282,17 @@ var rtMsgs={
                     
                 if($isAdmin){
                     $isAdminOwner = ($ad['WEB_USER_ID'] == $this->user->info['id'] ? true : false );
+                }
+                
+                if($isAdmin && !$isSuperAdmin && $renderAssignedAdsOnly && !$isAdminOwner){
+                    $active_admin_id = $this->assignAdToAdmin($ad['ID'], $this->user->info['id']);
+                    if($active_admin_id == 0){
+                        continue;
+                    } 
+                    $displayIdx++;
+                    if($displayIdx > 50){
+                        break;
+                    }
                 }
                                         
                 $isFeatured = isset($ad['FEATURED_DATE_ENDED']) && $ad['FEATURED_DATE_ENDED'] ? ($current_time < $ad['FEATURED_DATE_ENDED']) : false;
@@ -1924,7 +1977,6 @@ var rtMsgs={
             ?></div><?php
         }
     }
-    
 
     function renderUserTypeSelector(&$user=null)
     {

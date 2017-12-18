@@ -804,11 +804,16 @@ class User
     function getPendingAds($id=0, $state=0, $pagination=0, $commit=false)
     {
         $res=false;
+        $aid=0;
+        if (isset ($_GET['a']) && is_numeric($_GET['a'])) $aid=(int)$_GET['a'];
         
         $pagination_str = '';
         if($pagination)
         {
             $recNum = 50;
+            if (!$id && !$aid && $this->info['level']==9 && !$this->isSuperUser() && in_array($state,[1,2,3])){
+                $recNum = 200;
+            }
             $offset = $this->site->get('o','uint');
             if(is_numeric($offset) && $offset)
             {
@@ -855,8 +860,6 @@ class User
             {                
                 if ($this->info['level']==9)
                 {                    
-                    $aid=0;
-                    if (isset ($_GET['a']) && is_numeric($_GET['a'])) $aid=(int)$_GET['a'];
                     if($aid)
                     {
                         if ($state>6)
