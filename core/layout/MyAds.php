@@ -1320,7 +1320,9 @@ var rtMsgs={
                     if(!$isSuperAdmin && $assignedAdmin && $assignedAdmin != $this->user->info['id']){
                         continue;
                     } 
-                    $assignedAdmin = '<span class="fl" style="padding:0 5px;background-color:salmon">'.$this->editors[$assignedAdmin].'</span>';
+                    if($isSuperAdmin){
+                        $assignedAdmin = '<span class="fl" style="padding:0 5px;background-color:salmon">'.$this->editors[$assignedAdmin].'</span>';
+                    }
                     $displayIdx++;
                     if($displayIdx > 50){
                         break;
