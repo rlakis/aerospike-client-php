@@ -5,6 +5,22 @@ class MyAds extends Page
 {
     
     var $subSection='',$userBalance=0, $redis = null, $admins_online=[];
+    
+    var $editors = [
+        1   =>  'Bassel',
+        2   =>  'Robert',
+        69905   =>  'Robert',
+        2100   =>  'Nooralex',
+        477618   =>  'Samir',
+        38813   =>  'Editor 1',
+        44835   =>  'Editor 2',
+        53456   =>  'Editor 3',
+        166772   =>  'Editor 4',
+        516064   =>  'Editor 5',
+        897143   =>  'Editor 6',
+        897182   =>  'Editor 7',
+        1028732   =>  'Editor 8'
+    ];
 
     function __construct($router) 
     {
@@ -293,8 +309,10 @@ class MyAds extends Page
             $this->redis = $redis = new Redis();
             $redis->connect("p1.mourjan.com", 6379, 1, NULL, 100);
             $redis->select(5);
-            $redis->setex('ADMIN-'.$this->user->info['id'], 300, $this->user->info['id']);
             
+            if(!$this->user->isSuperUser()){
+                $redis->setex('ADMIN-'.$this->user->info['id'], 300, $this->user->info['id']);
+            }
             $this->admins_online = $redis->keys('ADMIN-*');
         }
         
@@ -310,7 +328,7 @@ class MyAds extends Page
     }    
 
     function assignAdToAdmin($ad_id, $admin_id){
-        $admin_id = -1;
+        $admin_id = 0;
         if($this->redis && count($this->admins_online)){
             $redis = $this->redis;
             $ad = $redis->mGet(array('AD-'.$ad_id));
@@ -323,9 +341,21 @@ class MyAds extends Page
             }else{
                 $admin_id = $ad[0];
             }
-            $admin_id = ($admin_id === 'ADMIN-'.$this->user->info['id'] ? -1 : 0);
+            $admin_id = substr($admin_id,6)+0;
         }
         return $admin_id;
+    }
+    
+    function getAssignedAdmin($ad_id){
+        $admin = 0;
+        if($this->redis){
+            $redis = $this->redis;
+            $ad = $redis->mGet(array('AD-'.$ad_id));
+            if($ad[0] !== false){                
+                $admin = substr($ad[0],6)+0;
+            }
+        }
+        return $admin;
     }
     
     function _body() {
@@ -1284,16 +1314,23 @@ var rtMsgs={
                     $isAdminOwner = ($ad['WEB_USER_ID'] == $this->user->info['id'] ? true : false );
                 }
                 
-                if($isAdmin && !$isSuperAdmin && $renderAssignedAdsOnly && !$isAdminOwner){
-                    $active_admin_id = $this->assignAdToAdmin($ad['ID'], $this->user->info['id']);
-                    if($active_admin_id == 0){
+                $assignedAdmin = '';
+                if($isAdmin && $renderAssignedAdsOnly && !$isAdminOwner){
+                    $assignedAdmin = $this->assignAdToAdmin($ad['ID'], $this->user->info['id']);
+                    if(!$isSuperAdmin && $assignedAdmin && $assignedAdmin != $this->user->info['id']){
                         continue;
                     } 
+                    $assignedAdmin = '<span class="fl" style="padding:0 5px;background-color:salmon">'.$this->editors[$assignedAdmin].'</span>';
                     $displayIdx++;
                     if($displayIdx > 50){
                         break;
                     }
-                }
+                }/*elseif ($isSuperAdmin){
+                    $assignedAdmin = $this->getAssignedAdmin($ad['ID']);
+                    if($assignedAdmin){
+                        $assignedAdmin = '<span class="fl" style="padding:0 5px;background-color:salmon">'.$this->editors[$assignedAdmin].'</span>';
+                    }
+                }*/
                                         
                 $isFeatured = isset($ad['FEATURED_DATE_ENDED']) && $ad['FEATURED_DATE_ENDED'] ? ($current_time < $ad['FEATURED_DATE_ENDED']) : false;
                 $isFeatureBooked = isset($ad['BO_DATE_ENDED']) && $ad['BO_DATE_ENDED'] ? ($current_time < $ad['BO_DATE_ENDED']) : false;
@@ -1487,7 +1524,7 @@ var rtMsgs={
                         }
                     }
                     
-                    $title='<div class="oct"><a target="blank" onclick="openW(this.href);return false" href="'.$ad['PROFILE_URL'].'">'.$profileLabel.'</a><a target="blank"'.$style.' onclick="openW(this.href);return false;" href="/myads/'.$lang.'?u='.$ad['WEB_USER_ID'].'">'.$name.'</a>';
+                    $title='<div class="oct"><a target="blank" onclick="openW(this.href);return false" href="'.($isSuperAdmin ? '/admin/'.$lang.'?p='.$ad['WEB_USER_ID'] : $ad['PROFILE_URL']).'">'.$profileLabel.'</a><a target="blank"'.$style.' onclick="openW(this.href);return false;" href="/myads/'.$lang.'?u='.$ad['WEB_USER_ID'].'">'.$name.'</a>';
                     if(isset($content['userLOC']))
                     {
                         $geo = preg_replace('/[0-9\.]|(?:^|\s|,)[a-zA-Z]{1,3}\s/','',$content['userLOC']);
@@ -1542,15 +1579,15 @@ var rtMsgs={
                 
                 if ($ad['STATE']==1 || $ad['STATE']==4) 
                 {
-                    echo '<div class="nb nbw">' .($onlySuper ? '<span class="fail"></span>' : '<span class="wait"></span>') ,$this->lang['pendingMsg'],'</div>';
+                    echo '<div class="nb nbw">' .($onlySuper ? '<span class="fail"></span>' : '<span class="wait"></span>') ,$this->lang['pendingMsg'], ($assignedAdmin ? $assignedAdmin:'') , '</div>';
                 }
                 elseif ($ad['STATE']==2) 
                 {
-                    echo '<div class="nb nbg"><span class="done"></span>',$this->lang['approvedMsg'],'</div>';
+                    echo '<div class="nb nbg"><span class="done"></span>',$this->lang['approvedMsg'],($assignedAdmin ? $assignedAdmin:'') ,'</div>';
                 }
                 elseif ($ad['STATE']==3)
                 {
-                    echo '<div class="nb nbr"><span class="fail"></span>',$this->lang['rejectedMsg'],(isset($content['msg']) && $content['msg']? ': '.$content['msg']:''),'</div>';
+                    echo '<div class="nb nbr"><span class="fail"></span>',$this->lang['rejectedMsg'],(isset($content['msg']) && $content['msg']? ': '.$content['msg']:''),($assignedAdmin ? $assignedAdmin:'') ,'</div>';
                 }
                 
                 if($this->user->info['level']==9) 
