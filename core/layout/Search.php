@@ -864,13 +864,15 @@ class Search extends Page
                         $hasSchema = true;
                         $itemDesc = 'itemprop="description" ';
                         $itemScope = ' itemscope itemtype="https://schema.org/Product"';
-                    } elseif ($ad[Classifieds::ROOT_ID] == 3) {
+                    } 
+                    elseif ($ad[Classifieds::ROOT_ID] == 3) 
+                    {
                         if ($ad[Classifieds::PURPOSE_ID] == 3) {
-                            $itemDesc = 'itemprop="description" ';
-                            $itemScope = ' itemscope itemtype="https://schema.org/JobPosting"';
+                            //$itemDesc = 'itemprop="description" ';
+                            //$itemScope = ' itemscope itemtype="https://schema.org/JobPosting"';
                         } elseif ($ad[Classifieds::PURPOSE_ID] == 4) {
-                            $itemDesc = 'itemprop="description" ';
-                            $itemScope = ' itemscope itemtype="https://schema.org/Person"';
+                            //$itemDesc = 'itemprop="description" ';
+                            //$itemScope = ' itemscope itemtype="https://schema.org/Person"';
                         }
                     }
 
@@ -3290,13 +3292,14 @@ class Search extends Page
                     $hasSchema = true;
                     $itemDesc = 'itemprop="description" ';
                     $itemScope = ' itemscope itemtype="https://schema.org/Product"';
-                } elseif ($ad[Classifieds::ROOT_ID] == 3) {
+                } 
+                elseif ($ad[Classifieds::ROOT_ID] == 3) {
                     if ($ad[Classifieds::PURPOSE_ID] == 3) {
-                        $itemDesc = 'itemprop="description" ';
-                        $itemScope = ' itemscope itemtype="https://schema.org/JobPosting"';
+                        //$itemDesc = 'itemprop="description" ';
+                        //$itemScope = ' itemscope itemtype="https://schema.org/JobPosting"';
                     } elseif ($ad[Classifieds::PURPOSE_ID] == 4) {
-                        $itemDesc = 'itemprop="description" ';
-                        $itemScope = ' itemscope itemtype="https://schema.org/Person"';
+                        //$itemDesc = 'itemprop="description" ';
+                        //$itemScope = ' itemscope itemtype="https://schema.org/Person"';
                     }
                 }
                 

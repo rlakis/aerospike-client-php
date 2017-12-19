@@ -1321,7 +1321,7 @@ var rtMsgs={
                         continue;
                     } 
                     if($isSuperAdmin){
-                        $assignedAdmin = '<span class="fl" style="padding:0 5px;background-color:salmon">'.$this->editors[$assignedAdmin].'</span>';
+                        $assignedAdmin = '<span class="fl" style="padding:0 5px;">'.$this->editors[$assignedAdmin].'</span>';
                     }
                     $displayIdx++;
                     if($displayIdx > 50){
