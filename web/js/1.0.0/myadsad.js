@@ -871,7 +871,11 @@ if(PEND){
                    }
                 });
                 for(var i=0,l=active_admins.length;i<l;i++){
-                    $('.'+active_admins[i],dm).append('<span class="rj rj1"></span>');
+                    var adminNode = $('.'+active_admins[i],dm);
+                    var span=$('.rj1', adminNode);
+                    if(span.length == 0){
+                        adminNode.append('<span class="rj rj1"></span>');
+                    }
                 }
                 console.log('on<admins>: Active Admins:'+active_admins.length);
             }else{

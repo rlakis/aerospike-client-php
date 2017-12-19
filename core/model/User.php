@@ -811,9 +811,9 @@ class User
         if($pagination)
         {
             $recNum = 50;
-            if (!$id && !$aid && $this->info['level']==9 && !$this->isSuperUser() && in_array($state,[1,2,3])){
+            /*if (!$id && !$aid && $this->info['level']==9 && !$this->isSuperUser() && in_array($state,[1,2,3])){
                 $recNum = 200;
-            }
+            }*/
             $offset = $this->site->get('o','uint');
             if(is_numeric($offset) && $offset)
             {

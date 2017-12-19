@@ -4333,7 +4333,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                             if($this->user->info['id']){
                                 if($this->user->info['level']==9){     
                                     if($this->urlRouter->cfg['site_production']){
-                                        ?>sh.src='https://h5.mourjan.com/js/3.3.6/myadsad.js';<?php
+                                        ?>sh.src='https://h5.mourjan.com/js/3.3.8/myadsad.js';<?php
                                     }else{
                                         ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/myadsad.js';<?php 
                                     }
@@ -4472,7 +4472,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                         $requires[] = $this->urlRouter->cfg['url_jquery'] . 'socket.io-1.4.5.js';
                         if($this->user->info['level']==9){     
                             if($this->urlRouter->cfg['site_production']){
-                                $requires[] = 'https://www.mourjan.com/js/3.3.6/myadsad.js';
+                                $requires[] = 'https://h5.mourjan.com/js/3.3.8/myadsad.js';
                             }else{
                                 $requires[] = $this->urlRouter->cfg['url_js'] . '/myadsad.js';
                             }
@@ -4918,7 +4918,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                     ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_jquery'] ?>socket.io-1.4.5.js"></script><?php
                     if($this->user->info['level']==9){     
                         if($this->urlRouter->cfg['site_production']){
-                            ?><script type="text/javascript" defer="true" src="https://h5.mourjan.com/js/3.3.6/myadsad.js"></script><?php
+                            ?><script type="text/javascript" defer="true" src="https://h5.mourjan.com/js/3.3.8/myadsad.js"></script><?php
                         }else{
                             ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/myadsad.js"></script><?php
                         }
@@ -5355,7 +5355,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                                 $currentUrl=$this->urlRouter->getUrl($this->urlRouter->countryId,$this->urlRouter->cityId,$this->urlRouter->rootId,$this->urlRouter->sectionId,$this->urlRouter->purposeId);
                             }
                             if ($this->urlRouter->params['start']>1) $startLink=$this->urlRouter->params['start'].'/';
-                            $link=  $this->urlRouter->cfg['host'].$currentUrl.$startLink;
+                            $link=  'https://www.mourjan.com'.$currentUrl.$startLink;
                             
                             if ($link == $this->urlRouter->cfg['host'].$_SERVER['REQUEST_URI']){
                                     echo '<meta name="robots" content="noodp, noydir, index, follow" />';
@@ -5419,7 +5419,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 break;
             case 'index':
                 $currentUrl=$this->urlRouter->getUrl($this->urlRouter->countryId,$this->urlRouter->cityId);
-                $link=  $this->urlRouter->cfg['host'].$currentUrl;
+                $link=  'https://www.mourjan.com'.$currentUrl;
                 if ($link == $this->urlRouter->cfg['host'].$_SERVER['REQUEST_URI']) 
                 { 
                     $this->includeMetaKeywords();

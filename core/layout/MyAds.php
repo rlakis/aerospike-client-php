@@ -8,6 +8,7 @@ class MyAds extends Page
     
     var $editors = [
         1   =>  'Bassel',
+        43905   =>  'Bassel',
         2   =>  'Robert',
         69905   =>  'Robert',
         2100   =>  'Nooralex',
@@ -314,6 +315,8 @@ class MyAds extends Page
                 $redis->setex('ADMIN-'.$this->user->info['id'], 300, $this->user->info['id']);
             }
             $this->admins_online = $redis->keys('ADMIN-*');
+            
+            //error_log(json_encode($this->admins_online));
         }
         
         $this->render();
@@ -334,9 +337,24 @@ class MyAds extends Page
             $ad = $redis->mGet(array('AD-'.$ad_id));
             if($ad[0] === false){
                 
-                $admin_id = array_shift($this->admins_online);                
+                $lastIndex = $redis->mGet(array('LAST_IDX'));
+                if($lastIndex[0] === false){
+                    $lastIndex = 0;
+                }else{
+                    $lastIndex = $lastIndex[0];
+                }
+                
+                if($lastIndex + 1 < count($this->admins_online)){
+                    $lastIndex++;
+                }else{
+                    $lastIndex = 0;
+                }
+                
+                $admin_id = $this->admins_online[$lastIndex];
+                
+                //error_log('assign to '.$admin_id);               
                 $redis->setex('AD-'.$ad_id, 120, $admin_id);
-                array_push($this->admins_online, $admin_id);
+                $redis->setex('LAST_IDX', 86400, $lastIndex);
                 
             }else{
                 $admin_id = $ad[0];
@@ -910,8 +928,20 @@ var rtMsgs={
     }    
     
     function renderEditorsBox($state=0, $standalone=false){
-        if($this->user->isSuperUser()){
+        $isSuperUser = $this->user->isSuperUser();
+        if($isSuperUser){
             $filters = $this->user->getAdminFilters();
+        }
+        if($this->user->info['id'] && $this->user->info['level']==9){
+            ?><style><?php
+            ?>.stin,.phc{display:none}.prx h4{margin-bottom:5px}.prx{display:block;clear:both;width:300px}.prx a{color:#00e}.prx a:hover{text-decoration:underline}<?php
+            ?>.pfrx{height:auto}.prx select{width:260px;padding:3px 5px;margin:10px}.pfrx input{padding:5px 20px;margin:5px 0 10px}<?php            
+            if(isset($filters['active']) && $filters['active']){
+                ?>.pfrx{background-color:#D9FAC8}<?php
+            }
+            ?></style><?php
+        }
+        if($isSuperUser){
             if($standalone){                
                 ?><div class="fl"><?php 
             }
@@ -933,13 +963,6 @@ var rtMsgs={
                     return;
                     break;
             }
-            ?><style><?php
-            ?>.stin,.phc{display:none}.prx h4{margin-bottom:5px}.prx{display:block;clear:both;width:300px}.prx a{color:#00e}.prx a:hover{text-decoration:underline}<?php
-            ?>.pfrx{height:auto}.prx select{width:260px;padding:3px 5px;margin:10px}.pfrx input{padding:5px 20px;margin:5px 0 10px}<?php            
-            if($filters['active']){
-                ?>.pfrx{background-color:#D9FAC8}<?php
-            }
-            ?></style><?php
             
             if($state==1){
                 $baseUrl = '/myads/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/');
@@ -974,22 +997,25 @@ var rtMsgs={
                 ?><?php
                 ?></ul></div></form><?php
             }
-            
+        }
+
+        if(($this->user->info['id'] && $this->user->info['level']==9 && isset($_GET['sub']) && $_GET['sub']=='pending') 
+            || $isSuperUser){
             if(!$filters['active'])
             {            
                 ?><div id="adminList" class="prx ar"><h4>تحت طائلة المسؤولية</h4><ul><?php
-                ?><li class="hvn50okt2 d2d9s5pl1g n2u2hbyqsn"><a href="<?= $link ?>69905">Robert</a></li><?php
-                ?><li class="f3iw09ojp5 a1zvo4t2vk"><a href="<?= $link ?>1">Bassel</a></li><?php
-                ?><li class="a1zvo4t4b8"><a href="<?= $link ?>2100">Nooralex</a></li><?php
-                ?><li class="n2u2hc8xil"><a href="<?= $link ?>477618">Samir</a></li><?php
-                ?><li class="x1arwhzqsl"><a href="<?= $link ?>38813">Editor 1</a></li><?php
-                ?><li class="d2d9s5p1p2"><a href="<?= $link ?>44835">Editor 2</a></li><?php
-                ?><li class="b2ixe8tahr"><a href="<?= $link ?>53456">Editor 3</a></li><?php
-                ?><li class="hvn50s5hk"><a href="<?= $link ?>166772">Editor 4</a></li><?php
-                ?><li class="j1nz09nf5t"><a href="<?= $link ?>516064">Editor 5</a></li><?php
-                ?><li class="x1arwii533"><a href="<?= $link ?>897143">Editor 6</a></li><?php
-                ?><li class="hvn517t2q"><a href="<?= $link ?>897182">Editor 7</a></li><?php
-                ?><li class="hvn51amkw"><a href="<?= $link ?>1028732">Editor 8</a></li><?php
+                ?><li class="hvn50okt2 d2d9s5pl1g n2u2hbyqsn"><?= $isSuperUser ? '<a href="'. $link .'69905">Robert</a>' : 'Robert' ?></li><?php
+                ?><li class="f3iw09ojp5 a1zvo4t2vk"><?= $isSuperUser ? '<a href="'. $link .'1">Bassel</a>' : 'Bassel' ?></li><?php
+                ?><li class="a1zvo4t4b8"><?= $isSuperUser ? '<a href="'. $link .'2100">Nooralex</a>':'Nooralex' ?></li><?php
+                ?><li class="n2u2hc8xil"><?= $isSuperUser ? '<a href="'. $link .'477618">Samir</a>':'Samir'?></li><?php
+                ?><li class="x1arwhzqsl"><?= $isSuperUser ? '<a href="'. $link .'38813">Editor 1</a>':'Editor 1'?></li><?php
+                ?><li class="d2d9s5p1p2"><?= $isSuperUser ? '<a href="'. $link .'44835">Editor 2</a>':'Editor 2'?></li><?php
+                ?><li class="b2ixe8tahr"><?= $isSuperUser ? '<a href="'. $link .'53456">Editor 3</a>':'Editor 3'?></li><?php
+                ?><li class="hvn50s5hk"><?= $isSuperUser ? '<a href="'. $link .'166772">Editor 4</a>':'Editor 4'?></li><?php
+                ?><li class="j1nz09nf5t"><?= $isSuperUser ? '<a href="'. $link .'516064">Editor 5</a>':'Editor 5'?></li><?php
+                ?><li class="x1arwii533"><?= $isSuperUser ? '<a href="'. $link .'897143">Editor 6</a>':'Editor 6'?></li><?php
+                ?><li class="hvn517t2q"><?= $isSuperUser ? '<a href="'. $link .'897182">Editor 7</a>':'Editor 7'?></li><?php
+                ?><li class="hvn51amkw"><?= $isSuperUser ? '<a href="'. $link .'1028732">Editor 8</a>':'Editor 8'?></li><?php
                 ?></ul></div><?php            
             }
             
@@ -1322,11 +1348,13 @@ var rtMsgs={
                     } 
                     if($isSuperAdmin){
                         $assignedAdmin = '<span class="fl" style="padding:0 5px;">'.$this->editors[$assignedAdmin].'</span>';
+                    }else{
+                        $assignedAdmin = '';
                     }
                     $displayIdx++;
-                    if($displayIdx > 50){
-                        break;
-                    }
+                    //if($displayIdx > 50){
+                    //    break;
+                    //}
                 }/*elseif ($isSuperAdmin){
                     $assignedAdmin = $this->getAssignedAdmin($ad['ID']);
                     if($assignedAdmin){
