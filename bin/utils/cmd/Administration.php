@@ -32,6 +32,42 @@ class Administration
         $pass= true;
         switch($this->ACTION)
         {
+            case "refund":
+                $days = 0;
+                if(isset($this->args[2]) && is_numeric($this->args[2]))
+                {
+                    $days = (int)$this->args[2];
+                    if($days > 2){
+                        echo 'date span is too much, you will have to code it by hand'."\n";
+                        break;
+                    }
+                }
+                    
+                $users = $this->db->queryResultArray('select uid, sum(t.debit) from t_Tran t where t.debit > 0 and t.dated >= current_date group by 1');
+                
+                $usersCount = 0;
+                $usersRefunded = 0;
+                $refunds = 0;
+                foreach ($users as $user){
+                    $uid = $user['UID'];
+                    $coins = (int)$user['SUM'];
+                    $usersCount++;
+                    $mobiles = $this->db->queryResultArray('select first 1 *  from web_users_linked_mobile t where t.uid = ?  order by t.activation_timestamp desc', [$uid]);
+                    if(count($mobiles)){
+                        $mobile = $mobiles[0]['MOBILE'];
+                        $updateStmt = $this->db->prepareQuery("insert into t_tran (uid,currency_id,amount,debit,credit,usd_value) values ({$uid},'MCU',{$coins},0,{$coins},{$coins})");
+                        if($updateStmt->execute()){
+                            $usersRefunded++;
+                            $refunds+=$coins;
+                            include_once $config['dir'].'/core/lib/MourjanNexmo.php';
+                            $sent = ShortMessageService::send($mobile, "mourjan encountered some technical issues affecting some premium ads not showing. Therefore your account is refunded with {$coins} mourjan gold and we apologize for the inconvenience");                                            
+                        }
+                    }
+                }
+                echo "\n";
+                echo "users affected\t\t{$usersCount}\n";
+                echo "total refunds\t\t{$refunds}\n";
+                break;
             case "grant":
                 if(isset($this->args[2]) && $this->args[2])
                 {
@@ -182,6 +218,7 @@ class Administration
                 echo "2-\tunblock {web_user_id}".PHP_EOL;
                 echo "3-\tblock \"id1,id2,...\" \"message for why blocked\"".PHP_EOL;
                 echo "4-\tgrant \"id\" \"amount\"".PHP_EOL;
+                echo "5-\trefund \"{days[0,1,2,...]}\" (ex: 0 for current_date, 1 for current_date -1)".PHP_EOL;
                 break;
         }
         if($pass){

@@ -1001,7 +1001,7 @@ var rtMsgs={
 
         if(($this->user->info['id'] && $this->user->info['level']==9 && isset($_GET['sub']) && $_GET['sub']=='pending') 
             || $isSuperUser){
-            if(!$filters['active'])
+            if(!isset($filters) || !$filters['active'])
             {            
                 ?><div id="adminList" class="prx ar"><h4>تحت طائلة المسؤولية</h4><ul><?php
                 ?><li class="hvn50okt2 d2d9s5pl1g n2u2hbyqsn"><?= $isSuperUser ? '<a href="'. $link .'69905">Robert</a>' : 'Robert' ?></li><?php
