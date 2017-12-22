@@ -1,8 +1,7 @@
 <?php
-
-//require_once '/home/www/mourjan/deps/autoload.php';
-include_once '/home/www/mourjan/core/lib/MCUser.php';
-include_once '/home/www/mourjan/core/model/NoSQL.php';
+$dir = get_cfg_var('mourjan.path');
+include_once $dir.'/core/lib/MCUser.php';
+include_once $dir.'/core/model/NoSQL.php';
 
 use mourjan\Hybrid;
 use Core\Lib\SphinxQL;
@@ -3144,6 +3143,20 @@ class User
     }
     
 
+    public function getLastVisited()
+    {
+        $cookie = \json_decode(filter_input(INPUT_COOKIE, 'mourjan_user', FILTER_DEFAULT, ['options'=>['default'=>'{}']]));
+        //error_log(var_export($cookie, TRUE));
+        
+        if (isset($this->params['last_visit']))
+        {
+            //error_log($this->params['last_visit']);
+            return \Core\Model\Router::getPositiveVariable($this->params['last_visit']);            
+        }
+        return 0;
+    }
+    
+    
     function emailVerified()
     {
         $email=$this->info['options']['email'];
@@ -3650,6 +3663,7 @@ class User
         
         if(isset($_COOKIE['mourjan_log']) || isset($_COOKIE['mourjan_login']))
         {
+            // deprecated
             setcookie('mourjan_login', '', 1,'/','.mourjan.com');
             setcookie('mourjan_login', '', 1,'/',$this->cfg['site_domain']);
             setcookie('mourjan_log', '', 1,'/',$this->cfg['site_domain']);

@@ -3,6 +3,25 @@ namespace Core\Lib;
 
 class SphinxQL
 {
+    const ID                = 'id';
+    const UID               = 'user_id';
+    const PUBLICATION       = 'publication_id';
+    const HOLD              = 'hold';
+    const COUNTRY           = 'country';
+    const CITY              = 'city';
+    const CANONICAL         = 'canonical_id';
+
+    const ROOT              = 'root_id';
+    const SECTION           = 'section_id';
+    const PURPOSE           = 'purpose_id';
+    const LOCALITY          = 'locality_id';
+    const TAG               = 'section_tag_id';
+    const RTL               = 'rtl';
+    // date_added | date_ended  | user_rank | impressions | section_name_ar | section_name_en | root_name_ar | root_name_en | attrs                                                                                                                                                                                                                                                                                                                                                                                                                                          | country | city | section_tag_id | locality_id     
+    const MEDIA             = 'media';
+    const STARRED           = 'starred';
+    const PUBLISHER_TYPE    = 'publisher_type';
+    const FEATURED_TTL      = 'featured_date_ended';
     
     private $indexName;
     private $server;
@@ -14,7 +33,7 @@ class SphinxQL
     
     private $offset = 0;
     private $limit = 10;
-    private $max_matches = 1000;
+    private $max_matches = 2000;
     private $filters = [];
     private $groupby = [];
     private $facets = [];
@@ -142,9 +161,10 @@ class SphinxQL
     }
 
 
-    function setSelect($clause='*')
+    function setSelect($clause='*') : SphinxQL
     {
         $this->clause = $clause;
+        return $this;
     }
     
    
@@ -166,7 +186,201 @@ class SphinxQL
     }
 
     
-    function setFilter($attribute, $values, $exclude=FALSE)
+    public function id(int $value, bool $exclude=false) : SphinxQL
+    {
+        if ($value)
+        {
+            $this->intFilter(static::ID, $value, $exclude);
+        }
+        return $this;
+    }
+    
+    
+    public function uid(int $value, bool $exclude=false) : SphinxQL
+    {
+        if ($value)
+        {
+            $this->intFilter(static::UID, $value, $exclude);
+            unset($this->filters[static::COUNTRY]);
+            unset($this->filters[static::CITY]);
+        }
+        return $this;
+    }
+    
+    
+    public function region(int $country_id, int $city_id=0) : SphinxQL
+    {
+        if ($city_id)
+        {
+            return $this->setFilter(static::CITY, $city_id);
+        }        
+        elseif ($country_id) 
+        {
+            return $this->setFilter(static::COUNTRY, $country_id);
+        }        
+        return $this;
+    }
+    
+    
+    public function publication(int $value, bool $exclude=false) : SphinxQL
+    {
+        if ($value)
+        {
+            $this->intFilter(static::PUBLICATION, $value, $exclude);
+        }
+        return $this;
+    }
+
+    
+    public function media(int $value=1, bool $exclude=false) : SphinxQL
+    {
+        $this->boolFilter(static::MEDIA, $value, $exclude);
+        return $this;
+    }
+    
+
+    public function root(int $value, bool $exclude=false) : SphinxQL
+    {
+        if ($value)
+        {
+            $this->intFilter(static::ROOT, $value, $exclude);
+        }
+        return $this;
+    }
+    
+    
+    public function section(int $value, bool $exclude=false) : SphinxQL
+    {
+        if ($value)
+        {            
+            $this->intFilter(static::SECTION, $value, $exclude);
+            if (!$exclude)
+            {
+                unset($this->filters[static::ROOT]);
+            }
+        }
+        return $this;
+    }
+
+    
+    public function pupose(int $value, bool $exclude=false) : SphinxQL
+    {
+        if ($value)
+        {
+            $this->intFilter(static::PURPOSE, $value, $exclude);
+        }
+        return $this;
+    }
+
+    
+    public function starred(int $value, bool $exclude=false) : SphinxQL
+    {
+        if ($value)
+        {            
+            $this->intFilter(static::STARRED, $value, $exclude);
+        }
+        return $this;
+    }
+    
+    
+    public function locality(int $value, bool $exclude=false) : SphinxQL
+    {
+        if ($value)
+        {            
+            $this->intFilter(static::LOCALITY, $value, $exclude);
+        }
+        return $this;
+    }
+    
+    
+    public function tag(int $value, bool $exclude=false) : SphinxQL
+    {
+        if ($value)
+        {            
+            $this->intFilter(static::TAG, $value, $exclude);
+            if (!$exclude)
+            {
+                unset($this->filters[static::SECTION]);
+            }
+        }
+        return $this;
+    }
+    
+    
+    public function rtl(array $value, bool $exclude=false) : SphinxQL
+    {
+        $length = count($value);
+        if ($length>0)
+        {
+            if ($length==1)
+            {
+                $this->intFilter(static::RTL, $value[0], $exclude);
+            }
+            else
+            {
+                $this->arrayFilter(static::RTL, $value, $exclude);
+            }
+        }
+        return $this;
+    }
+    
+    
+    public function publisherType(int $value, bool $exclude=false) : SphinxQL
+    {
+        if ($value)
+        {            
+            $this->intFilter(static::PUBLISHER_TYPE, $value, $exclude);
+        }
+        return $this;
+    }
+    
+    
+    public function featured() : SphinxQL
+    {
+        $this->filters[static::PUBLICATION]='=1';
+        $this->filters[static::FEATURED_TTL]='>='.time();
+        return $this;
+    }
+    
+    
+    public function native() : SphinxQL
+    {
+        $this->filters[static::PUBLICATION]='=1';
+        return $this;
+    }
+
+    
+    public function sectionSet(array $value, bool $exclude=false) : SphinxQL
+    {
+        if ($value)
+        {
+            return $this->setFilter(static::SECTION, $value, $exclude);
+        }
+        return $this;
+    }
+
+
+    private function intFilter(string $attribute, $value, bool $exclude)
+    {
+        $this->filters[$attribute] = $exclude ? "!={$value}" : "={$value}";       
+    }
+
+    
+    private function boolFilter(string $attribute, $value, bool $exclude)
+    {
+        $bool_value = $value>0?1:0;
+        $this->filters[$attribute] = $exclude ? "!={$bool_value}" : "={$bool_value}";       
+    }
+
+    
+    private function arrayFilter(string $attribute, array $value, bool $exclude)
+    {
+        $this->filters[$attribute] = ($exclude ? " not in (" : " in (") . implode(',', $value) . ')';        
+    }
+    
+    
+    
+    function setFilter($attribute, $values, $exclude=FALSE) : SphinxQL
     {
         assert(is_string($attribute));
         $condition="";
@@ -181,12 +395,12 @@ class SphinxQL
                 } 
                 else
                 {
-                    $condition = "<>{$values[0]}";
+                    $condition = "!={$values[0]}";
                 }
             } 
             else
             {
-                $condition = "<>{$values}";
+                $condition = "!={$values}";
             }            
         } 
         else
@@ -209,6 +423,7 @@ class SphinxQL
         }
 
         $this->filters[$attribute] = $condition;
+        return $this;
     }
     
     
@@ -229,24 +444,26 @@ class SphinxQL
     }
     
     
-    function setFilterCondition($attribute, $condition, $value)
+    function setFilterCondition($attribute, $condition, $value) : SphinxQL
     {
         if (is_array($value))
         {
             $this->filters[$attribute]=" {$condition} (".implode(",", $value).")";
-        } 
+        }
         else
         {
-            $this->filters[$attribute]="{$condition} {$value}";
+            $this->filters[$attribute]="{$condition}{$value}";
         }
+        return $this;
     }
     
     
-    function resetFilters($ressetGroupBy=TRUE)
+    function resetFilters($resetGroupBy=TRUE) : SphinxQL
     {
         $this->filters = array();
         $this->groupby = array();
         $this->facets = array();
+        return $this;
     }
     
     
@@ -350,6 +567,8 @@ class SphinxQL
             $queryQL = $this->_query;            
         }
 
+        //error_log(__FUNCTION__.': '.$queryQL);
+        
         $result = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'time'=>0, 'matches'=>[], 'sql'=>$queryQL];
 
         try 
@@ -415,11 +634,14 @@ class SphinxQL
             $q = $info[0];
             $assoc = $info[1];
             $rs = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'time'=>0, 'matches'=>[], 'facet'=>[], 'sql'=>$q];
-            $resource = $this->_sphinx->multi_query($q);
+            //$resource = $this->_sphinx->multi_query($q);
+            $this->_sphinx->multi_query($q);
+            //error_log(__CLASS__.'->'.__FUNCTION__."()\n".$name.': '.$q);
             if ($this->_sphinx->error)
             {
                 $this->Log(['query'=>$q, 'error'=>'['.$this->_sphinx->connect_errno . '] ' . $this->_sphinx->connect_error]);
                 $result[$name] = '['.$this->_sphinx->errno.'] '.$this->_sphinx->error.' [ '.$q.']';
+                $result[$name]=$rs;
                 continue;
             }
 
@@ -548,7 +770,7 @@ class SphinxQL
     }
     
         
-    function setLimits (int $offset=0, int $limit=10, int $max=1000)
+    function setLimits (int $offset=0, int $limit=10, int $max=1000) : SphinxQL
     {
         assert( is_int($offset) );
         assert( is_int($limit) );
@@ -557,13 +779,15 @@ class SphinxQL
         assert( $max>0 );
         $this->offset = $offset+0;
         $this->limit = $limit+0;
+        return $this;
     }
     
     
-    function setSortBy ($sortby)
+    function setSortBy ($sortby) : SphinxQL
     {
         assert(is_string($sortby));
         $this->sortby = $sortby;
+        return $this;
     }
     
     
@@ -598,16 +822,11 @@ class SphinxQL
     function rotate(string $partition='x')
     {
         $result = array();
-        error_log("RELOAD INDEX ad{$partition} FROM '/home/db/sphinx/new/mourjan-ad-partition-{$partition}'");
-        if ($this->_sphinx->query("RELOAD INDEX ad{$partition} FROM '/home/db/sphinx/new/mourjan-ad-partition-{$partition}'"))
+        $cmd = "RELOAD INDEX ad{$partition} FROM '/home/db/sphinx/new/mourjan-ad-partition-{$partition}'";
+        if ($this->_sphinx->query($cmd))
         {
-            $result[]="RELOAD INDEX ad{$partition} FROM '/home/db/sphinx/new/mourjan-ad-partition-{$partition}'";
-            /*
-            while ($value = $rs->fetch_array(MYSQLI_NUM))
-            {
-                $result[$value[0]] = $value[1];
-            }*/
-           
+            //error_log($cmd);
+            $result[]=$cmd;           
         }        
         return $result;
     }
@@ -624,6 +843,7 @@ class SphinxQL
             //echo "Failed to set ad: {$id} on hold state!" . PHP_EOL;
         }
     }
+    
     
     function directUpdateQuery($q)
     {

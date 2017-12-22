@@ -1,9 +1,11 @@
 <?php
-include_once '/home/www/mourjan/core/model/NoSQL.php';
+
+include_once get_cfg_var('mourjan.path') .'/core/model/NoSQL.php';
 
 use Core\Model\Router;
 use Core\Model\Classifieds;
 use Core\Model\NoSQL;
+use Core\Lib\SphinxQL;
 use ZammadAPIClient\Client;
 use ZammadAPIClient\ResourceType;
 
@@ -17,7 +19,7 @@ class Site
     var $isMobileAd=false;
     var $lnIndex=0;
     var $channelId=0;
-    var $urlRouter;
+    public $urlRouter;
     var $sortingMode = 0;
     var $langSortingMode = 0;
     var $publisherTypeSorting = 0;
@@ -50,7 +52,19 @@ class Site
     }
 
     public function __destruct() {
-    }    
+    }
+    
+    
+    public function router() : Router
+    {
+        return $this->urlRouter;
+    }
+    
+    
+    public function user() : User
+    {
+        return $this->user;
+    }
     
     
     function checkUserGeo()
@@ -299,10 +313,13 @@ class Site
     }
 
 
-    function initSphinx($forceInit=false){
-        if ($this->urlRouter->db->ql) {
-            if ($forceInit) {
-                $this->urlRouter->db->ql->resetFilters(TRUE);               
+    function initSphinx($forceInit=false)
+    {
+        if ($this->urlRouter->db->ql) 
+        {
+            if ($forceInit) 
+            {
+                $this->urlRouter->db->ql->resetFilters();               
             }
             return;
         }
@@ -311,10 +328,13 @@ class Site
     }
     
     
-    function runQueries($queries, &$matches){
+    function runQueries($queries, &$matches)
+    {
         $this->urlRouter->db->ql->_batch=[];
-        foreach ($queries as $row) {
-            if (!$this->channelId || $row['ID']==$this->channelId) {
+        foreach ($queries as $row) 
+        {
+            if (!$this->channelId || $row['ID']==$this->channelId) 
+            {
                 $this->urlRouter->db->ql->resetFilters(true);
                 if ($row['COUNTRY_ID'])
                     $this->urlRouter->db->ql->setFilter("country", $row['COUNTRY_ID']);
@@ -350,22 +370,26 @@ class Site
     }
     
     
-    function execute($forceInit=false) {
-        $offset = ($this->urlRouter->params['start'] ? ($this->urlRouter->params['start']-1) : 0) * $this->num;
+    function execute(bool $forceInit=false) 
+    {
+        //error_log(__CLASS__.'->'.__FUNCTION__);
+        $offset = ($this->router()->params['start'] ? ($this->router()->params['start']-1) : 0) * $this->num;
 
         $this->initSphinx($forceInit);
-        $countryId=$this->urlRouter->countryId;
-        $cityId=$this->urlRouter->cityId;
-        $rootId=$this->urlRouter->rootId;
-        $q=  preg_replace('/@/', '\@', $this->urlRouter->params['q']);
         
-        if($this->urlRouter->watchId){
+        //$countryId=$this->urlRouter->countryId;
+        //$cityId=$this->urlRouter->cityId;
+        $rootId=$this->urlRouter->rootId;
+        $q=preg_replace('/@/', '\@', $this->urlRouter->params['q']);
+        
+        if ($this->router()->watchId)
+        {
             $this->searchResults=false;
             if (!$this->watchInfo || !count($this->watchInfo)) {
                 return;
             }
-            $withKeys=array();
-            $noKeys=array();
+            //$withKeys=array();
+            //$noKeys=array();
             //foreach ($this->watchInfo as $row) {
             //    if ($row['QUERY_TERM']) $withKeys[]=$row;
             //    else $noKeys[]=$row;
@@ -413,234 +437,187 @@ class Site
             } 
             $this->searchResults['body']=$matches;
 
-        }else {
-            if (($this->user->info['id'] || $this->pageUserId) && $this->userFavorites) {
+        } /* End of WatchId */
+        else {
+            if (($this->user->info['id'] || $this->pageUserId) && $this->userFavorites) 
+            {
                 $id = $this->user->info['id'] ? $this->user->info['id'] : $this->pageUserId;                
-                $this->urlRouter->db->ql->setSortBy('date_added desc');
-                $this->urlRouter->db->ql->setFilter('starred', (int)$id, false);
-                $this->urlRouter->db->ql->setLimits($offset, $this->num);
-                $this->urlRouter->db->ql->setSelect('id');
-                $this->urlRouter->db->ql->addQuery('body', '');
-                $this->searchResults = $this->urlRouter->db->ql->executeBatch();
-            } else {
+                $this->router()->database()->index()
+                        ->setSelect('id')
+                        ->starred($id)
+                        ->setSortBy('date_added desc')
+                        ->setLimits($offset, $this->num)
+                        ->addQuery('body', '');
+                $this->searchResults = $this->router()->database()->index()->executeBatch();
+            } 
+            else 
+            {
+                $__compareID = $this->router()->getPositiveVariable('cmp', INPUT_GET);// filter_input(INPUT_GET, 'cmp', FILTER_VALIDATE_INT, ["options" => ["default" => 0, "min_range" => 0]]);
+                $__compareAID = $this->router()->getPositiveVariable('aid', INPUT_GET);// filter_input(INPUT_GET, 'aid', FILTER_VALIDATE_INT, ["options" => ["default" => 0, "min_range" => 0]]);
                 
-                if(isset($_GET['cmp']) && is_numeric($_GET['cmp'])){
-                    $this->urlRouter->db->ql->setFilter('id', $_GET['cmp'],true);
-                }
-                
-                if ($this->urlRouter->userId) {
-                    $this->urlRouter->db->ql->setFilter('user_id', $this->urlRouter->userId);
-                    $countryId=0;
-                    $cityId=0;
-                    $rootId=0;
-                }
-                
-                if ($this->localityId) {
-                    $this->urlRouter->db->ql->setFilter('locality_id', $this->localityId);
-                }
-                
-                if ($this->extendedId) {
-                    $this->urlRouter->db->ql->setFilter('section_tag_id', $this->extendedId);
-                } else {
-                    if ($this->urlRouter->sectionId) {
-                        $this->urlRouter->db->ql->setFilter('section_id', $this->urlRouter->sectionId);
-                    }
-                }
-
-                if ($rootId) {
-                    $this->urlRouter->db->ql->setFilter('root_id', $rootId);
-                }
-
-                if ($this->urlRouter->purposeId) {
-                    $this->urlRouter->db->ql->setFilter('purpose_id', $this->urlRouter->purposeId);
-                }
-
-
-                if ($countryId) {
-                    $this->urlRouter->db->ql->setFilter('country', $countryId);
-                }
-
-                if ($cityId) {
-                    $this->urlRouter->db->ql->setFilter('city', $cityId);
-                }   
-                
-                if($this->publisherTypeSorting && in_array($rootId,[1,2,3]) && 
-                            ($rootId!= 3 || ($rootId== 3 && $this->urlRouter->purposeId == 3)) && 
-                            ($rootId!= 2 || ($rootId== 2 && $this->urlRouter->purposeId == 1)) ){
-                    $this->urlRouter->db->ql->setFilter('publisher_type', ($this->publisherTypeSorting == 1 ? 1 : 3));
+                $this->router()->database()->index()
+                        ->region($this->router()->countryId, $this->router()->cityId)
+                        ->id($__compareID, TRUE)
+                        ->uid($this->router()->userId)                        
+                        ->root($rootId)
+                        ->section($this->router()->sectionId)
+                        ->pupose($this->urlRouter->purposeId)
+                        ->locality($this->localityId)
+                        ->tag($this->extendedId)
+                        ;
+                                
+                if ($this->publisherTypeSorting && 
+                    in_array($rootId,[1,2,3]) && 
+                    ($rootId!=3 || ($rootId==3 && $this->urlRouter->purposeId==3)) && 
+                    ($rootId!=2 || ($rootId==2 && $this->urlRouter->purposeId==1)) )
+                {
+                    $this->router()->database()->index()->publisherType($this->publisherTypeSorting == 1 ? 1 : 3);
                 }
                 
-                if($this->langSortingMode > -1){
-                    if($this->langSortingMode == 1){
-                        $lng = 'IF(rtl>0,0,1) as lngmask';
-                    }elseif($this->langSortingMode == 2){
-                        $lng = 'IF(rtl<>1,0,1) as lngmask';
-                    }else{
+                switch ($this->langSortingMode) 
+                {
+                    case 0:
                         $lng = '0 as lngmask';
-                    }
-                }else{
-                    $lng = ($this->urlRouter->siteLanguage=='ar') ? 'IF(rtl>0,0,1) as lngmask' : 'IF(rtl<>1,0,1) as lngmask';
+                    case 1:
+                        $lng = 'IF(rtl>0,0,1) as lngmask';
+                        break;
+                    case 2:
+                        $lng = 'IF(rtl<>1,0,1) as lngmask';
+                        break;
+                    default:
+                        $lng = ($this->urlRouter->siteLanguage=='ar') ? 'IF(rtl>0,0,1) as lngmask' : 'IF(rtl<>1,0,1) as lngmask';
+                        break;
                 }
+           
 
-                if (isset($this->user->params['last_visit']) && $this->user->params['last_visit']) {
-                    $this->urlRouter->db->ql->setSelect("id, if(date_added>{$this->user->params['last_visit']}, 1, 0) newad, date_added, {$lng}");
-                    /*
-                    if($this->sortingMode){
-                        if($this->publisherTypeSorting){
-                            if($this->publisherTypeSorting == 1){
-                                $this->urlRouter->db->ql->setSortBy('lngmask asc, publisher_type asc, media desc, date_added desc');
-                            }else{
-                                $this->urlRouter->db->ql->setSortBy('lngmask asc, publisher_type desc, media desc, date_added desc');
-                            }
-                        }else{
-                            $this->urlRouter->db->ql->setSortBy('lngmask asc, media desc, date_added desc');
-                        }
-                    }else{   
-                        if($this->publisherTypeSorting){
-                            if($this->publisherTypeSorting == 1){
-                                $this->urlRouter->db->ql->setSortBy('lngmask asc, publisher_type asc,  date_added desc');
-                            }else{
-                                $this->urlRouter->db->ql->setSortBy('lngmask asc, publisher_type desc,  date_added desc');
-                            }
-                        }else{
-                            $this->urlRouter->db->ql->setSortBy('lngmask asc, date_added desc');
-                        }
-                    }*/
-                    
-                } else {
-                    $this->urlRouter->db->ql->setSelect("id, 0 as newad, date_added, {$lng}" );
-                    
-                }
+                $fields = "id, 0 as newad, date_added, {$lng}";
+                if (($last_visited = $this->user()->getLastVisited())) 
+                {
+                    $fields = "id, if(date_added>{$last_visited}, 1, 0) newad, date_added, {$lng}";                    
+                } 
                 
-                if($this->sortingMode){
-                    $this->urlRouter->db->ql->setSortBy('lngmask asc, media desc, date_added desc');
-                }else{    
-                    $this->urlRouter->db->ql->setSortBy('lngmask asc, date_added desc');
-                }
-                
-                $this->urlRouter->db->ql->setLimits($offset, $this->num);
-                //$this->urlRouter->db->ql->setFacet('purpose_id', TRUE);
-                $this->urlRouter->db->ql->addQuery('body', $q);
-                
-                if($this->urlRouter->module=='search' && !$this->userFavorites && !$this->urlRouter->watchId && !$this->urlRouter->userId) {
+                $this->router()->database()->index()
+                        ->setSelect($fields)
+                        ->setSortBy($this->sortingMode ? 'lngmask asc, media desc, date_added desc' : 'lngmask asc, date_added desc')
+                        ->setLimits($offset, $this->num)
+                        ->addQuery('body', $q);
+                                
+                if($this->urlRouter->module=='search' && !$this->userFavorites && !$this->urlRouter->watchId && !$this->urlRouter->userId) 
+                {
                     $this->getFeaturedAds();
                     $this->getMediaAds();
-                }
-
-                
+                }                
         
-                if(isset($_GET['aid']) && is_numeric($_GET['aid'])){
+                if($__compareAID)
+                {
                     include_once $this->urlRouter->cfg['dir'] . '/core/lib/MCSaveHandler.php';
-                    $handler = new MCSaveHandler($this->urlRouter->cfg);
-                    $this->searchResults = $handler->searchByAdId($_GET['aid']);
-                    //$this->searchResults = ['body'=>[
-                    //                            'total_found'=>0
-                    //                            ]
-                    //                        ];
-                }else{
-                    $this->searchResults = $this->urlRouter->db->ql->executeBatch();   
+                    $handler = new MCSaveHandler($this->router()->cfg);
+                    $this->searchResults = $handler->searchByAdId($__compareAID);
+                }
+                else
+                {
+                    $this->searchResults = $this->router()->database()->index()->executeBatch();   
                     //var_dump($this->searchResults);
                 }
+                
                 /*if (isset($this->searchResults['sections'])) {
                     //error_log(var_export($this->searchResults['sections'], true));
                     
                 }*/
             }       
-        }
-        
-        
+        }                
         //if ($cl->getLastError())
         //    error_log ( $cl->getLastError() );
     }
        
     
-    function getMediaAds(){        
-        $this->urlRouter->db->ql->resetFilters(TRUE);            
-        $this->urlRouter->db->ql->setFilter('media', 1);
-        $this->urlRouter->db->ql->setFilter('publication_id', 1);
-        $this->urlRouter->db->ql->setFilter('section_id', array(834,1079,1314,1112,617,513,293,298,343,350,515,539,108,84,85,114,214,116,123,125,135,144,279));
-
-
-        if ($this->urlRouter->countryId) {
-            $this->urlRouter->db->ql->setFilter('country', $this->urlRouter->countryId);
-        }
-
-        if ($this->urlRouter->cityId) {
-            $this->urlRouter->db->ql->setFilter('city', $this->urlRouter->cityId);
-        }
-
-        if ($this->urlRouter->siteLanguage=='ar') {
-            $this->urlRouter->db->ql->setFilter('rtl', array(1,2));
-        } else {
-            $this->urlRouter->db->ql->setFilter('rtl', array(0,2));
-        }
-
-        $this->urlRouter->db->ql->setSelect('id');
-        $this->urlRouter->db->ql->setSortBy('rand()');
-        $this->urlRouter->db->ql->setLimits(0, 4);
-        $this->urlRouter->db->ql->addQuery('media');
+    function getMediaAds()
+    { 
+        $this->router()->database()->index()->resetFilters()
+                ->region($this->router()->countryId, $this->router()->cityId)
+                ->media()
+                ->publication(1)
+                ->setFilter(Core\Lib\SphinxQL::SECTION, [834,1079,1314,1112,617,513,293,298,343,350,515,539,108,84,85,114,214,116,123,125,135,144,279])
+                ->rtl($this->urlRouter->siteLanguage=='ar' ? [1,2] : [0,2])
+                ->setSelect('id')
+                ->setSortBy('rand()')
+                ->setLimits(0, 4)
+                ->addQuery('media');
     }
 
 
-    function getFeaturedAds(){
+    function getFeaturedAds()
+    {
             
         $q = preg_replace('/@/', '\@', $this->urlRouter->params['q']);        
         $currentPage=($this->urlRouter->params['start']?$this->urlRouter->params['start']:1);
         
         // 1 - get top column paid ads related to query
-        if ($this->urlRouter->module=='search' && $currentPage == 1){
-            $this->urlRouter->db->ql->resetFilters(TRUE);
-            $this->urlRouter->db->ql->setFilter('publication_id', 1);
-
-            if ($this->localityId) {
-                $this->urlRouter->db->ql->setFilter('locality_id', $this->localityId);
-            }
-
-            if ($this->extendedId) {
-                $this->urlRouter->db->ql->setFilter('section_tag_id', $this->extendedId);
-            } elseif ($this->urlRouter->sectionId) {
-                $this->urlRouter->db->ql->setFilter('section_id', $this->urlRouter->sectionId);
-            }
-
-            if ($this->urlRouter->rootId) {
-                $this->urlRouter->db->ql->setFilter('root_id', $this->urlRouter->rootId);
-            }
-
-            if ($this->urlRouter->purposeId) {
-                $this->urlRouter->db->ql->setFilter('purpose_id', $this->urlRouter->purposeId);
-            }
-
-            if ($this->urlRouter->countryId) {
-                $this->urlRouter->db->ql->setFilter('country', $this->urlRouter->countryId);
-            }
-
-            if ($this->urlRouter->cityId) {
-                $this->urlRouter->db->ql->setFilter('city', $this->urlRouter->cityId);
-            }
+        if ($this->urlRouter->module=='search' && $currentPage==1)
+        {
+            $this->router()->database()->index()->resetFilters()
+                    ->featured()
+                    ->region($this->router()->countryId, $this->router()->cityId)
+                    ->root($this->router()->rootId)
+                    ->section($this->router()->sectionId)
+                    ->pupose($this->urlRouter->purposeId)
+                    ->locality($this->localityId)
+                    ->tag($this->extendedId)
+                    ->setFilterCondition('rtl', 'in', $this->urlRouter->siteLanguage=='ar' ? [1,2] : [0,2])
+                    ;
             
-                if($this->publisherTypeSorting && in_array($this->urlRouter->rootId,[1,2,3]) && 
-                            ($this->urlRouter->rootId!= 3 || ($this->urlRouter->rootId== 3 && $this->urlRouter->purposeId == 3)) && 
-                            ($this->urlRouter->rootId!= 2 || ($this->urlRouter->rootId== 2 && $this->urlRouter->purposeId == 1)) ){
-                    $this->urlRouter->db->ql->setFilter('publisher_type', ($this->publisherTypeSorting == 1 ? 1 : 3));
-                }
-
-            if ($this->urlRouter->siteLanguage=='ar') {
-                $this->urlRouter->db->ql->setFilterCondition('rtl', 'in', array(1,2));
-            } else {
-                $this->urlRouter->db->ql->setFilterCondition('rtl', 'in', array(0,2));
-            }
             
-            $this->urlRouter->db->ql->setFilterCondition('featured_date_ended', '>=', time());                        
-            $this->urlRouter->db->ql->setSelect("id" );
-            $this->urlRouter->db->ql->setSortBy("rand()");            
-            $this->urlRouter->db->ql->setLimits(0, 30);
-            $this->urlRouter->db->ql->addQuery('zone1', $q);
+            //if ($this->localityId) 
+            //{
+            //    $this->urlRouter->db->ql->setFilter('locality_id', $this->localityId);
+            //}
+
+            //if ($this->extendedId) 
+            //{
+            //    $this->urlRouter->db->ql->setFilter('section_tag_id', $this->extendedId);
+            //} 
+            //elseif ($this->urlRouter->sectionId) 
+            //{
+            //    $this->urlRouter->db->ql->setFilter('section_id', $this->urlRouter->sectionId);
+            //}
+
+            //if ($this->urlRouter->sectionId==0 && $this->urlRouter->rootId) 
+            //{
+            //    $this->urlRouter->db->ql->setFilter('root_id', $this->urlRouter->rootId);
+            //}
+
+            //if ($this->urlRouter->purposeId) {
+            //    $this->urlRouter->db->ql->setFilter('purpose_id', $this->urlRouter->purposeId);
+            //}           
+            
+            if ($this->publisherTypeSorting && in_array($this->urlRouter->rootId,[1,2,3]) && 
+               ($this->urlRouter->rootId!=3 || ($this->urlRouter->rootId==3 && $this->urlRouter->purposeId==3)) && 
+               ($this->urlRouter->rootId!=2 || ($this->urlRouter->rootId==2 && $this->urlRouter->purposeId==1)) )
+            {
+                $this->router()->database()->index()->publisherType($this->publisherTypeSorting == 1 ? 1 : 3);
+            }
+
+            $this->router()->database()->index()
+                    ->setSelect("id")
+                    ->setSortBy("rand()")
+                    ->setLimits(0, 40)
+                    ->addQuery('zone1', $q);
         }
         
         // 2 - get side column paid ads related
-        if (true){
-            $this->urlRouter->db->ql->resetFilters(TRUE);
-            $this->urlRouter->db->ql->setFilter('publication_id', 1);
+        if (true) {
+            $this->router()->database()->index()->resetFilters()
+                ->region($this->router()->countryId, $this->router()->cityId)
+                ->featured()
+                ->root($this->router()->rootId)
+                ->section($this->router()->sectionId)  
+                ->setSelect("id")
+                ->setSortBy("rand()")
+                ->setLimits(0, 4)
+                ->addQuery('zone2');
+                  
+            //$this->urlRouter->db->ql->resetFilters(TRUE);
+            //$this->urlRouter->db->ql->setFilter('publication_id', 1);
             /*
             if ($this->localityId)
                 $cl->SetFilter('locality_id', array($this->localityId));
@@ -655,84 +632,110 @@ class Site
                 $this->urlRouter->db->ql->setFilter('user_id', array(220906), true);
             }*/
 
-            if ($this->urlRouter->countryId) {
-                $this->urlRouter->db->ql->setFilter('country', $this->urlRouter->countryId);
-            }
-            if ($this->urlRouter->cityId) {
-                $this->urlRouter->db->ql->setFilter('city', $this->urlRouter->cityId);
-            }
-            if ($this->urlRouter->sectionId) {
-                $this->urlRouter->db->ql->setFilter('section_id', $this->urlRouter->sectionId, TRUE);
-            }elseif ($this->urlRouter->rootId) {
-                $this->urlRouter->db->ql->setFilter('root_id', $this->urlRouter->rootId, TRUE);
-            }
+            //if ($this->urlRouter->countryId) {
+            //    $this->urlRouter->db->ql->setFilter('country', $this->urlRouter->countryId);
+            //}
+            //if ($this->urlRouter->cityId) {
+            //    $this->urlRouter->db->ql->setFilter('city', $this->urlRouter->cityId);
+            //}
+            //if ($this->urlRouter->sectionId) {
+            //    $this->urlRouter->db->ql->setFilter('section_id', $this->urlRouter->sectionId, TRUE);
+            //}elseif ($this->urlRouter->rootId) {
+            //    $this->urlRouter->db->ql->setFilter('root_id', $this->urlRouter->rootId, TRUE);
+            //}
 
-            $this->urlRouter->db->ql->setFilterCondition('featured_date_ended', '>=', time());
-            $this->urlRouter->db->ql->setSelect("id" );
-            $this->urlRouter->db->ql->setSortBy("RAND()");
-            $this->urlRouter->db->ql->setLimits(0, 4);
-            $this->urlRouter->db->ql->addQuery('zone2');
+            //$this->urlRouter->db->ql->setFilterCondition('featured_date_ended', '>=', time());
+            //$this->urlRouter->db->ql->setSelect("id" );
+            //$this->urlRouter->db->ql->setSortBy("RAND()");
+            //$this->urlRouter->db->ql->setLimits(0, 4);
+            //$this->urlRouter->db->ql->addQuery('zone2');
         }
         
         // 1 - get top column featured ads related to query
         if ($this->urlRouter->module=='search'){ // && $this->searchResults['body']['total_found'] > 20
-            $this->urlRouter->db->ql->resetFilters(TRUE);
-            $this->urlRouter->db->ql->setFilter('publication_id', 1);
+            $this->router()->database()->index()->resetFilters()->native()
+                ->region($this->router()->countryId, $this->router()->cityId)                
+                ->root($this->router()->rootId)
+                ->section($this->router()->sectionId)
+                ->pupose($this->router()->purposeId)
+                ->locality($this->localityId)
+                ->tag($this->extendedId);
+            
+            //$this->urlRouter->db->ql->resetFilters(TRUE);
+            //$this->urlRouter->db->ql->setFilter('publication_id', 1);
          
-            if ($this->localityId) {
-                $this->urlRouter->db->ql->setFilter('locality_id', $this->localityId);
-            }
+            //if ($this->localityId) {
+            //    $this->urlRouter->db->ql->setFilter('locality_id', $this->localityId);
+            //}
 
-            if ($this->extendedId) {
-                $this->urlRouter->db->ql->setFilter('section_tag_id', $this->extendedId);
-            } elseif ($this->urlRouter->sectionId) {
-                $this->urlRouter->db->ql->setFilter('section_id', $this->urlRouter->sectionId);
-            }
+            //if ($this->extendedId) {
+            //    $this->urlRouter->db->ql->setFilter('section_tag_id', $this->extendedId);
+            //} elseif ($this->urlRouter->sectionId) {
+            //    $this->urlRouter->db->ql->setFilter('section_id', $this->urlRouter->sectionId);
+            //}
 
-            if ($this->urlRouter->rootId) {
-                $this->urlRouter->db->ql->setFilter('root_id', $this->urlRouter->rootId);
-            }
+            //if ($this->urlRouter->rootId) {
+            //    $this->urlRouter->db->ql->setFilter('root_id', $this->urlRouter->rootId);
+            //}
 
-            if ($this->urlRouter->purposeId) {
-                $this->urlRouter->db->ql->setFilter('purpose_id', $this->urlRouter->purposeId);
-            }
+            //if ($this->urlRouter->purposeId) {
+            //    $this->urlRouter->db->ql->setFilter('purpose_id', $this->urlRouter->purposeId);
+            //}
 
-            if ($this->urlRouter->countryId) {
-                $this->urlRouter->db->ql->setFilter('country', $this->urlRouter->countryId);
-            }
+            //if ($this->urlRouter->countryId) {
+            //    $this->urlRouter->db->ql->setFilter('country', $this->urlRouter->countryId);
+            //}
 
-            if ($this->urlRouter->cityId) {
-                $this->urlRouter->db->ql->setFilter('city', $this->urlRouter->cityId);
-            }
+            //if ($this->urlRouter->cityId) {
+            //    $this->urlRouter->db->ql->setFilter('city', $this->urlRouter->cityId);
+            //}
             
             if($this->publisherTypeSorting && in_array($this->urlRouter->rootId,[1,2,3])){
-                    $this->urlRouter->db->ql->setFilter('publisher_type', ($this->publisherTypeSorting == 1 ? 1 : 3));
-                }
-            
-            $this->urlRouter->db->ql->setFilterCondition('featured_date_ended', '<', time());
-            
-            if($this->langSortingMode > -1){
-                if($this->langSortingMode == 1){
-                    $this->urlRouter->db->ql->setFilterCondition('rtl', 'in', array(1,2));
-                }elseif($this->langSortingMode == 2){
-                    $this->urlRouter->db->ql->setFilterCondition('rtl', 'in', array(0,2));
-                }
-            }else{
-                if ($this->urlRouter->siteLanguage=='ar') {
-                    $this->urlRouter->db->ql->setFilterCondition('rtl', 'in', array(1,2));
-                } else {
-                    $this->urlRouter->db->ql->setFilterCondition('rtl', 'in', array(0,2));
-                }
+                $this->router()->database()->index()->publisherType($this->publisherTypeSorting == 1 ? 1 : 3);
             }
+            
+            //$this->urlRouter->db->ql->setFilterCondition('featured_date_ended', '<', time());
+            $rtlFilter = [];
+            switch ($this->langSortingMode) 
+            {
+                case 1:
+                    $rtlFilter=[1,2];
+                    break;
+                case 2:
+                    $rtlFilter=[0,2];
+                    break;
+
+                default:
+                    $rtlFilter=($this->urlRouter->siteLanguage=='ar')?[1,2]:[0,2];
+                    break;
+            }
+            //if($this->langSortingMode > -1){
+            //    if($this->langSortingMode == 1){
+            //        $this->urlRouter->db->ql->setFilterCondition('rtl', 'in', array(1,2));
+            //    }elseif($this->langSortingMode == 2){
+            //        $this->urlRouter->db->ql->setFilterCondition('rtl', 'in', array(0,2));
+            //    }
+            //}else{
+            //    if ($this->urlRouter->siteLanguage=='ar') {
+            //        $this->urlRouter->db->ql->setFilterCondition('rtl', 'in', array(1,2));
+             //   } else {
+            //        $this->urlRouter->db->ql->setFilterCondition('rtl', 'in', array(0,2));
+            //    }
+            //}
+            
             //$dateFrom = time()-259200;//3 days
             //$this->urlRouter->db->ql->setFilterCondition('date_added', '<', $dateFrom);
-            if(isset($this->user->params['feature']) && count($this->user->params['feature'])){
-                $this->urlRouter->db->ql->setFilterCondition('id', 'not in', $this->user->params['feature']);
+            if(isset($this->user()->params['feature']) && count($this->user()->params['feature']))
+            {
+                $this->router()->database()->index()->setFilterCondition('id', 'not in', $this->user()->params['feature']);
             }
-            $this->urlRouter->db->ql->SetSelect('id, (impressions + ((IF(now()-date_added<3600,20,impressions)/(now()-date_added))*(date_ended-now()))) as forecast');
-            $this->urlRouter->db->ql->setSortBy('forecast asc');
-            $this->urlRouter->db->ql->setLimits(0, 2);
-            $this->urlRouter->db->ql->addQuery('zone0', $q);            
+            
+            $this->router()->database()->index()
+                    ->rtl($rtlFilter)
+                    ->SetSelect('id, (impressions + ((IF(now()-date_added<3600,20,impressions)/(now()-date_added))*(date_ended-now()))) as forecast')
+                    ->setSortBy('forecast asc')
+                    ->setLimits(0, 2)
+                    ->addQuery('zone0', $q);            
         }                      
     }
     

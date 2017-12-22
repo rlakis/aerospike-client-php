@@ -3158,24 +3158,33 @@ class Search extends Page
     }
     
 
-    function mergeResults(&$topFeatureCount, &$ad_keys) {
-        if (isset($this->searchResults['zone1'])) {
+    function mergeResults(&$topFeatureCount, &$ad_keys) 
+    {
+        if (isset($this->searchResults['zone1'])) 
+        {
             $ad_keys = $this->searchResults['zone1']['matches'];
         }
         
-        if ($this->searchResults['body']['total_found']>20 && count($ad_keys)<2 && isset($this->searchResults['zone0'])) {
+        if ($this->searchResults['body']['total_found']>20 && count($ad_keys)<2 && isset($this->searchResults['zone0'])) 
+        {
             $count=count($this->searchResults['zone0']['matches']);
             $fc=count($ad_keys);
-            for ($i=0; $i<$count; $i++) {
-                if (($fc+$i)<2) {
+            for ($i=0; $i<$count; $i++) 
+            {
+                if (($fc+$i)<2) 
+                {
                     $ad_keys[] = $this->searchResults['zone0']['matches'][$i];
-                } else break;
+                } 
+                else break;
             }
         }
+        
         $topFeatureCount = count($ad_keys);
         $count=count($this->searchResults['body']['matches']);
-        for ($i=0;$i<$count;$i++) {
-            if (!in_array($this->searchResults['body']['matches'][$i], $ad_keys)) {
+        for ($i=0;$i<$count;$i++) 
+        {
+            if (!in_array($this->searchResults['body']['matches'][$i], $ad_keys)) 
+            {
                 $ad_keys[] = $this->searchResults['body']['matches'][$i];
             }
         }
@@ -3189,6 +3198,7 @@ class Search extends Page
         
         $idx = 0;
         $ad_keys = array();
+        $topFeatureCount = 0;
         $this->mergeResults($topFeatureCount, $ad_keys);       
         $current_time = time();
         
@@ -3519,7 +3529,7 @@ class Search extends Page
                 if($isFeatureBooked){
                     $liClass.=' vpz';
                 }
-if($isFeatured){
+                if($isFeatured){
                         $liClass.=' vp vpd';
                     }else{
                 if($feature){
@@ -3531,11 +3541,13 @@ if($isFeatured){
 }
                 if ($liClass)
                     $liClass = "class='" . trim($liClass) . "'";
+                
                 if(!isset($ad[Classifieds::ID])){
                     error_log("#####################################");
                     error_log($id);
                     error_log("#####################################");
                 }
+                
                 ?><li id="<?= $ad[Classifieds::ID] ?>" itemprop="itemListElement" <?= $liClass . $itemScope ?>><?php
                               
 

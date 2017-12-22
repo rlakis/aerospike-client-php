@@ -5,6 +5,8 @@ namespace Core\Model;
 
 class Router 
 {
+    const POSITIVE_VALUE = ["options" => ["default" => 0, "min_range" => 0]];
+    
     var $db;
     var $uri;
     
@@ -503,7 +505,7 @@ class Router
             {
                 $this->siteLanguage=$_session_params['lang']=$this->cookie->lg;
                 $_SESSION['_u']['params'] = $_session_params;
-                $this->redirect($this->cfg['url_base'].$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->siteLanguage != 'ar' ? $this->siteLanguage .'/':'').($this->id ? $this->id.'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
+                $this->redirect($this->cfg['url_base'].$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).$this->getLanguagePath().($this->id ? $this->id.'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
             } 
             else 
             {
@@ -515,6 +517,12 @@ class Router
             $_session_params['lang']=$this->siteLanguage;
         }
         $_SESSION['_u']['params'] = $_session_params;
+    }
+    
+    
+    public function getLanguagePath() : string
+    {
+        return $this->siteLanguage=='ar' ? '' : $this->siteLanguage.'/';
     }
     
     
@@ -615,6 +623,14 @@ class Router
     function __destruct() 
     {
     }
+    
+    
+    public function database() : DB
+    {
+        return $this->db;
+    }
+    
+    
     
     
     function getAdURI($ad_id=0) 
@@ -1131,5 +1147,19 @@ class Router
         $miles = $dist * 60 * 1.1515;
         return $miles;
     }
+
+    
+    public static function getPositiveVariable($variable, int $type=-1) : int
+    {
+        if ($type!==-1)
+        {
+            return filter_var($variable, FILTER_VALIDATE_INT, static::POSITIVE_VALUE);
+        }
+        else
+        {
+            return filter_input( $type, $variable, FILTER_VALIDATE_INT, static::POSITIVE_VALUE);            
+        }
+    }
+    
     
 }
