@@ -3143,17 +3143,26 @@ class User
     }
     
 
-    public function getLastVisited()
+    public function getLastVisited() : int
     {
-        $cookie = \json_decode(filter_input(INPUT_COOKIE, 'mourjan_user', FILTER_DEFAULT, ['options'=>['default'=>'{}']]));
-        //error_log(var_export($cookie, TRUE));
-        
         if (isset($this->params['last_visit']))
         {
-            //error_log($this->params['last_visit']);
             return \Core\Model\Router::getPositiveVariable($this->params['last_visit']);            
         }
         return 0;
+    }
+
+    
+    public function getFeature() : array
+    {
+        if (isset($this->params['feature']) && is_array($this->params['feature']))
+        {
+            return $this->params['feature'];
+        }
+        else
+        {
+            return [];
+        }        
     }
     
     

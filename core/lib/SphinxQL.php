@@ -350,6 +350,22 @@ class SphinxQL
     }
 
     
+    public function exclude(array $ids) : SphinxQL
+    {
+        $size = count($ids);
+        if ($size==1)
+        {
+            $this->filters[static::ID]='!='.$ids[0];
+        }
+        elseif ($size>0)
+        {
+            $this->filters[static::ID]=' not in ('.implode(',', $ids).')';
+        }
+                
+        return $this;
+    }
+    
+    
     public function sectionSet(array $value, bool $exclude=false) : SphinxQL
     {
         if ($value)
