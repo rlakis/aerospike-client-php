@@ -5,6 +5,8 @@ namespace Core\Model;
 
 class Router 
 {
+    const POSITIVE_VALUE = ["options" => ["default" => 0, "min_range" => 0]];
+    
     var $db;
     var $uri;
     
@@ -503,7 +505,7 @@ class Router
             {
                 $this->siteLanguage=$_session_params['lang']=$this->cookie->lg;
                 $_SESSION['_u']['params'] = $_session_params;
-                $this->redirect($this->cfg['url_base'].$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->siteLanguage != 'ar' ? $this->siteLanguage .'/':'').($this->id ? $this->id.'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
+                $this->redirect($this->cfg['url_base'].$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).$this->getLanguagePath().($this->id ? $this->id.'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
             } 
             else 
             {
@@ -515,6 +517,18 @@ class Router
             $_session_params['lang']=$this->siteLanguage;
         }
         $_SESSION['_u']['params'] = $_session_params;
+    }
+    
+    
+    public function getLanguagePath() : string
+    {
+        return $this->siteLanguage=='ar' ? '' : $this->siteLanguage.'/';
+    }
+    
+    
+    public function isArabic() : bool
+    {
+        return ($this->siteLanguage=='ar');
     }
     
     
@@ -615,6 +629,14 @@ class Router
     function __destruct() 
     {
     }
+    
+    
+    public function database() : DB
+    {
+        return $this->db;
+    }
+    
+    
     
     
     function getAdURI($ad_id=0) 
@@ -1047,22 +1069,7 @@ class Router
             $this->db->close();            
         }
     }
-
-    /*
-    function isBot(&$botname = '') : bool
-    {
-        $bots = array('googlebot', 'aport', 'yahoo', 'msnbot', 'rambler', 'turtle', 'mail.ru', 'omsktele', 'yetibot', 'picsearch', 'sape.bot', 'sape_context', 'gigabot', 'snapbot', '<a class="vglnk" href="http://alexa.com" rel="nofollow"><span>alexa</span><span>.</span><span>com</span></a>', 'megadownload.net', 'askpeter.info', 'igde.ru', '<a class="vglnk" href="http://ask.com" rel="nofollow"><span>ask</span><span>.</span><span>com</span></a>', 'qwartabot', 'yanga.co.uk', 'scoutjet', 'similarpages', 'oozbot', '<a class="vglnk" href="http://shrinktheweb.com" rel="nofollow"><span>shrinktheweb</span><span>.</span><span>com</span></a>', 'aboutusbot', '<a class="vglnk" href="http://followsite.com" rel="nofollow"><span>followsite</span><span>.</span><span>com</span></a>', 'dataparksearch', 'google-sitemaps', 'appEngine-google', 'feedfetcher-google', 'liveinternet.ru', '<a class="vglnk" href="http://xml-sitemaps.com" rel="nofollow"><span>xml</span><span>-</span><span>sitemaps</span><span>.</span><span>com</span></a>', 'agama', '<a class="vglnk" href="http://metadatalabs.com" rel="nofollow"><span>metadatalabs</span><span>.</span><span>com</span></a>', 'h1.hrn.ru', '<a class="vglnk" href="http://googlealert.com" rel="nofollow"><span>googlealert</span><span>.</span><span>com</span></a>', '<a class="vglnk" href="http://seo-rus.com" rel="nofollow"><span>seo</span><span>-</span><span>rus</span><span>.</span><span>com</span></a>', 'yaDirectBot', 'yandeG', 'yandex', 'yandexSomething', '<a class="vglnk" href="http://Copyscape.com" rel="nofollow"><span>Copyscape</span><span>.</span><span>com</span></a>', 'AdsBot-Google', '<a class="vglnk" href="http://domaintools.com" rel="nofollow"><span>domaintools</span><span>.</span><span>com</span></a>', 'Nigma.ru', '<a class="vglnk" href="http://bing.com" rel="nofollow"><span>bing</span><span>.</span><span>com</span></a>', 'dotnetdotcom');
-        foreach ($bots as $bot) 
-        {
-            if (stripos($_SERVER['HTTP_USER_AGENT'], $bot) !== false) 
-            {
-                $botname = $bot;
-                return true;
-            }
-        }
-        return false;
-    }
-    */
+    
     
     function isBot( $http_user_agent=null, $ip=null ) 
     {
@@ -1131,5 +1138,19 @@ class Router
         $miles = $dist * 60 * 1.1515;
         return $miles;
     }
+
+    
+    public static function getPositiveVariable($variable, int $type=-1) : int
+    {
+        if ($type<0)
+        {
+            return filter_var($variable, FILTER_VALIDATE_INT, static::POSITIVE_VALUE);
+        }
+        else
+        {
+            return filter_input( $type, $variable, FILTER_VALIDATE_INT, static::POSITIVE_VALUE);            
+        }
+    }
+    
     
 }

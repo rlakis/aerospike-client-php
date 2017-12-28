@@ -7,9 +7,9 @@ class Page extends Site
 {
     protected $action='';
     protected $requires=array('js'=>array(),'css'=>array());
-    protected $title='',$description='';
+    protected $title='', $description='';
     protected $rss = false;
-    var $isUserMobileVerified = false;
+    public $isUserMobileVerified = false;
     var $stat;
     var $pageUri = '';
     var $googleAds=array();
@@ -34,16 +34,22 @@ class Page extends Site
     function __construct(Core\Model\Router $router)
     {
         parent::__construct($router); 
+        
         if($this->user->info['id'])
         {
-            if($this->urlRouter->isApp){
+            if($this->urlRouter->isApp)
+            {
                 $this->isUserMobileVerified = true;
-            }elseif ($this->user->info['level']==9 && $this->user->info['id']!=1 && $this->user->info['id']!=2){
+            }
+            elseif ($this->user->info['level']==9 && $this->user->info['id']!=1 && $this->user->info['id']!=2)
+            {
                 $this->isUserMobileVerified = true;
-            }else{
+            }
+            else{
                 $this->isUserMobileVerified = (isset($this->user->info['verified']) && $this->user->info['verified']);
             }
         }
+
 
         
         //$this->user->sysAuthById(3051);
@@ -63,6 +69,7 @@ class Page extends Site
         
         
         $this->urlRouter->cfg['url_ad_img'] = "https://c6.mourjan.com";
+        
         
         /*
         if (isset($this->user->params['user_country']))
@@ -215,12 +222,13 @@ class Page extends Site
         $this->fieldNameIndex=1+$this->lnIndex;
 
         $this->checkUserData();
-        if ($this->urlRouter->isMobile) {
+        if ($this->router()->isMobile) 
+        {
             $this->set_require('css', array('main'));
             //$this->set_require('css', array('mob'));
             $this->isMobileAd=true;
             $this->isMobile=true;
-            $this->appendLang=$this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/';
+            $this->appendLang= $this->router()->getLanguagePath();
             
             /*
             if(in_array($this->urlRouter->module,array('index','search','detail','contact'))){
@@ -228,8 +236,7 @@ class Page extends Site
                         || (isset($this->user->params['mobile_android_app_bottom_banner']) && $this->user->params['mobile_android_app_bottom_banner']==1) ){
                     $this->inlineCss.='#footer{margin-bottom:70px}';
                 }
-            }
-            
+            }            
              * 
              */
             
@@ -2858,12 +2865,12 @@ class Page extends Site
 
     function header(){
         
-        ?><link rel='dns-prefetch' href='c6.mourjan.com' /><?php
-        ?><link rel='dns-prefetch' href='www.google.com' /><?php
-        ?><link rel='dns-prefetch' href='www.google-analytics.com' /><?php
-        ?><link rel='dns-prefetch' href='www.googletagmanager.com' /><?php
-        ?><link rel='dns-prefetch' href='pagead2.googlesyndication.com' /><?php
-        ?><link rel='dns-prefetch' href='stats.g.doubleclick.net' /><?php
+        ?><link rel='dns-prefetch' href='//c6.mourjan.com' /><?php
+        ?><link rel='dns-prefetch' href='//www.google.com' /><?php
+        ?><link rel='dns-prefetch' href='//www.google-analytics.com' /><?php
+        ?><link rel='dns-prefetch' href='//www.googletagmanager.com' /><?php
+        ?><link rel='dns-prefetch' href='//pagead2.googlesyndication.com' /><?php
+        ?><link rel='dns-prefetch' href='//stats.g.doubleclick.net' /><?php
         
         ?><meta name="google-site-verification" content="v7TrImfR7LFmP6-6qV2eXLsC1qJSZAeKx2_4oFfxwGg" /><?php
         if ($this->userFavorites){
@@ -5326,25 +5333,29 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
             case 'search':
                 if ($this->userFavorites) {
                     echo '<meta name="robots" content="noindex, nofollow" />';
-                } else {
-                    if ($this->searchResults && !empty($this->searchResults['body']['matches']) && !(isset ($this->urlRouter->params['tag_id']) && !$this->extendedId) && ( !(isset ($this->urlRouter->params['loc_id']) && !$this->localityId) || ($this->localityId && in_array($this->urlRouter->countryId,array(1,2,4,7,9)))) ) {
-                        
+                } 
+                else {
+                    if ($this->searchResults && !empty($this->searchResults['body']['matches']) && !(isset($this->urlRouter->params['tag_id']) && !$this->extendedId) && (!(isset ($this->urlRouter->params['loc_id']) && !$this->localityId) || ($this->localityId && in_array($this->urlRouter->countryId, [1,2,3,7,8,9]))) ) {
+                        $qTotal = $this->searchResults['body']['total_found'];
+                        $__fpages=$qTotal/$this->num;
+                        $qPages = ($__fpages<1) ? 0 : ceil($__fpages);
+                        $qTmp=ceil($this->urlRouter->cfg['search_results_max']/$this->num);
+                        if ($qPages>$qTmp) $qPages=(int)$qTmp;
+                            
                         if (array_key_exists('q', $_GET)) {
                             echo '<meta name="robots" content="noindex, follow" />';
-                            $currentUrl=$this->urlRouter->getUrl($this->urlRouter->countryId,$this->urlRouter->cityId,$this->urlRouter->rootId,$this->urlRouter->sectionId,$this->urlRouter->purposeId);
-                            $qTotal = $this->searchResults['body']['total_found'];
-                            $qPages=$qTotal/$this->num;
-                            if ($qPages<1) $qPages=0;
-                            else $qPages=ceil($qPages);
-                            $qTmp=ceil($this->urlRouter->cfg['search_results_max']/$this->num);
-                            if ($qPages>$qTmp) $qPages=(int)$qTmp;
-                            if ($this->urlRouter->params['start']<$qPages && !$this->isMobile) {
+                            $currentUrl=$this->urlRouter->getUrl($this->urlRouter->countryId,$this->urlRouter->cityId,$this->urlRouter->rootId,$this->urlRouter->sectionId,$this->urlRouter->purposeId);                                                        
+                            
+                            if ($this->urlRouter->params['start']<$qPages && !$this->isMobile) 
+                            {
                                 $next = $this->urlRouter->params['start']+1;
                                 if ($next==1) $next=2;
                                 echo '<link rel="prerender" href="', $this->urlRouter->cfg['url_base'], $currentUrl, $next,'/?q=',urlencode($this->urlRouter->params['q']), '" />';
                                 echo '<link rel="prefetch" href="', $this->urlRouter->cfg['url_base'], $currentUrl, $next,'/?q=',urlencode($this->urlRouter->params['q']), '" />';
                             }
-                        }else {
+                            
+                        }
+                        else {
                             
                             $this->includeMetaKeywords();
                             
@@ -5358,21 +5369,21 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                             $link=  'https://www.mourjan.com'.$currentUrl.$startLink;
                             
                             if ($link == $this->urlRouter->cfg['host'].$_SERVER['REQUEST_URI']){
-                                    echo '<meta name="robots" content="noodp, noydir, index, follow" />';
+                                echo '<meta name="robots" content="noodp, noydir, index, follow" />';
                                     
-                                    if($this->urlRouter->countryId && $this->urlRouter->sectionId && $this->urlRouter->purposeId && $this->urlRouter->params['start']<=1){
-                                        echo '<link rel="alternate" href="android-app://com.mourjan.classifieds/mourjan/list/';
-                                        echo '?';
-                                        echo "cn={$this->urlRouter->countryId}&";
-                                        echo "c={$this->urlRouter->cityId}&";
-                                        echo "ro={$this->urlRouter->rootId}&";
-                                        echo "se={$this->urlRouter->sectionId}&";
-                                        echo "pu={$this->urlRouter->purposeId}&";
-                                        echo "tx={$this->extendedId}&";
-                                        echo "gx={$this->localityId}&";
-                                        echo "hl={$this->urlRouter->siteLanguage}";
-                                        echo '" />';
-                                    }
+                                if($this->urlRouter->countryId && $this->urlRouter->sectionId && $this->urlRouter->purposeId && $this->urlRouter->params['start']<=1){
+                                    echo '<link rel="alternate" href="android-app://com.mourjan.classifieds/mourjan/list/';
+                                    echo '?';
+                                    echo "cn={$this->urlRouter->countryId}&";
+                                    echo "c={$this->urlRouter->cityId}&";
+                                    echo "ro={$this->urlRouter->rootId}&";
+                                    echo "se={$this->urlRouter->sectionId}&";
+                                    echo "pu={$this->urlRouter->purposeId}&";
+                                    echo "tx={$this->extendedId}&";
+                                    echo "gx={$this->localityId}&";
+                                    echo "hl={$this->urlRouter->siteLanguage}";
+                                    echo '" />';
+                                }
                             }else {
                                 echo '<meta name="robots" content="noindex, follow" />';
                             }
@@ -5389,17 +5400,16 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                                 echo "' />";
                             }
 
-                            $qTotal = $this->searchResults['body']['total_found'];
-                            
-                            
+                            /*
+                            $qTotal = $this->searchResults['body']['total_found'];                                                        
                             $qPages=$qTotal/$this->num;
                             if ($qPages<1) $qPages=0;
                             else $qPages=ceil($qPages);
-
+                            
                             $qTmp=ceil($this->urlRouter->cfg['search_results_max']/$this->num);
-
                             if ($qPages>$qTmp) $qPages=(int)$qTmp;
-
+                            */
+                            
                             if ($this->urlRouter->params['start']<$qPages && !$this->isMobile) {
                                 $next = $this->urlRouter->params['start']+1;
                                 if ($next==1) $next=2;
@@ -5414,7 +5424,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                     }
                 }
 
-                echo '<link href="', $this->urlRouter->cfg['url_base'], $this->urlRouter->uri,($this->urlRouter->siteLanguage=='ar' ? '':'en/'), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
+                echo '<link href="', $this->urlRouter->cfg['url_base'], $this->urlRouter->uri, $this->urlRouter->getLanguagePath(), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
 
                 break;
             case 'index':
@@ -5447,16 +5457,17 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                             $this->urlRouter->countries[$this->urlRouter->countryId]['name']
                          )
                         ) : 
-                        $this->title;                
+                        $this->title;   
+                
                 ?><script type="application/ld+json">
 {"@context": "https://schema.org",
  "@type": "WebSite",
  "name": "<?= $__name ?>",
  "alternateName": "mourjan",
- "url": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/') ?>",
+ "url": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').$this->router()->getLanguagePath() ?>",
  "potentialAction":
  {"@type": "SearchAction",
-  "target": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/') ?>?q={search_term_string}",
+  "target": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').$this->router()->getLanguagePath() ?>?q={search_term_string}",
   "query-input": "required name=search_term_string"
  }
 }

@@ -69,6 +69,12 @@ class DB
     }
 
     
+    public function index() : SphinxQL
+    {
+        return $this->ql;
+    }
+    
+    
     public function setWriteMode($on=TRUE) 
     {
         $this->setTransactionIsolation(!$on);
