@@ -65,6 +65,20 @@ class Admin extends Page
             
             switch ($action)
             {
+                case 'blacklist':
+                    $_GET['t']= $_GET['p'];
+                    $reason = $_GET['reason'];
+                    unset($_GET['p']);
+                    unset($_GET['reason']);
+                    
+                    \Core\Model\NoSQL::getInstance()->blacklistInsert($parameter, $reason);
+                    
+                    break;
+                case 'unlist':
+                    \Core\Model\NoSQL::getInstance()->removeNumberFromBlacklist($parameter);
+                    $_GET['t']= $_GET['p'];
+                    unset($_GET['p']);
+                    break;
                 case 'unblock':
                     $unblockNumbers = [];
                     $userdata = [$this->parseUserBins( \Core\Model\NoSQL::getInstance()->fetchUser($parameter)) ];
@@ -704,15 +718,16 @@ $.ajax({
                     ?></ul><?php
                     ?></form><?php
                     
+                    
                     if ($this->userdata && count($this->userdata) && (($this->aid==0 && $this->userdata[0]) || ($this->aid)))
                     {
                         if ($this->aid==0)
                         {
-                        foreach($this->userdata as $record)
-                        {
-                            $this->parseUserRecordData($record);
-                            echo '<br/>';
-                        }
+                            foreach($this->userdata as $record)
+                            {
+                                $this->parseUserRecordData($record);
+                                echo '<br/>';
+                            }
                         }
                         else
                         {
@@ -796,9 +811,59 @@ $.ajax({
                         ?><div class="ctr"><?php
                         if($this->uid || $this->mobile_param!='')
                         {
-                            ?><h4>NO DATA FOUND</h4><?php
+                            ?><h4>NO USER DATA FOUND</h4><?php
                         }
                         ?></div><?php 
+                        
+                        
+                        if(isset($_GET['t']) && $_GET['t']){
+                            echo '<br />';
+                            if( !($this->userdata && count($this->userdata)) ){
+                                if (Core\Model\NoSQL::getInstance()->isBlacklistedContacts([$_GET['t']])){
+
+                                    ?><div style="margin:5px;padding:10px;direction:ltr;overflow:hidden;display:block"><?php
+                                    ?><p>This number is blacklisted for the following reason:</p><br /><?php
+                                    ?><p style="text-align:center;color:red;font-size:16px;font-weight:bold"><?php
+                                        echo Core\Model\NoSQL::getInstance()->getBlackListedReason($_GET['t']);
+                                    ?></p><?php
+                                    ?></div><div style="background-color:darkkhaki;margin:5px;padding:10px;direction:ltr;overflow:hidden;display:block"><?php
+                                    ?><h4 style="float:left">Would you like to remove number from blacklist?</h4><?php
+                                    ?><a class="lnk" style="float:right" href="?p=<?= $_GET['t'] ?>&action=unlist">remove</a><?php
+                                    ?></div><br /><?php
+                                }else{
+                                    $validator = libphonenumber\PhoneNumberUtil::getInstance();
+                                    $num = $validator->parse($_GET['t'], 'LB');
+                                    
+                                    if($validator->isValidNumber($num)){
+                                        ?><div style="background-color:darkkhaki;margin:5px;padding:10px;direction:ltr;overflow:hidden;display:block"><?php
+                                        ?><h4 >Would you like to blacklist this number?</h4><?php
+                                        ?><form method="GET" onsubmit="return black();"><textarea name="reason" id="breason" style="padding:10px;margin:20px;width:660px;height:100px" placeholder="please specify a reason"></textarea><?php
+                                        ?><input type="hidden" name="p" value="<?= $_GET['t'] ?>" /><?php
+                                        ?><input type="hidden" name="action" value="blacklist" /><?php
+                                        ?><p style="text-align:center"><input class="bt" type="submit" value="blacklist"/></p><?php
+                                        ?></form></div><br /><?php
+                                        
+                                            $this->globalScript .= '
+                                                var black=function(){
+                                                    var e=$("#breason");
+                                                    console.log(e.val());
+                                                    if(e.val().length < 3){
+                                                        e.addClass("err");
+                                                        return false;
+                                                    }else{
+                                                        return true;
+                                                    }
+                                                };
+                                            ';
+                                    }else{
+                                        ?><div class="ctr"><?php
+                                            ?><h4 style="color:red">MOBILE NUMBER IS NOT VALID</h4><?php
+                                        ?></div><?php 
+                                    }
+                                }
+                                echo '<br />';
+                            }
+                        }
                     }
         
                     break;
@@ -807,41 +872,42 @@ $.ajax({
     
     
     function parseUserRecordData($record)
-    {
-        echo '<ul class="tbs">';
-        echo '<li><a href="/myads/?sub=drafts&u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Drafts</a></li>';
-        echo '<li><a href="/myads/?sub=pending&u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Pending</a></li>';
-        echo '<li><a href="/myads/?u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Active</a></li>';
-        echo '<li><a href="/myads/?sub=archive&u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Archived</a></li>';
-        echo '<li><a href="/myads/?sub=deleted&u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Deleted</a></li>';
-        echo '<li><a href="/statement/?u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Balance</a></li>';
-        if (isset($record['suspended']) && $record['suspended']=='YES')
-        {
-            echo '<li><a href="/admin/?p='. $record[\Core\Model\ASD\SET_RECORD_ID] . '&a=-1">Release</a></li>';
-        }
-        if($record[\Core\Model\ASD\USER_LEVEL]==5)
-        {
-            echo '<li style="float:right"><a style="border-left:1px solid #CCC" href="?p='.$record[\Core\Model\ASD\SET_RECORD_ID].'&action=unblock">Unblock</a></li>';
-        }
-        else
-        {
-            echo '<li style="float:right"><a style="border-left:1px solid #CCC" onclick="block('.$record[\Core\Model\ASD\SET_RECORD_ID].',this)" href="javascript:void(0);">Block</a></li>';
-            if ( !(isset($record['suspended']) && $record['suspended']=='YES'))
+    {   if(is_array($record) && count($record)){
+            echo '<ul class="tbs">';
+            echo '<li><a href="/myads/?sub=drafts&u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Drafts</a></li>';
+            echo '<li><a href="/myads/?sub=pending&u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Pending</a></li>';
+            echo '<li><a href="/myads/?u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Active</a></li>';
+            echo '<li><a href="/myads/?sub=archive&u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Archived</a></li>';
+            echo '<li><a href="/myads/?sub=deleted&u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Deleted</a></li>';
+            echo '<li><a href="/statement/?u='. $record[\Core\Model\ASD\SET_RECORD_ID] . '">Balance</a></li>';
+            if (isset($record['suspended']) && $record['suspended']=='YES')
             {
-                echo '<li style="float:right"><a style="border-left:1px solid #CCC" onclick="suspend('.$record[\Core\Model\ASD\SET_RECORD_ID].',this)" href="javascript:void(0);">Suspend</a></li>';
+                echo '<li><a href="/admin/?p='. $record[\Core\Model\ASD\SET_RECORD_ID] . '&a=-1">Release</a></li>';
             }
+            if($record[\Core\Model\ASD\USER_LEVEL]==5)
+            {
+                echo '<li style="float:right"><a style="border-left:1px solid #CCC" href="?p='.$record[\Core\Model\ASD\SET_RECORD_ID].'&action=unblock">Unblock</a></li>';
+            }
+            else
+            {
+                echo '<li style="float:right"><a style="border-left:1px solid #CCC" onclick="block('.$record[\Core\Model\ASD\SET_RECORD_ID].',this)" href="javascript:void(0);">Block</a></li>';
+                if ( !(isset($record['suspended']) && $record['suspended']=='YES'))
+                {
+                    echo '<li style="float:right"><a style="border-left:1px solid #CCC" onclick="suspend('.$record[\Core\Model\ASD\SET_RECORD_ID].',this)" href="javascript:void(0);">Suspend</a></li>';
+                }
+            }
+            echo '</ul>';
+            echo '<div dir="ltr">';
+            echo '<pre style="font-size:12pt;font-family:arial;line-height:18pt;">';
+            echo json_encode($record, JSON_PRETTY_PRINT);
+            echo '</pre></div>';
+            ?><div id="susp_dialog" class="dialog"><?php
+            ?><div class="dialog-box ctr"><select id="suspT" style="direction:ltr;width:200px"><option value="1">1 hour</option><option value="6">6 hours</option><option value="12">12 hours</option><option value="18">18 hours</option><option value="24">24 hours</option><option value="30">30 hours</option><option value="36">36 hours</option><option value="42">42 hours</option><option value="48">48 hours</option><option value="54">54 hours</option><option value="60">60 hours</option><option value="66">66 hours</option><option value="72">72 hours</option></select></div><?php
+            ?><div class="dialog-action"><?php
+            ?><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['suspend'] ?>" /><?php
+            ?></div><?php
+            ?></div><?php
         }
-        echo '</ul>';
-        echo '<div dir="ltr">';
-        echo '<pre style="font-size:12pt;font-family:arial;line-height:18pt;">';
-        echo json_encode($record, JSON_PRETTY_PRINT);
-        echo '</pre></div>';
-        ?><div id="susp_dialog" class="dialog"><?php
-        ?><div class="dialog-box ctr"><select id="suspT" style="direction:ltr;width:200px"><option value="1">1 hour</option><option value="6">6 hours</option><option value="12">12 hours</option><option value="18">18 hours</option><option value="24">24 hours</option><option value="30">30 hours</option><option value="36">36 hours</option><option value="42">42 hours</option><option value="48">48 hours</option><option value="54">54 hours</option><option value="60">60 hours</option><option value="66">66 hours</option><option value="72">72 hours</option></select></div><?php
-        ?><div class="dialog-action"><?php
-        ?><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['suspend'] ?>" /><?php
-        ?></div><?php
-        ?></div><?php
     }
 
     

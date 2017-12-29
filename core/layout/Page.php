@@ -1720,6 +1720,8 @@ class Page extends Site
                             if ($this->hasCities && $this->urlRouter->cityId) {
                                 $extended_uri.=$this->urlRouter->cities[$this->urlRouter->cityId][3].'/';
                             }
+                        }else{
+                            $extended_uri .= '/';
                         }
                         $extended_uri.=$this->urlRouter->sections[$this->urlRouter->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
                         //echo "<b>", $extended_uri, "</b></br>";
@@ -1911,8 +1913,12 @@ class Page extends Site
                         }
                     }
                 ?></div><?php
-                if (!$this->urlRouter->userId && $this->urlRouter->module!='post'){ 
-                    ?><a class="pb" href="/post/<?= $adLang ?>"><span class="i p"></span><?= $this->lang['postFree'] ?></a><?php
+                if($this->user->info['id'] && $this->user->isSuperUser() && $this->urlRouter->module!='admin'){
+                    ?><a class="pb" href="/admin/<?= $adLang ?>"><span class="i p"></span><?= $this->lang['administration'] ?></a><?php
+                }else{
+                    if (!$this->urlRouter->userId && $this->urlRouter->module!='post'){ 
+                        ?><a class="pb" href="/post/<?= $adLang ?>"><span class="i p"></span><?= $this->lang['postFree'] ?></a><?php
+                    }
                 }
                 if ($this->urlRouter->userId){
                         if ($this->urlRouter->siteLanguage=='ar') {

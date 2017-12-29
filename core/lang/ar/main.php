@@ -10,6 +10,7 @@ $lang=array(
     'premium_ad'    =>  'اعلان مميز',
     'premium_ad_dt'    =>  'اعلان مميز',
     'followUs'      =>  'تابعنا',
+    'administration'      =>  'إدارة',
     'search_settings'      =>  'خصائص البحث',
     'sorting'              =>  'ترتيب حسب',
     'sorting_0'              =>  'الأجدد اولاً',

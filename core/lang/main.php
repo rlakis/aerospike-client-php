@@ -10,6 +10,7 @@ $lang=array(
     'premium_ad'    =>  'premium ad',
     'premium_ad_dt'    =>  'Premium Ad',
     'followUs'      =>  'Follow us',
+    'administration'      =>  'Administration',
     'search_settings'      =>  'search settings',
     'sorting'              =>  'Sort by',
     'sorting_0'              =>  'Newest First',
