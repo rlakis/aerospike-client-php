@@ -10,6 +10,7 @@ $lang=array(
     'premium_ad'    =>  'اعلان مميز',
     'premium_ad_dt'    =>  'اعلان مميز',
     'followUs'      =>  'تابعنا',
+    'reason_suspension'      =>  'يرجى اضافة السبب ان لزم',
     'administration'      =>  'إدارة',
     'search_settings'      =>  'خصائص البحث',
     'sorting'              =>  'ترتيب حسب',

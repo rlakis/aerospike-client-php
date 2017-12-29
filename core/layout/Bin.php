@@ -5089,6 +5089,7 @@ class Bin extends AjaxHandler{
                 {
                     $id=$_POST['i'];
                     $hours=(int)$_POST['v'];
+                    $reason = isset($_POST['m']) && $_POST['m'] ? $_POST['m'] : 0;
                     if (is_numeric($id) && $hours)
                     {
                         //$userData = MCSessionHandler::getUser($id);
@@ -5096,7 +5097,7 @@ class Bin extends AjaxHandler{
                         $mcUser = new MCUser($id);
                         if($mcUser->isMobileVerified())
                         {
-                            if($this->user->suspend($id,$hours,$mcUser->getMobileNumber())){
+                            if($this->user->suspend($id,$hours,$mcUser->getMobileNumber(), $reason)){
                                 $this->process();
                             }else{
                                 $this->fail('104');

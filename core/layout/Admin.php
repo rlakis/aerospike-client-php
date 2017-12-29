@@ -133,15 +133,18 @@ class Admin extends Page
             }
         }
         
+        $release = intval(filter_input(INPUT_GET, 'a', FILTER_SANITIZE_NUMBER_INT));
+        
         if ($parameter)
         {
             $date = new DateTime();
             
             $len = strlen($parameter);
             $this->uid = intval($parameter);
+            
 
             $this->userdata = [$this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($this->uid))];
-           
+            
         }
         else
         {
@@ -172,6 +175,21 @@ class Admin extends Page
                     }                
                 }
             }
+        }        
+        
+        if($release === -1){
+            unset($_GET['a']);
+            $url = "";
+
+            foreach ($_GET as $key => $value){
+                if($url){
+                    $url .= '&';
+                }
+                $url .= $key.'='.$value;
+            }
+            if($url) $url = '?'.$url;
+
+            header('Location: '. $url);
         }
         
         $this->render();
@@ -232,9 +250,9 @@ class Admin extends Page
                 {
                     if ($release===-1)
                     {
-                        MCSessionHandler::setSuspendMobile($bins[\Core\Model\ASD\USER_PROFILE_ID], $_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], 60, TRUE);
-                        $_mobiles[$i]['suspended']['realease']='within 60 seconds';
+                        $_mobiles[$i]['suspended']['release']='within 60 seconds';
                         $bins['suspended']='60s';
+                        MCSessionHandler::setSuspendMobile($bins[\Core\Model\ASD\USER_PROFILE_ID], $_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], 60, TRUE, $_mobiles[$i]['suspended']['release']);                        
                     }
                     else 
                     {
@@ -765,7 +783,7 @@ $.ajax({
                                 $.ajax({
                                     type:"POST",
                                     url:"/ajax-ususpend/",
-                                    data:{i:usr,v:$("#suspT").val()},
+                                    data:{i:usr,v:$("#suspT").val(),m:$("#suspM").val()},
                                     dataType:"json",
                                     success:function(rp){
                                         e.removeClass("load");
@@ -837,7 +855,8 @@ $.ajax({
                                     if($validator->isValidNumber($num)){
                                         ?><div style="background-color:darkkhaki;margin:5px;padding:10px;direction:ltr;overflow:hidden;display:block"><?php
                                         ?><h4 >Would you like to blacklist this number?</h4><?php
-                                        ?><form method="GET" onsubmit="return black();"><textarea name="reason" id="breason" style="padding:10px;margin:20px;width:660px;height:100px" placeholder="please specify a reason"></textarea><?php
+                                        ?><form method="GET" onsubmit="return black();"><?php
+                                        ?><textarea onkeydown="idir(this)" onchange="idir(this,1)" name="reason" id="breason" style="padding:10px;margin:20px;width:660px;height:100px" placeholder="please specify a reason"></textarea><?php
                                         ?><input type="hidden" name="p" value="<?= $_GET['t'] ?>" /><?php
                                         ?><input type="hidden" name="action" value="blacklist" /><?php
                                         ?><p style="text-align:center"><input class="bt" type="submit" value="blacklist"/></p><?php
@@ -902,7 +921,9 @@ $.ajax({
             echo json_encode($record, JSON_PRETTY_PRINT);
             echo '</pre></div>';
             ?><div id="susp_dialog" class="dialog"><?php
-            ?><div class="dialog-box ctr"><select id="suspT" style="direction:ltr;width:200px"><option value="1">1 hour</option><option value="6">6 hours</option><option value="12">12 hours</option><option value="18">18 hours</option><option value="24">24 hours</option><option value="30">30 hours</option><option value="36">36 hours</option><option value="42">42 hours</option><option value="48">48 hours</option><option value="54">54 hours</option><option value="60">60 hours</option><option value="66">66 hours</option><option value="72">72 hours</option></select></div><?php
+            ?><div class="dialog-box ctr"><select id="suspT" style="direction:ltr;width:200px"><option value="1">1 hour</option><option value="6">6 hours</option><option value="12">12 hours</option><option value="18">18 hours</option><option value="24">24 hours</option><option value="30">30 hours</option><option value="36">36 hours</option><option value="42">42 hours</option><option value="48">48 hours</option><option value="54">54 hours</option><option value="60">60 hours</option><option value="66">66 hours</option><option value="72">72 hours</option></select><?php
+            ?><br /><br /><textarea style="height:100px" onkeydown="idir(this)" onchange="idir(this,1)" id="suspM" placeholder="<?= $this->lang['reason_suspension'] ?>"></textarea><?php
+            ?></div><?php
             ?><div class="dialog-action"><?php
             ?><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['suspend'] ?>" /><?php
             ?></div><?php

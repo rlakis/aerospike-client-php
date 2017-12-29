@@ -1346,7 +1346,7 @@ var rtMsgs={
                     if(!$isSuperAdmin && $assignedAdmin && $assignedAdmin != $this->user->info['id']){
                         continue;
                     } 
-                    if($isSuperAdmin){
+                    if($isSuperAdmin && $assignedAdmin){
                         $assignedAdmin = '<span class="fl" style="padding:0 5px;">'.$this->editors[$assignedAdmin].'</span>';
                     }else{
                         $assignedAdmin = '';
@@ -1990,6 +1990,7 @@ var rtMsgs={
                 ?></div><?php
             /*    ?><input class="bt wn" type="button" value="<?= $this->lang['rejectWarn'] ?>" /></div><?php */
                 ?><div id="suspForm" class="rpd cct"><select id="suspT"></select><?php
+                ?><textarea style="height:100px" onkeydown="idir(this)" onchange="idir(this,1)" id="suspM" placeholder="<?= $this->lang['reason_suspension'] ?>"></textarea><?php
                 ?><input type="button" class="bt" onclick="suspA(this)" value="<?= $this->lang['suspend'] ?>" /><?php
                 ?><input class="bt cl" type="button" onclick="suspC(this)"  value="<?= $this->lang['cancel'] ?>" /></div><?php
                 ?><div id="banForm" class="rpd cct"><textarea id="banT" onkeydown="idir(this)" onchange="idir(this,1)"></textarea><?php

@@ -179,7 +179,7 @@ class MCSessionHandler implements \SessionHandlerInterface
     }
 
     
-    public static function setSuspendMobile($uid, $number, $secondsToSuspend, $clearLog=false)
+    public static function setSuspendMobile($uid, $number, $secondsToSuspend, $clearLog=false, $reason = 0)
     {   
         $pass = false;
         $redis = new Redis();
@@ -189,7 +189,7 @@ class MCSessionHandler implements \SessionHandlerInterface
             $redis->setOption(Redis::OPT_PREFIX, 'mm_');
             $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
             
-            $pass = $redis->set($number, 1, $secondsToSuspend);
+            $pass = $redis->set($number, $reason ? $reason : "not specified", $secondsToSuspend);
             if($pass)
             {
                 if ($clearLog)

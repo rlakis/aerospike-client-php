@@ -323,20 +323,20 @@ function suspF(e,usr){
         }
     }
     r.removeClass("hid");
-    c[1].onclick=function(){
-        suspA(e,c[0],usr)
-    };
     c[2].onclick=function(){
+        suspA(e,c[0],usr,$(c[1]).val())
+    };    
+    c[3].onclick=function(){
         suspC(e)
     }
 }
-function suspA(e,ta,usr){
+function suspA(e,ta,usr,reason){
     suspC(e);
     var d=mask(e);
     $.ajax({
         type:"POST",
         url:"/ajax-ususpend/",
-        data:{i:usr,v:ta.value},
+        data:{i:usr,v:ta.value,m:reason?reason : ''},
         dataType:"json",
         success:function(rp){
             if (rp.RP) {

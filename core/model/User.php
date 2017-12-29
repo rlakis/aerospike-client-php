@@ -2023,7 +2023,7 @@ class User
     }
     
     
-    function suspend($uid, $hours, $newModel=0)
+    function suspend($uid, $hours, $newModel=0, $reason = 0)
     {
         $pass=false;
         if($newModel)
@@ -2032,7 +2032,7 @@ class User
             {
                 $newModel = substr($newModel, 1);
             }
-            $pass=MCSessionHandler::setSuspendMobile($uid, $newModel, $hours*3600);
+            $pass=MCSessionHandler::setSuspendMobile($uid, $newModel, $hours*3600, false, $reason);
         }
         else
         {
