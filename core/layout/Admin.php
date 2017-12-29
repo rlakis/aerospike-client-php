@@ -258,7 +258,9 @@ class Admin extends Page
                     {
                         $_mobiles[$i]['suspended']['till'] = gmdate("Y-m-d H:i:s T", time()+$ttl); 
                         $_mobiles[$i]['suspended']['reason'] = strpos($reason, ':') ? trim(substr($reason, strpos($reason, ':')+1)) : $reason;      
+                        //var_dump($_mobiles[$i]['suspended']['reason']);
                         $bins['suspended']='YES';
+                        $bins['suspended_reason']=$_mobiles[$i]['suspended']['reason'];
                     }
                 }
             }
@@ -865,7 +867,6 @@ $.ajax({
                                             $this->globalScript .= '
                                                 var black=function(){
                                                     var e=$("#breason");
-                                                    console.log(e.val());
                                                     if(e.val().length < 3){
                                                         e.addClass("err");
                                                         return false;
@@ -918,7 +919,7 @@ $.ajax({
             echo '</ul>';
             echo '<div dir="ltr">';
             echo '<pre style="font-size:12pt;font-family:arial;line-height:18pt;">';
-            echo json_encode($record, JSON_PRETTY_PRINT);
+            echo json_encode($record, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE);
             echo '</pre></div>';
             ?><div id="susp_dialog" class="dialog"><?php
             ?><div class="dialog-box ctr"><select id="suspT" style="direction:ltr;width:200px"><option value="1">1 hour</option><option value="6">6 hours</option><option value="12">12 hours</option><option value="18">18 hours</option><option value="24">24 hours</option><option value="30">30 hours</option><option value="36">36 hours</option><option value="42">42 hours</option><option value="48">48 hours</option><option value="54">54 hours</option><option value="60">60 hours</option><option value="66">66 hours</option><option value="72">72 hours</option></select><?php
