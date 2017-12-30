@@ -835,15 +835,50 @@ class SphinxQL
     
     
     
-    function rotate(string $partition='x')
+    function rotate(string $partition='x', string $index_name='')
     {
         $result = array();
-        $cmd = "RELOAD INDEX ad{$partition} FROM '/home/db/sphinx/new/mourjan-ad-partition-{$partition}'";
-        if ($this->_sphinx->query($cmd))
+        $cmd = NULL;
+        switch ($index_name) 
         {
-            //error_log($cmd);
+            case 'ad0':
+                $cmd = "RELOAD INDEX ad{$partition} FROM '/home/db/sphinx/new/mourjan-ad-partition-0'";
+                break;
+            
+            case 'ad1':
+                $cmd = "RELOAD INDEX ad{$partition} FROM '/home/db/sphinx/new/mourjan-ad-partition-1'";
+                break;
+            
+            case 'ad2':
+                $cmd = "RELOAD INDEX ad{$partition} FROM '/home/db/sphinx/new/mourjan-ad-partition-2'";
+                break;
+            
+            case 'adx':
+                $cmd = "RELOAD INDEX ad{$partition} FROM '/home/db/sphinx/new/mourjan-ad-partition-x'";
+                break;
+            
+            case 'section_counts':
+                $cmd = "RELOAD INDEX {$index_name} FROM '/home/db/sphinx/new/{$index_name}'";
+                break;
+            
+            case 'locality_counts':
+                $cmd = "RELOAD INDEX {$index_name} FROM '/home/db/sphinx/new/{$index_name}'";
+                break;
+            
+            case 'section_tag_counts':
+                $cmd = "RELOAD INDEX {$index_name} FROM '/home/db/sphinx/new/{$index_name}'";
+                break;
+                
+
+            default:
+                break;
+        }
+        //$cmd = "RELOAD INDEX ad{$partition} FROM '/home/db/sphinx/new/mourjan-ad-partition-{$partition}'";
+        if ($cmd && $this->_sphinx->query($cmd))
+        {
             $result[]=$cmd;           
-        }        
+        }
+        error_log($cmd);
         return $result;
     }
 

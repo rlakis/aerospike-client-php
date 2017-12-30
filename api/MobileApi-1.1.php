@@ -727,7 +727,7 @@ class MobileApi
         if (strlen($index_name)>0)
         {
             $partition = substr($index_name, -1);
-            $this->result['d']=$sphinx->rotate($partition);
+            $this->result['d']=$sphinx->rotate($partition, $index_name);
         }
     }
     
