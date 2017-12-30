@@ -5386,21 +5386,16 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                             $canonical_link=$link;
                             
                             // page is not qualified to be multi language indexable
-                            if (false && $qTotal<static::SearchEngineLegitimateEntries && !$this->router()->isArabic())
+                            if ($qTotal<static::SearchEngineLegitimateEntries && !$this->router()->isArabic())
                             {
                                 if ($this->extendedId || $this->localityId) 
                                 {
                                     $canonicalCurrentUrl= preg_replace("/\/{$this->router()->siteLanguage}\//", "/", $this->extended_uri);
+                                    
                                     if ($this->localityId)
                                     {
-                                        error_log(var_export($this->localities[$this->localityId], TRUE));
-                                        
-                                        $alter_localities = $this->router()->database()->getLocalitiesData($this->router()->countryId, $this->router()->sectionId, 1, 'ar');
-                                        
-                                        error_log(var_export($alter_localities, true));
                                         $alter = $this->router()->database()->index()
                                                 ->directQuery("select id, locality_id from locality_counts where city_id={$this->localities[$this->localityId]['city_id']} and section_id={$this->router()->sectionId} and lang='ar'");
-                                        error_log(var_export($alter, TRUE));
                                         
                                         if ($alter && count($alter)==1)
                                         {
