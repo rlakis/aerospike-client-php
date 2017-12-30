@@ -5,6 +5,8 @@ use Core\Model\Classifieds;
 
 class Page extends Site
 {
+    const SearchEngineLegitimateEntries = 21;
+    
     protected $action='';
     protected $requires=array('js'=>array(),'css'=>array());
     protected $title='', $description='';
@@ -5337,7 +5339,8 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 break;
 
             case 'search':
-                if ($this->userFavorites) {
+                if ($this->userFavorites) 
+                {
                     echo '<meta name="robots" content="noindex, nofollow" />';
                 } 
                 else {
@@ -5347,34 +5350,83 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                         $qPages = ($__fpages<1) ? 0 : ceil($__fpages);
                         $qTmp=ceil($this->urlRouter->cfg['search_results_max']/$this->num);
                         if ($qPages>$qTmp) $qPages=(int)$qTmp;
-                            
-                        if (array_key_exists('q', $_GET)) {
+                        
+                        if (array_key_exists('q', $_GET)) 
+                        {
                             echo '<meta name="robots" content="noindex, follow" />';
                             $currentUrl=$this->urlRouter->getUrl($this->urlRouter->countryId,$this->urlRouter->cityId,$this->urlRouter->rootId,$this->urlRouter->sectionId,$this->urlRouter->purposeId);                                                        
                             
                             if ($this->urlRouter->params['start']<$qPages && !$this->isMobile) 
                             {
-                                $next = $this->urlRouter->params['start']+1;
-                                if ($next==1) $next=2;
+                                $next = $this->urlRouter->params['start']==0 ? 2 : $this->urlRouter->params['start']+1;
                                 echo '<link rel="prerender" href="', $this->urlRouter->cfg['url_base'], $currentUrl, $next,'/?q=',urlencode($this->urlRouter->params['q']), '" />';
                                 echo '<link rel="prefetch" href="', $this->urlRouter->cfg['url_base'], $currentUrl, $next,'/?q=',urlencode($this->urlRouter->params['q']), '" />';
-                            }
-                            
+                            }                            
                         }
                         else {
                             
                             $this->includeMetaKeywords();
                             
                             $startLink='';
-                            if ($this->extendedId || $this->localityId) {
+                            if ($this->extendedId || $this->localityId) 
+                            {
                                 $currentUrl=$this->extended_uri;
-                            }else {
+                            } 
+                            else 
+                            {
                                 $currentUrl=$this->urlRouter->getUrl($this->urlRouter->countryId,$this->urlRouter->cityId,$this->urlRouter->rootId,$this->urlRouter->sectionId,$this->urlRouter->purposeId);
                             }
-                            if ($this->urlRouter->params['start']>1) $startLink=$this->urlRouter->params['start'].'/';
-                            $link=  'https://www.mourjan.com'.$currentUrl.$startLink;
                             
-                            if ($link == $this->urlRouter->cfg['host'].$_SERVER['REQUEST_URI']){
+                            if ($this->urlRouter->params['start']>1) 
+                            {
+                                $startLink=$this->urlRouter->params['start'].'/';
+                            }
+                            
+                            $link = 'https://www.mourjan.com'.$currentUrl.$startLink;
+                            $canonical_link=$link;
+                            
+                            // page is not qualified to be multi language indexable
+                            if ($qTotal<static::SearchEngineLegitimateEntries && !$this->router()->isArabic())
+                            {
+                                if ($this->extendedId || $this->localityId) 
+                                {
+                                    $canonicalCurrentUrl= preg_replace("/\/{$this->router()->siteLanguage}\//", "/", $this->extended_uri);
+                                    if ($this->localityId)
+                                    {
+                                        $alter = $this->router()->database()->index()
+                                                ->directQuery("select id, locality_id from locality_counts where city_id={$this->localities[$this->localityId]['city_id']} and section_id={$this->router()->sectionId} and lang='ar'");
+                                        if ($alter && count($alter)==1)
+                                        {
+                                            foreach ($alter as $value) 
+                                            {
+                                                $canonicalCurrentUrl= preg_replace("/\/c\-{$this->localityId}\-/", "/c-{$value[1]}-", $canonicalCurrentUrl);
+                                            }
+                                        }
+                                    }
+                                    
+                                    if ($this->extendedId)
+                                    {
+                                        $alter = $this->router()->database()->index()
+                                                ->directQuery("select id, section_tag_id from section_tag_counts where country_id={$this->router()->countryId} and section_id={$this->router()->sectionId} and lang='ar' and uri='{$this->extended[$this->extendedId]['uri']}'");
+                                        if ($alter && count($alter)==1)
+                                        {
+                                            foreach ($alter as $value) 
+                                            {
+                                                $canonicalCurrentUrl= preg_replace("/\/q\-{$this->extendedId}\-/", "/q-{$value[1]}-", $canonicalCurrentUrl);
+                                            }
+                                        }                                        
+                                    }                                    
+                                } 
+                                else 
+                                {
+                                    $canonicalCurrentUrl=$this->router()->getUrl($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId, FALSE);
+                                }
+                                $canonical_link = 'https://www.mourjan.com'.$canonicalCurrentUrl.$startLink;                                
+                            }
+                            // end of page is not qualified to be multi language indexable
+                            
+                            if ($link==$this->router()->cfg['host'].$_SERVER['REQUEST_URI'])
+                            {
                                 echo '<meta name="robots" content="noodp, noydir, index, follow" />';
                                     
                                 if($this->urlRouter->countryId && $this->urlRouter->sectionId && $this->urlRouter->purposeId && $this->urlRouter->params['start']<=1){
@@ -5394,7 +5446,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                                 echo '<meta name="robots" content="noindex, follow" />';
                             }
                                     
-                            echo '<link rel="canonical" href="',$link, '" />';
+                            echo '<link rel="canonical" href="',$canonical_link, '" />';
                             
 
                             if ($this->urlRouter->params['start']>1) {
@@ -5416,7 +5468,8 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                             if ($qPages>$qTmp) $qPages=(int)$qTmp;
                             */
                             
-                            if ($this->urlRouter->params['start']<$qPages && !$this->isMobile) {
+                            if ($this->router()->params['start']<$qPages && !$this->isMobile) 
+                            {
                                 $next = $this->urlRouter->params['start']+1;
                                 if ($next==1) $next=2;
                                 echo "<link rel='next' href='", $this->urlRouter->cfg['url_base'], $currentUrl, $next, '/';
