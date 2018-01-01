@@ -883,10 +883,10 @@ class Router
     }
     
 
-    function FetchUrl($url=NULL) {
-        if (!$url) $url=  $this->uri;
-
-        $result=$this->db->queryCacheResultSimpleArray($url, "
+    
+    function FetchUrl($url=NULL) 
+    {
+        $result=$this->db->queryCacheResultSimpleArray($url==NULL ? $this->uri : $url, "
                 SELECT r.COUNTRY_ID, r.CITY_ID, r.ROOT_ID, r.SECTION_ID, r.PURPOSE_ID, trim(r.MODULE),
                 iif(r.TITLE_EN>'', r.TITLE_EN, SUBSTRING(r.title from POSITION(ascii_char(9) , r.title) for 128)),
                 iif(r.TITLE_AR>'', r.title_ar, SUBSTRING(r.title from 1 for POSITION(ascii_char(9), r.title))),
@@ -894,19 +894,24 @@ class Router
                 FROM URI r
                 where r.PATH=?
                 and r.BLOCKED=0
-                ", array($url), -1, 0, FALSE, TRUE);
-        
+                ", [$url], -1, 0, FALSE, TRUE);
         return $result;
     }
 
 
-    function decode() {
-        if ($this->id) {
+    function decode() 
+    {        
+        if ($this->id) 
+        {
             $this->module='detail';
-        } else {
-            if ($this->uri) {
-                $url_codes = $this->FetchUrl();
-                if ($url_codes) {
+        } 
+        else 
+        {
+            if ($this->uri) 
+            {
+                $url_codes = $this->FetchUrl($this->uri);
+                if ($url_codes) 
+                {
                     $this->countryId = $url_codes[0];
                     $this->cityId = $url_codes[1];
                     $this->rootId = $url_codes[2];
@@ -916,17 +921,26 @@ class Router
                     $this->pageTitle['en'] = trim($url_codes[6]);
                     $this->pageTitle['ar'] = trim($url_codes[7]);
                     if (!$this->userId)
+                    {
                         $this->userId = $url_codes[8];
+                    }
+                    
 
+                    if ($this->module=='cache' || ($this->module=='watchlist' && $this->params['rss']))
+                    {
+                        $this->force_search=false;
+                    }
 
-                    if ($this->module=='cache' ||
-                            ($this->module=='watchlist' && $this->params['rss'])) $this->force_search=false;
-
-                    if ($this->force_search) {
+                    if ($this->force_search) 
+                    {
                         $this->module='search';
-                    } elseif ($this->isMobile && $this->rootId>0 && $this->sectionId==0) {
+                    } 
+                    elseif ($this->isMobile && $this->rootId>0 && $this->sectionId==0) 
+                    {
                         $this->module='index';
-                    } elseif ($this->purposeId>0 || $this->rootId>0 || ($this->force_search)) {
+                    } 
+                    elseif ($this->purposeId>0 || $this->rootId>0 || ($this->force_search)) 
+                    {
                         $this->module='search';
                     }
 
@@ -936,12 +950,20 @@ class Router
                         $this->rootId==0 &&
                         $this->sectionId==0 &&
                         empty($this->params['q']) &&
-                        $this->params['start']>0) {
+                        $this->params['start']>0) 
+                    {
                         header('HTTP/1.1 410 Gone');
                         $this->http_status=410;
                     }
+                    
+                    if (isset($url_codes[9]) && !empty($url_codes[9]))
+                    {
+                        $this->redirect($url_codes[9], 301);
+                    }
 
-                } else {
+                } 
+                else 
+                {
                     if (strstr($this->uri, '/facebook')) $this->module='facebook';
                     elseif (strstr($this->uri, '/cse')) $this->module='cse';                    
                     else {
