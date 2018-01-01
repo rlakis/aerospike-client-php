@@ -23,6 +23,13 @@ class Administration
     }
 
     
+    private function database() : \Core\Model\DB
+    {
+        return $this->db;
+    }
+            
+            
+    
     function _run()
     {
         global $config;
@@ -210,6 +217,48 @@ class Administration
                     echo "yBlocked error: missing {web_user_id}".PHP_EOL;
                 }
                 break;
+                
+            case "redirect":
+                $redis = new \Redis();
+                $redis->connect('p1.mourjan.com', 6379, 1, NULL, 100);
+                $redis->setOption(\Redis::OPT_SERIALIZER, $config['memstore']['serializer']);
+                $redis->setOption(\Redis::OPT_PREFIX, $config['memstore']['prefix']);
+                $redis->select(0);
+                var_dump($this->args);
+                //$path = $redis->get($this->args[3]);
+                
+                $destination = $this->database()->queryResultArray("
+                    SELECT COUNTRY_ID, CITY_ID, ROOT_ID, SECTION_ID, PURPOSE_ID, trim(MODULE),
+                    iif(TITLE_EN>'', TITLE_EN, SUBSTRING(title from POSITION(ascii_char(9) , title) for 128)),
+                    iif(TITLE_AR>'', title_ar, SUBSTRING(title from 1 for POSITION(ascii_char(9), title))),
+                    REFERENCE, REDIRECT_TO
+                    FROM URI
+                    where PATH=?
+                    and BLOCKED=0
+                    ", [$this->args[3]], FALSE, PDO::FETCH_NUM);
+                
+                if ($destination && is_array($destination) && count($destination)==1)
+                {
+                    $from = preg_replace("/\/en\/$|\/en$|\/$/", "", $this->args[2]);
+                    
+                    echo $from, "\n";
+                    $destination[9] = $this->args[3];
+                    var_dump($destination);
+                    echo "\n\n";
+                    
+                    $redis->set($from, $destination);
+                    
+                    
+                    //$object = [$destination['COUNTRY_ID'], $destination['CITY_ID'], $destination['ROOT_ID'], $destination[]];
+                }
+                else
+                {
+                    echo "Invalid destination url {$this->args[3]}", "\n";
+                }
+                
+                
+                break;
+            
             default:
                 $pass=false;
                 echo "command not found".PHP_EOL;
@@ -219,6 +268,7 @@ class Administration
                 echo "3-\tblock \"id1,id2,...\" \"message for why blocked\"".PHP_EOL;
                 echo "4-\tgrant \"id\" \"amount\"".PHP_EOL;
                 echo "5-\trefund \"{days[0,1,2,...]}\" (ex: 0 for current_date, 1 for current_date -1)".PHP_EOL;
+                echo "6-\tredirect from_path to_path (301 html redirect for deleted pages)".PHP_EOL;
                 break;
         }
         if($pass){
