@@ -51,7 +51,7 @@ class Page extends Site
                 $this->isUserMobileVerified = (isset($this->user->info['verified']) && $this->user->info['verified']);
             }
         }
-
+       
 
         
         //$this->user->sysAuthById(3051);
@@ -583,16 +583,19 @@ class Page extends Site
                 echo '</ul></li>';
             }*/
     
-    function renderBalanceBar(){
-        
-        /*<script type="text/javascript" src="https://seal.thawte.com/getthawteseal?host_name=www.mourjan.com&amp;size=S&amp;lang=en"></script> */
-        if($this->user->info['id']){
-        echo '<div id="balance" class="balc"><div id="balanceCounter"></div><a class="buL" href="/gold/'.($this->urlRouter->siteLanguage=='ar' ? '':$this->urlRouter->siteLanguage.'/').'#how-to"><span class="mc24"></span>'.$this->lang['buy_gold_bt'].'</a><a class="buL" href="/gold/'.($this->urlRouter->siteLanguage=='ar' ? '':$this->urlRouter->siteLanguage.'/').'"><span class="rj add"></span>'.$this->lang['get_gold'].'</a></div>';
-        $this->globalScript.="var showBalance=1;";
+    
+    function renderBalanceBar()
+    {        
+        if($this->user->info['id'])
+        {
+            echo '<div id="balance" class="balc"><div id="balanceCounter"></div><a class="buL" href="/gold/'.($this->urlRouter->siteLanguage=='ar' ? '':$this->urlRouter->siteLanguage.'/').'#how-to"><span class="mc24"></span>'.$this->lang['buy_gold_bt'].'</a><a class="buL" href="/gold/'.($this->urlRouter->siteLanguage=='ar' ? '':$this->urlRouter->siteLanguage.'/').'"><span class="rj add"></span>'.$this->lang['get_gold'].'</a></div>';
+            $this->globalScript.="var showBalance=1;";
         }
     }
     
-    function renderLoginBox(){
+    
+    function renderLoginBox()
+    {
         $lang='';
         if($this->urlRouter->siteLanguage=='en')$lang='en/';
         if($this->user->info['id']){  
@@ -645,7 +648,9 @@ class Page extends Site
         }
     }
 
-    function checkBlockedAccount($level=0){
+    
+    function checkBlockedAccount($level=0)
+    {
         if ($this->user->info['id']){
             if((!$level || ($level && $level==5)) && $this->user->info['level']==5) {
                 $this->user->redirectTo('/blocked/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
@@ -856,22 +861,28 @@ class Page extends Site
         }
     }
 
-    function renderDisabledPage(){
+    
+    function renderDisabledPage()
+    {
         ?><div class="sum rc"><div class="brd"><h1><?= $this->lang['title_not_supported'] ?></h1></div><p><?= $this->lang['hint_not_supported']; ?></p></div><div class="fake"></div><?php
     }
 
-    function setNotification($note, $type=''){
+    
+    function setNotification($note, $type='')
+    {
         $this->notifications[]=array(
             'msg'=>$note,
             'type'=>$type
         );
     }
 
-    function includeCssByCountry(){
-        if(!$this->urlRouter->countryId && $this->urlRouter->module=='index'){
+    
+    function includeCssByCountry()
+    {
+        if(!$this->urlRouter->countryId && $this->urlRouter->module=='index')
+        {
             
-            $this->inlineCss.='
-                
+            $this->inlineCss.='                
                 .cls li {
                     background-color: #FFF;
                     margin-bottom: 10px;
@@ -924,7 +935,9 @@ class Page extends Site
         echo $res;
     }
 
-    function renderNotificationsMobile($containerTag='p'){
+    
+    function renderNotificationsMobile($containerTag='p')
+    {
         $open=false;
         $lastType='';
         $res='';
@@ -1295,7 +1308,9 @@ class Page extends Site
         }
     }
     
-    function renderSideCountries(){
+    
+    function renderSideCountries()
+    {
         if($this->userFavorites || ($this->urlRouter->module!='index' && $this->urlRouter->countryId && !$this->hasCities)) return;
         
         $hasQuery=false;
@@ -5021,15 +5036,26 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         return $str;
     }
 
-    protected function render(){
-        if ($this->rss) {
+    
+    protected function render()
+    {
+        if ($this->router()->isAMP && $this->router()->module=='search')
+        {
+            die( "AMP" );
+        }
+        
+        if ($this->rss) 
+        {
             $this->_rss();
-        } else {
+        } 
+        else 
+        {
             $this->_header();
             $this->_body();
             $this->user->setStats();
         }
     }
+    
     
     function includeMetaKeywords(){
         $keywords='';
@@ -5233,8 +5259,22 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 header("Link: <{$js}>; rel=preload; as=script;", false);
             }
         }
-        
-        ?><!doctype html><html lang="<?= $this->urlRouter->siteLanguage . $country_code ?>" xmlns:fb="http://ogp.me/ns/fb#" xmlns:og="http://ogp.me/ns#"<?= (isset($this->detailAd[Classifieds::VIDEO]) && $this->detailAd[Classifieds::VIDEO]) ? ' xmlns:video="http://ogp.me/ns/video#"':'' ?>><head><meta charset="UTF-8"><?php 
+        echo '<!doctype html>';
+        //if ($this->ampEnabled)
+        //{
+        //    echo '<html amp lang="', $this->router()->siteLanguage, '"><head>';
+        //    echo '<meta charset="utf-8"><script async src="https://cdn.ampproject.org/v0.js"></script>'; 
+        //    echo '<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>';
+        //}
+        //else
+        //{
+        echo '<html lang="', $this->urlRouter->siteLanguage, $country_code,'" xmlns:fb="http://ogp.me/ns/fb#" xmlns:og="http://ogp.me/ns#"';
+        if (isset($this->detailAd[Classifieds::VIDEO]) && $this->detailAd[Classifieds::VIDEO]) 
+        {
+            echo ' xmlns:video="http://ogp.me/ns/video#"';
+        }
+        echo '><head><meta charset="utf-8">';
+        //}
         $this->load_css();
         $this->header();
 
@@ -5282,13 +5322,17 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         } else {
             echo '<meta http-equiv="content-language" content="', $this->urlRouter->siteLanguage, $country_code,'" />';
         }
-        if ($this->forceNoIndex) {
+        
+        if ($this->forceNoIndex) 
+        {
             echo '<meta name="robots" content="noindex,nofollow,noarchive" />';
-
-        }else {
-        switch ($this->urlRouter->module) {
-            case "detail":
-                echo '<meta name="robots" content="noindex" />';
+        }
+        else 
+        {
+            switch ($this->router()->module) 
+            {
+                case "detail":
+                    echo '<meta name="robots" content="noindex" />';
                 /*
                 if ($this->detailAd && $this->detailAd[Classifieds::ID] && !$this->detailAdExpired) {
                     if (in_array($this->detailAd[Classifieds::SECTION_ID],array(29,63,105,117))) {
@@ -5344,7 +5388,11 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                     echo '<meta name="robots" content="noindex, nofollow" />';
                 } 
                 else {
-                    if ($this->searchResults && !empty($this->searchResults['body']['matches']) && !(isset($this->urlRouter->params['tag_id']) && !$this->extendedId) && (!(isset ($this->urlRouter->params['loc_id']) && !$this->localityId) || ($this->localityId && in_array($this->urlRouter->countryId, [1,2,3,7,8,9]))) ) {
+                    if ($this->searchResults && 
+                        !empty($this->searchResults['body']['matches']) && 
+                        !(isset($this->router()->params['tag_id']) && !$this->extendedId) && 
+                        (!(isset ($this->router()->params['loc_id']) && !$this->localityId) || ($this->localityId && in_array($this->router()->countryId, [1,2,3,7,8,9]))) ) 
+                    {
                         $qTotal = $this->searchResults['body']['total_found'];
                         $__fpages=$qTotal/$this->num;
                         $qPages = ($__fpages<1) ? 0 : ceil($__fpages);
@@ -5451,47 +5499,44 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                             echo '<link rel="canonical" href="',$canonical_link, '" />';
                             
 
-                            if ($this->urlRouter->params['start']>1) {
-                                $prev=$this->urlRouter->params['start'] - 1;
+                            if ($this->router()->params['start']>1) 
+                            {
+                                $prev=$this->router()->params['start']-1;
+                                echo "<link rel='prev' href='", $this->router()->cfg['url_base'], $currentUrl;
                                 if ($prev>1)
-                                    echo "<link rel='prev' href='", $this->urlRouter->cfg['url_base'], $currentUrl, $prev, '/';
-                                else
-                                    echo "<link rel='prev' href='", $this->urlRouter->cfg['url_base'], $currentUrl;
+                                {
+                                    echo $prev, '/';
+                                }
                                 echo "' />";
                             }
-
-                            /*
-                            $qTotal = $this->searchResults['body']['total_found'];                                                        
-                            $qPages=$qTotal/$this->num;
-                            if ($qPages<1) $qPages=0;
-                            else $qPages=ceil($qPages);
-                            
-                            $qTmp=ceil($this->urlRouter->cfg['search_results_max']/$this->num);
-                            if ($qPages>$qTmp) $qPages=(int)$qTmp;
-                            */
                             
                             if ($this->router()->params['start']<$qPages && !$this->isMobile) 
                             {
-                                $next = $this->urlRouter->params['start']+1;
+                                $next = $this->router()->params['start']+1;
                                 if ($next==1) $next=2;
-                                echo "<link rel='next' href='", $this->urlRouter->cfg['url_base'], $currentUrl, $next, '/';
-                                echo "' />";
-                                echo '<link rel="prerender" href="', $this->urlRouter->cfg['url_base'], $currentUrl, $next, '/" />';
-                                echo '<link rel="prefetch" href="', $this->urlRouter->cfg['url_base'], $currentUrl, $next, '/" />';
+                                echo "<link rel='next' href='", $this->router()->cfg['url_base'], $currentUrl, $next, "/' />";
+                                echo '<link rel="prerender" href="', $this->router()->cfg['url_base'], $currentUrl, $next, '/" />';
+                                echo '<link rel="prefetch" href="', $this->router()->cfg['url_base'], $currentUrl, $next, '/" />';
                             }
                         }
-                    }else {
+                    }
+                    else 
+                    {
                         echo '<meta name="robots" content="noindex, follow" />';
                     }
                 }
 
-                echo '<link href="', $this->urlRouter->cfg['url_base'], $this->urlRouter->uri, $this->urlRouter->getLanguagePath(), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
+                if (!$this->router()->isMobile)
+                {
+                    echo '<link href="', $this->router()->cfg['url_base'], $this->router()->uri, $this->router()->getLanguagePath(), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
+                }
 
                 break;
+                
             case 'index':
-                $currentUrl=$this->urlRouter->getUrl($this->urlRouter->countryId,$this->urlRouter->cityId);
+                $currentUrl=$this->router()->getUrl($this->urlRouter->countryId,$this->urlRouter->cityId);
                 $link=  'https://www.mourjan.com'.$currentUrl;
-                if ($link == $this->urlRouter->cfg['host'].$_SERVER['REQUEST_URI']) 
+                if ($link == $this->router()->cfg['host'].$_SERVER['REQUEST_URI']) 
                 { 
                     $this->includeMetaKeywords();
                     echo '<meta name="robots" content="noodp, noydir, index, follow" />';
@@ -5500,7 +5545,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 {
                     echo '<meta name="robots" content="noindex, follow" />';
                 }
-                echo '<link rel="canonical" href="',$link, '" />';
+                echo '<link rel="canonical" href="', $link, '" />';
                 
                 $__cn=null;
                 $__cc=null;

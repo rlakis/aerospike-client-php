@@ -12,8 +12,9 @@ use ZammadAPIClient\ResourceType;
 
 class Site 
 {
+    public $user;
     var $lang=array(),$xss_hash='',$watchInfo=false; 
-    var $user,$userFavorites,$pageUserId=0;
+    var $userFavorites,$pageUserId=0;
     var $num=10;
     var $isMobile=false;
     var $isMobileAd=false;

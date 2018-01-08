@@ -10,8 +10,9 @@ class Router
     var $db;
     var $uri;
     
-    var $cfg,$cookie;
-    var $pageTitle = array('ar'=>'', 'en'=>'');
+    var $cfg;
+    public $cookie;
+    var $pageTitle = ['ar'=>'', 'en'=>''];
     var $siteLanguage = '';
     var $extendedLanguage = '';
     var $siteTranslate = '';
@@ -46,6 +47,7 @@ class Router
     var $isDynamic = false;
     var $isMobile = false;
     var $isApp = 0;
+    public $isAMP = 0;
     var $host = 'www.mourjan.com';
     var $referer = '';
     var $session_key;
@@ -59,6 +61,8 @@ class Router
     public $_png = '.png';
     public $_jpg = '.jpg';
     public $_jpeg = '.jpeg';
+    private $canonical = false;
+    private $explodedRequestURI;
     
     
     function __construct($params) 
@@ -151,7 +155,8 @@ class Router
         }
 
         $pos = strpos($this->referer, $this->cfg['site_domain']);
-        if (!($pos===FALSE)) {
+        if (!($pos===FALSE)) 
+        {
             $this->internal_referer = ($pos>0 && $pos<13);
         }
         
@@ -199,8 +204,46 @@ class Router
             $this->isMobile = $_session_params['mobile'];
         }
 
-        $_request_uri = filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_URL);
+        //$_request_uri = filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_URL);
 
+        //error_log("REQUEST_URI ".$_request_uri);
+        
+        $this->explodedRequestURI= explode('/', ltrim(rtrim(parse_url(filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_URL), PHP_URL_PATH), '/'), '/'));
+        $this->siteLanguage='ar';
+        
+        error_log(json_encode($this->explodedRequestURI, JSON_PRETTY_PRINT));
+        $len = count($this->explodedRequestURI);
+        if ($len>0)
+        {
+            $lastIdx=$len-1;
+            if ($this->explodedRequestURI[$lastIdx]==='amp')
+            {
+                $this->isAMP=1;
+                unset($this->explodedRequestURI[$lastIdx]);
+                $len--;
+                $lastIdx--;
+                $this->isMobile=TRUE;
+                $this->isApp=FALSE;
+                $_session_params['mobile']=1;
+            }
+            if ($len>0)
+            {
+                if ($this->explodedRequestURI[$lastIdx]==='en')
+                {
+                    $this->siteLanguage='en';  
+                    unset($this->explodedRequestURI[$lastIdx]);
+                }
+                elseif ($this->explodedRequestURI[$lastIdx]==='fr') 
+                {
+                    $this->siteLanguage = 'en';
+                    $this->extendedLanguage = 'fr';
+                    unset($this->explodedRequestURI[$lastIdx]);
+                }
+            }
+        }
+        
+        $this->uri = '/'.implode('/', $this->explodedRequestURI);
+        /*
         if (\preg_match('/\/en(?:\/|$)/',$_request_uri)) 
         {
             $this->siteLanguage = 'en';
@@ -219,6 +262,9 @@ class Router
             $this->siteLanguage = 'ar';
             $this->uri = rtrim( parse_url($_request_uri, PHP_URL_PATH), '/');
         }
+        */
+        
+        //error_log("{$this->module} this->uri ".$this->uri);
         
         $_session_params['lang']=$this->siteLanguage;
                 
@@ -344,7 +390,7 @@ class Router
 
                         if ($this->params['start']<1) {
                             $this->http_status=410;
-                                $this->module = 'notfound';
+                            $this->module = 'notfound';
                         }
                         unset($_args[$idx]);
                         $idx--;
@@ -385,10 +431,13 @@ class Router
                     $_args=$tmp;                    
                     $this->uri=  implode("/", $_args);                
                 }
-            }elseif ($idx>1 && substr($_args[$idx],0,2)=="c-") {
+            }
+            elseif ($idx>1 && substr($_args[$idx],0,2)=="c-") 
+            {
                 $tag_info = explode("-", $_args[$idx]);
                 
-                if (count($tag_info)==3 && is_numeric($tag_info[1]) && is_numeric($tag_info[2])) {
+                if (count($tag_info)==3 && is_numeric($tag_info[1]) && is_numeric($tag_info[2])) 
+                {
                     $this->params['loc_id']=$tag_info[1];
                     unset($_args[$tag_info[2]]);
                     unset($_args[$idx]);
@@ -517,6 +566,8 @@ class Router
             $_session_params['lang']=$this->siteLanguage;
         }
         $_SESSION['_u']['params'] = $_session_params;
+        
+        //error_log(json_encode($this, JSON_PRETTY_PRINT));
     }
     
     
@@ -897,6 +948,36 @@ class Router
                 ", [$url], -1, 0, FALSE, TRUE);
         return $result;
     }
+    
+    
+    function getCanonicalURL()
+    {
+        //error_log(__FUNCTION__ . ' ' .$this->countryId. ' '.$this->cityId.' '.$this->module);
+        
+        //if ($this->canonical)
+        //{
+        //    return $this->canonical;
+        //}
+        
+        
+        if ($this->module=='search')
+        {
+            
+            //return $this->canonical;
+        }
+        elseif ($this->module=='index') 
+        {
+            $path=$this->getUrl($this->countryId, $this->cityId);
+            $this->canonical = 'https://www.mourjan.com'.$path;        
+        }
+        else 
+        {
+            $this->canonical = FALSE;
+        }
+        
+        //error_log("canonocal: ".$this->canonical);
+        return $this->canonical;               
+    }
 
 
     function decode() 
@@ -1019,6 +1100,8 @@ class Router
             $this->cacheHeaders($this->last_modified);
         }
         
+        $this->getCanonicalURL();
+        
     }
     
     
@@ -1047,16 +1130,22 @@ class Router
         if ($cn) 
         {
             if (isset($this->countries[$cn]))
+            {
                 $result.=$this->countries[$cn]['uri'].'/';
-            else {
+            }
+            else 
+            {
                 $cn=0;
                 $c=0;
             }
         }
 
-        if ($c) {
-            if (isset($this->cities[$c])) {
-                if ($cn==0) {
+        if ($c) 
+        {
+            if (isset($this->cities[$c])) 
+            {
+                if ($cn==0) 
+                {
                     $cn = $this->cities[$c][4];
                     if (isset($this->countries[$cn])) {
                         $result.=$this->countries[$cn]['uri'].'/';
