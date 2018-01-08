@@ -520,12 +520,17 @@ class Search extends Page
         $this->render();
     }
 
-    function mainMobile() {
-        if ($this->userFavorites && !$this->user->info['id']) {
-            
-        } elseif ($this->urlRouter->watchId && !$this->user->info['id']) {
-            
-        } else {
+    
+    function mainMobile() 
+    {
+        if ($this->userFavorites && !$this->user->info['id']) 
+        {            
+        } 
+        elseif ($this->urlRouter->watchId && !$this->user->info['id']) 
+        {            
+        } 
+        else 
+        {
             $this->resultsMobile();
             // Show out of section featured ad
             if ($this->urlRouter->module=='search' && isset($this->searchResults['zone2']) && isset($this->searchResults['zone2']['matches']) && count($this->searchResults['zone2']['matches'])) {
@@ -538,6 +543,7 @@ class Search extends Page
         }
     }
 
+    
     function renderSidePage() {
         $isOwner = $this->urlRouter->userId == $this->user->info['id'] && $this->urlRouter->module != 'detail' && !$this->pagePreview;
         $isOwner = 0;

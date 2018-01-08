@@ -23,7 +23,8 @@ class Page extends Site
     var $hasCities=false; 
     var $notifications=array();
     var $blocks=array();
-    var $partnerInfo=null,$hasPartnerInfo=false,$pagePreview=false, $searchResults=false, $userFavorites=false;
+    var $partnerInfo=null,$hasPartnerInfo=false,$pagePreview=false, $userFavorites=false;
+    public $searchResults=false;
     var $extended=null,$extendedId=0,$localities=null,$parentLocalities=null,$cityParentLocalityId=0,$localityId=0,$localityParentId=0,$extended_uri='';
     var $isMobileCssLegacy=true;            
     var $countryCounter='',$inlineScript='',$inlineQueryScript='',$globalScript='',$cssImgsLoaded=false, $inlineCss='';
@@ -1994,9 +1995,12 @@ class Page extends Site
         $backButton='<span class="bt-back"></span>';
         $hasBack=false;
         $cityId=$this->urlRouter->cityId;
-        if ($cityId) {
+        if ($cityId) 
+        {
             if (empty($this->urlRouter->countries[$this->urlRouter->countryId]['cities'])) 
+            {
                 $cityId=0;
+            }
         }
         //if (count($this->urlRouter->countryCities)<2)$cityId=0;
         //$headTitle='<a href="'.$this->urlRouter->getURL($this->urlRouter->countryId,$cityId).'">Mourjan.com</a>';
@@ -2150,20 +2154,22 @@ class Page extends Site
         /* ?><div class='top'><?= $headTitle ?></div><div id="srch" class='srch sh'><form action="<?= $this->urlRouter->uri ?>" method="get"><input id="q" name="q" class="q rc" value="<?= htmlspecialchars($q,ENT_QUOTES) ?>" type='text' placeholder='<?= $this->lang['search_what'] ?>' /><div class="bt qSrch rc" onclick="s()" ontouchstart="s()"><div><div></div></div></div><?php
         ?></form></div><div class="bt btSrch rc" onclick="ts(this,'c')" ontouchstart="ts(this,'t')"><div></div></div><?php */
         /* not isApp */
-        if (!$this->urlRouter->isApp) {
-        $url='';
-        switch ($this->urlRouter->module){
-            case 'detail':
-                if (!empty($this->detailAd)){
-                    if ($this->urlRouter->siteLanguage=='ar') {
-                        //$url = $this->urlRouter->cfg['url_base'].sprintf($this->detailAd[Classifieds::URI_FORMAT], 'en/', $this->detailAd[Classifieds::ID]);
-                        $url = sprintf($this->detailAd[Classifieds::URI_FORMAT], 'en/', $this->detailAd[Classifieds::ID]);
-                    } else {
-                        //$url = $this->urlRouter->cfg['url_base'].sprintf($this->detailAd[Classifieds::URI_FORMAT], '', $this->detailAd[Classifieds::ID]);
-                        $url = sprintf($this->detailAd[Classifieds::URI_FORMAT], '', $this->detailAd[Classifieds::ID]);
+        
+        if (!$this->router()->isApp) 
+        {
+            $url='';
+            switch ($this->urlRouter->module){
+                case 'detail':
+                    if (!empty($this->detailAd)){
+                        if ($this->urlRouter->siteLanguage=='ar') {
+                            //$url = $this->urlRouter->cfg['url_base'].sprintf($this->detailAd[Classifieds::URI_FORMAT], 'en/', $this->detailAd[Classifieds::ID]);
+                            $url = sprintf($this->detailAd[Classifieds::URI_FORMAT], 'en/', $this->detailAd[Classifieds::ID]);
+                        } else {
+                            //$url = $this->urlRouter->cfg['url_base'].sprintf($this->detailAd[Classifieds::URI_FORMAT], '', $this->detailAd[Classifieds::ID]);
+                            $url = sprintf($this->detailAd[Classifieds::URI_FORMAT], '', $this->detailAd[Classifieds::ID]);
+                        }
+                        break;
                     }
-                    break;
-                }
             case 'search':
                 //if($this->urlRouter->userId) $url='/'.($this->partnerInfo['uri']).'/';
                 if($this->urlRouter->watchId) $url='/watchlist/';
@@ -5041,7 +5047,36 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
     {
         if ($this->router()->isAMP && $this->router()->module=='search')
         {
-            die( "AMP" );
+            echo '<!doctype html>', PHP_EOL;
+            echo '<html amp lang="', $this->router()->siteLanguage, '" dir="', $this->router()->isArabic() ? 'rtl' : 'ltr', '">', PHP_EOL, '<head>';
+            echo '<meta charset="utf-8">', PHP_EOL,'<script async src="https://cdn.ampproject.org/v0.js"></script>', PHP_EOL;
+            echo '<link rel="shortcut icon" href="https://www.mourjan.com/img/1.0.3/favicon.ico">', PHP_EOL;
+            echo '<title>', $this->title, '</title>', PHP_EOL;
+            echo '<link rel="canonical" href="https://www.mourjan.com', $this->router()->uri, '">', PHP_EOL;
+            echo '<meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">', PHP_EOL;
+            echo '<script type="application/ld+json">', PHP_EOL,
+                '{', PHP_EOL,
+                '"@context": "http://schema.org",', PHP_EOL,
+                '"@type": "NewsArticle",', PHP_EOL,
+                '"headline": "Open-source framework for publishing content",', PHP_EOL,
+                '"datePublished": "2015-10-07T12:02:41Z",', PHP_EOL,
+                '"image": [', PHP_EOL,
+                  '"logo.jpg"', PHP_EOL,
+                ']', PHP_EOL,
+                '}', PHP_EOL,
+            '</script>', PHP_EOL;
+            echo '<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style>', PHP_EOL, 
+                '<noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>', PHP_EOL;
+            echo '<style amp-custom>', PHP_EOL;
+            echo 'body{width: auto;margin: 0;padding:0;font-family: verdana, arial;}', PHP_EOL;
+            echo 'header{background:#143D55;color:white;font-size: 1.5em;text-align: center;}', PHP_EOL;
+            echo 'h1 {margin: 0;padding: 0.5em;background: white;box-shadow: 0px 3px 5px grey;}', PHP_EOL;
+            echo '</style>', PHP_EOL;
+            echo '</head>', PHP_EOL, '<body>';
+            //var_export($this->searchResults);
+            $this->ampBody();
+            echo '</body></html>';
+            return;
         }
         
         if ($this->rss) 
@@ -5054,6 +5089,29 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
             $this->_body();
             $this->user->setStats();
         }
+    }
+    
+    
+    protected function ampBody()
+    {
+        echo '<header>', $this->title, '</header>', PHP_EOL;
+        $store = new Classifieds($this->router()->database());
+        echo '<ul>', PHP_EOL;
+        foreach ($this->searchResults['body']['matches'] as $id) 
+        {
+            //echo $id, PHP_EOL;            
+            $ad = $store->getById($id, false);
+            //var_export($ad);
+            echo '<li>', PHP_EOL;
+            if ($ad[Classifieds::PICTURES])
+            {               
+                echo '<amp-img src="', $this->router()->cfg['url_ad_img'], '/repos/d/',  $ad[Classifieds::PICTURES][0], '" alt="" height="122" width="122"></amp-img>';
+                
+            }
+            echo '</li>', PHP_EOL;
+            //echo  $ad[]
+        }
+        echo '</ul>', PHP_EOL;
     }
     
     
@@ -5838,17 +5896,24 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         }
     }
 
-    function _body(){
-        if ($this->isMobile) {
+    
+    function _body()
+    {
+        if ($this->isMobile) 
+        {
             //echo '<div id="apper"><div id="scroller">';
             $this->topMobile();
             $this->bodyMobile();
-            if (!$this->urlRouter->isApp) 
+            if (!$this->urlRouter->isApp)
+            {
                 $this->footerMobile();
+            }
             $this->loadMobileJs_classic();
             //echo "</div></div>";
             //echo "<div id='adft'>Featured ad placement</div>";
-        } else {
+        } 
+        else 
+        {
             //echo '<!--googleoff: snippet-->';
             $this->top();
             /*if ($this->urlRouter->cfg['enabled_sharing'] && (!$this->urlRouter->userId || ($this->urlRouter->userId && 

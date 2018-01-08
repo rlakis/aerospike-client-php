@@ -1,7 +1,10 @@
 <?php
 
-include_once get_cfg_var('mourjan.path') .'/core/model/NoSQL.php';
-
+include_once get_cfg_var('mourjan.path').'/core/model/NoSQL.php';
+include_once get_cfg_var('mourjan.path').'/core/model/Classifieds.php';
+include_once get_cfg_var('mourjan.path').'/core/model/User.php';
+include_once get_cfg_var('mourjan.path').'/core/lib/SphinxQL.php';
+        
 use Core\Model\Router;
 use Core\Model\Classifieds;
 use Core\Model\NoSQL;
@@ -28,12 +31,7 @@ class Site
 
     function __construct(Router $router) 
     {
-        global $argc;
-        include_once $router->cfg['dir'].'/core/model/Classifieds.php';
-        include_once $router->cfg['dir'].'/core/model/User.php';
-        include_once $router->cfg['dir'].'/core/lib/SphinxQL.php';
-      
-        
+        global $argc;        
         $this->urlRouter = $router;
         if ($router->siteLanguage=='en')
             $this->lnIndex=1;
