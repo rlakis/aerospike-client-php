@@ -1932,6 +1932,7 @@ class Page extends Site
                     }
                 ?></div><?php
                 if($this->user->info['id'] && $this->user->isSuperUser() && $this->urlRouter->module!='admin'){
+                    ?><a class="pb" style="right:100px" href="/monitor/<?= $adLang ?>">monitor</a><?php
                     ?><a class="pb" href="/admin/<?= $adLang ?>"><span class="i p"></span><?= $this->lang['administration'] ?></a><?php
                 }else{
                     if (!$this->urlRouter->userId && $this->urlRouter->module!='post'){ 
