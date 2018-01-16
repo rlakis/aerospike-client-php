@@ -88,19 +88,25 @@ class Monitor extends Page
     public function getData()
     {
         ?><br /><br /><table dir="ltr" width="100%" padding="5px" margin="5px"><?php
+        echo '<tr><th>Task</th><th>host</th><th>sid</th><th>datetime</th><th>status</th><th>success</th><th>failure</th><th>message</th><th>since</th></tr>';
         NoSQL::getInstance()->getConnection()->scan("users", "services", function ($record) {
             
             $bins = $record['bins'];
             
             $since = $this->formatSinceDate($bins['last_completed']);
-            $success = isset($bins['success']) ? $bins['success'] : -1;
-            $failure = isset($bins['failure']) ? $bins['failure'] : -1;
+            $success = isset($bins['success']) ? $bins['success'] : '-';
+            $failure = isset($bins['failure']) ? $bins['failure'] : '-';
             
-            echo "<tr><td>{$bins['task']}</td><td>server {$bins['server_id']}</td><td>{$since}</td></tr>";
-            if($success > -1 || $failure > -1){
-                echo "<tr><td></td><td>success {$success}</td><td>failures {$failure}</td></tr>";
-            }
-            echo "<tr><td colspan=3><br /></td></tr>";
+            echo '<tr><td>', $bins['task'], '</td>';
+            echo '<td>', $bins['host'], '</td>';
+            echo '<td>', $bins['server_id'], '</td>';
+            echo '<td>', $bins['datetime'], '</td>';
+            echo '<td>', $bins['status'], '</td>';
+            echo '<td align="right">', $success, '</td>';
+            echo '<td align="right">', $failure, '</td>';
+            echo '<td>', $bins['message'], '</td>';
+            echo '<td>', $since, '</td></tr>';
+            
         });
         ?></table><?php
     }
