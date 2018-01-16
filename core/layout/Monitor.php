@@ -27,23 +27,8 @@ class Monitor extends Page
         $this->load_lang(array("account"));
         
         $this->inlineCss .= 
-                '.ts .bt{width:auto;padding:5px 30px!important}'
-                . '#cron{direction:ltr;margin-top:5px}#cron a{color:#00e;margin-right:30px}#cron a:hover{text-decoration:underline}'
-                . '#statDv{width:760px}'
-                . '.ts .lm{overflow:visible}'
-                . '.ts label{vertical-align:middle}'
-                . '.hy li{float:right;width:370px;border:0!important}'
-                . '.hy label{margin-bottom:10px}'
-                . 'textarea{width:300px;height:200px;padding:3px}'
-                . '.action{width:800px!important;text-align:center}'
-                . '.options{position:absolute;border:1px solid #aaa;border-bottom:0;width:306px;background-color:#FFF}'
-                . '.options li{cursor:pointer;border-bottom:1px solid #aaa;direction:rtl;text-align:right;padding:10px;}'
-                . '.options li:hover{background-color:#00e;color:#FFF}'
-                . '#msg{height:40px;display:block}'
-                . '.rpd{display:block}.rpd textarea{width:740px}'
-                . '.tbs{width:750px}.tbs li{float:left;width:80px}'
-                . '.load{width: 30px;height: 30px;display: inline-block;vertical-align: middle}'
-                . '.filters{background-color:#ECECEC}.filters select{padding:2px 10px;margin:10px 20px}';
+                  'th{padding:10px 5px;color:#FFF;background-color:#143D55}'
+                . 'td{padding:10px 5px;border-bottom:1px solid forestgreen}';
         
         $this->set_require('css', 'account');
         $this->title=$this->lang['title'];
@@ -87,7 +72,7 @@ class Monitor extends Page
     
     public function getData()
     {
-        ?><br /><br /><table dir="ltr" width="100%" padding="5px" margin="5px"><?php
+        ?><br /><br /><table dir="ltr" width="100%"><?php
         echo '<tr><th>Task</th><th>host</th><th>sid</th><th>datetime</th><th>status</th><th>success</th><th>failure</th><th>message</th><th>since</th></tr>';
         NoSQL::getInstance()->getConnection()->scan("users", "services", function ($record) {
             
@@ -98,17 +83,38 @@ class Monitor extends Page
             $failure = isset($bins['failure']) ? $bins['failure'] : '-';
             
             echo '<tr><td>', $bins['task'], '</td>';
-            echo '<td>', $bins['host'], '</td>';
-            echo '<td>', $bins['server_id'], '</td>';
-            echo '<td>', $bins['datetime'], '</td>';
-            echo '<td>', $bins['status'], '</td>';
+            echo '<td class="ctr">', $bins['host'], '</td>';
+            echo '<td class="ctr">', $bins['server_id'], '</td>';
+            echo '<td class="ctr">', $bins['datetime'], '</td>';
+            echo '<td class="ctr">', $bins['status'], '</td>';
             echo '<td align="right">', $success, '</td>';
             echo '<td align="right">', $failure, '</td>';
             echo '<td>', $bins['message'], '</td>';
-            echo '<td>', $since, '</td></tr>';
+            echo '<td class="ctr">', $since, '</td></tr>';
             
         });
         ?></table><?php
+    }
+    function formatSinceDate($seconds) {
+        $stamp='';
+        $seconds=time()-$seconds;
+        if ($seconds<0) {
+            return $stamp;
+        }
+        $days = floor($seconds/86400);
+        if ($days) {
+            $stamp=$days.'d';
+        }else {
+            $hours=floor($seconds/3600);
+            if ($hours){
+                    $stamp=$hours.'h';
+            }else {
+                $minutes=floor($seconds/60);
+                if (!$minutes) $minutes=1;
+                $stamp=$minutes.'m';
+            }
+        }
+        return $stamp;
     }
     /*
     function side_pane()
