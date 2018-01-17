@@ -73,7 +73,7 @@ class Monitor extends Page
     public function getData()
     {
         ?><br /><br /><table dir="ltr" width="100%"><?php
-        echo '<tr><th>Task</th><th>host</th><th>sid</th><th>datetime</th><th>status</th><th>success</th><th>failure</th><th>message</th><th>since</th></tr>';
+        echo '<tr><th>Task</th><th>host/sid</th><th>datetime</th><th>status</th><th>success</th><th>failure</th><th>message</th><th>since</th></tr>';
         NoSQL::getInstance()->getConnection()->scan("users", "services", function ($record) {
             
             $bins = $record['bins'];
@@ -83,8 +83,7 @@ class Monitor extends Page
             $failure = isset($bins['failure']) ? $bins['failure'] : '-';
             
             echo '<tr><td>', $bins['task'], '</td>';
-            echo '<td class="ctr">', $bins['host'], '</td>';
-            echo '<td class="ctr">', $bins['server_id'], '</td>';
+            echo '<td class="ctr">', $bins['host'],'/', $bins['server_id'],'</td>';
             echo '<td class="ctr">', $bins['datetime'], '</td>';
             echo '<td class="ctr">', $bins['status'], '</td>';
             echo '<td align="right">', $success, '</td>';
