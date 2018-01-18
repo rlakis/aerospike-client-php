@@ -214,8 +214,8 @@ class Router
 //                error_log(json_encode($this->explodedRequestURI, JSON_PRETTY_PRINT));
 //            }
         
-
             $lastIdx=$len-1;
+            
             if ($this->explodedRequestURI[$lastIdx]==='amp')
             {
                 $this->isAMP=1;
@@ -226,6 +226,18 @@ class Router
                 $this->isApp=FALSE;
                 $_session_params['mobile']=1;
             }
+            
+            $___p=0;
+            if (is_numeric($this->explodedRequestURI[$lastIdx]))
+            {
+                $___p=$this->explodedRequestURI[$lastIdx]+0;
+                unset($this->explodedRequestURI[$lastIdx]);
+                $lastIdx--;
+                $len--;          
+                //error_log($___p);
+            }
+                                                
+            
             if ($len>0)
             {
                 if ($this->explodedRequestURI[$lastIdx]==='en')
@@ -258,6 +270,8 @@ class Router
                     
                 }
             }
+            
+            if ($___p) {$this->explodedRequestURI[count($this->explodedRequestURI)]=$___p;}
         }        
         $this->uri = '/'.implode('/', $this->explodedRequestURI);
         //error_log($this->uri);
