@@ -78,16 +78,13 @@ class Router
             $device = new \Detection\MobileDetect();
             if($device->isMobile())
             {
-                if( $device->isiOS() )
-                {
-                    if(preg_replace('/_.*/','',$device->version('iPhone')) > 7)
-                    {
-                        header("Location:https://itunes.apple.com/us/app/mourjan-mrjan/id876330682?ls=1&mt=8");
-                    }
-                }
                 if( $device->isAndroidOS() )
                 {
                     header("Location:https://play.google.com/store/apps/details?id=com.mourjan.classifieds");
+                }
+                elseif( $device->isiOS() && preg_replace('/_.*/', '', $device->version('iPhone'))>8)
+                {
+                    header("Location:https://itunes.apple.com/us/app/mourjan-mrjan/id876330682?ls=1&mt=8");
                 }
             }
         }
@@ -204,17 +201,20 @@ class Router
             $this->isMobile = $_session_params['mobile'];
         }
 
-        //$_request_uri = filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_URL);
-
-        //error_log("REQUEST_URI ".$_request_uri);
         
         $this->explodedRequestURI= explode('/', ltrim(rtrim(parse_url(filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_URL), PHP_URL_PATH), '/'), '/'));
         $this->siteLanguage='ar';
         
-        error_log(json_encode($this->explodedRequestURI, JSON_PRETTY_PRINT));
         $len = count($this->explodedRequestURI);
+        
         if ($len>0)
         {
+//            if ($this->explodedRequestURI[0]!='ajax-menu')
+//            {
+//                error_log(json_encode($this->explodedRequestURI, JSON_PRETTY_PRINT));
+//            }
+        
+
             $lastIdx=$len-1;
             if ($this->explodedRequestURI[$lastIdx]==='amp')
             {
@@ -239,32 +239,29 @@ class Router
                     $this->extendedLanguage = 'fr';
                     unset($this->explodedRequestURI[$lastIdx]);
                 }
+                elseif ($len>1) 
+                {
+                    $lastIdx=$len-2;
+                    if ($this->explodedRequestURI[$lastIdx]==='en')
+                    {
+                        $this->siteLanguage='en';  
+                        $this->explodedRequestURI[$lastIdx]= $this->explodedRequestURI[$len-1];
+                        unset($this->explodedRequestURI[$len-1]);
+                    }
+                    elseif ($this->explodedRequestURI[$lastIdx]==='fr') 
+                    {
+                        $this->siteLanguage = 'en';
+                        $this->extendedLanguage = 'fr';
+                        $this->explodedRequestURI[$lastIdx]= $this->explodedRequestURI[$len-1];
+                        unset($this->explodedRequestURI[$len-1]);
+                    }
+                    
+                }
             }
-        }
-        
+        }        
         $this->uri = '/'.implode('/', $this->explodedRequestURI);
-        /*
-        if (\preg_match('/\/en(?:\/|$)/',$_request_uri)) 
-        {
-            $this->siteLanguage = 'en';
-            //$this->uri = rtrim(parse_url(str_replace('/en/', '/', $_SERVER['REQUEST_URI']), PHP_URL_PATH), '/');
-            $this->uri = rtrim(parse_url(preg_replace('/\/en(?:\/|$)/', '/', $_request_uri), PHP_URL_PATH), '/');
-        } 
-        elseif (preg_match('/\/fr(?:\/|$)/', $_request_uri)) 
-        {
-            $this->siteLanguage = 'en';
-            $this->extendedLanguage = 'fr';
-            //$this->uri = rtrim(parse_url(str_replace('/en/', '/', $_SERVER['REQUEST_URI']), PHP_URL_PATH), '/');
-            $this->uri = rtrim(parse_url(preg_replace('/\/fr(?:\/|$)/','/', $_request_uri), PHP_URL_PATH), '/');
-        } 
-        else 
-        {
-            $this->siteLanguage = 'ar';
-            $this->uri = rtrim( parse_url($_request_uri, PHP_URL_PATH), '/');
-        }
-        */
-        
-        //error_log("{$this->module} this->uri ".$this->uri);
+        //error_log($this->uri);
+                
         
         $_session_params['lang']=$this->siteLanguage;
                 
@@ -304,11 +301,12 @@ class Router
         $_args = explode('&', $_SERVER['QUERY_STRING']);
                         
         $count = count($_args);
-        for ($i = 0; $i < $count; ++$i) {
+        for ($i=0; $i<$count; ++$i) 
+        {
             $node = explode('=', $_args[$i]);
-            if (!empty($node[1]) && array_key_exists($node[0], $this->params)) {
-                
-                $this->params[$node[0]]=  trim(urldecode($node[1]));
+            if (!empty($node[1]) && array_key_exists($node[0], $this->params)) 
+            {                
+                $this->params[$node[0]] = trim(urldecode($node[1]));
                 
                 switch ($node[0]) {
                     case 'rss':
@@ -349,6 +347,7 @@ class Router
              
 
         $_args = explode('/', $this->uri);
+        //error_log(PHP_EOL.json_encode($_args).PHP_EOL. json_encode($this->explodedRequestURI));
         if (!empty($_args)) 
         {
             $idx=count($_args)-1;
@@ -697,7 +696,8 @@ class Router
         $ad_class = new Classifieds($this->db);
         $row = $ad_class->getById($ad_id);
         
-        if (!empty($row)) {
+        if (!empty($row)) 
+        {
             if ($this->siteLanguage=='ar'){
                 $result = sprintf($row[18], '', $ad_id);
             }else {
@@ -708,17 +708,20 @@ class Router
             $this->rootId = (int)$row[8];
             $this->sectionId = (int)$row[12];
             $this->purposeId = (int)$row[7];
-        } else {
+        } 
+        else 
+        {
             $url_codes = $this->FetchUrl();
             if ($url_codes) {
-                $result = $this->uri.'/'.($this->siteLanguage=='ar'?'':$this->siteLanguage.'/');
+                $result = $this->uri.'/'.$this->getLanguagePath();
             } else {
                 $_args = explode('/', $this->uri);
                 unset($_args[2]);
                 $sss=  implode('/', $_args);
                 $url_codes = $this->FetchUrl($sss);
-                if ($url_codes) {
-                    $result = $sss.'/'.($this->siteLanguage=='ar'?'':$this->siteLanguage.'/');
+                if ($url_codes) 
+                {
+                    $result = $sss.'/'. $this->getLanguagePath();
                 }
             }
         }
@@ -937,7 +940,11 @@ class Router
     
     function FetchUrl($url=NULL) 
     {
-        $result=$this->db->queryCacheResultSimpleArray($url==NULL ? $this->uri : $url, "
+        if ($url==NULL)
+        {
+            $url = $this->uri;
+        }
+        $result=$this->db->queryCacheResultSimpleArray($url, "
                 SELECT r.COUNTRY_ID, r.CITY_ID, r.ROOT_ID, r.SECTION_ID, r.PURPOSE_ID, trim(r.MODULE),
                 iif(r.TITLE_EN>'', r.TITLE_EN, SUBSTRING(r.title from POSITION(ascii_char(9) , r.title) for 128)),
                 iif(r.TITLE_AR>'', r.title_ar, SUBSTRING(r.title from 1 for POSITION(ascii_char(9), r.title))),
