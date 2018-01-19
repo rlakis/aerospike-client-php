@@ -72,11 +72,22 @@ class Monitor extends Page
     
     public function getData()
     {
+        $tasks=[];
+        NoSQL::getInstance()->getConnection()->scan("users", "services", function ($record) use (&$tasks) {
+            $tasks[$record['bins']['task'].$record['bins']['server_id']]=$record['bins'];
+        });
+        $keys = array_keys($tasks);
+        asort($keys);
+        
         ?><br /><br /><table dir="ltr" width="100%"><?php
         echo '<tr><th>Task</th><th>host/sid</th><th>datetime</th><th>status</th><th>success</th><th>failure</th><th>message</th><th>since</th></tr>';
-        NoSQL::getInstance()->getConnection()->scan("users", "services", function ($record) {
+        //NoSQL::getInstance()->getConnection()->scan("users", "services", function ($record) {
+        foreach ($keys as $key) 
+        {
             
-            $bins = $record['bins'];
+            
+            //$bins = $record['bins'];
+            $bins = $tasks[$key];
             
             $since = $this->formatSinceDate($bins['last_completed']);
             $success = isset($bins['success']) ? $bins['success'] : '-';
@@ -90,8 +101,8 @@ class Monitor extends Page
             echo '<td align="right">', $failure, '</td>';
             echo '<td>', $bins['message'], '</td>';
             echo '<td class="ctr">', $since, '</td></tr>';
-            
-        });
+        }
+        //});
         ?></table><?php
     }
     function formatSinceDate($seconds) {
