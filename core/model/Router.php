@@ -275,7 +275,7 @@ class Router
         }        
         $this->uri = '/'.implode('/', $this->explodedRequestURI);
         //error_log($this->uri);
-                
+        //error_log(json_encode($this->explodedRequestURI));        
         
         $_session_params['lang']=$this->siteLanguage;
                 
@@ -379,7 +379,7 @@ class Router
                     {
                         $this->module='detail';
                         $ad_url = $this->getAdURI($this->id);
-                        if ($ad_url!=$this->cfg['host'].$this->uri.'/'.($this->siteLanguage=='ar'?'':$this->siteLanguage.'/').$this->id.'/')
+                        if ($ad_url!=$this->cfg['host'].$this->uri . '/' . $this->getLanguagePath() . $this->id . '/')
                         {
                             if ($ad_url!=$this->cfg['url_base']) 
                             {
@@ -430,19 +430,30 @@ class Router
                 }
             }
 
-            if ($idx>1 && substr($_args[$idx],0,2)=="q-") {
+            
+            if ($idx>1 && substr($_args[$idx],0,2)=="q-") 
+            {
                 $tag_info = explode("-", $_args[$idx]);
-                
-                if (count($tag_info)==3 && is_numeric($tag_info[1]) && is_numeric($tag_info[2])) {
+                if (count($tag_info)==3 && is_numeric($tag_info[1]) && is_numeric($tag_info[2])) 
+                {
                     $this->params['tag_id']=$tag_info[1];
-                    $_args[$tag_info[2]] = substr($_args[$tag_info[2]], 0, strrpos($_args[$tag_info[2]], "-"));
+                    if ($_args[ $tag_info[2] ]=='nissan-nissan-z')
+                    {
+                        $_args[ $tag_info[2] ] = 'nissan';
+                    }
+                    else
+                    {
+                        $_args[ $tag_info[2] ] = substr($_args[$tag_info[2]], 0, strrpos($_args[$tag_info[2]], "-"));
+                    }
+                    
                     unset($_args[$idx]);                
                     $tmp=array();
                     foreach ($_args as $arg){
                         $tmp[]=$arg;
                     }
                     $_args=$tmp;                    
-                    $this->uri=  implode("/", $_args);                
+                    
+                    $this->uri = implode("/", $_args);                    
                 }
             }
             elseif ($idx>1 && substr($_args[$idx],0,2)=="c-") 
