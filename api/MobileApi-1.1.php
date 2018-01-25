@@ -1401,6 +1401,11 @@ class MobileApi
             $this->result['d']['u_nas'] = $this->config['android_url_node_ad_stage'];
             $this->result['d']['e_support'] = $this->config['android_email_support'];
             
+            if($device_sysversion < '6'){
+                $this->result['d']['u_img'] = 'https://doxplxe8wce37.cloudfront.net/repos';
+                unset($this->result['d']['u_xx']);
+            }
+            
             if($device_appversion > '1.3.0')
             {
                 $this->result['d']['a_release'] = $this->config['android_app_release'];
