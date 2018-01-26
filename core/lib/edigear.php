@@ -163,9 +163,10 @@ abstract class EGChannel
 
 abstract class EGAction
 {
-    const Request   = 1;
-    const Verify    = 2;
-    const Status    = 3;
+    const Request       = 1;
+    const Verify        = 2;
+    const Status        = 3;
+    const CheckNumber   = 4;
 }
 
 
@@ -243,6 +244,10 @@ class EdigearRequest
             
             case EGAction::Status:
                 $url.="/validation/status/{$this->payload['id']}";               
+                break;
+
+            case EGAction::CheckNumber:
+                $url.="/checknumber/{$this->payload['number']}";               
                 break;
 
             default:
@@ -412,6 +417,14 @@ class EdigearRequest
                     return FALSE;
                 }
                 break;
+                
+                
+             case EGAction::CheckNumber:
+                 if (!isset($this->payload['number']) || $this->payload['number']<99999)
+                 {
+                     return FALSE;
+                 }
+                 break;
             
             default:
                 return FALSE;
@@ -458,11 +471,20 @@ class EdigearError extends \Exception
 
 if (PHP_SAPI=='cli')
 {
-    $channel = "cli";
+    $channel = "check";
     $test = $argv[1] ?? "s";
     
     switch ($channel) 
     {
+        case "check":
+            $request = EdigearRequest::Create()->
+                        setAction(EGAction::CheckNumber)->
+                        setChannel(EGChannel::Undefined)->
+                        setPlatform(EGPlatform::Website)->
+                        setPhoneNumber(201550242235);
+
+            break;
+        
         case "sms":
             switch ($test) 
             {
@@ -526,6 +548,7 @@ if (PHP_SAPI=='cli')
                     break;
             }
             break;
+        
     }        
 
     $response = Edigear::getInstance()->setSecretKey("D38D5D58-572B-49EC-BAB5-63B6081A55E6")->send($request);
