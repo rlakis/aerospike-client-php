@@ -3,6 +3,7 @@ require_once 'deps/autoload.php';
 require_once $config['dir'].'/core/layout/Site.php';
 require_once $config['dir'].'/core/model/NoSQL.php';
 require_once $config['dir'].'/core/model/MobileValidation.php';
+include_once $config['dir'].'/core/lib/edigear.php';
 
 use MaxMind\Db\Reader;
 use Core\Model\NoSQL;
@@ -321,8 +322,120 @@ class Bin extends AjaxHandler{
                     $this->fail();
                 }
                 break;         
-                
-                
+            case 'ajax-number':   
+                if($this->user->info['id'] && $this->user->info['level']==9)
+                {
+                    $number = $this->post('num','uint');
+                    $ot = $this->post('type','uint');
+                    $index = $this->post('idx','uint');
+                    $iso = $this->post('iso');
+                    if($number){
+                        $request = \Berysoft\EdigearRequest::Create()->
+                            setAction(\Berysoft\EGAction::CheckNumber)->
+                            setChannel(\Berysoft\EGChannel::Undefined)->
+                            setPlatform(\Berysoft\EGPlatform::Website)->
+                            setPhoneNumber($number);
+                        
+                        $response = \Berysoft\Edigear::getInstance()->setSecretKey("D38D5D58-572B-49EC-BAB5-63B6081A55E6")->send($request);
+                        
+                        if($response){
+                            
+                            if(isset($response['status']) && $response['status']==200){
+                                
+                                $data = $response['data'];
+                                
+                                $types = [
+                                    'FIXED_LINE'    =>  0,
+                                    'MOBILE'    =>  1,
+                                    'FIXED_LINE_OR_MOBILE'    =>  2,
+                                    'TOLL_FREE'    =>  3,
+                                    'PREMIUM_RATE'    =>  4,
+                                    'SHARED_COST'    =>  5,
+                                    'VOIP'    =>  6,
+                                    'PERSONAL_NUMBER'    =>  7,
+                                    'PAGER'    =>  8,
+                                    'UAN'    =>  9,
+                                    'VOICEMAIL'    =>  10,
+                                    'UNKNOWN'    =>  -1
+                                ];
+                                
+                                $number = [
+                                    'e' =>  '',
+                                    'i' =>  $data['valid'] ? $data['formatting'] : 'invalid',
+                                    'n' =>  $this->post('num','uint'),
+                                    'p' =>  true,
+                                    't' =>  0,
+                                    'v' =>  $data['valid'] ? true : false,
+                                    'idx'=>$index
+                                ];
+                                
+                                switch($types[$data['type']]){                                    
+                                    case 0:
+                                        if ($ot >= 7 && $ot <= 9)
+                                            $number['t'] = true;
+                                        break;
+                                    case 1:
+                                        if (($ot >= 1 && $ot < 6) || $ot == 13)
+                                            $number['t'] = true;
+                                        break;
+                                    case 2:
+                                        if (($ot >= 1 && $ot <= 9 && $ot != 6) || $ot == 13)
+                                            $number['t'] = true;
+                                        break;
+                                    case 3:
+                                        if ($ot >= 7 && $ot <= 9)
+                                            $number['t'] = true;
+                                        break;
+                                    case 4:
+                                        $number['e'] = "PREMIUM RATE";
+                                        break;
+                                    case 5:
+                                        if (($ot >= 1 && $ot <= 9 && $ot != 6) || $ot == 13)
+                                            $number['t'] = true;
+                                        break;
+                                    case 6:
+                                        $number['e'] = "VOIP";
+                                        break;
+                                    case 7:
+                                        $number['e'] = "PERSONAL NUMBER";
+                                        break;
+                                    case 8:
+                                        $number['e'] = "PAGER";
+                                        break;
+                                    case 9:
+                                        $number['e'] = "UAN";
+                                        break;
+                                    case 10:
+                                        $number['e'] = "VOICEMAIL";
+                                        break;
+                                    case -1:
+                                        $number['e'] = "UNKNOWN";
+                                        break;
+                                }
+                                
+                                if($data['valid']){
+                                    $validator = libphonenumber\PhoneNumberUtil::getInstance();
+                                    $num = $validator->parse($number['i'], $iso);
+                                    if($validator->isValidNumber($num)){
+                                        $number['n'] = $validator->formatInOriginalFormat($num, $iso);
+                                    }
+                                }
+                                
+                                $this->setData($number,'i');
+                                $this->process();
+                            }else{
+                                $this->fail('103');
+                            }
+                        }else{
+                            $this->fail('102');
+                        }
+                    }else{
+                        $this->fail('101');
+                    }
+                }else{
+                    $this->fail('101');
+                }
+                break;
             case 'ajax-mobile':
                 if($this->user->info['id'] && $this->user->info['level']!=5)
                 {

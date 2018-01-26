@@ -139,11 +139,11 @@ if ($handle = opendir($cssReadPath)) {
                     file_put_contents($cssWritePath.$entry, $content);
                     
                     
-                    if($redis->set('v1:'.$entry, $content)){
-                        echo ' cached to redis';
-                    }else{
-                        echo ' failed to cache to redis';
-                    }
+//                    if($redis->set('v1:'.$entry, $content)){
+//                        echo ' cached to redis';
+//                    }else{
+//                        echo ' failed to cache to redis';
+//                    }
                     echo "\n";
                 }
             }elseif(is_dir($cssReadPath.$entry) && $entry!='m') {
@@ -176,11 +176,11 @@ if ($handle = opendir($cssMobilePath)) {
                     file_put_contents($cssMobileWritePath.$entry, $content);
                     
                     
-                    if($redis->set('v1:m'.$entry, $content)){
-                        echo ' cached to redis';
-                    }else{
-                        echo ' failed to cache to redis';
-                    }
+//                    if($redis->set('v1:m'.$entry, $content)){
+//                        echo ' cached to redis';
+//                    }else{
+//                        echo ' failed to cache to redis';
+//                    }
                     echo "\n";
                 }
             }elseif(is_dir($cssMobilePath.$entry) && $entry!='m') {

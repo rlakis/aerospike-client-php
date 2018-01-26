@@ -4435,7 +4435,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
             ?>})();<?php
         
         ?></script><?php
-        
+        /*
         if($this->user->info['id'] && $this->user->info['level']==9 && $this->urlRouter->module=='post')
         {
             if($this->urlRouter->cfg['site_production'])
@@ -4444,7 +4444,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
             }else{
                 ?><script type="text/javascript" async="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/pvc.js"></script><?php
             }
-        }                
+        }       */         
     }
     
     
@@ -4527,13 +4527,13 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                     break;
                 case 'post':
                     if($this->user->info['id'] && $this->isUserMobileVerified){                    
-                        if($this->user->info['id'] && $this->user->info['level']==9 && $this->urlRouter->module=='post'){
+                        /*if($this->user->info['id'] && $this->user->info['level']==9 && $this->urlRouter->module=='post'){
                             if($this->urlRouter->cfg['site_production']){
                                 $requires[] ='https://h5.mourjan.com/js/3.0.7/pvc.js';
                             }else{
                                 $requires[] =  $this->urlRouter->cfg['url_js'] . '/pvc.js';
                             }
-                        }
+                        }*/
                         $requires[] = $this->urlRouter->cfg['url_js'] . '/post.js';
                     }elseif($this->user->info['id']){
                         $requires[] = $this->urlRouter->cfg['url_jquery'] . 'select2.min.js';
@@ -4973,13 +4973,13 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 break;
             case 'post':
                 if($this->user->info['id'] && $this->isUserMobileVerified){                    
-                    if($this->user->info['id'] && $this->user->info['level']==9 && $this->urlRouter->module=='post'){
+                    /*if($this->user->info['id'] && $this->user->info['level']==9 && $this->urlRouter->module=='post'){
                         if($this->urlRouter->cfg['site_production']){
                             ?><script type="text/javascript" src="https://h5.mourjan.com/js/3.0.7/pvc.js"></script><?php
                         }else{
                             ?><script type="text/javascript" src="<?= $this->urlRouter->cfg['url_js'] ?>/pvc.js"></script><?php
                         }
-                    }
+                    }*/
                     ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/post.js"></script><?php
                 }elseif($this->user->info['id']){
                     ?><script type="text/javascript" onload="$('#code').select2({language:'<?= $this->urlRouter->siteLanguage ?>',dir:'<?= $this->urlRouter->siteLanguage=='ar'?'rtl':'ltr' ?>'})" defer="true" src="<?= $this->urlRouter->cfg['url_jquery'] ?>select2.min.js"></script><?php

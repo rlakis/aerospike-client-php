@@ -1076,7 +1076,56 @@ function savC(e){
             g=m[i]['v'];
             k=m[i]['t'];
             if ((typeof PVC) !== 'undefined') {
-                var rp=phoneNumberParser(m[i]['r'],m[i]['i'],m[i]['t']);
+                $.ajax({
+                    url:'/ajax-number/',
+                    type: "POST",
+                    data: {
+                        'num':m[i]['v'].replace('+',''),
+                        'type':m[i]['t'],
+                        'iso':m[i]['i'],
+                        'idx':i
+                    },
+                    dataType:"json",
+                    success:function(rp){
+                        if(rp.RP){
+                            var n=$n('phL');
+                            var c=$c(n);
+                            
+                            rp = rp.DATA.i;
+                            k=m[rp.idx]['t'];
+
+                            var b=$f(c[rp.idx]);
+                            var s=b.lastChild;
+                            var g=s.nodeValue;
+                            
+                            if(rp.p){
+                                if(rp.v){
+                                    if(rp.t){
+                                        if(lang=='ar')
+                                            g='Valid '+g;
+                                        else g+=' Valid';
+                                    }else{
+                                        if(lang=='ar')
+                                            g='TYPE ERROR: '+rp.e+' '+g;
+                                        else g+=' TYPE ERROR: '+rp.e;
+                                    }
+                                }else {
+                                    if(lang=='ar')
+                                        g='INVALID '+g;
+                                    else g+=' INVALID';
+                                }        
+                            }else{
+                                if(lang=='ar')
+                                    g=rp.e+' '+g;
+                                else g+=' '+rp.e;
+                            }
+                            s.nodeValue=g;
+                        }
+                    },error:function(rp){
+                        console.log('error');
+                    }
+                 });
+                /*var rp=phoneNumberParser(m[i]['r'],m[i]['i'],m[i]['t']);
                 if(rp.p){
                     if(rp.v){
                         if(rp.t){
@@ -1097,7 +1146,7 @@ function savC(e){
                     if(lang=='ar')
                         g=rp.e+' '+g;
                     else g+=' '+rp.e;
-                }
+                }*/
             }
             s='<b>';
             if(k<6 || k==13){
@@ -3138,7 +3187,47 @@ function iniC(p){
         var pl=cui.p;
         var l=cui.p.length;
         for(var i=0;i<l;i++){
-            var rp=phoneNumberParser(pl[i]['r'],pl[i]['i'],pl[i]['t']);
+            $.ajax({
+                url:'/ajax-number/',
+                type: "POST",
+                data: {
+                    'num':pl[i]['v'].replace('+',''),
+                    'type':pl[i]['t'],
+                    'iso':pl[i]['i'],
+                    'idx':i
+                },
+                dataType:"json",
+                success:function(rp){
+                    if(rp.RP){
+                        rp = rp.DATA.i;
+                        
+                        var b=$f(c[rp.idx]);
+                        var s=b.lastChild;
+                        var g=s.nodeValue;
+                        if(rp.p){
+                            if(rp.v){
+                                if(rp.t){
+                                    if(lang=='ar')
+                                        g='Valid '+g;
+                                    else g+=' Valid';
+                                }else{
+                                    if(lang=='ar')
+                                        g='TYPE ERROR: '+rp.e+' '+g;
+                                    else g+=' TYPE ERROR: '+rp.e;
+                                }
+                            }else {
+                                if(lang=='ar')
+                                    g='INVALID '+g;
+                                else g+=' INVALID';
+                            }        
+                        }
+                        s.nodeValue=g;
+                    }
+                },error:function(rp){
+                    console.log('error');
+                }
+             });
+            /*var rp=phoneNumberParser(pl[i]['r'],pl[i]['i'],pl[i]['t']);
             var b=$f(c[i]);
             var s=b.lastChild;
             var g=s.nodeValue;
@@ -3163,7 +3252,7 @@ function iniC(p){
                     g=rp.e+' '+g;
                 else g+=' '+rp.e;
             }
-            s.nodeValue=g;
+            s.nodeValue=g;*/
         }
     }
 }
