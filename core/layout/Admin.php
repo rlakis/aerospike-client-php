@@ -53,7 +53,7 @@ class Admin extends Page
         $this->urlRouter->cfg['enabled_ads']=0;
         
         
-        $parameter = filter_input(INPUT_GET, 'p', FILTER_SANITIZE_NUMBER_INT);
+        $parameter = filter_input(INPUT_GET, 'p', FILTER_SANITIZE_STRING);
         
         
         
@@ -140,11 +140,25 @@ class Admin extends Page
             $date = new DateTime();
             
             $len = strlen($parameter);
-            $this->uid = intval($parameter);
+            $uuid = '';
+            if(preg_match('/[^0-9]/', $parameter)){
+                $record = [];
+                $status = [$this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUserByUUID($parameter, $record))];
+                
+                if(count($record)){
+                    $this->uid = $record['id'];
+                    $uuid = $parameter;
+                }
+            }else{            
+                $this->uid = intval($parameter);
+            }
             
 
             $this->userdata = [$this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($this->uid))];
             
+            if($uuid){
+                $this->uid = $uuid;
+            }
         }
         else
         {
@@ -714,7 +728,7 @@ $.ajax({
                     ?><form method="get"><?php
                     ?><ul class="ts"><?php                                
                     ?><li><?php 
-                    ?><div class="lm"><label>UID:</label><input name="p" type="text" value="<?= $this->uid ? $this->uid : '' ?>" /><?php
+                    ?><div class="lm"><label>UID/UUID:</label><input name="p" type="text" value="<?= $this->uid ? $this->uid : '' ?>" /><?php
                     ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
                     ?></div></li><?php
                     ?></ul><?php
