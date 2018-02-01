@@ -1,5 +1,5 @@
 <?php
-require_once 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';
+require_once 'deps/phpmailer/phpmailer/PHPMailerAutoload.php';
 use Core\Model\DB;
 
 class MourjanMail extends PHPMailer 
