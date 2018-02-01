@@ -258,6 +258,9 @@ class Administration
                 
                 
                 break;
+                
+            case 'ga':
+                break;
             
             default:
                 $pass=false;
