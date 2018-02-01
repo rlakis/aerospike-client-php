@@ -5,7 +5,7 @@ namespace Core\Model;
 $dir = get_cfg_var('mourjan.path');
 require_once $dir.'/deps/autoload.php';
 include_once $dir.'/core/model/NoSQL.php';
-include_once $dir.'/core/lib/edigear.php';
+//include_once $dir.'/core/lib/edigear.php';
 
 
 use \checkmobi\CheckMobiRest;
