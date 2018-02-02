@@ -14,7 +14,7 @@ $rs = $db->get("select t.ID, t.CURRENCY_ID, t.AMOUNT, cast(t.DATED as date) date
                 from T_TRAN t
                 left JOIN T_PAYFORT p on p.FORT_ID=t.TRANSACTION_ID
                 where t.GATEWAY='PAYFORT'
-                and t.DATED between '01.08.2017 00:00:00.000' and '31.08.2017 23:59:59.999'
+                and t.DATED>='01.01.2018' and t.dated<'01.02.2018'
                 order by t.ID
             ");
 
@@ -52,6 +52,10 @@ foreach ($rs as $d)
         else if (preg_match("/^962/", "$customer_phone"))
         {
             $customer_country = 'JO';            
+        }
+        else if (preg_match("/^963/", "$customer_phone"))
+        {
+            $customer_country = 'SY';            
         }
         else if (preg_match("/^965/", "$customer_phone"))
         {
