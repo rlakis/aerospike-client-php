@@ -667,6 +667,7 @@ class MCMobile extends MCJsonMapper
     protected $sc;       // SMS sent count
     protected $flag;     // 2: ios    
     protected $secret;  // ios users only
+    protected $type;
 
     
     function __construct($as_array=null) 
@@ -681,6 +682,11 @@ class MCMobile extends MCJsonMapper
             $this->sc = $as_array[ASD\USER_MOBILE_SENT_SMS_COUNT] ?? 0;
             $this->flag = $as_array[ASD\USER_MOBILE_FLAG] ?? 0;
             $this->secret = $as_array[ASD\USER_MOBILE_SECRET] ?? '';
+            $this->type = $as_array[ASD\USER_MOBILE_REQUEST_TYPE] ?? -1;
+        }
+        else
+        {
+            $this->type = -1;
         }
     }
     
@@ -701,7 +707,9 @@ class MCMobile extends MCJsonMapper
                 ASD\USER_MOBILE_CODE_DELIVERED => $this->dlvrd,
                 ASD\USER_MOBILE_SENT_SMS_COUNT => $this->sc,
                 ASD\USER_MOBILE_FLAG => $this->flag,
-                ASD\USER_MOBILE_SECRET => $this->secret] : [];
+                ASD\USER_MOBILE_SECRET => $this->secret,
+                ASD\USER_MOBILE_REQUEST_TYPE => $this->type
+                ] : [];
     }
     
     
@@ -756,6 +764,12 @@ class MCMobile extends MCJsonMapper
     public function getSentSMSCount() : int
     {
         return $this->sc;
+    }
+    
+    
+    public function isSMS() : bool
+    {
+        return $this->type==0;
     }
     
     

@@ -53,6 +53,8 @@ const USER_MOBILE_SECRET            = 'secret';
 const USER_MOBILE_REQUEST_ID        = 'request_id';
 const USER_MOBILE_VALIDATION_TYPE   = 'request_type';
 const USER_MOBILE_PIN_HASH          = 'pin_hash';
+const USER_MOBILE_REQUEST_TYPE      = 'request_type';
+
 
 
 const USER_DEVICES          = 'devices';
