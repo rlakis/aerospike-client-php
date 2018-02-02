@@ -9,6 +9,7 @@ use \Core\Model\MobileValidation;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\ServiceAccount;
 
+
 class MobileApi
 {
     var $config;
@@ -2093,7 +2094,7 @@ class MobileApi
                 switch ($val_type) 
                 {
                     case MobileValidation::CLI_TYPE:
-                        if (MobileValidation::getInstance(MobileValidation::EDIGEAR)->verifyStatus($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]))
+                        if (MobileValidation::getInstance()->verifyStatus($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]))
                         {
                             $activated = NoSQL::getInstance()->mobileActivationByRequestId($this->getUID(), $mobile_no, $pin_code, $record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
                         }
@@ -2106,11 +2107,8 @@ class MobileApi
                         break;
 
                     case MobileValidation::SMS_TYPE:
-                    case MobileValidation::REVERSE_CLI_TYPE:                     
-                        //$response = MobileValidation::getInstance()->setUID($this->getUID())->verifyNexmoCallPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $pin_code);
-                        $response = MobileValidation::getInstance()->setUID($this->getUID())->verifyEdigearPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $pin_code);
-                                                
-                        //$response = CheckMobiRequest::verifyPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $pin_code);
+                    case MobileValidation::REVERSE_CLI_TYPE:                                             
+                        $response = MobileValidation::getInstance()->setUID($this->getUID())->verifyEdigearPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $pin_code);                                                
                         if (isset($response['status']) && $response['status']==200 && isset($response['response']))
                         {
                             if ($response['response']['validated'])
@@ -2123,20 +2121,8 @@ class MobileApi
                                 $this->result['d']['status']='invalid';
                             }
                         }
-                        break;
-                    
-//                    default: // SMS
-//                        //error_log("{$pin_code}=={$record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE]}");
-//                        if ($pin_code==$record[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE])
-//                        {
-//                            $activated = NoSQL::getInstance()->mobileActivation($this->getUID(), $mobile_no, $pin_code);
-//                        }
-//                        else
-//                        {
-//                            $this->result['e'] = 'Activation code is not valid';
-//                            $this->result['d']['status']='invalid';
-//                        }
-//                        break;
+                        break;                    
+
                 }
                                                              
                 
@@ -2170,7 +2156,7 @@ class MobileApi
             switch ($val_type) 
             {
                 case MobileValidation::CLI_TYPE:
-                    $mv_result = MobileValidation::getInstance(MobileValidation::EDIGEAR)->
+                    $mv_result = MobileValidation::getInstance()->
                         setUID($this->getUID())->
                         setPlatform(MobileValidation::IOS)->
                         sendCallerId($mobile_no);
@@ -2199,7 +2185,7 @@ class MobileApi
                     return;
             
                 case \Core\Model\MobileValidation::REVERSE_CLI_TYPE:
-                    $ret = MobileValidation::getInstance(MobileValidation::EDIGEAR)->setUID($this->getUID())->setPlatform(MobileValidation::IOS)->requestReverseCLI($mobile_no, $response);
+                    $ret = MobileValidation::getInstance()->setUID($this->getUID())->setPlatform(MobileValidation::IOS)->requestReverseCLI($mobile_no, $response);
                     switch ($ret) 
                     {
                         case MobileValidation::RESULT_OK:
@@ -2248,7 +2234,7 @@ class MobileApi
                         $pin = mt_rand(1000, 9999); 
                         $msg_text = "{$pin} is your mourjan confirmation code";
                         
-                        if (MobileValidation::getInstance(MobileValidation::EDIGEAR)->
+                        if (MobileValidation::getInstance()->
                                 setPlatform(MobileValidation::IOS)->
                                 setPin($pin)->setUID($this->getUID())->
                                 sendSMS($mobile_no, $msg_text, ['uid'=>$this->getUID()]) == MobileValidation::RESULT_OK)
@@ -2298,7 +2284,7 @@ class MobileApi
             switch ($val_type) 
             {                
                 case MobileValidation::CLI_TYPE: 
-                    $ret = MobileValidation::getInstance(MobileValidation::EDIGEAR)->
+                    $ret = MobileValidation::getInstance()->
                         setPlatform(MobileValidation::IOS)->
                         setUID($this->getUID())->
                         sendCallerId($mobile_no);
@@ -2321,7 +2307,7 @@ class MobileApi
                     break;
                 
                 case MobileValidation::REVERSE_CLI_TYPE:
-                    $ret = MobileValidation::getInstance(MobileValidation::EDIGEAR)->setUID($this->getUID())->setPlatform(MobileValidation::IOS)->requestReverseCLI($mobile_no, $response); 
+                    $ret = MobileValidation::getInstance()->setUID($this->getUID())->setPlatform(MobileValidation::IOS)->requestReverseCLI($mobile_no, $response); 
                     //error_log(json_encode($response, JSON_PRETTY_PRINT));
                     if ($ret==MobileValidation::RESULT_OK)
                     {
@@ -2354,7 +2340,7 @@ class MobileApi
                     $pin = mt_rand(1000, 9999);                                        
                     $msg_text = "{$pin} is your mourjan confirmation code";
                 
-                    if (MobileValidation::getInstance(MobileValidation::EDIGEAR)->
+                    if (MobileValidation::getInstance()->
                             setUID($this->getUID())->
                             setPlatform(MobileValidation::IOS)->
                             setPin($pin)->
@@ -2849,47 +2835,29 @@ class MobileApi
         const STANDARD_RATE = 30;
          * */
 
-        if($phone_number && $country_code){
-            
-            require_once $this->config['dir'].'/core/lib/libphonenumber/MetadataLoader.php';
-            require_once $this->config['dir'].'/core/lib/libphonenumber/MetadataLoaderInterface.php';
-            require_once $this->config['dir'].'/core/lib/libphonenumber/DefaultMetadataLoader.php';
-            require_once $this->config['dir'].'/core/lib/libphonenumber/PhoneNumberUtil.php';
-            require_once $this->config['dir'].'/core/lib/libphonenumber/CountryCodeToRegionCodeMap.php';
-            require_once $this->config['dir'].'/core/lib/libphonenumber/PhoneNumber.php';
-            require_once $this->config['dir'].'/core/lib/libphonenumber/PhoneNumberFormat.php';
-            require_once $this->config['dir'].'/core/lib/libphonenumber/PhoneMetadata.php';
-            require_once $this->config['dir'].'/core/lib/libphonenumber/PhoneNumberDesc.php';
-            require_once $this->config['dir'].'/core/lib/libphonenumber/NumberFormat.php';
-            require_once $this->config['dir'].'/core/lib/libphonenumber/CountryCodeSource.php';
-            require_once $this->config['dir'].'/core/lib/libphonenumber/Matcher.php';
-            require_once $this->config['dir'].'/core/lib/libphonenumber/PhoneNumberType.php';
-            require_once $this->config['dir'].'/core/lib/libphonenumber/NumberParseException.php';
-            require_once $this->config['dir'].'/core/lib/libphonenumber/ValidationResult.php';
-            require_once $this->config['dir'].'/core/lib/libphonenumber/MetadataSourceInterface.php';
-            require_once $this->config['dir'].'/core/lib/libphonenumber/MultiFileMetadataSourceImpl.php';
-
+        if ($phone_number && $country_code)
+        {            
             $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
-
 
             $region_code = $this->mobileValidator->getRegionCodeForCountryCode($country_code);
 
-            if($region_code){
-
+            if($region_code)
+            {
                 $number = $this->mobileValidator->parse($phone_number, $region_code);
-                if($number && $this->mobileValidator->isValidNumber($number)){
-                    $this->result['d']=array(
-                        'type'  =>  $this->mobileValidator->getNumberType($number)
-                    );
+                if($number && $this->mobileValidator->isValidNumber($number))
+                {
+                    $this->result['d']=['type'  =>  $this->mobileValidator->getNumberType($number)];                    
                 }else{
                     $this->result['c']=ERR_INVALID_PHONE_NUMBER;
                 }
-
-            }else{
+            }
+            else
+            {
                 $this->result['c']=ERR_INVALID_COUNTRY_CODE;
             }
-
-        }else{
+        }
+        else
+        {
             $this->result['e']='Invalid user request!';
             $this->result['c']=ERR_INVALID_REQUEST_PARAMS;
         }
@@ -3513,7 +3481,7 @@ class MobileApi
                     $this->result['d']=1;
                 
                     if ($host_id==99) {
-                        $host = "https://dev.mourjan.com";
+                        $host = "https://dv.mourjan.com";
                     } else {
                         $host = "https://www.mourjan.com";
                     }

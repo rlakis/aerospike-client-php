@@ -1474,7 +1474,7 @@ class AndroidApi
                                                     }
                                                 }
                                             }else{                                            
-                                                if (MobileValidation::getInstance(MobileValidation::EDIGEAR)->verifyStatus($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]))
+                                                if (MobileValidation::getInstance()->verifyStatus($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]))
                                                 {
                                                     $activated = NoSQL::getInstance()->mobileActivationByRequestId($this->api->getUID(), $number, $keyCode, $record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
                                                     if($activated){
@@ -1494,10 +1494,9 @@ class AndroidApi
                                     {
                                         $number = substr($number,1);
                                     }
+                                    
                                     /*check if number is blocked*/
-                                    $prv = $this->api->db->queryResultArray('select * from bl_phone where telephone = ?', [$number], true);
-
-                                    if ($prv !== false && isset($prv[0]['ID']) && $prv[0]['ID'])
+                                    if (NoSQL::getInstance()->isBlacklistedContacts([$number]))
                                     {
                                         $number=0;
                                         $this->api->result['d']['blocked']=true;
@@ -1519,9 +1518,7 @@ class AndroidApi
                                         $makeCall= false;
                                         
                                         if($reverseCall){
-                                            //error_log("reverse call");
-                                            //$ret = MobileValidation::getInstance(MobileValidation::NEXMO)->setUID($this->api->getUID())->setPlatform(MobileValidation::ANDROID)->requestReverseCLI($number, $response);
-                                            $ret = MobileValidation::getInstance(MobileValidation::EDIGEAR)->setUID($this->api->getUID())->setPlatform(MobileValidation::ANDROID)->requestReverseCLI($number, $response);
+                                            $ret = MobileValidation::getInstance()->setUID($this->api->getUID())->setPlatform(MobileValidation::ANDROID)->requestReverseCLI($number, $response);
                                             switch ($ret) 
                                             {
                                                 case MobileValidation::RESULT_ERR_SENT_FEW_MINUTES:
@@ -1549,8 +1546,7 @@ class AndroidApi
                                             
                                             
                                         }else{
-                                            //$result = MobileValidation::getInstance(MobileValidation::CHECK_MOBI)->setUID($this->api->getUID())->setPlatform(MobileValidation::ANDROID)->sendCallerId($number);
-                                            $result = MobileValidation::getInstance(MobileValidation::EDIGEAR)->
+                                            $result = MobileValidation::getInstance()->
                                                 setUID($this->api->getUID())->
                                                 setPlatform(MobileValidation::ANDROID)->
                                                 sendCallerId($number);
@@ -1825,7 +1821,7 @@ class AndroidApi
                                         
                                         if ($sendSms && $number && $keyCode)
                                         {
-                                            if (!($status = MobileValidation::getInstance(MobileValidation::EDIGEAR)->
+                                            if (!($status = MobileValidation::getInstance()->
                                                 setPlatform(MobileValidation::ANDROID)->
                                                 setPin($keyCode)->setUID($this->api->getUID())->
                                                 sendSMS($number, "{$keyCode} is your mourjan confirmation code", ['uid'=>$this->api->getUID()])) == MobileValidation::RESULT_OK)
