@@ -566,7 +566,7 @@ class Bin extends AjaxHandler{
                                         $mcMobile = new MCMobile($mrs);
                                                                                 
                                         $expiredDelivery = $mcMobile->getActicationUnixtime()==0 && (time()-$mcMobile->getRquestedUnixtime())>86400 && $mcMobile->getSentSMSCount()<3;
-                                        $expiredValidity = $mcMobile->getActicationUnixtime() && (time()-$mcMobile->getActicationUnixtime())>365*86400;
+                                        $expiredValidity = $mcMobile->getActicationUnixtime() && ($mcMobile->getActicationUnixtime()+31536000)>time();
                                         $stillValid = $mcMobile->isVerified();
 
                                         

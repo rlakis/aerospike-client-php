@@ -203,7 +203,7 @@ class MobileValidation
         if ($record)
         {
             $activation_time = $record[ASD\USER_MOBILE_DATE_ACTIVATED] ?? 0;
-            if ($activation_time > time()-31536000) // more than one year
+            if ($activation_time+31536000 > time()) // more than one year
             {
                 return MobileValidation::RESULT_ERR_ALREADY_ACTIVE;
             }
