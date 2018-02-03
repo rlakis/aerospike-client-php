@@ -421,7 +421,7 @@ trait MobileTrait
         $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [USER_UID=>$uid, USER_MOBILE_REQUEST_ID=>$requestId]);
         if ($keys)
         {
-            $res = $this->setBins($keys[0], [USER_MOBILE_ACTIVATION_CODE=>$code, USER_MOBILE_DATE_ACTIVATED=>time()]);
+            $res = $this->setBins($keys[0], [USER_MOBILE_ACTIVATION_CODE=>$code, USER_MOBILE_DATE_ACTIVATED=>time(), USER_MOBILE_SENT_SMS_COUNT=>0]);
             if ($res)
             {
                 $this->getConnection()->removeBin($keys[0], [USER_MOBILE_PIN_HASH]);
