@@ -868,7 +868,7 @@ class User
                                 from ad_user a
                                 left join web_users u on u.id=a.web_user_id
                                 where a.admin_id=? and a.state=? 
-                                ORDER BY a.DATE_ADDED desc', 
+                                ORDER BY a.LAST_UPDATE desc', 
                                 [$aid, $state], $commit);
                         }
                         elseif ($state)
@@ -877,13 +877,13 @@ class User
                                 'select '.$pagination_str.' a.*, u.full_name, u.lvl, u.DISPLAY_NAME, u.profile_url, u.user_rank, u.provider 
                                 from ad_user a 
                                 left join web_users u on u.id=a.web_user_id 
-                                where a.state=3 and a.admin_id='.$aid.' order by a.state asc,a.date_added desc');
+                                where a.state=3 and a.admin_id='.$aid.' order by a.state asc,a.LAST_UPDATE desc');
                         }
                         else 
                         {
                             $res=$this->db->get(
                                 'select '.$pagination_str.' a.*,u.full_name,u.lvl,u.DISPLAY_NAME,u.profile_url, u.user_rank,u.provider  
-                                from ad_user a left join web_users u on u.id=a.web_user_id where a.admin_id=? and a.state=? order by a.date_added desc',
+                                from ad_user a left join web_users u on u.id=a.web_user_id where a.admin_id=? and a.state=? order by a.LAST_UPDATE desc',
                                 [$aid, $state], $commit);
                         }
                         
@@ -906,7 +906,7 @@ class User
                                 left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
                                 left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
                                 where a.web_user_id=? and a.state=? 
-                                ORDER BY bo_date_ended desc, a.DATE_ADDED desc', 
+                                ORDER BY bo_date_ended desc, a.LAST_UPDATE desc', 
                                 [$uid, $state], $commit);
                         }
                         elseif ($state)
@@ -972,7 +972,7 @@ class User
                                 $q.='and s.root_id = '.$filters['root'].' ';
                             }
                             
-                            $q.= 'order by primo desc,a.state asc, bo_date_ended desc, ao.super_admin desc, ppn, a.date_added desc';
+                            $q.= 'order by primo desc,a.state asc, bo_date_ended desc, ao.super_admin desc, ppn, a.LAST_UPDATE desc';
                             $res=$this->db->get($q, null, $commit);
                         }
                         else 
@@ -982,7 +982,7 @@ class User
                                     from ad_user a 
                                     left join web_users u on u.id=a.web_user_id 
                                     where a.web_user_id=? and a.state=? 
-                                    order by a.date_added desc',
+                                    order by a.LAST_UPDATE desc',
                                     array($uid, $state), $commit);
                         }
                         
@@ -1001,7 +1001,7 @@ class User
                              left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
                              left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
                              where a.web_user_id=? and a.state=? 
-                             ORDER BY bo_date_ended desc, a.DATE_ADDED desc
+                             ORDER BY bo_date_ended desc, a.LAST_UPDATE desc
                              ', [$this->info['id'], $state], $commit);
                     }
                     elseif ($state) 
@@ -1014,13 +1014,13 @@ class User
                             . 'from ad_user a '
                             . 'left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
                             left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date '
-                            . 'where a.web_user_id=? and a.state in (1,2,3,4) order by a.date_added desc',
+                            . 'where a.web_user_id=? and a.state in (1,2,3,4) order by a.LAST_UPDATE desc',
                             array($this->info['id']), $commit);
                     }
                     else 
                     {
                         // Draft
-                        $res=$this->db->get('select '.$pagination_str.' * from ad_user where web_user_id=? and state=? order by date_added desc',
+                        $res=$this->db->get('select '.$pagination_str.' * from ad_user where web_user_id=? and state=? order by LAST_UPDATE desc',
                                             [$this->info['id'], $state], $commit);
                     }
                 }

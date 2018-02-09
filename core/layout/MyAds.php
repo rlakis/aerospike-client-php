@@ -1126,7 +1126,7 @@ var rtMsgs={
             if($this->isMobile){
                 $section='<b class="ah">'.$section.'</b>';
             }else {
-                $section='<span class="k">'.$section.' - <b>' . $this->formatSinceDate(strtotime($ad['DATE_ADDED'])) . '</b></span>';
+                $section='<span class="k">'.$section.' - <b>' . $this->formatSinceDate(strtotime($ad['LAST_UPDATE'])) . '</b></span>';
             }
         }
         return $section;
