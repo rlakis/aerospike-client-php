@@ -8,6 +8,7 @@ class Admin extends Page
     private $uid = 0;
     private $aid = 0;
     private $userdata = 0;
+    private $multipleAccounts = [];
     
     function __construct($router)
     {
@@ -32,6 +33,8 @@ class Admin extends Page
                 . '#statDv{width:760px}'
                 . '.ts .lm{overflow:visible}'
                 . '.ts label{vertical-align:middle}'
+                . '.ts.multi{overflow:hidden;margin:-15px 0;border-bottom:1px solid #ccc}'
+                . '.ts.multi li{border:0;padding:10px 15px;float:right}'
                 . '.hy li{float:right;width:370px;border:0!important}'
                 . '.hy label{margin-bottom:10px}'
                 . 'textarea{width:300px;height:200px;padding:3px}'
@@ -137,11 +140,15 @@ class Admin extends Page
         
         if ($parameter)
         {
+            $this->uid = 0;
+            $isEmail = preg_match('/@/', $parameter);
+            $email = '';
+            
             $date = new DateTime();
             
             $len = strlen($parameter);
             $uuid = '';
-            if(preg_match('/[^0-9]/', $parameter)){
+            if(!$isEmail && preg_match('/[^0-9]/', $parameter)){
                 $record = [];
                 $status = [$this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUserByUUID($parameter, $record))];
                 
@@ -149,6 +156,26 @@ class Admin extends Page
                     $this->uid = $record['id'];
                     $uuid = $parameter;
                 }
+            }elseif($isEmail){            
+                $email = $parameter;
+                $user = $this->user->getUserByEmail($parameter);
+                if($user && count($user)){
+                    $selected = $this->uid = $user[0]['ID'];
+                    
+                    if(isset($_GET['selected'])){
+                        $selected = intval($_GET['selected']);
+                    }
+                    
+                    if(count($user) > 1){
+                        foreach($user as $rec){
+                            $this->multipleAccounts[] = $rec['ID'];
+                            if($selected == $rec['ID']){
+                                $this->uid = $rec['ID'];
+                            }
+                        }
+                    }
+                }
+                
             }else{            
                 $this->uid = intval($parameter);
             }
@@ -158,6 +185,9 @@ class Admin extends Page
             
             if($uuid){
                 $this->uid = $uuid;
+            }
+            if($isEmail){
+                $this->uid = $email;
             }
         }
         else
@@ -728,12 +758,28 @@ $.ajax({
                     ?><form method="get"><?php
                     ?><ul class="ts"><?php                                
                     ?><li><?php 
-                    ?><div class="lm"><label>UID/UUID:</label><input name="p" type="text" value="<?= $this->uid ? $this->uid : '' ?>" /><?php
-                    ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
-                    ?></div></li><?php
+                        ?><div class="lm"><label>UID/UUID/EMAIL:</label><input name="p" type="text" value="<?= $this->uid ? $this->uid : '' ?>" /><?php
+                        ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
+                        ?></div><?php 
+                    ?></li><?php
                     ?></ul><?php
                     ?></form><?php
 
+                    if(count($this->multipleAccounts)){
+                        $lang=$this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/';
+                        
+                        $selected = $this->get('selected', 'uint') ? $this->get('selected', 'uint') : $this->multipleAccounts[0];
+                        ?><ul class="ts multi"><?php     
+                            foreach ($this->multipleAccounts as $acc){
+                                if($selected == $acc){
+                                    echo "<li><b>{$acc}</b></li>";
+                                }else{
+                                    echo "<li><a href='/admin/{$lang}?p={$this->uid}&selected={$acc}'>{$acc}</a></li>";
+                                }
+                            }                                
+                        ?></ul><?php
+                    }
+                    
                     ?><form method="get"><?php
                     ?><ul class="ts"><?php                                
                     ?><li><?php 
@@ -742,6 +788,21 @@ $.ajax({
                     ?></div></li><?php
                     ?></ul><?php
                     ?></form><?php
+                    
+                    /*
+                    if($this->mobile_param){
+                        $lang=$this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/';
+                        $selected = $this->get('selected', 'uint');
+                        ?><ul class="ts multi"><?php     
+                            foreach ($this->multipleAccounts as $acc){
+                                if($selected == $acc){
+                                    echo "<li><b>{$acc}</b></li>";
+                                }else{
+                                    echo "<li><a href='/admin/{$lang}?p={$this->uid}&selected={$acc}'>{$acc}</a></li>";
+                                }
+                            }                                
+                        ?></ul><?php
+                    }*/
                     
                     ?><form method="get"><?php
                     ?><ul class="ts"><?php                                

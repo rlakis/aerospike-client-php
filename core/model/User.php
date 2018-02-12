@@ -1029,6 +1029,14 @@ class User
         return $res;
     }
     
+    function getUserByEmail($email){
+        $res = false;
+        if ($this->info['id'] && $this->info['level']==9){
+            $email = trim($email);
+            $res=$this->db->get('select * from web_users where email=? or user_email=? order by last_visit desc', [$email, $email]);
+        }
+        return $res;
+    }
     
     function getPendingAdsCount($state=0)
     {
