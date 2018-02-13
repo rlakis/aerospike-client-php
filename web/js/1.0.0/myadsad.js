@@ -1460,6 +1460,7 @@ var renderPU=function(){
 var TON;
 var renderSecs=function(ro,e){   
     e.empty();
+    $('#fiput',TON).val("");
     ARO = ro;
     $('.b_ro',AZONE).remove();
     
@@ -1470,32 +1471,39 @@ var renderSecs=function(ro,e){
     
     var ul=[$('<ul></ul>'),$('<ul></ul>'),$('<ul></ul>'),$('<ul></ul>')];
     var j=0;
-    var cs= (ro==1?'x x':(ro==2?'z z':(ro==3?'v v':(ro==4?'y y':(ro==99?'u u':'')))));
+    var cs= (ro==1?'x x':(ro==2?'z z':(ro==3?'v v':(ro==4?'y y':(ro==99?'u u':'')))));   
+    var secs=[],k=0;
     for(var i in SECTIONS){
         if(ro==SECTIONS[i][2]){
-            var r=$("<li id='s"+SECTIONS[i][0]+"'"+(ASE==SECTIONS[i][0]?' class=\'on\'':'')+"><span><span class='"+cs+SECTIONS[i][0]+"'></span>"+SECTIONS[i][1]+"</span></li>");
-            r.click(function(ck){
-                ck.preventDefault();
-                ck.stopPropagation();
-                $('.on',e).removeClass('on');
-                var sid=$(this).attr('id').substring(1);
-                if($('.b_pu.on',AZONE).length || ro==4){
-                    if(ro==4){
-                        APU=5;
-                    }
-                    var b = $(this);
-                    preClick(AE, b);
-                    changePu(AE, AID, ARO, sid, APU);
-                }else{
-                    ASE=sid;
-                    $(this).addClass('on');
-                    renderPU();
-                    $('.b_pu',AZONE).css('background-color','red');
-                }
-            });
-            ul[j++].append(r);
-            if(j==4)j=0;
+            secs[k++]=SECTIONS[i];
         }
+    }
+    k=0;
+    var splitter = Math.ceil(secs.length / 4);
+    for(var i in secs){
+        var r=$("<li id='s"+secs[i][0]+"'"+(ASE==secs[i][0]?' class=\'on\'':'')+"><span><span class='"+cs+secs[i][0]+"'></span>"+secs[i][1]+"</span></li>");
+        r.click(function(ck){
+            ck.preventDefault();
+            ck.stopPropagation();
+            $('.on',e).removeClass('on');
+            var sid=$(this).attr('id').substring(1);
+            if($('.b_pu.on',AZONE).length || ro==4){
+                if(ro==4){
+                    APU=5;
+                }
+                var b = $(this);
+                preClick(AE, b);
+                changePu(AE, AID, ARO, sid, APU);
+            }else{
+                ASE=sid;
+                $(this).addClass('on');
+                renderPU();
+                $('.b_pu',AZONE).css('background-color','red');
+            }
+        });
+        ul[j].append(r);
+        k++;
+        if(k%splitter===0)j++;
     }
     e.append(ul[0]);
     e.append(ul[1]);
@@ -1548,7 +1556,7 @@ var quickSwitch = function (e) {
     AZONE=zone;
     ADSK=dsk;
     if(!TON){
-        TON=$("<div class='ton "+lang+"'><ul><li class='roots'><ul></ul></li><li class='sections'></li></ul></div>");
+        TON=$("<div class='ton "+lang+"'><div style='text-align:center;padding:5px;background-color:darkkhaki'><input id='fiput' type='text' onkeyup='idir(this);filterSections(this)' onchange='idir(this,1);' placeholder='"+(lang=='ar'?'بحث عن قسم':'filter by section')+"' style='padding:5px 10px;width:450px;font-size:20px;font-family:arial' /></div><ul><li class='roots'><ul></ul></li><li class='sections'></li></ul></div>");
         var tmp=$('.roots ul',TON);
         var secs=$('.sections',TON);
         var ph=Math.floor(100/ROOTS.length);
@@ -1602,6 +1610,19 @@ var quickSwitch = function (e) {
     bdy.append(dsk);
     bdy.append(zone);
     bdy.append(TON);
+};
+var filterSections=function(e){
+    var s=e.value;
+    var secs=$('.sections',TON);
+    var li=$('li',secs);
+    li.each(function(i,p){
+        p=$(p);
+        if(p[0].innerText.match(new RegExp(s))){
+            p.css("display","block");            
+        }else{
+            p.css("display","none");
+        }
+    });
 };
 var preClick = function (e, b) {
     ALI.removeClass("focus");

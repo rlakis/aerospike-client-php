@@ -4372,7 +4372,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                             if($this->user->info['id']){
                                 if($this->user->info['level']==9){     
                                     if($this->urlRouter->cfg['site_production']){
-                                        ?>sh.src='https://h5.mourjan.com/js/3.3.9/myadsad.js';<?php
+                                        ?>sh.src='https://h5.mourjan.com/js/3.4.0/myadsad.js';<?php
                                     }else{
                                         ?>sh.src='<?= $this->urlRouter->cfg['url_js'] ?>/myadsad.js';<?php 
                                     }
@@ -4511,7 +4511,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                         $requires[] = $this->urlRouter->cfg['url_jquery'] . 'socket.io-1.4.5.js';
                         if($this->user->info['level']==9){     
                             if($this->urlRouter->cfg['site_production']){
-                                $requires[] = 'https://h5.mourjan.com/js/3.3.9/myadsad.js';
+                                $requires[] = 'https://h5.mourjan.com/js/3.4.0/myadsad.js';
                             }else{
                                 $requires[] = $this->urlRouter->cfg['url_js'] . '/myadsad.js';
                             }
@@ -4957,7 +4957,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                     ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_jquery'] ?>socket.io-1.4.5.js"></script><?php
                     if($this->user->info['level']==9){     
                         if($this->urlRouter->cfg['site_production']){
-                            ?><script type="text/javascript" defer="true" src="https://h5.mourjan.com/js/3.3.9/myadsad.js"></script><?php
+                            ?><script type="text/javascript" defer="true" src="https://h5.mourjan.com/js/3.4.0/myadsad.js"></script><?php
                         }else{
                             ?><script type="text/javascript" defer="true" src="<?= $this->urlRouter->cfg['url_js'] ?>/myadsad.js"></script><?php
                         }
@@ -5050,7 +5050,13 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
     {
         if ($this->router()->isAMP && $this->router()->module=='search')
         {
-            echo '<!doctype html>', PHP_EOL;
+            
+            ?><!doctype html><?php
+            ?><html amp lang="<?= $this->router()->siteLanguage ?>"><?php
+                $this->_headerAMP();
+                $this->_bodyAMP();
+            ?></html><?php
+            /*echo '<!doctype html>', PHP_EOL;
             echo '<html amp lang="', $this->router()->siteLanguage, '" dir="', $this->router()->isArabic() ? 'rtl' : 'ltr', '">', PHP_EOL, '<head>';
             echo '<meta charset="utf-8">', PHP_EOL,'<script async src="https://cdn.ampproject.org/v0.js"></script>', PHP_EOL;
             echo '<link rel="shortcut icon" href="https://www.mourjan.com/img/1.0.3/favicon.ico">', PHP_EOL;
@@ -5078,7 +5084,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
             echo '</head>', PHP_EOL, '<body>';
             //var_export($this->searchResults);
             $this->ampBody();
-            echo '</body></html>';
+            echo '</body></html>';*/
             return;
         }
         
@@ -5094,6 +5100,196 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         }
     }
     
+
+    function _headerAMP(){
+        ?><head><?php
+            ?><meta lang="<?= $this->urlRouter->siteLanguage ?>"><?php
+            ?><meta charset="utf-8"><?php
+            ?><link rel="canonical" href="https://www.mourjan.com<?= $this->router()->uri ?>"><?php
+            ?><meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1"><?php
+            ?><style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript><?php
+            ?><script async src="https://cdn.ampproject.org/v0.js"></script><?php
+            ?><script async custom-element="amp-sidebar" src="https://cdn.ampproject.org/v0/amp-sidebar-0.1.js"></script><?php
+            ?><link href="https://fonts.googleapis.com/css?family=Cairo" rel="stylesheet"><?php
+            $this->headerAMP();
+        ?></head><?php
+    }
+    
+    function _bodyAMP(){
+        ?><body><?php
+            $this->titleHeaderAMP();
+            $this->sidebarAMP();
+            $this->bodyAMP();
+        ?></body><?php
+    }
+    
+    
+    function headerAMP(){
+        
+    }
+    
+    function bodyAMP(){
+        
+    }
+    
+    function titleHeaderAMP(){
+        ?><header><?php
+            ?><div role="button" on="tap:sidebar.toggle" tabindex="0">☰</div><?php
+        ?></header><?php
+    }
+    
+    function sidebarAMP(){        
+        $lang=$this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/';
+        
+        ?><amp-sidebar id="sidebar" layout="nodisplay" side="<?= $this->urlRouter->siteLanguage == 'ar' ? 'right':'left' ?>"><?php
+            
+        ?><ul><?php            
+                        
+            ?><li><?php 
+            if($lang){
+                ?><a class="ar ctr" href="<?= $this->switchLangUrl ?>">تصفح باللغة العربية</a><?php
+            }else{
+                ?><a class="en ctr" href="<?= $this->switchLangUrl ?>">switch to English</a><?php
+            }
+            ?></li><?php
+            
+            $headTitle = $this->lang['mourjan'];
+            if($this->urlRouter->cityId){
+                $headTitle=$this->lang['mourjan'].' '.$this->cityName;
+            }elseif($this->urlRouter->countryId){
+                $headTitle=$this->lang['mourjan'].' '.$this->countryName;
+            }
+            if($this->urlRouter->module=='index' && !$this->urlRouter->rootId && $this->urlRouter->countryId){
+                ?><li class="on"><b><span class="k home"></span><?= $headTitle ?></b></li><?php
+            }else{
+                ?><li><a href="<?= $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId); ?>"><span class="k home"></span><?= $headTitle ?></a></li><?php
+            }
+            if($this->user->info['id']){                
+                if($this->urlRouter->module=='post'){    
+                    ?><li class="on"><b><span class="ic apb"></span><?= $this->lang['button_ad_post'] ?></b></li><?php
+                }else{
+                    ?><li><a href="/post/<?= $lang ?>?clear=true"><span class="ic apb"></span><?= $this->lang['button_ad_post'] ?></a></li><?php
+                }     
+                ?><li class="sep"></li><?php   
+                if($this->urlRouter->module != 'search' || !$this->userFavorites) {
+                   ?><li><a href="/favorites/<?= $lang ?>"><span class="ic k fav on"></span><?= $this->lang['myFavorites'] ?></a></li><?php 
+                }else{
+                    ?><li class="on"><b><span class="ic k fav on"></span><?= $this->lang['myFavorites'] ?></b></li><?php 
+                }
+                /*if($this->urlRouter->module != 'search' || !$this->urlRouter->watchId) {
+                       ?><li><a href="/watchlist/<?= $lang ?>"><span class="ic k eye on"></span><?= $this->lang['myList'] ?></a></li><?php 
+                }else{
+                    ?><li class="on"><b><span class="ic k eye on"></span><?= $this->lang['myList'] ?></b></li><?php 
+                }*/
+                ?><li class="sep"></li><?php
+                if($this->urlRouter->module != 'balance') {
+                    ?><li><a href="/statement/<?= $lang ?>"><span class="mc24"></span><?= $this->lang['myBalance'] ?><span class="n"></span></a></li><?php 
+                }else{
+                    ?><li class="on"><b><span class="mc24"></span><?= $this->lang['myBalance'] ?></b></li><?php 
+                }
+                ?><li class="sep"></li><?php
+                
+                $sub=(isset($_GET['sub']) && $_GET['sub'] ? $_GET['sub']:'');
+                if($this->urlRouter->module != 'myads' || ($this->urlRouter->module == 'myads' && $sub!='') ) {
+                        ?><li><a href="/myads/<?= $lang ?>"><span class="ic aon"></span><?= $this->lang['ads_active'] ?></a></li><?php
+                }else{
+                    ?><li class="on"><b><span class="ic aon"></span><?= $this->lang['ads_active'] ?></b></li><?php
+                }
+                if($this->urlRouter->module != 'myads'  || ($this->urlRouter->module == 'myads' &&  $sub!='pending') ) {
+                        ?><li><a href="/myads/<?= $lang ?>?sub=pending"><span class="ic apd"></span><?= $this->lang['ads_pending'] ?></a></li><?php
+                }else{
+                    ?><li class="on"><b><span class="ic apd"></span><?= $this->lang['ads_pending'] ?></b></li><?php
+                }
+                if($this->urlRouter->module != 'myads'  || ($this->urlRouter->module == 'myads' &&  $sub!='drafts'))  {
+                    ?><li><a href="/myads/<?= $lang ?>?sub=drafts"><span class="ic aedi"></span><?= $this->lang['ads_drafts'] ?></a></li><?php
+                }else{
+                    ?><li class="on"><b><span class="ic aedi"></span><?= $this->lang['ads_drafts'] ?></b></li><?php
+                }
+                if($this->urlRouter->module != 'myads'  || ($this->urlRouter->module == 'myads' &&  $sub!='archive'))  {
+                    ?><li><a href="/myads/<?= $lang ?>?sub=archive"><span class="ic afd"></span><?= $this->lang['ads_archive'] ?></a></li><?php
+                }else{
+                    ?><li class="on"><b><span class="ic afd"></span><?= $this->lang['ads_archive'] ?></b></li><?php
+                }
+            
+            }else{
+                if($this->urlRouter->module=='post'){    
+                    ?><li class="on"><b><span class="ic apb"></span><?= $this->lang['button_ad_post'] ?></b></li><?php
+                }else{
+                    ?><li><a href="/post/<?= $lang ?>?clear=true"><span class="ic apb"></span><?= $this->lang['button_ad_post'] ?></a></li><?php
+                }
+            }
+            ?><li class="sep"></li><?php            
+            
+            if($this->user->info['id']==0){
+                if($this->urlRouter->module=='home'){
+                    ?><li class="on"><b><span class="k log"></span><?= $this->lang['signin'] ?></b></li><?php 
+                }else{
+                    ?><li><a href="/home/<?= $lang ?>"><span class="k log"></span><?= $this->lang['signin'] ?></a></li><?php
+                }
+                ?><li class="sep"></li><?php
+            }
+            
+            /*if($this->user->info['id']){
+                ?><li class="sep"></li><?php
+            }*/
+            $countryId = $this->urlRouter->countryId;
+            $cityId = $this->urlRouter->cityId; 
+            if (isset($this->user->params['country']) && $this->user->params['country'])
+                $countryId=$this->urlRouter->countryId=$this->user->params['country'];
+            if (isset($this->user->params['city']) && $this->user->params['city'])
+                $cityId=$this->urlRouter->cityId=$this->user->params['city'];
+            $this->urlRouter->pageRoots = $this->urlRouter->db->getRootsData($countryId, $cityId, $this->urlRouter->siteLanguage);
+            //roots
+            $i=0;
+            foreach ($this->urlRouter->pageRoots as $key=>$root) {
+                $count=$this->checkNewUserContent($root['unixtime']) ? '<b>'.$root['counter'].'</b>' : $root['counter'];
+                if($this->urlRouter->module=='index' && $this->urlRouter->rootId==$key){
+                    echo '<li class="on"><b><span class="ic r',$key,'"></span>',
+                    $root['name'], ($countryId ? '<span class="n">'. $count. '</span>':'') ,'</b></li>';
+                }else{
+                $_link = $this->urlRouter->getURL($countryId, $cityId, $key);        
+                echo '<li><a href="', $_link, '"><span class="ic r',$key,'"></span>',
+                    $root['name'], ($countryId ? '<span class="n">'. $count. '</span>':'') ,'</a></li>';
+                }
+                $i++;
+            }            
+            
+            ?><li class="sep"></li><?php
+            if($this->urlRouter->module=='index' && $this->urlRouter->countryId==0){
+                echo '<li class="on"><b><span class="cf c', $this->urlRouter->countryId, '"></span>',
+                $this->countryCounter, ' ',$this->lang['in'],' ',($this->urlRouter->cityId?$this->cityName:$this->countryName),
+                '<span class="et"></span></b></li>';
+            }else{
+            //country change
+            echo '<li><a href="/', $this->appendLang ,'"><span class="cf c', $this->urlRouter->countryId, '"></span>',
+                $this->countryCounter, ' ',$this->lang['in'],' ',($this->urlRouter->cityId?$this->cityName:$this->countryName),
+                '<span class="et"></span></a></li>';
+            }
+            
+            
+            ?><li class="sep"></li><?php
+            
+            //contact us
+            if($this->urlRouter->module == 'contact') {
+                ?><li class="on"><b><span class="ic r100"></span><?= $this->lang['contactUs'] ?></b></li><?php 
+            }else{
+                ?><li><a href="/contact/<?= $lang ?>"><span class="ic r100"></span><?= $this->lang['contactUs'] ?></a></li><?php 
+            }
+            
+            ?><li class="sep"></li><?php 
+            if($this->user->info['id']){                
+                if($this->urlRouter->module != 'account') {
+                    ?><li><a href="/account/<?= $lang ?>"><span class="et etr"></span><?= $this->lang['myAccount'] ?></a></li><?php            
+                }else{
+                    ?><li class="on"><b><?= $this->lang['myAccount'] ?></b></li><?php
+                }
+                ?><li><a href="?logout=<?= $this->user->info['provider'] ?>"><span class="k log on"></span><?= $this->lang['signout'] ?></a></li><?php
+            }    
+                
+            ?></ul><?php
+        
+        ?></amp-sidebar><?php
+    }
     
     protected function ampBody()
     {
@@ -5196,7 +5392,6 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
             ?><meta name="keywords" content="<?= $keywords ?>"><?php
         }
     }
-
     
     protected function _header(){
         $country_code="";
@@ -5885,7 +6080,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                     ?><li><div><?php
                         ?><h5><?= $this->lang['mourjan_app'] ?></h5><?php
                         ?><p><?= $this->lang['app_desc'] ?></p><?php
-                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(7,050)</span><?php
+                        ?><span class='rating <?= $this->urlRouter->siteLanguage ?>'>(7,562)</span><?php
                     ?></div></li><?php
                     ?><li><a type="button" href='https://play.google.com/store/apps/details?id=com.mourjan.classifieds' class="bt"><?= $this->lang['install'] ?></a></li><?php
                     ?></ul><br /><?php
