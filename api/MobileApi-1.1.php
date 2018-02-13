@@ -2312,7 +2312,7 @@ class MobileApi
                     if ($ret==MobileValidation::RESULT_OK)
                     {
                         $this->result['d']['status']='sent';
-                        $this->result['d']['pin_hash'] = $response['response']['pin_hash'];  
+                        $this->result['d']['pin_hash'] = '';//$response['response']['pin_hash'];  
                         $this->result['d']['request_id'] = $response['response']['id'];
                                                   
                         if ($this->lang=='ar')
