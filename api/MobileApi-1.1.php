@@ -1848,6 +1848,10 @@ class MobileApi
             $this->result['d']['fbx'] = '>>>'.$customToken.'<<<';
             //error_log($this->result['d']['fbx']);
         }
+        
+        if(isset($this->result['d']['uid']) && $this->result['d']['uid']>0){
+            NoSQL::getInstance()->updateProfileVisitTime([Core\Model\ASD\USER_UID=>$this->result['d']['uid']]);
+        }
 
     }
 

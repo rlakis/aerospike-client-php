@@ -198,9 +198,39 @@ class Admin extends Page
                 $this->userdata = [];
                 if (\Core\Model\NoSQL::getInstance()->mobileGetLinkedUIDs($parameter, $uids)== Core\Model\NoSQL::OK)
                 {
-                    foreach ($uids as $bins) 
-                    {
-                        $this->userdata[] = $this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
+                    if(count($uids)){
+
+                        $selected = 0;
+
+                        if(isset($_GET['selected'])){
+                            $selected = intval($_GET['selected']);
+                        }
+                        
+                        $users = [];
+                        foreach ($uids as $bins) 
+                        {
+                            $data = $this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
+                            
+                            if($data && is_array($data)){
+                                $users[] = $data;
+                                
+                                if($selected == $bins['uid']){
+                                    $this->uid = $selected;
+                                    $this->userdata[] = $data;
+                                }
+                            }
+                            
+                        }
+                        usort($users, function($a, $b) {
+                            return -1*strcmp($a['last_visited'], $b['last_visited']);
+                        });
+                        foreach($users as $user){
+                            if(!$this->uid){
+                                $this->uid = $user['id'];
+                                $this->userdata[] = $user;
+                            }
+                            $this->multipleAccounts[] = $user['id'];                            
+                        }
                     }
                 }                
             }
@@ -765,7 +795,7 @@ $.ajax({
                     ?></ul><?php
                     ?></form><?php
 
-                    if(count($this->multipleAccounts)){
+                    if(isset($_GET['p']) && count($this->multipleAccounts)){
                         $lang=$this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/';
                         
                         $selected = $this->get('selected', 'uint') ? $this->get('selected', 'uint') : $this->multipleAccounts[0];
@@ -788,6 +818,22 @@ $.ajax({
                     ?></div></li><?php
                     ?></ul><?php
                     ?></form><?php
+                    
+                    
+                    if(isset($_GET['t']) && count($this->multipleAccounts)){
+                        $lang=$this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/';
+                        $parameter = filter_input(INPUT_GET, 't', FILTER_SANITIZE_NUMBER_INT,['options'=>['default'=>0]]);
+                        $selected = $this->get('selected', 'uint') ? $this->get('selected', 'uint') : $this->multipleAccounts[0];
+                        ?><ul class="ts multi"><?php     
+                            foreach ($this->multipleAccounts as $acc){
+                                if($selected == $acc){
+                                    echo "<li><b>{$acc}</b></li>";
+                                }else{
+                                    echo "<li><a href='/admin/{$lang}?t={$parameter}&selected={$acc}'>{$acc}</a></li>";
+                                }
+                            }                                
+                        ?></ul><?php
+                    }
                     
                     /*
                     if($this->mobile_param){
