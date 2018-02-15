@@ -12,7 +12,6 @@ use Core\Model\Router;
 use Core\Model\Classifieds;
 use Core\Lib\SphinxQL;
 
-
 class AjaxHandler extends Site {
 
     var $rp=1;
@@ -324,11 +323,90 @@ class Bin extends AjaxHandler{
             case 'ajax-number':   
                 if($this->user->info['id'] && $this->user->info['level']==9)
                 {
-                    $number = $this->post('num','uint');
+                    $numero = $this->post('num','uint');
                     $ot = $this->post('type','uint');
                     $index = $this->post('idx','uint');
                     $iso = $this->post('iso');
-                    if($number){
+                    if($numero){
+                        
+                        $number = [
+                            'e' =>  '',
+                            'i' =>  '',//$data['valid'] ? $data['formatting'] : 'invalid',
+                            'n' =>  $numero,
+                            'p' =>  true,
+                            't' =>  0,
+                            'v' =>  true,//$data['valid'] ? true : false,
+                            'idx'=>$index
+                        ];
+                        
+                        $validator = libphonenumber\PhoneNumberUtil::getInstance();
+                        $num = $validator->parse($numero, $iso);
+                        if($validator->isValidNumber($num)){
+                            $number['n'] = $validator->formatInOriginalFormat($num, $iso);
+                            $number['i'] = $validator->format($num, \libphonenumber\PhoneNumberFormat::E164);
+                            
+                            $type=$validator->getNumberType($num);
+                            
+                            switch($type){                                    
+                                case libphonenumber\PhoneNumberType::FIXED_LINE:
+                                    if ($ot >= 7 && $ot <= 9)
+                                        $number['t'] = true;
+                                    break;
+                                case libphonenumber\PhoneNumberType::MOBILE:
+                                    if (($ot >= 1 && $ot < 6) || $ot == 13)
+                                        $number['t'] = true;
+                                    break;
+                                case libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE:
+                                    if (($ot >= 1 && $ot <= 9 && $ot != 6) || $ot == 13)
+                                        $number['t'] = true;
+                                    break;
+                                case libphonenumber\PhoneNumberType::TOLL_FREE:
+                                    if ($ot >= 7 && $ot <= 9)
+                                        $number['t'] = true;
+                                    break;
+                                case libphonenumber\PhoneNumberType::PREMIUM_RATE:
+                                    $number['e'] = "PREMIUM RATE";
+                                    break;
+                                case libphonenumber\PhoneNumberType::SHARED_COST:
+                                    if (($ot >= 1 && $ot <= 9 && $ot != 6) || $ot == 13)
+                                        $number['t'] = true;
+                                    break;
+                                case libphonenumber\PhoneNumberType::VOIP:
+                                    $number['e'] = "VOIP";
+                                    break;
+                                case libphonenumber\PhoneNumberType::PERSONAL_NUMBER:
+                                    $number['e'] = "PERSONAL NUMBER";
+                                    break;
+                                case libphonenumber\PhoneNumberType::PAGER:
+                                    $number['e'] = "PAGER";
+                                    break;
+                                case libphonenumber\PhoneNumberType::UAN:
+                                    $number['e'] = "UAN";
+                                    break;
+                                case libphonenumber\PhoneNumberType::VOICEMAIL:
+                                    $number['e'] = "VOICEMAIL";
+                                    break;
+                                case libphonenumber\PhoneNumberType::STANDARD_RATE:
+                                    $number['e'] = "STANDARD_RATE";
+                                    break;
+                                case libphonenumber\PhoneNumberType::EMERGENCY:
+                                    $number['e'] = "EMERGENCY";
+                                    break;
+                                case libphonenumber\PhoneNumberType::UNKNOWN:
+                                    $number['e'] = "UNKNOWN";
+                                    break;
+                                default:
+                                    $number['e'] = "UNKNOWN";
+                                    break;
+                            }
+                        }else{
+                            $number['i']='invalid';
+                            $number['v']=false;
+                        }
+                        
+                        $this->setData($number,'i');
+                        $this->process();
+                        /*
                         $request = \Berysoft\EdigearRequest::Create()->
                             setAction(\Berysoft\EGAction::CheckNumber)->
                             setChannel(\Berysoft\EGChannel::Undefined)->
@@ -427,7 +505,7 @@ class Bin extends AjaxHandler{
                             }
                         }else{
                             $this->fail('102');
-                        }
+                        }*/
                     }else{
                         $this->fail('101');
                     }
@@ -5536,7 +5614,8 @@ class Bin extends AjaxHandler{
                         $apiKey = $this->urlRouter->cfg['gapp_api_key'];
 
                         if (strpos($apiKey, "<") !== false) {
-                            echo missingApiKeyWarning();
+                            //echo missingApiKeyWarning();
+                            $this->fail('server error 103');
                             exit;
                         }
                         $client->setDeveloperKey($apiKey);
@@ -5544,34 +5623,34 @@ class Bin extends AjaxHandler{
                         $service = new Google_Service_YouTube($client);
                         $optParams = array('id' => $videoId);
                         $videosResponse = $service->videos->listVideos('snippet', $optParams);
-                        
+                        //var_dump($videosResponse->items);
                         $thumbnails = null;
-                        foreach ($videosResponse['items'] as $videoResult) {
-                            $thumbnails = $videoResult['snippet']['thumbnails'];
+                        foreach ($videosResponse->items as $videoResult) {
+                            $thumbnails = $videoResult->snippet->thumbnails;
                             break;
                         }
                         
-                        if(isset($thumbnails['modelData']) && count($thumbnails['modelData'])){
+                        //if(isset($thumbnails->modelData) && count($thumbnails->modelData)){
                             
                             //error_log(var_export($thumbnails['modelData'],true));
                                                        
                             $videoUrl = 'https://www.youtube.com/watch?v='.$videoId;
-                            $firstThumbnail = htmlspecialchars($thumbnails['modelData']['medium']['url']);
-                            if(isset($thumbnails['modelData']['standard'])){
-                                $displayThumb = htmlspecialchars($thumbnails['modelData']['standard']['url']);
-                                $width = $thumbnails['modelData']['standard']['width'];
-                                $height = $thumbnails['modelData']['standard']['height'];
+                            $firstThumbnail = htmlspecialchars($thumbnails->medium->url);
+                            if(isset($thumbnails->standard)){
+                                $displayThumb = htmlspecialchars($thumbnails->standard->url);
+                                $width = $thumbnails->standard->width;
+                                $height = $thumbnails->standard->height;
                             }else{
-                                $displayThumb = htmlspecialchars($thumbnails['modelData']['high']['url']);
-                                $width = $thumbnails['modelData']['high']['width'];
-                                $height = $thumbnails['modelData']['high']['height'];
+                                $displayThumb = htmlspecialchars($thumbnails->high->url);
+                                $width = $thumbnails->high->width;
+                                $height = $thumbnails->high->height;
                             }
                             
                             $hiRes = true;
                             if(isset($this->user->params['mobile']) && $this->user->params['mobile']){
                                 $displayThumb = $firstThumbnail;
-                                $width = $thumbnails['modelData']['medium']['width'];
-                                $height = $thumbnails['modelData']['medium']['height'];
+                                $width = $thumbnails->medium->width;
+                                $height = $thumbnails->medium->height;
                                 $hiRes = false;
                             }
                             $matches=null;
@@ -5606,7 +5685,9 @@ class Bin extends AjaxHandler{
                             $this->setData($result, 'video');
 
                             $this->process();
-                        }
+                        /*}else{
+                            $this->fail('102');
+                        }*/
                     } catch (Google_Service_Exception $e) {
                         $this->fail($e->getMessage());
                       } catch (Google_Exception $e) {
