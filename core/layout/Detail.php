@@ -26,6 +26,11 @@ class Detail extends Search
         $description = $this->detailAd[Classifieds::CONTENT];
         $description = trim(preg_replace("/<\s*\w.*?>(.*?)(<\s*\/\s*\w\s*.*?>|<\s*br\s*>)/", "", $description));
         
+        $text = $this->detailAd[Classifieds::CONTENT]. ' - ' . $this->detailAd[Classifieds::ALT_CONTENT];
+        if(preg_match('/(?:tobacco|cigarette|shisha|gun|bullet|شيشة|شيشه|سلاح|رشاش|بارود|فحم)/i', $text)){
+            $this->urlRouter->cfg['enabled_ads']=false;
+        }
+        
         $pos = mb_strrpos($description,'/',0,'UTF-8');
         if($pos){
             $description = mb_substr($description, 0, $pos-1,'UTF-8');
