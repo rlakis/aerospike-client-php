@@ -94,7 +94,8 @@ class Classifieds
                 $ad = $this->db->getCache()->get($id);
             }
         
-            if ($ad) {                
+            if ($ad) 
+            {                
                 if ($this->isDebugMode || $ad[Classifieds::DONE]!=1) {
                     $this->normalizeContacts($ad);                
                     $this->db->getCache()->set($id, $ad);
@@ -105,6 +106,9 @@ class Classifieds
                     $ad[Classifieds::FEATURE_ENDING_DATE] = 0;
                     $ad[Classifieds::BO_ENDING_DATE] = 0;
                 }
+              
+                //error_log(var_export($ad[static::PRICE], true));
+                
                 return $ad;
             }
         }

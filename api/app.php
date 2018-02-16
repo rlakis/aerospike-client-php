@@ -105,10 +105,7 @@ const API_LOG                                   = 999;
 
 
 $appVersion=filter_input(INPUT_GET, 'av', FILTER_SANITIZE_STRING, ['options'=>['default'=>'1.1']]);
-//if ($appVersion=='1.0.1') 
-//{
-//    $appVersion='1.0';
-//}
+
 require_once get_cfg_var('mourjan.path') . '/deps/autoload.php';
 include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
 

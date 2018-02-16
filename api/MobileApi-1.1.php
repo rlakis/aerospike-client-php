@@ -22,6 +22,7 @@ class MobileApi
     var $countryId;
     var $cityId;
     public $systemName;
+    public $appVersion;
 
     var $formatNumbers=1;
     var $mobileValidator=null;
@@ -37,26 +38,28 @@ class MobileApi
 
     function __construct($config) 
     {
-        $this->lang = filter_input(INPUT_GET, 'l', FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
-        $this->demo = filter_input(INPUT_GET, 'demo', FILTER_VALIDATE_INT)+0;
-        $this->unixtime = filter_input(INPUT_GET, 't', FILTER_VALIDATE_INT, ['options'=>['default'=>-1, 'min_range'=>1388534400, 'max_range'=>PHP_INT_MAX]]);
-        $this->countryId = filter_input(INPUT_GET, 'country', FILTER_VALIDATE_INT, ['options'=>['default'=>0, 'min_range'=>0, 'max_range'=>100000]]);
-        $this->cityId = filter_input(INPUT_GET, 'city', FILTER_VALIDATE_INT, ['options'=>['default'=>0, 'min_range'=>0, 'max_range'=>100000]]);
+        $this->lang         = filter_input(INPUT_GET, 'l', FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
+        $this->demo         = filter_input(INPUT_GET, 'demo', FILTER_VALIDATE_INT)+0;
+        $this->unixtime     = filter_input(INPUT_GET, 't', FILTER_VALIDATE_INT, ['options'=>['default'=>-1, 'min_range'=>1388534400, 'max_range'=>PHP_INT_MAX]]);
+        $this->countryId    = filter_input(INPUT_GET, 'country', FILTER_VALIDATE_INT, ['options'=>['default'=>0, 'min_range'=>0, 'max_range'=>100000]]);
+        $this->cityId       = filter_input(INPUT_GET, 'city', FILTER_VALIDATE_INT, ['options'=>['default'=>0, 'min_range'=>0, 'max_range'=>100000]]);
 
-        $this->uid = filter_input(INPUT_GET, 'uid', FILTER_VALIDATE_INT)+0;
-        $this->uuid = filter_input(INPUT_GET, 'uuid', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-        $this->systemName = filter_input(INPUT_GET, 'sn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+        $this->uid          = filter_input(INPUT_GET, 'uid', FILTER_VALIDATE_INT)+0;
+        $this->uuid         = filter_input(INPUT_GET, 'uuid', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+        $this->systemName   = filter_input(INPUT_GET, 'sn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+        $this->appVersion   = filter_input(INPUT_GET, 'apv', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
         
-        if ($this->systemName=='ios')
+        $this->command      = filter_input(INPUT_GET, 'm', FILTER_VALIDATE_INT);
+        
+        if ($this->isIOS())
         {
-            $this->lang = filter_input(INPUT_GET, 'dl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
+            $this->lang     = filter_input(INPUT_GET, 'dl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
         }
         
         $this->config=$config;
         $this->db = new DB($this->config, TRUE);
         
         $this->result['server'] = $this->config['server_id']; 
-        $this->command = filter_input(INPUT_GET, 'm', FILTER_VALIDATE_INT);
         
         if ($this->uuid && $this->command!=API_DATA && $this->command!=API_TOTALS)
         {
@@ -70,9 +73,6 @@ class MobileApi
         {
             $this->user = new MCUser();            
         }
-        //$this->user = ($this->uuid && $this->command!=API_DATA && $this->command!=API_TOTALS) ? MCUser::getByUUID($this->uuid) : new MCUser();
-        
-        
     }
     
     
@@ -405,6 +405,18 @@ class MobileApi
     }
 
     
+    function isIOS()
+    {
+        return $this->systemName=='ios';
+    }
+    
+    
+    function isAndroid()
+    {
+        return $this->systemName=='Android';
+    }
+    
+    
     
     function search($forceFavorite = false) 
     {
@@ -412,16 +424,15 @@ class MobileApi
         include_once $this->config['dir'].'/core/model/Classifieds.php';
         $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
         
-        //this variable specifies if app is Android 1.2.1+
-        $device_sysname  = filter_input(INPUT_GET, 'sn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-        if ($device_sysname=='ios')
+        //this variable specifies if app is Android 1.2.1+    
+        if ($this->isIOS())
         {
-            $this->result['cdn'] = 'https://cdn.mourjan.com';
+            $this->result['cdn'] = 'https://c6.mourjan.com';
         }
 
         $num = 20;
         $filters = array();
-        $keywords = trim(filter_input(INPUT_GET, 'q', FILTER_SANITIZE_STRING, ['options'=>['default'=>""]]));
+        $keywords = preg_replace('/@/', '\@', trim(filter_input(INPUT_GET, 'q', FILTER_SANITIZE_STRING, ['options'=>['default'=>""]])));
         $offset = filter_input(INPUT_GET, 'offset', FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
         $favorite = filter_input(INPUT_GET, 'favorite', FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
         $sortLang = filter_input(INPUT_GET, 'sl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
@@ -463,15 +474,15 @@ class MobileApi
             $localityId = filter_input(INPUT_GET, 'locality', FILTER_VALIDATE_INT)+0;
             $adId = filter_input(INPUT_GET, 'aid', FILTER_VALIDATE_INT)+0;
 
-            if ($adId)              $sphinxQL->setFilter('id', $adId);
-            if ($this->countryId)   $sphinxQL->setFilter('country', $this->countryId);
-            if ($this->cityId)      $sphinxQL->setFilter('city', $this->cityId);
-            if ($rootId)            $sphinxQL->setFilter('root_id', $rootId);
-            if ($sectionId)         $sphinxQL->setFilter('section_id', $sectionId);
-            if ($tagId)             $sphinxQL->setFilter('section_tag_id', $tagId);
-            if ($localityId)        $sphinxQL->setFilter('locality_id', $localityId);
-            if ($purposeId)         $sphinxQL->setFilter('purpose_id', $purposeId);
-            if ($publisherType)     $sphinxQL->setFilter('publisher_type', $publisherType); 
+            if ($adId)              {$sphinxQL->setFilter('id', $adId);}
+            if ($this->countryId)   {$sphinxQL->setFilter('country', $this->countryId);}
+            if ($this->cityId)      {$sphinxQL->setFilter('city', $this->cityId);}
+            if ($rootId)            {$sphinxQL->setFilter('root_id', $rootId);}
+            if ($sectionId)         {$sphinxQL->setFilter('section_id', $sectionId);}
+            if ($tagId)             {$sphinxQL->setFilter('section_tag_id', $tagId);}
+            if ($localityId)        {$sphinxQL->setFilter('locality_id', $localityId);}
+            if ($purposeId)         {$sphinxQL->setFilter('purpose_id', $purposeId);}
+            if ($publisherType)     {$sphinxQL->setFilter('publisher_type', $publisherType);} 
         }
 
         if ($sortLang=='ar') 
@@ -519,7 +530,6 @@ class MobileApi
             }
         }
         
-        $keywords = preg_replace('/@/', '\@', $keywords);
         $query = $sphinxQL->Query($keywords, MYSQLI_NUM);
         
         if ($sphinxQL->getLastError()) 
@@ -542,7 +552,8 @@ class MobileApi
                 foreach ($query['matches'] as $matches) 
                 {
                     $ad = $model->getById($matches[0]+0);
-                    if ($ad) {                         
+                    if ($ad) 
+                    {            
                         $isFeatured = $current_time < $ad[Classifieds::FEATURE_ENDING_DATE];
                         if($isFeatured){
                             $premiumMatches[] = $matches;
@@ -562,12 +573,13 @@ class MobileApi
                 //fetch premium ads
                 $premiumAds = [];
                 $hasPremium = false;
-                if (($device_sysname == 'Android' || $device_sysname=='ios') && $this->result['total'] > 0 && !($favorite || $forceFavorite))
+                if (($this->isAndroid() || $this->isIOS()) && $this->result['total'] > 0 && !($favorite || $forceFavorite))
                 {
                     $premiumQuery = $this->fetchPremiumAds($sphinxQL, $keywords, $rootId, $sectionId);
                     if(!$sphinxQL->getLastError() && $premiumQuery['total_found'] && isset($premiumQuery['matches']))
                     {
-                        foreach ($premiumQuery['matches'] as $matches) {
+                        foreach ($premiumQuery['matches'] as $matches) 
+                        {
                             $premiumAds[] = $matches[0];
                             $hasPremium = true;
                         }
@@ -590,9 +602,11 @@ class MobileApi
                     {                   
                         $this->addAdToResultArray($ad, $matches[2]);
                         $i++;
-                        if ($device_sysname=='ios' && $adMobAlreadySent<5 && ($i+$offset)%7==0 && ($i+$offset)%2==1 && !($favorite || $forceFavorite))
-                        {
-                            $this->result['d'][] = [-1*($i+$offset), $adMobAlreadySent%2==0 ? "ca-app-pub-2427907534283641/4099192620" : "ca-app-pub-2427907534283641/1911755820"];
+                        
+                        if ($this->isIOS() && $adMobAlreadySent<5 && ($i+$offset)%7==0 && ($i+$offset)%2==1 && !($favorite || $forceFavorite))
+                        {                           
+                            $adUnitID = version_compare($this->appVersion, '1.0.9')>0 ? "ca-app-pub-2427907534283641/8260964224" : "ca-app-pub-2427907534283641/4099192620";                         
+                            $this->result['d'][] = [-1*($i+$offset), $adUnitID];
                             $adMobAlreadySent++;
                         }
                         
@@ -1330,10 +1344,10 @@ class MobileApi
     function register() 
     {
         $this->result['d']['info']= [
-                'version'=>'1.0.4',
+                'version'=>'1.0.9',
                 'force_update'=>0, 
-                'upload'=>'upload.mourjan.com',
-                'images'=>'cdn.mourjan.com'
+                'upload'=>'www.mourjan.com',
+                'images'=>'c6.mourjan.com'
                 ];
             
         //$this->db->setWriteMode();
@@ -1358,13 +1372,12 @@ class MobileApi
             $this->uuid = '31D052EF-DCC8-4FBA-B180-4C7C50AECBC6';
         }
 
-        $device_sysname = filter_input(INPUT_GET, 'sn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-        if(strlen($device_sysname) > 50) 
+        if(strlen($this->systemName) > 50) 
         {
-            $device_sysname = substr($device_sysname, 0, 50);
+            $this->systemName = substr($this->systemName, 0, 50);
         }
         
-        $isAndroid = ($device_sysname == 'Android');
+        $isAndroid = $this->isAndroid();
         $this->provider = $isAndroid ? Core\Model\ASD\USER_PROVIDER_ANDROID : Core\Model\ASD\USER_PROVIDER_IPHONE;
         
         $device_sysversion = filter_input(INPUT_GET, 'sv', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
@@ -1527,7 +1540,7 @@ class MobileApi
                     Core\Model\ASD\USER_UID => $this->getUID(),
                     Core\Model\ASD\USER_DEVICE_MODEL => $device_model,
                     Core\Model\ASD\USER_DEVICE_NAME => ($isUTF8 ? $device_name : ''),
-                    Core\Model\ASD\USER_DEVICE_SYS_NAME => $device_sysname,
+                    Core\Model\ASD\USER_DEVICE_SYS_NAME => $this->systemName,
                     Core\Model\ASD\USER_DEVICE_SYS_VERSION => $device_sysversion,             
                     Core\Model\ASD\USER_DEVICE_ISO_COUNTRY => $carrier_country,
                     Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
@@ -1666,7 +1679,7 @@ class MobileApi
                         Core\Model\ASD\USER_UID => $this->uid,
                         Core\Model\ASD\USER_DEVICE_MODEL => $device_model,
                         Core\Model\ASD\USER_DEVICE_NAME => ($isUTF8 ? $device_name : ''),
-                        Core\Model\ASD\USER_DEVICE_SYS_NAME => $device_sysname,
+                        Core\Model\ASD\USER_DEVICE_SYS_NAME => $this->systemName,
                         Core\Model\ASD\USER_DEVICE_SYS_VERSION => $device_sysversion,
                         Core\Model\ASD\USER_DEVICE_ISO_COUNTRY => $carrier_country,
                         Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
@@ -1710,7 +1723,7 @@ class MobileApi
                         Core\Model\ASD\USER_UID => $this->uid,
                         Core\Model\ASD\USER_DEVICE_MODEL => $device_model,
                         Core\Model\ASD\USER_DEVICE_NAME => ($isUTF8 ? $device_name : ''),
-                        Core\Model\ASD\USER_DEVICE_SYS_NAME => $device_sysname,
+                        Core\Model\ASD\USER_DEVICE_SYS_NAME => $this->systemName,
                         Core\Model\ASD\USER_DEVICE_SYS_VERSION => $device_sysversion,
                         Core\Model\ASD\USER_DEVICE_ISO_COUNTRY => $carrier_country,
                         Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
@@ -1722,108 +1735,7 @@ class MobileApi
                 $this->result['e'] = 'System error [1010]!';
                 error_log(__FUNCTION__ . " could not write [1010]: ".json_encode($bins));                
             }
-            
-            /*
-            $nosqlStatus = NoSQL::getInstance()->fetchUserBy ProviderId1($this->uuid, $bins[\Core\Model\ASD\USER_PROVIDER], $userRecord);                        
-            
-            if ($nosqlStatus==NoSQL::ERR_RECORD_NOT_FOUND)
-            {
-                
-                if (($record=NoSQL::getInstance()->userUpdate($bins))!==FALSE)
-                {
-                    
-                    $this->uid = $record[\Core\Model\ASD\USER_PROFILE_ID];
-                    $this->result['d']['uid'] = $this->uid;
-                
-                    if ($isAndroid)
-                    {
-                        $this->result['d']['level']=$record[\Core\Model\ASD\USER_LEVEL];
-                        $this->result['d']['status']=10;
-                    
-                        //device last visit
-                        $this->result['d']['dlv'] = 0;
-                        //user last visit
-                        $this->result['d']['ulv'] = 0;
-                    }
-                    //disallow purchase default 0
-                    $this->result['d']['blp'] = 0;
-
-                    $isUTF8 = preg_match('//u', $device_name);
-                    $deviceAdded = NoSQL::getInstance()->deviceInsert([
-                        Core\Model\ASD\USER_DEVICE_UUID => $this->uuid,
-                        Core\Model\ASD\USER_UID => $this->uid,
-                        Core\Model\ASD\USER_DEVICE_MODEL => $device_model,
-                        Core\Model\ASD\USER_DEVICE_NAME => ($isUTF8 ? $device_name : ''),
-                        Core\Model\ASD\USER_DEVICE_SYS_NAME => $device_sysname,
-                        Core\Model\ASD\USER_DEVICE_SYS_VERSION => $device_sysversion,
-                        Core\Model\ASD\USER_DEVICE_ISO_COUNTRY => $carrier_country,
-                        Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
-                        Core\Model\ASD\USER_DEVICE_APP_SETTINGS => '{}'
-                        ]);
-                } 
-                else 
-                {
-                    $this->result['e'] = 'System error [1003]!';
-                    error_log("could not write [1003]: ".json_encode($bins));       
-                }
-            }
-            else if ($nosqlStatus== NoSQL::OK)
-            {
-                if (empty($userRecord))
-                {
-                    $userRecord=NoSQL::getInstance()->userUpdate($bins);
-                }
-                
-                $this->uid = $userRecord[\Core\Model\ASD\USER_PROFILE_ID];
-                error_log("User provider exists {$this->uid} [1001]: ".PHP_EOL.json_encode($bins).PHP_EOL. json_encode($userRecord));
-                /*
-                if (!NoSQL::getInstance()->deviceExists($this->uuid))
-                {
-                    //$this->result['e'] = 'System error [1002]!';
-                    error_log("Device record is missed [1002]: ".json_encode($bins));
-                    
-                    
-                    $this->result['d']['uid'] = $this->uid;
-                
-                    if ($isAndroid)
-                    {
-                        $this->result['d']['level']=$userRecord[\Core\Model\ASD\USER_LEVEL];
-                        $this->result['d']['status']=10;
-                    
-                        //device last visit
-                        $this->result['d']['dlv'] = 0;
-                        //user last visit
-                        $this->result['d']['ulv'] = 0;
-                    }
-                    //disallow purchase default 0
-                    $this->result['d']['blp'] = 0;
-                    
-                    $isUTF8 = preg_match('//u', $device_name);
-                    $deviceAdded = NoSQL::getInstance()->deviceInsert([
-                        Core\Model\ASD\USER_DEVICE_UUID => $this->uuid,
-                        Core\Model\ASD\USER_UID => $this->uid,
-                        Core\Model\ASD\USER_DEVICE_MODEL => $device_model,
-                        Core\Model\ASD\USER_DEVICE_NAME => ($isUTF8 ? $device_name : ''),
-                        Core\Model\ASD\USER_DEVICE_SYS_NAME => $device_sysname,
-                        Core\Model\ASD\USER_DEVICE_SYS_VERSION => $device_sysversion,
-                        Core\Model\ASD\USER_DEVICE_ISO_COUNTRY => $carrier_country,
-                        Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
-                        Core\Model\ASD\USER_DEVICE_APP_SETTINGS => '{}'
-                        ]);
-                    
-                    if ($deviceAdded==FALSE)
-                    {
-                        $this->result['e'] = 'System error [1001]!';
-                        error_log('DEVIVE ADDED'.PHP_EOL.json_encode($deviceAdded));
-                    }
-                }
-                
-            }
-            else
-            {
-                $this->result['e'] = 'System error [1000]!';
-                error_log("could not write [1000]: ".json_encode($bins));                
-            }     */                                  
+                               
         }
         
         if ($isAndroid && isset($this->result['d']['uid']) && $this->result['d']['uid']==0)
@@ -1849,7 +1761,8 @@ class MobileApi
             //error_log($this->result['d']['fbx']);
         }
         
-        if(isset($this->result['d']['uid']) && $this->result['d']['uid']>0){
+        if(isset($this->result['d']['uid']) && $this->result['d']['uid']>0)
+        {
             NoSQL::getInstance()->updateProfileVisitTime([Core\Model\ASD\USER_UID=>$this->result['d']['uid']]);
         }
 
