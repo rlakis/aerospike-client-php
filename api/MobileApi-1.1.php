@@ -1343,12 +1343,12 @@ class MobileApi
 
     function register() 
     {
-        $this->result['d']['info']= [
-                'version'=>'1.0.9',
-                'force_update'=>0, 
-                'upload'=>'www.mourjan.com',
-                'images'=>'c6.mourjan.com'
-                ];
+        //$this->result['d']['info']= [
+        //        'version'=>'1.0.9',
+        //        'force_update'=>0, 
+        //        'upload'=>'www.mourjan.com',
+        //        'images'=>'c6.mourjan.com'
+        //        ];
             
         //$this->db->setWriteMode();
         $current_name="";
@@ -1401,8 +1401,20 @@ class MobileApi
         
         
         $opts = $this->userStatus($status, $current_name, $device_name);
-
         $this->result['status']=9;
+        $this->result['d']['level'] = isset($opts->user_level) ? $opts->user_level:0;
+        
+        if ($this->isIOS())
+        {
+            $this->result['d']['duid'] = $this->user->getID();
+            $this->result['d']['aepoch'] = $this->user->getMobile()->getNumber() ? $this->user->getMobile()->getActicationUnixtime() : 0;
+            $this->result['d']['sepoch'] = time();
+            $this->result['d']['cdn'] = 'https://c6.mourjan.com';
+            $this->result['d']['upload'] = 'https://www.mourjan.com';
+            $this->result['d']['detail_ad_unit'] = 'ca-app-pub-2427907534283641/4303349312';
+            $this->result['d']['listing_ad_unit'] = 'ca-app-pub-2427907534283641/8260964224';
+        }
+        
         
         if($isAndroid)
         {
@@ -2047,8 +2059,9 @@ class MobileApi
                 {                    
                     if ($activated)
                     {
+                        $rec = NoSQL::getInstance()->mobileFetch($this->getUID(), $mobile_no);
                         $this->result['d']['status']='activated';
-
+                        $this->result['d']['aepoch']=$rec[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED];
                         include $this->config['dir'] .'/core/model/User.php';
                         $user = new User($this->db, $this->config, null, 0);
                         $user->sysAuthById($this->uid);
@@ -2537,23 +2550,59 @@ class MobileApi
     public function changeNumber() 
     {      
         $opts = $this->userStatus($status);
+        
+        
+        $phone_number=filter_input(INPUT_GET, 'tel', FILTER_VALIDATE_INT)+0;
+        $current_phone_number=filter_input(INPUT_GET, 'ctel', FILTER_VALIDATE_INT)+0;
+
         if ($status==1 && $opts->phone_number>0) 
         {
-            $phone_number=filter_input(INPUT_GET, 'tel', FILTER_VALIDATE_INT)+0;
-            $current_phone_number=filter_input(INPUT_GET, 'ctel', FILTER_VALIDATE_INT)+0;
-
+            
             if ($current_phone_number!=$opts->phone_number) 
             {
-                $this->result['e']='Invalid user old phone number!';
+                $this->result['e']='Old used phone number is not valid!';
                 return;
             }
 
-            if ($phone_number<999999) 
+            try
             {
-                $this->result['e'] = 'Invalid mobile registration request';
+                $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
+                $num = $this->mobileValidator->parse("+{$phone_number}", 'LB');
+                if($num && $this->mobileValidator->isValidNumber($num))
+                {
+                    $numberType = $this->mobileValidator->getNumberType($num);
+                    if (!($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE))
+                    {
+                        $this->result['e'] = "+{$phone_number} is not a valid mobile number!";
+                        return;
+                    }
+                }
+                else 
+                {
+                    $this->result['e'] = "+{$phone_number} is not a valid telephone number!";
+                    return;
+                }
+
+                $phone_number = intval($this->mobileValidator->format($num, \libphonenumber\PhoneNumberFormat::E164));
+
+                if ($phone_number<999999) 
+                {
+                    $this->result['e'] = 'Invalid mobile registration request';
+                    return;
+                }
+            }
+            catch (Exception $ex )
+            {
+                $this->result['e'] = $ex->getMessage();
                 return;
             }
-
+            
+            $this->result['d']['current']=$opts->phone_number;
+            $this->result['d']['new']=$phone_number;
+            $this->result['d']['status']="accepted";
+            return;
+            
+         
             include_once $this->config['dir'].'/core/lib/MourjanNexmo.php';
             
             $_ret = NoSQL::getInstance()->mobileGetLinkedUIDs($phone_number, $rs);
@@ -2656,11 +2705,11 @@ class MobileApi
             }
 
             if (NoSQL::getInstance()->mobileUpdate($this->getUID(), $phone_number, [Core\Model\ASD\USER_DEVICE_UNINSTALLED=>1]))
-            //$this->db->setWriteMode();
-            //$q = $this->db->queryResultArray("update WEB_USERS_MOBILE set status=9 where uid=? and mobile=? returning status", [$this->uid, $phone_number], TRUE);
-            //if ($q[0]['STATUS']==9) 
             {
+                
                 $this->result['d']['status']='deleted';
+                NoSQL::getInstance()->setUserLevel($this->getUID(), 5);
+                
             } 
             else 
             {
@@ -3431,33 +3480,36 @@ class MobileApi
             
             //error_log($obj);
             
-            if ($obj) {
+            if ($obj) 
+            {
                 $arr = preg_split('/:/', $obj);
             
-                if (count($arr)==3 && $arr[0]==$host_id) {
+                if (count($arr)==3 && $arr[0]==$host_id) 
+                {
                     
                     $userId = $arr[2]+0;
-                    if ($this->uid==$userId) {
+                    if ($this->uid==$userId) 
+                    {
                         $this->result['e'] = 'You are already connected';
                         return;
                     }
                     
-                    if ($userId>0 && $userId!=$this->uid) 
+                    if ($userId>0 && $userId!=$this->getUID()) 
                     {                                             
                         include $this->config['dir'] .'/core/model/User.php';
                         $user = new User($this->db, $this->config, null, 0);
                         
-                        $ok = $user->mergeDeviceToAccount($this->uuid, $this->uid, $userId);
-                        if ($ok) {
-
-                            //$this->db->getInstance()->commit();
+                        $ok = $user->mergeDeviceToAccount($this->uuid, $this->getUID(), $userId, $this->isIOS());
+                        if ($ok) 
+                        {
                             $this->uid=$userId;
                             $opts = $this->userStatus($status);
                             $this->result['d']['pwset']=!empty($opts->secret);
                             $this->result['d']['uid']=$userId;
-
-                        } else {
-                            //$this->db->getInstance()->rollBack();
+                            $this->getBalance(); 
+                        } 
+                        else 
+                        { 
                             $this->result['e']="Could not activate your device due to internal system error!";
                             error_log($this->result['e'] . " " . $this->uid . " to uid: " . $userId);
                         }
