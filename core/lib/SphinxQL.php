@@ -878,7 +878,7 @@ class SphinxQL
         {
             $result[]=$cmd;           
         }
-        error_log($cmd);
+        //error_log($cmd);
         return $result;
     }
 
