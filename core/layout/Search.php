@@ -752,7 +752,10 @@ class Search extends Page
             parent::load_js();
         }
 
-        function renderResults($keywords = '') {
+        
+        function renderResults($keywords = '') 
+        {
+            
             //$this->globalScript.='var sic=[];';
             /* $this->inlineScript.='if(sic.length){
               for(i in sic){
@@ -1011,18 +1014,22 @@ class Search extends Page
                         }*/
                         $smallBanner = false;
                     }
-                    
-                    ?><li <?= $id ?> itemprop="itemListElement" <?= $liClass . $itemScope ?>><?= '<p '.( $detailAd ? '': 'onclick="wo(\'' . $_link . '\')" ') . $itemDesc . ' class="button ' . $textClass . '">' . $pic . $newSpan . $ad[Classifieds::CONTENT] . '</p>' ?><span class="src <?= $this->urlRouter->siteLanguage ?>"><?= (($feature||$isFeatured) ? ( ($paid||$isFeatured) ? '<span class="ic r102"></span><b>'.$this->lang['premium_ad'].'</b>' : '<span class="ovp '.$this->urlRouter->siteLanguage.'"></span>') : "<time st='" . $ad[Classifieds::UNIXTIME] . "'></time>") . $optSpan. $locSpan . $favSpan  ?></span></li><?php
+                     
+                    ?><li <?= $id ?> itemprop="itemListElement" <?= $liClass . $itemScope ?>><?= '<p '.( $detailAd ? '': 'onclick="wo(\'' . $_link . '\')" ') 
+                            . $itemDesc . ' class="button ' . $textClass . '">' 
+                            . $pic . $newSpan . $ad[Classifieds::CONTENT] . '</p>' ?><span class="src <?= $this->urlRouter->siteLanguage ?>"><?= (($feature||$isFeatured) ? ( ($paid||$isFeatured) ? '<span class="ic r102"></span><b>'.$this->lang['premium_ad'].'</b>' : '<span class="ovp '.$this->urlRouter->siteLanguage.'"></span>') : "<time st='" . $ad[Classifieds::UNIXTIME] . "'></time>") . $optSpan. $locSpan . $favSpan  ?></span></li><?php
                     
                     $idx++;
                    
                     
-                    if(!$feature) {
+                    if (!$feature) 
+                    {
                         $nidx++;
                     }
                 }
             }
         }
+        
 
         function weightedRand($weights, $weight_sum = 100){
             $r = rand(1,$weight_sum);
@@ -3199,6 +3206,7 @@ class Search extends Page
     
     function renderDResults($keywords) 
     {
+        $debug=( get_cfg_var('mourjan.server_id')=='99' );
         // print_r($this->searchResults['body']['scores']);
         // die('found');
         
@@ -3576,6 +3584,12 @@ class Search extends Page
                 }
                 ?><div class="cct"><?php
                     echo $ccmDiv;
+                    
+                    if ($debug)
+                    {
+                        echo "<div style=\"font-size:9pt;\">&nbsp;{$ad[Classifieds::ID]} - {$ad[Classifieds::PRICE]}</div>";
+                    }
+                    
                     if( isset($ad[Classifieds::PUBLISHER_TYPE]) && in_array($ad[Classifieds::ROOT_ID],[1,2,3]) && 
                             ($ad[Classifieds::ROOT_ID]!= 3 || ($ad[Classifieds::ROOT_ID]== 3 && $ad[Classifieds::PURPOSE_ID] == 3))){
                         switch($ad[Classifieds::PUBLISHER_TYPE]){
@@ -3594,6 +3608,8 @@ class Search extends Page
                                 break;
                         }
                     }
+                    
+                   
                     echo $favLink;
                     ?></div><?php
                     ?></li><?php
