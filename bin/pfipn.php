@@ -44,7 +44,7 @@ use Core\Model\DB;
 
 if (false)
 {
-    $pData = '{"amount":"4999","response_code":"14000","card_number":"479746******9085","card_holder_name":"MOHAMED","signature":"fb5d4678936330f12670e999ad4cd04986a40bf0f5085e4ba51aa503c2d20563","merchant_identifier":"daHyRFxZ","access_code":"2D2ChCFe3duM0LrDMJUf","order_description":"100 \u0630\u0647\u0628\u064a\u0629 \u0645\u0631\u062c\u0627\u0646","payment_option":"VISA","expiry_date":"2205","customer_ip":"83.110.248.178","language":"ar","eci":"ECOMMERCE","fort_id":"150814708900036813","command":"PURCHASE","response_message":"\u0639\u0645\u0644\u064a\u0629 \u0646\u0627\u062c\u062d\u0629","merchant_reference":"1133760-3415-0","authorization_code":"084612","customer_email":"hhmbusinesscenter@yahoo.com","token_name":"5B917684D103FB07E0530100007F4136","currency":"USD","status":"14"}';
+    $pData = '{"amount":"1299","response_code":"14000","card_number":"483432******9257","card_holder_name":"ISMAT OMAR","signature":"6fb6d2f6a54cb29f116aa18634085925968ab3606f05c92a3b64df3b1308d3d6","merchant_identifier":"daHyRFxZ","access_code":"2D2ChCFe3duM0LrDMJUf","order_description":"21 \u0630\u0647\u0628\u064a\u0629 \u0645\u0631\u062c\u0627\u0646","payment_option":"VISA","expiry_date":"2005","customer_ip":"5.156.206.60","language":"ar","eci":"ECOMMERCE","fort_id":"151989035800019721","command":"PURCHASE","response_message":"\u0639\u0645\u0644\u064a\u0629 \u0646\u0627\u062c\u062d\u0629","merchant_reference":"1125474-5127-0","authorization_code":"343289","customer_email":"abunooh1974@gmail.com","currency":"USD","status":"14"}';
     $pData = json_decode($pData, true);
     foreach ($pData as $key => $value)
     {
@@ -79,6 +79,7 @@ $sourceId = 0;
 if (isset($payment['merchant_reference']))
 {
     $orderId = preg_split('/-/', $payment['merchant_reference']);
+    //var_dump($orderId);
     if($orderId && (count($orderId)==2||count($orderId)==3) && is_numeric($orderId[0]) && is_numeric($orderId[1]))
     {
         if (isset($orderId[2]))
