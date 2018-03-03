@@ -2,6 +2,8 @@
 include get_cfg_var('mourjan.path').'/config/cfg.php';
 include_once get_cfg_var('mourjan.path').'/core/model/Db.php';
 $db = new Core\Model\Db($config);
+
+
 $db->queryResultArray("update T_PAYFORT set fort_id=JSONGET('fort_id', data) where fort_id=''", null, TRUE);
 
 $rs = $db->get("select t.ID, t.CURRENCY_ID, t.AMOUNT, cast(t.DATED as date) dated, 
@@ -13,8 +15,9 @@ $rs = $db->get("select t.ID, t.CURRENCY_ID, t.AMOUNT, cast(t.DATED as date) date
                  order by m.ACTIVATION_TIMESTAMP desc) phone
                 from T_TRAN t
                 left JOIN T_PAYFORT p on p.FORT_ID=t.TRANSACTION_ID
-                where t.GATEWAY='PAYFORT'
-                and t.DATED>='01.01.2018' and t.dated<'01.02.2018'
+                where t.GATEWAY STARTING with 'PAYFORT'
+                and t.TRANSACTION_ID>''
+                and t.DATED>='01.02.2018' and t.dated<'01.03.2018'
                 order by t.ID
             ");
 
@@ -28,6 +31,12 @@ foreach ($rs as $d)
     if (!isset($data->customer_name))
     {
         $data->customer_name = $data->customer_email;
+    }
+    
+    
+    if (empty($d['TRANSACTION_ID']) || !isset($data->fort_id))
+    {
+        continue;
     }
     
     if ($db->get("select 1 from t_invoice where TRANSACTION_ID=? and PAYMENT_GATEWAY='PAYFORT'", [$data->fort_id]))
@@ -64,6 +73,10 @@ foreach ($rs as $d)
         else if (preg_match("/^966/", "$customer_phone"))
         {
             $customer_country = 'SA';            
+        }
+        else if (preg_match("/^967/", "$customer_phone"))
+        {
+            $customer_country = 'YE';            
         }
         else if (preg_match("/^971/", "$customer_phone"))
         {
