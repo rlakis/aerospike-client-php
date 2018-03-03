@@ -390,16 +390,90 @@ class MCSaveHandler
     }
     
     
+    
+    protected function apiV1normalizer($json_encoded) 
+    {
+        $result = ['status'=>0, 'data'=>[]];
+        try
+        {
+            $userAgent = 'Edigear-PHP/' . '1.0' . ' (+https://github.com/edigear/edigear-php)';
+            $userAgent .= ' PHP/' . PHP_VERSION;
+            $curl_version = curl_version();
+            $userAgent .= ' curl/' . $curl_version['version'];
+            $options = [
+                CURLOPT_URL => "http://h8.mourjan.com:8080/v1/ad/mourjan",
+                CURLOPT_USERAGENT => $userAgent,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_CONNECTTIMEOUT => 30,
+                CURLOPT_HEADER => FALSE,
+                CURLOPT_RETURNTRANSFER => TRUE,
+                CURLOPT_VERBOSE => FALSE];
+            $ch = curl_init();
+            $headers = array('Authorization: '.'$this->secretKey');
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $json_encoded);
+            array_push($headers, "Accept: application/json");
+            array_push($headers, "Content-Type: application/json");
+            array_push($headers, 'Content-Length: '.strlen($json_encoded));
+            $options[CURLOPT_HTTPHEADER] = $headers;
+            curl_setopt_array($ch, $options);        
+            $resp = \curl_exec($ch);
+            $result['status'] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            
+            $is_json = is_string($resp) && is_array(json_decode($resp, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
+            if ($is_json)
+            {                
+                $result['data'] = json_decode($resp, TRUE);
+            }
+        }
+        catch (Exception $ex) 
+        {
+            $result['error']=1;
+            $result['excep']=$ex->getMessage();
+        }
+        finally 
+        {
+            if (is_resource($ch)) 
+            {
+                curl_close($ch);
+            }
+        }
+        error_log(\json_encode($result, JSON_UNESCAPED_UNICODE));
+        return $result;        
+    }
+    
+    
     public function getFromContentObject($ad_content)
     {
         if (isset($ad_content['attrs'])) 
         {
             unset($ad_content['attrs']);
         }
+        
+        if (!isset($ad_content['other']))
+        {
+            $ad_content['other']="";
+        }
+        if (isset($ad_content['pics']) && empty($ad_content['pics']))
+        {
+            $ad_content['pics'] = new stdClass();
+            //error_log(json_encode($j, JSON_PRETTY_PRINT));
+        }
+        if (isset($ad_content['pics']))
+        {
+            error_log(PHP_EOL.json_encode($ad_content, JSON_UNESCAPED_UNICODE));
+        }
+
+                
         $command = ['command'=>'normalize', 'json'=>json_encode($ad_content)];
+        
+        $this->apiV1normalizer($command['json']);
+        
         $buffer = json_encode($command);
         $len = pack('N', strlen($buffer));
         $buffer = $len.$buffer;
+        
         
         $this->Open();
 
@@ -408,6 +482,11 @@ class MCSaveHandler
             $response = $this->_GetResponse($this->_socket, '');
             if ($response) {
                 $j = json_decode($response, TRUE);
+                if (isset($j['pics']) && empty($j['pics']))
+                {
+                    $j['pics'] = new stdClass();
+                    //error_log(json_encode($j, JSON_PRETTY_PRINT));
+                }
                 return $j;
             } else {
                 error_log($this->_error);
