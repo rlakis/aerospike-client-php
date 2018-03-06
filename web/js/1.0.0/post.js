@@ -172,9 +172,11 @@ function savAd(p, clr){
     //setting text if changed
     if(txt!=null){
         ad.other=txt;
+        ad.rawOther=$('#mText').val();
     }
     if(atxt!=null){
         ad.altother=atxt;
+        ad.rawAltOther=$('#altText').val();
     }
     //var dt='o='+ppf(JSON.stringify(ad));
     var dt={
@@ -198,8 +200,12 @@ function savAd(p, clr){
             if(rp.RP){
                 atxt=null;
                 txt=null;
+                processedText='';
+                processedAltText='';
                 delete ad.other;
                 delete ad.altother;
+                delete ad.rawOther;
+                delete ad.rawAltOther;
                 var r=rp.DATA.I;
                 ad.id=r.id;
                 ad.user=r.user;
@@ -1475,7 +1481,8 @@ function hidNB(e){
     fdT(e,0);
     fdT($b(e),1);
 }
-function rdrT(){
+
+/*function rdrT(){
     var e=tar;
     var irtl=0;
     var v=e.value;
@@ -1606,6 +1613,159 @@ function rdrT(){
             }
         }
     }
+}*/
+                                                                                                                                    
+var processedText='';processedAltText='';
+
+function rdrT(){       
+    var e=tar; 
+    var isAlt = true;
+    if(e.id === 'mText'){
+        isAlt = false;
+        processedText = e.value;
+    }else{
+        processedAltText = e.value;        
+    }
+    rdrTFilter(isAlt);
+}
+
+function rdrTFilter(isAlt){    
+    var irtl=0;
+    var value=processedText;
+    if(isAlt){        
+        value=processedAltText;
+    }
+    var l=value.length;
+    var y,z;
+    if(l>=minC){
+        var r=value;
+        //cleanup tag insertions
+        r=r.replace(/<.*?>/g,'');
+        //convert arabic numbers to english
+        r=r.replace(/\u0660/g,0);
+        r=r.replace(/\u0661/g,1);
+        r=r.replace(/\u0662/g,2);
+        r=r.replace(/\u0663/g,3);
+        r=r.replace(/\u0664/g,4);
+        r=r.replace(/\u0665/g,5);
+        r=r.replace(/\u0666/g,6);
+        r=r.replace(/\u0667/g,7);
+        r=r.replace(/\u0668/g,8);
+        r=r.replace(/\u0669/g,9);
+        //check if ad is arabic
+        var textarea;
+        if(isAlt){
+            textarea = $('#altText');
+        }else{
+            textarea = $('#mText');            
+        }
+        irtl=(textarea[0].className=='ar'?1:0);
+        //replace commas after numbers
+        if(irtl){
+            r=r.replace(/,/g,'،');
+        }else {
+            r=r.replace(/،/g,',');
+        }
+        //replace arabic commas between numbers
+        r=r.replace(/([0-9])،([0-9])/g,'$1,$2');
+        //cleanup email insertion
+        r=r.replace(/(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/g,' ');
+        //cleanup url insertion
+        //r=r.replace(/\b((http(s?):\/\/)?([a-z0-9\-]+\.)+(MUSEUM|TRAVEL|AERO|ARPA|ASIA|EDU|GOV|MIL|MOBI|COOP|INFO|NAME|BIZ|CAT|COM|INT|JOBS|NET|ORG|PRO|TEL|A[CDEFGILMNOQRSTUWXZ]|B[ABDEFGHIJLMNORSTVWYZ]|C[ACDFGHIKLMNORUVXYZ]|D[EJKMOZ]|E[CEGHRSTU]|F[IJKMOR]|G[ABDEFGHILMNPQRSTUWY]|H[KMNRTU]|I[DELMNOQRST]|J[EMOP]|K[EGHIMNPRWYZ]|L[ABCIKRSTUVY]|M[ACDEFGHKLMNOPQRSTUVWXYZ]|N[ACEFGILOPRUZ]|OM|P[AEFGHKLMNRSTWY]|QA|R[EOSUW]|S[ABCDEGHIJKLMNORTUVYZ]|T[CDFGHJKLMNOPRTVWZ]|U[AGKMSYZ]|V[ACEGINU]|W[FS]|Y[ETU]|Z[AMW])(:[0-9]{1,5})?((\/([a-z0-9_\-\.~]*)*)?((\/)?\?[a-z0-9+_\-\.%=&amp;]*)?)?(#[a-zA-Z0-9!$&'()*+.=-_~:@/?]*)?)/gi,'');
+        //cleanup @ joints
+        r=r.replace(/[a-zA-Z0-9]*?@[a-zA-Z0-9]*?(?:\s|$)/g,'');
+        //cleanup repeated spaces
+        r=r.replace(/\s+/g,' ');
+        //cleanup long dash (madde) from arabic text
+        r=r.replace(/([\u0600-\u06ff])\u0640+([\u0600-\u06ff])/g,'$1$2');
+        
+        //replace unwanted chars with no space
+        r=r.replace(/[\u0600-\u060B\u060D-\u061a\u064b-\u065f\u06d6-\u06ed\ufe70-\ufe7f]/g,'');
+        
+        //cleanup unwanted chars with space
+        r=r.replace(/[^\s0-9a-zA-Z\u00C0-\u00FF\u0100-\u017F\u0621-\u064a\u0750-\u077f\ufe81-\ufefc!£¥$%&*()×—ـ\-_+=\[\]{}'",.;:|\/\\?؟؛،]/g,' ');
+        //cleanup repeated chars
+        r=r.replace(/([a-zA-Z\u00C0-\u00FF\u0100-\u017F\u0621-\u064a\u0750-\u077f\ufe81-\ufefc])\1{2,}/g,'$1');
+        //r=r.replace(/([.,:;(){}|?!*&\%\-_=+~\[\]\\\/"'؟؛،])\1{1,}/g,'$1');
+        r=r.replace(/([^a-zA-Z\u00C0-\u00FF\u0100-\u017F\u0621-\u064a\u0750-\u077f\ufe81-\ufefc0-9])\1{1,}/g,'$1');
+        //remove spaced patterns
+        r=r.replace(/([^a-zA-Z\u00C0-\u00FF\u0100-\u017F\u0621-\u064a\u0750-\u077f\ufe81-\ufefc0-9])\s\1{1,}/g,'$1 ');
+        //unify parenthesis
+        r=r.replace(/[{\[]/g,'(');
+        r=r.replace(/[\]}]/g,')');
+        //unify separators
+        r=r.replace(/[_|—|ـ]/g,'-');
+        //seperate numbers from text
+        r=r.replace(/([0-9])([\u0621-\u064a\u0750-\u077f\ufe81-\ufefc]{2,})/g,'$1 $2');
+        r=r.replace(/([\u0621-\u064a\u0750-\u077f\ufe81-\ufefc]{2,})([0-9])/g,'$1 $2');
+        //remove space before and after parenthesis and seperators
+        r=r.replace(/\s([\)+×\(\/\\\-])/g,'$1');
+        r=r.replace(/([\(\)+×\/\\\-])\s/g,'$1');
+        //surround seperators with space if not numeric        
+        r=r.replace(/([^0-9])([\\\/\-])([0-9])/g,'$1 $2 $3');
+        r=r.replace(/([0-9])([\\\/\-])([^0-9])/g,'$1 $2 $3');
+        //precede parenthesis and seperators by outer space
+        r=r.replace(/([^\s])([\(\\\/\-+])/g,'$1 $2');
+        r=r.replace(/([\)\\\/\-+])([^\s])/g,'$1 $2');
+        //add space after commas and periods if after is alphabet
+        r=r.replace(/([?!:;,.؟؛،])([a-zA-Z\u00C0-\u00FF\u0100-\u017F\u0621-\u064a\u0750-\u077f\ufe81-\ufefc]{2,})/g,'$1 $2');
+        //add space after commas and periods if after is numerical
+        r=r.replace(/([^0-9][?!:;؟؛])([0-9])/g,'$1 $2');
+        //remove spaces preceeding commas, periods, etc
+        r=r.replace(/\s([?!:;,.؟؛،])/g,'$1');
+        //remove commas, periods, etc followed by special chars
+        r=r.replace(/[.](?:\s|)([\(\)\-])/g,'$1');
+        //remove commas, periods, etc preceeded by special chars
+        r=r.replace(/([\(\)\-])[:;,.؛،]/g,'$1');
+        //remove special chars that do not match ex: : -
+        r=r.replace(/([:\(\)\\\/\-;.,؛،?!؟])(?:\s|)[:\\\/\-;.,؛،?!؟]/g,'$1');
+        //cleanup phone insertion
+        if(pse!=113 && pse!=291 && pse!=325){
+            var m =Math.floor(r.length/2);
+            y = r.substring(0,m);
+            z = r.substring(m);
+            z=z.replace(/([0-9])\s(?:(-)(?:\s|)|)([0-9])/g,'$1$2$3');
+            z=z.replace(/(\+|)(?:\d{8,}|\d{2}[-\\\/]\d{6,})/g,' ');
+            r=y+z;
+        }
+        //cleanup words repetition
+        r=r.replace(/(^|\s)([a-zA-Z\u00C0-\u00FF\u0100-\u017F\u0621-\u064a\u0750-\u077f\ufe81-\ufefc]*?)\s\2(\s|$)/g,'$1$2$3');
+        //append el waw to text
+        r=r.replace(/\sو\s([\u0621-\u064a\u0750-\u077f\ufe81-\ufefc])/g,' و$1');
+        //append el م to numbers
+        r=r.replace(/([0-9,.])\sم\s/g,'$1م ');
+        //seperate numbers from text
+        r=r.replace(/([0-9]{2,})([a-zA-Z\u0621-\u064a\u0750-\u077f\ufe81-\ufefc]{3,})/g,'$1 $2');
+        r=r.replace(/([a-zA-Z\u0621-\u064a\u0750-\u077f\ufe81-\ufefc]{3,})([0-9]{2,})/g,'$1 $2');
+        //cleanup repeated spaces
+        r=r.replace(/\s+/g,' ');
+        //string trimmming
+        r=r.replace(/^\s+|\s+$/g, '');
+        //replace \ with /
+        r=r.replace(/\\/g, '/');
+        //remove unwanted string starters
+        r=r.replace(/^[-_+=,.;:"'*|\/\\~؛،]/g,'');
+        //remove unwanted string endings
+        r=r.replace(/(?:[-_+=,.;:*|\/\\~؛،]|\sت|تلفون|هاتف|موبايل|جوال)$/g,'');
+        //cleanup repeated spaces
+        r=r.replace(/\(\)/g,' ');
+        //cleanup repeated spaces
+        r=r.replace(/\s+/g,' ');
+        //string trimmming
+        r=r.replace(/^\s+|\s+$/g, '');
+        if(ctac) brtl=irtl;
+        else artl=irtl;
+        tglTB(r.length);
+            if(isAlt){
+                processedAltText = r;
+            }else{
+                processedText = r;
+            }
+            
+        if(value!=r){
+            rdrTFilter(isAlt)
+        }
+    }
 }
 function nxt(e,c){
     var p=$p(e,3);
@@ -1648,13 +1808,14 @@ function nxt(e,c){
             fdT(n[3],0);
             pv=n[4];
             b=$f(n[4]);
-            //tar=$f(n[1]);
+            
             tar=$('textarea',$(p))[0];
             p=$p(p,2);
             extra['t']=1;
-            //atxt=tar.value;
-            var s=prepT(tar.value,brtl);
-            atxt=s;
+            
+            /*var s=prepT(tar.value,brtl);
+            atxt=s;*/
+            atxt=prepT(processedAltText,brtl);
         }else {
             fdT(n[0],0);
             fdT(n[2],0);
@@ -1663,7 +1824,7 @@ function nxt(e,c){
             fdT(n[5],0);
             pv=n[6];
             b=$f(n[6]);
-            //tar=$f(n[3]);
+            
             tar=$('textarea',$(p))[0];
             var h=$f($a(p,2),2);
             var s;
@@ -1675,9 +1836,10 @@ function nxt(e,c){
                 else s='Do you want to enter Description in Arabic?';
             }
             h.innerHTML=s+'<span class="et"></span>';
-            //txt=tar.value;
-            var s=prepT(tar.value,artl);
-            txt=s;
+            
+            /*var s=prepT(tar.value,artl);
+            txt=s;*/
+            txt=prepT(processedText,artl);
         }
         b.className=tl?'ah ar':'ah en';
         b.innerHTML=prepT(tar.value,tl);
@@ -1754,8 +1916,31 @@ function setTC(e,alt){
     if(t.value.length){
         var s=prepT(t.value,tl);
         p.innerHTML=s;
-        if(alt)atxt=s;
-        else txt=s;
+        
+        /*if(alt)atxt=s;
+        else txt=s;*/
+        
+        if(alt){
+            if(processedAltText.length > 0){
+                atxt = prepT(processedAltText,tl);
+            }else{
+                tar=$('#altText')[0];
+                hidTB=0;
+                rdrT();
+                setTC(e,alt);
+                atxt = prepT(processedAltText,tl);
+            }
+        }else{
+            if(processedText.length > 0){
+                txt = prepT(processedText,tl);
+            }else{
+                tar=$('#mText')[0];
+                hidTB=0;
+                rdrT();
+                setTC(e,alt);
+                txt = prepT(processedText,tl);
+            }
+        }
     }
 }
 function parseDT(v,d){

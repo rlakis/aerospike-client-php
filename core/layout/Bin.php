@@ -2593,6 +2593,9 @@ class Bin extends AjaxHandler{
                             $ad['state']=$sContent['state'];
                         if( (!isset($ad['other']) || (isset($ad['other']) && preg_match('/^undefined/',$ad['other']))) && isset($sContent['other'])){
                             $ad['other']=$sContent['other'];
+                            if( !isset($ad['rawOther']) && isset($sContent['rawOther'])){
+                                $ad['rawOther']=$sContent['rawOther'];
+                            }
                         }
                         /*$plugins=(isset($_POST['plugs']) && $_POST['plugs'] ? $_POST['plugs'] : '');
                         if($plugins){
@@ -2610,6 +2613,9 @@ class Bin extends AjaxHandler{
                         }
                         if($ad['extra']['t']!=2 && (!isset($ad['altother']) || (isset($ad['altother']) && preg_match('/^undefined/',$ad['altother']))) && isset($sContent['altother'])){
                             $ad['altother']=$sContent['altother'];
+                            if( !isset($ad['rawAltOther']) && isset($sContent['rawAltOther'])){
+                                $ad['rawAltOther']=$sContent['rawAltOther'];
+                            }
                         }
                         if($ad['extra']['t']!=2 && !isset($ad['altRtl']) && isset($sContent['altRtl'])){
                             $ad['altRtl']=$sContent['altRtl'];

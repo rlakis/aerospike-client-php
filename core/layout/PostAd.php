@@ -277,7 +277,14 @@ class PostAd extends Page{
             $save=0;
             //$this->adContent['fields']['other']='للبيع بالتجمع الخامس شقه 137م النرجس عمارات في القاهرة مصر - للبيع بالتجمع الخامس شقه 137م النرجس عمارات 2 نوم / ليفنج / 2 رسيبشن / حمام / مطبخ الطابق الثانى / خلفيه على حديقه / استلام فورى حصه بالارض / جراج + مخزن / عداد كهرباء 4/3 تشطيب / سباكه / كهرباء / نقاشه اسقف جبس / بيت نور / كرانيش';
             //$this->adContent['fields']['altother']='Check out the cover i made for this song if you want﻿ and tell me what you think!';
-            if (isset ($this->adContent['other']) && $this->adContent['other']){
+            if (isset ($this->adContent['rawOther']) && $this->adContent['rawOther']){
+                $save=1;
+                $other=$this->adContent['rawOther'];
+                $other=preg_replace('/\x{200B}.*/u', '', $other);
+                $adRTL=preg_match('/[\x{0621}-\x{064a}]/u', $other);
+                $preview=$other;
+                $preview.=$this->user->parseUserAdTime($this->adContent['cui'],$this->adContent['cut'],$adRTL);
+            }else if (isset ($this->adContent['other']) && $this->adContent['other']){
                 $save=1;
                 $other=$this->adContent['other'];
                 $other=preg_replace('/\x{200B}.*/u', '', $other);
@@ -285,7 +292,14 @@ class PostAd extends Page{
                 $preview=$other;
                 $preview.=$this->user->parseUserAdTime($this->adContent['cui'],$this->adContent['cut'],$adRTL);
             }
-            if (isset ($this->adContent['altother']) && $this->adContent['altother']){
+            
+            if (isset ($this->adContent['rawAltOther']) && $this->adContent['rawAltOther']){
+                $altOther=$this->adContent['rawAltOther'];
+                $altOther=preg_replace('/\x{200B}.*/u', '', $altOther);
+                $altRTL=preg_match('/[\x{0621}-\x{064a}]/u', $altOther);
+                $altPreview=$altOther;
+                $altPreview.=$this->user->parseUserAdTime($this->adContent['cui'],$this->adContent['cut'],$altRTL);
+            }else if (isset ($this->adContent['altother']) && $this->adContent['altother']){
                 $altOther=$this->adContent['altother'];
                 $altOther=preg_replace('/\x{200B}.*/u', '', $altOther);
                 $altRTL=preg_match('/[\x{0621}-\x{064a}]/u', $altOther);
