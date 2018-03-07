@@ -2557,8 +2557,6 @@ class Bin extends AjaxHandler{
             case "ajax-adsave":
                 //if (isset($this->user->params['mobile']) && $this->user->params['mobile']){
                     if($this->user->info['id'] && isset($_POST['o'])){
-                        include_once $this->urlRouter->cfg['dir'] . '/core/lib/MCAdTextHandler.php';
-                        $textHandler = new AdTextFormatter();
                         
                         $error_path = "/var/log/mourjan/editor.log";
                         $ad=(is_array($_POST['o']) ? $_POST['o'] : json_decode($_POST['o'],true) );
@@ -2778,17 +2776,10 @@ class Bin extends AjaxHandler{
                             $this->user->pending['post']['se']=$ad['se']=431;
                         }
                         
-                        $textHandler->setText($ad['other']);
-                        $textHandler->format();                
-                        $ad['other'] = $textHandler->text;
-                            
                         $ad['rtl'] = $this->isRTL($ad['other']) ? 1 : 0;
                         
                         if(isset($ad['altother']) && $ad['altother'])
-                        {
-                            $textHandler->setText($ad['altother']);
-                            $textHandler->format();                
-                            $ad['altother'] = $textHandler->text;
+                        {                            
                             $ad['altRtl'] = $this->isRTL($ad['altother']) ? 1 : 0;
                             
                             if($ad['rtl'] == $ad['altRtl'])

@@ -1736,7 +1736,7 @@ function nxt(e,c){
             /*var s=prepT(tar.value,artl);
             txt=s;*/
             rdrT(function(){
-                atxt=prepT(processedText,artl);
+                txt=prepT(processedText,artl);
             }); 
         }
         b.className=tl?'ah ar':'ah en';
