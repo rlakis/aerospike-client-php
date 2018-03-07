@@ -777,8 +777,15 @@ class User
                     $content['pic_idx']=0;
                     if (isset($content['pics']))
                         $content['pic_idx'] = count($content['pics']);
-                    $ad['CONTENT'] = json_encode($content);
                 }
+                
+                if($ad['RAW_OTHER']){
+                    $content['rawOther'] = $ad['RAW_OTHER'];
+                }
+                if($ad['RAW_ALT_OTHER']){
+                    $content['rawAltOther'] = $ad['RAW_ALT_OTHER'];
+                }
+                $ad['CONTENT'] = json_encode($content);
                 
                 $this->pending['post']['id']=$ad['ID'];
                 $this->pending['post']['user']=$ad['WEB_USER_ID'];
@@ -798,7 +805,6 @@ class User
         $this->update();
         return $ad;
     }
-
     
     function getPendingAds($id=0, $state=0, $pagination=0, $commit=false)
     {
@@ -834,9 +840,11 @@ class User
                     $res=$this->db->get('
                         select a.*, u.full_name, u.lvl, u.provider, u.email, u.DISPLAY_NAME,
                         u.user_name,u.user_email,u.profile_url, u.user_rank, 
+                        obj.raw_other, obj.raw_alt_other, 
                         IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
                         IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended 
                         from ad_user a 
+                        left join ad_object obj on obj.id = a.id 
                         left join web_users u on u.id=a.web_user_id 
                         left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
                         left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
@@ -846,9 +854,11 @@ class User
                 {
                     $res=$this->db->get(
                         'select a.*, 
+                            obj.raw_other, obj.raw_alt_other, 
                          IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
                          IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended 
-                         from ad_user a                             
+                         from ad_user a       
+                        left join ad_object obj on obj.id = a.id                       
                          left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
                          left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
                          where a.web_user_id=? and a.id=?',
@@ -1656,8 +1666,14 @@ class User
             $msg="";
             try
             {
+                $adContent = json_decode($this->pending['post']['content'],true);
+                $rawOther = isset($adContent['rawOther']) ? $adContent['rawOther'] : null;
+                $rawAltOther = isset($adContent['rawAltOther']) ? $adContent['rawAltOther'] : null;
+                unset($adContent['rawOther']);
+                unset($adContent['rawAltOther']);
+                
                 $stmt=$this->db->prepareQuery($q);
-                $stmt->bindValue(1, $this->pending['post']['content'], PDO::PARAM_STR);
+                $stmt->bindValue(1, json_encode($adContent), PDO::PARAM_STR);
                 $stmt->bindValue(2, $this->pending['post']['title']);
                 $stmt->bindValue(3, $this->pending['post']['pu']);
                 $stmt->bindValue(4, $this->pending['post']['se']);
@@ -1669,6 +1685,14 @@ class User
                 $stmt->bindValue(10, $publish, PDO::PARAM_INT);
                 $stmt->bindValue(11, $media, PDO::PARAM_INT);
                 $stmt->bindValue(12, $id, PDO::PARAM_INT);
+                
+                if($rawOther != null){
+                    $adContent['rawOther'] = $rawOther;
+                }                
+                if($rawAltOther != null){
+                    $adContent['rawAltOther'] = $rawAltOther;
+                }
+                $this->pending['post']['content'] = json_encode($adContent);
 
                 if ($this->info['level']!=9)
                 {
@@ -1724,6 +1748,20 @@ class User
         return $result;
     }
     
+    function saveRawAdContent($ad){
+        $succeed=false;
+        if (isset ($this->pending['post']['id']) && $this->pending['post']['id']) {
+            if(isset($ad['rawOther']) || isset($ad['rawAltOther'])){
+                $rawOther = isset($ad['rawOther']) ? $ad['rawOther'] : '';
+                $rawAltOther = isset($ad['rawAltOther']) ? $ad['rawAltOther'] : '';
+                $q="update or insert into ad_object (id, raw_other, raw_alt_other) values (?, ?, ?) matching (id)";
+                if ($this->db->queryResultArray($q, [$this->pending['post']['id'], $rawOther, $rawAltOther], true) ) {
+                    $succeed = true;
+                }
+            }
+        }
+        return $succeed;
+    }
     
     function saveAd($publish=0, $user_id=0)
     {
@@ -1750,7 +1788,7 @@ class User
                 
                 $normalizer = new MCSaveHandler($this->cfg);
 
-                $content = json_decode($this->pending['post']['content'],true);
+                $content = json_decode($this->pending['post']['content'],true);                
                 $content['state']=$publish;
                 $normalized = $normalizer->getFromContentObject($content);
 
@@ -1929,13 +1967,20 @@ class User
                 {
                     if ($this->pending['post']['se']>0) 
                     {
+                        
+                        $adContent = json_decode($this->pending['post']['content'],true);
+                        $rawOther = isset($adContent['rawOther']) ? $adContent['rawOther'] : null;
+                        $rawAltOther = isset($adContent['rawAltOther']) ? $adContent['rawAltOther'] : null;
+                        unset($adContent['rawOther']);
+                        unset($adContent['rawAltOther']);
+                        
                     	$q='insert into ad_user
                         	(web_user_id, content, title, purpose_id, section_id, rtl, country_id, city_id, latitude, longitude, media)
                         	values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) returning id';
                         
                     	$stmt=$this->db->prepareQuery($q);
                     	$stmt->bindValue(1, $userId);
-                    	$stmt->bindValue(2, $this->pending['post']['content'], PDO::PARAM_STR);
+                    	$stmt->bindValue(2, json_encode($adContent), PDO::PARAM_STR);
                     	$stmt->bindValue(3, $this->pending['post']['title'], PDO::PARAM_STR);
                     	$stmt->bindValue(4, $this->pending['post']['pu']);
                     	$stmt->bindValue(5, $this->pending['post']['se']);
@@ -1946,6 +1991,14 @@ class User
                     	$stmt->bindValue(10, $this->pending['post']['lon']);
                     	$stmt->bindValue(11, $media, PDO::PARAM_INT);
                     	$result=null;
+                        
+                        if($rawOther != null){
+                            $adContent['rawOther'] = $rawOther;
+                        }                
+                        if($rawAltOther != null){
+                            $adContent['rawAltOther'] = $rawAltOther;
+                        }
+                        $this->pending['post']['content'] = json_encode($adContent);
                         
                         $id=0;
                     	if ($stmt->execute()) 

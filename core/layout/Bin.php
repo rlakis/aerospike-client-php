@@ -2795,7 +2795,13 @@ class Bin extends AjaxHandler{
                                 $ad['other']=$ad['altother'];
                                 $ad['altother']=$tmp;
                                 $ad['rtl']=1;
-                                $ad['altRtl']=0;                                
+                                $ad['altRtl']=0;  
+                                
+                                if(isset($ad['rawOther']) && isset($ad['rawAltOther'])){                                    
+                                    $tmp=$ad['rawOther'];
+                                    $ad['rawOther']=$ad['rawAltOther'];
+                                    $ad['rawAltOther']=$tmp;
+                                }
                             }
                         }
                         
@@ -3062,6 +3068,7 @@ class Bin extends AjaxHandler{
                         }*/
                         
                         $this->user->update();
+                        $this->user->saveRawAdContent($ad);
                         if(!$isSCAM)
                         {
                             $this->user->saveAd($publish);
