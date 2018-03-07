@@ -53,6 +53,17 @@ function compileCode($content){
     }
 }
 
+
+function compress($file)
+{
+    if (file_exists($file))
+    {
+        system("/usr/bin/gzip -c -9f -- {$file} > {$file}.gz ");
+        system("/usr/local/bin/brotli -f -k {$file} -o {$file}.br ");
+    }    
+}
+
+
 if ($handle = opendir($jsReadPath)) {
     echo 'Generating JS release files', "\n";
     while (false !== ($entry = readdir($handle))) {
@@ -63,6 +74,7 @@ if ($handle = opendir($jsReadPath)) {
                 $content=  processContent($content);
                 //$content=compileCode($content);
                 file_put_contents($jsWritePath.$entry, $content);
+                compress($jsWritePath.$entry);                
             }
         }
     }
@@ -94,6 +106,7 @@ if ($handle = opendir($jsMobileReadPath)) {
         }*/
         //$content=compileCode($content);
         file_put_contents($jsWritePath.$pair[0], $content);
+        compress($jsWritePath.$pair[0]);   
     }
     /*while (false !== ($entry = readdir($handle))) {
         if ($entry != "." && $entry != "..") {
@@ -137,7 +150,7 @@ if ($handle = opendir($cssReadPath)) {
                     $content=preg_replace('/;\}/', '}', $content);
                     $content=preg_replace('/\/\*.*?\*\//', '', $content);
                     file_put_contents($cssWritePath.$entry, $content);
-                    
+                    compress($cssWritePath.$entry);   
                     
 //                    if($redis->set('v1:'.$entry, $content)){
 //                        echo ' cached to redis';
@@ -174,7 +187,7 @@ if ($handle = opendir($cssMobilePath)) {
                     $content=preg_replace('/;\}/', '}', $content);
                     $content=preg_replace('/\/\*.*?\*\//', '', $content);
                     file_put_contents($cssMobileWritePath.$entry, $content);
-                    
+                    compress($cssMobileWritePath.$entry); 
                     
 //                    if($redis->set('v1:m'.$entry, $content)){
 //                        echo ' cached to redis';
