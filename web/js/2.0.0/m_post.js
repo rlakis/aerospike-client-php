@@ -39,10 +39,12 @@ function savAd(p,clr){
     if(txt!=null){
         ad.other=txt;
         ad.rawOther=$('#mText').val();
+        ad.rawOther=ad.rawOther.replace(/^\s+|\s+$/g,'');
     }
     if(atxt!=null){
         ad.altother=atxt;
         ad.rawAltOther=$('#altText').val();
+        ad.rawAltOther=ad.rawAltOther.replace(/^\s+|\s+$/g,'');
     }
     //var dt='o='+ppf(JSON.stringify(ad));
     var dt = {
@@ -70,8 +72,6 @@ function savAd(p,clr){
             if(rp.RP){
                 atxt=null;
                 txt=null;
-                processedText='';
-                processedAltText='';
                 delete ad.other;
                 delete ad.altother;
                 delete ad.rawOther;
@@ -1233,7 +1233,13 @@ function initT(e){
     j.on('keyup',function(){capk()});
     var l=$a($p(tar));
     hidTB=0;
-    ctac=(tar.id == 'mText' ? 0:1);
+    if(tar.id == 'mText'){
+        ctac = 0;
+        processedText = e.value;
+    }else{
+        ctac = 1;
+        processedAltText = e.value;
+    }
     fdT($a(l),0);
     fdT(l,1);
 }
@@ -1487,7 +1493,7 @@ function getTextHex(text) {
                                                                                                                                                                                                                                                                         
 var processedText='';processedAltText='';
 
-function rdrT(){       
+function rdrT(callback){       
     var e=tar; 
     var isAlt = true;
     if(e.id === 'mText'){
@@ -1496,10 +1502,10 @@ function rdrT(){
     }else{
         processedAltText = e.value;        
     }
-    rdrTFilter(isAlt);
+    rdrTFilter(isAlt, callback);
 }
 
-function rdrTFilter(isAlt){    
+function rdrTFilter(isAlt, callback){    
     var irtl=0;
     var value=processedText;
     if(isAlt){        
@@ -1626,14 +1632,32 @@ function rdrTFilter(isAlt){
         if(ctac) brtl=irtl;
         else artl=irtl;
         tglTB(r.length);
+        
+        if(isAlt){
+            processedAltText = r;
+        }else{
+            processedText = r;
+        }            
+        if(value!=r){
+            idir(textarea[0]);
+            rdrTFilter(isAlt, callback)
+        }else{
+            y=r.replace(/[a-z:\\\/\-;.,؛،?!؟*@#$%^&_+'"|0-9\s]/g,'');
+            z=r.replace(/[A-Z:\\\/\-;.,؛،?!؟*@#$%^&_+'"|0-9\s]/g,'');    
+            
+            if(y.length > z.length*0.5){
+                r = r.toLowerCase();
+            }            
             if(isAlt){
                 processedAltText = r;
+                atxt=prepT(processedAltText,brtl);
             }else{
                 processedText = r;
+                txt=prepT(processedText,artl);
             }
-            
-        if(value!=r){
-            rdrTFilter(isAlt)
+            if(callback){
+                callback();
+            }
         }
     }
 }
@@ -1685,7 +1709,9 @@ function nxt(e,c){
             
             /*var s=prepT(tar.value,brtl);
             atxt=s;*/
-            atxt=prepT(processedAltText,brtl);
+            rdrT(function(){
+                atxt=prepT(processedAltText,brtl);
+            });       
         }else {
             fdT(n[0],0);
             fdT(n[2],0);
@@ -1709,7 +1735,9 @@ function nxt(e,c){
             
             /*var s=prepT(tar.value,artl);
             txt=s;*/
-            txt=prepT(processedText,artl);
+            rdrT(function(){
+                atxt=prepT(processedText,artl);
+            }); 
         }
         b.className=tl?'ah ar':'ah en';
         b.innerHTML=prepT(tar.value,tl);
@@ -1791,23 +1819,27 @@ function setTC(e,alt){
         
         if(alt){
             if(processedAltText.length > 0){
-                atxt = prepT(processedAltText,tl);
+                rdrT(function(){
+                    atxt= prepT(processedAltText,tl);                    
+                });
             }else{
                 tar=$('#altText')[0];
                 hidTB=0;
-                rdrT();
-                setTC(e,alt);
-                atxt = prepT(processedAltText,tl);
+                rdrT(function(){
+                    setTC(e,alt);
+                });
             }
         }else{
             if(processedText.length > 0){
-                txt = prepT(processedText,tl);
+                rdrT(function(){
+                    txt= prepT(processedText,tl);                    
+                });
             }else{
                 tar=$('#mText')[0];
                 hidTB=0;
-                rdrT();
-                setTC(e,alt);
-                txt = prepT(processedText,tl);
+                rdrT(function(){
+                    setTC(e,alt);
+                });    
             }
         }
     }
