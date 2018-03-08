@@ -67,6 +67,10 @@ class PayfortIntegration
      * change it if the project is not on root folder.
      */
     public $projectUrlPath     = '/buyu'; 
+    
+    
+    public $token_name;
+    
     public function __construct()
     {
         
@@ -123,6 +127,7 @@ class PayfortIntegration
         if ($paymentMethod == 'sadad') {
             $this->currency = 'SAR';
         }
+        
         $postData = array(
             'amount'              => $this->convertFortAmount($this->amount, $this->currency),
             'currency'            => strtoupper($this->currency),
@@ -134,10 +139,15 @@ class PayfortIntegration
             'command'             => $this->command,
             'language'            => $this->language,
             'return_url'          => $this->getUrl('?payfort=process'),
-            'order_description'  => $this->itemName
+            'order_description'  => $this->itemName,
             //'dynamic_descriptor'  => $this->itemBillName
         );
 
+        if (isset($this->token_name) && $this->token_name)
+        {
+            $postData['token_name'] = $this->token_name;
+        }
+        
         if ($paymentMethod == 'sadad') {
             $postData['payment_option'] = 'SADAD';
         }
@@ -531,19 +541,15 @@ class PayfortIntegration
     /**
      * Log the error on the disk
      */
-    public function log($messages) {
-        return;
-        $messages = "========================================================\n\n".$messages."\n\n";
-        $file = __DIR__.'/trace.log';
-        if (filesize($file) > 907200) {
-            $fp = fopen($file, "r+");
-            ftruncate($fp, 0);
-            fclose($fp);
+    public function log($messages) 
+    { 
+        $logfile = '/var/log/mourjan/payfort.log';
+        if (!file_exists($logfile)) 
+        {
+            $fh = @fopen($logfile, 'w');
+            fclose($fh);
         }
-
-        $myfile = fopen($file, "a+");
-        fwrite($myfile, $messages);
-        fclose($myfile);
+        error_log(sprintf("%s\t%s", date("Y-m-d H:i:s"), $messages.PHP_EOL), 3, $logfile);
     }
     
     

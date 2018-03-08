@@ -4222,12 +4222,20 @@ class Bin extends AjaxHandler{
                                 $objFort->setMerchantReference($orderId);
                                 $objFort->setLanguage($lang);
                                 $objFort->setCommand('PURCHASE');
+                                if (($token= NoSQL::getInstance()->getUserPayfortToken($this->user->info['id']))!=FALSE)
+                                {
+                                    $objFort->token_name = $token;
+                                    //$formData .= '<input type="hidden" name="token_name" value="'.$token.'">';
+                                    
+                                }
                                 
                                 $form = $objFort->getRedirectionData('');
                                 $formData = '';
                                 foreach($form['params'] as $k => $v){
                                     $formData .= '<input type="hidden" name="' . $k . '" value="' . $v . '">';
                                 }
+                                
+                               
                                 $this->setData($formData, "D");
                                 $this->setData($form['url'], "U");
                                 /*

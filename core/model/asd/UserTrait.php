@@ -78,6 +78,7 @@ const USER_JWT              = 'jwt';
 const USER_JWT_SECRET               = 'secret';
 const USER_JWT_TOKEN                = 'token';
 
+const USER_PAYFORT_TOKEN            = 'payfort';
 
 const USER_PROVIDER_MOURJAN         = 'mourjan';
 const USER_PROVIDER_ANDROID         = 'mourjan-android';
@@ -618,6 +619,18 @@ trait UserTrait
         return -1;
     }
 
+
+    public function getUserPayfortToken(int $uid) 
+    {
+        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK)
+        {
+            if (($record=$this->getBins($result['key'], [USER_PAYFORT_TOKEN]))!==FALSE)
+            {
+                return isset($record[USER_PAYFORT_TOKEN]) ? $record[USER_PAYFORT_TOKEN] : FALSE;
+            }
+        }
+        return FALSE;
+    }
     
     
     /* Debug section */

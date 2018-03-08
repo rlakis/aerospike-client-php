@@ -1,5 +1,8 @@
 <?php
 ini_set('log_errors_max_len', 0);
+include_once get_cfg_var('mourjan.path').'/deps/autoload.php';
+use Core\Model\NoSQL;
+
 $sandbox = (get_cfg_var('mourjan.server_id')=='99');
 $logfile = '/var/log/mourjan/payfort.log';
 /*
@@ -121,6 +124,12 @@ if($orderId)
 }
 
 $db->queryResultArray("INSERT INTO T_PAYFORT (DATA) VALUES (?)", [json_encode($_POST)], TRUE);
+
+
+if (isset($payment['token_name']))    
+{
+    Core\Model\NoSQL::getInstance()->setUserBin($userId, \Core\Model\ASD\USER_PAYFORT_TOKEN, $payment['token_name']);
+}
 
 
 ?>
