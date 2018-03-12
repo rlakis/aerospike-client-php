@@ -4199,7 +4199,7 @@ class Bin extends AjaxHandler{
                             $product['USD_PRICE'] = number_format($product['USD_PRICE'],2);
                             $orderId='';
                             $order=$this->urlRouter->db->queryResultArray(
-                                "insert into t_order (uid,currency_id,amount,debit,credit,usd_value,server_id) values (?,?,?,?,?,?,?) returning id",
+                                "insert into t_order (uid, currency_id, amount, debit, credit, usd_value, server_id, flag) values (?, ?, ?, ?, ?, ?, ?, ?) returning id",
                                 [
                                     $this->user->info['id'],
                                     'USD',
@@ -4207,7 +4207,8 @@ class Bin extends AjaxHandler{
                                     0,
                                     $product['MCU'],
                                     $product['USD_PRICE'],
-                                    $this->urlRouter->cfg['server_id']
+                                    $this->urlRouter->cfg['server_id'],
+                                    $this->router()->isMobile ? 1 : 0
                                 ], true);
                             
                             if(isset($order[0]['ID']) && $order[0]['ID'])

@@ -109,6 +109,10 @@ if($orderId)
     {
         $res = $db->get("update t_order set state=?, msg=?, flag=? where id=? and uid=? and state=0 returning id",
                     [2, $payment['fort_id'], $sourceId, $orderId, $userId], TRUE);
+        if (isset($payment['token_name']))    
+        {
+            Core\Model\NoSQL::getInstance()->setUserBin($userId, \Core\Model\ASD\USER_PAYFORT_TOKEN, $payment['token_name']);
+        }
     }
     else
     {
@@ -126,10 +130,6 @@ if($orderId)
 $db->queryResultArray("INSERT INTO T_PAYFORT (DATA) VALUES (?)", [json_encode($_POST)], TRUE);
 
 
-if (isset($payment['token_name']))    
-{
-    Core\Model\NoSQL::getInstance()->setUserBin($userId, \Core\Model\ASD\USER_PAYFORT_TOKEN, $payment['token_name']);
-}
 
 
 ?>
