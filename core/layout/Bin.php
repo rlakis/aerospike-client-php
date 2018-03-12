@@ -4209,24 +4209,36 @@ class Bin extends AjaxHandler{
                                     $product['USD_PRICE'],
                                     $this->urlRouter->cfg['server_id']
                                 ], true);
-                            if(isset($order[0]['ID']) && $order[0]['ID']){
+                            
+                            if(isset($order[0]['ID']) && $order[0]['ID'])
+                            {
                                 $orderId=$this->user->info['id'].'-'.$order[0]['ID'].'-'.( isset($this->user->params['mobile']) && $this->user->params['mobile'] ? 1:0);   
                                 
                                 require_once $this->urlRouter->cfg['dir'].'/core/lib/PayfortIntegration.php';
+                                //require_once $this->urlRouter->cfg['dir'].'/core/lib/MCPayfort.php';
                                 
                                 $objFort = new PayfortIntegration();
+                                /*
+                                $objFort = new MCPayfort();
+                                $objFort->setAmount($product['USD_PRICE'])
+                                        ->setLanguage($lang)
+                                        ->setCommand('PURCHASE')
+                                        ->setCustomerEmail($this->user->info['email'])
+                                        ->setItemName($product['MCU'].($lang!='ar' ? ' mourjan gold':' ذهبية مرجان'))
+                                        ->setMerchantReference($orderId);
+                                        
+                                */
                                 $objFort->setAmount($product['USD_PRICE']);
                                 $objFort->setCustomerEmail($this->user->info['email']);
                                 $objFort->setItemName($product['MCU'].($lang!='ar' ? ' mourjan gold':' ذهبية مرجان'));
-                                //$objFort->setItemBillName((1 ? ' mourjan gold':' ذهبية مرجان'));
                                 $objFort->setMerchantReference($orderId);
                                 $objFort->setLanguage($lang);
                                 $objFort->setCommand('PURCHASE');
+                                
                                 if (($token= NoSQL::getInstance()->getUserPayfortToken($this->user->info['id']))!=FALSE)
                                 {
                                     $objFort->token_name = $token;
-                                    //$formData .= '<input type="hidden" name="token_name" value="'.$token.'">';
-                                    
+                                    //$objFort->setTokenName($token);                                    
                                 }
                                 
                                 $form = $objFort->getRedirectionData('');

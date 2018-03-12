@@ -12,35 +12,40 @@ class PayfortIntegration
     /**
      * @var string your Merchant Identifier account (mid)
      */
-    //public $merchantIdentifier = 'AUCZNGGy';Sandbox
-    public $merchantIdentifier = 'daHyRFxZ';
-    /**
-     * @var string your Merchant Identifier account (mid)
-     */
-    public $merchantReference = '';
+    public $merchantIdentifier = 'MERCHANT_IDENTIFIER';
+    
     /**
      * @var string your access code
      */
-    //public $accessCode         = 'ou8rcz98spCiypVgz67U';//Sandbox
-    public $accessCode         = '2D2ChCFe3duM0LrDMJUf';
-    /**
-     * @var string sha in passphrase
-     */
-    public $shaIn              = 'ky9BWdcbDZqn2c';
-    /**
-     * @var string sha out passphrase
-     */
-    public $shaOut             = 'pWgawXBckxLbuf';
-    /**
-     * @var string hash algorith
-     */
-    public $hashAlgorith       = 'sha256';
+    public $accessCode         = 'ACCESS_CODE';
     
-    public $command            = 'AUTHORIZATION';
+    /**
+     * @var string SHA Request passphrase
+     */
+    public $SHARequestPhrase   = 'SHA_REQUEST_PASSPHRASE';
+    
+    /**
+     * @var string SHA Response passphrase
+     */
+    public $SHAResponsePhrase = 'SHA_RESPONSE_PASSPHRASE';
+    
+    /**
+     * @var string SHA Type (Hash Algorith)
+     * expected Values ("sha1", "sha256", "sha512")
+     */
+    public $SHAType       = 'sha256';
+    
+    /**
+     * @var string  command
+     * expected Values ("AUTHORIZATION", "PURCHASE")
+     */
+    public $command       = 'AUTHORIZATION';
+    
     /**
      * @var decimal order amount
      */
-    public $amount             = 200;
+    public $amount             = 100;
+    
     /**
      * @var string order currency
      */
@@ -49,76 +54,32 @@ class PayfortIntegration
     /**
      * @var string item name
      */
-    public $itemName           = '';
-    /**
-     * @var string item bill name
-     */
-    public $itemBillName           = '';
+    public $itemName           = 'Apple iPhone 6s Plus';
+    
     /**
      * @var string you can change it to your email
      */
-    public $customerEmail      = '';
+    public $customerEmail      = 'test@test.com';
+    
     /**
      * @var boolean for live account change it to false
      */
-    public $sandboxMode        = false;
+    public $sandboxMode        = true;
     /**
      * @var string  project root folder
      * change it if the project is not on root folder.
      */
-    public $projectUrlPath     = '/buyu'; 
-    
-    
-    public $token_name;
+    public $projectUrlPath     = '/payfort-php-sdk'; 
     
     public function __construct()
     {
         
-        $this->sandboxMode = (get_cfg_var('mourjan.server_id')=='99');
-        if ($this->sandboxMode)
-        {
-            $this->merchantIdentifier = "AUCZNGGy";
-            $this->accessCode         = 'ou8rcz98spCiypVgz67U';
-        }
-        
     }
 
-    
-    public function setMerchantReference($referenceKey)
+    public function processRequest($paymentMethod)
     {
-        $this->merchantReference = $referenceKey;
-    }
-    
-    public function setAmount($amount)
-    {
-        $this->amount = $amount;
-    }
-    
-    public function setCustomerEmail($email)
-    {
-        $this->customerEmail = $email;
-    }
-    
-    public function setItemName($itemName)
-    {
-        $this->itemName = $itemName;
-    }
-    
-    public function setLanguage($lang='en')
-    {
-        $this->language = $lang;
-    }
-       
-    public function setCommand($command = 'AUTHORIZATION')
-    {
-        $this->command = $command;
-    }
-
-    
-    public function processRequest($paymentMethod='creditcard')
-    {
-        if ($paymentMethod == 'cc_merchantpage') {
-            $merchantPageData = $this->getMerchantPageData();
+        if ($paymentMethod == 'cc_merchantpage' || $paymentMethod == 'cc_merchantpage2' || $paymentMethod == 'installments_merchantpage') {
+            $merchantPageData = $this->getMerchantPageData($paymentMethod);
             $postData = $merchantPageData['params'];
             $gatewayUrl = $merchantPageData['url'];
         }
@@ -132,10 +93,8 @@ class PayfortIntegration
         exit;
     }
 
-    
-    public function getRedirectionData($paymentMethod='') 
-    {
-        //$merchantReference = $this->generateMerchantReference();
+    public function getRedirectionData($paymentMethod) {
+        $merchantReference = $this->generateMerchantReference();
         if ($this->sandboxMode) {
             $gatewayUrl = $this->gatewaySandboxHost . 'FortAPI/paymentPage';
         }
@@ -146,26 +105,20 @@ class PayfortIntegration
         if ($paymentMethod == 'sadad') {
             $this->currency = 'SAR';
         }
-        
         $postData = array(
             'amount'              => $this->convertFortAmount($this->amount, $this->currency),
             'currency'            => strtoupper($this->currency),
             'merchant_identifier' => $this->merchantIdentifier,
             'access_code'         => $this->accessCode,
-            'merchant_reference'  => $this->merchantReference,
-            'customer_email'      => $this->customerEmail,
+            'merchant_reference'  => $merchantReference,
+            'customer_email'      => $this->customerEmail, /*                'test@payfort.com',*/
             //'customer_name'         => trim($order_info['b_firstname'].' '.$order_info['b_lastname']),
             'command'             => $this->command,
             'language'            => $this->language,
-            'return_url'          => $this->getUrl(''), 
-            'order_description'  => $this->itemName,
+            'return_url'          => $this->getUrl('' /* 'route.php?r=processResponse'*/),
+            'order_description'   => $this->itemName,
         );
 
-        if (!$this->sandboxMode && isset($this->token_name) && $this->token_name)
-        {
-            $postData['token_name'] = $this->token_name;
-        }
-        
         if ($paymentMethod == 'sadad') {
             $postData['payment_option'] = 'SADAD';
         }
@@ -178,14 +131,12 @@ class PayfortIntegration
             $postData['command']         = 'PURCHASE';
         }
         $postData['signature'] = $this->calculateSignature($postData, 'request');
-        
         $debugMsg = "Fort Redirect Request Parameters \n".print_r($postData, 1);
         $this->log($debugMsg);
         return array('url' => $gatewayUrl, 'params' => $postData);
     }
     
-    
-    public function getMerchantPageData()
+    public function getMerchantPageData($paymentMethod)
     {
         $merchantReference = $this->generateMerchantReference();
         $returnUrl = $this->getUrl('route.php?r=merchantPageReturn');
@@ -200,6 +151,14 @@ class PayfortIntegration
             'language'            => $this->language,
             'return_url'          => $returnUrl,
         );
+        
+        if($paymentMethod == 'installments_merchantpage'){
+                $iframeParams['currency']       = strtoupper($this->currency);
+                $iframeParams['installments']   = 'STANDALONE';
+                $iframeParams['amount']         = $this->convertFortAmount($this->amount, $this->currency);
+        }
+        
+        
         $iframeParams['signature'] = $this->calculateSignature($iframeParams, 'request');
 
         if ($this->sandboxMode) {
@@ -223,17 +182,6 @@ class PayfortIntegration
         $form .= '<input type="submit" id="submit">';
         return $form;
     }
-    
-    function http_strip_query_param($url)
-    {
-        $pieces = parse_url($url);
-        $query = [];
-        if ($pieces['query']) {
-            parse_str($pieces['query'], $query);
-        }
-
-        return $query;
-    }
 
     public function processResponse()
     {
@@ -241,10 +189,6 @@ class PayfortIntegration
         
         $debugMsg = "Fort Redirect Response Parameters \n".print_r($fortParams, 1);
         $this->log($debugMsg);
-        //$fortParams = $_REQUEST;
-        
-        //$debugMsg = "Fort Redirect Response Parameters \n".print_r($fortParams, 1);
-        //$this->log($debugMsg);
 
         $reason        = '';
         $response_code = '';
@@ -263,7 +207,7 @@ class PayfortIntegration
             unset($params['r']);
             unset($params['signature']);
             unset($params['integration_type']);
-            $calculatedSignature = $this->calculateSignature($params, 'response');            
+            $calculatedSignature = $this->calculateSignature($params, 'response');
             $success       = true;
             $reason        = '';
 
@@ -285,17 +229,16 @@ class PayfortIntegration
                 }
             }
         }
-        $p = $params;
         if(!$success) {
+            $p = $params;
             $p['error_msg'] = $reason;
-            //$return_url = $this->getUrl('error.php?'.http_build_query($p));
+            $return_url = $this->getUrl('error.php?'.http_build_query($p));
         }
         else{
-            //$return_url = $this->getUrl('success.php?'.http_build_query($params));
+            $return_url = $this->getUrl('success.php?'.http_build_query($params));
         }
-        return $p;
-        //echo "<html><body onLoad=\"javascript: window.top.location.href='" . $return_url . "'\"></body></html>";
-        //exit;
+        echo "<html><body onLoad=\"javascript: window.top.location.href='" . $return_url . "'\"></body></html>";
+        exit;
     }
 
     public function processMerchantPageResponse()
@@ -406,8 +349,6 @@ class PayfortIntegration
     public function merchantPageNotifyFort($fortParams)
     {
         //send host to host
-
-
         if ($this->sandboxMode) {
             $gatewayUrl = $this->gatewaySandboxHost . 'FortAPI/paymentPage';
         }
@@ -427,8 +368,16 @@ class PayfortIntegration
             'customer_name'       => 'John Doe',
             'token_name'          => $fortParams['token_name'],
             'language'            => $this->language,
-            'return_url'          => $this->getUrl('?payfort=process'),
+            'return_url'          => $this->getUrl('route.php?r=processResponse'),
         );
+        
+        if(!empty($merchantPageData['paymentMethod']) && $merchantPageData['paymentMethod'] == 'installments_merchantpage'){
+                $postData['installments']            = 'YES';
+                $postData['plan_code']               = $fortParams['plan_code'];
+                $postData['issuer_code']             = $fortParams['issuer_code'];
+                $postData['command']                 = 'PURCHASE';
+        }
+        
         if(isset($fortParams['3ds']) && $fortParams['3ds'] == 'no') {
             $postData['check_3ds'] = 'NO';
         }
@@ -441,11 +390,28 @@ class PayfortIntegration
         $this->log($debugMsg);
         
         if ($this->sandboxMode) {
-            $gatewayUrl = $this->gatewaySandboxHost . 'FortAPI/paymentApi';
+            $gatewayUrl = 'https://sbpaymentservices.payfort.com/FortAPI/paymentApi';
         }
         else {
-            $gatewayUrl = $this->gatewayHost . 'FortAPI/paymentApi';
+            $gatewayUrl = 'https://paymentservices.payfort.com/FortAPI/paymentApi';
         }
+        
+        $array_result = $this->callApi($postData, $gatewayUrl);
+        
+        $debugMsg = "Fort Host2Host Response Parameters \n".print_r($array_result, 1);
+        $this->log($debugMsg);
+        
+        return  $array_result;
+    }
+
+    /**
+     * Send host to host request to the Fort
+     * @param array $postData
+     * @param string $gatewayUrl
+     * @return mixed
+     */
+    public function callApi($postData, $gatewayUrl)
+    {
         //open connection
         $ch = curl_init();
 
@@ -478,15 +444,11 @@ class PayfortIntegration
 
         $array_result = json_decode($response, true);
         
-        $debugMsg = "Fort Host2Host Response Parameters \n".print_r($array_result, 1);
-        $this->log($debugMsg);
-        
         if (!$response || empty($array_result)) {
             return false;
         }
         return $array_result;
     }
-
     
     /**
      * calculate fort signature
@@ -496,24 +458,23 @@ class PayfortIntegration
      */
     public function calculateSignature($arrData, $signType = 'request')
     {
-        $shaString = '';
+        $shaString             = '';
         ksort($arrData);
         foreach ($arrData as $k => $v) {
             $shaString .= "$k=$v";
         }
 
         if ($signType == 'request') {
-            $shaString = $this->shaIn . $shaString . $this->shaIn;
+            $shaString = $this->SHARequestPhrase . $shaString . $this->SHARequestPhrase;
         }
         else {
-            $shaString = $this->shaOut . $shaString . $this->shaOut;
+            $shaString = $this->SHAResponsePhrase . $shaString . $this->SHAResponsePhrase;
         }
-        $signature = hash($this->hashAlgorith, $shaString);
+        $signature = hash($this->SHAType, $shaString);
 
         return $signature;
     }
 
-    
     /**
      * Convert Amount with dicemal points
      * @param decimal $amount
@@ -560,9 +521,9 @@ class PayfortIntegration
         return $decimalPoint;
     }
 
-    public function getUrl($path='')
+    public function getUrl($path)
     {
-        $url = 'https://' . $_SERVER['HTTP_HOST'] . $this->projectUrlPath .'/'. ($this->language == 'ar' ? '':$this->language.'/') . $path;
+        $url = 'http://' . $_SERVER['HTTP_HOST'] . $this->projectUrlPath .'/'. $path;
         return $url;
     }
 
@@ -574,15 +535,18 @@ class PayfortIntegration
     /**
      * Log the error on the disk
      */
-    public function log($messages) 
-    { 
-        $logfile = '/var/log/mourjan/payfort.log';
-        if (!file_exists($logfile)) 
-        {
-            $fh = @fopen($logfile, 'w');
-            fclose($fh);
+    public function log($messages) {
+        $messages = "========================================================\n\n".$messages."\n\n";
+        $file = __DIR__.'/trace.log';
+        if (filesize($file) > 907200) {
+            $fp = fopen($file, "r+");
+            ftruncate($fp, 0);
+            fclose($fp);
         }
-        error_log(sprintf("%s\t%s", date("Y-m-d H:i:s"), $messages.PHP_EOL), 3, $logfile);
+
+        $myfile = fopen($file, "a+");
+        fwrite($myfile, $messages);
+        fclose($myfile);
     }
     
     
@@ -595,6 +559,7 @@ class PayfortIntegration
         switch($po) {
             case 'creditcard' : return 'Credit Cards';
             case 'cc_merchantpage' : return 'Credit Cards (Merchant Page)';
+            case 'installments_merchantpage' : return 'Installments (Merchant Page)';
             case 'installments' : return 'Installments';
             case 'sadad' : return 'SADAD';
             case 'naps' : return 'NAPS';

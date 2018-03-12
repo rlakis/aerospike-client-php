@@ -461,7 +461,10 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                         echo '<div class="htf">'.$message.'</div>';
                     }else{
                     
-                    if(isset($_GET['payfort']) && $_GET['payfort']=='process'){
+                    if (isset($_GET['response_code']) && isset($_GET['command']) && isset($_GET['order_description'])) 
+                    {
+                    //    error_log("called");
+                    //if(isset($_GET['payfort']) && $_GET['payfort']=='process'){
                         require_once $this->urlRouter->cfg['dir'].'/core/lib/PayfortIntegration.php';
                         
                         $payFort = new PayfortIntegration();
@@ -491,11 +494,13 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                                 $orderId=0;
                             }
                         }
+                        
                         if($orderId){
                             if($success){
                                 $res = $this->urlRouter->db->queryResultArray(
-                                            "update t_order set state = ?, msg = ?,flag=? where id = ? and uid = ? and state = 0 returning id",
+                                            "update t_order set state=?, msg=?,flag=? where id=? and uid=? and state=0 returning id",
                                             [2, $payment['fort_id'],$flag_id, $orderId, $this->user->info['id']], TRUE);
+                                
                                 if($res !== false){
                                     $goldCount = preg_replace('/[^0-9]/', '', $payment['order_description']);
                                     $msg = preg_replace('/{gold}/', $goldCount, $this->lang['paypal_ok']);
@@ -514,7 +519,7 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                                 echo "<div class='mnb rc'><p><span class='fail'></span> {$this->lang['paypal_failure']} {$payment['error_msg']}</p></div>";
 
                                 $res = $this->urlRouter->db->queryResultArray(
-                                            "update t_order set state = ?, msg = ?,flag=? where id = ? and uid = ? and state = 0 returning id",
+                                            "update t_order set state=?, msg=?, flag=? where id=? and uid=? and state=0 returning id",
                                             [$state, $payment['error_msg'], $flag_id, $orderId, $this->user->info['id']], TRUE);
 
                                 $this->user->update();

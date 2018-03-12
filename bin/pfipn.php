@@ -47,7 +47,7 @@ use Core\Model\DB;
 
 if (false)
 {
-    $pData = '{"amount":"1299","response_code":"14000","card_number":"483432******9257","card_holder_name":"ISMAT OMAR","signature":"6fb6d2f6a54cb29f116aa18634085925968ab3606f05c92a3b64df3b1308d3d6","merchant_identifier":"daHyRFxZ","access_code":"2D2ChCFe3duM0LrDMJUf","order_description":"21 \u0630\u0647\u0628\u064a\u0629 \u0645\u0631\u062c\u0627\u0646","payment_option":"VISA","expiry_date":"2005","customer_ip":"5.156.206.60","language":"ar","eci":"ECOMMERCE","fort_id":"151989035800019721","command":"PURCHASE","response_message":"\u0639\u0645\u0644\u064a\u0629 \u0646\u0627\u062c\u062d\u0629","merchant_reference":"1125474-5127-0","authorization_code":"343289","customer_email":"abunooh1974@gmail.com","currency":"USD","status":"14"}';
+    $pData = '{"amount":"1799","response_code":"14000","card_number":"498778******2930","card_holder_name":"AHMED ISMAIL","signature":"a22f7c4b1e9146e2a92c8ef9197820ffebdda995b84ee28a36a5d41be890576c","merchant_identifier":"daHyRFxZ","access_code":"2D2ChCFe3duM0LrDMJUf","order_description":"30 \u0630\u0647\u0628\u064a\u0629 \u0645\u0631\u062c\u0627\u0646","payment_option":"VISA","expiry_date":"2210","customer_ip":"31.215.66.197","language":"ar","eci":"ECOMMERCE","fort_id":"152070282500090963","command":"PURCHASE","response_message":"\u0639\u0645\u0644\u064a\u0629 \u0646\u0627\u062c\u062d\u0629","merchant_reference":"775021-5278-0","authorization_code":"165273","customer_email":"ahmed.sobieh@yahoo.com","token_name":"66D5D8D738B0B69FE0530100007F4C2F","currency":"USD","status":"14"}';
     $pData = json_decode($pData, true);
     foreach ($pData as $key => $value)
     {
