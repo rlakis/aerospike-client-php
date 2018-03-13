@@ -3,25 +3,7 @@ ini_set('log_errors_max_len', 0);
 include_once get_cfg_var('mourjan.path').'/deps/autoload.php';
 use Core\Model\NoSQL;
 
-$sandbox = (get_cfg_var('mourjan.server_id')=='99');
 $logfile = '/var/log/mourjan/payfort.log';
-/*
-if (!function_exists('getallheaders')) 
-{ 
-    function getallheaders() 
-    { 
-           $headers = ''; 
-       foreach ($_SERVER as $name => $value) 
-       { 
-           if (substr($name, 0, 5) == 'HTTP_') 
-           { 
-               $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value; 
-           } 
-       } 
-       return $headers; 
-    } 
-} 
-*/
 
 if (!file_exists($logfile)) 
 {
@@ -29,14 +11,6 @@ if (!file_exists($logfile))
     fclose($fh);
 }
 
-/*
-$headers = getallheaders();
-$logMsg = '------------------------------------'.PHP_EOL;
-foreach($headers as $key => $value){
-    $logMsg.=$key.'::'.$value.PHP_EOL;
-}
-error_log(sprintf("%s\t%s", date("Y-m-d H:i:s"), $logMsg.json_encode($_POST).PHP_EOL), 3, $logfile);
-*/
 
 error_log(sprintf("%s\t%s", date("Y-m-d H:i:s"), json_encode($_POST).PHP_EOL), 3, $logfile);
 
@@ -44,18 +18,6 @@ include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
 include_once $config['dir']. '/core/model/Db.php';
 include_once $config['dir'].'/core/lib/PayfortIntegration.php';
 use Core\Model\DB;
-
-if (false)
-{
-    $pData = '{"amount":"1799","response_code":"14000","card_number":"498778******2930","card_holder_name":"AHMED ISMAIL","signature":"a22f7c4b1e9146e2a92c8ef9197820ffebdda995b84ee28a36a5d41be890576c","merchant_identifier":"daHyRFxZ","access_code":"2D2ChCFe3duM0LrDMJUf","order_description":"30 \u0630\u0647\u0628\u064a\u0629 \u0645\u0631\u062c\u0627\u0646","payment_option":"VISA","expiry_date":"2210","customer_ip":"31.215.66.197","language":"ar","eci":"ECOMMERCE","fort_id":"152070282500090963","command":"PURCHASE","response_message":"\u0639\u0645\u0644\u064a\u0629 \u0646\u0627\u062c\u062d\u0629","merchant_reference":"775021-5278-0","authorization_code":"165273","customer_email":"ahmed.sobieh@yahoo.com","token_name":"66D5D8D738B0B69FE0530100007F4C2F","currency":"USD","status":"14"}';
-    $pData = json_decode($pData, true);
-    foreach ($pData as $key => $value)
-    {
-        $_REQUEST[$key] = $value;
-        $_GET[$key] = $value;
-    }
-}
-
 
 $language = $_REQUEST['language'] ?? 'en';
 if (!in_array($language, ['en','ar']))
@@ -65,6 +27,44 @@ if (!in_array($language, ['en','ar']))
 
 $payFort = new PayfortIntegration();
 $payFort->setLanguage($language);
+
+$db = new DB($config);
+
+if (php_sapi_name()=='cli')
+{
+    if ($argc==2)
+    {
+        print_r($argv);
+        $res = $db->get("select id, data from t_payfort where id=?", [$argv[1]], TRUE);
+        if ($res && count($res))
+        {
+            //print_r($res);
+            $pData = json_decode($res[0]['DATA'], true);
+            foreach ($pData as $key => $value)
+            {
+                $_REQUEST[$key] = $value;
+                $_GET[$key] = $value;
+            }
+            print_r($_GET);
+        } else {
+            return ;
+        }
+    }
+    
+    //if (false)
+    //{
+    //    $pData = '{"amount":"1799","response_code":"14000","card_number":"498778******2930","card_holder_name":"AHMED ISMAIL","signature":"a22f7c4b1e9146e2a92c8ef9197820ffebdda995b84ee28a36a5d41be890576c","merchant_identifier":"daHyRFxZ","access_code":"2D2ChCFe3duM0LrDMJUf","order_description":"30 \u0630\u0647\u0628\u064a\u0629 \u0645\u0631\u062c\u0627\u0646","payment_option":"VISA","expiry_date":"2210","customer_ip":"31.215.66.197","language":"ar","eci":"ECOMMERCE","fort_id":"152070282500090963","command":"PURCHASE","response_message":"\u0639\u0645\u0644\u064a\u0629 \u0646\u0627\u062c\u062d\u0629","merchant_reference":"775021-5278-0","authorization_code":"165273","customer_email":"ahmed.sobieh@yahoo.com","token_name":"66D5D8D738B0B69FE0530100007F4C2F","currency":"USD","status":"14"}';
+    //    $pData = json_decode($pData, true);
+    //    foreach ($pData as $key => $value)
+    //    {
+    //        $_REQUEST[$key] = $value;
+    //        $_GET[$key] = $value;
+    //    }
+    //}
+}
+
+
+
 $payment = $payFort->processResponse();
 
 
@@ -100,7 +100,6 @@ if (isset($payment['merchant_reference']))
     }
 }
 
-$db = new DB($config);
 //var_dump($orderId);
 
 if($orderId)
@@ -127,9 +126,10 @@ if($orderId)
     }
 }
 
-$db->queryResultArray("INSERT INTO T_PAYFORT (DATA) VALUES (?)", [json_encode($_POST)], TRUE);
-
-
+if (isset($_POST) && count($_POST)>0)
+{
+    $db->queryResultArray("INSERT INTO T_PAYFORT (DATA) VALUES (?)", [json_encode($_POST)], TRUE);
+}
 
 
 ?>

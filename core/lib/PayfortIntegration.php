@@ -61,7 +61,7 @@ class PayfortIntegration
     /**
      * @var boolean for live account change it to false
      */
-    public $sandboxMode        = false;
+    private $sandboxMode        = false;
     /**
      * @var string  project root folder
      * change it if the project is not on root folder.
@@ -71,18 +71,19 @@ class PayfortIntegration
     
     public $token_name;
     
-    public function __construct()
+    
+    public function setSandBoxMode(bool $value)
     {
-        
-        $this->sandboxMode = (get_cfg_var('mourjan.server_id')=='99');
-        if ($this->sandboxMode)
-        {
-            $this->merchantIdentifier = "AUCZNGGy";
-            $this->accessCode         = 'ou8rcz98spCiypVgz67U';
+        $this->sandboxMode = $value;
+        if ($this->sandboxMode) {
+            $this->merchantIdentifier   = 'AUCZNGGy';
+            $this->accessCode           = 'ou8rcz98spCiypVgz67U';
+        } else {
+            $this->merchantIdentifier   = 'daHyRFxZ';
+            $this->accessCode           = '2D2ChCFe3duM0LrDMJUf';            
         }
-        
     }
-
+    
     
     public function setMerchantReference($referenceKey)
     {
