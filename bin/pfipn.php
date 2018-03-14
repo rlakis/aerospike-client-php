@@ -128,7 +128,8 @@ if($orderId)
 
 if (isset($_POST) && count($_POST)>0)
 {
-    $db->queryResultArray("INSERT INTO T_PAYFORT (DATA) VALUES (?)", [json_encode($_POST)], TRUE);
+    $fort_id = isset($payment) && isset($payment['fort_id']) ? $payment['fort_id'] : '';
+    $db->queryResultArray("INSERT INTO T_PAYFORT (DATA, FORT_ID) VALUES (?, ?)", [json_encode($_POST), $fort_id], TRUE);
 }
 
 
