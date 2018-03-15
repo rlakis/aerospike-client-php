@@ -1486,7 +1486,7 @@ class User
                                 m.name_{$language} as product_name, 
                                 s.name_{$language} as section_name,
                                 pu.name_{$language} as purpose_name,
-                                a.content, a.state, o.offer_id, r.gateway   
+                                a.content, a.state, o.offer_id, r.gateway, r.transaction_id   
                                 FROM T_TRAN r
                                 left join T_AD_FEATURED f on f.ID=r.XREF_ID and r.CURRENCY_ID='MCU' and r.DEBIT>0 and r.PRODUCT_ID='' 
                                 left join T_AD_BO o on o.ID=f.BO_ID
@@ -1627,6 +1627,8 @@ class User
 
                                     $newRs[$i][] = $rs[$i]['STATE'];
                                     $newRs[$i][] = trim($rs[$i]['CURRENCY_ID']);
+                                    $newRs[$i][] = $rs[$i]['GATEWAY'];
+                                    $newRs[$i][] = $rs[$i]['TRANSACTION_ID'];
                                 }
                                 else
                                 {
@@ -1635,6 +1637,8 @@ class User
                                     $newRs[$i][] = 0;
                                     $newRs[$i][] = 0;
                                     $newRs[$i][] = trim($rs[$i]['CURRENCY_ID']);
+                                    $newRs[$i][] = $rs[$i]['GATEWAY'];
+                                    $newRs[$i][] = $rs[$i]['TRANSACTION_ID'];
                                 }
                             }
                             $result['recs'] = $newRs;

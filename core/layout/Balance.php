@@ -4,6 +4,7 @@ require_once 'Page.php';
 class Balance extends Page{
     
     private $statementMode = false;
+    private $downloadLinkPath = 'http://h8.mourjan.com:8080/v1/pdf/invoice/';
 
     function __construct($router){
         parent::__construct($router);
@@ -51,6 +52,9 @@ class Balance extends Page{
             }
             .stmt .dt0{width:180px;text-align:center}
             .stmt .et0{width:463px;text-align:left}
+            .stmt .et1{width:423px;text-align:left}
+            .stmt .dwt{width:30px;height:30px}
+            .dwt a{width:30px;height:30px;display:inline-block;background-repeat:no-repeat;background-position:0 0;background-image:url('.$this->urlRouter->cfg['url_css'].'/i/download'.$this->urlRouter->_png.')}
             .stmt .ct0{width:90px;text-align:center}
             .stmt .xt0{width:957px;border-top:1px solid #aaa;display:none}
             ul.ps{background-color:#D9FAC8}
@@ -89,7 +93,7 @@ class Balance extends Page{
             }
             
             .stmt.ar li{float:left;border-left:0;border-right:1px solid #999}
-            .ar .et0{text-align:right;direction:rtl}
+            .ar .et0,.ar .et1{text-align:right;direction:rtl}
             .ar .hdr{font-size:16px}
         ';
         
@@ -97,11 +101,17 @@ class Balance extends Page{
             $this->inlineCss.='.ph{background-color:#FFF;padding:15px 10px;border-bottom:1px solid #afafaf}.ph a{float:left}'
                     . '.htf.db{background-color:#FFF;text-align:center;padding:20px 10px;}'
                     . '.stmt li{border:0!important}
-                        .stmt .dt0{width:180px;float:right!important;text-align:inherit!important}
-            .stmt .et0{float:right!important;width:180px}
+                        .stmt .dt0{width:230px;float:right!important;text-align:inherit!important}
+            .stmt .et0,.stmt .et1{float:right!important;width:230px;font-size:15px;line-height:1.5em}
+            .stmt .et1{width:190px}
             .stmt .ct0{width:90px;text-align:center;float:left}
             .stmt .xt0{border:0!important;border-top:1px solid #aaa!important;width:auto!important;display:none}
-            .doc .bt{width:70%;margin:25px}';
+            .doc .bt{width:70%;margin:25px}
+            .stmt .dwt{float:right!important}';
+            if($this->urlRouter->siteLanguage!='ar'){
+                $this->inlineCss.='.stmt .et0,.stmt .et1{font-size:13px}.stmt .et0,.stmt .et1,.stmt .dt0{float:left!important}';
+                $this->inlineCss.='.stmt .ct0{float:right!important}.stmt .dwt{float:left!important}';
+            }
         }
         
         $this->inlineQueryScript.='
@@ -213,6 +223,8 @@ class Balance extends Page{
                 $fieldRtl       = 8;
                 $fieldState     = 9;
                 $fieldCurrency  = 10;
+                $fieldPlatform  = 11;
+                $fieldTID  = 12;
                 $count = count($data['recs']);
                 if($count){
                     $pass=true;
@@ -247,7 +259,16 @@ class Balance extends Page{
                             }
                         }
                         if($this->isMobile){
-                            echo '<li class="et0">';
+                            
+                            $hasDownload = false;
+                            if($data['recs'][$i][$fieldCredit] > 0 
+                                    && $data['recs'][$i][$fieldCurrency] == 'USD' 
+                                    && $data['recs'][$i][$fieldPlatform] == 'PAYFORT'){
+                                $hasDownload = "<li class='dwt'><a href='{$this->downloadLinkPath}{$data['recs'][$i][$fieldTID]}' target='_blank'></a></li>";
+                                echo $hasDownload;
+                            }
+                            
+                            echo '<li class="et'.($hasDownload ? 1 : 0).'">';
                             //'.($data['recs'][$i][$fieldState]==8 ? ' sj':'').'
                             echo '<b>';
                             if( $data['recs'][$i][$fieldCredit] > 0){
@@ -364,6 +385,8 @@ class Balance extends Page{
                 $fieldRtl       = 8;
                 $fieldState     = 9;
                 $fieldCurrency  = 10;
+                $fieldPlatform  = 11;
+                $fieldTID  = 12;
                 $count = count($data['recs']);
                 if($count){
                     $pass=true;
@@ -403,7 +426,15 @@ class Balance extends Page{
                         echo '<li class="ct0">'.$data['recs'][$i][$fieldBalance].'</li>';
                         echo '<li class="ct0">'.($data['recs'][$i][$fieldCredit] == 0 ? '<ct>-</ct>' : '+'.((int)$data['recs'][$i][$fieldCredit]).'<span class="mc24"></span>').'</li>';
                         echo '<li class="ct0">'.($data['recs'][$i][$fieldDebit]==0 ? '<ct>-</ct>':'-'.((int)$data['recs'][$i][$fieldDebit])).'</li>';
-                        echo '<li class="et0">';
+                        
+                        $hasDownload = false;
+                        if($data['recs'][$i][$fieldCredit] > 0 
+                                && $data['recs'][$i][$fieldCurrency] == 'USD' 
+                                && $data['recs'][$i][$fieldPlatform] == 'PAYFORT'){
+                            $hasDownload = "<li class='dwt'><a href='{$this->downloadLinkPath}{$data['recs'][$i][$fieldTID]}' target='_blank'></a></li>";
+                        }
+                        
+                        echo '<li class="et'.($hasDownload ? 1 : 0).'">';
                         //'.($data['recs'][$i][$fieldState]==8 ? ' sj':'').'
                         echo '<b>';
                         if( $data['recs'][$i][$fieldCredit] > 0){
@@ -417,6 +448,9 @@ class Balance extends Page{
                         echo ($data['recs'][$i][$fieldTitle]);
                         echo '</b>';
                         echo '</li>';
+                        if($hasDownload){
+                            echo $hasDownload;
+                        }
                         if($data['recs'][$i][$fieldDebit] > 0){
                             if($data['recs'][$i][$fieldId] && $data['recs'][$i][$fieldDesc]=='NA' || $data['recs'][$i][$fieldDesc]==''){  
                                 echo '<li class="xt0 '.($this->urlRouter->siteLanguage ? 'ar':'en' ).'">';                              
