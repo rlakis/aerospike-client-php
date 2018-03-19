@@ -676,17 +676,17 @@ class PostAd extends Page{
                 ?><li onclick="wpz(this)" class="button h"><b><?= $this->lang['m_h_contact'] ?><span class="et"></span></b></li><?php 
                 ?><li class="nobd<?= $hasContact ? ' hid':'' ?>"><ul><?php
                     ?><li val="1" onclick="pz(this,1)" class="button"><b><span class="pz pz1"></span><?= $this->lang['contact_h_1'] ?></b></li><?php
-                    ?><li val="2" onclick="pz(this,1)" class="button"><b><span class="pz pz2"></span><span class="pz pz1"></span><?= $this->lang['contact_h_2'] ?></b></li><?php
+                    /* ?><li val="2" onclick="pz(this,1)" class="button"><b><span class="pz pz2"></span><span class="pz pz1"></span><?= $this->lang['contact_h_2'] ?></b></li><?php */
                     ?><li val="3" onclick="pz(this,1)" class="button"><b><span class="pz pz3"></span><span class="pz pz1"></span><?= $this->lang['contact_h_3'] ?></b></li><?php
-                    ?><li val="4" onclick="pz(this,1)" class="button"><b><span class="pz pz3"></span><span class="pz pz2"></span><span class="pz pz1"></span><?= $this->lang['contact_h_4'] ?></b></li><?php
-                    ?><li val="13" onclick="pz(this,1)" class="button"><b><span class="pz pz3"></span><span class="pz pz2"></span><?= $this->lang['contact_h_13'] ?></b></li><?php
+                    /* ?><li val="4" onclick="pz(this,1)" class="button"><b><span class="pz pz3"></span><span class="pz pz2"></span><span class="pz pz1"></span><?= $this->lang['contact_h_4'] ?></b></li><?php */
+                    /* ?><li val="13" onclick="pz(this,1)" class="button"><b><span class="pz pz3"></span><span class="pz pz2"></span><?= $this->lang['contact_h_13'] ?></b></li><?php */
                     ?><li val="5" onclick="pz(this,1)" class="button"><b><span class="pz pz3"></span><?= $this->lang['contact_h_5'] ?></b></li><?php
                     ?><li val="7" onclick="pz(this,1)" class="button"><b><span class="pz pz5"></span><?= $this->lang['contact_h_7'] ?></b></li><?php
-                    ?><li val="8" onclick="pz(this,1)" class="button"><b><span class="pz pz6"></span><?= $this->lang['contact_h_8'] ?></b></li><?php
-                    ?><li val="9" onclick="pz(this,1)" class="button"><b><span class="pz pz6"></span><?= $this->lang['contact_h_9'] ?></b></li><?php
+                    /* ?><li val="8" onclick="pz(this,1)" class="button"><b><span class="pz pz6"></span><?= $this->lang['contact_h_8'] ?></b></li><?php 
+                    ?><li val="9" onclick="pz(this,1)" class="button"><b><span class="pz pz6"></span><?= $this->lang['contact_h_9'] ?></b></li><?php 
                     ?><li val="6" onclick="pz(this)" class="button"><b><span class="pz pz4"></span><?= $this->lang['contact_h_6'] ?></b></li><?php
                     ?><li val="12" onclick="pz(this)" class="button"><b><span class="pz pz9"></span><?= $this->lang['contact_h_12'] ?></b></li><?php                    
-                    ?><li val="11" onclick="pz(this)" class="button"><b><span class="pz pz8"></span><?= $this->lang['contact_h_11'] ?></b></li><?php                    
+                    ?><li val="11" onclick="pz(this)" class="button"><b><span class="pz pz8"></span><?= $this->lang['contact_h_11'] ?></b></li><?php */                   
                     ?><li val="10" onclick="pz(this)" class="button"><b><span class="pz pz7"></span><?= $this->lang['contact_h_10'] ?></b></li><?php
                     ?><li class="hid"><b class="ah ctr"><span onclick="rpz(this)" class="button bt btw cl"><?= $this->lang['cancel'] ?></span></b></li><?php
                 ?></ul></li><?php

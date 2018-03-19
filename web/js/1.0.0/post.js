@@ -2403,11 +2403,12 @@ function uploadFile(data,type,prog,file){
     var uproh=$('.uproh',prog);
     
     var rg=new RegExp('.*/');
-    var t=file.type.replace(rg,'');
+    var t=type.replace(rg,'');
     
     var formdata = new FormData();
     formdata.append('UPLOAD_IDENTIFIER',uuid);
-    formdata.append("pic", file);
+    formdata.append("pic", data);
+    formdata.append("type", type);
     var ajax = new XMLHttpRequest();
     ajax.upload.addEventListener("progress", function(event){progressHandler(event,uproh,uprog)}, false);
     ajax.addEventListener("load", function(event){completeHandler(this.responseText,$p(prog,2),uuid)}, false);
@@ -2556,8 +2557,25 @@ function uploadCallback(rp){
         checkUploadLock($p(curLi,2));
     }
 }
+
+navigator.browserSpecs = (function(){
+    var ua= navigator.userAgent, tem, 
+    M= ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+    if(/trident/i.test(M[1])){
+        tem=  /\brv[ :]+(\d+)/g.exec(ua) || [];
+        return {name:'IE',version:(tem[1] || '')};
+    }
+    if(M[1]=== 'Chrome'){
+        tem= ua.match(/\b(OPR|Edge)\/(\d+)/);
+        if(tem!= null) return {name:tem[1].replace('OPR', 'Opera'),version:tem[2]};
+    }
+    M= M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+    if((tem= ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+    return {name:M[0],version:M[1]};
+})();
+
 function setFileCanvasRow(file,tul,submit){    
-    var opt={maxWidth:650,canvas:true};
+    var opt={maxWidth:1024,canvas:true};
     loadImage.parseMetaData(file,function(dt){
         if (dt.exif) {
             opt.orientation = dt.exif.get('Orientation');
@@ -2568,7 +2586,19 @@ function setFileCanvasRow(file,tul,submit){
                 var li=$('<li onclick="edOP($p(this,2));" class="button"><ul class="imgRow"><li class="li1"></li><li class="li2"></li></ul></li>');
                 var cols = $('ul li',li);
                 tul.appendChild(li[0]);
-                var durl = ig.toDataURL(file.type);
+                
+                var durl,type;
+                if (typeof navigator !=='undefined' 
+                        && typeof navigator.browserSpecs !=='undefined'
+                        && typeof navigator.browserSpecs.name !=='undefined' 
+                        && navigator.browserSpecs.name.toLowerCase() == 'chrome' && navigator.browserSpecs.version >= 50) {
+                    type = 'image/webp';
+                    durl = ig.toDataURL("image/webp");
+                }else{
+                    type = file.type;
+                    durl = ig.toDataURL(file.type);                    
+                }
+                
                 loadImage(
                     durl,
                     function(it){
@@ -2576,14 +2606,16 @@ function setFileCanvasRow(file,tul,submit){
                     },
                     {maxWidth:190,maxHeight:140,canvas:true}
                 );
-                if(ig.width < 200 || ig.height < 100){
+                //if(ig.width < 200 || ig.height < 100){
+                var ratio = (ig.width >= ig.height ? ig.width/ig.height : ig.height/ig.width);
+                if(ig.width*ig.height < 640*480 || ratio < 1.3){
                     $(cols[0].parentNode).addClass("error");
-                    cols[1].innerHTML = (lang == "ar" ? "لم يتم رفع الصورة، يرجى رفع صورة بعرض لا يقل عن 200px وطول لا يقل عن 100px":"Image upload aborted. Please upload an image that has a minimum width of 200px and a minimum height of 100px");
+                    cols[1].innerHTML = (lang == "ar" ? "حجم الصورة اما صغير او غير مناسب النشر":"Image size is too small or not suitable for publishing");
                     checkUploadLock($p(li[0],2));
                 }else{
                     var st= (lang =='ar'?'جاري الرفع':'uploading');
                     cols[1].innerHTML = '<span class="uproh">'+st+' <span class="uprog">0%</span></span>';
-                        uploadFile(durl,file.type,cols[1],file);
+                        uploadFile(durl,type,cols[1],file);
                 }
             },
             opt
