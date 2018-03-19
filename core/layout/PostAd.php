@@ -929,16 +929,19 @@ class PostAd extends Page{
                 ?><li onclick="edOV(this)" class="button<?= $uVideo==2 ? '': ' hid'?>"><b><?= $this->lang['no']  ?></b></li><?php
             ?></ul><?php 
             if(!$hasVideo && $uVideo!=2) $seqHide=true;
-            ?><ul id="xmp" class="ls po<?= ($hasMap || $uMap==2 ? ' pi':''),(!$seqHide ? '':' hid') ?>"><?php 
-                ?><li onclick="edOM(this)" class="button h"><b><?= $this->lang['m_h_map'] ?><span class="et"></span></b></li><?php 
-                ?><li class="nobd <?= $uMap==1 ? '': ' hid'?>"><ul><?php 
-                    ?><li onclick="edOM(this,1)" class="button"><b class="ah"><span title="<?= $this->lang['removeLoc'] ?>" onclick="clearLoc()" class="button pz pzd"></span><?= $this->adContent['loc'] ?></b></li><?php
-                    ?><li class="pid"><b class="ah ctr"><span onclick="dmp()" class="button bt btw ok"><?= $this->lang['next'] ?></span></b></li><?php
-                ?></ul></li><?php
-                ?><li class="<?= $uMap==0 ? '': ' hid'?>"><b class="ah ctr act2"><span onclick="edOM(this,1)" class="button bt ok"><?= $this->lang['yes'] ?></span><span onclick="noO(this,'m')" class="button bt cl"><?= $this->lang['no'] ?></span></b></li><?php 
-                ?><li onclick="edOM(this)" class="button<?= $uMap==2 ? '': ' hid'?>"><b><?= $this->lang['no']  ?></b></li><?php
-            ?></ul><?php 
-            if(!$hasMap && $uMap!=2) $seqHide=true;
+            
+            if(!$this->urlRouter->isApp){
+                ?><ul id="xmp" class="ls po<?= ($hasMap || $uMap==2 ? ' pi':''),(!$seqHide ? '':' hid') ?>"><?php 
+                    ?><li onclick="edOM(this)" class="button h"><b><?= $this->lang['m_h_map'] ?><span class="et"></span></b></li><?php 
+                    ?><li class="nobd <?= $uMap==1 ? '': ' hid'?>"><ul><?php 
+                        ?><li onclick="edOM(this,1)" class="button"><b class="ah"><span title="<?= $this->lang['removeLoc'] ?>" onclick="clearLoc()" class="button pz pzd"></span><?= $this->adContent['loc'] ?></b></li><?php
+                        ?><li class="pid"><b class="ah ctr"><span onclick="dmp()" class="button bt btw ok"><?= $this->lang['next'] ?></span></b></li><?php
+                    ?></ul></li><?php
+                    ?><li class="<?= $uMap==0 ? '': ' hid'?>"><b class="ah ctr act2"><span onclick="edOM(this,1)" class="button bt ok"><?= $this->lang['yes'] ?></span><span onclick="noO(this,'m')" class="button bt cl"><?= $this->lang['no'] ?></span></b></li><?php 
+                    ?><li onclick="edOM(this)" class="button<?= $uMap==2 ? '': ' hid'?>"><b><?= $this->lang['no']  ?></b></li><?php
+                ?></ul><?php 
+            }
+            if(!$this->urlRouter->isApp && !$hasMap && $uMap!=2) $seqHide=true;
             ?><ul class="ls cls nsh po<?= (!$seqHide ? '':' hid') ?>"><?php 
                 ?><li class="pid nobd"><p><?= $this->lang['ad_review'] ?></p></li><?php  
                 if($budget && $this->userBalance && $this->user->pending['post']['user'] == $this->user->info['id']){
