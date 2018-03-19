@@ -104,7 +104,7 @@ class MyAds extends Page
                 
                 if($sub=='pending')
                 {
-                    $this->inlineCss.='li.owned .oc{visibility:visible}.oc, li.activeForm .oc{visibility:hidden}';
+                    $this->inlineCss.='li.owned .oc{visibility:visible}.oc:not(.ocl), li.activeForm .oc{visibility:hidden}';
                 }
                 
                 $this->inlineCss.='
@@ -1363,20 +1363,20 @@ var rtMsgs={
                         $assignedAdmin = '<span class="fl" style="padding:0 5px;background-color:salmon">'.$this->editors[$assignedAdmin].'</span>';
                     }
                 }*/
-                                        
-                $isFeatured = isset($ad['FEATURED_DATE_ENDED']) && $ad['FEATURED_DATE_ENDED'] ? ($current_time < $ad['FEATURED_DATE_ENDED']) : false;
-                $isFeatureBooked = isset($ad['BO_DATE_ENDED']) && $ad['BO_DATE_ENDED'] ? ($current_time < $ad['BO_DATE_ENDED']) : false;
-                    
-                if (!$isFeatureBooked && $ad['STATE']==4) {
-                    $isFeatureBooked = true;
-                }
-                    
                 if ($ad['RTL']) {
                     $textClass='ar';
                 }else {
                     //$liClass.='pen ';
                 }
-                $content=json_decode($ad['CONTENT'],true);               
+                $content=json_decode($ad['CONTENT'],true);  
+                                        
+                $isFeatured = isset($ad['FEATURED_DATE_ENDED']) && $ad['FEATURED_DATE_ENDED'] ? ($current_time < $ad['FEATURED_DATE_ENDED']) : false;
+                $isFeatureBooked = isset($ad['BO_DATE_ENDED']) && $ad['BO_DATE_ENDED'] ? ($current_time < $ad['BO_DATE_ENDED']) : false;
+                    
+                if (!$isFeatureBooked && ($ad['STATE']==4 || (isset($content['budget']) && $content['budget']>0) )) {
+                    $isFeatureBooked = true;
+                }
+                                 
                 
                 if(!isset($content['ro']))$content['ro']=0;
                 if($ad['SECTION_ID']>0){
@@ -1747,6 +1747,15 @@ var rtMsgs={
                 if($this->user->info['level']==9){
                     if ($ad['STATE']==2 && (!$isSystemAd || $isSuperAdmin)) {
                         ?><input type="button" class="lnk" onclick="rejF(this,<?= $ad['WEB_USER_ID'] ?>)" value="<?= $this->lang['reject'] ?>" /><?php
+                        
+                        if($isSuperAdmin){
+                            ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?aid=<?= $ad['ID'] ?>&q="><?= $this->lang['similar'] ?></a><?php
+                        }
+                        if(!$isSystemAd || $isSuperAdmin){
+                            if ($contactInfo) {                                    
+                                ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
+                            }
+                        }
                     }else { 
                         if($state>0 && $state<7){
                             if(!$isSystemAd || $isSuperAdmin){         
