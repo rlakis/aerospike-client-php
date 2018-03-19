@@ -51,6 +51,11 @@ class MobileApi
         
         $this->command      = filter_input(INPUT_GET, 'm', FILTER_VALIDATE_INT);
         
+        if (!$this->isAndroid())
+        {
+            $this->systemName = strtolower($this->systemName);
+        }
+        
         if ($this->isIOS())
         {
             $this->lang     = filter_input(INPUT_GET, 'dl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
@@ -1630,17 +1635,23 @@ class MobileApi
             }
             
             
+            //error_log(json_encode($opts));
+            
             if ( $opts->user_status==1) 
             {
                 include $this->config['dir'] .'/core/model/User.php';
-                if (!$isAndroid && (session_status()==PHP_SESSION_NONE))
+                //error_log(session_status(). " == ". PHP_SESSION_NONE);
+                
+                if ($this->isIOS() && (session_status()==PHP_SESSION_NONE))
                 {
+                    
                     new MCSessionHandler(TRUE);
                     
                     $user = new User($this->db, $this->config, null, 0);
                     $user->sysAuthById($this->uid);
                     $user->params['app']=1;
                     $user->update();
+                   // error_log(json_encode($_SESSION));
                 }
                 
 
