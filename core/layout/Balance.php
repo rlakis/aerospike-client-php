@@ -1,10 +1,12 @@
 <?php
 require_once 'Page.php';
 
+define ('MOURJAN_KEY', 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAo//5OB8WpXTlsD5TEA5S+JK/I4xuYNOCGpGen07GKUpNdHcIVxSejoKiTmszUjsRgR1NC5H6Xu+5YMxfsPzQWwqyGMaQbvdLYOW2xQ5gnK4HEqp1ZP74HkNrnBCpyaGEuap4XcHu+37xNxZNRZpTgtr34dPcMIsN2GGANMNTy5aWlAPsl1BTYkDOCMu2f+Tyq2eqIkOvlHS09717JwNrx6NyI+CI7y8AAuLLZOp8usXWA/Lx3H6COts9IXMXE/+eNiFkaGsaolxzvO/aBg9w/0iYWGTinInOyHqwjcxazmoNJxxYbS/iTAlcPMrXzjn3UUepcq2WZ/+HWI0bzf4mVQIDAQAB');
+
 class Balance extends Page{
     
     private $statementMode = false;
-    private $downloadLinkPath = 'http://h8.mourjan.com:8080/v1/pdf/invoice/';
+    private $downloadLinkPath = '/web/invoice.php';
 
     function __construct($router){
         parent::__construct($router);
@@ -264,7 +266,10 @@ class Balance extends Page{
                             if($data['recs'][$i][$fieldCredit] > 0 
                                     && $data['recs'][$i][$fieldCurrency] == 'USD' 
                                     && $data['recs'][$i][$fieldPlatform] == 'PAYFORT'){
-                                $hasDownload = "<li class='dwt'><a href='{$this->downloadLinkPath}{$data['recs'][$i][$fieldTID]}' target='_blank'></a></li>";
+                                
+                                $signature = base64_encode(strtoupper(hash_hmac('sha1', $data['recs'][$i][$fieldTID], MOURJAN_KEY)));
+                                
+                                $hasDownload = "<li class='dwt'><a href='{$this->downloadLinkPath}?tid={$data['recs'][$i][$fieldTID]}&signature={$signature}' target='_blank'></a></li>";
                                 echo $hasDownload;
                             }
                             
@@ -431,7 +436,8 @@ class Balance extends Page{
                         if($data['recs'][$i][$fieldCredit] > 0 
                                 && $data['recs'][$i][$fieldCurrency] == 'USD' 
                                 && $data['recs'][$i][$fieldPlatform] == 'PAYFORT'){
-                            $hasDownload = "<li class='dwt'><a href='{$this->downloadLinkPath}{$data['recs'][$i][$fieldTID]}' target='_blank'></a></li>";
+                            $signature = base64_encode(strtoupper(hash_hmac('sha1', $data['recs'][$i][$fieldTID], MOURJAN_KEY)));
+                            $hasDownload = "<li class='dwt'><a href='{$this->downloadLinkPath}?tid={$data['recs'][$i][$fieldTID]}&signature={$signature}' target='_blank'></a></li>";
                         }
                         
                         echo '<li class="et'.($hasDownload ? 1 : 0).'">';

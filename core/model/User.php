@@ -1272,6 +1272,10 @@ class User
                 
                 $content=json_decode($ad['CONTENT'],true);
                 
+                if(isset($content['budget'])){
+                    $content['budget'] = 0;
+                }
+                
                 if (isset($sections[$sectionId]) && $sections[$sectionId][5] && $sections[$sectionId][8]==$purposeId)
                 {
                     $content['ro']=$sections[$sections[$sectionId][5]][4];
@@ -1335,7 +1339,12 @@ class User
             else
             {
                 // new ad version
-                $content = json_decode($ad['CONTENT'], true);
+                $content = json_decode($ad['CONTENT'], true);                
+                
+                if(isset($content['budget'])){
+                    $content['budget'] = 0;
+                }
+                
                 $content['state']=$state;
                 $normalized = $normalizer->getFromContentObject($content);
                 

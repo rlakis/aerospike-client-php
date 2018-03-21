@@ -1314,6 +1314,10 @@ class AndroidApi
                             $ad = $ad[0];
                             $content = json_decode($ad['CONTENT'], true);
                             
+                            if(isset($content['budget'])){
+                                $content['budget'] = 0;
+                            }
+                            
                             if(isset($content['SYS_CRAWL']) && $content['SYS_CRAWL']){
                                 $this->api->result['d']['renew'] = 0;
                             }else{
@@ -1372,7 +1376,7 @@ class AndroidApi
                                             $ad['SECTION_ID']=$normalized['se'];
                                         if ($ad['PURPOSE_ID']!=$normalized['pu'])
                                             $ad['PURPOSE_ID']=$normalized['pu'];
-                                    }         
+                                    }                                        
 
                                     $result = $this->api->db->queryResultArray(
                                         "update ad_user a set a.section_id=?, a.purpose_id=?, a.content=?, a.state={$state} where a.id=? and a.web_user_id=? and a.state=9 returning id", 
