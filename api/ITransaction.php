@@ -55,8 +55,7 @@ class ITransaction
     }
     
     
-    public function setTransaction() 
-    {
+    public function setTransaction() {
         
         $product_id = filter_input(INPUT_GET, 'product_id', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
         $transaction_id = filter_input(INPUT_GET, 'transaction_id', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
@@ -64,48 +63,41 @@ class ITransaction
 
         $server_id = intval(get_cfg_var('mourjan.server_id')) ;
                
-        try 
-        {
+        try {
             error_log(sprintf("%s\t%s\t%d\t%s\t%s\t%s", date("Y-m-d H:i:s"), $this->api->getUUID(), $this->api->getUID(), $product_id, $transaction_id, $transaction_date).PHP_EOL, 3, "/var/log/mourjan/purchase.log");
-            if (trim($transaction_id)!="(null)" && !$this->startsWith($transaction_id, $product_id)) 
-            {
+            if (trim($transaction_id)!="(null)" && !$this->startsWith($transaction_id, $product_id)) {
             	//$this->api->sendSMS('9613287168', "iOS purchase UID {$this->api->getUID()}\nServer: {$this->api->config['server_id']}\nProduct: {$product_id}\nTransaction: {$transaction_id}\nDate: {$transaction_date}");
             } 
         } 
-        catch (Exception $ex) 
-        {
+        catch (Exception $ex) {
             error_log($ex->getTraceAsString());
         }
         
         $product_rs = $this->api->db->queryResultArray("select * from product where product_id=?", [$product_id]);
         
-        if (!empty($product_rs)) 
-        {
+        if (!empty($product_rs)) {
             $this->api->db->setWriteMode();
             $product_rs=$product_rs[0];
             $this->api->result['d']['product'] = $product_rs;
             $transaction_id = trim($transaction_id);
             
-            if ($transaction_id!="(null)" && !$this->startsWith($transaction_id, $product_id) && strlen($transaction_id)<19) 
-            {
+            if ($transaction_id!="(null)" && !$this->startsWith($transaction_id, $product_id) && strlen($transaction_id)<19) {
                 $coins = $this->api->db->queryResultArray(
-                    "INSERT INTO T_TRAN (UID, DATED, CURRENCY_ID, AMOUNT, DEBIT, CREDIT, XREF_ID, TRANSACTION_ID, TRANSACTION_DATE, PRODUCT_ID, SERVER_ID, GATEWAY) VALUES ".
-                    "(?, current_timestamp, 'USD', ?, 0, ?, 0, ?, ?, ?, ?, 'IOS') RETURNING ID", 
+                    "UPDATE OR INSERT INTO T_TRAN " .
+                    "(UID, DATED, CURRENCY_ID, AMOUNT, DEBIT, CREDIT, XREF_ID, TRANSACTION_ID, TRANSACTION_DATE, PRODUCT_ID, SERVER_ID, GATEWAY) VALUES ".
+                    "(?, current_timestamp, 'USD', ?, 0, ?, 0, ?, ?, ?, ?, 'IOS') ".
+                    "MATCHING (UID, TRANSACTION_ID, GATEWAY) RETURNING ID", 
                     [$this->api->getUID(), $product_rs['USD_PRICE']+0.0, $product_rs['MCU']+0.0, $transaction_id, $transaction_date, $product_id, $server_id], 
                     TRUE, PDO::FETCH_NUM);
             
                 $this->api->result['d']['tran_id'] = $coins[0];
             } 
-            else 
-            {
+            else {
                 $this->api->result['d']['tran_id'] = 'none';
             }
         }
         
-        $this->api->getBalance();
-
-        
-       
+        $this->api->getBalance();  
     }
     
     
