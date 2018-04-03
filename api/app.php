@@ -44,6 +44,7 @@ const API_USER_HOLD_AD                          = 34;
 const API_MAKE_TOP_AD                           = 35;
 const API_USER_DELETE_AD                        = 36;
 const API_STOP_TOP_AD                           = 37;
+const API_USER_POST_AD                          = 38;
 
 const API_IOS_PRODUCTS                          = 40;
 const API_IOS_PURCHASE                          = 41;
@@ -265,6 +266,10 @@ if (!$api->hasError())
         
         case API_USER_RENEW_AD:
             $api->userRenewAd();
+            break;
+        
+        case API_USER_POST_AD:
+            $api->userPostAd();
             break;
         
         case API_REVERSE_GEO_IP:
