@@ -391,11 +391,9 @@ class MCSaveHandler
     
     
     
-    protected function apiV1normalizer($json_encoded) 
-    {
+    protected function apiV1normalizer($json_encoded) {
         $result = ['status'=>0, 'data'=>[]];
-        try
-        {
+        try {
             $userAgent = 'Edigear-PHP/' . '1.0' . ' (+https://github.com/edigear/edigear-php)';
             $userAgent .= ' PHP/' . PHP_VERSION;
             $curl_version = curl_version();
@@ -422,49 +420,38 @@ class MCSaveHandler
             $result['status'] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             
             $is_json = is_string($resp) && is_array(json_decode($resp, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
-            if ($is_json)
-            {                
+            if ($is_json) {                
                 $result['data'] = json_decode($resp, TRUE);
             }
         }
-        catch (Exception $ex) 
-        {
+        catch (Exception $ex) {
             $result['error']=1;
             $result['excep']=$ex->getMessage();
         }
-        finally 
-        {
-            if (is_resource($ch)) 
-            {
+        finally {
+            if (is_resource($ch)) {
                 curl_close($ch);
             }
-        }
-        error_log(\json_encode($result, JSON_UNESCAPED_UNICODE));
+        }        
         return $result;        
     }
     
     
-    public function getFromContentObject($ad_content)
-    {
-        if (isset($ad_content['attrs'])) 
-        {
+    public function getFromContentObject($ad_content) {
+        if (isset($ad_content['attrs'])) {
             unset($ad_content['attrs']);
         }
         
-        if (!isset($ad_content['other']))
-        {
+        if (!isset($ad_content['other'])) {
             $ad_content['other']="";
         }
-        if (isset($ad_content['pics']) && empty($ad_content['pics']))
-        {
+        if (isset($ad_content['pics']) && empty($ad_content['pics'])) {
             $ad_content['pics'] = new stdClass();
-            //error_log(json_encode($j, JSON_PRETTY_PRINT));
         }
-        if (isset($ad_content['pics']))
-        {
-            error_log(PHP_EOL.json_encode($ad_content, JSON_UNESCAPED_UNICODE));
-        }
-
+        //if (isset($ad_content['pics']))
+        //{
+        //    error_log(PHP_EOL.json_encode($ad_content, JSON_UNESCAPED_UNICODE));
+        //}
                 
         $command = ['command'=>'normalize', 'json'=>json_encode($ad_content)];
         
@@ -473,28 +460,24 @@ class MCSaveHandler
         $buffer = json_encode($command);
         $len = pack('N', strlen($buffer));
         $buffer = $len.$buffer;
-        
-        
+                
         $this->Open();
 
-        if ($this->_Send($this->_socket, $buffer, strlen($buffer)))
-        {            
+        if ($this->_Send($this->_socket, $buffer, strlen($buffer))) {            
             $response = $this->_GetResponse($this->_socket, '');
             if ($response) {
                 $j = json_decode($response, TRUE);
-                if (isset($j['pics']) && empty($j['pics']))
-                {
+                if (isset($j['pics']) && empty($j['pics'])) {
                     $j['pics'] = new stdClass();
-                    //error_log(json_encode($j, JSON_PRETTY_PRINT));
                 }
                 return $j;
-            } else {
+            } 
+            else {
                 error_log($this->_error);
             }
             $this->Close();
         }
-        else
-        {
+        else {
             error_log($this->_error);
         }
         
