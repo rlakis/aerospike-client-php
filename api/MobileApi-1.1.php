@@ -2545,8 +2545,8 @@ class MobileApi {
                 $data->state = $row[1];
                 $data->date_added = $row[2];
                 $data->id = $row[3];
-                $data->pu = $row[4];
-                $data->se = $row[5];                       
+                if (!empty($row[4])) { $data->pu = $row[4]; }
+                if (!empty($row[5])) { $data->se = $row[5]; }                     
                 $data->date_ended = $row[6];
                 $data->order_id = $row[7];
                 
@@ -3061,6 +3061,7 @@ class MobileApi {
             }
             
             $state = 0;
+            error_log(filter_input(INPUT_POST, 'ad', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']]));
             $ad = json_decode(urldecode(filter_input(INPUT_POST, 'ad', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']])), true);
                     
             error_log(\json_encode($ad));
@@ -3074,7 +3075,10 @@ class MobileApi {
                 if ($ad['se']>0 && $ad['pu']==0) {
                     $ad['pu']=5;
                 }
-                        
+                if (isset($ad['id']) && intval($ad['id'])) {
+                    $ad_id = $ad['id']+0;
+                }
+                  
                 /*
                 if($ad['rtl'] == 1){
                     $ad['other'] .= "\u200B / ".$ad['contact_ar'];
@@ -3087,6 +3091,26 @@ class MobileApi {
                 */
 
                 $_original_ad=$ad;
+                
+                
+                if (isset($ad['cui']) && isset($ad['cui']['p'])) {
+                    $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
+                    
+                    for ($i=0; $i<count($ad['cui']['p']);$i++) {
+                        $phoneInfo = $ad['cui']['p'][$i];
+                        $phoneInfo['v']="+".intval(trim($phoneInfo['v']));
+                        $num = $this->mobileValidator->parse($phoneInfo['v'], 'LB');                            
+                        if ($num && $this->mobileValidator->isValidNumber($num)) {
+                            $phoneInfo['r']=preg_replace('/\s+/', '', $this->mobileValidator->format($num, \libphonenumber\PhoneNumberFormat::NATIONAL));
+                            $phoneInfo['c']=$num->getCountryCode();
+                            $phoneInfo['i']=$this->mobileValidator->getRegionCodeForNumber($num);
+                        }
+                        $ad['cui']['p'][$i]=$phoneInfo;
+                        //error_log(json_encode($phoneInfo));
+                    }                    
+                }
+                error_log(\json_encode($ad));
+                
                 include_once $this->config['dir'] . '/core/lib/MCSaveHandler.php';                
                 $normalizer = new MCSaveHandler($this->config);
                 $normalized = $normalizer->getFromContentObject($ad);
@@ -3125,9 +3149,9 @@ class MobileApi {
                     }
                 }
                         
-                if (isset($ad['extra']['m']) && !$ad['extra']['m'] && $ad['lat']==0 && $ad['lon']==0) {
-                    $ad['extra']['m']=2;
-                }
+                //if (isset($ad['extra']['m']) && !$ad['extra']['m'] && $ad['lat']==0 && $ad['lon']==0) {
+                //    $ad['extra']['m']=2;
+                //}
                         
                 $requireReview = 0;
                         
@@ -3175,13 +3199,13 @@ class MobileApi {
                 $isMultiCountry = false;
                 $cities = $this->db->getCitiesDictionary();
                         
-                foreach($ad['pubTo'] as $key => $val) {
-                    if(!$city_id && isset($cities[$city_id])) {
+                foreach ($ad['pubTo'] as $key => $val) {
+                    if (!$city_id && isset($cities[$city_id])) {
                         $city_id=$key;
                     }
                             
-                    if($key && isset($cities[$key])) {
-                        if($currentCid && $currentCid != $cities[$key][4]) {
+                    if ($key && isset($cities[$key])) {
+                        if ($currentCid && $currentCid != $cities[$key][4]) {
                             $isMultiCountry = true;
                         }
                         $currentCid = $cities[$key][4];
@@ -3197,6 +3221,10 @@ class MobileApi {
                     $country_id=$cities[$city_id][4];
                 }
                         
+                
+                
+                
+                
                 $isSCAM = 0;
                 if (isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0) {
                     $blockedEmailPatterns = addcslashes(implode('|', $this->config['restricted_email_domains']),'.');
@@ -3258,13 +3286,13 @@ class MobileApi {
                                        
                 if ($isSCAM) {
                     if ($this->user->isMobileVerified()) {
-                        $this->block($this->api->getUID(), $this->user->getMobileNumber(), 'scam detection by system based on certain email keywords');
+                        $this->block($this->getUID(), $this->user->getMobileNumber(), 'scam detection by system based on certain email keywords');
                     }
                     else {
-                        $this->setLevel($this->api->getUID(),5);
+                        $this->setLevel($this->getUID(),5);
                     }                            
                 }
-                elseif($requireReview && $ad_id) {
+                elseif ($requireReview && $ad_id) {
                     $this->referrToSuperAdmin($ad_id);
                 }
                 else if($hasMajorFailure) {
@@ -3299,7 +3327,7 @@ class MobileApi {
                                     $this->db->queryResultArray("delete from ad_media where ad_id=? and media_id not in ({$mediaIds})", [$ad_id], false);
                                 }
                                 else {
-                                    $this->api->db->queryResultArray("delete from ad_media where ad_id=?", [$ad_id], false);
+                                    $this->db->queryResultArray("delete from ad_media where ad_id=?", [$ad_id], false);
                                 }
                             }
 
@@ -3311,7 +3339,7 @@ class MobileApi {
                                                                 
                         $this->db->queryResultArray(
                                     "update ad set hold=1 where id=? and hold=0 and (exists (select 1 from ad_user d where d.id=? and d.web_user_id=?)) returning id", 
-                                    [$ad_id, $ad_id, $this->api->getUID()], false);
+                                    [$ad_id, $ad_id, $this->getUID()], false);
                                 
                         if ($ad['state'] == 1 && isset($ad['budget']) && $ad['budget']+0 > 0) {
                             $ad['state'] = 4;
