@@ -10,8 +10,7 @@ use Kreait\Firebase\Factory;
 use Kreait\Firebase\ServiceAccount;
 
 
-class MobileApi
-{
+class MobileApi {
     var $config;
     var $result = array('e'=>'', 'c'=>0, 'd'=>array(), 'l'=>0); // l:log
 
@@ -372,15 +371,13 @@ class MobileApi
     }
     
     
-    function search($forceFavorite = false) 
-    {
+    function search($forceFavorite = false) {
         include_once $this->config['dir'].'/core/lib/SphinxQL.php';
         include_once $this->config['dir'].'/core/model/Classifieds.php';
         $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
         
         //this variable specifies if app is Android 1.2.1+    
-        if ($this->isIOS())
-        {
+        if ($this->isIOS()) {
             $this->result['cdn'] = 'https://c6.mourjan.com';
         }
 
@@ -395,13 +392,11 @@ class MobileApi
         
         $publisherType = filter_input(INPUT_GET, 'pt', FILTER_VALIDATE_INT, ['options'=>['default'=>0]]);
         
-        if(!in_array($publisherType, [0,1,2]))
-        {
+        if(!in_array($publisherType, [0,1,2])) {
             $publisherType = 0;
         }
         
-        if($publisherType == 2)
-        {
+        if($publisherType == 2) {
             $publisherType = 3;
         }
         
@@ -410,17 +405,14 @@ class MobileApi
         $sphinxQL = new SphinxQL($this->config['sphinxql'], $this->config['search_index']);
         $sphinxQL->setLimits($offset, $num);
 
-        if ($favorite || $forceFavorite) 
-        {
-            if($forceFavorite)
-            {
+        if ($favorite || $forceFavorite) {
+            if($forceFavorite) {
                 $num=20;
             }
             $sphinxQL->setFilter('starred', $this->uid);
             $filters['starred'] = $this->uid;
         } 
-        else 
-        {
+        else {
             $rootId = filter_input(INPUT_GET, 'root', FILTER_VALIDATE_INT)+0;
             $sectionId = filter_input(INPUT_GET, 'section', FILTER_VALIDATE_INT)+0;
             $purposeId = filter_input(INPUT_GET, 'purpose', FILTER_VALIDATE_INT)+0;
@@ -439,46 +431,35 @@ class MobileApi
             if ($publisherType)     {$sphinxQL->setFilter('publisher_type', $publisherType);} 
         }
 
-        if ($sortLang=='ar') 
-        {
+        if ($sortLang=='ar') {
             $sphinxQL->setSelect("id, date_added, IF(rtl>0,0,1) as lngmask, IF(featured_date_ended>NOW(),1,0) as featured, media");
             $sphinxQL->SetSortBy("lngmask asc, featured desc, date_added desc");
         } 
-        elseif ($sortLang=='en') 
-        {
+        elseif ($sortLang=='en') {
             $sphinxQL->setSelect("id, date_added, IF(rtl<>1,0,1) as lngmask, IF(featured_date_ended>NOW(),1,0) as featured, media");
             $sphinxQL->SetSortBy('lngmask asc, featured desc, date_added desc');
         } 
-        else 
-        {
+        else {
             $sphinxQL->setSelect("id, date_added, IF(featured_date_ended>NOW(),1,0) as featured, media");
-            if($isWatchlist)
-            {
-                if($sortBy==0)
-                {
+            if($isWatchlist) {
+                if($sortBy==0) {
                     $sphinxQL->SetSortBy('date_added desc');
                 }
-                elseif($sortBy==1)
-                {
+                elseif($sortBy==1) {
                     $sphinxQL->SetSortBy('media desc,date_added desc');
                 }
-                else
-                {
+                else {
                     $sphinxQL->SetSortBy('date_added desc');
                 }
             }
-            else
-            {
-                if($sortBy==0)
-                {
+            else {
+                if($sortBy==0) {
                     $sphinxQL->SetSortBy('featured desc, date_added desc');
                 }
-                elseif($sortBy==1)
-                {
+                elseif($sortBy==1) {
                     $sphinxQL->SetSortBy('featured desc,media desc,date_added desc');
                 }
-                else
-                {
+                else {
                     $sphinxQL->SetSortBy('date_added desc');
                 }
             }
@@ -486,15 +467,12 @@ class MobileApi
         
         $query = $sphinxQL->Query($keywords, MYSQLI_NUM);
         
-        if ($sphinxQL->getLastError()) 
-        {
+        if ($sphinxQL->getLastError()) {
             $this->result['e'] = $sphinxQL->getLastError();
         } 
-        else 
-        {
+        else {
             $this->result['total']=$query['total_found']+0;
-            if (isset($query['matches'])) 
-            {
+            if (isset($query['matches'])) {
                 $model = new Classifieds($this->db);  
                 
                 /**
@@ -503,15 +481,14 @@ class MobileApi
                 $newMatches = [];
                 $premiumMatches = [];
                 $current_time=time();
-                foreach ($query['matches'] as $matches) 
-                {
+                foreach ($query['matches'] as $matches) {
                     $ad = $model->getById($matches[0]+0);
-                    if ($ad) 
-                    {            
+                    if ($ad) {            
                         $isFeatured = $current_time < $ad[Classifieds::FEATURE_ENDING_DATE];
                         if($isFeatured){
                             $premiumMatches[] = $matches;
-                        }else{
+                        }
+                        else{
                             $newMatches[] = $matches;
                         }
                     }
@@ -527,13 +504,10 @@ class MobileApi
                 //fetch premium ads
                 $premiumAds = [];
                 $hasPremium = false;
-                if (($this->isAndroid() || $this->isIOS()) && $this->result['total'] > 0 && !($favorite || $forceFavorite))
-                {
+                if (($this->isAndroid() || $this->isIOS()) && $this->result['total'] > 0 && !($favorite || $forceFavorite)) {
                     $premiumQuery = $this->fetchPremiumAds($sphinxQL, $keywords, $rootId, $sectionId);
-                    if(!$sphinxQL->getLastError() && $premiumQuery['total_found'] && isset($premiumQuery['matches']))
-                    {
-                        foreach ($premiumQuery['matches'] as $matches) 
-                        {
+                    if(!$sphinxQL->getLastError() && $premiumQuery['total_found'] && isset($premiumQuery['matches'])) {
+                        foreach ($premiumQuery['matches'] as $matches) {
                             $premiumAds[] = $matches[0];
                             $hasPremium = true;
                         }
@@ -548,33 +522,27 @@ class MobileApi
                 $j += $numberOfAds;
                 $numberofPremium = 0;
 
-                foreach ($query['matches'] as $matches) 
-                {
+                foreach ($query['matches'] as $matches) {
                     $count = count($matches);
                     $ad = $model->getById($matches[0]+0);
-                    if ($ad) 
-                    {                   
+                    if ($ad) {                   
                         $this->addAdToResultArray($ad, $matches[2]);
                         $i++;
                         
-                        if ($this->isIOS() && $adMobAlreadySent<5 && ($i+$offset)%7==0 && ($i+$offset)%2==1 && !($favorite || $forceFavorite))
-                        {                           
+                        if ($this->isIOS() && $adMobAlreadySent<5 && ($i+$offset)%7==0 && ($i+$offset)%2==1 && !($favorite || $forceFavorite)) {                           
                             $adUnitID = version_compare($this->appVersion, '1.0.9')>0 ? "ca-app-pub-2427907534283641/8260964224" : "ca-app-pub-2427907534283641/4099192620";                         
                             $this->result['d'][] = [-1*($i+$offset), $adUnitID];
                             $adMobAlreadySent++;
                         }
                         
-                        if($hasPremium && count($premiumAds))
-                        {
+                        if($hasPremium && count($premiumAds)) {
                             $translated_i = $i + $offset + $numberOfAds;                        
-                            if($j==$translated_i)
-                            {
+                            if($j==$translated_i) {
                                 $j += $premiumGap+1;
                                 $numberOfAds++;
                                 $adId = array_pop($premiumAds);
                                 $ad = $model->getById($adId);
-                                if ($ad) 
-                                {
+                                if ($ad) {
                                     $this->addAdToResultArray($ad,$matches[2],true);
                                     $numberofPremium++;
                                 }
@@ -583,8 +551,7 @@ class MobileApi
                     }
                 }
                 
-                if($numberofPremium > 0)
-                {
+                if($numberofPremium > 0) {
                     $this->result['p']=[$numberofPremium,$premiumGap];
                 }
             }
@@ -592,8 +559,7 @@ class MobileApi
     }
     
     
-    function addAdToResultArray($ad, $isFeatured=0, $isPremium=false)
-    {
+    function addAdToResultArray($ad, $isFeatured=0, $isPremium=false) {
         unset($ad[Classifieds::TITLE]);
         unset($ad[Classifieds::ALT_TITLE]);
 
@@ -609,35 +575,29 @@ class MobileApi
 
         $ad[Classifieds::CONTENT] = strip_tags($ad[Classifieds::CONTENT]);
 
-        if($ad[Classifieds::ALT_CONTENT]!="")
-        {
+        if($ad[Classifieds::ALT_CONTENT]!="") {
             $this->cutOfContacts($ad[Classifieds::ALT_CONTENT]);
             $ad[Classifieds::ALT_CONTENT] = strip_tags($ad[Classifieds::ALT_CONTENT]);
         }
 
-        if (!empty($emails)) 
-        {
+        if (!empty($emails)) {
             $j=0;
             $email_regex='';
-            foreach ($emails as $email)
-            {
+            foreach ($emails as $email) {
                 if($j++)$email_regex.='|';
                 $email_regex .= addslashes($email);
             }
 
             //check if email still exists after stripping phone numbers
             $strpos = strpos($ad[Classifieds::CONTENT], $email);
-            if($strpos)
-            {
+            if($strpos) {
                 $ad[Classifieds::CONTENT] = trim(substr($ad[Classifieds::CONTENT],0, $strpos));
                 $ad[Classifieds::CONTENT] = trim(preg_replace('/[-\/\\\]$/', '', $ad[Classifieds::CONTENT]));
             }
 
-            if($ad[Classifieds::ALT_CONTENT]!="")
-            {
+            if($ad[Classifieds::ALT_CONTENT]!="") {
                 $strpos = strpos($ad[Classifieds::ALT_CONTENT], $email);
-                if($strpos)
-                {
+                if($strpos) {
                     $ad[Classifieds::ALT_CONTENT] = trim(substr($ad[Classifieds::ALT_CONTENT],0, $strpos));
                     $ad[Classifieds::ALT_CONTENT] = trim(preg_replace('/[-\/\\\]$/', '', $ad[Classifieds::ALT_CONTENT]));
                 }
@@ -688,34 +648,29 @@ class MobileApi
     }
 
 
-    function reloadIndex()
-    {
+    function reloadIndex() {
         include_once $this->config['dir'] . '/core/lib/SphinxQL.php'; 
         $sphinx = new SphinxQL($this->config['sphinxql'], $this->config['search_index']);
         $index_name = filter_input(INPUT_GET, 'index', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-        if (strlen($index_name)>0)
-        {
+        if (strlen($index_name)>0) {
             $partition = substr($index_name, -1);
             $this->result['d']=$sphinx->rotate($partition, $index_name);
         }
     }
     
     
-    function sphinxTotalsQL() 
-    {
+    function sphinxTotalsQL() {
         if ($this->countryId==0) return;
         $apiMemVersion = $this->db->getCache()->incrBy('api-mem-version', 0);
 
-        if (!is_numeric($apiMemVersion)) 
-        {
+        if (!is_numeric($apiMemVersion)) {
             $this->db->getCache()->incr('api-mem-version');
             $apiMemVersion=1;
         }
         $this->result['version'] = $apiMemVersion+0;
 
         $dataVersion = filter_input(INPUT_GET, 'v', FILTER_VALIDATE_INT)+0;
-        if ($dataVersion>0 && $dataVersion==$apiMemVersion) 
-        {
+        if ($dataVersion>0 && $dataVersion==$apiMemVersion) {
             $this->result['no-change']=1;
             return;
         }
@@ -730,8 +685,7 @@ class MobileApi
 
         $cached = $this->db->getCache()->get($MCKey);
 
-        if ($cached) 
-        {
+        if ($cached) {
             $this->result['d']=$cached;
             return;
         }
@@ -743,69 +697,56 @@ class MobileApi
 
         $group = '';
 
-        if ($this->countryId) 
-        {
+        if ($this->countryId) {
             $sphinx->setFilter('country', $this->countryId);
             $group='root_id';
             $sphinx->setFacet('root_id');
         }
 
-        if ($this->cityId) 
-        {
+        if ($this->cityId) {
             $sphinx->setFilter('city', $this->cityId);
             $group='root_id';
             $sphinx->setFacet('root_id');
         }
 
-        if ($rootId) 
-        {
+        if ($rootId) {
             $sphinx->setFilter('root_id', $rootId);
             $group='section_id';
         }
 
-        if ($sectionId) 
-        {
+        if ($sectionId) {
             $sphinx->setFilter('section_id', $sectionId);
             $group = "purpose_id";
             $sphinx->clearFacets();
         }
 
-        if ($tagId) 
-        {
+        if ($tagId) {
             $sphinx->setFilter('section_tag_id', $tagId);
             $group = "purpose_id";
         }
 
-        if ($localityId) 
-        {
+        if ($localityId) {
             $sphinx->setFilter('locality_id', $localityId);
             $group = "purpose_id";
         }
 
-        if ($purposeId) 
-        {
+        if ($purposeId) {
             $sphinx->setFilter('purpose_id', $purposeId);
         }
 
         if(!empty($group)) $sphinx->setGroupBy ($group);
 
-        if ($sectionId==0) 
-        {
+        if ($sectionId==0) {
             $sphinx->setFacet("{$group}, purpose_id", TRUE);
-            if ($rootId==1 && $this->countryId>0) 
-            {
+            if ($rootId==1 && $this->countryId>0) {
             }
         } 
-        else 
-        {
+        else {
         }
         
         $sphinx->setSelect("groupby() as {$group}, count(*)");
         $query = $sphinx->query("", MYSQLI_ASSOC);
-
-
-        if ($sphinx->getLastError()) 
-        {
+        if ($sphinx->getLastError()) {
             $this->result['e']=$sphinx->getLastError();
             return;
         }
@@ -813,28 +754,22 @@ class MobileApi
         $this->result['query']=$query;
         $purposes = array();
         
-        if ($sectionId>0) 
-        {
-            foreach ($query['matches'] as $item) 
-            {
+        if ($sectionId>0) {
+            foreach ($query['matches'] as $item) {
                 $this->result['d'][]=[$item['purpose_id']+0, $item['count(*)']+0];
             }
         } 
-        else 
-        {
-            foreach ($query['matches'][1] as $item) 
-            {
+        else {
+            foreach ($query['matches'][1] as $item) {
                 $purposes[$item[$group]+0][]=[$item['purpose_id']+0, $item['count(*)']+0];
             }
 
             $sections=[];
-            foreach ($query['matches'][0] as $item) 
-            {
+            foreach ($query['matches'][0] as $item) {
                 $_id = $item[$group]+0;
                 $rs = [$_id, $item['count(*)']+0, isset($purposes[$_id]) ? $purposes[$_id] : []];
 
-                if (($rootId==1||$rootId==2) && $sectionId==0 && $this->countryId>0) 
-                {
+                if (($rootId==1||$rootId==2) && $sectionId==0 && $this->countryId>0) {
                     $sections[]=$_id;
                 }
 
@@ -843,38 +778,29 @@ class MobileApi
             }
         }
 
-        if ($sectionId==0 && $this->countryId>0) 
-        {
-            if ($rootId==1) 
-            {
+        if ($sectionId==0 && $this->countryId>0) {
+            if ($rootId==1) {
                 $locs = $this->sphinxLocalitiesQL($sections, $sphinx);
                 $num = count($this->result['d']);
-                for ($i=0; $i<$num; $i++) 
-                {
-                    if (isset($locs[$this->result['d'][$i][0]])) 
-                    {
+                for ($i=0; $i<$num; $i++) {
+                    if (isset($locs[$this->result['d'][$i][0]])) {
                         $this->result['d'][$i][]=$locs[$this->result['d'][$i][0]];
                     } 
-                    else 
-                    {
+                    else {
                         $this->result['d'][$i][]=[];
                     }
                 }
             }
 
-            if ($rootId==2) 
-            {
+            if ($rootId==2) {
                 $tags = $this->sphinxTagsQL($sections, $sphinx);
 
                 $num = count($this->result['d']);
-                for ($i=0; $i<$num; $i++) 
-                {
-                    if (isset( $tags[$this->result['d'][$i][0]] )) 
-                    {
+                for ($i=0; $i<$num; $i++) {
+                    if (isset( $tags[$this->result['d'][$i][0]] )) {
                         $this->result['d'][$i][] = $tags[ $this->result['d'][$i][0] ];
                     } 
-                    else 
-                    {
+                    else {
                         $this->result['d'][$i][]=[];
                     }
                 }
@@ -885,8 +811,7 @@ class MobileApi
     }
 
 
-    function sphinxTagsQL($sections, $sphinx) 
-    {
+    function sphinxTagsQL($sections, $sphinx) {
         $arr=[];
         $q = "select groupby(), count(*), group_concat(purpose_id), section_id from {$this->config['search_index']} where hold=0 and canonical_id=0 and section_id=%sectionId% ";
         if ($this->countryId) $q.="and country={$this->countryId} ";
@@ -894,34 +819,27 @@ class MobileApi
         $q.=" group by section_tag_id limit 1000";
 
         $batch="";
-        foreach ($sections as $sectionId) 
-        {
+        foreach ($sections as $sectionId) {
             $batch.= preg_replace('/%sectionId%/', $sectionId, $q) . ";\n";
         }
         
         $query = $sphinx->search($batch);
         $matches_count = count($query['matches']);
-        for ($i=0; $i<$matches_count; $i++) 
-        {
-            if (!isset($query['matches'][$i]) && !isset($msg))
-            {
+        for ($i=0; $i<$matches_count; $i++) {
+            if (!isset($query['matches'][$i]) && !isset($msg)) {
                 $msg = var_export($batch, TRUE);
             }
             $group_count = count($query['matches'][$i]);
-            for ($g=0; $g<$group_count; $g++) 
-            {
-                if (!isset($query['matches'][$i][$g]) && !isset($msg))
-                {
+            for ($g=0; $g<$group_count; $g++) {
+                if (!isset($query['matches'][$i][$g]) && !isset($msg)) {
                     $msg = var_export($batch, TRUE);
                 }
                 $sectionId = $query['matches'][$i][$g]['section_id']+0;
-                if (!isset($arr[ $sectionId ])) 
-                {
+                if (!isset($arr[ $sectionId ])) {
                     $arr[$sectionId] = [];
                 }
                 $row=[$query['matches'][$i][$g]['groupby()']+0, $query['matches'][$i][$g]['count(*)']+0,[]];
-                foreach (array_unique(explode(',', $query['matches'][$i][$g]['group_concat(purpose_id)'])) as $purposeId) 
-                {
+                foreach (array_unique(explode(',', $query['matches'][$i][$g]['group_concat(purpose_id)'])) as $purposeId) {
                     $row[2][]=$purposeId+0;
                 }
                 $arr[$sectionId][]=$row;
@@ -935,8 +853,7 @@ class MobileApi
 
     
 
-    function sphinxLocalitiesQL($sections, $sphinx) 
-    {
+    function sphinxLocalitiesQL($sections, $sphinx) {
         $arr=[];
         $q = "select groupby() AS locality_id, count(*), group_concat(purpose_id), section_id from {$this->config['search_index']} "
         . "where hold=0 and canonical_id=0 and section_id=%sectionId% ";
@@ -945,8 +862,7 @@ class MobileApi
         $q.=" group by locality_id limit 0,1000";
         
         $batch="";
-        foreach ($sections as $sectionId) 
-        {
+        foreach ($sections as $sectionId) {
             $batch.= preg_replace('/%sectionId%/', $sectionId, $q) . ";\n";
         }
 
@@ -954,19 +870,15 @@ class MobileApi
 
         $matches_count = count($query['matches']);
         
-        for ($i=0; $i<$matches_count; $i++) 
-        {
+        for ($i=0; $i<$matches_count; $i++) {
             $group_count = count($query['matches'][$i]);
-            for ($g=0; $g<$group_count; $g++) 
-            {
+            for ($g=0; $g<$group_count; $g++) {
                 $sectionId = $query['matches'][$i][$g]['section_id']+0;
-                if (!isset($arr[ $sectionId ])) 
-                {
+                if (!isset($arr[ $sectionId ])) {
                     $arr[$sectionId] = [];
                 }
                 $row=[$query['matches'][$i][$g]['locality_id']+0, $query['matches'][$i][$g]['count(*)']+0,[]];
-                foreach (array_unique(explode(',', $query['matches'][$i][$g]['group_concat(purpose_id)'])) as $purposeId) 
-                {
+                foreach (array_unique(explode(',', $query['matches'][$i][$g]['group_concat(purpose_id)'])) as $purposeId) {
                     $row[2][]=$purposeId+0;
                 }
                 $arr[$sectionId][]=$row;
@@ -977,16 +889,13 @@ class MobileApi
     
 
 
-    function userStatus(&$status, &$name=null, $device_name=null) 
-    {
+    function userStatus(&$status, &$name=null, $device_name=null) {
         $name=null;
         $status = 0;
         $opts = new \stdClass();
         $opts->disallow_purchase = 0;
-        
-        
-        if (!empty($this->uuid) && $this->getUID()>0 && $this->user->getID()==$this->getUID()) 
-        {            
+           
+        if (!empty($this->uuid) && $this->getUID()>0 && $this->user->getID()==$this->getUID()) {            
             $opts->prefs = $this->user->device->getPreferences();
             $opts->device_last_visit = $this->user->device->getLastVisitedUnixtime();
             $opts->user_last_visit = $this->user->getLastVisitUnixtime();
@@ -1001,38 +910,31 @@ class MobileApi
             $opts->push = $this->user->device->getToken();
             $opts->appVersion = $this->user->device->getAppVersion();
                 
-            if (in_array($this->user->getProvider(), ['mourjan','facebook','twitter','yahoo','google','live','linkedin']))
-            {
+            if (in_array($this->user->getProvider(), ['mourjan','facebook','twitter','yahoo','google','live','linkedin'])) {
                 $opts->provider = $this->user->getProvider();
-                if($opts->provider=='mourjan')
-                {
+                if($opts->provider=='mourjan') {
                     $opts->account = $this->user->getProviderIdentifier();
                 }
-                else if($opts->provider=='twitter')
-                {
+                else if($opts->provider=='twitter') {
                     $opts->account = preg_replace('/http(?:s|)::\/\/twitter\.com\//', '', $this->user->getProfileURL());
                 }
-                else
-                {
+                else {
                     $opts->account = $this->user->getEMail();
                 }
             }
                 
             $opts->suspend = $this->user->isSuspended() ? time() + $this->user->getMobile()->getSuspendSeconds() : 0;
                 
-            if ($this->user->getLevel()!=5)
-            {
+            if ($this->user->getLevel()!=5) {
                 $status = 1;
                 $name = $this->user->getFullName(); 
             }
-            else
-            {
+            else {
                 $status = 9;
                 $name = '';
             }                    
         }
-        else
-        {
+        else {
             $status = -9;
         }
         
@@ -1040,36 +942,27 @@ class MobileApi
     }
     
 
-    function clearWebuserDeviceRecord($uid=0)
-    {
-        if($uid > 0) 
-        {
-            
+    function clearWebuserDeviceRecord($uid=0) {
+        if($uid > 0) {      
             //delete subscriptions
             $this->db->get("delete from subscription where web_user_id=?", [$uid]);            
             
             // delete favorites and update index
             $q="update web_users_favs set deleted=1 where web_user_id=? and deleted=0 returning ad_id";
             $rs = $this->db->get($q, [$uid], true);
-            if ($rs && is_array($rs) && count($rs)>0) 
-            {
+            if ($rs && is_array($rs) && count($rs)>0) {
                 include_once $this->config['dir'] . '/core/lib/SphinxQL.php';
                 $sphinx = new SphinxQL($this->config['sphinxql'], $this->config['search_index']);
-
                 
                 $q="select list(web_user_id) from web_users_favs where deleted=0 and ad_id=?";
                 $st = $this->db->getInstance()->prepare($q); 
                 
-                foreach ($rs as $rec) 
-                {                     
-                    if ($st->execute([$rec['AD_ID']])) 
-                    { 
-                        if ($users=$st->fetch(PDO::FETCH_NUM)) 
-                        {
+                foreach ($rs as $rec) {                     
+                    if ($st->execute([$rec['AD_ID']])) { 
+                        if ($users=$st->fetch(PDO::FETCH_NUM)) {
                             $q = "update {$this->config['search_index']} set starred=({$users[0]}) where id={$rec['AD_ID']}";
                         } 
-                        else 
-                        {
+                        else {
                             $q = "update {$this->config['search_index']} set starred=() where id={$rec['AD_ID']}";   
                         }
                         $sphinx->directUpdateQuery($q);
@@ -1087,59 +980,47 @@ class MobileApi
     }
     
 
-    function editFavorites() 
-    {      
+    function editFavorites() {      
         $this->userStatus($status);
-        if ($status==1) 
-        {
+        if ($status==1) {
             $adid = filter_input(INPUT_GET, 'adid', FILTER_VALIDATE_INT)+0;
             $state = filter_input(INPUT_GET, 'del', FILTER_VALIDATE_INT)+0;
             $note = filter_input(INPUT_GET, 'note', FILTER_SANITIZE_STRING, ['options'=>['default'=>""]]);
             $flag = filter_input(INPUT_GET, 'flag', FILTER_VALIDATE_INT)+0;
                         
-            if ($adid) 
-            {
+            if ($adid) {
                 $this->db->setWriteMode();
                 $succeed=false;
                 
-                switch ($flag) 
-                {
+                switch ($flag) {
                     case 0:
                         // Favorite Only
                         $q="update or insert into web_users_favs (web_user_id, ad_id, deleted) values (?, ?, ?) matching (web_user_id, ad_id) returning id";
                         $rs = $this->db->get($q, [$this->uid, $adid, $state], TRUE);
 
-                        if ($rs && is_array($rs) && count($rs)==1) 
-                        {
+                        if ($rs && is_array($rs) && count($rs)==1) {
                             include_once $this->config['dir'] . '/core/lib/SphinxQL.php';
                             $sphinx = new SphinxQL($this->config['sphinxql'], $this->config['search_index']);
 
                             $users = $this->db->get("select list(web_user_id) ULIST from web_users_favs where deleted=0 and ad_id=?", [$adid], TRUE);
-                            //$st = $this->db->getInstance()->query($q);
-                            if ($users && is_array($users)) 
-                            {
-                                //error_log(var_export($users, TRUE));
-                                if (count($users)) 
-                                {
+                            if ($users && is_array($users)) {
+                                if (count($users)) {
                                     $q = "update {$this->config['search_index']} set starred=({$users[0]['ULIST']}) where id={$adid}";
                                 } 
-                                else 
-                                {
+                                else {
                                     $q = "update {$this->config['search_index']} set starred=() where id={$adid}";   
                                 }
                                 $succeed= $sphinx->directUpdateQuery($q);
                             }
                     
-                            if (!$succeed) 
-                            {
+                            if (!$succeed) {
                                 $this->result['e'] = 'Could not add this advert to our search engine';
                             }               
 
                             $this->result['d']['id']=$rs[0]['ID']+0;
 
                         } 
-                        else 
-                        {
+                        else {
                             $this->result['d']=0;
                             $this->result['e']='Unable to add this advert to your favorite list';
                         }
@@ -1151,8 +1032,7 @@ class MobileApi
                         $q="update or insert into web_users_favs (web_user_id, ad_id, deleted) values (?, ?, ?) matching (web_user_id, ad_id) returning id";
                         $rs = $this->db->get($q, [$this->uid, $adid, $state], TRUE);
                         
-                        if ($rs && is_array($rs) && count($rs)==1) 
-                        {
+                        if ($rs && is_array($rs) && count($rs)==1) {
                             include_once $this->config['dir'] . '/core/lib/SphinxQL.php';
                             $sphinx = new SphinxQL($this->config['sphinxql'], $this->config['search_index']);
 
@@ -1161,7 +1041,8 @@ class MobileApi
                             if ($st) {
                                 if ($users=$st->fetch(PDO::FETCH_NUM)) {
                                     $q = "update {$this->config['search_index']} set starred=({$users[0]}) where id={$adid}";
-                                } else {
+                                } 
+                                else {
                                     $q = "update {$this->config['search_index']} set starred=() where id={$adid}";   
                                 }
                                 $succeed= $sphinx->directUpdateQuery($q);
@@ -1169,16 +1050,17 @@ class MobileApi
                     
                             if (!$succeed) {
                                 $this->result['e'] = 'Could not add this advert to our search engine';
-                            } else {
+                            } 
+                            else {
                                 $n = $this->db->queryResultArray(
                                     "update or insert into web_users_notes (web_user_id, ad_id, content, deleted) values (?,?,?,?) matching(web_user_id, ad_id) returning id", 
-                                    [$this->uid, $adid, $note, $state], true
-                                );  
+                                    [$this->uid, $adid, $note, $state], true);  
                             }
 
                             $this->result['d']['id']=$rs[0]['ID']+0;
 
-                        } else {
+                        } 
+                        else {
                             $this->result['d']=0;
                             $this->result['e']='Unable to add this advert to your favorite list';
                         }
@@ -1189,8 +1071,7 @@ class MobileApi
                         // Note Only
                         $this->db->queryResultArray(
                             "update or insert into web_users_notes (web_user_id, ad_id, content, deleted) values (?,?,?,?) matching(web_user_id, ad_id) returning id", 
-                            [$this->uid, $adid, $note, $state], true
-                        );  
+                            [$this->uid, $adid, $note, $state], true);  
                         
                         break;
 
@@ -1202,12 +1083,10 @@ class MobileApi
     }
 
 
-    function bookMark() 
-    { 
+    function bookMark() { 
         $this->userStatus($status);
 
-        if ($status==1) 
-        {
+        if ($status==1) {
             $wId = filter_input(INPUT_GET, 'wid', FILTER_VALIDATE_INT)+0;
             $delete = filter_input(INPUT_GET, 'del', FILTER_VALIDATE_INT)+0;
 
@@ -1221,8 +1100,7 @@ class MobileApi
             $pt = filter_input(INPUT_GET, 'publisher_type', FILTER_VALIDATE_INT)+0;
 
             $this->db->setWriteMode();
-            if ($delete!=1) 
-            {
+            if ($delete!=1) {
                 $rs = $this->db->get(
                         "update or insert into SUBSCRIPTION "
                         . "(WEB_USER_ID, COUNTRY_ID, CITY_ID, SECTION_ID, SECTION_TAG_ID, LOCALITY_ID, PURPOSE_ID, QUERY_TERM, TITLE, ADDED, EMAIL, PUBLISHER_TYPE) "
@@ -1230,20 +1108,16 @@ class MobileApi
                         . "matching (WEB_USER_ID, COUNTRY_ID, CITY_ID, SECTION_ID, SECTION_TAG_ID, LOCALITY_ID, PURPOSE_ID, QUERY_TERM, PUBLISHER_TYPE) "
                         . "returning id", [$this->uid, $countryId, $cityId, $sectionId, $section_tag_id, $locality_id, $purpose_id, $terms, '', $pt], TRUE);
 
-                if ($rs && is_array($rs) && count($rs)==1) 
-                {
+                if ($rs && is_array($rs) && count($rs)==1) {
                     $this->result['d']['id']=$rs[0]['ID']+0;
                 } 
-                else 
-                {
+                else {
                     $this->result['d']['id']=0;
                     $this->result['e']='Unable to add to your watch list';
                 }
             } 
-            else 
-            {
-                if ($wId>0) 
-                {
+            else {
+                if ($wId>0) {
                     $this->db->get("delete from SUBSCRIPTION WHERE id=? and web_user_id=?", [$wId, $this->uid], TRUE);
                     $this->result['d']['id']=$wId;
                 }
@@ -1252,8 +1126,7 @@ class MobileApi
     }
 
 
-    function watchList() 
-    {
+    function watchList() {
         $this->userStatus($status);
 
         if ($status==1) {
@@ -1284,19 +1157,16 @@ class MobileApi
     }
 
 
-    function watchListVisited() 
-    {
+    function watchListVisited() {
         $wId = filter_input(INPUT_GET, 'wid', FILTER_VALIDATE_INT)+0;
-        if ($wId) 
-        {
+        if ($wId) {
             $this->db->setWriteMode();
             $this->db->get("update subscription set badge_count=0, last_visit=current_timestamp where id=?", [$wId], TRUE);
         }
     }
 
 
-    function register() 
-    {
+    function register() {
         //$this->result['d']['info']= [
         //        'version'=>'1.0.9',
         //        'force_update'=>0, 
@@ -1308,26 +1178,22 @@ class MobileApi
         $current_name="";
         
         $device_name = filter_input(INPUT_GET, 'dn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);        
-        if(strlen($device_name) > 50) 
-        {
+        if(strlen($device_name) > 50) {
             $device_name = substr($device_name, 0, 50);
         }
         
         $device_model = filter_input(INPUT_GET, 'dm', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-        if(strlen($device_model) > 50) 
-        {
+        if(strlen($device_model) > 50) {
             $device_model = substr($device_model, 0, 50);
         }
 
-        if ($device_model=='Calypso AppCrawler') 
-        {
+        if ($device_model=='Calypso AppCrawler') {
             //error_log("Calypso AppCrawler {$this->uuid}");
             $this->uid = 284300;
             $this->uuid = '31D052EF-DCC8-4FBA-B180-4C7C50AECBC6';
         }
 
-        if(strlen($this->systemName) > 50) 
-        {
+        if(strlen($this->systemName) > 50) {
             $this->systemName = substr($this->systemName, 0, 50);
         }
         
@@ -1340,13 +1206,11 @@ class MobileApi
         $app_prefs = html_entity_decode(filter_input(INPUT_GET, 'prefs', FILTER_SANITIZE_STRING, ['options'=>['default'=>'{}']]));
         
         //Android Fix for lost UID
-        if($isAndroid && $this->getUID()==0 && $this->uuid && $this->user->getID()>0)
-        {
+        if($isAndroid && $this->getUID()==0 && $this->uuid && $this->user->getID()>0) {
             error_log("Verifying if previous record exists for UUID {$this->uuid} with UID NIL\n");
             $_device = NoSQL::getInstance()->deviceFetch($this->uuid);
          
-            if ($_device && isset($_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]) && $_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]=='Android')
-            {
+            if ($_device && isset($_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]) && $_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]=='Android') {
                 $this->uid = $_device[\Core\Model\ASD\USER_UID];
                 $this->provider = Core\Model\ASD\USER_PROVIDER_ANDROID;                
             }           
@@ -1358,8 +1222,7 @@ class MobileApi
         $this->result['status']=9;
         $this->result['d']['level'] = isset($opts->user_level) ? $opts->user_level:0;
         
-        if ($this->isIOS())
-        {
+        if ($this->isIOS()) {
             $this->result['d']['duid'] = $this->user->getID();
             $this->result['d']['aepoch'] = $this->user->getMobile()->getNumber() ? $this->user->getMobile()->getActicationUnixtime() : 0;
             $this->result['d']['sepoch'] = time();
@@ -1370,8 +1233,7 @@ class MobileApi
         }
         
         
-        if($isAndroid)
-        {
+        if($isAndroid) {
             //setting app params
             $this->result['d']['u_up'] = $this->config['android_url_upload'];
             $this->result['d']['u_web'] = $this->config['android_url_web'];
@@ -1386,28 +1248,21 @@ class MobileApi
                 unset($this->result['d']['u_xx']);
             }
             
-            if($device_appversion > '1.3.0')
-            {
+            if($device_appversion > '1.3.0') {
                 $this->result['d']['a_release'] = $this->config['android_app_release'];
                 $this->result['d']['a_rel_en'] = '';
                 $this->result['d']['a_rel_ar'] = '';
-                foreach ($this->config['android_releases_en'] as $release => $msg)
-                {
-                    if($device_appversion < $release)
-                    {
-                        if($this->result['d']['a_rel_en']!='')
-                        {
+                foreach ($this->config['android_releases_en'] as $release => $msg) {
+                    if($device_appversion < $release) {
+                        if($this->result['d']['a_rel_en']!='') {
                             $this->result['d']['a_rel_en'].='<br><br>';
                         }
                         $this->result['d']['a_rel_en'] .= $msg;
                     }
                 }
-                foreach ($this->config['android_releases_ar'] as $release => $msg)
-                {
-                    if($device_appversion < $release)
-                    {
-                        if($this->result['d']['a_rel_ar']!='')
-                        {
+                foreach ($this->config['android_releases_ar'] as $release => $msg) {
+                    if($device_appversion < $release) {
+                        if($this->result['d']['a_rel_ar']!='') {
                             $this->result['d']['a_rel_ar'].='<br><br>';
                         }
                         $this->result['d']['a_rel_ar'] .= $msg;
@@ -1415,8 +1270,7 @@ class MobileApi
                 }
                 
             }
-            else
-            {
+            else {
                 $this->result['d']['a_release'] = '1.0.0';
             }
             
@@ -1435,8 +1289,7 @@ class MobileApi
             $this->result['d']['evc'] = $this->config['android_enabled_cli_verification']+0;
             $this->result['d']['evrc'] = $this->config['android_enabled_reverse_cli_verification']+0;
             $this->result['d']['evs'] = $this->config['android_enabled_sms_verification']+0;
-            if($device_appversion < '1.4.8' && $device_appversion != '1.8.8')
-            {                
+            if($device_appversion < '1.4.8' && $device_appversion != '1.8.8') {                
                 $this->result['d']['edn'] = 0;
                 $this->result['d']['esn'] = 0;
                 $this->result['d']['esl'] = 0;
@@ -1447,17 +1300,14 @@ class MobileApi
                 $this->result['d']['eslg'] = $this->config['android_banner_search_native_list_gap']+0;
                 $this->result['d']['eslz'] = $this->config['android_banner_search_native_list_freq']+0;
             }
-            if (isset($opts->push))
-            {
+            if (isset($opts->push)) {
                 $this->result['d']['push'] = $opts->push;
             }
             
             //check if android user has mobile validated
-            if($this->getUID())
-            {
+            if($this->getUID()) {
                 $_mobile = $this->user->getMobile();
-                if ($_mobile && $_mobile->isVerified())
-                {
+                if ($_mobile && $_mobile->isVerified()) {
                     $this->result['d']['mobile']=$_mobile->getNumber();
                     if(trim($this->result['d']['mobile'])==''){
                         error_log('EMPTY MOBILE IS VALID FOR UID '.$this->getUID());
@@ -1466,14 +1316,11 @@ class MobileApi
             }
         }
 
-        if (empty($carrier_country)) 
-        {
-            if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR']))
-            {
+        if (empty($carrier_country)) {
+            if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
                 $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
             }
-            else 
-            {
+            else {
                 $ip = $_SERVER['REMOTE_ADDR'];
             }
             $databaseFile = '/home/db/GeoLite2-City.mmdb';
@@ -1481,11 +1328,9 @@ class MobileApi
             $geo = $reader->get($ip);
             $reader->close();
         
-            if ($geo && isset($geo['country'])) 
-            {
+            if ($geo && isset($geo['country'])) {
                 $country_code = trim(strtoupper(trim($geo['country']['iso_code'])));
-                if (strlen($country_code)!=2) 
-                {
+                if (strlen($country_code)!=2) {
                     $country_code='';
                 }
             }
@@ -1493,8 +1338,7 @@ class MobileApi
             $carrier_country = (isset($geo['country']['iso_code']) && strlen(trim($geo['country']['iso_code']))==2) ? strtoupper(trim($geo['country']['iso_code'])) : 'XX';
         }
         
-        if ($status==1) 
-        {
+        if ($status==1) {
             /* opts->user_status
              * 9: retired
              * 10: does not have web_users_mobile record (not activated mobile user)
@@ -1511,12 +1355,10 @@ class MobileApi
                     Core\Model\ASD\USER_DEVICE_ISO_COUNTRY => $carrier_country,
                     Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
                     Core\Model\ASD\USER_DEVICE_APP_SETTINGS => $app_prefs
-                ]))
-            {
+                ])){
             }      
             
-            if($isAndroid)
-            {
+            if($isAndroid) {
                 $this->result['d']['uid']=  $this->getUID();
                 //device last visit
                 $this->result['d']['dlv'] = $opts->device_last_visit+0;
@@ -1525,26 +1367,21 @@ class MobileApi
                 //user level
                 $this->result['d']['level'] = $opts->user_level+0;
                 //provider
-                if(isset($opts->provider))
-                {
+                if(isset($opts->provider)) {
                     $this->result['d']['provider']=$opts->provider;
                 }
-                else
-                {
+                else {
                     $this->result['d']['provider']='';
                 }
                 //account name
-                if(isset($opts->account))
-                {
+                if(isset($opts->account)) {
                     $this->result['d']['account']=$opts->account;
                 }
-                else
-                {
+                else {
                     $this->result['d']['account']='';
                 }
 
-                if ($this->user->isSuspended())
-                {
+                if ($this->user->isSuspended()) {
                     $this->result['d']['suspend'] = time()+$this->user->getSuspensionTime();
                 }               
             }
@@ -1553,15 +1390,13 @@ class MobileApi
             $this->result['d']['status']=$opts->user_status;
             $this->result['d']['pwset']=!empty($opts->secret);
             
-            if ($opts->cuid>0) 
-            {
+            if ($opts->cuid>0) {
             	include_once $this->config['dir'] .'/core/model/User.php';
                 
                 $user = new User($this->db, $this->config, null, 0);
                         
                 $ok = $user->mergeDeviceToAccount($this->uuid, $this->getUID(), $opts->cuid);
-                if ($ok) 
-                {
+                if ($ok) {
                     //$this->db->getInstance()->commit();
                     $this->uid=$opts->cuid;
                     $opts = $this->userStatus($status);
@@ -1571,28 +1406,20 @@ class MobileApi
             }
 
             $uname = filter_input(INPUT_GET, 'uname', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-            if ($uname && $uname!=$current_name) 
-            {
+            if ($uname && $uname!=$current_name) {
                 NoSQL::getInstance()->modProfile(
                             [\Core\Model\ASD\USER_PROVIDER_ID=>$this->uuid, \Core\Model\ASD\USER_PROVIDER=>$this->provider], 
                             [\Core\Model\ASD\USER_FULL_NAME=>$uname, Core\Model\ASD\USER_DISPLAY_NAME=>$uname]);
             }
             
-            if (empty($uname)) 
-            {
+            if (empty($uname)) {
                 NoSQL::getInstance()->updateProfileVisitTime([\Core\Model\ASD\USER_PROVIDER_ID=>$this->uuid, \Core\Model\ASD\USER_PROVIDER=>$this->provider]);
             }
             
             
-            //error_log(json_encode($opts));
-            
-            if ( $opts->user_status==1) 
-            {
+            if ( $opts->user_status==1) {
                 include $this->config['dir'] .'/core/model/User.php';
-                //error_log(session_status(). " == ". PHP_SESSION_NONE);
-                
-                if ($this->isIOS() && (session_status()==PHP_SESSION_NONE))
-                {
+                if ($this->isIOS() && (session_status()==PHP_SESSION_NONE)) {
                     
                     new MCSessionHandler(TRUE);
                     
@@ -1611,8 +1438,7 @@ class MobileApi
             }
                         
         } 
-        elseif (!$this->user->exists() && !empty($this->uuid)) 
-        {
+        elseif (!$this->user->exists() && !empty($this->uuid)) {
             
             $bins = [
                 \Core\Model\ASD\USER_PROVIDER_ID=>$this->uuid,
@@ -1620,20 +1446,17 @@ class MobileApi
                 \Core\Model\ASD\USER_PROFILE_URL=>'https://www.mourjan.com/',                
                 ];
             
-            if (NoSQL::getInstance()->profileExists($bins))
-            {
+            if (NoSQL::getInstance()->profileExists($bins)) {
                 $ret = NoSQL::getInstance()->getProfileRecord($bins, $record);
                 
-                if ($ret==NoSQL::OK && !NoSQL::getInstance()->deviceExists($this->uuid))
-                {
+                if ($ret==NoSQL::OK && !NoSQL::getInstance()->deviceExists($this->uuid)) {
                     //$this->result['e'] = 'System error [1002]!';
                     error_log(__FUNCTION__ . " Device record is missed [1002]: ".json_encode($bins));
                     
                     $this->uid=$record[\Core\Model\ASD\USER_PROFILE_ID];
                     $this->result['d']['uid'] = $this->uid;
                 
-                    if ($isAndroid)
-                    {
+                    if ($isAndroid) {
                         $this->result['d']['level']=$record[\Core\Model\ASD\USER_LEVEL];
                         $this->result['d']['status']=10;
                     
@@ -1656,25 +1479,20 @@ class MobileApi
                         Core\Model\ASD\USER_DEVICE_ISO_COUNTRY => $carrier_country,
                         Core\Model\ASD\USER_DEVICE_APP_VERSION => $device_appversion,
                         Core\Model\ASD\USER_DEVICE_APP_SETTINGS => '{}'
-                        ]))
-                    {
+                        ])) {
                         $this->result['e'] = 'System error [1001]!';
                         error_log(__FUNCTION__ . ' DEVIVE ADDED Failed');
                     }
                 }
-                else
-                {
+                else {
                     $this->result['e'] = 'System error [1011]!';
                 }
             }
-            else
-            if (NoSQL::getInstance()->addProfile($bins)==NoSQL::OK)
-            {
+            else if (NoSQL::getInstance()->addProfile($bins)==NoSQL::OK) {
                 $this->uid = $bins[\Core\Model\ASD\USER_PROFILE_ID];
                 $this->result['d']['uid'] = $this->uid;
                 
-                if ($isAndroid)
-                {
+                if ($isAndroid) {
                     $this->result['d']['level']=$bins[\Core\Model\ASD\USER_LEVEL];
                     $this->result['d']['status']=10;
                     
@@ -1702,16 +1520,14 @@ class MobileApi
                         Core\Model\ASD\USER_DEVICE_APP_SETTINGS => '{}'
                         ]);                           
             } 
-            else 
-            {
+            else {
                 $this->result['e'] = 'System error [1010]!';
                 error_log(__FUNCTION__ . " could not write [1010]: ".json_encode($bins));                
             }
                                
         }
         
-        if ($isAndroid && isset($this->result['d']['uid']) && $this->result['d']['uid']==0)
-        {
+        if ($isAndroid && isset($this->result['d']['uid']) && $this->result['d']['uid']==0) {
             unset($this->result['d']['uid']);
         }
         
@@ -1733,51 +1549,42 @@ class MobileApi
             //error_log($this->result['d']['fbx']);
         }
         
-        if(isset($this->result['d']['uid']) && $this->result['d']['uid']>0)
-        {
+        if(isset($this->result['d']['uid']) && $this->result['d']['uid']>0) {
             NoSQL::getInstance()->updateProfileVisitTime([Core\Model\ASD\USER_UID=>$this->result['d']['uid']]);
         }
 
     }
 
 
-    function setApnsToken() 
-    {
+    function setApnsToken() {
         $opts = $this->userStatus($status);
         $this->result['status']=$status;
 
-        if ($status==1 || $status==-9) 
-        {
+        if ($status==1 || $status==-9) {
             $token=filter_input(INPUT_GET, 'tk', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
                                            
-            if (NoSQL::getInstance()->deviceSetToken($this->uuid, $token))
-            {
+            if (NoSQL::getInstance()->deviceSetToken($this->uuid, $token)) {
                 //$this->db->setWriteMode();
                 //$this->db->get("update WEB_USERS_DEVICE set PUSH_ID=? where uuid=? and PUSH_ID!=?", [$token, $this->uuid, $token], TRUE);
             }
-            else
-            {
+            else {
                 $this->result['e']='Could not register notification token';                
             }
         } 
-        else
-        {            
+        else {            
             $this->result['e']='Invalid user status';
         }
         $this->db->close();
     }
 
 
-    function setNotification() 
-    {
+    function setNotification() {
         $this->userStatus($status);
         $this->result['status']=$status;
-        if ($status==1) 
-        {            
+        if ($status==1) {            
             $enabled=filter_input(INPUT_GET, 'enabled', FILTER_VALIDATE_INT)+0;            
             
-            if (NoSQL::getInstance()->deviceSetNotificationStatus($this->uuid, $enabled))
-            {
+            if (NoSQL::getInstance()->deviceSetNotificationStatus($this->uuid, $enabled)) {
                 //$this->db->setWriteMode();
                 //$this->db->get("update WEB_USERS_DEVICE set NOTIFICATION_ENABLED=? where uuid=?", [$enabled, $this->uuid], TRUE);
             }
@@ -1786,19 +1593,15 @@ class MobileApi
     }
 
     
-    function setPassword() 
-    {   
+    function setPassword() {   
         $opts = $this->userStatus($status, $current_name);
-        if ($status==1) 
-        {
+        if ($status==1) {
             $op=filter_input(INPUT_GET, 'op', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
             $np=filter_input(INPUT_GET, 'np', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
             $cp=filter_input(INPUT_GET, 'cp', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
             
-            if (!empty($cp) && !empty($np) && strlen($cp)==32 && ($cp==$np) && ($op==$opts->secret || empty($opts->secret))) 
-            {
-                if ($this->user->getMobile()->setSecret($np))
-                {
+            if (!empty($cp) && !empty($np) && strlen($cp)==32 && ($cp==$np) && ($op==$opts->secret || empty($opts->secret))) {
+                if ($this->user->getMobile()->setSecret($np)) {
                    $this->result['d']['status'] = $this->user->getMobile(TRUE)->getStatus();
                    $this->result['d']['pwset'] = !empty($this->user->getMobile()->getSecret());
                    return;
@@ -1809,34 +1612,27 @@ class MobileApi
     }
 
 
-    function authenticate() 
-    {
+    function authenticate() {
         $opts = $this->userStatus($status);
         $mobile_no = intval(filter_input(INPUT_GET, 'tel', FILTER_VALIDATE_INT));
         
-        if ($status==1) 
-        {
+        if ($status==1) {
             $secret=filter_input(INPUT_GET, 'secret', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
 
-            if ($mobile_no>0 && !empty($secret)) 
-            {                
+            if ($mobile_no>0 && !empty($secret)) {                
                 $userId=0;
-                if (NoSQL::getInstance()->mobileVerifySecret($mobile_no, $secret, $userId) && $this->user->getMobile()->getActicationUnixtime())
-                {
+                if (NoSQL::getInstance()->mobileVerifySecret($mobile_no, $secret, $userId) && $this->user->getMobile()->getActicationUnixtime()) {
                     $this->result['d']['status']=1;
                     $this->result['d']['uid']=($this->uid!=$userId) ? $userId : 0;
-                    if ($this->getUID()!=$userId && $userId>0) 
-                    {
-                        if (NoSQL::getInstance()->deviceSetUID($this->uuid, $userId, $this->getUID()))
-                        {
+                    if ($this->getUID()!=$userId && $userId>0) {
+                        if (NoSQL::getInstance()->deviceSetUID($this->uuid, $userId, $this->getUID())) {
                             $this->db->setWriteMode();
                             $ok = $this->db->get(
                                     "update web_users_favs a set a.web_user_id=? "
                                     . "where a.web_user_id=? "
                                     . "and not exists (select 1 from web_users_favs b "
                                     . "where b.web_user_id=? and b.ad_id=a.ad_id)", [$userId, $this->uid, $userId], true);
-                            if ($ok) 
-                            {
+                            if ($ok) {
                                 $ok = $this->db->get(
                                     "update subscription a set a.web_user_id=? "
                                     . "where a.web_user_id=? and "
@@ -1847,33 +1643,28 @@ class MobileApi
                                     . "and b.locality_id=a.locality_id and b.purpose_id=a.purpose_id and b.query_term=a.query_term)",
                                     [$userId, $this->getUID(), $userId], true);
 
-                                if ($ok) 
-                                {
+                                if ($ok) {
                                     
                                     $this->db->get("update T_PROMOTION_USERS t set t.UID=? where t.UID=?", [$userId, $this->uid], true);
                                     $this->db->get("update T_TRAN t set t.UID=? where t.UID=?", [$userId, $this->uid], true);
                                     
                                     $ok = $this->db->get("delete from web_users_favs where web_user_id=?", [$this->uid], true);
-                                    if ($ok) 
-                                    {
+                                    if ($ok) {
                                         $ok = $this->db->get("delete from subscription where web_user_id=?", [$this->uid], true);
-                                        if ($ok) 
-                                        {
+                                        if ($ok) {
                                             $ok = $this->db->get("delete from web_users where id=?", [$this->uid], true);
                                         }
                                     }
                                 }
                             }                
 
-                            if ($ok) 
-                            {
+                            if ($ok) {
                                 $this->db->commit();
                                 $this->uid=$userId;
                                 $opts = $this->userStatus($status);
                                 $this->result['d']['pwset']=!empty($opts->secret);
                             } 
-                            else 
-                            {
+                            else {
                                 $this->db->rollback();
                                 $this->result['e']="Could not activate your device due to internal system error!";
                                 error_log(__FUNCTION__ . ' ' .$this->result['e'] . " " . $mobile_no . " to uid: " . $userId);
@@ -1887,8 +1678,7 @@ class MobileApi
                            
             $this->result['e']="Invalid user and password for {$mobile_no}!";
         } 
-        else 
-        {
+        else {
             $this->result['e']="Not a valid user and/or password for {$mobile_no}!";
         }
 
@@ -2202,8 +1992,7 @@ class MobileApi
 
     function done() {
         $this->db->close();
-        if ($this->uuid=="B066D32F-08F6-4C2E-973C-9658CA745F09") 
-        {
+        if ($this->uuid=="B066D32F-08F6-4C2E-973C-9658CA745F09") {
             $this->result['l']=1;
         }
         echo json_encode($this->result, JSON_UNESCAPED_UNICODE );
@@ -2211,31 +2000,26 @@ class MobileApi
     }
 
     
-    function detectEmail($ad)
-    {
+    function detectEmail($ad) {
         $matches=null;
         preg_match_all('/(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/i', $ad, $matches);
         return $matches;
     }
 
 
-    function cutOfContacts(&$text) 
-    {
+    function cutOfContacts(&$text) {
         $phone = '/((?:\+|)(?:[0-9]){7,14})/';
         $content=null;
         preg_match('/(?: mobile(?::| \+) | viber(?::| \+) | whatsapp(?::| \+) | phone(?::| \+) | fax(?::| \+) | telefax(?::| \+) | جوال(?::| \+) | موبايل(?::| \+) | واتساب(?::| \+) | فايبر(?::| \+) | هاتف(?::| \+) | فاكس(?::| \+) | تلفاكس(?::| \+) | tel(?:\s|): | call(?:\s|): | ت(?:\s|): | الاتصال | للمفاهمه: | للمفاهمه | ج\/| للمفاهمة: | للاتصال | للاتصال: | ه: )(.*)/ui', $text, $content);
         
-        if(!($content && count($content)))
-        {
+        if(!($content && count($content))) {
             preg_match($phone, $text, $content);
-            if(!($content && count($content)))
-            {
+            if(!($content && count($content))) {
                 return $text;
             }
         }
 
-        if($content && count($content))
-        {
+        if($content && count($content)) {
             $strpos = strpos($text, $content[0]);
             $text = trim(substr($text,0, $strpos));
             $text = trim(preg_replace('/[-\/\\\]$/', '', $text));        
@@ -2243,77 +2027,59 @@ class MobileApi
     }
 
     
-    function processTextNumbers(&$text, $pubId=0, $countryCode=0, &$matches=[])
-    {
+    function processTextNumbers(&$text, $pubId=0, $countryCode=0, &$matches=[]) {
         $phone = '/((?:\+|)(?:[0-9]){7,14})/';    
         $content=null;
 
         preg_match('/(?: mobile(?::| \+) | viber(?::| \+) | whatsapp(?::| \+) | phone(?::| \+) | fax(?::| \+) | telefax(?::| \+) | جوال(?::| \+) | موبايل(?::| \+) | واتساب(?::| \+) | فايبر(?::| \+) | هاتف(?::| \+) | فاكس(?::| \+) | تلفاكس(?::| \+) | tel(?:\s|): | call(?:\s|): | ت(?:\s|): | الاتصال | للمفاهمه: | للمفاهمه | ج\/| للمفاهمة: | للاتصال | للاتصال: | ه: )(.*)/ui', $text,$content);
-        if (!($content && count($content)))
-        {
+        if (!($content && count($content))) {
             preg_match($phone, $text, $content);
-            if(!($content && count($content)))
-            {
+            if(!($content && count($content))) {
                 return $text;
             }
         }
 
-        if ($content && count($content))
-        {        
+        if ($content && count($content)) {        
             $str=$content[1];
 
             $strpos = strpos($text, $content[0]);
             $text = trim(substr($text,0, $strpos));
             $text = trim(preg_replace('/[-\/\\\]$/', '', $text));
 
-            if($str)
-            {            
-                if($this->formatNumbers)
-                {                
+            if($str) {            
+                if($this->formatNumbers) {                
                     $nums=array();
                     $numInst=array();
                     $numbers = null;
                     preg_match_all($phone, $str, $numbers);
-                    if ($numbers && count($numbers[1]))
-                    {                    
-                        foreach($numbers[1] as $match)
-                        {                        
+                    if ($numbers && count($numbers[1])) {                    
+                        foreach($numbers[1] as $match) {                        
                             $number = $match;
-                            try
-                            {                            
-                                if ($pubId==1)
-                                {                                
+                            try {                            
+                                if ($pubId==1) {                                
                                     $numInst[] = $num = $this->mobileValidator->parse($number, $this->formatNumbers);
                                 }
-                                else
-                                {
+                                else {
                                     $numInst[] = $num = $this->mobileValidator->parse($number, $countryCode);
                                 }
                                 
-                                if ($num && $this->mobileValidator->isValidNumber($num))
-                                {                            
+                                if ($num && $this->mobileValidator->isValidNumber($num)) {                            
                                     $rCode = $this->mobileValidator->getRegionCodeForNumber($num);
-                                    if ($rCode==$this->formatNumbers)
-                                    {                                
+                                    if ($rCode==$this->formatNumbers) {                                
                                         $num=$this->mobileValidator->formatInOriginalFormat($num,$this->formatNumbers );
                                     }
-                                    else
-                                    {
+                                    else {
                                         $num=$this->mobileValidator->formatOutOfCountryCallingNumber($num,$this->formatNumbers);
                                     }
                                     $nums[]=array($number, $num);
                                 }
-                                else
-                                {                                
+                                else {                                
                                     $hasCCode = preg_match('/^\+/', $number);
-                                    switch($countryCode)
-                                    {                                    
+                                    switch($countryCode) {                                    
                                         case 'SA':
                                             $num = ($hasCCode) ? substr($number,4) : $number;
-                                            if(strlen($num)==7)
-                                            {
-                                                switch($pubId)
-                                                {
+                                            if(strlen($num)==7) {
+                                                switch($pubId) {
                                                     case 9:
                                                         $num='011'.$num;
                                                         break;
@@ -2322,12 +2088,10 @@ class MobileApi
                                                     case 18:
                                                         $tmp='013'.$num;
                                                         $tmp = $this->mobileValidator->parse($num, $countryCode);
-                                                        if ($tmp && $this->mobileValidator->isValidNumber($tmp))
-                                                        {
+                                                        if ($tmp && $this->mobileValidator->isValidNumber($tmp)) {
                                                                 $num='013'.$num;
                                                         }
-                                                        else
-                                                        {
+                                                        else {
                                                             $num='011'.$num;
                                                         }
                                                         break;
@@ -2337,10 +2101,8 @@ class MobileApi
                                             
                                         case 'EG':
                                             $num = ($hasCCode) ? substr($number, 3) : $number;
-                                            if (strlen($num)==7)
-                                            {
-                                                switch($pubId)
-                                                {
+                                            if (strlen($num)==7) {
+                                                switch($pubId) {
                                                     case 13:
                                                         $num='2'.$num;
                                                         break;
@@ -2350,10 +2112,8 @@ class MobileApi
                                                         break;
                                                 }
                                             }
-                                            elseif (strlen($num)==8) 
-                                            {
-                                                switch($pubId)
-                                                {
+                                            elseif (strlen($num)==8) {
+                                                switch($pubId) {
                                                     case 13:
                                                         $num='2'.$num;
                                                         break;
@@ -2362,36 +2122,29 @@ class MobileApi
                                             break;
                                     }
                                     
-                                    if ($num != $number)
-                                    {
+                                    if ($num != $number) {
                                         $num = $this->mobileValidator->parse($num, $countryCode);
-                                        if ($num && $this->mobileValidator->isValidNumber($num))
-                                        {
+                                        if ($num && $this->mobileValidator->isValidNumber($num)) {
                                             $rCode = $this->mobileValidator->getRegionCodeForNumber($num);
-                                            if ($rCode==$this->formatNumbers)
-                                            {
+                                            if ($rCode==$this->formatNumbers) {
                                                 $num=$this->mobileValidator->formatInOriginalFormat($num, $this->formatNumbers);
                                             }
-                                            else
-                                            {
+                                            else {
                                                 $num=$this->mobileValidator->formatOutOfCountryCallingNumber($num, $this->formatNumbers);
                                             }
                                             $nums[]=array($number, $num);
                                         }
-                                        else
-                                        {
+                                        else {
                                             $nums[]=array($number, $number);
                                         }
                                     } 
-                                    else
-                                    {
+                                    else {
                                         $nums[]=array($number, $number);
                                     }
                                     
                                 }
                             } 
-                            catch(Exception $ex) 
-                            {
+                            catch(Exception $ex) {
                                 $nums[]=array($number, $number);
                             }
                         }
@@ -2401,26 +2154,20 @@ class MobileApi
                         $undefined = array();
                         $i=0;
 
-                        foreach ($nums as $num)
-                        {
-                            if ($num[0]!=$num[1])
-                            {
+                        foreach ($nums as $num) {
+                            if ($num[0]!=$num[1]) {
                                 $type=$this->mobileValidator->getNumberType($numInst[$i++]);
-                                if ($type==1 || $type==2)
-                                {
+                                if ($type==1 || $type==2) {
                                     $mobile[]=$num;
                                 }
-                                elseif ($type==0 || $type==2)
-                                {
+                                elseif ($type==0 || $type==2) {
                                     $phone[]=$num;
                                 }
-                                else 
-                                {
+                                else {
                                     $undefined[]=$num;
                                 }
                             }
-                            else
-                            {
+                            else {
                                 $undefined[]=$num;
                             }
                         }
@@ -2428,20 +2175,14 @@ class MobileApi
                         $matches = [$mobile, $phone, $undefined];               
                     }
                 }
-                else
-                {
-                    if ($pubId!=1)
-                    {
-                        if (!preg_match('/\<span class/',$text))
-                        {
+                else {
+                    if ($pubId!=1) {
+                        if (!preg_match('/\<span class/',$text)) {
                             preg_match_all($phone, $str, $numbers);
-                            if ($numbers && count($numbers[1]))
-                            {
-                                foreach ($numbers[1] as $match)
-                                {
+                            if ($numbers && count($numbers[1])) {
+                                foreach ($numbers[1] as $match) {
                                     $number = $match;
                                     $number =  preg_replace('/\+/','\\+' , $number);
-                                    ////$text = preg_replace('/('.$number.')/', '<span class="pn">$1</span>', $text);
                                 }
                             }
                         }
@@ -3302,19 +3043,17 @@ class MobileApi
     
     
     function userPostAd() {
-        if ($this->api->config['active_maintenance']) {
-            $this->api->result['e'] = "503";
+        if ($this->config['active_maintenance']) {
+            $this->result['e'] = "503";
             return;
         }
                 
-        $opts = $this->api->userStatus($status);   
-        $mcUser = new MCUser($this->api->getUID());
-                
-        if ($status==1 && !$mcUser->isBlocked()) {
-            $this->api->db->setWriteMode();  
-                    
-            $direct_publish = filter_input(INPUT_POST, 'pub', FILTER_VALIDATE_INT) + 0;
-                    
+        $opts = $this->userStatus($status);
+   
+        if ($status==1 && !$this->user->isBlocked()) {
+            $this->db->setWriteMode();
+            
+            $direct_publish = filter_input(INPUT_POST, 'pub', FILTER_VALIDATE_INT) + 0;                    
             $ad_id = filter_input(INPUT_POST, 'adid', FILTER_VALIDATE_INT) + 0;
             $device_lang = filter_input(INPUT_GET, 'hl');
             if (!in_array($device_lang, ['ar','en'])) {
@@ -3324,6 +3063,7 @@ class MobileApi
             $state = 0;
             $ad = json_decode(urldecode(filter_input(INPUT_POST, 'ad', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']])), true);
                     
+            error_log(\json_encode($ad));
             $userState = 0;                    
             $hasFailure = 0;
             $hasMajorFailure = 0;
@@ -3347,8 +3087,8 @@ class MobileApi
                 */
 
                 $_original_ad=$ad;
-                include_once $this->api->config['dir'] . '/core/lib/MCSaveHandler.php';                
-                $normalizer = new MCSaveHandler($this->api->config);
+                include_once $this->config['dir'] . '/core/lib/MCSaveHandler.php';                
+                $normalizer = new MCSaveHandler($this->config);
                 $normalized = $normalizer->getFromContentObject($ad);
                 $attrs = [];
                 if ($normalized) {
@@ -3412,8 +3152,8 @@ class MobileApi
                     $XX=$geo['country']['iso_code'];                            
                 } else $ad['userLOC']=0;
                         
-                if ($mcUser->isMobileVerified()) {
-                    $uNum = $mcUser->getMobileNumber();
+                if ($this->user->isMobileVerified()) {
+                    $uNum = $this->user->getMobileNumber();
                     if($uNum) {
                         $validator = libphonenumber\PhoneNumberUtil::getInstance();
                         $uNum = $validator->parse('+'.$uNum, 'LB');
@@ -3433,7 +3173,7 @@ class MobileApi
                 $country_id = 0;
                 $currentCid = 0;
                 $isMultiCountry = false;
-                $cities = $this->api->db->getCitiesDictionary();
+                $cities = $this->db->getCitiesDictionary();
                         
                 foreach($ad['pubTo'] as $key => $val) {
                     if(!$city_id && isset($cities[$city_id])) {
@@ -3459,11 +3199,11 @@ class MobileApi
                         
                 $isSCAM = 0;
                 if (isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0) {
-                    $blockedEmailPatterns = addcslashes(implode('|', $this->api->config['restricted_email_domains']),'.');
+                    $blockedEmailPatterns = addcslashes(implode('|', $this->config['restricted_email_domains']),'.');
                     $isSCAM = preg_match('/'.$blockedEmailPatterns.'/ui', $ad['cui']['e']);
                 }
                 elseif ($requireReview && $country_id && !$isMultiCountry) {
-                    $countries = $this->api->db->getCountriesData('en');
+                    $countries = $this->db->getCountriesData('en');
                     if(isset($countries[$country_id]['code'])) {
                         $countryCode = '+'.$countries[$country_id]['code'];
                         //error_log("mobile check #{$ad['id']}# ".$countryCode);
@@ -3517,8 +3257,8 @@ class MobileApi
                 }
                                        
                 if ($isSCAM) {
-                    if ($mcUser->isMobileVerified()) {
-                        $this->block($this->api->getUID(), $mcUser->getMobileNumber(), 'scam detection by system based on certain email keywords');
+                    if ($this->user->isMobileVerified()) {
+                        $this->block($this->api->getUID(), $this->user->getMobileNumber(), 'scam detection by system based on certain email keywords');
                     }
                     else {
                         $this->setLevel($this->api->getUID(),5);
@@ -3544,7 +3284,7 @@ class MobileApi
                                 $filenames .= "'{$key}'";
                             }
 
-                            $records = $this->api->db->queryResultArray("select id from media where filename in ({$filenames})", null, false);
+                            $records = $this->db->queryResultArray("select id from media where filename in ({$filenames})", null, false);
                             if ($records !== false) {
                                 $mediaIds = [];
                                 if ($records && is_array($records)) {
@@ -3556,7 +3296,7 @@ class MobileApi
                                 if (count($mediaIds)) {
                                     $mediaIds = implode(",", $mediaIds);
 
-                                    $this->api->db->queryResultArray("delete from ad_media where ad_id=? and media_id not in ({$mediaIds})", [$ad_id], false);
+                                    $this->db->queryResultArray("delete from ad_media where ad_id=? and media_id not in ({$mediaIds})", [$ad_id], false);
                                 }
                                 else {
                                     $this->api->db->queryResultArray("delete from ad_media where ad_id=?", [$ad_id], false);
@@ -3565,11 +3305,11 @@ class MobileApi
 
                         }
                         else {
-                            $this->api->db->queryResultArray("delete from ad_media where ad_id=?", [$ad_id], false);
+                            $this->db->queryResultArray("delete from ad_media where ad_id=?", [$ad_id], false);
                         }
                         //end of ad_media cleanup
                                                                 
-                        $this->api->db->queryResultArray(
+                        $this->db->queryResultArray(
                                     "update ad set hold=1 where id=? and hold=0 and (exists (select 1 from ad_user d where d.id=? and d.web_user_id=?)) returning id", 
                                     [$ad_id, $ad_id, $this->api->getUID()], false);
                                 
@@ -3599,10 +3339,10 @@ class MobileApi
                             country_id=?,city_id=?,latitude=?,longitude=?,state=?,media=?,date_added=current_timestamp 
                             where id=? and web_user_id+0=? 
                             returning state, id';
-                        $stmt = $this->api->db->getInstance()->prepare($q);
+                        $stmt = $this->db->getInstance()->prepare($q);
 
                         $result=null;
-                        if ($this->api->db->executeStatement($stmt, [
+                        if ($this->db->executeStatement($stmt, [
                                         $encodedAd,
                                         $ad['pu'],
                                         $ad['se'],
@@ -3614,7 +3354,7 @@ class MobileApi
                                         $state,
                                         $ad['media'],
                                         $ad_id,
-                                        $this->api->getUID()
+                                        $this->getUID()
                                     ])) {
                             $result=$stmt->fetchAll(PDO::FETCH_ASSOC);                                    
                         }   
@@ -3622,15 +3362,15 @@ class MobileApi
                         if (!empty($result)) {                                        
                             $state=$result[0]['STATE'];
                             //$ad_id = (int)$result[0]['ID'];                                        
-                            $st = $this->api->db->getInstance()->prepare("update or insert into ad_object (id, attributes) values (?, ?)");
+                            $st = $this->db->getInstance()->prepare("update or insert into ad_object (id, attributes) values (?, ?)");
                             $st->bindValue(1, $ad_id, PDO::PARAM_INT);
                             $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
-                            $this->api->db->executeStatement($st);
+                            $this->db->executeStatement($st);
                         }                                
 
                         if ( $ad['state']==1 ) {
-                            if ($mcUser->isMobileVerified()) {
-                                $userState = $mcUser->isSuspended() ? 1:0;
+                            if ($this->user->isMobileVerified()) {
+                                $userState = $this->user->isSuspended() ? 1:0;
                             }
                             else {
                                 $userState = $this->detectDuplicateSuspension($ad['cui']);                            
@@ -3659,23 +3399,44 @@ class MobileApi
                             }
                         }
 
-                        $result=$this->api->db->queryResultArray(
+                        $result=$this->db->queryResultArray(
                                     "insert into ad_user
-                                    (web_user_id,content,title,purpose_id,section_id,rtl, 
-                                    country_id,city_id,latitude,longitude,media,state)
-                                    values (?,?,'',?,?,?,?,?,?,?,?,{$state}) returning id,state", 
-                                    array($this->api->getUID(), $encodedAd, $ad['pu'], $ad['se']
-                                        ,$ad['rtl'], $country_id , $city_id, $ad['lat'],$ad['lon'],$ad['media'] ), 
-                                        true);
+                                    (web_user_id, content, title, purpose_id, section_id, rtl, 
+                                    country_id, city_id, latitude, longitude, media, state)
+                                    values (?, ?, '', ?, ?, ?, ?, ?, ?, ?, ?, {$state}) returning id,state", 
+                                    [$this->getUID(), $encodedAd, $ad['pu'], $ad['se'], $ad['rtl'], 
+                                     $country_id , $city_id, $ad['lat'], $ad['lon'], $ad['media']], 
+                                    true);
 
                         if (!empty ($result)) {
                             $ad_id=$result[0]['ID'];
                             $state=(int)$result[0]['STATE'];
                                     
-                            $st = $this->api->db->getInstance()->prepare("update or insert into ad_object (id, attributes) values (?, ?)");
+                            $st = $this->db->getInstance()->prepare("update or insert into ad_object (id, attributes) values (?, ?)");
                             $st->bindValue(1, $ad_id, PDO::PARAM_INT);
                             $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
-                            $this->api->db->executeStatement($st);
+                            $this->db->executeStatement($st);
+                            
+                            $pst = $this->db->getInstance()->prepare("INSERT INTO AD_MEDIA (AD_ID, MEDIA_ID) values (?, ?)");
+                            
+                            
+                            if (isset($ad['pics']) && is_array($ad['pics']) && count($ad['pics'])) {
+                                $keys = array_keys($ad['pics']);
+                                $filenames = '';
+                                foreach ($ad['pics'] as $key => $values) {
+                                    if ($filenames!='') { $filenames.=','; }
+                                    $filenames .= "'{$key}'";
+                                }
+
+                                $records = $this->db->queryResultArray("select id from media where filename in ({$filenames})", null, false);
+                                if ($records!==false && $records && is_array($records)) {
+                                    foreach ($records as $media) {
+                                        $pst->bindValue(1, $ad_id, PDO::PARAM_INT);
+                                        $pst->bindValue(2, $media['ID'], PDO::PARAM_INT);       
+                                        $this->db->executeStatement($pst);
+                                    }                                                   
+                                }
+                            }
                         }
                         
                         if ($requireReview && $ad_id) {
@@ -3683,8 +3444,8 @@ class MobileApi
                         }
                                 
                         if ($state==1) {
-                            if ($mcUser->isMobileVerified()) {
-                                $userState = $mcUser->isSuspended() ? 1:0;
+                            if ($this->user->isMobileVerified()) {
+                                $userState = $this->user->isSuspended() ? 1:0;
                             }
                             else {
                                 $userState = $this->detectDuplicateSuspension($ad['cui']);                            
@@ -3694,7 +3455,7 @@ class MobileApi
                     
                     
                     if ($ad_id && $state==1) { 
-                        $dbAd = $this->api->db->queryResultArray(
+                        $dbAd = $this->db->queryResultArray(
                                         'select a.id,
                                         IIF(f.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', f.ended_date)) featured_date_ended, 
                                         IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended '                         
@@ -3714,7 +3475,7 @@ class MobileApi
                     
                     if ($ad_id && $state==4 && $isMultiCountry) {
                         $q='update ad_user set content=?, state=? where id=?';
-                        $suspendStmt = $this->api->db->getInstance()->prepare($q);
+                        $suspendStmt = $this->db->getInstance()->prepare($q);
                         $state = 3;
                         if ($device_lang=='ar' || $ad['rtl']) {
                             $msg = 'عذراً ولكن لا يمكن تمييز الاعلان في اكثر من بلد واحد';
@@ -3727,13 +3488,13 @@ class MobileApi
 
                         $encodedAd = json_encode($ad);
                         $result=null;
-                        $this->api->db->executeStatement($suspendStmt, [$encodedAd, $state, $ad_id]);
+                        $this->db->executeStatement($suspendStmt, [$encodedAd, $state, $ad_id]);
                         unset($suspendStmt);
                     }
                     elseif ($ad_id && $userState==1) {
                         $state=3;
                         $q='update ad_user set content=?, state=? where id=?';
-                        $suspendStmt = $this->api->db->getInstance()->prepare($q);
+                        $suspendStmt = $this->db->getInstance()->prepare($q);
 
                         if ($device_lang=='ar' || $ad['rtl']) {
                             $msg = 'لقد تم ايقاف حسابك بشكل مؤقت نظراً للتكرار';
@@ -3746,7 +3507,7 @@ class MobileApi
 
                         $encodedAd = json_encode($ad);
                         $result=null;
-                        $this->api->db->executeStatement($suspendStmt, [$encodedAd, $state, $ad_id]);
+                        $this->db->executeStatement($suspendStmt, [$encodedAd, $state, $ad_id]);
                         unset($suspendStmt);
                     } 
                     else if ($ad_id && in_array($ad['se'], array(190,1179,540,1114))) {
@@ -3754,7 +3515,7 @@ class MobileApi
                         $state = 3;
                         if ($dupliactePending) {
                             $q='update ad_user set content=?, state=? where id=?';
-                            $suspendStmt = $this->api->db->getInstance()->prepare($q);
+                            $suspendStmt = $this->db->getInstance()->prepare($q);
                             if ($device_lang=='ar' || $ad['rtl']) {
                                 $msg = 'هنالك اعلان مماثل في لائحة الانتظار وبالنتظار موافقة محرري الموقع';
                             }
@@ -3766,17 +3527,17 @@ class MobileApi
 
                             $encodedAd = json_encode($ad);
                             $result=null;
-                            $this->api->db->executeStatement($suspendStmt, [$encodedAd, $state, $ad_id]);
+                            $this->db->executeStatement($suspendStmt, [$encodedAd, $state, $ad_id]);
                             unset($suspendStmt);
                         }
                     }
                 }
             }
                     
-            $this->api->result['d'] = [];                    
+            $this->result['d'] = [];                    
             //$this->api->result['d']['id'] = $rid;
-            $this->api->result['d']['adid'] = $ad_id;
-            $this->api->result['d']['state'] = $state;
+            $this->result['d']['adid'] = $ad_id;
+            $this->result['d']['state'] = $state;
             //error_log(json_encode($this->api->result['d']));
                     
             unset($stmt);
