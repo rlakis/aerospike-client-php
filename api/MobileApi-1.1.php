@@ -2525,16 +2525,16 @@ class MobileApi {
                     $data = json_decode("{}");
                 }
                 if (isset($data->other)) {
-                    $tl = mb_strlen(strip_tags($data->other));
-                    if ($tl<60) {
-                        $data->other.=mb_substr("                                                                                                            ",0,60-$tl);                   
-                    }                    
+                    //$tl = mb_strlen(strip_tags($data->other));
+                    //if ($tl<60) {
+                    //    $data->other.=mb_substr("                                                                                                            ",0,60-$tl);                   
+                    //}                    
                 } 
                 else {
                     if (isset($data->text)) {
                         $tl = mb_strlen(strip_tags($data->text));
                         if ($tl<60) {
-                            $data->other=$data->text. mb_substr("                                                                                                            ",0,60-$tl);                   
+                            //$data->other=$data->text. mb_substr("                                                                                                            ",0,60-$tl);                   
                         } 
                         else $data->other = $data->text;
                         
