@@ -3053,6 +3053,20 @@ class MobileApi {
         if ($status==1 && !$this->user->isBlocked()) {
             $this->db->setWriteMode();
             
+            
+            $handle = fopen("php://input", "rb");
+            $raw_post_data = '';
+            while (!feof($handle)) {
+                $raw_post_data .= fread($handle, 8192);
+            }
+            fclose($handle);
+            if (empty($raw_post_data)) {
+                $raw_post_data='{}';
+            }
+            
+            error_log($raw_post_data);
+            $ad = json_decode($raw_post_data, TRUE);
+
             $direct_publish = filter_input(INPUT_POST, 'pub', FILTER_VALIDATE_INT) + 0;                    
             $ad_id = filter_input(INPUT_POST, 'adid', FILTER_VALIDATE_INT) + 0;
             $device_lang = filter_input(INPUT_GET, 'hl');
@@ -3061,10 +3075,9 @@ class MobileApi {
             }
             
             $state = 0;
-            error_log(filter_input(INPUT_POST, 'ad', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']]));
-            $ad = json_decode(urldecode(filter_input(INPUT_POST, 'ad', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']])), true);
+            //$ad = json_decode(urldecode(filter_input(INPUT_POST, 'ad', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']])), true);
                     
-            error_log(\json_encode($ad));
+            //error_log(\json_encode($ad));
             $userState = 0;                    
             $hasFailure = 0;
             $hasMajorFailure = 0;
@@ -3106,10 +3119,9 @@ class MobileApi {
                             $phoneInfo['i']=$this->mobileValidator->getRegionCodeForNumber($num);
                         }
                         $ad['cui']['p'][$i]=$phoneInfo;
-                        //error_log(json_encode($phoneInfo));
                     }                    
                 }
-                error_log(\json_encode($ad));
+                //error_log(\json_encode($ad));
                 
                 include_once $this->config['dir'] . '/core/lib/MCSaveHandler.php';                
                 $normalizer = new MCSaveHandler($this->config);
@@ -3132,6 +3144,8 @@ class MobileApi {
                 $ad['rtl'] = ($this->isRTL($ad['other'])) ? 1 : 0;
                         
                 if (isset($ad['altother']) && $ad['altother']) {
+                    error_log($ad['altother']);
+                    $ad['extra']['t']=1;
                     $ad['altRtl'] = ($this->isRTL($ad['altother'])) ? 1 : 0;
 
                     if ($ad['rtl'] == $ad['altRtl']) {
@@ -3217,14 +3231,9 @@ class MobileApi {
                     break;
                 }
                         
-                if($city_id) {
-                    $country_id=$cities[$city_id][4];
-                }
+                if($city_id) { $country_id=$cities[$city_id][4]; }
                         
-                
-                
-                
-                
+                                                             
                 $isSCAM = 0;
                 if (isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0) {
                     $blockedEmailPatterns = addcslashes(implode('|', $this->config['restricted_email_domains']),'.');
@@ -3571,6 +3580,9 @@ class MobileApi {
             unset($stmt);
         }
     }
+    
+    
+    
     
 }
 
