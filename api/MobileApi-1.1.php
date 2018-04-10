@@ -648,6 +648,14 @@ class MobileApi {
     }
 
 
+    function adPostingPreferences() {
+        include_once $this->config['dir'].'/core/lib/MCPostPreferences.php';
+        $pref = new MCPostPreferences();
+        $pref->setup();
+        $this->result['d']=$pref;
+    }
+    
+    
     function reloadIndex() {
         include_once $this->config['dir'] . '/core/lib/SphinxQL.php'; 
         $sphinx = new SphinxQL($this->config['sphinxql'], $this->config['search_index']);

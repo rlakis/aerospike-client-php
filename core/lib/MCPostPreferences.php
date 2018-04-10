@@ -314,72 +314,134 @@ const RK                            = 'roots';
 const SK                            = 'sections';
 const LOCL                          = 'l';
 const INTL                          = 'i';
+
 const PRPS                          = 'p';
 const CN                            = 'cn';
 const CT                            = 'cc';
 
-class MCPostPreferences {
-    private $version = 1;
-    private $preferences = [];
+const SOURCE                        = 'src';
+const DESTINATION                   = 'dst';
+const MOVED                         = 'mv';
+const BLOCKED                       = 'blk';
+
+// allow, then deny
+
+class MCPostPreferences implements \JsonSerializable {
+    private $version = ['major'=>1, 'minor'=>0];
+
+    private $properties;
+    private $cars;
+    private $jobs;
+    private $services;
+    private $items;
     
-    private function setup() {
-        $this->preferences[RK] = [];
-        $this->preferences[SK] = [];
-        
-        $real_estate_filter = MCFilter::newInstance()->setIncluded()->addPurposes([P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN]);
-        
-        $villa_filter = MCFilter::newInstance()->setBlocked()->setMovedTo(SR_VILLAS_AND_HOUSES);
-        
-        $this->preferences[SK][SR_INTERNATIONAL_REALESTATE] = [PRPS=>[P_FOR_SALE]];
-        $jobs_filter = MCFilter::newInstance()->setIncluded()->addPurposes([P_VACANCIES, P_SEEKING_WORK, P_OFFERED_SERVICES]);
-        
-        
-        
-        
-        $this->preferences[1] = [[],[]];
+    
+    public function jsonSerialize() {
+        return get_object_vars($this);
+    }
+
+    
+    public function getVersion() : int {
+        return ($this->version['major'] << 32) | ($this->version['minor'] & 0xFFFFFFF);
+      
     }
     
-    private function initArray() {
-        return [PRPS=>[], LOCL=>[], INTL=>[]];
+    
+    public function setup() {        
+        $this->properties = MCPreference::newInstance(R_PROPERTIES);
+        $this->properties->allow()->addPurposes([P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN])->setSource(MCRegionType::City)->setDestination(MCRegionType::City);
+        $this->properties->allow()->addCountries([CN_LEBANON])->setSource(MCRegionType::International);
+        $this->properties->deny()->addPurposes([P_OFFERED_SERVICES, P_SEEKING_WORK, P_VACANCIES, P_VARIOUS]);
+        
+        $prop = $this->properties->addSection(SR_VILLAS)->deny()->setMovedTo(SR_VILLAS_AND_HOUSES);
+        
+        $prop = $this->properties->addSection(SR_INTERNATIONAL_REALESTATE);        
+        $prop->deny()->addPurposes([P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN]);
+        $prop->allow()->setSource(MCRegionType::International)->setDestination(MCRegionType::International);
+        
+        $prop = $this->properties->addSection(SR_TRADITIONAL_HOUSE);
+        $prop->deny()->addCountries([CN_LEBANON])->setMovedTo(SR_VILLAS_AND_HOUSES);
+        
+        
+        $this->cars = MCPreference::newInstance(R_AUTOMOTIVES);
+        $this->cars->allow()->addPurposes([P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN])->setSource(MCRegionType::City)->setDestination(MCRegionType::City);
+        //$this->cars->allow()->addCountries([CN_LEBANON])->setSource(MCRegionType::International);
+        $this->cars->deny()->addPurposes([P_OFFERED_SERVICES, P_SEEKING_WORK, P_VACANCIES, P_VARIOUS]);
+        
+        
+        $this->jobs = MCPreference::newInstance(R_JOBS);
+        $this->jobs->deny()->addPurposes([P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN, P_VARIOUS]);
+        $this->jobs->allow()->addPurposes([P_OFFERED_SERVICES, P_VACANCIES])->setSource(MCRegionType::Country)->setDestination(MCRegionType::Country);
+        $this->jobs->allow()->addPurposes([P_SEEKING_WORK])->setSource(MCRegionType::International)->setDestination(MCRegionType::International);
+
+        $job = $this->jobs->addSection(SJ_TECHNICIANS);        
+        $job->deny()->addPurpose(P_OFFERED_SERVICES)->setMovedTo(SS_GENERAL_SERVICES);
+        
+        $job = $this->jobs->addSection(SJ_ACCOUNTING);
+        $job->deny()->addPurpose(P_OFFERED_SERVICES)->setMovedTo(SS_TAX_MONEY_SERVICES);
+        
+        $job = $this->jobs->addSection(SJ_DRIVERS);
+        $job->deny()->addPurpose(P_OFFERED_SERVICES)->setMovedTo(SS_TAXI);
+        
+        
+        $this->services = MCPreference::newInstance(R_SERVICES);
+        $this->items = MCPreference::newInstance(R_CLASSIFIEDS);
+        
     }
+    
 }
 
 
-class MCFilter {
-    private $excluded;
-    private $country;
-    private $city;
-    private $purposes;
-    private $moveTo;
-    private $blocked;
+abstract class MCRegionType {
+    const City          = 0;
+    const Country       = 1;
+    const International = 2;
+}
+
+
+class MCFilter implements \JsonSerializable {
+    private $constraints = [];
     
     private function __construct() {
-        $this->moveTo = 0;
-        $this->blocked = 0;
-        $this->purposes = [];
+    }
+    
+    public function jsonSerialize() {
+        return get_object_vars($this);
     }
     
     public static function newInstance() : MCFilter {
         $instance = new MCFilter();
         return $instance;
     }
+
     
-    public function setExcluded() : MCFilter {
-        $this->excluded = 1; 
+    public function setSource(int $regionType) : MCFilter {
+        $this->constraints[SOURCE] = $regionType;
         return $this;
     }
     
-    public function setIncluded() : MCFilter {
-        $this->excluded = 0;
+    
+    public function setDestination(int $regionType) : MCFilter {
+        $this->constraints[DESTINATION] = $regionType;
         return $this;
     }
+    
+    
+    private function addValue(string $tag, int $value) {
+        if (!isset($this->constraints[$tag])) {
+            $this->constraints[$tag] = [];
+        }
+        if (!in_array($value, $this->constraints[$tag])) {
+            $this->constraints[$tag][] = $value;
+        }
+    }
+    
     
     public function addPurpose(int $purposeId) : MCFilter {
-        if (!in_array($purposeId, $this->purposes)) {
-            $this->purposes[] = $purposeId;
-        }
+        $this->addValue(PRPS, $purposeId);
         return $this;
     }
+    
     
     public function addPurposes(array $purposes) : MCFilter {
         foreach ($purposes as $value) {
@@ -388,24 +450,104 @@ class MCFilter {
         return $this;
     }
     
-    public function setBlocked() : MCFilter {
-        $this->blocked=1;
+
+    public function addCountry(int $countryId) : MCFilter {
+        $this->addValue(CN, $countryId);
         return $this;
     }
     
-    public function setMovedTo(int $value) {
-        $this->moveTo = $value;
+    
+    public function addCountries(array $countries) : MCFilter {
+        foreach ($countries as $value) {
+            $this->addCountry($value);
+        }
         return $this;
+    }
+
+    public function addCity(int $cityId) : MCFilter {
+        $this->addValue(CT, $cityId);
+        return $this;
+    }
+    
+    
+    public function addCities(array $cities) : MCFilter {
+        foreach ($cities as $value) {
+            $this->addCity($value);
+        }
+        return $this;
+    }
+    
+    
+    public function setBlocked() : MCFilter {
+        $this->constraints[BLOCKED]=1;
+        return $this;
+    }
+   
+    
+    public function setMovedTo(int $value) {
+        $this->constraints[MOVED] = $value;
+        return $this;
+    }
+    
+   
+    public function dump() {
+        echo json_encode($this), "\n";
     }
  }
 
 
-class MCPreference {
-    private $allowed;
-    private $filters = [];
+ class MCList implements \JsonSerializable {
+    private $list = [];
+    public function jsonSerialize() {
+        return get_object_vars($this);
+    }
+ }
+ 
+ 
+class MCPreference implements \JsonSerializable {
+    private $id;
+    private $allow = [];
+    private $deny = [];
+    private $sections = [];
     
-    public static function newInstance() : MCPreference {
-        $instance = new MCPreference();
+    public function jsonSerialize() {
+        return get_object_vars($this);
+    }
+    
+    
+    public static function newInstance(int $id) : MCPreference {
+        $instance = new MCPreference();       
+        $instance->id = $id;
         return $instance;
     }
+    
+    
+    public function addSection(int $sectionId) : MCPreference {
+        $section = MCPreference::newInstance($sectionId);
+        unset($section->sections);
+        $this->sections[$sectionId+0]=$section;
+        return $section;
+    }
+    
+    
+    public function allow() : MCFilter {
+        $filter = MCFilter::newInstance();        
+        $this->allow[] = $filter;
+        return $filter;
+    }
+
+
+    public function deny() : MCFilter {
+        $filter = MCFilter::newInstance();
+        $this->deny[] = $filter;
+        return $filter;
+    }
+
+}
+
+
+if (php_sapi_name()=='cli') {
+    $preferences = new MCPostPreferences();
+    $preferences->setup();
+    echo json_encode($preferences, JSON_PRETTY_PRINT), "\n\n";
 }
