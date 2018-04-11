@@ -349,25 +349,51 @@ class MCPostPreferences implements \JsonSerializable {
     
     public function setup() {        
         $this->properties = MCPreference::newInstance(R_PROPERTIES);
-        $this->properties->allow()->addPurposes([P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN])->setSource(MCRegionType::City)->setDestination(MCRegionType::City);
+        $this->properties->allow()->addPurposes([P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN])->setSource(MCRegionType::Country)->setDestination(MCRegionType::Single);
         $this->properties->allow()->addCountries([CN_LEBANON])->setSource(MCRegionType::International);
         $this->properties->deny()->addPurposes([P_OFFERED_SERVICES, P_SEEKING_WORK, P_VACANCIES, P_VARIOUS]);
         
-        $prop = $this->properties->addSection(SR_VILLAS)->deny()->setMovedTo(SR_VILLAS_AND_HOUSES);
+        $this->properties->addSection(SR_APARTMENTS);
+        $this->properties->addSection(SR_BUILDINGS);
+        $this->properties->addSection(SR_CAMPS)->deny()->addCountries([CN_LEBANON]);
+        $this->properties->addSection(SR_CHALETS);
+        $this->properties->addSection(SR_COMMERCIAL_BUILDING);
+        $this->properties->addSection(SR_FACTORIES);
+        $this->properties->addSection(SR_FARMS);
+        $this->properties->addSection(SR_FURNISHED_APARTMENTS);
+        $this->properties->addSection(SR_HALLS);
+        $this->properties->addSection(SR_HOTELS_RESORTS);
+        $this->properties->addSection(SR_HOUSES)->deny()->setMovedTo(SR_VILLAS_AND_HOUSES);
+        //$prop = $this->properties->addSection(SR_INTERNATIONAL_REALESTATE);        
+        //$prop->deny()->addPurposes([P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN]);
+        //$prop->allow()->setSource(MCRegionType::International)->setDestination(MCRegionType::International);
         
-        $prop = $this->properties->addSection(SR_INTERNATIONAL_REALESTATE);        
-        $prop->deny()->addPurposes([P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN]);
-        $prop->allow()->setSource(MCRegionType::International)->setDestination(MCRegionType::International);
+        $this->properties->section(SR_INTERNATIONAL_REALESTATE)->deny()->addPurposes([P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN]);
+        $this->properties->section(SR_INTERNATIONAL_REALESTATE)->allow()->setSource(MCRegionType::International)->setDestination(MCRegionType::International);
         
+        $this->properties->addSection(SR_LABOR_ACCOMMODATION)->deny()->addCountries([CN_LEBANON]);
+        $this->properties->addSection(SR_LANDS);
+        $this->properties->addSection(SR_MISCELLANEOUS);
+        $this->properties->addSection(SR_OFFICES);
+        $this->properties->addSection(SR_RESTAURANTS_COFFEE_SHOPS);
+        $this->properties->addSection(SR_SHARING)->deny()->addPurposes([P_FOR_SALE, P_ASK_BUY, P_TRADE_IN]);        
+        $this->properties->addSection(SR_SHOPS);
         $prop = $this->properties->addSection(SR_TRADITIONAL_HOUSE);
         $prop->deny()->addCountries([CN_LEBANON])->setMovedTo(SR_VILLAS_AND_HOUSES);
+        $this->properties->addSection(SR_UNDER_CONSTRUCTION)->deny()->addPurposes([P_RENTAL, P_ASK_RENT, P_TRADE_IN]);        
+        $this->properties->addSection(SR_VILLAS)->deny()->setMovedTo(SR_VILLAS_AND_HOUSES);        
+        $this->properties->addSection(SR_VILLAS_AND_HOUSES);
+        $this->properties->addSection(SR_WAREHOUSES);        
+        
+        $this->properties->appendToTail(SR_INTERNATIONAL_REALESTATE)->appendToTail(SR_MISCELLANEOUS);        
         
         
         $this->cars = MCPreference::newInstance(R_AUTOMOTIVES);
-        $this->cars->allow()->addPurposes([P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN])->setSource(MCRegionType::City)->setDestination(MCRegionType::City);
-        //$this->cars->allow()->addCountries([CN_LEBANON])->setSource(MCRegionType::International);
+        $this->cars->allow()->addPurposes([P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN])->setSource(MCRegionType::Country)->setDestination(MCRegionType::Single);
         $this->cars->deny()->addPurposes([P_OFFERED_SERVICES, P_SEEKING_WORK, P_VACANCIES, P_VARIOUS]);
-        
+        $car = $this->cars->addSection(SC_IMPORT_CARS);        
+        $car->deny()->addPurposes([P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN]);
+        $car->allow()->setSource(MCRegionType::International)->setDestination(MCRegionType::International);
         
         $this->jobs = MCPreference::newInstance(R_JOBS);
         $this->jobs->deny()->addPurposes([P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN, P_VARIOUS]);
@@ -393,7 +419,7 @@ class MCPostPreferences implements \JsonSerializable {
 
 
 abstract class MCRegionType {
-    const City          = 0;
+    const Single        = 0;
     const Country       = 1;
     const International = 2;
 }
@@ -509,6 +535,7 @@ class MCPreference implements \JsonSerializable {
     private $allow = [];
     private $deny = [];
     private $sections = [];
+    private $tail = [];
     
     public function jsonSerialize() {
         return get_object_vars($this);
@@ -525,8 +552,21 @@ class MCPreference implements \JsonSerializable {
     public function addSection(int $sectionId) : MCPreference {
         $section = MCPreference::newInstance($sectionId);
         unset($section->sections);
-        $this->sections[$sectionId+0]=$section;
+        unset($section->tail);
+        $this->sections[$sectionId]=$section;
         return $section;
+    }
+    
+    public function section(int $sectionId) : MCPreference {
+        if (!isset($this->sections[$sectionId])) {
+            return $this->addSection($sectionId);
+        }
+        return $this->sections[$sectionId];
+    }
+    
+    public function appendToTail(int $sectionId) : MCPreference {
+        $this->tail[] = $sectionId;
+        return $this;
     }
     
     

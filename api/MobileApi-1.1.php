@@ -1238,6 +1238,16 @@ class MobileApi {
             $this->result['d']['upload'] = 'https://www.mourjan.com';
             $this->result['d']['detail_ad_unit'] = 'ca-app-pub-2427907534283641/4303349312';
             $this->result['d']['listing_ad_unit'] = 'ca-app-pub-2427907534283641/8260964224';
+            
+            
+            if ($this->user->getMobile()->getNumber()) {
+                $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
+                $num = $this->mobileValidator->parse("+{$this->user->getMobile()->getNumber()}", 'LB');
+                //$this->result['d']['mcc'] = $num->getCountryCode();
+                $this->result['d']['amcc'] = $this->mobileValidator->getRegionCodeForNumber($num);
+            }
+            
+            
         }
         
         
