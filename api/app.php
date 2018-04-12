@@ -44,6 +44,7 @@ const API_USER_HOLD_AD                          = 34;
 const API_MAKE_TOP_AD                           = 35;
 const API_USER_DELETE_AD                        = 36;
 const API_STOP_TOP_AD                           = 37;
+const API_USER_POST_AD                          = 38;
 
 const API_IOS_PRODUCTS                          = 40;
 const API_IOS_PURCHASE                          = 41;
@@ -100,6 +101,7 @@ const API_ANDROID_USER_MAKE_CALL                = 86;
 const API_ANDROID_USER_RECEIVE_CALL             = 87;
 
 const API_RELOAD_INDEX                          = 990;
+const API_POST_PREFERENCES                      = 991;
 const API_DB_EVENT                              = 998;
 const API_LOG                                   = 999;
 
@@ -267,6 +269,10 @@ if (!$api->hasError())
             $api->userRenewAd();
             break;
         
+        case API_USER_POST_AD:
+            $api->userPostAd();
+            break;
+        
         case API_REVERSE_GEO_IP:
             $api->getCountryIsoByIp();
             break;
@@ -360,6 +366,10 @@ if (!$api->hasError())
         
         case API_LOGIN_AS_MOBILE:
             $api->signInAsMobile();
+            break;
+        
+        case API_POST_PREFERENCES:
+            $api->adPostingPreferences();
             break;
         
         case API_RELOAD_INDEX:
