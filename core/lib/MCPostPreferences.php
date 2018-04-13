@@ -328,7 +328,7 @@ const BLOCKED                       = 'blk';
 // allow, then deny
 
 class MCPostPreferences implements \JsonSerializable {
-    private $version = ['major'=>1, 'minor'=>0];
+    private $version = [ 'major'=>1, 'minor'=>2 ];
 
     private $properties;
     private $cars;
@@ -354,46 +354,46 @@ class MCPostPreferences implements \JsonSerializable {
         
         $this->properties = MCPreference::newInstance(R_PROPERTIES)->publishLevel(MCPublishLevel::City, [P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN]);
         
-        $this->properties->allow()->addPurposes([P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN])->setSource(MCRegionType::Local);
+        $this->properties->allow()->purposes([P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN])->setSource(MCRegionType::Local);
         
-        $this->properties->allow()->addCountries([CN_LEBANON])->setSource(MCRegionType::International);
-        $this->properties->deny()->addPurposes([P_OFFERED_SERVICES, P_SEEKING_WORK, P_VACANCIES, P_VARIOUS]);
+        $this->properties->allow()->countries([CN_LEBANON])->setSource(MCRegionType::International);
+        $this->properties->deny()->purposes([P_OFFERED_SERVICES, P_SEEKING_WORK, P_VACANCIES, P_VARIOUS]);
         
-        $this->properties->addSection(SR_APARTMENTS);
-        $this->properties->addSection(SR_BUILDINGS);
-        $this->properties->addSection(SR_CAMPS)->deny()->addCountries([CN_LEBANON]);
-        $this->properties->addSection(SR_CHALETS);
-        $this->properties->addSection(SR_COMMERCIAL_BUILDING);
-        $this->properties->addSection(SR_FACTORIES);
-        $this->properties->addSection(SR_FARMS);
-        $this->properties->addSection(SR_FURNISHED_APARTMENTS);
-        $this->properties->addSection(SR_HALLS);
-        $this->properties->addSection(SR_HOTELS_RESORTS);
-        $this->properties->addSection(SR_HOUSES)->deny()->setMovedTo(SR_VILLAS_AND_HOUSES);
+        $this->properties->section(SR_APARTMENTS);
+        $this->properties->section(SR_BUILDINGS);
+        $this->properties->section(SR_CAMPS)->deny()->countries([CN_LEBANON]);
+        $this->properties->section(SR_CHALETS);
+        $this->properties->section(SR_COMMERCIAL_BUILDING);
+        $this->properties->section(SR_FACTORIES);
+        $this->properties->section(SR_FARMS);
+        $this->properties->section(SR_FURNISHED_APARTMENTS);
+        $this->properties->section(SR_HALLS);
+        $this->properties->section(SR_HOTELS_RESORTS);
+        $this->properties->section(SR_HOUSES)->deny()->movedTo(SR_VILLAS_AND_HOUSES);
         
-        $this->properties->section(SR_INTERNATIONAL_REALESTATE)->deny()->addPurposes([P_ASK_RENT, P_ASK_BUY, P_TRADE_IN]);
+        $this->properties->section(SR_INTERNATIONAL_REALESTATE)->deny()->purposes([P_ASK_RENT, P_ASK_BUY, P_TRADE_IN]);
         $this->properties->section(SR_INTERNATIONAL_REALESTATE)->allow()->setSource(MCRegionType::International);
         $this->properties->section(SR_INTERNATIONAL_REALESTATE)->publishLevel(MCPublishLevel::Internationl, [P_FOR_SALE, P_RENTAL]);
                 
-        $this->properties->addSection(SR_LABOR_ACCOMMODATION)->deny()->addCountries([CN_LEBANON]);
-        $this->properties->addSection(SR_LANDS);
-        $this->properties->addSection(SR_MISCELLANEOUS);
-        $this->properties->addSection(SR_OFFICES);
-        $this->properties->addSection(SR_RESTAURANTS_COFFEE_SHOPS);
-        $this->properties->addSection(SR_SHARING)->deny()->addPurposes([P_FOR_SALE, P_ASK_BUY, P_TRADE_IN]);        
-        $this->properties->addSection(SR_SHOPS);
-        $this->properties->addSection(SR_TRADITIONAL_HOUSE)->deny()->addCountries([CN_LEBANON])->setMovedTo(SR_VILLAS_AND_HOUSES);
-        $this->properties->addSection(SR_UNDER_CONSTRUCTION)->deny()->addPurposes([P_RENTAL, P_ASK_RENT, P_TRADE_IN]);        
-        $this->properties->addSection(SR_VILLAS)->deny()->setMovedTo(SR_VILLAS_AND_HOUSES);        
-        $this->properties->addSection(SR_VILLAS_AND_HOUSES);
-        $this->properties->addSection(SR_WAREHOUSES);        
+        $this->properties->section(SR_LABOR_ACCOMMODATION)->deny()->countries([CN_LEBANON]);
+        $this->properties->section(SR_LANDS);
+        $this->properties->section(SR_MISCELLANEOUS);
+        $this->properties->section(SR_OFFICES);
+        $this->properties->section(SR_RESTAURANTS_COFFEE_SHOPS);
+        $this->properties->section(SR_SHARING)->deny()->purposes([P_FOR_SALE, P_ASK_BUY, P_TRADE_IN]);        
+        $this->properties->section(SR_SHOPS);
+        $this->properties->section(SR_TRADITIONAL_HOUSE)->deny()->countries([CN_LEBANON])->movedTo(SR_VILLAS_AND_HOUSES);
+        $this->properties->section(SR_UNDER_CONSTRUCTION)->deny()->purposes([P_RENTAL, P_ASK_RENT, P_TRADE_IN]);        
+        $this->properties->section(SR_VILLAS)->deny()->movedTo(SR_VILLAS_AND_HOUSES);        
+        $this->properties->section(SR_VILLAS_AND_HOUSES);
+        $this->properties->section(SR_WAREHOUSES);        
         
         $this->properties->appendToTail(SR_INTERNATIONAL_REALESTATE)->appendToTail(SR_MISCELLANEOUS);        
         
         
-        $this->cars = MCPreference::newInstance(R_AUTOMOTIVES)->publishLevel(MCPublishLevel::City);
-        $this->cars->allow()->addPurposes([P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN])->setSource(MCRegionType::Local);
-        $this->cars->deny()->addPurposes([P_OFFERED_SERVICES, P_SEEKING_WORK, P_VACANCIES, P_VARIOUS]);
+        $this->cars = MCPreference::newInstance(R_AUTOMOTIVES)->publishLevel(MCPublishLevel::City, [P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN]);
+        $this->cars->allow()->purposes([P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN])->setSource(MCRegionType::Local);
+        $this->cars->deny()->purposes([P_OFFERED_SERVICES, P_SEEKING_WORK, P_VACANCIES, P_VARIOUS]);
 
         $this->cars->section(SC_ALFA_ROMEO);
         $this->cars->section(SC_ASIA);
@@ -425,7 +425,7 @@ class MCPostPreferences implements \JsonSerializable {
         $this->cars->section(SC_HYUNDAY);
         $this->cars->section(SC_IMPORT_CARS)->publishLevel(MCPublishLevel::Internationl, [P_FOR_SALE]);
         $this->cars->section(SC_IMPORT_CARS)->allow()->setSource(MCRegionType::International);
-        $this->cars->section(SC_IMPORT_CARS)->deny()->addPurposes([P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN]);
+        $this->cars->section(SC_IMPORT_CARS)->deny()->purposes([P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN]);
         $this->cars->section(SC_INFINITY);
         $this->cars->section(SC_ISUZU);
         $this->cars->section(SC_JAC);
@@ -479,25 +479,25 @@ class MCPostPreferences implements \JsonSerializable {
         
         
         $this->jobs = MCPreference::newInstance(R_JOBS)->publishLevel(MCPublishLevel::Country, [P_OFFERED_SERVICES, P_VACANCIES])->publishLevel(MCPublishLevel::Internationl, [P_SEEKING_WORK]);        
-        $this->jobs->deny()->addPurposes([P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN, P_VARIOUS]);
-        $this->jobs->allow()->addPurposes([P_OFFERED_SERVICES, P_VACANCIES])->setSource(MCRegionType::Local);
-        $this->jobs->allow()->addPurposes([P_SEEKING_WORK])->setSource(MCRegionType::International);
+        $this->jobs->deny()->purposes([P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN, P_VARIOUS]);
+        $this->jobs->allow()->purposes([P_OFFERED_SERVICES, P_VACANCIES])->setSource(MCRegionType::Local);
+        $this->jobs->allow()->purposes([P_SEEKING_WORK])->setSource(MCRegionType::International);
 
-        $this->jobs->section(SJ_TECHNICIANS)->deny()->addPurpose(P_OFFERED_SERVICES)->setMovedTo(SS_GENERAL_SERVICES);        
-        $this->jobs->section(SJ_ACCOUNTING)->deny()->addPurpose(P_OFFERED_SERVICES)->setMovedTo(SS_TAX_MONEY_SERVICES);        
-        $this->jobs->section(SJ_ADMINISTRATION)->deny()->addPurpose(P_OFFERED_SERVICES)->setMovedTo(SS_PROFESSIONAL_SERVICES);        
+        $this->jobs->section(SJ_TECHNICIANS)->deny()->purpose(P_OFFERED_SERVICES)->movedTo(SS_GENERAL_SERVICES);        
+        $this->jobs->section(SJ_ACCOUNTING)->deny()->purpose(P_OFFERED_SERVICES)->movedTo(SS_TAX_MONEY_SERVICES);        
+        $this->jobs->section(SJ_ADMINISTRATION)->deny()->purpose(P_OFFERED_SERVICES)->movedTo(SS_PROFESSIONAL_SERVICES);        
         $this->jobs->section(SJ_AUDIO_VISUAL);        
         $this->jobs->section(SJ_BEAUTY_CARE);        
         $this->jobs->section(SJ_CHILD_CARE);        
-        $this->jobs->section(SJ_CLEANING_WORKERS)->deny()->addPurpose(P_OFFERED_SERVICES)->setMovedTo(SS_CLEANING_SERVICES);
-        $this->jobs->section(SJ_CONSTRUCTION)->deny()->addPurpose(P_OFFERED_SERVICES)->setMovedTo(SS_CONTRACTING);
+        $this->jobs->section(SJ_CLEANING_WORKERS)->deny()->purpose(P_OFFERED_SERVICES)->movedTo(SS_CLEANING_SERVICES);
+        $this->jobs->section(SJ_CONSTRUCTION)->deny()->purpose(P_OFFERED_SERVICES)->movedTo(SS_CONTRACTING);
         $this->jobs->section(SJ_CRAFTSMEN);        
         $this->jobs->section(SJ_CUSTOMER_SERVICE);        
         $this->jobs->section(SJ_DATA_ENTRY);
-        $this->jobs->section(SJ_DELIVERY)->deny()->addPurpose(P_OFFERED_SERVICES)->setMovedTo(SS_TAX_MONEY_SERVICES);    
+        $this->jobs->section(SJ_DELIVERY)->deny()->purpose(P_OFFERED_SERVICES)->movedTo(SS_TAX_MONEY_SERVICES);    
         $this->jobs->section(SJ_DESIGNER);
         $this->jobs->section(SJ_DIFFER_JOBS);
-        $this->jobs->section(SJ_DRIVERS)->deny()->addPurpose(P_OFFERED_SERVICES)->setMovedTo(SS_TAXI);
+        $this->jobs->section(SJ_DRIVERS)->deny()->purpose(P_OFFERED_SERVICES)->movedTo(SS_TAXI);
         $this->jobs->section(SJ_EDITORIAL);
         $this->jobs->section(SJ_EMPLOYEE);
         $this->jobs->section(SJ_ENGINEERING);
@@ -518,7 +518,7 @@ class MCPostPreferences implements \JsonSerializable {
         $this->jobs->section(SJ_SALES_AND_MARKETING);
         $this->jobs->section(SJ_SECRETERIAL);
         $this->jobs->section(SJ_TAILORS);
-        $this->jobs->section(SJ_TEACHING)->deny()->addPurpose(P_OFFERED_SERVICES)->setMovedTo(SS_TUITION_SERVICES);
+        $this->jobs->section(SJ_TEACHING)->deny()->purpose(P_OFFERED_SERVICES)->movedTo(SS_TUITION_SERVICES);
         $this->jobs->section(SJ_TECHNICIANS);
         $this->jobs->section(SJ_TICKETING);
         $this->jobs->section(SJ_TOURIST_AND_RESTAURANTS);
@@ -529,8 +529,101 @@ class MCPostPreferences implements \JsonSerializable {
         
                 
         $this->services = MCPreference::newInstance(R_SERVICES)->publishLevel(MCPublishLevel::Country, [P_OFFERED_SERVICES]);
+        $this->services->allow()->purposes([P_OFFERED_SERVICES])->setSource(MCRegionType::Local);
+        $this->services->deny()->purposes([ P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN, P_SEEKING_WORK, P_VACANCIES, P_VARIOUS]);
         
-        $this->items = MCPreference::newInstance(R_CLASSIFIEDS)->publishLevel(MCPublishLevel::City, [P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN]);   
+        $this->services->section(SS_HEALTH_BEAUTY);
+        $this->services->section(SS_AGRICULTURAL_SERVICES);
+        $this->services->section(SS_BUILDING_HOME_SERVICES);
+        $this->services->section(SS_BUSINESS_INVESTMENT);
+        $this->services->section(SS_CAR_RENTAL);
+        $this->services->section(SS_CAR_SERVICE);
+        $this->services->section(SS_CLEANING_SERVICES);
+        $this->services->section(SS_COMPUTER_SERVICES);
+        $this->services->section(SS_CONTRACTING);
+        $this->services->section(SS_DREAM_INTERPRETATION);
+        $this->services->section(SS_ENTERTAINMENT);
+        $this->services->section(SS_EVENTS_PLANNING);
+        $this->services->section(SS_FORMALITIES_SERVICES);
+        $this->services->section(SS_GENERAL_SERVICES);
+        $this->services->section(SS_HOMEMADE_COOKING);
+        $this->services->section(SS_HUMAN_RESOURCES_SERVICES);
+        $this->services->section(SS_HUMANITARIAN_AID);
+        $this->services->section(SS_INTERNET);
+        $this->services->section(SS_LABOR_RECRUITMENT);
+        $this->services->section(SS_LAW_SERVICES);
+        $this->services->section(SS_LOAN_SERVICES);
+        $this->services->section(SS_LOST_FOUND);
+        $this->services->section(SS_MAINTENANCE_SERVICES);
+        $this->services->section(SS_MARKETING_SERVICE);
+        $this->services->section(SS_MARRIAGE);
+        $this->services->section(SS_PEST_CONTROL);
+        $this->services->section(SS_PRIVATE_LESSONS);
+        $this->services->section(SS_PROFESSIONAL_SERVICES);
+        $this->services->section(SS_PROPERTIES_SERVICES);
+        $this->services->section(SS_PROPERTY_SERVICES);
+        $this->services->section(SS_REMOVAL_SERVICES);
+        $this->services->section(SS_SECURITY_SERVICES);
+        $this->services->section(SS_SHIPPING_SERVICES);
+        $this->services->section(SS_TAX_MONEY_SERVICES);
+        $this->services->section(SS_TAXI);
+        $this->services->section(SS_TELECOM_SERVICES);
+        $this->services->section(SS_TRANSLATION);
+        $this->services->section(SS_TRAVEL_SERVICES)->publishLevel(MCPublishLevel::Internationl, [P_OFFERED_SERVICES]);
+        $this->services->section(SS_TUITION_SERVICES);
+        
+        
+        $this->items = MCPreference::newInstance(R_CLASSIFIEDS)->publishLevel(MCPublishLevel::City, [P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN]);
+                
+        $this->items->section(SI_ACCESSORIES);
+        $this->items->section(SI_AGRICULTURE_EQUIPMENT);
+        $this->items->section(SI_ANIMALS_AND_PETS)->deny()->purposes([P_RENTAL, P_ASK_RENT]);
+        $this->items->section(SI_ANTIQUES_COLLECTIBLES)->deny()->purposes([P_RENTAL, P_ASK_RENT]);
+        $this->items->section(SI_BILLBOARDS)->deny()->purposes([P_ASK_RENT, P_ASK_BUY, P_TRADE_IN]);
+        $this->items->section(SI_BOOKS_MAGAZINES)->deny()->purposes([P_RENTAL, P_ASK_RENT]);
+        $this->items->section(SI_BUILDING_MATERIALS);
+        $this->items->section(SI_BUS);
+        $this->items->section(SI_CAMERAS);
+        $this->items->section(SI_CAR_NUMBERS)->deny()->purposes([P_RENTAL, P_ASK_RENT]);
+        $this->items->section(SI_CLOTHES);
+        $this->items->section(SI_COMPUTERS);
+        $this->items->section(SI_COSMETICS)->deny()->purposes([P_RENTAL, P_ASK_RENT]);
+        $this->items->section(SI_ELECTRICITY_GENERATOR);
+        $this->items->section(SI_ELECTRONICS);
+        $this->items->section(SI_EQUIPMENTS);
+        $this->items->section(SI_EVENTS);
+        $this->items->section(SI_FISHING);
+        $this->items->section(SI_FOOD_NUTRITION)->deny()->purposes([P_RENTAL, P_ASK_RENT]);
+        $this->items->section(SI_FRAGRANCES)->deny()->purposes([P_RENTAL, P_ASK_RENT]);
+        $this->items->section(SI_FURNITURE);
+        $this->items->section(SI_GAMES);
+        $this->items->section(SI_HAJJ_AND_OMRA)->deny()->movedTo(SS_GENERAL_SERVICES);
+        $this->items->section(SI_HEALTH_CARE);
+        $this->items->section(SI_HEAVY_DUTY_VEHICLE);
+        $this->items->section(SI_HOME_APPLIANCES)->deny()->purposes([P_RENTAL, P_ASK_RENT]);
+        $this->items->section(SI_HUNTING)->deny()->purposes([P_RENTAL, P_ASK_RENT]);
+        $this->items->section(SI_INDUSTRIAL_EQUIPMENT);
+        $this->items->section(SI_ITEMS);
+        $this->items->section(SI_LICENSES)->deny()->purposes([P_RENTAL, P_ASK_RENT]);
+        $this->items->section(SI_MEDICAL_EQUIPMENT);
+        $this->items->section(SI_MOTORCYLES);
+        $this->items->section(SI_MOTORHOME);
+        $this->items->section(SI_MUSICAL_INSTRUMENTS);
+        $this->items->section(SI_NAUTICAL_EQUIPMENT);
+        $this->items->section(SI_NUMBERS)->deny()->purposes([P_RENTAL, P_ASK_RENT]);
+        $this->items->section(SI_PICK_UPS);
+        $this->items->section(SI_PUBLIC_PLATE);
+        $this->items->section(SI_SECURITY_SYSTEMS);
+        $this->items->section(SI_SMARTPHONE)->deny()->purposes([P_RENTAL, P_ASK_RENT]);
+        $this->items->section(SI_SOFTWARE_SOLUTIONS)->deny()->purposes([P_RENTAL, P_ASK_RENT]);
+        $this->items->section(SI_SPARE_PARTS)->deny()->purposes([P_RENTAL, P_ASK_RENT]);
+        $this->items->section(SI_SPORTS_EQUIPMENT);
+        $this->items->section(SI_UNCLASSIFIED);
+        $this->items->section(SI_WATCHES)->deny()->purposes([P_RENTAL, P_ASK_RENT]);
+        $this->items->section(SI_WHOLESALE_DEALS)->publishLevel(MCPublishLevel::Internationl, [P_FOR_SALE]);
+        $this->items->section(SI_WHOLESALE_DEALS)->deny()->purposes([ P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN]);
+        
+        $this->items->appendToTail(SI_UNCLASSIFIED);
     }
 }
 
@@ -586,33 +679,34 @@ class MCFilter implements \JsonSerializable {
     }
     
     
-    public function addPurpose(int $purposeId) : MCFilter {
+    public function purpose(int $purposeId) : MCFilter {
         $this->addValue(PRPS, $purposeId);
         return $this;
     }
     
     
-    public function addPurposes(array $purposes) : MCFilter {
+    public function purposes(array $purposes) : MCFilter {
         foreach ($purposes as $value) {
-            $this->addPurpose($value);
+            $this->purpose($value);
         }
         return $this;
     }
     
 
-    public function addCountry(int $countryId) : MCFilter {
+    public function country(int $countryId) : MCFilter {
         $this->addValue(CN, $countryId);
         return $this;
     }
     
     
-    public function addCountries(array $countries) : MCFilter {
+    public function countries(array $countries) : MCFilter {
         foreach ($countries as $value) {
-            $this->addCountry($value);
+            $this->country($value);
         }
         return $this;
     }
 
+    
     public function addCity(int $cityId) : MCFilter {
         $this->addValue(CT, $cityId);
         return $this;
@@ -625,15 +719,9 @@ class MCFilter implements \JsonSerializable {
         }
         return $this;
     }
+       
     
-    
-    public function setBlocked() : MCFilter {
-        $this->constraints[BLOCKED]=1;
-        return $this;
-    }
-   
-    
-    public function setMovedTo(int $value) {
+    public function movedTo(int $value) {
         $this->constraints[MOVED] = $value;
         return $this;
     }
@@ -644,13 +732,6 @@ class MCFilter implements \JsonSerializable {
     }
  }
 
-
- class MCList implements \JsonSerializable {
-    private $list = [];
-    public function jsonSerialize() {
-        return get_object_vars($this);
-    }
- }
  
  
 class MCPreference implements \JsonSerializable {
@@ -674,7 +755,7 @@ class MCPreference implements \JsonSerializable {
     }
     
     
-    public function addSection(int $sectionId) : MCPreference {
+    private function addSection(int $sectionId) : MCPreference {
         $section = MCPreference::newInstance($sectionId);
         unset($section->sections);
         unset($section->tail);

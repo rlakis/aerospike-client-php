@@ -651,8 +651,15 @@ class MobileApi {
     function adPostingPreferences() {
         include_once $this->config['dir'].'/core/lib/MCPostPreferences.php';
         $pref = new MCPostPreferences();
-        $pref->setup();
-        $this->result['d']=$pref;
+        $this->result['version']=$pref->getVersion();
+        $dataVersion = filter_input(INPUT_GET, 'version', FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
+        error_log($dataVersion);
+        if ($dataVersion != $pref->getVersion()) {
+            $pref->setup();
+            $this->result['d']=$pref;    
+            return;
+        }
+        $this->result['no-change']=1;        
     }
     
     
