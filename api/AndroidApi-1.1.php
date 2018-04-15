@@ -13,6 +13,115 @@ class AndroidApi
  
     private $api;
     var $mobileValidator=null;
+    
+    
+    function cutOfContacts(&$text) {
+        $phone = '/((?:\+|)(?:[0-9]){7,14})/';
+        $content=null;
+        preg_match('/(?: mobile(?::| \+) | viber(?::| \+) | whatsapp(?::| \+) | phone(?::| \+) | fax(?::| \+) | telefax(?::| \+) | جوال(?::| \+) | موبايل(?::| \+) | واتساب(?::| \+) | فايبر(?::| \+) | هاتف(?::| \+) | فاكس(?::| \+) | تلفاكس(?::| \+) | tel(?:\s|): | call(?:\s|): | ت(?:\s|): | الاتصال | للمفاهمه: | للمفاهمه | ج\/| للمفاهمة: | للاتصال | للاتصال: | ه: )(.*)/ui', $text, $content);
+        
+        if(!($content && count($content))) {
+            preg_match($phone, $text, $content);
+            if(!($content && count($content))) {
+                return $text;
+            }
+        }
+
+        if($content && count($content)) {
+            $strpos = strpos($text, $content[0]);
+            $text = trim(substr($text,0, $strpos));
+            $text = trim(preg_replace('/[-\/\\\]$/', '', $text));        
+        }
+    }
+    
+    function addAdToResultArray($ad, $isFeatured=0, $isPremium=false) {
+        unset($ad[Core\Model\Classifieds::TITLE]);
+        unset($ad[Core\Model\Classifieds::ALT_TITLE]);
+
+        unset($ad[Core\Model\Classifieds::CANONICAL_ID]);
+        unset($ad[Core\Model\Classifieds::CATEGORY_ID]);
+        unset($ad[Core\Model\Classifieds::SECTION_NAME_AR]);
+        unset($ad[Core\Model\Classifieds::SECTION_NAME_EN]);
+        unset($ad[Core\Model\Classifieds::HELD]);
+
+        $emails = $ad[Core\Model\Classifieds::EMAILS];
+       
+        $this->cutOfContacts($ad[Core\Model\Classifieds::CONTENT]);        
+
+        $ad[Core\Model\Classifieds::CONTENT] = strip_tags($ad[Core\Model\Classifieds::CONTENT]);
+
+        if($ad[Core\Model\Classifieds::ALT_CONTENT]!="") {
+            $this->cutOfContacts($ad[Core\Model\Classifieds::ALT_CONTENT]);
+            $ad[Core\Model\Classifieds::ALT_CONTENT] = strip_tags($ad[Core\Model\Classifieds::ALT_CONTENT]);
+        }
+
+        if (!empty($emails)) {
+            $j=0;
+            $email_regex='';
+            foreach ($emails as $email) {
+                if($j++)$email_regex.='|';
+                $email_regex .= addslashes($email);
+            }
+
+            //check if email still exists after stripping phone numbers
+            $strpos = strpos($ad[Core\Model\Classifieds::CONTENT], $email);
+            if($strpos) {
+                $ad[Core\Model\Classifieds::CONTENT] = trim(substr($ad[Core\Model\Classifieds::CONTENT],0, $strpos));
+                $ad[Core\Model\Classifieds::CONTENT] = trim(preg_replace('/[-\/\\\]$/', '', $ad[Core\Model\Classifieds::CONTENT]));
+            }
+
+            if($ad[Core\Model\Classifieds::ALT_CONTENT]!="") {
+                $strpos = strpos($ad[Core\Model\Classifieds::ALT_CONTENT], $email);
+                if($strpos) {
+                    $ad[Core\Model\Classifieds::ALT_CONTENT] = trim(substr($ad[Core\Model\Classifieds::ALT_CONTENT],0, $strpos));
+                    $ad[Core\Model\Classifieds::ALT_CONTENT] = trim(preg_replace('/[-\/\\\]$/', '', $ad[Core\Model\Classifieds::ALT_CONTENT]));
+                }
+            }
+
+        }
+
+        $this->result['d'][] = [
+            $ad[Core\Model\Classifieds::ID],//0
+            $ad[Core\Model\Classifieds::PUBLICATION_ID],//1
+            $ad[Core\Model\Classifieds::COUNTRY_ID],//2
+            $ad[Core\Model\Classifieds::CITY_ID],//3
+            $ad[Core\Model\Classifieds::PURPOSE_ID],//4
+            $ad[Core\Model\Classifieds::ROOT_ID],//5
+            $ad[Core\Model\Classifieds::CONTENT],//6
+            $ad[Core\Model\Classifieds::RTL],//7
+            $ad[Core\Model\Classifieds::DATE_ADDED],//8
+            $ad[Core\Model\Classifieds::SECTION_ID],//9
+            $ad[Core\Model\Classifieds::COUNTRY_CODE],//10
+            $ad[Core\Model\Classifieds::UNIXTIME],//11
+            $ad[Core\Model\Classifieds::EXPIRY_DATE],//12
+            $ad[Core\Model\Classifieds::URI_FORMAT],//13
+            $ad[Core\Model\Classifieds::LAST_UPDATE],//14
+            $ad[Core\Model\Classifieds::LATITUDE],//15
+            $ad[Core\Model\Classifieds::LONGITUDE],//16
+            $ad[Core\Model\Classifieds::ALT_CONTENT],//17
+            $ad[Core\Model\Classifieds::USER_ID],//18
+            isset($ad[Core\Model\Classifieds::PICTURES]) && count($ad[Core\Model\Classifieds::PICTURES]) ? $ad[Core\Model\Classifieds::PICTURES] : "",//19
+            isset($ad[Core\Model\Classifieds::VIDEO]) ? $ad[Core\Model\Classifieds::VIDEO] : "",//20
+            isset($ad[Core\Model\Classifieds::EXTENTED_AR]) ? $ad[Core\Model\Classifieds::EXTENTED_AR] : "",//21
+            isset($ad[Core\Model\Classifieds::EXTENTED_EN]) ? $ad[Core\Model\Classifieds::EXTENTED_EN] : "",//22
+            isset($ad[Core\Model\Classifieds::LOCALITY_ID]) ? $ad[Core\Model\Classifieds::LOCALITY_ID] : 0,//23
+            isset($ad[Core\Model\Classifieds::LOCALITIES_AR]) ? $ad[Core\Model\Classifieds::LOCALITIES_AR] : "",//24
+            isset($ad[Core\Model\Classifieds::LOCALITIES_EN]) ? $ad[Core\Model\Classifieds::LOCALITIES_EN] : "",//25
+            isset($ad[Core\Model\Classifieds::USER_LEVEL]) ? $ad[Core\Model\Classifieds::USER_LEVEL] : 0,//26
+            isset($ad[Core\Model\Classifieds::LOCATION]) ? $ad[Core\Model\Classifieds::LOCATION] : "",//27
+            isset($ad[Core\Model\Classifieds::PICTURES_DIM]) && count($ad[Core\Model\Classifieds::PICTURES_DIM]) ? $ad[Core\Model\Classifieds::PICTURES_DIM] : "",//28
+            $ad[Core\Model\Classifieds::TELEPHONES], //29
+            $ad[Core\Model\Classifieds::EMAILS],//30
+            //featured flag
+            $isFeatured+0,//31
+            isset($ad[Core\Model\Classifieds::CONTACT_INFO]) ? $ad[Core\Model\Classifieds::CONTACT_INFO] : "",//32 (revise for production)
+            isset($ad[Core\Model\Classifieds::CONTACT_TIME]) ? $ad[Core\Model\Classifieds::CONTACT_TIME] : "",//33 (revise for production)
+            isset($ad[Core\Model\Classifieds::PUBLISHER_TYPE]) ? $ad[Core\Model\Classifieds::PUBLISHER_TYPE] : 0,//34
+            $isPremium ? 1:0,//35
+            isset($ad[Core\Model\Classifieds::PRICE]) ? $ad[Core\Model\Classifieds::PRICE] : 0//36
+        ];
+    }
+
 
     function __construct(MobileApi $_api) 
     {
@@ -88,13 +197,26 @@ class AndroidApi
                 if ($status == 1) {
                     //sync favorites
                     $this->api->search(true);
+                    $results = $this->api->db->queryResultArray(
+                        'select f.ad_id from web_users_favs f
+                            left join ad a on a.id = f.ad_id
+                            where f.web_user_id = ? and f.deleted = 0 and a.hold = 0', 
+                            [$this->api->getUID()], true);
+                    if($results && count($results)){
+                        include_once $this->api->config['dir'].'/core/model/Classifieds.php';
+                        $model = new Core\Model\Classifieds($this->api->db);
+                        foreach($results as $result){
+                            $ad = $model->getById($result['AD_ID']+0);
+                            $this->addAdToResultArray($ad, 0);
+                        }
+                    }
                     if(count($this->api->result['d'])){
                         $results = $this->api->result['d'];
                         $this->api->result['d'] = [];
                         $this->api->result['d']['favs'] = $results;
                         $results = null;
                         unset($this->api->result['total']);
-                    }elseif(!$this->api->result['e']){
+                    }else{
                         $this->api->result['d'] = [];
                         $this->api->result['d']['favs']=[];
                         unset($this->api->result['total']);
@@ -437,7 +559,7 @@ class AndroidApi
                             }*/
                         }
                         //if ($succeed) {
-                          //  $this->api->result['d'][] = $id;
+                        //    $this->api->result['d'][] = $id;
                         //}elseif($sphinx->getLastError()==''){
                             $this->api->result['d'][] = $id;
                         //}
@@ -1147,8 +1269,12 @@ class AndroidApi
                 
                 case API_ANDROID_GET_AD:                
                 $this->api->userStatus($status);
-                if ($status == 1) {                  
-                    $ad_id = filter_input(INPUT_POST, 'adid', FILTER_VALIDATE_INT) + 0;
+                if ($status == 1) {      
+                    if(isset($_GET['adid'])){
+                        $ad_id = filter_input(INPUT_GET, 'adid', FILTER_VALIDATE_INT) + 0;
+                    }else{
+                        $ad_id = filter_input(INPUT_POST, 'adid', FILTER_VALIDATE_INT) + 0;
+                    }
                     
                     $result = $this->api->db->queryResultArray(
                             'select a.id, a.content, a.state, a.section_id, a.purpose_id,a.media,DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', a.last_update) last_update,a.doc_id, '
@@ -1201,8 +1327,12 @@ class AndroidApi
                 }
                 break;
                 case API_ANDROID_PUSH_RECEIPT:
-                    $this->api->db->setWriteMode();                    
-                    $id = filter_input(INPUT_POST, 'mid', FILTER_VALIDATE_INT) + 0; 
+                    $this->api->db->setWriteMode(); 
+                    if(isset($_GET['uid'])){
+                        $id = filter_input(INPUT_GET, 'mid', FILTER_VALIDATE_INT) + 0; 
+                    }else{
+                        $id = filter_input(INPUT_POST, 'mid', FILTER_VALIDATE_INT) + 0; 
+                    }
                     if($id){
                         $publishedAd = $this->api->db->queryResultArray(
                             'update push_queue set delivered = 1 where uuid =? and msg_id=?', [$this->api->getUUID(), $id], true
