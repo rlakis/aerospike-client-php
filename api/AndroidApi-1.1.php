@@ -246,6 +246,9 @@ class AndroidApi
                             $content['state']=$result['STATE'];
                             $content['media']=$result['MEDIA'];
                             $content['sys_update']=$result['LAST_UPDATE'];
+                            if($ad['state'] != 0){
+                                $content['sys_update'] = time();
+                            }
                             $content['booked']=$result['BOOKING_END'];
                             $content['book']=$result['BOOKING_START'];
                             $content['featured']=$result['FEATURE_END'];
@@ -253,6 +256,9 @@ class AndroidApi
                                 $content['SYS_CRAWL']=1;
                             }elseif(isset($content['SYS_CRAWL'])){
                                 unset($content['SYS_CRAWL']);
+                            }
+                            if(isset($content['agent'])){
+                                unset($content['agent']);
                             }
                             
                             if(isset($content['userLOC'])){
