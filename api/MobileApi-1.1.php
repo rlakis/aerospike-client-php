@@ -1159,15 +1159,14 @@ class MobileApi {
                     . "left join country on country.id=subs.country_id "
                     . "left join city on city.id=subs.city_id "
                     . "left join section on section.id=subs.section_id "
-                    . "left join section_tag tag_ar on tag_ar.id=subs.section_tag_id and tag_ar.lang='ar' "
                     . "left join section_tag tag_en on tag_en.id=subs.section_tag_id and tag_en.lang='en' "
-                    . "left join geo_tag geo_ar on geo_ar.id=subs.locality_id and geo_ar.lang='ar' "
+                    . "left join section_tag tag_ar on tag_ar.id=tag_en.ALTER_ID and tag_ar.lang='ar' "
                     . "left join geo_tag geo_en on geo_en.id=subs.locality_id and geo_en.lang='en' "
+                    . "left join geo_tag geo_ar on geo_ar.id=geo_en.ALTER_ID and geo_ar.lang='ar' "
                     . "left join purpose on purpose.id=subs.purpose_id "
                     . "where subs.web_user_id=? "
                     . "order by subs.id  ", [$this->uid], TRUE, PDO::FETCH_NUM);
             $this->result['d']=$rs;
-            //var_dump($this->result);
         }
     }
 
@@ -2411,7 +2410,7 @@ class MobileApi {
             
             $lang=filter_input(INPUT_GET, 'dl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
             $rs = $this->db->get("select state id, count(*) ads from AD_USER
-                where web_user_id=? and state in (0,1,2,3,7,9)
+                where web_user_id=? and state in (0,1,2,3,4,7,9)
                 group by 1", [$this->uid], TRUE, \PDO::FETCH_NUM);
 
             foreach ($rs as $row) {
@@ -2421,7 +2420,9 @@ class MobileApi {
                         $name = $lang=='en' ? 'Draft ads' : 'المسودات';
                         break;
                     case 1:
+                    case 4:
                         $name = $lang=='en' ? 'Pending ads' : 'قيد التدقيق';
+                        if ($row[0]==4) { $row[0]=1; }
                         break;
                     case 2:
                         $name = $lang=='en' ? 'Approved ads' : 'موافق عليه';
@@ -2429,9 +2430,9 @@ class MobileApi {
                     case 3:
                         $name = $lang=='en' ? 'Rejected ads' : 'مرفوض';
                         break;
-                    case 4:
-                        $name = $lang=='en' ? '' : '';
-                        break;
+                    //case 4:
+                    //    $name = $lang=='en' ? '' : '';
+                    //    break;
                     case 5:
                         $name = $lang=='en' ? '' : '';
                         break;
@@ -2520,6 +2521,7 @@ class MobileApi {
     
     
     public function getMyAds($states) {
+        error_log($states);
         if ($this->demo==1 && $states=='7') {
             $this->getDemoMyAds();
             return;
@@ -2533,7 +2535,7 @@ class MobileApi {
                 $views = $this->result['d']['ads'];
                 unset($this->result['d']['ads']);                
             }
-            
+            if ($states=='1') { $states = "1, 4"; }
             $rs = $this->db->queryResultArray(
                     "select a.content, a.state, DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', a.date_added) date_added, a.id, ad.purpose_id, ad.section_id, ".
                     "DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', ad.expiry_date) date_ended, ".
@@ -2544,11 +2546,15 @@ class MobileApi {
                     "left join T_OFFER f on f.id=bo.offer_id " .
                     "where a.web_user_id=? and a.state in ({$states}) order by a.date_added desc", [$this->uid], TRUE, PDO::FETCH_NUM);
                     
+            error_log($states);
+            error_log(json_encode($rs));
+            
             foreach ($rs as $row) {
                 $data = json_decode($row[0]);
                 if(!is_object($data)) {
                     $data = json_decode("{}");
                 }
+                
                 if (isset($data->other)) {
                     //$tl = mb_strlen(strip_tags($data->other));
                     //if ($tl<60) {
