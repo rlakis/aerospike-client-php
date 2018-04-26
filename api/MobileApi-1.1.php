@@ -1220,13 +1220,28 @@ class MobileApi {
         $app_prefs = html_entity_decode(filter_input(INPUT_GET, 'prefs', FILTER_SANITIZE_STRING, ['options'=>['default'=>'{}']]));
         
         //Android Fix for lost UID
-        if($isAndroid && $this->getUID()==0 && $this->uuid && $this->user->getID()>0) {
-            error_log("Verifying if previous record exists for UUID {$this->uuid} with UID NIL\n");
-            $_device = NoSQL::getInstance()->deviceFetch($this->uuid);
-         
-            if ($_device && isset($_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]) && $_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]=='Android') {
-                $this->uid = $_device[\Core\Model\ASD\USER_UID];
-                $this->provider = Core\Model\ASD\USER_PROVIDER_ANDROID;                
+        if($isAndroid  && $this->uuid){
+            if($this->uid==0 && $this->user->getID()>0) {
+                error_log("Verifying if previous record exists for UUID {$this->uuid} with UID NIL\n");
+                $_device = NoSQL::getInstance()->deviceFetch($this->uuid);
+
+                if ($_device && isset($_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]) && $_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]=='Android') {
+                    $this->uid = $_device[\Core\Model\ASD\USER_UID];
+                    $this->provider = Core\Model\ASD\USER_PROVIDER_ANDROID;   
+                }
+            }else if($this->uid != 0 && $this->uid != $this->user->getID()){
+                error_log("fix for UUID {$this->uuid} with corrupted uid\n");
+                $_device = NoSQL::getInstance()->deviceFetch($this->uuid);
+
+                if ($_device && isset($_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]) && $_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]=='Android') {
+                    
+                    $oldUid = $this->uid;
+                    
+                    $this->uid = $_device[\Core\Model\ASD\USER_UID];
+                    $this->provider = Core\Model\ASD\USER_PROVIDER_ANDROID;   
+                    
+                    NoSQL::getInstance()->deviceSetUID($this->uuid, $this->uid, $oldUid);
+                }
             }           
         }
         //End of Android Fix for lost UID
