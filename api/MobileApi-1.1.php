@@ -3113,7 +3113,7 @@ class MobileApi {
                 $raw_post_data='{}';
             }
             
-            error_log($raw_post_data);
+            //error_log($raw_post_data);
             $ad = json_decode($raw_post_data, TRUE);
 
             $direct_publish = filter_input(INPUT_POST, 'pub', FILTER_VALIDATE_INT) + 0;                    
@@ -3174,13 +3174,14 @@ class MobileApi {
                 
                 include_once $this->config['dir'] . '/core/lib/MCSaveHandler.php';                
                 $normalizer = new MCSaveHandler($this->config);
+                //error_log($ad['other']);
                 $normalized = $normalizer->getFromContentObject($ad);
                 $attrs = [];
                 if ($normalized) {
                     $ad = $normalized;
                     $attrs = $normalized['attrs'];
                 }                
-
+                //error_log($ad['other']);
                 if (!isset($ad['other'])) {
                     NoSQL::Log($ad);
                     NoSQL::Log($_original_ad);
@@ -3193,7 +3194,7 @@ class MobileApi {
                 $ad['rtl'] = ($this->isRTL($ad['other'])) ? 1 : 0;
                         
                 if (isset($ad['altother']) && $ad['altother']) {
-                    error_log($ad['altother']);
+                    //error_log($ad['altother']);
                     $ad['extra']['t']=1;
                     $ad['altRtl'] = ($this->isRTL($ad['altother'])) ? 1 : 0;
 
