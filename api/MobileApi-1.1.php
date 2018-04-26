@@ -3096,6 +3096,7 @@ class MobileApi {
             return;
         }
                 
+        $normalized = NULL;
         $opts = $this->userStatus($status);
    
         if ($status==1 && !$this->user->isBlocked()) {
@@ -3622,7 +3623,8 @@ class MobileApi {
             $this->result['d'] = [];                    
             //$this->api->result['d']['id'] = $rid;
             $this->result['d']['adid'] = $ad_id;
-            $this->result['d']['state'] = $state;
+            //$this->result['d']['state'] = $state;
+            $this->result['d']['normalized'] = is_array($ad) ? $ad : []; 
             //error_log(json_encode($this->api->result['d']));
                     
             unset($stmt);
