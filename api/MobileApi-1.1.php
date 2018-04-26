@@ -1229,7 +1229,7 @@ class MobileApi {
                     $this->uid = $_device[\Core\Model\ASD\USER_UID];
                     $this->provider = Core\Model\ASD\USER_PROVIDER_ANDROID;   
                 }
-            }else if($this->uid != 0 && $this->uid != $this->user->getID()){
+            }else if($this->uid != 0 && $this->user->getID() > 0 && $this->uid != $this->user->getID()){
                 error_log("fix for UUID {$this->uuid} with corrupted uid\n");
                 $_device = NoSQL::getInstance()->deviceFetch($this->uuid);
 
@@ -1241,6 +1241,8 @@ class MobileApi {
                     $this->provider = Core\Model\ASD\USER_PROVIDER_ANDROID;   
                     
                     NoSQL::getInstance()->deviceSetUID($this->uuid, $this->uid, $oldUid);
+                    
+                    $this->user = MCUser::getByUUID($this->uuid);
                 }
             }           
         }
