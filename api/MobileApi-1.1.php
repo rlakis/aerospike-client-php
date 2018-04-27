@@ -3180,8 +3180,9 @@ class MobileApi {
                 if ($normalized) {
                     $ad = $normalized;
                     $attrs = $normalized['attrs'];
+                    error_log(json_encode($ad));
                 }                
-                //error_log($ad['other']);
+                error_log($ad['other']);
                 if (!isset($ad['other'])) {
                     NoSQL::Log($ad);
                     NoSQL::Log($_original_ad);
@@ -3620,7 +3621,8 @@ class MobileApi {
                     }
                 }
             }
-                    
+            
+            $ad['state']=$state;        
             $this->result['d'] = [];                    
             //$this->api->result['d']['id'] = $rid;
             $this->result['d']['adid'] = $ad_id;
