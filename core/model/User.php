@@ -2517,9 +2517,11 @@ class User
         $bins = FALSE;
         if (preg_match('/@/',$identifier) || preg_match('/^\+/', $identifier))
         {
-            if (Core\Model\NoSQL::getInstance()->fetchUserByProviderId($identifier, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $bins)!==NoSQL::OK)
-            {
-                $bins=FALSE;
+            $status=Core\Model\NoSQL::getInstance()->fetchUserByProviderId($identifier, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $bins);
+            if($status === NoSQL::ERR_RECORD_NOT_FOUND){
+                return -1;
+            }elseif ($status!==NoSQL::OK){
+                return -2;
             }
             //$bins = \Core\Model\NoSQL::getInstance()->fetchUser By ProviderId($identifier);
         }
@@ -2546,30 +2548,29 @@ class User
                 return -2;//server error
             }
         }
-        
-        if (!empty($bins))
-        {
-            if (isset($bins[\Core\Model\ASD\USER_PROFILE_ID]) && $bins[\Core\Model\ASD\USER_PROFILE_ID]>0)
+            if (!empty($bins))
             {
-                if (isset($bins[Core\Model\ASD\USER_PASSWORD]) && $bins[Core\Model\ASD\USER_PASSWORD]==md5($this->md5_prefix.$pass))
+                if (isset($bins[\Core\Model\ASD\USER_PROFILE_ID]) && $bins[\Core\Model\ASD\USER_PROFILE_ID]>0)
                 {
-                    return $bins[\Core\Model\ASD\USER_PROFILE_ID];
+                    if (isset($bins[Core\Model\ASD\USER_PASSWORD]) && $bins[Core\Model\ASD\USER_PASSWORD]==md5($this->md5_prefix.$pass))
+                    {
+                        return $bins[\Core\Model\ASD\USER_PROFILE_ID];
+                    }
+                    else
+                    {
+                        return 0; // wrong password
+                    }
+
                 }
                 else
                 {
-                    return 0; // wrong password
-                }
-                
+                    return -1; //account not found
+                }            
             }
             else
             {
-                return -1; //account not found
-            }            
-        }
-        else
-        {
-            return -2;//server error
-        }      
+                return -1;//server error
+            }
     }
     
     
