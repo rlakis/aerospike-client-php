@@ -2198,7 +2198,7 @@ class AndroidApi
                                     {
                                         unset($opts['accountKey']);
                                     }
-                                    $USER->copyUserData($id, $old['USER_PASS'], $old['USER_RANK'], $old['LVL'], $old['USER_PUBLISHER'], $opts);
+                                    $USER->copyUserData($id, $old[Core\Model\ASD\USER_PASSWORD], $old[Core\Model\ASD\USER_RANK], $old[Core\Model\ASD\USER_LEVEL], $old[Core\Model\ASD\USER_PUBLISHER_STATUS], $opts);
                                 }
                                 else
                                 {
