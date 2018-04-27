@@ -438,6 +438,7 @@ class MCSaveHandler
     
     
     public function getFromContentObject($ad_content) {
+        
         if (isset($ad_content['attrs'])) {
             unset($ad_content['attrs']);
         }
@@ -448,6 +449,7 @@ class MCSaveHandler
         if (isset($ad_content['pics']) && empty($ad_content['pics'])) {
             $ad_content['pics'] = new stdClass();
         }
+        
         //if (isset($ad_content['pics']))
         //{
         //    error_log(PHP_EOL.json_encode($ad_content, JSON_UNESCAPED_UNICODE));
@@ -462,14 +464,14 @@ class MCSaveHandler
         $buffer = $len.$buffer;
                 
         $this->Open();
-
+        
         if ($this->_Send($this->_socket, $buffer, strlen($buffer))) {            
             $response = $this->_GetResponse($this->_socket, '');
             if ($response) {
                 $j = json_decode($response, TRUE);
                 if (isset($j['pics']) && empty($j['pics'])) {
                     $j['pics'] = new stdClass();
-                }
+                } 
                 return $j;
             } 
             else {
