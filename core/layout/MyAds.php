@@ -1751,6 +1751,7 @@ var rtMsgs={
                         if($isSuperAdmin){
                             ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?aid=<?= $ad['ID'] ?>&q="><?= $this->lang['similar'] ?></a><?php
                         }
+                        $contactInfo=$this->getContactInfo($content);
                         if(!$isSystemAd || $isSuperAdmin){
                             if ($contactInfo) {                                    
                                 ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
@@ -1778,8 +1779,8 @@ var rtMsgs={
                                 ?><a class="lnk" href="/myads/<?= $this->urlRouter->siteLanguage=='ar'?'':'en/' ?>?sub=pending&fuid=<?= $ad['WEB_USER_ID'] ?>"><?= $this->lang['user_type_option_1'] ?></a><?php
                             }
                             
-                            $contactInfo='';
-                            if(isset($content['cui'])) {
+                            $contactInfo=$this->getContactInfo($content);
+                            /*if(isset($content['cui'])) {
                                 if(isset($content['cui']['p'])){ 
                                     $phone=$content['cui']['p'];
                                     if(count($phone)){
@@ -1806,7 +1807,7 @@ var rtMsgs={
                                     if($contactInfo) $contactInfo.='|';
                                     $contactInfo.=urlencode('"'.$content['cui']['s'].'"');
                                 }
-                            }
+                            }*/
                             if($isSuperAdmin){
                                 ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?aid=<?= $ad['ID'] ?>&q="><?= $this->lang['similar'] ?></a><?php
                             }
@@ -2055,6 +2056,39 @@ var rtMsgs={
             ?><input onclick="document.location='/post/<?= $lang ?>'" class="bt" type="button" value="<?= $this->lang['create_ad'] ?>" /><?php
             ?></div><?php
         }
+    }
+    
+    function getContactInfo($content){
+        $contactInfo='';
+        if(isset($content['cui'])) {
+            if(isset($content['cui']['p'])){ 
+                $phone=$content['cui']['p'];
+                if(count($phone)){
+                    foreach ($phone as $p){
+                        if($contactInfo) $contactInfo.='|';
+                        $contactInfo.=urlencode('"'.substr($p['v'],1).'"');
+                    }
+                }
+            }
+
+            if(isset($content['cui']['e']) && $content['cui']['e']){
+                if($contactInfo) $contactInfo.='|';
+                $contactInfo.=urlencode('"'.$content['cui']['e'].'"');
+            }
+            if(isset($content['cui']['b']) && $content['cui']['b']){
+                if($contactInfo) $contactInfo.='|';
+                $contactInfo.=urlencode('"'.$content['cui']['b'].'"');
+            }
+            if(isset($content['cui']['t']) && $content['cui']['t']){
+                if($contactInfo) $contactInfo.='|';
+                $contactInfo.=urlencode('"'.$content['cui']['t'].'"');
+            }
+            if(isset($content['cui']['s']) && $content['cui']['s']){
+                if($contactInfo) $contactInfo.='|';
+                $contactInfo.=urlencode('"'.$content['cui']['s'].'"');
+            }
+        }
+        return $contactInfo;
     }
 
     function renderUserTypeSelector(&$user=null)
