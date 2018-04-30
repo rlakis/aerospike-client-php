@@ -2538,7 +2538,6 @@ class MobileApi {
     
     
     public function getMyAds($states) {
-        error_log($states);
         if ($this->demo==1 && $states=='7') {
             $this->getDemoMyAds();
             return;
@@ -2562,10 +2561,7 @@ class MobileApi {
                     "left join T_AD_BO bo on bo.ad_id=a.id and bo.blocked=0 ".
                     "left join T_OFFER f on f.id=bo.offer_id " .
                     "where a.web_user_id=? and a.state in ({$states}) order by a.date_added desc", [$this->uid], TRUE, PDO::FETCH_NUM);
-                    
-            error_log($states);
-            error_log(json_encode($rs));
-            
+                        
             foreach ($rs as $row) {
                 $data = json_decode($row[0]);
                 if(!is_object($data)) {
