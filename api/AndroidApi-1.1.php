@@ -408,7 +408,7 @@ class AndroidApi
                 ];
                 if ($uri && preg_match('/^(?:http|https):\/\/(?:www\.|)mourjan\.com/', $uri)) {
                     $uri = preg_replace('/^(?:http|https):\/\/(?:www\.|)mourjan\.com/', '', $uri);
-                    $uri = preg_replace('/\/en(?:\/|$)/', '', $uri);
+                    $uri = preg_replace('/\/en(?:\/|$)/', '/', $uri);
                     $uri = preg_replace('/index\.php/', '', $uri);
                     if (substr($uri, -1) == '/')
                         $uri = substr($uri, 0, -1);
