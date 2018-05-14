@@ -421,12 +421,12 @@ class MCSaveHandler
             
             $is_json = is_string($resp) && is_array(json_decode($resp, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
             if ($is_json) {                
-                $result['data'] = json_decode($resp, TRUE);
+                $result['data'] = \json_decode($resp, TRUE);
             }
         }
         catch (Exception $ex) {
             $result['error']=1;
-            $result['excep']=$ex->getMessage();
+            $result['except']=$ex->getMessage();
         }
         finally {
             if (is_resource($ch)) {
@@ -457,7 +457,36 @@ class MCSaveHandler
                 
         $command = ['command'=>'normalize', 'json'=>json_encode($ad_content)];
         
-        $this->apiV1normalizer($command['json']);
+        $res = $this->apiV1normalizer($command['json']);
+        if (isset($res['status']) && $res['status']==200) {
+            if (isset($res['data']['wordsList'])) { unset($res['data']['wordsList']); }
+            if (isset($res['data']['alterWordsList'])) { unset($res['data']['alterWordsList']); }
+            if (isset($res['data']['log'])) { unset($res['data']['log']); }
+            if (isset($res['data']['formatA'])) { 
+                $res['data']['other']=$res['data']['formatA'];
+                unset($res['data']['formatA']);                 
+            }
+            if (isset($res['data']['formatB'])) { 
+                $res['data']['altother']=$res['data']['formatB'];
+                unset($res['data']['formatB']);                 
+            }
+
+            //error_log('here ' . PHP_EOL . json_encode($res['data']));
+            if (isset($res['data']['app']) && $res['data']['app']=='ios' && $res['data']['agent']=='Mourjan ios') {
+                
+                if (!isset($res['data']['media'])) { $res['data']['media'] = 0; }
+                //if (isset($res['data']['pics']) && empty($res['data']['pics'])) {
+                //    $res['data']['pics'] = new stdClass();
+                //    $res['data']['media'] = 0;
+                //}
+                
+                error_log('clean ' . PHP_EOL . json_encode($res['data']));   
+                return $res['data'];
+            }
+        }
+        else if (isset($res['error']) && $res['error']==1) {
+            error_log($res['except']);
+        }
         
         $buffer = json_encode($command);
         $len = pack('N', strlen($buffer));
