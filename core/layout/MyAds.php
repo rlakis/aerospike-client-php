@@ -1546,25 +1546,22 @@ var rtMsgs={
                     elseif ($ad['LVL']==5) $style=' style="color:red"';
                     
                     $profileLabel =  isset($ad['PROVIDER']) ? $ad['PROVIDER']:'profile';
-                    if ($userMobile)
-                    {
+                    if ($userMobile) {
                         $unum = $mobileValidator->parse('+'.$userMobile,'LB');
                         $XX = $mobileValidator->getRegionCodeForNumber($unum);
                         $profileLabel = '+'.$userMobile;
-                        if($XX){
+                        if ($XX) {
                             $profileLabel = '('.$XX. ')' . $profileLabel;
                         }
                     }
                     
                     $title='<div class="oct"><a target="blank" onclick="openW(this.href);return false" href="'.($isSuperAdmin ? '/admin/'.$lang.'?p='.$ad['WEB_USER_ID'] : $ad['PROFILE_URL']).'">'.$profileLabel.'</a><a target="blank"'.$style.' onclick="openW(this.href);return false;" href="/myads/'.$lang.'?u='.$ad['WEB_USER_ID'].'">'.$name.'</a>';
-                    if(isset($content['userLOC']))
-                    {
+                    if(isset($content['userLOC'])) {
                         $geo = preg_replace('/[0-9\.]|(?:^|\s|,)[a-zA-Z]{1,3}\s/','',$content['userLOC']);
                         $geo = preg_replace('/,/', '' , $geo);
                         $title.='<span class="inf">'.$geo.'</span>';
                     }
-                    else
-                    {
+                    else {
                         $title.='<span class="inf err">No Geo</span>';
                     }
                     
@@ -1572,16 +1569,24 @@ var rtMsgs={
                     $title.=($phoneValidErr!==false ? ($phoneValidErr ==0 ? '<span class="inf">T:<span class="done"></span></span>' :  '<span class="inf">T:<span class="fail"></span></span>'):'' );
                     $class= '';
                     
-                    if($isFeatured)
-                    {
+                    if($isFeatured) {
                         $class = ' style="color:#FFF;background-color:green"';
                     }
-                    else if($isFeatureBooked)
-                    {
+                    else if($isFeatureBooked) {
                         $class = ' style="color:#FFF;background-color:blue"';
                     }
                     
-                    $title.='<b'.$class.'>#'.$ad['ID'].'#</b>';
+                    $ss = 'W';
+                    if (isset($content['app'])) {
+                        if ($content['app']=='ios') {
+                            $ss = 'I';
+                        }
+                        else if ($content['app']=='android') {
+                            $ss = 'A';
+                        }
+                    }
+                   
+                    $title.='<b'.$class.'>#'.$ad['ID'].'#' . $ss. '</b>';
                     $title.='</div>';
                 
                 }
