@@ -446,9 +446,14 @@ class MCSaveHandler
         if (!isset($ad_content['other'])) {
             $ad_content['other']="";
         }
+        
         if (isset($ad_content['pics']) && empty($ad_content['pics'])) {
             $ad_content['pics'] = new stdClass();
         }
+        if (isset($ad_content['pubTo']) && empty($ad_content['pubTo'])) {
+            $ad_content['pubTo'] = new stdClass();
+        }
+
         
         //if (isset($ad_content['pics']))
         //{
