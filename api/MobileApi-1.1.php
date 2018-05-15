@@ -3349,7 +3349,8 @@ class MobileApi {
                     }                            
                 }
                 elseif ($requireReview && $ad_id) {
-                    $this->referrToSuperAdmin($ad_id);
+                    $this->db->get('update ad_object set super_admin=1 where id=?', [$ad_id], false);
+                    //$this->referrToSuperAdmin($ad_id);
                 }
                 else if($hasMajorFailure) {
                     $ad_id = 0;
@@ -3524,7 +3525,8 @@ class MobileApi {
                         }
                         
                         if ($requireReview && $ad_id) {
-                            $this->referrToSuperAdmin($ad_id);
+                            $this->db->get('update ad_object set super_admin=1 where id=?', [$ad_id], false);
+                            //$this->referrToSuperAdmin($ad_id);
                         }
                                 
                         if ($state==1) {
