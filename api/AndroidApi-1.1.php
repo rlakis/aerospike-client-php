@@ -1865,10 +1865,15 @@ class AndroidApi
                                             {
                                                 $mcMobile = new MCMobile($rs);
                                                 $expiredDelivery = !$mcMobile->isSMSDelivered() && (time()-$mcMobile->getRquestedUnixtime())>180 && $mcMobile->getSentSMSCount()<3;
-                                                $expiredValidity = $mcMobile->isSMSDelivered() && $mcMobile->getActicationUnixtime() &&  (time()-$mcMobile->getActicationUnixtime())>365*86400;
+                                                $expiredValidity = $mcMobile->getActicationUnixtime() &&  (time()-$mcMobile->getActicationUnixtime())>365*86400;
                                                 $stillValid = $mcMobile->isVerified();
-                                                
-                                                if ($expiredDelivery)
+                                                /*
+                                                error_log("sms delivered ".($mcMobile->isSMSDelivered() ? "true" : "false"));
+                                                error_log("sms last ".(time()-$mcMobile->getRquestedUnixtime()));
+                                                error_log("sms count ".($mcMobile->getSentSMSCount()));
+                                                error_log("sms valid ".((time()-$mcMobile->getActicationUnixtime())>365*86400 ? "true" : "false"));
+                                                */
+                                                if ($expiredDelivery && $expiredValidity)
                                                 {
                                                     if (NoSQL::getInstance()->mobileUpdate($this->api->getUID(), $number, [\Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()]))
                                                     {
@@ -1989,12 +1994,16 @@ class AndroidApi
                                         }
                                         
                                         $this->api->result['d']['number']=$number;
-                                        $this->api->result['d']['code']=$keyCode; 
+                                        if(!isset($this->api->result['d']['check'])){
+                                            $this->api->result['d']['code']=$keyCode; 
+                                        }
                                     }
                                     else
                                     {
                                         $this->api->result['d']['number']=$number;
-                                        $this->api->result['d']['code']=$keyCode;
+                                        if(!isset($this->api->result['d']['check'])){
+                                            $this->api->result['d']['code']=$keyCode;
+                                        }
                                     }
                                     
                                 }
