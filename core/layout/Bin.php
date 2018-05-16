@@ -3083,32 +3083,9 @@ class Bin extends AjaxHandler{
                             'trsl'=> isset($ad['altother']) ? $ad['altother'] : ''
                         );
                         
-                        /*
-                        if( $this->user->info['level']==9 && 
-                                $this->user->pending['post']['user']!=$this->user->info['id'] && 
-                                $publish == 2 && 
-                                $this->user->pending['post']['se'] == 190
-                              ){
-                                  $balance = $this->user->getStatement($this->user->pending['post']['user'], 0, true);
-                                  if($balance && isset($balance['balance']) && !$balance['balance']){
-                                      $rank = $this->user->getRank($this->user->pending['post']['user']);
-                                      if($rank !== false){
-                                          if($rank < 2){
-                                            error_log('USER AUTO-SUSPENDED 72 '.$this->user->pending['post']['user']);
-                                            $this->user->suspend($this->user->pending['post']['user'], 72);                                              
-                                          }else{
-                                            error_log('USER AUTO-SUSPENDED 24 '.$this->user->pending['post']['user']);
-                                            $this->user->suspend($this->user->pending['post']['user'], 24);
-                                          }
-                                      }else{
-                                          error_log('USER AUTO-SUSPENDED NO RANK');
-                                      }
-                                  }else{
-                                      error_log('USER AUTO-SUSPENDED NO BALANCE');
-                                  }
-                        }*/
-                        
                         $section_id = $this->user->pending['post']['se'];
+                        
+                        $adObject = json_decode($this->user->pending['post']['content'],true);
                         
                         if( ($publish==1 || $publish==4) && $this->user->info['level']!=9) 
                         {
@@ -3117,6 +3094,7 @@ class Bin extends AjaxHandler{
                         }
                         
                         $this->setData($result,'I');
+                        $this->setData($adObject,'ad');
                         $this->process();
                         
                         if($isSCAM)
@@ -3232,80 +3210,7 @@ class Bin extends AjaxHandler{
                         
                         }
                     }else $this->fail('101');
-                /*}else {
-                if ($this->user->info['id'] && isset ($_POST['fields']) && isset($this->user->pending['post']['id'])){
-                    $fields=$_POST['fields'];
-                    $text=$_POST['text'];
-                    $title=ucfirst(trim($_POST['title']));
-                    
-                    $adContent=json_decode($this->user->pending['post']['content'],true);
-                    $adContent['fields']=$fields;
-                    $adContent['text']=ucfirst(trim($text));
-                    $adContent['code']=$this->user->pending['post']['code'];
-                    $adContent['loc']=$this->user->pending['post']['loc'];
-                    $adContent['gloc']=$this->user->pending['post']['gloc'];
-                    $adContent['tloc']=$this->user->pending['post']['tloc'];
-                    $adContent['zloc']=$this->user->pending['post']['zloc'];
-                    $adContent['dc']=$this->user->pending['post']['dc'];
-                    $adContent['dci']=$this->user->pending['post']['dci'];
-                    $adContent['dcn']=$this->user->pending['post']['dcn'];
-                    $adContent['dcni']=$this->user->pending['post']['dcni'];
-                    $adContent['ro']=$this->user->pending['post']['ro'];
-                    if ($this->user->info['level']!=9) $adContent['userLvl']=$this->user->info['level'];
-                    $adContent['version']=1;
-                    if ($this->user->info['id'] == $this->user->pending['post']['user']){
-                        $adContent['ip']=$_SERVER['REMOTE_ADDR'];
-                        $adContent['agent']=$_SERVER['HTTP_USER_AGENT'];
-                        $adContent['userLOC']=implode(" ,", geoip_record_by_name($_SERVER['REMOTE_ADDR']));
-                    }
-                    $this->user->pending['post']['content']=json_encode($adContent);
-                    $this->user->pending['post']['title']=$title;
-                    
-                                        
-                    
-                    $publish=(int)$_POST['pub'];
-                    if ($publish!=1 && ($publish!=2 || ($publish==2 && $this->user->info['level']!=9)))$publish=0;
-                    $tmpPublish=$publish;
-                    if ($this->user->info['level']==9 &&
-                            $this->user->pending['post']['state']==1 && $publish==0) {
-                        $publish=1;
-                    }
-                    
-                    $this->user->update();
-                    $this->user->saveAd($publish);
-                    
-                    if ($publish==2 && isset($adContent['video']) && $adContent['video'][0]) {
-                        require_once 'Zend/Loader.php';
-                        Zend_Loader::loadClass('Zend_Gdata_YouTube');
-                        Zend_Loader::loadClass('Zend_Gdata_ClientLogin');
-                        Zend_Loader::loadClass('Zend_Gdata_App_Exception');
-
-                        $httpClient = Zend_Gdata_ClientLogin::getHttpClient($this->urlRouter->cfg['yt_user'],$this->urlRouter->cfg['yt_pass'], Zend_Gdata_YouTube::AUTH_SERVICE_NAME);
-                        $yt = new Zend_Gdata_YouTube($httpClient, 'Mourjan.com Uploader', null, $this->urlRouter->cfg['yt_dev_key']);
-                        try {
-                        $entry = $yt->getVideoEntry($adContent['video'][0],null,true);
-                        $editLink= $entry->getEditLink()->getHref();
-                        $title=preg_replace('/[\.,;\-_+=$%^&@!?\/\\،؛{}|`~]/u', '', $title);
-                        $entry->setVideoTitle($title);
-                        $content=preg_replace('/[\.,;\-_+=$%^&@!?\/\\،؛{}|`~]/u', '', $adContent['text']);
-                        $entry->setVideoDescription($content);
-                        
-                        $yt->updateEntry($entry, $editLink);
-                        }catch (Zend_Gdata_App_HttpException $httpException) {
-                            error_log($httpException->getRawResponseBody());
-                            //echo $httpException->getMessage();
-                            //$this->fail($httpException->getMessage());
-                        } catch (Zend_Gdata_App_Exception $e) {
-                            error_log($e->getMessage());
-                            //echo $e->getMessage();
-                            //$this->fail($e->getMessage());
-                        }
-                    }
-                    
-                    $this->setData($tmpPublish,'S');
-                    $this->process();
-                }else $this->fail('101');
-                }*/
+                
                 break;
             case "ajax-logo":                
                 require_once("lib/class.upload.php");

@@ -210,6 +210,25 @@ function savAd(p, clr){
                 ad.id=r.id;
                 ad.user=r.user;
                 ad.state=r.state;
+                
+                var obj = rp.DATA.ad;
+                if(typeof obj.other !== 'undefined' && obj.other.length > 0){
+                    processedText = obj.other.replace(/\u200B.*$/, '');
+                    var textarea = $('#mText');
+                    textarea.val(processedText);
+                    idir(textarea[0]);
+                    var label=$("#mPreview");
+                    label.html(obj.other);
+                }
+                if(typeof obj.altother !== 'undefined' && obj.altother.length > 0){
+                    processedAltText = obj.altother.replace(/\u200B.*$/, '');
+                    var textarea = $('#altText');
+                    textarea.val(processedAltText);
+                    idir(textarea[0]);
+                    var label=$("#mAltPreview");
+                    label.html(obj.altother);
+                }
+                
                 if(p==1){
                     m='<span class="done"></span>'+(lang=='ar'?'لقد تم حفظ الإعلان وتحويله للمراجعة من قبل محرري الموقع للموافقة والنشر، وسيتم ابلاغك برسالة على عنوان بريدك الإلكتروني فور نشره':'Your ad was successfully saved and is now pending administrator approval to be published');
                     dsl($n('main'),m,0,1);
@@ -1635,6 +1654,45 @@ function rdrT(callback){
     rdrTFilter(isAlt, callback);
 }
 
+function rdrTFilter(isAlt, callback){
+    var value=processedText;
+    var textarea;
+    if(isAlt){        
+        value=processedAltText;
+        textarea = $('#altText');
+    }else{
+        textarea = $('#mText');
+    }
+    var r = value.replace(/\s+/,' ');
+        r=r.replace(/^\s+|\s+$/g, '');
+    if(isAlt){
+        processedAltText = r;
+    }else{
+        processedText = r;
+    }    
+    
+    var irtl=(textarea[0].className=='ar'?1:0);
+    if(ctac) brtl=irtl;
+    else artl=irtl;
+    
+    y=r.replace(/[a-z:\\\/\-;.,؛،?!؟*@#$%^&_+'"|0-9\s]/g,'');
+    z=r.replace(/[A-Z:\\\/\-;.,؛،?!؟*@#$%^&_+'"|0-9\s]/g,'');    
+
+    if(y.length > z.length*0.5){
+        r = r.toLowerCase();
+    }            
+    if(isAlt){
+        processedAltText = r;
+        atxt=prepT(processedAltText,brtl);
+    }else{
+        processedText = r;
+        txt=prepT(processedText,artl);
+    }
+    if(callback){
+        callback();
+    }
+}
+/*
 function rdrTFilter(isAlt, callback){    
     var irtl=0;
     var value=processedText;
@@ -1791,6 +1849,7 @@ function rdrTFilter(isAlt, callback){
         }
     }
 }
+*/                                                                                                                                    
 function nxt(e,c){
     var p=$p(e,3);
     var n=$c(p);

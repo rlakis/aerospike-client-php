@@ -277,14 +277,14 @@ class PostAd extends Page{
             $save=0;
             //$this->adContent['fields']['other']='للبيع بالتجمع الخامس شقه 137م النرجس عمارات في القاهرة مصر - للبيع بالتجمع الخامس شقه 137م النرجس عمارات 2 نوم / ليفنج / 2 رسيبشن / حمام / مطبخ الطابق الثانى / خلفيه على حديقه / استلام فورى حصه بالارض / جراج + مخزن / عداد كهرباء 4/3 تشطيب / سباكه / كهرباء / نقاشه اسقف جبس / بيت نور / كرانيش';
             //$this->adContent['fields']['altother']='Check out the cover i made for this song if you want﻿ and tell me what you think!';
-            if (isset ($this->adContent['rawOther']) && $this->adContent['rawOther']){
+            /*if (isset ($this->adContent['rawOther']) && $this->adContent['rawOther']){
                 $save=1;
                 $other=$this->adContent['rawOther'];
-                $other=preg_replace('/\x{200B}.*/u', '', $other);
                 $adRTL=preg_match('/[\x{0621}-\x{064a}]/u', $other);
                 $preview=$other;
                 $preview.=$this->user->parseUserAdTime($this->adContent['cui'],$this->adContent['cut'],$adRTL);
-            }else if (isset ($this->adContent['other']) && $this->adContent['other']){
+            }else */
+            if (isset ($this->adContent['other']) && $this->adContent['other']){
                 $save=1;
                 $other=$this->adContent['other'];
                 $other=preg_replace('/\x{200B}.*/u', '', $other);
@@ -293,13 +293,13 @@ class PostAd extends Page{
                 $preview.=$this->user->parseUserAdTime($this->adContent['cui'],$this->adContent['cut'],$adRTL);
             }
             
-            if (isset ($this->adContent['rawAltOther']) && $this->adContent['rawAltOther']){
+            /*if (isset ($this->adContent['rawAltOther']) && $this->adContent['rawAltOther']){
                 $altOther=$this->adContent['rawAltOther'];
-                $altOther=preg_replace('/\x{200B}.*/u', '', $altOther);
                 $altRTL=preg_match('/[\x{0621}-\x{064a}]/u', $altOther);
                 $altPreview=$altOther;
                 $altPreview.=$this->user->parseUserAdTime($this->adContent['cui'],$this->adContent['cut'],$altRTL);
-            }else if (isset ($this->adContent['altother']) && $this->adContent['altother']){
+            }else */
+            if (isset ($this->adContent['altother']) && $this->adContent['altother']){
                 $altOther=$this->adContent['altother'];
                 $altOther=preg_replace('/\x{200B}.*/u', '', $altOther);
                 $altRTL=preg_match('/[\x{0621}-\x{064a}]/u', $altOther);
@@ -799,7 +799,7 @@ class PostAd extends Page{
                 ?><li class="lit ctr<?= ($hasContent ? ' hid':'') ?>"><textarea id="mText" class="<?= ($adRTL ? 'ar':'en') ?>" onchange="rdrT()" onfocus="initT(this)"><?= $other ?></textarea></li><?php
                 ?><li class="pid<?= ($hasContent ? ' hid':'') ?>"><b class="ah ctr"><span onclick="nxt(this,0)" class="button bt btw ok<?= $hasContent ? '': ' off' ?>"><?= $this->lang['next'] ?></span></b></li><?php
                 ?><li class="button liw hid" onclick="hidNB(this)"><b class="bpd ctr"><?= $this->lang['min_content']  ?></b></li><?php
-                ?><li onclick="etxt(this)" class="button <?= ($hasContent ? '':'hid') ?>"><b class="ah <?= ($adRTL ? 'ar':'en') ?>"><?= $preview ?></b></li><?php
+                ?><li onclick="etxt(this)" class="button <?= ($hasContent ? '':'hid') ?>"><b id="mPreview" class="ah <?= ($adRTL ? 'ar':'en') ?>"><?= $preview ?></b></li><?php
             ?></ul><?php
             if(!$hasContent) $seqHide=true;
             ?><ul id="xnu" class="ls po pi<?= (!$seqHide ? '':' hid') ?>"><?php
@@ -813,7 +813,7 @@ class PostAd extends Page{
                     ?><li class="lit ctr<?= ($hasAltContent ? ' hid':'') ?>"><textarea id="altText" class="<?= ($altRTL ? 'ar':'en') ?>" onblur="capk()" onkeyup="capk()" onchange="rdrT()" onfocus="initT(this)"><?= $altOther ?></textarea></li><?php
                     ?><li class="pid <?= ($hasAltContent ? ' hid':'') ?>"><b class="ah ctr act2"><span onclick="nxt(this,1)" class="button bt ok<?= $hasAltContent ? '': ' off' ?>"><?= $this->lang['next'] ?></span><span onclick="xcnl(this)" class="button bt cl"><?= $this->lang['cancel'] ?></span></b></li><?php 
                     ?><li class="button liw hid" onclick="hidNB(this)"><b class="bpd ctr"><?= $this->lang['min_content']  ?></b></li><?php
-                    ?><li onclick="edOT(this)" class="button <?= ($hasAltContent ? '':'hid') ?>"><b class="ah <?= ($altRTL ? 'ar':'en') ?>"><?= $altPreview ?></b></li><?php
+                    ?><li onclick="edOT(this)" class="button <?= ($hasAltContent ? '':'hid') ?>"><b id="mAltPreview" class="ah <?= ($altRTL ? 'ar':'en') ?>"><?= $altPreview ?></b></li><?php
                 ?></ul></li><?php
                 ?><li class="<?= $uAlt==0 ? '': ' hid'?>"><b class="ah ctr act2"><span onclick="edOT(this,1)" class="button bt ok"><?= $this->lang['yes'] ?></span><span onclick="noO(this,'t')" class="button bt cl"><?= $this->lang['no'] ?></span></b></li><?php 
                 ?><li onclick="edOT(this)" class="button<?= $uAlt==2 ? '': ' hid'?>"><b><?= $this->lang['no']  ?></b></li><?php
