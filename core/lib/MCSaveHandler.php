@@ -477,7 +477,8 @@ class MCSaveHandler
             }
 
             //error_log('here ' . PHP_EOL . json_encode($res['data']));
-            if (isset($res['data']['app']) && $res['data']['app']=='ios' && $res['data']['agent']=='Mourjan ios') {
+            //if (isset($res['data']['app']) && $res['data']['app']=='ios' && $res['data']['agent']=='Mourjan ios') {
+            if (!isset($res['data']['app']) || $res['data']['app']!='android') {
                 
                 if (!isset($res['data']['media'])) { $res['data']['media'] = 0; }
                 //if (isset($res['data']['pics']) && empty($res['data']['pics'])) {
