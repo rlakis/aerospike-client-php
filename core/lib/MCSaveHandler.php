@@ -437,7 +437,7 @@ class MCSaveHandler
     }
     
     
-    public function getFromContentObject($ad_content) {
+    public function getFromContentObject($ad_content, $extras=false) {
         
         if (isset($ad_content['attrs'])) {
             unset($ad_content['attrs']);
@@ -464,8 +464,10 @@ class MCSaveHandler
         
         $res = $this->apiV1normalizer($command['json']);
         if (isset($res['status']) && $res['status']==200) {
-            if (isset($res['data']['wordsList'])) { unset($res['data']['wordsList']); }
-            if (isset($res['data']['alterWordsList'])) { unset($res['data']['alterWordsList']); }
+            if(!$extras){
+                if (isset($res['data']['wordsList'])) { unset($res['data']['wordsList']); }
+                if (isset($res['data']['alterWordsList'])) { unset($res['data']['alterWordsList']); }
+            }
             if (isset($res['data']['log'])) { unset($res['data']['log']); }
             if (isset($res['data']['formatA'])) { 
                 $res['data']['other']=$res['data']['formatA'];

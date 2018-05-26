@@ -3632,7 +3632,44 @@ class MobileApi {
         }
     }
     
-    
+    function normalizeText(){
+        if ($this->config['active_maintenance']) {
+            $this->result['e'] = "503";
+            return;
+        }
+                
+        $normalized = NULL;
+        $opts = $this->userStatus($status);
+   
+        if ($status==1 && !$this->user->isBlocked()) {
+            
+            $handle = fopen("php://input", "rb");
+            $raw_post_data = '';
+            while (!feof($handle)) {
+                $raw_post_data .= fread($handle, 8192);
+            }
+            fclose($handle);
+            if (empty($raw_post_data)) {
+                $raw_post_data='{}';
+            }else{
+                if(substr($raw_post_data, 0, 3) == 'ad='){
+                    $raw_post_data = urldecode(substr($raw_post_data, 3));
+                    $raw_post_data = preg_replace('/&$/', '', $raw_post_data);
+                }
+            }
+            
+            $ad = json_decode($raw_post_data, TRUE);
+            include_once $this->config['dir'] . '/core/lib/MCSaveHandler.php';                
+            $normalizer = new MCSaveHandler($this->config);
+            
+            $normalized = $normalizer->getFromContentObject($ad, true);
+            if ($normalized) {
+                $ad = $normalized;
+            }    
+        }        
+        
+        $this->result['d']['ad'] = is_array($ad) ? $ad : new stdClass(); 
+    }
     
     
 }
