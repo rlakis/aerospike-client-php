@@ -3672,5 +3672,78 @@ class MobileApi {
     }
     
     
+    function forwardNormalizeText(){
+        if ($this->config['active_maintenance']) {
+            $this->result['e'] = "503";
+            return;
+        }
+                
+        $opts = $this->userStatus($status);
+   
+        if ($status==1 && !$this->user->isBlocked()) {
+            $text = urlencode(filter_input(INPUT_GET, 'text'));    
+            $this->result['d']['original']=$text;
+            $this->result['d']['status']=0;
+            $this->result['d']['text']='';
+            $this->result['d']['words']=[];
+                        
+            try {
+                $userAgent = 'Edigear-PHP/' . '1.0' . ' (+https://github.com/edigear/edigear-php)';
+                $userAgent .= ' PHP/' . PHP_VERSION;
+                $curl_version = curl_version();
+                $userAgent .= ' curl/' . $curl_version['version'];
+                    
+                $ch = curl_init("http://h8.mourjan.com:8080/v1/ad/text/{$text}");                
+                curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
+                
+                curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, 
+                        ["Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", 
+                         "Content-Type: application/json", "Accept-Encoding: gzip, deflate", 
+                         "Pragma: no-cache",
+                         "Cache-Control: no-cache"]);
+                curl_setopt($ch, CURLOPT_VERBOSE, 0);
+                curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+                curl_setopt($ch, CURLOPT_HEADER, 0);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                                                                                                
+                $resp = \curl_exec($ch);                                
+                
+                $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                
+                if ($status==200 && is_string( $resp )) {                    
+                    $json = \json_decode($resp, true);
+                    if (json_last_error()==JSON_ERROR_NONE) {
+                        $this->result['d']['text']= isset($json['text']) ? $json['text'] : "";
+                        $this->result['d']['words']= isset($json['words']) ? $json['words'] : [];
+                    }
+                    else {
+                        $this->result['d']['error_no']= json_last_error();
+                        $this->result['e']= json_last_error_msg();
+                    }
+                }
+                else {
+                    $this->result['d']['error_no']=$status;
+                }
+                                                
+            }
+            catch (Exception $ex) {
+                $this->result['d']['error_no']= json_last_error();
+                $this->result['e']= $ex->getMessage();
+            }
+            finally {
+                if (is_resource($ch)) {
+                    curl_close($ch);
+                }
+            }                        
+            
+            //error_log(json_encode($this->result));
+        }        
+        
+        //$this->result['d']['ad'] = is_array($ad) ? $ad : new stdClass(); 
+    }
+    
+    
 }
 
