@@ -101,6 +101,7 @@ const API_ANDROID_USER_MAKE_CALL                = 86;
 const API_ANDROID_USER_RECEIVE_CALL             = 87;
 
 const API_NORMALIZE_TEXT                        = 88;
+const API_SIMPLE_TEXT_NORMALIZE                 = 89;
 
 const API_RELOAD_INDEX                          = 990;
 const API_POST_PREFERENCES                      = 991;
@@ -372,6 +373,11 @@ if (!$api->hasError())
         case API_LOGIN_AS_MOBILE:
             $api->signInAsMobile();
             break;
+        
+        case API_SIMPLE_TEXT_NORMALIZE:
+            $api->forwardNormalizeText();
+            break;
+        
         
         case API_POST_PREFERENCES:
             $api->adPostingPreferences();
