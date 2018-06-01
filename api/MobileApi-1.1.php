@@ -3681,9 +3681,13 @@ class MobileApi {
         $opts = $this->userStatus($status);
    
         if ($status==1 && !$this->user->isBlocked()) {
-            $text = urlencode(filter_input(INPUT_GET, 'text'));    
+            //error_log($_GET['text']);
+            $text = $_GET['text'];  
+            //error_log($text);
+            //error_log(urldecode($text));
+            
             $this->result['d']['original']=$text;
-            $this->result['d']['status']=0;
+            
             $this->result['d']['text']='';
             $this->result['d']['words']=[];
                         
@@ -3693,7 +3697,9 @@ class MobileApi {
                 $curl_version = curl_version();
                 $userAgent .= ' curl/' . $curl_version['version'];
                     
-                $ch = curl_init("http://h8.mourjan.com:8080/v1/ad/text/{$text}");                
+                $ch = curl_init();   
+                $arg = curl_escape($ch, $text);
+                curl_setopt($ch, CURLOPT_URL, "http://h8.mourjan.com:8080/v1/ad/text/{$arg}");
                 curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
                 
                 curl_setopt($ch, CURLOPT_TIMEOUT, 3);
