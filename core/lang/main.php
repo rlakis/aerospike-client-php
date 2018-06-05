@@ -760,6 +760,7 @@ $lang=array(
     
     'label_users'   =>  'Users',
     'label_areas'   =>  'Localities',
+    'label_dic'     => 'Dictionary',
     'label_ads_monitor'   =>  'Ad Stats',
     'review'        =>  'Review',
     

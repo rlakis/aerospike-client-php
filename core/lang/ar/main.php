@@ -767,6 +767,7 @@ $lang=array(
     
     'label_users'   =>  'المستخدمين',
     'label_areas'   =>  'المناطق',
+    'label_dic'   =>  'القاموس',
     'label_ads_monitor'   =>  'احصائيات الاعلانات',
     'review'        =>  'مراجعة',
     

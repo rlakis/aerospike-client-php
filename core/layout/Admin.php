@@ -393,6 +393,12 @@ class Admin extends Page
             echo '<li class=\'on\'><b>', $this->lang['label_areas'], '</b></li>';
         else
             echo '<li><a href=\'/admin/', $lang, '?sub=areas\'>', $this->lang['label_areas'], '</a></li>';
+
+        if ($sub=='dic')
+            echo '<li class=\'on\'><b>', $this->lang['label_dic'], '</b></li>';
+        else
+            echo '<li><a href=\'/admin/', $lang, '?sub=dic\'>', $this->lang['label_dic'], '</a></li>';
+        
         if ($sub=='ads')
             echo '<li class=\'on\'><b>', $this->lang['label_ads_monitor'], '</b></li>';
         else
@@ -430,25 +436,21 @@ class Admin extends Page
     }
    
     
-    function unixTimestampToDateTime(int $ts) : string
-    {
+    function unixTimestampToDateTime(int $ts) : string {
         $date = new DateTime();
         $date->setTimestamp($ts);
         return $date->format("Y-m-d H:i:s T");
     }
     
     
-    function mainMobile()
-    {
+    function mainMobile() {
     }
     
     
-    function main_pane()
-    {
+    function main_pane() {
         $language = 'en';
         
-        switch ($this->sub)
-        {
+        switch ($this->sub) {
             case 'ads':
                 $langIndex = $this->urlRouter->siteLanguage == 'ar' ? 1 : 2;
                 ?><div class="filters"><?php
@@ -603,8 +605,7 @@ $.ajax({
                 ?><ul class="ts"><?php
                 ?><li><?php 
                 ?><div class="lm"><label><?= $this->lang['country'] ?></label><select onchange="CC()" id="country"><?php 
-                foreach($this->urlRouter->countries as $country)
-                {
+                foreach($this->urlRouter->countries as $country) {
                     echo "<option value=". strtoupper($country['uri']).">{$country['name']}</option>";
                 }
                 ?></select><input id="rotate" type="button" class="bt" onclick="rotate(this)" style="margin:0 30px" value="<?= $this->lang['rotate']?>" /></div><?php
@@ -782,45 +783,46 @@ $.ajax({
                     
                 break;
                                          
-                
-                default:
-                    
-                    ?><form method="get"><?php
-                    ?><ul class="ts"><?php                                
-                    ?><li><?php 
-                        ?><div class="lm"><label>UID/UUID/EMAIL:</label><input name="p" type="text" value="<?= $this->uid ? $this->uid : '' ?>" /><?php
-                        ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
-                        ?></div><?php 
-                    ?></li><?php
-                    ?></ul><?php
-                    ?></form><?php
-
-                    if(isset($_GET['p']) && count($this->multipleAccounts)){
-                        $lang=$this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/';
-                        
-                        $selected = $this->get('selected', 'uint') ? $this->get('selected', 'uint') : $this->multipleAccounts[0];
-                        ?><ul class="ts multi"><?php     
-                            foreach ($this->multipleAccounts as $acc){
-                                if($selected == $acc){
-                                    echo "<li><b>{$acc}</b></li>";
-                                }else{
-                                    echo "<li><a href='/admin/{$lang}?p={$this->uid}&selected={$acc}'>{$acc}</a></li>";
-                                }
-                            }                                
-                        ?></ul><?php
-                    }
-                    
-                    ?><form method="get"><?php
-                    ?><ul class="ts"><?php                                
-                    ?><li><?php 
-                    ?><div class="lm"><label><?= $this->lang['labelP0'] ?>:</label><input name="t" type="tel" value="<?= $this->mobile_param ?>" /><?php
+            case 'dic':
+                break;
+            
+            default:                    
+                ?><form method="get"><?php
+                ?><ul class="ts"><?php                                
+                ?><li><?php 
+                    ?><div class="lm"><label>UID/UUID/EMAIL:</label><input name="p" type="text" value="<?= $this->uid ? $this->uid : '' ?>" /><?php
                     ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
-                    ?></div></li><?php
+                    ?></div><?php 
+                ?></li><?php
+                ?></ul><?php
+                ?></form><?php
+
+                if(isset($_GET['p']) && count($this->multipleAccounts)){
+                    $lang=$this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/';
+                        
+                    $selected = $this->get('selected', 'uint') ? $this->get('selected', 'uint') : $this->multipleAccounts[0];
+                    ?><ul class="ts multi"><?php     
+                        foreach ($this->multipleAccounts as $acc){
+                            if($selected == $acc){
+                                echo "<li><b>{$acc}</b></li>";
+                            }else{
+                                echo "<li><a href='/admin/{$lang}?p={$this->uid}&selected={$acc}'>{$acc}</a></li>";
+                            }
+                        }                                
                     ?></ul><?php
-                    ?></form><?php
+                }
+                    
+                ?><form method="get"><?php
+                ?><ul class="ts"><?php                                
+                ?><li><?php 
+                ?><div class="lm"><label><?= $this->lang['labelP0'] ?>:</label><input name="t" type="tel" value="<?= $this->mobile_param ?>" /><?php
+                ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review']?>" /><?php 
+                ?></div></li><?php
+                ?></ul><?php
+                ?></form><?php
                     
                     
-                    if(isset($_GET['t']) && count($this->multipleAccounts)){
+                if(isset($_GET['t']) && count($this->multipleAccounts)){
                         $lang=$this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/';
                         $parameter = filter_input(INPUT_GET, 't', FILTER_SANITIZE_NUMBER_INT,['options'=>['default'=>0]]);
                         $selected = $this->get('selected', 'uint') ? $this->get('selected', 'uint') : $this->multipleAccounts[0];
