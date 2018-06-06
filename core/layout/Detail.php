@@ -311,7 +311,13 @@ class Detail extends Search
                         ?>@media all and (min-width:1250px) {<?php
                         for($i=0;$i<$picsCount;$i++){
                             if(isset($oPics[$i][0]) && $oPics[$i][1]){
-                                ?>.sp<?= $i+1 ?>,.sp<?= $i+1 ?> img{width:<?= $oPics[$i][0] ?>px;height:<?= $oPics[$i][1] ?>px;display:inline-block}<?php
+                                if($oPics[$i][0] > 650){
+                                    $width = 650;
+                                    $height = floor($width * $oPics[$i][1] / $oPics[$i][0]); 
+                                    ?>.sp<?= $i+1 ?>,.sp<?= $i+1 ?> img{width:<?= $width ?>px;height:<?= $height ?>px;display:inline-block}<?php
+                                }else{
+                                    ?>.sp<?= $i+1 ?>,.sp<?= $i+1 ?> img{width:<?= $oPics[$i][0] ?>px;height:<?= $oPics[$i][1] ?>px;display:inline-block}<?php
+                                }
                             }
                         }
                         ?>}<?php
