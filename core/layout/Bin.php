@@ -1107,46 +1107,107 @@ class Bin extends AjaxHandler{
                 if($this->user->info['id'] && $this->user->isSuperUser()){
                     $key = $this->get('k');
                     $country = $this->get('c');
-                    if($key){         
-                        $res = $this->urlRouter->db->queryResultArray('select * from country_loc_keywords c where c.keyword containing ? and c.cc = ? order by c.keyword',[$key,$country], true);
+                    if($key){
+                        $related = $this->get('related');
+                        if($related){
+                            $res = $this->urlRouter->db->queryResultArray('select * from wordlist_synonym w where w.wordlist_id = ? order by w.content',[$key], true);
+                        }else{
+                            if($country){
+                                $res = $this->urlRouter->db->queryResultArray('select * from country_loc_keywords c where c.keyword containing ? and c.cc = ? order by c.keyword',[$key,$country], true);                            
+                            }else{
+                                $res = $this->urlRouter->db->queryResultArray('select * from wordlist w where w.content containing ? order by w.content',[$key], true);
+                            }                            
+                        }
                         if(is_array($res)){
                             $this->setData($res,'keys');           
                         }else{
                             $this->setData([],'keys');
                         }
                         $this->process();
-                    }elseif(isset($_POST['id'])){
-                        $id=  $this->post('id');
-                        $AR=  trim($this->post('ar'));
-                        $EN=  trim($this->post('en'));
-                        $TAR=  trim($this->post('tar'));
-                        $TEN=  trim($this->post('ten'));
-                        $CC=  trim($this->post('cc'));
-                        if($id){
-                            $res = $this->urlRouter->db->queryResultArray('update country_loc_keywords set keyword=?,en=?,en_form=?,ar_form=?,cc=? where id=?',[$AR,$EN,$TEN,$TAR,$CC,$id], true);
-                            if($res){
-                                $this->process();
+                    }else{
+                        if(isset($_POST['rid'])){
+                            $id = $this->post('rid');
+                            $wordlist_id = $this->post('wid');
+                            $content = trim($this->post('content'));
+                            if($id > 0){
+                                if($content == ''){
+                                    $res = $this->urlRouter->db->queryResultArray('delete from wordlist_synonym where id = ?',[$id], true);                            
+                                }else{
+                                    $res = $this->urlRouter->db->queryResultArray('update wordlist_synonym set content = ? where id = ?',[$content, $id], true);                            
+                                }
                             }else{
-                                $this->fail(103);
+                                $res = $this->urlRouter->db->queryResultArray('insert into wordlist_synonym (wordlist_id, content) values (?,?)',[$wordlist_id, $content], true);
                             }
-                        }else{
-                            if($AR){
-                                $res = $this->urlRouter->db->queryResultArray('insert into country_loc_keywords (keyword,en,en_form,ar_form,cc) values (?,?,?,?,?)',[$AR,$EN,$TEN,$TAR,$CC], true);
+                            $this->process();
+                        }elseif(isset($_POST['did'])){
+                            $id=  $this->post('did');
+                            $res = $this->urlRouter->db->queryResultArray('delete from wordlist where id = ?',[$id], true);
+                            $this->process();
+                        }elseif(isset($_POST['kid'])){
+                            $id=  $this->post('kid');
+                            if($id > 0){
+                                $field = trim($this->post('field'));
+                                $checked = $this->post('checked','uint');
+                                $res = $this->urlRouter->db->queryResultArray('update wordlist set '.$field.' = ? where id = ? returning content',[$checked, $id], true);
+                                if(isset($res[0]['CONTENT']) && $res[0]['CONTENT']){
+                                    $this->setData($res[0]['CONTENT'],'content'); 
+                                    $this->process();
+                                }else{
+                                    $this->fail(103);
+                                }
+                            }else{        
+                                $content = trim($this->post('content'));    
+                                $proper = $this->post('proper','uint');                    
+                                $regular = $this->post('regular','uint');                    
+                                $abbrev = $this->post('abbreviation','uint');                    
+                                $region = $this->post('region','uint');                    
+                                $brand = $this->post('brand','uint');                    
+                                $sentence = $this->post('sentence','uint');                    
+                                $car = $this->post('car','uint');                    
+                                $off = $this->post('off','uint');                    
+                                $res = $this->urlRouter->db->queryResultArray(
+                                        'insert into wordlist (content,regular,proper,region,abbreviation,brand,car,sentence,off) values (?,?,?,?,?,?,?,?,?) returning id,lang,content,regular,proper,abbreviation,region,brand,sentence,car,off',
+                                        [$content, $regular, $proper, $region, $abbrev, $brand, $car, $sentence, $off], true);
+                                if(isset($res[0]['ID']) && $res[0]['ID']){
+                                    $this->setData($res[0],'keyword'); 
+                                    $this->process();
+                                }else{
+                                    $this->fail(103);
+                                }
+                            }
+                        }elseif(isset($_POST['id'])){
+                            $id=  $this->post('id');
+                            $AR=  trim($this->post('ar'));
+                            $EN=  trim($this->post('en'));
+                            $TAR=  trim($this->post('tar'));
+                            $TEN=  trim($this->post('ten'));
+                            $CC=  trim($this->post('cc'));
+                            if($id){
+                                $res = $this->urlRouter->db->queryResultArray('update country_loc_keywords set keyword=?,en=?,en_form=?,ar_form=?,cc=? where id=?',[$AR,$EN,$TEN,$TAR,$CC,$id], true);
                                 if($res){
                                     $this->process();
                                 }else{
-                                    $this->fail(105);
+                                    $this->fail(103);
                                 }
                             }else{
-                                $this->fail(104);
+                                if($AR){
+                                    $res = $this->urlRouter->db->queryResultArray('insert into country_loc_keywords (keyword,en,en_form,ar_form,cc) values (?,?,?,?,?)',[$AR,$EN,$TEN,$TAR,$CC], true);
+                                    if($res){
+                                        $this->process();
+                                    }else{
+                                        $this->fail(105);
+                                    }
+                                }else{
+                                    $this->fail(104);
+                                }
                             }
-                        }
-                    }else{
-                        if(isset($_GET['rotate'])){
-                            $this->urlRouter->db->queryResultArray("select PHP('touch', '{$country}', '') from rdb\$database",null, true);
-                            $this->process();
                         }else{
-                            $this->fail(102);
+                            if(isset($_GET['rotate'])){
+                                $this->urlRouter->db->queryResultArray("select PHP('touch', '{$country}', '') from rdb\$database",null, true);
+                                $this->process();
+                            }else{
+                                $this->fail(102);
+                            }
                         }
                     }
                 }else{
