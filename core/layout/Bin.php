@@ -1135,7 +1135,7 @@ class Bin extends AjaxHandler{
                                 }else{
                                     $res = $this->urlRouter->db->queryResultArray('update wordlist_synonym set content = ? where id = ?',[$content, $id], true);                            
                                 }
-                            }else{
+                            }else if($content){
                                 $res = $this->urlRouter->db->queryResultArray('insert into wordlist_synonym (wordlist_id, content) values (?,?)',[$wordlist_id, $content], true);
                             }
                             $this->process();

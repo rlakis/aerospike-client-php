@@ -52,15 +52,15 @@ class Admin extends Page {
                     li.en{text-align:left!important;direction:ltr!important}
                     .col1 > div{display:block;overflow:hidden}
                     #related{font-size:18px;line-height:25px;margin-top:20px;border-top:1px solid #CCC;min-height:200px}
-                    #related li{padding:10px;margin:15px;border:1px solid #aaa}
+                    #related li{text-align:left;direction:ltr;padding:10px;margin:15px;border:1px solid #aaa}
                     #related li:not(.edit):hover {
                         background-color: #00e;
                         color: #FFF;
                         cursor:pointer
                     }
                     #related li.edit{background-color:lightgoldenrodyellow;}
-                    #related input{width:550px;margin:0 30px;padding:5px}
-                    #related a{font-size:16px}
+                    #related input{width:450px;margin:0 30px;padding:5px}
+                    #related a{font-size:16px;margin:0 20px;}
                     #msg{font-size:30px;text-align:center}
                     .md-checkbox {
   position: relative;
@@ -652,16 +652,16 @@ class Admin extends Page {
                         });
                     };
                     function render(words){
+                        var ul = $("<ul></ul>");
+                        var li = $("<li onclick=\'addR(this)\' id=\'-1\'>Add Word</li>");
+                        ul.append(li);
                         if(words.length){
-                            var ul = $("<ul></ul>");
-                            var li = $("<li onclick=\'addR(this)\' id=\'-1\'>Add Word</li>");
-                            ul.append(li);
                             for(var i in words){
                                 var li = $("<li onclick=\'addR(this)\' id=\'"+words[i].ID+"\'>"+words[i].CONTENT+"</li>");
                                 ul.append(li);
                             }
-                            $("#related").append(ul);
                         }
+                        $("#related").append(ul);
                     }
                     function deleteKey(){
                         if(SELECTED != 0){
@@ -681,12 +681,19 @@ class Admin extends Page {
                         e = $(e);
                         if(!e.hasClass("edit")){
                             e.addClass("edit");
-                            var box=$("<input type\'text\' value=\'"+(e.html() == \'Add Word\' ? \'\':e.html())+"\' onkeydown=\'idir(this)\' onchange=\'idir(this, 1)\' /><a class=\'link\' href=\'javascript:void(0);\' onclick=\'updateR(this)\'>done</a>");
+                            var box=$("<input type\'text\' value=\'"+(e.html() == \'Add Word\' ? \'\':e.html())+"\' onkeydown=\'idir(this)\' onchange=\'idir(this, 1)\' /><a class=\'link\' href=\'javascript:void(0);\' onclick=\'updateR(this)\'>save</a><a class=\'link\' href=\'javascript:void(0);\' onclick=\'cancelR(this)\'>cancel</a>");
 
                             CURRENT=e.html();
                             e.html("");
                             e.append(box);
                         }
+                    }
+                    function cancelR(e){
+                        window.event.stopPropagation();
+                        e=$(e);
+                        var li=e.parent();
+                        li.html(CURRENT);
+                        li.removeClass("edit");
                     }
                     function updateR(e){
                         window.event.stopPropagation();
