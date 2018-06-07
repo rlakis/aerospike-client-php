@@ -604,6 +604,7 @@ class Admin extends Page {
                     };
                     function newForm(){
                         SELECTED=0;
+                        CURRENT="";
                         rmsg();                        
                         $("#proper").prop("checked", 0);
                         $("#regular").prop("checked", 0);
@@ -613,7 +614,7 @@ class Admin extends Page {
                         $("#brand").prop("checked", 0);
                         $("#car").prop("checked", 0);
                         $("#sentence").prop("checked", 0);
-                        $("#related").html();
+                        $("#related").html("");
                         $("#delHolder").css("display","none");
                     }
                     function clear(){
@@ -681,22 +682,24 @@ class Admin extends Page {
                         e = $(e);
                         if(!e.hasClass("edit")){
                             e.addClass("edit");
-                            var box=$("<input type\'text\' value=\'"+(e.html() == \'Add Word\' ? \'\':e.html())+"\' onkeydown=\'idir(this)\' onchange=\'idir(this, 1)\' /><a class=\'link\' href=\'javascript:void(0);\' onclick=\'updateR(this)\'>save</a><a class=\'link\' href=\'javascript:void(0);\' onclick=\'cancelR(this)\'>cancel</a>");
-
+                            var box=$("<input type\'text\' value=\'"+(e.html() == \'Add Word\' ? \'\':e.html())+"\' onkeydown=\'idir(this)\' onchange=\'idir(this, 1)\' /><a class=\'link\' href=\'javascript:void(0);\' onclick=\'updateR(this,event)\'>save</a><a class=\'link\' href=\'javascript:void(0);\' onclick=\'cancelR(this, event)\'>cancel</a>");
                             CURRENT=e.html();
                             e.html("");
                             e.append(box);
+                            box.first().focus();
                         }
                     }
-                    function cancelR(e){
-                        window.event.stopPropagation();
+                    function cancelR(e, ex){
+                        var event = ex || window.event;
+                        event.stopPropagation();
                         e=$(e);
                         var li=e.parent();
                         li.html(CURRENT);
                         li.removeClass("edit");
                     }
-                    function updateR(e){
-                        window.event.stopPropagation();
+                    function updateR(e, ex){
+                        var event = ex || window.event;
+                        event.stopPropagation();
                         e=$(e);
                         var li=e.parent();
                         var input=e.prev();
