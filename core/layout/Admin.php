@@ -37,7 +37,7 @@ class Admin extends Page {
                 . '.action{width:800px!important;text-align:center}'
                 . '.options{position:absolute;border:1px solid #aaa;border-bottom:0;width:306px;background-color:#FFF}'
                 . '.options li{cursor:pointer;border-bottom:1px solid #aaa;direction:rtl;text-align:right;padding:10px;}'
-                . '.options li:hover{background-color:#00e;color:#FFF}'
+                . '.options li:hover,.options li.focus{background-color:#00e;color:#FFF}'
                 . '#msg{height:40px;display:block}'
                 . '.rpd{display:block}.rpd textarea{width:740px}'
                 . '.tbs{width:750px}.tbs li{float:left;width:80px}'
@@ -511,7 +511,7 @@ class Admin extends Page {
                 ?><li><?php
                     ?><div class="lm"><?php
                         ?><label for="keyword"><?= $this->lang['keyword'] ?></label><?php
-                        ?><input type="text" id="keyword" autocomplete="off" onkeydown="idir(this)" onkeyup="load(this);newForm()" onchange="idir(this, 1);" /><?php
+                        ?><input type="text" id="keyword" autocomplete="off" onkeydown="idir(this);navList(event)" onkeyup="load(this,event);newForm()" onchange="idir(this, 1);" /><?php
                         ?><input id="add" type="button" class="bt" onclick="save(this)" style="margin:0 30px" value="<?= $this->lang['new_key'] ?>" /><?php
                     ?></div><?php
                 ?></li><?php
@@ -553,8 +553,48 @@ class Admin extends Page {
         
         $this->inlineQueryScript .= '$("body").click(function(e){if(e.target.id!="keyword")clear()});';
         $this->globalScript .= '
+            var INDEX=-1,arrowAction=false;
+            function navList(e){
+                e = e || window.event;
+                if (e.keyCode == "38") {
+                    INDEX--;
+                    arrowAction=true;
+                }
+                else if (e.keyCode == "40") {                
+                    INDEX++;
+                    arrowAction=true;
+                }else if(e.keyCode == "37" || e.keyCode == "39"){
+                    arrowAction = true;
+                    return;
+                }else{
+                    arrowAction=false;
+                }
+                if(arrowAction){
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if(INDEX > locs.length -1){
+                        INDEX = locs.length - 1;
+                    }
+                    if(INDEX < 0){
+                        INDEX = 0;
+                    }
+                    var list = $("#list");
+                    $("li", list).removeClass("focus");
+                    $("li:nth-child("+(INDEX + 1)+")", list).addClass("focus");
+                }else if(e.keyCode == "13"){
+                    arrowAction = true;
+                    edit(INDEX);
+                    clear();
+                }else{
+                    INDEX = 0;
+                    var list = $("#list");
+                    $("li", list).removeClass("focus");
+                }
+            };
                     var xhr=null,locs=[];
-                    function load(e,nop){
+                    function load(e,event){
+                        event = event || window.event;
+                    if(!arrowAction){
                         var v=e.value;
                         if(v!=""){
                             if(xhr && xhr.readyState != 4){
@@ -580,6 +620,10 @@ class Admin extends Page {
                                 }
                             });
                         }
+                        }else{
+                        event.stopPropagation();
+                        event.stopDefault();
+                        }
                     };
                     function build(e){  
                         if(typeof e === "undefined"){
@@ -587,12 +631,12 @@ class Admin extends Page {
                         }else{
                             e=$(e);
                         }
+                        INDEX=-1;
                         if(locs.length>0){
                             var dv=$("<ul id=\'list\' class=\'options\'></ul>");
                             for(var i in locs){
                                 var o=$("<li class=\'"+locs[i].LANG+"\' onclick=\'edit("+i+")\'>"+locs[i].CONTENT+"</li>");
                                 dv.append(o);
-                                if(i>6)break;
                             }
                             $("body").append(dv);
                             var p=e.offset();
