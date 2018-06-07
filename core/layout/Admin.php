@@ -583,8 +583,18 @@ class Admin extends Page {
                     $("li:nth-child("+(INDEX + 1)+")", list).addClass("focus");
                 }else if(e.keyCode == "13"){
                     arrowAction = true;
-                    edit(INDEX);
-                    clear();
+                    if(INDEX > -1){
+                        edit(INDEX);
+                        clear();
+                    }else{
+                        var v = $("#keyword").val().trim().toLowerCase();
+                        for(var i in locs){
+                            if(locs[i].CONTENT.toLowerCase() == v){
+                                edit(i);
+                                clear();
+                            }
+                        }
+                    }
                 }else{
                     INDEX = 0;
                     var list = $("#list");
@@ -790,6 +800,7 @@ class Admin extends Page {
                         }
                     }
                     function save(){
+                        if(SELECTED == 0){
                         var d={
                             kid:-1,
                             content:$("#keyword").val(),
@@ -819,6 +830,7 @@ class Admin extends Page {
                                 fail();
                             }
                         });
+                        }
                     };
                     function fail(m){
                         var msg = "<span class=\'fail\'></span> failed to save";
