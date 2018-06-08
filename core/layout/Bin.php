@@ -1203,7 +1203,12 @@ class Bin extends AjaxHandler{
                             }
                         }else{
                             if(isset($_GET['rotate'])){
-                                $this->urlRouter->db->queryResultArray("select PHP('touch', '{$country}', '') from rdb\$database",null, true);
+                                $rotate = $this->get("rotate", 'uint');
+                                if($rotate == 2){
+                                    $output = exec("/usr/bin/sshpass -p4pnE3RSDmtpdej /usr/bin/ssh root@h8.mourjan.com 'touch /opt/mnv1/data/dic'", $retArr, $retVal);
+                                }else{                                    
+                                    $this->urlRouter->db->queryResultArray("select PHP('touch', '{$country}', '') from rdb\$database",null, true);                                
+                                }
                                 $this->process();
                             }else{
                                 $this->fail(102);

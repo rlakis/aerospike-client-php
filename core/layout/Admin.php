@@ -47,6 +47,7 @@ class Admin extends Page {
         switch($this->sub){
             case 'dic':
                 $this->inlineCss.='
+                    .ts label{width:100px}
                     #delHolder{text-align:center;display:none;margin:30px 0}
                     li.ar{text-align:right!important;direction:rtl!important}
                     li.en{text-align:left!important;direction:ltr!important}
@@ -512,7 +513,8 @@ class Admin extends Page {
                     ?><div class="lm"><?php
                         ?><label for="keyword"><?= $this->lang['keyword'] ?></label><?php
                         ?><input type="text" id="keyword" autocomplete="off" onkeydown="idir(this);navList(event)" onkeyup="load(this,event);newForm()" onchange="idir(this, 1);" /><?php
-                        ?><input id="add" type="button" class="bt" onclick="save(this)" style="margin:0 30px" value="<?= $this->lang['new_key'] ?>" /><?php
+                        ?><input id="add" type="button" class="bt" onclick="save(this)" style="margin:0 25px" value="<?= $this->lang['new_key'] ?>" /><?php
+                        ?><input id="rotate" type="button" class="bt" onclick="rotate(this)" style="margin:0 25px" value="Rotate" /><?php
                     ?></div><?php
                 ?></li><?php
             ?></ul><?php
@@ -553,6 +555,21 @@ class Admin extends Page {
         
         $this->inlineQueryScript .= '$("body").click(function(e){if(e.target.id!="keyword")clear()});';
         $this->globalScript .= '
+            function rotate(e){
+                e = $(e);
+                e.css("display", "none");
+                $.ajax({
+                    type:"GET",
+                    url: "/ajax-keyword/",
+                    data:{rotate:2},
+                    success: function(rp) {
+                        e.css("display", "inline-block");
+                    },
+                    error:function(){
+                        e.css("display", "inline-block");
+                    }
+                });
+            };
             var INDEX=-1,arrowAction=false;
             function navList(e){
                 e = e || window.event;
