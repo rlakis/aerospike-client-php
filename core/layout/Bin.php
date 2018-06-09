@@ -21,8 +21,7 @@ class AjaxHandler extends Site {
     var $dir='';
     var $host='';
 
-    function __construct(Router $router)
-    {
+    function __construct(Router $router){
         parent::__construct($router);
         $this->dir=$router->cfg['dir'];
         $this->host=$router->cfg['host'];
@@ -1205,7 +1204,26 @@ class Bin extends AjaxHandler{
                             if(isset($_GET['rotate'])){
                                 $rotate = $this->get("rotate", 'uint');
                                 if($rotate == 2){
-                                    $output = exec("/usr/bin/sshpass -p4pnE3RSDmtpdej /usr/bin/ssh root@h8.mourjan.com 'touch /opt/mnv1/data/dic'", $retArr, $retVal);
+                                    $userAgent = 'Edigear-PHP/' . '1.0' . ' (+https://github.com/edigear/edigear-php)';
+                                    $userAgent .= ' PHP/' . PHP_VERSION;
+                                    $curl_version = curl_version();
+                                    $userAgent .= ' curl/' . $curl_version['version'];                        
+                                    $ch = curl_init();   
+                                    curl_setopt($ch, CURLOPT_URL, "http://h8.mourjan.com:8080/v1/ad/touch/dic");
+                                    curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);                
+                                    curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+                                    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+                                    curl_setopt($ch, CURLOPT_HTTPHEADER, 
+                                        ["Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", 
+                                         "Content-Type: application/json", "Accept-Encoding: gzip, deflate", 
+                                         "Pragma: no-cache",
+                                         "Cache-Control: no-cache"]);
+                                    curl_setopt($ch, CURLOPT_VERBOSE, 0);
+                                    curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+                                    curl_setopt($ch, CURLOPT_HEADER, 0);
+                                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                                                                                                
+                                    $resp = \curl_exec($ch);
                                 }else{                                    
                                     $this->urlRouter->db->queryResultArray("select PHP('touch', '{$country}', '') from rdb\$database",null, true);                                
                                 }
