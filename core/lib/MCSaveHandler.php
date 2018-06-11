@@ -16,8 +16,7 @@ $port = 1337;
 
 
 
-class MCSaveHandler
-{
+class MCSaveHandler {
     var $_host;			///< searchd host (default is "db.mourjan.com")
     var $_port;			///< searchd port (default is 1337)
 
@@ -31,8 +30,7 @@ class MCSaveHandler
     var $_warning;		///< last warning message
     var $_connerror;		///< connection error vs remote error flag
 
-    function __construct($config) 
-    {
+    function __construct($config) {
         $this->cfg = $config;
         // per-client-object settings
         $this->_host		= 'h8.mourjan.com'; /* $this->cfg['db_host'];*/
@@ -51,8 +49,7 @@ class MCSaveHandler
     }
 
 
-    function __destruct()
-    {
+    function __destruct() {
         if ($this->_socket !== false) {
             fclose($this->_socket);
         }
@@ -60,17 +57,14 @@ class MCSaveHandler
 
 
     /// set server connection timeout (0 to remove)
-    function SetConnectTimeout ( $timeout )
-    {
+    function SetConnectTimeout ( $timeout ) {
         assert ( is_numeric($timeout) );
         $this->_timeout = $timeout;
     }
 
 
-    function _Send ( $handle, $data, $length )
-    {
-        if ( feof($handle) || fwrite ( $handle, $data, $length ) !== $length )
-        {
+    function _Send ( $handle, $data, $length ) {
+        if ( feof($handle) || fwrite ( $handle, $data, $length ) !== $length ) {
             $this->_error = 'connection unexpectedly closed (timed out?)';
             $this->_connerror = true;
             return false;
@@ -80,10 +74,8 @@ class MCSaveHandler
 
 
      
-    function _Connect ()
-    {
-        if ( $this->_socket!==false )
-        {
+    function _Connect () {
+        if ( $this->_socket!==false ) {
             // we are in persistent connection mode, so we have a socket
             // however, need to check whether it's still alive
             if ( !@feof ( $this->_socket ) )
@@ -95,13 +87,11 @@ class MCSaveHandler
         $errno = 0;
         $errstr = "";
         $this->_connerror = false;
-        if ( $this->_path )
-        {
+        if ( $this->_path ) {
             $host = $this->_path;
             $port = 0;
         }
-        else
-        {
+        else {
             $host = $this->_host;
             $port = $this->_port;
         }
@@ -111,8 +101,7 @@ class MCSaveHandler
         else
             $fp = @fsockopen ( $host, $port, $errno, $errstr, $this->_timeout );
 
-        if ( !$fp )
-        {
+        if ( !$fp ) {
             if ( $this->_path )
                 $location = $this->_path;
             else
@@ -129,24 +118,20 @@ class MCSaveHandler
 
 
     /// get and check response packet from searchd server
-    function _GetResponse ( $fp, $client_ver )
-    {
+    function _GetResponse ( $fp, $client_ver ) {
         $response = "";
         $len = 0;
         $header = fread ( $fp, 2 );
-        if ( strlen($header)==2 )
-        {
+        if ( strlen($header)==2 ) {
             $ll = unpack('nlen', $header);
             $len = $ll['len'];
             //echo $len, "\n";
             
             //list ( $status, $ver, $len ) = array_values ( unpack ( "n2a/Nb", $header ) );
             $left = $len;
-            while ( $left>0 && !feof($fp) )
-            {
+            while ( $left>0 && !feof($fp) ) {
                 $chunk = fread ( $fp, min ( 8192, $left ) );
-                if ( $chunk )
-                {
+                if ( $chunk ) {
                     $response .= $chunk;
                     $left -= strlen($chunk);
                 }
@@ -160,16 +145,14 @@ class MCSaveHandler
         
         // check response
         $read = strlen ( $response );
-        if ( !$response || $read!=$len )
-        {
+        if ( !$response || $read!=$len ) {
             $this->_error = $len
                     ? "failed to read normalizer response (len=$len, read=$read)"
                     : "received zero-sized searchd response";
             return false;
         }
 
-        if (substr($response, 0, 6)=='error:')
-        {
+        if (substr($response, 0, 6)=='error:') {
             $this->_error = $response;
             return false;
         }
@@ -178,8 +161,7 @@ class MCSaveHandler
     }
 
 
-    public function getFromDatabase($reference)
-    {
+    public function getFromDatabase($reference) {
         $db = new DB($this->cfg);
         $rs = $db->queryResultArray("select * from ad_user where id=?", [$reference])[0];
         $rs['CONTENT'] = json_decode($rs['CONTENT']);
@@ -192,18 +174,15 @@ class MCSaveHandler
         $buffer = json_encode($command);
         $len = pack('N', strlen($buffer));
         $buffer = $len.$buffer;
-        if ($this->Open())
-        {
-            if ($this->_Send($this->_socket, $buffer, strlen($buffer)))
-            {
+        if ($this->Open()) {
+            if ($this->_Send($this->_socket, $buffer, strlen($buffer))) {
 
                 $response = $this->_GetResponse($this->_socket, '');
                 if ($response) {
                     //echo $response, "\n";
                     $j = json_decode($response);
                     print_r($j);
-                    if (isset($j->attrs))
-                    {
+                    if (isset($j->attrs)) {
                         $ps = $db->prepareQuery("update ad_user set section_id=?, purpose_id=?, content=? where id=?");
                         $po = $db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
         
@@ -214,8 +193,7 @@ class MCSaveHandler
                         $po->bindValue(2, preg_replace('/\s+/', ' ', json_encode($j->attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
                         $po->execute();   
                         
-                        if ($rs['STATE']=='1')
-                        {
+                        if ($rs['STATE']=='1') {
                             $po = $db->prepareQuery("INSERT INTO INVALIDATE (TABLE_ID, RECORD_ID) VALUES (12, ?)");
                             $po->bindValue(1, $reference, PDO::PARAM_INT);
                             $po->execute(); 
@@ -235,30 +213,24 @@ class MCSaveHandler
     }
 
     
-    public function checkFromDatabase(int $reference)
-    {
+    public function checkFromDatabase(int $reference) {
         $db = new DB($this->cfg);
         $rs = $db->queryResultArray("select * from ad_user where id=?", [$reference], TRUE);
-        if ($rs && count($rs)==1)
-        {
+        if ($rs && count($rs)==1) {
             $rs = $rs[0];
             $rs['CONTENT'] = json_decode($rs['CONTENT']);
-            if (isset($rs['CONTENT']->attrs)) 
-            {
+            if (isset($rs['CONTENT']->attrs)) {
                 unset($rs['CONTENT']->attrs);
             }
             $command = ['command'=>'normalize', 'json'=>json_encode($rs['CONTENT'])];
             $buffer = json_encode($command);
             $len = pack('N', strlen($buffer));
             $buffer = $len.$buffer;
-            if ($this->Open())
-            {
-                if ($this->_Send($this->_socket, $buffer, strlen($buffer)))
-                {
+            if ($this->Open()) {
+                if ($this->_Send($this->_socket, $buffer, strlen($buffer))) {
                     $response = $this->_GetResponse($this->_socket, '');
                                         
-                    if ($response) 
-                    {
+                    if ($response) {
                         //echo $response, "\n";
                         $j = json_decode($response, TRUE);
                         //$j['other'] = json_encode($j['other'], JSON_UNESCAPED_UNICODE);
@@ -453,18 +425,12 @@ class MCSaveHandler
         if (isset($ad_content['pubTo']) && empty($ad_content['pubTo'])) {
             $ad_content['pubTo'] = new stdClass();
         }
-
-        
-        //if (isset($ad_content['pics']))
-        //{
-        //    error_log(PHP_EOL.json_encode($ad_content, JSON_UNESCAPED_UNICODE));
-        //}
                 
         $command = ['command'=>'normalize', 'json'=>json_encode($ad_content)];
         
         $res = $this->apiV1normalizer($command['json']);
         if (isset($res['status']) && $res['status']==200) {
-            if(!$extras){
+            if(!$extras) {
                 if (isset($res['data']['wordsList'])) { unset($res['data']['wordsList']); }
                 if (isset($res['data']['alterWordsList'])) { unset($res['data']['alterWordsList']); }
             }
@@ -477,20 +443,10 @@ class MCSaveHandler
                 $res['data']['altother']=$res['data']['formatB'];
                 unset($res['data']['formatB']);                 
             }
-
-            //error_log('here ' . PHP_EOL . json_encode($res['data']));
-            //if (isset($res['data']['app']) && $res['data']['app']=='ios' && $res['data']['agent']=='Mourjan ios') {
-            //if (!isset($res['data']['app']) || $res['data']['app']!='android') {
-                
-                if (!isset($res['data']['media'])) { $res['data']['media'] = 0; }
-                //if (isset($res['data']['pics']) && empty($res['data']['pics'])) {
-                //    $res['data']['pics'] = new stdClass();
-                //    $res['data']['media'] = 0;
-                //}
-                
-                error_log('clean ' . PHP_EOL . json_encode($res['data']));   
-                return $res['data'];
-            //}
+                            
+            if (!isset($res['data']['media'])) { $res['data']['media'] = 0; }
+          
+            return $res['data'];
         }
         else if (isset($res['error']) && $res['error']==1) {
             error_log($res['except']);
@@ -524,8 +480,7 @@ class MCSaveHandler
     }
 
     
-    function searchByAdId($reference)
-    {
+    function searchByAdId($reference) {
         $db = new DB($this->cfg);
         include_once $this->cfg['dir'].'/core/lib/SphinxQL.php';
         $sphinx = new SphinxQL(['host'=>'p1.mourjan.com', 'port'=>9307, 'socket'=>NULL], 'ad');
@@ -541,12 +496,10 @@ class MCSaveHandler
         $sbMails = "";
         $sbGeoKeys = "";
         
-        if (isset($obj->attrs->geokeys) && !empty($obj->attrs->geokeys))
-        {
+        if (isset($obj->attrs->geokeys) && !empty($obj->attrs->geokeys)) {
             $sbGeoKeys.=", ANY(";
             $len = count($obj->attrs->geokeys);
-            for ($i=0; $i<$len; $i++)
-            {
+            for ($i=0; $i<$len; $i++) {
                 if ($i>0) $sbGeoKeys.=" OR ";
                 $sbGeoKeys.="x={$obj->attrs->geokeys[$i]}";
             }
@@ -555,18 +508,15 @@ class MCSaveHandler
         }
         
         $names = [];
-        if (!isset($obj->attrs->geokeys))
-        {
+        if (!isset($obj->attrs->geokeys)) {
             $obj->attrs->geokeys = [];
         }
         
-        if (isset($obj->attrs->price))
-        {
+        if (isset($obj->attrs->price)) {
             $names['price'] = 0;
         }
         
-        if (isset($obj->attrs->rooms))
-        {
+        if (isset($obj->attrs->rooms)) {
             $names['rooms'] = 0;
         }
 
@@ -707,8 +657,7 @@ class MCSaveHandler
     }
 
 
-    private function longestCommonSubsequence($X,  $s)
-    {
+    private function longestCommonSubsequence($X,  $s) {
         $m = count($X);
         //$m = mb_strlen($s1);
         $n = mb_strlen($s);
@@ -743,10 +692,8 @@ class MCSaveHandler
     /////////////////////////////////////////////////////////////////////////////
     // persistent connections
     /////////////////////////////////////////////////////////////////////////////
-    function Open()
-    {
-        if ( $this->_socket !== false )
-        {
+    function Open() {
+        if ( $this->_socket !== false ) {
             $this->_error = 'already connected';
             return false;
         }
@@ -764,10 +711,8 @@ class MCSaveHandler
     }
 
     
-    function Close()
-    {
-        if ( $this->_socket === false )
-        {
+    function Close() {
+        if ( $this->_socket === false ) {
             $this->_error = 'not connected';
             return false;
         }
@@ -780,12 +725,9 @@ class MCSaveHandler
 }
 
 
-if (php_sapi_name()=='cli' && get_cfg_var('mourjan.server_id')=='99')
-{
-
+if (php_sapi_name()=='cli' && get_cfg_var('mourjan.server_id')=='99') {
     $saveHandler = new MCSaveHandler($config);
     $saveHandler->getFromDatabase($argv[1]);
     //$saveHandler->searchByAdId($argv[1]);
     //$saveHandler->testRealEstate(9);
-    
 }

@@ -653,7 +653,6 @@ class MobileApi {
         $pref = new MCPostPreferences();
         $this->result['version']=$pref->getVersion();
         $dataVersion = filter_input(INPUT_GET, 'version', FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
-        error_log($dataVersion);
         if ($dataVersion != $pref->getVersion()) {
             $pref->setup();
             $this->result['d']=$pref;    
@@ -1222,7 +1221,7 @@ class MobileApi {
         //Android Fix for lost UID
         if($isAndroid  && $this->uuid){
             if($this->uid==0 && $this->user->getID()>0) {
-                error_log("Verifying if previous record exists for UUID {$this->uuid} with UID NIL\n");
+                //error_log("Verifying if previous record exists for UUID {$this->uuid} with UID NIL\n");
                 $_device = NoSQL::getInstance()->deviceFetch($this->uuid);
 
                 if ($_device && isset($_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]) && $_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]=='Android') {
@@ -2647,18 +2646,21 @@ class MobileApi {
     public function userRenewAd() {        
         $opts = $this->userStatus($status);
         $this->result['d']['state']=-1;
-        if ($status==1) {
+        if ($status==1 && !$this->user->isBlocked()) {
+            if ($this->user->isSuspended()) {
+                $this->result['d']['suspend'] = $this->user->getSuspensionTime();                
+                return;
+            }
             $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT)+0;
-            if ($id) {
+            if ($id) {                
                 $this->db->setWriteMode();
+                
                 include_once $this->config['dir'] . '/core/model/User.php';
                 $user = new User($this->db, $this->config, null, 0);
                 $user->info['id'] = $this->uid;
                 $user->info['level'] = 0;
                 $rs = $user->renewAd($id, 1);
-                
-                
-                //$rs = $this->db->queryResultArray("update AD_USER set state=1 where id=? returning state", [$id], FALSE, PDO::FETCH_ASSOC);
+                                
                 if (empty($rs)==false) {
                     $this->result['d']['state']=1;//$rs[0]['STATE'];
                 }
@@ -3096,6 +3098,10 @@ class MobileApi {
         $opts = $this->userStatus($status);
    
         if ($status==1 && !$this->user->isBlocked()) {
+            if ($this->user->isSuspended()) {
+                $this->result['d']['suspend'] = $this->user->getSuspensionTime();                
+                return;
+            }
             $this->db->setWriteMode();
             
             
@@ -3290,18 +3296,14 @@ class MobileApi {
                     $countries = $this->db->getCountriesData('en');
                     if(isset($countries[$country_id]['code'])) {
                         $countryCode = '+'.$countries[$country_id]['code'];
-                        //error_log("mobile check #{$ad['id']}# ".$countryCode);
                         $differentCodes = false;
                         foreach ($ad['cui']['p'] as $number) {
-                            //error_log("number ".$number['v']);
-                            //error_log("with ".substr($number['v'], 0, strlen($countryCode)));
                             if (substr($number['v'], 0, strlen($countryCode)) != $countryCode) {
                                 $differentCodes = true;
                             }
                         }
                                 
                         if (!$differentCodes) {
-                            //error_log("rollback review");
                             $requireReview = 0;
                         }
                     }
@@ -3622,11 +3624,8 @@ class MobileApi {
             
             $ad['state']=$state;        
             $this->result['d'] = [];                    
-            //$this->api->result['d']['id'] = $rid;
             $this->result['d']['adid'] = $ad_id;
-            //$this->result['d']['state'] = $state;
             $this->result['d']['normalized'] = is_array($ad) ? $ad : []; 
-            //error_log(json_encode($this->api->result['d']));
                     
             unset($stmt);
         }
@@ -3681,10 +3680,7 @@ class MobileApi {
         $opts = $this->userStatus($status);
    
         if ($status==1 && !$this->user->isBlocked()) {
-            //error_log($_GET['text']);
             $text = $_GET['text'];  
-            //error_log($text);
-            //error_log(urldecode($text));
             
             $this->result['d']['original']=$text;
             
@@ -3743,11 +3739,8 @@ class MobileApi {
                     curl_close($ch);
                 }
             }                        
-            
-            //error_log(json_encode($this->result));
         }        
         
-        //$this->result['d']['ad'] = is_array($ad) ? $ad : new stdClass(); 
     }
     
     

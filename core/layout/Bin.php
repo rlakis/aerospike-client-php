@@ -785,7 +785,6 @@ class Bin extends AjaxHandler{
                                         $keyCode=0;
                                         $number=0;
                                         error_log($returnie);
-                                        error_log("AHHH");
                                     }                                      
                                 }
                                     
