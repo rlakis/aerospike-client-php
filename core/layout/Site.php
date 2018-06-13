@@ -101,21 +101,19 @@ class Site
         if($length){
             $str_len = mb_strlen($text, 'UTF-8');
             if($str_len > $length){
-                $tmp = mb_substr($text, 0, $length, 'UTF-8');
-                $lastSpace = strrpos($tmp, ' ');
-                $tmp   = substr($tmp, 0, $lastSpace);
-                $str_len_2 = 0;
-                $tmp_2 = '';
-                do{       
-                    if($str_len_2){
-                        $tmp = $tmp_2;
-                    }
-                    $str_len = mb_strlen($tmp, 'UTF-8');
-                    $tmp_2 = trim(mb_ereg_replace('<.*', '', trim($tmp)));
-                    $tmp_2 = trim(mb_ereg_replace('[\s\-+=<>\\&:;,.]$', '', trim($tmp_2)));
-                    $str_len_2 = mb_strlen($tmp_2, 'UTF-8');
-                }while($str_len != $str_len_2);
-                $text = trim($tmp_2).$separator;
+                
+                $text = trim(preg_replace('/\x{200B}.*/u', '', $text));
+                $text = trim(preg_replace('/[\-+=<>\\&:;,.]$/', '', $text));
+                
+                $str_len = mb_strlen($text, 'UTF-8');
+                if($str_len > $length){
+                    $text = mb_substr($text, 0, $length, 'UTF-8');
+                    $lastSpace = strrpos($text, ' ');
+                    $text   = substr($text, 0, $lastSpace);
+                    $text = trim(preg_replace('/[\-+=<>\\&:;,.]$/', '', $text));
+                }
+                
+                $text = trim($text).$separator;
             }
         }
         return $text;

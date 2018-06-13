@@ -853,7 +853,11 @@ class Search extends Page
                     //if (!(isset($this->user->info['level']) && $this->user->info['level'] == 9)) {
 //                        $feed = $this->sphinx->BuildExcerpts(array($ad[Classifieds::CONTENT]), 'mouftah', $keywords, array("limit" => 160));
 //                        $feed[0] = trim($feed[0]);
-                    $feed = $this->BuildExcerpts($ad[Classifieds::CONTENT], 160);
+                    
+                    
+                    $excerptLength = 160;
+                    
+                    $feed = $this->BuildExcerpts($ad[Classifieds::CONTENT], $excerptLength);
                         if (substr($feed, -3) == '...') {
                             $replaces = 0;
                             $feed = preg_replace('/(?:<(?!\/)(?!.*>).*)|(?:<(?!\/)(?=.*>)(?!.*<\/.*>)).*(\.\.\.)$/', '$1' . ($this->urlRouter->id == $ad[Classifieds::ID] ? '' : '<span class="lnk">' . ($ad[Classifieds::RTL] ? $this->lang['readMore_ar'] : $this->lang['readMore_en']) . '</span>'), $feed, -1, $replaces);
@@ -3513,7 +3517,12 @@ class Search extends Page
 
                 $ad[Classifieds::CONTENT] = preg_replace('/www(?!\s+)\.(?!\s+).*(?!\s+)\.(?!\s+)(com|org|net|mil|edu|COM|ORG|NET|MIL|EDU)/', '', $ad[Classifieds::CONTENT]);
 
-                $feed = $this->BuildExcerpts($ad[Classifieds::CONTENT], 160);
+                $excerptLength = 180;
+                if($ad[Classifieds::RTL] == 1){
+                    $excerptLength = 200;
+                }
+                
+                $feed = $this->BuildExcerpts($ad[Classifieds::CONTENT], $excerptLength);
                 if (substr($feed, -3) == '...') {
                     $replaces = 0;
                     $feed = preg_replace('/(?:<(?!\/)(?!.*>).*)|(?:<(?!\/)(?=.*>)(?!.*<\/.*>)).*(\.\.\.)$/', '$1' . ($this->urlRouter->id == $ad[Classifieds::ID] ? '' : '<span class="lnk">' . ($ad[Classifieds::RTL] ? $this->lang['readMore_ar'] : $this->lang['readMore_en']) . '</span>'), $feed, -1, $replaces);
