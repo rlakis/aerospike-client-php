@@ -4,8 +4,7 @@ include_once $config['dir'] . '/core/layout/Page.php';
 use Core\Model\Classifieds;
 use Core\Lib\SphinxQL;
 
-class Search extends Page 
-{    
+class Search extends Page {    
     const ID                    = 0;
     const CONTENT               = 1;
     const KEYWORDS              = 2;
@@ -58,36 +57,36 @@ class Search extends Page
     var $isRT = 0;
     
     
-    function __construct(Core\Model\Router $router) 
-    {
+    function __construct(Core\Model\Router $router) {
         header('Vary: User-Agent');
         parent::__construct($router); 
         
         $this->tmpPurposeId = 0;
         $this->tmpRootId = 0;
         
-        if(isset($_GET['rt']))
-        {
+        if(isset($_GET['rt'])) {
             $this->isRT = 1;
         }
         
         if ($this->userFavorites && !$this->user->info['id']) {
             $this->urlRouter->cfg['enabled_ads']=0;
-        } elseif ($this->urlRouter->watchId && !$this->user->info['id']) {
+        } 
+        elseif ($this->urlRouter->watchId && !$this->user->info['id']) {
             $this->urlRouter->cfg['enabled_ads']=0;
         }
         
-        if(!$this->isMobile){
+        if (!$this->isMobile) {
             $this->inlineCss .= '.cct > a{white-space:nowrap;float:'.($this->urlRouter->siteLanguage == 'ar' ? 'right':'left').'}';
             $this->inlineCss .= '.sfilter .order,.sfilter .olang{background-color:#f8f8f8}.sfilter .order.ov,.sfilter .olang.ov{background-color:#ff9000}ul.sfilter{background-color:gold}';
             $this->inlineCss.='.ad600{display:inline-block;width:300px;height:600px}.adsawa{border:0;display:inline-block;width:300px;height:250px}';                
             $this->inlineCss .= '#sideFtr{position:relative;z-index:10000}.rpd input[type="email"]{direction:ltr;display: block;width:624px;padding:5px 10px;margin-bottom:15px}';
-        }else{
-            if(!$this->userFavorites && !$this->urlRouter->watchId){
+        }
+        else {
+            if (!$this->userFavorites && !$this->urlRouter->watchId) {
                 $this->isMobileCssLegacy=false;
                 $this->clear_require('css');
                 $this->set_require('css', 's_home');
-                if($this->user->info['id']){
+                if ($this->user->info['id']) {
                     $this->set_require('css', 's_user');
                 }
                 $this->set_require('css', 'search');
@@ -2770,7 +2769,6 @@ class Search extends Page
                             $divider=null;
                             preg_match($REGEX_MATCH, $text, $divider);
                             $pos=0;
-                            //error_log(var_export($content));
                             if($divider && count($divider) && $divider[1]){
                                 $pos = strpos($text, $divider[1]);
                                 if(!$pos){
@@ -3175,21 +3173,16 @@ class Search extends Page
     }
     
 
-    function mergeResults(&$topFeatureCount, &$ad_keys) 
-    {
-        if (isset($this->searchResults['zone1'])) 
-        {
+    function mergeResults(&$topFeatureCount, &$ad_keys) {
+        if (isset($this->searchResults['zone1'])) {
             $ad_keys = $this->searchResults['zone1']['matches'];
         }
         
-        if ($this->searchResults['body']['total_found']>20 && count($ad_keys)<2 && isset($this->searchResults['zone0'])) 
-        {
+        if ($this->searchResults['body']['total_found']>20 && count($ad_keys)<2 && isset($this->searchResults['zone0'])) {
             $count=count($this->searchResults['zone0']['matches']);
             $fc=count($ad_keys);
-            for ($i=0; $i<$count; $i++) 
-            {
-                if (($fc+$i)<2) 
-                {
+            for ($i=0; $i<$count; $i++) {
+                if (($fc+$i)<2) {
                     $ad_keys[] = $this->searchResults['zone0']['matches'][$i];
                 } 
                 else break;
@@ -3198,21 +3191,18 @@ class Search extends Page
         
         $topFeatureCount = count($ad_keys);
         $count=count($this->searchResults['body']['matches']);
-        for ($i=0;$i<$count;$i++) 
-        {
-            if (!in_array($this->searchResults['body']['matches'][$i], $ad_keys)) 
-            {
+        for ($i=0;$i<$count;$i++) {
+            if (!in_array($this->searchResults['body']['matches'][$i], $ad_keys)) {
                 $ad_keys[] = $this->searchResults['body']['matches'][$i];
             }
         }
     }
     
     
-    function renderDResults($keywords) 
-    {
+    function renderDResults($keywords) {
         $debug=( get_cfg_var('mourjan.server_id')=='99' );
         // print_r($this->searchResults['body']['scores']);
-        // die('found');
+        //die('found');
         
         $idx = 0;
         $ad_keys = array();
@@ -3223,20 +3213,17 @@ class Search extends Page
         $ad_cache = $this->urlRouter->db->getCache()->getMulti($ad_keys);
 
         $ad_count = count($ad_keys);
-        if (!isset($this->stat['ad-imp']))
-            $this->stat['ad-imp'] = array();   
+        if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp'] = []; }        
+        if (!isset($this->user->params['feature'])) { $this->user->params['feature']=[]; }
         
-        if(!isset($this->user->params['feature'])) 
-        {
-            $this->user->params['feature']=array();
-        }
         
-        if($ad_count && ( (isset($_GET['cmp']) && is_numeric($_GET['cmp'])) || (isset($_GET['aid']) && is_numeric($_GET['aid']))) )
-        {
+        
+        if($ad_count && ( (isset($_GET['cmp']) && is_numeric($_GET['cmp'])) || (isset($_GET['aid']) && is_numeric($_GET['aid']))) ) {
+            
             $aid = isset($_GET['cmp']) ? $_GET['cmp'] : $_GET['aid'];
+            //die("count ".$aid);
             $ad = $this->user->getPendingAds($aid);
-            if (!empty($ad)) 
-            {
+            if (!empty($ad)) {
                 $ad=$ad[0];
                 $content=json_decode($ad['CONTENT'],true);
                 $clang = $content['rtl'] ? 'ar' : 'en';
@@ -3251,8 +3238,7 @@ class Search extends Page
             }
         }
         
-        for ($ptr = 0; $ptr < $ad_count; $ptr++) 
-        {
+        for ($ptr = 0; $ptr < $ad_count; $ptr++) {
             $id = $ad_keys[$ptr];
             
             $feature=false;
@@ -3263,11 +3249,13 @@ class Search extends Page
                 if(isset($this->searchResults['zone1']) && in_array($id, $this->searchResults['zone1']['matches'])){
                     $feature=true;
                     $paid=true;
-                }elseif(in_array($id, $this->searchResults['zone0']['matches'])){
+                }
+                elseif(in_array($id, $this->searchResults['zone0']['matches'])){
                     $this->user->params['feature'][]=$id;
                     $feature=true;
                 }
-            }else{
+            }
+            else{
                 if(isset($this->searchResults['zone1']) && in_array($id, $this->searchResults['zone1']['matches'])) continue;
             }
             $this->user->update();
@@ -3283,7 +3271,8 @@ class Search extends Page
                         if (!($this->user->info['level'] == 9 || $this->user->info['id'] == $ad[Classifieds::USER_ID])) {
                             $this->stat['ad-imp'][]=$id;
                         }
-                    } else {
+                    } 
+                    else {
                         //if(isset($this->featuredResults["matches"][$id])){
                         $this->stat['ad-imp'][]=$id;
                         //}elseif(isset($this->searchResults["matches"][$id])){
@@ -3325,19 +3314,18 @@ class Search extends Page
                     if ($ad[Classifieds::PURPOSE_ID] == 3) {
                         //$itemDesc = 'itemprop="description" ';
                         //$itemScope = ' itemscope itemtype="https://schema.org/JobPosting"';
-                    } elseif ($ad[Classifieds::PURPOSE_ID] == 4) {
+                    } 
+                    elseif ($ad[Classifieds::PURPOSE_ID] == 4) {
                         //$itemDesc = 'itemprop="description" ';
                         //$itemScope = ' itemscope itemtype="https://schema.org/Person"';
                     }
                 }
                 
-                if (isset($ad[Classifieds::FEATURE_ENDING_DATE]))
-                {
+                if (isset($ad[Classifieds::FEATURE_ENDING_DATE])) {
                     $isFeatured = $current_time < $ad[Classifieds::FEATURE_ENDING_DATE];
                     $isFeatureBooked = $current_time < $ad[Classifieds::BO_ENDING_DATE];
                 }
-                else
-                {
+                else {
                     $isFeatured = FALSE;
                     $isFeatureBooked = FALSE;
                     error_log(__FILE__. '.' . __FUNCTION__ . '.' . __LINE__ . ' missing fearure_ending_date attribute for ad '.$ad[Classifieds::ID]);
@@ -3542,28 +3530,24 @@ class Search extends Page
                     if($this->userFavorites){
                         $favLink = "<span onclick='fv(this)' class='i fav on' title='".$this->lang['removeFav']."'></span>";
                         $liClass.= 'fon ';
-                    }elseif ($this->user->favorites) {
+                    }
+                    elseif ($this->user->favorites) {
                         if (in_array($ad[Classifieds::ID], $this->user->favorites)) {
                             $favLink = "<span onclick='fv(this)' class='i fav on' title='".$this->lang['removeFav']."'></span>";
                             $liClass.= 'fon ';
                         }
                     }
                 }
-                if($isFeatureBooked){
-                    $liClass.=' vpz';
+                if ($isFeatureBooked) { $liClass.=' vpz'; }
+                if ($isFeatured) { 
+                    $liClass.=' vp vpd';
                 }
-                if($isFeatured){
-                        $liClass.=' vp vpd';
-                    }else{
-                if($feature){
-                    $liClass.=' vp';
+                else {
+                    if ($feature) { $liClass.=' vp'; }
+                    if ($paid) { $liClass.=' vpd'; }
                 }
-                if($paid){
-                    $liClass.=' vpd';
-                }
-}
-                if ($liClass)
-                    $liClass = "class='" . trim($liClass) . "'";
+                
+                if ($liClass) { $liClass = "class='" . trim($liClass) . "'"; }
                 
                 if(!isset($ad[Classifieds::ID])){
                     error_log("#####################################");
@@ -3608,7 +3592,8 @@ class Search extends Page
                             case 1:
                                 if($ad[Classifieds::ROOT_ID] == 3){
                                     echo '<div class="ms ut" value="p1"><span class="i p"></span> '.$this->lang['bpub_1'].'</div>';
-                                }else {
+                                }
+                                else {
                                     echo '<div class="ms ut" value="p0"><span class="i p"></span> '.$this->lang['pub_1'].'</div>';
                                 }
                                 break;
@@ -6393,37 +6378,6 @@ class Search extends Page
         }
         return $this->crumbString = $bread;
     }
-
-
-	/*
-    function _getAdTitle() {
-        $title = '';
-        $ref = '';
-        //$append=false;
-        if ($this->detailAd[Classifieds::TITLE])
-            $title = preg_replace('/"/', '', $this->detailAd[Classifieds::TITLE]);
-        else {
-            $title = preg_replace('/["\']/', '', $this->getAdTitle($this->detailAd));
-        }
-
-        //$append=true;
-        if (!empty($title) && $title[0] == '#') {
-            $title = substr($title, 1);
-        }
-        $l = 2;
-        $in = 'in';
-        $this->adRef = $ref = " - ad {$this->detailAd[Classifieds::ID]}";
-        if ($this->detailAd[Classifieds::RTL]) {
-            $l = 1;
-            $in = "في";
-            $this->adRef = $ref = " - إعلان {$this->detailAd[Classifieds::ID]}";
-        }
-        $title = trim($title);
-        if ($this->detailAd[Classifieds::PUBLICATION_ID] != 1 && $this->appendLocation)
-            $title.=($this->detailAd[Classifieds::ROOT_ID] != 1 ? " " . $in : "") . " " . ($this->urlRouter->cities[$this->detailAd[Classifieds::CITY_ID]][$l] != $this->urlRouter->countries[$this->detailAd[Classifieds::COUNTRY_ID]][$l] ? $this->urlRouter->cities[$this->detailAd[Classifieds::CITY_ID]][$l] . " " : "") . $this->urlRouter->countries[$this->detailAd[Classifieds::COUNTRY_ID]][$l];
-        return $title;
-    }
-	*/
 	
 	
     function buildTitle() {
@@ -6587,45 +6541,6 @@ class Search extends Page
             }
         return $section;
     }
-
-	/*
-    function getAdTitle(&$ad) {
-        $title = "";
-        $l = "en";
-        $nameIndex = 2;
-        if ($ad[Classifieds::RTL]) {
-            $l = "ar";
-            $nameIndex = 1;
-        }
-        $params = array(
-            "purpose_id" => $ad[Classifieds::PURPOSE_ID],
-            "purpose_name" => $this->urlRouter->purposes[$ad[Classifieds::PURPOSE_ID]][$nameIndex],
-            "publication_id" => $ad[Classifieds::PUBLICATION_ID],
-            "publication_name" => $this->urlRouter->publications[$ad[Classifieds::PUBLICATION_ID]][$nameIndex],
-            "country_id" => $ad[Classifieds::COUNTRY_ID],
-            "country_name" => $this->urlRouter->countries[$ad[Classifieds::COUNTRY_ID]]['name'],
-            "city_id" => $ad[Classifieds::CITY_ID],
-            "city_name" => $this->urlRouter->cities[$ad[Classifieds::CITY_ID]][$nameIndex],
-            "category_id" => $ad[Classifieds::CATEGORY_ID],
-            "section_id" => $ad[Classifieds::SECTION_ID],
-            "section_name" => $ad[Classifieds::SECTION_NAME_AR - 1 + $nameIndex],
-            "root_id" => $ad[Classifieds::ROOT_ID],
-            "root_name" => $this->urlRouter->roots[$ad[Classifieds::ROOT_ID]][$nameIndex],
-            "body" => $ad[Classifieds::CONTENT],
-            "lang" => $l,
-        );
-        $title = new WebTitle($params);
-        $title = $title->get();
-        if ($title == "") {
-            $shorten = $this->shortenAd($ad[Classifieds::CONTENT], 60, false);
-            if ($ad[Classifieds::SECTION_ID] != 63 && !mb_ereg_match($ad[Classifieds::SECTION_NAME_AR - 1 + $nameIndex], $shorten))
-                $title = $ad[Classifieds::SECTION_NAME_AR - 1 + $nameIndex] . " - " . $shorten;
-            else
-                $title = $shorten;
-        }
-        //$this->classifieds->updateAdTitle($ad[Classifieds::ID], $title, $ad);
-        return $ad[Classifieds::TITLE];
-    }*/
-
+    
 }
 ?>

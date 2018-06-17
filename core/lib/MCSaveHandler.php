@@ -488,7 +488,8 @@ class MCSaveHandler {
         $rs = $db->queryResultArray("select * from ad_user where id=?", [$reference])[0];
         $db->close();        
 
-        $obj = json_decode($rs['CONTENT']);        
+        $obj = json_decode($rs['CONTENT']);
+        //error_log(json_encode($obj->attrs));
         $words = explode(' ', $obj->attrs->ar);
         
         $q = "select id, attrs, locality_id, IF(featured_date_ended>=NOW(),1,0) featured, section_id, purpose_id";
@@ -506,6 +507,15 @@ class MCSaveHandler {
             $sbGeoKeys.=" FOR x IN attrs.geokeys) gfilter";
             $q.=$sbGeoKeys;    
         }
+        else {
+            if (isset($obj->attrs->locality)) {
+                $q.=", attrs.locality.id={$obj->attrs->locality->id} gfilter";
+            }
+            else {
+                $obj->attrs->locality = new stdClass();
+                $obj->attrs->locality->id=-1;
+            }
+        }
         
         $names = [];
         if (!isset($obj->attrs->geokeys)) {
@@ -520,52 +530,43 @@ class MCSaveHandler {
             $names['rooms'] = 0;
         }
 
-        if (isset($obj->attrs->space))
-        {
+        if (isset($obj->attrs->space)) {
             $names['space'] = 0;
         }
         
         
-        if (isset($obj->attrs->phones) && isset($obj->attrs->phones->n) && !empty($obj->attrs->phones->n))
-        {
+        if (isset($obj->attrs->phones) && isset($obj->attrs->phones->n) && !empty($obj->attrs->phones->n)) {
             $len = count($obj->attrs->phones->n);
             $sbPhones.="ANY(";
-            for ($i=0; $i<$len; $i++)
-            {
+            for ($i=0; $i<$len; $i++) {
                 $sbPhones.= ($i>0) ? " OR " : "";
                 $sbPhones.="BIGINT(x)={$obj->attrs->phones->n[$i]}";                    
             }
             $sbPhones.=" FOR x IN attrs.phones.n)";
         }
         
-        if (isset($obj->attrs->mails) && !empty($obj->attrs->mails))
-        {
+        if (isset($obj->attrs->mails) && !empty($obj->attrs->mails)) {
             $len = count($obj->attrs->mails);
             $sbMails.="ANY(";
-            for ($i=0; $i<$len; $i++)
-            {
+            for ($i=0; $i<$len; $i++) {
                 $sbMails.=($i>0) ? " OR " : "";
                 $sbMails.="x='{$obj->attrs->mails[$i]}'";
             }
             $sbMails.=" FOR x IN attrs.mails)";
         }
             
-        if ($sbPhones && $sbMails)
-        {
+        if ($sbPhones && $sbMails) {
             $q.=", ({$sbPhones} OR {$sbMails}) cfilter";
         }
-        else if ($sbPhones && empty($sbMails))
-        {
+        else if ($sbPhones && empty($sbMails)) {
             $q.=", {$sbPhones} cfilter";
         }
-        else if (empty($sbPhones) && $sbMails)
-        {
+        else if (empty($sbPhones) && $sbMails) {
             $q.=", {$sbMails} cfilter";
         }
         $q.=" FROM ad WHERE id!={$reference} AND publication_id=1 and hold=0 and cfilter=1 limit 1000";
 
         //echo $q, "\n";
-        
         $res = $sphinx->search($q);
         $sphinx->close();
 
@@ -573,41 +574,41 @@ class MCSaveHandler {
         $scores = [];
         $messages = [];
         //$x = preg_split('//u', $obj->attrs->ar, null, PREG_SPLIT_NO_EMPTY);
-        for ($i=0; $i<$len; $i++)
-        {
+        for ($i=0; $i<$len; $i++) {
             $desc = "";
             $scores[ $res['matches'][$i]['id'] ] = 0;
             
             $attrs = json_decode($res['matches'][$i]['attrs']);
-
-            if (isset($attrs->geokeys)) 
-            {
+            
+            if (isset($attrs->locality) && $attrs->locality->id==$obj->attrs->locality->id) {
+                $desc.="G: 100% ";
+                $scores[ $res['matches'][$i]['id'] ] += 1;
+            }
+            elseif (isset($attrs->geokeys)) {
+                //error_log(json_encode($attrs->geokeys) . "\t" . json_encode($obj->attrs->geokeys));
                 if (empty($obj->attrs->geokeys)) {
                     $geo_score = 0;
-                } else {
+                } 
+                else {
                     $geo_score = (empty($obj->attrs->geokeys)) ? 0 : count(array_intersect($attrs->geokeys, $obj->attrs->geokeys)) / count($obj->attrs->geokeys);
                 }
                 
                 $scores[ $res['matches'][$i]['id'] ] += $geo_score;
                 $desc.="G: ".number_format($geo_score*100) ."% ";
-            }
+            }                        
 
             $att_score = 0;
-            foreach ($names as $key => $value) 
-            {
-                if (isset($attrs->$key))
-                {
+            foreach ($names as $key => $value) {
+                if (isset($attrs->$key)) {
                     $att_score+=($attrs->$key==$obj->attrs->$key)?1:0;
-                    $desc.="[".$key.": " . (($attrs->$key==$obj->attrs->$key)?'Y':'N') . "] ";
-
+                    $desc.="[".$key.": " . (($attrs->$key==$obj->attrs->$key)?'Y':'N') . "] ";                    
                 }
             }
             $scores[$res['matches'][$i]['id']] += count($names)>0 ? $att_score / count($names) : 0;
             
             $desc.=" A: ".  number_format( (count($names)>0 ? $att_score / count($names) : 0)*100)."%";
             
-            if (isset($attrs->ar))
-            {
+            if (isset($attrs->ar)) {
                 $jaccard = $this->jaccardIndex($words, explode(' ', $attrs->ar));
                 $scores[$res['matches'][$i]['id']] += $jaccard;
                 $desc.= " Similarity: ".number_format($jaccard*100,2).'%';
@@ -625,10 +626,8 @@ class MCSaveHandler {
 
         $searchResults = ['body'=>['matches'=>[], 'scores'=>[] ]];
 
-        foreach ($scores as $key => $value) 
-        {
-            if ($value>=0.25) 
-            {
+        foreach ($scores as $key => $value) {
+            if ($value>=0.25) {
                 $searchResults['body']['scores'][$key] = $messages[$key];
                 $searchResults['body']['matches'][] = $key;
             }
@@ -642,8 +641,7 @@ class MCSaveHandler {
     }
     
     
-    private function jaccardIndex($a1, $a2) 
-    {
+    private function jaccardIndex($a1, $a2) {
         $index = 0.0;
                 
         $intersection = array_intersect($a1, $a2);

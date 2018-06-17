@@ -3631,6 +3631,40 @@ class MobileApi {
         }
     }
     
+        
+    function detectIfAdInPending($adId, $sectionId, $contactInfo=array()){
+        $active_ads = 0;
+        if (count($contactInfo) && $this->getUID()) {
+            $q='select a.id from ad_user a where (a.id!='.$adId.' and a.section_id ='.$sectionId.' and a.state in (1,2)) and ( ';
+            $params=array();
+            $pass = 0;
+            if(isset($contactInfo['p']) && count($contactInfo['p'])){
+                $q .= "a.content similar to '";
+                foreach($contactInfo['p'] as $number){
+                    if(isset($number['v']) && trim($number['v'])!=''){
+                        //if($pass) $q.= ' or ';
+                        if($pass) $q.= '|';
+                        //$q .= 'a.content containing ?';                        
+                        $q .= '%'.preg_replace('/\+/', '' ,$number['v']).'%';
+                        //$params[]=$number['v'];
+                        $pass++;
+                    }
+                }
+                $q .= "'";
+            }
+            $q.=')';
+            
+            if($pass){
+                $active_ads = $this->db->queryResultArray($q, $params);
+                if($active_ads && isset($active_ads[0]['ID']) && $active_ads[0]['ID']){
+                    $active_ads = count($active_ads);
+                }
+            }
+        }
+        return $active_ads;
+    }
+    
+    
     function normalizeText(){
         if ($this->config['active_maintenance']) {
             $this->result['e'] = "503";

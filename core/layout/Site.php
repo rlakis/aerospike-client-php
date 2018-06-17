@@ -13,8 +13,7 @@ use ZammadAPIClient\Client;
 use ZammadAPIClient\ResourceType;
 
 
-class Site 
-{
+class Site {
     public $user;
     var $lang=array(),$xss_hash='',$watchInfo=false; 
     var $userFavorites,$pageUserId=0;
@@ -29,8 +28,7 @@ class Site
     var $publisherTypeSorting = 0;
 
 
-    function __construct(Router $router) 
-    {
+    function __construct(Router $router) {
         global $argc;        
         $this->urlRouter = $router;
         if ($router->siteLanguage=='en')
@@ -367,39 +365,25 @@ class Site
     }
     
     
-    function execute(bool $forceInit=false) 
-    {
-        //error_log(__CLASS__.'->'.__FUNCTION__);
+    function execute(bool $forceInit=false) {
         $offset = ($this->router()->params['start'] ? ($this->router()->params['start']-1) : 0) * $this->num;
-
         $this->initSphinx($forceInit);
         
-        //$countryId=$this->urlRouter->countryId;
-        //$cityId=$this->urlRouter->cityId;
         $rootId=$this->urlRouter->rootId;
         $q=preg_replace('/@/', '\@', $this->urlRouter->params['q']);
         
-        if ($this->router()->watchId)
-        {
+        if ($this->router()->watchId) {
             $this->searchResults=false;
             if (!$this->watchInfo || !count($this->watchInfo)) {
                 return;
             }
-            //$withKeys=array();
-            //$noKeys=array();
-            //foreach ($this->watchInfo as $row) {
-            //    if ($row['QUERY_TERM']) $withKeys[]=$row;
-            //    else $noKeys[]=$row;
-            //}
             $results=array();
             
-            //if (count($noKeys))
             $this->runQueries ($this->watchInfo, $results);
-            //if (count($withKeys))$this->runQueries ($withKeys, $results);
                         
             $matches = array('total_found'=>0,'matches'=>array(),'sub_total'=>array());
             if ($results && count($results)) { 
-                if ($this->num>1){
+                if ($this->num>1) {
                     foreach ($results as $result) {
                         if (isset($result['matches'])) {
                             $count=count($result['matches']);
@@ -412,23 +396,23 @@ class Site
                     }
                     krsort($matches['matches'], SORT_NUMERIC);
                     $matches['matches']=array_slice($matches['matches'], $offset, $this->num, TRUE);
-                }else {
+                }
+                else {
                     foreach ($results as $result) {
                         if (isset($result['matches'])) {
                             $count=count($result['matches']);
                             $matches['total_found']+=$count;
                             foreach ($result['matches'] as $id => $values) {
-                                if (!isset($matches['sub_total'][$values['info_id']])){
+                                if (!isset($matches['sub_total'][$values['info_id']])) {
                                     $matches['sub_total'][$values['info_id']]=$count;
                                     $matches['matches'][$id] = $values['info_id'];
                                 }
                             }
                         }
                     }
-                    //$matches['matches']=array_slice($matches['matches'], $offset, $this->num+$plusAd, TRUE);
                 }
             }
-            //$matches = array('total_found'=>0,'matches'=>array());
+
             if (!strstr($_SERVER["SCRIPT_FILENAME"], 'cronWatchMailer')) {
                 $matches['matches']=  array_keys($matches['matches']);
             } 
@@ -436,8 +420,7 @@ class Site
 
         } /* End of WatchId */
         else {
-            if (($this->user->info['id'] || $this->pageUserId) && $this->userFavorites) 
-            {
+            if (($this->user->info['id'] || $this->pageUserId) && $this->userFavorites) {
                 $id = $this->user->info['id'] ? $this->user->info['id'] : $this->pageUserId;                
                 $this->router()->database()->index()
                         ->setSelect('id')
@@ -447,8 +430,7 @@ class Site
                         ->addQuery('body', '');
                 $this->searchResults = $this->router()->database()->index()->executeBatch();
             } 
-            else 
-            {
+            else {
                 $__compareID = $this->router()->getPositiveVariable('cmp', INPUT_GET);// filter_input(INPUT_GET, 'cmp', FILTER_VALIDATE_INT, ["options" => ["default" => 0, "min_range" => 0]]);
                 $__compareAID = $this->router()->getPositiveVariable('aid', INPUT_GET);// filter_input(INPUT_GET, 'aid', FILTER_VALIDATE_INT, ["options" => ["default" => 0, "min_range" => 0]]);
                 
@@ -463,16 +445,13 @@ class Site
                         ->tag($this->extendedId)
                         ;
                                 
-                if ($this->publisherTypeSorting && 
-                    in_array($rootId,[1,2,3]) && 
+                if ($this->publisherTypeSorting && in_array($rootId,[1,2,3]) && 
                     ($rootId!=3 || ($rootId==3 && $this->urlRouter->purposeId==3)) && 
-                    ($rootId!=2 || ($rootId==2 && $this->urlRouter->purposeId==1)) )
-                {
+                    ($rootId!=2 || ($rootId==2 && $this->urlRouter->purposeId==1)) ) {
                     $this->router()->database()->index()->publisherType($this->publisherTypeSorting == 1 ? 1 : 3);
                 }
                 
-                switch ($this->langSortingMode) 
-                {
+                switch ($this->langSortingMode) {
                     case 0:
                         $lng = '0 as lngmask';
                     case 1:
@@ -488,8 +467,7 @@ class Site
            
 
                 $fields = "id, 0 as newad, date_added, {$lng}";
-                if (($last_visited = $this->user()->getLastVisited())) 
-                {
+                if (($last_visited = $this->user()->getLastVisited())) {
                     $fields = "id, if(date_added>{$last_visited}, 1, 0) newad, date_added, {$lng}";                    
                 } 
                 
@@ -499,21 +477,18 @@ class Site
                         ->setLimits($offset, $this->num)
                         ->addQuery('body', $q);
                                 
-                if($this->urlRouter->module=='search' && !$this->userFavorites && !$this->urlRouter->watchId && !$this->urlRouter->userId) 
-                {
+                if($this->urlRouter->module=='search' && !$this->userFavorites && !$this->urlRouter->watchId && !$this->urlRouter->userId) {
                     $this->getFeaturedAds();
                     $this->getMediaAds();
                 }                
         
                                 
-                if($__compareAID)
-                {                    
+                if($__compareAID) {                    
                     include_once $this->urlRouter->cfg['dir'] . '/core/lib/MCSaveHandler.php';
                     $handler = new MCSaveHandler($this->router()->cfg);
                     $this->searchResults = $handler->searchByAdId($__compareAID);
                 }
-                else
-                {
+                else {
                     $this->searchResults = $this->router()->database()->index()->executeBatch();   
                 }                
             }       
@@ -521,8 +496,7 @@ class Site
     }
        
     
-    function getMediaAds()
-    { 
+    function getMediaAds() { 
         $this->router()->database()->index()->resetFilters()
                 ->region($this->router()->countryId, $this->router()->cityId)
                 ->native()->media()
@@ -656,8 +630,7 @@ class Site
     }
 
     
-    function zammad($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0) : int 
-    {
+    function zammad($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0) : int {
         $client = new Client([
             'url'           => 'http://ws.mourjan.com', // URL to your Zammad installation
             'username'      => 'admin@berysoft.com',  // Username to use for authentication
@@ -666,23 +639,17 @@ class Site
         ]);      
         
         $users = $client->resource( ResourceType::USER )->search($fromEmail);
-        if ( !is_array($users) ) 
-        {
-            if ( $users->hasError() ) 
-            {
+        if ( !is_array($users) ) {
+            if ( $users->hasError() ) {
                 error_log( $users->getError() );                
             }
             return 0;
         }
-        else
-        {
-            //error_log( 'Found ' . count($users) . ' user(s) with email address ' . $fromEmail );
-            if ($users)
-            {
+        else {
+            if ($users) {
                 $user = $users[0];
             }
-            else
-            {
+            else {
                 $name = trim($fromName);
                 $last_name = (strpos($name, ' ') === false) ? '' : preg_replace('#.*\s([\w-]*)$#', '$1', $name);
                 $first_name = trim( preg_replace('#'.$last_name.'#', '', $name ) );
@@ -696,8 +663,7 @@ class Site
                 $user = $client->resource( ResourceType::USER );
                 $user->setValues($user_data);
                 $user->save();
-                if ( $user->hasError() ) 
-                {
+                if ( $user->hasError() ) {
                     error_log( $user->getError() );
                     return 0;
                 }                        
@@ -730,8 +696,7 @@ class Site
         $ticket->setValues($ticket_data);
         $ticket->save();
         
-        if ( $ticket->hasError() ) 
-        {
+        if ( $ticket->hasError() ) {
             error_log( $ticket->getError() );
             return 0;
         }                
@@ -812,36 +777,20 @@ class Site
 
         $response = curl_exec( $ch );
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        if ($res === FALSE || $status!=200)
-        {
+        if ($res === FALSE || $status!=200) {
             $err = curl_error($ch);
             error_log($err);
             return 0;
         }
         curl_close($ch);
         
-        //error_log($status);
-        
         return 1;
-        
-        //if(preg_match('/HTTP\/.* ([0-9]+) .*/', $response, $status)) 
-        //{
-        //    if ($status[1]!=200)
-        //    {
-        //        error_log($response);
-        //        return 0;
-        //    }
-        //}
-        
-        //return 1;
-        
     }
       
         
         
       
-    function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0, $helpTopic=1)
-    {
+    function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0, $helpTopic=1) {
         $res = $this->zammad($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account);
         //error_log("res {$res}");
         /*
