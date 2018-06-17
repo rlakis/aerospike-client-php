@@ -599,7 +599,8 @@ class MCSaveHandler {
 
             $att_score = 0;
             foreach ($names as $key => $value) {
-                if (isset($attrs->$key)) {                    
+                if (isset($attrs->$key)) {
+                    
                     $att_score+=(ceil($attrs->$key)==ceil($obj->attrs->$key))?1:0;
                     $desc.="[".$key.": " . ((ceil($attrs->$key)== ceil($obj->attrs->$key))?'Y':'N') . "] ";                    
                 }
