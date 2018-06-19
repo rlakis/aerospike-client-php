@@ -1113,7 +1113,7 @@ class Bin extends AjaxHandler{
                             if($country){
                                 $res = $this->urlRouter->db->queryResultArray('select * from country_loc_keywords c where c.keyword containing ? and c.cc = ? order by c.keyword',[$key,$country], true);                            
                             }else{
-                                $res = $this->urlRouter->db->queryResultArray('select first 10 * from wordlist w where w.content containing ? order by w.content',[$key], true);
+                                $res = $this->urlRouter->db->queryResultArray('select first 20 * from wordlist w where w.content containing ? order by w.content',[$key], true);
                             }                            
                         }
                         if(is_array($res)){
