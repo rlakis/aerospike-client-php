@@ -871,7 +871,8 @@ var rtMsgs={
         'لا يمكن نشر اعلانات مماثلة دون ادراج رقم الموبايل المستخدم لتفعيل حسابك مع مرجان ضمن وسائل التواصل',
         'اعلانات زواج المسيار والمتعة مخالفة لسياسة الموقع ولا يمكن نشرها',
         'لا يمكن نشر إعلانات مماثلة طبقاً لسياسة الموقع',
-        'اعلانات المتاجرة بالتأشيرات والإقامات مجرمة قانونيا'
+        'اعلانات المتاجرة بالتأشيرات والإقامات مجرمة قانونيا',
+        'مضمون هذا الاعلان يتعارض مع مضمون اعلاناتك المنشورة وهذا تحذير قبل ايقاف حسابك بسبب الاحتيال'
     ],
     'en':[
         'specify the reason...',
@@ -906,7 +907,8 @@ var rtMsgs={
         'cannot publish similar ads unless you add the mobile number (used to activate your mourjan account) to the contact information',
         'Temporary marriages (Mesyar, Muta\') ads are against the website policy and caanot be published',
         'This type of ads is against the website policy and cannot be published',
-        'Selling Visas and work permits is against the law'
+        'Selling Visas and work permits is against the law',
+        'This ad contradicts with the sense of your other published ads, and this is a warning before blocking your account for fraud'
     ]
 };
                             ";
