@@ -392,6 +392,11 @@ class MobileApi {
         
         $publisherType = filter_input(INPUT_GET, 'pt', FILTER_VALIDATE_INT, ['options'=>['default'=>0]]);
         
+        //added for android 2+
+        $device_appversion = filter_input(INPUT_GET, 'bv', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+        $adMobAdsCount = filter_input(INPUT_GET, 'admob', FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
+        
+        
         if(!in_array($publisherType, [0,1,2])) {
             $publisherType = 0;
         }
@@ -404,6 +409,8 @@ class MobileApi {
 
         $sphinxQL = new SphinxQL($this->config['sphinxql'], $this->config['search_index']);
         $sphinxQL->setLimits($offset, $num);
+        
+        $canDisplayAdmobAds = true;
 
         if ($favorite || $forceFavorite) {
             if($forceFavorite) {
@@ -419,6 +426,11 @@ class MobileApi {
             $tagId = filter_input(INPUT_GET, 'tag', FILTER_VALIDATE_INT)+0;
             $localityId = filter_input(INPUT_GET, 'locality', FILTER_VALIDATE_INT)+0;
             $adId = filter_input(INPUT_GET, 'aid', FILTER_VALIDATE_INT)+0;
+            
+            $disabledSections = array_keys($this->config['disabled_ad_sections']);
+            if(in_array($sectionId, $disabledSections)){
+                $canDisplayAdmobAds = false;
+            }
 
             if ($adId)              {$sphinxQL->setFilter('id', $adId);}
             if ($this->countryId)   {$sphinxQL->setFilter('country', $this->countryId);}
@@ -430,18 +442,26 @@ class MobileApi {
             if ($purposeId)         {$sphinxQL->setFilter('purpose_id', $purposeId);}
             if ($publisherType)     {$sphinxQL->setFilter('publisher_type', $publisherType);} 
         }
+        
+        $isSorted = false;
+        $featureIndex = 3;
 
         if ($sortLang=='ar') {
             $sphinxQL->setSelect("id, date_added, IF(rtl>0,0,1) as lngmask, IF(featured_date_ended>NOW(),1,0) as featured, media");
             $sphinxQL->SetSortBy("lngmask asc, featured desc, date_added desc");
+            $isSorted = true;
         } 
         elseif ($sortLang=='en') {
             $sphinxQL->setSelect("id, date_added, IF(rtl<>1,0,1) as lngmask, IF(featured_date_ended>NOW(),1,0) as featured, media");
             $sphinxQL->SetSortBy('lngmask asc, featured desc, date_added desc');
+            $isSorted = true;
         } 
         else {
+            $featureIndex = 2;            
+            
             $sphinxQL->setSelect("id, date_added, IF(featured_date_ended>NOW(),1,0) as featured, media");
             if($isWatchlist) {
+                $isSorted = true;
                 if($sortBy==0) {
                     $sphinxQL->SetSortBy('date_added desc');
                 }
@@ -460,6 +480,7 @@ class MobileApi {
                     $sphinxQL->SetSortBy('featured desc,media desc,date_added desc');
                 }
                 else {
+                    $isSorted = true;
                     $sphinxQL->SetSortBy('date_added desc');
                 }
             }
@@ -483,7 +504,7 @@ class MobileApi {
                 $current_time=time();
                 foreach ($query['matches'] as $matches) {
                     $ad = $model->getById($matches[0]+0);
-                    if ($ad) {            
+                    if ($ad) {  
                         $isFeatured = $current_time < $ad[Classifieds::FEATURE_ENDING_DATE];
                         if($isFeatured){
                             $premiumMatches[] = $matches;
@@ -521,11 +542,81 @@ class MobileApi {
                 $numberOfAds = floor( ($j-1) / $premiumGap);                
                 $j += $numberOfAds;
                 $numberofPremium = 0;
+                
+                $adMobGap = 5;
+                $adMob_off = floor($offset / $adMobGap);
+                $adMob_j = $adMob_off * $adMobGap + $adMobGap;
+                $numberOfAdmobAds = $adMobAdsCount; 
+                $adMob_j += $numberOfAdmobAds;   
+                
+                for($index = 0, $length = count($query['matches']); $index < $length; $index++){
+                    $ad = $model->getById($query['matches'][$index][0]+0);
+                    if ($ad) { 
+                        $this->addAdToResultArray($ad, $query['matches'][$index][$featureIndex]);
+                        $i++;
+                        
+                        $isNextFeatured = false;
+                        if(!$isSorted){                        
+                            if(isset($query['matches'][$index+1]) && $query['matches'][$index+1][0]){
+                                $nextAd = $model->getById($query['matches'][$index+1][0]+0);
 
+                                $isNextFeatured = $current_time < $nextAd[Classifieds::FEATURE_ENDING_DATE];
+                            }
+                        }
+                        
+                        if(!$isNextFeatured){
+                            
+                            
+                            if ($canDisplayAdmobAds && $this->isIOS() && $adMobAlreadySent<5 && ($i+$offset)%7==0 && ($i+$offset)%2==1 && !($favorite || $forceFavorite)) {                           
+                                $adUnitID = version_compare($this->appVersion, '1.0.9')>0 ? "ca-app-pub-2427907534283641/8260964224" : "ca-app-pub-2427907534283641/4099192620";                         
+                                $this->result['d'][] = [-1*($i+$offset), $adUnitID];
+                                $adMobAlreadySent++;
+                            }
+
+                            if($canDisplayAdmobAds && $this->isAndroid() && $device_appversion && $device_appversion > '1.9.9'){
+                                $translated_i = $i + $offset + $numberOfAdmobAds;   
+                                if($adMob_j - 3 == $translated_i) {
+                                    $adMob_j += $adMobGap;
+                                    $numberOfAdmobAds++;
+                                    
+                                    $this->result['d'][] = [0];
+                                }
+                            }
+                            
+                            if($hasPremium && count($premiumAds)) {
+                                $translated_i = $i + $offset + $numberOfAds;                        
+                                if($j==$translated_i) {
+                                    $j += $premiumGap+1;
+                                    $numberOfAds++;
+                                    $adId = array_pop($premiumAds);
+                                    $ad = $model->getById($adId);
+                                    if ($ad) {
+                                        $this->addAdToResultArray($ad,$query['matches'][$index][$featureIndex],true);
+                                        $numberofPremium++;
+                                    }
+                                }
+                            }                            
+                        
+                        }else{
+                            $translated_i = $i + $offset + $numberOfAds;                        
+                            if($j==$translated_i) {
+                                $j += $premiumGap;
+                            }
+                            
+                            $translated_i = $i + $offset + $numberOfAdmobAds;
+                            if($adMob_j - 3 == $translated_i) {
+                                error_log($translated_i);
+                                $adMob_j += $adMobGap;
+                            }
+                        }
+                    }
+                }
+                /*
                 foreach ($query['matches'] as $matches) {
-                    $count = count($matches);
                     $ad = $model->getById($matches[0]+0);
-                    if ($ad) {                   
+                    if ($ad) { 
+                        $isFeatured = $current_time < $ad[Classifieds::FEATURE_ENDING_DATE];
+                        
                         $this->addAdToResultArray($ad, $matches[2]);
                         $i++;
                         
@@ -549,7 +640,7 @@ class MobileApi {
                             }
                         }
                     }
-                }
+                }*/
                 
                 if($numberofPremium > 0) {
                     $this->result['p']=[$numberofPremium,$premiumGap];
@@ -569,9 +660,9 @@ class MobileApi {
         unset($ad[Classifieds::SECTION_NAME_EN]);
         unset($ad[Classifieds::HELD]);
 
-        $emails = $ad[Classifieds::EMAILS];
+        $emails = $ad[Classifieds::EMAILS];          
        
-        $this->cutOfContacts($ad[Classifieds::CONTENT]);        
+        $this->cutOfContacts($ad[Classifieds::CONTENT]);   
 
         $ad[Classifieds::CONTENT] = strip_tags($ad[Classifieds::CONTENT]);
 
@@ -2048,6 +2139,8 @@ class MobileApi {
 
 
     function cutOfContacts(&$text) {
+        $text = preg_replace('/\x{200B}.*/u', '', $text);
+        return;
         $phone = '/((?:\+|)(?:[0-9]){7,14})/';
         $content=null;
         preg_match('/(?: mobile(?::| \+) | viber(?::| \+) | whatsapp(?::| \+) | phone(?::| \+) | fax(?::| \+) | telefax(?::| \+) | جوال(?::| \+) | موبايل(?::| \+) | واتساب(?::| \+) | فايبر(?::| \+) | هاتف(?::| \+) | فاكس(?::| \+) | تلفاكس(?::| \+) | tel(?:\s|): | call(?:\s|): | ت(?:\s|): | الاتصال | للمفاهمه: | للمفاهمه | ج\/| للمفاهمة: | للاتصال | للاتصال: | ه: )(.*)/ui', $text, $content);

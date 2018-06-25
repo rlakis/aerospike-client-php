@@ -246,9 +246,9 @@ class AndroidApi
                             $content['state']=$result['STATE'];
                             $content['media']=$result['MEDIA'];
                             $content['sys_update']=$result['LAST_UPDATE'];
-                            if($content['state'] != 0){
+                            /*if($content['state'] != 0){
                                 $content['sys_update'] = time();
-                            }
+                            }*/
                             $content['booked']=$result['BOOKING_END'];
                             $content['book']=$result['BOOKING_START'];
                             $content['featured']=$result['FEATURE_END'];
