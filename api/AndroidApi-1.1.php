@@ -145,7 +145,11 @@ class AndroidApi
                 $iso = trim(filter_input(INPUT_POST, 'iso'));
                 if($number && is_numeric($number) && strlen($iso)==2){
                     $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
-                    $num = $this->mobileValidator->parse($number, $iso);
+                    try{
+                        $num = $this->mobileValidator->parse($number, $iso);
+                    }catch(Exception $e){
+                        $num = false;
+                    }
                     if($num && $this->mobileValidator->isValidNumber($num)){
                         $this->api->result['d'] = [
                             'check'=>true,
@@ -1572,7 +1576,11 @@ class AndroidApi
                     if($number && base64_decode($signature) == $parity)
                     {
                         $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
-                        $num = $this->mobileValidator->parse($number, 'LB');
+                        try{
+                            $num = $this->mobileValidator->parse($number, 'LB');
+                        }catch(Exception $e){
+                            $num = false;
+                        }
                         if (!is_array($this->api->result['d']))
                         {
                             $this->api->result['d']=[];
@@ -1815,7 +1823,11 @@ class AndroidApi
                         else
                         {
                             $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
-                            $num = $this->mobileValidator->parse($number, 'LB');
+                            try{
+                                $num = $this->mobileValidator->parse($number, 'LB');
+                            }catch(Exception $e){
+                                $num = false;
+                            }
                             if (!is_array($this->api->result['d']))
                             {
                                 $this->api->result['d']=[];
@@ -2133,7 +2145,11 @@ class AndroidApi
                                     $sent=$mailer->sendEmailCode($username,$keyCode);
                                 }else{
                                     $validator = libphonenumber\PhoneNumberUtil::getInstance();
-                                    $num = $validator->parse($username, 'LB');
+                                    try{
+                                        $num = $validator->parse($username, 'LB');
+                                    }catch(Exception $e){
+                                        $num = false;
+                                    }
                                     if($num && $validator->isValidNumber($num)){
                                         $numberType = $validator->getNumberType($num);
                                         if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE)

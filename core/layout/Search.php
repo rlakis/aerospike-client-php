@@ -2446,12 +2446,14 @@ class Search extends Page {
                         $org = $num[0];
                         $num[0]= preg_replace('/\+/','\\+' , $num[0]);
                         $text = preg_replace('/'.$num[0].'/', $number, $text);
-                        $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
+                        //$matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
+                        $matches .= '<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'")\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                     } else {
                         $org = $num[0];
                         $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
                         $text = preg_replace('/\<span class="pn(?:[\sa-z0-9]*)">'.$num[0].'\<\/span\>/', '<span class="vn">'.$number.'</span>', $text);
-                        $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
+                        //$matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
+                        $matches .= '<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'");\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                     }
                 }
                 foreach ($phones as $num) {
@@ -2559,12 +2561,13 @@ class Search extends Page {
                          $org = $num[0];
                         $num[0]= preg_replace('/\+/','\\+' , $num[0]);                        
                         $text = preg_replace('/'.$num[0].'/', '<span class="pn">'.$number.'</span>', $text);
-                        $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
+                        //$matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
+                        $matches .= '<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'");\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                     } else {
                         $org = $num[0];
                         $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
                         $text = preg_replace('/'.$num[0].'/', '<span class="vn">'.$number.'</span>', $text);
-                        $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
+                        $matches .= '<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'");\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                     }
                 }
                 foreach ($phones as $num) {

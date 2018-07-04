@@ -794,3 +794,78 @@ p.sde img{
 .wbp .ovp.ar {
     background-image: url(./i/ftro.webp)
 }
+
+.dialog-title,.dialog-action input.bt.cl{
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAyCAYAAACd+7GKAAAAdUlEQVQIW33MOw7EIAwEUDQHSbf32ttScgcaJEoo+NgmG5MVSqQoFE/jQRrsx4Mx5qN8lU2ZHS+a0pW6Ur9//JOIdBybsyMw8zzp7FprhDFGRymFT1JKjForIcZIyDkzQggM7z3DOSew1oruDcUs9tf0dF4GfsAmWGYOautYAAAAAElFTkSuQmCC) repeat-x 0 -10px
+}
+.dialog {
+    display: none;
+    position: fixed;
+    background-color:#FFF;
+    z-index: 150001;
+    padding: 5px;
+    min-width: 250px;
+    min-height: 150px;
+    font-size: 14px
+}
+.dialog .load {
+    display: block;
+    height: 50px
+}
+.dialog .bt {
+    margin: 0!important
+}
+.dialog a,
+.dialog a:visited {
+    color: #333
+}
+.dialog li{
+    padding:5px 0;
+}
+.dialog-title {
+    padding: 10px 10px;
+    font-size: 16px;
+    direction: rtl;
+    text-align: left;
+    overflow: hidden
+}
+.dialog-hint {
+    padding: 5px 10px;
+    text-align: center;
+    font-size: 14px;
+    border-bottom: 2px solid #FF9000
+}
+.dialog-action {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%
+}
+.dialog-action input {
+    height: 40px;
+    line-height: 40px;
+    font-size: 14px;
+    padding:5px 20px;
+    background-color: transparent!important;
+    border: 0;
+    color: lightseagreen;    
+    box-shadow: none;
+}
+.dialog-action.dlg2 input {
+}
+.dialog-action input:first-child {
+    float:right
+}
+.dialog-action input:last-child {
+    float:left
+}
+.dialog-action.dlg1 input {
+    float:right
+}
+.dialog-box {
+    padding: 10px 5px 50px 5px;
+    line-height: 30px
+}
+.dialog a.lnk{
+    color:#00E!important
+}

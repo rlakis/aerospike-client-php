@@ -338,9 +338,15 @@ class Bin extends AjaxHandler{
                             'idx'=>$index
                         ];
                         
+                        $parseError = false;
+                        
                         $validator = libphonenumber\PhoneNumberUtil::getInstance();
-                        $num = $validator->parse($numero, $iso);
-                        if($validator->isValidNumber($num)){
+                        try{
+                            $num = $validator->parse($numero, $iso);
+                        }catch(Exception $e){
+                            $parseError = true;
+                        }
+                        if(!$parseError && $validator->isValidNumber($num)){
                             $number['n'] = $validator->formatInOriginalFormat($num, $iso);
                             $number['i'] = $validator->format($num, \libphonenumber\PhoneNumberFormat::E164);
                             
@@ -2914,47 +2920,23 @@ class Bin extends AjaxHandler{
                                 $numbers = [];
                                 foreach($ad['cui']['p'] as $number){
                                     if(isset($number['v']) && trim($number['v'])!=''){
-                                        $num = $validator->parse($number['v'], $number['i']);
-                                        
+                                        $parseError = false;
+                                        try{
+                                            $num = $validator->parse($number['v'], $number['i']);
+                                        }catch(Exception $e){
+                                            $parseError = true;
+                                        }
                                         $isValid = false;
-                                        if($validator->isValidNumber($num)){
-                                            $mType = $validator->getNumberType($num);
-                                            $isValid = true;
-                                        }else{
-                                            if(strlen($number['r']) > 15){
-                                                $corrected = false;
-                                                $tmp2 = '';
-                                                for($i = 6, $l = (strlen($number['r'])/2)+5; $i < $l; $i++){
-                                                    $tmp = substr($number['r'], 0, $i);
-                                                    $num = $validator->parse($tmp, $number['i']);
-                                                    if($validator->isValidNumber($num)){
-                                                        $tNum = [
-                                                            'v' =>  $validator->format($num, libphonenumber\PhoneNumberFormat::E164),
-                                                            't' =>  1,
-                                                            'c' =>  $number['c'],
-                                                            'r' =>  $tmp,
-                                                            'i' => $number['i']
-                                                        ];
-                                                        $mType = $validator->getNumberType($num);
-                                                        switch ($mType) {
-                                                            case 3:
-                                                            case 0:
-                                                                $tNum['t'] = 7;
-                                                                break;
-                                                            case 5:
-                                                            case 2:
-                                                            case 1:
-                                                                $tNum['t'] = 1;
-                                                                break;
-                                                            default:
-                                                                $tNum = null;
-                                                                break;
-                                                        }
-                                                        if($tNum){
-                                                            $numbers[] = $tNum;
-                                                        }
-                                                        
-                                                        $tmp = substr($number['r'], strlen($tmp));
+                                        if(!$parseError){
+                                            if($validator->isValidNumber($num)){
+                                                $mType = $validator->getNumberType($num);
+                                                $isValid = true;
+                                            }else{
+                                                if(strlen($number['r']) > 15){
+                                                    $corrected = false;
+                                                    $tmp2 = '';
+                                                    for($i = 6, $l = (strlen($number['r'])/2)+5; $i < $l; $i++){
+                                                        $tmp = substr($number['r'], 0, $i);
                                                         $num = $validator->parse($tmp, $number['i']);
                                                         if($validator->isValidNumber($num)){
                                                             $tNum = [
@@ -2982,42 +2964,72 @@ class Bin extends AjaxHandler{
                                                             if($tNum){
                                                                 $numbers[] = $tNum;
                                                             }
+
+                                                            $tmp = substr($number['r'], strlen($tmp));
+                                                            $num = $validator->parse($tmp, $number['i']);
+                                                            if($validator->isValidNumber($num)){
+                                                                $tNum = [
+                                                                    'v' =>  $validator->format($num, libphonenumber\PhoneNumberFormat::E164),
+                                                                    't' =>  1,
+                                                                    'c' =>  $number['c'],
+                                                                    'r' =>  $tmp,
+                                                                    'i' => $number['i']
+                                                                ];
+                                                                $mType = $validator->getNumberType($num);
+                                                                switch ($mType) {
+                                                                    case 3:
+                                                                    case 0:
+                                                                        $tNum['t'] = 7;
+                                                                        break;
+                                                                    case 5:
+                                                                    case 2:
+                                                                    case 1:
+                                                                        $tNum['t'] = 1;
+                                                                        break;
+                                                                    default:
+                                                                        $tNum = null;
+                                                                        break;
+                                                                }
+                                                                if($tNum){
+                                                                    $numbers[] = $tNum;
+                                                                }
+                                                            }
+                                                            $corrected = true;
+                                                            break;
                                                         }
-                                                        $corrected = true;
-                                                        break;
                                                     }
-                                                }
-                                                if($corrected){
-                                                    continue;
-                                                }
-                                            }else{
-                                                
-                                                $num = $validator->parse($number['r'], $number['i']);
-                                                if($validator->isValidNumber($num)){
-                                                    
-                                                    $isValid = true;
-                                                    $number['v'] = $validator->format($num, libphonenumber\PhoneNumberFormat::E164);
-                                                    $number['i'] = $validator->getRegionCodeForNumber($num);
-                                                    $number['c'] = $validator->getCountryCodeForRegion($number['i']);
-                                                    $mType = $validator->getNumberType($num);
-                                                    
-                                                    
+                                                    if($corrected){
+                                                        continue;
+                                                    }
                                                 }else{
-                                                    
-                                                    if(strlen($this->user->params['user_country'])==2){
-                                                        $num = $validator->parse($number['r'],  strtoupper($this->user->params['user_country']));
-                                                        if($validator->isValidNumber($num)){
 
-                                                            $isValid = true;
-                                                            $number['v'] = $validator->format($num, libphonenumber\PhoneNumberFormat::E164);
-                                                            $number['i'] = $validator->getRegionCodeForNumber($num);
-                                                            $number['c'] = $validator->getCountryCodeForRegion($number['i']);
-                                                            $mType = $validator->getNumberType($num);
+                                                    $num = $validator->parse($number['r'], $number['i']);
+                                                    if($validator->isValidNumber($num)){
 
+                                                        $isValid = true;
+                                                        $number['v'] = $validator->format($num, libphonenumber\PhoneNumberFormat::E164);
+                                                        $number['i'] = $validator->getRegionCodeForNumber($num);
+                                                        $number['c'] = $validator->getCountryCodeForRegion($number['i']);
+                                                        $mType = $validator->getNumberType($num);
+
+
+                                                    }else{
+
+                                                        if(strlen($this->user->params['user_country'])==2){
+                                                            $num = $validator->parse($number['r'],  strtoupper($this->user->params['user_country']));
+                                                            if($validator->isValidNumber($num)){
+
+                                                                $isValid = true;
+                                                                $number['v'] = $validator->format($num, libphonenumber\PhoneNumberFormat::E164);
+                                                                $number['i'] = $validator->getRegionCodeForNumber($num);
+                                                                $number['c'] = $validator->getCountryCodeForRegion($number['i']);
+                                                                $mType = $validator->getNumberType($num);
+
+                                                            }
                                                         }
                                                     }
+
                                                 }
-                                                
                                             }
                                         }
                                         if($isValid){

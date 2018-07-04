@@ -930,6 +930,12 @@ class Detail extends Search
                 
                 
                 ?></div><?php
+                
+                ?><div id="call_node" class="dialog rc sh"><?php
+                            ?><div class="dialog-title">call </div><?php
+                            ?><div class="dialog-box"></div><?php 
+                            ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /></div><?php 
+                    ?></div><?php
     /* ?></div><?php */
             }
     }

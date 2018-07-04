@@ -681,7 +681,22 @@ function impPrep(d){
             $(window).unbind('scroll',pfunc);
         }
     },500);
+};
+function callNum(num, display){    
+    var bdy = "",title="",link="https://api.whatsapp.com/send?phone=";
+    var onum = num.replace(/\+/,"");
+    if(lang == "en"){
+        bdy = "<ul><li><a href='tel:"+num+"'>Regular Call</a></li><li><a href='"+link+onum+"'>Whatsapp</a></li></ul>";
+        title = "Contact <span class='pn'>"+display+"</span>";
+    }else{
+        bdy = "<ul><li><a href='tel:"+num+"'>اتصال هاتفي</a></li><li><a href='"+link+onum+"'>واتساب</a></li></ul>";
+        title = "تواصل مع <span class='pn'>"+display+"</span>";
+    }
+    Dialog.show("call_node",bdy);
+    $(".dialog-title").html(title);
+    $("#dialog-mask")[0].onclick=function(){Dialog.hide()};
 }
+
 /*
 function title(){
     var h1=$('h1');
