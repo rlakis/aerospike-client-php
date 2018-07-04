@@ -3350,7 +3350,7 @@ class MobileApi {
                         
                 if (!$XX || !in_array($XX, ['AE', 'BH', 'DZ', 'YE', 'EG', 'IQ', 'JO', 'KW', 'LB', 'LY', 
                     'MA', 'QA', 'SA', 'SD', 'SY', 'TN', 'OM'])) {
-                    $requireReview = 1;
+                    $requireReview = 995;
                 }
                             
                 $city_id = 0;
@@ -3406,9 +3406,16 @@ class MobileApi {
                     $requireReview = preg_match('/\+.*@/', $ad['cui']['e']);
                     if (!$requireReview) {
                         $requireReview = preg_match('/hotel/', $ad['cui']['e']);
+                    }else{
+                        $requireReview = 998;
                     }
                     if (!$requireReview) {
                         $requireReview = preg_match('/\..*\..*@/', $ad['cui']['e']);
+                        if($requireReview){
+                            $requireReview = 996;
+                        }
+                    }else{
+                        $requireReview = 997;
                     }
                 }
                         
@@ -3444,7 +3451,7 @@ class MobileApi {
                     }                            
                 }
                 elseif ($requireReview && $ad_id) {
-                    $this->db->get('update ad_object set super_admin=1 where id=?', [$ad_id], false);
+                    $this->db->get('update ad_object set super_admin=? where id=?', [$requireReview, $ad_id], false);
                     //$this->referrToSuperAdmin($ad_id);
                 }
                 else if($hasMajorFailure) {
@@ -3620,7 +3627,7 @@ class MobileApi {
                         }
                         
                         if ($requireReview && $ad_id) {
-                            $this->db->get('update ad_object set super_admin=1 where id=?', [$ad_id], false);
+                            $this->db->get('update ad_object set super_admin=? where id=?', [$requireReview, $ad_id], false);
                             //$this->referrToSuperAdmin($ad_id);
                         }
                                 

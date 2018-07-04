@@ -2844,7 +2844,7 @@ class Bin extends AjaxHandler{
                                 'OM'
                                 ]))
                             {
-                                $requireReview = 1;
+                                $requireReview = 995;
                             }
                         }
                         
@@ -3128,10 +3128,17 @@ class Bin extends AjaxHandler{
                             if(!$requireReview)
                             {
                                 $requireReview = preg_match('/hotel/', $ad['cui']['e']);
+                            }else{
+                                $requireReview = 998;
                             }
                             if(!$requireReview)
                             {
                                 $requireReview = preg_match('/\..*\..*@/', $ad['cui']['e']);
+                                if($requireReview){
+                                    $requireReview = 996;
+                                }
+                            }else{
+                                $requireReview = 997;
                             }
                         }
                         
@@ -3205,7 +3212,7 @@ class Bin extends AjaxHandler{
                         }
                         elseif($requireReview)
                         {
-                            $this->user->referrToSuperAdmin($adId);
+                            $this->user->referrToSuperAdmin($adId, $requireReview);
                         }
                         else
                         {                            
@@ -3948,7 +3955,7 @@ class Bin extends AjaxHandler{
                 if ($this->user->info['id'] && $this->user->info['level']==9 && isset ($_POST['i'])) {
                     $id=$_POST['i'];
                     if (is_numeric($id)){
-                        if ($this->user->referrToSuperAdmin($id)) {
+                        if ($this->user->referrToSuperAdmin($id, $this->user->info['id'])) {
                             $this->process();
                             
                             try {

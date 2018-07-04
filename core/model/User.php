@@ -1178,10 +1178,15 @@ class User
     }
     
     
-    function referrToSuperAdmin($id)
+    function referrToSuperAdmin($id, $adminId = 999)
     {
+        //999 - system general
+        //998 - email contains + sign
+        //997 - email contains hotel word
+        //996 - email contains more than one dot
+        //995 - user number is from other country
         $result=false;
-        $res=$this->db->get('update ad_object set super_admin=1 where id=?', [$id], true);
+        $res=$this->db->get('update ad_object set super_admin=? where id=?', [$adminId, $id], true);
         if ($res!==false) 
         {
             $result=true;

@@ -1450,7 +1450,40 @@ var rtMsgs={
                 }
                 
                 
-                $onlySuper = ($isAdmin && isset($ad['SUPER_ADMIN']) && $ad['SUPER_ADMIN']==1) ? 1 : 0;  
+                $onlySuper = ($isAdmin && isset($ad['SUPER_ADMIN']) && $ad['SUPER_ADMIN']) ? $ad['SUPER_ADMIN']+0 : 0;
+                if($onlySuper){
+                    if($onlySuper && $onlySuper < 1000){
+                        
+                        switch($onlySuper){
+                            case 998:
+                                $onlySuper = "email contains + sign";
+                                break;
+                            case 997:
+                                $onlySuper = "email contains hotel word";
+                                break;
+                            case 996:
+                                $onlySuper = "email contains more than one dot";
+                                break;
+                            case 995:
+                                $onlySuper = "user verified number is from other country";
+                                break;
+                            case 999:
+                                $onlySuper = "System General";
+                                break;
+                            case 1:
+                            default:
+                                $onlySuper = "not specified";
+                                break;
+                        }
+                        
+                    }else{
+                        if(isset($this->editors[$onlySuper])){
+                            $onlySuper = "requested by ".$this->editors[$onlySuper];
+                        }else{
+                            $onlySuper = "requested by editor ".$onlySuper;
+                        }
+                    }
+                }
                                 
                 if($this->user->info['level']==9) 
                 {
@@ -1618,7 +1651,7 @@ var rtMsgs={
                 
                 if ($ad['STATE']==1 || $ad['STATE']==4) 
                 {
-                    echo '<div class="nb nbw">' .($onlySuper ? '<span class="fail"></span>' : '<span class="wait"></span>') ,$this->lang['pendingMsg'], ($assignedAdmin ? $assignedAdmin:'') , '</div>';
+                    echo '<div class="nb nbw">' .($onlySuper ? '<span title="'.$onlySuper.'" class="fail"></span>' : '<span class="wait"></span>') ,$this->lang['pendingMsg'], ($assignedAdmin ? $assignedAdmin:'') , '</div>';
                 }
                 elseif ($ad['STATE']==2) 
                 {

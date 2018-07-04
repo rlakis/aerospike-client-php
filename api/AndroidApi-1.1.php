@@ -835,7 +835,7 @@ class AndroidApi
                                 'OM'
                                 ]))
                         {
-                            $requireReview = 1;
+                            $requireReview = 995;
                         }
                             
                         $city_id = 0;
@@ -910,10 +910,17 @@ class AndroidApi
                             if(!$requireReview)
                             {
                                 $requireReview = preg_match('/hotel/', $ad['cui']['e']);
+                            }else{
+                                $requireReview = 998;
                             }
                             if(!$requireReview)
                             {
                                 $requireReview = preg_match('/\..*\..*@/', $ad['cui']['e']);
+                                if($requireReview){
+                                    $requireReview = 996;
+                                }
+                            }else{
+                                $requireReview = 997;
                             }
                         }
                         
@@ -973,7 +980,7 @@ class AndroidApi
                         }
                         elseif($requireReview && $ad_id)
                         {
-                            $this->referrToSuperAdmin($ad_id);
+                            $this->referrToSuperAdmin($ad_id, $requireReview);
                         }
                         else if($hasMajorFailure)
                         {
@@ -1160,7 +1167,7 @@ class AndroidApi
                                     $this->api->db->executeStatement($st);
                                 }
                                 if($requireReview && $ad_id){
-                                    $this->referrToSuperAdmin($ad_id);
+                                    $this->referrToSuperAdmin($ad_id, $requireReview);
                                 }
                                 
                                 if( $state==1 ) {
@@ -3128,10 +3135,10 @@ class AndroidApi
     }
     
     
-    function referrToSuperAdmin($id)
+    function referrToSuperAdmin($id, $adminId = 999)
     {
         $result=false;
-        $res=$this->api->db->get('update ad_object set super_admin=1 where id=?', [$id], true);
+        $res=$this->api->db->get('update ad_object set super_admin=? where id=?', [$adminId, $id], true);
         if ($res!==false) 
         {
             $result=true;
