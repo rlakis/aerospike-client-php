@@ -924,7 +924,7 @@ class User
                             $adLevel=0;
                             if($this->isSuperUser())
                             {
-                                $adLevel=1;
+                                $adLevel=100000000;
                             }
                             $filters = $this->getAdminFilters();
                             $q='select '.$pagination_str.' a.*, ao.super_admin, u.full_name, u.lvl, u.DISPLAY_NAME, u.profile_url, '
@@ -1087,7 +1087,7 @@ class User
                         $adLevel=0;
                         if($this->isSuperUser())
                         {
-                            $adLevel=1;
+                            $adLevel=100000000;
                         }
                         
                         $filters=  $this->getAdminFilters();

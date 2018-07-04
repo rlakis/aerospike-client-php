@@ -1480,7 +1480,7 @@ var rtMsgs={
                         if(isset($this->editors[$onlySuper])){
                             $onlySuper = "requested by ".$this->editors[$onlySuper];
                         }else{
-                            $onlySuper = "requested by editor ".$onlySuper;
+                            $onlySuper = "requested by user #".$onlySuper."#";
                         }
                     }
                 }
