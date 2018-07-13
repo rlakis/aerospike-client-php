@@ -1425,6 +1425,9 @@ class MobileApi {
                 $this->result['d']['esn'] = 0;
                 $this->result['d']['esl'] = 0;
             }
+            if($device_appversion > '1.5.8'){
+                $this->result['d']['lgt'] = $this->config['android_legacy_text_processing'];
+            }
             if($device_appversion > '1.4.7' && $device_appversion != '1.8.8'){
                 $this->result['d']['esl'] = $this->config['android_enabled_banner_search_native_list']+0;
                 $this->result['d']['eslf'] = $this->config['android_banner_search_native_list_first_idx']+0;
