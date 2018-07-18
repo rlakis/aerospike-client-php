@@ -5,8 +5,7 @@ use libphonenumber\PhoneNumber;
 use libphonenumber\PhoneNumberToCarrierMapper;
 use libphonenumber\PhoneNumberUtil;
 
-class Classifieds 
-{
+class Classifieds {
 
     const ID                    = 0;
     const HELD                  = 1;
@@ -84,31 +83,20 @@ class Classifieds
 
     
     function getById($id, $forceCache=false, $cacheSet=array()) {
-        if (!is_numeric($id)) return FALSE;
+        if (!is_numeric($id)) { return FALSE; }
         $id=$id+0;
-        if ($id<=0) return FALSE;
+        if ($id<=0) { return FALSE; }
         if (!$this->isDebugMode && !$forceCache) {
-            if(count($cacheSet)>0 && isset($cacheSet[$id])){
-                $ad = $cacheSet[$id];
-            }else{
-                $ad = $this->db->getCache()->get($id);
-            }
-        
-            if ($ad) 
-            {                
+            $ad = (count($cacheSet)>0 && isset($cacheSet[$id])) ? $cacheSet[$id] : $this->db->getCache()->get($id);        
+            if ($ad) {
                 if ($this->isDebugMode || $ad[Classifieds::DONE]!=1) {
                     $this->normalizeContacts($ad);                
                     $this->db->getCache()->set($id, $ad);
                 }
-                if (!isset($ad[Classifieds::FEATURE_ENDING_DATE]))
-                {                    
-                    //error_log(__FILE__. '.' . __FUNCTION__ . '.' . __LINE__ . ' missing fearure_ending_date attribute for ad '.$id);
+                if (!isset($ad[Classifieds::FEATURE_ENDING_DATE])) {                    
                     $ad[Classifieds::FEATURE_ENDING_DATE] = 0;
                     $ad[Classifieds::BO_ENDING_DATE] = 0;
-                }
-              
-                //error_log(var_export($ad[static::PRICE], true));
-                
+                }              
                 return $ad;
             }
         }
@@ -117,7 +105,6 @@ class Classifieds
         }
         
         if (!self::$stmt_get_ad || !$this->db->inTransaction()) {
-            //error_log("Cache miss for ad id: {$id}");
             self::$stmt_get_ad = $this->db->prepareQuery(
                 "select 
                     ad.id, ad.hold, ad.title, ad.publication_id, ad.country_id, ad.city_id, 
@@ -177,8 +164,7 @@ class Classifieds
         
         self::$stmt_get_ad->execute(array($id));
         
-        if (($row = Classifieds::$stmt_get_ad->fetch(\PDO::FETCH_NUM)) !== false) 
-        {
+        if (($row = Classifieds::$stmt_get_ad->fetch(\PDO::FETCH_NUM)) !== false) {
             $count = count($row);
             for ($i=0; $i<$count; $i++) {
                 if(is_numeric($row[$i])) $row[$i] = $row[$i]+0;
@@ -202,39 +188,17 @@ class Classifieds
             $ad[Classifieds::PUBLISHER_TYPE] = $row[$count-2];
                 
             // parser
-            $decoder = json_decode($user_content, TRUE);
-//            if (isset($decoder['pics']) && is_array($decoder['pics']) && count($decoder['pics'])) {
-//                foreach ($decoder['pics'] as $pic => $is_set) {
-//                    if ($is_set){
-//                        if(is_array($is_set)){
-//                            $ad[Classifieds::PICTURES_DIM][]=$is_set;
-//                        }
-//                        $ad[Classifieds::PICTURES][] = $pic;
-//                    }
-//                }
-//            }            
+            $decoder = json_decode($user_content, TRUE);    
             
             self::$stmt_get_media->execute([$id]);
-            while (($media = static::$stmt_get_media->fetch(\PDO::FETCH_ASSOC)) !== false) 
-            {
+            while (($media = static::$stmt_get_media->fetch(\PDO::FETCH_ASSOC)) !== false) {
                 $ad[Classifieds::PICTURES][] = $media['FILENAME'];
                 $ad[Classifieds::PICTURES_DIM][] = [$media['WIDTH'], $media['HEIGHT']];
             }
-            
-            
-            if(isset($decoder['cui'])){
-                $ad[Classifieds::CONTACT_INFO] = $decoder['cui'];
-            }
-            
-            if(isset($decoder['cut'])){
-                $ad[Classifieds::CONTACT_TIME] = $decoder['cut'];
-            }
-
-
-            if (isset($decoder['loc']) && $decoder['loc']) {
-                $ad[Classifieds::LOCATION] = $decoder['loc'];
-            }
-            
+                        
+            if(isset($decoder['cui'])) { $ad[Classifieds::CONTACT_INFO] = $decoder['cui']; }            
+            if(isset($decoder['cut'])) { $ad[Classifieds::CONTACT_TIME] = $decoder['cut']; }
+            if (isset($decoder['loc']) && $decoder['loc']) { $ad[Classifieds::LOCATION] = $decoder['loc']; }       
             if (isset($decoder['video']) && is_array($decoder['video']) && count($decoder['video'])) {
                 $ad[Classifieds::VIDEO] = $decoder['video'];
             }
@@ -249,34 +213,26 @@ class Classifieds
                 $ad[Classifieds::PRICE] = 0;
             }
 
-            if ($ad[Classifieds::ROOT_ID]==1) 
-            {
+            if ($ad[Classifieds::ROOT_ID]==1) {
                 self::$stmt_get_loc->execute(array($id));
-                while (($locRow = self::$stmt_get_loc->fetch(\PDO::FETCH_ASSOC)) !== false) 
-                {
+                while (($locRow = self::$stmt_get_loc->fetch(\PDO::FETCH_ASSOC)) !== false) {
                     $ad[$locRow['LANG']=='ar' ? Classifieds::LOCALITIES_AR : Classifieds::LOCALITIES_EN][$locRow['LOCALITY_ID']+0] =
                             array($locRow['NAME'], $locRow['CITY_ID'], $locRow['PARENT_ID']);
                 }
             }
-            elseif ($ad[Classifieds::ROOT_ID]==2) 
-            {
+            elseif ($ad[Classifieds::ROOT_ID]==2) {
                 self::$stmt_get_ext->execute(array($id));
-                while (($extRow = self::$stmt_get_ext->fetch(\PDO::FETCH_ASSOC)) !== false) 
-                {
+                while (($extRow = self::$stmt_get_ext->fetch(\PDO::FETCH_ASSOC)) !== false) {
                     $ad[$extRow['LANG']=='ar' ? Classifieds::EXTENTED_AR : Classifieds::EXTENTED_EN] = $extRow['SECTION_TAG_ID']+0;
                 }
             }
-            
-            
+                        
             $this->normalizeContacts($ad);
 
-            //error_log("ad {$id} taken from database");
             $res = $this->db->getCache()->set($id, $ad);
             if ($res===false) {
             	error_log("Classifieds->getById: Cound not set ad {$id} to redis cache");
             }
-        } else {
-        	//error_log("Cound not get ad {$id} from database");
         }
         return $ad;
     }
@@ -291,23 +247,22 @@ class Classifieds
         $this->processTextNumbers($tmpContent, $ad[Classifieds::PUBLICATION_ID], $ad[Classifieds::COUNTRY_CODE], $telNumbers);
         //$ad[Classifieds::CONTENT] = strip_tags($ad[Classifieds::CONTENT]);
 
-        if($ad[Classifieds::ALT_CONTENT]!=""){
+        if($ad[Classifieds::ALT_CONTENT]!="") {
             $tmpTel = [];
             $tmpContent = $ad[Classifieds::ALT_CONTENT];
             $this->processTextNumbers($tmpContent, $ad[Classifieds::PUBLICATION_ID], $ad[Classifieds::COUNTRY_CODE], $telNumbers);
-            //$ad[Classifieds::ALT_CONTENT] = strip_tags($ad[Classifieds::ALT_CONTENT]);
         }
         $tmpContent = $ad[Classifieds::CONTENT];
 
         $emails = $this->detectEmail($tmpContent);
-        if($emails && count($emails)){
+        //var_dump($emails);
+        if($emails && count($emails)) {
             $emails = $emails[0];
         }
         
         $ad[Classifieds::EMAILS] = $emails;
-        if (empty($telNumbers)) $telNumbers = [[],[],[]];
+        if (empty($telNumbers)) { $telNumbers = [[],[],[]]; }
         $ad[Classifieds::TELEPHONES] = $telNumbers;
-        //var_dump($telNumbers);
         $ad[Classifieds::DONE] = 1;
     }
     
@@ -319,27 +274,24 @@ class Classifieds
     }
     
 
-    private function processTextNumbers(&$text, $pubId=0, $countryCode=0, &$matches=array()){
-        
-        
+    private function processTextNumbers(&$text, $pubId=0, $countryCode=0, &$matches=array()) {                
         $phone = '/((?:\+|\s)(?:[0-9\\/\-]{7,16})|(?:\d{4}\s\d{4}))/ui';
         $content=null;
         $str=null;
         $subPattern='(?:(?:(?:[ .,;:\-\/،])(?:mobile|viber|whatsapp|phone|fax|telefax|للتواصل|جوال|موبايل|هاتف|فاكس|تلفاكس|واتساب|للاستفسار|للأستفسار|للإستفسار|فايبر|الاتصال|للتواصل|للمفاهمة|للاتصال|الاتصال على|اتصال|(?:tel|call|ت|ه|ج))(?:(?:\s|):|\+|\+|\/|) ))';
         
         $hasMatch=preg_match('/\x{200B}.*/u',$text,$content);
-        if($hasMatch){
-            
-            $str=$content[0];
-            
-        }else{
-
+        if($hasMatch) {            
+            $str=$content[0];            
+        }
+        else {
             $hasMatch=preg_match('/'.$subPattern.'((?!.*'.$subPattern.'))/ui', $text, $content);        
             if (!$hasMatch) {
                 $hasMatch=preg_match_all($phone, $text, $content);
-                if(!$hasMatch) {
+                if (!$hasMatch) {
                     return $text;
-                }else{
+                }
+                else {
                     if(is_array($content) && isset($content[0][0])){
                         $pattern= $content[0][0];
                         $pattern = trim(preg_replace('/[\-\/\\\]/', '', $pattern));
@@ -403,7 +355,8 @@ class Classifieds
                             try {
                                 if ($pubId==1) {
                                     $numInst[] = $num = $this->mobileValidator->parse($number, $this->formatNumbers);
-                                } else {
+                                } 
+                                else {
                                     $numInst[] = $num = $this->mobileValidator->parse($number, $countryCode);
                                 }
                                 
@@ -452,7 +405,8 @@ class Classifieds
                                                         $num='3'.$num;
                                                         break;
                                                 }
-                                            } elseif (strlen($num)==8) {
+                                            } 
+                                            elseif (strlen($num)==8) {
                                                 switch ($pubId) {
                                                     case 13:
                                                         $num='2'.$num;
@@ -478,12 +432,9 @@ class Classifieds
                                     } else {
                                         $nums[]=array($number, $number);
                                     }
-
-                                }
-                                
-                            } catch(Exception $ex) {
-                                //var_dump($ex->getMessage());
-                                //$nums[]=array($number, $number);
+                                }                                
+                            } 
+                            catch(Exception $ex) {
                                 $undefined[]=array($number, $number);
                             }
                         }
@@ -491,7 +442,6 @@ class Classifieds
 
                         foreach ($nums as $num) {
                             $type=$this->mobileValidator->getNumberType($numInst[$i++]);
-                            //var_dump($type);
                             if ($type==1 || $type==2)
                                 $mobile[]=$num;
                             elseif ($type==0 || $type==2)
@@ -534,14 +484,13 @@ class Classifieds
                 $title=self::$stmt_mod_title->fetch(PDO::FETCH_NUM);
                 $ad[Classifieds::TITLE]=$title[0];                
             }
-        } catch (Exception $ex) {
-            //$log_msg = $ex->getMessage() . "\n" . $ex->getTraceAsString();
+        } 
+        catch (Exception $ex) {
             error_log( var_export($ex, true) );
-            //error_log("{$log_msg}");
         }
     }
     
-    static function detectYear($text){
+    static function detectYear($text) {
         $year=0;
         $matches=null;
         preg_match_all('/\s(?:mod|model|modl|year|م|مودل|موديل|مودال|مدل|مديل|مدال)(?:\s|)([0-9]{2,4})\s/u', $text, $matches);
