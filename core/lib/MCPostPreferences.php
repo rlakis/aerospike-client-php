@@ -328,7 +328,7 @@ const BLOCKED                       = 'blk';
 // allow, then deny
 
 class MCPostPreferences implements \JsonSerializable {
-    private $version = [ 'major'=>1, 'minor'=>2 ];
+    private $version = [ 'major'=>1, 'minor'=>5 ];
 
     private $properties;
     private $cars;
@@ -382,7 +382,9 @@ class MCPostPreferences implements \JsonSerializable {
         $this->properties->section(SR_RESTAURANTS_COFFEE_SHOPS);
         $this->properties->section(SR_SHARING)->deny()->purposes([P_FOR_SALE, P_ASK_BUY, P_TRADE_IN]);        
         $this->properties->section(SR_SHOPS);
-        $this->properties->section(SR_TRADITIONAL_HOUSE)->deny()->countries([CN_LEBANON])->movedTo(SR_VILLAS_AND_HOUSES);
+        //$this->properties->section(SR_TRADITIONAL_HOUSE);
+        $this->properties->section(SR_TRADITIONAL_HOUSE)->deny()->countries([CN_LEBANON, CN_BAHRAIN]);//->movedTo(SR_VILLAS_AND_HOUSES);
+        
         $this->properties->section(SR_UNDER_CONSTRUCTION)->deny()->purposes([P_RENTAL, P_ASK_RENT, P_TRADE_IN]);        
         $this->properties->section(SR_VILLAS)->deny()->movedTo(SR_VILLAS_AND_HOUSES);        
         $this->properties->section(SR_VILLAS_AND_HOUSES);
