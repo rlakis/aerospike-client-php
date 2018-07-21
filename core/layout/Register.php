@@ -42,7 +42,7 @@ class Register extends Page{
         $this->title=$title;
         $this->urlRouter->cfg['enabled_ads']=0;
         if(!$this->isMobile){
-            $this->inlineCss.='.account{overflow:hidden!important;margin:0!important}';
+            $this->inlineCss.='.account{overflow:hidden!important;margin:0!important}.lgt{overflow:visible}';
             if($this->urlRouter->siteLanguage=='ar'){
             $this->inlineCss.='.htu{width:300px;float:left;display:block;height:400px;margin-top:5px;}.lgt{margin:10px 1px;line-height:30px;color:#143D55;text-align:center;font-size:18px;background-color:#efefef;border:1px solid #ccc;position:relative;}.lgt ul{width:100%;}.lgt li{padding:10px 0}.lgt label{font-size:24px;color:#999;}.lgt label.sm{font-size:20px;}.lgt .fld{width:500px;font-size:22px;padding:5px;}.lgt .fldp{width:250px;}#eWait{width:630px;position:absolute;top:0;left:10px;margin-top:60px;display:none;}';
             }else{

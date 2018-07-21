@@ -5762,7 +5762,7 @@ class Bin extends AjaxHandler{
                     {
                         $_ret = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);
                         //$user = Core\Model\NoSQL::getInstance()->fetchUserByProvider Id($email, 'mourjan'); //$this->user->checkAccount($email);
-                        if($_ret!==NoSQL::OK)
+                        if($_ret!==NoSQL::OK && $_ret !== NoSQL::ERR_RECORD_NOT_FOUND)
                         {
                             $this->fail("103");
                         }
