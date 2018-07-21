@@ -605,7 +605,7 @@ class MobileApi {
                             
                             $translated_i = $i + $offset + $numberOfAdmobAds;
                             if($adMob_j - 3 == $translated_i) {
-                                error_log($translated_i);
+                                //error_log($translated_i);
                                 $adMob_j += $adMobGap;
                             }
                         }
