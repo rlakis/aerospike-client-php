@@ -3807,6 +3807,33 @@ class MobileApi {
         $this->result['d']['ad'] = is_array($ad) ? $ad : new stdClass(); 
     }
     
+    function getUserAlbum(){
+        if ($this->config['active_maintenance']) {
+            $this->result['e'] = "503";
+            return;
+        }
+        $opts = $this->userStatus($status);
+   
+        if ($status==1 && !$this->user->isBlocked()) {
+            $uid = $this->getUID();
+            $this->result['d']['imgs']=[];
+            
+            $q = 'select distinct x.id, x.filename from ad_user a
+left join ad_media m on m.ad_id = a.id
+left join media x on x.id = m.media_id
+where a.web_user_id = ? and a.state != 6 and a.state != 8 and x.id > 0';
+            
+            $images = $this->db->get(
+                $q,
+                [$uid], true, \PDO::FETCH_NUM);
+            
+            if($images !== false && is_array($images) && $count = count($images)){
+                for($i = 0; $i < $count; $i++){
+                    $this->result['d']['imgs'][] = $images[$i][0].'#mourjan'.$images[$i][1];
+                }
+            }
+        }
+    }
     
     function forwardNormalizeText(){
         if ($this->config['active_maintenance']) {
@@ -3820,6 +3847,10 @@ class MobileApi {
             $text = $_GET['text'];  
             
             $this->result['d']['original']=$text;
+            //for android
+            if(isset($_GET['rid']) && is_numeric($_GET['rid'])){
+                $this->result['d']['rid'] = $_GET['rid'];
+            }
             
             $this->result['d']['text']='';
             $this->result['d']['words']=[];

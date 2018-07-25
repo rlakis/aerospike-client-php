@@ -103,6 +103,8 @@ const API_ANDROID_USER_RECEIVE_CALL             = 87;
 const API_NORMALIZE_TEXT                        = 88;
 const API_SIMPLE_TEXT_NORMALIZE                 = 89;
 
+const API_GET_USER_ALBUM                        = 90;
+
 const API_RELOAD_INDEX                          = 990;
 const API_POST_PREFERENCES                      = 991;
 const API_DB_EVENT                              = 998;
@@ -389,6 +391,10 @@ if (!$api->hasError())
         
         case API_LOG:
             $api->logger();
+            break;
+        
+        case API_GET_USER_ALBUM:
+            $api->getUserAlbum();
             break;
         
         default:
