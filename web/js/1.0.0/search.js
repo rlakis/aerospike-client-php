@@ -678,7 +678,7 @@ if(typeof hasMap!=="undefined"){
     addEvent(window,'load',function(){
     var s=document.createElement("script");
     s.type="text/javascript";
-    s.src = "//maps.googleapis.com/maps/api/js?key=AIzaSyBNSe6GcNXfaOM88_EybNH6Y6ItEE8t3EA&sensor=true&callback=initMap&language="+lang;
+    s.src = "//maps.googleapis.com/maps/api/js?key=AIzaSyCXdUTLoKUM4Dc8LtMYQM-otRB2Rn59xXk&sensor=true&callback=initMap&language="+lang;
     document.body.appendChild(s);
     });
     
