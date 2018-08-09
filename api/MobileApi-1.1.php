@@ -3860,7 +3860,11 @@ where a.web_user_id = ? and a.state != 6 and a.state != 8 and x.id > 0';
                 $userAgent .= ' PHP/' . PHP_VERSION;
                 $curl_version = curl_version();
                 $userAgent .= ' curl/' . $curl_version['version'];
-                    
+                
+                if (empty($text)) {
+                    return;
+                }
+                
                 $ch = curl_init();   
                 $arg = curl_escape($ch, $text);
                 curl_setopt($ch, CURLOPT_URL, "http://h8.mourjan.com:8080/v1/ad/text/{$arg}");
