@@ -1114,12 +1114,26 @@ class Bin extends AjaxHandler{
                     if($key){
                         $related = $this->get('related');
                         if($related){
-                            $res = $this->urlRouter->db->queryResultArray('select * from wordlist_synonym w where w.wordlist_id = ? order by w.content',[$key], true);
+                            $res = $this->urlRouter->db->queryResultArray('select * from wordlist_synonym w where w.wordlist_id=? order by w.content',[$key], true);
                         }else{
                             if($country){
-                                $res = $this->urlRouter->db->queryResultArray('select * from country_loc_keywords c where c.keyword containing ? and c.cc = ? order by c.keyword',[$key,$country], true);                            
+                                $res = $this->urlRouter->db->queryResultArray('select * from country_loc_keywords c where c.keyword containing ? and c.cc=? order by c.keyword',[$key,$country], true);                            
                             }else{
-                                $res = $this->urlRouter->db->queryResultArray('select first 20 * from wordlist w where w.content containing ? order by w.content',[$key], true);
+                                $key= strtolower($key);
+                                $q ="select first 20 * from wordlist w where ";
+                                if ($key[0]=='*') {
+                                    $key[0]='%';
+                                    $q.="lower(w.content) like ? ";
+                                }
+                                else if ($key[strlen($key)-1]=='*') {
+                                    $key= substr($key, 0, strlen($key)-1);
+                                    $q.="lower(w.content) starting with ? ";
+                                }
+                                else {
+                                    $q.="w.content containing ? ";
+                                }
+                                $q.="order by w.content";
+                                $res = $this->urlRouter->db->queryResultArray($q, [$key], true);
                             }                            
                         }
                         if(is_array($res)){
@@ -1135,19 +1149,22 @@ class Bin extends AjaxHandler{
                             $content = trim($this->post('content'));
                             if($id > 0){
                                 if($content == ''){
-                                    $res = $this->urlRouter->db->queryResultArray('delete from wordlist_synonym where id = ?',[$id], true);                            
+                                    $res = $this->urlRouter->db->queryResultArray('delete from wordlist_synonym where id=?',[$id], true);                            
                                 }else{
-                                    $res = $this->urlRouter->db->queryResultArray('update wordlist_synonym set content = ? where id = ?',[$content, $id], true);                            
+                                    $res = $this->urlRouter->db->queryResultArray('update wordlist_synonym set content=? where id=?',[$content, $id], true);                            
                                 }
-                            }else if($content){
+                            }
+                            else if($content){
                                 $res = $this->urlRouter->db->queryResultArray('insert into wordlist_synonym (wordlist_id, content) values (?,?)',[$wordlist_id, $content], true);
                             }
                             $this->process();
-                        }elseif(isset($_POST['did'])){
+                        }
+                        elseif(isset($_POST['did'])){
                             $id=  $this->post('did');
                             $res = $this->urlRouter->db->queryResultArray('delete from wordlist where id = ?',[$id], true);
                             $this->process();
-                        }elseif(isset($_POST['kid'])){
+                        }
+                        elseif(isset($_POST['kid'])){
                             $id=  $this->post('kid');
                             if($id > 0){
                                 $field = trim($this->post('field'));
@@ -1179,7 +1196,8 @@ class Bin extends AjaxHandler{
                                     $this->fail(103);
                                 }
                             }
-                        }elseif(isset($_POST['id'])){
+                        }
+                        elseif(isset($_POST['id'])){
                             $id=  $this->post('id');
                             $AR=  trim($this->post('ar'));
                             $EN=  trim($this->post('en'));
@@ -1229,7 +1247,8 @@ class Bin extends AjaxHandler{
                                     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                                                                                                 
                                     $resp = \curl_exec($ch);
-                                }else{                                    
+                                }
+                                else{                                    
                                     $this->urlRouter->db->queryResultArray("select PHP('touch', '{$country}', '') from rdb\$database",null, true);                                
                                 }
                                 $this->process();
