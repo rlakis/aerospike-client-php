@@ -1471,6 +1471,8 @@ var rtMsgs={
                                 $onlySuper = "System General";
                                 break;
                             case 1:
+                                $onlySuper = "contains stop words";
+                                break;
                             default:
                                 $onlySuper = "not specified";
                                 break;
