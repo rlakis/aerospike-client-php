@@ -74,6 +74,15 @@ class MobileApi {
     }
     
     
+    function __destruct() {
+        if ($this->db) {
+            if (self::$stmt_get_loc) { $this->db->closeStatement(self::$stmt_get_loc); }
+            if (self::$stmt_get_ext) { $this->db->closeStatement(self::$stmt_get_ext); }
+            if (self::$stmt_get_ad) { $this->db->closeStatement(self::$stmt_get_ad); }
+        }
+    }
+        
+
     function getUID() : int {
         if ($this->uid) {
             return $this->uid;
@@ -3550,12 +3559,12 @@ class MobileApi {
                         }   
                                 
                         if (!empty($result)) {                                        
-                            $state=$result[0]['STATE'];
-                            //$ad_id = (int)$result[0]['ID'];                                        
+                            $state=$result[0]['STATE'];                                                              
                             $st = $this->db->getInstance()->prepare("update or insert into ad_object (id, attributes) values (?, ?)");
                             $st->bindValue(1, $ad_id, PDO::PARAM_INT);
                             $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
                             $this->db->executeStatement($st);
+                            $this->db->closeStatement($st);
                         }                                
 
                         if ( $ad['state']==1 ) {
@@ -3606,10 +3615,10 @@ class MobileApi {
                             $st->bindValue(1, $ad_id, PDO::PARAM_INT);
                             $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
                             $this->db->executeStatement($st);
+                            $this->db->closeStatement($st);
                             
                             $pst = $this->db->getInstance()->prepare("INSERT INTO AD_MEDIA (AD_ID, MEDIA_ID) values (?, ?)");
-                            
-                            
+                                                        
                             if (isset($ad['pics']) && is_array($ad['pics']) && count($ad['pics'])) {
                                 $keys = array_keys($ad['pics']);
                                 $filenames = '';
@@ -3627,6 +3636,7 @@ class MobileApi {
                                     }                                                   
                                 }
                             }
+                            $this->db->closeStatement($pst);
                         }
                         
                         if ($requireReview && $ad_id) {

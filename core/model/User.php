@@ -1983,8 +1983,7 @@ class User
                 } 
                 else 
                 {
-                    if ($this->pending['post']['se']>0) 
-                    {
+                    if ($this->pending['post']['se']>0) {
                         
                         $adContent = json_decode($this->pending['post']['content'],true);
                         $rawOther = isset($adContent['rawOther']) ? $adContent['rawOther'] : null;
@@ -2019,49 +2018,45 @@ class User
                         $this->pending['post']['content'] = json_encode($adContent);
                         
                         $id=0;
-                    	if ($stmt->execute()) 
-                        {
-                            if (($result=$stmt->fetch(PDO::FETCH_ASSOC))!==FALSE)
-                            {
+                    	if ($stmt->execute()) {
+                            if (($result=$stmt->fetch(PDO::FETCH_ASSOC))!==FALSE) {
                                 $this->pending['post']['id']=$id=$result['ID'];
                                 $this->update();
                             }
+                            $stmt->closeCursor();
                             $this->db->commit();
                             $ad_is_saved = true;
                         }
-                        else
-                        {
+                        else {
+                            $stmt->closeCursor();
                             $this->db->rollBack();
                         }                                            	
                     }
                 }      
 
             }
-            else
-            {
+            else {
                 NoSQL::Log("Saving ad with user id 000000!!!!!");
             }
             
 
         }
-        catch(Exception $e)
-        {        
+        catch(Exception $e) {        
             $ex_msg = $e->getMessage();
             $this->db->rollBack(); 
             $id=0;
         }
         
-        if ($id==0)
-        {
+        if ($id==0) {
             $_obj = $this->pending['post']??'';
-            if ($_obj && isset($_obj['content']))
-            {
+            if ($_obj && isset($_obj['content'])) {
                 $_obj['content'] = json_decode($_obj['content']);
             }
             NoSQL::Log(['Error'=>"Failed to save ad! ".($ex_msg??''), 'data'=>$_obj]);
         }
         return $id;
     }
+    
     
     function unblock($uids, $numbers){
         $stmt = $this->db->prepareQuery('delete from bl_phone where telephone = ?');

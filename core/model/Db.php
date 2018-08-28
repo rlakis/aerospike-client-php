@@ -9,8 +9,7 @@ use Core\Lib\MCCache;
 use Core\Lib\SphinxQL;
 use Core\Model\NoSQL;
 
-class DB 
-{
+class DB {
 
     private static $Instance;    
     private static $Cache;
@@ -27,8 +26,7 @@ class DB
     private $slaveOfRedis;
     public $ql;
     
-    public function __construct($cfg, $readonly=TRUE) 
-    {
+    public function __construct($cfg, $readonly=TRUE) {
         $this->slaveOfRedis = (get_cfg_var('mourjan.server_id')!='1');
         self::$dbUri = 'firebird:dbname='.$cfg['db_host'].':'.$cfg['db_name'].';charset=UTF8';
         self::$user = $cfg['db_user'];
@@ -53,51 +51,38 @@ class DB
     }
 
 
-    public static function getCacheStorage($config)
-    {
-        if (!isset(DB::$Cache)) 
-        {
+    public static function getCacheStorage($config) {
+        if (!isset(DB::$Cache)) {
             DB::$Cache = new MCCache($config);
         }
         return self::$Cache;
     }
 
 
-    public function __destruct() 
-    {
+    public function __destruct() {
         $this->close();        
     }
 
     
-    public function index() : SphinxQL
-    {
+    public function index() : SphinxQL {
         return $this->ql;
     }
     
     
-    public function setWriteMode($on=TRUE) 
-    {
+    public function setWriteMode($on=TRUE) {
         $this->setTransactionIsolation(!$on);
     }
     
-    
-    
-    private function setTransactionIsolation($read) 
-    {
-        if ($read != DB::$Readonly) 
-        {
-            $this->commit();
-        }
         
+    private function setTransactionIsolation($read) {
+        if ($read != DB::$Readonly) { $this->commit(); }        
         
-        if ($read) 
-        {
+        if ($read) {
             DB::$Readonly=TRUE;
             DB::$IsolationLevel = \PDO::FB_TRANS_CONCURRENCY;
             DB::$WaitTimeout = 0;
         } 
-        else 
-        {
+        else {
             DB::$Readonly=FALSE;
             DB::$IsolationLevel = \PDO::FB_TRANS_COMMITTED;
             DB::$WaitTimeout=10;       
@@ -105,10 +90,8 @@ class DB
     }
     
     
-    public function inTransaction() 
-    {
-        if (DB::$Instance===NULL) 
-        {
+    public function inTransaction() {
+        if (DB::$Instance===NULL) {
             return FALSE;
         }
         
@@ -116,21 +99,16 @@ class DB
     }
     
     
-    public function commit(bool $restartTransaction=FALSE)
-    {
-        if($this->inTransaction())
-        {
-            try 
-            {
+    public function commit(bool $restartTransaction=FALSE) {
+        if($this->inTransaction()) {
+            try {
                 DB::$Instance->commit();
-                if ($restartTransaction==TRUE) 
-                {
+                if ($restartTransaction==TRUE) {
                     DB::$Instance->beginTransaction();           
                 }
                 return TRUE;
             } 
-            catch (Exception $ex) 
-            {
+            catch (Exception $ex) {
                 error_log($ex->getMessage());
             }
         }
@@ -138,21 +116,16 @@ class DB
     }
     
     
-    public function rollback(bool $restartTransaction=FALSE)
-    {
-        if($this->inTransaction())
-        {
-            try 
-            {
+    public function rollback(bool $restartTransaction=FALSE) {
+        if($this->inTransaction()) {
+            try {
                 DB::$Instance->rollBack();
-                if ($restartTransaction==TRUE) 
-                {
+                if ($restartTransaction==TRUE) {
                     DB::$Instance->beginTransaction();           
                 }
                 return TRUE;
             } 
-            catch (Exception $ex) 
-            {
+            catch (Exception $ex) {
                 error_log($ex->getMessage());
             }
         }
@@ -160,8 +133,7 @@ class DB
     }
     
     
-    private function newInstance() 
-    {
+    private function newInstance() {
         DB::$Instance = new \PDO(DB::$dbUri, DB::$user, DB::$pass,
                     [
                         \PDO::ATTR_PERSISTENT=>TRUE,
@@ -180,10 +152,8 @@ class DB
     }
 
 
-    public static function getDatabase() : \PDO
-    {
-        if (!self::$Instance) 
-        {
+    public static function getDatabase() : \PDO {
+        if (!self::$Instance) {
             DB::$Instance = new \PDO(DB::$dbUri, DB::$user, DB::$pass,
                     [
                         \PDO::ATTR_PERSISTENT=>TRUE,
@@ -204,36 +174,16 @@ class DB
     }
     
     
-    public function getInstance($try=0) 
-    {
-       if (self::$Instance === NULL) 
-       { 
+    public function getInstance($try=0) {
+       if (self::$Instance === NULL) { 
             $this->newInstance();
-            if (!self::$Instance->inTransaction()) 
-            {
+            if (!self::$Instance->inTransaction()) {
                 //error_log("new Instance beginTransaction Read: ". (self::$Readonly ? 'YES' : 'NO') ." Wait timeout: ".self::$WaitTimeout. PHP_EOL);
                 self::$Instance->beginTransaction();
-            }
-            /*
-            try {
-                $res = $this->getInstance()->query("select 1 from rdb\$database");
-                if ($res===FALSE) {
-
-                } else {
-                    $res->closeCursor();
-                }
-            } catch (Exception $e){
-                error_log($e->getMessage());
-                $this->newInstance();
-            }
-             * 
-             */
+            }           
         } 
-        else 
-        { 
-            if (!self::$Instance->inTransaction()) 
-            {   
-                //error_log("old Instance beginTransaction Read: ". (self::$Readonly ? 'YES' : 'NO') ." Wait timeout: ".self::$WaitTimeout. PHP_EOL);
+        else { 
+            if (!self::$Instance->inTransaction()) {   
                 self::$Instance->setAttribute(\PDO::FB_ATTR_READONLY, self::$Readonly);                
                 self::$Instance->setAttribute(\PDO::FB_TRANS_ISOLATION_LEVEL, self::$IsolationLevel);
                 self::$Instance->setAttribute(\PDO::FB_ATTR_TIMEOUT, self::$WaitTimeout);
@@ -241,22 +191,17 @@ class DB
             } 
         }
         
-        if(self::$Instance->inTransaction())
-        {
-            //error_log(self::getTransactionIsolationMessage());
+        if (self::$Instance->inTransaction()) {            
             return self::$Instance;
         }
-        else
-        {
-            if($try === 3)
-            {
+        else {
+            if($try === 3) {
                 error_log("############################");
                 error_log("UNABLE TO BEGIN TRANSACTION");
                 error_log("############################");
                 return false;
             }
-            else
-            {
+            else {
                 usleep(100);
                 return $this->getInstance($try+1);
             }
@@ -269,28 +214,22 @@ class DB
     }
     
     
-    public static function isReadOnly() : bool
-    {
+    public static function isReadOnly() : bool {
         return DB::$Readonly;
     }
     
     
-    public static function getCache() 
-    {
+    public static function getCache() {
         return self::$Cache;
     }
     
 
-    function close()
-    {
-        if ($this->inTransaction())
-        {
-            try
-            {
+    function close() {
+        if ($this->inTransaction()) {
+            try {
                 self::$Instance->commit();
             } 
-            catch (Exception $ex)
-            {
+            catch (Exception $ex) {
                 error_log("Db commit: " . $ex->getMessage() . PHP_EOL);
                 self::$Instance->rollBack();
             }
@@ -299,82 +238,67 @@ class DB
     }	
 
 
-    function checkCorrectWriteMode($query)
-    {
-        if (preg_match('/^(insert|update|delete|execute)/i', trim($query)))
-        {
+    function checkCorrectWriteMode($query) {
+        if (preg_match('/^(insert|update|delete|execute)/i', trim($query))) {
             $this->setTransactionIsolation(false);
         }
     }
 
     
-    function get(string $query, $params=null, bool $commit=false, $fetch_mode=\PDO::FETCH_ASSOC)
-    {
+    function get(string $query, $params=null, bool $commit=false, $fetch_mode=\PDO::FETCH_ASSOC) {
         $fbquery = new FBQuery($this, $query, $params, [FBQuery::FB_DIRECT_COMMIT=>$commit, FBQuery::FB_FETCH_MODE=>$fetch_mode]);
         return $fbquery->get();        
     }
 
     
-    function queryResultArray(string $query, $params=null, bool $commit=false, $fetch_mode=\PDO::FETCH_ASSOC, int $runtime=0) 
-    {
+    function queryResultArray(string $query, $params=null, bool $commit=false, $fetch_mode=\PDO::FETCH_ASSOC, int $runtime=0) {
         $this->checkCorrectWriteMode($query);
         $this->getInstance();
         $result=array();
-        
-        try 
-        {
+        $stmt = null;
+        try {
             $stmt = $this->getInstance()->prepare($query);
-            //error_log(get_class($stmt)); // PDOStatement
             
-            if ($params)
-            {
+            if ($params) {
                 $stmt->execute($params);
             }
-            else                      
-            {
+            else {
                 $stmt->execute();
             }
             
-            if ($stmt) 
-            {
+            if ($stmt) {
                 $query = trim($query);               
-                if (!stristr($query, " returning ") && preg_match('/^(insert|update|delete|execute)/i', $query))
-                {
+                if (!stristr($query, " returning ") && preg_match('/^(insert|update|delete|execute)/i', $query)) {
                     $result = TRUE;
                 }
-                else 
-                {
+                else {
                     $result = $stmt->fetchAll($fetch_mode);
                 }
             }
-
-            if ($commit)
-            {
-                $this->commit();
-                $stmt=null;
-            }
-                    
+            
+            $this->closeStatement($stmt);            
+            if ($commit) { $this->commit(); }                    
         }
-        catch (\PDOException $pdoException)
-        {
+        catch (\PDOException $pdoException) {
+            error_log(__FUNCTION__ . ' first exception '.$pdoException->getMessage());
+            if ($stmt instanceof \PDOStatement) { $this->closeStatement($stmt); }
             $result = FALSE;
             
-            if ($runtime<5 && preg_match('/913 deadlock/', $pdoException->getMessage()))
-            {
+            if ($runtime<5 && preg_match('/913 deadlock/', $pdoException->getMessage())) {
                 self::$Instance->rollBack();
                 usleep(200);
                 error_log('RETRY: '. $runtime+1 .' | CODE: '.$pdoException->getCode(). ' | '.$pdoException->getMessage().PHP_EOL.$query.PHP_EOL.var_export($params, TRUE));
                 $this->getInstance();
                 return $this->queryResultArray($query, $params, $commit, $fetch_mode, $runtime+1);                
             } 
-            else
-            {
+            else {
                 self::$Instance->rollBack();
                 error_log('CODE: '.$runtime.'/'.$pdoException->getCode().' | '.$pdoException->getMessage().PHP_EOL.$query.PHP_EOL.var_export($params, TRUE));
             }
         }
-        catch (Exception $ex) 
-        {
+        catch (Exception $ex) {
+            error_log(__FUNCTION__ . ' second exception '.$ex->getMessage());
+            if ($stmt instanceof \PDOStatement) { $this->closeStatement($stmt); }
             self::$Instance->rollBack();
             $result=FALSE;
         }
@@ -382,31 +306,30 @@ class DB
     }
     
     
-    function executeStatement($stmt, $params=null, $runtime=0)
-    {
+    function closeStatement(\PDOStatement $stmt) {        
+        $res = $stmt->closeCursor();
+        if ($res==FALSE) {
+            error_log("close statement failed!");
+        }
+    }
+    
+    
+    function executeStatement($stmt, $params=null, $runtime=0) {
         $result = false;
-        try
-        {
-            if($params)
-            {
+        try {
+            if($params) {
                 $result = $stmt->execute($params);
             }
-            else
-            {
+            else {
                 $result = $stmt->execute();
             }            
         } 
-        catch (Exception $ex) 
-        { 
-            //self::$Instance->rollBack();    
-            if( (strpos($ex->getMessage(), '913 deadlock') > -1) && $runtime < 5)
-            {
+        catch (Exception $ex) {             
+            if( (strpos($ex->getMessage(), '913 deadlock') > -1) && $runtime < 5) {
                 usleep(100);
-                //$this->getInstance();
                 return $this->executeStatement($stmt,$params, $runtime+1);
             }
-            else
-            {
+            else {
                 error_log('CODE: '. $ex->getCode() . ' | '.$ex->getMessage() . PHP_EOL);
             }
         }
@@ -892,8 +815,7 @@ class DB
     }
     
     
-    function getSectionsData($countryId, $cityId, $rootId, $lang) 
-    {
+    function getSectionsData($countryId, $cityId, $rootId, $lang) {
         $vv = ($this->slaveOfRedis) ? self::$SectionsVersion : self::$SectionsVersion+1;
         $label = "section-data-{$countryId}-{$cityId}-{$rootId}-{$lang}-{$vv}";
         $result = self::$Cache->get($label);
@@ -1136,8 +1058,8 @@ class DB
    
 }
 
-class FBQuery
-{
+
+class FBQuery {
     const FB_USLEEP         = 1;
     const FB_DIRECT_COMMIT  = 2;
     const FB_MAX_RETRY      = 3;
@@ -1157,8 +1079,7 @@ class FBQuery
     private $isReturningMode; 
     private $isWriteMode;
     
-    function __construct(DB $db, string $query='', $params, array $options=[]) 
-    {        
+    function __construct(DB $db, string $query='', $params, array $options=[]) {        
         $this->owner = $db;
         $this->query = trim($query);
         $this->params = $params;
@@ -1167,8 +1088,7 @@ class FBQuery
         $this->single = $options[FBQuery::FB_DIRECT_COMMIT] ?? FALSE;
         $this->maxTrials = $options[FBQuery::FB_MAX_RETRY] ?? 5;
         
-        if ($this->single===FALSE)
-        {
+        if ($this->single===FALSE) {
             $this->maxTrials = 1;
         }
         
@@ -1177,28 +1097,35 @@ class FBQuery
     }
    
     
-    private function prepare() : bool
-    {        
-        try
-        {
-            if ($this->isWriteMode && DB::isReadOnly())
-            {
+    function __destruct() {
+        if ($this->statement instanceof \PDOStatement) {
+            if (!$this->statement->closeCursor()) {
+                error_log(__CLASS__.'.'.__FUNCTION__);
+            }
+        }
+    }
+
+
+    private function prepare() : bool {        
+        try {
+            if ($this->isWriteMode && DB::isReadOnly()) {
                 $this->statement = null;
                 $this->owner->setWriteMode(TRUE);
                 $this->single = TRUE;
                 $this->maxTrials = 5;                
             }
             
-            if ($this->statement)
-            {
+            if ($this->statement) {
                 return TRUE;
             }
    
             $this->statement = $this->owner->getInstance()->prepare($this->query);
             return TRUE;
         }
-        catch (PDOException $ex)
-        {
+        catch (PDOException $ex) {
+            if ($this->statement instanceof \PDOStatement) {
+                $this->statement->closeCursor();
+            }
             $this->statement = NULL;
             error_log($ex->getMessage());
         }
@@ -1206,47 +1133,28 @@ class FBQuery
     }
     
     
-    private function execute() : bool
-    {
+    private function execute() : bool {
         $success = FALSE;
         $trial=0;
-        do
-        {
+        do {
             $trial++;
-            if ($this->prepare())
-            {
-                try
-                {
+            if ($this->prepare()) {
+                try {
                     $executed = $this->statement->execute($this->params);
-                    if ($executed && $trial>1)
-                    {
+                    if ($executed && $trial>1) {
                         NoSQL::Log(['query'=>$this->query, 'iteration'=>$trial]);
                     }
                     return $executed;
                 } 
-                catch (\Exception $ex)
-                {
-                    if (preg_match('/913 deadlock/', $ex->getMessage()))
-                    {
-                        //if ($this->single)
-                        //{
-                        //    $this->owner->getInstance()->rollBack();
-                        //}
-                        //else
-                        //{
+                catch (\Exception $ex) {
+                    if (preg_match('/913 deadlock/', $ex->getMessage())) {
                         $this->statement->closeCursor();
-                        //}
-                        $this->statement = null;
-                    
+                        $this->statement = null;                    
                         usleep($this->sleepMicroSeconds);
-                        //error_log('RETRY no: '. $trial .' | CODE: '.$ex->getCode().' | '.$ex->getMessage().PHP_EOL. $this->query.PHP_EOL.var_export($this->params, TRUE));
-                        //return $this->execute($trial+1);                
                     }
-                    else
-                    {
+                    else {
                         error_log('CODE retry no: '.$trial.'/'.$ex->getCode().' | '.$ex->getMessage().PHP_EOL.$this->query.PHP_EOL.var_export($this->params, TRUE));
-                        if ($this->single)
-                        {
+                        if ($this->single) {
                             $this->owner->rollBack();
                         }
                         break;
@@ -1258,14 +1166,11 @@ class FBQuery
     }
     
     
-    public function get()
-    {
+    public function get() {
         $this->result = false;
-        if ($this->execute())
-        {
+        if ($this->execute()) {
             $this->result = ($this->isReturningMode) ? $this->statement->fetchAll($this->fetchMode) : TRUE;
-            if ($this->single)
-            {
+            if ($this->single) {
                 $this->owner->commit();
             }
         }

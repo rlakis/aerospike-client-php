@@ -330,10 +330,7 @@ class AndroidApi
                     }
                     
                     //get total
-                    $rs = $this->api->db->queryResultArray(
-                        "SELECT sum(r.credit - r.debit)
-                        FROM T_TRAN r
-                        where r.UID=?", [$this->api->getUID()], true);
+                    $rs = $this->api->db->queryResultArray("SELECT sum(r.credit-r.debit) FROM T_TRAN r where r.UID=?", [$this->api->getUID()], true);
                     $this->api->result['d']['balance'] = -1;
                     if($rs && count($rs) && $rs[0]['SUM']!=null){
                         if($rs[0]['SUM']){                    
@@ -670,17 +667,17 @@ class AndroidApi
                         }
                         $this->api->db->queryResultArray(
                                 'update subscription set badge_count=0, last_visit=current_timestamp '
-                                . 'where web_user_id = ? and country_id = ? '
-                                . 'and city_id = ? and section_id = ? and section_tag_id = ? '
-                                . 'and locality_id = ? and purpose_id = ? and query_term = ? and publisher_type = ?', [$this->api->getUID(), $req['country_id'], $req['city_id'], $req['section_id'], $req['tag_id'], $req['geo_id'], $req['purpose_id'], $req['query'], $publisherType], TRUE
+                                . 'where web_user_id=? and country_id=? '
+                                . 'and city_id=? and section_id=? and section_tag_id=? '
+                                . 'and locality_id=? and purpose_id=? and query_term=? and publisher_type=?', 
+                                [$this->api->getUID(), $req['country_id'], $req['city_id'], $req['section_id'], $req['tag_id'], $req['geo_id'], $req['purpose_id'], $req['query'], $publisherType], TRUE
                         );
                     }
                 //}
                 break;
                 
             case API_ANDROID_POST_AD:         
-                if($this->api->config['active_maintenance'])
-                {
+                if($this->api->config['active_maintenance']) {
                     $this->api->result['e'] = "503";
                     break;
                 }
@@ -688,8 +685,7 @@ class AndroidApi
                 $opts = $this->api->userStatus($status);   
                 $mcUser = new MCUser($this->api->getUID());
                 
-                if ($status==1 && !$mcUser->isBlocked()) 
-                {
+                if ($status==1 && !$mcUser->isBlocked()) {
                     $this->api->db->setWriteMode();  
                     
                     $direct_publish = filter_input(INPUT_POST, 'pub', FILTER_VALIDATE_INT) + 0;
@@ -697,9 +693,7 @@ class AndroidApi
                     $rid = filter_input(INPUT_POST, 'rid', FILTER_VALIDATE_INT) + 0;
                     $ad_id = filter_input(INPUT_POST, 'adid', FILTER_VALIDATE_INT) + 0;
                     $device_lang = filter_input(INPUT_GET, 'hl');
-                    if(!in_array($device_lang, ['ar','en'])){
-                        $device_lang = 0;
-                    }
+                    if (!in_array($device_lang, ['ar','en'])) { $device_lang = 0; }
                     $state = 0;
                     $ad = json_decode(urldecode(filter_input(INPUT_POST, 'ad', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']])), true);
                     
@@ -710,38 +704,23 @@ class AndroidApi
                     
                     $stmt = null;
                     
-                    if(count($ad)>0)
-                    {    
+                    if(count($ad)>0) {    
                     
-                        if($ad['se']>0 && $ad['pu']==0)
-                        {
+                        if($ad['se']>0 && $ad['pu']==0) {
                             $ad['pu']=5;
-                        }
-                        
-                        /*
-                        if($ad['rtl'] == 1){
-                            $ad['other'] .= "\u200B / ".$ad['contact_ar'];
-                            if(strlen($ad['altother']) >= 30){
-                                $ad['altother'] .= "\u200B / ".$ad['contact_en'];
-                            }
-                        }else{
-                            $ad['other'] .= "\u200B / ".$ad['contact_en'];
-                        }
-                        */
+                        }                                                
 
                         $_original_ad=$ad;
                         include_once $this->api->config['dir'] . '/core/lib/MCSaveHandler.php';                
                         $normalizer = new MCSaveHandler($this->api->config);
                         $normalized = $normalizer->getFromContentObject($ad);
                         $attrs = [];
-                        if ($normalized)
-                        {
+                        if ($normalized) {
                             $ad = $normalized;
                             $attrs = $normalized['attrs'];
                         }                
 
-                        if (!isset($ad['other']))
-                        {
+                        if (!isset($ad['other'])) {
                             NoSQL::Log($ad);
                             NoSQL::Log($_original_ad);
                         }
@@ -751,19 +730,16 @@ class AndroidApi
                         }
                         $ad['rtl'] = ($this->isRTL($ad['other'])) ? 1 : 0;
                         
-                        if(isset($ad['altother']) && $ad['altother'])
-                        {
+                        if(isset($ad['altother']) && $ad['altother']) {
                             $ad['altRtl'] = ($this->isRTL($ad['altother'])) ? 1 : 0;
 
-                            if($ad['rtl'] == $ad['altRtl'])
-                            {
+                            if($ad['rtl'] == $ad['altRtl']) {
                                 $ad['extra']['t']=2;
                                 unset($ad['altRtl']);
                                 unset($ad['altother']);
                             }
 
-                            if(isset($ad['altRtl']) && $ad['altRtl'])
-                            {
+                            if(isset($ad['altRtl']) && $ad['altRtl']) {
                                 $tmp=$ad['other'];
                                 $ad['other']=$ad['altother'];
                                 $ad['altother']=$tmp;
@@ -772,7 +748,7 @@ class AndroidApi
                             }
                         }
                         
-                        if(isset($ad['extra']['m']) && !$ad['extra']['m'] && $ad['lat']==0 && $ad['lon']==0){
+                        if (isset($ad['extra']['m']) && !$ad['extra']['m'] && $ad['lat']==0 && $ad['lon']==0) {
                             $ad['extra']['m']=2;
                         }
                         
@@ -791,24 +767,21 @@ class AndroidApi
                         $reader->close(); 	
                         
                         $XX='';                
-                        if($geo) 
-                        {
+                        if($geo) {
                             $ad['userLOC'] = isset($geo['city']['names']['en']) && $geo['city']['names']['en'] ? $geo['city']['names']['en'].', ' : '';
                             $ad['userLOC'].=$geo['country']['iso_code'];
                             $ad['userLOC'].=': '. implode(" ,",$geo['location']);                            
                             $XX=$geo['country']['iso_code'];                            
-                        } else $ad['userLOC']=0;
+                        } 
+                        else $ad['userLOC']=0;
                         
-                        if($mcUser->isMobileVerified())
-                        {
+                        if($mcUser->isMobileVerified()) {
                             $uNum = $mcUser->getMobileNumber();
-                            if($uNum)
-                            {
+                            if($uNum) {
                                 $validator = libphonenumber\PhoneNumberUtil::getInstance();
                                 $uNum = $validator->parse('+'.$uNum, 'LB');
                                 $TXX = $validator->getRegionCodeForNumber($uNum);
-                                if($TXX)
-                                {
+                                if($TXX) {
                                     $XX=$TXX;
                                 }
                             }
@@ -844,96 +817,69 @@ class AndroidApi
                         $isMultiCountry = false;
                         $cities = $this->api->db->getCitiesDictionary();
                         
-                        foreach($ad['pubTo'] as $key => $val)
-                        {
-                            if(!$city_id && isset($cities[$city_id]))
-                            {
+                        foreach ($ad['pubTo'] as $key => $val) {
+                            if (!$city_id && isset($cities[$city_id])) {
                                 $city_id=$key;
                             }
                             
-                            if($key && isset($cities[$key]))
-                            {
-                                if($currentCid && $currentCid != $cities[$key][4])
-                                {
+                            if ($key && isset($cities[$key])) {
+                                if ($currentCid && $currentCid != $cities[$key][4]) {
                                     $isMultiCountry = true;
                                 }
                                 $currentCid = $cities[$key][4];
                             }
                         }
                         
-                        foreach($ad['pubTo'] as $key => $val)
-                        {
+                        foreach ($ad['pubTo'] as $key => $val) {
                             $city_id=$key;
                             break;
                         }
                         
-                        if($city_id)
-                        {
+                        if ($city_id) {
                             $country_id=$cities[$city_id][4];
                         }
                         
                         $isSCAM = 0;
-                        if(isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0)
-                        {
+                        if (isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0) {
                             $blockedEmailPatterns = addcslashes(implode('|', $this->api->config['restricted_email_domains']),'.');
                             $isSCAM = preg_match('/'.$blockedEmailPatterns.'/ui', $ad['cui']['e']);
                         }
-                        elseif($requireReview && $country_id && !$isMultiCountry)
-                        {
+                        elseif ($requireReview && $country_id && !$isMultiCountry) {
                             $countries = $this->api->db->getCountriesData('en');
-                            if(isset($countries[$country_id]['code']))
-                            {
+                            if (isset($countries[$country_id]['code'])) {
                                 $countryCode = '+'.$countries[$country_id]['code'];
-                                //error_log("mobile check #{$ad['id']}# ".$countryCode);
                                 $differentCodes = false;
-                                foreach($ad['cui']['p'] as $number)
-                                {
-                                    //error_log("number ".$number['v']);
-                                    //error_log("with ".substr($number['v'], 0, strlen($countryCode)));
-                                    if(substr($number['v'], 0, strlen($countryCode)) != $countryCode)
-                                    {
+                                foreach ($ad['cui']['p'] as $number) {
+                                    if(substr($number['v'], 0, strlen($countryCode)) != $countryCode) {
                                         $differentCodes = true;
                                     }
                                 }
                                 
-                                if(!$differentCodes)
-                                {
+                                if (!$differentCodes) {
                                     //error_log("rollback review");
                                     $requireReview = 0;
                                 }
                             }
                         }
                         
-                        if(!$isSCAM && !$requireReview && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0)
-                        {
+                        if (!$isSCAM && !$requireReview && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0) {
                             $requireReview = preg_match('/\+.*@/', $ad['cui']['e']);
-                            if(!$requireReview)
-                            {
-                                $requireReview = preg_match('/hotel/', $ad['cui']['e']);
-                            }else{
-                                $requireReview = 998;
-                            }
-                            if(!$requireReview)
-                            {
+                            $requireReview = (!$requireReview) ? preg_match('/hotel/', $ad['cui']['e']) : 998;
+                            if(!$requireReview) {
                                 $requireReview = preg_match('/\..*\..*@/', $ad['cui']['e']);
-                                if($requireReview){
-                                    $requireReview = 996;
-                                }
-                            }else{
+                                if($requireReview) { $requireReview = 996; }
+                            }
+                            else {
                                 $requireReview = 997;
                             }
                         }
                         
-                        if($ad['se']==0 || $ad['pu']==0 || count($ad['pubTo'])==0)
-                        {
+                        if ($ad['se']==0 || $ad['pu']==0 || count($ad['pubTo'])==0) {
                             $hasFailure=1;
-                            //$hasMajorFailure=1;
-                            if($device_lang=='ar' || $ad['rtl'])
-                            {
+                            if ($device_lang=='ar' || $ad['rtl']) {
                                 $msg = 'يرجى تعديل الاعلان وادخال التفاصيل الناقصة';
                             }
-                            else
-                            {
+                            else {
                                 $msg = 'please edit ad and complete missing details';
                             }
                             $ad['msg'] = $msg;
@@ -978,19 +924,15 @@ class AndroidApi
                                 $this->setLevel($this->api->getUID(),5);
                             }                            
                         }
-                        elseif($requireReview && $ad_id)
-                        {
+                        elseif ($requireReview && $ad_id) {
                             $this->referrToSuperAdmin($ad_id, $requireReview);
                         }
-                        else if($hasMajorFailure)
-                        {
+                        else if($hasMajorFailure) {
                             $ad_id = 0;
                             $state = 3;
                         }
-                        else
-                        { 
-                            if($ad_id>0) 
-                            {
+                        else { 
+                            if($ad_id>0) {
                                 //cleanup ad_media xref 
                                 if(isset($ad['pics']) && is_array($ad['pics']) && count($ad['pics'])){
                                     $keys = array_keys($ad['pics']);
@@ -1002,9 +944,7 @@ class AndroidApi
                                         $filenames .= "'{$key}'";
                                     }
 
-                                    $records = $this->api->db->queryResultArray(
-                                        "select id from media where filename in ({$filenames})", null, false
-                                    );
+                                    $records = $this->api->db->queryResultArray("select id from media where filename in ({$filenames})", null, false);
 
                                     if($records !== false){
                                         $mediaIds = [];
@@ -1016,24 +956,15 @@ class AndroidApi
 
                                         if(count($mediaIds)){
                                             $mediaIds = implode(",", $mediaIds);
-
-                                            $this->api->db->queryResultArray(
-                                                "delete from ad_media where ad_id = ? and media_id not in ({$mediaIds})", [$ad_id], false
-                                            );
-
-                                        }else{
-
-                                            $this->api->db->queryResultArray(
-                                                "delete from ad_media where ad_id = ?", [$ad_id], false
-                                            );
-
+                                            $this->api->db->queryResultArray("delete from ad_media where ad_id = ? and media_id not in ({$mediaIds})", [$ad_id], false);
+                                        }
+                                        else {
+                                            $this->api->db->queryResultArray("delete from ad_media where ad_id = ?", [$ad_id], false);
                                         }
                                     }
-
-                                }else{
-                                    $this->api->db->queryResultArray(
-                                        "delete from ad_media where ad_id = ?", [$ad_id], false
-                                    );
+                                }
+                                else {
+                                    $this->api->db->queryResultArray("delete from ad_media where ad_id = ?", [$ad_id], false);
                                 }
                                 //end of ad_media cleanup
                                 
@@ -1042,26 +973,21 @@ class AndroidApi
                                     "update ad set hold=1 where id=? and hold=0 and (exists (select 1 from ad_user d where d.id=? and d.web_user_id=?)) returning id", [$ad_id, $ad_id, $this->api->getUID()], false
                                 );
                                 
-                                if($ad['state'] == 1 && isset($ad['budget']) && $ad['budget']+0 > 0)
-                                {
+                                if ($ad['state']==1 && isset($ad['budget']) && $ad['budget']+0 > 0) {
                                     $ad['state'] = 4;
                                 }
                                 $state = $ad['state'];
                                 
-                                if($hasFailure){
-                                    $state = 3;
-                                }
+                                if ($hasFailure) { $state = 3; }
                                 $ad['state']=$state;
 
                                 $encodedAd = json_encode($ad);
 
                                 $json_error = json_last_error();
 
-                                if($json_error==5)
-                                {
+                                if ($json_error==5) {
                                     error_log("JSON ERROR");
-                                    if(isset($ad['userLOC']) && $ad['userLOC'])
-                                    {
+                                    if (isset($ad['userLOC']) && $ad['userLOC']) {
                                         $ad['userLOC']=$ad['ip'];
                                         $encodedAd = json_encode($ad);
                                         $json_error = json_last_error();
@@ -1089,43 +1015,41 @@ class AndroidApi
                                         $ad['media'],
                                         $ad_id,
                                         $this->api->getUID()
-                                    ])) 
-                                {
-                                    $result=$stmt->fetchAll(PDO::FETCH_ASSOC);
-                                    
+                                    ])) {
+                                    $result=$stmt->fetchAll(PDO::FETCH_ASSOC);                                    
                                 }   
                                 
-                                if (!empty($result)) 
-                                {                                        
-                                    $state=$result[0]['STATE'];
-                                    //$ad_id = (int)$result[0]['ID'];
-                                        
+                                if ($stmt instanceof PDOStatement) {
+                                    $this->api->db->closeStatement($stmt);
+                                }
+                                
+                                if (!empty($result)) {                                        
+                                    $state=$result[0]['STATE'];                                        
                                     $st = $this->api->db->getInstance()->prepare("update or insert into ad_object (id, attributes) values (?, ?)");
                                     $st->bindValue(1, $ad_id, PDO::PARAM_INT);
                                     $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
                                     $this->api->db->executeStatement($st);
+                                    if ($st instanceof PDOStatement) {
+                                        $this->api->db->closeStatement($st);
+                                    }
                                 }                                
 
-                                if( $ad['state']==1 ) 
-                                {
-                                    if($mcUser->isMobileVerified())
-                                    {
-                                        $userState = $mcUser->isSuspended() ? 1:0;
+                                if ( $ad['state']==1 ) {
+                                    if ($mcUser->isMobileVerified()) {
+                                        $userState = $mcUser->isSuspended() ? 1 : 0;
                                     }
-                                    else
-                                    {
+                                    else {
                                         $userState = $this->detectDuplicateSuspension($ad['cui']);                            
                                     }
                                 }
                             }
-                            else 
-                            {
+                            else {
                                 $state = 0;
-                                if($direct_publish){
+                                if ($direct_publish) {
                                     $state = 1;
                                 }
 
-                                if($state == 1 && isset($ad['budget']) && $ad['budget']+0 > 0){
+                                if ($state==1 && isset($ad['budget']) && $ad['budget']+0>0){
                                     $state = 4;
                                 }
                                 
@@ -1165,6 +1089,9 @@ class AndroidApi
                                     $st->bindValue(1, $ad_id, PDO::PARAM_INT);
                                     $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
                                     $this->api->db->executeStatement($st);
+                                    if ($st instanceof PDOStatement) {
+                                        $this->api->db->closeStatement($st);
+                                    }
                                 }
                                 if($requireReview && $ad_id){
                                     $this->referrToSuperAdmin($ad_id, $requireReview);
@@ -1178,7 +1105,8 @@ class AndroidApi
                                     }                          
                                 }
                             }
-                            if($ad_id && $state == 1){                                
+                            
+                            if ($ad_id && $state==1) {  
                                 $dbAd = $this->api->db->queryResultArray(
                                         'select a.id,
                                         IIF(f.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', f.ended_date)) featured_date_ended, 
@@ -1219,8 +1147,10 @@ class AndroidApi
                                     $state,
                                     $ad_id
                                 ]);
+                                $this->api->db->closeStatement($suspendStmt);
                                 unset($suspendStmt);
-                            }elseif($ad_id && $userState == 1){
+                            }
+                            elseif ($ad_id && $userState==1){
                                 $state=3;
                                 $q='update ad_user set
                                     content=?,state=? 
@@ -1242,8 +1172,10 @@ class AndroidApi
                                     $state,
                                     $ad_id
                                 ]);
+                                $this->api->db->closeStatement($suspendStmt);
                                 unset($suspendStmt);
-                            }else if($ad_id && in_array($ad['se'],array(190,1179,540,1114))){
+                            }
+                            else if($ad_id && in_array($ad['se'],array(190,1179,540,1114))){
                                 $dupliactePending = $this->detectIfAdInPending($ad_id, $ad['se'], $ad['cui']);
                                 $state = 3;
                                 if($dupliactePending){
@@ -1266,6 +1198,7 @@ class AndroidApi
                                         $state,
                                         $ad_id
                                     ]);
+                                    $this->api->db->closeStatement($suspendStmt);
                                     unset($suspendStmt);
                                 }
                             }
@@ -1287,21 +1220,22 @@ class AndroidApi
                 case API_ANDROID_GET_AD:                
                 $this->api->userStatus($status);
                 if ($status == 1) {      
-                    if(isset($_GET['adid'])){
+                    if (isset($_GET['adid'])) {
                         $ad_id = filter_input(INPUT_GET, 'adid', FILTER_VALIDATE_INT) + 0;
-                    }else{
+                    }
+                    else {
                         $ad_id = filter_input(INPUT_POST, 'adid', FILTER_VALIDATE_INT) + 0;
                     }
                     
                     $result = $this->api->db->queryResultArray(
-                            'select a.id, a.content, a.state, a.section_id, a.purpose_id,a.media,DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', a.last_update) last_update,a.doc_id, '
+                            'select a.id, a.content, a.state, a.section_id, a.purpose_id, a.media, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', a.last_update) last_update, a.doc_id, '
                             . 'IIF(f.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', f.ended_date)) feature_end, '
                             . 'IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) booking_end, '                            
                             . 'IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.start_date)) booking_start '                            
                             . 'from ad_user a '
                             . 'left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 '
                             . 'left join t_ad_featured f on f.ad_id=a.id and current_timestamp between f.added_date and f.ended_date '                                                       
-                            . 'where a.id = ? and a.web_user_id = ?', [$ad_id, $this->api->getUID()], true
+                            . 'where a.id=? and a.web_user_id=?', [$ad_id, $this->api->getUID()], true
                     );
                     
                     
@@ -1343,6 +1277,7 @@ class AndroidApi
                     }
                 }
                 break;
+                
                 case API_ANDROID_PUSH_RECEIPT:
                     $this->api->db->setWriteMode(); 
                     if(isset($_GET['uid'])){
@@ -1350,10 +1285,8 @@ class AndroidApi
                     }else{
                         $id = filter_input(INPUT_POST, 'mid', FILTER_VALIDATE_INT) + 0; 
                     }
-                    if($id){
-                        $publishedAd = $this->api->db->queryResultArray(
-                            'update push_queue set delivered = 1 where uuid =? and msg_id=?', [$this->api->getUUID(), $id], true
-                        );
+                    if ($id) {
+                        $publishedAd = $this->api->db->queryResultArray('update push_queue set delivered=1 where uuid =? and msg_id=?', [$this->api->getUUID(), $id], true);
                     }
                     break;
                 case API_ANDROID_DELETE_AD:                
@@ -1515,8 +1448,7 @@ class AndroidApi
                                     $content['state']=$state;
                                     $normalized = $normalizer->getFromContentObject($content);
                                     $attrs = [];
-                                    if ($normalized)
-                                    {
+                                    if ($normalized) {
                                         $ad['CONTENT'] = $normalized;
                                         $attrs = $normalized['attrs'];
                                         if ($ad['SECTION_ID']!=$normalized['se'])
@@ -1530,12 +1462,12 @@ class AndroidApi
                                         [$ad['SECTION_ID'], $ad['PURPOSE_ID'], json_encode($ad['CONTENT']), $ad_id, $this->api->getUID()], true);
 
 
-                                    if (!empty($result)) 
-                                    { 
+                                    if (!empty($result)) { 
                                         $st = $this->api->db->getInstance()->prepare("update or insert into ad_object (id, attributes) values (?, ?)");
                                         $st->bindValue(1, $ad_id, PDO::PARAM_INT);
                                         $st->bindValue(2, json_encode($attrs, JSON_UNESCAPED_UNICODE), PDO::PARAM_STR);
-                                        $this->api->db->executeStatement($st);                                     
+                                        $this->api->db->executeStatement($st);
+                                        $this->api->db->closeStatement($st);
                                     }
 
                                     $this->api->result['d'] = [];
@@ -2818,9 +2750,7 @@ class AndroidApi
                                     );
                                     
                                     $rs = $this->api->db->queryResultArray(
-                                        "SELECT sum(r.credit - r.debit)
-                                        FROM T_TRAN r
-                                        where r.UID=?", [$this->api->getUID()], true);
+                                        "SELECT sum(credit-debit) FROM T_TRAN where UID=?", [$this->api->getUID()], true);
                                     if($rs && count($rs) && $rs[0]['SUM']!=null){
                                         if($rs[0]['SUM']){                    
                                             $this->result['d']=$rs[0]['SUM']+0;

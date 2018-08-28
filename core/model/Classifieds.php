@@ -65,7 +65,7 @@ class Classifieds {
     const DONE                  = 99;
 
     private static $stmt_get_ad = null;
-    private static $stmt_mod_title = null;
+    //private static $stmt_mod_title = null;
     private static $stmt_get_media = null;
     private static $stmt_get_ext = null;
     private static $stmt_get_loc = null;
@@ -81,6 +81,17 @@ class Classifieds {
         $this->db = $database;
     }
 
+    
+    function __destruct() {        
+        if ($this->db) {
+            if (self::$stmt_get_loc) { $this->db->closeStatement(self::$stmt_get_loc); }
+            if (self::$stmt_get_ext) { $this->db->closeStatement(self::$stmt_get_ext); }
+            if (self::$stmt_get_media) { $this->db->closeStatement(self::$stmt_get_media); }
+            if (self::$stmt_get_ad) { $this->db->closeStatement(self::$stmt_get_ad); }
+        }
+        
+    }
+            
     
     function getById($id, $forceCache=false, $cacheSet=array()) {
         if (!is_numeric($id)) { return FALSE; }
@@ -471,7 +482,7 @@ class Classifieds {
         return $text;
     }
 
-    
+    /*
     function updateAdTitle($id, $title, &$ad=null){
         return false;
         if (!self::$stmt_mod_title) {
@@ -488,7 +499,7 @@ class Classifieds {
         catch (Exception $ex) {
             error_log( var_export($ex, true) );
         }
-    }
+    }*/
     
     static function detectYear($text) {
         $year=0;
