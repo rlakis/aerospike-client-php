@@ -1,9 +1,10 @@
 <?php
-require_once 'deps/phpmailer/phpmailer/PHPMailerAutoload.php';
-use Core\Model\DB;
 
-class MourjanMail extends PHPMailer 
-{
+use Core\Model\DB;
+use PHPMailer\PHPMailer\PHPMailer;
+require_once get_cfg_var('mourjan.path') . '/deps/autoload.php';
+
+class MourjanMail extends PHPMailer {
     
     public 
             $user = null,$db=null,
@@ -17,8 +18,7 @@ class MourjanMail extends PHPMailer
             $notifierMailIndexFile=null,
             $templates=array(),
             
-            $emailHeader_en='
-                <body style="padding:0;margin:0">
+            $emailHeader_en='<body style="padding:0;margin:0">
 	<table width="100%" cellpadding="0" cellspacing="0">
     	<tr>
         	<td align="center">
@@ -395,7 +395,7 @@ class MourjanMail extends PHPMailer
             ;
 
 
-    function __construct($config, $lang='en', $debug=false){
+    function __construct($config, $lang='en', $debug=false) {
         parent::__construct();
         $this->dir = $config['dir'];
         $this->notifiers    = $config['notifier_mail'];
@@ -420,6 +420,7 @@ class MourjanMail extends PHPMailer
         $this->templatePath = $config['dir'].'/bin/utils/include';
         //$this->templatePath = '/var/www/dev.mourjan/bin/utils/include';
     }
+
     
     function doClearAll(){        
         $this->ClearAddresses();
