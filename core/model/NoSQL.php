@@ -7,8 +7,7 @@ require_once 'asd/DeviceTrait.php';
 require_once 'asd/BlackListTrait.php';
 require_once 'asd/CallTrait.php';
 
-class NoSQL 
-{
+class NoSQL {
     use \Core\Model\ASD\UserTrait;    
     use \Core\Model\ASD\MobileTrait;  
     use \Core\Model\ASD\DeviceTrait;
@@ -28,7 +27,7 @@ class NoSQL
     const ERR_CLUSTER_CHANGE            = \Aerospike::ERR_CLUSTER_CHANGE;
     const ERR_SERVER_FULL               = \Aerospike::ERR_SERVER_FULL;
     const ERR_TIMEOUT                   = \Aerospike::ERR_TIMEOUT;
-    const ERR_NO_XDR                    = \Aerospike::ERR_NO_XDR;
+    //const ERR_NO_XDR                    = \Aerospike::ERR_NO_XDR;
     const ERR_CLUSTER                   = \Aerospike::ERR_CLUSTER;
     const ERR_BIN_INCOMPATIBLE_TYPE     = \Aerospike::ERR_BIN_INCOMPATIBLE_TYPE;
     const ERR_RECORD_TOO_BIG            = \Aerospike::ERR_RECORD_TOO_BIG;
@@ -84,26 +83,26 @@ class NoSQL
                 \Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE, 
                 ];
     
-    private function __construct() 
-    {
+    private function __construct() {
+        if (version_compare(phpversion("aerospike"), '7.2.0') >= 0) { 
+            $this->options[\Aerospike::OPT_MAX_RETRIES]=2;
+            $this->options[\Aerospike::OPT_POLICY_EXISTS]=\Aerospike::POLICY_EXISTS_IGNORE;
+            unset($this->options[\Aerospike::OPT_POLICY_RETRY]);
+        }
         $this->cluster = new \Aerospike($this->configuration, TRUE, $this->options);
     }
 
 
-    public function __destruct()
-    {
+    public function __destruct() {
         $this->close();
     }
 
 
-    public static function getInstance() : NoSQL
-    {
-        if (!self::$instance)
-        {
+    public static function getInstance() : NoSQL {
+        if (!self::$instance) {
             self::$instance = new NoSQL();
             
-            if (!self::$instance->cluster->isConnected())
-            {
+            if (!self::$instance->cluster->isConnected()) {
                 error_log( "Failed to connect to the Aerospike server [" . self::$instance->cluster->errorno() . "]: " . self::$instance->cluster->error());
             }
         }
@@ -112,10 +111,8 @@ class NoSQL
     }
     
     
-    public function getConnection() : \Aerospike
-    {
-        if (!$this->cluster->isConnected())
-        {
+    public function getConnection() : \Aerospike {
+        if (!$this->cluster->isConnected()) {
             error_log( "Tryring to connect the Aerospike server...");
             $this->cluster = new \Aerospike($this->configuration, TRUE, $this->options);
         }
@@ -123,8 +120,7 @@ class NoSQL
     }
     
     
-    public function genId(string $generator, &$sequence) : int
-    {
+    public function genId(string $generator, &$sequence) : int {
         $sequence = 0;
         $record = [];
         $key = $this->getConnection()->initKey(ASD\NS_USER, "generators", $generator);
@@ -135,36 +131,32 @@ class NoSQL
         
         $status = $this->getConnection()->operate($key, $operations, $record);
                 
-        if ($status==\Aerospike::OK)
-        {
+        if ($status==\Aerospike::OK) {
             $sequence = $record['sequence'];
         }
         return $status;
     }
             
     
-    public function isReadError(int $status) : bool
-    {
+    public function isReadError(int $status) : bool {
         return ($status!=NoSQL::OK && $status!=NoSQL::ERR_RECORD_NOT_FOUND);
     }
     
     
-    public function getBins(array $pk, array $bins=[]) 
-    {
+    public function getBins(array $pk, array $bins=[]) {
+        if (isset($pk['digest']) && !empty($pk['digest']) && !isset($pk['pk'])) {
+            $pk = $this->getConnection()->initKey($pk['ns'], $pk['set'], $pk['digest'], true);          
+        }
         $record=[];
-        if ($bins)
-        {
+        if ($bins) {
             $status = $this->getConnection()->get($pk, $record, $bins);
         }         
-        else 
-        {
+        else {
             $status = $this->getConnection()->get($pk, $record, NULL);           
         }
 
-        if ($status != \Aerospike::OK)
-        {
-            if ($status!= \Aerospike::ERR_RECORD_NOT_FOUND)
-            {
+        if ($status != \Aerospike::OK) {
+            if ($status!= \Aerospike::ERR_RECORD_NOT_FOUND) {
                 NoSQL::Log(['Key'=>$pk, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
                 return FALSE;
             }
@@ -175,20 +167,15 @@ class NoSQL
     }
     
     
-    public function getRecord(array $pk, &$record, array $bins=[]) : int
-    {
-        $status = $this->getConnection()->get($pk, $record, 
-                empty($bins) ? NULL : $bins);
+    public function getRecord(array $pk, &$record, array $bins=[]) : int {
+        $status = $this->getConnection()->get($pk, $record, empty($bins) ? NULL : $bins);
 
-        if ($status!=\Aerospike::OK && $status!=\Aerospike::ERR_RECORD_NOT_FOUND)
-        {
+        if ($status!=\Aerospike::OK && $status!=\Aerospike::ERR_RECORD_NOT_FOUND) {
             $this->logError(__CLASS__ .'->'. __FUNCTION__, $pk);
             NoSQL::Log(['Key'=>$pk, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
         } 
-        else 
-        {
-            if ($status==\Aerospike::OK)
-            {
+        else {
+            if ($status==\Aerospike::OK) {
                 $record = $record['bins'];
             }
         }
@@ -197,11 +184,15 @@ class NoSQL
     }
     
     
-    public function setBins($pk, array $bins) : bool
-    {
+    public function setBins(array $pk, array $bins) : bool {
+        
+        if (isset($pk['digest']) && !empty($pk['digest']) && !isset($pk['pk'])) {
+            $pk = $this->getConnection()->initKey($pk['ns'], $pk['set'], $pk['digest'], true);          
+        }
+        //error_log(var_export($pk, TRUE));
         $status = $this->getConnection()->put($pk, $bins);
-        if ($status != \Aerospike::OK) 
-        {
+
+        if ($status != \Aerospike::OK) {
             $this->logError(__CLASS__ .'->'. __FUNCTION__, $pk, $bins);            
             return FALSE;
         }
@@ -209,11 +200,9 @@ class NoSQL
     }
     
     
-    public function exists($pk) : int
-    {
+    public function exists($pk) : int {
         $metadata = null;
-        if ($this->getConnection()->exists($pk, $metadata) != \Aerospike::OK)
-        {
+        if ($this->getConnection()->exists($pk, $metadata) != \Aerospike::OK) {
             return 0;
         }
         return intval($metadata['generation'])?intval($metadata['generation']):1; 
@@ -221,49 +210,43 @@ class NoSQL
     
     
     
-    private function logError($fnc, $obj, $bins=NULL)
-    {
+    private function logError($fnc, $obj, $bins=NULL) {
         error_log( "Error {$fnc} [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}".PHP_EOL. var_export($obj, TRUE).(($bins)?PHP_EOL.json_encode($bins):''));
     }
     
     
-    public function update(string $namespace, string $tablespace, array $bins, array $keys, array $orderby, array $returning)
-    {
+    public function update(string $namespace, string $tablespace, array $bins, array $keys, array $orderby, array $returning) {
         
     }
     
     
-    protected function orderBy(array &$rowset, array $sortOptions)
-    {
+    protected function orderBy(array &$rowset, array $sortOptions) {
         
     }
     
     
-    public function close()
-    {
-        if (self::$instance && self::$instance->cluster->isConnected()) 
-        {
+    public function close() {
+        if (self::$instance && self::$instance->cluster->isConnected()) {
             self::$instance->cluster->close();
         }
     }
     
     
-    public static function Log($message)
-    {
-        $dbt = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 2);
-        if (!empty($dbt))
-        {
+    public static function Log($message) {
+        $dbt = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 4);
+        if (!empty($dbt)) {
+            error_log(var_export($dbt, TRUE));
             unset($dbt[0]['function']);
             unset($dbt[0]['class']);
             unset($dbt[0]['type']);
-            if (isset($dbt[0]['object']))
+            if (isset($dbt[0]['object'])) {
                 unset($dbt[0]['object']);
+            }
             
-            error_log(PHP_EOL.json_encode($dbt[0], JSON_PRETTY_PRINT).PHP_EOL.'>');
+            error_log(__CLASS__. PHP_EOL.json_encode($dbt[0], JSON_PRETTY_PRINT).PHP_EOL.'>');
             
             error_log(PHP_EOL.json_encode($dbt[0], JSON_PRETTY_PRINT).PHP_EOL, 3, "/var/log/mourjan/LogFile.txt");
-            if (isset($dbt[1]))
-            {
+            if (isset($dbt[1])) {
                // error_log(PHP_EOL.json_encode($dbt[1], JSON_PRETTY_PRINT));
             }
         }

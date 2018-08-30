@@ -1440,7 +1440,7 @@ var rtMsgs={
                         $pic = '<span class="ig"></span>';
                     } elseif (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])) {
                         $picCount=count($content['pics']);
-                        $pic = $content['pic_def'];
+                        $pic = isset($content['pic_def']) ? $content['pic_def'] : '';
                         $this->globalScript.='sic[' . $ad['ID'] . ']="<img width=\"120\" src=\"'.$this->urlRouter->cfg['url_ad_img'].'/repos/s/' . $pic . '\" /><span class=\"cnt\">'.$picCount.'<span class=\"i sp\"></span></span>";';
                         $pic = '<span class="ig"></span>';
                     } else {

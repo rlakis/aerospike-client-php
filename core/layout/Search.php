@@ -1851,29 +1851,30 @@ class Search extends Page {
     function renderMobileSublist(){           
         if ($this->urlRouter->module=='search' && !$this->userFavorites && !$this->urlRouter->watchId && !$this->urlRouter->userId){
 
-            $hasResults = $this->searchResults['body']['total_found'] > 0 && isset($this->searchResults['body']['matches']) && count($this->searchResults['body']['matches']) > 0;
+            $hasResults = $this->searchResults['body']['total_found'] > 0 && isset($this->searchResults['body']['matches']) && !empty($this->searchResults['body']['matches']);
             if (!$this->urlRouter->purposeId && $hasResults)
                 $this->filterPurposesMobile();
 
-            if ($this->urlRouter->rootId==1 && $this->urlRouter->countryId && ($this->searchResults['body']['total_found']>20 || $this->localityId) && count($this->localities)) {
-                if ($this->searchResults['body']['total_found'] > 5 || $this->localityId) {
+            if ($this->urlRouter->rootId==1 && $this->urlRouter->countryId && ($this->searchResults['body']['total_found']>20 || $this->localityId) && !empty($this->localities)) {
+                if ($this->searchResults['body']['total_found']>5 || $this->localityId) {
                     $this->renderMobileLocalityLinks();
                 }
 
-            }else if ($this->urlRouter->sectionId && ($this->searchResults['body']['total_found']>5 || $this->extendedId) && count($this->extended)) {
+            }
+            else if ($this->urlRouter->sectionId && ($this->searchResults['body']['total_found']>5 || $this->extendedId) && !empty($this->extended)) {
                 $prefix_uri = '/';
                 if ($this->urlRouter->countryId) {
                     $prefix_uri.=$this->urlRouter->countries[$this->urlRouter->countryId]['uri'] . '/';
                     $keyIndex = 2;
                 }
-                else
+                else {
                     $keyIndex = 1;
+                }
 
 
                 $suffix_uri = '/';
                 $prefix = '';
                 $suffix = '';
-
 
                if (isset($this->urlRouter->countries[$this->urlRouter->countryId]['cities'][$this->urlRouter->cityId])) {
                     $keyIndex++;
@@ -1920,20 +1921,24 @@ class Search extends Page {
                     $q.=" group by section_tag_id limit 1000";
                 }
                 $query = $sphinx->search($q);
-                if(isset($query['matches']) && count($query['matches'])){
+                if (isset($query['matches']) && count($query['matches'])) {
                     $tags=[];
                     $query = $query['matches'];
-                    foreach($query as $tag){
+                    $count__=0;
+                    foreach ($query as $tag) {
                         if ($this->urlRouter->purposeId) {
                             $pus=$this->urlRouter->purposeId;
-                        }else{
+                            $count__=1;
+                        }
+                        else {
                             $pus=[];
                             $pul = explode(",",$tag["group_concat(purpose_id)"]);
                             foreach($pul as $puid){
                                 $pus[$puid+0]=1;
+                                $count__++;
                             }
                         }
-                        $tags[$tag["groupby()"]+0]=[$tag['count(*)'],count($pus)];
+                        $tags[$tag["groupby()"]+0]=[$tag['count(*)'], $count__];
                     }
                 }
                 
@@ -4164,7 +4169,7 @@ class Search extends Page {
             $extIDX = $this->urlRouter->siteLanguage == 'ar' ? Classifieds::EXTENTED_AR : Classifieds::EXTENTED_EN;
             $locIDX = $this->urlRouter->siteLanguage == 'ar' ? Classifieds::LOCALITIES_AR : Classifieds::LOCALITIES_EN;
             $extID = (isset($ad[$extIDX]) && isset($this->extended[$ad[$extIDX]])) ? $ad[$extIDX] : $this->extendedId;
-            $hasLoc = (isset($ad[$locIDX]) && count($ad[$locIDX]) && count($this->localities));
+            $hasLoc = (isset($ad[$locIDX]) && (is_array($ad[$locIDX]) && count($ad[$locIDX])>0) && (is_array($this->localities) && count($this->localities)>0));
             $locID = 0;
             if ($hasLoc) {
                 $hasSchema = false;
@@ -5181,7 +5186,7 @@ class Search extends Page {
         }
     }
     function renderLocalityLinks(){
-        if ($this->urlRouter->rootId == 1 && $this->urlRouter->countryId && count($this->localities)) {
+        if ($this->urlRouter->rootId==1 && $this->urlRouter->countryId && is_array($this->localities) && count($this->localities)) {
             $q = '';
             if ($this->urlRouter->params['q']) {
                 $hasQuery = true;
@@ -5449,7 +5454,7 @@ class Search extends Page {
     }
     
     function renderExtendedLinks(){
-        if ($this->urlRouter->sectionId && count($this->extended)) {
+        if ($this->urlRouter->sectionId && is_array($this->extended) && count($this->extended)) {
             $prefix_uri = '/';
             if ($this->urlRouter->countryId) {
                 $prefix_uri.=$this->urlRouter->countries[$this->urlRouter->countryId]['uri'] . '/';
@@ -5867,8 +5872,10 @@ class Search extends Page {
         } else {
             if ($this->urlRouter->rootId) {
                 $purposeId = 0;
-                if (isset($this->urlRouter->pageRoots[$this->urlRouter->rootId]) && count($this->urlRouter->pageRoots[$this->urlRouter->rootId]['purposes']==1))
-                    $purposeId = array_keys ($this->urlRouter->pageRoots[$this->urlRouter->rootId]['purposes'])[0];
+                if (isset($this->urlRouter->pageRoots[$this->urlRouter->rootId]) && 
+                    is_array($this->urlRouter->pageRoots[$this->urlRouter->rootId]['purposes']) && 
+                    count($this->urlRouter->pageRoots[$this->urlRouter->rootId]['purposes'])==1 )
+                    $purposeId = array_keys($this->urlRouter->pageRoots[$this->urlRouter->rootId]['purposes'])[0];
                 /*
                 $purposeId = isset($this->urlRouter->pageRoots[$this->urlRouter->rootId]) ? $this->urlRouter->pageRoots[$this->urlRouter->rootId][3] : 0;
                 if (is_numeric($purposeId))

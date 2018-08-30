@@ -187,25 +187,27 @@ class MCSaveHandler {
                         $po = $db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
         
                         $ps->execute([$j->se, $j->pu, $response, $reference]);
-                        
+                        unset($ps);
                         
                         $po->bindValue(1, $reference, PDO::PARAM_INT);
                         $po->bindValue(2, preg_replace('/\s+/', ' ', json_encode($j->attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
-                        $po->execute();   
+                        $po->execute();
+                        unset($po);
                         
                         if ($rs['STATE']=='1') {
                             $po = $db->prepareQuery("INSERT INTO INVALIDATE (TABLE_ID, RECORD_ID) VALUES (12, ?)");
                             $po->bindValue(1, $reference, PDO::PARAM_INT);
-                            $po->execute(); 
+                            $po->execute();
+                            unset($po);
                         }
                     }
                     
-                } else {
+                } 
+                else {
                     echo $this->_error, "\n";
                 }
             }
-            else
-            {
+            else {
                 echo $this->_error, "\n";
             }
             $this->Close();
@@ -275,8 +277,7 @@ class MCSaveHandler {
     }
     
     
-    public function testRealEstate($country_id=1)
-    {
+    public function testRealEstate($country_id=1) {
         $myfile = fopen("/tmp/testfile.txt", "w") ;
         $db = new DB($this->cfg);
         
@@ -295,8 +296,7 @@ class MCSaveHandler {
                     order by ad_user.id", [$country_id]);
         
         $c = count($rs);
-        for ($i=0; $i<$c; $i++)
-        {
+        for ($i=0; $i<$c; $i++) {
             $ad = $rs[$i];
             $content = json_decode($ad['CONTENT']);
             if (isset($content->attrs)) {
@@ -311,8 +311,7 @@ class MCSaveHandler {
             $connection = new MCSaveHandler($this->cfg);
             $connection->Open();
            
-            if ($connection->_Send($connection->_socket, $buffer, strlen($buffer)))
-            {            
+            if ($connection->_Send($connection->_socket, $buffer, strlen($buffer))) {            
                 $response = $connection->_GetResponse($connection->_socket, '');
                 if ($response) 
                 {

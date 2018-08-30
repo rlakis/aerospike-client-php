@@ -64,11 +64,10 @@ class Classifieds {
     
     const DONE                  = 99;
 
-    private static $stmt_get_ad = null;
-    //private static $stmt_mod_title = null;
-    private static $stmt_get_media = null;
-    private static $stmt_get_ext = null;
-    private static $stmt_get_loc = null;
+    private $stmt_get_ad = null;
+    private $stmt_get_media = null;
+    private $stmt_get_ext = null;
+    private $stmt_get_loc = null;
 
     private $db;
     
@@ -82,14 +81,11 @@ class Classifieds {
     }
 
     
-    function __destruct() {        
-        if ($this->db) {
-            if (self::$stmt_get_loc) { $this->db->closeStatement(self::$stmt_get_loc); }
-            if (self::$stmt_get_ext) { $this->db->closeStatement(self::$stmt_get_ext); }
-            if (self::$stmt_get_media) { $this->db->closeStatement(self::$stmt_get_media); }
-            if (self::$stmt_get_ad) { $this->db->closeStatement(self::$stmt_get_ad); }
-        }
-        
+    function __destruct() {                
+        unset($this->stmt_get_loc);
+        unset($this->stmt_get_ext);
+        unset($this->stmt_get_media);
+        unset($this->stmt_get_ad);
     }
             
     
@@ -111,14 +107,13 @@ class Classifieds {
                 return $ad;
             }
         }
-        if (self::$stmt_get_ad && !$this->db->inTransaction()) {
+        if ($this->stmt_get_ad && !$this->db->inTransaction()) {
             error_log("Lost FB transaction ad id: {$id}");
         }
         
-        if (!self::$stmt_get_ad || !$this->db->inTransaction()) {
-            self::$stmt_get_ad = $this->db->prepareQuery(
-                "select 
-                    ad.id, ad.hold, ad.title, ad.publication_id, ad.country_id, ad.city_id, 
+        if (!$this->stmt_get_ad || !$this->db->inTransaction()) {
+            $this->stmt_get_ad = $this->db->prepareQuery(
+                "select ad.id, ad.hold, ad.title, ad.publication_id, ad.country_id, ad.city_id, 
                     section.category_id, ad.purpose_id, section.root_id, ad.content, ad.rtl, 
                     ad.date_added, ad.section_id, trim(country.id_2), 
                     DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', ad.DATE_ADDED), 
@@ -145,26 +140,22 @@ class Classifieds {
                 left join t_ad_bo bo on bo.ad_id=ad.id and bo.blocked+0=0 
                 left join web_users wu on wu.id = ad_user.web_user_id 
                 left join t_ad_featured featured on featured.ad_id=ad.id and current_timestamp between featured.added_date and featured.ended_date 
-                where ad.id = ?"
+                where ad.id=?"
                 );
 
-            self::$stmt_get_ext = $this->db->prepareQuery("
-                SELECT r.SECTION_TAG_ID, t.LANG
-                FROM AD_TAG r
-                left join SECTION_TAG t on t.ID=r.SECTION_TAG_ID
-                where r.AD_ID=?
-                ");
+            unset($this->stmt_get_ext);
+            $this->stmt_get_ext = $this->db->prepareQuery("SELECT r.SECTION_TAG_ID, t.LANG FROM AD_TAG r left join SECTION_TAG t on t.ID=r.SECTION_TAG_ID where r.AD_ID=?");
 
-            self::$stmt_get_loc = $this->db->prepareQuery("
-                SELECT r.LOCALITY_ID, g.NAME, g.CITY_ID, g.PARENT_ID, g.LANG
-                FROM AD_LOCALITY r
+            unset($this->stmt_get_loc);
+            $this->stmt_get_loc = $this->db->prepareQuery(
+                "SELECT r.LOCALITY_ID, g.NAME, g.CITY_ID, g.PARENT_ID, g.LANG FROM AD_LOCALITY r
                 left join GEO_TAG g on g.ID=r.LOCALITY_ID
                 where r.AD_ID=?
                 ");
             
-            self::$stmt_get_media = $this->db->prepareQuery("
-                select AD_MEDIA.MEDIA_ID, MEDIA.FILENAME, MEDIA.WIDTH, MEDIA.HEIGHT
-                from AD_MEDIA
+            unset($this->stmt_get_media);
+            $this->stmt_get_media = $this->db->prepareQuery(
+                "select AD_MEDIA.MEDIA_ID, MEDIA.FILENAME, MEDIA.WIDTH, MEDIA.HEIGHT from AD_MEDIA
                 left join media on media.ID=AD_MEDIA.MEDIA_ID
                 where AD_MEDIA.AD_ID=?
                 ");
@@ -173,12 +164,12 @@ class Classifieds {
         
         $ad=false;
         
-        self::$stmt_get_ad->execute(array($id));
+        $this->stmt_get_ad->execute( [$id] );
         
-        if (($row = Classifieds::$stmt_get_ad->fetch(\PDO::FETCH_NUM)) !== false) {
+        if (($row = $this->stmt_get_ad->fetch(\PDO::FETCH_NUM)) !== false) {
             $count = count($row);
             for ($i=0; $i<$count; $i++) {
-                if(is_numeric($row[$i])) $row[$i] = $row[$i]+0;
+                if (!is_int($row[$i]) && is_numeric($row[$i])) { $row[$i] = $row[$i]+0; }
             }
             
             $user_content = $row[$count-1];
@@ -201,8 +192,8 @@ class Classifieds {
             // parser
             $decoder = json_decode($user_content, TRUE);    
             
-            self::$stmt_get_media->execute([$id]);
-            while (($media = static::$stmt_get_media->fetch(\PDO::FETCH_ASSOC)) !== false) {
+            $this->stmt_get_media->execute([$id]);
+            while (($media = $this->stmt_get_media->fetch(\PDO::FETCH_ASSOC)) !== false) {
                 $ad[Classifieds::PICTURES][] = $media['FILENAME'];
                 $ad[Classifieds::PICTURES_DIM][] = [$media['WIDTH'], $media['HEIGHT']];
             }
@@ -225,15 +216,15 @@ class Classifieds {
             }
 
             if ($ad[Classifieds::ROOT_ID]==1) {
-                self::$stmt_get_loc->execute(array($id));
-                while (($locRow = self::$stmt_get_loc->fetch(\PDO::FETCH_ASSOC)) !== false) {
+                $this->stmt_get_loc->execute([$id]);
+                while (($locRow = $this->stmt_get_loc->fetch(\PDO::FETCH_ASSOC)) !== false) {
                     $ad[$locRow['LANG']=='ar' ? Classifieds::LOCALITIES_AR : Classifieds::LOCALITIES_EN][$locRow['LOCALITY_ID']+0] =
                             array($locRow['NAME'], $locRow['CITY_ID'], $locRow['PARENT_ID']);
                 }
             }
             elseif ($ad[Classifieds::ROOT_ID]==2) {
-                self::$stmt_get_ext->execute(array($id));
-                while (($extRow = self::$stmt_get_ext->fetch(\PDO::FETCH_ASSOC)) !== false) {
+                $this->stmt_get_ext->execute([$id]);
+                while (($extRow = $this->stmt_get_ext->fetch(\PDO::FETCH_ASSOC)) !== false) {
                     $ad[$extRow['LANG']=='ar' ? Classifieds::EXTENTED_AR : Classifieds::EXTENTED_EN] = $extRow['SECTION_TAG_ID']+0;
                 }
             }
@@ -256,7 +247,6 @@ class Classifieds {
         $telNumbers = [];
         $tmpContent = $ad[Classifieds::CONTENT];
         $this->processTextNumbers($tmpContent, $ad[Classifieds::PUBLICATION_ID], $ad[Classifieds::COUNTRY_CODE], $telNumbers);
-        //$ad[Classifieds::CONTENT] = strip_tags($ad[Classifieds::CONTENT]);
 
         if($ad[Classifieds::ALT_CONTENT]!="") {
             $tmpTel = [];
@@ -266,7 +256,6 @@ class Classifieds {
         $tmpContent = $ad[Classifieds::CONTENT];
 
         $emails = $this->detectEmail($tmpContent);
-        //var_dump($emails);
         if($emails && count($emails)) {
             $emails = $emails[0];
         }
@@ -337,7 +326,6 @@ class Classifieds {
                     $numInst=array();
                     $numbers = null;
                     preg_match_all($phone, $str, $numbers);
-                    //var_dump($numbers);
                     if ($numbers && count($numbers[1])) {
                 
                         $mobile=array();
@@ -481,25 +469,7 @@ class Classifieds {
         //var_dump($matches);
         return $text;
     }
-
-    /*
-    function updateAdTitle($id, $title, &$ad=null){
-        return false;
-        if (!self::$stmt_mod_title) {
-            self::$stmt_mod_title = $this->db->prepareQuery(
-                    "update ad set title=? where id=? returning title", array(PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY));
-        }
-        
-        try {
-            if (self::$stmt_mod_title->execute(array($title, $id))) {
-                $title=self::$stmt_mod_title->fetch(PDO::FETCH_NUM);
-                $ad[Classifieds::TITLE]=$title[0];                
-            }
-        } 
-        catch (Exception $ex) {
-            error_log( var_export($ex, true) );
-        }
-    }*/
+    
     
     static function detectYear($text) {
         $year=0;

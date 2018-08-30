@@ -4,21 +4,17 @@ include $config['dir'].'/core/layout/Search.php';
 
 use Core\Model\Classifieds;
 
-class Detail extends Search
-{
+class Detail extends Search {
 
 
-    function __construct(Core\Model\Router $router)
-    {
+    function __construct(Core\Model\Router $router) {
         parent::__construct($router);
     }
 
     
-    function header()
-    {
+    function header() {
         
-        if ($this->detailAdExpired) 
-        {
+        if ($this->detailAdExpired) {
             parent::header();
             return;
         }
@@ -73,7 +69,7 @@ class Detail extends Search
             ?><meta property="og:url" content="<?= $this->urlRouter->cfg['host'].$this->urlRouter->uri.$this->detailAd[Classifieds::ID].'/' ?>" /><?php 
             ?><meta property="og:type" content="product" /><?php 
             ?><meta property="og:site_name" content="Mourjan.com" /><?php 
-            if (isset($this->detailAd[Classifieds::PICTURES]) && count($this->detailAd[Classifieds::PICTURES])){
+            if (isset($this->detailAd[Classifieds::PICTURES]) && is_array($this->detailAd[Classifieds::PICTURES]) && count($this->detailAd[Classifieds::PICTURES])){
                 foreach($this->detailAd[Classifieds::PICTURES] as $pic){
                     ?><meta property="og:image" content="<?= $this->urlRouter->cfg['url_ad_img'].'/repos/d/'.$pic ?>" /><?php
                 }
@@ -142,13 +138,14 @@ class Detail extends Search
             if (isset ($_GET['map']) && $_GET['map']=='on') $showMap=true;
             if (isset($this->detailAd[Classifieds::PICTURES]) && $this->detailAd[Classifieds::PICTURES]){
                 $pics=$this->detailAd[Classifieds::PICTURES];
-            }else {
+            }
+            else {
                 $vWidth+=40;
             }
             if (isset($this->detailAd[Classifieds::VIDEO]) && $this->detailAd[Classifieds::VIDEO]){
                 $hasVideo=1;
             }
-            $picsCount=count($pics);
+            $picsCount= is_array($pics) ? count($pics) : 0;
             
             $pub_link = $this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][$this->fieldNameIndex];
             if ($this->detailAd[Classifieds::PUBLICATION_ID]==1 || $this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][6]=='http://www.waseet.net/'){
@@ -294,7 +291,12 @@ class Detail extends Search
                                 $widths[$i]=$oPics[$i][0];
                             }
                         }
-                        array_multisort($widths, SORT_DESC, $oPics);
+                        if (!empty($widths)) {
+                            if (!array_multisort($widths, SORT_DESC, $oPics)) {
+                                error_log(\json_encode($widths));
+                                error_log(\json_encode($oPics));
+                            }
+                        }
 
                         ?><style type="text/css"><?php
                         for($i=0;$i<$picsCount;$i++){
@@ -899,8 +901,8 @@ class Detail extends Search
                     }
                     
                     $subj=($this->urlRouter->siteLanguage=='ar'?'وجدت هذا الاعلان على مرجان':'found this ad on mourjan');
-                    $whats_msg= urlencode($subj.' '.'https://www.mourjan.com/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage+'/').$this->detailAd[Classifieds::ID].'/?utm_source=whatsapp');
-                    $viber_msg= urlencode($subj.' '.'https://www.mourjan.com/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage+'/').$this->detailAd[Classifieds::ID].'/?utm_source=viber');
+                    $whats_msg=urlencode($subj.' '.'https://www.mourjan.com/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage)."/{$this->detailAd[Classifieds::ID]}/?utm_source=whatsapp");
+                    $viber_msg=urlencode($subj.' '.'https://www.mourjan.com/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage)."/{$this->detailAd[Classifieds::ID]}/?utm_source=viber");
                     
                     ?><a class="shr shr-wats" href="whatsapp://send?text=<?= $whats_msg ?>" data-action="share/whatsapp/share"></a><?php
                     ?><a class="shr shr-vb" href="viber://forward?text=<?= $viber_msg ?>"></a><?php

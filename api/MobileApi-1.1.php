@@ -76,9 +76,9 @@ class MobileApi {
     
     function __destruct() {
         if ($this->db) {
-            if (self::$stmt_get_loc) { $this->db->closeStatement(self::$stmt_get_loc); }
-            if (self::$stmt_get_ext) { $this->db->closeStatement(self::$stmt_get_ext); }
-            if (self::$stmt_get_ad) { $this->db->closeStatement(self::$stmt_get_ad); }
+            if (self::$stmt_get_loc) { self::$stmt_get_loc=NULL; }
+            if (self::$stmt_get_ext) { self::$stmt_get_ext=NULL; }
+            if (self::$stmt_get_ad) { self::$stmt_get_ad=NULL; }
         }
     }
         
@@ -1280,14 +1280,7 @@ class MobileApi {
 
 
     function register() {
-        //$this->result['d']['info']= [
-        //        'version'=>'1.0.9',
-        //        'force_update'=>0, 
-        //        'upload'=>'www.mourjan.com',
-        //        'images'=>'c6.mourjan.com'
-        //        ];
-            
-        //$this->db->setWriteMode();
+       
         $current_name="";
         
         $device_name = filter_input(INPUT_GET, 'dn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);        
@@ -1503,13 +1496,9 @@ class MobileApi {
             
             if($isAndroid) {
                 $this->result['d']['uid']=  $this->getUID();
-                //device last visit
                 $this->result['d']['dlv'] = $opts->device_last_visit+0;
-                //user last visit
                 $this->result['d']['ulv'] = $opts->user_last_visit+0;
-                //user level
                 $this->result['d']['level'] = $opts->user_level+0;
-                //provider
                 if(isset($opts->provider)) {
                     $this->result['d']['provider']=$opts->provider;
                 }
@@ -1540,7 +1529,6 @@ class MobileApi {
                         
                 $ok = $user->mergeDeviceToAccount($this->uuid, $this->getUID(), $opts->cuid);
                 if ($ok) {
-                    //$this->db->getInstance()->commit();
                     $this->uid=$opts->cuid;
                     $opts = $this->userStatus($status);
                     $this->result['d']['pwset']=!empty($opts->secret);
@@ -2530,9 +2518,9 @@ class MobileApi {
             }
             
             $lang=filter_input(INPUT_GET, 'dl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
-            $rs = $this->db->get("select state id, count(*) ads from AD_USER
-                where web_user_id=? and state in (0,1,2,3,4,7,9)
-                group by 1", [$this->uid], TRUE, \PDO::FETCH_NUM);
+            $rs = $this->db->get(
+                    "select state id, count(*) ads from AD_USER where web_user_id=? and state+0 in (0,1,2,3,4,7,9) group by 1", 
+                    [$this->uid], TRUE, \PDO::FETCH_NUM);
 
             foreach ($rs as $row) {
                 $name = "";
@@ -3557,14 +3545,15 @@ class MobileApi {
                                     ])) {
                             $result=$stmt->fetchAll(PDO::FETCH_ASSOC);                                    
                         }   
-                                
+                        unset($stmt);
+                        
                         if (!empty($result)) {                                        
                             $state=$result[0]['STATE'];                                                              
                             $st = $this->db->getInstance()->prepare("update or insert into ad_object (id, attributes) values (?, ?)");
                             $st->bindValue(1, $ad_id, PDO::PARAM_INT);
                             $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
                             $this->db->executeStatement($st);
-                            $this->db->closeStatement($st);
+                            unset($st);
                         }                                
 
                         if ( $ad['state']==1 ) {
@@ -3615,7 +3604,7 @@ class MobileApi {
                             $st->bindValue(1, $ad_id, PDO::PARAM_INT);
                             $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
                             $this->db->executeStatement($st);
-                            $this->db->closeStatement($st);
+                            unset($st);
                             
                             $pst = $this->db->getInstance()->prepare("INSERT INTO AD_MEDIA (AD_ID, MEDIA_ID) values (?, ?)");
                                                         
@@ -3636,7 +3625,7 @@ class MobileApi {
                                     }                                                   
                                 }
                             }
-                            $this->db->closeStatement($pst);
+                            unset($pst);
                         }
                         
                         if ($requireReview && $ad_id) {
@@ -3829,13 +3818,11 @@ class MobileApi {
             $this->result['d']['imgs']=[];
             
             $q = 'select distinct x.id, x.filename from ad_user a
-left join ad_media m on m.ad_id = a.id
-left join media x on x.id = m.media_id
-where a.web_user_id = ? and a.state != 6 and a.state != 8 and x.id > 0';
+left join ad_media m on m.ad_id=a.id
+left join media x on x.id=m.media_id
+where a.web_user_id=? and a.state!=6 and a.state!=8 and x.id>0';
             
-            $images = $this->db->get(
-                $q,
-                [$uid], true, \PDO::FETCH_NUM);
+            $images = $this->db->get($q, [$uid], true, \PDO::FETCH_NUM);
             
             if($images !== false && is_array($images) && $count = count($images)){
                 for($i = 0; $i < $count; $i++){
@@ -3917,7 +3904,7 @@ where a.web_user_id = ? and a.state != 6 and a.state != 8 and x.id > 0';
                 $this->result['e']= $ex->getMessage();
             }
             finally {
-                if (is_resource($ch)) {
+                if (isset($ch) && is_resource($ch)) {
                     curl_close($ch);
                 }
             }                        

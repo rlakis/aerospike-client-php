@@ -5,8 +5,7 @@ namespace Core\Model\ASD;
 const TS_MOBILE = 'mobiles';
 
 
-trait MobileTrait
-{
+trait MobileTrait {
     abstract public function getConnection() : \Aerospike;
     abstract public function genId(string $generator, &$sequence) : int;
     abstract public function getBins($pk, array $bins);
@@ -14,32 +13,27 @@ trait MobileTrait
     abstract public function exists($pk) : int;
     
         
-    public function initMobileKey($uid, $number)
-    {
+    public function initMobileKey($uid, $number) {
         return $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
     }
     
 
-    public function mobileExists(int $uid, int $number) : int
-    {
+    public function mobileExists(int $uid, int $number) : int {
         return $this->exists($this->initMobileKey($uid, $number));
     }
     
     
-    public function mobileFetch(int $uid, int $number) : array
-    {
+    public function mobileFetch(int $uid, int $number) : array {
         return $this->getBins($this->initMobileKey($uid, $number));
     }
 
     
-    public function mobileFetchByUID(int $uid, bool $order_by_req=false) : array
-    {
+    public function mobileFetchByUID(int $uid, bool $order_by_req=false) : array {
         $matches=[];
         $keys=[];
         $where = \Aerospike::predicateEquals(USER_UID, $uid);
         $status = $this->getConnection()->query(NS_USER, TS_MOBILE, $where,
-                function ($record) use (&$matches, &$keys, $order_by_req)
-                {
+                function ($record) use (&$matches, &$keys, $order_by_req) {
                     if (!isset($record['bins'][$order_by_req ? USER_MOBILE_DATE_REQUESTED : USER_MOBILE_DATE_ACTIVATED]))
                     {
                         $record['bins'][$order_by_req ? USER_MOBILE_DATE_REQUESTED : USER_MOBILE_DATE_ACTIVATED]=0;
@@ -49,19 +43,15 @@ trait MobileTrait
                     $keys[$record['bins'][USER_MOBILE_NUMBER]] = $record['bins'][$order_by_req ? USER_MOBILE_DATE_REQUESTED : USER_MOBILE_DATE_ACTIVATED];
                 });
 
-        if ($status===\Aerospike::OK)
-        {
-            if (!empty($matches))
-            {
+        if ($status===\Aerospike::OK) {
+            if (!empty($matches)) {
                 array_multisort($keys, SORT_DESC, SORT_NUMERIC, $matches);
             }
-            else
-            {
+            else {
                 //error_log(PHP_EOL. __CLASS__.'::'.__FUNCTION__." could not find mobile record by UID {$uid}" );
             }
         }
-        else
-        {
+        else {
             error_log(PHP_EOL. __CLASS__.'::'.__FUNCTION__."An error occured while getting mobile for UID {$uid} [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}");
         }
         unset($keys);
@@ -70,18 +60,15 @@ trait MobileTrait
     }
     
     
-    public function mobileFetchByRequestID(string $requestId)
-    {
+    public function mobileFetchByRequestID(string $requestId) {
         $matches=[];
         $where = \Aerospike::predicateEquals(USER_MOBILE_REQUEST_ID, $requestId);
         $status = $this->getConnection()->query(NS_USER, TS_MOBILE, $where,
-                function ($record) use (&$matches)
-                {                   
+                function ($record) use (&$matches) {                   
                     $matches[] = $record['bins'];
                 });
 
-        if ($status!==\Aerospike::OK)
-        {
+        if ($status!==\Aerospike::OK) {
             $matches = FALSE;
             error_log(PHP_EOL. __CLASS__.'::'.__FUNCTION__."An error occured while getting mobile for RequestID {$requestId} [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}");
         }
@@ -90,24 +77,20 @@ trait MobileTrait
     }
     
     
-    public function mobileGetLinkedUIDs(int $number, &$result) : int
-    {
+    public function mobileGetLinkedUIDs(int $number, &$result) : int {
         $matches=[];
         $keys=[];
         $where = \Aerospike::predicateEquals(USER_MOBILE_NUMBER, $number);
         $status = $this->getConnection()->query(NS_USER, TS_MOBILE, $where, 
-                    function ($record) use (&$matches, &$keys)
-                    {
-                        if (!isset($record['bins'][USER_MOBILE_DATE_ACTIVATED]))
-                        {
+                    function ($record) use (&$matches, &$keys) {
+                        if (!isset($record['bins'][USER_MOBILE_DATE_ACTIVATED])) {
                             $record['bins'][USER_MOBILE_DATE_ACTIVATED]=0;
                         }
                        
                         $matches[$record['bins'][USER_UID]] = $record['bins'];
                         $keys[$record['bins'][USER_UID]] = $record['bins'][USER_MOBILE_DATE_ACTIVATED];
                     });
-        if ($status==\Aerospike::OK)
-        {
+        if ($status==\Aerospike::OK) {
             array_multisort($keys, SORT_DESC, SORT_NUMERIC, $matches);
             unset($keys);
         
@@ -117,14 +100,12 @@ trait MobileTrait
     }
     
     
-    public function getMobileDigest(string $index_field_name, $value, array $filter, array &$out=[]) : array
-    {
+    public function getMobileDigest(string $index_field_name, $value, array $filter, array &$out=[]) : array {
         return $this->getDigest($index_field_name, $value, $filter, $out);
     }
     
     
-    private function getDigest(string $index_field_name, $value, array $filter, array &$out=[]) : array
-    {
+    private function getDigest(string $index_field_name, $value, array $filter, array &$out=[]) : array {
         $matches=[];
         $bins = array_keys($filter);
         
@@ -134,19 +115,15 @@ trait MobileTrait
         $where = \Aerospike::predicateEquals($index_field_name, $value);
         
         $this->getConnection()->query(NS_USER, TS_MOBILE, $where,  
-                function ($record) use (&$matches, &$out, $filter) 
-                {                    
+                function ($record) use (&$matches, &$out, $filter) {                    
                     $matched=TRUE;
-                    if ($filter)
-                    {
-                        foreach ($filter as $key => $val) 
-                        {
+                    if ($filter) {
+                        foreach ($filter as $key => $val) {
                             $matched = $matched && (isset($record['bins'][$key]) && $record['bins'][$key]==$val);
                         }
                     }
                     
-                    if ($matched)
-                    {
+                    if ($matched) {
                         $matches[] = $record['key'];
                         $out[] = $record;
                     }
@@ -157,15 +134,13 @@ trait MobileTrait
     }
     
     
-    public function mobileGetMatchedKeys(string $index_field_name, $value, array $filter) : array
-    {
+    public function mobileGetMatchedKeys(string $index_field_name, $value, array $filter) : array {
         return $this->getDigest($index_field_name, $value, $filter);
     }
     
     
     
-    public function mobileGetOrderedBy(array $opts)
-    {
+    public function mobileGetOrderedBy(array $opts) {
         $result = [];
         $i = 0;
         $options = [
@@ -181,8 +156,7 @@ trait MobileTrait
         
         $status = $this->getConnection()->scan(NS_USER, TS_MOBILE, function ($record) use (&$result, &$i, &$sort_by, $sort_keys) {
             
-            foreach ($sort_keys as $field_name) 
-            {
+            foreach ($sort_keys as $field_name) {
                 $sort_by[$field_name]['data'][$i] = $record['bins'][$field_name];
             }                    
             
@@ -200,8 +174,7 @@ trait MobileTrait
         }
         
         $params = [];
-        foreach ($sort_keys as $field_name) 
-        {
+        foreach ($sort_keys as $field_name) {
             $params[] = $sort_by[$field_name]['data'];
             $params[] = $sort_by[$field_name]['direction'];
             $params[] = $sort_by[$field_name]['type'];
@@ -217,8 +190,7 @@ trait MobileTrait
         printf($mask, 'id', 'uid', 'number', 'code', 'flag', 'sms_count', 'delivered', 'date_requested', 'date_activated', 'secret');
         printf($bound_mask, '--------', '---------', '------------------', '------', '---------', '------------', '-----------', '---------------------', '---------------------','---------------------------------');
         $row_count=0;
-        foreach ($result as $record) 
-        {
+        foreach ($result as $record) {
             switch ($record['flag']) 
             {
                 case 0:
@@ -275,118 +247,95 @@ trait MobileTrait
     
     
     
-    public function mobileSetDeliveredSMS($id, $number) : bool
-    {
+    public function mobileSetDeliveredSMS($id, $number) : bool {
         $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [SET_RECORD_ID=>$id]);
-        if ($keys)
-        {
+        if ($keys) {
             return $this->setBins($keys[0], [USER_MOBILE_CODE_DELIVERED=>1]);
         }
         return FALSE;
     }
     
     
-    public function mobileSetVerified(string $request_id, $number) : bool
-    {
+    public function mobileSetVerified(string $request_id, $number) : bool {
         $keys = $this->getDigest(USER_MOBILE_REQUEST_ID, $request_id, []);
-        if ($keys)
-        {
+        if ($keys) {
             return $this->setBins($keys[0], [USER_MOBILE_CODE_DELIVERED=>1]);
         }
         return FALSE;
     }
 
     
-    public function mobileSetDeliveredCode(int $uid, int $number, string $request_id='') : bool
-    {
+    public function mobileSetDeliveredCode(int $uid, int $number, string $request_id='') : bool {
         $pk = null;
-        if ($uid==0 && $request_id)
-        {
+        if ($uid==0 && $request_id) {
             $keys = $this->getDigest(USER_MOBILE_REQUEST_ID, $request_id, [USER_MOBILE_NUMBER=>$number]);
-            if ($keys)
-            {
+            if ($keys) {
                 $pk = $keys[0];
             }            
         }
-        else
-        {
+        else {
             $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
         }
         
-        if ($this->exists($pk)) 
-        {
+        if ($this->exists($pk)) {
             return $this->setBins($pk, [USER_MOBILE_CODE_DELIVERED=>1]);
         }
         return FALSE;
     }
 
     
-    public function mobileInsert(array $bins) : int
-    {
-        if (!isset($bins[USER_MOBILE_NUMBER]) || !isset($bins[USER_UID]))
-        {
+    public function mobileInsert(array $bins) : int {
+        if (!isset($bins[USER_MOBILE_NUMBER]) || !isset($bins[USER_UID])) {
             error_log("Could not insert mobile: " . json_encode($bins));
             return 0;
         }
 
-        if ($bins[USER_MOBILE_NUMBER]<=0 || $bins[USER_UID]<=0)
-        {
+        if ($bins[USER_MOBILE_NUMBER]<=0 || $bins[USER_UID]<=0) {
             error_log("Could not insert mobile: " . json_encode($bins));
             return 0;
         }
                       
         
-        if (is_string($bins[USER_MOBILE_NUMBER]))
-        {
+        if (is_string($bins[USER_MOBILE_NUMBER])) {
             $bins[USER_MOBILE_NUMBER]= intval($bins[USER_MOBILE_NUMBER]);
         }
         
         $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $bins[USER_UID].'-'.$bins[USER_MOBILE_NUMBER]);
         
-        if (!isset($bins[SET_RECORD_ID]))
-        {
+        if (!isset($bins[SET_RECORD_ID])) {
             $mobile_id=0;
-            if ($this->genId('mobile_id', $mobile_id)==\Aerospike::OK)
-            {
+            if ($this->genId('mobile_id', $mobile_id)==\Aerospike::OK) {
                 $bins[SET_RECORD_ID]=$mobile_id;
                 $bins[USER_MOBILE_DATE_REQUESTED]=time();
                 $bins[USER_MOBILE_CODE_DELIVERED]=0;
                 $bins[USER_MOBILE_SENT_SMS_COUNT]=0;
-                if (!isset($bins[USER_MOBILE_FLAG]))
-                {
+                if (!isset($bins[USER_MOBILE_FLAG])) {
                     $bins[USER_MOBILE_FLAG]=0;
                 }
             }
         } 
-        else 
-        {
+        else {
             $mobile_id=$bins[SET_RECORD_ID];
-            if (!isset($bins[USER_MOBILE_DATE_ACTIVATED]))
-            {
+            if (!isset($bins[USER_MOBILE_DATE_ACTIVATED])) {
                 $this->getConnection()->removeBin($pk, [USER_MOBILE_DATE_ACTIVATED]);
             }
         }
         
         //$this->getConnection()->removeBin($pk, [USER_MOBILE_SECRET]);
-        if (!$this->setBins($pk, $bins))
-        {
+        if (!$this->setBins($pk, $bins)) {
             error_log("could not insert mobile record <". json_encode($bins).">");
             return 0;
         }
-        
-        
+                
         return $mobile_id;
     }
     
     
-    public function mobileCopyRecord(int $uid, int $number, int $toUID) : bool
-    {
+    public function mobileCopyRecord(int $uid, int $number, int $toUID) : bool {
         $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
-        if ($this->exists($pk)) 
-        {
+        if ($this->exists($pk)) {
             $record = $this->getBins($pk);
-            if ($record)
-            {
+            if ($record) {
                 $mobile_id=0;
                 $this->genId('mobile_id', $mobile_id);
                 $record[SET_RECORD_ID] = $mobile_id;
@@ -400,14 +349,11 @@ trait MobileTrait
     }
     
     
-    public function mobileActivation(int $uid, int $number, int $code) : bool
-    {
+    public function mobileActivation(int $uid, int $number, int $code) : bool {
         $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [USER_UID=>$uid, USER_MOBILE_ACTIVATION_CODE=>$code]);  
-        if ($keys)
-        {
+        if ($keys) {
             $res = $this->setBins($keys[0], [USER_MOBILE_DATE_ACTIVATED=>time()]);
-            if ($res)
-            {
+            if ($res) {
                 $this->getConnection()->removeBin($keys[0], [USER_MOBILE_PIN_HASH]);
                 return TRUE;
             }
@@ -416,14 +362,11 @@ trait MobileTrait
     }
     
     
-    public function mobileActivationByRequestId(int $uid, int $number, int $code, string $requestId) : bool
-    {
+    public function mobileActivationByRequestId(int $uid, int $number, int $code, string $requestId) : bool {
         $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [USER_UID=>$uid, USER_MOBILE_REQUEST_ID=>$requestId]);
-        if ($keys)
-        {
+        if ($keys) {
             $res = $this->setBins($keys[0], [USER_MOBILE_ACTIVATION_CODE=>$code, USER_MOBILE_DATE_ACTIVATED=>time(), USER_MOBILE_SENT_SMS_COUNT=>0]);
-            if ($res)
-            {
+            if ($res) {
                 $this->getConnection()->removeBin($keys[0], [USER_MOBILE_PIN_HASH]);
             }
             return $res;
@@ -447,74 +390,62 @@ trait MobileTrait
     }
 
 
-    public function mobileIncrSMS(int $uid, int $number) : bool
-    {
+    public function mobileIncrSMS(int $uid, int $number) : bool {
         $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
-        if ($this->exists($pk)) 
-        {
+        if ($this->exists($pk)) {
             if ($this->getConnection()->increment($pk, USER_MOBILE_SENT_SMS_COUNT, 1, [\Aerospike::OPT_POLICY_KEY=>\Aerospike::POLICY_EXISTS_UPDATE])==\Aerospike::OK)
             {
                 return TRUE;
             }
             return FALSE;
         } 
-        else 
-        {
+        else {
             error_log("record does not exists {$uid}-{$number}");
         }
         return FALSE;
     }
     
     
-    public function mobileIncrSMSByKey($pk) : bool
-    {
-        if ($this->exists($pk)) 
-        {
+    public function mobileIncrSMSByKey($pk) : bool {
+        if ($this->exists($pk)) {
             if ($this->getConnection()->increment($pk, USER_MOBILE_SENT_SMS_COUNT, 1, [\Aerospike::OPT_POLICY_KEY=>\Aerospike::POLICY_EXISTS_UPDATE])==\Aerospike::OK)
             {
                 return TRUE;
             }
             return FALSE;
         } 
-        else 
-        {
+        else {
             error_log("record does not exists");
         }
         return FALSE;
     }
     
     
-    public function mobileSetSecret(int $uid, string $secret) : bool
-    {
+    public function mobileSetSecret(int $uid, string $secret) : bool {
         $success = FALSE;
         $where = \Aerospike::predicateEquals(USER_UID, $uid);
         $this->getConnection()->query(NS_USER, TS_MOBILE, $where,  
-                function ($record) use (&$success, $secret) 
-                {
+                function ($record) use (&$success, $secret) {
                     $success = $this->setBins($record['key'], [USER_MOBILE_SECRET => $secret]);                
                 }, [SET_RECORD_ID]);
         return $success;
     }
     
     
-    public function mobileUpdate(int $uid, int $number, array $bins) : bool
-    {
+    public function mobileUpdate(int $uid, int $number, array $bins) : bool {
         $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
         return $this->setBins($pk, $bins);
     }
     
     
-    public function mobileVerifySecret(int $number, string $secret, int &$uid=0) : bool
-    {
-        if (empty($secret))
-        {
+    public function mobileVerifySecret(int $number, string $secret, int &$uid=0) : bool {
+        if (empty($secret)) {
             return FALSE;
         }
         
         $matched=[];        
         $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [USER_MOBILE_SECRET => $secret], $matched);
-        if ($keys)
-        {
+        if ($keys) {
             $uid=$matched[0]['bins'][USER_UID];
         }
         return !empty($keys);

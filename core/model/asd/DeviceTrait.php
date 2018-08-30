@@ -11,8 +11,7 @@ const USER_DEVICE_APP_SETTINGS      = 'app_prefs';
 const USER_DEVICE_BAN_TRANSACTIONS  = 'ban_tran';
 
 
-trait DeviceTrait
-{
+trait DeviceTrait {
     abstract public function getConnection() : \Aerospike;
     abstract public function genId(string $generator, &$sequence) : int;
     abstract public function getBins($pk, array $bins);
@@ -21,50 +20,39 @@ trait DeviceTrait
     abstract public function exists($pk) : int;
     
     
-    private function initDeviceKey(string $uuid)
-    {
-        //error_log($uuid);
+    private function initDeviceKey(string $uuid) {
         return $this->getConnection()->initKey(NS_USER, TS_DEVICE, $uuid);
     }
     
     
-    private function as_key(string $uuid) : array
-    {
-        $key = $this->getConnection()->initKey(NS_USER, TS_DEVICE, $uuid);
-        
+    private function as_key(string $uuid) : array {
+        $key = $this->getConnection()->initKey(NS_USER, TS_DEVICE, $uuid);        
         return $key;
     }
     
     
-    public function deviceInsert(array $bins) : bool
-    {
-        if (!isset($bins[USER_DEVICE_UUID]) || empty($bins[USER_DEVICE_UUID]) || !isset($bins[USER_UID]) || $bins[USER_UID]<=0)
-        {
+    public function deviceInsert(array $bins) : bool {
+        if (!isset($bins[USER_DEVICE_UUID]) || empty($bins[USER_DEVICE_UUID]) || !isset($bins[USER_UID]) || $bins[USER_UID]<=0) {
             error_log("Could not insert device: " . json_encode($bins));
             return false;
         }
         
         $pk = $this->initDeviceKey($bins[USER_DEVICE_UUID]);
        
-        if ($this->exists($pk))
-        {
+        if ($this->exists($pk)) {
             $bins[USER_DEVICE_LAST_VISITED] = time();
-            if ($this->getConnection()->increment($pk, USER_DEVICE_VISITS_COUNT, 1)==\Aerospike::OK)
-            {
+            if ($this->getConnection()->increment($pk, USER_DEVICE_VISITS_COUNT, 1)==\Aerospike::OK) {
             }
 
-            if (isset($bins[USER_DEVICE_PUSH_TOKEN]) && !isset($bins[USER_DEVICE_PUSH_ENABLED]))
-            {
+            if (isset($bins[USER_DEVICE_PUSH_TOKEN]) && !isset($bins[USER_DEVICE_PUSH_ENABLED])) {
                 $bins[USER_DEVICE_PUSH_ENABLED] = 1;
             }
         }
-        else
-        {
+        else {
             $bins[USER_DEVICE_DATE_ADDED] = time();
             $bins[USER_DEVICE_LAST_VISITED] = time();
             $bins[USER_DEVICE_VISITS_COUNT] = 1;
-            if (isset($bins[USER_DEVICE_PUSH_TOKEN]) && !isset($bins[USER_DEVICE_PUSH_ENABLED]))
-            {
+            if (isset($bins[USER_DEVICE_PUSH_TOKEN]) && !isset($bins[USER_DEVICE_PUSH_ENABLED])) {
                 $bins[USER_DEVICE_PUSH_ENABLED] = 1;
             }
         }
@@ -73,20 +61,21 @@ trait DeviceTrait
     }
     
     
-    public function deviceUpdate(string $uuid, array $bins)
-    {
-        if (empty($uuid) || (isset($bins[USER_UID]) && $bins[USER_UID]<=0))
-        {
+    public function deviceUpdate(string $uuid, array $bins) {
+        if (empty($uuid) || (isset($bins[USER_UID]) && $bins[USER_UID]<=0)) {
             \Core\Model\NoSQL::Log(['error'=>"Could not update device: {$uuid}", 'bins'=>$bins]);
             return false;
         }
         
         $pk = $this->initDeviceKey($uuid);
-        $status = $this->getConnection()->put($pk, $bins, 0,
-                            [\Aerospike::OPT_POLICY_RETRY=>\Aerospike::POLICY_RETRY_ONCE,
-                             \Aerospike::OPT_POLICY_EXISTS=>\Aerospike::POLICY_EXISTS_UPDATE]);
-        if ($status !== \Aerospike::OK)
-        {
+        $options = [\Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE,
+                    \Aerospike::OPT_POLICY_EXISTS => \Aerospike::POLICY_EXISTS_UPDATE];
+        if (version_compare(phpversion("aerospike"), '7.2.0') >= 0) { 
+            $options[\Aerospike::OPT_MAX_RETRIES]=1;
+            unset($options[\Aerospike::OPT_POLICY_RETRY]);
+        }
+        $status = $this->getConnection()->put($pk, $bins, 0, $options);
+        if ($status !== \Aerospike::OK) {
             \Core\Model\NoSQL::Log(['key'=>$pk['key'], 'bins'=>$bins, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
             return FALSE;
         }
@@ -95,35 +84,29 @@ trait DeviceTrait
     }
 
 
-    public function deviceFetch(string $uuid)
-    {
+    public function deviceFetch(string $uuid) {
         $pk = $this->initDeviceKey($uuid);
         return $this->getBins($pk);
     }
     
     
-    public function getDeviceRecord(string $uuid, &$record) : int
-    {
+    public function getDeviceRecord(string $uuid, &$record) : int {
         $pk = $this->initDeviceKey($uuid);
         return $this->getRecord($pk, $record);
     }
     
     
-    public function deviceExists(string $uuid) : bool
-    {
+    public function deviceExists(string $uuid) : bool {
         $pk = $this->initDeviceKey($uuid);
         return ($this->exists($pk)>0);        
     }
     
         
-    public function deviceSetToken(string $uuid, string $token) : bool
-    {
+    public function deviceSetToken(string $uuid, string $token) : bool {
         $bins = [USER_DEVICE_PUSH_TOKEN => $token];
         $pk = $this->initDeviceKey($uuid);
-        if ($this->exists($pk))
-        {
-            if ($token)
-            {
+        if ($this->exists($pk)) {
+            if ($token) {
                 $bins[USER_DEVICE_PUSH_ENABLED] = 1;
             }
             return $this->setBins($pk, $bins);
@@ -132,28 +115,22 @@ trait DeviceTrait
     }
     
     
-    public function deviceSetNotificationStatus(string $uuid, int $status) : bool
-    {
+    public function deviceSetNotificationStatus(string $uuid, int $status) : bool {
         $pk = $this->initDeviceKey($uuid);
-        if ($this->exists($pk))
-        {
+        if ($this->exists($pk)) {
             return $this->setBins($pk, [USER_DEVICE_PUSH_ENABLED => $status]);
         }
         return FALSE;
     }
 
     
-    public function deviceSetUID(string $uuid, int $uid, int $oldUID=0) : bool
-    {
+    public function deviceSetUID(string $uuid, int $uid, int $oldUID=0) : bool {
         $pk = $this->initDeviceKey($uuid);
-        if ($this->exists($pk))
-        {
-            if (($record = $this->getBins($pk, [USER_UID, USER_DEVICE_SYS_NAME]))!==FALSE)
-            {            
+        if ($this->exists($pk)) {
+            if (($record = $this->getBins($pk, [USER_UID, USER_DEVICE_SYS_NAME]))!==FALSE) {            
                 $bins = ['duid'=>$record[USER_UID], 'uid'=>$uid];
                 
-                if ($record[USER_UID]==$oldUID || $oldUID==0)
-                {
+                if ($record[USER_UID]==$oldUID || $oldUID==0) {
                     return $this->setBins($pk, [USER_UID => $uid]);
                 }
             }
@@ -162,23 +139,18 @@ trait DeviceTrait
     }
     
     
-    public function getUserDevices(int $uid, bool $any=FALSE) : array
-    {
+    public function getUserDevices(int $uid, bool $any=FALSE) : array {
         $matches = [];
         $where = \Aerospike::predicateEquals(USER_UID, $uid);
         $this->getConnection()->query(NS_USER, TS_DEVICE, $where,  
-                function ($record) use (&$matches, $any) 
-                {
-                    if ($any==FALSE)
-                    {
+                function ($record) use (&$matches, $any) {
+                    if ($any==FALSE) {
                         $deleted = $record['bins'][USER_DEVICE_UNINSTALLED] ?? 0;
                         
-                        if (!$deleted)
-                        {
+                        if (!$deleted) {
                             $matches[] = $record['bins'];
                         }
-                        else
-                        {
+                        else {
                             /*
                             $deviceKey = $this->initDeviceKey($record['bins'][USER_DEVICE_UUID]);
                             if ($this->getConnection()->remove($deviceKey) == \Aerospike::OK)
@@ -188,8 +160,7 @@ trait DeviceTrait
                             */
                         }
                     }
-                    else
-                    {
+                    else {
                         /*
                         $matches[] = $record['bins'];
                         if ($record['bins'][USER_DEVICE_UNINSTALLED] ?? 0)

@@ -275,13 +275,14 @@ class DB {
                     $result = $stmt->fetchAll($fetch_mode);
                 }
             }
-            
-            $this->closeStatement($stmt);            
+            unset($stmt);
+            //$this->closeStatement($stmt);            
             if ($commit) { $this->commit(); }                    
         }
         catch (\PDOException $pdoException) {
             error_log(__FUNCTION__ . ' first exception '.$pdoException->getMessage());
-            if ($stmt instanceof \PDOStatement) { $this->closeStatement($stmt); }
+            unset($stmt);
+            //if ($stmt instanceof \PDOStatement) { $this->closeStatement($stmt); }
             $result = FALSE;
             
             if ($runtime<5 && preg_match('/913 deadlock/', $pdoException->getMessage())) {
@@ -298,7 +299,8 @@ class DB {
         }
         catch (Exception $ex) {
             error_log(__FUNCTION__ . ' second exception '.$ex->getMessage());
-            if ($stmt instanceof \PDOStatement) { $this->closeStatement($stmt); }
+            //if ($stmt instanceof \PDOStatement) { $this->closeStatement($stmt); }
+            unset($stmt);
             self::$Instance->rollBack();
             $result=FALSE;
         }
@@ -306,7 +308,7 @@ class DB {
     }
     
     
-    function closeStatement(\PDOStatement $stmt) {        
+    function closeStatement(\PDOStatement $stmt) {     
         $res = $stmt->closeCursor();
         if ($res==FALSE) {
             error_log("close statement failed!");
@@ -327,7 +329,7 @@ class DB {
         catch (Exception $ex) {             
             if( (strpos($ex->getMessage(), '913 deadlock') > -1) && $runtime < 5) {
                 usleep(100);
-                return $this->executeStatement($stmt,$params, $runtime+1);
+                return $this->executeStatement($stmt, $params, $runtime+1);
             }
             else {
                 error_log('CODE: '. $ex->getCode() . ' | '.$ex->getMessage() . PHP_EOL);
@@ -1085,12 +1087,10 @@ class FBQuery {
         $this->params = $params;
         $this->sleepMicroSeconds = $options[FBQuery::FB_USLEEP] ?? 200;
         $this->fetchMode = $options[FBQuery::FB_FETCH_MODE] ?? \PDO::FETCH_ASSOC;
-        $this->single = $options[FBQuery::FB_DIRECT_COMMIT] ?? FALSE;
+        $this->single = $options[FBQuery::FB_DIRECT_COMMIT] ? TRUE : FALSE;
         $this->maxTrials = $options[FBQuery::FB_MAX_RETRY] ?? 5;
         
-        if ($this->single===FALSE) {
-            $this->maxTrials = 1;
-        }
+        if ($this->single===FALSE) { $this->maxTrials = 1; }
         
         $this->isWriteMode = preg_match('/^(insert|update|delete|execute)/i', $this->query);
         $this->isReturningMode = preg_match('/^(select)/i', $this->query) || (preg_match("/\sreturning\s/i", $this->query) && $this->isWriteMode);                
@@ -1099,23 +1099,28 @@ class FBQuery {
     
     function __destruct() {
         if ($this->statement instanceof \PDOStatement) {
-            if (!$this->statement->closeCursor()) {
-                error_log(__CLASS__.'.'.__FUNCTION__);
-            }
+            
+            unset($this->statement);
         }
     }
 
+    private function unprepare() {
+        if ($this->statement instanceof \PDOStatement) {
+            unset($this->statement);        
+            $this->statement = null;
+        }
+    }
 
     private function prepare() : bool {        
         try {
             if ($this->isWriteMode && DB::isReadOnly()) {
-                $this->statement = null;
+                $this->unprepare();                
                 $this->owner->setWriteMode(TRUE);
                 $this->single = TRUE;
                 $this->maxTrials = 5;                
             }
             
-            if ($this->statement) {
+            if ($this->statement && $this->statement instanceof \PDOStatement) {
                 return TRUE;
             }
    
@@ -1123,10 +1128,7 @@ class FBQuery {
             return TRUE;
         }
         catch (PDOException $ex) {
-            if ($this->statement instanceof \PDOStatement) {
-                $this->statement->closeCursor();
-            }
-            $this->statement = NULL;
+            $this->unprepare();
             error_log($ex->getMessage());
         }
         return FALSE;
@@ -1147,9 +1149,8 @@ class FBQuery {
                     return $executed;
                 } 
                 catch (\Exception $ex) {
+                    $this->unprepare();
                     if (preg_match('/913 deadlock/', $ex->getMessage())) {
-                        $this->statement->closeCursor();
-                        $this->statement = null;                    
                         usleep($this->sleepMicroSeconds);
                     }
                     else {
@@ -1162,6 +1163,7 @@ class FBQuery {
                 }
             }
         } while ($trial<$this->maxTrials);
+        $this->unprepare();
         return FALSE;
     }
     
@@ -1170,14 +1172,14 @@ class FBQuery {
         $this->result = false;
         if ($this->execute()) {
             $this->result = ($this->isReturningMode) ? $this->statement->fetchAll($this->fetchMode) : TRUE;
-            if ($this->single) {
-                $this->owner->commit();
+            if ($this->statement instanceof \PDOStatement) {
+                $this->statement->closeCursor();
             }
+            if ($this->single) { $this->owner->commit(); }
         }
-        
+        if ($this->single) { $this->unprepare(); }
         return $this->result;
     }
-    
     
 }
 

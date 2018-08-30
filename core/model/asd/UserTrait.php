@@ -85,8 +85,7 @@ const USER_PROVIDER_ANDROID         = 'mourjan-android';
 const USER_PROVIDER_IPHONE          = 'mourjan-iphone';
 
 
-trait UserTrait
-{
+trait UserTrait {
 
     abstract public function getConnection() : \Aerospike;
     abstract public function genId(string $generator, &$sequence) : int;
@@ -96,10 +95,8 @@ trait UserTrait
     abstract public function isReadError(int $status) : bool;
 
     
-    public function addProfile(array &$bins, int $uid=0) : int
-    {
-        if (!isset($bins[USER_PROVIDER_ID]) || !isset($bins[USER_PROVIDER]))
-        {
+    public function addProfile(array &$bins, int $uid=0) : int {
+        if (!isset($bins[USER_PROVIDER_ID]) || !isset($bins[USER_PROVIDER])) {
             \Core\Model\NoSQL::Log(['Invalid Profile Key!', $bins]);
             //error_log("Invalid Profile key!!! ". PHP_EOL . json_encode($bins));
             return \Aerospike::ERR_INVALID_COMMAND;
@@ -111,8 +108,7 @@ trait UserTrait
         
         $primaryKey = $this->asUserPrimaryKey($bins[USER_PROVIDER_ID], $bins[USER_PROVIDER]);                
         
-        if (!in_array($bins[USER_PROVIDER], ['facebook', 'mourjan', 'mourjan-android', 'mourjan-iphone', 'twitter', 'google', 'linkedin', 'yahoo', 'live', 'aol']))
-        {
+        if (!in_array($bins[USER_PROVIDER], ['facebook', 'mourjan', 'mourjan-android', 'mourjan-iphone', 'twitter', 'google', 'linkedin', 'yahoo', 'live', 'aol'])) {
             error_log("Invalid Profile provider!!! ". PHP_EOL . json_encode($bins));
             return \Aerospike::ERR_INVALID_COMMAND;
         }
@@ -122,9 +118,13 @@ trait UserTrait
                     \Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE,
                     \Aerospike::OPT_POLICY_EXISTS => \Aerospike::POLICY_EXISTS_CREATE];
         
+        if (version_compare(phpversion("aerospike"), '7.2.0') >= 0) {
+            unset($options[\Aerospike::OPT_POLICY_RETRY]);
+            $options[\Aerospike::OPT_MAX_RETRIES]=1;            
+        }
+        
         $status=$this->genId('profile_id', $uid);
-        if ($status==\Aerospike::OK)
-        {        
+        if ($status==\Aerospike::OK) {        
             $record = [
                 USER_PROFILE_ID => $uid,
                 USER_PROVIDER_EMAIL => '',
@@ -144,20 +144,17 @@ trait UserTrait
                 USER_OPTIONS => [USER_OPTIONS_CTS=>$now],
                 ];
 
-            foreach ($bins as $binName => $binValue)
-            {
+            foreach ($bins as $binName => $binValue) {
                 $record[$binName] = $binValue;
             }
                                   
             $status = $this->getConnection()->put($primaryKey, $record, 0, $options);
                 
-            if ($status==\Aerospike::OK)
-            {
-                if (($status=$this->getConnection()->get($primaryKey, $record))==\Aerospike::OK)
-                {
+            if ($status==\Aerospike::OK) {
+                if (($status=$this->getConnection()->get($primaryKey, $record))==\Aerospike::OK) {
                     $bins=$record['bins'];                    
                     
-                    try{
+                    try {
                         
                         include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
                         include_once get_cfg_var('mourjan.path') . '/core/model/Db.php';
@@ -188,63 +185,48 @@ trait UserTrait
                             $bins[USER_PUBLISHER_STATUS]
                         ]);
                         
-                        unset($stmt);
-                                            
-                    } catch (Exception $ex) {
+                        unset($stmt);                                            
+                    } 
+                    catch (Exception $ex) {
                         error_log($ex->getMessage());
-                    }
-                    
-                    
+                    }                                        
                 }
             }
-            else
-            {
+            else {
                 error_log(__CLASS__.'->'.__FUNCTION__. " [{$this->getConnection()->errorno()}] ".$this->getConnection()->error());
             }
         } 
-        else
-        {
+        else {
             \Core\Model\NoSQL::Log(['Message'=>'Id Generator Failure', 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
         }
         return $status;
     }    
     
     
-    public function modProfile(array $keyMap, array $bins, bool $setNewVisit=FALSE) : int
-    {
+    public function modProfile(array $keyMap, array $bins, bool $setNewVisit=FALSE) : int {
         $pk=$this->getProfileKeyFromParams($keyMap);
                         
-        if (isset($bins[USER_PROVIDER_ID]))
-        {
-            unset($bins[USER_PROVIDER_ID]);
-        }
+        if (isset($bins[USER_PROVIDER_ID])) { unset($bins[USER_PROVIDER_ID]); }
+        if (isset($bins[USER_PROVIDER])) { unset($bins[USER_PROVIDER]); }
+        if (isset($bins[USER_PROFILE_ID])) { unset($bins[USER_PROFILE_ID]); }
 
-        if (isset($bins[USER_PROVIDER]))
-        {
-            unset($bins[USER_PROVIDER]);
-        }
-
-        if (isset($bins[USER_PROFILE_ID]))
-        {
-            unset($bins[USER_PROFILE_ID]);
-        }
-
-        if (empty($bins))
-        {
+        if (empty($bins)) {
             \Core\Model\NoSQL::Log(['Key'=>$pk['key'], 'Error'=>"Empty user profile bins"]);
             return \Aerospike::ERR_INVALID_COMMAND;
         }
 
-        $status = $this->getConnection()->put($pk, $bins, 0,
-                            [\Aerospike::OPT_POLICY_RETRY=>\Aerospike::POLICY_RETRY_ONCE,
-                             \Aerospike::OPT_POLICY_EXISTS=>\Aerospike::POLICY_EXISTS_UPDATE]);
+        $options = [\Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE,
+                    \Aerospike::OPT_POLICY_EXISTS => \Aerospike::POLICY_EXISTS_UPDATE];
+        if (version_compare(phpversion("aerospike"), '7.2.0') >= 0) { 
+            $options[\Aerospike::OPT_MAX_RETRIES]=1;
+            unset($options[\Aerospike::OPT_POLICY_RETRY]);
+        }
+        $status = $this->getConnection()->put($pk, $bins, 0, $options);
         
-        if ($status !== \Aerospike::OK)
-        {
+        if ($status !== \Aerospike::OK) {
             \Core\Model\NoSQL::Log(['key'=>$pk['key'], 'bins'=>$bins, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
         }
-        else if ($setNewVisit)
-        {
+        else if ($setNewVisit) {
             $this->updateProfileVisitTime(['key'=>$pk]);
         }
         
@@ -252,29 +234,24 @@ trait UserTrait
     }
     
     
-    public function getProfile(array $keyMap, &$record) : int
-    {        
+    public function getProfile(array $keyMap, &$record) : int {        
         $pk = $this->getProfileKeyFromParams($keyMap);
         $status = $this->getConnection()->get($pk, $record);
-        if ($status!==\Aerospike::OK && $status!==\Aerospike::ERR_RECORD_NOT_FOUND)
-        {
+        if ($status!==\Aerospike::OK && $status!==\Aerospike::ERR_RECORD_NOT_FOUND) {
             \Core\Model\NoSQL::Log(['Key'=>$pk['key'], 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
         }
         return $status;
     }
     
     
-    public function getProfileRecord(array $keyMap, &$record) : int
-    {
+    public function getProfileRecord(array $keyMap, &$record) : int {
         $pk = $this->getProfileKeyFromParams($keyMap);
         $status = $this->getConnection()->get($pk, $record);
-        if ($status==\Aerospike::OK)
-        {
+        if ($status==\Aerospike::OK) {
                 $record = $record['bins'];
         }
         else
-        if ($status!==\Aerospike::ERR_RECORD_NOT_FOUND)
-        {
+        if ($status!==\Aerospike::ERR_RECORD_NOT_FOUND) {
             \Core\Model\NoSQL::Log(['Key'=>$pk['key'], 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
         }
         
@@ -282,74 +259,53 @@ trait UserTrait
     }
 
     
-    private function getPrimaryKey(int $uid, &$result) : int
-    {
+    private function getPrimaryKey(int $uid, &$result) : int {
         return $this->getProfileBasicRecord($uid, $result, [USER_PROFILE_ID, USER_PROVIDER, USER_PROVIDER_ID]);
     }
     
     
-    public function getProfileBasicRecord(int $uid, &$record, $bins=[]) : int
-    {
+    public function getProfileBasicRecord(int $uid, &$record, $bins=[]) : int {
         $where = \Aerospike::predicateEquals(USER_PROFILE_ID, $uid);
-        $status = $this->getConnection()->query(NS_USER, TS_PROFILE, $where, 
-                    function ($_record) use (&$record) {$record=$_record;}, $bins);
-        if ($status!==\Aerospike::OK)
-        {
+        $status = $this->getConnection()->query(NS_USER, TS_PROFILE, $where, function ($_record) use (&$record) {$record=$_record;}, $bins);
+        if ($status!==\Aerospike::OK) {
             \Core\Model\NoSQL::Log(['UID'=>$uid, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
         }
         return $status;
     }
     
     
-    public function fetchUser(int $uid)
-    {
+    public function fetchUser(int $uid) {
         $record = [];
         $trial = 0;
-        do
-        {
+        do {
             $status = $this->getProfileBasicRecord($uid, $record);
             
-            if ($status==\Aerospike::OK)
-            {
-                if (!isset($record['bins']))
-                {
-                    return[];
-
+            if ($status==\Aerospike::OK) {
+                if (!isset($record['bins'])) {
+                    return [];
                 }
                 return $record['bins'];
-
             }
-            else if ($status==\Aerospike::ERR_RECORD_NOT_FOUND)
-            {
+            else if ($status==\Aerospike::ERR_RECORD_NOT_FOUND) {
                 return [];
             }
             
-            if ($status==\Aerospike::ERR_TIMEOUT)
-            {
+            if ($status==\Aerospike::ERR_TIMEOUT) {
                 usleep(100);
                 $trial++;
-            } 
+            }
         } while ($trial<3);
         \Core\Model\NoSQL::Log(['UID'=>$uid, 'trials'=>$trial, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
         return FALSE;
     }
     
     
-    public function fetchUserByUUID(string $uuid, &$record) 
-    {
+    public function fetchUserByUUID(string $uuid, &$record) {
         $status = \Core\Model\NoSQL::getInstance()->getDeviceRecord($uuid, $device);
         
-        if ($status==\Aerospike::OK)
-        {
+        if ($status==\Aerospike::OK) {
             $status= $this->getProfileBasicRecord($device[USER_UID], $record);
-            //if ($uuid=='773FDB13-965C-4A5D-B7F7-83B7852FA567')
-            //{
-            //    \Core\Model\NoSQL::Log([__FUNCTION__, $device, $uuid, $device[USER_DEVICE_SYS_NAME]=='Android' ? USER_PROVIDER_ANDROID : USER_PROVIDER_IPHONE]);
-            //}
-        
-            //$status = $this->getProfile([USER_PROVIDER_ID=>$uuid, USER_PROVIDER=>$device[USER_DEVICE_SYS_NAME]=='Android' ? USER_PROVIDER_ANDROID : USER_PROVIDER_IPHONE], $record);
-            if ($status==\Aerospike::OK && !empty($record))
-            {
+            if ($status==\Aerospike::OK && !empty($record)) {
                 $record=$record['bins'];
                 $record['logged_by_device'] = $device;
             }
@@ -359,50 +315,41 @@ trait UserTrait
     }
 
 
-    public function fetchUserByProviderId(string $identifier, string $provider, &$bins) : int
-    {
+    public function fetchUserByProviderId(string $identifier, string $provider, &$bins) : int {
         $pk = $this->asUserPrimaryKey($identifier, $provider);
 
         $status = $this->getConnection()->get($pk, $record);            
-        if ($status==\Aerospike::OK)
-        {
+        if ($status==\Aerospike::OK) {
             $bins = $record['bins'];
         }
-        else if ($status!==\Aerospike::ERR_RECORD_NOT_FOUND)
-        {
+        else if ($status!==\Aerospike::ERR_RECORD_NOT_FOUND) {
             error_log(__FUNCTION__ . PHP_EOL . $identifier.'-'.$provider. ' Error');
-        }       
+        }
         
         return $status;
     }
     
     
-    public function fetchUserByProviderIdOld(string $identifier, string $provider='mourjan') 
-    {
+    public function fetchUserByProviderIdOld(string $identifier, string $provider='mourjan') {
         $pk = $this->asUserPrimaryKey($identifier, $provider);
         
         $status = $this->getConnection()->get($pk, $record);            
-        if ($status==\Aerospike::OK)
-        {
+        if ($status==\Aerospike::OK) {
             return $record['bins'];
         }
-        else if ($status==\Aerospike::ERR_RECORD_NOT_FOUND)
-        {
+        else if ($status==\Aerospike::ERR_RECORD_NOT_FOUND) {
             return [];
         }
-        else 
-        {
+        else {
             error_log(__FUNCTION__ . PHP_EOL . $identifier.'-'.$provider. ' Error');
             return FALSE;
         }                
-    }       
+    }
     
     
-    private function asUserPrimaryKey(string &$uuid, string &$provider)
-    {
+    private function asUserPrimaryKey(string &$uuid, string &$provider) {
         $provider = trim(strtolower($provider));
-        if ($provider===USER_PROVIDER_MOURJAN && preg_match('/@/', $uuid))
-        {
+        if ($provider===USER_PROVIDER_MOURJAN && preg_match('/@/', $uuid)) {
             $uuid = strtolower(filter_var($uuid, FILTER_SANITIZE_EMAIL));
         }
         $uuid = trim($uuid);
@@ -410,59 +357,46 @@ trait UserTrait
     }
     
         
-    public function profileExists(array $keyMap) : bool
-    {
+    public function profileExists(array $keyMap) : bool {
         $key=$this->getProfileKeyFromParams($keyMap);
         return $this->exists($key);
     }
     
     
-    private function getProfileKeyFromParams(array $params)
-    {
-        if (isset($params['key']))
-        {
+    private function getProfileKeyFromParams(array $params) {
+        if (isset($params['key'])) {
             $key = $params['key'];
         }
-        else if (isset($params[USER_UID]))
-        {
-            if ($this->getPrimaryKey($params[USER_UID], $result)==\Aerospike::OK)
-            {
+        else if (isset($params[USER_UID])) {
+            if ($this->getPrimaryKey($params[USER_UID], $result)==\Aerospike::OK) {
                 $key = $result['key'];
             }
         }
-        else
-        {
+        else {
             $key = $this->asUserPrimaryKey($params[USER_PROVIDER_ID], $params[USER_PROVIDER]);
         }
         
-        if (!isset($key))
-        {
+        if (!isset($key)) {
             throw new Exception('Profile key not defined -- '.json_encode($params));
         }
         
-        return $key;        
+        return $key;   
     }
     
     
-    public function updateProfileVisitTime(array $params)
-    {
+    public function updateProfileVisitTime(array $params) {
         $pk=$this->getProfileKeyFromParams($params);
-        if (($record = $this->getBins($pk, [USER_LAST_VISITED]))!==FALSE)
-        {        
+        if (($record = $this->getBins($pk, [USER_LAST_VISITED]))!==FALSE) {        
             $this->setBins($pk, [USER_LAST_VISITED=>time(), USER_PRIOR_VISITED=>$record[USER_LAST_VISITED]]);
         }
     }               
     
     
-    public function setUserBin(int $uid, string $bin, $value) : bool
-    {
-        if ($uid<=0)
-        {
+    public function setUserBin(int $uid, string $bin, $value) : bool {
+        if ($uid<=0)  {
             error_log("Could not set user bin for zero uid");
         }
-        else
-        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK)
-        {
+        else if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK) {
             return $this->setBins($result['key'], [$bin => $value]);
         }
 
@@ -470,68 +404,54 @@ trait UserTrait
     }
     
     
-    public function setOptions(int $uid, array $opts) : bool
-    {
-        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK)
-        {
+    public function setOptions(int $uid, array $opts) : bool {
+        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK) {
             return $this->setBins($result['key'], [USER_OPTIONS => $opts]);
         }
         return FALSE;
     }
     
     
-    public function setPassword(int $uid, string $password) : bool
-    {
-        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK)
-        {
+    public function setPassword(int $uid, string $password) : bool {
+        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK) {
             return $this->setBins($result['key'], [USER_PASSWORD => $password]);
         }
         return FALSE;
     }
     
     
-    public function setUserLevel(int $uid, int $level) : bool
-    {
-        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK)
-        {
+    public function setUserLevel(int $uid, int $level) : bool {
+        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK) {
             return $this->setBins($result['key'], [USER_LEVEL => $level]);
         }
         return FALSE;
     }
     
 
-    public function setUserPublisherStatus(int $uid, int $type) : bool
-    {
-        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK)
-        {
+    public function setUserPublisherStatus(int $uid, int $type) : bool {
+        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK) {
             return $this->setBins($result['key'], [USER_PUBLISHER_STATUS => $type]);
         }
     }
 
     
-    public function setEnabledXMPP(int $uid)
-    {
-        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK)
-        {
+    public function setEnabledXMPP(int $uid) {
+        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK) {
             $this->setBins($result['key'], [USER_XMPP_CREATED => 1]);
         }
     }
     
     
-    public function setJsonWebToken(int $uid, array $jwt) : bool
-    {   
-        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK)
-        {
+    public function setJsonWebToken(int $uid, array $jwt) : bool {   
+        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK) {
             return $this->setBins($result['key'], [USER_JWT => $jwt]);
         }
         return FALSE;
     }
     
     
-    public function unsetJsonWebTocken(int $uid)
-    {
-        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK)
-        {
+    public function unsetJsonWebTocken(int $uid) {
+        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK) {
             $this->getConnection()->removeBin($result['key'], [USER_JWT]);
         }
     }
@@ -567,12 +487,9 @@ trait UserTrait
     }
     */
     
-    public function getOptions(int $uid) : array
-    {
-        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK)
-        {
-            if (($record=$this->getBins($result['key'], [USER_OPTIONS]))!==FALSE)
-            {
+    public function getOptions(int $uid) : array {
+        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK) {
+            if (($record=$this->getBins($result['key'], [USER_OPTIONS]))!==FALSE) {
                 return $record[USER_OPTIONS];
             }
         }
@@ -581,12 +498,9 @@ trait UserTrait
     }
 
     
-    public function getRank(int $uid) : int
-    {
-        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK)
-        {
-            if (($record=$this->getBins($result['key'], [USER_RANK]))!==FALSE)
-            {
+    public function getRank(int $uid) : int {
+        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK) {
+            if (($record=$this->getBins($result['key'], [USER_RANK]))!==FALSE) {
                 return $record[USER_RANK];
             }
         }
@@ -594,12 +508,9 @@ trait UserTrait
     }
     
     
-    public function getUserPublisherStatus(int $uid) 
-    {
-        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK)
-        {
-            if (($record=$this->getBins($result['key'], [USER_PUBLISHER_STATUS]))!==FALSE)
-            {
+    public function getUserPublisherStatus(int $uid) {
+        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK) {
+            if (($record=$this->getBins($result['key'], [USER_PUBLISHER_STATUS]))!==FALSE) {
                 return $record[USER_PUBLISHER_STATUS];
             }
         }
@@ -607,12 +518,9 @@ trait UserTrait
     }
 
 
-    public function getUserLastVisited(int $uid) : int
-    {
-        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK)
-        {
-            if (($record=$this->getBins($result['key'], [USER_LAST_VISITED]))!==FALSE)
-            {
+    public function getUserLastVisited(int $uid) : int {
+        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK) {
+            if (($record=$this->getBins($result['key'], [USER_LAST_VISITED]))!==FALSE) {
                 return $record[USER_LAST_VISITED];
             }
         }
@@ -620,12 +528,9 @@ trait UserTrait
     }
 
 
-    public function getUserPayfortToken(int $uid) 
-    {
-        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK)
-        {
-            if (($record=$this->getBins($result['key'], [USER_PAYFORT_TOKEN]))!==FALSE)
-            {
+    public function getUserPayfortToken(int $uid) {
+        if ($this->getPrimaryKey($uid, $result)==\Aerospike::OK) {
+            if (($record=$this->getBins($result['key'], [USER_PAYFORT_TOKEN]))!==FALSE) {
                 return isset($record[USER_PAYFORT_TOKEN]) ? $record[USER_PAYFORT_TOKEN] : FALSE;
             }
         }
@@ -635,32 +540,27 @@ trait UserTrait
     
     /* Debug section */
     
-    public function scan(string $setName, array $bins)
-    {
+    public function scan(string $setName, array $bins) {
         $options = [\Aerospike::OPT_SCAN_PRIORITY=>\Aerospike::SCAN_PRIORITY_MEDIUM, \Aerospike::OPT_SCAN_PERCENTAGE=>100];
         $result = [];
         $i=0;
         $status = $this->getConnection()->scan(
                     NS_USER, $setName,
-                    function ($record) use (&$result, &$i) 
-                    {
+                    function ($record) use (&$result, &$i) {
                         //$record['bins']['digest']=base64_encode($record['key']['digest']);
                         $result[] = $record['bins'];   
                         $i++;
-                        if ($i % 1000==0)
-                        {
+                        if ($i % 1000==0) {
                             echo ".";
                         }
                         //$this->addProfile($record['bins'], $record['bins'][USER_PROFILE_ID]);
                     },
                     $bins, $options);
 
-        if ($status == \Aerospike::ERR_SCAN_ABORTED)
-        {
+        if ($status == \Aerospike::ERR_SCAN_ABORTED) {
             echo "Aborted", "\n";
         }
-        else if ($status !== \Aerospike::OK)
-        {
+        else if ($status !== \Aerospike::OK) {
             error_log(__FUNCTION__ . ": An error occured [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}");
         }
 
@@ -668,60 +568,46 @@ trait UserTrait
     }
 
     /*
-    public function delUser(int $uid) : bool
-    {
+    public function delUser(int $uid) : bool {
         $status = $this->getConnection()->remove($this->initKey($uid));
-        if ($status==\Aerospike::OK)
-        {
+        if ($status==\Aerospike::OK) {
             return TRUE;
         }
         return FALSE;
-
     }
-     *
     */
     
 
-    public function debugDeviceIntegrity()
-    {
+    public function debugDeviceIntegrity() {
         $_devices = $this->scan(TS_DEVICE, [USER_DEVICE_UUID, USER_UID]);
-        foreach ($_devices as $_dv)
-        {
-            if (($_u=$this->fetchUser($_dv[USER_UID]))!==FALSE)
-            {
-                if (empty($_u))
-                {
+        foreach ($_devices as $_dv) {
+            if (($_u=$this->fetchUser($_dv[USER_UID]))!==FALSE) {
+                if (empty($_u)) {
                     echo __FUNCTION__, "\tNot found user record!\t". json_encode($_dv), "\n";
                 }
             }
-            else
-            {
+            else {
                 echo __FUNCTION__, "\tError getting user record!\t". json_encode($_dv);
             }
         }
     }
 
 
-    public function debugMobileIntegrity()
-    {
+    public function debugMobileIntegrity() {
         $_records = $this->scan(TS_MOBILE, [USER_MOBILE_NUMBER, USER_UID]);
         echo count($_records), " ", TS_MOBILE, " records", "\n";
         $no_user_err=0;
         $sys_err=0;
-        foreach ($_records as $_rec)
-        {
-            if (($_u=$this->fetchUser($_rec[USER_UID]))!==FALSE)
-            {
-                if (empty($_u))
-                {
+        foreach ($_records as $_rec) {
+            if (($_u=$this->fetchUser($_rec[USER_UID]))!==FALSE) {
+                if (empty($_u)) {
                     $no_user_err++;
                     echo __FUNCTION__, "\tNot found user record!\t". json_encode($_rec), "\n";
                     //$mk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, "{$_rec[USER_UID]}-{$_rec[USER_MOBILE_NUMBER]}");
                     //$this->getConnection()->remove($mk);
                 }              
             }
-            else
-            {
+            else {
                 $sys_err++;
                 echo __FUNCTION__, "\tError getting user record!\t". json_encode($_rec);
             }
@@ -732,8 +618,7 @@ trait UserTrait
     }
 
     
-    public function debugUniqueUserIntegrity()
-    {
+    public function debugUniqueUserIntegrity() {
         $no_user_err=0;
         $sys_err=0;
 /*        
@@ -756,33 +641,27 @@ trait UserTrait
         */
         $_records = $this->scan(TS_USER, [USER_PROVIDER_ID, USER_PROVIDER, USER_PROFILE_ID]);
         echo count($_records), " ", TS_USER, " records", "\n";
-        foreach ($_records as $_rec)
-        {
+        foreach ($_records as $_rec) {
             $pk = $this->asUserUniqueKey($_rec[USER_PROVIDER_ID], $_rec[USER_PROVIDER]);
-            if (!$this->exists($pk))
-            {
+            if (!$this->exists($pk)) {
                 $no_user_err++;
                 echo __FUNCTION__, "\tUnique Key Not found user for record!\t". json_encode($_rec), "\n";             
             }
         }
-        echo "\nUsers not found: ", $no_user_err, "\n";
-        
+        echo "\nUsers not found: ", $no_user_err, "\n";        
     }
     
     
-    public function build()
-    {        
+    public function build() {        
         $_records = $this->scan(TS_USER, []);
         echo count($_records), " ", TS_USER, " records", "\n";
-        foreach ($_records as $_rec)
-        {
+        foreach ($_records as $_rec) {
             //$this->addProfile($_rec, $_rec[USER_PROFILE_ID]);            
         }        
     }
 
 
-    public function genDistributedUID()
-    {
+    public function genDistributedUID() {
         $millis = round(microtime(true) * 1000)-1483228800000;
 
         $server=get_cfg_var('mourjan.server_id');

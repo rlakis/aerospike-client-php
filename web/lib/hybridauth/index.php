@@ -8,22 +8,18 @@
 // ------------------------------------------------------------------------
 //	HybridAuth End Point
 // ------------------------------------------------------------------------
-require get_cfg_var('mourjan.path'). '/deps/autoload.php';
 use mourjan\Hybrid;
 use mourjan\EndPoint;
 use mourjan\Exception;
 use mourjan\Logger;
 
+require get_cfg_var('mourjan.path'). '/deps/autoload.php';
 include_once get_cfg_var('mourjan.path'). '/core/lib/MCSessionHandler.php';
 new \MCSessionHandler(TRUE);
-//session_set_save_handler($handler, true);
-//session_start();
 
-try
-{
+try {
     Hybrid_Endpoint::process();
 }
-catch (Exception $e)
-{
+catch (Exception $e) {
     error_log($e->getMessage());
 }

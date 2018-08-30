@@ -520,54 +520,43 @@ class Bin extends AjaxHandler{
                 break;
                 
             case 'ajax-mobile':
-                if($this->user->info['id'] && $this->user->info['level']!=5)
-                {
+                if($this->user->info['id'] && $this->user->info['level']!=5) {
                     //include_once $this->urlRouter->cfg['dir'].'/core/lib/MourjanNexmo.php';
                     $keyCode=0;
                     $lang=filter_input(INPUT_POST, 'hl');
-                    if(!in_array($lang, ['en','ar']))
-                    {
+                    if(!in_array($lang, ['en','ar'])) {
                         $lang='en';
                     }
                     
                     $number = filter_input(INPUT_POST, 'tel');
                     $validateByCall = filter_input(INPUT_POST, 'vc');
                     $keyCode = filter_input(INPUT_POST, 'code');
-                    if (!is_numeric($keyCode))
-                    {
+                    if (!is_numeric($keyCode)) {
                         $keyCode=0;
                     }
                                         
-                    if($number)
-                    { 
+                    if($number) { 
                         $validator = libphonenumber\PhoneNumberUtil::getInstance();
                         $num = $validator->parse($number, 'LB');
                         $numberType = $validator->getNumberType($num);
                         $numberValid = $num && $validator->isValidNumber($num) && 
                                 ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE);
                         
-                        if($keyCode)
-                        {                                                                                   
+                        if($keyCode) {                                                                                   
                             $this->setData(0,'verified');
-                            if($numberValid)
-                            {
-                                if(substr($number,0,1)=='+')
-                                {
+                            if($numberValid) {
+                                if(substr($number,0,1)=='+') {
                                     $number = substr($number,1);
                                 }
                                         
                                 $mrs = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number);
-                                if ($mrs!==FALSE)
-                                {
+                                if ($mrs!==FALSE) {
                                     $response = MobileValidation::getInstance()->verifyEdigearPin($mrs[Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);
                             
-                                    if (isset($response['status']) && $response['status']==200 && isset($response['response']))
-                                    {
-                                        if ($response['response']['validated'])
-                                        {
+                                    if (isset($response['status']) && $response['status']==200 && isset($response['response'])) {
+                                        if ($response['response']['validated']) {
                                             $activated = NoSQL::getInstance()->mobileActivationByRequestId($this->user->info['id'], $number, $keyCode, $mrs[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
-                                            if($activated)
-                                            {
+                                            if($activated) {
                                                 $this->setData(1,'verified');
                                                 $this->user()->info['verified']=true;
                                                 unset($this->user->pending['mobile']);
@@ -580,37 +569,34 @@ class Bin extends AjaxHandler{
                                 }                                
                             }                                      
                         } // end of KeyCode is positive
-                        else
-                        {                                                                                    
-                            if($numberValid)
-                            {                                    
-                                if(substr($number,0,1)=='+')
-                                {
+                        else {                                                                                    
+                            if($numberValid) {                                    
+                                if(substr($number,0,1)=='+') {
                                     $number = substr($number,1);
                                 }
                                     
-                                if(NoSQL::getInstance()->isBlacklistedContacts([strval($number)]))
-                                {
+                                if(NoSQL::getInstance()->isBlacklistedContacts([strval($number)])) {
                                     $this->fail('403');
                                 }
-                                else
-                                {
+                                else {
                                     /*check if number is suspended*/
                                     $time = MCSessionHandler::checkSuspendedMobile($number);
-                                    if($time)
-                                    {
+                                    if($time) {
                                         $hours = $time / 3600;
                                         if(ceil($hours)>1){
                                             $hours = ceil($hours);
                                             if($lang=='ar'){
                                                 if($hours==2){
                                                     $hours='ساعتين';
-                                                }elseif($hours>2 && $hours<11){
+                                                }
+                                                elseif($hours>2 && $hours<11){
                                                     $hours=$hours.' ساعات';
-                                                }else{
+                                                }
+                                                else{
                                                     $hours = $hours.' ساعة';
                                                 }
-                                            }else{
+                                            }
+                                            else{
                                                 $hours = $hours.' hours';
                                             }
                                         }else{
@@ -618,17 +604,21 @@ class Bin extends AjaxHandler{
                                             if($lang=='ar'){
                                                 if($hours==1){
                                                     $hours='دقيقة';
-                                                }elseif($hours==2){
+                                                }
+                                                elseif($hours==2){
                                                     $hours='دقيقتين';
-                                                }elseif($hours>2 && $hours<11){
+                                                }
+                                                elseif($hours>2 && $hours<11){
                                                     $hours=$hours.' دقائق';
-                                                }else{
+                                                }
+                                                else{
                                                     $hours = $hours.' دقيقة';
                                                 }
                                             }else{
                                                 if($hours>1){                                
                                                     $hours = $hours.' minutes';
-                                                }else{                                
+                                                }
+                                                else{                                
                                                     $hours = $hours.' minute';
                                                 }
                                             }
@@ -642,92 +632,75 @@ class Bin extends AjaxHandler{
                                 $keyCode = 0;
 
                                 $mrs = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number);
-                                if ($mrs!==FALSE)
-                                {                                                                               
-                                    if (!$validateByCall && $mrs)
-                                    {
+                                if ($mrs!==FALSE) {                                                                               
+                                    if (!$validateByCall && $mrs) {
                                         $mcMobile = new MCMobile($mrs);
                                                                                 
                                         $expiredDelivery = $mcMobile->getActicationUnixtime()==0 && (time()-$mcMobile->getRquestedUnixtime())>86400 && $mcMobile->getSentSMSCount()<3;
                                         $expiredValidity = $mcMobile->getActicationUnixtime() && ($mcMobile->getActicationUnixtime()+31536000)>time();
                                         $stillValid = $mcMobile->isVerified();
-
                                         
-                                        if ($expiredDelivery)
-                                        {
-                                            if (NoSQL::getInstance()->mobileUpdate($this->user->info['id'], $number, [\Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()]))
-                                            {
+                                        if ($expiredDelivery) {
+                                            if (NoSQL::getInstance()->mobileUpdate($this->user->info['id'], $number, [\Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()])) {
                                                 $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
                                                 $keyCode = $mrs[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
                                             } 
-                                            else
-                                            {
+                                            else {
                                                 $keyCode=0;
                                                 $number=0;
                                             }
                                         }
-                                        else if ($expiredValidity)
-                                        {
+                                        else if ($expiredValidity) {
                                             $keyCode=mt_rand(1000, 9999);
                                             if (NoSQL::getInstance()->mobileUpdate($this->user->info['id'], $number, 
                                                     [\Core\Model\ASD\USER_MOBILE_REQUEST_TYPE => 0,  \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $keyCode, \Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()]))
                                             {
                                                 $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
                                             } 
-                                            else
-                                            {
+                                            else {
                                                 $keyCode=0;
                                                 $number=0;
                                             }
                                         }
-                                        else if ($stillValid)
-                                        {
+                                        else if ($stillValid) {
                                             $this->setData(1,'verified');
                                             $number = 0;
                                             $keyCode = 0;
                                         }
-                                        else 
-                                        {
-                                            if ($mcMobile->isSMS())
-                                            {
+                                        else {
+                                            if ($mcMobile->isSMS()) {
                                                 $keyCode = $mrs[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
                                                 $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
                                             }
-                                            else 
-                                            {
+                                            else {
                                                 $keyCode=mt_rand(1000, 9999);
                                                 if (NoSQL::getInstance()->mobileUpdate($this->user->info['id'], $number, 
                                                         [\Core\Model\ASD\USER_MOBILE_REQUEST_TYPE => 0,  \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $keyCode, \Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()]))
                                                 {
                                                     $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
                                                 } 
-                                                else
-                                                {
+                                                else {
                                                     $keyCode=0;
                                                     $number=0;
                                                 }                                                
                                             }
                                         }                                                                                
                                     } // end of SMS block
-                                    else
-                                    {
+                                    else {
                                         // Record not found
                                         $keyCode=mt_rand(1000, 9999);
-                                        if($validateByCall)
-                                        {   
+                                        if($validateByCall) {   
                                             if(isset($this->user->pending['mobile_call']) && isset($this->user->pending['mobile_call_stamp']) && (time()-$this->user->pending['mobile_call_stamp']<=120))
                                             {
                                                 $keyCode = $this->user->pending['mobile_call'];
                                             }
-                                            else
-                                            {
+                                            else {
                                                 $ret = MobileValidation::getInstance()->
                                                         setUID($this->user->info['id'])->
                                                         setPlatform(MobileValidation::WEB)->
                                                         requestReverseCLI($number, $response);
                                                     
-                                                if ($ret==MobileValidation::RESULT_ERR_ALREADY_ACTIVE)
-                                                {
+                                                if ($ret==MobileValidation::RESULT_ERR_ALREADY_ACTIVE) {
                                                     $this->setData(1,'verified');
                                                     $number = 0;
                                                     $keyCode = 0;
@@ -737,51 +710,43 @@ class Bin extends AjaxHandler{
                                                     $keyCode=0;
                                                     $number=0;
                                                 }
-                                                else
-                                                {
+                                                else {
                                                     $keyCode=$response['response']['cli_prefix'];
                                                     $this->user->pending['mobile_call_stamp']=time();
                                                 }
                                             }
                                         }
-                                        else
-                                        {
+                                        else {
                                             if (NoSQL::getInstance()->mobileInsert([
                                                         \Core\Model\ASD\USER_UID=> $this->user->info['id'],
                                                         \Core\Model\ASD\USER_MOBILE_NUMBER=> $number,
                                                         \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>$keyCode,
                                                         \Core\Model\ASD\USER_MOBILE_FLAG=>1,
                                                         \Core\Model\ASD\USER_MOBILE_REQUEST_TYPE=>0
-                                                        ]))
-                                            {
+                                                        ])) {
                                                 $mrs = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number);
-                                                if ($mrs)
-                                                {
+                                                if ($mrs) {
                                                     $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
                                                 } 
-                                                else
-                                                {
+                                                else {
                                                     $keyCode=0;
                                                     $number=0;
                                                 }
                                             } 
-                                            else
-                                            {
+                                            else {
                                                 $keyCode=0;
                                                 $number=0;
                                             }
                                         }
                                     }
                                 }
-                                else
-                                {
+                                else {
                                     $keyCode=0;
                                     $number=0;
                                 }
                                     
                                 
-                                if ($sendSms && $number && $keyCode)
-                                {
+                                if ($sendSms && $number && $keyCode) {
                                     if ( ($returnie = MobileValidation::getInstance()->
                                                 setPlatform(MobileValidation::WEB)->
                                                 setUID($this->user->info['id'])->
@@ -790,30 +755,26 @@ class Bin extends AjaxHandler{
                                     {
                                         $keyCode=0;
                                         $number=0;
-                                        error_log($returnie);
+                                        //error_log($returnie);
                                     }                                      
                                 }
                                     
                                 $this->setData($number,'number');
-                                if($number)
-                                {
+                                if ($number) {
                                     $this->user->pending['mobile']=$number;
-                                    if($validateByCall)
-                                    {
+                                    if($validateByCall) {
                                         if($keyCode && !preg_match('/XXXX/',$keyCode)){
                                             $keyCode=$keyCode.' xxx <u>XXXX</u>';  
                                         }               
                                         $this->user->pending['mobile_call']=$keyCode;
                                         $this->setData($keyCode,'pre');
                                     }
-                                    else
-                                    {
+                                    else {
                                         unset($this->user->pending['mobile_call']);
                                         unset($this->user->pending['mobile_call_stamp']);
                                     }
                                 }
-                                else
-                                {
+                                else {
                                     unset($this->user->pending['mobile']);
                                     unset($this->user->pending['mobile_call']);
                                     unset($this->user->pending['mobile_call_stamp']);
@@ -821,15 +782,13 @@ class Bin extends AjaxHandler{
                                 $this->user->update();
                                 
                             }
-                            else
-                            {
+                            else {
                                 $this->setData(0,'check');
                             } 
                         }
                         
                     }
-                    else
-                    {
+                    else {
                         unset($this->user->pending['mobile']);
                         $this->user->update();
                     } 
@@ -1261,9 +1220,9 @@ class Bin extends AjaxHandler{
                     $this->fail(101);
                 }
                 break;
+                
             case 'ajax-stat':
-                if ($this->urlRouter->cfg['server_id']<=0 || $this->urlRouter->cfg['server_id']>=99)
-                {
+                if ($this->urlRouter->cfg['server_id']<=0 || $this->urlRouter->cfg['server_id']>=99) {
                     return;
                 }
                 
@@ -1271,6 +1230,7 @@ class Bin extends AjaxHandler{
                     //error_log(PHP_EOL.'BOT: ' .$_SERVER['HTTP_USER_AGENT'].PHP_EOL);
                     return;
                 }
+                
                 $req=NULL;  
                 $stat_servers = $this->urlRouter->db->getCache()->get("sphinx_servers");
                 //error_log(json_encode($stat_servers));
@@ -1300,18 +1260,20 @@ class Bin extends AjaxHandler{
                         $redis->setOption(Redis::OPT_PREFIX, $stat_server['prefix']);
                         $redis->select($stat_server['index']);
                         
-                    } catch (RedisException $e) {
+                    } 
+                    catch (RedisException $e) {
                         $ok=0;
                     }
                     $countryCode = '';
                     $referer = ''; 
                     
-                    if (is_array($req) && count($req)) {
-                        if(isset($_POST['app'])){
+                    if (!empty($req)) {
+                        if (isset($_POST['app'])){
                             $referer = 'mourjan-app'; 
                             $countryCode = (isset($_POST['code']) && strlen($_POST['code']) == 2) ? strtoupper(trim($_POST['code'])) : '';
-                        }else{
-                            if(isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER'] && strpos($_SERVER['HTTP_REFERER'], 'mourjan')){
+                        }
+                        else {
+                            if (isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER'] && strpos($_SERVER['HTTP_REFERER'], 'mourjan')) {
                                 $referer = substr($_SERVER['HTTP_REFERER'],0,256);
                             }
                             //require_once $this->urlRouter->cfg['dir'].'/core/model/Sdb.php';
@@ -1324,9 +1286,7 @@ class Bin extends AjaxHandler{
                             }
                             $countryCode = strtoupper(trim($this->user->params['user_country']));
                             if(strlen($countryCode)!=2)$countryCode='';
-                        }
-                        
-                     
+                        }                                             
                        
                         $result=NULL;
                         $batch='';
@@ -1410,8 +1370,9 @@ class Bin extends AjaxHandler{
                     }
                     
                 }
+                
                 $this->process();
-                if(isset($_POST['l']) && $_POST['l']){
+                if (isset($_POST['l']) && $_POST['l']) {
                     $req = (is_array($_POST['l']) ? $_POST['l'] : json_decode($_POST['l'],true));
                     if($req && is_array($req)){
                         if( 
@@ -1420,9 +1381,9 @@ class Bin extends AjaxHandler{
                                 isset($req['se']) && is_numeric($req['se']) && $req['se'] && 
                                 isset($req['pu']) && is_numeric($req['pu'])  
                                 ){
-                            if (isset($this->user->params['last'])){
+                            if (isset($this->user->params['last'])) {
                                 $last = $this->user->params['last'];
-                                if ($last['cn'] == $req['cn'] && $last['c'] == $req['c'] && $last['se'] != $req['se']){
+                                if ($last['cn'] == $req['cn'] && $last['c'] == $req['c'] && $last['se'] != $req['se']) {
                                     error_log(sprintf("%d\t%d\t%d\t%d\t%d\t%d\t%s", $req['se'], $last['se'], $req['cn'], $req['c'], $req['pu'], $last['pu'], date("Y-m-d H:i:s")).PHP_EOL, 3, "/var/log/mourjan/s-follow.log");
                                     /*
                                     $q='update or insert into section_follow
@@ -1442,7 +1403,8 @@ class Bin extends AjaxHandler{
                                     $this->user->params['last']=$req;
                                     $this->user->update();
                                 }
-                            }else {
+                            }
+                            else {
                                 $this->user->params['last']=$req;
                                 $this->user->update();
                             }
@@ -1450,6 +1412,7 @@ class Bin extends AjaxHandler{
                     }
                 }
                 break;
+                
             case 'ajax-ga':
                 $uid=$this->post('u', 'uint');
                 $archive = $this->post('x', 'boolean');

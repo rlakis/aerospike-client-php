@@ -1154,32 +1154,27 @@ class User
     }
 
             
-    function hideAd($id)
-    {
+    function hideAd($id) {
         $res=false;
         $res=$this->db->get('update ad_user set state=8 where id=? and web_user_id=? and state=9 returning id, content, state', [$id, $this->info['id']], true);
-        if($res) 
-        {
+        if($res) {
             $this->update();
         }
         return $res;
     }
 
     
-    function approveAd($id)
-    {
+    function approveAd($id) {
         $result=false;
         $res=$this->db->get('update ad_user set state=2, admin_id=?, admin_stamp=current_timestamp where id=? returning state', [$this->info['id'], $id],true);
-        if (!empty($res)) 
-        {
+        if (!empty($res)) {
             $result=true;
         }
         return $result;
     }
     
     
-    function referrToSuperAdmin($id, $adminId = 999)
-    {
+    function referrToSuperAdmin($id, $adminId = 999) {
         //999 - system general
         //998 - email contains + sign
         //997 - email contains hotel word
@@ -1187,53 +1182,44 @@ class User
         //995 - user number is from other country
         $result=false;
         $res=$this->db->get('update ad_object set super_admin=? where id=?', [$adminId, $id], true);
-        if ($res!==false) 
-        {
+        if ($res!==false) {
             $result=true;
         }
         return $result;
     }
 
     
-    function holdAd($id)
-    {
+    function holdAd($id) {
         $result=false;
-        if ($this->info['level']==9)
-        {
+        if ($this->info['level']==9) {
             $res=$this->db->get('update ad set hold=1 where id=? and hold=0 returning id', [$id], true);
         }
-        else 
-        {
-            $res=$this->db->get('update ad set hold=1 where id=? and hold=0 and exists(select 1 from ad_user where id=ad.id and web_user_id=?) returning id', [$id, $this->info['id']], true);
+        else {
+            $res=$this->db->get('update ad set hold=1 where id=? and hold=0 and exists( select 1 from ad_user where id=ad.id and web_user_id=?) returning id', [$id, $this->info['id']], true);
         }
         
-        if (!empty($res)) 
-        {
+        if (!empty($res)) {
             $result=true;
         }
         return $result;
     }
 
     
-    function rejectAd($id, $msg='', $warn=0)
-    {
+    function rejectAd($id, $msg='', $warn=0) {
         $result=false;
         $ad=$this->getPendingAds($id);
-        if (!empty($ad))
-        {
+        if (!empty($ad)) {
             $ad=$ad[0];
             $adContent=json_decode($ad['CONTENT'],true);
             $lang='en';
             if ($ad['RTL']) $lang='ar';
             $loadedLang=false;
-            if (preg_match('/(?:http|https):\/\/www\.mourjan\.com\//u', $msg))
-            {
+            if (preg_match('/(?:http|https):\/\/www\.mourjan\.com\//u', $msg)) {
                 $loadedLang=true;
                 $this->site->load_lang(array('ad_notices'), $lang);
                 $msg=preg_replace('/{link}/u', $msg, $this->site->lang['dup']);
             }
-            if ($warn) 
-            {
+            if ($warn) {
                 if (!$loadedLang) $this->site->load_lang(array('ad_notices'), $lang);
                 $msg.=$this->site->lang['warn'];
             }
@@ -1242,11 +1228,9 @@ class User
             $res=$this->db->get(
                     'update ad_user set state=3, admin_id=?, admin_stamp=current_timestamp, content=? where id=? returning state',
                     [$this->info['id'], $adContent, $id], true);
-            if (!empty($res)) 
-            {
+            if (!empty($res)) {
                 $result=true;
-                if ($warn) 
-                {
+                if ($warn) {
                     if(!$this->setLevel($warn, 4)) $result=false;
                 }
             }
@@ -1256,8 +1240,7 @@ class User
     }
 
     
-    function renewAd($id, $state=1)
-    {
+    function renewAd($id, $state=1) {
         $result=false;
         $ad=$this->getPendingAds($id);
         
@@ -1315,34 +1298,29 @@ class User
                 if ($normalized)                    
                 {
                     $content = $normalized;
-                    if ($content['se']!=$sectionId)
-                    {
+                    if ($content['se']!=$sectionId) {
                         $sectionId=$content['se'];
                     }
-                    if ($content['pu']=$purposeId)
-                    {
+                    if ($content['pu']=$purposeId) {
                         $purposeId=$content['pu'];
                     }
                 }                
                 
                 $content = json_encode($content);
                 
-                if($this->info['level']==9)
-                {
+                if($this->info['level']==9) {
                     $res=$this->db->get(
                             'update ad_user set content=?, section_id=?, purpose_id=?, state = '.$state.', date_added=current_timestamp where id=? returning id',
                             [$content, $sectionId, $purposeId, $id], true);
                 }
-                else
-                {
+                else {
                     $res=$this->db->get(
                             'update ad_user set content=?, section_id=?, purpose_id=?, state='.$state.', date_added=current_timestamp where id=? and web_user_id=? returning id',
                             [$content, $sectionId, $purposeId, $id,$this->info['id']], true);
                 }
                 
             }
-            else
-            {
+            else {
                 // new ad version
                 $content = json_decode($ad['CONTENT'], true);                
                 
@@ -1353,37 +1331,28 @@ class User
                 $content['state']=$state;
                 $normalized = $normalizer->getFromContentObject($content);
                 
-                if ($normalized)
-                {
-                    
-                    if($this->info['level']==9)
-                    {
+                if ($normalized) {                    
+                    if($this->info['level']==9) {
                         $res=$this->db->get("update ad_user set state={$state}, content=?, date_added=current_timestamp where id=? returning id", [json_encode($normalized), $id], true);
                     }
-                    else
-                    {
+                    else {
                         $res=$this->db->get("update ad_user set state={$state}, content=?, date_added=current_timestamp where id=? and web_user_id=? returning id", [json_encode($normalized), $id, $this->info['id']], true);
                     }                    
                 }
-                else
-                {
-                    if($this->info['level']==9)
-                    {
+                else {
+                    if($this->info['level']==9) {
                         $res=$this->db->get('update ad_user set state='.$state.', date_added=current_timestamp where id=? returning id', [$id], true);
                     }
-                    else
-                    {
+                    else {
                         $res=$this->db->get('update ad_user set state='.$state.', date_added=current_timestamp where id=? and web_user_id=? returning id', [$id, $this->info['id']], true);
                     }
                 }
 
             }
             
-            if (!empty ($res)) 
-            {
+            if (!empty ($res)) {
                 $result = $res;
-                if ($normalized)
-                {
+                if ($normalized) {
                     $this->db->get("update or insert into ad_object (id, attributes) values (?, ?)", 
                             [$id, preg_replace('/\s+/', ' ', json_encode($normalized['attrs'], JSON_UNESCAPED_UNICODE))], TRUE);
                 }                
@@ -1394,31 +1363,25 @@ class User
     }
 
     
-    function deletePendingAd($id,$hide=false)
-    {
+    function deletePendingAd($id,$hide=false) {
         $result=false;
-        if($hide)
-        {
+        if($hide) {
             $res=$this->hideAd($id);
         }
-        else
-        {
-            if ($this->info['level']==9)
-            {
+        else {
+            if ($this->info['level']==9) {
                 $res=$this->db->get(
                         'update ad_user set state=6, admin_id=?, admin_stamp=current_timestamp where id=? returning id, content, state',
                         [$this->info['id'], $id], true);
             }
-            else 
-            {
+            else {
                 $res=$this->db->get(
                         'update ad_user set state=6 where id=? and web_user_id=? returning id, content, state',
                         [$id, $this->info['id']], true);
             }
         }
         
-        if ($res!==false && !empty($res)) 
-        {
+        if ($res!==false && !empty($res)) {
             $state=$res[0]['STATE'];
             $this->update();
             $result=true;
@@ -1672,18 +1635,15 @@ class User
     }
 
     
-    private function writeAdModification(int $publish, int $media, int &$id, int $uid, $attrs, string $q)
-    {
+    private function writeAdModification(int $publish, int $media, int &$id, int $uid, $attrs, string $q) {
         $iteration = 0;
         $result = null;
         $saved=FALSE;
         
-        do
-        {
+        do {
             $iteration++;
             $msg="";
-            try
-            {
+            try {
                 $adContent = json_decode($this->pending['post']['content'],true);
                 $rawOther = isset($adContent['rawOther']) ? $adContent['rawOther'] : null;
                 $rawAltOther = isset($adContent['rawAltOther']) ? $adContent['rawAltOther'] : null;
@@ -1712,59 +1672,54 @@ class User
                 }
                 $this->pending['post']['content'] = json_encode($adContent);
 
-                if ($this->info['level']!=9)
-                {
+                if ($this->info['level']!=9) {
                     $stmt->bindValue(13, $uid, PDO::PARAM_INT);
                 }                        
 
-                if ($this->db->executeStatement($stmt)) 
-                {
-                    if (($result=$stmt->fetch(PDO::FETCH_ASSOC))!==FALSE)
-                    {                            
-                        if ($attrs)
-                        {                                            
+                if ($this->db->executeStatement($stmt)) {
+                    if (($result=$stmt->fetch(PDO::FETCH_ASSOC))!==FALSE) {                            
+                        if ($attrs) {                                            
                             $st=$this->db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
                             $st->bindValue(1, $id, PDO::PARAM_INT);
                             $st->bindValue(2, preg_replace('/\s+/', ' ', json_encode($attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
                             $st->execute();  
                             $this->db->executeStatement($st);
+                            unset($st);
                         }                        
                         $this->db->commit();
                         $saved=TRUE;
                     }
                 }
+                unset($stmt);
             }
-            catch (\PDOException $e)
-            {
+            catch (\PDOException $e) {
+                if (isset($stmt)) { unset($stmt); }
                 $saved = FALSE;
                 $msg=$e->getMessage();
                 $this->db->rollBack();
                 
-                if (preg_match('/deadlock update conflicts with concurrent update/', $msg))
-                {                    
+                if (preg_match('/deadlock update conflicts with concurrent update/', $msg)) {                    
                     usleep(500);                    
                 }
-                else
-                {
+                else {
                     $iteration=100;
                 }
             }
         } while ($saved===FALSE && $iteration<4);
         
-        if (!$saved)
-        {
+        if (isset($stmt)) { unset($stmt); }
+        if (!$saved) {
             $id=0;
             $this->db->rollBack();
             NoSQL::Log([$id, $msg]);
         }
-        else
-        if ($iteration>1)
-        {
+        else if ($iteration>1) {
             NoSQL::Log(['alert'=>"Ad {$id} is saved at iteration {$iteration}"]);
         }
        
         return $result;
     }
+    
     
     function saveRawAdContent($ad){
         $succeed=false;
@@ -1781,15 +1736,12 @@ class User
         return $succeed;
     }
     
-    function saveAd($publish=0, $user_id=0)
-    {
+    function saveAd($publish=0, $user_id=0) {
         $id=0;
-        if($user_id)
-        {
-            $userId=$user_id;
+        if($user_id) { 
+            $userId=$user_id;             
         }
-        else
-        {
+        else {
             $userId=isset($this->pending['post']['user']) && $this->pending['post']['user'] ? $this->pending['post']['user'] : 0;
         }
         
@@ -1797,11 +1749,8 @@ class User
         
         $ad_is_saved=FALSE;
         
-        try
-        {
-
-            if ($userId) 
-            {
+        try {
+            if ($userId) {
                 include_once $this->cfg['dir'] . '/core/lib/MCSaveHandler.php';
                 
                 $normalizer = new MCSaveHandler($this->cfg);
@@ -1810,17 +1759,14 @@ class User
                 $content['state']=$publish;
                 $normalized = $normalizer->getFromContentObject($content);
 
-                if ($normalized)                    
-                {
+                if ($normalized) {
                     $content = $normalized;
                     
-                    if ($content['se']!=$this->pending['post']['se'])
-                    {
+                    if ($content['se']!=$this->pending['post']['se']) {
                         $this->pending['post']['se']=$content['se'];
                     }
                     
-                    if ($content['pu']=$this->pending['post']['pu'])
-                    {
+                    if ($content['pu']=$this->pending['post']['pu']) {
                         $this->pending['post']['pu']=$content['pu'];
                     }
                 }
@@ -1830,22 +1776,17 @@ class User
                 $hasVideo=(isset($content['video']) && is_array($content['video']) && count($content['video'])) ?  1 : 0;
                 $hasPics=(isset($content['pics']) && is_array($content['pics']) && count($content['pics'])) ?  1 : 0;
                 $media=0;
-                if ($hasVideo && $hasPics)
-                {
+                if ($hasVideo && $hasPics) {
                     $media=3;
                 }
-                elseif($hasVideo)
-                {
+                elseif($hasVideo) {
                     $media=2;
                 }
-                elseif($hasPics)
-                {
+                elseif($hasPics) {
                     $media=1;
                 }
                 //error_log('ADSAVE>>>'.$this->info['id'].'<<<>>>'.PHP_EOL.$this->pending['post']['content'].PHP_EOL.'<<<'.PHP_EOL.PHP_EOL);
-                if (isset ($this->pending['post']['id']) && $this->pending['post']['id']) 
-                {
-
+                if (isset ($this->pending['post']['id']) && $this->pending['post']['id']) {
                     $id=$this->pending['post']['id'];
                     
                     $attrs = isset($content['attrs']) ? $content['attrs'] : NULL;
@@ -1853,45 +1794,36 @@ class User
                     $q='update ad_user set
                         content=?, title=?, purpose_id=?, section_id=?, rtl=?,
                         country_id=?, city_id=?, latitude=?, longitude=?, state=?, media=? ';
-                    if ($this->info['id']==$userId && ($publish==1||$publish==4))
-                    {
+                    if ($this->info['id']==$userId && ($publish==1||$publish==4)) {
                         $q.=', date_added=current_timestamp ';
                     }
                     $q.='where id=? ';
-                    if ($this->info['level']!=9) 
-                    {
+                    if ($this->info['level']!=9) {
                         $q.='and web_user_id+0=? ';
                     }
                     $q.='returning state, web_user_id';
-                    
-                    
+                                        
                     $tries=0;
                     $result=null;
                     
-                    if ($this->pending['post']['se']>0) 
-                    {
+                    if ($this->pending['post']['se']>0) {
                         $result = $this->writeAdModification($publish, $media, $id, $userId, $attrs, $q);
                     }
                     
                     
-                    if (!empty($result))
-                    {
+                    if (!empty($result)) {
                         $state=(int)$result['STATE'];
                     
-                        if ($this->pending['post']['state']!=$state) 
-                        {
+                        if ($this->pending['post']['state']!=$state) {
                             $this->pending['post']['state']=$state;
                             $updateOptions=false;
                         
-                            if ($state==1 || $state==2)
-                            {
+                            if ($state==1 || $state==2) {
                                 $uId = (int)$result['WEB_USER_ID'];
                                 $content = json_decode($this->pending['post']['content'],true);
                             
-                                if(isset($content['version']) && $content['version']==2)
-                                {
-                                    if ($this->info['id']==$uId) 
-                                    {
+                                if(isset($content['version']) && $content['version']==2) {
+                                    if ($this->info['id']==$uId) {
                                         $options=$this->info['options'];
                                         if ( (!isset($options['cut']) || json_encode($options['cut']) !=  json_encode($content['cut'])) ||
                                               (!isset($options['cui']) || json_encode($options['cui']) !=  json_encode($content['cui']))  )
@@ -1904,13 +1836,9 @@ class User
                                             $updateOptions=true;
                                         }
                                     }
-                                    else 
-                                    { 
+                                    else { 
                                         $options = NoSQL::getInstance()->getOptions($uId);// $this->getOptions($uId);
-                                        if ($options!==false) 
-                                        {
-                                            //if ($options) $options = json_decode($options, true);
-                                            //else $options=array();
+                                        if ($options!==false) {
                                             if ( (!isset($options['cut']) || json_encode($options['cut']) !=  json_encode($content['cut'])) ||
                                               (!isset($options['cui']) || json_encode($options['cui']) !=  json_encode($content['cui']))  ){
                                                 $options['cut']=$content['cut'];
@@ -1923,13 +1851,10 @@ class User
                                         }
                                     }
                                 }
-                                else 
-                                {
-                                    if ($this->info['id']==$uId) 
-                                    {
+                                else {
+                                    if ($this->info['id']==$uId) {
                                         $options=$this->info['options'];
-                                        if (!isset($options['contact']))
-                                        {
+                                        if (!isset($options['contact'])) {
                                             $options['contact']=array();
                                         }
                                         $options['contact']['ct']=$content['fields']['ct'];
@@ -1945,15 +1870,10 @@ class User
                                         $this->info['options']=$options;
                                         $updateOptions=true;
                                     }
-                                    else 
-                                    {                            
+                                    else {                            
                                         $options = NoSQL::getInstance()->getOptions($uId);//$this->getOptions($uId);
-                                        if ($options!==false) 
-                                        {
-                                            //if ($options) $options = json_decode ($options, true);
-                                            //else $options=array();
-                                            if (!isset($options['contact']))
-                                            {
+                                        if ($options!==false) {
+                                            if (!isset($options['contact'])) {
                                                 $options['contact']=array();
                                             }
                                             $options['contact']['ct']=$content['fields']['ct'];
@@ -1974,15 +1894,13 @@ class User
                             
                             $this->update();
                             
-                            if ($updateOptions) 
-                            {
+                            if ($updateOptions) {
                                 $this->updateOptions();
                             }
                         }
                     }
                 } 
-                else 
-                {
+                else {
                     if ($this->pending['post']['se']>0) {
                         
                         $adContent = json_decode($this->pending['post']['content'],true);
@@ -1991,9 +1909,7 @@ class User
                         unset($adContent['rawOther']);
                         unset($adContent['rawAltOther']);
                         
-                    	$q='insert into ad_user
-                        	(web_user_id, content, title, purpose_id, section_id, rtl, country_id, city_id, latitude, longitude, media)
-                        	values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) returning id';
+                    	$q='insert into ad_user (web_user_id,content, title, purpose_id, section_id, rtl, country_id, city_id, latitude, longitude, media) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) returning id';
                         
                     	$stmt=$this->db->prepareQuery($q);
                     	$stmt->bindValue(1, $userId);
@@ -2009,10 +1925,10 @@ class User
                     	$stmt->bindValue(11, $media, PDO::PARAM_INT);
                     	$result=null;
                         
-                        if($rawOther != null){
+                        if ($rawOther!=null) {
                             $adContent['rawOther'] = $rawOther;
                         }                
-                        if($rawAltOther != null){
+                        if ($rawAltOther!=null) {
                             $adContent['rawAltOther'] = $rawAltOther;
                         }
                         $this->pending['post']['content'] = json_encode($adContent);
@@ -2022,15 +1938,16 @@ class User
                             if (($result=$stmt->fetch(PDO::FETCH_ASSOC))!==FALSE) {
                                 $this->pending['post']['id']=$id=$result['ID'];
                                 $this->update();
-                            }
-                            $stmt->closeCursor();
+                            }         
+                            unset($stmt);
                             $this->db->commit();
                             $ad_is_saved = true;
                         }
                         else {
-                            $stmt->closeCursor();
+                            unset($stmt);
                             $this->db->rollBack();
-                        }                                            	
+                        }
+                        
                     }
                 }      
 
@@ -2038,22 +1955,22 @@ class User
             else {
                 NoSQL::Log("Saving ad with user id 000000!!!!!");
             }
-            
-
         }
-        catch(Exception $e) {        
+        catch(Exception $e) {
+            if (isset($stmt)) { unset($stmt); }
             $ex_msg = $e->getMessage();
             $this->db->rollBack(); 
             $id=0;
         }
-        
-        if ($id==0) {
+                
+        if ($id==0) {            
             $_obj = $this->pending['post']??'';
             if ($_obj && isset($_obj['content'])) {
                 $_obj['content'] = json_decode($_obj['content']);
             }
             NoSQL::Log(['Error'=>"Failed to save ad! ".($ex_msg??''), 'data'=>$_obj]);
         }
+        if (isset($stmt)) { unset($stmt); }
         return $id;
     }
     
@@ -2821,11 +2738,9 @@ class User
 
                         //MERGE MYADS
                         $getMyAds=$this->db->prepareQuery('select id, content from ad_user where web_user_id=?');
-                        if($getMyAds->execute([$uid]))
-                        {
+                        if($getMyAds->execute([$uid])) {
                             $updateMyAd=$this->db->prepareQuery('update ad_user set web_user_id=?, content=? where id=?');
-                            while(($row = $getMyAds->fetch(PDO::FETCH_NUM)) !== false)
-                            {
+                            while(($row = $getMyAds->fetch(PDO::FETCH_NUM)) !== false) {
                                 $id = $row[0];
                                 $content = json_decode($row[1], true);
                                 $content['user']=$newUserId;
@@ -2834,8 +2749,7 @@ class User
                             }
                             unset($updateMyAd);
                         }
-                        else
-                        {
+                        else {
                             error_log("get ads on connect failure");
                         }
                         unset($getMyAds);
@@ -3676,28 +3590,24 @@ class User
     }
 
     
-    function toJson()
-    {
+    function toJson() {
         $user=array('info'=>$this->info,'params'=>$this->params);
         return json_encode($user);
     }
 
     
-    function toArray()
-    {
+    function toArray() {
         $user=array('info'=>$this->info,'params'=>$this->params);
         return $user;
     }
     
 
-    function update()
-    {
+    function update() {
         $_SESSION['_u'] = ['info' => $this->info, 'params' => $this->params, 'pending'=> $this->pending];
     }
 
     
-    function logout()
-    {
+    function logout() {
         $countryId=isset($this->params['country'])?$this->params['country']:0;
         $cityId=isset($this->params['city'])?$this->params['city']:0;
         $sorting=isset($this->params['sorting'])?$this->params['sorting']:-1;
