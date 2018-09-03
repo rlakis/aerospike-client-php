@@ -1498,7 +1498,6 @@ class AndroidApi
                                         }else{
                                             
                                             if($reverseCall){
-                                                $keycode = 0;
                                                 //error_log("reverse call with key");
                                                 //$response = MobileValidation::getInstance()->setUID($this->api->getUID())->verifyNexmoCallPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);                                                
                                                 $response = MobileValidation::getInstance()->setUID($this->api->getUID())->verifyEdigearPin($record[\Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode+0);                                                
@@ -1937,16 +1936,16 @@ class AndroidApi
                     $signature = filter_input(INPUT_POST, 'signature', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
                     $newId=-2;
                     $keyCode='0';
-                    if($username && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))){
+                    if ($username && base64_decode($signature) == strtoupper(hash_hmac('sha1', 'https://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'], MOURJAN_KEY))) {
                         require_once $this->api->config['dir'].'/core/model/User.php';
                         $this->api->db->setWriteMode();  
                         
                         $doProceed=true;
                         $isEmail = preg_match('/@/ui', $username);
                         $isSuspended = 0;
-                        if(!$isEmail){
+                        if (!$isEmail) {
                             $number = $username;
-                            if(substr($number,0,1)=='+'){
+                            if (substr($number,0,1)=='+') {
                                 $number = substr($number,1);
                             }
                             /*check if number is blocked*/
@@ -1955,7 +1954,7 @@ class AndroidApi
                                     [$number],
                                     true
                             );
-                            if($prv !== false && isset($prv[0]['ID']) && $prv[0]['ID']){
+                            if ($prv !== false && isset($prv[0]['ID']) && $prv[0]['ID']) {
                                 $doProceed=false;
                             }
                             /*check if number is suspended*/
@@ -1965,117 +1964,105 @@ class AndroidApi
                                 $isSuspended = $time;
                             }  
                         }
-                        if(!$doProceed){
-                            if($appVersion){
-                                if($isSuspended){
+                        if (!$doProceed) {
+                            if ($appVersion) {
+                                if ($isSuspended) {
                                     $newId = -1 * $isSuspended;
-                                }else{
+                                }
+                                else {
                                     $newId = -3;
                                 }
-                            }else{
+                            }
+                            else {
                                 $newId = -2;
                             }
                         }
-                        else
-                        { 
+                        else { 
                             $sendCode=false;
                             $date = date('Ymd');
                             $USER = new User($this->api->db, $this->api->config, null, 0);
                             $_ret = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($username, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);
-                            //$user = Core\Model\NoSQL::getInstance()->fetchUserBy ProviderId($username, 'mourjan');// $USER->checkAccount($username);
                            
-                            if ($_ret==NoSQL::OK)
-                            {
+                            if ($_ret==NoSQL::OK) {
                                 $newId = $user[\Core\Model\ASD\USER_PROFILE_ID];
                                 $opt = $user[Core\Model\ASD\USER_OPTIONS];
 
-                                if(isset($opt['validating']))
-                                {
-                                    if(!isset($opt['validating'][$date]) || (isset($opt['validating'][$date]) && $opt['validating'][$date]<2))
-                                    {
+                                if (isset($opt['validating'])) {
+                                    if (!isset($opt['validating'][$date]) || (isset($opt['validating'][$date]) && $opt['validating'][$date]<2)) {
                                         $sendCode=true;
                                     }
                                 }
-                                else
-                                {
+                                else {
                                     $sendCode=true;
                                 } 
                                 
-                                if(isset($opt['accountKey']) && $opt['accountKey'])
-                                {
+                                if (isset($opt['accountKey']) && $opt['accountKey'])                                {
                                     $keyCode=$opt['accountKey'];
                                 }
                             }
-                            else if ($_ret== NoSQL::ERR_RECORD_NOT_FOUND)
-                            {
+                            else if ($_ret== NoSQL::ERR_RECORD_NOT_FOUND) {
                                 $user = $USER->createNewAccount($username);
-                                if($user && isset($user[\Core\Model\ASD\USER_PROFILE_ID]) && $user[\Core\Model\ASD\USER_PROFILE_ID])
-                                {
+                                if ($user && isset($user[\Core\Model\ASD\USER_PROFILE_ID]) && $user[\Core\Model\ASD\USER_PROFILE_ID]) {
                                     $newId = $user[\Core\Model\ASD\USER_PROFILE_ID];
-                                    //$opt = json_decode($user[0]['OPTS'], true);
                                     $opt = $user[\Core\Model\ASD\USER_OPTIONS];
                                     $sendCode=true;
                                 }
-                                else
-                                {
+                                else {
                                     $newId=-2;
                                 }
                             }
-                            else
-                            {
+                            else {
                                 $newId=-2;
                             }
                             
-                            if($sendCode)
-                            {
+                            if($sendCode) {
                                 $isEmail = preg_match('/@/ui', $username);
                                 $sent=false;
-                                if(!$keyCode){
+                                if (!$keyCode) {
                                     $keyCode=mt_rand(1000, 9999);
                                 }
-                                if($isEmail){
+                                if ($isEmail) {
                                     require_once $this->api->config['dir'].'/bin/utils/MourjanMail.php';
                                     $mailer=new MourjanMail($this->api->config, $language);
 
                                     $sent=$mailer->sendEmailCode($username,$keyCode);
-                                }else{
+                                }
+                                else {
                                     $validator = libphonenumber\PhoneNumberUtil::getInstance();
-                                    try{
+                                    try {
                                         $num = $validator->parse($username, 'LB');
-                                    }catch(Exception $e){
+                                    }
+                                    catch (Exception $e) {
                                         $num = false;
                                     }
-                                    if($num && $validator->isValidNumber($num)){
+                                    if ($num && $validator->isValidNumber($num)) {
                                         $numberType = $validator->getNumberType($num);
-                                        if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE)
-                                        {
-                                            include_once $this->api->config['dir'].'/core/lib/MourjanNexmo.php';
-                                            $sent = ShortMessageService::send($username, "{$keyCode} is your mourjan confirmation code");                                            
+                                        if ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE) {
+                                            $sent =  MobileValidation::getInstance()
+                                                    ->setPlatform(MobileValidation::ANDROID)
+                                                    ->setTextMessage($username, "{$keyCode} is your mourjan confirmation code");                                                    
                                         }
-                                        else
-                                        {
+                                        else {
                                             $sent = false;
                                         }
                                     }
-                                    else
-                                    {
+                                    else {
                                         $sent=false;
                                     }
                                 }
                                 
-                                if($sent)
-                                {
+                                if($sent) {
                                     if(!isset($opt['validating'])) $opt['validating'] = array();
                                     if(isset($opt['validating'][$date]) && is_numeric($opt['validating'][$date])){
                                         $opt['validating'][$date]++;
-                                    }else{
+                                    }
+                                    else {
                                         $opt['validating'][$date]=1;
                                     }
                                     $opt['accountKey']=$keyCode;
                                     $USER->updateOptions($newId,$opt);
                                 }
-                                else
-                                {
+                                else {
                                     $newId=-2;
                                 }
                             }

@@ -453,13 +453,13 @@ trait EdigearTrait {
     }
 
     
-    public function setTextMessage($to, string $text) {
+    public function setTextMessage($to, string $text) : bool {
         $req = Berysoft\Edigear::createTextRequest($this->getEdigearPlatform())                
                 ->setPhoneNumber(intval($to))
                 ->setSender("mourjan")
                 ->setMessage($text);
         $res = $this->getEdigearClient()->getInstance()->send($req);
-        print_r($res);
+        return $res['status']==200;
     }
 
     
