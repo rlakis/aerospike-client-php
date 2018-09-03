@@ -948,11 +948,9 @@ class MobileApi {
                 if (!isset($query['matches'][$i][$g]) && !isset($msg)) {
                     $msg = var_export($batch, TRUE);
                 }
-                $sectionId = $query['matches'][$i][$g]['section_id']+0;
-                if (!isset($arr[ $sectionId ])) {
-                    $arr[$sectionId] = [];
-                }
-                $row=[$query['matches'][$i][$g]['groupby()']+0, $query['matches'][$i][$g]['count(*)']+0,[]];
+                $sectionId = intval($query['matches'][$i][$g]['section_id']);
+                if (!isset($arr[ $sectionId ])) { $arr[$sectionId] = []; }
+                $row=[intval($query['matches'][$i][$g]['groupby()']), $query['matches'][$i][$g]['count(*)']+0, []];
                 foreach (array_unique(explode(',', $query['matches'][$i][$g]['group_concat(purpose_id)'])) as $purposeId) {
                     $row[2][]=$purposeId+0;
                 }
@@ -960,7 +958,8 @@ class MobileApi {
             }
      
         }
-        if (isset($msg)) error_log (__FUNCTION__ . ' ' . $msg);
+        
+        if (isset($msg)) { error_log (__FUNCTION__ . ' ' . $msg); }
         
         return $arr;
     }

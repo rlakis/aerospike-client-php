@@ -248,10 +248,9 @@ trait UserTrait {
         $pk = $this->getProfileKeyFromParams($keyMap);
         $status = $this->getConnection()->get($pk, $record);
         if ($status==\Aerospike::OK) {
-                $record = $record['bins'];
+            $record = $record['bins'];
         }
-        else
-        if ($status!==\Aerospike::ERR_RECORD_NOT_FOUND) {
+        else if ($status!==\Aerospike::ERR_RECORD_NOT_FOUND) {
             \Core\Model\NoSQL::Log(['Key'=>$pk['key'], 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
         }
         
@@ -269,7 +268,9 @@ trait UserTrait {
         $status = $this->getConnection()->query(NS_USER, TS_PROFILE, $where, function ($_record) use (&$record) {$record=$_record;}, $bins);
         if ($status!==\Aerospike::OK) {
             \Core\Model\NoSQL::Log(['UID'=>$uid, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
-        }
+        }// else if (version_compare(phpversion("aerospike"), '7.2.0') >= 0) {
+            //error_log(var_export($record, TRUE));
+        //}
         return $status;
     }
     
@@ -363,9 +364,12 @@ trait UserTrait {
     }
     
     
-    private function getProfileKeyFromParams(array $params) {
+    private function getProfileKeyFromParams(array $params) {        
         if (isset($params['key'])) {
-            $key = $params['key'];
+            $key = $params['key'];            
+            if (isset($key['digest']) && !empty($key['digest'])) {
+                $key = $this->getConnection()->initKey(NS_USER, TS_PROFILE, $key['digest'], TRUE);
+            }
         }
         else if (isset($params[USER_UID])) {
             if ($this->getPrimaryKey($params[USER_UID], $result)==\Aerospike::OK) {

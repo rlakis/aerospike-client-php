@@ -6,7 +6,6 @@ use Core\Model\Classifieds;
 
 class Detail extends Search {
 
-
     function __construct(Core\Model\Router $router) {
         parent::__construct($router);
     }
@@ -99,17 +98,19 @@ class Detail extends Search {
         echo '</div>';
     }
 */
-    function mainMobile(){
+    function mainMobile() {
         $this->displayDetailMobile();
         $iDir=  $this->urlRouter->siteLanguage=='ar' ? 'ad_r' :'ad_l';
-        if(!$this->detailAdExpired)
+        if (!$this->detailAdExpired) {
             echo '<br />'.$this->fill_ad('Square','ad_dt '.$iDir).'<br />';
+        }
         parent::resultsMobile();
         if($this->detailAdExpired && $this->searchResults['body']['total_found'])
             echo '<br />'.$this->fill_ad('Square', $iDir).'<br />';
     }
     
-    function displayDetail(){
+    
+    function displayDetail() {
         if (!$this->detailAdExpired) {
             $current_time = time();
             $isFeatured = $current_time < $this->detailAd[Classifieds::FEATURE_ENDING_DATE];
@@ -178,16 +179,11 @@ class Detail extends Search {
                     $pub_link = "<a class='fr' onclick=\"ga('send', 'event', 'OutLinks', 'click', '{$this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][2]}');wn('{$this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][6]}');\">{$pub_link}</a>";
             }
             
-            //else $pub_link='<b>'.$pub_link.'</b>';
-
             $para_class = $this->detailAd[Classifieds::RTL] ? 'ar': 'en';
             if ($this->urlRouter->siteTranslate)$para_class='';
             
             $adSection=$this->getAdSection($this->detailAd, 0, 1);
             
-            /*?><div class="pr"<?= $itemScope?>><p <?= $itemDesc ?>class='<?= $para_class ?>'><?= $this->renderTextLinks($this->detailAd[Classifieds::CONTENT]) ?></p><p class='<?= $this->urlRouter->siteLanguage ?> lc'><?= $pub_link. ($this->hasCities && $this->urlRouter->cities[$this->detailAd[Classifieds::CITY_ID]][$this->fieldNameIndex]!=$this->urlRouter->countries[$this->detailAd[Classifieds::COUNTRY_ID]][$this->fieldNameIndex] ? " - <a href='".$this->urlRouter->getURL($this->detailAd[Classifieds::COUNTRY_ID],$this->detailAd[Classifieds::CITY_ID])."'>" . $this->urlRouter->cities[$this->detailAd[Classifieds::CITY_ID]][$this->fieldNameIndex]."</a>":"")." - <a href='".$this->urlRouter->getURL($this->detailAd[Classifieds::COUNTRY_ID])."'>" . $this->urlRouter->countries[$this->detailAd[Classifieds::COUNTRY_ID]][$this->fieldNameIndex]."</a> <b st='".$this->detailAd[Classifieds::UNIXTIME]."'></b>";?></p></div></div><?php */
-            
-            //$divClass='';
             $favLink = '';
             $isFavorite=0;
             if ($this->user->info['id']) {
@@ -214,12 +210,9 @@ class Detail extends Search {
             }else{
                 $abuseLink="<div class='d2' onclick='rpa(this,0,1)'><span class='i ab'></span><span>{$this->lang['reportAbuse']}</span></div>";
             }
-            
-            
+                        
             $renderedPics=0;
-            
-                    
-                    
+                                                    
             ?><div class="dt sh"><?php 
             
             if($isFeatured){
@@ -293,7 +286,7 @@ class Detail extends Search {
                         }
                         if (!empty($widths)) {
                             if (!array_multisort($widths, SORT_DESC, $oPics)) {
-                                error_log(\json_encode($widths));
+                                error_log($this->detailAd[Classifieds::ID] . ' -> ' . \json_encode($widths));
                                 error_log(\json_encode($oPics));
                             }
                         }
@@ -594,7 +587,7 @@ class Detail extends Search {
     }
 
     
-    function displayDetailMobile(){
+    function displayDetailMobile() {
         if (!$this->detailAdExpired) {
                         
             $current_time = time();
@@ -628,197 +621,131 @@ class Detail extends Search {
             $pics=array();
             $picsCount=0;
             $hasVideo=0;
-            if ($this->detailAd[Classifieds::PICTURES]){
+            if ($this->detailAd[Classifieds::PICTURES]) {
                 $pics=$this->detailAd[Classifieds::PICTURES];
             }
             $picsCount=count($pics);
-            if (isset($this->detailAd[Classifieds::VIDEO]) && $this->detailAd[Classifieds::VIDEO]){
+            if (isset($this->detailAd[Classifieds::VIDEO]) && $this->detailAd[Classifieds::VIDEO]) {
                 $hasVideo=1;
             }
-            
-            
-            //$ad = $this->detailAd;
-            /* ?><div class="rb ls rc dt"><?php */
-            //$pub_link = $this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][$this->fieldNameIndex];
+                        
             $hasEmail=false;
             $hasPhone=false;
-            /*$link='';
-            if ($this->detailAd[Classifieds::PUBLICATION_ID]==1 || $this->urlRouter->publications[$ad[Classifieds::PUBLICATION_ID]][6]=='http://www.waseet.net/'){
-                
-            }else {
-                if ($this->detailAd[Classifieds::OUTBOUND_LINK]) {
-                    $link = "<a onclick=\"_gaq.push(['_trackEvent', 'OutLinks', 'click', '{$pub_link}']);\" href='{$this->detailAd[Classifieds::OUTBOUND_LINK]}' target='_blank' rel='nofollow'><div class='bt'>{$pub_link}</div></a>";
-                }
-                elseif ($this->detailAd[Classifieds::PUBLICATION_ID]) {
-                    $link = "<a onclick=\"_gaq.push(['_trackEvent', 'OutLinks', 'click', '{$pub_link}']);\" href='{$this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][6]}' target='_blank'><div class='bt'>{$pub_link}</div></a>";
-                }
-            }*/
-                $itemScope='';
-                $itemDesc='';
-                $hasSchema=false;
-                if ($this->detailAd[Classifieds::ROOT_ID]==1){
-                    $hasSchema=true;
+            $itemScope='';
+            $itemDesc='';
+            $hasSchema=false;
+            if ($this->detailAd[Classifieds::ROOT_ID]==1) {
+                $hasSchema=true;
+                $itemDesc='itemprop="description" ';
+                $itemScope=' itemscope itemtype="https://schema.org/Product"';
+            }
+            elseif ($this->detailAd[Classifieds::ROOT_ID]==2) {
+                $hasSchema=true;
+                $itemDesc='itemprop="description" ';
+                $itemScope=' itemscope itemtype="https://schema.org/Product"';
+            }
+            elseif ($this->detailAd[Classifieds::ROOT_ID]==3) {
+                if ($this->detailAd[Classifieds::PURPOSE_ID]==3) {
                     $itemDesc='itemprop="description" ';
-                    $itemScope=' itemscope itemtype="https://schema.org/Product"';
-                }elseif ($this->detailAd[Classifieds::ROOT_ID]==2){
-                    $hasSchema=true;
-                    $itemDesc='itemprop="description" ';
-                    $itemScope=' itemscope itemtype="https://schema.org/Product"';
-                }elseif ($this->detailAd[Classifieds::ROOT_ID]==3){
-                    if ($this->detailAd[Classifieds::PURPOSE_ID]==3) {
-                        $itemDesc='itemprop="description" ';
-                        $itemScope=' itemscope itemtype="https://schema.org/JobPosting"';
-                   }elseif ($this->detailAd[Classifieds::PURPOSE_ID]==4) {
-                      $itemDesc='itemprop="description" ';
-                      $itemScope=' itemscope itemtype="https://schema.org/Person"';
-                    }
+                    $itemScope=' itemscope itemtype="https://schema.org/JobPosting"';
                 }
+                elseif ($this->detailAd[Classifieds::PURPOSE_ID]==4) {
+                    $itemDesc='itemprop="description" ';
+                    $itemScope=' itemscope itemtype="https://schema.org/Person"';
+                }
+            }
     
             $para_class = $this->detailAd[Classifieds::RTL] ? 'ar': 'en';
-            /*
-            $phoneNumbers=$this->detectPhone($this->detailAd[Classifieds::CONTENT]);
-            if (count($phoneNumbers) && !empty($phoneNumbers[1]) ) {
-                $phoneNumbers=$phoneNumbers[1];
-                $hasPhone=true;
-            }
-*/
+
             $emails=$this->detectEmail($this->detailAd[Classifieds::CONTENT]);
             if (count($emails) && !empty ($emails[0])) {
                 $emails=$emails[0];
                 $hasEmail=true;
             }
-    /*?><ul class="tl">
-            <?= $hasPhone ? "<li class='phone' onclick='iz(this,0)' ontouchstart='iz(this,0)'><div></div></li>":"<li class='phone off'><div></div></li>" ?>
-            <?= $hasEmail ? "<li class='email' onclick='iz(this,1)' ontouchstart='iz(this,1)'><div></div></li>":"<li class='email off'><div></div></li>" ?>
-            <?= $link ? "<li class='link' onclick='iz(this,2)' ontouchstart='iz(this,2)'><div></div></li>":"<li class='link off'><div></div></li>";
-            echo "<li class='share' onclick='iz(this,3)' ontouchstart='iz(this,3)'><div></div></li>"; ?>
-    </ul><?php  ?>
-    <div id="ado"><div><?php
-        if ($hasPhone) {
-            foreach ($phoneNumbers as $num){
-                $num=preg_split('/[\s\/-]/', $num);
-                if (count($num)>1) {
-                    if (strlen($num[0]>$num[1])) $num=$num[1].$num[0];
-                    else $num=$num[0].$num[1];
-                }else {
-                    $num=$num[0];
-                }
-                echo '<a href=\'tel:',$num,'\'><div class=\'bt\'>',$this->lang['call'],' ',$num,'</div></a>';
-            }
-        }
-        ?></div><div><?php
-        if ($hasEmail) { 
-            foreach ($emails as $email){
-                $email=preg_replace('/ /', '', $email);
-                echo "<a href='mailto:{$email}'><div class='bt tiny'>", $this->lang['email'], ' <b>', $email, '</b></div></a>';
-            }
-        } ?></div><div><?php
-       if ($link)     { echo $link; }?></div><div class="st"><?php
-        if ($this->urlRouter->cfg['enabled_sharing']) {
-            ?><span  class='st_email_large'></span><span  class='st_twitter_large' ></span><span  class='st_facebook_large' ></span><span  class='st_blogger_large' ></span><span  class='st_linkedin_large' ></span><span  class='st_stumbleupon_large' ></span><span  class='st_reddit_large' ></span><span  class='st_digg_large' ></span><span  class='st_sharethis_large' ></span><?php
-        }
-        ?></div><?php
-        echo "<div class='bt red fx' ontouchstart='iz()' onclick='iz()'>".$this->lang['cancel']."</div>";?></div> */
-        $numMatches=null;
+            $numMatches=null;
         
-        //$this->processTextNumbers($this->detailAd[Classifieds::CONTENT],$this->detailAd[Classifieds::PUBLICATION_ID],$this->detailAd[Classifieds::COUNTRY_CODE],$numMatches);
-
-        $this->replacePhonetNumbers($this->detailAd[Classifieds::CONTENT], $this->detailAd[Classifieds::PUBLICATION_ID], $this->detailAd[Classifieds::COUNTRY_CODE], $this->detailAd[Classifieds::TELEPHONES][0], $this->detailAd[Classifieds::TELEPHONES][1], $this->detailAd[Classifieds::TELEPHONES][2],$this->detailAd[Classifieds::EMAILS],$numMatches);
-
-        
-                ?><div id="<?= $this->detailAd[Classifieds::ID] ?>" class="dt sh"<?= $itemScope ?>><?php 
-                
-                
-            if($isFeatured){
+            $this->replacePhonetNumbers($this->detailAd[Classifieds::CONTENT], $this->detailAd[Classifieds::PUBLICATION_ID], $this->detailAd[Classifieds::COUNTRY_CODE], $this->detailAd[Classifieds::TELEPHONES][0], $this->detailAd[Classifieds::TELEPHONES][1], $this->detailAd[Classifieds::TELEPHONES][2],$this->detailAd[Classifieds::EMAILS],$numMatches);        
+            ?><div id="<?= $this->detailAd[Classifieds::ID] ?>" class="dt sh"<?= $itemScope ?>><?php 
+                                
+            if($isFeatured) {
                 ?><div class="dtf"><span class="ic r102"></span> <?= $this->lang['premium_ad_dt'] ?></div><?php
             }
-                $hasMap=false;
-                $hasMap = ($this->detailAd[Classifieds::PUBLICATION_ID] == 1 && ($this->detailAd[Classifieds::LATITUDE] || $this->detailAd[Classifieds::LONGITUDE]));
-                $os=0;
-                if($hasVideo || $hasMap){
-                    $os=preg_match('/(android|iphone)/i', $_SERVER['HTTP_USER_AGENT'], $matches);
-                    if($os){
-                        $os=strtolower($matches[1]);
-                    }
-                }
-                
-                
-                if ($hasVideo) {
-                //if ($picsCount) {
-                    echo '<h3 class="ctr">'.$this->lang['adVid'].'</h3>';
-                    ?><div class="dim"><?php
-                            ?><div id="vid"><?php
-                            $pic=$this->detailAd[Classifieds::VIDEO][2];
-                            $matches=null;
-                            //var_dump($this->detailAd[Classifieds::VIDEO][1]);
-                            $vId=preg_match('/\/v\/([a-zA-Z0-9]*?)\?/', $this->detailAd[Classifieds::VIDEO][1], $matches);
-                            
-                            $vurl=$this->detailAd[Classifieds::VIDEO][1];
-                            $os=0;
-                            if ($vId) {
-                                $vId=$matches[1];
+
+            $hasMap=false;
+            $hasMap = ($this->detailAd[Classifieds::PUBLICATION_ID] == 1 && ($this->detailAd[Classifieds::LATITUDE] || $this->detailAd[Classifieds::LONGITUDE]));
+            $os=0;
+            if ($hasVideo || $hasMap){
+                $os=preg_match('/(android|iphone)/i', $_SERVER['HTTP_USER_AGENT'], $matches);
+                if($os) { $os=strtolower($matches[1]); }
+            }
                                 
-                                if($os){
-                                    switch($os){
-                                        case 'iphone':
-                                            $vurl='youtube:'.$vId;
-                                            break;
-                                        case 'android':
-                                            $vurl='vnd.youtube:'.$vId;
-                                            break;
-                                        default:
-                                            break;
-                                    }
-                                }
-                             }    
-                             ?><a href="<?= $vurl ?>"><img width="300px" src="<?= $pic ?>" /><span class="play"></span></a><?php 
-                            /*?><object type="application/x-shockwave-flash" data="<?= $this->detailAd[Classifieds::VIDEO][1] ?>" width="300" height="250"><?php
-                            ?><param name="movie" value="<?= $this->detailAd[Classifieds::VIDEO][1] ?>" /><?php
-                            ?><param name="quality" value="high" /><?php
-                            ?><param name="allowFullScreen" value="true" /><?php
-                            ?><!-- Fallback content --><?php
-                            ?><a href="<?= $this->detailAd[Classifieds::VIDEO][1] ?>"><?php
-                            ?><img src="<?= $this->detailAd[Classifieds::VIDEO][2] ?>" width="300" height="250" /><?php
-                            ?><span class="play"></span><?php
-                            ?></a><?php
-                            ?></object><?php */
-                            ?></div><?php
-                        /*for($i=1;$i<=$picsCount;$i++){
-                            if($i==1 && $hasVideo) echo '<br />';
-                            ?><img src="<?= $this->urlRouter->cfg['url_ad_img'].'/repos/m/'.$pics[$i-1] ?>" /><?php
-                        }*/
+            if ($hasVideo) {
+                //if ($picsCount) {
+                echo '<h3 class="ctr">'.$this->lang['adVid'].'</h3>';
+                ?><div class="dim"><?php
+                    ?><div id="vid"><?php
+                    $pic=$this->detailAd[Classifieds::VIDEO][2];
+                    $matches=null;
+                    //var_dump($this->detailAd[Classifieds::VIDEO][1]);
+                    $vId=preg_match('/\/v\/([a-zA-Z0-9]*?)\?/', $this->detailAd[Classifieds::VIDEO][1], $matches);
+
+                    $vurl=$this->detailAd[Classifieds::VIDEO][1];
+                    $os=0;
+                    if ($vId) {
+                        $vId=$matches[1];
+
+                        if ($os) {
+                            switch($os){
+                                case 'iphone':
+                                    $vurl='youtube:'.$vId;
+                                    break;
+                                case 'android':
+                                    $vurl='vnd.youtube:'.$vId;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }    
+
+                    ?><a href="<?= $vurl ?>"><img width="300px" src="<?= $pic ?>" /><span class="play"></span></a><?php 
+                    ?></div><?php
                     ?></div><?php
                 }
+            
                 $this->globalScript.='var imgs=[];';
-                
-                if($picsCount){
+
+                if ($picsCount) {
                     echo '<h3 class="ctr">'.$this->lang['adPics'].'</h3>';
                     $oPics=$this->detailAd[Classifieds::PICTURES_DIM];
                     $widths=array();
-                    if(is_array($oPics) && count($oPics)){
-                        for($i=0;$i<$picsCount;$i++){
-                            if(isset($oPics[$i][0]) && $oPics[$i][1]){
+                    if (is_array($oPics) && count($oPics)) {
+                        for ($i=0; $i<$picsCount; $i++) {
+                            if (isset($oPics[$i][0]) && $oPics[$i][1]) {
                                 $oPics[$i][2]=$pics[$i];
                                 $widths[$i]=$oPics[$i][0];
                             }
                         }
-                        array_multisort($widths, SORT_DESC, $oPics);
+                        if (!array_multisort($widths, SORT_DESC, $oPics)) {
+                            error_log(__CLASS__.'.'.__FUNCTION__.' id:'.$this->detailAd[Classifieds::ID]. ', line ['.__LINE__.'] '. PHP_EOL . json_encode($widths) . PHP_EOL . json_encode($oPics));
+                        }
 
                         ?><style type="text/css"><?php
-                        for($i=0;$i<$picsCount;$i++){
-                            if(isset($oPics[$i][0]) && $oPics[$i][1]){
-                                if($oPics[$i][0] > 300){
+                        for ($i=0; $i<$picsCount; $i++) {
+                            if (isset($oPics[$i][0]) && $oPics[$i][1]) {
+                                if($oPics[$i][0] > 300) {
                                     $width = 300;
                                     $height = floor($width * $oPics[$i][1] / $oPics[$i][0]); 
                                     ?>.sp<?= $i+1 ?>,.sp<?= $i+1 ?> img{width:<?= $width ?>px;height:<?= $height ?>px;display:inline-block}<?php
-                                }else{
+                                }
+                                else {
                                     ?>.sp<?= $i+1 ?>,.sp<?= $i+1 ?> img{width:<?= $oPics[$i][0] ?>px;height:<?= $oPics[$i][1] ?>px;display:inline-block}<?php
                                 }
                             }
                         }
                         ?></style><?php
                         ?><div id="pics" class="dim"><?php
-                        for($i=1;$i<=$picsCount;$i++){
+                        for ($i=1;$i<=$picsCount;$i++) {
                             if(isset($oPics[$i-1][0]) && $oPics[$i-1][1]){
                                 if($this->urlRouter->isAcceptWebP){
                                     $oPics[$i-1][2] = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $oPics[$i-1][2]);
@@ -831,17 +758,15 @@ class Detail extends Search {
                     }
                 }
                 
-                
-                
-                ?><p <?= $itemDesc ?>class='<?= $para_class ?>'><?= $this->detailAd[Classifieds::CONTENT] ?></p><?php
-                
+                                
+                ?><p <?= $itemDesc ?>class='<?= $para_class ?>'><?= $this->detailAd[Classifieds::CONTENT] ?></p><?php                
                 ?><div class="pad"><?php 
                 
-                    if($hasMap){
-                        $link='q='.$this->detailAd[Classifieds::LATITUDE].','.$this->detailAd[Classifieds::LONGITUDE].'&ll='.$this->detailAd[Classifieds::LATITUDE].','.$this->detailAd[Classifieds::LONGITUDE].'&z=17';
-                        $isBlank=true;
-                        if($os){
-                            switch($os){
+                if ($hasMap) {
+                    $link='q='.$this->detailAd[Classifieds::LATITUDE].','.$this->detailAd[Classifieds::LONGITUDE].'&ll='.$this->detailAd[Classifieds::LATITUDE].','.$this->detailAd[Classifieds::LONGITUDE].'&z=17';
+                    $isBlank=true;
+                    if ($os) {
+                        switch ($os) {
                                 case 'iphone':
                                     $link='http//maps.apple.com/?'.$link;
                                     break;
@@ -850,15 +775,14 @@ class Detail extends Search {
                                 default:
                                     $link='http://maps.google.com/maps?'.$link;
                                     break;
-                            }
-                        }else{
-                            $link='http://maps.google.com/maps?'.$link;                            
                         }
-                         echo '<a '.( $isBlank ? 'target="_blank" ':'').'class="bt lk" href=\''.$link.'\'><span class="k loc"></span>',$this->lang['locOnMap'],'</a>';
-                         //echo '<br /><br />';
-                    }  
+                    }
+                    else {
+                        $link='http://maps.google.com/maps?'.$link;                            
+                    }
+                    echo '<a '.( $isBlank ? 'target="_blank" ':'').'class="bt lk" href=\''.$link.'\'><span class="k loc"></span>',$this->lang['locOnMap'],'</a>';
+                }  
                 
-                //$initNum=false;
                 if ($numMatches) {
                     echo $numMatches;
                     /*foreach ($numMatches as $num){
@@ -942,10 +866,11 @@ class Detail extends Search {
             }
     }
 
+    
     function renderTextLinks($str){
         if (!$this->isMobile) {
-        $email='/([_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})*)(\s|$)/i';
-        $str=preg_replace($email,' <a href="mailto:$1">$1</a> ', $str);
+            $email='/([_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})*)(\s|$)/i';
+            $str=preg_replace($email,' <a href="mailto:$1">$1</a> ', $str);
         }
         $url='/\s(www\.[a-zA-Z0-9\-\.]+\.(com|org|net|mil|edu|COM|ORG|NET|MIL|EDU)(\s|$))/i';
         $str=preg_replace($url,' <a href="http://$1">$1</a> ', $str);
@@ -956,12 +881,14 @@ class Detail extends Search {
         return $str;
     }
 
+    
     function detectPhone($ad){
         $matches=null;
         preg_match_all('/([+\/0-9-]{8,})/', $ad, $matches);
         return $matches;
     }
 
+    
     function detectEmail($ad){
         $matches=null;
         preg_match_all('/(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/i', $ad,$matches);
@@ -969,4 +896,5 @@ class Detail extends Search {
     }
 
 }
+
 ?>

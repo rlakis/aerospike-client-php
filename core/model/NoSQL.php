@@ -233,9 +233,15 @@ class NoSQL {
     
     
     public static function Log($message) {
-        $dbt = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 4);
+        $dbt = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 0);
         if (!empty($dbt)) {
-            error_log(var_export($dbt, TRUE));
+            $msg=[];
+            foreach ($dbt as $t) {
+                $msg[] = ['file'=>$t['file'], 'line'=>$t['line'], 'func'=>$t['function'], 'class'=>$t['class'], 'args'=> isset($t['args'])?$t['args']:NULL];
+            }
+            error_log(json_encode($msg));
+            error_log(PHP_EOL.json_encode($msg, JSON_PRETTY_PRINT).PHP_EOL, 3, "/var/log/mourjan/LogFile.txt");
+            /*
             unset($dbt[0]['function']);
             unset($dbt[0]['class']);
             unset($dbt[0]['type']);
@@ -243,12 +249,13 @@ class NoSQL {
                 unset($dbt[0]['object']);
             }
             
-            error_log(__CLASS__. PHP_EOL.json_encode($dbt[0], JSON_PRETTY_PRINT).PHP_EOL.'>');
-            
+            error_log(__CLASS__. PHP_EOL.json_encode($dbt[0], JSON_PRETTY_PRINT).PHP_EOL.'>');            
             error_log(PHP_EOL.json_encode($dbt[0], JSON_PRETTY_PRINT).PHP_EOL, 3, "/var/log/mourjan/LogFile.txt");
-            if (isset($dbt[1])) {
+             * 
+             */
+            //if (isset($dbt[1])) {
                // error_log(PHP_EOL.json_encode($dbt[1], JSON_PRETTY_PRINT));
-            }
+            //}
         }
     }
     

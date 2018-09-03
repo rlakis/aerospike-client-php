@@ -46,9 +46,7 @@ class Search extends Page {
     const LOCALITY_ID           = 38;
     const STARRED               = 39;
     const IS_NEW                = 40;
-    
-    
-    
+          
 
     var $id = 0, $paginationString = '', $adCount = 0, $subTitle = '';
     var $tmpRootId = 0, $tmpPurposeId = 0;
@@ -64,9 +62,7 @@ class Search extends Page {
         $this->tmpPurposeId = 0;
         $this->tmpRootId = 0;
         
-        if(isset($_GET['rt'])) {
-            $this->isRT = 1;
-        }
+        if(isset($_GET['rt'])) { $this->isRT = 1; }
         
         if ($this->userFavorites && !$this->user->info['id']) {
             $this->urlRouter->cfg['enabled_ads']=0;
@@ -96,7 +92,7 @@ class Search extends Page {
         }
         if (!$this->isMobile && !$this->urlRouter->userId && !$this->userFavorites && !$this->urlRouter->watchId) {
             $this->hasLeadingPane=true;
-            if($this->user->info['id'] && $this->user->info['level']==9){
+            if ($this->user->info['id'] && $this->user->info['level']==9) {
                 $this->isAdminSearch=isset($_SERVER['HTTP_REFERER']) && preg_match('/\/myads\/\?sub=pending$/', $_SERVER['HTTP_REFERER']) ? 1 : 0;
             }
             
@@ -175,47 +171,39 @@ class Search extends Page {
             ';
         }
         
-        if($this->isMobile && ($this->urlRouter->watchId || $this->userFavorites)){
+        if ($this->isMobile && ($this->urlRouter->watchId || $this->userFavorites)) {
             $this->urlRouter->cfg['enabled_ads']=false;
         }
-        
-        
+                
         $this->stat = array();
-        if ($this->userFavorites) {
-            $this->checkBlockedAccount(5);
-        }
-        if ($this->urlRouter->watchId) {
-            $this->checkBlockedAccount();
-        }
+        if ($this->userFavorites) { $this->checkBlockedAccount(5); }
+        if ($this->urlRouter->watchId) { $this->checkBlockedAccount(); }
         
         $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
-        if(!isset($this->user->params['user_country']))
-            $this->checkUserGeo();
-//            if(isset($this->urlRouter->cfg['iso_countries'][$this->user->params['user_country']]) 
-//                    && $this->urlRouter->cfg['iso_countries'][$this->user->params['user_country']]==$this->urlRouter->countryId){
-            $isBot = preg_match('/googlebot/i',$_SERVER['HTTP_USER_AGENT']);
-            if($isBot){
-                if($this->urlRouter->countryId){
-                    $this->formatNumbers=strtoupper($this->urlRouter->countries[$this->urlRouter->countryId]['uri']);
-                }elseif($this->user->params['user_country']){    
-                    $this->formatNumbers=strtoupper($this->user->params['user_country']);                    
-                }
-            }else{
-                if($this->user->params['user_country']){    
-                    $this->formatNumbers=strtoupper($this->user->params['user_country']);
-                }elseif($this->urlRouter->countryId){
-                    $this->formatNumbers=strtoupper($this->urlRouter->countries[$this->urlRouter->countryId]['uri']);
-                }
+        if (!isset($this->user->params['user_country'])) { $this->checkUserGeo(); }
+
+        $isBot = preg_match('/googlebot/i',$_SERVER['HTTP_USER_AGENT']);
+        if ($isBot) {
+            if ($this->urlRouter->countryId) {
+                $this->formatNumbers=strtoupper($this->urlRouter->countries[$this->urlRouter->countryId]['uri']);
             }
+            elseif ($this->user->params['user_country']) {
+                $this->formatNumbers=strtoupper($this->user->params['user_country']);                    
+            }
+        }
+        else {
+            if ($this->user->params['user_country']) {   
+                $this->formatNumbers=strtoupper($this->user->params['user_country']);
+            } elseif($this->urlRouter->countryId) {
+                $this->formatNumbers=strtoupper($this->urlRouter->countries[$this->urlRouter->countryId]['uri']);
+            }
+        }
         
         
         if ($this->urlRouter->watchId !== null) {
-            if ($this->urlRouter->watchId > 0)
+            if ($this->urlRouter->watchId > 0) {
                 $this->watchInfo = $this->user->getWatchInfo($this->urlRouter->watchId);
-//            if ( ($this->user->info['id'] && $this->urlRouter->watchId!=$this->user->info['id']) && !is_array($this->watchInfo)) {
-//                $this->urlRouter->watchId=0;
-//                $this->user->redirectTo('/invalid/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
-//            }
+            }
             $this->title = $this->lang['myList'];
             $this->channelId=$this->get('channel');
             if($this->channelId && !is_numeric($this->channelId)) $this->channelId=$this->user->decodeId($this->channelId);
@@ -229,12 +217,13 @@ class Search extends Page {
                         break;
                     }
                 }
-            }else{
+            }
+            else{
                 $this->inlineCss.='.brd .rss{margin:9px 10px}';
             }
-        } elseif ($this->urlRouter->userId) {
-            if (isset($_GET['preview']))
-                $this->pagePreview = true;
+        } 
+        elseif ($this->urlRouter->userId) {
+            if (isset($_GET['preview'])) { $this->pagePreview = true; }
             $this->title = '';
             $this->urlRouter->cfg['enabled_ads'] = false;
             $this->partnerInfo = $this->user->getPartnerInfo($this->urlRouter->userId);
@@ -285,11 +274,9 @@ class Search extends Page {
                 if (isset($this->partnerInfo['t']['ar']) && $this->partnerInfo['t']['ar']) {
                     $this->partnerInfo['title'] = $this->partnerInfo['t']['ar'];
                     $this->forceNoIndex = false;
-                    //$this->title=$this->lang['pclassifieds_ar'].' '.$this->partnerInfo['title'];
                     $this->title = $this->partnerInfo['title'];
                 } elseif (isset($this->partnerInfo['t']['en']) && $this->partnerInfo['t']['en']) {
                     $this->partnerInfo['title'] = $this->partnerInfo['t']['en'];
-                    //$this->title=$this->partnerInfo['title'].' '.$this->lang['pclassifieds_en'];
                     $this->title = $this->partnerInfo['title'];
                 } else {
                     $this->partnerInfo['title'] = '';
@@ -305,11 +292,9 @@ class Search extends Page {
                 if (isset($this->partnerInfo['t']['en']) && $this->partnerInfo['t']['en']) {
                     $this->forceNoIndex = false;
                     $this->partnerInfo['title'] = $this->partnerInfo['t']['en'];
-                    //$this->title=$this->partnerInfo['title'].' '.$this->lang['pclassifieds_en'];
                     $this->title = $this->partnerInfo['title'];
                 } elseif (isset($this->partnerInfo['t']['ar']) && $this->partnerInfo['t']['ar']) {
                     $this->partnerInfo['title'] = $this->partnerInfo['t']['ar'];
-                    //$this->title=$this->lang['pclassifieds_ar'].' '.$this->partnerInfo['title'];
                     $this->title = $this->partnerInfo['title'];
                 } else {
                     $this->partnerInfo['title'] = '';
@@ -332,13 +317,13 @@ class Search extends Page {
                     (isset($this->partnerInfo['a']['ar']) && $this->partnerInfo['a']['ar']) ||
                     (isset($this->partnerInfo['a']['en']) && $this->partnerInfo['a']['en']) ||
                     (isset($this->partnerInfo['email']) && $this->partnerInfo['email']) ||
-                    (isset($this->partnerInfo['contact']) && count($this->partnerInfo['contact']))
+                    (isset($this->partnerInfo['contact']) && !empty($this->partnerInfo['contact']))
             ) {
                 $this->hasPartnerInfo = true;
             }
         }
-        if ($this->isMobile) {
-            
+        
+        if ($this->isMobile) {            
             $this->inlineCss.='.yad{text-align:center;display:block}.lbad{text-align:center;overflow:visible!important;background-color:transparent!important;border:0!important}.lbad.responsive{margin:-5px auto 5px}';
             /*
             $this->inlineCss.='.ad > div{display:inline-block}.yad{text-align:center}.lbad{text-align:center;overflow:visible!important;background-color:transparent!important;border:0!important}.lbad.responsive{margin:-5px auto 5px}';
@@ -383,7 +368,8 @@ class Search extends Page {
             $this->num = 5;
             if (array_key_exists('HTTP_USER_AGENT', $_SERVER) && strstr($_SERVER['HTTP_USER_AGENT'], 'iPad;'))
                 $this->num = 10;
-        }else {
+        }
+        else {
             
             $this->globalScript.='var sic=[];';
             //if (!$this->userFavorites) {
@@ -410,7 +396,7 @@ class Search extends Page {
                         /*'zone_3' => array('/1006833/mourjan-navigator-square', 200, 200, 'div-gpt-ad-1349258304441-0-' . $this->urlRouter->cfg['server_id'])));*/
                 //}
         }
-        if($this->urlRouter->sectionId == 10){
+        if ($this->urlRouter->sectionId==10) {
             $this->num = $this->num * 2;
         }
 
@@ -437,16 +423,12 @@ class Search extends Page {
             ) {
                 $this->localities = $this->urlRouter->db->getLocalitiesData($this->urlRouter->countryId, $this->urlRouter->sectionId, NULL, $this->urlRouter->siteLanguage);                
                 if ($this->urlRouter->cityId) {
-                    //$found = false;
                     foreach ($this->localities as $loc) {
                         if ($loc['city_id'] == $this->urlRouter->cityId) {
-                            //$this->localityId=$loc[0];
-                            //$found=true;
                             $this->forceNoIndex = true;
                             break;
                         }
                     }
-                    //if (!$found) $this->localities=null;
                 }
 
                 if (isset($this->urlRouter->params['loc_id']))
@@ -520,19 +502,15 @@ class Search extends Page {
     }
 
     
-    function mainMobile() 
-    {
-        if ($this->userFavorites && !$this->user->info['id']) 
-        {            
+    function mainMobile() {
+        if ($this->userFavorites && !$this->user->info['id']) {            
         } 
-        elseif ($this->urlRouter->watchId && !$this->user->info['id']) 
-        {            
+        elseif ($this->urlRouter->watchId && !$this->user->info['id']) {            
         } 
-        else 
-        {
+        else {
             $this->resultsMobile();
             // Show out of section featured ad
-            if ($this->urlRouter->module=='search' && isset($this->searchResults['zone2']) && isset($this->searchResults['zone2']['matches']) && count($this->searchResults['zone2']['matches'])) {
+            if ($this->urlRouter->module=='search' && isset($this->searchResults['zone2']) && isset($this->searchResults['zone2']['matches']) && !empty($this->searchResults['zone2']['matches'])) {
                 //error_log( $this->searchResults['zone2']['matches'][0] );
                 ?> <!--googleoff: index --> <?php 
                 $this->renderMobileFeature();
@@ -593,7 +571,7 @@ class Search extends Page {
           ?></ul><?php
           }
          */
-        $numbers = isset($this->partnerInfo['contact']) && count($this->partnerInfo['contact']) ? $this->partnerInfo['contact'] : false;
+        $numbers = isset($this->partnerInfo['contact']) && !empty($this->partnerInfo['contact']) ? $this->partnerInfo['contact'] : false;
         $email = (isset($this->partnerInfo['email']) && $this->partnerInfo['email'] ) ? $this->partnerInfo['email'] : '';
         if ($numbers || $email || $isOwner) {
             ?><li class="h"><?= $this->lang['contactUs'] ?></li><?php
@@ -642,31 +620,23 @@ class Search extends Page {
                 };';
                 }
             }
-            
-            
                     
-                    
-                    
-                    $socialString='';
-                    if (isset($this->partnerInfo['links']) && is_array($this->partnerInfo['links'])) {
+            $socialString='';
+            if (isset($this->partnerInfo['links']) && is_array($this->partnerInfo['links'])) {
 
                         foreach ($this->partnerInfo['links'] as $id => $value){
                             if ($id && $value){
                                 switch($id){
                                     case 'fb':
-                                        //if ($socialString) $socialString.=' - ';
                                         $socialString.="<a target='blank' href='http://www.facebook.com/".$value."'><span class='fb-link'></span> Facebook</a><br />";
                                         break;
                                     case 'tw':
-                                        //if ($socialString) $socialString.=' - ';
                                         $socialString.="<a target='blank' href='http://twitter.com/".$value."'><span class='tw-link'></span> Twitter</a><br />";
                                         break;
                                     case 'gp':
-                                        //if ($socialString) $socialString.=' - ';
                                         $socialString.="<a target='blank' href='http://plus.google.com/".$value."'><span class='gp-link'></span> Google Plus</a><br />";
                                         break;
                                     case 'lk':
-                                        //if ($socialString) $socialString.=' - ';
                                         $socialString.="<a target='blank' href='http://www.linkedin.com/in/".$value."'><span class='lk-link'></span> LinkedIn</a><br />";
                                         break;                                        
                                 }
@@ -727,6 +697,7 @@ class Search extends Page {
             }
         }
 
+        
         function main_pane() {
             if($this->urlRouter->isPriceList){
                 $this->priceResults();
@@ -752,8 +723,7 @@ class Search extends Page {
         }
 
         
-        function renderResults($keywords = '') 
-        {
+        function renderResults($keywords = '')  {
             
             //$this->globalScript.='var sic=[];';
             /* $this->inlineScript.='if(sic.length){
@@ -942,7 +912,8 @@ class Search extends Page {
                             $pic = '<span class="thb"></span>';
                         }
                         $liClass.=' pic';
-                    } elseif ($ad[Classifieds::PICTURES] && is_array($ad[Classifieds::PICTURES])  && count($ad[Classifieds::PICTURES])) {
+                    } 
+                    elseif ($ad[Classifieds::PICTURES] && is_array($ad[Classifieds::PICTURES]) && count($ad[Classifieds::PICTURES])) {
                         $picCount=count($ad[Classifieds::PICTURES]);
                         $pic = $ad[Classifieds::PICTURES][0];
                         if($this->urlRouter->isAcceptWebP){
@@ -950,12 +921,14 @@ class Search extends Page {
                         }
                         if($idx < $numOfRowsToRenderImgs){
                             $pic = '<span class="thz"><img src="' . $this->urlRouter->cfg['url_ad_img'] . '/repos/s/' . $pic . '" /><span class="cnt">'.$picCount.'</span></span>';
-                        }else{
+                        }
+                        else{
                             $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img src=\"' . $this->urlRouter->cfg['url_ad_img'] . '/repos/s/' . $pic . '\" /><span class=\"cnt\">'.$picCount.'</span>";';
                             $pic = '<span class="thb"></span>';
                         }
                         $liClass.=' pic';
-                    } else {
+                    } 
+                    else {
                         if($idx < $numOfRowsToRenderImgs){
                             $pic = '<span class="thz"><img class="d" src="' . $this->urlRouter->cfg['url_img'] . '/90/' . $ad[Classifieds::SECTION_ID]. $this->urlRouter->_png . '" /></span>';
                         }else{
@@ -1023,10 +996,8 @@ class Search extends Page {
                             . $pic . $newSpan . $ad[Classifieds::CONTENT] . '</p>' ?><span class="src <?= $this->urlRouter->siteLanguage ?>"><?= (($feature||$isFeatured) ? ( ($paid||$isFeatured) ? '<span class="ic r102"></span><b>'.$this->lang['premium_ad'].'</b>' : '<span class="ovp '.$this->urlRouter->siteLanguage.'"></span>') : "<time st='" . $ad[Classifieds::UNIXTIME] . "'></time>") . $optSpan. $locSpan . $favSpan  ?></span></li><?php
                     
                     $idx++;
-                   
-                    
-                    if (!$feature) 
-                    {
+                                       
+                    if (!$feature) {
                         $nidx++;
                     }
                 }
@@ -1034,16 +1005,17 @@ class Search extends Page {
         }
         
 
-        function weightedRand($weights, $weight_sum = 100){
+        function weightedRand($weights, $weight_sum = 100) {
             $r = rand(1,$weight_sum);
             $n = count($weights);
             $i = 0;
-            while($r > 0 && $i < $n){
+            while ($r > 0 && $i < $n) {
                 $r -= $weights[$i];
                 $i++;
             }
             return $i - 1;
         }
+        
         
         function _rss() {
             $feed = parent::_rss();
@@ -1093,7 +1065,8 @@ class Search extends Page {
                         $pic = $ad[Classifieds::VIDEO][2];
                         $item->setEncloser($ad[Classifieds::VIDEO][1], '', 'application/x-shockwave-flash');
                         $gfx = true;
-                    } elseif ($ad[Classifieds::PICTURES] && count($ad[Classifieds::PICTURES])) {
+                    } 
+                    elseif ($ad[Classifieds::PICTURES] && count($ad[Classifieds::PICTURES])) {
                         $pic = $ad[Classifieds::PICTURES][0];
                         preg_match("/\.(.*)$/", $pic, $matches);
                         $media_type = '';
@@ -1130,6 +1103,7 @@ class Search extends Page {
             //OK. Everything is done. Now genarate the feed.
             $feed->generateFeed();
         }
+        
 
         function shortText($ad) {
             $text = $ad[Classifieds::CONTENT];
@@ -1242,7 +1216,8 @@ class Search extends Page {
                 ?><div class="som"></div><?php
                 ?></div><?php */
                 //$this->renderBottomMenMobile();
-        } else {
+        } 
+        else {
             $purposeId = $this->urlRouter->purposeId;
                 //            if (isset($this->searchResults['words']))
                 //                $keywords = implode(" ", array_keys($this->searchResults['words']));
@@ -1298,40 +1273,43 @@ class Search extends Page {
                     ?></ul><?php
                 }
                 */
-            } else {
+            }
+            else {
                 if ($this->userFavorites) {
                     echo '<h2 class="ctr">' . $this->summerizeSearchMobile(true) . '</h2>';
                     echo '<p class="ctr"><span class="na"></span></p>';
-                        echo '<h2 class="ctr">' . $this->lang['addF1'] . '</h2>';
-                        echo '<p class="ctr"><img src="' . $this->urlRouter->cfg['url_css_mobile'] . '/i/t/fav' . ($this->urlRouter->siteLanguage == 'ar' ? '' : 'e') . '1' . $this->urlRouter->_png .'" /></p>';
-                        echo '<h2 class="ctr">' . $this->lang['addF2'] . '</h2>';
-                        echo '<p class="ctr"><img src="' . $this->urlRouter->cfg['url_css_mobile'] . '/i/t/fav' . ($this->urlRouter->siteLanguage == 'ar' ? '' : 'e') . '2' . $this->urlRouter->_png .'" /></p>';
-                    } elseif($this->urlRouter->watchId) {
-                        echo '<h2 class="ctr">' . $this->summerizeSearchMobile(true) . '</h2>';
-                        echo '<p class="ctr"><span class="na"></span></p>';
-                        //echo '<h2 class="ctr">' . $this->lang['anotherSearch'] . '</h2>';
-                    }else{
-                        //if ($this->urlRouter->params['q']) {
-                        //    echo '<div class="hd na">',($this->lang['no_result_pre'].' <b>'.$this->get('q', 'filter').'</b> '.($this->urlRouter->sectionId ? $this->lang['in']:$this->lang['included']).' '.$this->sectionSummeryMobile(). ' ' .$this->lang['no_result_short']),'</div>';
-                        //$this->setNotification($this->lang['no_listing'].' '.$this->sectionSummeryMobile());
-                        // $this->setNotification($this->lang['no_listing'].' '.$this->summerizeSearchMobile());
-                        //}
-                        $this->alternateSearchMobile($keywords);
-                    }
+                    echo '<h2 class="ctr">' . $this->lang['addF1'] . '</h2>';
+                    echo '<p class="ctr"><img src="' . $this->urlRouter->cfg['url_css_mobile'] . '/i/t/fav' . ($this->urlRouter->siteLanguage == 'ar' ? '' : 'e') . '1' . $this->urlRouter->_png .'" /></p>';
+                    echo '<h2 class="ctr">' . $this->lang['addF2'] . '</h2>';
+                    echo '<p class="ctr"><img src="' . $this->urlRouter->cfg['url_css_mobile'] . '/i/t/fav' . ($this->urlRouter->siteLanguage == 'ar' ? '' : 'e') . '2' . $this->urlRouter->_png .'" /></p>';
+                } 
+                elseif ($this->urlRouter->watchId) {
+                    echo '<h2 class="ctr">' . $this->summerizeSearchMobile(true) . '</h2>';
+                    echo '<p class="ctr"><span class="na"></span></p>';
+                    //echo '<h2 class="ctr">' . $this->lang['anotherSearch'] . '</h2>';
                 }
+                else {
+                    //if ($this->urlRouter->params['q']) {
+                    //    echo '<div class="hd na">',($this->lang['no_result_pre'].' <b>'.$this->get('q', 'filter').'</b> '.($this->urlRouter->sectionId ? $this->lang['in']:$this->lang['included']).' '.$this->sectionSummeryMobile(). ' ' .$this->lang['no_result_short']),'</div>';
+                    //$this->setNotification($this->lang['no_listing'].' '.$this->sectionSummeryMobile());
+                    // $this->setNotification($this->lang['no_listing'].' '.$this->summerizeSearchMobile());
+                    //}
+                    $this->alternateSearchMobile($keywords);
+                }
+            }
                 
-                if ($this->urlRouter->watchId && $this->searchResults !== false) {
-                    $cSec = count($this->watchInfo);
-                    if ($cSec) {
-                        $this->globalScript.='var cSec='.$cSec.';';
-                        $lang = $this->urlRouter->siteLanguage == 'ar' ? '' : 'en/';
-                        $isOwner = $this->user->info['id'] == $this->urlRouter->watchId;
-                        $idKey = $this->user->encodeId($this->pageUserId);
-                        if ($isOwner) {
-                            ?><p class="ctr hid"><?= $this->lang['editListDesc'] ?></p><?php
-                            ?><ul id="watchbox" class='ls lse br'><?php
-                            if ($this->channelId == 0){
-                                ?><li class="h"><b><span class="ic k eye on"></span><?=$this->lang['myList'] ?><span class="n"><?= count($this->watchInfo) ?> / 20<span></b><?php
+            if ($this->urlRouter->watchId && $this->searchResults !== false) {
+                $cSec = count($this->watchInfo);
+                if ($cSec) {
+                    $this->globalScript.='var cSec='.$cSec.';';
+                    $lang = $this->urlRouter->siteLanguage == 'ar' ? '' : 'en/';
+                    $isOwner = $this->user->info['id'] == $this->urlRouter->watchId;
+                    $idKey = $this->user->encodeId($this->pageUserId);
+                    if ($isOwner) {
+                        ?><p class="ctr hid"><?= $this->lang['editListDesc'] ?></p><?php
+                        ?><ul id="watchbox" class='ls lse br'><?php
+                        if ($this->channelId == 0) {
+                            ?><li class="h"><b><span class="ic k eye on"></span><?=$this->lang['myList'] ?><span class="n"><?= count($this->watchInfo) ?> / 20<span></b><?php
                             } else {
                                 ?><li><a class="lnk" href="/watchlist/<?= $lang ?>?u=<?= $idKey ?>"><span class="ic k eye on"></span><?= $this->lang['myList'] ?><span class="to"></span></a><?php
                             }
@@ -2947,127 +2925,101 @@ class Search extends Page {
         if (!isset($this->searchResults['zone2']) || $this->searchResults['zone2']['total_found']==0) {
             return;
         }
-        //var_export($this->searchResults['zone2']);
+
         $ad_count = count($this->searchResults['zone2']['matches']);
         $ad_cache = $this->urlRouter->db->getCache()->getMulti($this->searchResults['zone2']['matches']);
-        if (!isset($this->stat['ad-imp']))
-            $this->stat['ad-imp'] = array();
+        if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp'] = []; }
         
         for ($ptr = 0; $ptr < $ad_count; $ptr++) {
             $id = $this->searchResults['zone2']['matches'][$ptr];
             $ad = $this->classifieds->getById($id,false,$ad_cache);
-            //if (isset($ad[Classifieds::ID]) ) {
             if (isset($ad[Classifieds::ID]) && ( $ad[Classifieds::USER_ID]!=220906 || $ad[Classifieds::ID]==6889499 || ($ptr == $ad_count-1) )) {
                 $this->replacePhonetNumbers($ad[Classifieds::CONTENT], $ad[Classifieds::PUBLICATION_ID], $ad[Classifieds::COUNTRY_CODE], $ad[Classifieds::TELEPHONES][0], $ad[Classifieds::TELEPHONES][1], $ad[Classifieds::TELEPHONES][2],$ad[Classifieds::EMAILS]);
 
-                //$this->processTextNumbers($ad[Classifieds::CONTENT],$ad[Classifieds::PUBLICATION_ID],$ad[Classifieds::COUNTRY_CODE]);
-                /*if ($ad[Classifieds::PUBLICATION_ID]==1) {
-                    if (isset($this->user->info['level'])) {
-                        if (!($this->user->info['level'] == 9 || $this->user->info['id'] == $ad[Classifieds::USER_ID])) {
-                            //if(isset($this->featuredResults["matches"][$id])){
-                            $this->stat['ad-imp'][]=$id;
-                            //}
-                        }
-                    } else {
-                        $this->stat['ad-imp'][]=$id;
-                    }
-                }*/
                 if (!empty($ad[Classifieds::ALT_CONTENT])) {
                     if ($this->urlRouter->siteLanguage == "en" && $ad[Classifieds::RTL]) {
                         $ad[Classifieds::TITLE] = $ad[Classifieds::ALT_TITLE];
                         $ad[Classifieds::CONTENT] = $ad[Classifieds::ALT_CONTENT];
                         $ad[Classifieds::RTL] = 0;
                         $this->appendLocation = false;
-                    } elseif ($this->urlRouter->siteLanguage == "ar" && $ad[Classifieds::RTL] == 0) {
+                    } 
+                    elseif ($this->urlRouter->siteLanguage == "ar" && $ad[Classifieds::RTL] == 0) {
                         $ad[Classifieds::TITLE] = $ad[Classifieds::ALT_TITLE];
                         $ad[Classifieds::CONTENT] = $ad[Classifieds::ALT_CONTENT];
                         $ad[Classifieds::RTL] = 1;
                         $this->appendLocation = false;
                     }
                 }
-                    //$ad[Classifieds::CONTENT]=trim(preg_replace('/^"(.*)"$/u','$1',$ad[Classifieds::CONTENT]));
 
                 $pic = '';
                 $textPlacement = 0;//no picture
-                    /*if (isset($ad[Classifieds::VIDEO]) && $ad[Classifieds::VIDEO] && count($ad[Classifieds::VIDEO])) {
-                        $picCount='';
-                        if (isset($ad[Classifieds::PICTURES]) && is_array($ad[Classifieds::PICTURES]) && count($ad[Classifieds::PICTURES])) {
-                            $picCount='<span class=\"cnt\">'.count($ad[Classifieds::PICTURES]).'</span>';
-                        }
-                        $pic = $ad[Classifieds::VIDEO][2];
-                        //$this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img src=\"' . $pic . '\" /><span class=\"play\"></span>'.$picCount.'";';
-                        //$pic = '<span class="thb"></span>';
-                        $pic = '<img src="' . $pic . '" />'.$picCount;
-                        //$liClass.=' pic';
-                    } else*/
-                    if ($ad[Classifieds::PICTURES] && is_array($ad[Classifieds::PICTURES])  && count($ad[Classifieds::PICTURES])) {
-                        $z=0;
-                        $bestPicIdx=0;
-                        $bestWidth=320;
-                        $width = 0;
-                        $height = 0;
-                        $textPlacement = 1;//1 over//2 side
-                        foreach ($ad[Classifieds::PICTURES] as $pic){
-                            if (isset($this->user->params['screen'][0]) && $this->user->params['screen'][0]) {
-                                if($ad[Classifieds::PICTURES_DIM][$z][0] > $this->user->params['screen'][0]){
-                                    $bestWidth = $this->user->params['screen'][0];
-                                }
-                                if($ad[Classifieds::PICTURES_DIM][$z][0] >= $bestWidth){
-                                    $width = $bestWidth;
-                                    $height = floor( $width*$ad[Classifieds::PICTURES_DIM][$z][1]/$ad[Classifieds::PICTURES_DIM][$z][0]);
-                                }else{
-                                    $width = $bestWidth / 2;
-                                    $height = floor( $width*$ad[Classifieds::PICTURES_DIM][$z][1]/$ad[Classifieds::PICTURES_DIM][$z][0]);
-                                }
-                                if($height > 300){
-                                    $textPlacement = 2;
-                                    $height = 300;
-                                    $width = floor( $height*$ad[Classifieds::PICTURES_DIM][$z][0]/$ad[Classifieds::PICTURES_DIM][$z][1]);
-                                }
-                                if($width > $this->user->params['screen'][0]*0.66){
-                                    $textPlacement = 1;
-                                }
-                                if($width < $this->user->params['screen'][0]/2){                                    
-                                    $textPlacement = 2;
-                                }
-                            }else{
-                                if($ad[Classifieds::PICTURES_DIM][$z][0] >= $bestWidth){
-                                    $width = $bestWidth;
-                                    $height = floor( $width*$ad[Classifieds::PICTURES_DIM][$z][1]/$ad[Classifieds::PICTURES_DIM][$z][0]);
-                                }else{
-                                    $width = $bestWidth / 2;
-                                    $height = floor( $width*$ad[Classifieds::PICTURES_DIM][$z][1]/$ad[Classifieds::PICTURES_DIM][$z][0]);
-                                }
-                                if($height > 300){
-                                    $textPlacement = 2;
-                                    $height = 300;
-                                    $width = floor( $height*$ad[Classifieds::PICTURES_DIM][$z][0]/$ad[Classifieds::PICTURES_DIM][$z][1]);
-                                }
+                if ($ad[Classifieds::PICTURES] && is_array($ad[Classifieds::PICTURES])  && count($ad[Classifieds::PICTURES])) {
+                    $z=0;
+                    $bestPicIdx=0;
+                    $bestWidth=320;
+                    $width = 0;
+                    $height = 0;
+                    $textPlacement = 1;//1 over//2 side
+                    foreach ($ad[Classifieds::PICTURES] as $pic) {
+                        if (isset($this->user->params['screen'][0]) && $this->user->params['screen'][0]) {
+                            if ($ad[Classifieds::PICTURES_DIM][$z][0] > $this->user->params['screen'][0]) {
+                                $bestWidth = $this->user->params['screen'][0];
                             }
-                            break;
-                            $z++;
+                            if ($ad[Classifieds::PICTURES_DIM][$z][0] >= $bestWidth) {
+                                $width = $bestWidth;
+                                $height = floor( $width*$ad[Classifieds::PICTURES_DIM][$z][1]/$ad[Classifieds::PICTURES_DIM][$z][0]);
+                            }
+                            else {
+                                $width = $bestWidth / 2;
+                                $height = floor( $width*$ad[Classifieds::PICTURES_DIM][$z][1]/$ad[Classifieds::PICTURES_DIM][$z][0]);
+                            }
+                            if ($height > 300) {
+                                $textPlacement = 2;
+                                $height = 300;
+                                $width = floor( $height*$ad[Classifieds::PICTURES_DIM][$z][0]/$ad[Classifieds::PICTURES_DIM][$z][1]);
+                            }
+                            if ($width > $this->user->params['screen'][0]*0.66) {
+                                $textPlacement = 1;
+                            }
+                            if ($width < $this->user->params['screen'][0]/2) {  
+                                $textPlacement = 2;
+                            }
                         }
-                        $picCount=count($ad[Classifieds::PICTURES]);
-                        $pic = $ad[Classifieds::PICTURES][0];
-                        if($this->urlRouter->isAcceptWebP){
-                            $pic = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pic);
+                        else {
+                            if ($ad[Classifieds::PICTURES_DIM][$z][0] >= $bestWidth) {
+                                $width = $bestWidth;
+                                $height = floor( $width*$ad[Classifieds::PICTURES_DIM][$z][1]/$ad[Classifieds::PICTURES_DIM][$z][0]);
+                            }
+                            else {
+                                $width = $bestWidth / 2;
+                                $height = floor( $width*$ad[Classifieds::PICTURES_DIM][$z][1]/$ad[Classifieds::PICTURES_DIM][$z][0]);
+                            }
+                            if ($height > 300) {
+                                $textPlacement = 2;
+                                $height = 300;
+                                $width = floor( $height*$ad[Classifieds::PICTURES_DIM][$z][0]/$ad[Classifieds::PICTURES_DIM][$z][1]);
+                            }
                         }
-                        //$this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img src=\"' . $this->urlRouter->cfg['url_ad_img'] . '/repos/s/' . $pic . '\" /><span class=\"cnt\">'.$picCount.'</span>";';
-                        //$pic = '<span class="thb"></span>';
-                        $pic = '<img style="width:'.$width.'px;height:'.$height.'px" src="' . $this->urlRouter->cfg['url_ad_img'] . '/repos/m/' . $pic . '" />';
-                        //$liClass.=' pic';
-                    } else {
-                        //$this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img class=\"d\" src=\"' . $this->urlRouter->cfg['url_img'] . '/90/' . $ad[Classifieds::SECTION_ID] . '.png\" />";';
-                        //$pic = '<span class="thb"></span>';
-                        $pic = '<img class="d" src="' . $this->urlRouter->cfg['url_img'] . '/90/' . $ad[Classifieds::SECTION_ID] . $this->urlRouter->_png . '" />';
-                        //$liClass.=' pic';
+                        break;
+                        $z++;
                     }
+                        
+                    $picCount=count($ad[Classifieds::PICTURES]);
+                    $pic = $ad[Classifieds::PICTURES][0];
+                    if ($this->urlRouter->isAcceptWebP) {
+                        $pic = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pic);
+                    }
+                    $pic = '<img style="width:'.$width.'px;height:'.$height.'px" src="' . $this->urlRouter->cfg['url_ad_img'] . '/repos/m/' . $pic . '" />';
+                } 
+                else {
+                    $pic = '<img class="d" src="' . $this->urlRouter->cfg['url_img'] . '/90/' . $ad[Classifieds::SECTION_ID] . $this->urlRouter->_png . '" />';
+                }
                 $textClass = ($ad[Classifieds::RTL]) ? "ar" : "en";                
 
                 $_link = sprintf($ad[Classifieds::URI_FORMAT], ($this->urlRouter->siteLanguage == "ar" ? "" : "{$this->urlRouter->siteLanguage}/"), $ad[Classifieds::ID]).'?ref=mediaside';
 
                 ?><div id="<?= $ad[Classifieds::ID] ?>" onclick="wo('<?= $_link ?>')" class="prem"><?php
-                if($textPlacement == 0){         
+                if ($textPlacement==0) {         
                     ?><div class="hdr pdf"><?php 
                     echo $this->getFeatureAdSection($ad);
                     ?><div><span class="ic r102"></span><?= $this->lang['premium_ad_dt'] ?></div><?php
@@ -3075,7 +3027,8 @@ class Search extends Page {
                     ?><p class="<?=  $textClass ?> pdf"><?php 
                         echo $pic . $ad[Classifieds::CONTENT];
                     ?></p><?php 
-                }elseif($textPlacement == 1){        
+                }
+                elseif ($textPlacement==1) {        
                     ?><div class="hdr"><?php 
                     echo $this->getFeatureAdSection($ad);
                     ?><div><span class="ic r102"></span><?= $this->lang['premium_ad_dt'] ?></div><?php
@@ -3084,7 +3037,8 @@ class Search extends Page {
                     ?><p class="btm <?=  $textClass ?>"><?php 
                         echo $ad[Classifieds::CONTENT];
                     ?></p><?php 
-                }else{                 
+                }
+                else {                 
                     ?><div class="hdr sde"><?php 
                     echo $this->getFeatureAdSection($ad);
                     ?><div><span class="ic r102"></span><?= $this->lang['premium_ad_dt'] ?></div><?php
@@ -3100,6 +3054,7 @@ class Search extends Page {
             }
         }
     }
+    
     
     function renderSideFeatures(){
         if ( (isset($this->user->info['level']) && $this->user->info['level']==9) || !isset($this->searchResults['zone2']) || $this->searchResults['zone2']['total_found']==0) {
@@ -4515,14 +4470,11 @@ class Search extends Page {
                             $bread.=' ' . $this->lang['sinceLast'] . ' ' . $this->formatSinceDate($this->user->params['last_visit']);
                         }
                     }
-                    //$bread.= '</b> ';
-                    //$bread.=($hasShare ? '&nbsp;<span class="st_email"></span><span class="st_facebook"></span><span class="st_twitter"></span><span class="st_googleplus"></span><span class="st_linkedin"></span><span class="st_blogger"></span><span class="st_sharethis"></span>' : '');
                     $bread .= '</p>';
                     if(!$count)
                         $bread.='<span class="naf"></span>';
-                    //if ($hasShare)$bread.='<!--googleoff: snippet--><div class="tsh"><label>'.$this->lang['shareResults'].'</label><span class="st_email"></span><span class="st_facebook"></span><span class="st_twitter"></span><span class="st_googleplus"></span><span class="st_linkedin"></span><span class="st_blogger"></span><span class="st_sharethis"></span></div><!--googleon: snippet-->';
-                    //$bread .= '</div>';
-                }elseif ($this->urlRouter->userId) {
+                }
+                elseif ($this->urlRouter->userId) {
                     $hasShare = $count && $this->urlRouter->cfg['enabled_sharing'] && $this->urlRouter->module == 'search';
                     $formatted = number_format($count);
                     $q = $this->urlRouter->params['q'];
@@ -6230,9 +6182,11 @@ class Search extends Page {
         return $section;
     }
 
+    
     function getBreadCrumb1($forceSetting = false) {
-        if ($this->crumbString && !$forceSetting)
+        if ($this->crumbString && !$forceSetting) {
             return $this->crumbString;
+        }
         $current = "";
         $last = "";
         $summery = "";
@@ -6242,7 +6196,8 @@ class Search extends Page {
         $appendLocation = false;
         if ($this->urlRouter->params['q']) {
             $q = htmlspecialchars($this->urlRouter->params['q'], ENT_QUOTES);
-        } elseif ($this->urlRouter->force_search) {
+        } 
+        elseif ($this->urlRouter->force_search) {
             $q = $this->lang['search_general'];
         }
         $countryId = $this->urlRouter->countryId;
@@ -6262,14 +6217,16 @@ class Search extends Page {
         if ($this->userFavorites) {
             $bread.="<h1>" . $this->lang['myFavorites'] . "</h1>";
             $summery = $current = $this->lang['myFavorites'];
-        } else {
+        } 
+        else {
             $defPurpose = count($this->urlRouter->purposes) > 1 ? false : true;
             if ($this->urlRouter->rootId) {
                 if (($q || $this->urlRouter->purposeId || $this->urlRouter->sectionId) && !($this->urlRouter->sectionId == 0 && $defPurpose)) {
                     $bread.="<a href='" . $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId) . "'>{$this->rootName}</a> <span>{$this->lang['sep']}</span> ";
                     $last = $current;
                     $summery = $current = $this->rootName;
-                } else {
+                } 
+                else {
                     $last = $current;
                     $summery = $current = $this->rootName;
                 }
@@ -6278,7 +6235,8 @@ class Search extends Page {
                         $bread.="<a href='" . $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $this->urlRouter->sectionId) . "'>{$this->sectionName}</a> <span>{$this->lang['sep']}</span> ";
                         $last = $current;
                         $summery = $current = $this->sectionName;
-                    } else {
+                    } 
+                    else {
                         $last = $current;
                         $summery = $current = $this->sectionName;
                     }
@@ -6311,8 +6269,8 @@ class Search extends Page {
                                     $summery = $current = 'مطلوب ' . $current;
                                 else
                                     $summery = $current = $current . ' ' . $this->purposeName;
-                                //$summery=$current=$this->purposeName.$in." ".$current;
-                            }else {
+                            }
+                            else {
                                 $last = $current;
                                 $summery = $current = $this->purposeName;
                             }
@@ -6327,69 +6285,80 @@ class Search extends Page {
                             if ($this->urlRouter->sectionId) {
                                 $last = $current;
                                 $summery = $current = $this->purposeName . $in . " " . $current;
-                            } else {
+                            } 
+                            else {
                                 $last = $current;
                                 $summery = $current = $this->purposeName;
                             }
                             break;
                     }
-                } else {
+                } 
+                else {
                     if ($q) {
                         $bread.="<a href='{$this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $this->urlRouter->sectionId, $this->urlRouter->purposeId)}'>" . $this->purposeName . " " . $this->lang['in'] . " " . $current . "</a> <span>{$this->lang['sep']}</span>";
                         $last = $current;
                         $summery = $current = $this->purposeName . " " . $this->lang['in'] . " " . $current;
-                    } else {
+                    } 
+                    else {
                         $last = $current;
                         $summery = $current = $this->purposeName . " " . $this->lang['in'] . " " . $current;
                     }
                 }
-            } else {
+            } 
+            else {
                 $appendLocation = true;
             }
+            
             if ($last == "" || $last == $current)
                 $current = $this->lang['search_general'];
+            
             if ($q) {
                 if ($current && $current != $this->lang['search_general']) {
                     $current = "<h1>" . $q . " " . $this->lang['in'] . " " . $current . "</h1>";
-                } else {
+                } 
+                else {
                     $current = $q;
                 }
                 if ($summery) {
                     $summery = $q . " " . $this->lang['in'] . " " . $summery;
-                } else {
+                } 
+                else {
                     $summery = $q;
                 }
                 if ($forceSetting || $this->urlRouter->module == "detail") {
                     $qStr = '?q=' . urlencode($this->urlRouter->params['q']);
                     $bread.="<a href='{$this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $this->urlRouter->sectionId, $this->urlRouter->purposeId)}.$qStr'>" . $current . "</a>";
-                } else {
+                } 
+                else {
                     $bread.="<h1>" . $current . "</h1>";
                 }
             } else {
                 if ($forceSetting || $this->urlRouter->module == "detail" && $current != $this->lang['search_general']) {
                     $bread.="<a href='{$this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $this->urlRouter->sectionId, $this->urlRouter->purposeId)}'>" . $current . "</a>";
-                } else {
+                } 
+                else {
                     $bread.="<h1>" . $current . "</h1>";
                 }
             }
         }
 
         $bread.="</div>";
-        if (!$summery)
-            $summery = $this->lang['search_general'];
+        if (!$summery) { $summery = $this->lang['search_general']; }
         if ($this->userFavorites) {
             $this->title = $this->crumbTitle = $summery;
-        } else {
+        } 
+        else {
             if ($appendLocation) {
                 $this->title = $this->crumbTitle = $summery . " " . $this->lang['in'] . " " . $location;
-            } else {
+            } 
+            else {
                 $this->title = $this->crumbTitle = $summery;
             }
         }
         return $this->crumbString = $bread;
     }
-	
-	
+    
+    
     function buildTitle() {
         $title = '';
         if ($this->urlRouter->module == 'detail') {
@@ -6398,18 +6367,17 @@ class Search extends Page {
                 if (empty($this->detailAd)) {
                     header("HTTP/1.0 410 Gone");
                     $title = $this->title;
-                } else {
+                } 
+                else {
                     $this->urlRouter->cacheHeaders($this->detailAd[Classifieds::LAST_UPDATE]);
-                    //$title=$this->_getAdTitle();
                 }
-            } else {
+            } 
+            else {
                 $this->urlRouter->cacheHeaders($this->detailAd[Classifieds::LAST_UPDATE]);
-                //$title=$this->sphinx->BuildExcerpts(array($this->detailAd[Classifieds::CONTENT]), 'mouftah', '', array("limit" => 40,'chunk_separator'=>''));
                 $title=$this->BuildExcerpts($this->detailAd[Classifieds::CONTENT],40,'');
-                //$title=$title[0];
             }
-            //$this->lang['description'].=$this->adRef;
-        } else {
+        } 
+        else {
             $title = $this->title;
             if ($this->localityId && !preg_match('/'.$this->urlRouter->countries[$this->urlRouter->countryId]['name'].'/',  $this->title)) {
                 $title.=' ' . $this->urlRouter->countries[$this->urlRouter->countryId]['name'];
@@ -6418,40 +6386,30 @@ class Search extends Page {
                 $title .= $this->lang['search_suffix'] . $this->urlRouter->params['start'];
             }
             if (!$this->extendedId && !$this->localityId && $this->urlRouter->naming != NULL && !empty($this->urlRouter->naming[2])) {
-                if ($this->hasCities && $this->urlRouter->cityId)
+                if ($this->hasCities && $this->urlRouter->cityId) {
                     $location = $this->lang['in'] . ' ' . $this->cityName . ' ' . $this->countryName;
-                else
+                }
+                else {
                     $location = $this->lang['in'] . ' ' . $this->countryName;
-                
-                
+                }                
                 
                 if (strpos($this->urlRouter->naming[2], "%s")) {
                     $this->lang['description'] = sprintf($this->urlRouter->naming[2], $this->purposeName, $location);
-                }else{
+                }
+                else {
                     $this->lang['description'] = $this->urlRouter->naming[2];
-                    $patterns       = array(
-                        '/{p}/',
-                        '/{l}/',
-                        '/{d}/',
-                        '/\s+/'
-                    );
-                    $replacements   = array(
-                        $this->purposeName,
-                        $location,
-                        $this->urlRouter->count,
-                        ' '
-                    );
+                    $patterns = array('/{p}/', '/{l}/', '/{d}/', '/\s+/');
+                    $replacements = array($this->purposeName, $location, $this->urlRouter->count, ' ');
                     $this->lang['description'] = preg_replace($patterns, $replacements, $this->lang['description']);
                 }
-                //var_dump( $this->lang['description']);
-                //die(var_export($this->urlRouter->naming));
                 
                 if ($this->urlRouter->params['start'] > 1) {
                     $this->lang['description'] .= $this->lang['search_suffix'] . $this->urlRouter->params['start'];
                 }
             }
-            else
+            else {
                 $this->lang['description'] = $this->lang['search_description'] . $title;
+            }
         }
         $this->title = $title;
     }
@@ -6473,84 +6431,75 @@ class Search extends Page {
             case 3:
             case 4:
             case 5:
-                if(preg_match('/'.$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].'/', $this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex])){
+                if (preg_match('/'.$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].'/', $this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex])) {
                     $section=$this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
-                }else {
+                }
+                else {
                     $in=' ';
-                    if ($this->urlRouter->siteLanguage=='en')$in=' '.$this->lang['in'].' ';
+                    if ($this->urlRouter->siteLanguage=='en') { $in=' '.$this->lang['in'].' '; }
                     $section=$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].$in.$this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
                 }
                 break;
-           }
+        }
            
-           $adContent = json_decode($ad['CONTENT'], true);
-           $countries = $this->urlRouter->db->getCountriesDictionary(); // $this->urlRouter->countries;
-           if (isset($adContent['pubTo'])) {
-                $fieldIndex=2;
-                $comma=',';
-                if ($this->urlRouter->siteLanguage=='ar'){
-                    $fieldIndex=1;
-                    $comma='،';
-                }
-                $countriesArray=array();
-                $cities = $this->urlRouter->cities;
-                
-                $content='';
-                foreach ($adContent['pubTo'] as $city => $value){
-                    
-                    if (isset($cities[$city]) && isset($cities[$city][4])) {
-                        $country_id=$cities[$city][4];
-                        
-                        if (!isset($countriesArray[$cities[$city][4]])){
-                            /*
-                            $ccs=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$cities[$city][4]}_{$this->urlRouter->siteLanguage}",
-                                    "select c.ID 
-                                    from city c
-                                    where c.country_id={$country_id} 
-                                    and c.blocked=0
-                                    order by NAME_". $this->urlRouter->siteLanguage,
-                                    null, 0, $this->urlRouter->cfg['ttl_long']);
-                             * 
-                             */
-                            
-                            $ccs = $countries[$country_id][6];
-                            if ($ccs && count($ccs)>0){
-                                $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],array());
-                            }else {
-                                $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],false);
-                            }
+       $adContent = json_decode($ad['CONTENT'], true);
+       $countries = $this->urlRouter->db->getCountriesDictionary(); 
+       if (isset($adContent['pubTo'])) {
+            $fieldIndex=2;
+            $comma=',';
+            if ($this->urlRouter->siteLanguage=='ar') {
+                $fieldIndex=1;
+                $comma='،';
+            }
+            $countriesArray=array();
+            $cities = $this->urlRouter->cities;
+   
+            $content='';
+            foreach ($adContent['pubTo'] as $city => $value) {                    
+                if (isset($cities[$city]) && isset($cities[$city][4])) {
+                    $country_id=$cities[$city][4];                        
+                    if (!isset($countriesArray[$cities[$city][4]])) {                            
+                        $ccs = $countries[$country_id][6];
+                        if ($ccs && count($ccs)>0) {
+                            $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],array());
                         }
-                        if ($countriesArray[$country_id][1]!==false) $countriesArray[$country_id][1][]=$cities[$city][$fieldIndex];
+                        else {
+                            $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],false);
+                        }
+                    }
+                    if ($countriesArray[$country_id][1]!==false) {
+                        $countriesArray[$country_id][1][]=$cities[$city][$fieldIndex];
                     }
                 }
-                $i=0;
-                foreach ($countriesArray as $key => $value) {
-                    if ($i)$content.=' - ';
-                    $content.=$value[0];
-                    if ($value[1]!==false) $content.=' ('.implode ($comma, $value[1]).')';
-                    $i++;
-                }
-                
-                if ($content) {
-                    $section=$section.' '.$this->lang['in'].' '.$content;
-                    //$section='<a href="'.$this->urlRouter->getURL($countryId,0,$rootId,$ad['SECTION_ID'],$ad['PURPOSE_ID']).'">'.$section.'</a>';
-                }
-            }elseif(isset ($countries[$ad['COUNTRY_ID']])) {
-                $countryId=$ad['COUNTRY_ID']; //$this->urlRouter->countries[$ad['COUNTRY_ID']][0];
-                $countryCities=$countries[$countryId][6];/* $this->urlRouter->db->queryCacheResultSimpleArray("cities_{$countryId}",
-                     "select c.ID from city c
-                     where c.country_id={$countryId} and c.blocked=0",
-                     null, 0, $this->urlRouter->cfg['ttl_long']);*/
-                if (count($countryCities)>0 && isset($this->urlRouter->cities[$ad['CITY_ID']])){
-                    $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
-                    //$section='<a href="'.$this->urlRouter->getURL($countryId,$ad['CITY_ID'],$rootId,$ad['SECTION_ID'],$ad['PURPOSE_ID']).'">'.$section.'</a>';
-                }else {
-                    $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$this->fieldNameIndex];
-                    //$section='<a href="'.$this->urlRouter->getURL($countryId,0,$rootId,$ad['SECTION_ID'],$ad['PURPOSE_ID']).'">'.$section.'</a>';
-                }
             }
+            
+            $i=0;
+            foreach ($countriesArray as $key => $value) {
+                if ($i) { $content.=' - '; }
+                $content.=$value[0];
+                if ($value[1]!==false) {
+                    $content.=' ('.implode ($comma, $value[1]).')';
+                }
+                $i++;
+            }
+                
+            if ($content) {
+                $section=$section.' '.$this->lang['in'].' '.$content;
+            }
+        }
+        elseif(isset ($countries[$ad['COUNTRY_ID']])) {
+            $countryId=$ad['COUNTRY_ID'];
+            $countryCities=$countries[$countryId][6];
+            if (count($countryCities)>0 && isset($this->urlRouter->cities[$ad['CITY_ID']])) {
+                $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
+            }
+            else {
+                $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$this->fieldNameIndex];
+            }
+        }
         return $section;
     }
     
 }
+
 ?>
