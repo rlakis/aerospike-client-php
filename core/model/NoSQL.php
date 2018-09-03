@@ -144,7 +144,7 @@ class NoSQL {
     
     
     public function getBins(array $pk, array $bins=[]) {
-        if (isset($pk['digest']) && !empty($pk['digest']) && !isset($pk['pk'])) {
+        if (isset($pk['digest']) && !empty($pk['digest']) && $pk['key']==NULL) {
             $pk = $this->getConnection()->initKey($pk['ns'], $pk['set'], $pk['digest'], true);          
         }
         $record=[];

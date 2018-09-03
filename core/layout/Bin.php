@@ -1233,15 +1233,7 @@ class Bin extends AjaxHandler{
                 
                 $req=NULL;  
                 $stat_servers = $this->urlRouter->db->getCache()->get("sphinx_servers");
-                //error_log(json_encode($stat_servers));
-                /*
-                $stat_servers = [                   
-                    ["host"=>"h7.mourjan.com", "port"=>9307, 'socket'=>''], 
-                    ["host"=>"h6.mourjan.com", "port"=>9307, 'socket'=>''], 
-                    ["host"=>"h2.mourjan.com", "port"=>9307, 'socket'=>''], 
-                    ["host"=>"h3.mourjan.com", "port"=>9307, 'socket'=>''], 
-                    ["host"=>"h4.mourjan.com", "port"=>9307, 'socket'=>'']];
-                */
+              
                 if (isset($_POST['a']) && $_POST['a']) {
                     $final_req = $req = (is_array($_POST['a']) ? $_POST['a'] : json_decode($_POST['a'],true) );
                 }
@@ -1251,17 +1243,13 @@ class Bin extends AjaxHandler{
                     $redis = new Redis();
                     $ok = 1;
                     try {
-                        /*
-                        $redis->connect($this->urlRouter->cfg['rs-host'], $this->urlRouter->cfg['rs-port'], 1, NULL, 100); // 1 sec timeout, 100ms delay between reconnection attempts.
-                        $redis->setOption(Redis::OPT_PREFIX, $this->urlRouter->cfg['rs-prefix']);
-                        $redis->select($this->urlRouter->cfg['rs-index']);
-                        */
                         $redis->connect($stat_server['host'], $stat_server['port'], 1, NULL, 100); // 1 sec timeout, 100ms delay between reconnection attempts.
-                        $redis->setOption(Redis::OPT_PREFIX, $stat_server['prefix']);
+                        $redis->setOption(Redis::OPT_PREFIX, $stat_server['prefix']);                        
+                        $redis->setOption(Redis::OPT_READ_TIMEOUT, 3);
                         $redis->select($stat_server['index']);
-                        
                     } 
                     catch (RedisException $e) {
+                        error_log(__CLASS__.'.'.__FUNCTION__.' -> '.$e->getMessage());
                         $ok=0;
                     }
                     $countryCode = '';
@@ -1274,14 +1262,10 @@ class Bin extends AjaxHandler{
                         }
                         else {
                             if (isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER'] && strpos($_SERVER['HTTP_REFERER'], 'mourjan')) {
-                                $referer = substr($_SERVER['HTTP_REFERER'],0,256);
+                                $referer = substr($_SERVER['HTTP_REFERER'], 0, 256);
                             }
-                            //require_once $this->urlRouter->cfg['dir'].'/core/model/Sdb.php';
-                            //$db = new SDB($this->urlRouter->cfg);
-                            //$stmt=$db->prepareQuery(
-                            //    'insert into REQS (ad_id,country,referer) values (?,?,?)'
-                            //);
-                            if(!isset($this->user->params['user_country'])){
+                           
+                            if (!isset($this->user->params['user_country'])){
                                 $this->checkUserGeo();
                             }
                             $countryCode = strtoupper(trim($this->user->params['user_country']));
@@ -1306,6 +1290,7 @@ class Bin extends AjaxHandler{
                                                     if ($ok==1 && $redis->isConnected()) {
                                                         
                                                         $redis->sAdd('U'.$adData[Classifieds::USER_ID], $id);
+                                                        
                                                         if (!$redis->hIncrBy('AI'.$id, date("Y-m-d"), 1)) {
                                                             error_log(sprintf("%s\tad-imp\t%d\t%s\t%s", date("Y-m-d H:i:s"), $id, $countryCode, $referer).PHP_EOL, 3, "/var/log/mourjan/stat.log");                                                            
                                                         }

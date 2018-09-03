@@ -246,11 +246,15 @@ trait UserTrait {
     
     public function getProfileRecord(array $keyMap, &$record) : int {
         $pk = $this->getProfileKeyFromParams($keyMap);
+        if (isset($pk['digest']) && !empty($pk['digest']) && $pk['key']==NULL) {
+            $pk = $this->getConnection()->initKey($pk['ns'], $pk['set'], $pk['digest'], true);
+        }
         $status = $this->getConnection()->get($pk, $record);
         if ($status==\Aerospike::OK) {
             $record = $record['bins'];
         }
         else if ($status!==\Aerospike::ERR_RECORD_NOT_FOUND) {
+            
             \Core\Model\NoSQL::Log(['Key'=>$pk['key'], 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
         }
         
@@ -271,6 +275,9 @@ trait UserTrait {
         }// else if (version_compare(phpversion("aerospike"), '7.2.0') >= 0) {
             //error_log(var_export($record, TRUE));
         //}
+        if (empty($record)) {
+            error_log(__FUNCTION__." {$uid} not queried!");
+        }
         return $status;
     }
     

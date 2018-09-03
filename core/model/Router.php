@@ -1,10 +1,7 @@
 <?php
 namespace Core\Model;
 
-//require_once get_cfg_var('mourjan.path').'/deps/autoload.php';
-
-class Router 
-{
+class Router {
     const POSITIVE_VALUE = ["options" => ["default" => 0, "min_range" => 0]];
     
     var $db;
@@ -48,6 +45,7 @@ class Router
     var $isMobile = false;
     var $isApp = 0;
     public $isAMP = 0;
+    public $client_ip;
     var $host = 'www.mourjan.com';
     var $referer = '';
     var $session_key;
@@ -65,35 +63,28 @@ class Router
     private $explodedRequestURI;
     
     
-    function __construct($params) 
-    {
+    function __construct($params) {
         global $argc;
         $this->cfg=$params;
         $this->db = new DB($params);
         
         if (isset($argc)) return;   
 
-	if(isset($_GET['shareapp']))
-        {
+	if(isset($_GET['shareapp'])) {
             $device = new \Detection\MobileDetect();
-            if($device->isMobile())
-            {
-                if( $device->isAndroidOS() )
-                {
+            if($device->isMobile()) {
+                if( $device->isAndroidOS() ) {
                     header("Location:https://play.google.com/store/apps/details?id=com.mourjan.classifieds");
                 }
-                elseif( $device->isiOS() && preg_replace('/_.*/', '', $device->version('iPhone'))>8)
-                {
+                elseif( $device->isiOS() && preg_replace('/_.*/', '', $device->version('iPhone'))>8) {
                     header("Location:https://itunes.apple.com/us/app/mourjan-mrjan/id876330682?ls=1&mt=8");
                 }
             }
         }
         
-        if (isset ($_COOKIE['mourjan_user'])) 
-        {
+        if (isset ($_COOKIE['mourjan_user'])) {
             $this->cookie=json_decode($_COOKIE['mourjan_user']);            
-            if (!is_object($this->cookie)) 
-            {
+            if (!is_object($this->cookie)) {
                 $this->cookie=null;
             }
         }
@@ -102,122 +93,99 @@ class Router
         $_session_params = $_SESSION['_u']['params'] ?? [];
                 
         $this->isAcceptWebP = (isset($_SERVER['HTTP_ACCEPT']) && strstr($_SERVER['HTTP_ACCEPT'], 'image/webp'));
-        if (isset($_SESSION['webp']) && $_SESSION['webp'])
-        {
+        if (isset($_SESSION['webp']) && $_SESSION['webp']) {
             $this->isAcceptWebP = 1;            
-        } elseif ($this->isAcceptWebP) {
+        } 
+        elseif ($this->isAcceptWebP) {
             $_SESSION['webp'] = 1;
         }
         
-        if ($this->isAcceptWebP)
-        {
+        if ($this->isAcceptWebP) {
             $this->_png = ".webp";
             $this->_jpg = ".webp";
             $this->_jpeg = ".webp";
         }
         
         
-        if(isset($_GET['app']))
-        {
+        if(isset($_GET['app'])) {
             $this->isApp = $_GET['app'];
         }
-        elseif(isset($_session_params['app']))
-        {
+        elseif(isset($_session_params['app'])) {
             $this->isApp = $_session_params['app'];
         }
 
-        if (array_key_exists('HTTP_HOST', $_SERVER))
-        {
+        if (array_key_exists('HTTP_HOST', $_SERVER)) {
             $this->host = $_SERVER['HTTP_HOST'];
         }
         
-
-        if (array_key_exists('HTTP_REFERER', $_SERVER))
-        {
+        if (array_key_exists('HTTP_REFERER', $_SERVER)) {
             $this->referer=$_SERVER['HTTP_REFERER'];
         }
 
-        
-        if (array_key_exists('HTTP_USER_AGENT', $_SERVER)) 
-        {
+        if (array_key_exists('HTTP_USER_AGENT', $_SERVER)) {
             if (array_key_exists($_SERVER['HTTP_USER_AGENT'], $this->cfg['blocked_agents']) || empty($_SERVER['HTTP_USER_AGENT'])) {
                 header("HTTP/1.1 403 Forbidden");
                 exit(0);
             }            
         } 
-        else 
-        {
+        else {
             header("HTTP/1.1 403 Forbidden");
             exit(0);            
         }
 
         $pos = strpos($this->referer, $this->cfg['site_domain']);
-        if (!($pos===FALSE)) 
-        {
+        if (!($pos===FALSE)) {
             $this->internal_referer = ($pos>0 && $pos<13);
         }
         
-        if ($this->isApp) 
-        {
+        if ($this->isApp) {
             $this->isMobile = TRUE;
             $_session_params['mobile']=1;
             $_session_params['app']=1;
         }
       
-        if (!isset($_session_params['mobile'])) 
-        {
-            if(isset($this->cookie->m) && in_array($this->cookie->m,array(0,1)))
-            {
+        if (!isset($_session_params['mobile'])) {
+            if (isset($this->cookie->m) && in_array($this->cookie->m,array(0,1))) {
                 $this->isMobile = (int)$this->cookie->m ? true : false;
                 $_session_params['mobile']=(int)$this->cookie->m;
             }
-            else
-            {
+            else {
                 $device = new \Detection\MobileDetect();
 
-                if ($device->isMobile() && !$device->isTablet()) 
-                {
+                if ($device->isMobile() && !$device->isTablet()) {
                     $this->isMobile = TRUE;
                     $_session_params['mobile']=1;
-                } else {
+                } 
+                else {
                     $this->isMobile = FALSE;
                     $_session_params['mobile']=0;
                 }
             }
         }
 
-        if (isset($_POST['mobile'])) 
-        {
+        if (isset($_POST['mobile'])) {
             if ($_POST['mobile']) {
                 $this->isMobile = TRUE;
                 $_session_params['mobile']=1;
-            }else {
+            }
+            else {
                 $this->isMobile = false;
                 $_session_params['mobile']=0;
             }
         }
-        elseif (isset($_session_params['mobile'])) 
-        {
+        elseif (isset($_session_params['mobile'])) {
             $this->isMobile = $_session_params['mobile'];
         }
-
         
         $this->explodedRequestURI= explode('/', ltrim(rtrim(parse_url(filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_URL), PHP_URL_PATH), '/'), '/'));
         $this->siteLanguage='ar';
         
         $len = count($this->explodedRequestURI);
         
-        if ($len>0)
-        {
-//            if ($this->explodedRequestURI[0]!='ajax-menu')
-//            {
-//                error_log(json_encode($this->explodedRequestURI, JSON_PRETTY_PRINT));
-//            }
-        
+        if ($len>0) {        
             $lastIdx=$len-1;
             
-            if ($this->explodedRequestURI[$lastIdx]==='amp')
-            {
+            if ($this->explodedRequestURI[$lastIdx]==='amp') {
                 $this->isAMP=1;
                 unset($this->explodedRequestURI[$lastIdx]);
                 $len--;
@@ -228,40 +196,32 @@ class Router
             }
             
             $___p=0;
-            if (is_numeric($this->explodedRequestURI[$lastIdx]))
-            {
+            if (is_numeric($this->explodedRequestURI[$lastIdx])) {
                 $___p=$this->explodedRequestURI[$lastIdx]+0;
                 unset($this->explodedRequestURI[$lastIdx]);
                 $lastIdx--;
                 $len--;          
-                //error_log($___p);
             }
                                                 
             
-            if ($len>0)
-            {
-                if ($this->explodedRequestURI[$lastIdx]==='en')
-                {
+            if ($len>0) {
+                if ($this->explodedRequestURI[$lastIdx]==='en') {
                     $this->siteLanguage='en';  
                     unset($this->explodedRequestURI[$lastIdx]);
                 }
-                elseif ($this->explodedRequestURI[$lastIdx]==='fr') 
-                {
+                elseif ($this->explodedRequestURI[$lastIdx]==='fr') {
                     $this->siteLanguage = 'en';
                     $this->extendedLanguage = 'fr';
                     unset($this->explodedRequestURI[$lastIdx]);
                 }
-                elseif ($len>1) 
-                {
+                elseif ($len>1) {
                     $lastIdx=$len-2;
-                    if ($this->explodedRequestURI[$lastIdx]==='en')
-                    {
+                    if ($this->explodedRequestURI[$lastIdx]==='en') {
                         $this->siteLanguage='en';  
                         $this->explodedRequestURI[$lastIdx]= $this->explodedRequestURI[$len-1];
                         unset($this->explodedRequestURI[$len-1]);
                     }
-                    elseif ($this->explodedRequestURI[$lastIdx]==='fr') 
-                    {
+                    elseif ($this->explodedRequestURI[$lastIdx]==='fr') {
                         $this->siteLanguage = 'en';
                         $this->extendedLanguage = 'fr';
                         $this->explodedRequestURI[$lastIdx]= $this->explodedRequestURI[$len-1];
@@ -271,55 +231,45 @@ class Router
                 }
             }
             
-            if ($___p) {$this->explodedRequestURI[count($this->explodedRequestURI)]=$___p;}
+            if ($___p) { $this->explodedRequestURI[count($this->explodedRequestURI)]=$___p; }
         }        
         $this->uri = '/'.implode('/', $this->explodedRequestURI);
-        //error_log($this->uri);
-        //error_log(json_encode($this->explodedRequestURI));        
         
         $_session_params['lang']=$this->siteLanguage;
                 
-        if (isset($_SERVER['HTTP_REFERER']) && preg_match('/translate\.google\.com/', $_SERVER['HTTP_REFERER']))
-        {
+        if (isset($_SERVER['HTTP_REFERER']) && preg_match('/translate\.google\.com/', $_SERVER['HTTP_REFERER'])) {
             $toLang=null;
             preg_match('/&langpair\=[a-z]{2}(?:\||%7C)([a-z]{2})/', $_SERVER['HTTP_REFERER'], $toLang);
-            if ($toLang && count($toLang)>1)
-            {
+            if ($toLang && count($toLang)>1) {
                 $this->siteTranslate=$toLang[1];
             }
-            else 
-            {
+            else {
                 preg_match('/&tl\=([a-z]{2})/', $_SERVER['HTTP_REFERER'], $toLang);
-                if ($toLang && count($toLang)>1)
-                {
+                if ($toLang && count($toLang)>1) {
                     $this->siteTranslate=$toLang[1];
                 }
             }
         }                   
 
-	if(preg_match('/\/(?:houses|villas)(?:\/|$)/i', $this->uri))
-        {
+	if(preg_match('/\/(?:houses|villas)(?:\/|$)/i', $this->uri)) {
             $this->uri = preg_replace('/\/(?:houses|villas)(\/|$)/','/villas-and-houses$1',$this->uri);
-            if($this->uri[strlen($this->uri)-1]!='/'){
+            if ($this->uri[strlen($this->uri)-1]!='/') {
                 $this->uri .= '/';
             }
             $_SESSION['_u']['params'] = $_session_params;
             $this->redirect($this->uri, 301);
         }
         
-        if (substr($this->uri, -10)=='/index.php')
-        {
+        if (substr($this->uri, -10)=='/index.php') {
             $this->uri = substr($this->uri, 0, strlen ($this->uri)-10);
         }
                     
         $_args = explode('&', $_SERVER['QUERY_STRING']);
                         
         $count = count($_args);
-        for ($i=0; $i<$count; ++$i) 
-        {
+        for ($i=0; $i<$count; ++$i) {
             $node = explode('=', $_args[$i]);
-            if (!empty($node[1]) && array_key_exists($node[0], $this->params)) 
-            {                
+            if (!empty($node[1]) && array_key_exists($node[0], $this->params)) {                
                 $this->params[$node[0]] = trim(urldecode($node[1]));
                 
                 switch ($node[0]) {
@@ -337,8 +287,7 @@ class Router
                             header('HTTP/1.1 410 Gone');
                             return;
                         }
-                        break;
-                    
+                        break;                    
                     case 'q':
                         $this->force_search=true;
                         break;
@@ -349,45 +298,36 @@ class Router
             }                        
         }
         
-        if(isset($_GET['aid']) && isset($_GET['q']))
-        {
+        if(isset($_GET['aid']) && isset($_GET['q'])) {
             $this->force_search=true;
         }
             
-        if ($this->params['start'] && !array_key_exists('start', $_GET))
-        {
+        if ($this->params['start'] && !array_key_exists('start', $_GET)) {
             $_GET['start']=  $this->params['start'];
         }
              
 
         $_args = explode('/', $this->uri);
-        //error_log(PHP_EOL.json_encode($_args).PHP_EOL. json_encode($this->explodedRequestURI));
-        if (!empty($_args)) 
-        {
+        if (!empty($_args)) {
             $idx=count($_args)-1;
                 
-            if (is_numeric($_args[$idx]) ) 
-            {
+            if (is_numeric($_args[$idx])) {
                 $this->id=(int)$_args[$idx];
                 $rpos=strrpos($this->uri, '/');
-                if ($rpos)
+                if ($rpos) {
                     $this->uri = substr($this->uri, 0, $rpos);
+                }
                 
-                if ($this->id<1000000000) 
-                {
-                    if ($this->id>1000) 
-                    {
+                if ($this->id<1000000000) {
+                    if ($this->id>1000) {
                         $this->module='detail';
                         $ad_url = $this->getAdURI($this->id);
-                        if ($ad_url!=$this->cfg['host'].$this->uri . '/' . $this->getLanguagePath() . $this->id . '/')
-                        {
-                            if ($ad_url!=$this->cfg['url_base']) 
-                            {
+                        if ($ad_url!=$this->cfg['host'].$this->uri . '/' . $this->getLanguagePath() . $this->id . '/') {
+                            if ($ad_url!=$this->cfg['url_base']) {
                                 $_SESSION['_u']['params'] = $_session_params;
                                 $this->redirect($ad_url, 301);
                             } 
-                            else 
-                            {
+                            else {
                                 $this->id=0;
                                 $this->http_status=410;
                                 $this->module = 'notfound';
@@ -395,8 +335,7 @@ class Router
                         }
                         $idx=-1;
                     } 
-                    else 
-                    {
+                    else {
                         $this->module="search";
                         $this->params['start'] = $this->id;
                         $this->id=0;
@@ -413,14 +352,15 @@ class Router
             
             if ($idx>=0 && isset($_args[1]) && is_numeric($_args[1])) {
                 $id=(int)$_args[1];
-                if ($id>2000000000){
+                if ($id>2000000000) {
                     $this->watchId=$id-$this->baseUserId;
                     $this->module='search';
                     $this->force_search=true;
                     $this->id=0;
                     unset($_args[0]);
                     $this->uri = substr($this->uri, (strlen($id)+1));
-                }elseif ($id>1000000000){//partner id handling
+                }
+                elseif ($id>1000000000) {//partner id handling
                     $this->userId=$id-$this->basePartnerId;
                     $this->module='search';
                     $this->force_search=true;
@@ -431,24 +371,20 @@ class Router
             }
 
             
-            if ($idx>1 && substr($_args[$idx],0,2)=="q-") 
-            {
+            if ($idx>1 && substr($_args[$idx],0,2)=="q-") {
                 $tag_info = explode("-", $_args[$idx]);
-                if (count($tag_info)==3 && is_numeric($tag_info[1]) && is_numeric($tag_info[2])) 
-                {
+                if (count($tag_info)==3 && is_numeric($tag_info[1]) && is_numeric($tag_info[2])) {
                     $this->params['tag_id']=$tag_info[1];
-                    if ($_args[ $tag_info[2] ]=='nissan-nissan-z')
-                    {
+                    if ($_args[ $tag_info[2] ]=='nissan-nissan-z') {
                         $_args[ $tag_info[2] ] = 'nissan';
                     }
-                    else
-                    {
+                    else {
                         $_args[ $tag_info[2] ] = substr($_args[$tag_info[2]], 0, strrpos($_args[$tag_info[2]], "-"));
                     }
                     
                     unset($_args[$idx]);                
                     $tmp=array();
-                    foreach ($_args as $arg){
+                    foreach ($_args as $arg) {
                         $tmp[]=$arg;
                     }
                     $_args=$tmp;                    
@@ -456,17 +392,15 @@ class Router
                     $this->uri = implode("/", $_args);                    
                 }
             }
-            elseif ($idx>1 && substr($_args[$idx],0,2)=="c-") 
-            {
+            elseif ($idx>1 && substr($_args[$idx],0,2)=="c-") {
                 $tag_info = explode("-", $_args[$idx]);
                 
-                if (count($tag_info)==3 && is_numeric($tag_info[1]) && is_numeric($tag_info[2])) 
-                {
+                if (count($tag_info)==3 && is_numeric($tag_info[1]) && is_numeric($tag_info[2])) {
                     $this->params['loc_id']=$tag_info[1];
                     unset($_args[$tag_info[2]]);
                     unset($_args[$idx]);
                     $tmp=array();
-                    foreach ($_args as $arg){
+                    foreach ($_args as $arg) {
                         $tmp[]=$arg;
                     }
                     $_args=$tmp;                    
@@ -476,46 +410,36 @@ class Router
         }        
                 
 
-	if ((!$this->internal_referer || strstr($this->referer, '/oauth/')) &&  empty($_GET) && ($this->uri=='' || $this->uri=='/')  && !$this->userId && !$this->watchId) 
-        {
+	if ((!$this->internal_referer || strstr($this->referer, '/oauth/')) &&  empty($_GET) && ($this->uri=='' || $this->uri=='/')  && !$this->userId && !$this->watchId) {
             $this->countries = $this->db->getCountriesData($this->siteLanguage);
             
-            if (isset($_session_params['visit']) && isset($_session_params['user_country'])) 
-            { 
-                if (!$this->countryId && strpos($this->cfg['url_base'], 'dv.mourjan.com')===false) 
-                {  
+            if (isset($_session_params['visit']) && isset($_session_params['user_country'])) { 
+                if (!$this->countryId && strpos($this->cfg['url_base'], 'dv.mourjan.com')===false) {  
                     $curi = $this->uri;
-                    if (isset($this->cookie->cn) && $this->cookie->cn)
-                    {
-		        if (!isset($_GET['app']) && isset($this->cookie->lg) && in_array($this->cookie->lg, array('ar','en'))) 
-                        {
+                    if (isset($this->cookie->cn) && $this->cookie->cn) {
+		        if (!isset($_GET['app']) && isset($this->cookie->lg) && in_array($this->cookie->lg, array('ar','en'))) {
                             $this->siteLanguage=$_session_params['lang']=$this->cookie->lg;                            
                         }
 
                         $this->countryId=$_session_params['country']=$this->cookie->cn;
                         $this->cityId=$_session_params['city']=0;
                         $this->uri='/'. $this->countries[$this->cookie->cn]['uri'];
-                        if(isset($this->cookie->c) && $this->cookie->c)
-                        {
-                            if (isset($this->countries[$this->countryId]['cities'][$this->cookie->c])) 
-                            {
+                        if(isset($this->cookie->c) && $this->cookie->c) {
+                            if (isset($this->countries[$this->countryId]['cities'][$this->cookie->c])) {
                                 $this->uri.='/'.$this->countries[$this->countryId]['cities'][$this->cookie->c]['uri'];
                     		$this->cityId=$_session_params['city']=$this->cookie->c;
                             }
                         }
                         
-                        if ($this->uri!=$curi) 
-                        {
+                        if ($this->uri!=$curi) {
                             $_SESSION['_u']['params'] = $_session_params;
                             $this->redirect($this->cfg['url_base'].$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->siteLanguage != 'ar' ? $this->siteLanguage .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
                         }
                     } 
-                    else                         
-                    {
+                    else {
                         $_SESSION['_u']['params'] = $_session_params;
                         $this->setGeoByIp();
-                        if ($this->uri!=$curi) 
-                        {                            
+                        if ($this->uri!=$curi) {                            
                             $this->redirect($this->cfg['url_base'].$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->siteLanguage != 'ar' ? $this->siteLanguage .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
                         }
                     }                    
@@ -523,31 +447,26 @@ class Router
             }    
             
         
-            if ( !isset($_session_params['visit'])) 
-            {
+            if ( !isset($_session_params['visit'])) {
                 $current_uri = $this->uri;
                 $_SESSION['_u']['params'] = $_session_params;
                 $this->setGeoByIp();
-                if ($current_uri!=$this->uri) 
-                {                    
+                if ($current_uri!=$this->uri) {                    
                     $this->redirect($this->cfg['url_base'].$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->siteLanguage != 'ar' ? $this->siteLanguage .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );                
                 }
                 
-                if (!$this->countryId)
-                {                
-                    if(isset($this->cookie->cn) && $this->cookie->cn)
-                    {
+                if (!$this->countryId) {                
+                    if (isset($this->cookie->cn) && $this->cookie->cn) {
                         $this->countryId=$_session_params['country']=$this->cookie->cn;
                         $this->cityId=$_session_params['city']=0;
                         $this->uri='/'. $this->countries[$this->cookie->cn]['uri'];
-                        if(isset($this->cookie->c) && $this->cookie->c){
+                        if (isset($this->cookie->c) && $this->cookie->c) {
                             if (isset($this->countries[$this->countryId]['cities'][$this->cookie->c])) {
                     		$this->uri.='/'.$this->countries[$this->countryId]['cities'][$this->cookie->c]['uri'];
                     		$this->cityId=$_session_params['city']=$this->cookie->c;
                             }
                         }
-                        if ($current_uri!=$this->uri) 
-                        {
+                        if ($current_uri!=$this->uri) {
                             $_SESSION['_u']['params'] = $_session_params;
                             $this->redirect($this->cfg['url_base'].$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->siteLanguage != 'ar' ? $this->siteLanguage .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
                         }
@@ -556,121 +475,100 @@ class Router
             }
         }
 
-        if(!isset($_GET['app']) && !isset($_session_params['user_country']))
-        {
+        if (!isset($_GET['app']) && !isset($_session_params['user_country'])) {
             $geo = $this->getIpLocation();
-            if (isset($geo['country'])) 
-            {
+            if (isset($geo['country'])) {
             	$country_code=strtolower(trim($geo['country']['iso_code']));
             	$_session_params['user_country']=$country_code;
             	$_session_params['latitude'] = isset($geo['location']['latitude']) ? $geo['location']['latitude'] : 0.0;
             	$_session_params['longitude'] = isset($geo['location']['longitude']) ? $geo['location']['longitude'] : 0.0;
             }
-            else
-            {
+            else {
                 $_session_params['user_country']='';
             }
         }
         
-        if (!isset($_session_params['lang']) ) 
-        {
-            if (!isset($_GET['app']) && isset($this->cookie->lg) && in_array($this->cookie->lg, array('ar','en'))) 
-            {
+        if (!isset($_session_params['lang'])) {
+            if (!isset($_GET['app']) && isset($this->cookie->lg) && in_array($this->cookie->lg, array('ar','en'))) {
                 $this->siteLanguage=$_session_params['lang']=$this->cookie->lg;
                 $_SESSION['_u']['params'] = $_session_params;
                 $this->redirect($this->cfg['url_base'].$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).$this->getLanguagePath().($this->id ? $this->id.'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
             } 
-            else 
-            {
+            else {
                 $_session_params['lang']=$this->siteLanguage;
             }
         } 
-        else 
-        {
+        else {
             $_session_params['lang']=$this->siteLanguage;
         }
         $_SESSION['_u']['params'] = $_session_params;
-        
-        //error_log(json_encode($this, JSON_PRETTY_PRINT));
     }
     
     
-    public function getLanguagePath() : string
-    {
+    public function getLanguagePath() : string {
         return $this->siteLanguage=='ar' ? '' : $this->siteLanguage.'/';
     }
     
     
-    public function isArabic() : bool
-    {
+    public function isArabic() : bool {
         return ($this->siteLanguage=='ar');
     }
     
     
-    public function getIpLocation($ip=NULL) 
-    {
-        if (empty($ip)) 
-        {
-            if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR']))
-            {
+    public function getIpLocation($ip=NULL) {
+        if (empty($ip)) {
+            if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             	$ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
             }
-            else 
-            {
+            else {
                 $ip = $_SERVER['REMOTE_ADDR'];
             }
+            $this->client_ip = $ip;
         }
-            
+        
         $databaseFile = '/home/db/GeoLite2-City.mmdb';
         $reader = new \MaxMind\Db\Reader($databaseFile);
         $ips = explode(',', $ip);
-        foreach ($ips as $addr) 
-        {
+        foreach ($ips as $addr) {
             $geo = $reader->get(trim($addr));
             if (isset($geo['country'])) break;
         }
         $reader->close();
         
         //error_log(json_encode($geo));
+        //$this->isBehindProxy();
         return $geo;
     }
 	
 	
-    private function setGeoByIp() 
-    {
+    private function setGeoByIp() {
     	$geo = $this->getIpLocation();
 			
         $_session_params = $_SESSION['_u']['params'];
-        if (!empty($geo) && isset($geo['country']['iso_code'])) 
-        {
+        if (!empty($geo) && isset($geo['country']['iso_code'])) {
             $country_code=strtolower(trim($geo['country']['iso_code']));
             $_session_params['user_country']=$country_code;
             $_session_params['latitude'] = $geo['location']['latitude'] ?? 0.0;
             $_session_params['longitude'] = $geo['location']['longitude'] ?? 0.0;
                 
-            if (array_key_exists($country_code, $this->cfg['iso_countries'])) 
-            {
+            if (array_key_exists($country_code, $this->cfg['iso_countries'])) {
                 $this->countryId = $this->cfg['iso_countries'][$country_code];                    
                     
                 $this->uri='/'.$country_code; 
                 $_session_params['city']=0;
                 
-                if (count($this->countries[$this->countryId]['cities']) > 1) 
-                {
+                if (count($this->countries[$this->countryId]['cities']) > 1) {
                     $this->cache();
                     $default_city = -1;
                     $min = PHP_INT_MAX;
-                    foreach ($this->countries[$this->countryId]['cities'] as $city_id=>$city) 
-                    {
+                    foreach ($this->countries[$this->countryId]['cities'] as $city_id=>$city) {
                         $dist = $this->distance($city['latitude'], $city['longitude']);
-                        if ($dist<$min)
-                        {
+                        if ($dist<$min) {
                             $default_city=$city_id;
                             $min=$dist;
                         }
                     }                        
-                    if ($default_city>0) 
-                    {
+                    if ($default_city>0) {
                         $this->uri.='/'.$this->countries[$this->countryId]['cities'][$default_city]['uri'];
                         $_session_params['city']=$default_city;
                     }
@@ -678,21 +576,20 @@ class Router
                 
                 $_session_params['country'] = $this->countryId;
                     
-                if(isset($this->cookie->lg) && in_array($this->cookie->lg,array('ar','en')))
-                {
+                if(isset($this->cookie->lg) && in_array($this->cookie->lg,array('ar','en'))) {
                     $this->siteLanguage=$_session_params['lang']=$this->cookie->lg;                        
-                }else{
-                    $_session_params['lang']=$this->siteLanguage;
                 }
-                    
+                else {
+                    $_session_params['lang']=$this->siteLanguage;
+                }                    
                 //$this->redirect($this->cfg['url_base'].$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->siteLanguage != 'ar' ? $this->siteLanguage .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
-            } else {
+            } 
+            else {
                 $_session_params['country'] = $this->countryId;
                 $_session_params['city']=0;
             }
         }
-        else
-        {
+        else {
             $_session_params['user_country']='';
             $_session_params['latitude'] = 0.0;
             $_session_params['longitude'] = 0.0;
@@ -701,31 +598,26 @@ class Router
     }
    
 
-    function __destruct() 
-    {
+    function __destruct() {
     }
     
     
-    public function database() : DB
-    {
+    public function database() : DB {
         return $this->db;
     }
     
     
-    
-    
-    function getAdURI($ad_id=0) 
-    {
+    function getAdURI($ad_id=0) {
         $result = '';
         include_once $this->cfg['dir'].'/core/model/Classifieds.php';
         $ad_class = new Classifieds($this->db);
         $row = $ad_class->getById($ad_id);
         
-        if (!empty($row)) 
-        {
-            if ($this->siteLanguage=='ar'){
+        if (!empty($row)) {
+            if ($this->siteLanguage=='ar') {
                 $result = sprintf($row[18], '', $ad_id);
-            }else {
+            }
+            else {
                 $result = sprintf($row[18], $this->siteLanguage.'/', $ad_id);
             }
             $this->countryId = (int)$row[4];
@@ -734,18 +626,17 @@ class Router
             $this->sectionId = (int)$row[12];
             $this->purposeId = (int)$row[7];
         } 
-        else 
-        {
+        else {
             $url_codes = $this->FetchUrl();
             if ($url_codes) {
                 $result = $this->uri.'/'.$this->getLanguagePath();
-            } else {
+            } 
+            else {
                 $_args = explode('/', $this->uri);
                 unset($_args[2]);
                 $sss=  implode('/', $_args);
                 $url_codes = $this->FetchUrl($sss);
-                if ($url_codes) 
-                {
+                if ($url_codes) {
                     $result = $sss.'/'. $this->getLanguagePath();
                 }
             }
@@ -755,8 +646,7 @@ class Router
     }
     
     
-    function redirect($url, $status=301) 
-    {
+    function redirect($url, $status=301) {
         switch ($status) {
             case 302:
                 header('HTTP/1.1 302 Found');
@@ -779,15 +669,6 @@ class Router
         $this->close();
         
         header('Location: '. $url);
-        
-        /*
-        ob_start();
-        debug_print_backtrace();
-        $trace = ob_get_contents();
-        ob_end_clean();
-    
-        error_log($trace);
-        */
         exit(0);
     }
     
@@ -821,14 +702,14 @@ class Router
 
                     header("HTTP/1.1 304 Not Modified");
                     exit;               
-                } else {
+                } 
+                else {
                     return;
                 }
             }
 
             //check if page has changed. If not, send 304 and exit            
-            if (@strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE'])>=$lastModifiedDate) 
-            {          
+            if (@strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE'])>=$lastModifiedDate) {          
                 include_once $this->cfg['dir']. '/core/layout/Site.php';
                 $site = new \Site($this);
                 $site->handleCacheActions();
@@ -858,7 +739,8 @@ class Router
             $this->publications = NULL;
             $this->sections = NULL;
             $this->purposes = NULL;
-        } else {
+        } 
+        else {
             $countries_label = "country-data-{$this->siteLanguage}-".Db::$SectionsVersion;
             $roots_label = "root-data-{$this->countryId}-{$this->cityId}-{$this->siteLanguage}-".Db::$SectionsVersion;
             
@@ -872,7 +754,6 @@ class Router
             
             if (isset($result[$countries_label])) $this->countries = $result[$countries_label];
             if (isset($result[$roots_label])) $this->pageRoots = $result[$roots_label];
-
         }
         
         if (!$this->last_modified) {
@@ -906,13 +787,13 @@ class Router
         if ($this->cities===NULL || empty($this->cities)) {
             $this->cities = $this->db->getCitiesDictionary($force);
         }
-        
-        
+                
         if (!$this->countryId) {
             $this->countryId=0;
             $this->cityId=0;
             $this->pageRoots = $this->db->getRootsData($this->countryId, $this->cityId, $this->siteLanguage);
-        } else {
+        } 
+        else {
             if ($this->cityId && !isset($this->countries[$this->countryId]['cities'][$this->cityId])) {
                 $this->cityId=0;
                 $this->pageRoots = $this->db->getRootsData($this->countryId, $this->cityId, $this->siteLanguage);
@@ -949,24 +830,20 @@ class Router
                 order by naming.COUNTRY_ID desc",
                 null, -1, $this->cfg['ttl_long'], $force);
                                 
-        } else {
-            if ($this->rootId && isset($this->pageRoots[$this->rootId]))
+        } 
+        else {
+            if ($this->rootId && isset($this->pageRoots[$this->rootId])) {
                 $this->pagePurposes = $this->pageRoots[$this->rootId]['purposes'];
+            }
             else {
                 $this->pagePurposes = $this->db->getPurpusesData($this->countryId, $this->cityId, $this->rootId, $this->sectionId, $this->siteLanguage);
-                //if ($this->rootId) {
-                //    error_log(PHP_EOL."Root: ". $this->rootId.PHP_EOL. var_export($this->pageRoots, TRUE));
-                //}
             }
         }
     }
     
-
     
-    function FetchUrl($url=NULL) 
-    {
-        if ($url==NULL)
-        {
+    function FetchUrl($url=NULL) {
+        if ($url==NULL) {
             $url = $this->uri;
         }
         $result=$this->db->queryCacheResultSimpleArray($url, "
@@ -982,49 +859,30 @@ class Router
     }
     
     
-    function getCanonicalURL()
-    {
-        //error_log(__FUNCTION__ . ' ' .$this->countryId. ' '.$this->cityId.' '.$this->module);
-        
-        //if ($this->canonical)
-        //{
-        //    return $this->canonical;
-        //}
-        
-        
-        if ($this->module=='search')
-        {
-            
+    function getCanonicalURL() {
+        if ($this->module=='search') {            
             //return $this->canonical;
         }
-        elseif ($this->module=='index') 
-        {
+        elseif ($this->module=='index') {
             $path=$this->getUrl($this->countryId, $this->cityId);
             $this->canonical = 'https://www.mourjan.com'.$path;        
         }
-        else 
-        {
+        else {
             $this->canonical = FALSE;
         }
         
-        //error_log("canonocal: ".$this->canonical);
         return $this->canonical;               
     }
 
 
-    function decode() 
-    {        
-        if ($this->id) 
-        {
+    function decode() {        
+        if ($this->id) {
             $this->module='detail';
         } 
-        else 
-        {
-            if ($this->uri) 
-            {
+        else {
+            if ($this->uri) {
                 $url_codes = $this->FetchUrl($this->uri);
-                if ($url_codes) 
-                {
+                if ($url_codes) {
                     $this->countryId = $url_codes[0];
                     $this->cityId = $url_codes[1];
                     $this->rootId = $url_codes[2];
@@ -1033,50 +891,39 @@ class Router
                     $this->module = $url_codes[5];
                     $this->pageTitle['en'] = trim($url_codes[6]);
                     $this->pageTitle['ar'] = trim($url_codes[7]);
-                    if (!$this->userId)
-                    {
+                    if (!$this->userId) {
                         $this->userId = $url_codes[8];
                     }
                     
-
-                    if ($this->module=='cache' || ($this->module=='watchlist' && $this->params['rss']))
-                    {
+                    if ($this->module=='cache' || ($this->module=='watchlist' && $this->params['rss'])) {
                         $this->force_search=false;
                     }
 
-                    if ($this->force_search) 
-                    {
+                    if ($this->force_search)  {
                         $this->module='search';
                     } 
-                    elseif ($this->isMobile && $this->rootId>0 && $this->sectionId==0) 
-                    {
+                    elseif ($this->isMobile && $this->rootId>0 && $this->sectionId==0) {
                         $this->module='index';
                     } 
-                    elseif ($this->purposeId>0 || $this->rootId>0 || ($this->force_search)) 
-                    {
+                    elseif ($this->purposeId>0 || $this->rootId>0 || ($this->force_search)) {
                         $this->module='search';
                     }
-
 
                     if (($this->module=='search' || $this->module=='index') &&
                         $this->purposeId==0 &&
                         $this->rootId==0 &&
                         $this->sectionId==0 &&
                         empty($this->params['q']) &&
-                        $this->params['start']>0) 
-                    {
+                        $this->params['start']>0) {
                         header('HTTP/1.1 410 Gone');
                         $this->http_status=410;
                     }
                     
-                    if (isset($url_codes[9]) && !empty($url_codes[9]))
-                    {
+                    if (isset($url_codes[9]) && !empty($url_codes[9])) {
                         $this->redirect($url_codes[9], 301);
                     }
-
                 } 
-                else 
-                {
+                else {
                     if (strstr($this->uri, '/facebook')) $this->module='facebook';
                     elseif (strstr($this->uri, '/cse')) $this->module='cse';                    
                     else {
@@ -1092,7 +939,8 @@ class Router
                         }
                     }
                 }
-            } else {
+            } 
+            else {
                 if ($this->force_search) $this->module='search';
             }
         }
@@ -1127,24 +975,20 @@ class Router
                     $this->last_modified = $this->pageRoots[$this->rootId]['unixtime'];
 
             }
-
         
             $this->cacheHeaders($this->last_modified);
         }
         
-        $this->getCanonicalURL();
-        
+        $this->getCanonicalURL();        
     }
     
     
-    function encodeCurrent($a=0) 
-    {
+    function encodeCurrent($a=0) {
         return $this->encode($this->countryId, $this->cityId, $this->rootId, $this->sectionId, $this->purposeId, $a);
     }
     
     
-    function encode($cn=0, $c=0, $ro=0, $se=0, $pu=0, $a=0) 
-    {
+    function encode($cn=0, $c=0, $ro=0, $se=0, $pu=0, $a=0) {
         $result = $this->cfg['url_base'];
         if ($ro==4) $pu=0;
         $rs = $this->db->queryResultArray("select path||'/' PATH from uri where country_id={$cn} and city_id={$c} and root_id={$ro} and section_id={$se} and purpose_id={$pu} and lang='{$this->siteLanguage}'");
@@ -1155,29 +999,22 @@ class Router
     }
     
     
-    function getURL($cn=0, $c=0, $ro=0, $se=0, $pu=0, $appendLanguage=true, $mustFound=false) 
-    {
+    function getURL($cn=0, $c=0, $ro=0, $se=0, $pu=0, $appendLanguage=true, $mustFound=false) {
         $result = '/';
 
-        if ($cn) 
-        {
-            if (isset($this->countries[$cn]))
-            {
+        if ($cn) {
+            if (isset($this->countries[$cn])) {
                 $result.=$this->countries[$cn]['uri'].'/';
             }
-            else 
-            {
+            else {
                 $cn=0;
                 $c=0;
             }
         }
 
-        if ($c) 
-        {
-            if (isset($this->cities[$c])) 
-            {
-                if ($cn==0) 
-                {
+        if ($c) {
+            if (isset($this->cities[$c])) {
+                if ($cn==0) {
                     $cn = $this->cities[$c][4];
                     if (isset($this->countries[$cn])) {
                         $result.=$this->countries[$cn]['uri'].'/';
@@ -1188,14 +1025,16 @@ class Router
             }
         }
        
-        if ($se && isset($this->sections[$se])) 
+        if ($se && isset($this->sections[$se])) {
             $result.=$this->sections[$se][3].'/';
+        }
         else if($ro) {
             $result.=$this->roots[$ro][3].'/';
         }
         
-        if ($ro!=4 && $pu && isset($this->purposes[$pu]))
+        if ($ro!=4 && $pu && isset($this->purposes[$pu])) {
             $result.=$this->purposes[$pu][3].'/';
+        }
         
         if ($appendLanguage && $this->siteLanguage!='ar') {
             $result.=$this->siteLanguage.'/';
@@ -1205,17 +1044,14 @@ class Router
     }
 
     
-    function close() 
-    {
-        if ($this->db)
-        {
+    function close() {
+        if ($this->db) {
             $this->db->close();            
         }
     }
     
     
-    function isBot( $http_user_agent=null, $ip=null ) 
-    {
+    function isBot( $http_user_agent=null, $ip=null ) {
         if($ip==null) { 
             $ip = $_SERVER['REMOTE_ADDR'];
         }
@@ -1231,21 +1067,16 @@ class Router
                     ];
 
         $http_user_agent = strtolower( $http_user_agent ); 
-        foreach( $bots as $bot ) 
-        {      
-            if( stripos( $http_user_agent, $bot['bot'] ) !== false ) 
-            {            
+        foreach( $bots as $bot ) {      
+            if( stripos( $http_user_agent, $bot['bot'] ) !== false ) {            
                 $name = gethostbyaddr( $ip );
                 $host = gethostbyname( $bot['domain'] );
                 
-                if(strpos( $name, $bot['domain'])) 
-                {
-                    if ($host==$ip) 
-                    { 
+                if(strpos( $name, $bot['domain'])) {
+                    if ($host==$ip) { 
                         return $bot['name'];                         
                     }
-                    else
-                    {
+                    else {
                         return false;
                     }
                 }            
@@ -1255,22 +1086,62 @@ class Router
     }
 
     
-    private function checkBot( $domain, $ip ) 
-    {    
+    function isBehindProxy() {
+        $HTTP_proxy_headers = [
+            'HTTP_VIA',
+            'VIA',
+            'Proxy-Connection',
+            'HTTP_X_FORWARDED_FOR',  
+            'HTTP_FORWARDED_FOR',
+            'HTTP_X_FORWARDED',
+            'HTTP_FORWARDED',
+            'HTTP_CLIENT_IP',
+            'HTTP_FORWARDED_FOR_IP',
+            'X-PROXY-ID',
+            'MT-PROXY-ID',
+            'X-TINYPROXY',
+            'X_FORWARDED_FOR',
+            'FORWARDED_FOR',
+            'X_FORWARDED',
+            'FORWARDED',
+            'CLIENT-IP',
+            'CLIENT_IP',
+            'PROXY-AGENT',
+            'HTTP_X_CLUSTER_CLIENT_IP',
+            'FORWARDED_FOR_IP',
+            'HTTP_PROXY_CONNECTION'];
+        
+        foreach ($HTTP_proxy_headers as $header) {
+            if (isset($_SERVER[$header]) && !empty($_SERVER[$header])) {
+                error_log("Proxy {$this->client_ip}, Header {$header}, Please disable your proxy connection!");
+                return true;
+            }
+	}
+        return FALSE;
+    }
+    
+    
+    function isProxyIP(string $ip) {
+        $proxy_ports = [80, 81, 8080, 443, 1080, 6588, 3128];
+        foreach ($proxy_ports as $port) {
+            if(@fsockopen($ip??$_SERVER['REMOTE_ADDR'], $port, $errno, $errstr, 5)) {
+                error_log("Port {$port}. Please disable your proxy connection!");
+            }
+	}
+    }
+    
+    
+    private function checkBot($domain, $ip) {    
         $name = gethostbyaddr( $ip );
         $host = gethostbyname( $name );
-        if( strpos( $name, $domain ) ) 
-        {        
-            if ($host==$ip ) { return true; }
-            else { return false; }
-
+        if (strpos($name, $domain)) {        
+            if ($host==$ip) { return true; }
         }
         return false;
     }
     
     
-    function distance($lat, $lon, $ulat=0, $ulon=0) 
-    {
+    function distance($lat, $lon, $ulat=0, $ulon=0) {
         $_session_params = $_SESSION['_u']['params'];
         if (!$ulat) $ulat = $_session_params['latitude'] ?? 0.0;
         if (!$ulon) $ulon = $_session_params['longitude'] ?? 0.0;
@@ -1283,14 +1154,11 @@ class Router
     }
 
     
-    public static function getPositiveVariable($variable, int $type=-1) : int
-    {
-        if ($type<0)
-        {
+    public static function getPositiveVariable($variable, int $type=-1) : int {
+        if ($type<0) {
             return filter_var($variable, FILTER_VALIDATE_INT, static::POSITIVE_VALUE);
         }
-        else
-        {
+        else {
             return filter_input( $type, $variable, FILTER_VALIDATE_INT, static::POSITIVE_VALUE);            
         }
     }
