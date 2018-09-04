@@ -1015,20 +1015,23 @@ class User {
         if (!empty($ad)) {
             $ad=$ad[0];
             include_once $this->cfg['dir'] . '/core/lib/MCSaveHandler.php';                
+            include_once $this->cfg['dir'] . '/core/lib/IPQuality.php';                
             $normalizer = new MCSaveHandler($this->cfg);
+            
+            $content=json_decode($ad['CONTENT'], true);
+            if (isset($content['budget'])) { $content['budget'] = 0; }
+            
+            if ($this->info['id']==$content['user']) {
+                $content['ipfs'] = IPQuality::ipScore();
+            }
+
 
             if ($ad['ID'] < 3134500) {                
                 $sectionId= $ad['SECTION_ID'];
                 $purposeId= $ad['PURPOSE_ID'];
                 
                 $sections = $this->db->getSections();
-                
-                $content=json_decode($ad['CONTENT'],true);
-                
-                if(isset($content['budget'])){
-                    $content['budget'] = 0;
-                }
-                
+                                                
                 if (isset($sections[$sectionId]) && $sections[$sectionId][5] && $sections[$sectionId][8]==$purposeId) {
                     $content['ro']=$sections[$sections[$sectionId][5]][4];
                     $purposeId=$content['pu']=$sections[$sectionId][9];
@@ -1064,7 +1067,7 @@ class User {
                 
                 $content = json_encode($content);
                 
-                if($this->info['level']==9) {
+                if ($this->info['level']==9) {
                     $res=$this->db->get(
                             'update ad_user set content=?, section_id=?, purpose_id=?, state = '.$state.', date_added=current_timestamp where id=? returning id',
                             [$content, $sectionId, $purposeId, $id], true);
@@ -1077,13 +1080,7 @@ class User {
                 
             }
             else {
-                // new ad version
-                $content = json_decode($ad['CONTENT'], true);                
-                
-                if(isset($content['budget'])){
-                    $content['budget'] = 0;
-                }
-                
+                // new ad version                                                                                
                 $content['state']=$state;
                 $normalized = $normalizer->getFromContentObject($content);
                 
@@ -1457,11 +1454,18 @@ class User {
         try {
             if ($userId) {
                 include_once $this->cfg['dir'] . '/core/lib/MCSaveHandler.php';
+                include_once $this->cfg['dir'] . '/core/lib/IPQuality.php';                
                 
                 $normalizer = new MCSaveHandler($this->cfg);
 
-                $content = json_decode($this->pending['post']['content'],true);                
+                $content = json_decode($this->pending['post']['content'], true);  
                 $content['state']=$publish;
+                
+            
+                if ($this->info['id']==$content['user']) {
+                    $content['ipfs'] = IPQuality::ipScore();
+                }
+
                 $normalized = $normalizer->getFromContentObject($content);
 
                 if ($normalized) {
@@ -1496,7 +1500,7 @@ class User {
                     
                     $attrs = isset($content['attrs']) ? $content['attrs'] : NULL;
                     
-                    $q='update ad_user set
+                    $q='UPDATE ad_user set /* ' . __CLASS__ .'.'.__FUNCTION__.' */ 
                         content=?, title=?, purpose_id=?, section_id=?, rtl=?,
                         country_id=?, city_id=?, latitude=?, longitude=?, state=?, media=? ';
                     if ($this->info['id']==$userId && ($publish==1||$publish==4)) {
@@ -1692,14 +1696,11 @@ class User {
         }
     }
     
-    function block($uid, $number, $msg)
-    {
-        if (Core\Model\NoSQL::getInstance()->blacklistInsert($number, $msg, $uid))
-        {
-            if (NoSQL::getInstance()->mobileGetLinkedUIDs($number, $linked)== NoSQL::OK)
-            {
-                foreach ($linked as $bins) 
-                {
+    
+    function block($uid, $number, $msg) {
+        if (Core\Model\NoSQL::getInstance()->blacklistInsert($number, $msg, $uid)) {
+            if (NoSQL::getInstance()->mobileGetLinkedUIDs($number, $linked)== NoSQL::OK) {
+                foreach ($linked as $bins) {
                     NoSQL::getInstance()->setUserLevel($bins[\Core\Model\ASD\USER_UID], 5);
                 }
                         
@@ -1707,8 +1708,7 @@ class User {
                 $block = $this->db->get($q, [$number, $msg, $uid]);
                 $pass=0;
         
-                if(isset($block[0]['ID']) && $block[0]['ID'])
-                {
+                if(isset($block[0]['ID']) && $block[0]['ID']) {
                     $pass=1;
                 }
                         
@@ -1721,7 +1721,7 @@ class User {
     
     function suspend($uid, $hours, $newModel=0, $reason = 0) {
         $pass=false;
-        if($newModel) {
+        if ($newModel) {
             if(substr($newModel, 0, 1)=='+') {
                 $newModel = substr($newModel, 1);
             }
@@ -1729,7 +1729,7 @@ class User {
         }
         else {
             $options = NoSQL::getInstance()->getOptions($uid);
-            if($options) {
+            if ($options) {
                 $options['suspend']=time()+($hours*3600);
                 $pass=$this->updateOptions($uid,$options);
             }

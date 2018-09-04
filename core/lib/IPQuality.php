@@ -120,8 +120,57 @@ class IPQuality {
     }
 
     
+    public static function ipScore() : float {
+        $ipq = new IPQuality;
+        $ip = $ipq->get_client_ip_server();
+        if ($ip!='UNKNOWN') {
+            try {
+                $redis = new Redis();                
+                if ($redis->connect('h5.mourjan.com', 6379, 1, NULL, 50)) {
+                    $redis->select(3);
+                    $redis->setOption(Redis::OPT_PREFIX, 'IP:');  
+                    $redis->setOption(Redis::OPT_READ_TIMEOUT, 3);
+                    $raw = $redis->get($ip);
+                    $redis->close(); 
+                    
+                    if (!empty($raw)) {
+                        $result = json_decode($raw, true);
+                        if ($result!==null) {
+                            if (isset($result['fraud_score'])) {
+                                return $result['fraud_score']+0.0;
+                            } 
+                        } 
+                    }
+                }
+            } catch (RedisException $re) {}
+        
+        
+            $user_agent = urlencode($_SERVER['HTTP_USER_AGENT']??''); // User Browser (optional) - provides better forensics for our algorithm to enhance fraud scores.
+            $language = urlencode($_SERVER['HTTP_ACCEPT_LANGUAGE']??''); // User System Language (optional) - provides better forensics for our algorithm to enhance fraud scores.
+            $raw = $ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?user_agent=%s&user_language=%s&strictness=%s&allow_public_access_points=%s', $ipq->key, $ip, $user_agent, $language, 2, 'false'));
+            $result = json_decode($raw, true);
+            if ($result!==null) {
+                try {
+                    $redis = new Redis();                
+                    if ($redis->connect('h5.mourjan.com', 6379, 1, NULL, 50)) {
+                        $redis->select(3);
+                        $redis->setOption(Redis::OPT_PREFIX, 'IP:');                        
+                        $redis->setOption(Redis::OPT_READ_TIMEOUT, 3);
+                        $redis->setex($ip, 604800, json_encode($result));
+                        $redis->close();
+                    }
+                } catch (RedisException $re) {}
+                if (isset($result['fraud_score'])) {
+                    return $result['fraud_score']+0.0;
+                } 
+            } 
+        }
+        return -1;
+    }
+    
+    
     function get_client_ip_server() {
-        $ipaddress = '';
+        $ipaddress = 'UNKNOWN';
         if ($_SERVER['REMOTE_ADDR']) {
             $ipaddress = $_SERVER['REMOTE_ADDR'];
         }
@@ -139,28 +188,9 @@ class IPQuality {
         }
         else if($_SERVER['HTTP_FORWARDED']) {
             $ipaddress = $_SERVER['HTTP_FORWARDED'];
-        }
-        else {
-            $ipaddress = 'UNKNOWN';
-        }
+        }        
  
         return $ipaddress;
     }
 		
-}
-
-
-$ipQuality = new IPQuality;
-$IP = '185.17.149.151'; //$ipQuality->get_client_ip_server();
-
-if ($ipQuality->ValidIP($IP)===true){
-    // User is using a proxy or is high risk!
-    // Optionally redirect the user with the code below
-    // header('Location: https://www.google.com');
-    echo 'Proxy, VPN, or Risky User';
-} 
-else {
-    // User appears to be clean!
-    // header('Location: https://www.mysite.com');
-    echo 'Clean IP/User';
 }

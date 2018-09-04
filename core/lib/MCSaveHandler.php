@@ -424,7 +424,7 @@ class MCSaveHandler {
         if (isset($ad_content['pubTo']) && empty($ad_content['pubTo'])) {
             $ad_content['pubTo'] = new stdClass();
         }
-                
+                      
         $command = ['command'=>'normalize', 'json'=>json_encode($ad_content)];
         
         $res = $this->apiV1normalizer($command['json']);
