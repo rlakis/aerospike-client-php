@@ -1459,12 +1459,7 @@ class User {
                 $normalizer = new MCSaveHandler($this->cfg);
 
                 $content = json_decode($this->pending['post']['content'], true);  
-                $content['state']=$publish;
-                
-            
-                if ($this->info['id']==$content['user']) {
-                    $content['ipfs'] = IPQuality::ipScore();
-                }
+                $content['state']=$publish;                            
 
                 $normalized = $normalizer->getFromContentObject($content);
 
@@ -1478,6 +1473,10 @@ class User {
                     if ($content['pu']=$this->pending['post']['pu']) {
                         $this->pending['post']['pu']=$content['pu'];
                     }
+                }                
+                
+                if ($this->info['id']==$content['user']) {
+                    $content['ipfs'] = IPQuality::ipScore();
                 }
                 
                 $this->pending['post']['content']=json_encode($content);
