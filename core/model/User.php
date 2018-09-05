@@ -1461,6 +1461,10 @@ class User {
                 $content = json_decode($this->pending['post']['content'], true);  
                 $content['state']=$publish;                            
 
+                if ($this->info['id']==$content['user']) {
+                    $content['ipfs'] = IPQuality::ipScore();
+                }
+                
                 $normalized = $normalizer->getFromContentObject($content);
 
                 if ($normalized) {
@@ -1475,9 +1479,7 @@ class User {
                     }
                 }                
                 
-                if ($this->info['id']==$content['user']) {
-                    $content['ipfs'] = IPQuality::ipScore();
-                }
+                
                 
                 $this->pending['post']['content']=json_encode($content);
 
@@ -1517,8 +1519,7 @@ class User {
                     if ($this->pending['post']['se']>0) {
                         $result = $this->writeAdModification($publish, $media, $id, $userId, $attrs, $q);
                     }
-                    
-                    
+                                        
                     if (!empty($result)) {
                         $state=(int)$result['STATE'];
                     
@@ -1534,8 +1535,7 @@ class User {
                                     if ($this->info['id']==$uId) {
                                         $options=$this->info['options'];
                                         if ( (!isset($options['cut']) || json_encode($options['cut']) !=  json_encode($content['cut'])) ||
-                                              (!isset($options['cui']) || json_encode($options['cui']) !=  json_encode($content['cui']))  )
-                                        {
+                                              (!isset($options['cui']) || json_encode($options['cui']) !=  json_encode($content['cui']))  ) {
                                             $options['cut']=$content['cut'];
                                             $options['cui']=$content['cui'];
                                             $options['cts']=time();

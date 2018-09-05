@@ -3266,7 +3266,9 @@ class MobileApi {
                 }
                 //error_log(\json_encode($ad));
                 
-                include_once $this->config['dir'] . '/core/lib/MCSaveHandler.php';                
+                include_once $this->config['dir'] . '/core/lib/MCSaveHandler.php';
+                include_once $this->config['dir'] . '/core/lib/IPQuality.php'; 
+                $ad['ipfs'] = IPQuality::ipScore();
                 $normalizer = new MCSaveHandler($this->config);
                 //error_log($ad['other']);
                 $normalized = $normalizer->getFromContentObject($ad);

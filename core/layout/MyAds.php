@@ -1,8 +1,7 @@
 <?php
 include $config['dir'].'/core/layout/Page.php';
 
-class MyAds extends Page 
-{
+class MyAds extends Page {
     
     var $subSection='',$userBalance=0, $redis = null, $admins_online=[];
     
@@ -23,12 +22,10 @@ class MyAds extends Page
         1028732   =>  'Editor 8'
     ];
 
-    function __construct($router) 
-    {
+    function __construct($router) {
         parent::__construct($router);       
         
-        if($this->urlRouter->cfg['active_maintenance']) 
-        {
+        if($this->urlRouter->cfg['active_maintenance']) {
             $this->user->redirectTo('/maintenance/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
         }
 
@@ -37,22 +34,19 @@ class MyAds extends Page
         $this->urlRouter->cfg['enabled_sharing']=0;
         $this->title=$this->lang['myAds'];
         
-        if (isset ($this->user->pending['post'])) 
-        {
+        if (isset ($this->user->pending['post'])) {
             unset($this->user->pending['post']);
             $this->user->update();
         }
         
         $sub='';
         
-        if ($this->isMobile) 
-        {
+        if ($this->isMobile) {
             $this->urlRouter->cfg['enabled_ads']=0;
             $this->inlineCss.='time{margin:0 10px}p.nd{border-top:1px solid #ececec}.ls p{margin-top:0;padding-top:10px}';
             
             if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
-            switch($sub)
-            {
+            switch($sub) {
                 case 'pending':
                     $this->subSection='pending';
                     $this->title=$this->lang['ads_pending'];
@@ -74,36 +68,31 @@ class MyAds extends Page
                     break;
             }
         } 
-        else 
-        {
+        else {
             $this->urlRouter->cfg['enabled_ads']=0;
             
             if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
-            if($sub == 'deleted' && $this->user->info['level']!=9){
+            if ($sub == 'deleted' && $this->user->info['level']!=9) {
                 $sub = '';
             }
             $this->globalScript.='var SOUND="beep.mp3",';
 
-            if(isset($this->user->params['mute'])&&$this->user->params['mute'])
-            {
+            if (isset($this->user->params['mute'])&&$this->user->params['mute']) {
                 $this->globalScript.='MUTE=1';
             }
-            else
-            {
+            else {
                 $this->globalScript.='MUTE=0';
             }
             
             $this->globalScript.=';';
             
-            if($this->user->info['id'] && $this->user->info['level']==9) 
-            {
+            if ($this->user->info['id'] && $this->user->info['level']==9) {
                 
                 if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
                 
                 $this->inlineCss .= '.oc .lnk {padding:0 15px!important}li.owned{background-color: #D9FAC8 !important}';
                 
-                if($sub=='pending')
-                {
+                if ($sub=='pending') {
                     $this->inlineCss.='li.owned .oc{visibility:visible}.oc:not(.ocl), li.activeForm .oc{visibility:hidden}';
                 }
                 
@@ -253,8 +242,7 @@ class MyAds extends Page
                     }
                 ';
                 
-                if ($this->urlRouter->siteLanguage=='ar')
-                {
+                if ($this->urlRouter->siteLanguage=='ar') {
                     $this->inlineCss.='
                         .btzone .bt{
                             float:right
@@ -285,8 +273,7 @@ class MyAds extends Page
                     };
                 ';
                 
-                if($sub==='')
-                {
+                if ($sub==='') {
                     $this->globalScript.='
                         function mCPrem(){
                             Dialog.show("alert_dialog",\'<span class="fail"></span>'.$this->lang['multi_premium_no'].'\');
@@ -299,8 +286,7 @@ class MyAds extends Page
         
             $this->inlineCss.='.htf.db{width:720px!important}.ig{-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none}.ww{font-size:16px}.cct .k{float:none}.rpd{padding-top:5px!important}.rpd .bt{width:auto!important}.cct{height:auto}.ls p{padding-bottom:5px}.alt{border-top:1px solid #ccc;padding:5px!important}.en .ig{float:left;margin:0 10px 5px 0}.ar .ig{float:right;margin:0 0 5px 10px}';
             
-            if($this->user->info['id'] && $this->user->info['level']==9)
-            {
+            if ($this->user->info['id'] && $this->user->info['level']==9) {
                 $this->inlineCss.='#rejS{width:640px;padding:5px;margin-bottom:10px;}.adminNB{position:fixed;cursor:pointer;bottom:0;'.($this->urlRouter->siteLanguage=='ar'?'left':'right').':5px;background-color:#D9FAC8;padding:5px 15px;border:1px solid #ccc;border-bottom:0;font-weight:bold;color:#00e}.adminNB:hover{text-decoration:underline}';
             }
         }
@@ -311,7 +297,7 @@ class MyAds extends Page
             $redis->connect("p1.mourjan.com", 6379, 1, NULL, 100);
             $redis->select(5);
             
-            if(!$this->user->isSuperUser()){
+            if (!$this->user->isSuperUser()) {
                 $redis->setex('ADMIN-'.$this->user->info['id'], 300, $this->user->info['id']);
             }
             $this->admins_online = $redis->keys('ADMIN-*');
@@ -320,33 +306,34 @@ class MyAds extends Page
         }
         
         $this->render();
-        
-        
-        if(isset($this->user->params['hold'])) 
-        {
+                
+        if (isset($this->user->params['hold'])) {
             unset($this->user->params['hold']);
             $this->user->update();
         }
         
     }    
 
-    function assignAdToAdmin($ad_id, $admin_id){
+    
+    function assignAdToAdmin($ad_id, $admin_id) {
         $admin_id = 0;
-        if($this->redis && count($this->admins_online)){
+        if ($this->redis && count($this->admins_online)) {
             $redis = $this->redis;
             $ad = $redis->mGet(array('AD-'.$ad_id));
-            if($ad[0] === false){
+            if ($ad[0]===false) {
                 
                 $lastIndex = $redis->mGet(array('LAST_IDX'));
-                if($lastIndex[0] === false){
+                if ($lastIndex[0]===false) {
                     $lastIndex = 0;
-                }else{
+                }
+                else {
                     $lastIndex = $lastIndex[0];
                 }
                 
-                if($lastIndex + 1 < count($this->admins_online)){
+                if ($lastIndex+1 < count($this->admins_online)) {
                     $lastIndex++;
-                }else{
+                }
+                else {
                     $lastIndex = 0;
                 }
                 
@@ -354,9 +341,9 @@ class MyAds extends Page
                 
                 //error_log('assign to '.$admin_id);               
                 $redis->setex('AD-'.$ad_id, 120, $admin_id);
-                $redis->setex('LAST_IDX', 86400, $lastIndex);
-                
-            }else{
+                $redis->setex('LAST_IDX', 86400, $lastIndex);                
+            }
+            else {
                 $admin_id = $ad[0];
             }
             $admin_id = substr($admin_id,6)+0;
@@ -364,29 +351,32 @@ class MyAds extends Page
         return $admin_id;
     }
     
+    
     function getAssignedAdmin($ad_id){
         $admin = 0;
-        if($this->redis){
+        if ($this->redis) {
             $redis = $this->redis;
             $ad = $redis->mGet(array('AD-'.$ad_id));
-            if($ad[0] !== false){                
+            if ($ad[0] !== false) {                
                 $admin = substr($ad[0],6)+0;
             }
         }
         return $admin;
     }
     
+    
     function _body() {
         parent::_body();        
-        if($this->redis){
+        if ($this->redis) {
             $this->redis->close();
         }
     }
     
+    
     function mainMobile() {
         if ($this->user->info['id']) {
             $sub='';
-            switch($this->subSection){
+            switch($this->subSection) {
                 case '':
                     $this->pendingMobileAds(7);
                     break;
@@ -407,13 +397,13 @@ class MyAds extends Page
     }
       
     
-    function pendingMobileAds($state=0)
-    {
+    function pendingMobileAds($state=0) {
         $lang='';
         $this->userBalance = $this->user->getStatement(0, 0, true);
-        if(isset($this->userBalance['balance'])){
+        if (isset($this->userBalance['balance'])) {
             $this->userBalance = $this->userBalance['balance'];
-        }else{
+        }
+        else {
             $this->userBalance = 0;
         }
         $current_time = time();
@@ -421,7 +411,7 @@ class MyAds extends Page
         $ads=$this->user->getPendingAds(0,$state);
         $count=0;
         if (!empty($ads))$count=count($ads);
-        if($count){
+        if ($count) {
             if($this->urlRouter->cfg['enabled_charts'] && $state==7){
                 ?><div class="statH rc sh relative"><div id="statDv" class="load"></div></div><?php
             }
@@ -1487,22 +1477,22 @@ var rtMsgs={
                     }
                 }
                                 
-                if($this->user->info['level']==9) 
-                {
+                if ($this->user->info['level']==9) {
                     $mcUser = new MCUser((int)$ad['WEB_USER_ID']);
                     $userMobile = $mcUser->getMobile(TRUE)->getNumber();
                     
                     $needNumberDisplayFix=false;
-                    if(!preg_match('/span class="pn/u', $text)){
+                    if (!preg_match('/span class="pn/u', $text)) {
                         $needNumberDisplayFix = true;
                     }
-                    if(isset($content['cui']['p']) && is_array($content['cui']['p'])){
-                        foreach($content['cui']['p'] as $p){                            
+                    
+                    if (isset($content['cui']['p']) && is_array($content['cui']['p'])) {
+                        foreach ($content['cui']['p'] as $p) { 
                             $isUserMobile = false;
-                            try{
+                            try {
                                 $num = $mobileValidator->parse($p['v'],$p['i']);
-                                if($num && $mobileValidator->isValidNumber($num)){
-                                    if($userMobile && '+'.$userMobile == $p['v']){
+                                if ($num && $mobileValidator->isValidNumber($num)) {
+                                    if ($userMobile && '+'.$userMobile == $p['v']) {
                                         $isUserMobile=true;
                                     }
                                 
@@ -1528,14 +1518,16 @@ var rtMsgs={
                                             $phoneValidErr=2;
                                             break;
                                     }
-                                }else{
+                                }
+                                else {
                                     $phoneValidErr=2;
                                 }
-                            }catch(Exception $ex){
+                            }
+                            catch (Exception $ex) {
                                 $phoneValidErr=2;
                             }
-                            if($needNumberDisplayFix){
-                                if(strlen($p['v'])==0){
+                            if ($needNumberDisplayFix) {
+                                if (strlen($p['v'])==0) {
                                     $p['v'] = $p['r'];
                                 }
                                 $text = preg_replace('/\\'.$p['v'].'/', '<span class="pn">'.$p['v'].'</span>', $text);
@@ -1622,6 +1614,10 @@ var rtMsgs={
                             $ss = 'A';
                         }
                     }
+                    
+                    if (isset($content['ipfs']) && $content['ipfs']>=50) {
+                        $ss.="/{$content['ipfs']}";
+                    }
                    
                     $title.='<b'.$class.'>#'.$ad['ID'].'#' . $ss. '</b>';
                     $title.='</div>';
@@ -1635,14 +1631,12 @@ var rtMsgs={
                     $link=($ad['RTL']?'/':'/en/').$ad['ID'].'/';
                     if($altText) $altlink='/en/'.$ad['ID'].'/';                        
                         
-                    if ($isFeatured || $isFeatureBooked)
-                    {
+                    if ($isFeatured || $isFeatureBooked) {
                         $liClass.= ' vp';
                     }
                 }
                 
-                if($state>6) 
-                {
+                if($state>6) {
                     $ad['CITY_ID']=$ad['ACTIVE_CITY_ID'];
                     $ad['COUNTRY_ID']=$ad['ACTIVE_COUNTRY_ID'];
                 }
@@ -1651,29 +1645,25 @@ var rtMsgs={
                     
                 ?><li id="<?= $ad['ID'] ?>" <?= $liClass ?><?= $ad['STATE']==2 ? ' status="2" class="approved"' : ($ad['STATE']==3 ? ' status="3" class="approved"' : '') ?><?= ($this->user->info['level']==9 ? ' ro="'.$content['ro'].'" se="'.$content['se'].'" pu="'.$content['pu'].'"':'') ?>><?php
                 
-                if ($ad['STATE']==1 || $ad['STATE']==4) 
-                {
+                if ($ad['STATE']==1 || $ad['STATE']==4) {
                     echo '<div class="nb nbw">' .($onlySuper ? '<span title="'.$onlySuper.'" class="fail"></span>' : '<span class="wait"></span>') ,$this->lang['pendingMsg'], ($assignedAdmin ? $assignedAdmin:'') , '</div>';
                 }
-                elseif ($ad['STATE']==2) 
-                {
+                elseif ($ad['STATE']==2) {
                     echo '<div class="nb nbg"><span class="done"></span>',$this->lang['approvedMsg'],($assignedAdmin ? $assignedAdmin:'') ,'</div>';
                 }
-                elseif ($ad['STATE']==3)
-                {
+                elseif ($ad['STATE']==3) {
                     echo '<div class="nb nbr"><span class="fail"></span>',$this->lang['rejectedMsg'],(isset($content['msg']) && $content['msg']? ': '.$content['msg']:''),($assignedAdmin ? $assignedAdmin:'') ,'</div>';
                 }
                 
-                if($this->user->info['level']==9) 
-                {
+                if ($this->user->info['level']==9) {
                     echo $title;
                 }
                 $userLang = '';
-                if(isset($content['hl']) && in_array($content['hl'], array('en','ar'))){
+                if (isset($content['hl']) && in_array($content['hl'], array('en','ar'))) {
                     $userLang = $content['hl'];
                 }
                 
-                if($hasAdminImgs){
+                if ($hasAdminImgs) {
                     echo "<p class='pimgs'>{$thumbs}</p>";
                 }
                 
@@ -2100,13 +2090,14 @@ var rtMsgs={
         }
     }
     
-    function getContactInfo($content){
+    
+    function getContactInfo($content) {
         $contactInfo='';
-        if(isset($content['cui'])) {
-            if(isset($content['cui']['p'])){ 
+        if (isset($content['cui'])) {
+            if (isset($content['cui']['p'])) { 
                 $phone=$content['cui']['p'];
-                if(count($phone)){
-                    foreach ($phone as $p){
+                if (count($phone)) {
+                    foreach ($phone as $p) {
                         if($contactInfo) $contactInfo.='|';
                         $contactInfo.=urlencode('"'.substr($p['v'],1).'"');
                     }
@@ -2133,54 +2124,60 @@ var rtMsgs={
         return $contactInfo;
     }
 
-    function renderUserTypeSelector(&$user=null)
-    {
-        if ($this->user->info['id'] && $this->user->info['level']==9)
-        {
+    
+    function renderUserTypeSelector(&$user=null) {
+        if ($this->user->info['id'] && $this->user->info['level']==9) {
             $userId = $this->user->info['id'];
             $type = 0;
-            if(isset($_GET['u']) && is_numeric($_GET['u']) && $_GET['u'])
-            {
+            if (isset($_GET['u']) && is_numeric($_GET['u']) && $_GET['u']) {
                 $userId = $_GET['u'];
                 $type = \Core\Model\NoSQL::getInstance()->getUserPublisherStatus($userId); //$this->user->getType($userId);
             }
             $user = new MCUser($userId); //(MCSessionHandler::getUser($userId));
-            if($user->isSuspended())
-            {
+            if ($user->isSuspended()) {
                 $time = MCSessionHandler::checkSuspendedMobile($user->getMobileNumber());
                 $hours=0;
                 $lang=$this->urlRouter->siteLanguage;
-                if($time){
+                if ($time) {
                     $hours = $time / 3600;
-                    if(ceil($hours)>1){
+                    if (ceil($hours)>1) {
                         $hours = ceil($hours);
-                        if($lang=='ar'){
-                            if($hours==2){
+                        if ($lang=='ar') {
+                            if ($hours==2) {
                                 $hours='ساعتين';
-                            }elseif($hours>2 && $hours<11){
+                            }
+                            elseif ($hours>2 && $hours<11) {
                                 $hours=$hours.' ساعات';
-                            }else{
+                            }
+                            else {
                                 $hours = $hours.' ساعة';
                             }
-                        }else{
+                        }
+                        else {
                             $hours = $hours.' hours';
                         }
-                    }else{
+                    }
+                    else {
                         $hours = ceil($time / 60);
-                        if($lang=='ar'){
-                            if($hours==1){
+                        if ($lang=='ar') {
+                            if ($hours==1) {
                                 $hours='دقيقة';
-                            }elseif($hours==2){
+                            }
+                            elseif ($hours==2) {
                                 $hours='دقيقتين';
-                            }elseif($hours>2 && $hours<11){
+                            }
+                            elseif ($hours>2 && $hours<11) {
                                 $hours=$hours.' دقائق';
-                            }else{
+                            } 
+                            else {
                                 $hours = $hours.' دقيقة';
                             }
-                        }else{
-                            if($hours>1){                                
+                        }
+                        else {
+                            if ($hours>1) {  
                                 $hours = $hours.' minutes';
-                            }else{                                
+                            }
+                            else {                        
                                 $hours = $hours.' minute';
                             }
                         }
@@ -2188,8 +2185,7 @@ var rtMsgs={
                 }
                 echo '<span class="fl"><span class="wait"></span>'.$hours.'</span>';
             }
-            echo '<span class="fl">'.$this->lang['user_type_label'].': <select onchange="setUT(this,'.$userId.')"><option value="0">'.$this->lang['user_type_option_0'].'</option><option value="1"'.($type == 1 ? ' selected':'').'>'.$this->lang['user_type_option_1'].'</option><option value="2"'.($type == 2 ? ' selected':'').'>'.$this->lang['user_type_option_2'].'</option></select></span>';
-            
+            echo '<span class="fl">'.$this->lang['user_type_label'].': <select onchange="setUT(this,'.$userId.')"><option value="0">'.$this->lang['user_type_option_0'].'</option><option value="1"'.($type == 1 ? ' selected':'').'>'.$this->lang['user_type_option_1'].'</option><option value="2"'.($type == 2 ? ' selected':'').'>'.$this->lang['user_type_option_2'].'</option></select></span>';            
         }
     }
     

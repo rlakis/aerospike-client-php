@@ -678,7 +678,7 @@ class AndroidApi
                 break;
                 
             case API_ANDROID_POST_AD:         
-                if($this->api->config['active_maintenance']) {
+                if ($this->api->config['active_maintenance']) {
                     $this->api->result['e'] = "503";
                     break;
                 }
@@ -698,8 +698,7 @@ class AndroidApi
                     $state = 0;
                     $ad = json_decode(urldecode(filter_input(INPUT_POST, 'ad', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']])), true);
                     
-                    $userState = 0;
-                    
+                    $userState = 0;                    
                     $hasFailure = 0;
                     $hasMajorFailure = 0;
                     
@@ -708,9 +707,12 @@ class AndroidApi
                     if (!empty($ad)) {    
                     
                         if ($ad['se']>0 && $ad['pu']==0) { $ad['pu']=5; }                                      
-
+                        
                         $_original_ad=$ad;
-                        include_once $this->api->config['dir'] . '/core/lib/MCSaveHandler.php';                
+                        include_once $this->api->config['dir'] . '/core/lib/MCSaveHandler.php';
+                        include_once $this->api->config['dir'] . '/core/lib/IPQuality.php'; 
+                        $ad['ipfs'] = IPQuality::ipScore();
+                        
                         $normalizer = new MCSaveHandler($this->api->config);
                         $normalized = $normalizer->getFromContentObject($ad);
                         $attrs = [];
@@ -730,13 +732,13 @@ class AndroidApi
                         if (isset($ad['altother']) && $ad['altother']) {
                             $ad['altRtl'] = ($this->isRTL($ad['altother'])) ? 1 : 0;
 
-                            if($ad['rtl'] == $ad['altRtl']) {
+                            if ($ad['rtl'] == $ad['altRtl']) {
                                 $ad['extra']['t']=2;
                                 unset($ad['altRtl']);
                                 unset($ad['altother']);
                             }
 
-                            if(isset($ad['altRtl']) && $ad['altRtl']) {
+                            if (isset($ad['altRtl']) && $ad['altRtl']) {
                                 $tmp=$ad['other'];
                                 $ad['other']=$ad['altother'];
                                 $ad['altother']=$tmp;
