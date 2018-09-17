@@ -711,7 +711,7 @@ class AndroidApi
                         $_original_ad=$ad;
                         include_once $this->api->config['dir'] . '/core/lib/MCSaveHandler.php';
                         include_once $this->api->config['dir'] . '/core/lib/IPQuality.php'; 
-                        $ad['ipfs'] = IPQuality::ipScore();
+                        $ad['ipfs'] = IPQuality::ipScore(TRUE);
                         
                         $normalizer = new MCSaveHandler($this->api->config);
                         $normalized = $normalizer->getFromContentObject($ad);

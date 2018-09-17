@@ -1452,16 +1452,16 @@ class User {
         $ad_is_saved=FALSE;
         
         try {
+            include_once $this->cfg['dir'] . '/core/lib/IPQuality.php';
             if ($userId) {
-                include_once $this->cfg['dir'] . '/core/lib/MCSaveHandler.php';
-                include_once $this->cfg['dir'] . '/core/lib/IPQuality.php';                
+                include_once $this->cfg['dir'] . '/core/lib/MCSaveHandler.php';                            
                 
                 $normalizer = new MCSaveHandler($this->cfg);
 
                 $content = json_decode($this->pending['post']['content'], true);  
                 $content['state']=$publish;                            
 
-                if ($this->info['id']==$content['user']) {
+                if (isset ($this->pending['post']['id']) && $this->pending['post']['id'] && $this->info['id']==$content['user']) {
                     $content['ipfs'] = IPQuality::ipScore();
                 }
                 
@@ -1610,7 +1610,7 @@ class User {
                 } 
                 else {
                     if ($this->pending['post']['se']>0) {
-                        
+                        $content['ipfs'] = IPQuality::ipScore();
                         $adContent = json_decode($this->pending['post']['content'],true);
                         $rawOther = isset($adContent['rawOther']) ? $adContent['rawOther'] : null;
                         $rawAltOther = isset($adContent['rawAltOther']) ? $adContent['rawAltOther'] : null;

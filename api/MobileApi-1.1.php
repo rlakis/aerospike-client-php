@@ -3268,7 +3268,7 @@ class MobileApi {
                 
                 include_once $this->config['dir'] . '/core/lib/MCSaveHandler.php';
                 include_once $this->config['dir'] . '/core/lib/IPQuality.php'; 
-                $ad['ipfs'] = IPQuality::ipScore();
+                $ad['ipfs'] = IPQuality::ipScore(TRUE);
                 $normalizer = new MCSaveHandler($this->config);
                 //error_log($ad['other']);
                 $normalized = $normalizer->getFromContentObject($ad);
@@ -3315,7 +3315,7 @@ class MobileApi {
                 //}
                         
                 $requireReview = 0;
-                        
+                /*        
                 $ip ='';
                 if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
                     $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
@@ -3323,10 +3323,12 @@ class MobileApi {
                 else {
                     $ip = $_SERVER['REMOTE_ADDR'];
                 }
-                $ad['ip']=$ip;                            
+                 * 
+                 */
+                $ad['ip']= IPQuality::getClientIP();                            
                 $databaseFile = '/home/db/GeoLite2-City.mmdb';
                 $reader = new Reader($databaseFile);
-                $geo = $reader->get($ip);
+                $geo = $reader->get($ad['ip']);
                 $reader->close(); 	
                         
                 $XX='';                

@@ -120,54 +120,112 @@ class IPQuality {
     }
 
     
-    public static function ipScore() : float {
-        $ipq = new IPQuality;
-        $ip = $ipq->get_client_ip_server();
+    public static function ipScore($mobile=null) : float {
+        $ip = static::getClientIP();
+        
+        //$ip = $ipq->get_client_ip_server();
         if ($ip!='UNKNOWN') {
-            try {
-                $redis = new Redis();                
+            $redis = new Redis();
+            try {                              
                 if ($redis->connect('h5.mourjan.com', 6379, 1, NULL, 50)) {
                     $redis->select(3);
                     $redis->setOption(Redis::OPT_PREFIX, 'IP:');  
                     $redis->setOption(Redis::OPT_READ_TIMEOUT, 3);
-                    $raw = $redis->get($ip);
-                    $redis->close(); 
+                    $raw = $redis->get($ip);                    
                     
                     if (!empty($raw)) {
                         $result = json_decode($raw, true);
                         if ($result!==null) {                            
                             if (isset($result['fraud_score'])) {
+                                $redis->close(); 
                                 return $result['fraud_score']+0.0;
                             } 
-                        } 
+                        }
+                        else {
+                            error_log(__FUNCTION__ . ' error json decode!!!');
+                        }
                     }
                 }
             } 
             catch (RedisException $re) {}
         
-        
-            $user_agent = urlencode($_SERVER['HTTP_USER_AGENT']??''); // User Browser (optional) - provides better forensics for our algorithm to enhance fraud scores.
-            $language = urlencode($_SERVER['HTTP_ACCEPT_LANGUAGE']??''); // User System Language (optional) - provides better forensics for our algorithm to enhance fraud scores.
-            $raw = $ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?user_agent=%s&user_language=%s&strictness=%s&allow_public_access_points=%s', $ipq->key, $ip, $user_agent, $language, 3, 'false'));
+            $ipq = new IPQuality;
+            if ($mobile===TRUE) {
+                $raw = $ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?strictness=%s&allow_public_access_points=%s&mobile=%s', $ipq->key, $ip, 3, 'false', 'true')); 
+            }
+            else {
+                $user_agent = urlencode($_SERVER['HTTP_USER_AGENT']??''); // User Browser (optional) - provides better forensics for our algorithm to enhance fraud scores.
+                $language = urlencode($_SERVER['HTTP_ACCEPT_LANGUAGE']??''); // User System Language (optional) - provides better forensics for our algorithm to enhance fraud scores.
+                $raw = $ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?user_agent=%s&user_language=%s&strictness=%s&allow_public_access_points=%s', $ipq->key, $ip, $user_agent, $language, 3, 'false'));                
+            }
             $result = json_decode($raw, true);
             if ($result!==null) {
                 try {
-                    $redis = new Redis();                
-                    if ($redis->connect('h5.mourjan.com', 6379, 1, NULL, 50)) {
-                        $redis->select(3);
-                        $redis->setOption(Redis::OPT_PREFIX, 'IP:');                        
-                        $redis->setOption(Redis::OPT_READ_TIMEOUT, 3);
-                        $redis->setex($ip, 604800, json_encode($result));
-                        $redis->close();
-                    }
+                    $redis->setex($ip, 604800, json_encode($result));
                 } 
                 catch (RedisException $re) {}
                 if (isset($result['fraud_score'])) {
+                    $redis->close();
                     return $result['fraud_score']+0.0;
                 } 
             } 
+            $redis->close();
         }
         return -1;
+    }
+    
+    
+    function checkProxy($ip=null){
+        $contactEmail="admin@mourjan.com"; //you must change this to your own email address
+        $timeout=5; //by default, wait no longer than 5 secs for a response
+        $banOnProbability=0.99; //if getIPIntel returns a value higher than this, function returns true, set to 0.99 by default
+		
+        if ($ip==null) {
+            $ip = IPQuality::getClientIP();
+        }
+        if ($ip=='UNKNOWN') {
+            return -1;
+        }
+        //init and set cURL options
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+        //if you're using custom flags (like flags=m), change the URL below
+        curl_setopt($ch, CURLOPT_URL, "http://check.getipintel.net/check.php?ip=$ip&contact={$contactEmail}");
+        $response=curl_exec($ch);
+		
+        curl_close($ch);
+				
+        if ($response > $banOnProbability) {
+            return 100*$response;
+            //return true;
+        } 
+        else {
+            if ($response < 0 || strcmp($response, "") == 0 ) {
+                //The server returned an error, you might want to do something
+                //like write to a log file or email yourself
+                //This could be true due to an invalid input or you've exceeded
+                //the number of allowed queries. Figure out why this is happening
+                //because you aren't protected by the system anymore
+                //Leaving this section blank is dangerous because you assume
+                //that you're still protected, which is incorrect
+                //and you might think GetIPIntel isn't accurate anymore
+                //which is also incorrect.
+                //failure to implement error handling is bad for the both of us
+            }
+            return false;
+        }
+    }
+
+
+    public static function getClientIP() {
+        if ($_SERVER['REMOTE_ADDR']) { return $_SERVER['REMOTE_ADDR']; }
+	if ($_SERVER['HTTP_CLIENT_IP']) { return $_SERVER['HTTP_CLIENT_IP']; }
+        if ($_SERVER['HTTP_X_FORWARDED_FOR']) { return $_SERVER['HTTP_X_FORWARDED_FOR']; }
+        if ($_SERVER['HTTP_X_FORWARDED']) { return $_SERVER['HTTP_X_FORWARDED']; }
+        if ($_SERVER['HTTP_FORWARDED_FOR']) { return $_SERVER['HTTP_FORWARDED_FOR']; }
+        if ($_SERVER['HTTP_FORWARDED']) { return $_SERVER['HTTP_FORWARDED']; }        
+        return 'UNKNOWN';
     }
     
     
