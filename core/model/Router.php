@@ -674,49 +674,50 @@ class Router {
     
     
     function cacheHeaders($lastModifiedDate) {
-        if ($this->cfg['modules'][$this->module][1]==0) return;
-        if (!$this->cfg['site_production']) return;
-        if(isset($_GET['provider']))return;
-        //header("X-Mourjan-ID: ".$_SESSION['info']['id'] );
-        //error_log($_SESSION['info']['id']);
-        $SESSION = $_SESSION['_u'];
-        if ( isset($SESSION['info']['id']) && $SESSION['info']['id'] && $this->module!='homescreen') return;
-        if ($lastModifiedDate) {
-            $etag = isset($SESSION['params']['etag']) && isset($SESSION['params']['mobile']) && $SESSION['params']['mobile'] ? $SESSION['params']['etag'] : $this->cfg['etag'];
-            //$ifModifiedSince=(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) ? $_SERVER['HTTP_IF_MODIFIED_SINCE'] : false);
-                           
-            $etagFile = sprintf('%x%x-%x-%x-%x-%x-%x-%x-%x', $this->isMobile, $etag,
-                $this->countryId, $this->cityId, $this->rootId, $this->sectionId, $this->purposeId, $this->id, 
-                str_pad($lastModifiedDate, 16, '0'));
-
-            $etagHeader=(isset($_SERVER['HTTP_IF_NONE_MATCH']) ? trim($_SERVER['HTTP_IF_NONE_MATCH']) : false);
-
-            header("Last-Modified: ". gmdate("D, d M Y H:i:s", $lastModifiedDate)." GMT");
-            header("Etag: {$etagFile}");
-            header("Cache-Control: public, must-revalidate");
-            if ($etagHeader) {
-                if ($etagHeader===$etagFile) {
-                    include_once $this->cfg['dir']. '/core/layout/Site.php';
-                    $site = new \Site($this);
-                    $site->handleCacheActions();
-
-                    header("HTTP/1.1 304 Not Modified");
-                    exit;               
-                } 
-                else {
-                    return;
-                }
-            }
-
-            //check if page has changed. If not, send 304 and exit            
-            if (@strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE'])>=$lastModifiedDate) {          
-                include_once $this->cfg['dir']. '/core/layout/Site.php';
-                $site = new \Site($this);
-                $site->handleCacheActions();
-                header("HTTP/1.1 304 Not Modified");
-               exit;      
-            }
-        }
+//        
+//        if ($this->cfg['modules'][$this->module][1]==0) return;
+//        if (!$this->cfg['site_production']) return;
+//        if(isset($_GET['provider']))return;
+//        //header("X-Mourjan-ID: ".$_SESSION['info']['id'] );
+//        //error_log($_SESSION['info']['id']);
+//        $SESSION = $_SESSION['_u'];
+//        if ( isset($SESSION['info']['id']) && $SESSION['info']['id'] && $this->module!='homescreen') return;
+//        if ($lastModifiedDate) {
+//            $etag = isset($SESSION['params']['etag']) && isset($SESSION['params']['mobile']) && $SESSION['params']['mobile'] ? $SESSION['params']['etag'] : $this->cfg['etag'];
+//            //$ifModifiedSince=(isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) ? $_SERVER['HTTP_IF_MODIFIED_SINCE'] : false);
+//                           
+//            $etagFile = sprintf('%x%x-%x-%x-%x-%x-%x-%x-%x', $this->isMobile, $etag,
+//                $this->countryId, $this->cityId, $this->rootId, $this->sectionId, $this->purposeId, $this->id, 
+//                str_pad($lastModifiedDate, 16, '0'));
+//
+//            $etagHeader=(isset($_SERVER['HTTP_IF_NONE_MATCH']) ? trim($_SERVER['HTTP_IF_NONE_MATCH']) : false);
+//
+//            header("Last-Modified: ". gmdate("D, d M Y H:i:s", $lastModifiedDate)." GMT");
+//            header("Etag: {$etagFile}");
+//            header("Cache-Control: public, must-revalidate");
+//            if ($etagHeader) {
+//                if ($etagHeader===$etagFile) {
+//                    include_once $this->cfg['dir']. '/core/layout/Site.php';
+//                    $site = new \Site($this);
+//                    $site->handleCacheActions();
+//
+//                    header("HTTP/1.1 304 Not Modified");
+//                    exit;               
+//                } 
+//                else {
+//                    return;
+//                }
+//            }
+//
+//            //check if page has changed. If not, send 304 and exit            
+//            if (@strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE'])>=$lastModifiedDate) {          
+//                include_once $this->cfg['dir']. '/core/layout/Site.php';
+//                $site = new \Site($this);
+//                $site->handleCacheActions();
+//                header("HTTP/1.1 304 Not Modified");
+//               exit;      
+//            }
+//        }
     }
     
         
