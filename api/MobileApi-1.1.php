@@ -3866,12 +3866,17 @@ where a.web_user_id=? and a.state!=6 and a.state!=8 and x.id>0';
                 }
                 
                 $ch = curl_init();   
-                $arg = curl_escape($ch, $text);
-                curl_setopt($ch, CURLOPT_URL, "http://h8.mourjan.com:8080/v1/ad/text/{$arg}");
+                
+                $p = [$text];
+                //$arg = curl_escape($ch, $text);
+                //error_log($arg);
+                //curl_setopt($ch, CURLOPT_URL, "http://h8.mourjan.com:8080/v1/ad/text/{$arg}");
+                curl_setopt($ch, CURLOPT_URL, "http://h8.mourjan.com:8080/v1/ad/spell");
                 curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
                 
                 curl_setopt($ch, CURLOPT_TIMEOUT, 3);
                 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+                curl_setopt($ch, CURLOPT_POST, 1);
                 curl_setopt($ch, CURLOPT_HTTPHEADER, 
                         ["Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", 
                          "Content-Type: application/json", "Accept-Encoding: gzip, deflate", 
@@ -3881,7 +3886,9 @@ where a.web_user_id=? and a.state!=6 and a.state!=8 and x.id>0';
                 curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
                 curl_setopt($ch, CURLOPT_HEADER, 0);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                                                                                                
+                          
+                $data_string = json_encode($p);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
                 $resp = \curl_exec($ch);                                
                 
                 $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
