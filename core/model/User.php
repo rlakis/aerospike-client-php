@@ -1021,7 +1021,7 @@ class User {
             $content=json_decode($ad['CONTENT'], true);
             if (isset($content['budget'])) { $content['budget'] = 0; }
             
-            if ($this->info['id']==$content['user']) {
+            if (!isset($content['user']) || $this->info['id']==$content['user']) {
                 $content['ipfs'] = IPQuality::ipScore();
             }
 
