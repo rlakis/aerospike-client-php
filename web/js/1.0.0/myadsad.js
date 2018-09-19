@@ -1198,8 +1198,8 @@ if(PEND){
         
         $(document).bind('click',function(e){
             if(e.which==1 && !lockTouch && ownad){
-                var a=$('#banForm'),b=$('#suspForm'),c=$('#rejForm');
-                if(a.css('display')!='block' && b.css('display')!='block' && c.css('display')!='block'){
+                var a=$('#banForm'),b=$('#suspForm'),c=$('#rejForm'),d=$('#textForm');
+                if(a.css('display')!='block' && b.css('display')!='block' && c.css('display')!='block' && d.css('display')!='block'){
                     wio.emit("release",[ownad,UIDK]); 
                     $('#'+ownad).removeClass('owned');
                     ownad=0;
@@ -1718,7 +1718,7 @@ function EAD(e,idx){
     var co=e.offset();
     var bdy = $("body");
     var dsk = $("<div id=\'dialog-mask\'></div>");
-    var ae=$("<textarea class=\'tapl "+e[0].className+"\' onkeydown=\'idir(this)\' onchange=\'idir(this,1)\'></textarea>");
+    var ae=$("<textarea id=\'textForm\' class=\'tapl "+e[0].className+"\' onkeydown=\'idir(this)\' onchange=\'idir(this,1)\'></textarea>");
     ae.height(e.height()+"px");
     ae.css("top",co.top+"px");
     ae.css("left",co.left+"px");
