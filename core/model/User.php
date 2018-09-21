@@ -1,10 +1,12 @@
 <?php
 $dir = get_cfg_var('mourjan.path');
 include_once $dir.'/core/lib/MCUser.php';
+include_once $dir.'/core/lib/MCAudit.php';
 include_once $dir.'/core/model/NoSQL.php';
 
 use mourjan\Hybrid;
 use Core\Lib\SphinxQL;
+use Core\Lib\Audit;
 use Core\Model\NoSQL;
 use Sinergi\BrowserDetector\Browser;
 
@@ -298,25 +300,19 @@ class User {
     }
     
     
-    function isSuperUser()
-    {
+    function isSuperUser() {
         return in_array($this->info['id'], [1, 2, 2100]);
     }
     
     
-    public function isRegistered() : bool
-    {
+    public function isRegistered() : bool {
         return ($this->info['id']>0);
     }
     
     
-    public function getProfile() : MCUser
-    {
-        if ($this->info['id'])
-        {
-          
-            if ($this->data && $this->data->getID()==$this->info['id'])
-            {
+    public function getProfile() : MCUser {
+        if ($this->info['id']) {          
+            if ($this->data && $this->data->getID()==$this->info['id']) {
                 return $this->data;
             }
             
@@ -331,8 +327,7 @@ class User {
     }
     
     
-    function getAdminFilters()
-    {
+    function getAdminFilters() {
         $filters=[];
         $filters['root'] = $_GET['fro'] ?? 0;
         $filters['purpose'] = $_GET['fpu'] ?? 0;
@@ -340,11 +335,9 @@ class User {
         $filters['uid'] = $_GET['fuid'] ?? 0;
         $filters['active']=false;
         
-        foreach ($filters as $key => $value)
-        {
+        foreach ($filters as $key => $value) {
             $filters['active'] = $value>0;
-            if($filters['active'])
-            {
+            if($filters['active']) {
                 break;
             }
         }
@@ -1859,9 +1852,9 @@ class User {
     }
 
     
-    function authenticate() {
-        if( isset( $_GET["connected_with"]) || isset( $_GET["logout"] )) {
-            $config   = $this->cfg['dir'] . '/web/lib/hybridauth/config.php';
+    function authenticate() {        
+        if (isset($_GET["connected_with"]) || isset($_GET["logout"])) {
+            $config = $this->cfg['dir'] . '/web/lib/hybridauth/config.php';
             $loaded=true;
             try {
                 $hybridauth = new Hybrid_Auth( $config );
@@ -1880,19 +1873,15 @@ class User {
                     $this->logout();
                     $this->redirectTo($this->site->urlRouter->getURL($this->params['country'],$this->params['city']));
                 }
-                elseif (isset( $_GET["connected_with"] ) && $_GET["connected_with"]!='mourjan' && $hybridauth->isConnectedWith( $_GET["connected_with"] ) )
-                {
+                elseif (isset( $_GET["connected_with"] ) && $_GET["connected_with"]!='mourjan' && $hybridauth->isConnectedWith( $_GET["connected_with"] ) ) {
                     $provider = $_GET["connected_with"];
                     $adapter = $hybridauth->getAdapter( $provider );
-                    $auth_info = $adapter->getUserProfile();
-                    
-                    
+                    $auth_info = $adapter->getUserProfile();                                        
                     $this->updateUserRecord($auth_info, $provider);
                 }
             }
-            
         }
-        elseif(isset($_GET['identifier'])) {
+        elseif (isset($_GET['identifier'])) {
             $id=$this->site->get('identifier', 'uint');
             $key=$this->site->get('cks');
             if ($id && $key)  {
@@ -1962,7 +1951,8 @@ class User {
             else {
                 $this->info['options']=$result[Core\Model\ASD\USER_OPTIONS];
             }
-            
+            Audit::instance()->user($this->getProfile())->platform($this->site->router()->isMobile?Core\Lib\Platform::MOBILE:Core\Lib\Platform::DESKTOP)->event(\Core\Lib\Event::SIGNIN)->write(TRUE);
+
             return;
         }
         
@@ -1979,21 +1969,20 @@ class User {
             $this->info['email']=$result[0]['USER_EMAIL'] ? $result[0]['USER_EMAIL'] : $result[0]['EMAIL'];
         }
         if(strpos($this->info['email'], '@')===false) $this->info['email']='';
-        if ($result[0]['PREV_VISIT']) $this->params['last_visit']=  strtotime($result[0]['PREV_VISIT']);
+        if ($result[0]['PREV_VISIT']) $this->params['last_visit'] = strtotime($result[0]['PREV_VISIT']);
         if ($result[0]['OPTS']=='') {
             $this->info['options']=array();
         }
         else {
             $this->info['options']=json_decode($result[0]['OPTS'],true);
-        }            
+        }
+        Audit::instance()->user($this->getProfile())->platform($this->site->router()->isMobile?Core\Lib\Platform::MOBILE:Core\Lib\Platform::DESKTOP)->event(\Core\Lib\Event::SIGNIN)->write(TRUE);
     }
     
     
-    function reloadData($id)
-    {
+    function reloadData($id) {
         $bins= \Core\Model\NoSQL::getInstance()->fetchUser($id);
-        if (!empty($bins))
-        {
+        if (!empty($bins)) {
             $this->setUserParams($bins, TRUE);
             $this->update();
             return;
@@ -2001,8 +1990,7 @@ class User {
         
         $q='select identifier, id, lvl, display_name, provider, email, user_rank, user_name, user_email, opts, prev_visit, last_visit from web_users where id=?';
         $result=$this->db->get($q, [$id]);
-        if ($result && isset($result[0]) && $result[0]['ID']) 
-        {
+        if ($result && isset($result[0]) && $result[0]['ID']) {
             $this->setUserParams($result);
             $this->update();
         }
@@ -2106,8 +2094,7 @@ class User {
                 }
                 $checkWatchMail=false;
                 $updateOptions=false;
-                if (isset($this->pending['watch'])) 
-                {
+                if (isset($this->pending['watch'])) {
                     $this->insertWatch($this->pending['watch']);
                     unset($this->pending['watch']);
                     $updateOptions=true;
@@ -2116,11 +2103,9 @@ class User {
     
                 $this->update();
             
-                if ($updateOptions)
-                {
+                if ($updateOptions) {
                     $this->updateOptions();
-                    if ($checkWatchMail) 
-                    {
+                    if ($checkWatchMail) {
                         $watchArray=isset($this->info['options']['watch']) ? $this->info['options']['watch'] : array();
                         $mailFrequency=(isset($this->info['options']['mailEvery']) && $this->info['options']['mailEvery']) ? $this->info['options']['mailEvery'] : 1;
                         $this->checkWatchMailSetting($this->info['id'], $mailFrequency);
@@ -2134,8 +2119,7 @@ class User {
     }
     
     
-    function copyUserData($id, $pass, $rank, $level, $pubType, $opts)
-    {
+    function copyUserData($id, $pass, $rank, $level, $pubType, $opts) {
         $bins = [
                 \Core\Model\ASD\USER_PASSWORD=>$pass,
                 \Core\Model\ASD\USER_RANK=>$rank,
@@ -2150,8 +2134,7 @@ class User {
      
     
     
-    function mergeDeviceToAccount($uuid, $uid, $newUid, $forceDataMerge=false)
-    {
+    function mergeDeviceToAccount($uuid, $uid, $newUid, $forceDataMerge=false) {
         return $this->connectDeviceToAccount(null, null, $uid, $uuid, $newUid, $forceDataMerge);
     }
     
@@ -2389,8 +2372,7 @@ class User {
         $updateOptions=false;
         $provider=strtolower(trim($provider));
         $identifier="{$info->identifier}";
-        if ($provider==='mourjan')
-        {
+        if ($provider==='mourjan') {
             $identifier = strtolower(trim($identifier));
         }
         $email=is_null($info->emailVerified) ? (is_null($info->email ? '' : $info->email)) :$info->emailVerified;

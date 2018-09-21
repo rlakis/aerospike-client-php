@@ -2,20 +2,16 @@
 require_once 'deps/autoload.php';
 require_once 'Page.php';
 
-class Signin extends Page
-{
 
-    function __construct($router)
-    {
+class Signin extends Page {
+
+    function __construct($router) {
         parent::__construct($router);
-       
-        if ($this->user->info['id'])
-        {
+        if ($this->user->info['id']) {            
             $this->user->redirectTo($this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId));
         }
         
-        if ($this->isMobile) 
-        {
+        if ($this->isMobile) {
             $this->inlineCss.='
             .str ul{margin:10px 20px}
             .str li{margin-bottom:10px}
@@ -31,14 +27,12 @@ class Signin extends Page
     }
 
 
-    function main_pane()
-    {
+    function main_pane() {
         $this->renderLoginPage();
     }
     
     
-    function mainMobile()
-    {         
+    function mainMobile() {         
         $this->renderLoginPage();
     }
     
