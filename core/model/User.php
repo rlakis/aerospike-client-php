@@ -157,7 +157,6 @@ class User {
         $this->db=$db;
         $this->cfg=$config;
         $this->reset();
-        
         if($init) {
             $this->site=$site;
             //$this->sysAuthById(480301);
@@ -277,18 +276,15 @@ class User {
                 unset($_GET["connected_with"]);
                 if ($this->info['level']==5) $currentUrl='/blocked/'.($site->urlRouter->siteLanguage=='ar'?'':$site->urlRouter->siteLanguage.'/');
                 elseif ($this->info['level']==6) $currentUrl='/suspended/'.($site->urlRouter->siteLanguage=='ar'?'':$site->urlRouter->siteLanguage.'/');
-                elseif(isset($this->pending['social_new'])) 
-                {
+                elseif(isset($this->pending['social_new'])) {
                     $currentUrl.='/welcome/'.($site->urlRouter->siteLanguage=='ar'?'':$site->urlRouter->siteLanguage.'/');
                 }
-                elseif(isset($this->pending['redirect_login']))
-                {
+                elseif(isset($this->pending['redirect_login'])) {
                     $currentUrl=$this->pending['redirect_login'];
                     unset($this->pending['redirect_login']);
                     $this->update();
                 }
-                else
-                {
+                else {
                     $currentUrl=$this->site->urlRouter->cfg['host'].$_SERVER['REQUEST_URI'];
                     $currentUrl=  preg_replace('/([?&])connected_with=.*?(?:&|$)/', '$1', $currentUrl);
                     $lastChar=substr($currentUrl, -1);
@@ -637,12 +633,10 @@ class User {
                 $recNum = 200;
             }*/
             $offset = $this->site->get('o','uint');
-            if(is_numeric($offset) && $offset)
-            {
+            if (is_numeric($offset) && $offset) {
                 $pagination_str = 'first '.($recNum+1).' skip '.($offset*$recNum);
             }
-            else
-            {
+            else {
                 $pagination_str = 'first '.($recNum+1);
             }
         }        
@@ -747,8 +741,7 @@ class User {
                             
                             $q .= 'where ';
                                     
-                            if (preg_match("/https.*\.mourjan\.com\/admin\/?\?p=\d+/", $_SERVER['HTTP_REFERER'] ?? 'DIRECT_ACCESS'))
-                            {
+                            if (preg_match("/https.*\.mourjan\.com\/admin\/?\?p=\d+/", $_SERVER['HTTP_REFERER'] ?? 'DIRECT_ACCESS')) {
                                 $q.=" (a.state between 1 and 4) and a.web_user_id={$uid} ";
                             }
                             else {
@@ -760,19 +753,19 @@ class User {
                                 }
                             }
                             $q .= ' and (ao.super_admin is null or ao.super_admin<='.$adLevel.') ';
-                            if($filters['purpose']) {
+                            if ($filters['purpose']) {
                                 $q.='and a.purpose_id='.$filters['purpose'].' ';
                             }
                             
-                            if($filters['lang']==1) { 
+                            if ($filters['lang']==1) { 
                                 $q.='and (a.rtl in (1,2)) ';
                             }
                             
-                            if($filters['lang']==2) {
+                            if ($filters['lang']==2) {
                                 $q.='and (a.rtl in (0,2)) ';
                             }
                             
-                            if($filters['root']) {
+                            if ($filters['root']) {
                                 $q.='and s.root_id = '.$filters['root'].' ';
                             }
                             
@@ -918,7 +911,7 @@ class User {
     function hideAd($id) {
         $res=false;
         $res=$this->db->get('update ad_user set state=8 where id=? and web_user_id=? and state=9 returning id, content, state', [$id, $this->info['id']], true);
-        if($res) {
+        if ($res) {
             $this->update();
         }
         return $res;
@@ -1137,12 +1130,12 @@ class User {
     
     
     function getStatement($user_id=0, $offset=0, $balanceOnly=false, $startDate=null, $language='ar') {
-        if(isset($this->info['level']) && $this->info['level']==9 && $user_id) {
+        if (isset($this->info['level']) && $this->info['level']==9 && $user_id) {
             $userId=$user_id;
         }
         else {
             $userId=$this->info['id'];
-            if(isset($this->info['level']) && $this->info['level']==9) {
+            if (isset($this->info['level']) && $this->info['level']==9) {
                 if (isset ($_GET['u']) && is_numeric($_GET['u'])) $userId=(int)$_GET['u'];
             }
         }
@@ -1199,17 +1192,17 @@ class User {
                                 $balance = $balance+$rs[$i]['DEBIT']-$rs[$i]['CREDIT'];
 
                                 $label = '';
-                                if($rs[$i]['CREDIT'] > 0) {
-                                    if(!$rs[$i]['USD_VALUE'] || !$rs[$i]['PRODUCT_NAME']) {
+                                if ($rs[$i]['CREDIT'] > 0) {
+                                    if (!$rs[$i]['USD_VALUE'] || !$rs[$i]['PRODUCT_NAME']) {
                                         $label = $rs[$i]['PRODUCT_NAME'];
-                                        if($language == 'en') {
+                                        if ($language == 'en') {
                                             $label = $rs[$i]['CREDIT'].' free gold';
                                         }
                                         else {
-                                            if($rs[$i]['CREDIT'] == 1) {
+                                            if ($rs[$i]['CREDIT'] == 1) {
                                                 $label = 'ذهبية واحدة';
                                             }
-                                            else if($rs[$i]['CREDIT']==2) {
+                                            else if ($rs[$i]['CREDIT']==2) {
                                                 $label = 'ذهبيتان';
                                             }
                                             else if ($rs[$i]['CREDIT']>2 && $rs[$i]['CREDIT'] < 11) {
@@ -1221,26 +1214,20 @@ class User {
                                             $label .= ' مجانية';
                                         }
                                     }
-                                    else
-                                    {
+                                    else {
                                         $label = $rs[$i]['PRODUCT_NAME'].($rs[$i]['GATEWAY']? ' - '. ucfirst(strtolower($rs[$i]['GATEWAY'])):'');
                                     }
                                 }
-                                else
-                                {
-                                    if($rs[$i]['OFFER_ID'] == 1)
-                                    {
-                                        if($language == 'ar')
-                                        {
+                                else {
+                                    if ($rs[$i]['OFFER_ID'] == 1) {
+                                        if ($language == 'ar') {
                                             $label = 'تمييز لمدة يوم';
                                         }
-                                        else
-                                        {
+                                        else {
                                             $label = '1 day Premium';
                                         }
                                     }
-                                    else
-                                    {
+                                    else {
                                         $label = $rs[$i]['OFFER_NAME'];
                                     }
                                 }
@@ -1248,50 +1235,39 @@ class User {
                                 $newRs[$i][] = $label;
 
                                 $label = '';
-                                if($rs[$i]['DEBIT']>0)
-                                {
-                                    if(stristr($rs[$i]['SECTION_NAME'], $rs[$i]['PURPOSE_NAME']))
-                                    {
+                                if ($rs[$i]['DEBIT']>0) {
+                                    if(stristr($rs[$i]['SECTION_NAME'], $rs[$i]['PURPOSE_NAME'])) {
                                         $label = $rs[$i]['SECTION_NAME'];
                                     }
-                                    else
-                                    {
+                                    else {
                                         $label = $rs[$i]['SECTION_NAME'].' | '.$rs[$i]['PURPOSE_NAME'];
                                     }
 
                                     $newRs[$i][] = $label;
                                     $rtl = 0;
-                                    if($rs[$i]['CONTENT'])
-                                    {
+                                    if ($rs[$i]['CONTENT']) {
                                         $content = json_decode($rs[$i]['CONTENT'], true);
-                                        if(isset($content['other']))
-                                        {
-                                            if($language == 'ar')
-                                            {
+                                        if (isset($content['other'])) {
+                                            if ($language == 'ar') {
                                                 $newRs[$i][] = $content['other'];
                                                 $rtl = $content['rtl'];
                                             }
-                                            else
-                                            {
-                                                if(isset($content['altother']) && $content['altother']!='')
-                                                {
+                                            else {
+                                                if (isset($content['altother']) && $content['altother']!='') {
                                                     $newRs[$i][] = $content['altother'];
                                                     $rtl = $content['altRtl'];
                                                 }
-                                                else
-                                                {
+                                                else {
                                                     $newRs[$i][] = $content['other'];
                                                     $rtl = $content['rtl'];
                                                 }
                                             }
                                         }
-                                        else
-                                        {
+                                        else {
                                             $newRs[$i][] = 'NA';
                                         }
                                     }
-                                    else
-                                    {
+                                    else {
                                         $newRs[$i][] = '';
                                     }
                                     $newRs[$i][] = $rtl;
@@ -1301,8 +1277,7 @@ class User {
                                     $newRs[$i][] = $rs[$i]['GATEWAY'];
                                     $newRs[$i][] = $rs[$i]['TRANSACTION_ID'];
                                 }
-                                else
-                                {
+                                else {
                                     $newRs[$i][] = '';
                                     $newRs[$i][] = '';
                                     $newRs[$i][] = 0;
@@ -1314,13 +1289,11 @@ class User {
                             }
                             $result['recs'] = $newRs;
                         }
-                    }                               
-                    
+                    }                     
                 }
                 
             }
-            else
-            {
+            else {
                 $result['balance']=0;
             }
         }
@@ -1471,9 +1444,7 @@ class User {
                         $this->pending['post']['pu']=$content['pu'];
                     }
                 }                
-                
-                
-                
+                                                
                 $this->pending['post']['content']=json_encode($content);
 
                 $hasVideo=(isset($content['video']) && is_array($content['video']) && count($content['video'])) ?  1 : 0;
@@ -1514,6 +1485,7 @@ class User {
                     }
                                         
                     if (!empty($result)) {
+                        Audit::editAd()->user($this->getProfile())->add('id', $id)->ok()->end();
                         $state=(int)$result['STATE'];
                     
                         if ($this->pending['post']['state']!=$state) {
@@ -1626,12 +1598,8 @@ class User {
                     	$stmt->bindValue(11, $media, PDO::PARAM_INT);
                     	$result=null;
                         
-                        if ($rawOther!=null) {
-                            $adContent['rawOther'] = $rawOther;
-                        }                
-                        if ($rawAltOther!=null) {
-                            $adContent['rawAltOther'] = $rawAltOther;
-                        }
+                        if ($rawOther!=null) { $adContent['rawOther'] = $rawOther; }                
+                        if ($rawAltOther!=null) { $adContent['rawAltOther'] = $rawAltOther; }
                         $this->pending['post']['content'] = json_encode($adContent);
                         
                         $id=0;
@@ -1643,6 +1611,7 @@ class User {
                             unset($stmt);
                             $this->db->commit();
                             $ad_is_saved = true;
+                            Audit::newAd()->user($this->getProfile())->add('id', $id)->ok()->end();               
                         }
                         else {
                             unset($stmt);
@@ -1733,8 +1702,7 @@ class User {
     function detectDuplicateSuspension($contactInfo=array(), $isMobileVerified=0) {
         $status = 0;
         if(!$isMobileVerified) {
-            if(count($contactInfo) && $this->info['id'])
-            {
+            if(count($contactInfo) && $this->info['id']) {
                 $q='
                 select distinct u.id, u.lvl, u.opts from ad_attribute t
                 left join ad_user a on a.id=t.ad_id
@@ -1791,8 +1759,7 @@ class User {
                         }
                     }
                     
-                    if($blockAccount)
-                    {
+                    if($blockAccount) {
                         $this->info['level']=5;
                         $status = 5;
                         $this->update();
@@ -1803,10 +1770,8 @@ class User {
                         $this->update();
                         $this->updateOptions();
                     }
-                    elseif($time != $current_time)
-                    {
-                        if(!is_array($this->info['options']))
-                        {
+                    elseif($time != $current_time) {
+                        if(!is_array($this->info['options'])) {
                             $this->info['options']=array();
                         }
                         $this->info['options']['suspend']=$time;
@@ -1951,7 +1916,15 @@ class User {
             else {
                 $this->info['options']=$result[Core\Model\ASD\USER_OPTIONS];
             }
-            Audit::instance()->user($this->getProfile())->platform($this->site->router()->isMobile?Core\Lib\Platform::MOBILE:Core\Lib\Platform::DESKTOP)->event(\Core\Lib\Event::SIGNIN)->write(TRUE);
+            
+            if ($this->site) {
+                $mobile = $this->site->router()->isMobile;
+            }
+            else {
+                $device = new \Detection\MobileDetect();
+                $mobile = $device->isMobile();
+            }
+            Audit::signIn()->user($this->getProfile())->platform($mobile ? Core\Lib\Platform::MOBILE : Core\Lib\Platform::DESKTOP)->ok()->end();
 
             return;
         }
@@ -1976,7 +1949,7 @@ class User {
         else {
             $this->info['options']=json_decode($result[0]['OPTS'],true);
         }
-        Audit::instance()->user($this->getProfile())->platform($this->site->router()->isMobile?Core\Lib\Platform::MOBILE:Core\Lib\Platform::DESKTOP)->event(\Core\Lib\Event::SIGNIN)->write(TRUE);
+        Audit::signIn()->user($this->getProfile())->platform($this->site->router()->isMobile?Core\Lib\Platform::MOBILE:Core\Lib\Platform::DESKTOP)->ok()->end();
     }
     
     
@@ -2139,11 +2112,9 @@ class User {
     }
     
     
-    function connectDeviceToAccount($info, $provider, $uid, $uuid, $newUid=0, $forceDataMerge=false)
-    {
+    function connectDeviceToAccount($info, $provider, $uid, $uuid, $newUid=0, $forceDataMerge=false) {
         $newUserId=0;
-        if($newUid==0)
-        {
+        if ($newUid==0) {
             $provider=strtolower($provider);
             $identifier=$info->identifier;
             $email=is_null($info->emailVerified) ? (is_null($info->email ? '' : $info->email)) :$info->emailVerified;
@@ -2227,8 +2198,7 @@ class User {
                         $deleteFavorites = $this->db->prepareQuery('delete from web_users_favs where web_user_id=? and ad_id=?');
                         $favs = $selectAllUserFavorite->execute([$uid]);
                         if($favs !== false) {
-                            while(($row = $selectAllUserFavorite->fetch(PDO::FETCH_NUM)) !== false)
-                            {
+                            while(($row = $selectAllUserFavorite->fetch(PDO::FETCH_NUM)) !== false) {
                                 $ad_id = $row[0];
                                 $deleteFavorites->execute([$newUserId, $ad_id]);
                             }
@@ -2238,26 +2208,19 @@ class User {
 
                         //MERGE DEVICE FAVORITES
                         $updateFavorites = $this->db->prepareQuery('update web_users_favs set web_user_id=? where web_user_id=?');
-                        if($updateFavorites->execute([$newUserId, $uid]))
-                        {
+                        if($updateFavorites->execute([$newUserId, $uid])) {
                             $selectUserFavorite = $this->db->prepareQuery('select ad_id from web_users_favs where web_user_id=? and deleted=0');
-                            if($selectUserFavorite->execute([$newUserId]))
-                            {                                	
-                                while( ($row = $selectUserFavorite->fetch(PDO::FETCH_NUM)) !== false)
-                                {
+                            if($selectUserFavorite->execute([$newUserId])) {                                	
+                                while( ($row = $selectUserFavorite->fetch(PDO::FETCH_NUM)) !== false) {
                                     $ad_id = $row[0];
 
                                     $getFavoritesUserList = $this->db->prepareQuery('select cast(list(web_user_id) as varchar(2048)) from web_users_favs where deleted=0 and ad_id=?');
-                                    if ($getFavoritesUserList->execute([$ad_id])) 
-                                    { 
-                                        if( ($user_list = $getFavoritesUserList->fetch(PDO::FETCH_NUM)) !== false)
-                                        {
-                                            if(isset($user_list[0]) && $user_list[0])
-                                            {
+                                    if ($getFavoritesUserList->execute([$ad_id])) { 
+                                        if( ($user_list = $getFavoritesUserList->fetch(PDO::FETCH_NUM)) !== false) {
+                                            if(isset($user_list[0]) && $user_list[0]) {
                                                 $ql = "update {$this->cfg['search_index']} set starred=({$user_list[0]}) where id={$ad_id}";
                                             }
-                                            else
-                                            {
+                                            else {
                                                 $ql = "update {$this->cfg['search_index']} set starred=() where id={$ad_id}"; 
                                             }
                                             $sphinx->directUpdateQuery($ql);
@@ -2279,11 +2242,9 @@ class User {
                         //Clean up previous subscription duplicates
                         $selectPrevSubscriptions=$this->db->prepareQuery('select * from subscription where web_user_id=?');
                         $subs = $selectPrevSubscriptions->execute([$uid]);
-                        if($subs!==false)
-                        {
+                        if($subs!==false) {
                             $deletePrevSubscriptions=$this->db->prepareQuery('delete from subscription where web_user_id=? and country_id=? and city_id=? and section_id=? and purpose_id=? and section_tag_id=? and locality_id=? and query_term=?');
-                            while(($row = $selectPrevSubscriptions->fetch(PDO::FETCH_ASSOC)) !== false)
-                            {
+                            while(($row = $selectPrevSubscriptions->fetch(PDO::FETCH_ASSOC)) !== false) {
                                 $deletePrevSubscriptions->execute([$newUserId, $row['COUNTRY_ID'], $row['CITY_ID'], $row['SECTION_ID'], $row['PURPOSE_ID'], $row['SECTION_TAG_ID'], $row['LOCALITY_ID'], $row['QUERY_TERM'] ]);
                             }
                             unset($deletePrevSubscriptions);
@@ -2316,11 +2277,9 @@ class User {
                         //Clean up previous notes
                         $selectAllUserNotes = $this->db->prepareQuery('select ad_id from web_users_notes where web_user_id=?');
                         $notes = $selectAllUserNotes->execute([$uid]);                            
-                        if($notes!==false)
-                        {
+                        if ($notes!==false) {
                             $deleteNotes=$this->db->prepareQuery('delete from web_users_notes where web_user_id=? and ad_id=?');
-                            while(($row = $selectAllUserNotes->fetch(PDO::FETCH_NUM)) !== false)
-                            {
+                            while (($row = $selectAllUserNotes->fetch(PDO::FETCH_NUM)) !== false) {
                                 $ad_id = $row[0];
                                 $deleteNotes->execute([$newUserId, $ad_id]);
                             }
@@ -2333,7 +2292,6 @@ class User {
                         $updateNotes->execute([$newUserId, $uid]);
                         unset($updateNotes);
 
-
                         // must update balance cache
                         //MERGE DEVICE FAVORITES
                         $updateTransRecords = $this->db->prepareQuery('update T_TRAN t set t.UID=? where t.UID=?');
@@ -2345,24 +2303,22 @@ class User {
                         $invalidateStatement->execute([$uid]);
                         unset($invalidateStatement);
 
-                    }else{
+                    }
+                    else {
                         error_log("switching account only - no merge needed");
                     }
                 }
-                else
-                {
+                else {
                     error_log("Device Update Record Failure");
                 }
             }
         }
-        catch(Exception $e)
-        {
+        catch (Exception $e) {
             error_log( $e->getMessage() );
             $this->db->getInstance()->rollBack();
             $newUserId=0;
         }
-        finally
-        {            
+        finally {            
         }
         return $newUserId;
     }
@@ -2552,30 +2508,23 @@ class User {
         $watchInfo = $this->getWatchInfo($userId,$force);
         $hasMail=0;
         
-        if($watchInfo && count($watchInfo))
-        {
-            foreach ($watchInfo as $watch)
-            {
-                if($watch['EMAIL'])
-                {
+        if($watchInfo && count($watchInfo)) {
+            foreach ($watchInfo as $watch) {
+                if ($watch['EMAIL']) {
                     $hasMail=1;
                     break;
                 }
             }
         }
         
-        if ($hasMail)
-        {
-            if (!$hasRec) 
-            {
+        if ($hasMail) {
+            if (!$hasRec) {
                 $q='insert into mail_watchlist (web_user_id, mail_every) values (?, ?)';
                 $this->db->get($q, array($userId, $mailEvery), false, PDO::FETCH_NUM );
             }
         }
-        else 
-        {
-            if ($hasRec)
-            {
+        else {
+            if ($hasRec) {
                 $res=$res[0];
                 $q='delete from mail_watchlist where id=?';
                 $this->db->get($q, [$res[0]], false, PDO::FETCH_NUM);
@@ -2585,27 +2534,20 @@ class User {
     }
 
     
-    function removeWatch($id)
-    {
+    function removeWatch($id) {
         $succeed=false;
-        if (is_numeric($id))
-        {
-            if($id==-1)
-            {
+        if (is_numeric($id)) {
+            if ($id==-1) {
                 $q='delete from subscription where web_user_id=?';
                 unset($this->info['options']['watch']);
                 $this->db->get($q, array($this->info['id']));
                 $succeed=true;
             }
-            else
-            {
+            else {
                 $index='';
-                if(isset($this->info['options']['watch']) && count($this->info['options']['watch'])) 
-                {
-                    foreach ($this->info['options']['watch'] as $key => $value)
-                    {
-                        if ($value==$id)
-                        {
+                if (isset($this->info['options']['watch']) && count($this->info['options']['watch']))  {
+                    foreach ($this->info['options']['watch'] as $key => $value) {
+                        if ($value==$id) {
                             $index=$key;
                             $succeed=true;
                             break;
@@ -2613,26 +2555,21 @@ class User {
                     }
                 }
                 
-                if(!$succeed)
-                {
+                if (!$succeed) {
                     $options=  $this->getWatchInfo($this->info['id'], true);
-                    if ($options !== false) 
-                    {
+                    if ($options !== false) {
                         if (!isset($this->info['options']))
                             $this->info['options']=array();            
 
                         $watchArray=array();
-                        foreach ($options as $kid => $params)
-                        {
+                        foreach ($options as $kid => $params) {
                             $key=$params['COUNTRY_ID'].'-'.$params['CITY_ID'].'-'.$params['SECTION_ID'].'-'.$params['SECTION_TAG_ID'].'-'.$params['LOCALITY_ID'].'-'.$params['PURPOSE_ID'].'-'.crc32($params['QUERY_TERM']);
                             $watchArray[$key]=$params['ID'];
                         }  
                         
                         $this->info['options']['watch']=$watchArray;
-                        foreach ($this->info['options']['watch'] as $key => $value)
-                        {
-                            if ($value==$id)
-                            {
+                        foreach ($this->info['options']['watch'] as $key => $value) {
+                            if ($value==$id) {
                                 $index=$key;
                                 $succeed=true;
                                 break;
@@ -2642,13 +2579,11 @@ class User {
                 }
                 
                 $q='delete from subscription where id=? and web_user_id=? returning id';
-                if ($succeed) 
-                {
+                if ($succeed) {
                     unset($this->info['options']['watch'][$index]);
                     $this->db->get($q, [$id, $this->info['id']], false, PDO::FETCH_NUM);
                 }
-                else 
-                {
+                else {
                     $succeed=true;
                 }
             }
@@ -2657,17 +2592,14 @@ class User {
     }
     
     
-    function insertWatch($params)
-    {
+    function insertWatch($params) {
         $succeed=false;
         $count=isset($this->info['options']['watch']) ? count($this->info['options']['watch']) : 0;
         $key=$params['cn'].'-'.$params['c'].'-'.$params['s'].'-'.$params['e'].'-'.$params['l'].'-'.$params['p'].'-'.crc32($params['q']);
-        if (isset($this->info['options']['watch'][$key]))
-        {
+        if (isset($this->info['options']['watch'][$key])) {
             $succeed=$this->info['options']['watch'][$key];
         }
-        elseif($count<=20) 
-        {
+        elseif ($count<=20) {
             $q="insert into subscription (web_user_id, country_id, city_id, section_id, section_tag_id, locality_id, purpose_id, query_term, title, email) values (?,?,?,?,?,?,?,?,?,1) returning id";
             if ($res=$this->db->get($q, array($this->info['id'],$params['cn'],$params['c'],$params['s'],$params['e'],$params['l'],$params['p'],$params['q'],$params['t']), false, PDO::FETCH_NUM ) ) 
             {
@@ -2783,8 +2715,7 @@ class User {
         $this->update();
         if ($this->info['id']) {
             if(!isset($this->info['options']['UA']) || 
-                (isset($this->info['options']['UA']) && $this->info['options']['UA']!=$_SERVER['HTTP_USER_AGENT']) )
-            {
+               (isset($this->info['options']['UA']) && $this->info['options']['UA']!=$_SERVER['HTTP_USER_AGENT']) ) {
                 $this->info['options']['UA']=$_SERVER['HTTP_USER_AGENT'];
                 $this->update();
                 $this->updateOptions();
@@ -2898,10 +2829,10 @@ class User {
         if (isset($_u['params'])) $this->params=$_u['params'];
         if (isset($_u['pending'])) $this->pending=$_u['pending'];
 
-        if($this->info['id']) {            
+        if ($this->info['id']) {            
             $this->data = new MCUser($this->info['id']);
             
-            if($this->data->getID()==$this->info['id']) {
+            if ($this->data->getID()==$this->info['id']) {
                 $this->info['level'] = $this->data->getLevel();
                 $this->info['verified'] = $this->data->isMobileVerified();
                 $this->data->getOptions()->setSuspensionTime($this->data->getMobile(TRUE)->getSuspendSeconds());

@@ -33,16 +33,15 @@ class Site {
         $this->urlRouter = $router;
         if ($router->siteLanguage=='en')
             $this->lnIndex=1;
-        if (isset($argc)) 
-        {
+        if (isset($argc)) {
             return;
         }
         $this->initSphinx();
         $this->user=new User($router->db, $router->cfg, $this);
-        if(!isset($this->user->params['list_lang'])){
+        if (!isset($this->user->params['list_lang'])) {
             $this->langSortingMode = -1;
         }
-        if(!isset($this->user->params['list_publisher'])){
+        if (!isset($this->user->params['list_publisher'])) {
             $this->publisherTypeSorting = 0;
         }
         $this->classifieds = new Classifieds($router->db);
@@ -52,59 +51,52 @@ class Site {
     }
     
     
-    public function router() : Router
-    {
+    public function router() : Router {
         return $this->urlRouter;
     }
     
     
-    public function user() : User
-    {
+    public function user() : User {
         return $this->user;
     }
     
     
-    function checkUserGeo()
-    {
+    function checkUserGeo() {
         $geo = $this->urlRouter->getIpLocation();
-        if (isset($geo['country'])) 
-        {
+        if (isset($geo['country'])) {
             $country_code=strtolower(trim($geo['country']['iso_code']));
             $this->user->params['user_country']=$country_code;
             if(strlen($country_code)!=2)$this->user->params['user_country']='';
         }
-        else
-        {
+        else {
             $this->user->params['user_country']='';
         }
         $this->user->update();
     }
     
     
-    function isRTL($text)
-    {
+    function isRTL($text) {
         $rtlChars = preg_replace('/[^\x{0621}-\x{064a}\x{0750}-\x{077f}]|[:\\\\\/\-;.,؛،?!؟*@#$%^&_+\'"|0-9\s]/u', '', $text);
         $ltrChars = preg_replace('/[\x{0621}-\x{064a}\x{0750}-\x{077f}]|[:\\\\\/\-;.,؛،?!؟*@#$%^&_+\'"|0-9\s]/u', '', $text);
-        if(strlen($rtlChars) > (strlen($ltrChars)*0.5)){
+        if (strlen($rtlChars) > (strlen($ltrChars)*0.5)) {
             return true;
-        }else{
+        }
+        else {
             return false;
         }
         return false;
     }
 
     
-    function BuildExcerpts($text, $length = 0, $separator = '...')
-    {
-        if($length){
+    function BuildExcerpts($text, $length = 0, $separator = '...') {
+        if ($length) {
             $str_len = mb_strlen($text, 'UTF-8');
-            if($str_len > $length){
-                
+            if ($str_len > $length) {                
                 $text = trim(preg_replace('/\x{200B}.*/u', '', $text));
                 $text = trim(preg_replace('/[\-+=<>\\&:;,.]$/', '', $text));
                 
                 $str_len = mb_strlen($text, 'UTF-8');
-                if($str_len > $length){
+                if ($str_len > $length) {
                     $text = mb_substr($text, 0, $length, 'UTF-8');
                     $lastSpace = strrpos($text, ' ');
                     $text   = substr($text, 0, $lastSpace);
@@ -117,7 +109,8 @@ class Site {
         return $text;
     }
     
-    function findFlashUrl($entry){
+    
+    function findFlashUrl($entry) {
         foreach ($entry->mediaGroup->content as $content) {
             if ($content->type === 'application/x-shockwave-flash') {
                 return $content->url;
@@ -126,7 +119,8 @@ class Site {
         return null;
     }
 
-    function get($str='', $type='', $ignoreCase=false){
+    
+    function get($str='', $type='', $ignoreCase=false) {
         if (!$ignoreCase)$str=strtolower($str);
         if (!isset($this->params['get'][$str])) {
             if (isset ($_GET[$str]))
@@ -146,6 +140,7 @@ class Site {
         }
         return $this->params['post'][$str];
     }
+    
 
     function cookie($str='', $type='', $ignoreCase=false){
         if (!$ignoreCase)$str=strtolower($str);
@@ -156,6 +151,7 @@ class Site {
         }
         return $this->params['cookie'][$str];
     }
+    
 
     function load_lang($langArray, $langStr=''){
         if ($langStr=='')$langStr=$this->urlRouter->siteLanguage;
@@ -220,16 +216,16 @@ class Site {
     
     function handleCacheActions() {
         if ($this->urlRouter->module=="search") {
-        $this->user->params['search'] = array(
-            'cn' =>   $this->urlRouter->countryId,
-            'c' =>   $this->urlRouter->cityId,
-            'ro' =>   $this->urlRouter->rootId,
-            'se' =>   $this->urlRouter->sectionId,
-            'pu' =>   $this->urlRouter->purposeId,
-            'start'     =>  $this->urlRouter->params['start'],
-            'q'     =>  $this->urlRouter->params['q']
-        );
-        $this->user->update();
+            $this->user->params['search'] = array(
+                'cn' =>   $this->urlRouter->countryId,
+                'c' =>   $this->urlRouter->cityId,
+                'ro' =>   $this->urlRouter->rootId,
+                'se' =>   $this->urlRouter->sectionId,
+                'pu' =>   $this->urlRouter->purposeId,
+                'start'     =>  $this->urlRouter->params['start'],
+                'q'     =>  $this->urlRouter->params['q']
+            );
+            $this->user->update();
         }
     }
 
@@ -246,10 +242,12 @@ class Site {
         if ($days) {
             if ($this->urlRouter->siteLanguage=='ar') {
                 $stamp=$sinceText.$this->formatPlural($days, 'day');
-            }else {
+            }
+            else {
                 $stamp=$this->formatPlural($days, 'day').$agoText;
             }
-        }else {
+        }
+        else {
             $hours=floor($seconds/3600);
             if ($hours){
                 if ($this->urlRouter->siteLanguage=='ar') {
@@ -308,12 +306,9 @@ class Site {
     }
 
 
-    function initSphinx($forceInit=false)
-    {
-        if ($this->urlRouter->db->ql) 
-        {
-            if ($forceInit) 
-            {
+    function initSphinx($forceInit=false) {
+        if ($this->urlRouter->db->ql) {
+            if ($forceInit) {
                 $this->urlRouter->db->ql->resetFilters();               
             }
             return;
@@ -323,13 +318,10 @@ class Site {
     }
     
     
-    function runQueries($queries, &$matches)
-    {
+    function runQueries($queries, &$matches) {
         $this->urlRouter->db->ql->_batch=[];
-        foreach ($queries as $row) 
-        {
-            if (!$this->channelId || $row['ID']==$this->channelId) 
-            {
+        foreach ($queries as $row) {
+            if (!$this->channelId || $row['ID']==$this->channelId) {
                 $this->urlRouter->db->ql->resetFilters(true);
                 if ($row['COUNTRY_ID'])
                     $this->urlRouter->db->ql->setFilter("country", $row['COUNTRY_ID']);
@@ -347,21 +339,13 @@ class Site {
                 $this->urlRouter->db->ql->setSelect('id, date_added, '.$row['ID'].' as info_id');
                 $lastVisit = isset($this->user->params['last_visit']) && $this->user->params['last_visit'] ? $this->user->params['last_visit'] : time()-3600;
                 $this->urlRouter->db->ql->setFilterRange('date_added',$lastVisit,time()+3600);
-                //$this->urlRouter->db->ql->SetMatchMode ( SPH_MATCH_EXTENDED2 );
-                //if($this->sortingMode){
-                //    $this->sphinx->SetSortMode(SPH_SORT_EXTENDED, 'media desc, date_added');
-                //}else{                    
                 $this->urlRouter->db->ql->setSortBy('date_added desc');
-                //}
                 $this->urlRouter->db->ql->SetLimits(0, 1000);
                 $this->urlRouter->db->ql->addQuery($row['ID'], $row['QUERY_TERM'], TRUE);
                 if ($this->channelId) break;
             }
         }
         $matches = $this->urlRouter->db->ql->executeBatch(TRUE);
-        //if ($results){
-        //    $matches=array_merge($matches, $results);
-        //}
     }
     
     
@@ -509,15 +493,13 @@ class Site {
     }
 
 
-    function getFeaturedAds()
-    {
+    function getFeaturedAds() {
             
         $q = preg_replace('/@/', '\@', $this->urlRouter->params['q']);        
         $currentPage=($this->urlRouter->params['start']?$this->urlRouter->params['start']:1);
         
         // 1 - get top column paid ads related to query
-        if ($this->urlRouter->module=='search' && $currentPage==1)
-        {
+        if ($this->urlRouter->module=='search' && $currentPage==1) {
             $publisher_type=0;
             if ($this->publisherTypeSorting && in_array($this->urlRouter->rootId,[1,2,3]) && 
                ($this->urlRouter->rootId!=3 || ($this->urlRouter->rootId==3 && $this->urlRouter->purposeId==3)) && 
@@ -569,15 +551,14 @@ class Site {
         }
         
         // 1 - get top column featured ads related to query
-        if ($this->urlRouter->module=='search'){ // && $this->searchResults['body']['total_found'] > 20
+        if ($this->urlRouter->module=='search') {
             $publisher_type=0;
-            if($this->publisherTypeSorting && in_array($this->router()->rootId,[1,2,3])){
+            if ($this->publisherTypeSorting && in_array($this->router()->rootId,[1,2,3])) {
                 $publisher_type = $this->publisherTypeSorting == 1 ? 1 : 3;
             }
             
             $rtlFilter = [];
-            switch ($this->langSortingMode) 
-            {
+            switch ($this->langSortingMode) {
                 case 1:
                     $rtlFilter=[1,2];
                     break;
@@ -705,8 +686,7 @@ class Site {
     }
     
     
-    function faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0)
-    {
+    function faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0) {
         $key='mEI5PRfHaBvbn6El48yZcX492NLb5Cu5';
         $url = 'http://io.mourjan.com:8080/api/v1/authenticate';
      
@@ -865,7 +845,8 @@ class Site {
                     if ($this->urlRouter->siteLanguage == 'ar') {
                         $in = ' ';
                         $section = 'وظائف ' . $section;
-                    }else {
+                    }
+                    else {
                         $section = $section . ' ' . $this->urlRouter->purposes[$ad['pu']][$fieldNameIndex];
                     }
                     break;
@@ -880,10 +861,10 @@ class Site {
                     break;
             }
 
-            if (count($ad['pubTo'])==1){
+            if (count($ad['pubTo'])==1) {
                 $cityId=  array_keys($ad['pubTo']);
                 $cityId=$cityId[0];
-                if(isset($this->urlRouter->cities[$cityId])) {
+                if (isset($this->urlRouter->cities[$cityId])) {
                     $countryId = $this->urlRouter->cities[$cityId][4];
                     $cId = 0;
                     if (count($this->urlRouter->countries[$countryId]['cities']) > 0) {
@@ -893,7 +874,8 @@ class Site {
                         if (!mb_strstr($section, $this->urlRouter->countries[$countryId]['name'], true, "utf-8")) {
                             $section.=' ' . $this->urlRouter->countries[$countryId]['name'];
                         }
-                    } else {
+                    } 
+                    else {
                         $section = $section . ' ' . $this->lang['in'] . ' ' . $this->urlRouter->countries[$countryId]['name'];
                     }
                 }

@@ -5,6 +5,7 @@ use \Core\Model\DB;
 use \Core\Model\NoSQL;
 use \Core\Model\Classifieds;
 use \Core\Lib\SphinxQL;
+use \Core\Lib\Audit;
 use \Core\Model\MobileValidation;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\ServiceAccount;
@@ -1283,12 +1284,12 @@ class MobileApi {
         $current_name="";
         
         $device_name = filter_input(INPUT_GET, 'dn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);        
-        if(strlen($device_name) > 50) {
+        if (strlen($device_name) > 50) {
             $device_name = substr($device_name, 0, 50);
         }
         
         $device_model = filter_input(INPUT_GET, 'dm', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-        if(strlen($device_model) > 50) {
+        if (strlen($device_model) > 50) {
             $device_model = substr($device_model, 0, 50);
         }
 
@@ -1298,7 +1299,7 @@ class MobileApi {
             $this->uuid = '31D052EF-DCC8-4FBA-B180-4C7C50AECBC6';
         }
 
-        if(strlen($this->systemName) > 50) {
+        if (strlen($this->systemName) > 50) {
             $this->systemName = substr($this->systemName, 0, 50);
         }
         
@@ -1311,8 +1312,8 @@ class MobileApi {
         $app_prefs = html_entity_decode(filter_input(INPUT_GET, 'prefs', FILTER_SANITIZE_STRING, ['options'=>['default'=>'{}']]));
         
         //Android Fix for lost UID
-        if($isAndroid  && $this->uuid){
-            if($this->uid==0 && $this->user->getID()>0) {
+        if ($isAndroid  && $this->uuid){
+            if ($this->uid==0 && $this->user->getID()>0) {
                 //error_log("Verifying if previous record exists for UUID {$this->uuid} with UID NIL\n");
                 $_device = NoSQL::getInstance()->deviceFetch($this->uuid);
 
@@ -1320,12 +1321,12 @@ class MobileApi {
                     $this->uid = $_device[\Core\Model\ASD\USER_UID];
                     $this->provider = Core\Model\ASD\USER_PROVIDER_ANDROID;   
                 }
-            }else if($this->uid != 0 && $this->user->getID() > 0 && $this->uid != $this->user->getID()){
+            }
+            else if ($this->uid != 0 && $this->user->getID() > 0 && $this->uid != $this->user->getID()) {
                 error_log("fix for UUID {$this->uuid} with corrupted uid\n");
                 $_device = NoSQL::getInstance()->deviceFetch($this->uuid);
 
-                if ($_device && isset($_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]) && $_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]=='Android') {
-                    
+                if ($_device && isset($_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]) && $_device[\Core\Model\ASD\USER_DEVICE_SYS_NAME]=='Android') {                    
                     $oldUid = $this->uid;
                     
                     $this->uid = $_device[\Core\Model\ASD\USER_UID];
@@ -1335,11 +1336,10 @@ class MobileApi {
                     
                     $this->user = MCUser::getByUUID($this->uuid);
                 }
-            }           
+            }
         }
         //End of Android Fix for lost UID
-        
-        
+                
         $opts = $this->userStatus($status, $current_name, $device_name);
         $this->result['status']=9;
         $this->result['d']['level'] = isset($opts->user_level) ? $opts->user_level:0;
@@ -1351,17 +1351,13 @@ class MobileApi {
             $this->result['d']['cdn'] = 'https://c6.mourjan.com';
             $this->result['d']['upload'] = 'https://www.mourjan.com';
             $this->result['d']['detail_ad_unit'] = 'ca-app-pub-2427907534283641/4303349312';
-            $this->result['d']['listing_ad_unit'] = 'ca-app-pub-2427907534283641/8260964224';
-            
+            $this->result['d']['listing_ad_unit'] = 'ca-app-pub-2427907534283641/8260964224';            
             
             if ($this->user->getMobile()->getNumber()) {
                 $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
                 $num = $this->mobileValidator->parse("+{$this->user->getMobile()->getNumber()}", 'LB');
-                //$this->result['d']['mcc'] = $num->getCountryCode();
                 $this->result['d']['amcc'] = $this->mobileValidator->getRegionCodeForNumber($num);
-            }
-            
-            
+            }                        
         }
         
         
@@ -1549,8 +1545,7 @@ class MobileApi {
             
             if ( $opts->user_status==1) {
                 include $this->config['dir'] .'/core/model/User.php';
-                if ($this->isIOS() && (session_status()==PHP_SESSION_NONE)) {
-                    
+                if ($this->isIOS() && (session_status()==PHP_SESSION_NONE) && version_compare($this->appVersion, '1.1.0', '<')) {                    
                     new MCSessionHandler(TRUE);
                     
                     $user = new User($this->db, $this->config, null, 0);
@@ -1682,7 +1677,10 @@ class MobileApi {
         if(isset($this->result['d']['uid']) && $this->result['d']['uid']>0) {
             NoSQL::getInstance()->updateProfileVisitTime([Core\Model\ASD\USER_UID=>$this->result['d']['uid']]);
         }
-
+        
+        //if ($this->user->getMobile()->getNumber()) {
+        //    Audit::signin()->add('register', ['status'=>$this->result['d']['status'], 'error', $this->result['e']])->end();        
+        //}
     }
 
 
@@ -2506,7 +2504,7 @@ class MobileApi {
         
         if ($status==1) {            
             // Register session            
-            if ( $opts->user_status==1) {
+            if ( $opts->user_status==1 && version_compare($this->appVersion, '1.1.0', '<')) {
                 new MCSessionHandler(TRUE);
 
                 include $this->config['dir'] .'/core/model/User.php';

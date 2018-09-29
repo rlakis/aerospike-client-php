@@ -122,29 +122,29 @@ include_once $config['dir'].'/core/model/NoSQL.php';
 include_once $config['dir'].'/core/model/MobileValidation.php';
 include_once $config['dir'].'/core/lib/MCSessionHandler.php';
 include_once $config['dir'].'/core/lib/MCUser.php';
+include_once $config['dir'].'/core/lib/MCAudit.php';
 
 ini_set('memory_limit', '256M');
 
-class ElapseTime 
-{
+class ElapseTime {
     private $_total = 0;
     private $_start = 0;
     private $_stop = 0;
 
-    public function start(){
+    public function start() {
         $this->_start = microtime(TRUE);
     }
 
-    public function stop(){
+    public function stop() {
         $this->_stop = microtime(TRUE);
         $this->_total = $this->_total + $this->_stop - $this->_start;
     }
 
-    public function get_elapse(){
+    public function get_elapse() {
         return sprintf("%.6f",($this->_stop - $this->_start)*1000.0);
     }
 
-    public function get_total_elapse(){
+    public function get_total_elapse() {
         return sprintf("%.6f", $this->_total*1000.0);
     }
 }
@@ -153,15 +153,11 @@ $timer = new ElapseTime();
 $timer->start();
 $api = new MobileApi($config);
 
-if (!$api->hasError()) 
-{
-    
+if (!$api->hasError()) {    
     $action = filter_input(INPUT_GET, 'm', FILTER_VALIDATE_INT)+0;
-
     $api->command = $action;
     
-    switch ($action) 
-    {
+    switch ($action) {
         case API_NORMALIZE_TEXT:
             $api->normalizeText();
             break;
