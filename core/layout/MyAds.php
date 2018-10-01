@@ -689,17 +689,15 @@ class MyAds extends Page {
                         //$isSuspended =  isset($this->user->info['options']['suspend']) && ($this->user->info['options']['suspend']>time());                        
                         
                          $isSuspended = FALSE;
-                        if ($this->user->getProfile())
-                        {
+                        if ($this->user->getProfile()) {
                             $isSuspended = $this->user->getProfile()->isSuspended();
-                        } else {
+                        } 
+                        else {
                             error_log("this->user->data is null for user: ".$this->user->info['id'] . ' at line '.__LINE__);
                         }
                         //$isSuspended = $this->user->data->getOptions()->isSuspended();
-                        if ($state<7 && !$isSystemAd) 
-                        {
-                            if(!$isSuspended)
-                            {
+                        if ($state<7 && !$isSystemAd) {
+                            if (!$isSuspended) {
                                 ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$ad['ID'] : '') ?>" method="post"><?php
                                     ?><input type="hidden" name="ad" /><?php 
                                     ?><div onclick="$b(this).value=eid;$p(this).submit()" class="button"><span class="k aedi"></span><label><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></label></div><?php
@@ -707,8 +705,7 @@ class MyAds extends Page {
                             }
                             ?><div onclick="adel(this,0,event)" class="button"><span class="k spam"></span><label><?= $this->lang['delete'] ?></label></div><?php
                         }
-                        elseif($state==7)
-                        {
+                        elseif ($state==7) {
                             if($this->urlRouter->cfg['enabled_charts']){
                                 ?><div onclick="aStat(this,event)" class="button"><span class="k stat"></span><label><?= $this->lang['stats'] ?></label></div><?php
                             }
@@ -720,15 +717,12 @@ class MyAds extends Page {
                                 ?></form><?php
                             }
                         }
-                        elseif($state==9)
-                        {
+                        elseif ($state==9) {
                             if($this->urlRouter->cfg['enabled_charts']){
                                 ?><div onclick="aStat(this,event)" class="button"><span class="k stat"></span><label><?= $this->lang['stats'] ?></label></div><?php
                             }
-                            if(!$isSystemAd)
-                            {
-                                if(!$isSuspended)
-                                {
+                            if (!$isSystemAd) {
+                                if (!$isSuspended) {
                                     ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$ad['ID'] : '') ?>" method="post"><?php
                                         ?><input type="hidden" name="adr" /><?php
                                         ?><div onclick="$b(this).value=eid;$p(this).submit()" class="button"><span class="k aedi"></span><label><?= $this->lang['edit_republish'] ?></label></div><?php
@@ -741,14 +735,13 @@ class MyAds extends Page {
                             }
                         }
                     ?></div><?php
-                    if($this->urlRouter->cfg['enabled_charts'] && ($state==7 || $state==9)){
+                    if ($this->urlRouter->cfg['enabled_charts'] && ($state==7 || $state==9)) {
                         ?><div class="txtd statH rc" onclick="se()"><div id="statAiv" class="statDiv load"></div></div><?php 
                     }
                 ?></div><?php 
             }
         }
-        else
-        {
+        else {
             echo '<br /><h2 class="ctr">';
             switch($this->subSection){
                 case 'pending':
@@ -862,7 +855,8 @@ var rtMsgs={
         'اعلانات زواج المسيار والمتعة مخالفة لسياسة الموقع ولا يمكن نشرها',
         'لا يمكن نشر إعلانات مماثلة طبقاً لسياسة الموقع',
         'اعلانات المتاجرة بالتأشيرات والإقامات مجرمة قانونيا',
-        'مضمون هذا الاعلان يتعارض مع مضمون اعلاناتك المنشورة وهذا تحذير قبل ايقاف حسابك بسبب الاحتيال'
+        'مضمون هذا الاعلان يتعارض مع مضمون اعلاناتك المنشورة وهذا تحذير قبل ايقاف حسابك بسبب الاحتيال',
+        'يحظر نشر هذا الاعلان ما دمت تتصل بالانترنت بواسطة بروكسي'
     ],
     'en':[
         'specify the reason...',
@@ -898,7 +892,8 @@ var rtMsgs={
         'Temporary marriages (Mesyar, Muta\') ads are against the website policy and caanot be published',
         'This type of ads is against the website policy and cannot be published',
         'Selling Visas and work permits is against the law',
-        'This ad contradicts with the sense of your other published ads, and this is a warning before blocking your account for fraud'
+        'This ad contradicts with the sense of your other published ads, and this is a warning before blocking your account for fraud',
+        'The user behind proxy ad posting is prohibited'
     ]
 };
                             ";
