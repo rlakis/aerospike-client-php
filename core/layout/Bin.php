@@ -51,6 +51,11 @@ class AjaxHandler extends Site {
         header("Content-Type: application/json");
         echo json_encode($res);
     }
+    
+    function processJson($res){
+        header("Content-Type: application/json");
+        echo $res;
+    }
 
     function fail($msg='illegal access failure'){
 	$this->msg=$msg;
@@ -132,8 +137,14 @@ class Bin extends AjaxHandler{
                 $this->user->update();
                 $this->process();
                 break;
-            case 'ajax-changepu':
+            case 'ajax-changepu':                
                 if($this->user->info['id'] && $this->user->info['level']==9){
+                    if(isset($_GET['fraud']) && is_numeric($_GET['fraud'])){
+                        $content = file_get_contents('http://h8.mourjan.com:8080/v1/fraud/ad/'.$_GET['fraud']);
+                        //$this->setData($content, 'content');
+                        $this->processJson($content);
+                        break;
+                    }
                     $lang = $this->get('hl');
                     $this->fieldNameIndex=1;
                     if(!in_array($lang,array('ar','en'))){
