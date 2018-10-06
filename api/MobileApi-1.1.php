@@ -337,7 +337,7 @@ class MobileApi {
     
     function fetchPremiumAds($sphinxQL, $keywords, $rootId, $sectionId) {
         $sphinxQL->resetFilters();
-        $sphinxQL->setFilter('publication_id', 1);
+        //$sphinxQL->setFilter('publication_id', 1);
         if ($this->countryId) {
             $sphinxQL->setFilter('country', $this->countryId);
         }
@@ -2577,7 +2577,7 @@ class MobileApi {
         
         $sphinxQL = new SphinxQL($this->config['sphinxql'], $this->config['search_index']);
         $sphinxQL->setLimits(0, 100);
-        $sphinxQL->setFilter("publication_id", 1);        
+        //$sphinxQL->setFilter("publication_id", 1);        
         $sphinxQL->setFilter("country_id", $this->countryId);
         $sphinxQL->setSelect("id, impressions");
         $sphinxQL->setSortBy("date_added asc");

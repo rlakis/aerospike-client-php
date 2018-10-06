@@ -777,17 +777,14 @@ class Search extends Page {
                     $isFeatured = $current_time < $ad[Classifieds::FEATURE_ENDING_DATE];
                     $isFeatureBooked = $current_time < $ad[Classifieds::BO_ENDING_DATE];
                     
-                    if ($ad[Classifieds::PUBLICATION_ID]==1 && !(isset($this->detailAd[Classifieds::ID]) && $this->detailAd[Classifieds::ID]==$ad[Classifieds::ID]) ) {
+                    if (!(isset($this->detailAd[Classifieds::ID]) && $this->detailAd[Classifieds::ID]==$ad[Classifieds::ID]) ) {
                         if (isset($this->user->info['level'])) {
                             if (!($this->user->info['level'] == 9 || $this->user->info['id'] == $ad[Classifieds::USER_ID])) {
-                                //if(isset($this->searchResults["matches"][$id])){
                                 $this->stat['ad-imp'][]=$id;
-                                //}
                             }
-                        } else {
-                            //if(isset($this->searchResults["matches"][$id])){
+                        } 
+                        else {
                             $this->stat['ad-imp'][]=$id;
-                            //}
                         }
                     }
                     if (!empty($ad[Classifieds::ALT_CONTENT])) {
@@ -807,34 +804,28 @@ class Search extends Page {
                         error_log("wrong cache, ad id: ".$ad[Classifieds::ID]);
                     }
                     $this->replacePhonetNumbers($ad[Classifieds::CONTENT], $ad[Classifieds::PUBLICATION_ID], $ad[Classifieds::COUNTRY_CODE], $ad[Classifieds::TELEPHONES][0], $ad[Classifieds::TELEPHONES][1], $ad[Classifieds::TELEPHONES][2],$ad[Classifieds::EMAILS]);
-
-                    //$this->processTextNumbers($ad[Classifieds::CONTENT], $ad[Classifieds::PUBLICATION_ID], $ad[Classifieds::COUNTRY_CODE]);
-
-                    if ($ad[Classifieds::PUBLICATION_ID] == 1 || $this->urlRouter->publications[$ad[Classifieds::PUBLICATION_ID]][6]=='http://www.waseet.net/') {
+                    
+                    //if ($ad[Classifieds::PUBLICATION_ID] == 1 || $this->urlRouter->publications[$ad[Classifieds::PUBLICATION_ID]][6]=='http://www.waseet.net/') {
                         $pub_link = ($feature?'<b class="b">':'<b>') . ($this->urlRouter->siteLanguage=='ar' ? 'موقع مرجان':'mourjan.com') . '</b>';
-                    }else {
-                        $pub_link = "<b>" . $this->urlRouter->publications[$ad[Classifieds::PUBLICATION_ID]][$this->fieldNameIndex] . '</b>';
-                    }
+                    //}else {
+                    //    $pub_link = "<b>" . $this->urlRouter->publications[$ad[Classifieds::PUBLICATION_ID]][$this->fieldNameIndex] . '</b>';
+                    //}
 
 
                     $ad[Classifieds::CONTENT] = preg_replace('/www(?!\s+)\.(?!\s+).*(?!\s+)\.(?!\s+)(com|org|net|mil|edu|COM|ORG|NET|MIL|EDU)/', '', $ad[Classifieds::CONTENT]);
-                    $ad[Classifieds::CONTENT] = preg_replace('/^[\s-]*/', '', $ad[Classifieds::CONTENT]);
-                    //if (!(isset($this->user->info['level']) && $this->user->info['level'] == 9)) {
-//                        $feed = $this->sphinx->BuildExcerpts(array($ad[Classifieds::CONTENT]), 'mouftah', $keywords, array("limit" => 160));
-//                        $feed[0] = trim($feed[0]);
-                    
+                    $ad[Classifieds::CONTENT] = preg_replace('/^[\s-]*/', '', $ad[Classifieds::CONTENT]);                    
                     
                     $excerptLength = 160;
                     
                     $feed = $this->BuildExcerpts($ad[Classifieds::CONTENT], $excerptLength);
-                        if (substr($feed, -3) == '...') {
-                            $replaces = 0;
-                            $feed = preg_replace('/(?:<(?!\/)(?!.*>).*)|(?:<(?!\/)(?=.*>)(?!.*<\/.*>)).*(\.\.\.)$/', '$1' . ($this->urlRouter->id == $ad[Classifieds::ID] ? '' : '<span class="lnk">' . ($ad[Classifieds::RTL] ? $this->lang['readMore_ar'] : $this->lang['readMore_en']) . '</span>'), $feed, -1, $replaces);
-                            if (!$replaces && $this->urlRouter->id != $ad[Classifieds::ID])
-                                $feed.='<span class="lnk"> ' . ($ad[Classifieds::RTL] ? $this->lang['readMore_ar'] : $this->lang['readMore_en']) . '</span>';
-                        }
-                        $ad[Classifieds::CONTENT] = $feed;
-                    //}
+                    if (substr($feed, -3) == '...') {
+                        $replaces = 0;
+                        $feed = preg_replace('/(?:<(?!\/)(?!.*>).*)|(?:<(?!\/)(?=.*>)(?!.*<\/.*>)).*(\.\.\.)$/', '$1' . ($this->urlRouter->id == $ad[Classifieds::ID] ? '' : '<span class="lnk">' . ($ad[Classifieds::RTL] ? $this->lang['readMore_ar'] : $this->lang['readMore_en']) . '</span>'), $feed, -1, $replaces);
+                        if (!$replaces && $this->urlRouter->id != $ad[Classifieds::ID])
+                            $feed.='<span class="lnk"> ' . ($ad[Classifieds::RTL] ? $this->lang['readMore_ar'] : $this->lang['readMore_en']) . '</span>';
+                    }
+                    $ad[Classifieds::CONTENT] = $feed;
+
                     $itemScope = '';
                     $itemDesc = '';
                     $hasSchema = false;
@@ -950,11 +941,11 @@ class Search extends Page {
                     }
                     
                     $locSpan='';
-                    if ($ad[Classifieds::PUBLICATION_ID] == 1) {
+                    //if ($ad[Classifieds::PUBLICATION_ID] == 1) {
                         if ($ad[Classifieds::LATITUDE] || $ad[Classifieds::LONGITUDE]) {
                             $locSpan = "<span class='k loc'></span>";
                         }
-                    }                  
+                    //}                  
                     
                     
                     if ($liClass)
@@ -1740,22 +1731,8 @@ class Search extends Page {
                                 }
 
                                 $iTmp='';
-                                /*if($this->urlRouter->sections[$section[0]][4]==1){
-                                    $iTmp.='<span class="x x'.$section[0].'"></span>';
-                                }elseif($this->urlRouter->sections[$section[0]][4]==2){
-                                    $iTmp.='<span class="z z'.$section[0].'"></span>';
-                                }elseif($this->urlRouter->sections[$section[0]][4]==3){
-                                    $iTmp.='<span class="v v'.$section[0].'"></span>';
-                                }elseif($this->urlRouter->sections[$section[0]][4]==4){
-                                    $iTmp.='<span class="y y'.$section[0].'"></span>';
-                                }elseif($this->urlRouter->sections[$section[0]][4]==99){
-                                    $iTmp.='<span class="u u'.$section[0].'"></span>';
-                                }else {
-                                    $iTmp.='<span class="v'.$section[0].'"></span>';
-                                }*/
 
                                 $followStr.='<li><a href="'.$uri.'">'.$iTmp.$sName.' <span class="to"></span></a></li>';
-                                //echo '<li><a  href="' . $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $this->urlRouter->sectionId, $pid) . $q . '">', $purpose['name'], '</a></li>';
                                 $procSec[$section[0]]=1;
                                 $k++;
                                 if($k==5)break;
@@ -2340,584 +2317,70 @@ class Search extends Page {
             return;
         }
         $isArabic = preg_match('/[\x{0621}-\x{064a}]/u', $text);
-        if (preg_match('/\<span class/', $text)) {
-            //var_dump($mobiles);
-            //var_dump($phones);
-            /*if ($this->urlRouter->publications[$pubId][6]=='http://www.waseet.net/') {
-                $res = '';
-                if (count($mobiles) || count($phones)) {
-
-                    if (count($mobiles)) {
-                        $res.=($isArabic ? 'موبايل':'Mobile').': ';
-                        $i=0;
-                        foreach ($mobiles as $mob) {
-                            if ($i) $res.=($isArabic ? 'او ':'or ');
-                            $res.='<span class="pn o1">'.$mob[1].'</span> ';
-                            $matches[]=$mob[1];
-                            $i++;
-                        }
-                    }
-
-                    if (count($phones)) {
-                        if ($res) $res.='- ';
-                        $res.=($isArabic ? 'هاتف':'Phone').': ';
-                        $i=0;
-                        foreach ($phones as $mob) {
-                            if($i) $res.=($isArabic ? 'او ':'or ');
-                            $res.='<span class="pn o7">'.$mob[1].'</span> ';
-                            $matches[]=$mob[1];
-                            $i++;
-                        }
-                    }
-
-                } elseif (count($undefined)) {
-                    $res.=($isArabic ? 'هاتف':'Phone').': ';
-                    $i=0;
-                    foreach ($undefined as $mob){
-                        if($i)$res.=($isArabic ? 'او ':'or ');
-                        $res.='<span class="vn">'.$mob[1].'</span> ';
-                        $matches[]=$mob[1];
-                        $i++;
-                    }
+        if (preg_match('/\<span class/', $text)) {            
+            foreach ($mobiles as $num) {
+                $number = $this->formatPhoneNumber($num[0]);
+                if ($num[0]!=$number) {
+                    $org = $num[0];
+                    $num[0]= preg_replace('/\+/','\\+' , $num[0]);
+                    $text = preg_replace('/'.$num[0].'/', $number, $text);
+                    $matches .= '<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'")\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
+                } else {
+                    $org = $num[0];
+                    $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
+                    $text = preg_replace('/\<span class="pn(?:[\sa-z0-9]*)">'.$num[0].'\<\/span\>/', '<span class="vn">'.$number.'</span>', $text);
+                    $matches .= '<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'");\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                 }
-
-                $divider=null;
-                preg_match($REGEX_MATCH, $text, $divider);
-                $pos=0;
-                if ($divider && count($divider) && $divider[1]) {
-                    $pos = strpos($text, $divider[1]);
-                    if (!$pos) {
-                        $divider=null;
-                        preg_match('/(<span)/', $text, $divider);
-                        if ($divider && count($divider) && $divider[1]) {
-                            $pos = strpos($text, $divider[1]);
-                        }
-                    }
+            }
+            foreach ($phones as $num) {
+                $number = $this->formatPhoneNumber($num[0]);
+                 if ($num[0]!=$number) {
+                     $org = $num[0];
+                    $num[0]= preg_replace('/\+/','\\+' , $num[0]);
+                    $text = preg_replace('/'.$num[0].'/', $number, $text);
+                    $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
+                } 
+                else {
+                    $org = $num[0];
+                    $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
+                    $text = preg_replace('/\<span class="pn(?:[\sa-z0-9]*)">'.$num[0].'\<\/span\>/', '<span class="vn">'.$number.'</span>', $text);
+                    $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                 }
-
-                if (!$pos) {
-                    $srh='';
-                    foreach ($mobiles as $num) {
-                        if($srh)$srh.='|';
-                        $srh .= $num[0];
-                    }
-                    foreach ($phones as $num) {
-                        if($srh)$srh.='|';
-                        $srh .= $num[0];
-                    }
-
-                    if ($srh) {
-                        $srh=  preg_replace('/\+/','\\+' , $srh);
-                        $divider=null;
-                        preg_match('/(<span class="pn">'.$srh.')/', $text, $divider);
-                        if ($divider && count($divider) && $divider[1]) {
-                            $pos = strpos($text, $divider[1]);
-                        }
-                    }
+            }
+        } 
+        else {
+            foreach ($mobiles as $num) {
+                $number = $this->formatPhoneNumber($num[1]);
+                if ($num[0]!=$number) {
+                     $org = $num[0];
+                    $num[0]= preg_replace('/\+/','\\+' , $num[0]);                        
+                    $text = preg_replace('/'.$num[0].'/', '<span class="pn">'.$number.'</span>', $text);
+                    $matches .= '<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'");\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
+                } 
+                else {
+                    $org = $num[0];
+                    $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
+                    $text = preg_replace('/'.$num[0].'/', '<span class="vn">'.$number.'</span>', $text);
+                    $matches .= '<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'");\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                 }
-
-                if ($pos)
-                    $text = substr($text,0,$pos);
-
-                if($res)
-                    $text.=' / '.$res;
-
-            } else {*/
-                foreach ($mobiles as $num) {
-                    $number = $this->formatPhoneNumber($num[0]);
-                    if ($num[0]!=$number) {
-                        $org = $num[0];
-                        $num[0]= preg_replace('/\+/','\\+' , $num[0]);
-                        $text = preg_replace('/'.$num[0].'/', $number, $text);
-                        //$matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
-                        $matches .= '<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'")\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
-                    } else {
-                        $org = $num[0];
-                        $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
-                        $text = preg_replace('/\<span class="pn(?:[\sa-z0-9]*)">'.$num[0].'\<\/span\>/', '<span class="vn">'.$number.'</span>', $text);
-                        //$matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
-                        $matches .= '<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'");\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
-                    }
+            }
+            foreach ($phones as $num) {
+                $number = $this->formatPhoneNumber($num[1]);
+                 if ($num[0]!=$number) {
+                    $org = $num[0];
+                    $num[0]= preg_replace('/\+/','\\+' , $num[0]);
+                    $text = preg_replace('/'.$num[0].'/', '<span class="pn">'.$number.'</span>', $text);
+                    $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
+                } 
+                else {
+                    $org = $num[0];
+                    $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
+                    $text = preg_replace('/'.$num[0].'/', '<span class="vn">'.$number.'</span>', $text);
+                    $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                 }
-                foreach ($phones as $num) {
-                    $number = $this->formatPhoneNumber($num[0]);
-                     if ($num[0]!=$number) {
-                         $org = $num[0];
-                        $num[0]= preg_replace('/\+/','\\+' , $num[0]);
-                        $text = preg_replace('/'.$num[0].'/', $number, $text);
-                        $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
-                    } else {
-                        $org = $num[0];
-                        $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
-                        $text = preg_replace('/\<span class="pn(?:[\sa-z0-9]*)">'.$num[0].'\<\/span\>/', '<span class="vn">'.$number.'</span>', $text);
-                        $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
-                    }
-                }
-            /*}*/
-
-        } else {
-            /*if(isset($this->urlRouter->publications[$pubId]) && $this->urlRouter->publications[$pubId][6]=='http://www.waseet.net/'){
-                $res = '';
-                if (count($mobiles) || count($phones)) {
-
-                    if(count($mobiles)){
-                        $res.=($isArabic ? 'موبايل':'Mobile').': ';
-                        $i=0;
-                        foreach ($mobiles as $mob){
-                            if($i)$res.=($isArabic ? 'او ':'or ');
-                            $res.='<span class="pn o1">'.  $this->formatPhoneNumber($mob[1]).'</span> ';
-                            $i++;
-                            $mob[1]=preg_replace('/\+/','\\+',$mob[1]);
-                            $text=preg_replace('/'.$mob[1].'/','',$text);
-                        }
-                    }
-
-                    if(count($phones)){
-                        if($res)$res.='- ';
-                        $res.=($isArabic ? 'هاتف':'Phone').': ';
-                        $i=0;
-                        foreach ($phones as $mob){
-                            if($i)$res.=($isArabic ? 'او ':'or ');
-                            $res.='<span class="pn o7">'.$this->formatPhoneNumber($mob[1]).'</span> ';
-                            $i++;
-                            $mob[1]=preg_replace('/\+/','\\+',$mob[1]);
-                            $text=preg_replace('/'.$mob[1].'/','',$text);
-                        }
-                    }
-
-                } elseif (count($undefined)){
-                    $res.=($isArabic ? 'هاتف':'Phone').': ';
-                    $i=0;
-                    foreach ($undefined as $mob) {
-                        if($i)$res.=($isArabic ? 'او ':'or ');
-                        $res.='<span class="vn">'.$mob[1].'</span> ';
-                        $i++;
-                        $mob[1]=preg_replace('/\+/','\\+',$mob[1]);
-                        $text=preg_replace('/'.$mob[1].'/','',$text);
-                    }
-                }
-
-                $divider=null;
-                preg_match($REGEX_MATCH,$text,$divider);
-                $pos=0;
-                if ($divider && count($divider) && $divider[1]) {
-                    $pos = strpos($text, $divider[1]);
-                    if (!$pos) {
-                        $divider=null;
-                        preg_match('/(<span)/', $text, $divider);
-                        if ($divider && count($divider) && $divider[1]) {
-                            $pos = strpos($text, $divider[1]);
-                        }
-                    }
-                }
-
-                if(!$pos){
-                    $srh='';
-                    foreach ($mobiles as $num) {
-                        if($srh)$srh.='|';
-                        $srh .= $num[0];
-                    }
-                    foreach ($phones as $num) {
-                        if($srh)$srh.='|';
-                        $srh .= $num[0];
-                    }
-
-                    if ($srh) {
-                        $srh= preg_replace('/\+/','\\+' , $srh);
-                        $divider=null;
-                        preg_match('/((?:\+|)'.$srh.')/', $text, $divider);
-                        if ($divider && count($divider) && $divider[1]) {
-                            $pos = strpos($text, $divider[1]);
-                        }
-                    }
-                }
-
-                if ($pos) $text = substr($text, 0, $pos);
-
-                if ($res) {
-                    $text.=' / '.$res;
-                }
-            } else {*/
-                foreach ($mobiles as $num) {
-                    $number = $this->formatPhoneNumber($num[1]);
-                     if ($num[0]!=$number) {
-                         $org = $num[0];
-                        $num[0]= preg_replace('/\+/','\\+' , $num[0]);                        
-                        $text = preg_replace('/'.$num[0].'/', '<span class="pn">'.$number.'</span>', $text);
-                        //$matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
-                        $matches .= '<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'");\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
-                    } else {
-                        $org = $num[0];
-                        $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
-                        $text = preg_replace('/'.$num[0].'/', '<span class="vn">'.$number.'</span>', $text);
-                        $matches .= '<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'");\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
-                    }
-                }
-                foreach ($phones as $num) {
-                    $number = $this->formatPhoneNumber($num[1]);
-                     if ($num[0]!=$number) {
-                         $org = $num[0];
-                        $num[0]= preg_replace('/\+/','\\+' , $num[0]);
-                        $text = preg_replace('/'.$num[0].'/', '<span class="pn">'.$number.'</span>', $text);
-                        $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
-                    } else {
-                        $org = $num[0];
-                        $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
-                        $text = preg_replace('/'.$num[0].'/', '<span class="vn">'.$number.'</span>', $text);
-                        $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
-                    }
-                }
-
-            /*}*/
-        }       
-
-        return $text;
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        $phone = '/((?:\+|\s)(?:[0-9\\/\-]{7,16}))/ui';
-        $content=null;
-        preg_match($REGEX_CATCH, $text, $content);
-        if (!($content && count($content) && $content[1])) {
-            $tmpTxt=preg_replace('/\<.*?>/', '', $text);
-            preg_match('/([0-9\-\\\\\/\+\s]*$)/', $tmpTxt, $content);
-        }
-        
-        if($content && count($content) && $content[1]) {
-            $str = $content[1];
-            
-            if ($str) {
-                $nums=array();
-                $numInst=array();
-                $numbers = null;
-                preg_match_all($phone, $str, $numbers);
-                if ($numbers && count($numbers[1])) {
-                    foreach ($numbers[1] as $match) {
-                        $number = trim($match);
-                        //var_dump($number);
-                        try {
-                            if($pubId==1){
-                                $num = $this->mobileValidator->parse($number, $this->formatNumbers);
-                            }else{
-                                $numInst[] = $num = $this->mobileValidator->parse($number, $countryCode);
-                            }
-
-                            if($num && $this->mobileValidator->isValidNumber($num)){
-                                $rCode = $this->mobileValidator->getRegionCodeForNumber($num);
-                                if($rCode==$this->formatNumbers){
-                                    $num=$this->mobileValidator->formatInOriginalFormat($num,$this->formatNumbers );
-                                }else{
-                                    $num=$this->mobileValidator->formatOutOfCountryCallingNumber($num,$this->formatNumbers);
-                                }
-                                $nums[]=array($number, $num);
-                            } else {
-                                $num=$number;
-                                $hasCCode = preg_match('/^\+/', $number);
-                                switch($countryCode){
-                                case 'SA':
-                                    if($hasCCode){
-                                        $num = substr($number,4);
-                                    }else{
-                                        $num = $number;
-                                    }
-                                    if(strlen($num)==7){
-                                        switch($pubId){
-                                            case 9:
-                                                $num='011'.$num;
-                                                break;
-                                            case 12:
-                                            case 18:
-                                                    $tmp='013'.$num;
-                                                    $tmp = $this->mobileValidator->parse($num, $countryCode);
-                                                    if($tmp && $this->mobileValidator->isValidNumber($tmp)){
-                                                        $num='013'.$num;
-                                                    }else{
-                                                        $num='011'.$num;
-                                                    }
-                                                break;
-                                        }
-                                    }
-                                    break;
-                                case 'EG':
-                                    if($hasCCode){
-                                        $num = substr($number,3);
-                                    }else{
-                                        $num = $number;
-                                    }
-                                    if(strlen($num)==7){
-                                        switch($pubId){
-                                            case 13:
-                                                $num='2'.$num;
-                                                break;
-                                            case 14:
-                                                $num='3'.$num;
-                                                break;
-                                        }
-                                    }elseif(strlen($num)==8){
-                                        switch($pubId){
-                                            case 13:
-                                                $num='2'.$num;
-                                                break;
-                                        }
-                                    }
-                                    break;
-                                }
-
-                                if($num != $number){
-                                    $num = $this->mobileValidator->parse($num, $countryCode);
-                                    if($num && $this->mobileValidator->isValidNumber($num)){
-                                        $rCode = $this->mobileValidator->getRegionCodeForNumber($num);
-                                        if($rCode==$this->formatNumbers){
-                                            $num=$this->mobileValidator->formatInOriginalFormat($num,$this->formatNumbers );
-                                        }else{
-                                            $num=$this->mobileValidator->formatOutOfCountryCallingNumber($num,$this->formatNumbers);
-                                        }
-                                        $nums[]=array($number, $num);
-                                    }else{
-                                        $nums[]=array($number, $number);
-                                    }
-                                }else{
-                                    $nums[]=array($number, $number);
-                                }
-                            }
-                        }catch(Exception $ex){
-                            $nums[]=array($number, $number);
-                        }
-                    }
-
-                    if(preg_match('/\<span class/',$text)){
-                        if($this->urlRouter->publications[$pubId][6]=='http://www.waseet.net/'){
-                            $mobile=array();
-                            $phone=array();
-                            $undefined = array();
-                            $i=0;
-                            foreach($nums as $num){
-                                if($num[0]!=$num[1]){
-                                    $type=$this->mobileValidator->getNumberType($numInst[$i++]);
-                                    if($type==1 || $type==2)
-                                        $mobile[]=$num;
-                                    elseif($type==0 || $type==2)
-                                        $phone[]=$num;
-                                    else $undefined[]=$num;
-                                }else{
-                                    $undefined[]=$num;
-                                }
-                            }
-
-                            $isArabic = preg_match('/[\x{0621}-\x{064a}]/u', $text);
-                            $res = '';
-                            if(count($mobile) || count($phone)){
-                                if(count($mobile)){
-                                    $res.=($isArabic ? 'موبايل':'Mobile').': ';
-                                    $i=0;
-                                    foreach($mobile as $mob){
-                                        if($i)$res.=($isArabic ? 'او ':'or ');
-                                        $res.='<span class="pn o1">'.$mob[1].'</span> ';
-                                        $matches[]=$mob[1];
-                                        $i++;
-                                    }
-                                }
-
-                                if(count($phone)){
-                                    if($res)$res.='- ';
-                                    $res.=($isArabic ? 'هاتف':'Phone').': ';
-                                    $i=0;
-                                    foreach($phone as $mob){
-                                        if($i)$res.=($isArabic ? 'او ':'or ');
-                                        $res.='<span class="pn o7">'.$mob[1].'</span> ';
-                                        $matches[]=$mob[1];
-                                        $i++;
-                                    }
-                                }
-                            }elseif(count($undefined)){
-                                $res.=($isArabic ? 'هاتف':'Phone').': ';
-                                $i=0;
-                                foreach($undefined as $mob){
-                                    if($i)$res.=($isArabic ? 'او ':'or ');
-                                    $res.='<span class="vn">'.$mob[1].'</span> ';
-                                    $matches[]=$mob[1];
-                                    $i++;
-                                }
-                            }
-
-                            $divider=null;
-                            preg_match($REGEX_MATCH, $text, $divider);
-                            $pos=0;
-                            if($divider && count($divider) && $divider[1]){
-                                $pos = strpos($text, $divider[1]);
-                                if(!$pos){
-                                    $divider=null;
-                                    preg_match('/(<span)/',$text,$divider);
-                                    if($divider && count($divider) && $divider[1]){
-                                        $pos = strpos($text, $divider[1]);
-                                    }
-                                }
-                            }
-                            if(!$pos){
-                                $srh='';
-                                foreach($nums as $num){
-                                    if($srh)$srh.='|';
-                                    $srh .= $num[0];
-                                }
-                                if($srh){
-                                    $srh=  preg_replace('/\+/','\\+' , $srh);
-                                    $divider=null;
-                                    preg_match('/(<span class="pn">'.$srh.')/',$text,$divider);
-                                    if($divider && count($divider) && $divider[1]){
-                                        $pos = strpos($text, $divider[1]);
-                                    }
-                                }
-                            }
-
-                            if($pos)
-                                $text = substr($text,0,$pos);
-                            if($res)
-                                $text.=' / '.$res;
-                        }else{
-                            foreach($nums as $num){
-                                if($num[0]!=$num[1]){
-                                    $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
-                                    $num[0]=  preg_replace('/\//','\\/' , $num[0]);
-                                    $text = preg_replace('/'.$num[0].'/', $num[1], $text);
-                                    $matches[]=$num[1];
-                                }else{
-                                    $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
-                                    $num[0]=  preg_replace('/\//','\\/' , $num[0]);
-                                    $text = preg_replace('/\<span class="pn(?:[a-z0-9]*)">'.$num[0].'\<\/span\>/', '<span class="vn">'.$num[1].'</span>', $text);
-                                }
-                            }
-                        }
-                    }else{
-                        if($this->urlRouter->publications[$pubId][6]=='http://www.waseet.net/'){
-                            $mobile=array();
-                            $phone=array();
-                            $undefined = array();
-                            $i=0;
-                            foreach($nums as $num){
-                                if($num[0]!=$num[1]){
-                                    $type=$this->mobileValidator->getNumberType($numInst[$i++]);
-                                    if($type==1 || $type==2)
-                                        $mobile[]=$num;
-                                    elseif($type==0 || $type==2)
-                                        $phone[]=$num;
-                                    else $undefined[]=$num;
-                                }else{
-                                    $undefined[]=$num;
-                                }
-                            }
-
-                            $isArabic = preg_match('/[\x{0621}-\x{064a}]/u', $text);
-                            $res = '';
-                            if(count($mobile) || count($phone)){
-                                if(count($mobile)){
-                                    $res.=($isArabic ? 'موبايل':'Mobile').': ';
-                                    $i=0;
-                                    foreach($mobile as $mob){
-                                        if($i)$res.=($isArabic ? 'او ':'or ');
-                                        $res.='<span class="pn o1">'.$mob[1].'</span> ';
-                                        $matches[]=$mob[1];
-                                        $i++;
-                                    }
-                                }
-                                if(count($phone)){
-                                    if($res)$res.='- ';
-                                    $res.=($isArabic ? 'هاتف':'Phone').': ';
-                                    $i=0;
-                                    foreach($phone as $mob){
-                                        if($i)$res.=($isArabic ? 'او ':'or ');
-                                        $res.='<span class="pn o7">'.$mob[1].'</span> ';
-                                        $matches[]=$mob[1];
-                                        $i++;
-                                    }
-                                }
-                            }elseif(count($undefined)){
-                                $res.=($isArabic ? 'هاتف':'Phone').': ';
-                                $i=0;
-                                foreach($undefined as $mob){
-                                    if($i)$res.=($isArabic ? 'او ':'or ');
-                                    $res.='<span class="vn">'.$mob[1].'</span> ';
-                                    $matches[]=$mob[1];
-                                    $i++;
-                                }
-                            }
-                            $divider=null;
-                            preg_match($REGEX_MATCH,$text,$divider);
-                            $pos=0;
-                            if($divider && count($divider) && $divider[1]){
-                                $pos = strpos($text, $divider[1]);
-                                if(!$pos){
-                                    $divider=null;
-                                    preg_match('/(<span)/',$text,$divider);
-                                    if($divider && count($divider) && $divider[1]){
-                                        $pos = strpos($text, $divider[1]);
-                                    }
-                                }
-                            }
-
-                            if(!$pos){
-                                $srh='';
-                                foreach($nums as $num){
-                                    if($srh)$srh.='|';
-                                    $srh .= $num[0];
-                                }
-                                if($srh){
-                                    $srh = preg_replace('/\+/', '\\+' , $srh);
-                                    $srh = preg_replace('/\//', '\\/', $srh);
-                                    $divider=null;
-
-                                    preg_match('/((?:\+|)'.$srh.')/u', $text, $divider);
-
-                                    if($divider && count($divider) && $divider[1]){
-                                        $pos = strpos($text, $divider[1]);
-                                    }
-                                }
-                            }
-
-                            if($pos)
-                                $text = substr($text, 0, $pos);
-
-                            if($res){
-                                $text.=' / '.$res;
-                            }
-                        }else{
-                            foreach($nums as $num){
-                                if($num[0]!=$num[1]){
-                                    $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
-                                    $num[0]=  preg_replace('/\\\([0-9])/','$1' , $num[0]);
-                                    $num[0]=  preg_replace('/\/.*/','' , $num[0]);
-                                    $text = preg_replace('/'.$num[0].'/', '<span class="pn">'.$num[1].'</span>', $text);
-                                    $matches[]=$num[1];
-                                }else{
-                                    $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
-                                    $num[0]=  preg_replace('/\\\([0-9])/','$1' , $num[0]);
-                                    $num[0]=  preg_replace('/\/.*/','' , $num[0]);
-                                    $text = preg_replace('/'.$num[0].'/', '<span class="vn">'.$num[1].'</span>', $text);
-
-                                }
-                            }
-                        }
-                    }
-                }
-            
             }
         }
-        if(isset($email[0]) && !preg_match('/'.$email[0].'/',$text)){
-            $text .= '/ '.($isArabic ? 'بريد االكتروني':'Email').': <span>'.$email[0].'</span>';
-        }
-        $text = preg_replace('/(?:\/(?:\s+|)\/)|(?:-(?:\s+)\/)/','/',$text);
-        return $text;
+        return $text;                                                                        
     }
     
     
@@ -3073,18 +2536,17 @@ class Search extends Page {
             if (isset($ad[Classifieds::ID]) && ( $ad[Classifieds::USER_ID]!=220906 || $ad[Classifieds::ID]==6889499 || ($ptr == $ad_count-1) )) {
                 $this->replacePhonetNumbers($ad[Classifieds::CONTENT], $ad[Classifieds::PUBLICATION_ID], $ad[Classifieds::COUNTRY_CODE], $ad[Classifieds::TELEPHONES][0], $ad[Classifieds::TELEPHONES][1], $ad[Classifieds::TELEPHONES][2],$ad[Classifieds::EMAILS]);
 
-                //$this->processTextNumbers($ad[Classifieds::CONTENT],$ad[Classifieds::PUBLICATION_ID],$ad[Classifieds::COUNTRY_CODE]);
-                if ($ad[Classifieds::PUBLICATION_ID]==1) {
-                    if (isset($this->user->info['level'])) {
-                        if (!($this->user->info['level'] == 9 || $this->user->info['id'] == $ad[Classifieds::USER_ID])) {
-                            //if(isset($this->featuredResults["matches"][$id])){
-                            $this->stat['ad-imp'][]=$id;
-                            //}
-                        }
-                    } else {
+                //if ($ad[Classifieds::PUBLICATION_ID]==1) {
+                if (isset($this->user->info['level'])) {
+                    if (!($this->user->info['level']==9 || $this->user->info['id']==$ad[Classifieds::USER_ID])) {
                         $this->stat['ad-imp'][]=$id;
                     }
+                }                
+                else {
+                    $this->stat['ad-imp'][]=$id;
                 }
+                //}
+                
                 if (!empty($ad[Classifieds::ALT_CONTENT])) {
                     if ($this->urlRouter->siteLanguage == "en" && $ad[Classifieds::RTL]) {
                         $ad[Classifieds::TITLE] = $ad[Classifieds::ALT_TITLE];
@@ -3229,18 +2691,14 @@ class Search extends Page {
             $pic = null;
             $this->appendLocation = true;
             if (isset($ad[Classifieds::ID]) ) {
-                if ($ad[Classifieds::PUBLICATION_ID]==1 && !(isset($this->detailAd[Classifieds::ID]) && $this->detailAd[Classifieds::ID]==$ad[Classifieds::ID]) ) {
+                if (/*$ad[Classifieds::PUBLICATION_ID]==1 &&*/ !(isset($this->detailAd[Classifieds::ID]) && $this->detailAd[Classifieds::ID]==$ad[Classifieds::ID]) ) {
                     if (isset($this->user->info['level'])) {
-                        if (!($this->user->info['level'] == 9 || $this->user->info['id'] == $ad[Classifieds::USER_ID])) {
+                        if (!($this->user->info['level']==9 || $this->user->info['id']==$ad[Classifieds::USER_ID])) {
                             $this->stat['ad-imp'][]=$id;
                         }
                     } 
                     else {
-                        //if(isset($this->featuredResults["matches"][$id])){
                         $this->stat['ad-imp'][]=$id;
-                        //}elseif(isset($this->searchResults["matches"][$id])){
-                        //    $this->stat['ad-imp'][]=$id;
-                        //}
                     }
                 }
 
@@ -3299,9 +2757,7 @@ class Search extends Page {
                 $_link = sprintf($ad[Classifieds::URI_FORMAT], ($this->urlRouter->siteLanguage == "ar" ? "" : "{$this->urlRouter->siteLanguage}/"), $ad[Classifieds::ID]);               
 
                 $this->replacePhonetNumbers($ad[Classifieds::CONTENT], $ad[Classifieds::PUBLICATION_ID], $ad[Classifieds::COUNTRY_CODE], $ad[Classifieds::TELEPHONES][0], $ad[Classifieds::TELEPHONES][1], $ad[Classifieds::TELEPHONES][2],$ad[Classifieds::EMAILS]);
-                
-                //$this->processTextNumbers($ad[Classifieds::CONTENT],$ad[Classifieds::PUBLICATION_ID],$ad[Classifieds::COUNTRY_CODE]);
-
+                /*
                 if ($ad[Classifieds::PUBLICATION_ID] != 1) {
                     $fieldIndex = 1;
                     if (!$ad[Classifieds::RTL])
@@ -3394,26 +2850,26 @@ class Search extends Page {
                         }
                     }
                 }
-
+                */
                 $l_inc = 2;
                 $in = 'in';
                 if ($ad[Classifieds::RTL]) {
                     $l_inc = 1;
                     $in = "في";
                 }
-                //$locIcon = '';
+
                 $pub_link = '';
                 if (!$this->urlRouter->userId && isset($this->urlRouter->publications[$ad[Classifieds::PUBLICATION_ID]])) {
-                    $pub_link = $this->urlRouter->publications[$ad[Classifieds::PUBLICATION_ID]][$this->fieldNameIndex];
-                    if ($ad[Classifieds::PUBLICATION_ID] == 1 || $this->urlRouter->publications[$ad[Classifieds::PUBLICATION_ID]][6]=='http://www.waseet.net/') {
-                        $pub_link = '<div class="crd ' . ($ad[Classifieds::RTL] ? 'l' : 'r') . '"><b st="' . $ad[Classifieds::UNIXTIME] . '"></b> ' . ($this->urlRouter->siteLanguage=='ar' ? 'موقع مرجان':'mourjan.com') . '</div>';
-                    } else {
-                        $pub_link = $this->urlRouter->publications[$ad[Classifieds::PUBLICATION_ID]][$this->fieldNameIndex];
-                        if ($ad[Classifieds::OUTBOUND_LINK])
-                            $pub_link = '<div class="crd ' . ($ad[Classifieds::RTL] ? 'l' : 'r') . '"><b st="' . $ad[Classifieds::UNIXTIME] . '"></b> ' . $pub_link . '</div>';
-                        elseif ($ad[Classifieds::PUBLICATION_ID])
-                            $pub_link = '<div class="crd ' . ($ad[Classifieds::RTL] ? 'l' : 'r') . '"><b st="' . $ad[Classifieds::UNIXTIME] . '"></b> ' . $pub_link . '</div>';
-                    }
+                    //$pub_link = $this->urlRouter->publications[$ad[Classifieds::PUBLICATION_ID]][$this->fieldNameIndex];
+                    //if ($ad[Classifieds::PUBLICATION_ID] == 1 || $this->urlRouter->publications[$ad[Classifieds::PUBLICATION_ID]][6]=='http://www.waseet.net/') {
+                        $pub_link = '<div class="crd ' . ($ad[Classifieds::RTL]?'l':'r') . '"><b st="' . $ad[Classifieds::UNIXTIME] . '"></b> ' /*. ($this->urlRouter->siteLanguage=='ar' ? 'موقع مرجان':'mourjan.com')*/ . '</div>';
+                    //} else {
+                    //    $pub_link = $this->urlRouter->publications[$ad[Classifieds::PUBLICATION_ID]][$this->fieldNameIndex];
+                    //    if ($ad[Classifieds::OUTBOUND_LINK])
+                    //        $pub_link = '<div class="crd ' . ($ad[Classifieds::RTL] ? 'l' : 'r') . '"><b st="' . $ad[Classifieds::UNIXTIME] . '"></b> ' . $pub_link . '</div>';
+                    //    elseif ($ad[Classifieds::PUBLICATION_ID])
+                    //        $pub_link = '<div class="crd ' . ($ad[Classifieds::RTL] ? 'l' : 'r') . '"><b st="' . $ad[Classifieds::UNIXTIME] . '"></b> ' . $pub_link . '</div>';
+                    //}
                 }
             
                 $isNewToUser = (isset($this->user->params['last_visit']) && $this->user->params['last_visit'] && $this->user->params['last_visit'] < $ad[Classifieds::UNIXTIME]);
@@ -3561,7 +3017,6 @@ class Search extends Page {
                                 }
                                 break;
                             default:
-                                //echo '<div class="ms ut"><span class="i i1"></span> '.$this->lang['pub_1'].'</div>';
                                 break;
                         }
                     }
@@ -3838,14 +3293,6 @@ class Search extends Page {
                         if ($this->urlRouter->watchId) {
                             echo $this->summerizeSearch();
                             echo $this->renderSideSections();
-                            /*if (count($this->watchInfo) > 1)
-                                echo '<div class="no sno">';
-                            else
-                                echo '<div class="no">';
-                            echo $this->lang['noWatchAds'], ' ';
-                            echo $this->formatSinceDate($this->user->params['last_visit']);
-                            echo '</div>';
-                            $this->renderBottomMen();*/
                         }elseif ($this->urlRouter->userId) {
                             if ($this->urlRouter->params['q'] || $this->urlRouter->sectionId)
                                 echo $this->summerizeSearch();
@@ -3906,19 +3353,6 @@ class Search extends Page {
                                         $ext='';
                                         if($info['COUNTRY_ID']){
                                             $uri = '/' . $this->urlRouter->countries[$info['COUNTRY_ID']]['uri'] . '/';
-                                            /*
-                                            if(!isset($countryCities[$info['COUNTRY_ID']])){
-                                                $tmp=$this->urlRouter->db->queryCacheResultSimpleArray(
-                                                "cities_{$info['COUNTRY_ID']}",
-                                                "select c.ID from city c
-                                                where c.country_id={$info['COUNTRY_ID']} and c.blocked=0",
-                                                null, 0, $this->urlRouter->cfg['ttl_long']);
-                                                if (count($countryCities[$info['COUNTRY_ID']])>1) {
-                                                    $countryCities[$info['COUNTRY_ID']]=1;
-                                                }else{
-                                                    $countryCities[$info['COUNTRY_ID']]=0;
-                                                }
-                                            }*/
                                             $idx=2;
                                             if($info['LOCALITY_ID']){
                                                 if(!isset($localitiesArray[$info['COUNTRY_ID'].'_'.$info['SECTION_ID']])){
@@ -4059,7 +3493,6 @@ class Search extends Page {
                                     }
                                     break;
                                 default:
-                                    //echo '<div class="ms ut"><span class="i i1"></span> '.$this->lang['pub_1'].'</div>';
                                     break;
                             }
                         }
@@ -4097,22 +3530,9 @@ class Search extends Page {
             $this->renderDResults($keywords);
             ?></ul><?php
             echo $this->pagination();
-        } else {
-            /*$purposeId = $this->urlRouter->purposeId;
-            $sectionId = $this->urlRouter->sectionId;
-            $rootId = $this->urlRouter->rootId;
-            $q = $this->urlRouter->params['q'];
-            $extendedId = $this->extendedId;
-            $localityId = $this->localityId;*/
-
+        } 
+        else {
             $this->alternate_search($keywords);
-/*
-            $this->urlRouter->purposeId = $purposeId;
-            $this->urlRouter->sectionId = $sectionId;
-            $this->urlRouter->rootId = $rootId;
-            $this->urlRouter->params['q'] = $q;
-            $this->extendedId=  $extendedId;
-            $this->localityId=$localityId;*/
         }
     }
 
@@ -4291,14 +3711,13 @@ class Search extends Page {
                 }
             }
             
-            if($isDetail && $section){
+            if ($isDetail && $section) {
                 return '<b>' . $section . '</b>';
-            } elseif(!$isDetail) {
+            } 
+            elseif(!$isDetail) {
                 $locIcon='';
-                if ($ad[Classifieds::PUBLICATION_ID] == 1) {
-                    if ($ad[Classifieds::LATITUDE] || $ad[Classifieds::LONGITUDE]) {
-                        $locIcon = "<span class='i loc'></span>";
-                    }
+                if ($ad[Classifieds::LATITUDE] || $ad[Classifieds::LONGITUDE]) {
+                    $locIcon = "<span class='i loc'></span>";
                 }
                 return '<span class="k">'. $locIcon . $section . '</span>';
             }
@@ -4306,65 +3725,72 @@ class Search extends Page {
     }
 
             
-            function sectionSummeryMobile($forceRebuild = false) {
-                if ($this->breadString && !$forceRebuild)
-                    return $this->breadString;
-                $bread = "";
-                if ($this->urlRouter->siteLanguage == "ar") {
-                    if ($this->urlRouter->purposeId) {
-                        $bread.= " {$this->purposeName}";
-                    }
-                    if ($this->urlRouter->rootId) {
-                        if ($this->urlRouter->sectionId) {
-                            $bread .= " {$this->sectionName}";
-                            $bread .= " {$this->lang['included']} {$this->rootName}";
-                        } else {
-                            $bread .= " {$this->rootName}";
-                        }
-                    }
-                    if ($this->urlRouter->countryId || $this->urlRouter->rootId) {
-                        if ($this->urlRouter->countryId) {
-                            if ($this->hasCities && $this->urlRouter->cityId) {
-                                $bread.= " {$this->cityName}، ";
-                            }
-                            $bread.= " {$this->countryName} ";
-                        } else {
-                            $bread.= " {$this->countryName} ";
-                        }
-                    } else {
-                        $bread.=" {$this->lang['opt_all_countries']}";
-                    }
-                } else {
-                    if ($this->urlRouter->rootId) {
-                        if ($this->urlRouter->sectionId) {
-                            $bread .= " {$this->sectionName}";
-                            if ($this->urlRouter->purposeId)
-                                $bread.= " {$this->purposeName}";
-                            $bread .= " {$this->lang['included']} {$this->rootName}";
-                        }else {
-                            $bread .= " {$this->rootName}";
-                            if ($this->urlRouter->purposeId)
-                                $bread.= " {$this->purposeName}";
-                        }
-                    }
-                    if ($this->urlRouter->countryId || $this->urlRouter->rootId) {
-                        if ($this->urlRouter->countryId) {
-                            if ($this->hasCities && $this->urlRouter->cityId) {
-                                $bread.= " {$this->cityName}, ";
-                            }
-                            $bread.= " {$this->countryName} ";
-                        } else {
-                            $bread.= " {$this->countryName} ";
-                        }
-                    } else {
-                        $bread.=" {$this->lang['opt_all_countries']}";
-                    }
-                }
-                $this->breadString = $bread;
-                return $this->breadString;
+    function sectionSummeryMobile($forceRebuild = false) {
+        if ($this->breadString && !$forceRebuild) { return $this->breadString; }
+        $bread = "";
+        if ($this->urlRouter->siteLanguage == "ar") {
+            if ($this->urlRouter->purposeId) {
+                $bread.= " {$this->purposeName}";
             }
+            if ($this->urlRouter->rootId) {
+                if ($this->urlRouter->sectionId) {
+                    $bread .= " {$this->sectionName}";
+                    $bread .= " {$this->lang['included']} {$this->rootName}";
+                } 
+                else {
+                    $bread .= " {$this->rootName}";
+                }
+            }
+            if ($this->urlRouter->countryId || $this->urlRouter->rootId) {
+                if ($this->urlRouter->countryId) {
+                    if ($this->hasCities && $this->urlRouter->cityId) {
+                        $bread.= " {$this->cityName}، ";
+                    }
+                    $bread.= " {$this->countryName} ";
+                } 
+                else {
+                    $bread.= " {$this->countryName} ";
+                }
+            }
+            else {
+                $bread.=" {$this->lang['opt_all_countries']}";
+            }
+        } 
+        else {
+            if ($this->urlRouter->rootId) {
+                if ($this->urlRouter->sectionId) {
+                    $bread .= " {$this->sectionName}";
+                    if ($this->urlRouter->purposeId)
+                        $bread.= " {$this->purposeName}";
+                    $bread .= " {$this->lang['included']} {$this->rootName}";
+                }
+                else {
+                    $bread .= " {$this->rootName}";
+                    if ($this->urlRouter->purposeId)
+                        $bread.= " {$this->purposeName}";
+                }
+            }
+            if ($this->urlRouter->countryId || $this->urlRouter->rootId) {
+                if ($this->urlRouter->countryId) {
+                    if ($this->hasCities && $this->urlRouter->cityId) {
+                        $bread.= " {$this->cityName}, ";
+                    }
+                    $bread.= " {$this->countryName} ";
+                } 
+                else {
+                    $bread.= " {$this->countryName} ";
+                }
+            } 
+            else {
+                $bread.=" {$this->lang['opt_all_countries']}";
+            }
+        }
+        $this->breadString = $bread;
+        return $this->breadString;
+    }
 
-            function summerizeSearchMobile($forceRebuild = false) {
+    
+    function summerizeSearchMobile($forceRebuild = false) {
                 $this->getBreadCrumb($forceRebuild);
                 $count = $this->searchResults['body']['total_found'];
                 $bread = '';
@@ -4717,7 +4143,6 @@ class Search extends Page {
                                     }
                                     break;
                                 default:
-                                    //echo '<div class="ms ut"><span class="i i1"></span> '.$this->lang['pub_1'].'</div>';
                                     break;
                             }
                             $bread .= "</p></div><!--googleon: snippet-->";
@@ -4742,10 +4167,8 @@ class Search extends Page {
                         'uId' => $this->urlRouter->userId,
                         'time' => $time
                     );
-                    //if (isset ($this->urlRouter->params['tag_id'])) $this->user->params['search']['tag']=$this->urlRouter->params['tag_id'];
                     $this->user->update();
                 }
-                //var_dump($this->user->params['search']);
             }
 
     function renderSubSections() {
@@ -4854,70 +4277,12 @@ class Search extends Page {
                     if (!$selected && $this->checkNewUserContent($section['unixtime']))
                         $isNew = true;
                     $iTmp=$sectionClass.$section_id.'"></span>';
-                    /*
-                    $iTmp='';
-                    if($this->urlRouter->rootId==1){
-                        $iTmp.='<span class="x x'.$section_id.'"></span>';
-                    }elseif($this->urlRouter->rootId==2){
-                        $iTmp.='<span class="z z'.$section_id.'"></span>';
-                    }elseif($this->urlRouter->rootId==3){
-                        $iTmp.='<span class="v v'.$section_id.'"></span>';
-                    }elseif($this->urlRouter->rootId==4){
-                        $iTmp.='<span class="y y'.$section_id.'"></span>';
-                    }elseif($this->urlRouter->rootId==99){
-                        $iTmp.='<span class="u u'.$section_id.'"></span>';
-                    }else {
-                        $iTmp.='<span class="v'.$section_id.'"></span>';
-                    }
-                     * 
-                     */
                     echo '<li', ($isNew ? ' class="nl">' : '>'),
                     $this->renderSubListLink($iTmp.$section['name'] . ' <b>' . $section['counter'] . '</b>', $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $section_id, $purposeId), $selected), '</li>';
                     $i++;
 
                 }
 
-                /*
-                foreach ($this->urlRouter->pageSections as $section) {
-                    $selected = $this->urlRouter->sectionId == $section[0] ? true : false;
-                    if ($this->extendedId || $this->localityId)
-                        $selected = false;
-                    $purposeId = 0;
-                    if (is_numeric($section[3])) {
-                        $purposeId = (int) $section[3];
-                    } elseif ($this->urlRouter->rootId == 3) {
-                        $purposeId = 3;
-                    } elseif ($this->urlRouter->purposeId) {
-                        $pps = explode(',', $section[3]);
-                        if ($pps && in_array($this->urlRouter->purposeId, $pps)) {
-                            $purposeId = $this->urlRouter->purposeId;
-                        }
-                    }
-                    $isNew = false;
-                    if (!$selected && $this->checkNewUserContent($section[2]))
-                        $isNew = true;
-                    
-                    $iTmp='';
-                    if($this->urlRouter->rootId==1){
-                        $iTmp.='<span class="x x'.$section[0].'"></span>';
-                    }elseif($this->urlRouter->rootId==2){
-                        $iTmp.='<span class="z z'.$section[0].'"></span>';
-                    }elseif($this->urlRouter->rootId==3){
-                        $iTmp.='<span class="v v'.$section[0].'"></span>';
-                    }elseif($this->urlRouter->rootId==4){
-                        $iTmp.='<span class="y y'.$section[0].'"></span>';
-                    }elseif($this->urlRouter->rootId==99){
-                        $iTmp.='<span class="u u'.$section[0].'"></span>';
-                    }else {
-                        $iTmp.='<span class="v'.$section[0].'"></span>';
-                    }
-                    
-                    echo '<li', ($isNew ? ' class="nl">' : '>'),
-                    $this->renderSubListLink($iTmp.$this->urlRouter->sections[$section[0]][$this->fieldNameIndex] . ' <b>' . $section[1] . '</b>', $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $section[0], $purposeId), $selected), '</li>';
-                    $i++;
-                }
-                 * 
-                 */
             }
             echo '</ul>';
         }
@@ -5533,11 +4898,7 @@ class Search extends Page {
                         }
                     }
                 }
-                /*
-                if($countAds){
-                    ?><li class="adLnk"><a href="/post/<?= $this->urlRouter->siteLanguage=='ar'?'':'en/' ?>" class="bt"><?= $this->lang['addAd'] ?></a></li><?php
-                }
-                */
+
                 if(!$noAds){
                     switch($countAds){
                         case 1:
@@ -5558,16 +4919,7 @@ class Search extends Page {
                             }
                             break;
                     }
-                    /*
-                    ?><li class="lad"><?php echo $this->fill_ad("zone_6", 'ad_m') ?></li><?php
-                    
-                    if($countAds>2) {
-                        ?><li class="lad"><?php echo $this->fill_ad("zone_10", 'ad_x') ?></li><?php
-                    }*/
                 }
-                /*if(!($this->userFavorites || $this->urlRouter->watchId)){
-                    $this->side_app_banner();
-                }*/
                 
                 if($this->urlRouter->cfg['enabled_ads'] && $countAds >= 10) {
                 ?><li><?php
@@ -5828,13 +5180,6 @@ class Search extends Page {
                     is_array($this->urlRouter->pageRoots[$this->urlRouter->rootId]['purposes']) && 
                     count($this->urlRouter->pageRoots[$this->urlRouter->rootId]['purposes'])==1 )
                     $purposeId = array_keys($this->urlRouter->pageRoots[$this->urlRouter->rootId]['purposes'])[0];
-                /*
-                $purposeId = isset($this->urlRouter->pageRoots[$this->urlRouter->rootId]) ? $this->urlRouter->pageRoots[$this->urlRouter->rootId][3] : 0;
-                if (is_numeric($purposeId))
-                    $purposeId = (int) $purposeId + 0;
-                else
-                    $purposeId = 0;
-                */
                 if (($q || $this->urlRouter->purposeId || $this->urlRouter->sectionId) && !($this->urlRouter->sectionId == 0 && $purposeId)) {
                     $bc[] = "<a href='" .
                             $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, 0, $purposeId) .

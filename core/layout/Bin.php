@@ -126,14 +126,16 @@ class Bin extends AjaxHandler{
                 }
                 $this->process();
                 break;
+                
             case 'ajax-sorting':
                 $order = $this->get('or','boolean');
                 $this->user->params['catsort']=$order;
                 $this->user->update();
                 $this->process();
                 break;
+            
             case 'ajax-changepu':
-                if($this->user->info['id'] && $this->user->info['level']==9){
+                if ($this->user->info['id'] && $this->user->info['level']==9) {
                     $lang = $this->get('hl');
                     $this->fieldNameIndex=1;
                     if(!in_array($lang,array('ar','en'))){
@@ -318,15 +320,15 @@ class Bin extends AjaxHandler{
                 }else{
                     $this->fail();
                 }
-                break;         
+                break;      
+                
             case 'ajax-number':   
-                if($this->user->info['id'] && $this->user->info['level']==9)
-                {
+                if ($this->user->info['id'] && $this->user->info['level']==9) {
                     $numero = $this->post('num','uint');
                     $ot = $this->post('type','uint');
                     $index = $this->post('idx','uint');
                     $iso = $this->post('iso');
-                    if($numero){
+                    if ($numero) {
                         
                         $number = [
                             'e' =>  '',
@@ -341,18 +343,20 @@ class Bin extends AjaxHandler{
                         $parseError = false;
                         
                         $validator = libphonenumber\PhoneNumberUtil::getInstance();
-                        try{
+                        try {
                             $num = $validator->parse($numero, $iso);
-                        }catch(Exception $e){
+                        }
+                        catch(Exception $e){
                             $parseError = true;
                         }
-                        if(!$parseError && $validator->isValidNumber($num)){
+                        
+                        if (!$parseError && $validator->isValidNumber($num)) {
                             $number['n'] = $validator->formatInOriginalFormat($num, $iso);
                             $number['i'] = $validator->format($num, \libphonenumber\PhoneNumberFormat::E164);
                             
                             $type=$validator->getNumberType($num);
                             
-                            switch($type){                                    
+                            switch ($type) {                                    
                                 case libphonenumber\PhoneNumberType::FIXED_LINE:
                                     if ($ot >= 7 && $ot <= 9)
                                         $number['t'] = true;
@@ -404,7 +408,8 @@ class Bin extends AjaxHandler{
                                     $number['e'] = "UNKNOWN";
                                     break;
                             }
-                        }else{
+                        }
+                        else {
                             $number['i']='invalid';
                             $number['v']=false;
                         }
@@ -511,17 +516,18 @@ class Bin extends AjaxHandler{
                         }else{
                             $this->fail('102');
                         }*/
-                    }else{
+                    }
+                    else {
                         $this->fail('101');
                     }
-                }else{
+                }
+                else {
                     $this->fail('101');
                 }
                 break;
                 
             case 'ajax-mobile':
-                if($this->user->info['id'] && $this->user->info['level']!=5) {
-                    //include_once $this->urlRouter->cfg['dir'].'/core/lib/MourjanNexmo.php';
+                if ($this->user->info['id'] && $this->user->info['level']!=5) {
                     $keyCode=0;
                     $lang=filter_input(INPUT_POST, 'hl');
                     if(!in_array($lang, ['en','ar'])) {
@@ -886,37 +892,7 @@ class Bin extends AjaxHandler{
                                     $this->setData($object, 'feed');
                                     $this->process();
                                 }
-                            }
-                            /*$connection = ssh2_connect('p1.mourjan.com', 22);
-                            if($connection){
-                                if(ssh2_auth_password($connection, 'root', 'x8p72CYDdweTty')){
-                                    $stream = ssh2_exec($connection, '/usr/local/bin/php /opt/mourjan/utils/linkProp.php '.$this->user->info['id'].' "'.$url.'"');
-                                    stream_set_blocking($stream, true);                                
-                                    $stream_out = ssh2_fetch_stream($stream, SSH2_STREAM_STDIO);
-                                    $result = stream_get_contents($stream_out);
-                                    if($result===false){
-                                        $this->fail($this->lang['sys_error']);
-                                    }else{
-                                        error_log($result);
-                                        $object = json_decode($result,true);
-                                        if(json_last_error()){
-                                            $msg = $result;
-                                            if(strpos($result, 'ERROR_')!==false){
-                                                $msg = $this->lang[$result];
-                                            }
-                                            $this->fail($msg);
-                                        }else{                                        
-                                            $this->setData($object, 'feed');
-                                            $this->process();
-                                        }
-                                    }
-                                }else{
-                                    $this->fail($this->lang['sys_error']);
-                                }
-                                unset($connection);
-                            }else{
-                                $this->fail($this->lang['sys_error']);
-                            }*/
+                            }                            
                         }
                     }else{
                         $this->fail($this->lang['ERROR_101']);
@@ -1227,7 +1203,6 @@ class Bin extends AjaxHandler{
                 }
                 
                 if (isset($_SERVER['HTTP_USER_AGENT']) && preg_match('/bot|crawl|slurp|spider/i', $_SERVER['HTTP_USER_AGENT'])) {
-                    //error_log(PHP_EOL.'BOT: ' .$_SERVER['HTTP_USER_AGENT'].PHP_EOL);
                     return;
                 }
                 
@@ -1282,20 +1257,20 @@ class Bin extends AjaxHandler{
                                         if ($final_action=='ad-imp') {
                                             foreach ($final_refs as $id) {
                                                 $id = (int)$id;
-                                                $batch.= "select id, impressions, publication_id from {$this->urlRouter->cfg['search_index']} where id={$id};\n";
-                                                
+                                                //$batch.= "select id, impressions, publication_id from {$this->urlRouter->cfg['search_index']} where id={$id};\n";
+                                                $batch.= "select id, impressions from {$this->urlRouter->cfg['search_index']} where id={$id};\n";                                                
                                                 $adData=$this->classifieds->getById($id);
                                                 
-                                                if (isset($adData[Classifieds::USER_ID]) && $adData[Classifieds::USER_ID]>0) { 
-                                                    if ($ok==1 && $redis->isConnected()) {
-                                                        
+                                                if (isset($adData[Classifieds::USER_ID]) && $adData[Classifieds::USER_ID]>0) {
+                                                    if ($ok==1 && $redis->isConnected()) {                    
                                                         $redis->sAdd('U'.$adData[Classifieds::USER_ID], $id);
                                                         
                                                         if (!$redis->hIncrBy('AI'.$id, date("Y-m-d"), 1)) {
                                                             error_log(sprintf("%s\tad-imp\t%d\t%s\t%s", date("Y-m-d H:i:s"), $id, $countryCode, $referer).PHP_EOL, 3, "/var/log/mourjan/stat.log");                                                            
                                                         }
-                                                    } else {
-                                                        error_log(sprintf("%s\tad-imp\t%d\t%s\t%s", date("Y-m-d H:i:s"), $id, $countryCode, $referer).PHP_EOL, 3, "/var/log/mourjan/stat.log");                                                        
+                                                    } 
+                                                    else {
+                                                        error_log(sprintf("%s\tad-imp\t%d\t%s\t%s", date("Y-m-d H:i:s"), $id, $countryCode, $referer).PHP_EOL, 3, "/var/log/mourjan/stat.log");
                                                     }
                                                 }
                                             }
@@ -1332,12 +1307,7 @@ class Bin extends AjaxHandler{
                                     if (isset($row[0])) {
                                         $row=$row[0];                                        
                                     }
-                                    //error_log(PHP_EOL.var_export($row, TRUE).PHP_EOL);
                                     if (!isset($row['id'])) {
-                                        //error_log(var_export($row, TRUE) . PHP_EOL . var_export($result['matches'], TRUE));
-                                        continue;
-                                    }
-                                    if ($row['publication_id']!=1) {
                                         continue;
                                     }
                                     
@@ -1414,9 +1384,9 @@ class Bin extends AjaxHandler{
                         from ad_pub_stat x 
                         where dated >= current_date'.($span>0 ? ' -'.$span : '');
                     
-                    if($pubId){
-                        $q.=' and publication_id '.($pubId==-1 ? '!= 1' : '='.$pubId);
-                    }
+                    //if($pubId){
+                    //    $q.=' and publication_id '.($pubId==-1 ? '!= 1' : '='.$pubId);
+                    //}
                     if($countryId){
                         $q.=' and country_id ='.$countryId;
                     }
@@ -2863,17 +2833,14 @@ class Bin extends AjaxHandler{
                         
                         $this->user->pending['post']['rtl']=$ad['rtl'];
                         
-                        if(isset($ad['loc']) && $ad['loc'])
-                        {
+                        if (isset($ad['loc']) && $ad['loc']) {
                             $ad['sloc']=$ad['loc'];
                         }
                         
                         
-                        if($publish == 1)
-                        {                  
+                        if ($publish == 1) {                  
                             $sections = $this->urlRouter->db->getSections();
-                            if(isset($sections[$sectionId]) && $sections[$sectionId][5] && $sections[$sectionId][8]==$purposeId)
-                            {
+                            if(isset($sections[$sectionId]) && $sections[$sectionId][5] && $sections[$sectionId][8]==$purposeId) {
                                 $this->user->pending['post']['ro']=$ad['ro']=$sections[$sections[$sectionId][5]][4];
                                 $this->user->pending['post']['se']=$ad['se']=$sections[$sectionId][5];
                                 $this->user->pending['post']['pu']=$ad['pu']=$sections[$sectionId][9];
@@ -2882,23 +2849,24 @@ class Bin extends AjaxHandler{
                         
                         $wrongPhoneNumber = false;
                         
-                        if($publish== 1 && isset($ad['cui']['p']) && count($ad['cui']['p']))
-                        {
+                        if($publish== 1 && isset($ad['cui']['p']) && count($ad['cui']['p'])) {
                                 $numbers = [];
-                                foreach($ad['cui']['p'] as $number){
+                                foreach ($ad['cui']['p'] as $number) {
                                     if(isset($number['v']) && trim($number['v'])!=''){
                                         $parseError = false;
-                                        try{
+                                        try {
                                             $num = $validator->parse($number['v'], $number['i']);
-                                        }catch(Exception $e){
+                                        }
+                                        catch(Exception $e) {
                                             $parseError = true;
                                         }
                                         $isValid = false;
-                                        if(!$parseError){
-                                            if($validator->isValidNumber($num)){
+                                        if (!$parseError) {
+                                            if ($validator->isValidNumber($num)) {
                                                 $mType = $validator->getNumberType($num);
                                                 $isValid = true;
-                                            }else{
+                                            }
+                                            else {
                                                 if(strlen($number['r']) > 15){
                                                     $corrected = false;
                                                     $tmp2 = '';
@@ -3131,11 +3099,7 @@ class Bin extends AjaxHandler{
                                 }
                             }                 
                         }
-                        
-                        /*if($ad['id'] == 0 && preg_match('/^undefined/',$ad['other'])){
-                            error_log(PHP_EOL.'==============='.PHP_EOL.var_export($_POST['o'],true).PHP_EOL,3,$error_path);
-                        }*/
-                        
+                                                
                         $this->user->update();
                         $this->user->saveRawAdContent($ad);
                         if(!$isSCAM)
@@ -3177,37 +3141,29 @@ class Bin extends AjaxHandler{
                                 $this->user->setLevel($this->user->info['id'], 5);
                             }
                         }
-                        elseif($requireReview)
-                        {
+                        elseif($requireReview) {
                             $this->user->referrToSuperAdmin($adId, $requireReview);
                         }
-                        else
-                        {                            
+                        else {                            
                             $status = 0;
-                            if($publish==1 && $this->user->info['level']!=9 && $adId) 
-                            {
-                                if($mcUser->isMobileVerified())
-                                {
+                            if ($publish==1 && $this->user->info['level']!=9 && $adId) {
+                                if ($mcUser->isMobileVerified()) {
                                     $status = $mcUser->isSuspended() ? 1 : 0;
                                 }
-                                else
-                                {
+                                else {
                                     $status = $this->user->detectDuplicateSuspension($ad['cui']);
                                 }
                                 
-                                if($status == 1)
-                                { 
-                                    if($ad['rtl'])
-                                    {
+                                if ($status == 1) { 
+                                    if ($ad['rtl']) {
                                         $msg = 'لقد تم ايقاف حسابك بشكل مؤقت نظراً للتكرار';
                                     }
-                                    else
-                                    {
+                                    else {
                                         $msg = 'your account is suspended due to repetition';
                                     }
                                     $this->user->rejectAd($adId, $msg);
                                 }
-                                else if(in_array($section_id,array(190,1179,540,1114))){
+                                else if(in_array($section_id,array(190,1179,540,1114))) {
                                     $dupliactePending = $this->user->detectIfAdInPending($adId, $section_id, $ad['cui']);
                                     if($dupliactePending){
                                         if($ad['rtl']){
@@ -3851,6 +3807,7 @@ class Bin extends AjaxHandler{
                     $this->process();
                 }else $this->fail('101');
                 break;
+                
             case "ajax-idel":
                 if (isset ($_POST['i']) && isset ($this->user->pending['post']['content'])) {
                     $fn=$_POST['i'];
@@ -3870,25 +3827,11 @@ class Bin extends AjaxHandler{
                                         }
                                     }else $adContent['pic_def']='';
                                 }
-                                //@unlink($path.'l/'.$pic);
-                                //@unlink($path.'d/'.$pic);
-                                //@unlink($path.'s/'.$pic);
-/*
-                                if ($this->urlRouter->cfg['server_id']>1) {
-                                    $ssh = ssh2_connect('h1.mourjan.com', 22);
-                                    if (ssh2_auth_password($ssh, 'mourjan-sync', 'GQ71BUT2')) {
-                                        $sftp = ssh2_sftp($ssh);
-                                        ssh2_sftp_unlink($sftp, '/var/www/mourjan/web/repos/l/'.$pic);
-                                        ssh2_sftp_unlink($sftp, '/var/www/mourjan/web/repos/s/'.$pic);
-                                        ssh2_sftp_unlink($sftp, '/var/www/mourjan/web/repos/d/'.$pic);
-                                    }
-                                }
-  */                              
+                              
                                 break;
                             }
                         }
                         
-                        //if ($found) {
                             $media = $this->urlRouter->db->queryResultArray("select * from media where filename = ?",[$fn],true);
                             if($media && count($media)){
                                 $this->urlRouter->db->queryResultArray("delete from ad_media where ad_id = ? and media_id = ?",[$this->user->pending['post']['id'],$media[0]['ID']],true);
@@ -3901,14 +3844,13 @@ class Bin extends AjaxHandler{
                             $this->user->saveAd();
                             $this->setData($adContent['pic_def'],'def');
                             $this->process();
-                        //}else $this->fail('103');
+   
                     }else $this->fail('102');
                 }else $this->fail('101');
                 break;
                 
             case 'ajax-approve':
-                if ($this->user->info['id'] && $this->user->info['level']==9 && isset ($_POST['i'])) 
-                {
+                if ($this->user->info['id'] && $this->user->info['level']==9 && isset ($_POST['i'])) {
                     $id=$_POST['i'];
                     if (is_numeric($id)){
                         if ($this->user->approveAd($id)) {
@@ -3918,6 +3860,7 @@ class Bin extends AjaxHandler{
                     }else $this->fail('102');
                 }else $this->fail('101');
                 break;
+                
             case 'ajax-help':
                 if ($this->user->info['id'] && $this->user->info['level']==9 && isset ($_POST['i'])) {
                     $id=$_POST['i'];
@@ -5959,9 +5902,10 @@ class Bin extends AjaxHandler{
         }
     }
     
-    function deleteVideo($video, $yt=null){
+    
+    function deleteVideo($video, $yt=null) {
         $pass=true;
-        if ($video[0]){
+        if ($video[0]) {
             if (!$yt) {
                 require_once 'Zend/Loader.php';
                 Zend_Loader::loadClass('Zend_Gdata_YouTube');
@@ -5990,8 +5934,8 @@ class Bin extends AjaxHandler{
         return $pass;
     }
     
-    function pingUrl($url=NULL)  
-    {  
+    
+    function pingUrl($url=NULL) {  
         if($url == NULL) return false;  
         $ch = curl_init($url);  
         curl_setopt($ch, CURLOPT_TIMEOUT, 5);  
@@ -6002,11 +5946,7 @@ class Bin extends AjaxHandler{
         $data = curl_exec($ch); 
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);  
-        if( ($httpcode>=200 && $httpcode<400) || $httpcode==403 ){  
-            return true;  
-        } else {  
-            return false;  
-        }  
+        return ( ($httpcode>=200 && $httpcode<400) || $httpcode==403 );
     }
     
     
@@ -6026,91 +5966,79 @@ class Bin extends AjaxHandler{
             case 3:
             case 4:
             case 5:
-                if(preg_match('/'.$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].'/', $this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex])){
+                if (preg_match('/'.$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].'/', $this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex])) {
                     $section=$this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
-                }else {
+                }
+                else {
                     $in=' ';
                     if ($this->urlRouter->siteLanguage=='en')$in=' '.$this->lang['in'].' ';
                     $section=$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].$in.$this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
                 }
                 break;
-           }
+        }
            
-           $adContent = json_decode($ad['CONTENT'], true);
-           $countries = $this->urlRouter->db->getCountriesDictionary(); // $this->urlRouter->countries;
-           if (isset($adContent['pubTo'])) {
-                $fieldIndex=2;
-                $comma=',';
-                if ($this->urlRouter->siteLanguage=='ar'){
-                    $fieldIndex=1;
-                    $comma='،';
-                }
-                $countriesArray=array();
-                $cities = $this->urlRouter->cities;
-                
-                $content='';
-                foreach ($adContent['pubTo'] as $city => $value){
-                    
-                    if (isset($cities[$city]) && isset($cities[$city][4])) {
-                        $country_id=$cities[$city][4];
-                        
-                        if (!isset($countriesArray[$cities[$city][4]])){
-                            /*
-                            $ccs=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$cities[$city][4]}_{$this->urlRouter->siteLanguage}",
-                                    "select c.ID 
-                                    from city c
-                                    where c.country_id={$country_id} 
-                                    and c.blocked=0
-                                    order by NAME_". $this->urlRouter->siteLanguage,
-                                    null, 0, $this->urlRouter->cfg['ttl_long']);
-                             * 
-                             */
-                            
-                            $ccs = $countries[$country_id][6];
-                            if ($ccs && count($ccs)>0){
-                                $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],array());
-                            }else {
-                                $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],false);
-                            }
+        $adContent = json_decode($ad['CONTENT'], true);
+        $countries = $this->urlRouter->db->getCountriesDictionary(); // $this->urlRouter->countries;
+        if (isset($adContent['pubTo'])) {
+            $fieldIndex=2;
+            $comma=',';
+            if ($this->urlRouter->siteLanguage=='ar') {
+                $fieldIndex=1;
+                $comma='،';
+            }
+            $countriesArray=array();
+            $cities = $this->urlRouter->cities;
+
+            $content='';
+            foreach ($adContent['pubTo'] as $city => $value) {                    
+                if (isset($cities[$city]) && isset($cities[$city][4])) {
+                    $country_id=$cities[$city][4];                        
+                    if (!isset($countriesArray[$cities[$city][4]])){                            
+                        $ccs = $countries[$country_id][6];
+                        if ($ccs && count($ccs)>0) {
+                            $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],array());
                         }
-                        if ($countriesArray[$country_id][1]!==false) $countriesArray[$country_id][1][]=$cities[$city][$fieldIndex];
+                        else {
+                            $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],false);
+                        }
                     }
-                }
-                $i=0;
-                foreach ($countriesArray as $key => $value) {
-                    if ($i)$content.=' - ';
-                    $content.=$value[0];
-                    if ($value[1]!==false) $content.=' ('.implode ($comma, $value[1]).')';
-                    $i++;
-                }
-                
-                if ($content) {
-                    $section=$section.' '.$this->lang['in'].' '.$content;
-                    //$section='<a href="'.$this->urlRouter->getURL($countryId,0,$rootId,$ad['SECTION_ID'],$ad['PURPOSE_ID']).'">'.$section.'</a>';
-                }
-            }elseif(isset ($countries[$ad['COUNTRY_ID']])) {
-                $countryId=$ad['COUNTRY_ID']; //$this->urlRouter->countries[$ad['COUNTRY_ID']][0];
-                $countryCities=$countries[$countryId][6];/* $this->urlRouter->db->queryCacheResultSimpleArray("cities_{$countryId}",
-                     "select c.ID from city c
-                     where c.country_id={$countryId} and c.blocked=0",
-                     null, 0, $this->urlRouter->cfg['ttl_long']);*/
-                if (count($countryCities)>0 && isset($this->urlRouter->cities[$ad['CITY_ID']])){
-                    $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
-                    //$section='<a href="'.$this->urlRouter->getURL($countryId,$ad['CITY_ID'],$rootId,$ad['SECTION_ID'],$ad['PURPOSE_ID']).'">'.$section.'</a>';
-                }else {
-                    $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$this->fieldNameIndex];
-                    //$section='<a href="'.$this->urlRouter->getURL($countryId,0,$rootId,$ad['SECTION_ID'],$ad['PURPOSE_ID']).'">'.$section.'</a>';
+                    if ($countriesArray[$country_id][1]!==false) $countriesArray[$country_id][1][]=$cities[$city][$fieldIndex];
                 }
             }
-        //if($section) $section='<span class="sk">'.$section.'</span>';
+
+            $i=0;
+            foreach ($countriesArray as $key => $value) {
+                if ($i)$content.=' - ';
+                $content.=$value[0];
+                if ($value[1]!==false) $content.=' ('.implode ($comma, $value[1]).')';
+                $i++;
+            }
+
+            if ($content) {
+                $section=$section.' '.$this->lang['in'].' '.$content;
+            }
+        }
+        elseif (isset ($countries[$ad['COUNTRY_ID']])) {
+            $countryId=$ad['COUNTRY_ID']; 
+            $countryCities=$countries[$countryId][6];
+            if (count($countryCities)>0 && isset($this->urlRouter->cities[$ad['CITY_ID']])) {
+                $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
+            }
+            else {
+                $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$this->fieldNameIndex];
+            }
+        }
+        
         if($section) {
-            if($this->isMobile){
+            if ($this->isMobile) {
                 $section='<b class="ah">'.$section.'</b>';
-            }else {
+            }
+            else {
                 $section='<span class="k">'.$section.' - <b>' . $this->formatSinceDate(strtotime($ad['DATE_ADDED'])) . '</b></span>';
             }
         }
         return $section;
     }
 }
+
 ?>

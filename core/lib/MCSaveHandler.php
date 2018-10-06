@@ -289,7 +289,6 @@ class MCSaveHandler {
                     left join AD_USER on AD_USER.ID=ad.ID
                     left join section s on s.Id=ad.SECTION_ID
                     where ad.COUNTRY_ID=?
-                    and ad.PUBLICATION_ID=1
                     and s.ROOT_ID=1
                     and ad.section_id!=748
                     and ad.HOLD=0 
@@ -563,7 +562,7 @@ class MCSaveHandler {
         else if (empty($sbPhones) && $sbMails) {
             $q.=", {$sbMails} cfilter";
         }
-        $q.=" FROM ad WHERE id!={$reference} AND publication_id=1 and hold=0 and cfilter=1 limit 1000";
+        $q.=" FROM ad WHERE id!={$reference} and hold=0 and cfilter=1 limit 1000";
 
         //echo $q, "\n";
         $res = $sphinx->search($q);

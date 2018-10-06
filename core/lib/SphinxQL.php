@@ -195,9 +195,9 @@ class SphinxQL {
     
     
     public function publication(int $value, bool $exclude=false) : SphinxQL {
-        if ($value) {
-            $this->intFilter(static::PUBLICATION, $value, $exclude);
-        }
+        //if ($value) {
+        //    $this->intFilter(static::PUBLICATION, $value, $exclude);
+        //}
         return $this;
     }
 
@@ -285,14 +285,14 @@ class SphinxQL {
     
     
     public function featured() : SphinxQL {
-        $this->filters[static::PUBLICATION]='=1';
+        //$this->filters[static::PUBLICATION]='=1';
         $this->filters[static::FEATURED_TTL]='>='.time();
         return $this;
     }
     
     
     public function native() : SphinxQL {
-        $this->filters[static::PUBLICATION]='=1';
+        //$this->filters[static::PUBLICATION]='=1';
         return $this;
     }
 

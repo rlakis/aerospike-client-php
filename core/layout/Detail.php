@@ -115,7 +115,7 @@ class Detail extends Search {
             $current_time = time();
             $isFeatured = $current_time < $this->detailAd[Classifieds::FEATURE_ENDING_DATE];
             $isFeatureBooked = $current_time < $this->detailAd[Classifieds::BO_ENDING_DATE];
-            if ($this->detailAd[Classifieds::PUBLICATION_ID]==1) {
+            //if ($this->detailAd[Classifieds::PUBLICATION_ID]==1) {
                 if (isset($this->user->info['level'])) {
                     if (!($this->user->info['level']==9 || $this->user->info['id']==$this->detailAd[Classifieds::USER_ID])) {
                         if (!isset($this->stat['ad-imp']))
@@ -123,13 +123,14 @@ class Detail extends Search {
                         $this->stat['ad-clk'] = $this->detailAd[Classifieds::ID];
                         $this->stat['ad-imp'][]=$this->detailAd[Classifieds::ID];
                     }
-                } else {
+                } 
+                else {
                     if (!isset($this->stat['ad-imp']))
                             $this->stat['ad-imp'] = array();
                     $this->stat['ad-clk'] = $this->detailAd[Classifieds::ID];
                     $this->stat['ad-imp'][]=$this->detailAd[Classifieds::ID];
                 }
-            }
+            //}
             $pics=null;
             $picsCount=0;
             $hasVideo=0;
@@ -148,8 +149,9 @@ class Detail extends Search {
             }
             $picsCount= is_array($pics) ? count($pics) : 0;
             
-            $pub_link = $this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][$this->fieldNameIndex];
-            if ($this->detailAd[Classifieds::PUBLICATION_ID]==1 || $this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][6]=='http://www.waseet.net/'){
+            //$pub_link = $this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][$this->fieldNameIndex];
+            //if ($this->detailAd[Classifieds::PUBLICATION_ID]==1 || $this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][6]=='http://www.waseet.net/'){
+            /*
                 if ($this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][6]!='http://www.waseet.net/'){
                     $partnerInfo=$this->urlRouter->db->getCache()->get('partner_'.$this->detailAd[Classifieds::USER_ID]);
                     if (!$partnerInfo && isset($this->detailAd[Classifieds::USER_LEVEL]) && $this->detailAd[Classifieds::USER_LEVEL]) $partnerInfo=$this->user->getPartnerInfo($this->detailAd[Classifieds::USER_ID],true);
@@ -168,9 +170,10 @@ class Detail extends Search {
                     }else{
                         $pub_link='<span class="mj">'.$pub_link.'</span>';
                     }
-                }else{
-                    $pub_link='<span class="mj">'.($this->urlRouter->siteLanguage=='ar' ? 'موقع مرجان':'mourjan.com').'</span>';
-                }
+                }else{*/
+            $pub_link='<span class="mj">'.($this->urlRouter->siteLanguage=='ar' ? 'موقع مرجان':'mourjan.com').'</span>';
+                //}
+            /*    
             }else {
                 if ($this->detailAd[Classifieds::OUTBOUND_LINK])
                     //$pub_link = "<a class='fr' onclick=\"ga('send', 'event', 'OutLinks', 'click', '{$this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][2]}');_gaq.push(['_trackEvent', 'OutLinks', 'click', '{$this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][2]}']);wn('{$this->detailAd[Classifieds::OUTBOUND_LINK]}');\">{$pub_link}</a>";
@@ -178,7 +181,7 @@ class Detail extends Search {
                 elseif ($this->detailAd[Classifieds::PUBLICATION_ID]!=1)
                     $pub_link = "<a class='fr' onclick=\"ga('send', 'event', 'OutLinks', 'click', '{$this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][2]}');wn('{$this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][6]}');\">{$pub_link}</a>";
             }
-            
+            */
             $para_class = $this->detailAd[Classifieds::RTL] ? 'ar': 'en';
             if ($this->urlRouter->siteTranslate)$para_class='';
             
@@ -379,7 +382,7 @@ class Detail extends Search {
             ?></div><?php
             ?><div class="drd"><?php
                     echo '<b class="fl" st="'.$this->detailAd[Classifieds::UNIXTIME].'"></b>';
-                    echo $pub_link;
+                    //echo $pub_link;
                     //echo ($this->hasCities && $this->urlRouter->cities[$this->detailAd[Classifieds::CITY_ID]][$this->fieldNameIndex]!=$this->urlRouter->countries[$this->detailAd[Classifieds::COUNTRY_ID]][$this->fieldNameIndex] ? "<a class='fl' href='".$this->urlRouter->getURL($this->detailAd[Classifieds::COUNTRY_ID],$this->detailAd[Classifieds::CITY_ID])."'>" . $this->urlRouter->cities[$this->detailAd[Classifieds::CITY_ID]][$this->fieldNameIndex]."</a>":"")."<a class='fl' href='".$this->urlRouter->getURL($this->detailAd[Classifieds::COUNTRY_ID])."'>" . $this->urlRouter->countries[$this->detailAd[Classifieds::COUNTRY_ID]][$this->fieldNameIndex]."</a>" 
             ?></div><?php
             /*
@@ -412,22 +415,23 @@ class Detail extends Search {
                 }
             }*/
             
-            if ($this->detailAd[Classifieds::PUBLICATION_ID]==1 && $this->urlRouter->cfg['enabled_disqus']) {
-                ?><div class="dthd"><div id="disqus_thread"></div></div><?php 
-            }
+            //if ($this->detailAd[Classifieds::PUBLICATION_ID]==1 && $this->urlRouter->cfg['enabled_disqus']) {
+            //    <div class="dthd"><div id="disqus_thread"></div></div>
+            //}
             
-                if ($hasMap) {
-                    echo '<b class="dhr">'.$this->lang['adMap'].'</b>';
-                    if(isset($this->detailAd[Classifieds::LOCATION])){
-                        ?><div class="oc ocl"><span class="i loc"></span><?= $this->detailAd[Classifieds::LOCATION] ?></div><?php
-                    }
-                    ?><div class="mph"><div id="map" class="load"></div></div><?php
+            if ($hasMap) {
+                echo '<b class="dhr">'.$this->lang['adMap'].'</b>';
+                if(isset($this->detailAd[Classifieds::LOCATION])){
+                    ?><div class="oc ocl"><span class="i loc"></span><?= $this->detailAd[Classifieds::LOCATION] ?></div><?php
                 }
+                ?><div class="mph"><div id="map" class="load"></div></div><?php
+            }
             ?></div><?php
 //            if ($this->urlRouter->userId)
 //                $this->partnerHeader ();
         }
     }
+    
     function displayDetail_bk(){
         if (!$this->detailAdExpired) {
             if (isset($this->user->info['level'])) {
@@ -543,6 +547,7 @@ class Detail extends Search {
             /*else {
                 ?><div class="cpp"><?php echo $this->fill_ad("zone_9",'ad_det adx');
             }*/
+            
             $pub_link = $this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][$this->fieldNameIndex];
             if ($this->detailAd[Classifieds::PUBLICATION_ID]==1){
                 $partnerInfo=$this->urlRouter->db->cacheGet('partner_'.$this->detailAd[Classifieds::USER_ID]);
@@ -594,21 +599,20 @@ class Detail extends Search {
             $isFeatured = $current_time < $this->detailAd[Classifieds::FEATURE_ENDING_DATE];
             $isFeatureBooked = $current_time < $this->detailAd[Classifieds::BO_ENDING_DATE];            
             
-            if ($this->detailAd[Classifieds::PUBLICATION_ID]==1) {
-                if (isset($this->user->info['level'])) {
-                    if (!($this->user->info['level']==9 || $this->user->info['id']==$this->detailAd[Classifieds::USER_ID])) {
-                        if (!isset($this->stat['ad-imp']))
-                            $this->stat['ad-imp'] = array();
-                         $this->stat['ad-clk'] = $this->detailAd[Classifieds::ID];
-                         $this->stat['ad-imp'][]=$this->detailAd[Classifieds::ID];
-                    }
-                } else {
-                    if (!isset($this->stat['ad-imp']))
-                        $this->stat['ad-imp'] = array();
-                    $this->stat['ad-clk'] = $this->detailAd[Classifieds::ID];
-                    $this->stat['ad-imp'][]=$this->detailAd[Classifieds::ID];
+            //if ($this->detailAd[Classifieds::PUBLICATION_ID]==1) {
+            if (isset($this->user->info['level'])) {
+                if (!($this->user->info['level']==9 || $this->user->info['id']==$this->detailAd[Classifieds::USER_ID])) {
+                    if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp'] = array(); }
+                     $this->stat['ad-clk'] = $this->detailAd[Classifieds::ID];
+                     $this->stat['ad-imp'][]=$this->detailAd[Classifieds::ID];
                 }
+            } 
+            else {
+                if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp'] = array(); }
+                $this->stat['ad-clk'] = $this->detailAd[Classifieds::ID];
+                $this->stat['ad-imp'][]=$this->detailAd[Classifieds::ID];
             }
+            //}
             $favSpan='';
             if ($this->user->info['id']) {
                 if ($this->user->favorites) {
@@ -672,7 +676,7 @@ class Detail extends Search {
             }
 
             $hasMap=false;
-            $hasMap = ($this->detailAd[Classifieds::PUBLICATION_ID] == 1 && ($this->detailAd[Classifieds::LATITUDE] || $this->detailAd[Classifieds::LONGITUDE]));
+            $hasMap = ($this->detailAd[Classifieds::PUBLICATION_ID]==1 && ($this->detailAd[Classifieds::LATITUDE] || $this->detailAd[Classifieds::LONGITUDE]));
             $os=0;
             if ($hasVideo || $hasMap){
                 $os=preg_match('/(android|iphone)/i', $_SERVER['HTTP_USER_AGENT'], $matches);
@@ -849,9 +853,8 @@ class Detail extends Search {
                 }
                 ?></div><?php 
                 
-                ?><div class='src <?= $this->urlRouter->siteLanguage ?>'><span><?= (($this->detailAd[Classifieds::PUBLICATION_ID]==1 || $this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][6]=='http://www.waseet.net/')?
-                ($this->urlRouter->siteLanguage=='ar' ? 'موقع مرجان':'mourjan.com'):$this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][$this->fieldNameIndex]) .
-                ($this->urlRouter->cities[$this->detailAd[Classifieds::CITY_ID]][$this->fieldNameIndex]!=$this->urlRouter->countries[$this->detailAd[Classifieds::COUNTRY_ID]]['name'] ? " - {$this->urlRouter->cities[$this->detailAd[Classifieds::CITY_ID]][$this->fieldNameIndex]}":"")." - ".$this->urlRouter->countries[$this->detailAd[Classifieds::COUNTRY_ID]]['name'];?></span> <time st='<?= $this->detailAd[Classifieds::UNIXTIME] ?>'></time><?= $favSpan ?></div><?php 
+                ?><div class='src <?= $this->urlRouter->siteLanguage ?>'><span><?= /*($this->urlRouter->siteLanguage=='ar' ? 'موقع مرجان':'mourjan.com') .*/
+                ($this->urlRouter->cities[$this->detailAd[Classifieds::CITY_ID]][$this->fieldNameIndex]!=$this->urlRouter->countries[$this->detailAd[Classifieds::COUNTRY_ID]]['name'] ? "{$this->urlRouter->cities[$this->detailAd[Classifieds::CITY_ID]][$this->fieldNameIndex]}":"")." - ".$this->urlRouter->countries[$this->detailAd[Classifieds::COUNTRY_ID]]['name'];?></span> <time st='<?= $this->detailAd[Classifieds::UNIXTIME] ?>'></time><?= $favSpan ?></div><?php 
                 
                 
                 

@@ -4306,15 +4306,14 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
             
             //menu slider vars
             ?>tmr,tmu,tmd,func,fupc,mul,menu,mp,<?php
-            if ($this->urlRouter->cfg['enabled_disqus'] && $this->urlRouter->module=='detail' && !$this->detailAdExpired && $this->detailAd[Classifieds::PUBLICATION_ID]==1) 
-            {
-                ?>disqus_shortname = 'mourjan',disqus_config=function(){this.language = 'en'},disqus_identifier = '<?= $this->detailAd[Classifieds::ID] ?>',<?php
-            }elseif ($this->urlRouter->cfg['enabled_disqus'] && $this->urlRouter->module=='myads'){
-                ?>disqus_shortname = 'mourjan',disqus_config=function(){this.language = 'en'},<?php
-            }
+            //if ($this->urlRouter->cfg['enabled_disqus'] && $this->urlRouter->module=='detail' && !$this->detailAdExpired && $this->detailAd[Classifieds::PUBLICATION_ID]==1) {
+            //    disqus_shortname = 'mourjan',disqus_config=function(){this.language = 'en'},disqus_identifier = '<?= $this->detailAd[Classifieds::ID] ',
+            //}
+            //elseif ($this->urlRouter->cfg['enabled_disqus'] && $this->urlRouter->module=='myads'){
+            //    disqus_shortname = 'mourjan',disqus_config=function(){this.language = 'en'},
+            //}
             
-            if ($this->stat)
-            {
+            if ($this->stat) {
                 $this->stat['page']=($this->urlRouter->params['start']) ? $this->urlRouter->params['start'] : 1;
                 $this->stat['num']=$this->num;
                 ?>stat='<?= isset($this->stat) ? json_encode($this->stat):'' ?>',<?php
@@ -4713,11 +4712,11 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
             }
             //menu slider vars
             ?>tmr,tmu,tmd,func,fupc,mul,menu,mp,<?php
-            if ($this->urlRouter->cfg['enabled_disqus'] && $this->urlRouter->module=='detail' && !$this->detailAdExpired && $this->detailAd[Classifieds::PUBLICATION_ID]==1) {
-                ?>disqus_shortname = 'mourjan',disqus_config=function(){this.language = 'en'},disqus_identifier = '<?= $this->detailAd[Classifieds::ID] ?>',<?php
-            }elseif ($this->urlRouter->cfg['enabled_disqus'] && $this->urlRouter->module=='myads'){
-                ?>disqus_shortname = 'mourjan',disqus_config=function(){this.language = 'en'},<?php
-            }
+            //if ($this->urlRouter->cfg['enabled_disqus'] && $this->urlRouter->module=='detail' && !$this->detailAdExpired && $this->detailAd[Classifieds::PUBLICATION_ID]==1) {
+            //    disqus_shortname = 'mourjan',disqus_config=function(){this.language = 'en'},disqus_identifier = '<?= $this->detailAd[Classifieds::ID]',
+            //}elseif ($this->urlRouter->cfg['enabled_disqus'] && $this->urlRouter->module=='myads'){
+            //    disqus_shortname = 'mourjan',disqus_config=function(){this.language = 'en'},
+            //}
             if ($this->stat && $this->urlRouter->isBot()){
                 $this->stat['page']=($this->urlRouter->params['start']) ? $this->urlRouter->params['start'] : 1;
                 $this->stat['num']=$this->num;
