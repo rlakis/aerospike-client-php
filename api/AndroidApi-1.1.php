@@ -1241,7 +1241,8 @@ class AndroidApi
                 break;
                 
                 case API_ANDROID_PUSH_RECEIPT:
-                    $this->api->db->setWriteMode(); 
+                    //retired
+                    /*$this->api->db->setWriteMode(); 
                     if(isset($_GET['uid'])){
                         $id = filter_input(INPUT_GET, 'mid', FILTER_VALIDATE_INT) + 0; 
                     }else{
@@ -1249,7 +1250,7 @@ class AndroidApi
                     }
                     if ($id) {
                         $publishedAd = $this->api->db->queryResultArray('update push_queue set delivered=1 where uuid =? and msg_id=?', [$this->api->getUUID(), $id], true);
-                    }
+                    }*/
                     break;
                 case API_ANDROID_DELETE_AD:                
                 $this->api->userStatus($status);

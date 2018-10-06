@@ -1423,9 +1423,9 @@ var rtMsgs={
                         $pic = $content['video'][2];
                         $this->globalScript.='sic[' . $ad['ID'] . ']="<img width=\"120\" height=\"93\" src=\"' . $pic . '\" /><span class=\"play\"></span>'.$picCount.'";';
                         $pic = '<span class="ig"></span>';
-                    } elseif (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])) {
+                    } elseif (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])>0) {
                         $picCount=count($content['pics']);
-                        $pic = isset($content['pic_def']) ? $content['pic_def'] : '';
+                        $pic = isset($content['pic_def']) ? $content['pic_def'] : array_keys($content['pics'])[0];
                         $this->globalScript.='sic[' . $ad['ID'] . ']="<img width=\"120\" src=\"'.$this->urlRouter->cfg['url_ad_img'].'/repos/s/' . $pic . '\" /><span class=\"cnt\">'.$picCount.'<span class=\"i sp\"></span></span>";';
                         $pic = '<span class="ig"></span>';
                     } else {
@@ -1641,7 +1641,38 @@ var rtMsgs={
                 ?><li id="<?= $ad['ID'] ?>" <?= $liClass ?><?= $ad['STATE']==2 ? ' status="2" class="approved"' : ($ad['STATE']==3 ? ' status="3" class="approved"' : '') ?><?= ($this->user->info['level']==9 ? ' ro="'.$content['ro'].'" se="'.$content['se'].'" pu="'.$content['pu'].'"':'') ?>><?php
                 
                 if ($ad['STATE']==1 || $ad['STATE']==4) {
-                    echo '<div class="nb nbw">' .($onlySuper ? '<span title="'.$onlySuper.'" class="fail"></span>' : '<span class="wait"></span>') ,$this->lang['pendingMsg'], ($assignedAdmin ? $assignedAdmin:'') , '</div>';
+                    echo '<div class="nb nbw">' .($onlySuper ? '<span title="'.$onlySuper.'" onmouseover="ipCheck(this)" class="fail"></span>' : '<span class="wait"></span>') ,$this->lang['pendingMsg'], ($assignedAdmin ? $assignedAdmin:'') , '</div>';
+                    
+                    $this->globalScript.='var adReqs={};var ipCheck=function(e){
+                        var e = $(e);
+                        var id=e.parent().parent()[0].id;
+                        if(typeof adReqs[id] === "undefined"){
+                            $.ajax({
+                                url:"/ajax-changepu/",
+                                type:"GET",
+                                data:{
+                                    fraud:id
+                                },
+                                success:function(rp){
+                                    if(typeof rp["fraud_score"] !== "undefined"){
+                                        adReqs[id]=1;
+                                        var ttl = e.attr("title"); 
+                                        
+                                        ttl += " | score: "+ rp["fraud_score"];
+                                        if(rp["mobile"]) ttl += " | mobile";
+                                        if(rp["recent_abuse"]) ttl += " | abuse";
+                                        if(rp["proxy"]) ttl += " | proxy";
+                                        if(rp["vpn"])   ttl += " | VPN";
+                                        if(rp["tor"])   ttl += " | TOR";
+                                        ttl += " | "+rp["city"]+", "+rp["country_code"];
+                                        e.attr("title",ttl);
+                                        e.mouseover();
+                                    }
+                                }
+                            });
+                        }
+                            };';
+                    
                 }
                 elseif ($ad['STATE']==2) {
                     echo '<div class="nb nbg"><span class="done"></span>',$this->lang['approvedMsg'],($assignedAdmin ? $assignedAdmin:'') ,'</div>';
