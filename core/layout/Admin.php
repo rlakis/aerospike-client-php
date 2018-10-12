@@ -1356,8 +1356,13 @@ $.ajax({
                         ?><a class="lnk" style="float:right" href="?p=<?= $_GET['t'] ?>&action=unlist">remove</a><?php
                         ?></div><br /><?php
                     } else {
+                        if(substr($_GET['t'],0,2) != '00' && substr($_GET['t'],0,1) != '+'){
+                            $number = '+'.$_GET['t'];
+                        }else{
+                            $number = $_GET['t'];
+                        }
                         $validator = libphonenumber\PhoneNumberUtil::getInstance();
-                        $num = $validator->parse($_GET['t'], 'LB');
+                        $num = $validator->parse($number, 'LB');
 
                         if ($validator->isValidNumber($num)) {
                             ?><div style="background-color:darkkhaki;margin:5px;padding:10px;direction:ltr;overflow:hidden;display:block"><?php
