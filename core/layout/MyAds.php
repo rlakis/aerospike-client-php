@@ -1730,7 +1730,7 @@ var rtMsgs={
                             if (!$isSystemAd || $isSuperAdmin) {         
                                 ?><span class="lnk" onclick="app(this)"><?= $this->lang['approve'] ?></span><?php
                                 if ($isSuperAdmin) {
-                                    ?><span class="lnk" onclick="rtp(this)">RTP</span><?php
+                                    ?><span class="lnk" onclick="rtp(this)">RTP</span><?php                                    
                                 }
                                 ?><span class="lnk" onclick="rejF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['reject'] ?></span><?php 
                             }
