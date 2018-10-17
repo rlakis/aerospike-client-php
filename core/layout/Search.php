@@ -497,6 +497,9 @@ class Search extends Page {
         if(in_array($this->urlRouter->sectionId, $this->urlRouter->cfg['restricted_section_ads'])){
             $this->urlRouter->cfg['enabled_ads']=0;
         }
+        if($this->user->info['id'] && $this->user->info['level']==9){
+            $this->inlineCss.='.ls li{height:auto !important;';
+        }
         
         $this->render();
     }
@@ -2985,6 +2988,11 @@ class Search extends Page {
                     }
                     echo $ad[Classifieds::CONTENT];
                     ?></p><?php
+                
+                if($ad[Classifieds::LATITUDE] || $ad[Classifieds::LONGITUDE]){
+                    ?><div class='oc ocl'><span class="i loc"></span><?= $ad[Classifieds::LOCATION] ?></div><?php
+                }    
+                    
                 if($feature||$isFeatured) {
                     echo $newSpan;
                     if($paid||$isFeatured){

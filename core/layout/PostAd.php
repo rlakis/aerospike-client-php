@@ -365,7 +365,10 @@ class PostAd extends Page{
                 lon:'.$this->adContent['lon'].',
                 loc:"'.$this->adContent['loc'].'",
                 budget:'.$budget.',
-                version:2
+                version:2'
+                .(isset($this->adContent['app']) ? ',app:"'.$this->adContent['app'].'"':'').
+                (isset($this->adContent['app_v']) ? ',app_v:"'.$this->adContent['app_v'].'"':'').
+                '
             };';
             //prefetch country_code info
             $setccv=0;
