@@ -182,6 +182,27 @@ function app(e){
         }
     })
 }
+function rtp(e){
+    var d=mask(e);
+    var i=e.parentNode.parentNode.id;
+    $.ajax({
+        type:"POST",
+        url:"/ajax-approve/",
+        data:{i:i,rtp:1},
+        dataType:"json",
+        success:function(rp){
+            if (rp.RP) {
+                d.removeClass("load");
+                d.html('Approved with RTP');
+            }else {
+                d.remove()
+            }
+        },
+        error:function(){
+            d.remove()
+        }
+    })    
+}
 function rejF(e,usr){
     var di=e.parentNode.parentNode;
     var id=di.id;
