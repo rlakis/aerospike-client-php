@@ -672,30 +672,14 @@ class MyAds extends Page {
             if(0){
                 ?><div id="aopt" class="sbx"><?php 
                     ?><div class="bts"><?php
-                        /*
-                        if ($this->user->info['id']) {
-                            ?><div onclick="aF(this)"><span class="k fav"></span><label><?= $this->lang['m_addFav'] ?></label></div><?php
-                            ?><div onclick="rF(this)"><span class="k fav on"></span><label><?= $this->lang['removeFav'] ?></label></div><?php    
-                        }else {
-                            ?><div id="pFB" onclick="pF(this)"><span class="k fav"></span><label><?= $this->lang['m_addFav'] ?></label></div><?php
-                            ?><div><span class="k fav on"></span><label><?= $this->lang['removeFav'] ?></label></div><?php 
-                        }
-                        ?><div onclick="share(this)"><span class="k share"></span><label><?= $this->lang['shareUs'] ?></label></div><?php */
-                        /*?><div onclick="rpA(this)"><span class="k spam"></span><label><?= $this->lang['hold'] ?></label></div><?php*/
-                        /*?><div><span class="k eye"></span><label><?= $this->lang['m_addFollow'] ?></label></div><?php 
-                        ?><div><span class="k eye on"></span><label><?= $this->lang['m_Followed'] ?></label></div><?php*/
-                        $state=$ad['STATE'];
-                        
-                        //$isSuspended =  isset($this->user->info['options']['suspend']) && ($this->user->info['options']['suspend']>time());                        
-                        
-                         $isSuspended = FALSE;
+                        $state=$ad['STATE'];                                                
+                        $isSuspended = FALSE;
                         if ($this->user->getProfile()) {
                             $isSuspended = $this->user->getProfile()->isSuspended();
                         } 
                         else {
                             error_log("this->user->data is null for user: ".$this->user->info['id'] . ' at line '.__LINE__);
                         }
-                        //$isSuspended = $this->user->data->getOptions()->isSuspended();
                         if ($state<7 && !$isSystemAd) {
                             if (!$isSuspended) {
                                 ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$ad['ID'] : '') ?>" method="post"><?php
@@ -771,54 +755,53 @@ class MyAds extends Page {
         if ($this->urlRouter->siteLanguage=="ar") {
             if ($count>10) {
                 $bread.= $formatted." ".$this->lang['ads'];
-            }elseif ($count>2){
+            }
+            elseif ($count>2) {
                 $bread.= $formatted." ".$this->lang['3ad'];
-            }else if ($count==1){
+            }
+            else if ($count==1) {
                 $bread.= $this->lang['ad'];
-            }else {
+            }
+            else {
                 $bread.= $this->lang['2ad'];
             }
-        }else {
+        }
+        else {
             $bread.= $this->formatPlural($count, "ad");
         }
         $bread.=" ";
-            if ($this->urlRouter->siteLanguage=='ar'){
-                $bread.='ضمن ';
-            }else {
-                $bread.='in ';
-            }
+        if ($this->urlRouter->siteLanguage=='ar') {
+            $bread.='ضمن ';
+        }
+        else {
+            $bread.='in ';
+        }
         return $bread.' '.$this->title;
     }
 
-    function side_pane(){
+    
+    function side_pane() {
         $this->renderSideSite();
     }
     
-    function main_pane(){
+    
+    function main_pane() {
         if ($this->user->info['id']) {
+            if (!$this->urlRouter->cfg['enabled_post'] && $this->topMenuIE) {
+                $this->renderDisabledPage();
+                return;
+            }
 
-        if (!$this->urlRouter->cfg['enabled_post'] && $this->topMenuIE) {
-            $this->renderDisabledPage();
-            return;
-        }
-
-        $sub='';
-        if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
-        if($sub == 'deleted' && $this->user->info['level']!=9){
-            $sub = '';
-        }
-        switch($sub){
-            case '':
-                $this->pendingAds(7);
-                break;
-            case 'pending':
-                $this->pendingAds(1);
-                if($this->user->info['level']==9){
-                    /* 'يرجى توفير المزيد من التفاصيل', 
-        'please provide more details',
-
-                     *                      */
-                    
+            $sub='';
+            if (isset ($_GET['sub']) && $_GET['sub']) { $sub=$_GET['sub']; }
+            if ($sub == 'deleted' && $this->user->info['level']!=9) { $sub = ''; }
+            switch($sub) {
+                case '':
+                    $this->pendingAds(7);
+                    break;
+                case 'pending':
+                    $this->pendingAds(1);
+                    if ($this->user->info['level']==9) {                    
                     $this->globalScript.="                            
 var rtMsgs={
     'ar':[
@@ -911,31 +894,35 @@ var rtMsgs={
             default:
                 $this->pendingAds(7);
                 break;
-        }}else{
+        }
+        
+        }
+        else{
             $this->renderLoginPage();
         }
     }    
     
-    function renderEditorsBox($state=0, $standalone=false){
+    
+    function renderEditorsBox($state=0, $standalone=false) {
         $isSuperUser = $this->user->isSuperUser();
-        if($isSuperUser){
+        if ($isSuperUser) {
             $filters = $this->user->getAdminFilters();
         }
-        if($this->user->info['id'] && $this->user->info['level']==9){
+        if ($this->user->info['id'] && $this->user->info['level']==9) {
             ?><style><?php
             ?>.stin,.phc{display:none}.prx h4{margin-bottom:5px}.prx{display:block;clear:both;width:300px}.prx a{color:#00e}.prx a:hover{text-decoration:underline}<?php
             ?>.pfrx{height:auto}.prx select{width:260px;padding:3px 5px;margin:10px}.pfrx input{padding:5px 20px;margin:5px 0 10px}<?php            
-            if(isset($filters['active']) && $filters['active']){
+            if (isset($filters['active']) && $filters['active']) {
                 ?>.pfrx{background-color:#D9FAC8}<?php
             }
             ?></style><?php
         }
-        if($isSuperUser){
-            if($standalone){                
+        if ($isSuperUser) {
+            if ($standalone) {
                 ?><div class="fl"><?php 
             }
             $link='';
-            switch ($state){
+            switch ($state) {
                 case 9:
                     $link='?sub=archive&a=';
                     break;
@@ -953,11 +940,10 @@ var rtMsgs={
                     break;
             }
             
-            if($state==1){
+            if ($state==1) {
                 $baseUrl = '/myads/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/');
-
                 ?><form action="<?= $baseUrl ?>" method="GET"><input type="hidden" name="sub" value="pending" /><div class="prx pfrx"><ul><?php
-                if($filters['uid']){
+                if ($filters['uid']) {
                     ?><li><input type="hidden" name="fuid" value="<?= $filters['uid'] ?>" /><?= ($this->urlRouter->siteLanguage=='ar'?'مستخدم':'user').': <b>'.$filters['uid'].'</b>' ?></li><?php
                 }
                 ?><li><select name="fhl" onchange="this.form.submit()"><?php 
@@ -967,7 +953,7 @@ var rtMsgs={
                 ?></select></li><?php 
                 ?><li><select name="fro" onchange="this.form.submit()"><?php 
                     ?><option value="0"<?= $filters['root']==0 ? ' selected':'' ?>><?= $this->lang['opt_all_sections'] ?></option><?php
-                    foreach($this->urlRouter->pageRoots as $id => $root){
+                    foreach($this->urlRouter->pageRoots as $id => $root) {
                         ?><option value="<?= $id ?>"<?= $filters['root']==$id ? ' selected':'' ?>><?= $root['name'] ?></option><?php
                     }
                 ?></select></li><?php 
@@ -988,10 +974,8 @@ var rtMsgs={
             }
         }
 
-        if(($this->user->info['id'] && $this->user->info['level']==9 && isset($_GET['sub']) && $_GET['sub']=='pending') 
-            || $isSuperUser){
-            if(!isset($filters) || !$filters['active'])
-            {            
+        if (($this->user->info['id'] && $this->user->info['level']==9 && isset($_GET['sub']) && $_GET['sub']=='pending') || $isSuperUser) {
+            if (!isset($filters) || !$filters['active']) {            
                 ?><div id="adminList" class="prx ar"><h4>تحت طائلة المسؤولية</h4><ul><?php
                 ?><li class="hvn50okt2 d2d9s5pl1g n2u2hbyqsn"><?= $isSuperUser ? '<a href="'. $link .'69905">Robert</a>' : 'Robert' ?></li><?php
                 ?><li class="f3iw09ojp5 a1zvo4t2vk"><?= $isSuperUser ? '<a href="'. $link .'1">Bassel</a>' : 'Bassel' ?></li><?php
@@ -1008,16 +992,16 @@ var rtMsgs={
                 ?></ul></div><?php            
             }
             
-            if($standalone)
-            {          
+            if ($standalone) {          
                 ?></div><?php 
             }
         }
     }
 
+    
     function getAdSection($ad, $rootId=0, &$isMultiCountry=false) {
         $section='';
-        switch($ad['PURPOSE_ID']){
+        switch($ad['PURPOSE_ID']) {
             case 1:
             case 2:
             case 999:
@@ -1033,88 +1017,76 @@ var rtMsgs={
             case 5:
                 if(preg_match('/'.$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].'/', $this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex])){
                     $section=$this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
-                }else {
+                }
+                else {
                     $in=' ';
                     if ($this->urlRouter->siteLanguage=='en')$in=' '.$this->lang['in'].' ';
                     $section=$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].$in.$this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
                 }
                 break;
-           }
+        }
            
-           $adContent = json_decode($ad['CONTENT'], true);
-           $countries = $this->urlRouter->db->getCountriesDictionary(); // $this->urlRouter->countries;
-           if (isset($adContent['pubTo'])) {
-                $fieldIndex=2;
-                $comma=',';
-                if ($this->urlRouter->siteLanguage=='ar'){
-                    $fieldIndex=1;
-                    $comma='،';
-                }
-                $countriesArray=array();
-                $cities = $this->urlRouter->cities;
+       $adContent = json_decode($ad['CONTENT'], true);
+       $countries = $this->urlRouter->db->getCountriesDictionary(); // $this->urlRouter->countries;
+       if (isset($adContent['pubTo'])) {
+            $fieldIndex=2;
+            $comma=',';
+            if ($this->urlRouter->siteLanguage=='ar'){
+                $fieldIndex=1;
+                $comma='،';
+            }
+            $countriesArray=array();
+            $cities = $this->urlRouter->cities;
                 
-                $content='';
-                foreach ($adContent['pubTo'] as $city => $value){
-                    
-                    if (isset($cities[$city]) && isset($cities[$city][4])) {
-                        $country_id=$cities[$city][4];
+            $content='';
+            foreach ($adContent['pubTo'] as $city => $value) {                    
+                if (isset($cities[$city]) && isset($cities[$city][4])) {
+                    $country_id=$cities[$city][4];
                         
-                        if (!isset($countriesArray[$cities[$city][4]])){
-                            /*
-                            $ccs=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$cities[$city][4]}_{$this->urlRouter->siteLanguage}",
-                                    "select c.ID 
-                                    from city c
-                                    where c.country_id={$country_id} 
-                                    and c.blocked=0
-                                    order by NAME_". $this->urlRouter->siteLanguage,
-                                    null, 0, $this->urlRouter->cfg['ttl_long']);
-                             * 
-                             */
-                            
-                            $ccs = $countries[$country_id][6];
-                            if ($ccs && count($ccs)>0){
-                                $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],array());
-                            }else {
-                                $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],false);
-                            }
+                    if (!isset($countriesArray[$cities[$city][4]])) { 
+                        $ccs = $countries[$country_id][6];
+                        if ($ccs && count($ccs)>0) {
+                            $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],array());
                         }
-                        if ($countriesArray[$country_id][1]!==false) $countriesArray[$country_id][1][]=$cities[$city][$fieldIndex];
+                        else {
+                            $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],false);
+                        }
                     }
-                }
-                $i=0;
-                foreach ($countriesArray as $key => $value) {
-                    if ($i){
-                        $content.=' - ';
-                        $isMultiCountry = true;
-                    }
-                    $content.=$value[0];
-                    if ($value[1]!==false) $content.=' ('.implode ($comma, $value[1]).')';
-                    $i++;
-                }
-                
-                if ($content) {
-                    $section=$section.' '.$this->lang['in'].' '.$content;
-                    //$section='<a href="'.$this->urlRouter->getURL($countryId,0,$rootId,$ad['SECTION_ID'],$ad['PURPOSE_ID']).'">'.$section.'</a>';
-                }
-            }elseif(isset ($countries[$ad['COUNTRY_ID']])) {
-                $countryId=$ad['COUNTRY_ID']; //$this->urlRouter->countries[$ad['COUNTRY_ID']][0];
-                $countryCities=$countries[$countryId][6];/* $this->urlRouter->db->queryCacheResultSimpleArray("cities_{$countryId}",
-                     "select c.ID from city c
-                     where c.country_id={$countryId} and c.blocked=0",
-                     null, 0, $this->urlRouter->cfg['ttl_long']);*/
-                if (count($countryCities)>0 && isset($this->urlRouter->cities[$ad['CITY_ID']])){
-                    $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
-                    //$section='<a href="'.$this->urlRouter->getURL($countryId,$ad['CITY_ID'],$rootId,$ad['SECTION_ID'],$ad['PURPOSE_ID']).'">'.$section.'</a>';
-                }else {
-                    $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$this->fieldNameIndex];
-                    //$section='<a href="'.$this->urlRouter->getURL($countryId,0,$rootId,$ad['SECTION_ID'],$ad['PURPOSE_ID']).'">'.$section.'</a>';
+                    if ($countriesArray[$country_id][1]!==false) $countriesArray[$country_id][1][]=$cities[$city][$fieldIndex];
                 }
             }
-        //if($section) $section='<span class="sk">'.$section.'</span>';
-        if($section) {
-            if($this->isMobile){
+   
+            $i=0;
+            foreach ($countriesArray as $key => $value) {
+                if ($i) {
+                    $content.=' - ';
+                    $isMultiCountry = true;
+                }
+                $content.=$value[0];
+                if ($value[1]!==false) $content.=' ('.implode ($comma, $value[1]).')';
+                $i++;
+            }
+                
+            if ($content) {
+                $section=$section.' '.$this->lang['in'].' '.$content;
+            }
+        }
+        elseif(isset ($countries[$ad['COUNTRY_ID']])) {
+            $countryId=$ad['COUNTRY_ID']; 
+            $countryCities=$countries[$countryId][6];
+            if (count($countryCities)>0 && isset($this->urlRouter->cities[$ad['CITY_ID']])) {
+                $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
+            }
+            else {
+                $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$this->fieldNameIndex];
+            }
+        }
+
+        if ($section) {
+            if ($this->isMobile) {
                 $section='<b class="ah">'.$section.'</b>';
-            }else {
+            }
+            else {
                 $section='<span class="k">'.$section.' - <b>' . $this->formatSinceDate(strtotime($ad['LAST_UPDATE'])) . '</b></span>';
             }
         }
@@ -1122,15 +1094,13 @@ var rtMsgs={
     }
     
     
-    function pendingAds($state=0) 
-    {
+    function pendingAds($state=0) {
         $isAdmin = false;
         $isAdminOwner = false;
         $isSuperAdmin = $this->user->isSuperUser();
         $current_time = time();
         
-        if($this->user->info['level']==9) 
-        {
+        if ($this->user->info['level']==9) {
             $isAdmin = true;
             $mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
         }
@@ -1165,33 +1135,27 @@ var rtMsgs={
         if (!empty($ads))$count=count($ads);
         $this->user->update();
         
-        if ($count) 
-        {
-            
+        if ($count) {            
             $currentOffset = $this->get('o','uint');
             $hasPrevious=false;
             $hasNext=false;
             $recNum=50;
             
-            if(is_numeric($currentOffset) && $currentOffset)
-            {
+            if (is_numeric($currentOffset) && $currentOffset) {
                 $hasPrevious = true;
             }
             
-            if($count==51)
-            {
+            if ($count==51) {
                 $hasNext=true;
                 $count=50;
             }
             
-            $allCounts = $this->user->getPendingAdsCount($state);
-            
+            $allCounts = $this->user->getPendingAdsCount($state);            
             $renderAssignedAdsOnly = false;
         
             ?><p class="ph phb"><?php
             
-            switch ($state)
-            {
+            switch ($state) {
                 case 8:
                     ?><?= $this->lang['ads_deleted'].($allCounts ? ' ('.$allCounts.')':'').' '.$this->renderUserTypeSelector() ?></p><div class="fl"><p class="phc"><?php
                     break;
@@ -1201,8 +1165,7 @@ var rtMsgs={
                 
                 case 7:                    
                     $this->userBalance = $this->user->getStatement(0, 0, true);
-                    if(isset($this->userBalance['balance']))
-                    {
+                    if (isset($this->userBalance['balance'])) {
                         $this->userBalance = $this->userBalance['balance'];
                     }
                     ?><?= $this->lang['ads_active'].($allCounts ? ' ('.$allCounts.')':'').' '.$this->renderUserTypeSelector() ?></p><div class="fl"><p class="phc"><?= $this->lang['ads_active_desc'] ?><?php
@@ -1221,10 +1184,10 @@ var rtMsgs={
             }
             ?></p><?php
             $isAdminProfiling = (boolean)($this->get('a') && $this->user->info['level']==9);
-            if($isAdminProfiling){
+            if ($isAdminProfiling) {
                 $renderAssignedAdsOnly = false;
             }
-            if(!$isAdminProfiling && $this->user->info['level']==9 && in_array($state,[1,2,3])){
+            if (!$isAdminProfiling && $this->user->info['level']==9 && in_array($state,[1,2,3])) {
                 $this->globalScript.='
                     var SETN={
                     ';
@@ -1250,11 +1213,11 @@ var rtMsgs={
                     var ROTN={
                     ';
                 $rdx=0;
-                foreach ($this->urlRouter->cfg['smart_root_fix'] as $SID => $switches){  
+                foreach ($this->urlRouter->cfg['smart_root_fix'] as $SID => $switches) {
                     if($rdx++>0)$this->globalScript.=',';
                     $this->globalScript.=$SID.':[';
                     $pdx=0;
-                    foreach ($switches as $switch){
+                    foreach ($switches as $switch) {
                         if($pdx++>0)$this->globalScript.=',';
                         $this->globalScript.='['.$switch[0].','.$switch[1].','.$switch[2].',"'.$switch[$lnIndex].'"]';
                     }
@@ -1264,18 +1227,16 @@ var rtMsgs={
                     };
                 ';
                 
-                
-                
-                
+                                                
                 $this->globalScript.='
                     var ROPU={
                     ';
                 $rdx=0;
-                foreach ($this->urlRouter->pageRoots as $Rid => $root){  
+                foreach ($this->urlRouter->pageRoots as $Rid => $root) {  
                     if($rdx++>0)$this->globalScript.=',';
                     $this->globalScript.=$Rid.':[';
                     $pdx=0;
-                    foreach ($root['purposes'] as $Pid => $pu){
+                    foreach ($root['purposes'] as $Pid => $pu) {
                         if($Pid != 999){
                             if($pdx++>0)$this->globalScript.=',';
                             $this->globalScript.='['.$Pid.',"'.$pu['name'].'"]';
@@ -1292,8 +1253,7 @@ var rtMsgs={
                  
             }
             
-            if ($state==7) 
-            {
+            if ($state==7) {
                 if ($this->urlRouter->cfg['enabled_charts'] && !$isAdminProfiling) {                    
                     ?><div class="stin <?= $this->urlRouter->siteLanguage ?>"></div><?php                    
                     $this->renderEditorsBox($state);
@@ -1305,7 +1265,8 @@ var rtMsgs={
                     $this->renderEditorsBox($state);
                     ?></div><?php
                 }
-            } else {
+            } 
+            else {
                 $this->renderEditorsBox($state);
                 ?></div><?php
             }
@@ -1316,8 +1277,7 @@ var rtMsgs={
             $linkLang=  $this->urlRouter->siteLanguage == 'ar' ? '':$this->urlRouter->siteLanguage.'/';
             
             $displayIdx = 0;
-            for ($i=0; $i<$count; $i++) 
-            {
+            for ($i=0; $i<$count; $i++) {
                 $phoneValidErr=false;
                 $link='';
                 $altlink='';
@@ -1325,34 +1285,28 @@ var rtMsgs={
                 $liClass='';
                 $textClass='en';
                     
-                if($isAdmin){
+                if ($isAdmin) {
                     $isAdminOwner = ($ad['WEB_USER_ID'] == $this->user->info['id'] ? true : false );
                 }
                 
                 $assignedAdmin = '';
-                if($isAdmin && $renderAssignedAdsOnly && !$isAdminOwner){
+                if ($isAdmin && $renderAssignedAdsOnly && !$isAdminOwner) {
                     $assignedAdmin = $this->assignAdToAdmin($ad['ID'], $this->user->info['id']);
-                    if(!$isSuperAdmin && $assignedAdmin && $assignedAdmin != $this->user->info['id']){
+                    if (!$isSuperAdmin && $assignedAdmin && $assignedAdmin != $this->user->info['id']) {
                         continue;
                     } 
-                    if($isSuperAdmin && $assignedAdmin){
+                    if ($isSuperAdmin && $assignedAdmin) {
                         $assignedAdmin = '<span class="fl" style="padding:0 5px;">'.$this->editors[$assignedAdmin].'</span>';
-                    }else{
+                    }
+                    else {
                         $assignedAdmin = '';
                     }
                     $displayIdx++;
-                    //if($displayIdx > 50){
-                    //    break;
-                    //}
-                }/*elseif ($isSuperAdmin){
-                    $assignedAdmin = $this->getAssignedAdmin($ad['ID']);
-                    if($assignedAdmin){
-                        $assignedAdmin = '<span class="fl" style="padding:0 5px;background-color:salmon">'.$this->editors[$assignedAdmin].'</span>';
-                    }
-                }*/
+                }
                 if ($ad['RTL']) {
                     $textClass='ar';
-                }else {
+                }
+                else {
                     //$liClass.='pen ';
                 }
                 $content=json_decode($ad['CONTENT'],true);  
@@ -1363,10 +1317,9 @@ var rtMsgs={
                 if (!$isFeatureBooked && ($ad['STATE']==4 || (isset($content['budget']) && $content['budget']>0) )) {
                     $isFeatureBooked = true;
                 }
-                                 
-                
-                if(!isset($content['ro']))$content['ro']=0;
-                if($ad['SECTION_ID']>0){
+                                                 
+                if (!isset($content['ro'])) { $content['ro']=0; }
+                if ($ad['SECTION_ID']>0) {
                     $content['ro']=$this->urlRouter->sections[$ad['SECTION_ID']][4];
                     $content['se']=$ad['SECTION_ID'];
                 }
@@ -1374,7 +1327,7 @@ var rtMsgs={
                 $text='';
                 $text = isset($content['text']) && trim($content['text']) ? $content['text'] : (isset($content['other'])?$content['other']:'');
                 $altText='';
-                if(isset($content['extra']['t']) && $content['extra']['t']!=2 && isset($content['altother']) && $content['altother']){
+                if (isset($content['extra']['t']) && $content['extra']['t']!=2 && isset($content['altother']) && $content['altother']) {
                     $altText=$content['altother'];
                 }
                     
@@ -1388,34 +1341,28 @@ var rtMsgs={
                     $images='';
                     if (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])) {
                         foreach($content['pics'] as $img => $dim){
-                            if($images){
-                                $images.="||";
-                            }
+                            if ($images) { $images.="||"; }
                             $images.='<img width=\"118\" src=\"'.$this->urlRouter->cfg['url_ad_img'].'/repos/s/' . $img . '\" />';
                             $thumbs .= '<span class="ig"></span>';
                             $hasAdminImgs = 1;
                         }
                     }
                     if (isset($content['video']) && $content['video'] && count($content['video'])) {
-                        if($images){
-                            $images.="||";
-                        }
+                        if ($images) { $images.="||"; }
                         $vid = $content['video'][2];
-                        //$this->globalScript.='sic[' . $ad['ID'] . ']="<img width=\"120\" height=\"93\" src=\"' . $vid . '\" /><span class=\"play\"></span>";';
                         $images .='<img width=\"118\" height=\"93\" src=\"' . $vid . '\" /><span class=\"play\"></span>';
                         $thumbs .= '<span class="ig"></span>';
                         $hasAdminImgs = 1;
                     }
                     
-                    if($images){
-                        $images.="||";
-                    }
+                    if ($images) { $images.="||"; }
                     $images.='<img class=\"ir\" src=\"'.$this->urlRouter->cfg['url_img'].'/90/' . $ad['SECTION_ID'] . $this->urlRouter->_png .'\" />';
                     $pic = '<span class="ig"></span>';
                     
                     $this->globalScript.='sic[' . $ad['ID'] . ']="'.$images.'";';
                     
-                }else{                                   
+                }
+                else {
                     if (isset($content['video']) && $content['video'] && count($content['video'])) {
                         if (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])) {
                             $picCount='<span class=\"cnt\">'.count($content['pics']).'<span class=\"i sp\"></span></span>';
@@ -1423,12 +1370,14 @@ var rtMsgs={
                         $pic = $content['video'][2];
                         $this->globalScript.='sic[' . $ad['ID'] . ']="<img width=\"120\" height=\"93\" src=\"' . $pic . '\" /><span class=\"play\"></span>'.$picCount.'";';
                         $pic = '<span class="ig"></span>';
-                    } elseif (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])>0) {
+                    } 
+                    elseif (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])>0) {
                         $picCount=count($content['pics']);
                         $pic = isset($content['pic_def']) ? $content['pic_def'] : array_keys($content['pics'])[0];
                         $this->globalScript.='sic[' . $ad['ID'] . ']="<img width=\"120\" src=\"'.$this->urlRouter->cfg['url_ad_img'].'/repos/s/' . $pic . '\" /><span class=\"cnt\">'.$picCount.'<span class=\"i sp\"></span></span>";';
                         $pic = '<span class="ig"></span>';
-                    } else {
+                    } 
+                    else {
                         $this->globalScript.='sic[' . $ad['ID'] . ']="<img class=\"ir\" src=\"'.$this->urlRouter->cfg['url_img'].'/90/' . $ad['SECTION_ID'] .$this->urlRouter->_png. '\" />";';
                         $pic = '<span class="ig"></span>';
                     }
@@ -1436,10 +1385,9 @@ var rtMsgs={
                 
                 
                 $onlySuper = ($isAdmin && isset($ad['SUPER_ADMIN']) && $ad['SUPER_ADMIN']) ? $ad['SUPER_ADMIN']+0 : 0;
-                if($onlySuper){
-                    if($onlySuper && $onlySuper < 1000){
-                        
-                        switch($onlySuper){
+                if ($onlySuper) {
+                    if ($onlySuper && $onlySuper < 1000) {                        
+                        switch($onlySuper) {
                             case 998:
                                 $onlySuper = "email contains + sign";
                                 break;
@@ -1463,10 +1411,12 @@ var rtMsgs={
                                 break;
                         }
                         
-                    }else{
-                        if(isset($this->editors[$onlySuper])){
+                    }
+                    else {
+                        if (isset($this->editors[$onlySuper])) {
                             $onlySuper = "requested by ".$this->editors[$onlySuper];
-                        }else{
+                        }
+                        else {
                             $onlySuper = "requested by user #".$onlySuper."#";
                         }
                     }
@@ -1543,26 +1493,7 @@ var rtMsgs={
                                 }
                             }
                         }
-                    }/*else{
-                        
-                        if (isset($content['video']) && $content['video'] && count($content['video'])) {
-                            $picCount='';
-                            if (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])) {
-                                $picCount='<span class=\"cnt\">'.count($content['pics']).'<span class=\"i sp\"></span></span>';
-                            }
-                            $pic = $content['video'][2];
-                            $this->globalScript.='sic[' . $ad['ID'] . ']="<img width=\"120\" height=\"93\" src=\"' . $pic . '\" /><span class=\"play\"></span>'.$picCount.'";';
-                            $pic = '<span class="ig"></span>';
-                        } elseif (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])) {
-                            $picCount=count($content['pics']);
-                            $pic = $content['pic_def'];
-                            $this->globalScript.='sic[' . $ad['ID'] . ']="<img width=\"120\" src=\"'.$this->urlRouter->cfg['url_ad_img'].'/repos/d/' . $pic . '\" /><span class=\"cnt\">'.$picCount.'<span class=\"i sp\"></span></span>";';
-                            $pic = '<span class="ig"></span>';
-                        } else {
-                            $this->globalScript.='sic[' . $ad['ID'] . ']="<img class=\"ir\" src=\"'.$this->urlRouter->cfg['url_img'].'/90/' . $ad['SECTION_ID'] . '.png\" />";';
-                            $pic = '<span class="ig"></span>';
-                        }
-                    }*/
+                    }
                         
                     $name=$ad['WEB_USER_ID'].'#'.($ad['FULL_NAME']?$ad['FULL_NAME']:$ad['DISPLAY_NAME']);
                     $style='';
@@ -1620,8 +1551,7 @@ var rtMsgs={
                 }
                     
 
-                if ($state==7) 
-                {
+                if ($state==7) {
                     $liClass.='atv';
                     $link=($ad['RTL']?'/':'/en/').$ad['ID'].'/';
                     if($altText) $altlink='/en/'.$ad['ID'].'/';                        
@@ -1708,232 +1638,137 @@ var rtMsgs={
                 $isMultiCountry = false;
                 ?>><?=  $this->getAdSection($ad, $content['ro'],$isMultiCountry).($state>6?'<a class="com" href="'.$link.'#disqus_thread" data-disqus-identifier="'.$ad['ID'].'" rel="nofollow"></a>':'') ?></div><?php
             
-                //$isSuspended = isset($this->user->info['options']['suspend']) && ($this->user->info['options']['suspend']>time());
                 $isSuspended = $this->user->getProfile() ? $this->user->getProfile()->isSuspended() : FALSE;
                 if (!$this->user->getProfile())
                 {
                     error_log("this->user->data is null for user: ".$this->user->info['id'] . ' at line '.__LINE__);
                 }
-                //var_dump("Suspemded ".$isSuspended); 
-                //var_dump($this->user->data->getOptions());
                 
                 $isSystemAd = (isset($ad['DOC_ID']) && $ad['DOC_ID']) ? true : false;
                         
                 ?><div class='oc'><?php
-                if ($state<7) 
-                {                                        
-                    if(!$isSystemAd)
-                    {
-                        //if($this->user->info['level']==9) {
-                            if(!$isSuspended) {
-                                ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$ad['ID'] : '') ?>" method="post"><?php
-                                ?><input type="hidden" name="ad" value="<?= $ad['ID'] ?>" /><?php
-                                /*?><input type="submit" class="lnk" value="<?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?>" /><?php */
-                                ?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></span><?php
-                                ?></form><?php
-                            }
-                        //}
+                if ($state<7) {                                        
+                    if(!$isSystemAd) {
+                        if(!$isSuspended) {
+                            ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$ad['ID'] : '') ?>" method="post"><?php
+                            ?><input type="hidden" name="ad" value="<?= $ad['ID'] ?>" /><?php
+                            ?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></span><?php
+                            ?></form><?php
+                        }
                     }
-                    /*?><input type="button" class="lnk" onclick="adel(this)" value="<?= $this->lang['delete'] ?>" /><?php*/
                     if(!$isSystemAd && (!$isAdmin || ($isAdmin && $isAdminOwner))){
                         ?><span class="lnk" onclick="adel(this)"><span class="rj del"></span><?= $this->lang['delete'] ?></span><?php
                     }
                 }
-                elseif($state==7)
-                {
-                    /*?><input type="button" class="lnk" onclick="ahld(this)" value="<?= $this->lang['hold'] ?>" /><?php*/
+                elseif ($state==7) {
                     $ad_hold=0;
-                    if(isset($this->user->params['hold']) && $this->user->params['hold']==$ad['ID'])
-                    {
-                        if($this->user->holdAd($ad['ID']))
-                        {
+                    if (isset($this->user->params['hold']) && $this->user->params['hold']==$ad['ID']) {
+                        if ($this->user->holdAd($ad['ID'])) {
                             $ad_hold=1;
                             ?><b class="anb"><span class="done"></span><?= $this->lang['retired'] ?></b><?php
                         }
                     }
                     
-                    if(!$ad_hold)
-                    {
-                        if ((!$isAdmin || ($isAdmin && $isAdminOwner)) && (!$isFeatured || !$isFeatureBooked))
-                        {
+                    if (!$ad_hold) {
+                        if ((!$isAdmin || ($isAdmin && $isAdminOwner)) && (!$isFeatured || !$isFeatureBooked)) {
                             ?><span class="lnk" onclick="<?= $isMultiCountry ? 'mCPrem()' : ($this->userBalance ? 'askPremium(this)':'noPremium()') ?>"><span class="mc24"></span><?= $this->lang['make_premium'] ?></span><?php                                    
                         }
-                        if ((!$isAdmin || ($isAdmin && $isAdminOwner)) && $isFeatureBooked){
+                        if ((!$isAdmin || ($isAdmin && $isAdminOwner)) && $isFeatureBooked) {
                             ?><span class="lnk" onclick="cancelPremium(this)"><span class="mc24"></span><?= $this->lang['stop_premium_bt'] ?></span><?php                                    
-                        }
-                        
-                        if(!$isSystemAd && (!$isAdmin || ($isAdmin && !$isFeatured && !$isFeatureBooked) || ($isAdmin && $isAdminOwner))){
+                        }                        
+                        if (!$isSystemAd && (!$isAdmin || ($isAdmin && !$isFeatured && !$isFeatureBooked) || ($isAdmin && $isAdminOwner))) {
                             ?><span class="lnk" onclick="ahld(this)"><span class="rj hod"></span><?= $this->lang['hold'] ?></span><?php                                    
                         }
-                        if(!$isSystemAd){
+                        if (!$isSystemAd) {
                             ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$ad['ID'] : '') ?>" method="post"><?php
                             ?><input type="hidden" name="adr" value="<?= $ad['ID'] ?>" /><?php
                             /*?><input type="submit" class="lnk" value="<?= $this->lang['edit_republish'] ?>" /><?php*/
                             ?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $this->lang['edit_ad'] ?></span><?php
                             ?></form><?php 
                         }
-                        if($this->urlRouter->cfg['enabled_ad_stats'] && !$isAdminProfiling){
+                        if ($this->urlRouter->cfg['enabled_ad_stats'] && !$isAdminProfiling) {
                             ?><span class="stad load"></span><?php
                         }
-                    }
-                            
-                }elseif($state==9){
-                    if(!$isSystemAd){
-                        //if($this->user->info['level']==9) {
-                            if(!$isSuspended) {
-                                ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$ad['ID'] : '') ?>" method="post"><?php
-                                ?><input type="hidden" name="adr" value="<?= $ad['ID'] ?>" /><?php
-                                /*?><input type="submit" class="lnk" value="<?= $this->lang['edit_republish'] ?>" /><?php*/
-                                ?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $this->lang['edit_republish'] ?></span><?php
-                                ?></form><?php 
-                                if($this->isUserMobileVerified && isset($content['version']) && $content['version']==2) {
-                                    /* ?><input type="button" class="lnk" onclick="are(this)" value="<?= $this->lang['renew'] ?>" /><?php */
-                                    ?><span class="lnk" onclick="are(this)"><span class="rj ren"></span><?= $this->lang['renew'] ?></span><?php
-                                }
-                            }
-                        //}
-                    }
-                    /*?><input type="button" class="lnk" onclick="adel(this,1)" value="<?= $this->lang['delete'] ?>" /><?php*/
-                    if(!$isSystemAd && (!$isAdmin || ($isAdmin && $isAdminOwner))){
-                        ?><span class="lnk" onclick="adel(this,1)"><span class="rj del"></span><?= $this->lang['delete'] ?></span><?php 
-                    }
-                    if($this->urlRouter->cfg['enabled_ad_stats'] && !$isAdminProfiling){
-                        ?><span class="stad load"></span><?php
                     }                            
                 }
+                elseif ($state==9) {
+                    if (!$isSystemAd) {
+                        if (!$isSuspended) {
+                            ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$ad['ID'] : '') ?>" method="post"><?php
+                            ?><input type="hidden" name="adr" value="<?= $ad['ID'] ?>" /><?php
+                            ?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $this->lang['edit_republish'] ?></span><?php
+                            ?></form><?php 
+                            if($this->isUserMobileVerified && isset($content['version']) && $content['version']==2) {
+                                ?><span class="lnk" onclick="are(this)"><span class="rj ren"></span><?= $this->lang['renew'] ?></span><?php
+                            }
+                        }
+                    }
+                    if (!$isSystemAd && (!$isAdmin || ($isAdmin && $isAdminOwner))) {
+                        ?><span class="lnk" onclick="adel(this,1)"><span class="rj del"></span><?= $this->lang['delete'] ?></span><?php 
+                    }
+                    if ($this->urlRouter->cfg['enabled_ad_stats'] && !$isAdminProfiling) {
+                        ?><span class="stad load"></span><?php
+                    }
+                }
                         
-                if($this->user->info['level']==9){
+                if ($this->user->info['level']==9) {
                     if ($ad['STATE']==2 && (!$isSystemAd || $isSuperAdmin)) {
                         ?><input type="button" class="lnk" onclick="rejF(this,<?= $ad['WEB_USER_ID'] ?>)" value="<?= $this->lang['reject'] ?>" /><?php
                         
-                        if($isSuperAdmin){
+                        if ($isSuperAdmin) {
                             ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?aid=<?= $ad['ID'] ?>&q="><?= $this->lang['similar'] ?></a><?php
                         }
                         $contactInfo=$this->getContactInfo($content);
-                        if(!$isSystemAd || $isSuperAdmin){
-                            if ($contactInfo) {                                    
+                        if (!$isSystemAd || $isSuperAdmin) {
+                            if ($contactInfo) {                        
                                 ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
                             }
                         }
-                    }else { 
-                        if($state>0 && $state<7){
-                            if(!$isSystemAd || $isSuperAdmin){         
+                    }
+                    else { 
+                        if ($state>0 && $state<7) {
+                            if (!$isSystemAd || $isSuperAdmin) {         
                                 ?><span class="lnk" onclick="app(this)"><?= $this->lang['approve'] ?></span><?php
+                                if ($isSuperAdmin) {
+                                    ?><span class="lnk" onclick="rtp(this)">RTP</span><?php
+                                }
                                 ?><span class="lnk" onclick="rejF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['reject'] ?></span><?php 
-                            }           
-                            if(!$isSuperAdmin && !$onlySuper && !$isSystemAd){
-                                ?><span class="lnk" onclick="help(this)"><?= $this->lang['ask_help'] ?></span><?php
                             }
-                            
-                            if($isSuperAdmin && $ad['USER_RANK'] < 2){
+                            if (!$isSuperAdmin && !$onlySuper && !$isSystemAd) {
+                                ?><span class="lnk" onclick="help(this)"><?= $this->lang['ask_help'] ?></span><?php
+                            }                            
+                            if ($isSuperAdmin && $ad['USER_RANK'] < 2) {
                                 ?><span class="lnk" onclick="banF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['block'] ?></span><?php 
                             }
-                            if(!$isSystemAd){
-                                if($ad['USER_RANK'] < 3){
+                            if (!$isSystemAd) {
+                                if ($ad['USER_RANK'] < 3) {
                                     ?><span class="lnk" onclick="suspF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['suspend'] ?></span><?php
                                 }
                             }
-                            if($isSuperAdmin && $filters['uid']==0){
+                            if ($isSuperAdmin && $filters['uid']==0) {
                                 ?><a class="lnk" href="/myads/<?= $this->urlRouter->siteLanguage=='ar'?'':'en/' ?>?sub=pending&fuid=<?= $ad['WEB_USER_ID'] ?>"><?= $this->lang['user_type_option_1'] ?></a><?php
                             }
                             
-                            $contactInfo=$this->getContactInfo($content);
-                            /*if(isset($content['cui'])) {
-                                if(isset($content['cui']['p'])){ 
-                                    $phone=$content['cui']['p'];
-                                    if(count($phone)){
-                                        foreach ($phone as $p){
-                                            if($contactInfo) $contactInfo.='|';
-                                            $contactInfo.=urlencode('"'.substr($p['v'],1).'"');
-                                        }
-                                    }
-                                }
-
-                                if(isset($content['cui']['e']) && $content['cui']['e']){
-                                    if($contactInfo) $contactInfo.='|';
-                                    $contactInfo.=urlencode('"'.$content['cui']['e'].'"');
-                                }
-                                if(isset($content['cui']['b']) && $content['cui']['b']){
-                                    if($contactInfo) $contactInfo.='|';
-                                    $contactInfo.=urlencode('"'.$content['cui']['b'].'"');
-                                }
-                                if(isset($content['cui']['t']) && $content['cui']['t']){
-                                    if($contactInfo) $contactInfo.='|';
-                                    $contactInfo.=urlencode('"'.$content['cui']['t'].'"');
-                                }
-                                if(isset($content['cui']['s']) && $content['cui']['s']){
-                                    if($contactInfo) $contactInfo.='|';
-                                    $contactInfo.=urlencode('"'.$content['cui']['s'].'"');
-                                }
-                            }*/
-                            if($isSuperAdmin){
+                            $contactInfo=$this->getContactInfo($content);                          
+                            if ($isSuperAdmin) {
                                 ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?aid=<?= $ad['ID'] ?>&q="><?= $this->lang['similar'] ?></a><?php
                             }
-                            if(!$isSystemAd || $isSuperAdmin){
-                                if ($contactInfo) {                                    
+                            if (!$isSystemAd || $isSuperAdmin) {
+                                if ($contactInfo) {                        
                                     ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->urlRouter->siteLanguage=='ar'?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
                                 }
-                            }
-                            
+                            }                            
                         }
                     }
-                }
-                
-                ?></div><?php   
-                        
-                if(0 && $this->user->info['level']==9 && $state<7)
-                {
-                            
-                    if (!in_array($ad['SECTION_ID'],array(19,29,63,105,114))) 
-                    {
-                        $section=$this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex].' - ';
-                        $section.=$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex];
-                        if ($link) echo '<div class="ccm"><span class="k">'.$this->getAdSection($ad, $content['ro']).'</span><a class="com" href="'.$link.'#disqus_thread" data-disqus-identifier="'.$ad['ID'].'" rel="nofollow"></a></div>';
-                        else echo '<span class="k">'.$this->getAdSection($ad, $content['ro']).'</span>';
-                        
-                        if ($this->urlRouter->sections[$ad['SECTION_ID']][3]==''){
-                            ?><div class="secE"><?php
-                            ?><label>Plural AR&nbsp;&nbsp;&nbsp;&nbsp;:</label><?php
-                            ?><input type="text" class="ar rc" value="<?= $this->urlRouter->sections[$ad['SECTION_ID']][1] ?>" /><?php
-                            ?><label>Plural EN&nbsp;&nbsp;&nbsp;&nbsp;:</label><?php
-                            ?><input type="text" class="en rc" value="<?= $this->urlRouter->sections[$ad['SECTION_ID']][2] ?>" /><?php
-                            ?><br /><label>Singluar AR:</label><?php
-                            ?><input type="text" class="ar rc" value="" /><?php
-                            ?><label>Singular EN:</label><?php
-                            ?><input type="text" class="en rc" value="" /><?php
-                            ?><br /><label>URI:</label><?php
-                            ?><input type="text" class="en rc" value="<?= $this->urlRouter->sections[$ad['SECTION_ID']][3] ?>" /><?php
-                            ?><input type="button" onclick="upsec(<?= $this->urlRouter->sections[$ad['SECTION_ID']][0] ?>,this)" class="bt rc" value="Save" /><?php
-                            ?><input type="button" onclick="dsec(<?= $this->urlRouter->sections[$ad['SECTION_ID']][0] ?>,this)" class="bt rc" value="Delete" /><?php
-                            ?></div><?php
-                        }
-                    } else {
-                        ?><span class='nb k'>Please edit ad to replace deleted category</span><?php
-                    }
-
-                    if (isset($content['ip'])|| isset($content['userLOC'])||isset($content['agent'])){
-                        ?><div class='sum'><?php
-                        if(isset($content['ip'])) {
-                            ?><p class="en"><label><b>IP:</b></label> <?= $content['ip'] ?></p><?php
-                        }
-                        if(isset($content['userLOC'])) {
-                            ?><p class="en"><label><b>GEO:</b></label> <?= $content['userLOC'] ?></p><?php
-                        }
-                        if(isset($content['agent'])) {
-                            ?><p class="en"><label><b>User Agent:</b></label> <?= $content['agent'] ?></p><?php
-                        }
-                        ?></div><?php
-                    }
-                }
-                
+                }                
+                ?></div><?php                                        
                 ?></li><?php
-
                 $idx++;
             }
             
             ?></ul><?php 
             
-            if($state == 7){
+            if ($state==7) {
                 if($this->userBalance){
                     ?><div id="make_premium" class="dialog premium"><?php
                             ?><div class="dialog-title"><?= $this->lang['balance'].': '.$this->userBalance ?> <span class='mc24'></span></div><?php
@@ -2157,9 +1992,9 @@ var rtMsgs={
             $type = 0;
             if (isset($_GET['u']) && is_numeric($_GET['u']) && $_GET['u']) {
                 $userId = $_GET['u'];
-                $type = \Core\Model\NoSQL::getInstance()->getUserPublisherStatus($userId); //$this->user->getType($userId);
+                $type = \Core\Model\NoSQL::getInstance()->getUserPublisherStatus($userId); 
             }
-            $user = new MCUser($userId); //(MCSessionHandler::getUser($userId));
+            $user = new MCUser($userId);
             if ($user->isSuspended()) {
                 $time = MCSessionHandler::checkSuspendedMobile($user->getMobileNumber());
                 $hours=0;
@@ -2214,7 +2049,6 @@ var rtMsgs={
             echo '<span class="fl">'.$this->lang['user_type_label'].': <select onchange="setUT(this,'.$userId.')"><option value="0">'.$this->lang['user_type_option_0'].'</option><option value="1"'.($type == 1 ? ' selected':'').'>'.$this->lang['user_type_option_1'].'</option><option value="2"'.($type == 2 ? ' selected':'').'>'.$this->lang['user_type_option_2'].'</option></select></span>';            
         }
     }
-    
     
 }
             
