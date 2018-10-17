@@ -1730,7 +1730,7 @@ var rtMsgs={
                             if (!$isSystemAd || $isSuperAdmin) {         
                                 ?><span class="lnk" onclick="app(this)"><?= $this->lang['approve'] ?></span><?php
                                 if ($isSuperAdmin) {
-                                    ?><span class="lnk" onclick="rtp(this)">RTP</span><?php                                    
+                                    ?><span class="lnk" onclick="rtp(this,)">RTP</span><?php                                    
                                 }
                                 ?><span class="lnk" onclick="rejF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['reject'] ?></span><?php 
                             }
@@ -1818,6 +1818,13 @@ var rtMsgs={
                     ?><div class="dialog-box"><?= $this->lang['delete_ad'] ?></div><?php 
                     ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= ucfirst($this->lang['delete']) ?>" /></div><?php 
                 ?></div><?php
+                
+            if ($isSuperAdmin) { 
+                ?><div id="rtp_dialog" class="dialog"><?php
+                    ?><div class="dialog-box ctr"><input type="button" class="approve bt" value="<?= ucfirst($this->lang['approve']) ?>" /></div><?php 
+                    ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= ucfirst($this->lang['reject']) ?>" /></div><?php 
+                ?></div><?php
+            }    
             
             if($hasNext || $hasPrevious){
                 ?><div class="mav"><?php 

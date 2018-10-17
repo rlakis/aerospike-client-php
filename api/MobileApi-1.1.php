@@ -3818,7 +3818,7 @@ class MobileApi {
             $uid = $this->getUID();
             $this->result['d']['imgs']=[];
             
-            $q = 'select distinct x.id, x.filename from ad_user a
+            $q = 'select distinct x.id, x.filename, x.width, x.height from ad_user a
 left join ad_media m on m.ad_id=a.id
 left join media x on x.id=m.media_id
 where a.web_user_id=? and a.state!=6 and a.state!=8 and x.id>0';
@@ -3827,7 +3827,7 @@ where a.web_user_id=? and a.state!=6 and a.state!=8 and x.id>0';
             
             if($images !== false && is_array($images) && $count = count($images)){
                 for($i = 0; $i < $count; $i++){
-                    $this->result['d']['imgs'][] = $images[$i][0].'#mourjan'.$images[$i][1];
+                    $this->result['d']['imgs'][] = $images[$i][0].'|'.$images[$i][2].'|'.$images[$i][3].'#mourjan'.$images[$i][1];
                 }
             }
         }

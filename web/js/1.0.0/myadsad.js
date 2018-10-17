@@ -161,13 +161,17 @@ function help(e){
         });
     }
 }
-function app(e){
+function app(e,rtp){
     var d=mask(e);
     var i=e.parentNode.parentNode.id;
+    var dt = {i:i};
+    if(typeof rtp !== 'undefined'){
+        dt['rtp'] = rtp;
+    }
     $.ajax({
         type:"POST",
         url:"/ajax-approve/",
-        data:{i:i},
+        data:dt,
         dataType:"json",
         success:function(rp){
             if (rp.RP) {
@@ -183,25 +187,15 @@ function app(e){
     })
 }
 function rtp(e){
-    var d=mask(e);
-    var i=e.parentNode.parentNode.id;
-    $.ajax({
-        type:"POST",
-        url:"/ajax-approve/",
-        data:{i:i,rtp:1},
-        dataType:"json",
-        success:function(rp){
-            if (rp.RP) {
-                d.removeClass("load");
-                d.html('Approved with RTP');
-            }else {
-                d.remove()
-            }
-        },
-        error:function(){
-            d.remove()
-        }
-    })    
+    Dialog.show('rtp_dialog',null, function(){
+        app(e,2);
+    });
+    var dg = $('#rtp_dialog');
+    var ap = $('.approve', dg);
+    ap.click(function(x){
+        app(e,1);
+        Dialog.hide();
+    });
 }
 function rejF(e,usr){
     var di=e.parentNode.parentNode;

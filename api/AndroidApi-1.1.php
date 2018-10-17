@@ -924,20 +924,33 @@ class AndroidApi
                                 if(isset($ad['pics']) && is_array($ad['pics']) && count($ad['pics'])){
                                     $keys = array_keys($ad['pics']);
                                     $filenames = '';
+                                    $needFixing = false;
                                     foreach($ad['pics'] as $key => $values){
+                                        if($values[0] == 0 || $values[1] == 0){
+                                            $needFixing = true;
+                                        }
                                         if($filenames!=''){
                                             $filenames.=',';
                                         }
                                         $filenames .= "'{$key}'";
                                     }
 
-                                    $records = $this->api->db->queryResultArray("select id from media where filename in ({$filenames})", null, false);
+                                    $records = $this->api->db->queryResultArray("select * from media where filename in ({$filenames})", null, false);
 
                                     if($records !== false){
                                         $mediaIds = [];
                                         if($records && is_array($records)){
                                             foreach ($records as $media){
                                                 $mediaIds[] = $media['ID'];
+                                                
+                                                if($needFixing){
+                                                    foreach($ad['pics'] as $key => $values){
+                                                        if($key == $media['FILENAME']){
+                                                            $ad['pics'][$key] = [$media['WIDTH'], $media['HEIGHT']];
+                                                            break;
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
 
