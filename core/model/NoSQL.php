@@ -207,8 +207,7 @@ class NoSQL {
         }
         return intval($metadata['generation'])?intval($metadata['generation']):1; 
     }
-    
-    
+        
     
     private function logError($fnc, $obj, $bins=NULL) {
         error_log( "Error {$fnc} [{$this->getConnection()->errorno()}] {$this->getConnection()->error()}".PHP_EOL. var_export($obj, TRUE).(($bins)?PHP_EOL.json_encode($bins):''));

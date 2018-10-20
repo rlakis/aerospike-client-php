@@ -485,7 +485,30 @@ trait EdigearTrait {
         return FALSE;
     }
 
+    
+    public function sendEdigearRTPRequest($to, int $uid, int $activated_number, array &$bins) : bool {
+        $req = Berysoft\Edigear::createRTPRequest($this->getEdigearPlatform())
+                    ->setSender("mourjan")
+                    ->setRefrence($activated_number)
+                    ->setUUID($uid)
+                    ->setPhoneNumber(intval($to));
+        
+        $res = $this->getEdigearClient()->getInstance()->send($req);
+        
+        $status = $res['status'];
 
+        if ($status==200 && isset($res['data'])) {
+            error_log(json_encode($res['data']));
+            $bins[ASD\USER_MOBILE_DATE_REQUESTED]=time();
+            $bins[ASD\USER_MOBILE_REQUEST_ID] = $res['data']['id'];
+            $bins[ASD\USER_MOBILE_ACTIVATION_CODE] = $res['data']['code'];
+            $bins["to"] = $res['data']['to'];
+            return TRUE;
+        }
+        return FALSE;
+    }
+
+    
     public function verifyEdigearPin(string $id, int $pin) : array {
         //$status = 400;
         $response = ["number"=>NULL, "validated"=>false, "validation_date"=>NULL, "charged_amount"=>0];

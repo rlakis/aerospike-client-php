@@ -169,7 +169,8 @@ trait MobileTrait {
         // check the status of the last operation
         if ($status == \Aerospike::ERR_SCAN_ABORTED) {
             echo "I think a sample of $i records is enough\n";
-        } else if ($status !== \Aerospike::OK) {
+        } 
+        else if ($status !== \Aerospike::OK) {
             echo "An error occured while scanning[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}\n";
         }
         
@@ -191,8 +192,7 @@ trait MobileTrait {
         printf($bound_mask, '--------', '---------', '------------------', '------', '---------', '------------', '-----------', '---------------------', '---------------------','---------------------------------');
         $row_count=0;
         foreach ($result as $record) {
-            switch ($record['flag']) 
-            {
+            switch ($record['flag']) {
                 case 0:
                     $flag = 'Android';
                     break;
@@ -210,25 +210,22 @@ trait MobileTrait {
                     break;
             }
             $date_requested = \DateTime::createFromFormat("U", $record['date_requested'])->format('Y-m-d H:i:s');
-            if (isset($record['date_activated']))
-            {
+            if (isset($record['date_activated'])) {
                 $date_activated = \DateTime::createFromFormat("U", $record['date_activated'])->format('Y-m-d H:i:s');
             } 
-            else
-            {
+            else {
                 $date_activated = '';
             }                
             
             printf($mask, $record[SET_RECORD_ID], $record['uid'], $record['number'], $record['code'], $flag, $record['sms_count'], $record['delivered']?'Yes':'No', $date_requested, $date_activated, isset($record[USER_MOBILE_SECRET])?$record[USER_MOBILE_SECRET]:'');
-            if (isset($dups[ $record['id'] ]))
-            {
+            if (isset($dups[ $record['id'] ])) {
                 $dups[ $record['id'] ]++;
-            } else {
+            } 
+            else {
                 $dups[$record['id']]=1;
             }
             $row_count++;
-            if ($row_count>40)
-            {
+            if ($row_count>40) {
                 break;
             }
         }
@@ -236,10 +233,8 @@ trait MobileTrait {
         printf($bound_mask, '--------', '---------', '------------------', '------', '---------', '------------', '-----------', '---------------------', '---------------------','---------------------------------');
         echo count($result), " mobile records", "\n";
        
-        foreach ($dups as $id=>$value) 
-        {
-            if ($value>1)
-            {
+        foreach ($dups as $id=>$value) {
+            if ($value>1) {
                 echo $id, "\t", $value, "\n";
             }            
         }
@@ -375,14 +370,11 @@ trait MobileTrait {
     }
     
     
-    public function assignNewActicationCode(int $mobile_id, int $uid, int $number) : int
-    {
+    public function assignNewActicationCode(int $mobile_id, int $uid, int $number) : int {
         $keys = $this->getDigest(USER_MOBILE_NUMBER, $number, [USER_UID=>$uid, SET_RECORD_ID=>$mobile_id]);
-        if ($keys)
-        {
+        if ($keys) {
             $code = mt_rand(1000, 9999);
-            if ($this->setBins($keys[0], [USER_MOBILE_ACTIVATION_CODE=>$code]))
-            {
+            if ($this->setBins($keys[0], [USER_MOBILE_ACTIVATION_CODE=>$code])) {
                 return $code;
             }
         }
@@ -393,8 +385,7 @@ trait MobileTrait {
     public function mobileIncrSMS(int $uid, int $number) : bool {
         $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
         if ($this->exists($pk)) {
-            if ($this->getConnection()->increment($pk, USER_MOBILE_SENT_SMS_COUNT, 1, [\Aerospike::OPT_POLICY_KEY=>\Aerospike::POLICY_EXISTS_UPDATE])==\Aerospike::OK)
-            {
+            if ($this->getConnection()->increment($pk, USER_MOBILE_SENT_SMS_COUNT, 1, [\Aerospike::OPT_POLICY_KEY=>\Aerospike::POLICY_EXISTS_UPDATE])==\Aerospike::OK) {
                 return TRUE;
             }
             return FALSE;
@@ -408,8 +399,7 @@ trait MobileTrait {
     
     public function mobileIncrSMSByKey($pk) : bool {
         if ($this->exists($pk)) {
-            if ($this->getConnection()->increment($pk, USER_MOBILE_SENT_SMS_COUNT, 1, [\Aerospike::OPT_POLICY_KEY=>\Aerospike::POLICY_EXISTS_UPDATE])==\Aerospike::OK)
-            {
+            if ($this->getConnection()->increment($pk, USER_MOBILE_SENT_SMS_COUNT, 1, [\Aerospike::OPT_POLICY_KEY=>\Aerospike::POLICY_EXISTS_UPDATE])==\Aerospike::OK) {
                 return TRUE;
             }
             return FALSE;
@@ -451,5 +441,28 @@ trait MobileTrait {
         return !empty($keys);
     }
     
+    
+    public function mobileVerfiedRelatedNumber(int $number, &$record) : int {
+        $number = 9611489386;
+        $time = time() - (1 * 8760 * 3600); // one year ago
+        $where = \Aerospike::predicateEquals("reference", $number);
+        $status = $this->getConnection()->query(NS_EDIGEAR, "rtp", $where, 
+                function ($_record) use (&$record, &$time) {
+                    //error_log(var_export($_record['bins'], true));
+                    if (isset($_record['bins']['verified_date']) && $_record['bins']['verified_date']>=$time) {
+                        $record[]=$_record['bins'];           
+                    }
+                }, ["number", "uuid", "verified_date"]);
+                
+        if ($status!==\Aerospike::OK) {
+            \Core\Model\NoSQL::Log(['number'=>$number, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
+        }
+        
+        if (empty($record)) {
+            error_log(__FUNCTION__." {$number} not queried!");
+        }
+        
+        return $status;
+    }
 
 }

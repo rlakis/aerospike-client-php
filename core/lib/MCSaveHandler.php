@@ -409,21 +409,15 @@ class MCSaveHandler {
     
     public function getFromContentObject($ad_content, $extras=false) {
         
-        if (isset($ad_content['attrs'])) {
-            unset($ad_content['attrs']);
-        }
-        
-        if (!isset($ad_content['other'])) {
-            $ad_content['other']="";
-        }
-        
+        if (isset($ad_content['attrs'])) { unset($ad_content['attrs']); }        
+        if (!isset($ad_content['other'])) { $ad_content['other']=""; }        
         if (isset($ad_content['pics']) && empty($ad_content['pics'])) {
             $ad_content['pics'] = new stdClass();
         }
         if (isset($ad_content['pubTo']) && empty($ad_content['pubTo'])) {
             $ad_content['pubTo'] = new stdClass();
         }
-                      
+        
         $command = ['command'=>'normalize', 'json'=>json_encode($ad_content)];
         
         $res = $this->apiV1normalizer($command['json']);

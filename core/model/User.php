@@ -394,12 +394,7 @@ class User {
                                     \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>111,
                                     \Core\Model\ASD\USER_MOBILE_FLAG=>0,
                                     \Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED=>time(),
-                                    ]))
-                {
-                    //$this->db->get('insert into web_users_linked_mobile '
-                    //    . '(id, uid, mobile, code, delivered, sms_count, activation_timestamp, request_timestamp) '
-                    //    . 'values (?, ?, ?, 111, 1, 0, current_timestamp, current_timestamp)',
-                    //    [$mobile[Core\Model\ASD\SET_RECORD_ID], $uid, $number]);
+                                    ])) {                    
                 }
             }
             return $mobile;
@@ -920,7 +915,7 @@ class User {
     
     function approveAd($id) {
         $result=false;
-        $res=$this->db->get('update ad_user set state=2, admin_id=?, admin_stamp=current_timestamp where id=? returning state', [$this->info['id'], $id],true);
+        $res=$this->db->get('update ad_user set state=2, admin_id=?, admin_stamp=current_timestamp where id=? returning state', [$this->info['id'], $id], true);
         if (!empty($res)) {
             $result=true;
         }
@@ -2381,8 +2376,9 @@ class User {
                 $checkWatchMail=true;
             }
             
-            if (!isset($this->info['options']['lang'])) {
-                $this->info['options']['lang']=  $this->site->urlRouter->siteLanguage;
+            $ul = $this->info['options']['lang'] ?? '';
+            if ($ul!=$this->site->urlRouter->siteLanguage) {
+                $this->info['options']['lang'] = $this->site->urlRouter->siteLanguage;
                 $updateOptions=true;
             }            
             

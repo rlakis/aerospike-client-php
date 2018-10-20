@@ -333,14 +333,18 @@ class DB {
             }
             else {
                 error_log('CODE: '. $ex->getCode() . ' | '.$ex->getMessage() . PHP_EOL);
+                if ($stmt) {
+                    ob_start(); 
+                    $stmt->debugDumpParams();
+                    error_log(ob_get_clean());
+                }
             }
         }
         return $result;
     }
     
     
-    function stmtCacheResultSimpleArray($label, $stmt, $params=null, $key=0, $lifetime=86400, $forceSetting=false)
-    {
+    function stmtCacheResultSimpleArray($label, $stmt, $params=null, $key=0, $lifetime=86400, $forceSetting=false) {
         $records=array();
         $foo = self::$Cache->get($label);
                         
@@ -367,7 +371,8 @@ class DB {
                     }
                     while($row = $stmt->fetch(\PDO::FETCH_NUM));
                 }
-            }catch (Exception $ex) {
+            }
+            catch (Exception $ex) {
                 error_log($ex->getMessage() . PHP_EOL . $stmt->queryString . PHP_EOL . var_export($params, TRUE));
                 self::$Instance->rollBack();
                 return false;
@@ -376,7 +381,8 @@ class DB {
             self::$Cache->set($label, $records);
                 
             return $records;
-        } else {
+        } 
+        else {
             return $foo;
         }              
     }
@@ -397,8 +403,7 @@ class DB {
     }
     
     
-    function queryCacheResultSimpleArray($label, $query, $params=null, $key=0, $lifetime=86400, $forceSetting=false, $forceIfEmpty=false)
-    {
+    function queryCacheResultSimpleArray($label, $query, $params=null, $key=0, $lifetime=86400, $forceSetting=false, $forceIfEmpty=false) {
         $records=array();        
 
         $foo = self::$Cache->get($label);
@@ -438,7 +443,8 @@ class DB {
                     while($row = $stmt->fetch(\PDO::FETCH_NUM));
                     
                 }
-            }catch (Exception $ex) {
+            }
+            catch (Exception $ex) {
                 error_log($ex->getMessage() . PHP_EOL . $query . PHP_EOL . var_export($params, TRUE));
                 self::$Instance->rollBack();
                 return false;
@@ -521,8 +527,7 @@ class DB {
     }
     */
     
-    function queryQLCacheResultSimpleArray($label, $query, $params=null, $key=0, $lifetime=86400, $forceSetting=false, $forceIfEmpty=false)
-    {
+    function queryQLCacheResultSimpleArray($label, $query, $params=null, $key=0, $lifetime=86400, $forceSetting=false, $forceIfEmpty=false) {
         $records=array();        
 
         $foo = self::$Cache->get($label);
@@ -532,8 +537,7 @@ class DB {
             $this->checkCorrectWriteMode($query);
             $stmt = $this->getInstance()->prepare($query);
             
-            try
-            {
+            try {
                 if ($params)
                     $stmt->execute($params);
                 else
@@ -547,9 +551,10 @@ class DB {
                         //for ($i=0; $i < $count; $i++)
                         //    if(is_numeric($row[$i])) $row[$i] = $row[$i]+0;
 
-                        if($simpleArray){
+                        if ($simpleArray) {
                             $records[]=$row;
-                        }else {
+                        }
+                        else {
                             if ($key>=0)
                                 $records[$row[$key]]=$row;
                             else {
@@ -560,23 +565,23 @@ class DB {
                     }
                     while($row = $stmt->fetch(\PDO::FETCH_NUM));
                 }
-            }catch (Exception $ex) {
+            }
+            catch (Exception $ex) {
                 error_log($ex->getMessage() . PHP_EOL . $query . PHP_EOL . var_export($params, TRUE));
                 self::$Instance->rollBack();
                 return false;
             }
             self::$Cache->set($label, $records);
             return $records;
-        } else {
+        } 
+        else {
             return $foo;
         }        
     }
 
     /* New data block */
-    function getCountriesDictionary($force=FALSE) 
-    {
-        if(!$this->slaveOfRedis)
-        {
+    function getCountriesDictionary($force=FALSE) {
+        if(!$this->slaveOfRedis) {
             $force = true;
         }
         
@@ -588,10 +593,8 @@ class DB {
                     'from country where blocked=0',
                     null, 0, 86400, $force);
 
-        if (!empty($countries) && !is_array($countries[key($countries)][6])) 
-        {
-            foreach ($countries as $country_id => $country) 
-            {
+        if (!empty($countries) && !is_array($countries[key($countries)][6])) {
+            foreach ($countries as $country_id => $country) {
                 $cities = explode(",", $country[6]);
                 if (count($cities)>1) {
                     $countries[$country_id][6]=$cities;
@@ -606,10 +609,8 @@ class DB {
     }
     
     
-    function getCitiesDictionary($force=FALSE) 
-    {
-        if (!$this->slaveOfRedis)
-        {
+    function getCitiesDictionary($force=FALSE) {
+        if (!$this->slaveOfRedis) {
             $force = true;
         }
         //                     'select ID, NAME_AR, NAME_EN, URI, COUNTRY_ID, LATITUDE, LONGITUDE, locked, UNIXTIME from city where blocked=0',
@@ -623,10 +624,8 @@ class DB {
     }
     
     
-    function getPublications($force=FALSE) 
-    {
-        if(!$this->slaveOfRedis)
-        {
+    function getPublications($force=FALSE) {
+        if(!$this->slaveOfRedis) {
             $force = true;
         }
         return $this->queryCacheResultSimpleArray('publications',
@@ -637,7 +636,7 @@ class DB {
     
     
     function getPurposes($force=FALSE) {
-        if(!$this->slaveOfRedis){
+        if (!$this->slaveOfRedis){
             $force = true;
         }
         return $this->queryCacheResultSimpleArray('purposes',
@@ -1018,8 +1017,7 @@ class DB {
         if ($result!==FALSE) {
                 return $result;
         }
-        
-        
+                
         $f = strtolower($lang)=='ar'?1:2;
         $result=array();
         if ($this->slaveOfRedis) {
@@ -1029,12 +1027,14 @@ class DB {
         $q = "select groupby(), count(*), max(date_added) from ad where hold=0 and canonical_id=0 ";
         if ($localityId) {
             $q.="and locality_id={$localityId} ";
-        } elseif($tagId) {
+        } 
+        elseif ($tagId) {
             $q.="and section_tag_id={$tagId} ";
         }
         if ($cityId) {
             $q.="and city_id={$cityId} ";
-        } elseif ($countryId) {
+        } 
+        elseif ($countryId) {
             $q.="and country_id={$countryId} ";
         }
         $q.="group by purpose_id order by purpose_id asc limit 20";
@@ -1098,8 +1098,7 @@ class FBQuery {
    
     
     function __destruct() {
-        if ($this->statement instanceof \PDOStatement) {
-            
+        if ($this->statement instanceof \PDOStatement) {            
             unset($this->statement);
         }
     }

@@ -77,8 +77,7 @@ class MCUser extends MCJsonMapper {
             if (is_numeric($source_data)) {
                 $this->parseArray(NoSQL::getInstance()->fetchUser($source_data));
             }         
-            else
-            if (is_string($source_data) && $source_data) {
+            else if (is_string($source_data) && $source_data) {
                 if ($source_data[0]=='{') {
                     $this->set($source_data);
                 }
@@ -88,8 +87,7 @@ class MCUser extends MCJsonMapper {
                     }
                 }
             }
-            else
-            if (is_array($source_data) && isset($source_data[ASD\USER_PROFILE_ID]) && isset($source_data[ASD\USER_PROVIDER_ID])) {
+            else if (is_array($source_data) && isset($source_data[ASD\USER_PROFILE_ID]) && isset($source_data[ASD\USER_PROVIDER_ID])) {
                 $this->parseArray($source_data);
             }
         
@@ -510,6 +508,7 @@ class MCUserOptions extends MCJsonMapper {
             ];
     }
     
+    
     public function getE() : int {
         return $this->e;
     }
@@ -667,7 +666,7 @@ class MCMobile extends MCJsonMapper {
     }
     
     
-    public function getActicationUnixtime() : int {
+    public function getActicationUnixtime() : int {        
         return $this->ats;
     }
     

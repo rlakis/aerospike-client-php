@@ -4,6 +4,7 @@ namespace Core\Model\ASD;
 
 
 const NS_USER               = 'users';
+const NS_EDIGEAR            = 'edigear';
 const TS_USER               = 'profiles';
 const TS_PROFILE            = 'profile';
 
