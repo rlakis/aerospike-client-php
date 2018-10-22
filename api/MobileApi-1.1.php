@@ -764,12 +764,16 @@ class MobileApi {
     
     
     function reloadIndex() {
-        include_once $this->config['dir'] . '/core/lib/SphinxQL.php'; 
-        $sphinx = new SphinxQL($this->config['sphinxql'], $this->config['search_index']);
-        $index_name = filter_input(INPUT_GET, 'index', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-        if (strlen($index_name)>0) {
-            $partition = substr($index_name, -1);
-            $this->result['d']=$sphinx->rotate($partition, $index_name);
+        $ip=IPQuality::getClientIP();
+        if ($ip=='2a01:4f8:172:b9d::2' || $ip=='138.201.50.158') {
+            //error_log($ip);
+            include_once $this->config['dir'] . '/core/lib/SphinxQL.php'; 
+            $sphinx = new SphinxQL($this->config['sphinxql'], $this->config['search_index']);
+            $index_name = filter_input(INPUT_GET, 'index', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+            if (strlen($index_name)>0) {
+                $partition = substr($index_name, -1);
+                $this->result['d']=$sphinx->rotate($partition, $index_name);
+            }
         }
     }
     
