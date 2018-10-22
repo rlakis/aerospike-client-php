@@ -1783,7 +1783,7 @@ class AndroidApi
                                         
                                         if (($rs = NoSQL::getInstance()->mobileFetch($this->api->getUID(), $number)) !== FALSE)
                                         {
-                                            if (isset($rs[Core\Model\ASD\SET_RECORD_ID]) && $rs[Core\Model\ASD\SET_RECORD_ID] && $rs[Core\Model\ASD\USER_MOBILE_VALIDATION_TYPE]==0)
+                                            if (isset($rs[Core\Model\ASD\SET_RECORD_ID]) && $rs[Core\Model\ASD\SET_RECORD_ID] /* && isset($rs[Core\Model\ASD\USER_MOBILE_VALIDATION_TYPE]) && $rs[Core\Model\ASD\USER_MOBILE_VALIDATION_TYPE]==0*/)
                                             {
                                                 $mcMobile = new MCMobile($rs);
                                                 $expiredDelivery = !$mcMobile->isSMSDelivered() && (time()-$mcMobile->getRquestedUnixtime())>180 && $mcMobile->getSentSMSCount()<3;
