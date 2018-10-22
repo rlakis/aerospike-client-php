@@ -25,7 +25,7 @@ class SphinxQL {
     private $indexName;
     private $server;
     
-    public $connection = null;
+    //public $connection = null;
     private $_sphinx = null;
     private $clause = '*';
     private $sortby = '';
@@ -96,7 +96,7 @@ class SphinxQL {
     
     
     function __destruct() {
-        $this->connection=NULL;
+        //$this->connection=NULL;
         if ($this->_sphinx!=NULL) {
             try {
                 $this->_sphinx->close();
@@ -145,6 +145,7 @@ class SphinxQL {
      * Closes and unset the connection to the Sphinx server.
      */
     public function close() {
+        
         $this->_sphinx->close();
         $this->_sphinx = null;
     }
@@ -498,8 +499,7 @@ class SphinxQL {
                     if ($rs = $this->_sphinx->store_result()) {
                         $result['matches'][] = $rs->fetch_all($fetchMode);
                         $rs->free();
-                    }
-                    
+                    }                 
                     if(!$this->_sphinx->more_results()) {
                         break;
                     }                    

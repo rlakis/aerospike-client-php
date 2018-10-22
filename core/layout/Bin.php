@@ -1265,7 +1265,16 @@ class Bin extends AjaxHandler{
                                 case 'ad-imp':
                                     foreach ($final_req as $final_action => $final_refs) {
                                         if ($final_action=='ad-imp') {
+                                            $uniques=[];
                                             foreach ($final_refs as $id) {
+                                                $uniques[$id]=TRUE;
+                                                if (count($uniques)>50) {
+                                                    break;
+                                                }
+                                            }
+                                            
+                                            foreach (array_keys($uniques) as $id) {
+                                                
                                                 $id = (int)$id;
                                                 $batch.= "select id, impressions from {$this->urlRouter->cfg['search_index']} where id={$id};\n";                                                
                                                 $adData=$this->classifieds->getById($id);
@@ -1286,6 +1295,7 @@ class Bin extends AjaxHandler{
                                         }
                                     }
                                     break;
+                                    
                                 case 'ad-clk':
                                     if ($refs && is_numeric($refs)) {                                        
                                         $adData=$this->classifieds->getById($refs);                                                
@@ -1317,8 +1327,9 @@ class Bin extends AjaxHandler{
                                     $im=$row['impressions']+1;                                                                                        
                                     $ss->getConnection()->real_query("update {$this->urlRouter->cfg['search_index']} set impressions={$im} where id={$id}");
                                 }
+                                $ss->close();
                             }
-                        }                                           
+                        }                                  
                     }
                     
                     if ($ok) { $redis->close(); }
