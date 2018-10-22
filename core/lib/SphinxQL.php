@@ -108,12 +108,19 @@ class SphinxQL {
     }
     
     
-    function connect() {
+    function connect($try=1) {
         if ($this->_sphinx==NULL) {
             $this->_sphinx = new \mysqli($this->server['host'], '', '', '', $this->server['port'], $this->server['socket']);
             if ($this->_sphinx->connect_error) {
                 $this->Log(['host'=>$this->server['host'], 'error'=>'['.$this->_sphinx->connect_errno . '] ' . $this->_sphinx->connect_error]);
-            	die('Connect Error ' . $this->server['host'] .' (' . $this->_sphinx->connect_errno . ') ' . $this->_sphinx->connect_error);
+            	
+                //if ($this->_sphinx->connect_errno==2002 && $try==1) {
+                //    system("/opt/RestartSphinx.sh");
+                //    $this->connect(0);                
+                //}
+                //else {
+                    die('Connect Error ' . $this->server['host'] .' (' . $this->_sphinx->connect_errno . ') ' . $this->_sphinx->connect_error);
+                //}
             }
         }     
     }
