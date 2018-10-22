@@ -80,7 +80,7 @@ class AndroidApi
 
         }
 
-        $this->result['d'][] = [
+        $this->api->result['d'][] = [
             $ad[Core\Model\Classifieds::ID],//0
             $ad[Core\Model\Classifieds::PUBLICATION_ID],//1
             $ad[Core\Model\Classifieds::COUNTRY_ID],//2
@@ -200,7 +200,7 @@ class AndroidApi
                 $opts = $this->api->userStatus($status);                
                 if ($status == 1) {
                     //sync favorites
-                    $this->api->search(true);
+                    //$this->api->search(true);
                     $results = $this->api->db->queryResultArray(
                         'select f.ad_id from web_users_favs f
                             left join ad a on a.id = f.ad_id
@@ -535,8 +535,8 @@ class AndroidApi
                     );
                     $this->api->result['d'] = [];
                     
-                    include_once $this->api->config['dir'] . '/core/lib/SphinxQL.php';
-                    $sphinx = new SphinxQL($this->api->config['sphinxql'], $this->api->config['search_index']);
+                    //include_once $this->api->config['dir'] . '/core/lib/SphinxQL.php';
+                    //$sphinx = new SphinxQL($this->api->config['sphinxql'], $this->api->config['search_index']);
 
                     
                     $q="select list(web_user_id) from web_users_favs where deleted=0 and ad_id=?";
@@ -574,7 +574,7 @@ class AndroidApi
                     unset($checkAdExists);
                     unset($stmt);
                     unset($st);
-                    $sphinx->close();
+                    //$sphinx->close();
                 }
                 break;
             case API_ANDROID_WATCHLIST_ADD:                
