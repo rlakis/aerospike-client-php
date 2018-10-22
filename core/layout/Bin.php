@@ -1274,7 +1274,7 @@ class Bin extends AjaxHandler{
                                             }
                                             
                                             foreach (array_keys($uniques) as $id) {
-                                                $ii++;
+                                                
                                                 $id = (int)$id;
                                                 $batch.= "select id, impressions from {$this->urlRouter->cfg['search_index']} where id={$id};\n";                                                
                                                 $adData=$this->classifieds->getById($id);
