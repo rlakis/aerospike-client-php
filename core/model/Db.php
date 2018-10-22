@@ -60,7 +60,10 @@ class DB {
 
 
     public function __destruct() {
-        $this->close();        
+        $this->close();
+        if ($this->ql!=null) {
+            $this->ql->close();
+        }
     }
 
     
