@@ -1380,30 +1380,60 @@ class MobileApi {
                 unset($this->result['d']['u_xx']);
             }
             
-            if($device_appversion > '1.3.0') {
-                $this->result['d']['a_release'] = $this->config['android_app_release'];
-                $this->result['d']['a_rel_en'] = '';
-                $this->result['d']['a_rel_ar'] = '';
-                foreach ($this->config['android_releases_en'] as $release => $msg) {
-                    if($device_appversion < $release) {
-                        if($this->result['d']['a_rel_en']!='') {
-                            $this->result['d']['a_rel_en'].='<br><br>';
+            if($device_sysversion >= '4.2'){
+                
+                if($device_appversion > '1.3.0' && ($device_appversion > '2.0.6' || $device_appversion < '2.0.0')){
+                    $this->result['d']['a_release'] = $this->config['android_app_release_2'];
+                    $this->result['d']['a_rel_en'] = '';
+                    $this->result['d']['a_rel_ar'] = '';
+                    foreach ($this->config['android_releases_en_2'] as $release => $msg) {
+                        if($device_appversion < $release) {
+                            if($this->result['d']['a_rel_en']!='') {
+                                $this->result['d']['a_rel_en'].='<br><br>';
+                            }
+                            $this->result['d']['a_rel_en'] .= $msg;
                         }
-                        $this->result['d']['a_rel_en'] .= $msg;
                     }
-                }
-                foreach ($this->config['android_releases_ar'] as $release => $msg) {
-                    if($device_appversion < $release) {
-                        if($this->result['d']['a_rel_ar']!='') {
-                            $this->result['d']['a_rel_ar'].='<br><br>';
+                    foreach ($this->config['android_releases_ar_2'] as $release => $msg) {
+                        if($device_appversion < $release) {
+                            if($this->result['d']['a_rel_ar']!='') {
+                                $this->result['d']['a_rel_ar'].='<br><br>';
+                            }
+                            $this->result['d']['a_rel_ar'] .= $msg;
                         }
-                        $this->result['d']['a_rel_ar'] .= $msg;
                     }
+                }else{
+                    $this->result['d']['a_release'] = '1.0.0';
                 }
                 
-            }
-            else {
-                $this->result['d']['a_release'] = '1.0.0';
+            }else{
+            
+                if($device_appversion > '1.3.0') {
+                    $this->result['d']['a_release'] = $this->config['android_app_release'];
+                    $this->result['d']['a_rel_en'] = '';
+                    $this->result['d']['a_rel_ar'] = '';
+                    foreach ($this->config['android_releases_en'] as $release => $msg) {
+                        if($device_appversion < $release) {
+                            if($this->result['d']['a_rel_en']!='') {
+                                $this->result['d']['a_rel_en'].='<br><br>';
+                            }
+                            $this->result['d']['a_rel_en'] .= $msg;
+                        }
+                    }
+                    foreach ($this->config['android_releases_ar'] as $release => $msg) {
+                        if($device_appversion < $release) {
+                            if($this->result['d']['a_rel_ar']!='') {
+                                $this->result['d']['a_rel_ar'].='<br><br>';
+                            }
+                            $this->result['d']['a_rel_ar'] .= $msg;
+                        }
+                    }
+
+
+                }
+                else {
+                    $this->result['d']['a_release'] = '1.0.0';
+                }
             }
             
             $this->result['d']['a_force'] = $this->config['android_app_release_enforce'];
