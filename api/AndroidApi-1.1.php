@@ -2784,7 +2784,7 @@ class AndroidApi
                             FROM T_TRAN r
                             where r.UID=?", [$this->api->getUID()]);
                             $total = 0;
-                            if($rs && count($rs)){
+                            if($rs && isset($rs[0]) && $rs[0]['TOTAL']>0){
                                 $total = $rs[0]['TOTAL'];
                                 $this->api->result['t'] = $total;
 
