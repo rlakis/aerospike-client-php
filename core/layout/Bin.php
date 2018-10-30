@@ -3725,7 +3725,7 @@ class Bin extends AjaxHandler{
                             if ($pic==$fn){
                                 $found=true;
                                 unset ($adContent['pics'][$pic]);
-                                if ($adContent['pic_def']==$pic) {
+                                if (isset($adContent['pic_def']) && $adContent['pic_def']==$pic) {
                                     if (count($adContent['pics'])) {
                                         foreach ($adContent['pics'] as $p2=>$v2) {
                                             $adContent['pic_def']=$p2;
