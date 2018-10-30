@@ -35,7 +35,8 @@ class MobileApi {
     var $uuid;
     public $provider;
     public $user = null;
-
+    public $json = 1;
+    
     function __construct($config) {
         $this->lang         = filter_input(INPUT_GET, 'l', FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
         $this->demo         = filter_input(INPUT_GET, 'demo', FILTER_VALIDATE_INT)+0;
@@ -46,7 +47,7 @@ class MobileApi {
         $this->uid          = filter_input(INPUT_GET, 'uid', FILTER_VALIDATE_INT)+0;
         $this->uuid         = filter_input(INPUT_GET, 'uuid', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
         $this->systemName   = filter_input(INPUT_GET, 'sn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-        $this->appVersion   = filter_input(INPUT_GET, 'apv', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+        $this->appVersion   = filter_input(INPUT_GET, 'apv', FILTER_SANITIZE_STRING, ['options'=>['default'=>'0.0.0']]);
         
         $this->command      = filter_input(INPUT_GET, 'm', FILTER_VALIDATE_INT);
         
@@ -63,7 +64,7 @@ class MobileApi {
         
         $this->result['server'] = $this->config['server_id']; 
         
-        if ($this->uuid && $this->command!=API_DATA && $this->command!=API_TOTALS) {
+        if ($this->uuid && $this->command!=API_DATA && $this->command!=API_TOTALS && $this->command!=API_POST_PREFERENCES) {
             $this->user = MCUser::getByUUID($this->uuid);
             if ($this->user->getID()<=0 && !($this->command==API_REGISTER && $this->uid==0) && $this->command!==API_APNS_TOKEN) {            
                 NoSQL::Log(['Error'=>'User device not found!', 'Command'=>$this->command, 'UUID'=> $this->uuid]);
@@ -2177,7 +2178,17 @@ class MobileApi {
         if ($this->uuid=="B066D32F-08F6-4C2E-973C-9658CA745F09") {
             $this->result['l']=1;
         }
-        echo json_encode($this->result, JSON_UNESCAPED_UNICODE );
+        //error_log(header('Content-type'));
+        if ($this->json) {
+            echo json_encode($this->result, JSON_UNESCAPED_UNICODE);          
+        }
+        else {
+            //$msgpack = new MessagePack(true);
+            //$msgpack->setOption(MessagePack::OPT_PHPONLY, TRUE);
+            //$msgpack->setOption(MessagePack::MSGPACK_SERIALIZE_TYPE_OBJECT, TRUE);
+            //echo $msgpack->pack($this->result);
+            echo msgpack_pack($this->result);
+        }
         flush();
     }
 

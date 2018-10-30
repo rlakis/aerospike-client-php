@@ -2,7 +2,6 @@
 ob_start();
 header('Cache-Control: no-cache, must-revalidate');
 header('Expires: Mon, 26 Jul 1997 00:00:00 GMT');
-header('Content-type: application/json; charset=UTF-8');
 
 const ERR_INVALID_REQUEST_PARAMS                = 1000;
 const ERR_INVALID_PHONE_NUMBER                  = 1001;
@@ -152,10 +151,18 @@ class ElapseTime {
 $timer = new ElapseTime();
 $timer->start();
 $api = new MobileApi($config);
+if ($api->isIOS() && version_compare($api->appVersion, '1.1.3', '>')) {    
+    header('Content-type: application/msgpack; charset=UTF-8');
+    $api->json = 0;
+}
+else {
+    header('Content-type: application/json; charset=UTF-8');
+}
 
 if (!$api->hasError()) {    
-    $action = filter_input(INPUT_GET, 'm', FILTER_VALIDATE_INT)+0;
+    $action = filter_input(INPUT_GET, 'm', FILTER_VALIDATE_INT)+0;    
     $api->command = $action;
+    
     
     switch ($action) {
         case API_NORMALIZE_TEXT:

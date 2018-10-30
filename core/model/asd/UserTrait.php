@@ -392,6 +392,11 @@ trait UserTrait {
             throw new Exception('Profile key not defined -- '.json_encode($params));
         }
         
+        
+        if ($key==null || empty($key)) {
+            error_log(json_encode($params));            
+        }
+        
         return $key;   
     }
     
