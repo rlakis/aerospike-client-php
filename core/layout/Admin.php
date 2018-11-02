@@ -45,6 +45,7 @@ class Admin extends Page {
                 . '.filters{background-color:#ECECEC}.filters select{padding:2px 10px;margin:10px 20px}';
         
         switch($this->sub){
+            case 'synonym':
             case 'dic':
                 $this->inlineCss.='
                     .ts label{width:100px}
@@ -432,12 +433,17 @@ class Admin extends Page {
         if ($sub == 'areas')
             echo '<li class=\'on\'><b>', $this->lang['label_areas'], '</b></li>';
         else
-            echo '<li><a href=\'/admin/', $lang, '?sub=areas\'>', $this->lang['label_areas'], '</a></li>';
+            echo '<li><a href=\'/admin/', $lang, '?sub=areas\'>', $this->lang['label_areas'], '</a></li>';               
 
         if ($sub == 'dic')
             echo '<li class=\'on\'><b>', $this->lang['label_dic'], '</b></li>';
         else
             echo '<li><a href=\'/admin/', $lang, '?sub=dic\'>', $this->lang['label_dic'], '</a></li>';
+        
+        if ($sub == 'synonym')
+            echo '<li class=\'on\'><b>', $this->lang['synonyms'], '</b></li>';
+        else
+            echo '<li><a href=\'/admin/', $lang, '?sub=synonym\'>', $this->lang['synonyms'], '</a></li>'; 
 
         if ($sub == 'ads')
             echo '<li class=\'on\'><b>', $this->lang['label_ads_monitor'], '</b></li>';
@@ -500,10 +506,265 @@ class Admin extends Page {
                 $this->renderDictionaryPanel();
                 break;
 
+            case 'synonym':
+                $this->renderSynonymPanel();
+                break;
+
             default:
                 $this->renderUserAdminPanel();
                 break;
         }
+    }
+    
+    function renderSynonymPanel(){
+        ?><div><?php
+            ?><ul class="ts"><?php
+                ?><li><?php
+                    ?><div class="lm"><?php
+                        ?><label for="keyword"><?= $this->lang['keyword'] ?></label><?php
+                        ?><input type="text" id="keyword" autocomplete="off" onfocus="setFocus(this,event);" onkeydown="idir(this);navList(event)" onkeyup="load(this,event);" onchange="idir(this, 1);" /><?php
+                     /*   ?><input id="add" type="button" class="bt" onclick="save(this)" style="margin:0 25px" value="<?= $this->lang['new_key'] ?>" /><?php */
+                        ?><input id="rotate" type="button" class="bt" onclick="rotate(this)" style="margin:0 25px" value="Rotate" /><?php 
+                    ?></div><?php
+                ?></li><?php
+            ?></ul><?php
+        ?></div><?php
+        ?><div id="msg"></div><?php
+        ?><div id="related"></div><?php
+        
+        $this->inlineQueryScript .= '$("body").click(function(e){if(e.target.id!="keyword")clear()});';
+        $this->globalScript .= '
+            function rotate(e){
+                e = $(e);
+                e.css("display", "none");
+                $.ajax({
+                    type:"GET",
+                    url: "/ajax-keyword/",
+                    data:{rotate:2},
+                    success: function(rp) {
+                        e.css("display", "inline-block");
+                    },
+                    error:function(){
+                        e.css("display", "inline-block");
+                    }
+                });
+            };
+            var INDEX=-1,arrowAction=false,focusAction=false;
+            function setFocus(x,e){
+                arrowAction=false;
+                focusAction=true;
+                if(x.value!=""){
+                    load(x,e);
+                }
+            };
+            function navList(e){
+                focusAction=false;
+                e = e || window.event;
+                if (e.keyCode == "38") {
+                    INDEX--;
+                    arrowAction=true;
+                }
+                else if (e.keyCode == "40") {                
+                    INDEX++;
+                    arrowAction=true;
+                }else if(e.keyCode == "37" || e.keyCode == "39"){
+                    arrowAction = true;
+                    return;
+                }else{
+                    arrowAction=false;
+                }
+                if(arrowAction){
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if(INDEX > locs.length -1){
+                        INDEX = locs.length - 1;
+                    }
+                    if(INDEX < 0){
+                        INDEX = 0;
+                    }
+                    var list = $("#list");
+                    $("li", list).removeClass("focus");
+                    $("li:nth-child("+(INDEX + 1)+")", list).addClass("focus");
+                }else if(e.keyCode == "13"){
+                    arrowAction = true;
+                    if(INDEX > -1){
+                        edit(INDEX);
+                        clear();
+                    }else{
+                        var v = $("#keyword").val().trim().toLowerCase();
+                        for(var i in locs){
+                            if(locs[i].CONTENT.toLowerCase() == v){
+                                edit(i);
+                                clear();
+                            }
+                        }
+                    }
+                }else{
+                    INDEX = 0;
+                    var list = $("#list");
+                    $("li", list).removeClass("focus");
+                }
+            };
+                    var xhr=null,locs=[];
+                    function load(e,event){
+                        event = event || window.event;
+                    if(!arrowAction){
+                        if(!focusAction)
+                            newForm();
+                        var v=e.value;
+                        if(v!=""){
+                            if(xhr && xhr.readyState != 4){
+                                xhr.abort();
+                            }
+                            clear();
+                            xhr = $.ajax({
+                                type:"GET",
+                                url: "/ajax-keyword/",
+                                data:{k:v},
+                                success: function(rp) {
+                                    if(rp && rp.RP){
+                                        locs=rp.DATA.keys;
+                                        if(typeof nop==="undefined"){
+                                            build(e);
+                                        }
+                                    }else{
+                                        clear();
+                                    }
+                                },
+                                error:function(rc) {
+                                    clear();
+                                }
+                            });
+                        }
+                        }else{
+                        event.stopPropagation();
+                        event.preventDefault();
+                        }
+                    };
+                    function build(e){  
+                        if(typeof e === "undefined"){
+                            e=("#keyword");
+                        }else{
+                            e=$(e);
+                        }
+                        INDEX=-1;
+                        if(locs.length>0){
+                            var dv=$("<ul id=\'list\' class=\'options\'></ul>");
+                            for(var i in locs){
+                                var o=$("<li class=\'"+locs[i].LANG+"\' onclick=\'edit("+i+")\'>"+locs[i].CONTENT+"</li>");
+                                dv.append(o);
+                            }
+                            $("body").append(dv);
+                            var p=e.offset();
+                            var t=p.top+e.height()+8;
+                            dv.css({top:t+"px", left: p.left+"px"});
+                        }else{
+                            clear();
+                        }
+                    };
+                    function newForm(){
+                        SELECTED=0;
+                        CURRENT="";
+                        rmsg();                        
+                        $("#related").html("");
+                    }
+                    function clear(){
+                        $("#list").remove();
+                    };
+                    function rmsg(){
+                        $("#msg").html("");
+                    };
+                    var SELECTED=0;
+                    function edit(i){
+                        var o=locs[i];
+                        $("#msg").html(o.CONTENT);
+                        SELECTED = o;
+                        $("#keyword").val(SELECTED.CONTENT);                       
+                        
+                        $("#related").html("");
+                        $.ajax({
+                            type:"GET",
+                            url: "/ajax-keyword/",
+                            data:{k:SELECTED.ID,synonym:1},
+                            success: function(rp) {
+                                if(rp && rp.RP){
+                                    render(rp.DATA.keys);
+                                }
+                            }
+                        });
+                    };
+                    function render(words){
+                        var ul = $("<ul></ul>");
+                        var li = $("<li onclick=\'addR(this)\' id=\'-1\'>Add Word</li>");
+                        ul.append(li);
+                        if(words.length){
+                            for(var i in words){
+                                var li = $("<li onclick=\'addR(this)\' id=\'"+words[i].ID+"\'>"+words[i].CONTENT+"</li>");
+                                ul.append(li);
+                            }
+                        }
+                        $("#related").append(ul);
+                    }
+                    var CURRENT="";
+                    function addR(e){
+                        e = $(e);
+                        if(!e.hasClass("edit")){
+                            e.addClass("edit");
+                            var box=$("<input type\'text\' value=\'"+(e.html() == \'Add Word\' ? \'\':e.html())+"\' onkeydown=\'idir(this)\' onchange=\'idir(this, 1)\' /><a class=\'link\' href=\'javascript:void(0);\' onclick=\'updateR(this,event)\'>save</a><a class=\'link\' href=\'javascript:void(0);\' onclick=\'cancelR(this, event)\'>cancel</a>");
+                            CURRENT=e.html();
+                            e.html("");
+                            e.append(box);
+                            box.first().focus();
+                        }
+                    }
+                    function cancelR(e, ex){
+                        var event = ex || window.event;
+                        event.stopPropagation();
+                        e=$(e);
+                        var li=e.parent();
+                        li.html(CURRENT);
+                        li.removeClass("edit");
+                    }
+                    function updateR(e, ex){
+                        var event = ex || window.event;
+                        event.stopPropagation();
+                        e=$(e);
+                        var li=e.parent();
+                        var input=e.prev();
+                        var v =input.val().trim();
+                        li.html(v);
+                        li.removeClass("edit");
+                        if(v != CURRENT){
+                            var del = 0;
+                            $.ajax({
+                                type:"POST",
+                                url: "/ajax-keyword/",
+                                data:{rid:li[0].id,wid:SELECTED.ID,content:v,synonym:1},
+                                success: function(rp) {
+                                    CURRENT = v;
+                                    $.ajax({
+                                        type:"GET",
+                                        url: "/ajax-keyword/",
+                                        data:{k:SELECTED.ID,synonym:1},
+                                        success: function(rp) {
+                                            if(rp && rp.RP){
+                                                $("#related").html("");
+                                                render(rp.DATA.keys);
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    };
+                    function fail(m){
+                        var msg = "<span class=\'fail\'></span> failed to save";
+                        if(m){
+                            msg = m +"<br />"+ msg;
+                        }
+                        $("#msg").html(msg);
+                    }
+                    ';
     }
 
     function renderDictionaryPanel() {
@@ -512,7 +773,7 @@ class Admin extends Page {
                 ?><li><?php
                     ?><div class="lm"><?php
                         ?><label for="keyword"><?= $this->lang['keyword'] ?></label><?php
-                        ?><input type="text" id="keyword" autocomplete="off" onkeydown="idir(this);navList(event)" onkeyup="load(this,event);newForm()" onchange="idir(this, 1);" /><?php
+                        ?><input type="text" id="keyword" autocomplete="off" onkeydown="idir(this);navList(event)" onfocus="setFocus(this,event);" onkeyup="load(this,event);" onchange="idir(this, 1);" /><?php
                         ?><input id="add" type="button" class="bt" onclick="save(this)" style="margin:0 25px" value="<?= $this->lang['new_key'] ?>" /><?php
                         ?><input id="rotate" type="button" class="bt" onclick="rotate(this)" style="margin:0 25px" value="Rotate" /><?php
                     ?></div><?php
@@ -569,9 +830,17 @@ class Admin extends Page {
                         e.css("display", "inline-block");
                     }
                 });
+            };            
+            function setFocus(x,e){
+                arrowAction=false;
+                focusAction=true;
+                if(x.value!=""){
+                    load(x,e);
+                }
             };
-            var INDEX=-1,arrowAction=false;
+            var INDEX=-1,arrowAction=false,focusAction=false;
             function navList(e){
+                focusAction=false;
                 e = e || window.event;
                 if (e.keyCode == "38") {
                     INDEX--;
@@ -622,6 +891,8 @@ class Admin extends Page {
                     function load(e,event){
                         event = event || window.event;
                     if(!arrowAction){
+                        if(!focusAction)
+                        newForm();
                         var v=e.value;
                         if(v!=""){
                             if(xhr && xhr.readyState != 4){
@@ -649,7 +920,7 @@ class Admin extends Page {
                         }
                         }else{
                         event.stopPropagation();
-                        event.stopDefault();
+                        event.preventDefault();
                         }
                     };
                     function build(e){  

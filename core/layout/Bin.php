@@ -1058,7 +1058,10 @@ class Bin extends AjaxHandler{
                     $country = $this->get('c');
                     if($key){
                         $related = $this->get('related');
-                        if($related){
+                        $synonym = $this->get('synonym');
+                        if($synonym){
+                            $res = $this->urlRouter->db->queryResultArray('select * from wordlist_keyword w where w.wordlist_id=? order by w.content',[$key], true);
+                        }elseif($related){
                             $res = $this->urlRouter->db->queryResultArray('select * from wordlist_synonym w where w.wordlist_id=? order by w.content',[$key], true);
                         }else{
                             if($country){
@@ -1091,16 +1094,31 @@ class Bin extends AjaxHandler{
                         if(isset($_POST['rid'])){
                             $id = $this->post('rid');
                             $wordlist_id = $this->post('wid');
+                            $synonym = $this->post('synonym');
                             $content = trim($this->post('content'));
-                            if($id > 0){
-                                if($content == ''){
-                                    $res = $this->urlRouter->db->queryResultArray('delete from wordlist_synonym where id=?',[$id], true);                            
-                                }else{
-                                    $res = $this->urlRouter->db->queryResultArray('update wordlist_synonym set content=? where id=?',[$content, $id], true);                            
+                            if($synonym){
+                                if($id > 0){
+                                    if($content == ''){
+                                        $res = $this->urlRouter->db->queryResultArray('delete from wordlist_keyword where id=?',[$id], true);                            
+                                    }else{
+                                        $res = $this->urlRouter->db->queryResultArray('update wordlist_keyword set content=? where id=?',[$content, $id], true);                            
+                                    }
                                 }
-                            }
-                            else if($content){
-                                $res = $this->urlRouter->db->queryResultArray('insert into wordlist_synonym (wordlist_id, content) values (?,?)',[$wordlist_id, $content], true);
+                                else if($content){
+                                    $res = $this->urlRouter->db->queryResultArray('insert into wordlist_keyword (wordlist_id, content) values (?,?)',[$wordlist_id, $content], true);
+                                }                                
+                            }else{
+
+                                if($id > 0){
+                                    if($content == ''){
+                                        $res = $this->urlRouter->db->queryResultArray('delete from wordlist_synonym where id=?',[$id], true);                            
+                                    }else{
+                                        $res = $this->urlRouter->db->queryResultArray('update wordlist_synonym set content=? where id=?',[$content, $id], true);                            
+                                    }
+                                }
+                                else if($content){
+                                    $res = $this->urlRouter->db->queryResultArray('insert into wordlist_synonym (wordlist_id, content) values (?,?)',[$wordlist_id, $content], true);
+                                }
                             }
                             $this->process();
                         }

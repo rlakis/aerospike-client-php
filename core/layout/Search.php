@@ -3007,7 +3007,7 @@ class Search extends Page {
                     
                     if ($debug)
                     {
-                        echo "<div style=\"font-size:9pt;\">&nbsp;{$ad[Classifieds::ID]} - {$ad[Classifieds::PRICE]}</div>";
+                        echo "<div style=\"display:inline;font-size:9pt;\">&nbsp;{$ad[Classifieds::ID]} - {$ad[Classifieds::PRICE]}</div>";
                     }
                     
                     if( isset($ad[Classifieds::PUBLISHER_TYPE]) && in_array($ad[Classifieds::ROOT_ID],[1,2,3]) && 
