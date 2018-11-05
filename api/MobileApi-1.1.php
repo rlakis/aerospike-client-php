@@ -178,9 +178,19 @@ class MobileApi {
                 "SELECT DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', CURRENT_TIMESTAMP) FROM RDB\$DATABASE",
                 null, false, PDO::FETCH_NUM)[0][0];
         
-        $this->result['d']['geo'] = $this->db->queryResultArray(
-                "SELECT ID, COUNTRY_ID, CITY_ID, PARENT_ID, LANG, NAME, BLOCKED, ALTER_ID FROM GEO_TAG WHERE COUNTRY_ID=?",
-                [$this->countryId], TRUE, PDO::FETCH_NUM);
+        //$this->result['d']['geo'] = $this->db->queryResultArray(
+        //        "SELECT ID, COUNTRY_ID, CITY_ID, PARENT_ID, LANG, NAME, BLOCKED, ALTER_ID FROM GEO_TAG WHERE COUNTRY_ID=?",
+        //        [$this->countryId], TRUE, PDO::FETCH_NUM);
+        $this->result['d']['geo'] = $this->db->get(
+                "select r.LOC_EN_ID ID, r.COUNTRY_ID, r.ID CITY_ID, r.PARENT_ID, cast('en' as varchar(2)) LANG, r.NAME, 0 BLOCKED, r.LOC_AR_ID ALTER_ID, r.URI
+                from F_CITY r
+                where COUNTRY_ID=? and r.uri>''
+                union ALL
+                select r.LOC_AR_ID ID, r.COUNTRY_ID, r.ID CITY_ID, r.PARENT_ID, CAST('ar' AS VARCHAR(2)) LANG, l.NAME, 0 BLOCKED, r.LOC_EN_ID ALTER_ID, r.URI
+                from F_CITY r
+                left join NLANG l on l.TABLE_ID=201 and l.ID=r.ID
+                where COUNTRY_ID=? and r.uri>''",
+                [$this->countryId, $this->countryId], FALSE, PDO::FETCH_NUM);
     }
 
 
