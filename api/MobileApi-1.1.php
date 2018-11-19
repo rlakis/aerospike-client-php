@@ -3269,31 +3269,22 @@ class MobileApi {
             }
             $this->db->setWriteMode();
             
-            
             $handle = fopen("php://input", "rb");
             $raw_post_data = '';
             while (!feof($handle)) {
                 $raw_post_data .= fread($handle, 8192);
             }
             fclose($handle);
-            if (empty($raw_post_data)) {
-                $raw_post_data='{}';
-            }
+            if (empty($raw_post_data)) { $raw_post_data='{}'; }
             
             //error_log($raw_post_data);
             $ad = json_decode($raw_post_data, TRUE);
-
             $direct_publish = filter_input(INPUT_POST, 'pub', FILTER_VALIDATE_INT) + 0;                    
             $ad_id = filter_input(INPUT_POST, 'adid', FILTER_VALIDATE_INT) + 0;
             $device_lang = filter_input(INPUT_GET, 'hl');
-            if (!in_array($device_lang, ['ar','en'])) {
-                $device_lang = 0;
-            }
+            if (!in_array($device_lang, ['ar','en'])) { $device_lang = 0; }
             
             $state = 0;
-            //$ad = json_decode(urldecode(filter_input(INPUT_POST, 'ad', FILTER_SANITIZE_ENCODED, ['options' => ['default' => '{}']])), true);
-                    
-            //error_log(\json_encode($ad));
             $userState = 0;                    
             $hasFailure = 0;
             $hasMajorFailure = 0;
@@ -3301,26 +3292,10 @@ class MobileApi {
             $stmt = null;
                     
             if (count($ad)>0) {                        
-                if ($ad['se']>0 && $ad['pu']==0) {
-                    $ad['pu']=5;
-                }
-                if (isset($ad['id']) && intval($ad['id'])) {
-                    $ad_id = $ad['id']+0;
-                }
-                  
-                /*
-                if($ad['rtl'] == 1){
-                    $ad['other'] .= "\u200B / ".$ad['contact_ar'];
-                    if(strlen($ad['altother']) >= 30){
-                        $ad['altother'] .= "\u200B / ".$ad['contact_en'];
-                    }
-                    }else{
-                        $ad['other'] .= "\u200B / ".$ad['contact_en'];
-                    }
-                */
+                if ($ad['se']>0 && $ad['pu']==0) { $ad['pu']=5; }
+                if (isset($ad['id']) && intval($ad['id'])) { $ad_id = $ad['id']+0; }
 
                 $_original_ad=$ad;
-                
                 
                 if (isset($ad['cui']) && isset($ad['cui']['p'])) {
                     $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
@@ -3337,7 +3312,6 @@ class MobileApi {
                         $ad['cui']['p'][$i]=$phoneInfo;
                     }                    
                 }
-                //error_log(\json_encode($ad));
                 
                 include_once $this->config['dir'] . '/core/lib/MCSaveHandler.php';
                 include_once $this->config['dir'] . '/core/lib/IPQuality.php'; 
@@ -3383,21 +3357,7 @@ class MobileApi {
                     }
                 }
                         
-                //if (isset($ad['extra']['m']) && !$ad['extra']['m'] && $ad['lat']==0 && $ad['lon']==0) {
-                //    $ad['extra']['m']=2;
-                //}
-                        
                 $requireReview = 0;
-                /*        
-                $ip ='';
-                if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-                    $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-                }
-                else {
-                    $ip = $_SERVER['REMOTE_ADDR'];
-                }
-                 * 
-                 */
                 $ad['ip']= IPQuality::getClientIP();                            
                 $databaseFile = '/home/db/GeoLite2-City.mmdb';
                 $reader = new Reader($databaseFile);
@@ -3576,14 +3536,24 @@ class MobileApi {
                                     "update ad set hold=1 where id=? and hold=0 and (exists (select 1 from ad_user d where d.id=? and d.web_user_id=?)) returning id", 
                                     [$ad_id, $ad_id, $this->getUID()], false);
                                 
-                        if ($ad['state'] == 1 && isset($ad['budget']) && $ad['budget']+0 > 0) {
+                        if ($ad['state']==1 && isset($ad['budget']) && $ad['budget']+0>0) {
                             $ad['state'] = 4;
                         }
                         $state = $ad['state'];
                                 
                         if ($hasFailure) {
                             $state = 3;
-                        }                        
+                        }
+                        
+                        if ($state==1 && isset($ad['cui']) && isset($ad['cui']['p'])) {
+                            foreach ($ad['cui']['p'] as $cui_phone) {
+                                if (isset($cui_phone['x']) && $cui_phone['x']>0) {
+                                    $state = 0;
+                                    break;
+                                }
+                            }
+                        }
+                        
                         $ad['state']=$state;
 
                         $encodedAd = json_encode($ad);
@@ -3719,7 +3689,6 @@ class MobileApi {
                         }
                     }
                     
-                    
                     if ($ad_id && $state==1) { 
                         $dbAd = $this->db->queryResultArray(
                                         'select a.id,
@@ -3728,7 +3697,7 @@ class MobileApi {
                                         . 'from ad_user a '
                                         . 'left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 '
                                         . 'left join t_ad_featured f on f.ad_id=a.id and current_timestamp between f.added_date and f.ended_date '                                                       
-                                        . 'where a.id = ?', [$ad_id], true);
+                                        . 'where a.id=?', [$ad_id], true);
                         
                         if (isset($dbAd[0]['ID']) && $dbAd[0]['ID']) {
                             $dbAd=$dbAd[0];
@@ -3801,7 +3770,7 @@ class MobileApi {
             }
             
             $ad['state']=$state;        
-            $this->result['d'] = [];                    
+            $this->result['d'] = [];
             $this->result['d']['adid'] = $ad_id;
             $this->result['d']['normalized'] = is_array($ad) ? $ad : []; 
                     
