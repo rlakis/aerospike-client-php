@@ -328,7 +328,7 @@ const BLOCKED                       = 'blk';
 // allow, then deny
 
 class MCPostPreferences implements \JsonSerializable {
-    private $version = [ 'major'=>1, 'minor'=>5 ];
+    private $version = [ 'major'=>1, 'minor'=>10 ];
 
     private $properties;
     private $cars;
@@ -639,7 +639,7 @@ abstract class MCPublishLevel {
 
 abstract class MCRegionType {
     const Local         = 0;
-    const International = 1;
+    const International = 9;
 }
 
 
