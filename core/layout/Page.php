@@ -2895,14 +2895,13 @@ class Page extends Site
     /*                           abstract functions                     */
     /********************************************************************/
 
-    function header(){
-        
-        ?><link rel='dns-prefetch' href='//c6.mourjan.com' /><?php
-        ?><link rel='dns-prefetch' href='//www.google.com' /><?php
-        ?><link rel='dns-prefetch' href='//www.google-analytics.com' /><?php
-        ?><link rel='dns-prefetch' href='//www.googletagmanager.com' /><?php
-        ?><link rel='dns-prefetch' href='//pagead2.googlesyndication.com' /><?php
-        ?><link rel='dns-prefetch' href='//stats.g.doubleclick.net' /><?php
+    function header() {
+        ?><link rel='preconnect' href='https//c6.mourjan.com' /><?php    
+        ?><link rel='preconnect' href='https://www.googletagmanager.com' /><?php
+        ?><link rel='preconnect' href='https://pagead2.googlesyndication.com' /><?php
+        ?><link rel='preconnect' href='https://googleads.g.doubleclick.net' /><?php
+        ?><link rel="preconnect" href="https://www.google-analytics.com"><?php
+        ?><link rel="preconnect" href="https://adservice.google.com"><?php
         
         ?><meta name="google-site-verification" content="v7TrImfR7LFmP6-6qV2eXLsC1qJSZAeKx2_4oFfxwGg" /><?php
         if ($this->userFavorites){
@@ -2918,24 +2917,26 @@ class Page extends Site
             }
             if ($this->extendedId || $this->localityId){
                 $sharingUrl.=$this->extended_uri ? substr($this->extended_uri, 1, strlen($this->extended_uri)) : '';
-            }elseif($this->urlRouter->module=='index' || ($this->urlRouter->module=='search' && !($this->urlRouter->watchId || $this->userFavorites))){
+            }
+            elseif($this->urlRouter->module=='index' || ($this->urlRouter->module=='search' && !($this->urlRouter->watchId || $this->userFavorites))){
                 $sharingUrl.=$this->urlRouter->uri ? substr($this->urlRouter->uri, 1, strlen($this->urlRouter->uri)) : '';
             }
             if ($this->urlRouter->siteLanguage!='ar') {
                 $sharingUrl.=$this->urlRouter->siteLanguage.'/';
             }
             if ($this->urlRouter->module=='search'){
-            if ($this->urlRouter->params['start']) {
-                $sharingUrl.=$this->urlRouter->params['start'].'/';
-            }
-            if ($this->urlRouter->params['q']) {
-                $sharingUrl.='?q='.urlencode($this->urlRouter->params['q']);
-            }
+                if ($this->urlRouter->params['start']) {
+                    $sharingUrl.=$this->urlRouter->params['start'].'/';
+                }
+                if ($this->urlRouter->params['q']) {
+                    $sharingUrl.='?q='.urlencode($this->urlRouter->params['q']);
+                }
             }
             $pageThumb=$this->urlRouter->cfg["url_img"].'/mourjan-icon'.$this->urlRouter->_png;
             if($this->urlRouter->sectionId && isset($this->urlRouter->sections[$this->urlRouter->sectionId])){
                 $pageThumb=$this->urlRouter->cfg["url_img"].'/200/'.$this->urlRouter->sectionId.$this->urlRouter->_png;
-            }elseif ($this->urlRouter->rootId && isset($this->urlRouter->pageRoots[$this->urlRouter->rootId])){
+            }
+            elseif ($this->urlRouter->rootId && isset($this->urlRouter->pageRoots[$this->urlRouter->rootId])){
                 $pageThumb=$this->urlRouter->cfg["url_img"].'/'.$this->urlRouter->rootId.$this->urlRouter->_png;
             }
             
@@ -2964,6 +2965,7 @@ class Page extends Site
         */
     }
 
+    
     function footer(){
         $adLang='';
         if ($this->urlRouter->siteLanguage!="ar") $adLang=$this->urlRouter->siteLanguage.'/';
