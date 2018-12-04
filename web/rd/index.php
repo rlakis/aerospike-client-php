@@ -23,7 +23,7 @@ pushStyle("flags/flags.css");
       local("Roboto-Light"), local("DroidSans"), local("Tahoma");
 }
 
-body{font-family: -apple-system, "system";font-style: normal;font-size:1em;background-color: #efeff4;
+body{font-family: -apple-system, "system";font-style: normal;font-size:1em;background-color: rgb(238, 238, 238);
 }
 :root {
     --mourjanC:rgba(10,61,98,1);
@@ -40,7 +40,9 @@ body{font-family: -apple-system, "system";font-style: normal;font-size:1em;backg
     --yellowFC:rgba(255,255,101.1);
     --waterlemonFC:rgba(255,107,129,1);	
 }
-*{ box-sizing: border-box; }
+*{ 
+    box-sizing: border-box; 
+}
 .col-1 {width: 8.33%;}
 .col-2 {width: 16.66%;}
 .col-3 {width: 25%;}
@@ -94,22 +96,21 @@ body{font-family: -apple-system, "system";font-style: normal;font-size:1em;backg
     font-size: 1.1em;
     line-height: 40px;
 }
-.menu li:hover { background-color:rgba(200, 200, 200, 0.2); }
+.menu li:hover { background-color:rgba(200, 200, 200, 0.2); color: var(--mourjanC);}
 .menu li:before {}
 .menu li>i {
     margin-right: 8px;
     font-size: 1.2em;
-    //text-align: center;
     max-width: 32px;
 }
 
 .menu li>span {
     float: right;
-    font-size: 0.8em;
+    font-size: small;
     font-weight: bolder;
-    color: var(--grayFC);
-    
+    color: var(--grayFC);   
 }
+
 .menu li>span:after {
     content: "\00a0";
     padding-right: 4px;
@@ -125,6 +126,29 @@ body{font-family: -apple-system, "system";font-style: normal;font-size:1em;backg
     -webkit-mask: url(fa-pro-5.5.0/svgs/light/angle-right.svg) no-repeat 50% 50%;
 }
 
+.menu li>span.ellipsis:after{
+    -webkit-mask: url(fa-pro-5.5.0/svgs/light/ellipsis-v.svg) no-repeat 50% 50%;
+}
+
+.iac {
+    content: "\00a0";
+    width: 40px;
+    height: 40px;
+    /*background-position: center center;
+    background-size: 1em;*/
+    background-repeat: no-repeat;
+    position: relative;
+    display: inline-block;
+    background-color: #8E8E93;
+    float: right;
+    
+}
+.iac-angle {
+    -webkit-mask: url(fa-pro-5.5.0/svgs/light/angle-right.svg) no-repeat 50% 50%;
+}
+.iac-ellipsis-v {
+    -webkit-mask: url(fa-pro-5.5.0/svgs/light/ellipsis-v.svg) no-repeat 50% 50%;
+}
 .icn-1 {
     background-color:var(--blueFC);
     -webkit-mask: url(fa-pro-5.5.0/svgs/solid/landmark.svg) no-repeat 50% 50%;
@@ -200,6 +224,7 @@ body{font-family: -apple-system, "system";font-style: normal;font-size:1em;backg
     }
     body {
         margin: 0;
+        background-color: rgb(238, 238, 238);
     }
 }
 
@@ -219,7 +244,7 @@ echo '</head><body>', "\n";
             <li><i class="flag-icon icn-99"></i>Miscellanious<span>3,128</span></li>
         </ul>
         <ul>
-            <li><i class="flag-icon flag-icon-ae"></i>Emirates<span>89,888</span></li>
+            <li><i class="flag-icon flag-icon-ae"></i>Emirates<span class="ellipsis">89,888</span></li>
         </ul>
         <ul>
             <li><i class="flag-icon icn-82"></i>Place your ad for free</li>
