@@ -1,4 +1,5 @@
 <?php
+include_once get_cfg_var('mourjan.path').'/deps/autoload.php';
 include_once get_cfg_var("mourjan.path") . '/config/cfg.php';
 include_once $config['dir']. '/core/model/Router.php';
 
@@ -195,6 +196,10 @@ body[dir="rtl"] .menu a>span:after {
     background-color:white;
     -webkit-mask: url(fa-pro-5.5.0/svgs/regular/bars.svg) no-repeat 50% 50%;
 }
+.icn-search {
+    background-color:var(--mourjanC);
+    -webkit-mask: url(fa-pro-5.5.0/svgs/regular/search.svg) no-repeat 50% 50%;
+}
 
 .icn-ae {
     background-repeat: no-repeat;
@@ -204,11 +209,22 @@ body[dir="rtl"] .menu a>span:after {
 
 
 
-.topnav {
-  overflow: hidden;
-  background-color: var(--mourjanC);
-}
+.topnav {overflow: hidden; background-color: var(--mourjanC);}
 
+
+.topnav .search-container button {
+  padding: 6px 10px;
+  margin: 8px 0;
+  background: #ddd;
+  font-size: 17px;
+  border: none;
+  cursor: pointer;
+}
+.topnav .search-container {
+    margin-left: 16px;
+    margin-right: 16px;
+}
+.topnav .search-container button:hover { background: #ccc; }
 .topnav a {
   float: left;
   display: block;
@@ -233,25 +249,43 @@ body[dir="rtl"] .menu a>span:after {
   display: none;
 }
 
-@media screen and (max-width: 600px) {
-  .topnav a:not(:first-child) {display: none;}
-  .topnav a.icon {    
-    display: block;
-  }
+.topnav .search-container input[type=text] {
+    padding: 6px;
+    margin: 8px 0;
+    font-size: 17px;
+    border: none;
 }
 
 @media screen and (max-width: 600px) {
-  .topnav.responsive {position: relative;}
-  .topnav.responsive .icon {
-    position: absolute;
-    right: 0;
-    top: 0;
-  }
-  .topnav.responsive a {
-    float: none;
-    display: block;
-    text-align: left;
-  }
+    .topnav a:not(:first-child) {display: none;}
+    .topnav a.icon {    
+        display: block;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .topnav.responsive {position: relative;}
+    .topnav.responsive .icon {
+        position: absolute;
+        right: 0;
+        top: 0;
+    }
+    .topnav.responsive a {
+        float: none;
+        display: block;
+        text-align: left;
+    }
+    .topnav input[type=text] {
+        float: none;
+        display: none;
+        text-align: left;
+        width: 100%;
+        margin: 0;
+        padding: 14px;
+    }
+    .topnav input[type=text] {
+        border: 1px solid #ccc;
+    }
 }
 
 @media only screen and (max-width: 768px) {
@@ -276,16 +310,23 @@ $contact_label = $router->isArabic() ? "إتصل بنا" : "Contact us";
 $about_label = $router->isArabic() ? "من نحن" : "About";
 $terms_label = $router->isArabic() ? "شروط الاستخدام" : "Terms of use";
 $privacy_label = $router->isArabic() ? "سياسة الخصوصية" : "Privacy policy";
+$search_placeholder = $router->isArabic() ? "بحث..." : "Search...";
 ?>
 <div class="header">
     
     
     <div class="topnav">
         <div class="float-left">
-        <a href="#home" class="active">Home</a>
-        <a href="#news">News</a>
-        <a href="#contact">Contact</a>
-        <a href="#about">About</a>
+            <a href="#home" class="active">Home</a>
+            <a href="#news">News</a>
+            <a href="#contact">Contact</a>
+            <a href="#about">About</a>        
+        </div>
+        <div class="search-container float-right">
+            <form action="/action_page.php">
+                <input type="text" placeholder="<?php echo $search_placeholder;?>">
+                <button class="float-right" type="submit"><i class="icn icn-search"></i></button>
+            </form>
         </div>
         
         <a href="javascript:void(0);" class="icon float-right" onclick="myFunction()">
