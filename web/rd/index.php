@@ -1,19 +1,32 @@
 <?php
+include_once get_cfg_var("mourjan.path") . '/config/cfg.php';
+include_once $config['dir']. '/core/model/Router.php';
+
+use Core\Model\Router;
+
+$router = new Router($config);
+$router->siteLanguage = filter_input(INPUT_GET, 'l', FILTER_SANITIZE_URL, ["options"=>['default'=>'ar']]);
+$router->countryId = 2;
+$router->cityId = 0;
+$router->module = 'home';
+$router->cache();
+
 $title='Mourjan Classifieds';
 echo '<!DOCTYPE html><HTML lang="en"><head>',"\n";
 echo '<meta charset="utf-8">', "\n";
 echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">', "\n";
 echo '<title>', $title, '</title>', "\n";
 if(0){
-pushStyle("fa-pro-5.5.0/css/fontawesome.css");
-pushStyle("fa-pro-5.5.0/css/solid.css");
+    pushStyle("fa-pro-5.5.0/css/fontawesome.css");
+    pushStyle("fa-pro-5.5.0/css/solid.css");
+    pushStyle("flags/flags.css");
 }
-pushStyle("flags/flags.css");
-//pushFont("fa-pro-5.5.0/webfonts/fa-solid-900.woff2");
+
+
 ?>
-<style type="text/css"></style>
 
 <style type="text/css">
+@charset "UTF-8"; 
 @font-face {
   font-family: system;
   font-style: normal;
@@ -23,26 +36,20 @@ pushStyle("flags/flags.css");
       local("Roboto-Light"), local("DroidSans"), local("Tahoma");
 }
 
-body{font-family: -apple-system, "system";font-style: normal;font-size:1em;background-color: rgb(238, 238, 238);
-}
+body{font-family: -apple-system, "system";font-style: normal;font-size:1em;background-color: whitesmoke;}
+.float-left{ float: left; }
+.float-right{ float: right; }
+body[dir="rtl"] .float-left{ float: right; }
+body[dir="rtl"] .float-right{ float: left; }
+            
 :root {
     --mourjanC:rgba(10,61,98,1);
-    --goldC:rgba(252,194,0,1);
-    --turqoiseFC:rgba(26,188,156,1);
-    --greenFC:rgba(39,174,96, 1);
-    --blueFC:rgba(41, 128, 185, 1);
-    --midnightFC:rgba(44,62,80,1);
-    --purpleFC:rgba(142,68,173, 1);
-    --orangeFC:rgba(243,156,18, 1);
-    --redFC:rgba(192, 57, 43, 1);
-    --silverFC:rgba(189,195,199,1);
-    --grayFC:rgba(127,140,141,1);
-    --yellowFC:rgba(255,255,101.1);
-    --waterlemonFC:rgba(255,107,129,1);	
+    --midnight:rgba(44,62,80,1);
 }
 *{ 
     box-sizing: border-box; 
 }
+
 .col-1 {width: 8.33%;}
 .col-2 {width: 16.66%;}
 .col-3 {width: 25%;}
@@ -57,7 +64,10 @@ body{font-family: -apple-system, "system";font-style: normal;font-size:1em;backg
 .col-12 {width: 100%;}
 [class*="col-"] {
     float: left;
-    padding: 0px;
+    padding: 8px;
+}
+body[dir="rtl"] [class*="col-"] {
+    float: right;
 }
 .row::after {
     content: "";
@@ -91,33 +101,24 @@ body{font-family: -apple-system, "system";font-style: normal;font-size:1em;backg
 .menu li {
     padding: 8px;
     margin-bottom: 1px;
-    background-color: #fff;
-    color: var(--midnightFC);
+    background-color: white;
+    color: var(--midnight);
     font-size: 1.1em;
     line-height: 40px;
 }
 .menu li:hover { background-color:rgba(200, 200, 200, 0.2); color: var(--mourjanC);}
 .menu li:before {}
-.menu li>i {
-    margin-right: 8px;
-    font-size: 1.2em;
-    max-width: 32px;
-}
+.menu li>i { margin: 0 4px; max-width: 32px; }
 
-.menu li>span {
-    float: right;
-    font-size: small;
-    font-weight: bolder;
-    color: var(--grayFC);   
+.menu a {
+    text-decoration: none;
+    color: var(--midnight);
 }
-
-.menu li>span:after {
+.menu a>span { font-size: small; font-weight: bolder; color:dimgray; }
+.menu a>span:after {
     content: "\00a0";
-    padding-right: 4px;
-    margin-left: 8px;    
-    background-position: right center;
-    background-size: 1em;
-    background-repeat: no-repeat;
+    padding: 0 3px;
+    margin: 0 4px;
     position: relative;
     display: inline-block;
     height: 100%;
@@ -126,101 +127,137 @@ body{font-family: -apple-system, "system";font-style: normal;font-size:1em;backg
     -webkit-mask: url(fa-pro-5.5.0/svgs/light/angle-right.svg) no-repeat 50% 50%;
 }
 
-.menu li>span.ellipsis:after{
-    -webkit-mask: url(fa-pro-5.5.0/svgs/light/ellipsis-v.svg) no-repeat 50% 50%;
+body[dir="rtl"] .menu a>span:after {
+    -webkit-mask: url(fa-pro-5.5.0/svgs/light/angle-left.svg) no-repeat 50% 50%;
+}
+.menu a>span.ellipsis:after{
+    -webkit-mask: url(fa-pro-5.5.0/svgs/light/ellipsis-v.svg) no-repeat 50% 50% !important;
 }
 
-.iac {
-    content: "\00a0";
-    width: 40px;
-    height: 40px;
-    /*background-position: center center;
-    background-size: 1em;*/
-    background-repeat: no-repeat;
-    position: relative;
-    display: inline-block;
-    background-color: #8E8E93;
-    float: right;
-    
+
+.icn {
+  position: relative;
+  display: inline-block;
+  width: 1.33333333em;
+  max-height: 40px;
+  margin: 0 6px;
 }
-.iac-angle {
-    -webkit-mask: url(fa-pro-5.5.0/svgs/light/angle-right.svg) no-repeat 50% 50%;
-}
-.iac-ellipsis-v {
-    -webkit-mask: url(fa-pro-5.5.0/svgs/light/ellipsis-v.svg) no-repeat 50% 50%;
+.icn:before {
+  content: "\00a0";
 }
 .icn-1 {
-    background-color:var(--blueFC);
+    background-color:steelblue;
     -webkit-mask: url(fa-pro-5.5.0/svgs/solid/landmark.svg) no-repeat 50% 50%;
 }
 
 .icn-2 {
-    background-color:var(--redFC);
+    background-color:firebrick;
     -webkit-mask: url(fa-pro-5.5.0/svgs/solid/car.svg) no-repeat 50% 50%;
 }
 .icn-3 {
-    background-color:var(--greenFC);
+    background-color:limegreen;
     -webkit-mask: url(fa-pro-5.5.0/svgs/solid/business-time.svg) no-repeat 50% 50%;
 }
 .icn-4 {
-    background-color:var(--purpleFC);
+    background-color:darkorchid;
     -webkit-mask: url(fa-pro-5.5.0/svgs/solid/handshake.svg) no-repeat 50% 50%;
 }
 .icn-99 {
-    background-color:var(--orangeFC);
+    background-color:orange;
     -webkit-mask: url(fa-pro-5.5.0/svgs/solid/drum.svg) no-repeat 50% 50%;
 }
 .icn-81 {
-    background-color:var(--greenFC);
+    background-color:forestgreen;
     -webkit-mask: url(fa-pro-5.5.0/svgs/solid/badge-check.svg) no-repeat 50% 50%;
 }
 .icn-82 {
-    background-color:var(--turqoiseFC);
+    background-color:turquoise;
     -webkit-mask: url(fa-pro-5.5.0/svgs/solid/keyboard.svg) no-repeat 50% 50%;
 }
 .icn-83 {
-    background-color:var(--turqoiseFC);
+    background-color:mediumaquamarine;
     -webkit-mask: url(fa-pro-5.5.0/svgs/solid/info.svg) no-repeat 50% 50%;
     max-height: 32px;
 }
 .icn-84 {
-    background-color:var(--goldC);
+    background-color:gold;
     -webkit-mask: url(fa-pro-5.5.0/svgs/solid/coins.svg) no-repeat 50% 50%;
 }
 .icn-85 {
-    background-color:var(--blueFC);
+    background-color:royalblue;
     -webkit-mask: url(fa-pro-5.5.0/svgs/solid/signature.svg) no-repeat 50% 50%;
 }
 .icn-88 {
-    background-color:var(--waterlemonFC);
+    background-color:hotpink;
     -webkit-mask: url(fa-pro-5.5.0/svgs/solid/paper-plane.svg) no-repeat 50% 50%;
 }
-
-.icon {
-    background-size: contain;
-    background-position: 50%;
-    background-repeat: no-repeat;
-    position: relative;
-    display: inline-block;
-    width: 1.33333333em;
-    line-height: 1em;
-    font-size: 1.5em;
+.icn-bars {
+    background-color:white;
+    -webkit-mask: url(fa-pro-5.5.0/svgs/regular/bars.svg) no-repeat 50% 50%;
 }
-.ri-1:before{content:"\f66f";color:var(--blueFC,blue);}
-.ri-2:before{content:"\f1b9";color:var(--redFC,red);}
-.ri-3:before{content:"\f64a";color:var(--greenFC,green);}
-.ri-4:before{content:"\f2b5";color:var(--purpleFC);}
-.ri-99:before{content:"\f569";color:var(--orangeFC);}
-.ri-81:before{content:"\f336";color:var(--greenFC);}
-.ri-82:before{content:"\f641";color:var(--turqoiseFC);}
-.ri-83:before{content:"\f129";color:var(--turqoiseFC);}
-.ri-84:before{content:"\f51e";color:var(--goldC);}
-.ri-85:before{content:"\f56c";color:var(--blueFC);}
-.ri-88:before{content:"\f1d8";color:var(--waterlemonFC);}
+
+.icn-ae {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url(flags/4x3/ae.svg);
+}
+
+
+
+.topnav {
+  overflow: hidden;
+  background-color: var(--mourjanC);
+}
+
+.topnav a {
+  float: left;
+  display: block;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 17px;
+}
+
+.topnav a:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+.active {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.topnav .icon {
+  display: none;
+}
+
+@media screen and (max-width: 600px) {
+  .topnav a:not(:first-child) {display: none;}
+  .topnav a.icon {    
+    display: block;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .topnav.responsive {position: relative;}
+  .topnav.responsive .icon {
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+  .topnav.responsive a {
+    float: none;
+    display: block;
+    text-align: left;
+  }
+}
 
 @media only screen and (max-width: 768px) {
     [class*="col-"] {
         width: 100%;
+        padding: 0;
     }
     body {
         margin: 0;
@@ -229,34 +266,64 @@ body{font-family: -apple-system, "system";font-style: normal;font-size:1em;backg
 }
 
 </style>
+
 <?php
-echo '</head><body>', "\n";
+echo '</head><body dir="', $router->isArabic() ? 'rtl':'ltr','">', "\n";
+
+$post_label = $router->isArabic() ? "أضف اعلانك مجاناً" : "Post your ad for free";
+$balance_label = $router->isArabic() ? "رصيد حسابي 872 ذهبية" : "My Balance is 872 coins";
+$contact_label = $router->isArabic() ? "إتصل بنا" : "Contact us";
+$about_label = $router->isArabic() ? "من نحن" : "About";
+$terms_label = $router->isArabic() ? "شروط الاستخدام" : "Terms of use";
+$privacy_label = $router->isArabic() ? "سياسة الخصوصية" : "Privacy policy";
 ?>
-<div class="header"><h1>Mourjan Emirates</h1></div>
+<div class="header">
+    
+    
+    <div class="topnav">
+        <div class="float-left">
+        <a href="#home" class="active">Home</a>
+        <a href="#news">News</a>
+        <a href="#contact">Contact</a>
+        <a href="#about">About</a>
+        </div>
+        
+        <a href="javascript:void(0);" class="icon float-right" onclick="myFunction()">
+            <i class="icn icn-bars"></i>
+        </a>
+    </div>
+</div>
+
 
 <div class="row">
     <div class="col-4 menu">
         <ul>
-            <li><i class="flag-icon icn-1"></i>Real estate<SPAN>51,033</SPAN></li>
-            <li><i class="flag-icon icn-2"></i>Cars<span>1,750</span></li>
-            <li><i class="flag-icon icn-3"></i>Jobs<SPAN>25,376</SPAN></li>
-            <li><i class="flag-icon icn-4"></i>Services<span>8,874</span></li>
-            <li><i class="flag-icon icn-99"></i>Miscellanious<span>3,128</span></li>
+        <?php
+        foreach ($router->pageRoots as $id=>$root) {
+            $count = $root['counter'];
+            $link = $router->getURL($router->countryId, $router->cityId, $id);
+            echo '<li><a href="', $link,'"><i class="icn icn-', $id, '"></i>', $root['name'], '<span class="float-right">', number_format($count, 0), '</span></a></li>';
+        }
+        ?>
         </ul>
         <ul>
-            <li><i class="flag-icon flag-icon-ae"></i>Emirates<span class="ellipsis">89,888</span></li>
+        <?php
+            echo '<li><a href="', '#','"><i class="icn icn-', $router->countries[$router->countryId]['uri'], '"></i>', 
+                $router->countries[$router->countryId]['name'], '<span class="ellipsis float-right">', 
+                number_format($router->countries[$router->countryId]['counter'], 0), '</span></a></li>';
+        ?>           
         </ul>
         <ul>
-            <li><i class="flag-icon icn-82"></i>Place your ad for free</li>
-            <li><i class="flag-icon icn-84"></i>My Balance is 872 coins</li>
+            <li><i class="icn icn-82"></i><?php echo $post_label;?></li>
+            <li><i class="icn icn-84"></i><?php echo $balance_label;?></li>
         </ul>
         <ul>
-            <li><i class="flag-icon icn-88"></i>Contact us</li>
-            <li><i class="flag-icon icn-83"></i>About us</li>
+            <li><i class="icn icn-88"></i><?php echo $contact_label;?></li>
+            <li><i class="icn icn-83"></i><?php echo $about_label;?></li>
         </ul>
         <ul>
-            <li><i class="flag-icon icn-85"></i>Terms of use</li>
-            <li><i class="flag-icon icn-81"></i>Privacy policy</li>
+            <li><i class="icn icn-85"></i><?php echo $terms_label;?></li>
+            <li><i class="icn icn-81"></i><?php echo $privacy_label;?></li>
         </ul>
     </div>
     
@@ -267,6 +334,7 @@ echo '</head><body>', "\n";
     </div>
 </div>
 <?php
+        //var_dump($router->countries[$router->countryId]);
 echo '</body></html>', "\n";
 
 
