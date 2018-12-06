@@ -78,9 +78,9 @@ body[dir="rtl"] [class*="col-"] {
 .header {
     background-color: var(--mourjanC);
     color: #ffffff;
-    padding: 10px 0 10px 0;
+    padding: 0;
     text-align: center;
-    height: 60px;
+    min-height: 60px;
 }
 .header>h1{
     margin-block-start: 0.1em;
@@ -256,14 +256,34 @@ body[dir="rtl"] .menu a>span:after {
     border: none;
 }
 
-@media screen and (max-width: 600px) {
+
+.logo {
+    -webkit-mask: url(logo-d.svg) no-repeat 50% 50%;   
+    -webkit-mask-size: contain;
+    background-color: white;
+    max-height: 90px !important;
+    font-size: 4em;
+    padding: 0 !important;
+    margin: 0;
+}
+body[dir="rtl"] .logo {
+    -webkit-mask: url(logo-d-ar.svg) no-repeat 50% 50%; 
+    -webkit-mask-size: contain;
+    background-color: white;
+}
+@media screen and (max-width: 768px) {
     .topnav a:not(:first-child) {display: none;}
     .topnav a.icon {    
         display: block;
     }
+    .logo {
+        -webkit-mask: url(logo-m.svg) no-repeat 50% 50% !important;  
+        -webkit-mask-size: contain !important;
+        background-color: white !important;
+    }
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 768px) {
     .topnav.responsive {position: relative;}
     .topnav.responsive .icon {
         position: absolute;
@@ -310,13 +330,15 @@ $contact_label = $router->isArabic() ? "إتصل بنا" : "Contact us";
 $about_label = $router->isArabic() ? "من نحن" : "About";
 $terms_label = $router->isArabic() ? "شروط الاستخدام" : "Terms of use";
 $privacy_label = $router->isArabic() ? "سياسة الخصوصية" : "Privacy policy";
-$search_placeholder = $router->isArabic() ? "بحث..." : "Search...";
+$search_placeholder = $router->isArabic() ? "ما الذي تبحث عنه..." : "What are looking for...";
 ?>
 <div class="header">
     
     
     <div class="topnav">
+        <div class="float-left" style="width:90px;height: 90px;"><a href="#" style="padding: 0;"><i class="icn logo"></i></a></div>
         <div class="float-left">
+            
             <a href="#home" class="active">Home</a>
             <a href="#news">News</a>
             <a href="#contact">Contact</a>
@@ -337,7 +359,7 @@ $search_placeholder = $router->isArabic() ? "بحث..." : "Search...";
 
 
 <div class="row">
-    <div class="col-4 menu">
+    <div class="col-3 menu">
         <ul>
         <?php
         foreach ($router->pageRoots as $id=>$root) {
@@ -368,7 +390,7 @@ $search_placeholder = $router->isArabic() ? "بحث..." : "Search...";
         </ul>
     </div>
     
-    <div class="col-8">
+    <div class="col-9">
         <h2>The City</h2>
         <p>Chania is the capital of the Chania region on the island of Crete. The city can be divided in two parts, the old town and the modern city.</p>
         <p>Resize the browser window to see how the content respond to the resizing.</p>
