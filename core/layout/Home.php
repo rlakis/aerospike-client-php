@@ -438,7 +438,8 @@ var setOrder=function(e)
             
             ?><div onclick="ga('send', 'event', 'OutLinks', 'click', 'Servcorp-HomeBanner');wn('http://www.servcorp.com.lb/en/locations/beirut/beirut-souks-louis-vuitton-building/virtual-offices/');" class="tvs tvs<?= $rand ?>"></div><?php 
             /* ?><div class="tvf"></div><?php */
-        }else{
+        }
+        else {
             ?><div class="tv rcb"><div class="tx sh"><div class="tz"><?= $this->lang['billboard'] ?><p class="ctr"><?php
             if (!$this->urlRouter->siteTranslate) {
                 if ($this->user->info['id']){
@@ -453,11 +454,9 @@ var setOrder=function(e)
     }
 
 
-    function main_pane()
-    {
+    function main_pane() {
     	$file= dirname( $this->urlRouter->cfg['dir'] ) . '/tmp/gen/index-' . $this->includeHash . '2.php';
-        if (file_exists($file)) 
-        {
+        if (file_exists($file)) {
             echo '<!--googleoff: snippet-->';
             include($file);
             echo '<!--googleon: snippet-->';

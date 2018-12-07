@@ -38,38 +38,24 @@ if(0){
 }
 
 body{font-family: -apple-system, "system";font-style: normal;font-size:1em;background-color: whitesmoke;}
+body{margin: 0; background-color: rgb(238, 238, 238); }
 .float-left{ float: left; }
 .float-right{ float: right; }
 body[dir="rtl"] .float-left{ float: right; }
 body[dir="rtl"] .float-right{ float: left; }
             
-:root {
-    --mourjanC:rgba(10,61,98,1);
-    --midnight:rgba(44,62,80,1);
+:root { --mourjanC:rgba(10,61,98,1); --midnight:rgba(44,62,80,1); 
+       --color-1:steelblue;
+       --color-2:firebrick;
+       --color-3:limegreen;
+       --color-4:darkorchid;
+       --color-99:orange;
 }
-*{ 
-    box-sizing: border-box; 
-}
+* { box-sizing: border-box; }
 
-.col-1 {width: 8.33%;}
-.col-2 {width: 16.66%;}
-.col-3 {width: 25%;}
-.col-4 {width: 33.33%;}
-.col-5 {width: 41.66%;}
-.col-6 {width: 50%;}
-.col-7 {width: 58.33%;}
-.col-8 {width: 66.66%;}
-.col-9 {width: 75%;}
-.col-10 {width: 83.33%;}
-.col-11 {width: 91.66%;}
-.col-12 {width: 100%;}
-[class*="col-"] {
-    float: left;
-    padding: 8px;
-}
-body[dir="rtl"] [class*="col-"] {
-    float: right;
-}
+.col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12 {width: 100%; padding: 0; float: left}
+body[dir="rtl"] [class*="col-"] { float: right; }
+
 .row::after {
     content: "";
     clear: both;
@@ -83,8 +69,6 @@ body[dir="rtl"] [class*="col-"] {
     min-height: 60px;
 }
 .header>h1{
-    margin-block-start: 0.1em;
-    margin-block-end: 0.1em;
     -webkit-margin-before:0.1em;
     -webkit-margin-after:0.1em;
     font-size: 1.8em;
@@ -139,15 +123,13 @@ body[dir="rtl"] .menu a>span:after {
 .icn {
   position: relative;
   display: inline-block;
-  width: 1.33333333em;
-  max-height: 40px;
+  width:32px;
+  height:32px;
   margin: 0 6px;
 }
-.icn:before {
-  content: "\00a0";
-}
+.icn:before { content: "\00a0"; }
 .icn-1 {
-    background-color:steelblue;
+    background-color:var(--color-1);
     -webkit-mask: url(fa-pro-5.5.0/svgs/solid/landmark.svg) no-repeat 50% 50%;
 }
 
@@ -211,7 +193,6 @@ body[dir="rtl"] .menu a>span:after {
 
 .topnav {overflow: hidden; background-color: var(--mourjanC);}
 
-
 .topnav .search-container button {
   padding: 6px 10px;
   margin: 8px 0;
@@ -235,20 +216,11 @@ body[dir="rtl"] .menu a>span:after {
   font-size: 17px;
 }
 
-.topnav a:hover {
-  background-color: #ddd;
-  color: black;
-}
+.topnav a:hover { background-color: #ddd; color: black; }
 
-.active {
-  background-color: #4CAF50;
-  color: white;
-}
+.active { background-color: #4CAF50; color: white; }
 
-.topnav .icon {
-  display: none;
-}
-
+.topnav .icon { display: none; }
 .topnav .search-container input[type=text] {
     padding: 6px;
     margin: 8px 0;
@@ -266,24 +238,80 @@ body[dir="rtl"] .menu a>span:after {
     padding: 0 !important;
     margin: 0;
 }
+
 body[dir="rtl"] .logo {
     -webkit-mask: url(logo-d-ar.svg) no-repeat 50% 50%; 
     -webkit-mask-size: contain;
     background-color: white;
 }
+
+.ilogo {
+    height: 90px;
+    width: 90px;
+    display: inline-block;
+    background: url(logo-m.svg) center center no-repeat; 
+    background-size: contain !important;
+    margin: 0 8px;
+}
+
+.card {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    margin: 25px 0;
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.14);
+    border-radius: 6px;
+    color: rgba(0,0,0, 0.87);
+    background: #fff;
+}
+.card-header {
+    height: 86px;
+    text-align: center;
+    margin: -20px 15px 0 15px; 
+    padding: 15px;
+    background-color: white;
+    box-shadow: 0 4px 20px 0px rgba(0, 0, 0, 0.14), 0 7px 10px -5px rgba(255, 152, 0, 0.4);
+    border-radius: inherit;
+}
+
+.card .card-header {
+    z-index: 3;
+}
+
+.card .card-footer {
+    margin: 0 20px 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eeeeee;
+}
+
+.card-stats .card-content {
+    text-align: right;
+    padding-top: 10px;
+}
+.card .card-content {
+    padding: 15px 20px;
+    position: relative;
+}
+
+.card-header .icn {
+    width: 56px;
+    height: 56px;
+}
+
+.card-header [class*="icn-"] {
+    background-color: white;
+}
+
+
+
 @media screen and (max-width: 768px) {
     .topnav a:not(:first-child) {display: none;}
-    .topnav a.icon {    
-        display: block;
-    }
+    .topnav a.icon { display: block; }
     .logo {
         -webkit-mask: url(logo-m.svg) no-repeat 50% 50% !important;  
         -webkit-mask-size: contain !important;
         background-color: white !important;
     }
-}
-
-@media screen and (max-width: 768px) {
     .topnav.responsive {position: relative;}
     .topnav.responsive .icon {
         position: absolute;
@@ -308,14 +336,31 @@ body[dir="rtl"] .logo {
     }
 }
 
-@media only screen and (max-width: 768px) {
+@media only screen and (min-width: 768px) {
+    .col-1 {width: 8.33%;}
+    .col-2 {width: 16.66%;}
+    .col-3 {width: 25%;}
+    .col-4 {width: 33.33%;}
+    .col-5 {width: 41.66%;}
+    .col-6 {width: 50%;}
+    .col-7 {width: 58.33%;}
+    .col-8 {width: 66.66%;}
+    .col-9 {width: 75%;}
+    .col-10 {width: 83.33%;}
+    .col-11 {width: 91.66%;}
+    .col-12 {width: 100%;}
     [class*="col-"] {
-        width: 100%;
-        padding: 0;
+        padding: 8px;
     }
-    body {
+    .ilogo{
+        width: 200px;
         margin: 0;
-        background-color: rgb(238, 238, 238);
+        background: url(logo-d.svg) center center no-repeat; 
+    }
+    body[dir="rtl"] .ilogo {
+        width: 270px;
+        margin: 0;
+        background: url(logo-d-ar.svg) center center no-repeat; 
     }
 }
 
@@ -332,11 +377,9 @@ $terms_label = $router->isArabic() ? "شروط الاستخدام" : "Terms of u
 $privacy_label = $router->isArabic() ? "سياسة الخصوصية" : "Privacy policy";
 $search_placeholder = $router->isArabic() ? "ما الذي تبحث عنه..." : "What are looking for...";
 ?>
-<div class="header">
-    
-    
+<div class="header">        
     <div class="topnav">
-        <div class="float-left" style="width:90px;height: 90px;"><a href="#" style="padding: 0;"><i class="icn logo"></i></a></div>
+        <div class="float-left"><a href="#" style="padding: 0;"><i class="ilogo"></i></a></div>
         <div class="float-left">
             
             <a href="#home" class="active">Home</a>
@@ -359,13 +402,15 @@ $search_placeholder = $router->isArabic() ? "ما الذي تبحث عنه..." :
 
 
 <div class="row">
-    <div class="col-3 menu">
+    <div class="col-4 menu">
         <ul>
         <?php
+        $sections = [];
         foreach ($router->pageRoots as $id=>$root) {
             $count = $root['counter'];
             $link = $router->getURL($router->countryId, $router->cityId, $id);
             echo '<li><a href="', $link,'"><i class="icn icn-', $id, '"></i>', $root['name'], '<span class="float-right">', number_format($count, 0), '</span></a></li>';
+            $sections[$id] = $router->db->getSectionsData($router->countryId, $router->cityId, $id, $router->siteLanguage, true);
         }
         ?>
         </ul>
@@ -390,14 +435,29 @@ $search_placeholder = $router->isArabic() ? "ما الذي تبحث عنه..." :
         </ul>
     </div>
     
-    <div class="col-9">
-        <h2>The City</h2>
-        <p>Chania is the capital of the Chania region on the island of Crete. The city can be divided in two parts, the old town and the modern city.</p>
-        <p>Resize the browser window to see how the content respond to the resizing.</p>
+    <div class="col-8"><?php
+        foreach ($sections as $root_id => $items) {
+            echo '<div class="col-6"><div class="card">';
+            echo '<div class="card-header float-left" style="background-color:var(--color-',$root_id,');"><i class="icn icn-', $root_id, '"></i>';
+            echo '</div>';
+            echo '<div class="card-content">';
+            $i=0;
+            foreach ($items as $section_id => $section) {
+                echo '<div class="row">', $section['name'], '</div>';
+                $i++;
+                if ($i>=10) { break; }
+            }
+            echo '</div>';
+            echo '<div class="card-footer"></div>';
+            echo '</div></div>';
+        }    
+    ?>
     </div>
 </div>
 <?php
+        //logo("white");
         //var_dump($router->countries[$router->countryId]);
+       //var_dump($sections);
 echo '</body></html>', "\n";
 
 
@@ -418,3 +478,14 @@ function pushFont($uri) {
     //echo '<link rel="stylesheet" href="', $uri, '">',"\n";
 }
 
+
+
+function logo($fill="#ffffff") {
+    echo '<svg class="m1logo" viewBox="0 0 1024 1024" width="90" height="90" version="1.1" aria-hidden="true" fill="', $fill, '">';
+    echo '<path d="M417.964,823.989V403.437c0-28.733-13.061-45.711-45.712-45.711c-33.958,0-96.648,23.508-137.137,45.711v420.552H47.042
+		V187.937h139.749l19.591,48.323c78.364-37.875,180.236-61.384,253.375-61.384c56.161,0,94.037,22.203,116.241,61.384
+		c71.832-35.262,167.176-61.384,254.682-61.384c108.403,0,146.278,80.975,146.278,203.746v445.367H788.886V403.437
+		c0-28.733-13.061-45.711-45.712-45.711c-33.958,0-96.649,23.508-137.139,45.711v420.552H417.964z"/>';
+    echo '</svg>';
+
+}

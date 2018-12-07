@@ -819,54 +819,51 @@ class DB {
     }
     
     
-    function getSectionsData($countryId, $cityId, $rootId, $lang) {
+    function getSectionsData($countryId, $cityId, $rootId, $lang, bool $sortByCount=false) {
         $vv = ($this->slaveOfRedis) ? self::$SectionsVersion : self::$SectionsVersion+1;
-        $label = "section-data-{$countryId}-{$cityId}-{$rootId}-{$lang}-{$vv}";
+        $label = $sortByCount ? "section-data-{$countryId}-{$cityId}-{$rootId}-{$lang}-c-{$vv}" : "section-data-{$countryId}-{$cityId}-{$rootId}-{$lang}-{$vv}";
         $result = self::$Cache->get($label);
-        if ($result!==FALSE) 
-        {
+        
+        if ($result!==FALSE) {
+            error_log("cached");
             return $result;
         }
-        else
-        {        
+        else {        
             $result=[];
-            if ($this->slaveOfRedis) 
-            {
-                return $result;
-            }
+            //if ($this->slaveOfRedis) {
+            //    return $result;
+            //}
         }
+       
         
-        
-        $q = "select groupby(), section_name_{$lang}, sum(counter), max(unixtime) from section_counts where root_id={$rootId} ";
+        $q = "select groupby(), section_name_{$lang}, sum(counter) as count, max(unixtime) from section_counts where root_id={$rootId} ";
         if ($cityId) {
             $q.="and city_id={$cityId} ";
-        } elseif ($countryId) {
+        } 
+        elseif ($countryId) {
             $q.="and country_id={$countryId} and city_id=0 ";
         }
-        $q.="group by section_id order by section_name_{$lang} asc limit 1000";
+        
+        $sort_field = $sortByCount ? "count desc" : "section_name_{$lang} asc";
+        $q.="group by section_id order by {$sort_field} limit 1000";
         
         $resource = $this->ql->getConnection()->query($q);
-        if ($this->ql->getConnection()->error) 
-        {
-            throw new Exception('['.$this->ql->getConnection()->errno.'] '.$this->ql->getConnection()->error.' [ '.$q.']');
+        if ($this->ql->getConnection()->error) {
+            throw new \Exception('['.$this->ql->getConnection()->errno.'] '.$this->ql->getConnection()->error.' [ '.$q.']');
         }
         
-        if ($resource instanceof \mysqli_result) 
-        {           
-            while ($row = $resource->fetch_array()) 
-            {
+        if ($resource instanceof \mysqli_result) {           
+            while ($row = $resource->fetch_array()) {
                 $purposes = $this->getPurpusesData($countryId, $cityId, $rootId, $row[0], $lang);
                 $result[$row[0]]=['name'=>$row[1], 'counter'=>$row[2], 'unixtime'=>$row[3], 'purposes'=>$purposes];                
             }
             $resource->free_result();                
         }
 
-        if (!empty($result)) 
-        {
+        if (!empty($result)) {
             $roots = $this->getRoots();
             $df = $roots[$rootId][4];
-            if (isset($result[$df])) 
-            {
+            if (isset($result[$df])) {
                 $tdf = $result[$df];
                 unset($result[$df]);
                 $result[$df] = $tdf;
