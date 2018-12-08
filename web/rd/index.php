@@ -36,14 +36,18 @@ if(0){
       local(".LucidaGrandeUI"), local("Ubuntu Light"), local("Segoe UI Light"), 
       local("Roboto-Light"), local("DroidSans"), local("Tahoma");
 }
-
+html * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+* { box-sizing: border-box; }
 body{font-family: -apple-system, "system";font-style: normal;font-size:1em;background-color: whitesmoke;}
 body{margin: 0; background-color: rgb(238, 238, 238); }
 .float-left{ float: left; }
 .float-right{ float: right; }
 body[dir="rtl"] .float-left{ float: right; }
 body[dir="rtl"] .float-right{ float: left; }
-            
+h4{font-size: 1.3em;}
 :root { --mourjanC:rgba(10,61,98,1); --midnight:rgba(44,62,80,1); 
        --color-1:steelblue;
        --color-2:firebrick;
@@ -51,11 +55,15 @@ body[dir="rtl"] .float-right{ float: left; }
        --color-4:darkorchid;
        --color-99:orange;
 }
-* { box-sizing: border-box; }
+
 
 .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12 {width: 100%; padding: 0; float: left}
 body[dir="rtl"] [class*="col-"] { float: right; }
 
+.row{
+    margin-right: 0;
+    margin-left: 0;
+}
 .row::after {
     content: "";
     clear: both;
@@ -293,6 +301,15 @@ body[dir="rtl"] .logo {
     position: relative;
 }
 
+.card .card-header.card-header-icon, .card-content .card-title {
+    padding-bottom: 35px;
+}
+.card .card-title {
+    margin-top: 0;
+    margin-bottom: 3px;
+
+}
+
 .card-header .icn {
     width: 56px;
     height: 56px;
@@ -437,10 +454,10 @@ $search_placeholder = $router->isArabic() ? "ما الذي تبحث عنه..." :
     
     <div class="col-8"><?php
         foreach ($sections as $root_id => $items) {
-            echo '<div class="col-6"><div class="card">';
-            echo '<div class="card-header float-left" style="background-color:var(--color-',$root_id,');"><i class="icn icn-', $root_id, '"></i>';
-            echo '</div>';
+            echo '<div class="col-6">', '<div class="card">';
+            echo '<div class="card-header float-left" style="background-color:var(--color-',$root_id,');"><i class="icn icn-', $root_id, '"></i></div>';
             echo '<div class="card-content">';
+            echo '<h4 class="card-title">', $router->pageRoots[$root_id]['name'],'</h4>';
             $i=0;
             foreach ($items as $section_id => $section) {
                 echo '<div class="row">', $section['name'], '</div>';
