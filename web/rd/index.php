@@ -273,11 +273,10 @@ body[dir="rtl"] .logo {
     background: #fff;
 }
 .card-header {
-    height: 86px;
+    height: 68px;
     text-align: center;
     margin: -20px 15px 0 15px; 
     padding: 15px;
-    background-color: white;
     box-shadow: 0 4px 20px 0px rgba(0, 0, 0, 0.14), 0 7px 10px -5px rgba(255, 152, 0, 0.4);
     border-radius: inherit;
 }
@@ -302,24 +301,36 @@ body[dir="rtl"] .logo {
 }
 
 .card .card-header.card-header-icon, .card-content .card-title {
-    padding-bottom: 35px;
+    padding-bottom: 24px;
 }
 .card .card-title {
     margin-top: 0;
     margin-bottom: 3px;
-
+    font-weight: 300;
 }
-
-.card-header .icn {
-    width: 56px;
-    height: 56px;
-}
-
 .card-header [class*="icn-"] {
     background-color: white;
 }
 
+.card ul {
+    list-style-type: none;
+    list-style-position: inside;
+    padding: 0;
+}
 
+.card li {
+    line-height: 40px;
+    border-bottom: 1px solid #eeeeee;
+}
+.card li>a {
+    text-decoration: none;
+    color: var(--midnightC);
+}
+.card a>span {
+    color: dimgray;
+    font-size: small;
+    font-weight: bolder;
+}
 
 @media screen and (max-width: 768px) {
     .topnav a:not(:first-child) {display: none;}
@@ -353,7 +364,7 @@ body[dir="rtl"] .logo {
     }
 }
 
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 769px) {
     .col-1 {width: 8.33%;}
     .col-2 {width: 16.66%;}
     .col-3 {width: 25%;}
@@ -381,6 +392,12 @@ body[dir="rtl"] .logo {
     }
 }
 
+@media only screen and (min-width: 1900px) {
+    .col-4 {width: 25%;}
+    .col-6 {width: 33.33%;}
+    .col-8 {width: 75%;}
+    .col-12 {width: 66.66%;}
+}
 </style>
 
 <?php
@@ -397,13 +414,14 @@ $search_placeholder = $router->isArabic() ? "ما الذي تبحث عنه..." :
 <div class="header">        
     <div class="topnav">
         <div class="float-left"><a href="#" style="padding: 0;"><i class="ilogo"></i></a></div>
+        <!--
         <div class="float-left">
             
             <a href="#home" class="active">Home</a>
             <a href="#news">News</a>
             <a href="#contact">Contact</a>
             <a href="#about">About</a>        
-        </div>
+        </div>-->
         <div class="search-container float-right">
             <form action="/action_page.php">
                 <input type="text" placeholder="<?php echo $search_placeholder;?>">
@@ -453,17 +471,31 @@ $search_placeholder = $router->isArabic() ? "ما الذي تبحث عنه..." :
     </div>
     
     <div class="col-8"><?php
+        $count = count($sections);
+        $odd = ($count % 2)==1;
+        $j=0;
+        error_log("count {$count}, {$odd}");
         foreach ($sections as $root_id => $items) {
-            echo '<div class="col-6">', '<div class="card">';
+            if ($odd) {
+                $j++;
+                error_log($j);
+                echo '<div class="col-', ($j==$count)?'12':'6', '"><div class="card">';
+            }
+            else {
+                echo '<div class="col-6">', '<div class="card">';
+            }
             echo '<div class="card-header float-left" style="background-color:var(--color-',$root_id,');"><i class="icn icn-', $root_id, '"></i></div>';
             echo '<div class="card-content">';
             echo '<h4 class="card-title">', $router->pageRoots[$root_id]['name'],'</h4>';
+            echo '<ul>';
             $i=0;
             foreach ($items as $section_id => $section) {
-                echo '<div class="row">', $section['name'], '</div>';
+                if ($section['counter']==0) { break; }
+                echo '<li><a href="#">', $section['name'], '<span class="float-right">', number_format($section['counter'],0), '</span></a></li>';
                 $i++;
                 if ($i>=10) { break; }
             }
+            echo '</ul>';
             echo '</div>';
             echo '<div class="card-footer"></div>';
             echo '</div></div>';
