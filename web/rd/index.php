@@ -208,7 +208,6 @@ body[dir="rtl"] .menu a>span:after {
 }
 
 
-
 .topnav {overflow: hidden; background-color: var(--mourjanC);}
 
 .topnav .search-container button {
@@ -329,7 +328,7 @@ body[dir="rtl"] .logo {
 }
 
 .card li {
-    line-height: 40px;
+    line-height: 50px;
     border-bottom: 1px solid #eeeeee;
 }
 .card li:hover { background-color:rgba(200, 200, 200, 0.2); color: var(--mourjanC);}
@@ -341,6 +340,29 @@ body[dir="rtl"] .logo {
     color: dimgray;
     font-size: small;
     font-weight: bolder;
+}
+
+.card.test li{
+    border-bottom: 0px;
+    display:flex;
+    justify-content:space-between;
+    align-items: center;
+    cursor:pointer
+}
+.card.test .icn{
+    flex:0 0 30%;
+    margin:0 10px 0 0;
+}
+.card.test span{
+    width:100%;
+    flex:1;
+    border-bottom:1px solid #369
+}
+.card.test li:last-child span{
+    border:0
+}
+body[dir="rtl"] .icn {
+    margin:0 0 0 10px;
 }
 
 @media screen and (max-width: 768px) {
@@ -519,14 +541,15 @@ $search_placeholder = $router->isArabic() ? "ما الذي تبحث عنه..." :
        //var_dump($sections);
 
 echo '<div class="row">', '<div class="col-3">';
-echo '<div class="card"><div class="card-content">';
+echo '<div class="card test"><div class="card-content">';
 echo '<ul>';
 echo '<li><i class="icn icnsmall icn-82"></i><span>', $post_label, '</span></li>';
-echo '<li><i class="icn icnsmall icn-84"></i>', $balance_label, '</li>';
-echo '<li><i class="icn icnsmall icn-88"></i>', $contact_label, '</li>';
-echo '<li><i class="icn icnsmall icn-83"></i>', $about_label, '</li>';
-echo '<li><i class="icn icnsmall icn-85"></i>', $terms_label, '</li>';
-echo '<li><i class="icn icnsmall icn-81"></i>', $privacy_label, '</li>';
+echo '<li><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></li>';
+echo '<li><i class="icn icnsmall icn-88"></i><span>', $contact_label, '</span></li>';
+echo '<li><i class="icn icnsmall icn-83"></i><span>', $about_label, '</span></li>';
+echo '<li><i class="icn icnsmall icn-85"></i><span>', $terms_label, '</span></li>';
+echo '<li><i class="icn icnsmall icn-81"></i><span>', $privacy_label, '</span></li>';
+echo '<li><i class="icn icnsmall icn-ae"></i><span>', $privacy_label, '</span></li>';
 echo '</ul></div></div></div>';
 
 
