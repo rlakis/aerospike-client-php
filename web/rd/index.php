@@ -84,9 +84,13 @@ body[dir="rtl"] [class*="col-"] { float: right; }
 .footer {
 
 }
-.menu ul {
+ul {
     list-style-type: none;
     list-style-position: inside;
+}
+li>i {margin: 0 4px; max-width: 32px;}
+
+.menu ul {
     margin-bottom: 12px;
     margin-top: 8px;
     padding: 0;
@@ -100,8 +104,8 @@ body[dir="rtl"] [class*="col-"] { float: right; }
     line-height: 40px;
 }
 .menu li:hover { background-color:rgba(200, 200, 200, 0.2); color: var(--mourjanC);}
-.menu li:before {}
-.menu li>i { margin: 0 4px; max-width: 32px; }
+/*.menu li:before {}
+.menu li>i { margin: 0 4px; max-width: 32px; }*/
 
 .menu a {
     text-decoration: none;
@@ -136,6 +140,12 @@ body[dir="rtl"] .menu a>span:after {
   margin: 0 6px;
 }
 .icn:before { content: "\00a0"; }
+.icnsmall {
+    width:24px;
+    height: 24px;
+    vertical-align: middle;
+    margin: 0;
+}
 .icn-1 {
     background-color:var(--color-1);
     -webkit-mask: url(fa-pro-5.5.0/svgs/solid/landmark.svg) no-repeat 50% 50%;
@@ -313,18 +323,19 @@ body[dir="rtl"] .logo {
 }
 
 .card ul {
-    list-style-type: none;
-    list-style-position: inside;
     padding: 0;
+    margin-top: 0px;
+    margin-bottom: 0px;
 }
 
 .card li {
     line-height: 40px;
     border-bottom: 1px solid #eeeeee;
 }
+.card li:hover { background-color:rgba(200, 200, 200, 0.2); color: var(--mourjanC);}
 .card li>a {
     text-decoration: none;
-    color: var(--midnightC);
+    color: var(--midnightC);   
 }
 .card a>span {
     color: dimgray;
@@ -392,6 +403,9 @@ body[dir="rtl"] .logo {
     }
 }
 
+@media only screen and (min-width:1920px) {
+    body { margin: 0px auto; width: 1920px; display: block;}
+}
 @media only screen and (min-width: 1900px) {
     .col-4 {width: 25%;}
     .col-6 {width: 33.33%;}
@@ -405,10 +419,12 @@ echo '</head><body dir="', $router->isArabic() ? 'rtl':'ltr','">', "\n";
 
 $post_label = $router->isArabic() ? "أضف اعلانك مجاناً" : "Post your ad for free";
 $balance_label = $router->isArabic() ? "رصيد حسابي 872 ذهبية" : "My Balance is 872 coins";
+
 $contact_label = $router->isArabic() ? "إتصل بنا" : "Contact us";
 $about_label = $router->isArabic() ? "من نحن" : "About";
 $terms_label = $router->isArabic() ? "شروط الاستخدام" : "Terms of use";
 $privacy_label = $router->isArabic() ? "سياسة الخصوصية" : "Privacy policy";
+
 $search_placeholder = $router->isArabic() ? "ما الذي تبحث عنه..." : "What are looking for...";
 ?>
 <div class="header">        
@@ -437,52 +453,46 @@ $search_placeholder = $router->isArabic() ? "ما الذي تبحث عنه..." :
 
 
 <div class="row">
-    <div class="col-4 menu">
-        <ul>
+    <!--<div class="col-4 menu"><ul>-->
         <?php
+        
         $sections = [];
         foreach ($router->pageRoots as $id=>$root) {
             $count = $root['counter'];
             $link = $router->getURL($router->countryId, $router->cityId, $id);
-            echo '<li><a href="', $link,'"><i class="icn icn-', $id, '"></i>', $root['name'], '<span class="float-right">', number_format($count, 0), '</span></a></li>';
+            //echo '<li><a href="', $link,'"><i class="icn icn-', $id, '"></i>', $root['name'], '<span class="float-right">', number_format($count, 0), '</span></a></li>';
             $sections[$id] = $router->db->getSectionsData($router->countryId, $router->cityId, $id, $router->siteLanguage, true);
         }
-        ?>
-        </ul>
-        <ul>
-        <?php
-            echo '<li><a href="', '#','"><i class="icn icn-', $router->countries[$router->countryId]['uri'], '"></i>', 
-                $router->countries[$router->countryId]['name'], '<span class="ellipsis float-right">', 
-                number_format($router->countries[$router->countryId]['counter'], 0), '</span></a></li>';
-        ?>           
-        </ul>
-        <ul>
-            <li><i class="icn icn-82"></i><?php echo $post_label;?></li>
-            <li><i class="icn icn-84"></i><?php echo $balance_label;?></li>
-        </ul>
-        <ul>
-            <li><i class="icn icn-88"></i><?php echo $contact_label;?></li>
-            <li><i class="icn icn-83"></i><?php echo $about_label;?></li>
-        </ul>
-        <ul>
-            <li><i class="icn icn-85"></i><?php echo $terms_label;?></li>
-            <li><i class="icn icn-81"></i><?php echo $privacy_label;?></li>
-        </ul>
-    </div>
+        /*
+        echo '</ul><ul>';
+        echo '<li><a href="', '#','"><i class="icn icn-', $router->countries[$router->countryId]['uri'], '"></i>', 
+            $router->countries[$router->countryId]['name'], '<span class="ellipsis float-right">', 
+            number_format($router->countries[$router->countryId]['counter'], 0), '</span></a></li>';
+        echo '</ul><ul>';
+        echo '<li><i class="icn icn-82"></i>', $post_label, '</li>';
+        echo '<li><i class="icn icn-84"></i>', $balance_label, '</li>';
+        echo '</ul><ul>';
+        echo '<li><i class="icn icn-88"></i>', $contact_label, '</li>';
+        echo '<li><i class="icn icn-83"></i>', $about_label, '</li>';
+        echo '</ul><ul>';
+        echo '<li><i class="icn icn-85"></i>', $terms_label, '</li>';
+        echo '<li><i class="icn icn-81"></i>', $privacy_label, '</li>';
+        echo '</ul>', '</div>';
+        */
+        ?>        
     
-    <div class="col-8"><?php
+    <!--<div class="col-12">--><?php
         $count = count($sections);
         $odd = ($count % 2)==1;
-        $j=0;
-        error_log("count {$count}, {$odd}");
+        $j=0;       
         foreach ($sections as $root_id => $items) {
             if ($odd) {
                 $j++;
                 error_log($j);
-                echo '<div class="col-', ($j==$count)?'12':'6', '"><div class="card">';
+                echo '<div class="col-', ($j==$count)?'8':'4', '"><div class="card">';
             }
             else {
-                echo '<div class="col-6">', '<div class="card">';
+                echo '<div class="col-4">', '<div class="card">';
             }
             echo '<div class="card-header float-left" style="background-color:var(--color-',$root_id,');"><i class="icn icn-', $root_id, '"></i></div>';
             echo '<div class="card-content">';
@@ -497,16 +507,33 @@ $search_placeholder = $router->isArabic() ? "ما الذي تبحث عنه..." :
             }
             echo '</ul>';
             echo '</div>';
-            echo '<div class="card-footer"></div>';
+            //echo '<div class="card-footer"></div>';
             echo '</div></div>';
         }    
     ?>
-    </div>
+    <!--</div>-->
 </div>
 <?php
         //logo("white");
         //var_dump($router->countries[$router->countryId]);
        //var_dump($sections);
+
+echo '<div class="row">', '<div class="col-3">';
+echo '<div class="card"><div class="card-content">';
+echo '<ul>';
+echo '<li><i class="icn icnsmall icn-82"></i><span>', $post_label, '</span></li>';
+echo '<li><i class="icn icnsmall icn-84"></i>', $balance_label, '</li>';
+echo '<li><i class="icn icnsmall icn-88"></i>', $contact_label, '</li>';
+echo '<li><i class="icn icnsmall icn-83"></i>', $about_label, '</li>';
+echo '<li><i class="icn icnsmall icn-85"></i>', $terms_label, '</li>';
+echo '<li><i class="icn icnsmall icn-81"></i>', $privacy_label, '</li>';
+echo '</ul></div></div></div>';
+
+
+echo '<div class="col-3">', '</div>';
+echo '<div class="col-3">', '</div>';
+echo '<div class="col-3">', '</div>';
+echo '</div></div>';
 echo '</body></html>', "\n";
 
 
