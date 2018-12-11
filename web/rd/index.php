@@ -386,6 +386,7 @@ body[dir="rtl"] .icn {
     cursor:pointer
 }
 .card dd {
+    columns: 3;
     cursor:pointer
 }
 .card dt>span {   
