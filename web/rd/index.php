@@ -317,9 +317,7 @@ body[dir="rtl"] .logo {
     margin-bottom: 3px;
     font-weight: 300;
 }
-.card-header [class*="icn-"] {
-    background-color: white;
-}
+.card-header [class*="icn-"] { background-color: white; }
 
 .card ul {
     padding: 0;
@@ -330,6 +328,9 @@ body[dir="rtl"] .logo {
 .card li {
     line-height: 50px;
     border-bottom: 1px solid #eeeeee;
+}
+.card li:last-child {
+    border:0
 }
 .card li:hover { background-color:rgba(200, 200, 200, 0.2); color: var(--mourjanC);}
 .card li>a {
@@ -356,13 +357,13 @@ body[dir="rtl"] .logo {
 .card.test span{
     width:100%;
     flex:1;
-    border-bottom:1px solid #369
+    border-bottom:1px solid #eeeeee;
 }
 .card.test li:last-child span{
     border:0
 }
 body[dir="rtl"] .icn {
-    margin:0 0 0 10px;
+    margin:0 0 0 10px !important;
 }
 
 @media screen and (max-width: 768px) {
@@ -540,7 +541,7 @@ $search_placeholder = $router->isArabic() ? "ما الذي تبحث عنه..." :
         //var_dump($router->countries[$router->countryId]);
        //var_dump($sections);
 
-echo '<div class="row">', '<div class="col-3">';
+echo '<div class="row">', '<div class="col-4">';
 echo '<div class="card test"><div class="card-content">';
 echo '<ul>';
 echo '<li><i class="icn icnsmall icn-82"></i><span>', $post_label, '</span></li>';
@@ -549,13 +550,17 @@ echo '<li><i class="icn icnsmall icn-88"></i><span>', $contact_label, '</span></
 echo '<li><i class="icn icnsmall icn-83"></i><span>', $about_label, '</span></li>';
 echo '<li><i class="icn icnsmall icn-85"></i><span>', $terms_label, '</span></li>';
 echo '<li><i class="icn icnsmall icn-81"></i><span>', $privacy_label, '</span></li>';
-echo '<li><i class="icn icnsmall icn-ae"></i><span>', $privacy_label, '</span></li>';
 echo '</ul></div></div></div>';
 
 
-echo '<div class="col-3">', '</div>';
-echo '<div class="col-3">', '</div>';
-echo '<div class="col-3">', '</div>';
+echo '<div class="col-8">';
+//echo '<div class=row>';
+echo '<div class="col-4 card"><div class="card-content"><h4 class=card-title>','GCC</h4></div></div>';
+echo '<div class=col-4>','Middle</div>';
+echo '<div class=col-4>','North Africa</div>';
+//echo '</div>';
+echo '</div>';
+
 echo '</div></div>';
 echo '</body></html>', "\n";
 
