@@ -48,6 +48,7 @@ body{margin: 0; background-color: rgb(238, 238, 238); }
 body[dir="rtl"] .float-left{ float: right; }
 body[dir="rtl"] .float-right{ float: left; }
 h4{font-size: 1.3em;}
+li,dd,dt{line-height: 48px;}
 :root { --mourjanC:rgba(10,61,98,1); --midnight:rgba(44,62,80,1); 
        --color-1:steelblue;
        --color-2:firebrick;
@@ -201,11 +202,23 @@ body[dir="rtl"] .menu a>span:after {
     -webkit-mask: url(fa-pro-5.5.0/svgs/regular/search.svg) no-repeat 50% 50%;
 }
 
-.icn-ae {
-    background-repeat: no-repeat;
-    background-position: center;
-    background-image: url(flags/4x3/ae.svg);
-}
+.icn-ae { background: url(flags/4x3/ae.svg) center no-repeat; }
+.icn-sa { background: url(flags/4x3/sa.svg) center no-repeat; }
+.icn-kw { background: url(flags/4x3/kw.svg) center no-repeat; }
+.icn-bh { background: url(flags/4x3/bh.svg) center no-repeat; }
+.icn-om { background: url(flags/4x3/om.svg) center no-repeat; }
+.icn-qa { background: url(flags/4x3/qa.svg) center no-repeat; }
+.icn-iq { background: url(flags/4x3/iq.svg) center no-repeat; }
+.icn-ye { background: url(flags/4x3/ye.svg) center no-repeat; }
+.icn-lb { background: url(flags/4x3/lb.svg) center no-repeat; }
+.icn-jo { background: url(flags/4x3/jo.svg) center no-repeat; }
+.icn-sy { background: url(flags/4x3/sy.svg) center no-repeat; }
+.icn-eg { background: url(flags/4x3/eg.svg) center no-repeat; }
+.icn-ma { background: url(flags/4x3/ma.svg) center no-repeat; }
+.icn-tn { background: url(flags/4x3/tn.svg) center no-repeat; }
+.icn-dz { background: url(flags/4x3/dz.svg) center no-repeat; }
+.icn-sd { background: url(flags/4x3/sd.svg) center no-repeat; }
+.icn-ly { background: url(flags/4x3/ly.svg) center no-repeat; }
 
 
 .topnav {overflow: hidden; background-color: var(--mourjanC);}
@@ -326,13 +339,10 @@ body[dir="rtl"] .logo {
 }
 
 .card li {
-    line-height: 50px;
     border-bottom: 1px solid #eeeeee;
 }
-.card li:last-child {
-    border:0
-}
-.card li:hover { background-color:rgba(200, 200, 200, 0.2); color: var(--mourjanC);}
+.card li:last-child { border:0 }
+.card li:hover, dd:hover, dt:hover { background-color:rgba(200, 200, 200, 0.2); color: var(--mourjanC);}
 .card li>a {
     text-decoration: none;
     color: var(--midnightC);   
@@ -350,12 +360,16 @@ body[dir="rtl"] .logo {
     align-items: center;
     cursor:pointer
 }
+/*
 .card.test .icn{
     flex:0 0 30%;
     margin:0 10px 0 0;
+}*/
+.card .icn{
+    flex:0 0 auto;
+    margin:0 10px 0 0;
 }
 .card.test span{
-    width:100%;
     flex:1;
     border-bottom:1px solid #eeeeee;
 }
@@ -364,6 +378,22 @@ body[dir="rtl"] .logo {
 }
 body[dir="rtl"] .icn {
     margin:0 0 0 10px !important;
+}
+
+.card dt {
+    display:flex;
+    align-items: center;
+    cursor:pointer
+}
+.card dd {
+    cursor:pointer
+}
+.card dt>span {   
+    flex:1;
+}
+
+.card [class*="col-"] {
+        padding-top: 0px;
 }
 
 @media screen and (max-width: 768px) {
@@ -398,6 +428,7 @@ body[dir="rtl"] .icn {
     }
 }
 
+
 @media only screen and (min-width: 769px) {
     .col-1 {width: 8.33%;}
     .col-2 {width: 16.66%;}
@@ -429,12 +460,13 @@ body[dir="rtl"] .icn {
 @media only screen and (min-width:1920px) {
     body { margin: 0px auto; width: 1920px; display: block;}
 }
+/*
 @media only screen and (min-width: 1900px) {
     .col-4 {width: 25%;}
     .col-6 {width: 33.33%;}
     .col-8 {width: 75%;}
     .col-12 {width: 66.66%;}
-}
+}*/
 </style>
 
 <?php
@@ -555,14 +587,34 @@ echo '</ul></div></div></div>';
 
 echo '<div class="col-8">';
 //echo '<div class=row>';
-echo '<div class="col-4 card"><div class="card-content"><h4 class=card-title>','GCC</h4></div></div>';
-echo '<div class=col-4>','Middle</div>';
-echo '<div class=col-4>','North Africa</div>';
-//echo '</div>';
+
+$cc=['ae'=>null, 'sa'=>null, 'kw'=>null, 'bh'=>null, 'qa'=>null, 'om'=>null, 'ye'=>null, 
+    'lb'=>null, 'jo'=>null, 'iq'=>null, 'sy'=>null, 
+    'eg'=>null, 'ma'=>null, 'tn'=>null, 'dz'=>null, 'sd'=>null, 'ly'=>null];
+foreach ($router->countries as $id => $cn) {
+    if (!isset($cc[$cn['uri']])) { $cc['uri']=null; }
+    if ($cc[$cn['uri']]==null) {
+        $cc[$cn['uri']] = "<dt><i class=\"icn icnsmall icn-{$cn['uri']}\"></i><span>{$cn['name']}</span></dt>";
+    }
+    foreach ($cn['cities'] as $city) {
+        $cc[$cn['uri']].= "<dd>{$city['name']}</dd>";
+    }
+}
+echo '<div class=card><div class=card-content>';
+echo '<dl class=col-4>', $cc['ae'], $cc['sa'], '</dl>';
+echo '<dl class=col-4>', $cc['kw'], $cc['bh'], $cc['qa'], $cc['om'], $cc['iq'], $cc['ye'], '</dl>';
+echo '<dl class=col-4>', $cc['lb'], $cc['jo'], $cc['sy'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], $cc['sd'], $cc['ly'], '</dl>';
+echo '</div>';
 echo '</div>';
 
-echo '</div></div>';
+echo '</div></div></div>';
+//var_dump($router->countries[2]['cities']);
+
+
 echo '</body></html>', "\n";
+
+
+
 
 
 function pushImage($uri) {
