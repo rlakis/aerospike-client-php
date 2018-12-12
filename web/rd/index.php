@@ -25,8 +25,9 @@ if(0){
 
 
 ?>
+<link rel='preconnect' href='https://pagead2.googlesyndication.com' />
 
-<style type="text/css">
+<style>
 @charset "UTF-8"; 
 @font-face {
   font-family: system;
@@ -201,6 +202,10 @@ body[dir="rtl"] .menu a>span:after {
     background-color:var(--mourjanC);
     -webkit-mask: url(fa-pro-5.5.0/svgs/regular/search.svg) no-repeat 50% 50%;
 }
+.icn-globe {
+    background-color: navy;
+    -webkit-mask: url(fa-pro-5.5.0/svgs/regular/globe.svg) no-repeat 50% 50%;
+}
 
 .icn-ae { background: url(flags/4x3/ae.svg) center no-repeat; }
 .icn-sa { background: url(flags/4x3/sa.svg) center no-repeat; }
@@ -303,9 +308,7 @@ body[dir="rtl"] .logo {
     border-radius: inherit;
 }
 
-.card .card-header {
-    z-index: 3;
-}
+.card .card-header { z-index: 3; }
 
 .card .card-footer {
     margin: 0 20px 10px;
@@ -338,20 +341,11 @@ body[dir="rtl"] .logo {
     margin-bottom: 0px;
 }
 
-.card li {
-    border-bottom: 1px solid #eeeeee;
-}
+.card li { border-bottom: 1px solid #eeeeee; }
 .card li:last-child { border:0 }
 .card li:hover, dd:hover, dt:hover { background-color:rgba(200, 200, 200, 0.2); color: var(--mourjanC);}
-.card li>a {
-    text-decoration: none;
-    color: var(--midnightC);   
-}
-.card a>span {
-    color: dimgray;
-    font-size: small;
-    font-weight: bolder;
-}
+.card li>a { text-decoration: none; color: var(--midnightC); }
+.card a>span { color: dimgray; font-size: small; font-weight: bolder; }
 
 .card.test li{
     border-bottom: 0px;
@@ -360,41 +354,47 @@ body[dir="rtl"] .logo {
     align-items: center;
     cursor:pointer
 }
-/*
-.card.test .icn{
-    flex:0 0 30%;
-    margin:0 10px 0 0;
-}*/
 .card .icn{
     flex:0 0 auto;
-    margin:0 10px 0 0;
+    /*margin:0 10px 0 0;*/
 }
 .card.test span{
     flex:1;
+    padding: 0 8px;
     border-bottom:1px solid #eeeeee;
 }
 .card.test li:last-child span{
     border:0
 }
+/*
 body[dir="rtl"] .icn {
     margin:0 0 0 10px !important;
 }
-
+*/
+.card .dl {
+    columns: 1;
+    margin-top: 0;
+    display: inline-block;
+}
 .card dt {
     display:flex;
     align-items: center;
-    cursor:pointer
+    cursor:pointer;
+    -webkit-column-break-before: always;
+    page-break-before: always;
+    break-inside: avoid;    
 }
 .card dd {
-    columns: 3;
-    cursor:pointer
+    cursor:pointer;
 }
 .card dt>span {   
     flex:1;
+    padding: 0 8px;
 }
 
 .card [class*="col-"] {
-        padding-top: 0px;
+    padding-top: 0;
+    padding-left: 0;
 }
 
 @media screen and (max-width: 768px) {
@@ -458,8 +458,11 @@ body[dir="rtl"] .icn {
     }
 }
 
+.adv{}
+
 @media only screen and (min-width:1920px) {
     body { margin: 0px auto; width: 1920px; display: block;}
+    .adv {height: 600px;}
 }
 /*
 @media only screen and (min-width: 1900px) {
@@ -469,6 +472,9 @@ body[dir="rtl"] .icn {
     .col-12 {width: 66.66%;}
 }*/
 </style>
+
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
 
 <?php
 echo '</head><body dir="', $router->isArabic() ? 'rtl':'ltr','">', "\n";
@@ -570,12 +576,10 @@ $search_placeholder = $router->isArabic() ? "ما الذي تبحث عنه..." :
     <!--</div>-->
 </div>
 <?php
-        //logo("white");
-        //var_dump($router->countries[$router->countryId]);
-       //var_dump($sections);
+echo '<div class="row">';
 
-echo '<div class="row">', '<div class="col-4">';
-echo '<div class="card test"><div class="card-content">';
+echo '<div class="col-4">';
+echo '<div class="card test">', '<div class="card-content">';
 echo '<ul>';
 echo '<li><i class="icn icnsmall icn-82"></i><span>', $post_label, '</span></li>';
 echo '<li><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></li>';
@@ -583,11 +587,24 @@ echo '<li><i class="icn icnsmall icn-88"></i><span>', $contact_label, '</span></
 echo '<li><i class="icn icnsmall icn-83"></i><span>', $about_label, '</span></li>';
 echo '<li><i class="icn icnsmall icn-85"></i><span>', $terms_label, '</span></li>';
 echo '<li><i class="icn icnsmall icn-81"></i><span>', $privacy_label, '</span></li>';
-echo '</ul></div></div></div>';
+echo '</ul></div>' /* card content */, '</div>'; // card
 
+?>
+<div class="adv">
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-2427907534283641"
+     data-ad-slot="7030570808"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+</div>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+<?php
+echo '</div>'; // col-4
 
 echo '<div class="col-8">';
-//echo '<div class=row>';
 
 $cc=['ae'=>null, 'sa'=>null, 'kw'=>null, 'bh'=>null, 'qa'=>null, 'om'=>null, 'ye'=>null, 
     'lb'=>null, 'jo'=>null, 'iq'=>null, 'sy'=>null, 
@@ -595,23 +612,21 @@ $cc=['ae'=>null, 'sa'=>null, 'kw'=>null, 'bh'=>null, 'qa'=>null, 'om'=>null, 'ye
 foreach ($router->countries as $id => $cn) {
     if (!isset($cc[$cn['uri']])) { $cc['uri']=null; }
     if ($cc[$cn['uri']]==null) {
-        $cc[$cn['uri']] = "<dt><i class=\"icn icnsmall icn-{$cn['uri']}\"></i><span>{$cn['name']}</span></dt>";
+        $cc[$cn['uri']] = "<dt><i class=\"icn icnsmall icn-{$cn['uri']}\"></i><span>{$cn['name']}</span></dt>\n";
     }
     foreach ($cn['cities'] as $city) {
-        $cc[$cn['uri']].= "<dd>{$city['name']}</dd>";
+        $cc[$cn['uri']].= "<dd>{$city['name']}</dd>\n";
     }
 }
-echo '<div class=card><div class=card-content>';
-echo '<dl class=col-4>', $cc['ae'], $cc['sa'], '</dl>';
-echo '<dl class=col-4>', $cc['kw'], $cc['bh'], $cc['qa'], $cc['om'], $cc['iq'], $cc['ye'], '</dl>';
-echo '<dl class=col-4>', $cc['lb'], $cc['jo'], $cc['sy'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], $cc['sd'], $cc['ly'], '</dl>';
-echo '</div>';
-echo '</div>';
+echo '<div class=card>', '<div class="card-header float-left" style="background-color:navy;"><i class="icn icn-globe"></i></div>', '<div class=card-content><h4 class=card-title>Countries</h4>';
+echo '<dl class="dl col-4">', $cc['ae'], $cc['sa'], '</dl>', "\n"; 
+echo '<dl class="dl col-4">', $cc['kw'], $cc['bh'], $cc['qa'], $cc['om'], $cc['ye'], $cc['iq'], '</dl>', "\n"; 
+echo '<dl class="dl col-4">', $cc['lb'], $cc['jo'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], $cc['sd'], $cc['ly'],  $cc['sy'], '</dl>', "\n"; 
+echo '</div>'; // card-content
 
-echo '</div></div></div>';
-//var_dump($router->countries[2]['cities']);
+echo '</div>' /* card */, '</div>'; // col-8
 
-
+echo '</div>'; // row
 echo '</body></html>', "\n";
 
 
