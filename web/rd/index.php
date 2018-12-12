@@ -83,6 +83,10 @@ body[dir="rtl"] [class*="col-"] { float: right; }
     -webkit-margin-after:0.1em;
     font-size: 1.8em;
 }
+.header .banner {
+    background: url(https://www.mourjan.com/css/5.4.7/i/wbl.jpg) no-repeat;
+    height: 200px;
+}
 .footer {
 
 }
@@ -262,18 +266,6 @@ body[dir="rtl"] .menu a>span:after {
     font-size: 17px;
     border: none;
 }
-
-
-.logo {
-    -webkit-mask: url(logo-d.svg) no-repeat 50% 50%;   
-    -webkit-mask-size: contain;
-    background-color: white;
-    max-height: 90px !important;
-    font-size: 4em;
-    padding: 0 !important;
-    margin: 0;
-}
-
 body[dir="rtl"] .logo {
     -webkit-mask: url(logo-d-ar.svg) no-repeat 50% 50%; 
     -webkit-mask-size: contain;
@@ -289,6 +281,7 @@ body[dir="rtl"] .logo {
     margin: 0 8px;
 }
 
+.rlogo{display: none;}
 .card {
     display: inline-block;
     position: relative;
@@ -446,10 +439,22 @@ body[dir="rtl"] .icn {
     [class*="col-"] {
         padding: 8px;
     }
+    .header {
+        min-height: 200px;
+    }
     .ilogo{
-        width: 200px;
-        margin: 0;
-        background: url(logo-d.svg) center center no-repeat; 
+        width: 240px;
+        height: 200px;
+        margin: 0 16px;
+        background: url(logo-d.svg) center 10% no-repeat; 
+    }
+    .rlogo {
+        width: 240px;
+        height: 200px;
+        display: inline-block;
+        background: url(men.svg) center center no-repeat; 
+        background-size: contain !important;
+        margin: 0 8px;
     }
     body[dir="rtl"] .ilogo {
         width: 270px;
@@ -488,10 +493,12 @@ $terms_label = $router->isArabic() ? "شروط الاستخدام" : "Terms of u
 $privacy_label = $router->isArabic() ? "سياسة الخصوصية" : "Privacy policy";
 
 $search_placeholder = $router->isArabic() ? "ما الذي تبحث عنه..." : "What are looking for...";
+$regions_label = $router->isArabic() ? "البلدان والمناطق" : "Countries & regions";
 ?>
 <div class="header">        
     <div class="topnav">
         <div class="float-left"><a href="#" style="padding: 0;"><i class="ilogo"></i></a></div>
+        <div class="float-right"><i class="rlogo"></i></div>
         <!--
         <div class="float-left">
             
@@ -500,6 +507,7 @@ $search_placeholder = $router->isArabic() ? "ما الذي تبحث عنه..." :
             <a href="#contact">Contact</a>
             <a href="#about">About</a>        
         </div>-->
+        <!--
         <div class="search-container float-right">
             <form action="/action_page.php">
                 <input type="text" placeholder="<?php echo $search_placeholder;?>">
@@ -509,13 +517,13 @@ $search_placeholder = $router->isArabic() ? "ما الذي تبحث عنه..." :
         
         <a href="javascript:void(0);" class="icon float-right" onclick="myFunction()">
             <i class="icn icn-bars"></i>
-        </a>
+        </a>-->
     </div>
+    <!--<div class="banner"></div>-->
 </div>
 
 
 <div class="row">
-    <!--<div class="col-4 menu"><ul>-->
         <?php
         
         $sections = [];
@@ -618,9 +626,9 @@ foreach ($router->countries as $id => $cn) {
         $cc[$cn['uri']].= "<dd>{$city['name']}</dd>\n";
     }
 }
-echo '<div class=card>', '<div class="card-header float-left" style="background-color:navy;"><i class="icn icn-globe"></i></div>', '<div class=card-content><h4 class=card-title>Countries</h4>';
-echo '<dl class="dl col-4">', $cc['ae'], $cc['sa'], '</dl>', "\n"; 
-echo '<dl class="dl col-4">', $cc['kw'], $cc['bh'], $cc['qa'], $cc['om'], $cc['ye'], $cc['iq'], '</dl>', "\n"; 
+echo '<div class=card>', '<div class="card-header float-left" style="background-color:navy;"><i class="icn icn-globe"></i></div>', '<div class=card-content><h4 class=card-title>', $regions_label, '</h4>';
+echo '<dl class="dl col-4">', $cc['ae'], $cc['bh'], $cc['qa'], $cc['kw'], '</dl>', "\n"; 
+echo '<dl class="dl col-4">', $cc['sa'], $cc['om'], $cc['ye'], $cc['iq'], '</dl>', "\n"; 
 echo '<dl class="dl col-4">', $cc['lb'], $cc['jo'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], $cc['sd'], $cc['ly'],  $cc['sy'], '</dl>', "\n"; 
 echo '</div>'; // card-content
 
