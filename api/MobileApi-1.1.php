@@ -1576,7 +1576,17 @@ class MobileApi {
 
                 if ($this->user->isSuspended()) {
                     $this->result['d']['suspend'] = time()+$this->user->getSuspensionTime();
-                }               
+                }
+                
+                $rs = $this->db->queryResultArray("SELECT sum(r.credit-r.debit) FROM T_TRAN r where r.UID=?", [$this->getUID()], true);
+                $this->result['d']['balance'] = -1;
+                if($rs && count($rs) && $rs[0]['SUM']!=null){
+                    if($rs[0]['SUM'] > 0){  
+                        $this->result['d']['balance']=$rs[0]['SUM']+0;
+                    }else{
+                        $this->result['d']['balance']=0;                    
+                    }
+                }
             }
             
             $this->result['d']['blp'] = $opts->disallow_purchase+0;            
@@ -1625,7 +1635,9 @@ class MobileApi {
                 $this->result['d']['kuid'] = User::encodeUID($this->getUID());
                 $this->result['d']['uid']=  $this->uid;
                 
-                $this->getBalance();                
+                if(!$isAndroid){
+                    $this->getBalance();                
+                }
             }
                         
         } 
