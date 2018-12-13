@@ -50,14 +50,20 @@ body[dir="rtl"] .float-left{ float: right; }
 body[dir="rtl"] .float-right{ float: left; }
 h4{font-size: 1.3em;}
 li,dd,dt{line-height: 48px;}
-:root { --mourjanC:rgba(10,61,98,1); --midnight:rgba(44,62,80,1); 
-       --color-1:steelblue;
-       --color-2:firebrick;
-       --color-3:limegreen;
-       --color-4:darkorchid;
-       --color-99:orange;
+:root { --mourjanC:rgba(10,61,98,1); 
+        --midnight:rgba(44,62,80,1); 
+        --color-1:steelblue;
+        --color-2:firebrick;
+        --color-3:limegreen;
+        --color-4:darkorchid;
+        --color-99:orange;
 }
 
+.wrapper {
+    position: relative;
+    top: 0;
+    height: 100vh;
+}
 
 .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12 {width: 100%; padding: 0; float: left}
 body[dir="rtl"] [class*="col-"] { float: right; }
@@ -147,8 +153,8 @@ body[dir="rtl"] .menu a>span:after {
 }
 .icn:before { content: "\00a0"; }
 .icnsmall {
-    width:24px;
-    height: 24px;
+    width:20px;
+    height: 20px;
     vertical-align: middle;
     margin: 0;
 }
@@ -266,6 +272,89 @@ body[dir="rtl"] .menu a>span:after {
     font-size: 17px;
     border: none;
 }
+
+
+.navbar .navbar-form .form-group .form-control, .navbar .navbar-form .form-control {
+    border-color: inherit;
+    color: inherit;
+    padding: 0;
+    margin: 0;
+    height: 40px;
+    font-size: 14px;
+    line-height: 1.428571429;
+}
+
+
+.navbar .navbar-form .form-group {
+    margin: 0;
+    padding: 0;
+    display: inline-block;
+}
+
+.navbar .navbar-form {
+    border-top: none;
+    box-shadow: none;
+    margin: 4px 0 0;
+}
+
+.balign {
+    padding-top: 120px;
+}
+
+.form-control, .form-group .form-control {
+    border: 0;
+    
+    background-image: linear-gradient(#9c27b0, #9c27b0), linear-gradient(#D2D2D2, #D2D2D2);
+    background-size: 0 2px, 100% 1px;
+    background-repeat: no-repeat;
+    background-position: center bottom, center calc(100% - 1px);
+    background-color: transparent; /*rgba(238, 238, 238, 1);*/
+    transition: background 0s ease-out;
+    float: none;
+    box-shadow: none;
+    border-radius: 0;
+    font-weight: 400;
+}
+
+.form-group input[type=text] {
+    width: 240px;
+}
+.form-group input:focus::-webkit-input-placeholder { color:transparent; }
+.form-group input[type=text]:focus {
+    outline: none;
+    background-image: linear-gradient(#9c27b0, #9c27b0), linear-gradient(#D2D2D2, #D2D2D2);
+    background-size: 100% 2px, 100% 1px;
+    box-shadow: none;
+    transition-duration: 0.3s; 
+}
+
+.navbar .btn {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.btn.btn-just-icon, .navbar .navbar-nav > li > a.btn.btn-just-icon {
+    padding: 11px 11px;
+}
+.btn.btn-round, .navbar .navbar-nav > li > a.btn.btn-round {
+    border-radius: 30px;
+}
+
+.btn.btn-white, .btn.btn-white:focus, .btn.btn-white:hover, .navbar .navbar-nav > li > a.btn.btn-white, .navbar .navbar-nav > li > a.btn.btn-white:focus, .navbar .navbar-nav > li > a.btn.btn-white:hover {
+    background-color: rgb(238, 238, 238);
+    color: #999999;
+}
+
+
+@media (min-width: 992px) {
+    .navbar-form {
+        margin-top: 21px;
+        margin-bottom: 21px;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+}
+
 body[dir="rtl"] .logo {
     -webkit-mask: url(logo-d-ar.svg) no-repeat 50% 50%; 
     -webkit-mask-size: contain;
@@ -483,7 +572,7 @@ body[dir="rtl"] .icn {
 
 <?php
 echo '</head><body dir="', $router->isArabic() ? 'rtl':'ltr','">', "\n";
-
+echo '<div class="wrapper">';
 $post_label = $router->isArabic() ? "أضف اعلانك مجاناً" : "Post your ad for free";
 $balance_label = $router->isArabic() ? "رصيد حسابي 872 ذهبية" : "My Balance is 872 coins";
 
@@ -498,7 +587,21 @@ $regions_label = $router->isArabic() ? "البلدان والمناطق" : "Coun
 <div class="header">        
     <div class="topnav">
         <div class="float-left"><a href="#" style="padding: 0;"><i class="ilogo"></i></a></div>
+        
+        
+        
         <div class="float-right"><i class="rlogo"></i></div>
+        
+        <div class="navbar balign">
+            <form class="navbar-form" action="/action_page.php">
+                <div class="form-group">
+                    <input class="form-control" type="text" placeholder="<?php echo $search_placeholder;?>">
+                    <span></span>
+                    <span></span>
+                </div>
+                <button class="btn btn-white btn-round btn-just-icon" type="submit"><i class="icn icnsmall icn-search"></i></button>
+            </form>
+    </div>
         <!--
         <div class="float-left">
             
@@ -507,18 +610,12 @@ $regions_label = $router->isArabic() ? "البلدان والمناطق" : "Coun
             <a href="#contact">Contact</a>
             <a href="#about">About</a>        
         </div>-->
-        <!--
-        <div class="search-container float-right">
-            <form action="/action_page.php">
-                <input type="text" placeholder="<?php echo $search_placeholder;?>">
-                <button class="float-right" type="submit"><i class="icn icn-search"></i></button>
-            </form>
-        </div>
-        
+        <!--        
         <a href="javascript:void(0);" class="icon float-right" onclick="myFunction()">
             <i class="icn icn-bars"></i>
         </a>-->
     </div>
+    
     <!--<div class="banner"></div>-->
 </div>
 
@@ -635,6 +732,8 @@ echo '</div>'; // card-content
 echo '</div>' /* card */, '</div>'; // col-8
 
 echo '</div>'; // row
+echo '</div>'; // wrapper
+
 echo '</body></html>', "\n";
 
 
