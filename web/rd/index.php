@@ -355,17 +355,19 @@ body[dir="rtl"] .menu a>span:after {
     }
 }
 
+/*
 body[dir="rtl"] .logo {
     -webkit-mask: url(logo-d-ar.svg) no-repeat 50% 50%; 
     -webkit-mask-size: contain;
     background-color: white;
 }
+*/
 
 .ilogo {
     height: 90px;
     width: 90px;
     display: inline-block;
-    background: url(logo-m.svg) center center no-repeat; 
+    background: url(mlogo.svg) center center no-repeat; 
     background-size: contain !important;
     margin: 0 8px;
 }
@@ -468,6 +470,8 @@ body[dir="rtl"] .icn {
 }
 .card dd {
     cursor:pointer;
+    -webkit-margin-start: 28px;
+    margin-inline-start:28px;
 }
 .card dt>span {   
     flex:1;
@@ -532,10 +536,10 @@ body[dir="rtl"] .icn {
         min-height: 200px;
     }
     .ilogo{
-        width: 240px;
+        width: 200px;
         height: 200px;
         margin: 0 16px;
-        background: url(logo-d.svg) center 10% no-repeat; 
+        /*background: url(logo-d.svg) center 10% no-repeat; */
     }
     .rlogo {
         width: 240px;
@@ -545,11 +549,12 @@ body[dir="rtl"] .icn {
         background-size: contain !important;
         margin: 0 8px;
     }
+    /*
     body[dir="rtl"] .ilogo {
         width: 270px;
         margin: 0;
         background: url(logo-d-ar.svg) center center no-repeat; 
-    }
+    }*/
 }
 
 .adv{}
@@ -586,13 +591,11 @@ $regions_label = $router->isArabic() ? "البلدان والمناطق" : "Coun
 ?>
 <div class="header">        
     <div class="topnav">
-        <div class="float-left"><a href="#" style="padding: 0;"><i class="ilogo"></i></a></div>
+        <div class="float-left"><a href="#" style="padding: 0;"><i class="ilogo"></i></a></div>                
         
+        <!--<div class="float-right"><i class="rlogo"></i></div>-->
         
-        
-        <div class="float-right"><i class="rlogo"></i></div>
-        
-        <div class="navbar balign">
+        <div class="navbar float-right">
             <form class="navbar-form" action="/action_page.php">
                 <div class="form-group">
                     <input class="form-control" type="text" placeholder="<?php echo $search_placeholder;?>">
