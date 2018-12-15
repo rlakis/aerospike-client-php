@@ -367,7 +367,7 @@ body[dir="rtl"] .logo {
     height: 90px;
     width: 90px;
     display: inline-block;
-    background: url(mlogo.svg) center center no-repeat; 
+    background: url(mlogo-1.svg) center center no-repeat; 
     background-size: contain !important;
     margin: 0 8px;
 }
