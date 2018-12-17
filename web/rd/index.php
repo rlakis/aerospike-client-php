@@ -212,6 +212,14 @@ body[dir="rtl"] .menu a>span:after {
     background-color:var(--mourjanC);
     -webkit-mask: url(fa-pro-5.5.0/svgs/regular/search.svg) no-repeat 50% 50%;
 }
+.icn-bell {
+    background-color: white;
+    -webkit-mask: url(fa-pro-5.5.0/svgs/solid/bell.svg) no-repeat 50% 50%;
+}
+.icn-user {
+    background-color: white;
+    -webkit-mask: url(fa-pro-5.5.0/svgs/solid/user.svg) no-repeat 50% 50%;
+}
 .icn-globe {
     background-color: navy;
     -webkit-mask: url(fa-pro-5.5.0/svgs/regular/globe.svg) no-repeat 50% 50%;
@@ -234,6 +242,14 @@ body[dir="rtl"] .menu a>span:after {
 .icn-dz { background: url(flags/4x3/dz.svg) center no-repeat; }
 .icn-sd { background: url(flags/4x3/sd.svg) center no-repeat; }
 .icn-ly { background: url(flags/4x3/ly.svg) center no-repeat; }
+
+
+.container-fluid {
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
 
 
 .topnav {overflow: hidden; background-color: var(--mourjanC);}
@@ -273,6 +289,20 @@ body[dir="rtl"] .menu a>span:after {
     border: none;
 }
 
+.nav {
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
+}
+.nav>li {
+    position: relative;
+    display: block;
+    float: left;
+}
+.nav>li .icnsmall {
+    padding: 0 18px;
+    margin-top: -20px;
+}
 
 .navbar .navbar-form .form-group .form-control, .navbar .navbar-form .form-control {
     border-color: inherit;
@@ -283,8 +313,22 @@ body[dir="rtl"] .menu a>span:after {
     font-size: 14px;
     line-height: 1.428571429;
 }
+.navbar.navbar-transparent {
+    background-color: transparent;
+    box-shadow: none;
+    border-bottom: 0;
+}
+.navbar-absolute {
+    position: absolute;
+    width: 100%;
+    padding-top: 10px;
+    z-index: 1029;
+}
 
-
+.navbar:before{
+    display: table;
+    content: " ";
+}
 .navbar .navbar-form .form-group {
     margin: 0;
     padding: 0;
@@ -345,6 +389,18 @@ body[dir="rtl"] .menu a>span:after {
     color: #999999;
 }
 
+.navbar > li {
+    float: left;
+}
+.navbar .navbar-nav > li > a {
+    color: inherit;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    font-weight: 500;
+    font-size: 12px;
+    text-transform: uppercase;
+    border-radius: 3px;
+}
 
 @media (min-width: 992px) {
     .navbar-form {
@@ -355,19 +411,11 @@ body[dir="rtl"] .menu a>span:after {
     }
 }
 
-/*
-body[dir="rtl"] .logo {
-    -webkit-mask: url(logo-d-ar.svg) no-repeat 50% 50%; 
-    -webkit-mask-size: contain;
-    background-color: white;
-}
-*/
-
 .ilogo {
     height: 90px;
     width: 90px;
     display: inline-block;
-    -webkit-mask: url(mlogo-1.svg) no-repeat 50% 50%;
+    -webkit-mask: url(mlogo-2.svg) no-repeat 50% 50%;
     -webkit-mask-size: 125%;
     background-color: white;
     margin: 0 8px;
@@ -594,18 +642,26 @@ $regions_label = $router->isArabic() ? "البلدان والمناطق" : "Coun
     <div class="topnav">
         <div class="float-left"><a href="#" style="padding: 0;"><i class="ilogo"></i></a></div>                
         
-        <!--<div class="float-right"><i class="rlogo"></i></div>-->
-        
-        <div class="navbar float-right">
-            <form class="navbar-form" onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">
-                <div class="form-group">
-                    <input id="q" name="q" class="form-control" type="text" placeholder="<?php echo $search_placeholder;?>">
-                    <span></span>
-                    <span></span>
-                </div>
-                <button class="btn btn-white btn-round btn-just-icon" type="submit"><i class="icn icnsmall icn-search"></i></button>
-            </form>
-    </div>
+        <div class="nav float-right" style="position:relative;width:calc(100% - 260px);background-color: yellow;transition: all 0.33s cubic-bezier(0.685, 0.0473, 0.346, 1);">
+        <nav class="navbar navbar-transparent navbar-absolute">        
+            <div class="container-fluid">           
+                
+                <ul class="nav float-right">
+                    <li><i class="icn icnsmall icn-bell"></i></li>
+                    <li><i class="icn icnsmall icn-user"></i></li>
+                </ul>
+                <form class="navbar-form float-right" onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">
+                    <div class="form-group">
+                        <input id="q" name="q" class="form-control" type="text" placeholder="<?php echo $search_placeholder;?>">
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <button class="btn btn-white btn-round btn-just-icon" type="submit"><i class="icn icnsmall icn-search"></i></button>
+                </form>
+            </div>
+        </nav>
+            
+            </div>
         <!--
         <div class="float-left">
             
