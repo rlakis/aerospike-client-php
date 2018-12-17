@@ -151,7 +151,7 @@ body[dir="rtl"] .menu a>span:after {
   height:32px;
   margin: 0 6px;
 }
-.icn:before { content: "\00a0"; }
+.icn:before, .ilogo:before { content: "\00a0"; }
 .icnsmall {
     width:20px;
     height: 20px;
@@ -261,7 +261,7 @@ body[dir="rtl"] .menu a>span:after {
   font-size: 17px;
 }
 
-.topnav a:hover { background-color: #ddd; color: black; }
+.topnav a:hover { color: black; }
 
 .active { background-color: #4CAF50; color: white; }
 
@@ -367,8 +367,9 @@ body[dir="rtl"] .logo {
     height: 90px;
     width: 90px;
     display: inline-block;
-    background: url(mlogo-1.svg) center center no-repeat; 
-    background-size: contain !important;
+    -webkit-mask: url(mlogo-1.svg) no-repeat 50% 50%;
+    -webkit-mask-size: 125%;
+    background-color: white;
     margin: 0 8px;
 }
 
@@ -596,9 +597,9 @@ $regions_label = $router->isArabic() ? "البلدان والمناطق" : "Coun
         <!--<div class="float-right"><i class="rlogo"></i></div>-->
         
         <div class="navbar float-right">
-            <form class="navbar-form" action="/action_page.php">
+            <form class="navbar-form" onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">
                 <div class="form-group">
-                    <input class="form-control" type="text" placeholder="<?php echo $search_placeholder;?>">
+                    <input id="q" name="q" class="form-control" type="text" placeholder="<?php echo $search_placeholder;?>">
                     <span></span>
                     <span></span>
                 </div>
