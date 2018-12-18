@@ -59,11 +59,7 @@ li,dd,dt{line-height: 48px;}
         --color-99:orange;
 }
 
-.wrapper {
-    position: relative;
-    top: 0;
-    height: 100vh;
-}
+.wrapper { position: relative; top: 0; height: 100vh; }
 
 .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12 {width: 100%; padding: 4px; float: left}
 body[dir="rtl"] [class*="col-"] { float: right; }
@@ -82,12 +78,8 @@ header>h1 { -webkit-margin-before:0.1em; -webkit-margin-after:0.1em; font-size: 
 footer {}
 ul { list-style-type: none; list-style-position: inside; }
 li>i {margin: 0 4px; max-width: 32px;}
-
-.menu ul {
-    margin-bottom: 12px;
-    margin-top: 8px;
-    padding: 0;
-}
+/*
+.menu ul { margin-bottom: 12px; margin-top: 8px; padding: 0; }
 .menu li {
     padding: 8px;
     margin-bottom: 1px;
@@ -97,11 +89,7 @@ li>i {margin: 0 4px; max-width: 32px;}
     line-height: 40px;
 }
 .menu li:hover { background-color:rgba(200, 200, 200, 0.2); color: var(--mourjanC);}
-
-.menu a {
-    text-decoration: none;
-    color: var(--midnight);
-}
+.menu a { text-decoration: none; color: var(--midnight); }
 .menu a>span { font-size: small; font-weight: bolder; color:dimgray; }
 .menu a>span:after {
     content: "\00a0";
@@ -121,7 +109,7 @@ body[dir="rtl"] .menu a>span:after {
 .menu a>span.ellipsis:after{
     -webkit-mask: url(fa-pro-5.5.0/svgs/light/ellipsis-v.svg) no-repeat 50% 50% !important;
 }
-
+*/
 
 .icn {
   position: relative;
@@ -297,7 +285,7 @@ body[dir="rtl"] .menu a>span:after {
     height: 90px;
     width: 90px;
     display: inline-block;
-    -webkit-mask: url(mlogo-2.svg) no-repeat center;
+    -webkit-mask: url(logo.svg) no-repeat center;
     -webkit-mask-size: 125%;
     background-color: white;
     margin: 0 8px;
@@ -548,16 +536,6 @@ $regions_label = $router->isArabic() ? "البلدان والمناطق" : "Coun
             </ul>            
         </div>
     </nav>
-    <!--
-    <div class="wrap">
-        <div class="search">
-            <form class="" onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">
-                <input id="q" name="q" class="searchTerm" type="text" placeholder="<?php echo $search_placeholder;?>">
-                <button class="searchButton float-right" type="submit"><i class="icn icnsmall icn-search"></i></button>
-            </form>
-        </div>
-    </div>
-    -->
 </header>
 
 <div class="row">
@@ -581,25 +559,7 @@ $regions_label = $router->isArabic() ? "البلدان والمناطق" : "Coun
             //echo '<li><a href="', $link,'"><i class="icn icn-', $id, '"></i>', $root['name'], '<span class="float-right">', number_format($count, 0), '</span></a></li>';
             $sections[$id] = $router->db->getSectionsData($router->countryId, $router->cityId, $id, $router->siteLanguage, true);
         }
-        /*
-        echo '</ul><ul>';
-        echo '<li><a href="', '#','"><i class="icn icn-', $router->countries[$router->countryId]['uri'], '"></i>', 
-            $router->countries[$router->countryId]['name'], '<span class="ellipsis float-right">', 
-            number_format($router->countries[$router->countryId]['counter'], 0), '</span></a></li>';
-        echo '</ul><ul>';
-        echo '<li><i class="icn icn-82"></i>', $post_label, '</li>';
-        echo '<li><i class="icn icn-84"></i>', $balance_label, '</li>';
-        echo '</ul><ul>';
-        echo '<li><i class="icn icn-88"></i>', $contact_label, '</li>';
-        echo '<li><i class="icn icn-83"></i>', $about_label, '</li>';
-        echo '</ul><ul>';
-        echo '<li><i class="icn icn-85"></i>', $terms_label, '</li>';
-        echo '<li><i class="icn icn-81"></i>', $privacy_label, '</li>';
-        echo '</ul>', '</div>';
-        */
-        ?>        
-    
-    <!--<div class="col-12">--><?php
+        
         $count = count($sections);
         $odd = ($count % 2)==1;
         $j=0;       
@@ -625,11 +585,9 @@ $regions_label = $router->isArabic() ? "البلدان والمناطق" : "Coun
             }
             echo '</ul>';
             echo '</div>';
-            //echo '<div class="card-footer"></div>';
             echo '</div></div>';
         }    
     ?>
-    <!--</div>-->
 </div>
 <?php
 echo '<div class="row">';
@@ -709,13 +667,3 @@ function pushFont($uri) {
 }
 
 
-
-function logo($fill="#ffffff") {
-    echo '<svg class="m1logo" viewBox="0 0 1024 1024" width="90" height="90" version="1.1" aria-hidden="true" fill="', $fill, '">';
-    echo '<path d="M417.964,823.989V403.437c0-28.733-13.061-45.711-45.712-45.711c-33.958,0-96.648,23.508-137.137,45.711v420.552H47.042
-		V187.937h139.749l19.591,48.323c78.364-37.875,180.236-61.384,253.375-61.384c56.161,0,94.037,22.203,116.241,61.384
-		c71.832-35.262,167.176-61.384,254.682-61.384c108.403,0,146.278,80.975,146.278,203.746v445.367H788.886V403.437
-		c0-28.733-13.061-45.711-45.712-45.711c-33.958,0-96.649,23.508-137.139,45.711v420.552H417.964z"/>';
-    echo '</svg>';
-
-}
