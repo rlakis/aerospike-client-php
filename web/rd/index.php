@@ -65,41 +65,22 @@ li,dd,dt{line-height: 48px;}
     height: 100vh;
 }
 
-.col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12 {width: 100%; padding: 0; float: left}
+.col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12 {width: 100%; padding: 4px; float: left}
 body[dir="rtl"] [class*="col-"] { float: right; }
 
-.row{
-    margin-right: 0;
-    margin-left: 0;
-}
-.row::after {
-    content: "";
-    clear: both;
-    display: table;
-}
-.header {
+.row { margin-right: 0; margin-left: 0; }
+.row::after { content: ""; clear: both; display: table; }
+
+header {
     background-color: var(--mourjanC);
     color: #ffffff;
     padding: 0;
     text-align: center;
-    min-height: 60px;
+    min-height: 90px;
 }
-.header>h1{
-    -webkit-margin-before:0.1em;
-    -webkit-margin-after:0.1em;
-    font-size: 1.8em;
-}
-.header .banner {
-    background: url(https://www.mourjan.com/css/5.4.7/i/wbl.jpg) no-repeat;
-    height: 200px;
-}
-.footer {
-
-}
-ul {
-    list-style-type: none;
-    list-style-position: inside;
-}
+header>h1 { -webkit-margin-before:0.1em; -webkit-margin-after:0.1em; font-size: 1.8em; }
+footer {}
+ul { list-style-type: none; list-style-position: inside; }
 li>i {margin: 0 4px; max-width: 32px;}
 
 .menu ul {
@@ -116,8 +97,6 @@ li>i {margin: 0 4px; max-width: 32px;}
     line-height: 40px;
 }
 .menu li:hover { background-color:rgba(200, 200, 200, 0.2); color: var(--mourjanC);}
-/*.menu li:before {}
-.menu li>i { margin: 0 4px; max-width: 32px; }*/
 
 .menu a {
     text-decoration: none;
@@ -209,7 +188,7 @@ body[dir="rtl"] .menu a>span:after {
     -webkit-mask: url(fa-pro-5.5.0/svgs/regular/bars.svg) no-repeat 50% 50%;
 }
 .icn-search {
-    background-color:var(--mourjanC);
+    background-color:white;
     -webkit-mask: url(fa-pro-5.5.0/svgs/regular/search.svg) no-repeat 50% 50%;
 }
 .icn-bell {
@@ -244,50 +223,7 @@ body[dir="rtl"] .menu a>span:after {
 .icn-ly { background: url(flags/4x3/ly.svg) center no-repeat; }
 
 
-.container-fluid {
-    padding-right: 15px;
-    padding-left: 15px;
-    margin-right: auto;
-    margin-left: auto;
-}
-
-
-.topnav {overflow: hidden; background-color: var(--mourjanC);}
-
-.topnav .search-container button {
-  padding: 6px 10px;
-  margin: 8px 0;
-  background: #ddd;
-  font-size: 17px;
-  border: none;
-  cursor: pointer;
-}
-.topnav .search-container {
-    margin-left: 16px;
-    margin-right: 16px;
-}
-.topnav .search-container button:hover { background: #ccc; }
-.topnav a {
-  float: left;
-  display: block;
-  color: #f2f2f2;
-  text-align: center;
-  padding: 14px 16px;
-  text-decoration: none;
-  font-size: 17px;
-}
-
-.topnav a:hover { color: black; }
-
 .active { background-color: #4CAF50; color: white; }
-
-.topnav .icon { display: none; }
-.topnav .search-container input[type=text] {
-    padding: 6px;
-    margin: 8px 0;
-    font-size: 17px;
-    border: none;
-}
 
 .nav {
     padding-left: 0;
@@ -304,7 +240,11 @@ body[dir="rtl"] .menu a>span:after {
     margin-top: -20px;
 }
 
-.navbar .navbar-form .form-group .form-control, .navbar .navbar-form .form-control {
+.nav .navright {
+    position: relative;
+    width: calc(100% - 100px);
+}
+.navbar .form-group, .navbar {
     border-color: inherit;
     color: inherit;
     padding: 0;
@@ -325,44 +265,14 @@ body[dir="rtl"] .menu a>span:after {
     z-index: 1029;
 }
 
-.navbar:before{
-    display: table;
-    content: " ";
-}
-.navbar .navbar-form .form-group {
-    margin: 0;
-    padding: 0;
-    display: inline-block;
-}
+.navbar:before { display: table; content: " "; }
 
-.navbar .navbar-form {
+.navbar {
     border-top: none;
     box-shadow: none;
-    margin: 4px 0 0;
+    margin: 0;
 }
-
-.balign {
-    padding-top: 120px;
-}
-
-.form-control, .form-group .form-control {
-    border: 0;
-    
-    background-image: linear-gradient(#9c27b0, #9c27b0), linear-gradient(#D2D2D2, #D2D2D2);
-    background-size: 0 2px, 100% 1px;
-    background-repeat: no-repeat;
-    background-position: center bottom, center calc(100% - 1px);
-    background-color: transparent; /*rgba(238, 238, 238, 1);*/
-    transition: background 0s ease-out;
-    float: none;
-    box-shadow: none;
-    border-radius: 0;
-    font-weight: 400;
-}
-
-.form-group input[type=text] {
-    width: 240px;
-}
+/*
 .form-group input:focus::-webkit-input-placeholder { color:transparent; }
 .form-group input[type=text]:focus {
     outline: none;
@@ -371,27 +281,8 @@ body[dir="rtl"] .menu a>span:after {
     box-shadow: none;
     transition-duration: 0.3s; 
 }
-
-.navbar .btn {
-    margin-top: 0;
-    margin-bottom: 0;
-}
-
-.btn.btn-just-icon, .navbar .navbar-nav > li > a.btn.btn-just-icon {
-    padding: 11px 11px;
-}
-.btn.btn-round, .navbar .navbar-nav > li > a.btn.btn-round {
-    border-radius: 30px;
-}
-
-.btn.btn-white, .btn.btn-white:focus, .btn.btn-white:hover, .navbar .navbar-nav > li > a.btn.btn-white, .navbar .navbar-nav > li > a.btn.btn-white:focus, .navbar .navbar-nav > li > a.btn.btn-white:hover {
-    background-color: rgb(238, 238, 238);
-    color: #999999;
-}
-
-.navbar > li {
-    float: left;
-}
+*/
+.navbar > li { float: left; }
 .navbar .navbar-nav > li > a {
     color: inherit;
     padding-top: 15px;
@@ -402,26 +293,16 @@ body[dir="rtl"] .menu a>span:after {
     border-radius: 3px;
 }
 
-@media (min-width: 992px) {
-    .navbar-form {
-        margin-top: 21px;
-        margin-bottom: 21px;
-        padding-left: 5px;
-        padding-right: 5px;
-    }
-}
-
 .ilogo {
     height: 90px;
     width: 90px;
     display: inline-block;
-    -webkit-mask: url(mlogo-2.svg) no-repeat 50% 50%;
+    -webkit-mask: url(mlogo-2.svg) no-repeat center;
     -webkit-mask-size: 125%;
     background-color: white;
     margin: 0 8px;
 }
 
-.rlogo{display: none;}
 .card {
     display: inline-block;
     position: relative;
@@ -489,7 +370,6 @@ body[dir="rtl"] .menu a>span:after {
 }
 .card .icn{
     flex:0 0 auto;
-    /*margin:0 10px 0 0;*/
 }
 .card.test span{
     flex:1;
@@ -532,14 +412,42 @@ body[dir="rtl"] .icn {
     padding-left: 0;
 }
 
+
+.search{ position: relative; width: 100%; display: inline-block;border: 2px solid lightgray; border-radius: 5px;}
+.searchTerm {
+  float: none;
+  width: calc(100% - 40px);
+  border: none;
+  padding: 5px;
+  height: 36px !important;
+  outline: none;
+  color: var( --midnight );
+  font-size: 1.0em;
+  -webkit-appearance: none;
+}
+.searchTerm:focus { color: var( --mourjanC ); }
+.searchButton {
+  position: relative;  
+  width: 40px;
+  height: 36px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  background: var(--mourjanC);
+  text-align: center;
+  cursor: pointer;
+  font-size: 20px;
+  margin-left: -18px;
+  padding-top: 0;
+  
+}
+body[dir="rtl"] .searchButton {
+    margin-left: 0;
+    margin-right: -18px;
+}
+
 @media screen and (max-width: 768px) {
     .topnav a:not(:first-child) {display: none;}
     .topnav a.icon { display: block; }
-    .logo {
-        -webkit-mask: url(logo-m.svg) no-repeat 50% 50% !important;  
-        -webkit-mask-size: contain !important;
-        background-color: white !important;
-    }
     .topnav.responsive {position: relative;}
     .topnav.responsive .icon {
         position: absolute;
@@ -581,29 +489,18 @@ body[dir="rtl"] .icn {
     [class*="col-"] {
         padding: 8px;
     }
-    .header {
-        min-height: 200px;
+    header {
+        min-height: 160px;
     }
     .ilogo{
         width: 200px;
-        height: 200px;
+        height: 160px;
         margin: 0 16px;
-        /*background: url(logo-d.svg) center 10% no-repeat; */
     }
-    .rlogo {
-        width: 240px;
-        height: 200px;
-        display: inline-block;
-        background: url(men.svg) center center no-repeat; 
-        background-size: contain !important;
-        margin: 0 8px;
+    
+    .nav .navright {
+        width: calc(100% - 210px);
     }
-    /*
-    body[dir="rtl"] .ilogo {
-        width: 270px;
-        margin: 0;
-        background: url(logo-d-ar.svg) center center no-repeat; 
-    }*/
 }
 
 .adv{}
@@ -619,6 +516,8 @@ body[dir="rtl"] .icn {
     .col-8 {width: 75%;}
     .col-12 {width: 66.66%;}
 }*/
+
+
 </style>
 
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
@@ -638,47 +537,39 @@ $privacy_label = $router->isArabic() ? "سياسة الخصوصية" : "Privacy 
 $search_placeholder = $router->isArabic() ? "ما الذي تبحث عنه..." : "What are looking for...";
 $regions_label = $router->isArabic() ? "البلدان والمناطق" : "Countries & regions";
 ?>
-<div class="header">        
-    <div class="topnav">
-        <div class="float-left"><a href="#" style="padding: 0;"><i class="ilogo"></i></a></div>                
+<header>        
+    <nav class="navbar">   
+        <div class="float-left"><a href="#" style="padding: 0;"><i class="ilogo"></i></a></div>     
         
-        <div class="nav float-right" style="position:relative;width:calc(100% - 260px);background-color: yellow;transition: all 0.33s cubic-bezier(0.685, 0.0473, 0.346, 1);">
-        <nav class="navbar navbar-transparent navbar-absolute">        
-            <div class="container-fluid">           
-                
-                <ul class="nav float-right">
-                    <li><i class="icn icnsmall icn-bell"></i></li>
-                    <li><i class="icn icnsmall icn-user"></i></li>
-                </ul>
-                <form class="navbar-form float-right" onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">
-                    <div class="form-group">
-                        <input id="q" name="q" class="form-control" type="text" placeholder="<?php echo $search_placeholder;?>">
-                        <span></span>
-                        <span></span>
-                    </div>
-                    <button class="btn btn-white btn-round btn-just-icon" type="submit"><i class="icn icnsmall icn-search"></i></button>
-                </form>
-            </div>
-        </nav>
-            
-            </div>
-        <!--
-        <div class="float-left">
-            
-            <a href="#home" class="active">Home</a>
-            <a href="#news">News</a>
-            <a href="#contact">Contact</a>
-            <a href="#about">About</a>        
-        </div>-->
-        <!--        
-        <a href="javascript:void(0);" class="icon float-right" onclick="myFunction()">
-            <i class="icn icn-bars"></i>
-        </a>-->
+        <div class="float-right">                
+            <ul class="nav float-right">
+                <li><a href="#"><i class="icn icnsmall icn-bell"></i></a></li>
+                <li><a href="#"><i class="icn icnsmall icn-user"></i></a></li>
+            </ul>            
+        </div>
+    </nav>
+    <!--
+    <div class="wrap">
+        <div class="search">
+            <form class="" onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">
+                <input id="q" name="q" class="searchTerm" type="text" placeholder="<?php echo $search_placeholder;?>">
+                <button class="searchButton float-right" type="submit"><i class="icn icnsmall icn-search"></i></button>
+            </form>
+        </div>
     </div>
-    
-    <!--<div class="banner"></div>-->
-</div>
+    -->
+</header>
 
+<div class="row">
+    <div class="col-12">
+    <div class="search">
+        <form class="" onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">
+            <input id="q" name="q" class="searchTerm" type="search" placeholder="<?php echo $search_placeholder;?>">
+            <button class="searchButton float-right" type="submit"><i class="icn icnsmall icn-search"></i></button>
+        </form>
+    </div>
+        </div>
+</div>
 
 <div class="row">
         <?php
