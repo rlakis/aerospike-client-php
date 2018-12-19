@@ -497,13 +497,6 @@ body[dir="rtl"] .searchButton {
     body { margin: 0px auto; width: 1920px; display: block;}
     .adv {height: 600px;}
 }
-/*
-@media only screen and (min-width: 1900px) {
-    .col-4 {width: 25%;}
-    .col-6 {width: 33.33%;}
-    .col-8 {width: 75%;}
-    .col-12 {width: 66.66%;}
-}*/
 
 
 </style>
