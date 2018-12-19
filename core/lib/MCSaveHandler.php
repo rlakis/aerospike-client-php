@@ -1,6 +1,6 @@
 <?php
 
-include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
+//include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
 use Core\Model\DB;
 use Core\Lib\SphinxQL;
 

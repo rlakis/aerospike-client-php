@@ -7,13 +7,11 @@ ini_set('display_error', 1);
 $force = TRUE;
 $invalidate = FALSE;
 
-if (get_cfg_var("mourjan.server_id")=='99' && (PHP_VERSION_ID >= 70000))
-{
+if (get_cfg_var("mourjan.server_id")=='99' && (PHP_VERSION_ID >= 70000)) {
     include get_cfg_var("mourjan.path").'/xhgui/external/header.php';    
 }
 
-if (php_sapi_name()=='cli')
-{
+if (php_sapi_name()=='cli') {
     $root_path = dirname(dirname(dirname(__FILE__)));
     
     include $root_path.'/index.php';

@@ -1,10 +1,9 @@
 <?php
-include_once $config['dir'].'/core/layout/Site.php';
+layout_file('Site.php');
 
 use Core\Model\Classifieds;
 
-class Page extends Site
-{
+class Page extends Site {
     const SearchEngineLegitimateEntries = 21;
     
     protected $action='';
@@ -34,18 +33,15 @@ class Page extends Site
     var $pageItemScope='itemscope itemtype="https://schema.org/WebPage"';
     
     
-    function __construct(Core\Model\Router $router)
-    {
+    function __construct(Core\Model\Router $router) {
+        error_log(__CLASS__);
         parent::__construct($router); 
         
-        if($this->user->info['id'])
-        {
-            if($this->urlRouter->isApp)
-            {
+        if($this->user->info['id']) {
+            if($this->urlRouter->isApp) {
                 $this->isUserMobileVerified = true;
             }
-            elseif ($this->user->info['level']==9 && $this->user->info['id']!=1 && $this->user->info['id']!=2)
-            {
+            elseif ($this->user->info['level']==9 && $this->user->info['id']!=1 && $this->user->info['id']!=2) {
                 $this->isUserMobileVerified = true;
             }
             else{
@@ -98,8 +94,7 @@ class Page extends Site
         //$this->urlRouter->cfg['url_resources']      = $cdn;
         
         
-        if ($this->urlRouter->module == 'myads' || $this->urlRouter->module == 'post')
-        {
+        if ($this->urlRouter->module == 'myads' || $this->urlRouter->module == 'post') {
             $this->urlRouter->cfg['url_ad_img'] = "https://www.mourjan.com";
         }
         
@@ -144,8 +139,7 @@ class Page extends Site
         //$this->urlRouter->cfg['url_css'] = '/web/css/release';                  
         //$this->user->sysAuthById(515496);
         
-        if(!$this->urlRouter->cfg['enabled_users'])
-        {
+        if(!$this->urlRouter->cfg['enabled_users']) {
             if($this->urlRouter->siteLanguage == 'ar'){
                 $this->setNotification('مرجان يواجه بعض المشاكل التقنية والتي يتم معالجتها حالياً. شكراً لتحليكم بالصبر.');
             }else{
@@ -297,10 +291,12 @@ class Page extends Site
         }
         if($this->urlRouter->userId && $this->urlRouter->userId == $this->user->info['id']  && $this->urlRouter->module!='detail'){
             $this->setNotification($this->lang['specialNB']);
-        }else{
+        }
+        else{
             if(isset($_GET['signin']) && $_GET['signin']=='error'){
                 $this->setNotification($this->lang['failedLogin']);
-            }elseif(isset($this->user->params['browser_alert']) && $this->user->params['browser_alert']){
+            }
+            elseif(isset($this->user->params['browser_alert']) && $this->user->params['browser_alert']){
                 $this->setNotification(preg_replace('/{chrome_link}/', $this->user->params['browser_link'], $this->lang['browserUpdate']));
             }
         }
@@ -375,7 +371,8 @@ class Page extends Site
                 $this->urlRouter->purposeId=$this->detailAd[Classifieds::PURPOSE_ID];
                 $this->lang['description']=preg_replace('/"/', '', $this->detailAd[Classifieds::CONTENT]);
                 if ($this->detailAd[Classifieds::HELD]!=0) $this->detailAdExpired=true;
-            }else {
+            }
+            else {
                 $this->detailAdExpired=true;
             }
 
@@ -6145,9 +6142,9 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
             
             //    echo $this->fill_ad('zone_1', 'ad_w');
             
-            if (!$this->urlRouter->userId) 
-            {
-            	include_once dirname( $this->urlRouter->cfg['dir'] ) . '/tmp/gen/' . $this->includeHash.'0.php';  
+            if (!$this->urlRouter->userId) {
+            	//include_once dirname( $this->urlRouter->cfg['dir'] ) . '/tmp/gen/' . $this->includeHash.'0.php';  
+            	include_once dirname( '/home/www/mourjan' ) . '/tmp/gen/' . $this->includeHash.'0.php';  
                 $this->search_bar();
             }
 

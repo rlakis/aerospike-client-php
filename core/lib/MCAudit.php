@@ -3,8 +3,8 @@
 namespace Core\Lib;
 use MCUser;
 
-include_once get_cfg_var('mourjan.path').'/core/lib/MCUser.php';
-include_once get_cfg_var('mourjan.path').'/core/lib/IPQuality.php';
+libFile('MCUser.php');
+libFile('IPQuality.php');
 
 class Event {
     const PURCHASE  = 'purchase';

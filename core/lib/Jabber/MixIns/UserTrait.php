@@ -11,8 +11,7 @@ namespace lib\Jabber\MixIns;
  * @author    Vadim Sabirov <vadim.sabirov@syncopate.ru>
  * @version   1.0
  */
-trait UserTrait
-{
+trait UserTrait {
     abstract protected function sendRequest($command, array $params);
     /**
      * Create an ejabberd user account.
@@ -22,8 +21,7 @@ trait UserTrait
      *
      * @throws \RuntimeException
      */
-    public function createUser($user, $password)
-    {
+    public function createUser($user, $password) {
         $response = $this->sendRequest(
             'register',
             [

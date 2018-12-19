@@ -157,8 +157,8 @@ trait UserTrait {
                     
                     try {
                         
-                        include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
-                        include_once get_cfg_var('mourjan.path') . '/core/model/Db.php';
+                        include_once \Prefs::$dir . '/config/cfg.php';
+                        include_once \Prefs::$dir . '/core/model/Db.php';
                         global $config;
                         $DB = new \Core\Model\DB($config);
 

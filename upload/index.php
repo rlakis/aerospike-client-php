@@ -1,11 +1,12 @@
 <?php
-include_once get_cfg_var('mourjan.path'). '/core/lib/MCSessionHandler.php';
+include_once '../config/cfg.php';
+
+include_once Prefs::$dir . '/core/lib/MCSessionHandler.php';
 $handler = new MCSessionHandler(true);
 session_set_save_handler($handler, true);
 
 session_start();
 
-include_once '../config/cfg.php';
 include_once '../core/model/Db.php';
 require_once("../core/lib/class.upload.php");
 

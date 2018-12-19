@@ -1,8 +1,8 @@
 <?php
-$dir = get_cfg_var('mourjan.path');
-include_once $dir.'/core/lib/MCUser.php';
-include_once $dir.'/core/lib/MCAudit.php';
-include_once $dir.'/core/model/NoSQL.php';
+
+libFile('MCUser.php');
+libFile('MCAudit.php');
+model_file('NoSQL.php');
 
 use mourjan\Hybrid;
 use Core\Lib\SphinxQL;

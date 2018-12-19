@@ -609,7 +609,8 @@ class Router {
     
     function getAdURI($ad_id=0) {
         $result = '';
-        include_once $this->cfg['dir'].'/core/model/Classifieds.php';
+        model_file('Classifieds.php');
+        //include_once $this->cfg['dir'].'/core/model/Classifieds.php';
         $ad_class = new Classifieds($this->db);
         $row = $ad_class->getById($ad_id);
         

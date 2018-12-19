@@ -3,7 +3,7 @@ namespace Core\Model;
 
 $dir = get_cfg_var('mourjan.path');
 require_once $dir.'/deps/autoload.php';
-include_once $dir.'/core/model/NoSQL.php';
+model_file('NoSQL.php');
 
 use \Core\Model\NoSQL;
 use Berysoft;

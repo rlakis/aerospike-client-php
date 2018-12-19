@@ -1,7 +1,7 @@
 <?php
 
-require_once get_cfg_var('mourjan.path').'/core/model/NoSQL.php';
-require_once get_cfg_var('mourjan.path').'/core/lib/Jabber/JabberClient.php';
+model_file('NoSQL.php');
+libFile('Jabber/JabberClient.php');
 
 use Firebase\JWT\JWT;
 use lib\Jabber\JabberClient;
@@ -31,10 +31,9 @@ class MCJsonMapper {
                         $object->{$property} = $value;
                     }                     
                 }
-            }
-        
+            }        
         }
-    }    
+    }
 }
 
 

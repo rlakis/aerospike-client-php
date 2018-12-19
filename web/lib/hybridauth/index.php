@@ -13,8 +13,8 @@ use mourjan\EndPoint;
 use mourjan\Exception;
 use mourjan\Logger;
 
-require get_cfg_var('mourjan.path'). '/deps/autoload.php';
-include_once get_cfg_var('mourjan.path'). '/core/lib/MCSessionHandler.php';
+require Prefs::$dir . '/deps/autoload.php';
+include_once Prefs::$dir . '/core/lib/MCSessionHandler.php';
 new \MCSessionHandler(TRUE);
 
 try {

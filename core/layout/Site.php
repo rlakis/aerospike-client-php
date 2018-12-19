@@ -1,9 +1,10 @@
 <?php
 
-include_once get_cfg_var('mourjan.path').'/core/model/NoSQL.php';
-include_once get_cfg_var('mourjan.path').'/core/model/Classifieds.php';
-include_once get_cfg_var('mourjan.path').'/core/model/User.php';
-include_once get_cfg_var('mourjan.path').'/core/lib/SphinxQL.php';
+model_file('NoSQL.php');
+model_file('Classifieds.php');
+model_file('User.php');
+libFile('SphinxQL.php');
+
         
 use Core\Model\Router;
 use Core\Model\Classifieds;
@@ -45,6 +46,7 @@ class Site {
             $this->publisherTypeSorting = 0;
         }
         $this->classifieds = new Classifieds($router->db);
+        error_log(__CLASS__);
     }
 
     public function __destruct() {
@@ -468,7 +470,8 @@ class Site {
         
                                 
                 if($__compareAID) {                    
-                    include_once $this->urlRouter->cfg['dir'] . '/core/lib/MCSaveHandler.php';
+                    //include_once $this->urlRouter->cfg['dir'] . '/core/lib/MCSaveHandler.php';
+                    libFile('MCSaveHandler.php');
                     $handler = new MCSaveHandler($this->router()->cfg);
                     $this->searchResults = $handler->searchByAdId($__compareAID);
                 }

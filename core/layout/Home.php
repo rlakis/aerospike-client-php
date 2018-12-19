@@ -1,11 +1,12 @@
 <?php
-include $config['dir']. '/core/layout/Page.php';
+layout_file('Page.php');
 
 class Home extends Page{
     
     var $hasBottomBanner = false;
 
-    function __construct($router){        
+    function __construct($router){       
+        error_log(__CLASS__);
         header('Vary: User-Agent');
         parent::__construct($router);
         $this->lang['description']=$this->lang['home_description'];
@@ -456,6 +457,7 @@ var setOrder=function(e)
 
     function main_pane() {
     	$file= dirname( $this->urlRouter->cfg['dir'] ) . '/tmp/gen/index-' . $this->includeHash . '2.php';
+    	$file= dirname( '/home/www/mourjan' ) . '/tmp/gen/index-' . $this->includeHash . '2.php';
         if (file_exists($file)) {
             echo '<!--googleoff: snippet-->';
             include($file);

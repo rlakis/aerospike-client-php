@@ -8,8 +8,7 @@ require_once 'MixIns/RoomTrait.php';
  * @author Robert Lakis <rlakis@berysoft.com>
  * @license MIT http://opensource.org/licenses/MIT
  */
-class JabberClient
-{
+class JabberClient {
     use MixIns\UserTrait;
     use \lib\Jabber\MixIns\RoomTrait;
         
@@ -52,8 +51,7 @@ class JabberClient
     protected $userAgent;
 
     
-    public function __construct(array $options)
-    {
+    public function __construct(array $options) {
         $this->server = $options['server'];
         $this->host = 'mourjan.com';
         $this->username = '9613287168@mourjan.com';
@@ -67,8 +65,7 @@ class JabberClient
      * @param int $timeout
      * @return $this
     */
-    public function setTimeout($timeout)
-    {
+    public function setTimeout($timeout) {
         if (!is_int($timeout) || $timeout < 0) {
             throw new \InvalidArgumentException('Timeout value must be integer');
         }
@@ -81,8 +78,7 @@ class JabberClient
     /**
      * @return int
      */
-    public function getTimeout()
-    {
+    public function getTimeout() {
         return $this->timeout;
     }
     
@@ -91,16 +87,14 @@ class JabberClient
      * @param string $userAgent
      * @return $this
      */
-    public function setUserAgent($userAgent)
-    {
+    public function setUserAgent($userAgent) {
         $this->userAgent = $userAgent;
         return $this;
     }
     
     
     
-    protected function sendRequest(string $command, array $params)
-    {
+    protected function sendRequest(string $command, array $params) {
         $data_string = json_encode($params);
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "{$this->server}/{$command}");
@@ -136,8 +130,7 @@ class JabberClient
         }
         */
         
-        if ($this->debug)
-        {
+        if ($this->debug) {
             error_log(var_export($command, true));
             error_log(var_export($params, true));
             error_log(var_export($response,TRUE));

@@ -1,14 +1,16 @@
 <?php 
+include_once __DIR__ . '/deps/autoload.php';
+include_once __DIR__ . '/config/cfg.php';
 
-include_once get_cfg_var('mourjan.path').'/deps/autoload.php';
-include_once get_cfg_var('mourjan.path').'/config/cfg.php';
-include_once $config['dir']. '/core/model/Router.php';
-include_once $config['dir']. '/core/model/Db.php';
-include_once $config['dir']. '/core/lib/MCSessionHandler.php';
+include_once __DIR__ . '/core/model/Router.php';
+include_once __DIR__ . '/core/model/Db.php';
+include_once __DIR__ . '/core/lib/MCSessionHandler.php';
 
-use hybridauth\Hybrid;
-use MaxMind\Db\Reader;
-use Detection\MobileDetect;
+
+//use hybridauth\Hybrid;
+//use MaxMind\Db\Reader;
+//use Detection\MobileDetect;
+
 use Core\Model\Router;
 use Core\Model\DB;
 
@@ -71,7 +73,7 @@ if (!isset($argc)) {
     $router->decode();
     $stop=false;
     $provider = strtolower(filter_input(INPUT_GET, 'provider', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
-    
+
     if ($provider) {
         if (in_array($provider, ['facebook', 'twitter', 'google', 'linkedin', 'yahoo', 'live', 'mourjan'])) {
             try {
@@ -155,16 +157,13 @@ if (!isset($argc)) {
     
     if (!$stop && array_key_exists($router->module, $config['modules'])) {
         $mod_class = $config['modules'][$router->module][0];
-        if ($router->module=='cache') {
-            include_once $config['dir'].'/core/gen/'.$mod_class.'.php';
-        } 
-        else {
-            include_once $config['dir'].'/core/layout/'.$mod_class.'.php';
-        }
-        new $mod_class( $router );    
+        error_log("here ".$mod_class);
+        include_once $config['dir'].($router->module=='cache'?'/core/gen/':'/core/layout/').$mod_class.'.php';
+        
+        $object = new $mod_class( $router );    
     }     
     else {
-        include_once $config['dir'].'/core/layout/NotFound.php';
+        include_once Prefs::$dir.'/core/layout/NotFound.php';
         header('HTTP/1.0 404 Not Found');
         new NotFound($router);    
     }

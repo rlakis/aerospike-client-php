@@ -1,60 +1,15 @@
 <?php
 ini_set('error_reporting', E_ALL);
+ini_set('display_errors', get_cfg_var('mourjan.server_id')=='99'?1:0);
 
-if (get_cfg_var('mourjan.server_id')=='99')
-{
-	ini_set('display_errors', 1);
-} 
-else 
-{
-	ini_set('display_errors', 0);
-}
-
-include_once get_cfg_var('mourjan.path') . '/core/model/Db.php';
-use Core\Model\DB;
-
-class Configuration 
-{
-    const site_domain   = 'www.mourjan.com';
-    const site_key      = 'mrj';
-    const slogan        = '';// ' <span>faster than 82% of websites</span>',
-    const slogan_en     = '<span>The Best Classifieds Website</span>';
-    const slogan_ar     = '<span>أفضل موقع للإعلانات</span>';
-
-    public $dir; // base directory
-    public $serverId;
-    public $baseUrl;
-    public $binUrl;
-
-    private $android;
-    private $ios;
-    
-    private $restrictedEMailPatterns = null;
-    
-    public function __construct() 
-    {
-        $this->serverId = intval(get_cfg_var('mourjan.server_id'));
-        $this->dir = get_cfg_var('mourjan.path');
-        $this->baseUrl = $this->isProductionServer() ? 'https://www.mourjan.com' : 'https://dv.mourjan.com';
-        $this->binUrl = $this->baseUrl . '/bin';
-    }
-    
-    
-    public function isProductionServer()
-    {
-        return ($this->serverId>1 && $this->serverId<99);
-    }
-    
-    
-}
-
+include_once dirname(__DIR__) . '/core/model/Db.php';
 
 $aws = 'https://doxplxe8wce37.cloudfront.net';
 
 $config=array(
     //Site parameters
     'site_production'       => 0,
-    'site_domain'           => 'dv.mourjan.com',
+    'site_domain'           => 'h1.mourjan.com',
     'slogan'                => '',// ' <span>faster than 82% of websites</span>',
     'slogan_en'             => '<span>The Best Classifieds Website</span>',
     'slogan_ar'             => '<span>أفضل موقع للإعلانات</span>',
@@ -213,9 +168,9 @@ $config=array(
     'sphinxql'		    => array('host'=>'p1.mourjan.com', 'port'=>9307, 'socket'=>'/var/run/mourjanQL'),
     
     //resourses parameters
-    'host'                  => 'https://dv.mourjan.com',
-    'dir'                   => '/home/www/mourjan',
-    'dir_css'                   => '/home/www/mourjan',
+    'host'                  => 'https://h1.mourjan.com',
+    'dir'                   => '/var/www/mourjan',
+    'dir_css'               => '/var/www/mourjan',
             
             
     'ttl_short'             => 3600,
@@ -224,19 +179,16 @@ $config=array(
     'ttl_unlimited'         => 0,
 
 
-	'url_uploader'         => 'https://up.mourjan.com',    
-	'url_resources'         => $aws,
-	'url_ad_img'            => $aws,
+    'url_uploader'         => 'https://up.mourjan.com',    
+    'url_resources'         => $aws,
+    'url_ad_img'            => $aws,
     'url_img'               => '/img/1.0.0',
     'url_js'                => '/js/1.0.0',
     'url_js_mobile'         => '/js/2.1.8d',
-    //'url_js_mobile'         => 'https://dv.mourjan.com/web/js/2.0.0',
     'url_css'               => '/css/5.3.7',
-    //'url_css'               => 'https://dv.mourjan.com/web/css/1.0.0',
     'url_css_mobile'        => '/css/5.2.8c',
     'url_css_mobile'        => '/css/5.2.8g',
     'url_jquery'            => '/jquery/3.1.0e/js/',
-    //'url_jquery'            => 'https://dv.mourjan.com/web/jquery/1.10.2.2/js/',
     'url_jquery_mobile'     => '/jquery/2.1.0/',
     'url_image_lib'         => '/lix/2.0.0',
     'url_highcharts'        => '/hc/3.0.9',
@@ -260,7 +212,7 @@ $config=array(
                                 'ly'=>122,
                                 'ma'=>145,
                                 'om'=>161
-								],
+                            ],
 
     'modules'               => array(
                                 'admin'        => array('Admin',0),
@@ -391,32 +343,50 @@ $config['url_base']         = $config['host'];
 $config['url_bin']          = $config['url_base'].'/bin';
 $config['url_upload']       = $config['url_bin'].'/uploadLogo.php';
 
-$globalSettings = DB::getCacheStorage($config)->get("global-settings");
-if ($globalSettings!==FALSE)
-{
-    foreach ($globalSettings as $key => $value)
-    {
-        $config[$key] = $value;
+
+$globalSettings = \Core\Model\DB::getCacheStorage($config)->get("global-settings");
+if ($globalSettings!==FALSE) {
+    foreach ($globalSettings as $key => $value) {
+        $config[$key] = $value;        
     }
 }
 
-$config['url_resources']='https://dv.mourjan.com';
-$config['url_js'] = 'https://dv.mourjan.com/web/js/1.0.0';
-$config['url_css'] = 'https://dv.mourjan.com/web/css/5.4.3';
-//$config['url_js'] = 'https://dv.mourjan.com/web/js/1.0.0';
-//$config['url_css'] = 'https://dv.mourjan.com/css/5.4.6';
-$config['url_jquery'] = 'https://dv.mourjan.com/web/jquery/3.1.0/js/';
-//$config['url_jquery'] = 'https://h5.mourjan.com/jquery/3.1.0w/js/';
-$config['url_jquery_mobile'] = 'https://dv.mourjan.com/web/jquery/4.0.0/js/';
-$config['url_css_mobile'] = 'https://dv.mourjan.com/web/css/1.0.2';
-$config['dir_css'] = '/home/www/mourjan';
-$config['url_js_mobile'] = 'https://dv.mourjan.com/web/js/2.0.0';
-$config['url_image_lib'] = 'https://dv.mourjan.com/web/lix/2.0.0';
-$config['url_img'] = 'https://www.mourjan.com/img/1.0.3';
-$config['url_uploader'] = 'https://dv.mourjan.com';
-
+$config['dir_css']              = '/var/www/mourjan';
+$config['url_resources']        = 'https://h1.mourjan.com';
+$config['url_js']               = 'https://h1.mourjan.com/web/js/1.0.0';
+$config['url_css']              = 'https://h1.mourjan.com/web/css/5.4.3';
+$config['url_jquery']           = 'https://h1.mourjan.com/web/jquery/3.1.0/js/';
+$config['url_jquery_mobile']    = 'https://h1.mourjan.com/web/jquery/4.0.0/js/';
+$config['url_css_mobile']       = 'https://h1.mourjan.com/web/css/1.0.2';
+$config['url_js_mobile']        = 'https://h1.mourjan.com/web/js/2.0.0';
+$config['url_image_lib']        = 'https://h1.mourjan.com/web/lix/2.0.0';
+$config['url_img']              = 'https://h1.mourjan.com/img/1.0.3';
+$config['url_uploader']         = 'https://h1.mourjan.com';
 
 $config['server_id'] = get_cfg_var('mourjan.server_id');
 $config['active_maintenance']=0;
 
-?>
+
+
+function layout_file(string $file_name) {
+    global $config;
+    include_once $config['dir'] . '/core/layout/' . $file_name;
+}
+
+function model_file(string $file_name) {
+    global $config;
+    include_once $config['dir'] . '/core/model/' . $file_name;
+}
+
+function libFile(string $file_name) {    
+    global $config;
+    if (!isset($config['lib-dir'])) {
+        $config['lib-dir'] = $config['dir'] . '/core/lib/';
+    }
+    include_once $config['lib-dir'] . $file_name;
+}
+
+
+function bin_file(string $file_name) : string {
+    
+}

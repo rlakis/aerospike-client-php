@@ -1,8 +1,8 @@
 <?php
 require_once 'deps/autoload.php';
-require_once $config['dir'].'/core/layout/Site.php';
-require_once $config['dir'].'/core/model/NoSQL.php';
-require_once $config['dir'].'/core/model/MobileValidation.php';
+layout_file('Site.php');
+model_file('NoSQL.php');
+model_file('MobileValidation.php');
 
 use MaxMind\Db\Reader;
 use Core\Model\NoSQL;
@@ -1742,7 +1742,8 @@ class Bin extends AjaxHandler{
                     }
                     $hash=$this->get('h');
                     if ($hash) {
-                        $content=eval('?'.'>'.file_get_contents( dirname( $this->urlRouter->cfg['dir'] ) .'/tmp/gen/'.$hash.'99.php').'<'.'?');
+                        //$content=eval('?'.'>'.file_get_contents( dirname( $this->urlRouter->cfg['dir'] ) .'/tmp/gen/'.$hash.'99.php').'<'.'?');
+                        $content=eval('?'.'>'.file_get_contents( dirname( '/home/www/mourjan' ) .'/tmp/gen/'.$hash.'99.php').'<'.'?');
                         echo $content;
                     }
                     else $this->fail('101');
@@ -5644,25 +5645,18 @@ class Bin extends AjaxHandler{
                 if($tLang=='ar'||$tLang=='en')$lang=$tLang;
                 $date = date('Ymd');
                 $send_email=false;
-                if (!$this->user->info['id'])
-                {
-                    if ($email && $this->isEmail($email) )
-                    {
+                if (!$this->user->info['id']) {
+                    if ($email && $this->isEmail($email) ) {
                         $_ret = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);
-                        //$user = Core\Model\NoSQL::getInstance()->fetchUserByProvider Id($email, 'mourjan'); //$this->user->checkAccount($email);
-                        if($_ret!==NoSQL::OK && $_ret !== NoSQL::ERR_RECORD_NOT_FOUND)
-                        {
+                        if($_ret!==NoSQL::OK && $_ret !== NoSQL::ERR_RECORD_NOT_FOUND) {
                             $this->fail("103");
                         }
-                        else
-                        {
-                            if(!empty($user))
-                            {
+                        else {
+                            if(!empty($user)) {
                                 //$user = $user[0];
                                 $user_id = $user[\Core\Model\ASD\USER_PROFILE_ID]; //$user['ID'];
                                 $opt = $user[Core\Model\ASD\USER_OPTIONS]; //json_decode($user['OPTS'], true);
-                                if(isset($opt['validating']))
-                                {
+                                if(isset($opt['validating'])) {
                                     $this->fail('106');
                                 }
                                 elseif(!isset($opt['resetting']) || (isset($opt['resetting']) && !isset($opt['resetting'][$date])) )
