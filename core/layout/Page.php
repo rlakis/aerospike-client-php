@@ -1724,162 +1724,140 @@ class Page extends Site {
     }
     
 
-    function top(){
+    function top() : void {
+        $cityId=$this->router()->cityId;
+        if ($this->router()->cityId) {
+            if ($this->router()->countryId==0) {
+                $cityId = 0;
+            }
+            else if (empty($this->router()->countries[$this->router()->countryId]['cities'])) {
+                $cityId = 0;
+            }
+        }
+        switch ($this->router()->module) {
+            
+        }
+    }
+    
+    function top_old() {
         $url='';
         $cityId=$this->router()->cityId;
         if ($cityId) {
             if ($this->router()->countryId==0) {
                 $cityId=0;            
-            } else {
+            } 
+            else {
                 if (count($this->router()->countries[$this->router()->countryId]['cities'])==0) {
                     $city_id=0;
                 }
             }
         }
-        
-        //if (count($this->router()->countryCities)<2)$cityId=0;
-        
-            switch ($this->router()->module){
-                case 'detail':
-                    if (!empty($this->detailAd)){
-                        if ($this->router()->siteLanguage=='ar') {
-                            $url = sprintf($this->detailAd[Classifieds::URI_FORMAT], 'en/', $this->detailAd[Classifieds::ID]);
-                        } else {
-                            $url = sprintf($this->detailAd[Classifieds::URI_FORMAT], '', $this->detailAd[Classifieds::ID]);
-                        }
-                        break;
-                    }
-                case 'search':
-                case 'index':
-                    if($this->router()->userId) $url='/'.($this->partnerInfo['uri']).'/';
-                    elseif($this->router()->watchId) $url='/watchlist/';
-                    elseif ($this->userFavorites) $url='/favorites/';
-                    else $url=$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId,false);
-
-                    if ($this->router()->siteLanguage=='ar') $url.='en/';
-                    if ($this->router()->params['start']) $url.=$this->router()->params['start'].'/';
-                    if($this->pageUserId){
-                        $url.='?u='.$this->user->encodeId($this->pageUserId);
-                    }elseif ($this->router()->isDynamic) {
-                        $url.='?';
-                        $params='';
-                        $append=false;
-                        if ($this->router()->params['q']) {
-                            $params.='q='.urlencode($this->router()->params['q']);
-                            $append=true;
-                        }
-                        $url.=$params;
-                    }
-                    break;                
-                case 'myads':
-                    $url='/myads/';
-                    if ($this->router()->siteLanguage=='ar') $url.='en/';
-                    $sub=$this->get('sub');
-                    if(in_array($sub,array('pending','archive','drafts'))){
-                        $url.='?sub='.$sub;
+               
+        switch ($this->router()->module){
+            case 'detail':
+                if (!empty($this->detailAd)){
+                    if ($this->router()->siteLanguage=='ar') {
+                        $url = sprintf($this->detailAd[Classifieds::URI_FORMAT], 'en/', $this->detailAd[Classifieds::ID]);
+                    } 
+                    else {
+                        $url = sprintf($this->detailAd[Classifieds::URI_FORMAT], '', $this->detailAd[Classifieds::ID]);
                     }
                     break;
-                default:
-                    $url='/'.$this->router()->module.'/';
-                    if ($this->router()->siteLanguage=='ar') $url.='en/';
-                    break;
-            }
-            $adLang='';
-            if ($this->router()->siteLanguage=='ar') {
-                //$link = '<a class="en" href="'.$url.'">English</a>';
-            } 
-            else {
-                $adLang=$this->router()->siteLanguage.'/';
-            }
+                }
+            case 'search':
+            case 'index':
+                if($this->router()->userId) $url='/'.($this->partnerInfo['uri']).'/';
+                elseif($this->router()->watchId) $url='/watchlist/';
+                elseif ($this->userFavorites) $url='/favorites/';
+                else $url=$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId,false);
 
-            //$mobileLink='<form action="'.$this->router()->getURL($this->router()->countryId,$cityId).'" method="post"><input type="hidden" name="mobile" value="1" /><a onclick="this.parentNode.submit();">'.$this->lang['mobile'].'</a></form>';
-            /* not isApp */
-            //if (!$this->router()->isApp) {
-            ?><div class='top'><?php
-            /*if ($this->topMenuIE) {
-                ?><table><tr><td width="auto"><a class="lg" href="<?= $this->router()->getURL($this->router()->countryId,$cityId) ?>"><img src="<?= $this->router()->cfg['url_resources']?>/img/msl.png" width="100px" height="30px" alt="Mourjan.com" /></a></td><td width="80px"><span><?= $link ?></span></td><?php if (!$this->router()->userId){ ?><td width="<?= $this->router()->siteLanguage=="ar"? '120px' :'130px' ?>"><span><?= $mobileLink ?></span></td><td width="<?= $this->router()->siteLanguage=="ar"? '135px' :'80px' ?>"><span><?= $this->user->info['id']? "<a class='nt' href='?logout=".$this->user->info['provider']."'>{$this->lang['signout']}</a>":"<a class='login nt' href='' rel='nofollow'>{$this->lang['signin']}</a>" ?></span></td><?php } ?></tr></table><?php
-            }else {*/  
-                ?><h1><?= $this->title ?></h1><?php  
-                /*
-                if(0 && $this->router()->module=='index'){
-                    ?><span class="lg"><?php
+                if ($this->router()->siteLanguage=='ar') $url.='en/';
+                if ($this->router()->params['start']) $url.=$this->router()->params['start'].'/';
+                if($this->pageUserId){
+                    $url.='?u='.$this->user->encodeId($this->pageUserId);
+                }
+                elseif ($this->router()->isDynamic) {
+                    $url.='?';
+                    $params='';
+                    $append=false;
+                    if ($this->router()->params['q']) {
+                        $params.='q='.urlencode($this->router()->params['q']);
+                        $append=true;
+                    }
+                    $url.=$params;
+                }
+                break;                
+            case 'myads':
+                $url='/myads/';
+                if ($this->router()->siteLanguage=='ar') $url.='en/';
+                $sub=$this->get('sub');
+                if(in_array($sub,array('pending','archive','drafts'))){
+                    $url.='?sub='.$sub;
+                }
+                break;
+            default:
+                $url='/'.$this->router()->module.'/';
+                if ($this->router()->siteLanguage=='ar') $url.='en/';
+                break;
+        }
+        
+        $adLang='';
+        if (!$this->router()->isArabic()) {
+            $adLang=$this->router()->siteLanguage.'/';
+        }
+        ?><div class='top'><?php
+            ?><h1><?= $this->title ?></h1><?php  
+            ?><div class="tob"><?php 
+                if($this->router()->module!='index'){
+                    ?><a class="lg" title="<?= $this->lang['mourjan'] ?>" href="<?= $this->router()->getURL($this->router()->countryId,$cityId) ?>"><?php
                     ?><span class="i h"></span><?php
-                    ?><img width="100px" height="30px" src="<?= $this->router()->cfg['url_resources']?>/img/msl.png" alt="Mourjan.com" /><?php
-                    ?></span><?php
-                }else {
-                    ?><a class="lg" href="<?= $this->router()->getURL($this->router()->countryId,$cityId) ?>"><?php
-                    ?><span class="i h"></span><?php
-                    ?><img width="100px" height="30px" src="<?= $this->router()->cfg['url_resources']?>/img/msl.png" alt="Mourjan.com" /><?php
+                    ?><img width="100px" height="30px" src="<?= $this->router()->cfg['url_img']?>/msl<?= $this->router()->_png ?>" alt="<?= $this->lang['mourjan'] ?>" /><?php
                     ?></a><?php
                 }
-                 * 
-                 */
-                ?><div class="tob"><?php 
-                    //if(!$this->router()->cfg['enabled_ads']){
-                    if($this->router()->module!='index'){
-                        if(0 && $this->router()->module=='index'){
-                            ?><span class="lg"><?php
-                            ?><span class="i h"></span><?php
-                            ?><img width="100px" height="30px" src="<?= $this->router()->cfg['url_img']?>/msl<?= $this->router()->_png ?>" alt="<?= $this->lang['mourjan'] ?>" /><?php
-                            ?></span><?php
-                        }else {
-                            ?><a class="lg" title="<?= $this->lang['mourjan'] ?>" href="<?= $this->router()->getURL($this->router()->countryId,$cityId) ?>"><?php
-                            ?><span class="i h"></span><?php
-                            ?><img width="100px" height="30px" src="<?= $this->router()->cfg['url_img']?>/msl<?= $this->router()->_png ?>" alt="<?= $this->lang['mourjan'] ?>" /><?php
-                            ?></a><?php
-                        }
-                    }
-                    if (!$this->router()->userId){
-                        if ($this->router()->siteLanguage=='ar') {
-                            ?><a class="gl" href="<?= $url ?>">English</a><?php
-                            ?><span class="gr">عربي</span><?php
-                        } else {
-                            ?><span class="gl">English</span><?php
-                            ?><a class="gr" href="<?= $url ?>">عربي</a><?php
-                        }
-                    }
-                ?></div><?php
-                if($this->user->info['id'] && $this->user->isSuperUser() && $this->router()->module!='admin'){
-                    ?><a class="pb" style="right:<?= $this->router()->siteLanguage == 'ar' ? '97px' : '165px' ?>" href="/monitor/<?= $adLang ?>">monitor</a><?php
-                    ?><a class="pb" style="border-radius:0" href="/admin/<?= $adLang ?>"><span class="i p"></span><?= $this->lang['administration'] ?></a><?php
-                }else{
-                    if (!$this->router()->userId && $this->router()->module!='post'){ 
-                        ?><a class="pb" href="/post/<?= $adLang ?>"><span class="i p"></span><?= $this->lang['postFree'] ?></a><?php
+                if (!$this->router()->userId){
+                    if ($this->router()->siteLanguage=='ar') {
+                        ?><a class="gl" href="<?= $url ?>">English</a><?php
+                        ?><span class="gr">عربي</span><?php
+                    } 
+                    else {
+                        ?><span class="gl">English</span><?php
+                        ?><a class="gr" href="<?= $url ?>">عربي</a><?php
                     }
                 }
-                if ($this->router()->userId){
-                        if ($this->router()->siteLanguage=='ar') {
-                            ?><a class="gl" href="<?= $url ?>">English</a><?php
-                            ?><span class="gr">عربي</span><?php
-                        } else {
-                            ?><span class="gl">English</span><?php
-                            ?><a class="gr" href="<?= $url ?>">عربي</a><?php
-                        }
-                }
-                /*
-                 ?><span><?= $link ?></span><?php if (!$this->router()->userId){ ?><span><?= $mobileLink ?></span><span><?= $this->user->info['id']? '<a class="nt" href="?logout='.$this->user->info['provider'].'">'.$this->lang['signout'].'</a>'.($this->router()->module!='post' && $this->router()->cfg['enabled_post'] ?'<a class="nt" href="/post/'.$adLang.'" rel="nofollow">'.$this->lang['button_ad_post'].'</a>':''):'<a class="login nt" href="/watchlist/'.$adLang.'" rel="nofollow">'.$this->lang['signin'].'</a>'.($this->router()->module!='post'?'<a class="login nt" href="/post/'.$adLang.'" rel="nofollow">'.$this->lang['button_ad_post'].'</a>':'') ?></span><?php }else {
-                if($this->router()->userId && $this->router()->userId==$this->user->info['id']) {
-                        $lang=$this->router()->siteLanguage=='ar'?'':'en/';
-                    if (isset($_GET['preview'])){
-                        ?><span><a class="nt" href="/<?= $this->partnerInfo['uri'] ?>/<?= $lang ?>"><?= $this->lang['backEditPage'] ?></a></span><?php
-                    }else {
-                        ?><span><a class="nt" href="/<?= $this->partnerInfo['uri'] ?>/<?= $lang ?>?preview=true"><?= $this->lang['previewPage'] ?></a></span><?php
-                    }
-                }
-            //}
-        }*/ ?></div><?php  
-           // } /* end not isApp */
-        if(!$this->router()->userId && $this->router()->config()->enabledAds()){
-        ?><div class="w tpb"><?php 
-        ?><a class="lg" href="<?= $this->router()->getURL($this->router()->countryId,$cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><img height="90" width="130" src="<?= $this->router()->config()->cssURL ?>/i/logo<?= $this->router()->_jpg ?>" alt="<?= $this->lang['mourjan'] ?>" /></a><?php 
-            echo $this->fill_ad('zone_0', 'ad_t');
-        ?></div><?php
-        }else{
-            if(!$this->notifications) {
-                ?><div class="tps"></div><?php
+            ?></div><?php
+            if($this->user->info['id'] && $this->user->isSuperUser() && $this->router()->module!='admin'){
+                ?><a class="pb" style="right:<?= $this->router()->siteLanguage == 'ar' ? '97px' : '165px' ?>" href="/monitor/<?= $adLang ?>">monitor</a><?php
+                ?><a class="pb" style="border-radius:0" href="/admin/<?= $adLang ?>"><span class="i p"></span><?= $this->lang['administration'] ?></a><?php
             }
-        }
-        $this->renderNotifications();
+            else{
+                if (!$this->router()->userId && $this->router()->module!='post'){ 
+                    ?><a class="pb" href="/post/<?= $adLang ?>"><span class="i p"></span><?= $this->lang['postFree'] ?></a><?php
+                }
+            }
+            if ($this->router()->userId){
+                if ($this->router()->siteLanguage=='ar') {
+                    ?><a class="gl" href="<?= $url ?>">English</a><?php
+                    ?><span class="gr">عربي</span><?php
+                } 
+                else {
+                    ?><span class="gl">English</span><?php
+                    ?><a class="gr" href="<?= $url ?>">عربي</a><?php
+                }
+            }
+
+            ?></div><?php  
+            if(!$this->router()->userId && $this->router()->config()->enabledAds()){
+                ?><div class="w tpb"><?php 
+                ?><a class="lg" href="<?= $this->router()->getURL($this->router()->countryId,$cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><img height="90" width="130" src="<?= $this->router()->config()->cssURL ?>/i/logo<?= $this->router()->_jpg ?>" alt="<?= $this->lang['mourjan'] ?>" /></a><?php 
+                    echo $this->fill_ad('zone_0', 'ad_t');
+                ?></div><?php
+            }
+            else{
+                if(!$this->notifications) {
+                    ?><div class="tps"></div><?php
+                }
+            }
+            $this->renderNotifications();
     }
 
 
@@ -2837,20 +2815,7 @@ class Page extends Site {
         ?><meta name="msapplication-config" content="<?= $this->router()->config()->host ?>/browserconfig.xml" /><?php 
         if($this->user->info['id']==0 && in_array($this->router()->module,['home','signin','favorites','account','myads','post','statement','watchlist','signup','password','buy','buyu'])){
             ?><script async="true" defer="true" src='https://www.google.com/recaptcha/api.js<?= $this->router()->siteLanguage=='ar'?'?hl=ar':'' ?>'></script><?php
-        }
-        
-        /*
-        if ($this->isMobile) {
-            echo "\n<script src='{$this->router()->cfg['url_jquery']}zepto.min.js' async></script>";
-        } else {
-            echo "\n<script src='{$this->router()->cfg['url_jquery']}jquery.min.js' async></script>";
-        }
-        
-        if ($this->router()->module==='myads' || $this->router()->module==='signin' || $this->router()->module==='home')
-        {
-            echo "\n<script src='{$this->router()->cfg['url_jquery']}socket.io-1.4.5.js' async></script>\n";
-        }
-        */
+        }               
     }
 
     
@@ -4914,10 +4879,8 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
     }
 
     
-    protected function render()
-    {
-        if ($this->router()->isAMP && $this->router()->module=='search')
-        {
+    protected function render() {
+        if ($this->router()->isAMP && $this->router()->module=='search') {
             
             ?><!doctype html><?php
             ?><html amp lang="<?= $this->router()->siteLanguage ?>"><?php
@@ -4956,12 +4919,10 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
             return;
         }
         
-        if ($this->rss) 
-        {
+        if ($this->rss) {
             $this->_rss();
         } 
-        else 
-        {
+        else {
             $this->_header();
             $this->_body();
             $this->user->setStats();
@@ -5261,11 +5222,255 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         }
     }
     
-    protected function _header(){
-        $country_code="";
+    
+    protected function _header() {
+        $country_code='';
         if ($this->router()->countryId && array_key_exists($this->router()->countryId, $this->router()->countries)) {
             $country_code = '-'.$this->router()->countries[$this->router()->countryId]['uri'];
         }
+        
+        echo '<!doctype html>';
+        echo '<html lang="', $this->router()->siteLanguage, $country_code,'" xmlns:fb="http://ogp.me/ns/fb#" xmlns:og="http://ogp.me/ns#"';
+        if (isset($this->detailAd[Classifieds::VIDEO]) && $this->detailAd[Classifieds::VIDEO]) {
+            echo ' xmlns:video="http://ogp.me/ns/video#"';
+        }
+        echo '><head><meta charset="utf-8">', "\n";
+        echo "<style>\n";
+        include $this->router()->config()->baseDir.'/web/css/includes/main.css';
+        echo "\n<\style>\n";
+        $this->header();
+        echo '<title>', $this->title, '</title>';
+        $imgURL = $this->router()->config()->imgURL;
+        ?><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, maximum-scale=5.0, user-scalable=1" name="viewport">
+        <link rel="apple-touch-icon" sizes="57x57" href="<?= "{$imgURL}/mourjan-icon-114.png" ?>" />
+        <link rel="apple-touch-icon" sizes="114x114" href="<?= "{$imgURL}/mourjan-icon-114.png" ?>" />
+        <link rel="apple-touch-icon" sizes="72x72" href="<?= "{$imgURL}/mourjan-icon-144.png" ?>" />
+        <link rel="apple-touch-icon" sizes="144x144" href="<?= "{$imgURL}/mourjan-icon-144.png" ?>" />            
+        <link rel="apple-touch-startup-image" href="<?= "{$imgURL}/mourjan-splash.png"?>" />
+        <meta name="format-detection" content="telephone=no">
+        <link rel="manifest" href="/manifest.json"><?php          
+        if ($country_code && isset($this->router()->cities)) {
+            echo '<meta http-equiv="content-language" content="', $this->router()->siteLanguage, $country_code, '">';
+        } 
+        else {
+            echo '<meta http-equiv="content-language" content="', $this->router()->siteLanguage, $country_code,'" />';
+        }
+        
+        if ($this->forceNoIndex) {
+            echo '<meta name="robots" content="noindex,nofollow,noarchive" />';
+        }
+        else {
+            switch ($this->router()->module) {
+                case "detail":
+                    echo '<meta name="robots" content="noindex" />';
+                    break;
+
+                case 'search':
+                    if ($this->userFavorites) {
+                        echo '<meta name="robots" content="noindex, nofollow" />';
+                    } 
+                    else {
+                        if ($this->searchResults && 
+                            !empty($this->searchResults['body']['matches']) && 
+                            !(isset($this->router()->params['tag_id']) && !$this->extendedId) && 
+                            (!(isset ($this->router()->params['loc_id']) && !$this->localityId) || ($this->localityId && in_array($this->router()->countryId, [1,2,3,7,8,9]))) ) 
+                        {
+                            $qTotal = $this->searchResults['body']['total_found'];
+                            $__fpages=$qTotal/$this->num;
+                            $qPages = ($__fpages<1) ? 0 : ceil($__fpages);
+                            $qTmp=ceil($this->router()->cfg['search_results_max']/$this->num);
+                            if ($qPages>$qTmp) $qPages=(int)$qTmp;
+                        
+                            if (array_key_exists('q', $_GET)) {
+                                echo '<meta name="robots" content="noindex, follow" />';
+                                $currentUrl=$this->router()->getUrl($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);                                                        
+                            
+                                if ($this->router()->params['start']<$qPages && !$this->isMobile) {
+                                    $next = $this->router()->params['start']==0 ? 2 : $this->router()->params['start']+1;
+                                    echo '<link rel="prerender" href="', $this->router()->cfg['url_base'], $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
+                                    echo '<link rel="prefetch" href="', $this->router()->cfg['url_base'], $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
+                                }                            
+                            }
+                            else {                            
+                                $this->includeMetaKeywords();                            
+                                $startLink='';
+                                if ($this->extendedId || $this->localityId) {
+                                    $currentUrl=$this->extended_uri;
+                                } 
+                                else {
+                                    $currentUrl=$this->router()->getUrl($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);
+                                }
+                            
+                                if ($this->router()->params['start']>1) {
+                                    $startLink=$this->router()->params['start'].'/';
+                                }
+                            
+                                $link = 'https://www.mourjan.com'.$currentUrl.$startLink;
+                                $canonical_link=$link;
+                            
+                                // page is not qualified to be multi language indexable
+                                if ($qTotal<static::SearchEngineLegitimateEntries && !$this->router()->isArabic()) {
+                                    if ($this->extendedId || $this->localityId) {
+                                        $canonicalCurrentUrl = preg_replace("/\/{$this->router()->siteLanguage}\//", "/", $this->extended_uri);
+                                    
+                                        if ($this->localityId) {
+                                            $alter = $this->router()->database()->index()
+                                                    ->directQuery("select id, locality_id from locality_counts where city_id={$this->localities[$this->localityId]['city_id']} and section_id={$this->router()->sectionId} and lang='ar'");
+                                        
+                                            if ($alter && count($alter)==1) {
+                                                foreach ($alter as $value) {
+                                                    $canonicalCurrentUrl= preg_replace("/\/c\-{$this->localityId}\-/", "/c-{$value[1]}-", $canonicalCurrentUrl);
+                                                }
+                                            }
+                                        }
+                                    
+                                        if ($this->extendedId) {
+                                            $alter = $this->router()->database()->index()
+                                                    ->directQuery("select id, section_tag_id from section_tag_counts where country_id={$this->router()->countryId} and section_id={$this->router()->sectionId} and lang='ar' and uri='{$this->extended[$this->extendedId]['uri']}'");
+                                            if ($alter && count($alter)==1) {
+                                                foreach ($alter as $value) {
+                                                    $canonicalCurrentUrl= preg_replace("/\/q\-{$this->extendedId}\-/", "/q-{$value[1]}-", $canonicalCurrentUrl);
+                                                }
+                                            }                                
+                                        }                            
+                                    } 
+                                    else {
+                                        $canonicalCurrentUrl=$this->router()->getUrl($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId, FALSE);
+                                    }
+                                    $canonical_link = 'https://www.mourjan.com'.$canonicalCurrentUrl.$startLink;                                
+                                }
+                                // end of page is not qualified to be multi language indexable
+                            
+                                if ($link==$this->router()->config()->host.$_SERVER['REQUEST_URI']) {
+                                    echo '<meta name="robots" content="noodp, noydir, index, follow" />';
+                                    
+                                    if($this->router()->countryId && $this->router()->sectionId && $this->router()->purposeId && $this->router()->params['start']<=1){
+                                        echo '<link rel="alternate" href="android-app://com.mourjan.classifieds/mourjan/list/';
+                                        echo '?';
+                                        echo "cn={$this->router()->countryId}&";
+                                        echo "c={$this->router()->cityId}&";
+                                        echo "ro={$this->router()->rootId}&";
+                                        echo "se={$this->router()->sectionId}&";
+                                        echo "pu={$this->router()->purposeId}&";
+                                        echo "tx={$this->extendedId}&";
+                                        echo "gx={$this->localityId}&";
+                                        echo "hl={$this->router()->siteLanguage}";
+                                        echo '" />';
+                                    }
+                                }
+                                else {
+                                    echo '<meta name="robots" content="noindex, follow" />';
+                                }
+                                    
+                                echo '<link rel="canonical" href="',$canonical_link, '" />';
+                            
+                                if ($this->router()->params['start']>1) {
+                                    $prev=$this->router()->params['start']-1;
+                                    echo "<link rel='prev' href='", $this->router()->cfg['url_base'], $currentUrl;
+                                    if ($prev>1) {
+                                        echo $prev, '/';
+                                    }
+                                    echo "' />";
+                                }
+                            
+                                if ($this->router()->params['start']<$qPages && !$this->isMobile) {
+                                    $next = $this->router()->params['start']+1;
+                                    if ($next==1) $next=2;
+                                    echo "<link rel='next' href='", $this->router()->cfg['url_base'], $currentUrl, $next, "/' />";
+                                    echo '<link rel="prerender" href="', $this->router()->cfg['url_base'], $currentUrl, $next, '/" />';
+                                    echo '<link rel="prefetch" href="', $this->router()->cfg['url_base'], $currentUrl, $next, '/" />';
+                                }
+                            }
+                        }
+                        else {
+                            echo '<meta name="robots" content="noindex, follow" />';
+                        }
+                    }
+
+                    if (!$this->router()->isMobile) {
+                        echo '<link href="', $this->router()->cfg['url_base'], $this->router()->uri, $this->router()->getLanguagePath(), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
+                    }
+
+                    break;
+                
+                case 'index':
+                    $currentUrl=$this->router()->getUrl($this->router()->countryId,$this->router()->cityId);
+                    $link=  'https://www.mourjan.com'.$currentUrl;
+                    if ($link == $this->router()->config()->host.$_SERVER['REQUEST_URI']) { 
+                        $this->includeMetaKeywords();
+                        echo '<meta name="robots" content="noodp, noydir, index, follow" />';
+                    }
+                    else {
+                        echo '<meta name="robots" content="noindex, follow" />';
+                    }
+                    echo '<link rel="canonical" href="', $link, '" />';
+                
+                    $__cn=null;
+                    $__cc=null;
+                    if ($this->router()->countryId && isset($this->router()->countries[$this->router()->countryId])) {
+                        $__cn = $this->router()->countries[$this->router()->countryId]['uri'];
+                    }
+                    $__name = $__cn ? 
+                        (
+                         ($this->router()->isArabic() ? 'مرجان ' : 'Mourjan ').                        
+                         ($this->router()->isArabic() ? 
+                            $this->router()->countries[$this->router()->countryId]['name'] : 
+                            $this->router()->countries[$this->router()->countryId]['name']
+                         )
+                        ) : $this->title;   
+                
+                ?><script type="application/ld+json">
+{"@context": "https://schema.org",
+ "@type": "WebSite",
+ "name": "<?= $__name ?>",
+ "alternateName": "mourjan",
+ "url": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').$this->router()->getLanguagePath() ?>",
+ "potentialAction":
+ {"@type": "SearchAction",
+  "target": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').$this->router()->getLanguagePath() ?>?q={search_term_string}",
+  "query-input": "required name=search_term_string"
+ }
+}
+</script><?php
+                break;
+                
+            default:
+                if ($this->router()->module=='notfound') {
+                    echo '<meta name="robots" content="noindex, nofollow" />';
+                } 
+                elseif($this->router()->module=='privacy'||$this->router()->module=='terms'||$this->router()->module=='about'||$this->router()->module=='advertise') {
+                    if ($this->router()->siteLanguage=='en'){
+                        echo '<meta name="robots" content="noodp, noydir, index, follow" />';
+                    }
+                    else {
+                        echo '<meta name="robots" content="noindex, nofollow" />';
+                    }
+                }
+                else {
+                    echo '<meta name="robots" content="noodp, noydir, index, follow" />';
+                }
+                break;
+            }
+        }
+                
+        ?><link rel="icon" href="<?= $this->router()->config()->imgURL ?>/favicon.ico" type="image/x-icon" /><?php 
+        $this->set_analytics_header();            
+        echo '</head>', "\n";
+        flush();
+        echo '<body dir="', $this->router()->isArabic() ? 'rtl':'ltr', '" ', $this->pageItemScope;
+        if ($this->isAdminSearch) {
+            echo ' oncontextmenu="return false;"';
+        }
+        if ($this->router()->isAcceptWebP) {
+            echo ' class="wbp"';
+        }
+        echo '>', "\n", '<meta itemprop="isFamilyFriendly" content="true" />', "\n";
+        if (1) {
+            return;
+        }
+        
+        
+        /*-------------- OLD code --------------------------*/
         
         $this->prepare_css();
         $this->prepare_js();
@@ -5939,55 +6144,23 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
     }
 
     
-    function _body()
-    {
-        if ($this->isMobile) 
-        {
-            //echo '<div id="apper"><div id="scroller">';
+    function _body() {
+        echo '<div class="wrapper">', "\n";
+        echo '</div></body></html>';
+        if (1) { return; }
+        /*--------------------------- Old Code ---------------------------*/
+        
+        if ($this->isMobile) {
             $this->topMobile();
             $this->bodyMobile();
-            if (!$this->router()->isApp)
-            {
+            if (!$this->router()->isApp) {
                 $this->footerMobile();
             }
             $this->loadMobileJs_classic();
-            //echo "</div></div>";
-            //echo "<div id='adft'>Featured ad placement</div>";
         } 
-        else 
-        {
+        else {
             //echo '<!--googleoff: snippet-->';
-            $this->top();
-            /*if ($this->router()->cfg['enabled_sharing'] && (!$this->router()->userId || ($this->router()->userId && 
-                    $this->router()->module!='detail')) ) {
-                $fl='fls';
-                $fr='frs';
-                if ($this->router()->siteLaguage='ar'){
-                    $fl='frs';
-                    $fr='fls';
-                }
-                ?><div class="shh"><?php
-            /*?><div class="shf w"><div class="addthis_toolbox addthis_default_style"><a class="addthis_button_google_plusone" g:plusone:count="false" g:plusone:size="medium"></a><a class="addthis_button_facebook_like" fb:like:layout="button_count"></a><a class="addthis_button_facebook_send"></a><a class="addthis_button_tweet" tw:lang="en" tw:count="none"></a><a class="addthis_button_linkedin_counter"></a><a class="addthis_counter addthis_pill_style"></a></div><div class="addthis_toolbox addthis_32x32_style addthis_default_style"><?= ($this->router()->siteLanguage=='ar' ? '<p>'.$this->lang['followUs'].'</p>':'')  ?><a class="addthis_button_twitter_follow" addthis:userid="MourjanWeb"></a><a class="addthis_button_facebook_follow" addthis:userid="bmourjan"></a><?= ($this->router()->siteLanguage=='en' ? '<p>'.$this->lang['followUs'].'</p>':'')  ?></div></div><?php */
-          /*      ?><div class="shf w"><?php
-                    ?><div class="<?= $fl ?>"><?php 
-                           ?><label><?= $this->lang['shareUs'] ?></label><span class='st_plusone_hcount'></span><span class='st_facebook_hcount'></span><span class='st_twitter_hcount'></span><span class='st_linkedin_hcount'></span><span class='st_email_hcount'></span><span class='st_sharethis_hcount'></span><?php
-                    
-                    ?></div><?php
-                    if (!$this->router()->userId){
-                        ?><div class="<?= $fr ?>"><?php
-                            ?><label><?= $this->lang['followUs'] ?></label><a href="https://www.facebook.com/pages/Mourjan/318337638191015" target="_blank"><span class="fb-link"></span></a><a href="https://twitter.com/MourjanWeb" target="blank"><span class="tw-link"></span></a><?php
-                        ?></div><?php
-                    }
-                ?></div><?php 
-                //<a><span class="gp-link"></span></a><a><span class="yt-link"></span></a>https://www.facebook.com/bmourjan
-        ?></div><?php 
-            }else {
-                ?><br /><?php
-            }
-           * */
-            
-            //    echo $this->fill_ad('zone_1', 'ad_w');
-            
+            $this->top();            
             if (!$this->router()->userId) {
             	//include_once dirname( $this->router()->cfg['dir'] ) . '/tmp/gen/' . $this->includeHash.'0.php';  
             	include_once dirname( '/home/www/mourjan' ) . '/tmp/gen/' . $this->includeHash.'0.php';  
@@ -6001,6 +6174,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         }
         ?></body></html><?php
     }
+    
     
     function partnerHeader(){
         $rc=$this->router()->module=='detail'?'':' rct';

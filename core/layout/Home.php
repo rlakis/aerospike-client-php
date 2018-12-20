@@ -1,11 +1,19 @@
 <?php
 \Config::instance()->incLayoutFile('Page');
 
-class Home extends Page{
+class Home extends Page {
     
     var $hasBottomBanner = false;
 
-    function __construct($router){       
+    function __construct(\Core\Model\Router $router) {
+        header('Vary: User-Agent');
+        parent::__construct($router);
+        $this->lang['description']=$this->lang['home_description'];
+        $this->render();
+    }
+    
+    
+    function __construct1($router){       
         header('Vary: User-Agent');
         parent::__construct($router);
         $this->lang['description']=$this->lang['home_description'];
@@ -122,35 +130,7 @@ class Home extends Page{
             $this->set_ad(array(
                 'zone_2'=>array('/1006833/LargeRectangle', 336, 280, 'div-gpt-ad-1319707248075-0-'.$this->router()->config()->serverId)
                 //'zone_3'=>array('/1006833/mourjan-navigator-square', 200, 200, 'div-gpt-ad-1349258304441-0-'.$this->router()->cfg['server_id']),
-                ));
-            
-            /*
-            if (count($this->router()->cfg['campaign'])){    
-                $adKey=array();
-                $adKey[]=  $this->router()->countryId.'_x_';
-                $adKey[]=  $this->router()->countryId.'_'.$this->router()->cityId.'_';
-                $set=0;
-                for($i=1;$i<5;$i++){
-                    foreach ($adKey as $key){
-                        if (isset($this->router()->cfg['campaign'][$key.$i])){
-                            $this->set_ad(array(
-                                $this->router()->cfg['campaign'][$key.$i][0]   =>  array(
-                                        $this->router()->cfg['campaign'][$key.$i][1], 
-                                        $this->router()->cfg['campaign'][$key.$i][3], 
-                                        $this->router()->cfg['campaign'][$key.$i][4],
-                                        $this->router()->cfg['campaign'][$key.$i][2]
-                                    )
-                                )
-                            );
-                            if ($i==1)unset($this->googleAds['Leaderboard']);
-                            $set++;
-                            break;
-                        }
-                    }
-                    if ($set>3) break;
-                }
-            }
-            */
+                ));                     
         }
         
         if ($this->router()->countryId) {
