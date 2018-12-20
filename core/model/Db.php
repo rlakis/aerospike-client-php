@@ -1,9 +1,7 @@
 <?php
 namespace Core\Model;
 
-include_once dirname(__DIR__).'/lib/MCCache.php';
-include_once dirname(__DIR__).'/lib/SphinxQL.php';
-include_once 'NoSQL.php';
+\Config::getInstance()->incLibFile('MCCache')->incLibFile('SphinxQL')->incModelFile('NoSQL');
 
 use Core\Lib\MCCache;
 use Core\Lib\SphinxQL;
@@ -13,7 +11,7 @@ class DB {
 
     private static $Instance;    
     private static $Cache;
-    private static $user, $pass, $dbUri;
+    private static /*$user, $pass,*/ $dbUri;
 
     private static $Readonly;
     private static $IsolationLevel;
@@ -26,16 +24,16 @@ class DB {
     private $slaveOfRedis;
     public $ql;
     
-    public function __construct($cfg, $readonly=TRUE) {
+    public function __construct($readonly=TRUE) {
         $this->slaveOfRedis = (get_cfg_var('mourjan.server_id')!='1');
-        self::$dbUri = 'firebird:dbname='.$cfg['db_host'].':'.$cfg['db_name'].';charset=UTF8';
-        self::$user = $cfg['db_user'];
-        self::$pass = $cfg['db_pass'];
+        self::$dbUri = 'firebird:dbname='.\Config::instance()->get('db_host').':'.\Config::instance()->get('db_name').';charset=UTF8';
+        //self::$user = $cfg['db_user'];
+        //self::$pass = $cfg['db_pass'];
         self::$WaitTimeout = 10;
         
         $this->setTransactionIsolation($readonly);
 
-        self::getCacheStorage($cfg);
+        self::getCacheStorage();
         
         self::$SectionsVersion=FALSE;
         self::$TagsVersion=FALSE;
@@ -47,13 +45,13 @@ class DB {
         self::$LocalitiesVersion = $versions['locality-counts-version'];
         self::$TagsVersion = $versions['tag-counts-version'];
         
-        $this->ql = new SphinxQL($cfg['sphinxql'], $cfg['search_index']);    
+        $this->ql = new SphinxQL(\Config::instance()->get('sphinxql'), \Config::instance()->get('search_index'));    
     }
 
 
-    public static function getCacheStorage($config) {
+    public static function getCacheStorage() {
         if (!isset(DB::$Cache)) {
-            DB::$Cache = new MCCache($config);
+            DB::$Cache = new MCCache();
         }
         return self::$Cache;
     }
@@ -137,7 +135,7 @@ class DB {
     
     
     private function newInstance() {
-        DB::$Instance = new \PDO(DB::$dbUri, DB::$user, DB::$pass,
+        DB::$Instance = new \PDO(DB::$dbUri, \Config::instance()->get('db_user'), \Config::instance()->get('db_pass'),
                     [
                         \PDO::ATTR_PERSISTENT=>TRUE,
                         \PDO::ATTR_AUTOCOMMIT=>FALSE,
@@ -180,8 +178,7 @@ class DB {
     public function getInstance($try=0) {
        if (self::$Instance === NULL) { 
             $this->newInstance();
-            if (!self::$Instance->inTransaction()) {
-                //error_log("new Instance beginTransaction Read: ". (self::$Readonly ? 'YES' : 'NO') ." Wait timeout: ".self::$WaitTimeout. PHP_EOL);
+            if (!self::$Instance->inTransaction()) {                
                 self::$Instance->beginTransaction();
             }           
         } 

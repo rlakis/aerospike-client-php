@@ -2,10 +2,7 @@
 include_once __DIR__ . '/deps/autoload.php';
 include_once __DIR__ . '/config/cfg.php';
 
-include_once __DIR__ . '/core/model/Router.php';
-include_once __DIR__ . '/core/model/Db.php';
-include_once __DIR__ . '/core/lib/MCSessionHandler.php';
-
+Config::instance()->incModelFile('Router')->incModelFile('Db')->incLibFile('MCSessionHandler');
 
 //use hybridauth\Hybrid;
 //use MaxMind\Db\Reader;
@@ -66,7 +63,9 @@ if (php_sapi_name()!='cli') {
     //$user->sysAuthById(717151);
 }
 
-$router = new Router($config);
+
+$router = Router::instance();
+//$router = new Router($config);
 
 
 if (!isset($argc)) {

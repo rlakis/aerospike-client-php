@@ -1,47 +1,40 @@
 <?php
 namespace Core\Lib;
 
-class MCCache extends \Redis 
-{
+class MCCache extends \Redis {
     private $buffer;
     private $writeBuffering;
     
     
-    function __construct($conf) 
-    {
+    function __construct() {
         parent::__construct();
         $this->buffer = [];
         $this->writeBuffering = TRUE;
-        if ($conf['memstore']['tcp']) 
-        {
-            $success = $this->connect($conf['memstore']['host'], $conf['memstore']['port'], 1, NULL, 100);
+        $memstore = \Config::instance()->get('memstore');
+        if ($memstore['tcp']) {
+            $success = $this->connect($memstore['host'], $memstore['port'], 1, NULL, 100);
         } 
-        else 
-        {
-            $success = $this->connect($conf['memstore']['socket']);           
+        else {
+            $success = $this->connect($memstore['socket']);           
         }
 
-        if (!$success) 
-        {
-            error_log("Could not connect to redis ". (($conf['memstore']['tcp']) ? $conf['memstore']['host']."/".$conf['memstore']['port'] : "unix socket " . $conf['memstore']['socket']));
+        if (!$success) {
+            error_log("Could not connect to redis ". (($memstore['tcp']) ? $memstore['host']."/".$memstore['port'] : "unix socket " . $memstore['socket']));
         }
             
-        $this->setOption(\Redis::OPT_SERIALIZER, $conf['memstore']['serializer']);
-        $this->setOption(\Redis::OPT_PREFIX, $conf['memstore']['prefix']);
-        $this->select($conf['memstore']['db']);
+        $this->setOption(\Redis::OPT_SERIALIZER, $memstore['serializer']);
+        $this->setOption(\Redis::OPT_PREFIX, $memstore['prefix']);
+        $this->select($memstore['db']);
     }
 
     
-    function __destruct() 
-    {
-        if ($this->writeBuffering && !empty($this->buffer)) 
-        {
+    function __destruct() {
+        if ($this->writeBuffering && !empty($this->buffer)) {
             parent::ping();
             parent::mSet($this->buffer);
         }
         
-        if ($this->isConnected()) 
-        {
+        if ($this->isConnected()) {
             parent::close();
         }
 
@@ -49,21 +42,17 @@ class MCCache extends \Redis
     }
 
     
-    public function setWriteBuffering($mode=TRUE) 
-    {
+    public function setWriteBuffering($mode=TRUE) {
         $this->writeBuffering = $mode;        
     }
 
     
-    public function getMulti($keys) 
-    {
+    public function getMulti($keys) {
         $ret = [];
         $values = $this->getMultiple($keys);
         $len = count($keys);
-        for ($i=0; $i<$len; $i++) 
-        {
-            if ($values[$i] !== FALSE) 
-            {
+        for ($i=0; $i<$len; $i++) {
+            if ($values[$i] !== FALSE) {
                 $ret[$keys[$i]] = $values[$i];
             }
         }
@@ -71,21 +60,17 @@ class MCCache extends \Redis
     }
 
 
-    function touch($key, $ttl) 
-    {
+    function touch($key, $ttl) {
         parent::expire($key, $ttl);
     }
 
 
-    function set($key, $value, $buffer_it=TRUE) 
-    {
-        if ($this->writeBuffering && $buffer_it) 
-        {
+    function set($key, $value, $buffer_it=TRUE) {
+        if ($this->writeBuffering && $buffer_it) {
             $this->buffer[$key] = $value;
             return TRUE;
         } 
-        else 
-        {
+        else {
             return parent::set($key, $value);
         }
     }

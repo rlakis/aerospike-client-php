@@ -21,10 +21,10 @@ class AjaxHandler extends Site {
     var $dir='';
     var $host='';
 
-    function __construct(Router $router){
+    function __construct(Router $router) {
         parent::__construct($router);
-        $this->dir=$router->cfg['dir'];
-        $this->host=$router->cfg['host'];
+        $this->dir=$router->config()->baseDir;
+        $this->host=$router->config()->host;
         $this->sid=session_id();
     }
 
@@ -101,7 +101,7 @@ class Bin extends AjaxHandler{
 
     
     function actionSwitch() {
-        switch($this->urlRouter->module) {
+        switch ($this->router()->module) {
             case 'ajax-screen':
                 if (isset($_POST['w']) && $_POST['w'] && isset($_POST['h']) && $_POST['h']) {
                     $w=$_POST['w'];

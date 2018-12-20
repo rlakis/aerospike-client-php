@@ -1,12 +1,11 @@
 <?php
-layout_file('Page.php');
+\Config::instance()->incLayoutFile('Page');
 
 class Home extends Page{
     
     var $hasBottomBanner = false;
 
     function __construct($router){       
-        error_log(__CLASS__);
         header('Vary: User-Agent');
         parent::__construct($router);
         $this->lang['description']=$this->lang['home_description'];
@@ -15,15 +14,15 @@ class Home extends Page{
             $this->isMobileCssLegacy=false;
             $this->clear_require('css');
             $this->set_require('css', 's_home');
-            if($this->urlRouter->rootId){
+            if($this->router()->rootId){
                 $this->set_require('css', 's_ro');
-                $this->set_require('css', 's_root_'.$this->urlRouter->rootId.'_m');
+                $this->set_require('css', 's_root_'.$this->router()->rootId.'_m');
             }
             if($this->user->info['id']){
                 $this->set_require('css', 's_user');
             }
-            //$this->set_ad(array('Leaderboard'=>array('/1006833/M320x50', 320, 50, 'div-gpt-ad-1326381096859-0-'.$this->urlRouter->cfg['server_id'])));
-        }else{
+        }
+        else {
             $this->inlineCss.='
                 .col2w .col1 {
                     width:765px;
@@ -103,7 +102,7 @@ class Home extends Page{
     .tbs.t4 li{width:300px}
     .tbs.t5 li{width:240px}
     .tbs.t6 li{width:200px}
-    '.($this->urlRouter->siteLanguage=='ar' ? '
+    '.($this->router()->isArabic() ? '
     .dl ul{
         margin-left:9px;
         float:left;
@@ -121,25 +120,25 @@ class Home extends Page{
 }
             ';
             $this->set_ad(array(
-                'zone_2'=>array('/1006833/LargeRectangle', 336, 280, 'div-gpt-ad-1319707248075-0-'.$this->urlRouter->cfg['server_id'])
-                //'zone_3'=>array('/1006833/mourjan-navigator-square', 200, 200, 'div-gpt-ad-1349258304441-0-'.$this->urlRouter->cfg['server_id']),
+                'zone_2'=>array('/1006833/LargeRectangle', 336, 280, 'div-gpt-ad-1319707248075-0-'.$this->router()->config()->serverId)
+                //'zone_3'=>array('/1006833/mourjan-navigator-square', 200, 200, 'div-gpt-ad-1349258304441-0-'.$this->router()->cfg['server_id']),
                 ));
             
             /*
-            if (count($this->urlRouter->cfg['campaign'])){    
+            if (count($this->router()->cfg['campaign'])){    
                 $adKey=array();
-                $adKey[]=  $this->urlRouter->countryId.'_x_';
-                $adKey[]=  $this->urlRouter->countryId.'_'.$this->urlRouter->cityId.'_';
+                $adKey[]=  $this->router()->countryId.'_x_';
+                $adKey[]=  $this->router()->countryId.'_'.$this->router()->cityId.'_';
                 $set=0;
                 for($i=1;$i<5;$i++){
                     foreach ($adKey as $key){
-                        if (isset($this->urlRouter->cfg['campaign'][$key.$i])){
+                        if (isset($this->router()->cfg['campaign'][$key.$i])){
                             $this->set_ad(array(
-                                $this->urlRouter->cfg['campaign'][$key.$i][0]   =>  array(
-                                        $this->urlRouter->cfg['campaign'][$key.$i][1], 
-                                        $this->urlRouter->cfg['campaign'][$key.$i][3], 
-                                        $this->urlRouter->cfg['campaign'][$key.$i][4],
-                                        $this->urlRouter->cfg['campaign'][$key.$i][2]
+                                $this->router()->cfg['campaign'][$key.$i][0]   =>  array(
+                                        $this->router()->cfg['campaign'][$key.$i][1], 
+                                        $this->router()->cfg['campaign'][$key.$i][3], 
+                                        $this->router()->cfg['campaign'][$key.$i][4],
+                                        $this->router()->cfg['campaign'][$key.$i][2]
                                     )
                                 )
                             );
@@ -154,7 +153,7 @@ class Home extends Page{
             */
         }
         
-        if ($this->urlRouter->countryId) {
+        if ($this->router()->countryId) {
             $this->lang['description'].=' '.$this->lang['in'].' '.$this->title;
         }
         else {
@@ -165,10 +164,10 @@ class Home extends Page{
 
     
     function mainMobile(){
-        if ($this->urlRouter->rootId)
-            $this->urlRouter->cacheExtension();
-        $isHome = !$this->urlRouter->rootId && $this->urlRouter->countryId;
-        $lang=$this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/';
+        if ($this->router()->rootId)
+            $this->router()->cacheExtension();
+        $isHome = !$this->router()->rootId && $this->router()->countryId;
+        $lang=$this->router()->siteLanguage=='ar'?'':$this->router()->siteLanguage.'/';
         if($isHome && $this->user->info['id']) {
             ?><ul class="ls us"><?php 
                 ?><li><a href="/post/<?= $lang ?>"><span class="ic apb"></span><?= $this->lang['button_ad_post_m'] ?><span class="to"></span></a></li><?php 
@@ -205,7 +204,7 @@ class Home extends Page{
             ?></ul><?php
         }
         $this->renderMobileLinks();
-        if (0 && !$this->urlRouter->rootId && $this->urlRouter->countryId) {
+        if (0 && !$this->router()->rootId && $this->router()->countryId) {
             ?><div id='fb-box' class="fb-like-box" data-href="http://www.facebook.com/pages/Mourjan/318337638191015" data-show-faces="true" data-stream="false" data-border-color="#E7E9F0" data-header="true"></div><?php
         }
         
@@ -214,11 +213,11 @@ class Home extends Page{
     }
    
     function renderMobileCountry(){
-        if ($this->urlRouter->rootId) return;
-        if ($this->urlRouter->countryId){
+        if ($this->router()->rootId) return;
+        if ($this->router()->countryId){
             echo '<ul class="ls">';
-            echo '<li><a href="/', $this->appendLang ,'"><span class="flag-icon large c', $this->urlRouter->countryId, '"></span>',
-                $this->countryCounter, ' ',$this->lang['in'],' ',($this->urlRouter->cityId?$this->cityName:$this->countryName),
+            echo '<li><a href="/', $this->appendLang ,'"><span class="flag-icon large c', $this->router()->countryId, '"></span>',
+                $this->countryCounter, ' ',$this->lang['in'],' ',($this->router()->cityId?$this->cityName:$this->countryName),
                 '<span class="et"></span></a></li>';
             echo '</ul>';
         }else {
@@ -226,7 +225,7 @@ class Home extends Page{
             
             $userCountry = $this->user->params['user_country'] ?? 0;
             if($userCountry){
-                foreach ($this->urlRouter->countries as $country_id => $country) {
+                foreach ($this->router()->countries as $country_id => $country) {
                     if($userCountry == $country['uri']){
                         echo '<ul class="cls bbr">';
                         echo '<li><a href="/', $country['uri'], '/'.$this->appendLang.'"><span class="flag-icon large c'.$country_id.'"></span>', $country['name'], '<span class="to"></span></a>';
@@ -243,7 +242,7 @@ class Home extends Page{
                 }         
             }
             echo '<ul class="cls">';
-            foreach ($this->urlRouter->countries as $country_id => $country) {
+            foreach ($this->router()->countries as $country_id => $country) {
                 if(!$userCountry || $userCountry != $country['uri']){
                     echo '<li><a href="/', $country['uri'], '/'.$this->appendLang.'"><span class="flag-icon large c'.$country_id.'"></span>', $country['name'], '<span class="to"></span></a>';
                     if (!empty($country['cities'])) {
@@ -261,14 +260,14 @@ class Home extends Page{
     }
        
     function renderMobileRoots(){
-        if (!$this->urlRouter->countryId || $this->urlRouter->rootId) return;
+        if (!$this->router()->countryId || $this->router()->rootId) return;
         
             echo '<ul class="ls br">';
             $i=0;
 
-            foreach ($this->urlRouter->pageRoots as $key=>$root) {
+            foreach ($this->router()->pageRoots as $key=>$root) {
                 $count=$this->checkNewUserContent($root['unixtime']) ? '<b>'.$root['counter'].'</b>' : $root['counter'];
-                $_link = $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $key);
+                $_link = $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $key);
                         
                 echo '<li><a href="', $_link, '"><span class="ic r',$key,'"></span>',
                     $root['name'], '<span class="to"></span><span class="n">', $count, '</span></a></li>';
@@ -280,12 +279,12 @@ class Home extends Page{
     
     
     function renderMobileSections(){
-        if (!$this->urlRouter->rootId) return;
+        if (!$this->router()->rootId) return;
         echo "<ul class='ls oh'>";
         $i=0;
-        //$hasLogoSpan=$this->urlRouter->rootId==2?true:false;
+        //$hasLogoSpan=$this->router()->rootId==2?true:false;
         $cssPre='';
-        switch($this->urlRouter->rootId){
+        switch($this->router()->rootId){
                         case 1:
                             $cssPre='x x';
                             break;
@@ -302,19 +301,19 @@ class Home extends Page{
                             $cssPre='u u';
                             break;
         } 
-        foreach ($this->urlRouter->pageSections as $key=>$section) {
-            $this->urlRouter->pageSections[$key]['id']=$key;
+        foreach ($this->router()->pageSections as $key=>$section) {
+            $this->router()->pageSections[$key]['id']=$key;
         }
         if(isset($this->user->params['catsort']) && $this->user->params['catsort']){
-            usort($this->urlRouter->pageSections, function($a, $b){
+            usort($this->router()->pageSections, function($a, $b){
                 return $b['counter'] > $a['counter'];
             });
         }
-        foreach ($this->urlRouter->pageSections as $section) {
+        foreach ($this->router()->pageSections as $section) {
             $count=$this->checkNewUserContent($section['unixtime']) ? '<b>'.$section['counter'].'</b>' : $section['counter'];
             $purposeId = (count($section['purposes'])==1) ? array_keys($section['purposes'])[0] : 0;
             //$purposeId=(is_numeric($section[3]) ? (int)$section[3]:0);
-            $_link = $this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId, $this->urlRouter->rootId, $section['id'], $purposeId);
+            $_link = $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $section['id'], $purposeId);
             echo '<li'.(in_array($section['id'],[29,63,105,117]) ? ' class="ozer"':'').'><a href="', $_link, '">',
                     "<span class='{$cssPre}{$section['id']}'></span>",
                     $section['name'], '<span class="to"></span><span class="n">', $count, '</span></a></li>';
@@ -428,13 +427,13 @@ var setOrder=function(e)
     
     function _main_pane(){
         $adLang='';
-        //$header=($this->urlRouter->cityId? $this->urlRouter->cities[$this->urlRouter->cityId][$this->fieldNameIndex]:($this->urlRouter->countryId ? $this->urlRouter->countries[$this->urlRouter->countryId][$this->fieldNameIndex] : $this->lang['mourjan_header']));
-        if ($this->urlRouter->siteLanguage!="ar") $adLang=$this->urlRouter->siteLanguage.'/';
-        /*if ($this->urlRouter->countryId || $this->urlRouter->cityId) {
+        //$header=($this->router()->cityId? $this->router()->cities[$this->router()->cityId][$this->fieldNameIndex]:($this->router()->countryId ? $this->router()->countries[$this->router()->countryId][$this->fieldNameIndex] : $this->lang['mourjan_header']));
+        if ($this->router()->siteLanguage!="ar") $adLang=$this->router()->siteLanguage.'/';
+        /*if ($this->router()->countryId || $this->router()->cityId) {
             if ($adLang) $header.=' '.$this->lang['title_home'];
             else $header=$this->lang['title_home'].' '.$header;
         }*/
-        if(0 && $this->urlRouter->countryId==1){
+        if(0 && $this->router()->countryId==1){
             $rand = rand(0, 1);
             
             ?><div onclick="ga('send', 'event', 'OutLinks', 'click', 'Servcorp-HomeBanner');wn('http://www.servcorp.com.lb/en/locations/beirut/beirut-souks-louis-vuitton-building/virtual-offices/');" class="tvs tvs<?= $rand ?>"></div><?php 
@@ -442,7 +441,7 @@ var setOrder=function(e)
         }
         else {
             ?><div class="tv rcb"><div class="tx sh"><div class="tz"><?= $this->lang['billboard'] ?><p class="ctr"><?php
-            if (!$this->urlRouter->siteTranslate) {
+            if (!$this->router()->siteTranslate) {
                 if ($this->user->info['id']){
                     echo '<a class="bt" href="/post/'.$adLang.'" rel="nofollow">'.$this->lang['placeAd'].'</a>';
                 }else {
@@ -456,7 +455,7 @@ var setOrder=function(e)
 
 
     function main_pane() {
-    	$file= dirname( $this->urlRouter->cfg['dir'] ) . '/tmp/gen/index-' . $this->includeHash . '2.php';
+    	$file= dirname( $this->router()->config()->baseDir ) . '/tmp/gen/index-' . $this->includeHash . '2.php';
     	$file= dirname( '/home/www/mourjan' ) . '/tmp/gen/index-' . $this->includeHash . '2.php';
         if (file_exists($file)) {
             echo '<!--googleoff: snippet-->';

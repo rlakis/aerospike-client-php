@@ -1,9 +1,7 @@
 <?php
 
-model_file('NoSQL.php');
-model_file('Classifieds.php');
-model_file('User.php');
-libFile('SphinxQL.php');
+\Config::instance()->incModelFile('NoSQL')->incModelFile('Classifieds')
+        ->incModelFile('User')->incLibFile('SphinxQL');
 
         
 use Core\Model\Router;
@@ -23,38 +21,40 @@ class Site {
     var $isMobileAd=false;
     var $lnIndex=0;
     var $channelId=0;
-    public $urlRouter;
+    private $router;
     var $sortingMode = 0;
     var $langSortingMode = 0;
     var $publisherTypeSorting = 0;
 
 
-    function __construct(Router $router) {
+    function __construct(/*Router $router*/) {
         global $argc;        
-        $this->urlRouter = $router;
-        if ($router->siteLanguage=='en')
+        $this->router = Router::getInstance();
+        //$this->router = $router;
+        if ($this->router->siteLanguage=='en') {
             $this->lnIndex=1;
-        if (isset($argc)) {
-            return;
         }
+        if (isset($argc)) { return; }
+        
         $this->initSphinx();
-        $this->user=new User($router->db, $router->cfg, $this);
+        
+        $this->user=new User(/*$this->router->db, $router->cfg, */$this);
         if (!isset($this->user->params['list_lang'])) {
             $this->langSortingMode = -1;
         }
         if (!isset($this->user->params['list_publisher'])) {
             $this->publisherTypeSorting = 0;
         }
-        $this->classifieds = new Classifieds($router->db);
-        error_log(__CLASS__);
+        $this->classifieds = new Classifieds($this->router->db);
     }
 
+    
     public function __destruct() {
     }
     
     
     public function router() : Router {
-        return $this->urlRouter;
+        return $this->router;
     }
     
     
@@ -64,7 +64,7 @@ class Site {
     
     
     function checkUserGeo() {
-        $geo = $this->urlRouter->getIpLocation();
+        $geo = $this->router->getIpLocation();
         if (isset($geo['country'])) {
             $country_code=strtolower(trim($geo['country']['iso_code']));
             $this->user->params['user_country']=$country_code;
@@ -155,14 +155,14 @@ class Site {
     }
     
 
-    function load_lang($langArray, $langStr=''){
-        if ($langStr=='')$langStr=$this->urlRouter->siteLanguage;
-        if($this->urlRouter->extendedLanguage)$langStr=$this->urlRouter->extendedLanguage;
+    function load_lang($langArray, $langStr='') : void {
+        if ($langStr=='') { $langStr=$this->router()->siteLanguage; }
+        if ($this->router->extendedLanguage)$langStr=$this->router->extendedLanguage;
         foreach ($langArray as $langFile) {
-            include_once "{$this->urlRouter->cfg['dir']}/core/lang/{$langFile}.php";
+            include_once "{$this->router()->config()->baseDir}/core/lang/{$langFile}.php";
             $this->lang=array_merge($this->lang, $lang);
             if ($langStr!='en') {
-                include_once "{$this->urlRouter->cfg['dir']}/core/lang/{$langStr}/{$langFile}.php";
+                include_once "{$this->router()->config()->baseDir}/core/lang/{$langStr}/{$langFile}.php";
                 $this->lang=array_merge($this->lang, $lang);
             }
         }
@@ -217,15 +217,15 @@ class Site {
 
     
     function handleCacheActions() {
-        if ($this->urlRouter->module=="search") {
+        if ($this->router->module=="search") {
             $this->user->params['search'] = array(
-                'cn' =>   $this->urlRouter->countryId,
-                'c' =>   $this->urlRouter->cityId,
-                'ro' =>   $this->urlRouter->rootId,
-                'se' =>   $this->urlRouter->sectionId,
-                'pu' =>   $this->urlRouter->purposeId,
-                'start'     =>  $this->urlRouter->params['start'],
-                'q'     =>  $this->urlRouter->params['q']
+                'cn' =>   $this->router->countryId,
+                'c' =>   $this->router->cityId,
+                'ro' =>   $this->router->rootId,
+                'se' =>   $this->router->sectionId,
+                'pu' =>   $this->router->purposeId,
+                'start'     =>  $this->router->params['start'],
+                'q'     =>  $this->router->params['q']
             );
             $this->user->update();
         }
@@ -242,7 +242,7 @@ class Site {
         $sinceText=$this->lang['since'].' ';
         $agoText=' '.$this->lang['ago'];
         if ($days) {
-            if ($this->urlRouter->siteLanguage=='ar') {
+            if ($this->router->siteLanguage=='ar') {
                 $stamp=$sinceText.$this->formatPlural($days, 'day');
             }
             else {
@@ -252,7 +252,7 @@ class Site {
         else {
             $hours=floor($seconds/3600);
             if ($hours){
-                if ($this->urlRouter->siteLanguage=='ar') {
+                if ($this->router->siteLanguage=='ar') {
                     $stamp=$sinceText.$this->formatPlural($hours, 'hour');
                 }else {
                     $stamp=$this->formatPlural($hours, 'hour').$agoText;
@@ -260,7 +260,7 @@ class Site {
             }else {
                 $minutes=floor($seconds/60);
                 if (!$minutes) $minutes=1;
-                if ($this->urlRouter->siteLanguage=='ar') {
+                if ($this->router->siteLanguage=='ar') {
                     $stamp=$sinceText.$this->formatPlural($minutes, 'minute');
                 }else {
                     $stamp=$this->formatPlural($minutes, 'minute').$agoText;
@@ -274,13 +274,13 @@ class Site {
     function formatPlural($number, $fieldName){
         $str='';
         if ($number==1) {
-            if ($this->urlRouter->siteLanguage=='ar') {
+            if ($this->router->siteLanguage=='ar') {
                 $str=$this->lang[$fieldName];
             }else {
                 $str='1 '.$this->lang[$fieldName];
             }
         }elseif ($number==2) {
-            if ($this->urlRouter->siteLanguage=='ar') {
+            if ($this->router->siteLanguage=='ar') {
                 $str=$this->lang['2'.$fieldName];
             }else {
                 $str='2 '.$this->lang['2'.$fieldName];
@@ -309,45 +309,45 @@ class Site {
 
 
     function initSphinx($forceInit=false) {
-        if ($this->urlRouter->db->ql) {
+        if ($this->router->db->ql) {
             if ($forceInit) {
-                $this->urlRouter->db->ql->resetFilters();               
+                $this->router->db->ql->resetFilters();               
             }
             return;
         }
 
-        $this->urlRouter->db->ql = new SphinxQL($this->urlRouter->cfg['sphinxql'], $this->urlRouter->cfg['search_index']);        
+        $this->router->db->ql = new SphinxQL($this->router->cfg['sphinxql'], $this->router->cfg['search_index']);        
     }
     
     
     function runQueries($queries, &$matches) {
-        $this->urlRouter->db->ql->_batch=[];
+        $this->router->db->ql->_batch=[];
         foreach ($queries as $row) {
             if (!$this->channelId || $row['ID']==$this->channelId) {
-                $this->urlRouter->db->ql->resetFilters(true);
+                $this->router->db->ql->resetFilters(true);
                 if ($row['COUNTRY_ID'])
-                    $this->urlRouter->db->ql->setFilter("country", $row['COUNTRY_ID']);
+                    $this->router->db->ql->setFilter("country", $row['COUNTRY_ID']);
                 if ($row['CITY_ID'])
-                    $this->urlRouter->db->ql->setFilter("city", $row['CITY_ID']);
+                    $this->router->db->ql->setFilter("city", $row['CITY_ID']);
                 if ($row['SECTION_ID'])
-                    $this->urlRouter->db->ql->setFilter("section_id", $row['SECTION_ID']);
+                    $this->router->db->ql->setFilter("section_id", $row['SECTION_ID']);
                 if ($row['SECTION_TAG_ID'])
-                    $this->urlRouter->db->ql->setFilter("section_tag_id", $row['SECTION_TAG_ID']);
+                    $this->router->db->ql->setFilter("section_tag_id", $row['SECTION_TAG_ID']);
                 if ($row['LOCALITY_ID'])
-                    $this->urlRouter->db->ql->setFilter("locality_id", $row['LOCALITY_ID']);
+                    $this->router->db->ql->setFilter("locality_id", $row['LOCALITY_ID']);
                 if ($row['PURPOSE_ID'])
-                    $this->urlRouter->db->ql->setFilter("purpose_id", $row['PURPOSE_ID']);
+                    $this->router->db->ql->setFilter("purpose_id", $row['PURPOSE_ID']);
 
-                $this->urlRouter->db->ql->setSelect('id, date_added, '.$row['ID'].' as info_id');
+                $this->router->db->ql->setSelect('id, date_added, '.$row['ID'].' as info_id');
                 $lastVisit = isset($this->user->params['last_visit']) && $this->user->params['last_visit'] ? $this->user->params['last_visit'] : time()-3600;
-                $this->urlRouter->db->ql->setFilterRange('date_added',$lastVisit,time()+3600);
-                $this->urlRouter->db->ql->setSortBy('date_added desc');
-                $this->urlRouter->db->ql->SetLimits(0, 1000);
-                $this->urlRouter->db->ql->addQuery($row['ID'], $row['QUERY_TERM'], TRUE);
+                $this->router->db->ql->setFilterRange('date_added',$lastVisit,time()+3600);
+                $this->router->db->ql->setSortBy('date_added desc');
+                $this->router->db->ql->SetLimits(0, 1000);
+                $this->router->db->ql->addQuery($row['ID'], $row['QUERY_TERM'], TRUE);
                 if ($this->channelId) break;
             }
         }
-        $matches = $this->urlRouter->db->ql->executeBatch(TRUE);
+        $matches = $this->router->db->ql->executeBatch(TRUE);
     }
     
     
@@ -355,8 +355,8 @@ class Site {
         $offset = ($this->router()->params['start'] ? ($this->router()->params['start']-1) : 0) * $this->num;
         $this->initSphinx($forceInit);
         
-        $rootId=$this->urlRouter->rootId;
-        $q=preg_replace('/@/', '\@', $this->urlRouter->params['q']);
+        $rootId=$this->router->rootId;
+        $q=preg_replace('/@/', '\@', $this->router->params['q']);
         
         if ($this->router()->watchId) {
             $this->searchResults=false;
@@ -426,14 +426,14 @@ class Site {
                         ->uid($this->router()->userId)                        
                         ->root($rootId)
                         ->section($this->router()->sectionId)
-                        ->pupose($this->urlRouter->purposeId)
+                        ->pupose($this->router->purposeId)
                         ->locality($this->localityId)
                         ->tag($this->extendedId)
                         ;
                                 
                 if ($this->publisherTypeSorting && in_array($rootId,[1,2,3]) && 
-                    ($rootId!=3 || ($rootId==3 && $this->urlRouter->purposeId==3)) && 
-                    ($rootId!=2 || ($rootId==2 && $this->urlRouter->purposeId==1)) ) {
+                    ($rootId!=3 || ($rootId==3 && $this->router->purposeId==3)) && 
+                    ($rootId!=2 || ($rootId==2 && $this->router->purposeId==1)) ) {
                     $this->router()->database()->index()->publisherType($this->publisherTypeSorting == 1 ? 1 : 3);
                 }
                 
@@ -447,7 +447,7 @@ class Site {
                         $lng = 'IF(rtl<>1,0,1) as lngmask';
                         break;
                     default:
-                        $lng = ($this->urlRouter->siteLanguage=='ar') ? 'IF(rtl>0,0,1) as lngmask' : 'IF(rtl<>1,0,1) as lngmask';
+                        $lng = ($this->router->siteLanguage=='ar') ? 'IF(rtl>0,0,1) as lngmask' : 'IF(rtl<>1,0,1) as lngmask';
                         break;
                 }
            
@@ -463,14 +463,14 @@ class Site {
                         ->setLimits($offset, $this->num)
                         ->addQuery('body', $q);
                                 
-                if($this->urlRouter->module=='search' && !$this->userFavorites && !$this->urlRouter->watchId && !$this->urlRouter->userId) {
+                if($this->router->module=='search' && !$this->userFavorites && !$this->router->watchId && !$this->router->userId) {
                     $this->getFeaturedAds();
                     $this->getMediaAds();
                 }                
         
                                 
                 if($__compareAID) {                    
-                    //include_once $this->urlRouter->cfg['dir'] . '/core/lib/MCSaveHandler.php';
+                    //include_once $this->router->cfg['dir'] . '/core/lib/MCSaveHandler.php';
                     libFile('MCSaveHandler.php');
                     $handler = new MCSaveHandler($this->router()->cfg);
                     $this->searchResults = $handler->searchByAdId($__compareAID);
@@ -498,15 +498,15 @@ class Site {
 
     function getFeaturedAds() {
             
-        $q = preg_replace('/@/', '\@', $this->urlRouter->params['q']);        
-        $currentPage=($this->urlRouter->params['start']?$this->urlRouter->params['start']:1);
+        $q = preg_replace('/@/', '\@', $this->router->params['q']);        
+        $currentPage=($this->router->params['start']?$this->router->params['start']:1);
         
         // 1 - get top column paid ads related to query
-        if ($this->urlRouter->module=='search' && $currentPage==1) {
+        if ($this->router->module=='search' && $currentPage==1) {
             $publisher_type=0;
-            if ($this->publisherTypeSorting && in_array($this->urlRouter->rootId,[1,2,3]) && 
-               ($this->urlRouter->rootId!=3 || ($this->urlRouter->rootId==3 && $this->urlRouter->purposeId==3)) && 
-               ($this->urlRouter->rootId!=2 || ($this->urlRouter->rootId==2 && $this->urlRouter->purposeId==1)) )
+            if ($this->publisherTypeSorting && in_array($this->router->rootId,[1,2,3]) && 
+               ($this->router->rootId!=3 || ($this->router->rootId==3 && $this->router->purposeId==3)) && 
+               ($this->router->rootId!=2 || ($this->router->rootId==2 && $this->router->purposeId==1)) )
             {
                 $publisher_type = $this->publisherTypeSorting == 1 ? 1 : 3;
             }
@@ -554,7 +554,7 @@ class Site {
         }
         
         // 1 - get top column featured ads related to query
-        if ($this->urlRouter->module=='search') {
+        if ($this->router->module=='search') {
             $publisher_type=0;
             if ($this->publisherTypeSorting && in_array($this->router()->rootId,[1,2,3])) {
                 $publisher_type = $this->publisherTypeSorting == 1 ? 1 : 3;
@@ -570,7 +570,7 @@ class Site {
                     break;
 
                 default:
-                    $rtlFilter=($this->urlRouter->siteLanguage=='ar')?[1,2]:[0,2];
+                    $rtlFilter=($this->router->siteLanguage=='ar')?[1,2]:[0,2];
                     break;
             }
             
@@ -829,35 +829,35 @@ class Site {
     function getAdSection($ad) {
         $section = '';
         $fieldNameIndex=1+$this->lnIndex;
-        if (!empty($this->urlRouter->sections)) {
+        if (!empty($this->router->sections)) {
 
-            $section = $this->urlRouter->sections[$ad['se']][$fieldNameIndex];
+            $section = $this->router->sections[$ad['se']][$fieldNameIndex];
 
             switch ($ad['pu']) {
                 case 1:
                 case 2:
                 case 8:
                 case 999:
-                    $section = $section . ' ' . $this->urlRouter->purposes[$ad['pu']][$fieldNameIndex];
+                    $section = $section . ' ' . $this->router->purposes[$ad['pu']][$fieldNameIndex];
                     break;
                 case 6:
                 case 7:
-                    $section = $this->urlRouter->purposes[$ad['pu']][$fieldNameIndex] . ' ' . $section;
+                    $section = $this->router->purposes[$ad['pu']][$fieldNameIndex] . ' ' . $section;
                     break;
                 case 3:
-                    if ($this->urlRouter->siteLanguage == 'ar') {
+                    if ($this->router->siteLanguage == 'ar') {
                         $in = ' ';
                         $section = 'وظائف ' . $section;
                     }
                     else {
-                        $section = $section . ' ' . $this->urlRouter->purposes[$ad['pu']][$fieldNameIndex];
+                        $section = $section . ' ' . $this->router->purposes[$ad['pu']][$fieldNameIndex];
                     }
                     break;
                 case 4:
                     $in = ' ';
-                    if ($this->urlRouter->siteLanguage == "en")
+                    if ($this->router->siteLanguage == "en")
                         $in = ' ' . $this->lang['in'] . ' ';
-                    $section = $this->urlRouter->purposes[$ad['pu']][$fieldNameIndex] . $in . $section;
+                    $section = $this->router->purposes[$ad['pu']][$fieldNameIndex] . $in . $section;
                     break;
                 case 5:
                     $section = $section;
@@ -867,19 +867,19 @@ class Site {
             if (count($ad['pubTo'])==1) {
                 $cityId=  array_keys($ad['pubTo']);
                 $cityId=$cityId[0];
-                if (isset($this->urlRouter->cities[$cityId])) {
-                    $countryId = $this->urlRouter->cities[$cityId][4];
+                if (isset($this->router->cities[$cityId])) {
+                    $countryId = $this->router->cities[$cityId][4];
                     $cId = 0;
-                    if (count($this->urlRouter->countries[$countryId]['cities']) > 0) {
+                    if (count($this->router->countries[$countryId]['cities']) > 0) {
                         $cId = $cityId;
-                        $section = $section . ' ' . $this->lang['in'] . ' ' . $this->urlRouter->cities[$cityId][$fieldNameIndex];
+                        $section = $section . ' ' . $this->lang['in'] . ' ' . $this->router->cities[$cityId][$fieldNameIndex];
 
-                        if (!mb_strstr($section, $this->urlRouter->countries[$countryId]['name'], true, "utf-8")) {
-                            $section.=' ' . $this->urlRouter->countries[$countryId]['name'];
+                        if (!mb_strstr($section, $this->router->countries[$countryId]['name'], true, "utf-8")) {
+                            $section.=' ' . $this->router->countries[$countryId]['name'];
                         }
                     } 
                     else {
-                        $section = $section . ' ' . $this->lang['in'] . ' ' . $this->urlRouter->countries[$countryId]['name'];
+                        $section = $section . ' ' . $this->lang['in'] . ' ' . $this->router->countries[$countryId]['name'];
                     }
                 }
             }

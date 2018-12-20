@@ -1,13 +1,14 @@
 <?php
 namespace Core\Model;
 
+include_once 'Singleton.php';
 require_once 'asd/UserTrait.php';
 require_once 'asd/MobileTrait.php';
 require_once 'asd/DeviceTrait.php';
 require_once 'asd/BlackListTrait.php';
 require_once 'asd/CallTrait.php';
 
-class NoSQL {
+class NoSQL extends \Singleton {
     use \Core\Model\ASD\UserTrait;    
     use \Core\Model\ASD\MobileTrait;  
     use \Core\Model\ASD\DeviceTrait;
@@ -98,6 +99,7 @@ class NoSQL {
     }
 
 
+    /*
     public static function getInstance() : NoSQL {
         if (!self::$instance) {
             self::$instance = new NoSQL();
@@ -109,7 +111,7 @@ class NoSQL {
         
         return self::$instance;
     }
-    
+    */
     
     public function getConnection() : \Aerospike {
         if (!$this->cluster->isConnected()) {

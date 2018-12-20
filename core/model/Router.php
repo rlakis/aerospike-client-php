@@ -1,13 +1,15 @@
 <?php
 namespace Core\Model;
 
-class Router {
+
+include_once 'Singleton.php';
+class Router extends \Singleton {
     const POSITIVE_VALUE = ["options" => ["default" => 0, "min_range" => 0]];
     
     var $db;
     var $uri;
     
-    var $cfg;
+    private $config;
     public $cookie;
     var $pageTitle = ['ar'=>'', 'en'=>''];
     var $siteLanguage = '';
@@ -62,11 +64,16 @@ class Router {
     private $canonical = false;
     private $explodedRequestURI;
     
+    public static function instance() : Router {
+        return static::getInstance();
+    }
     
-    function __construct($params) {
-        global $argc;
-        $this->cfg=$params;
-        $this->db = new DB($params);
+    
+    protected function __construct() {
+        global $argc;       
+        $this->config = \Config::instance();
+        //$this->cfg=$params;
+        $this->db = new DB();
         
         if (isset($argc)) return;   
 
@@ -123,7 +130,7 @@ class Router {
         }
 
         if (array_key_exists('HTTP_USER_AGENT', $_SERVER)) {
-            if (array_key_exists($_SERVER['HTTP_USER_AGENT'], $this->cfg['blocked_agents']) || empty($_SERVER['HTTP_USER_AGENT'])) {
+            if (array_key_exists($_SERVER['HTTP_USER_AGENT'], $this->config->get('blocked_agents')) || empty($_SERVER['HTTP_USER_AGENT'])) {
                 header("HTTP/1.1 403 Forbidden");
                 exit(0);
             }            
@@ -133,7 +140,7 @@ class Router {
             exit(0);            
         }
 
-        $pos = strpos($this->referer, $this->cfg['site_domain']);
+        $pos = strpos($this->referer, $this->config->get('site_domain'));
         if (!($pos===FALSE)) {
             $this->internal_referer = ($pos>0 && $pos<13);
         }
@@ -502,6 +509,8 @@ class Router {
             $_session_params['lang']=$this->siteLanguage;
         }
         $_SESSION['_u']['params'] = $_session_params;
+        
+        error_log(__CLASS__);
     }
     
     
@@ -540,7 +549,15 @@ class Router {
         return $geo;
     }
 	
+    
+    public function config() : \Config {
+        return $this->config;
+    }
+    //public function config(string $key) {
+    //    return $this->config->config[$key];
+    //}
 	
+    
     private function setGeoByIp() {
     	$geo = $this->getIpLocation();
 			

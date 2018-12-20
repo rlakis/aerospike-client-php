@@ -1,8 +1,6 @@
 <?php
 
-libFile('MCUser.php');
-libFile('MCAudit.php');
-model_file('NoSQL.php');
+Config::instance()->incLibFile('MCUser')->incLibFile('MCAudit')->incModelFile('NoSQL');
 
 use mourjan\Hybrid;
 use Core\Lib\SphinxQL;
@@ -20,7 +18,7 @@ class User {
     var $favorites=array();
     var $data=null;
 
-    var $db=null, $cfg=null, $site=null;
+    var $db=null, $config=null, $site=null;
     
     var $md5_prefix='ZGr63LE02Ad';
     
@@ -153,9 +151,9 @@ class User {
     }
     
     
-    function __construct($db, $config, $site, $init=1) {
-        $this->db=$db;
-        $this->cfg=$config;
+    function __construct(/*$db, $config,*/ Site $site , $init=1) {
+        $this->db = \Core\Model\Router::instance()->db;
+        $this->config= \Config::instance();
         $this->reset();
         if($init) {
             $this->site=$site;
@@ -199,7 +197,7 @@ class User {
             $this->authenticate();
             $this->setCookieData();
             
-            if (!isset($this->params['visit']) || $site->urlRouter->module=='oauth') {
+            if (!isset($this->params['visit']) || $site->router()->module=='oauth') {
                 $this->getCookieData();
                 
                 if (!$this->info['id'] && isset($_COOKIE['__uvme']) && $_COOKIE['__uvme']) {
@@ -2765,8 +2763,8 @@ class User {
     
 
     function setCookieData() {
-        if($this->cfg['modules'][$this->site->urlRouter->module][0]=='Bin')return;
-        $info=['lv'=>time(), 'ap'=>($this->site->urlRouter->isApp?1:0)];       
+        if ($this->config->modules[$this->site->router()->module][0]=='Bin') { return; }
+        $info=['lv'=>time(), 'ap'=>($this->site->router()->isApp?1:0)];       
         
         if(isset($this->params['lang']) && $this->params['lang']) {
             $info['lg']=$this->params['lang'];
@@ -2800,7 +2798,7 @@ class User {
             setcookie('mourjan_usr', '', 1,'/',$this->cfg['site_domain']);
         }
         
-        setcookie('mourjan_user', json_encode($info), time()+31536000,'/', $this->cfg['site_domain'], false);
+        setcookie('mourjan_user', json_encode($info), time()+31536000,'/', $this->config->get('site_domain'), false);
         
         if(isset($_COOKIE['mourjan_log']) || isset($_COOKIE['mourjan_login'])) {
             // deprecated
