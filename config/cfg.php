@@ -43,7 +43,8 @@ class Config extends Singleton {
         $this->adImgURL = $this->config['url_ad_img'];
         $this->imgLibURL = $this->config['url_image_lib'];
         
-        error_log($this->host);
+        $this->adImgURL = "https://c6.mourjan.com";
+        //error_log($this->host);
     }
     
     
@@ -465,6 +466,7 @@ $config['url_uploader']         = 'https://h1.mourjan.com';
 $config['server_id'] = get_cfg_var('mourjan.server_id');
 $config['active_maintenance']=0;
 
+error_log(__FILE__ . ' ' .$config['url_ad_img']);
 
 Config::instance()->setConfig($config);
 

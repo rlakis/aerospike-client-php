@@ -3,19 +3,19 @@ require_once 'Page.php';
 
 class NotFound extends Page{
 
-    function __construct($router){
+    function __construct($router) {
         parent::__construct($router);
         $this->hasLeadingPane=true;
         $this->forceNoIndex=true;
-        if($this->urlRouter->module=='invalid'){
+        if ($this->router()->module=='invalid') {
             $this->lang['title_404']=$this->lang['title_invalid'];
             $this->lang['desc_404']=$this->lang['desc_invalid'];
         }
-        if($this->urlRouter->module=='nonetwork'){
+        elseif ($this->router()->module=='nonetwork') {
             $this->lang['title_404']=$this->lang['title_network'];
             $this->lang['desc_404']=$this->lang['desc_network'];
         }
-        if($this->urlRouter->module=='maintenance'){
+        elseif ($this->router()->module=='maintenance') {
             $this->lang['title_404']=$this->lang['title_site_maintenance'];
             $this->lang['desc_404']=$this->lang['desc_site_maintenance'];
         }
@@ -23,6 +23,7 @@ class NotFound extends Page{
         $this->render();
     }
 
+    
     function mainMobile(){
         echo '<p class="ctr">'.$this->lang['desc_404'].'</p>';
         echo '<p class="ctr"><span class="na"></span></p>';

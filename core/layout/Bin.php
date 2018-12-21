@@ -93,7 +93,7 @@ class Bin extends AjaxHandler{
         null, 0, $this->urlRouter->cfg['ttl_long']);
         $rcunit=$currencies[trim($this->urlRouter->countries[$countryId][6])];
         $unit=trim($rcunit[0]);
-        if ($this->urlRouter->siteLanguage=='ar' && $rcunit[1]!='') $unit=trim($rcunit[1]);
+        if ($this->urlRouter->language=='ar' && $rcunit[1]!='') $unit=trim($rcunit[1]);
         if ($unit=='USD') $unit='$';
         else $unit=' '.$unit;
         return $unit;
@@ -153,7 +153,7 @@ class Bin extends AjaxHandler{
                     if($lang=='en'){
                         $this->fieldNameIndex=2;
                     }
-                    $this->urlRouter->siteLanguage=$lang;
+                    $this->urlRouter->language=$lang;
                     $this->load_lang(array('main'), $lang);
                     
                     $id = $this->get('i');
@@ -860,7 +860,7 @@ class Bin extends AjaxHandler{
                     if(!in_array($lang,array('ar','en'))){
                         $lang = 'ar';
                     }
-                    $this->urlRouter->siteLanguage=$lang;   
+                    $this->urlRouter->language=$lang;   
                     $this->load_lang(array('main'), $lang);
                     if($this->user->info['id']){
                         if($this->urlRouter->cfg['active_maintenance']){
@@ -1845,16 +1845,16 @@ class Bin extends AjaxHandler{
             case 'ajax-post-se':
                 $id=$this->post('r', 'uint');
                 $lang=$this->post('lang');
-                if ($lang=='en'||$lang=='ar') $this->urlRouter->siteLanguage=$lang;                
+                if ($lang=='en'||$lang=='ar') $this->urlRouter->language=$lang;                
                 if ($id && $this->user->info['id']) {
                     $this->load_lang(array('post'), $lang);
                     $sections=$this->urlRouter->db->queryCacheResultSimpleArray(
-                    "req_sections_{$this->urlRouter->siteLanguage}_{$id}",
-                    "select s.ID,s.name_".$this->urlRouter->siteLanguage."
+                    "req_sections_{$this->urlRouter->language}_{$id}",
+                    "select s.ID,s.name_".$this->urlRouter->language."
                     from section s
                     left join category c on c.id=s.category_id
                     where c.root_id={$id} 
-                    order by s.NAME_{$this->urlRouter->siteLanguage}", null, null, $this->urlRouter->cfg['ttl_long']);
+                    order by s.NAME_{$this->urlRouter->language}", null, null, $this->urlRouter->cfg['ttl_long']);
                     $res=array('m'=>'','i'=>array());
                     $res['m']=$this->lang['m_h_s'.$id];
                     foreach ($sections as $section){
@@ -1936,7 +1936,7 @@ class Bin extends AjaxHandler{
                 $query=$this->post('q');
                 $title=$this->post('t');
                 $lang=$this->post('lang');
-                if ($lang=='en'||$lang=='ar') $this->urlRouter->siteLanguage=$lang;
+                if ($lang=='en'||$lang=='ar') $this->urlRouter->language=$lang;
                 $this->load_lang(array('bin'));
                 if (($section && $country)||$query){
                     $params=array(
@@ -1976,17 +1976,17 @@ class Bin extends AjaxHandler{
             case 'ajax-country-cities':
                 $id=$this->post('i', 'uint');
                 $lang=$this->post('lang');
-                if ($lang=='en'||$lang=='ar') $this->urlRouter->siteLanguage=$lang;
+                if ($lang=='en'||$lang=='ar') $this->urlRouter->language=$lang;
                 $fidx=1;
-                if ($this->urlRouter->siteLanguage=='en') $fidx=2;
+                if ($this->urlRouter->language=='en') $fidx=2;
                 $res=array();
                 if ($id && is_numeric($id)){
-                    $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$id}_{$this->urlRouter->siteLanguage}",
+                    $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$id}_{$this->urlRouter->language}",
                         "select c.ID
                         from city c
                         where c.country_id={$id}
                         and c.blocked=0
-                        order by NAME_".  strtoupper($this->urlRouter->siteLanguage),
+                        order by NAME_".  strtoupper($this->urlRouter->language),
                         null, 0, $this->urlRouter->cfg['ttl_long']);
                     foreach ($countryCities as $key=>$val){
                         $res[$key]=$this->urlRouter->cities[$key][$fidx];
@@ -2001,9 +2001,9 @@ class Bin extends AjaxHandler{
                 $country=$this->post('i', 'numeric');
                 $city=$this->post('c', 'numeric');
                 $lang=$this->post('lang');
-                if ($lang=='en'||$lang=='ar') $this->urlRouter->siteLanguage=$lang;
+                if ($lang=='en'||$lang=='ar') $this->urlRouter->language=$lang;
                 $fidx=1;
-                if ($this->urlRouter->siteLanguage=='en') $fidx=2;
+                if ($this->urlRouter->language=='en') $fidx=2;
                 if (isset($this->user->pending['post']) && $country && $city){
                     $res=array();
                     $this->user->pending['post']['zloc']='';
@@ -2016,12 +2016,12 @@ class Bin extends AjaxHandler{
                         }
                     }elseif (isset($this->urlRouter->countries[$country])) {
                         if ($city==-1){
-                            $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$country}_{$this->urlRouter->siteLanguage}",
+                            $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$country}_{$this->urlRouter->language}",
                             "select c.ID
                             from city c
                             where c.country_id={$country}
                             and c.blocked=0
-                            order by NAME_".  strtoupper($this->urlRouter->siteLanguage),
+                            order by NAME_".  strtoupper($this->urlRouter->language),
                             null, 0, $this->urlRouter->cfg['ttl_long']);
                             foreach ($countryCities as $id=>$city){
                                 $adContent['pubTo'][$id]=$id;
@@ -2054,12 +2054,12 @@ class Bin extends AjaxHandler{
                             $def[4]=$this->getCountryUnit($countryId);
                         }
                         if (count($cities)==1){
-                            $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$countryId}_{$this->urlRouter->siteLanguage}",
+                            $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$countryId}_{$this->urlRouter->language}",
                             "select c.ID
                             from city c
                             where c.country_id={$countryId}
                             and c.blocked=0
-                            order by NAME_".  strtoupper($this->urlRouter->siteLanguage),
+                            order by NAME_".  strtoupper($this->urlRouter->language),
                             null, 0, $this->urlRouter->cfg['ttl_long']);
                             if(count($countryCities)>1) {
                                 $key=array_pop($cities);
@@ -2087,9 +2087,9 @@ class Bin extends AjaxHandler{
             case 'ajax-cc-remove':
                 $city=$this->post('i', 'numeric');
                 $lang=$this->post('lang');
-                if ($lang=='en'||$lang=='ar') $this->urlRouter->siteLanguage=$lang;
+                if ($lang=='en'||$lang=='ar') $this->urlRouter->language=$lang;
                 $fidx=1;
-                if ($this->urlRouter->siteLanguage=='en') $fidx=2;
+                if ($this->urlRouter->language=='en') $fidx=2;
                 if (isset($this->user->pending['post'])){
                     $adContent=json_decode($this->user->pending['post']['content'],true);
                     if ($city){
@@ -2156,12 +2156,12 @@ class Bin extends AjaxHandler{
                                 $def[4]=$this->getCountryUnit($countryId);
                             }
                             if (count($cities)==1){
-                                $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$countryId}_{$this->urlRouter->siteLanguage}",
+                                $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$countryId}_{$this->urlRouter->language}",
                                 "select c.ID
                                 from city c
                                 where c.country_id={$countryId}
                                 and c.blocked=0
-                                order by NAME_".  strtoupper($this->urlRouter->siteLanguage),
+                                order by NAME_".  strtoupper($this->urlRouter->language),
                                 null, 0, $this->urlRouter->cfg['ttl_long']);
                                 if(count($countryCities)>1)
                                 $sloc=$this->urlRouter->cities[array_pop($cities)][$fidx].' '.$sloc;
@@ -2529,12 +2529,12 @@ class Bin extends AjaxHandler{
                                 $this->user->pending['post']['code']=$this->urlRouter->countries[$countryId][3].'|+'.$this->urlRouter->countries[$countryId][7];
                             }
                             if (count($cities)==1){
-                                $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$countryId}_{$this->urlRouter->siteLanguage}",
+                                $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$countryId}_{$this->urlRouter->language}",
                                 "select c.ID
                                 from city c
                                 where c.country_id={$countryId}
                                 and c.blocked=0
-                                order by NAME_".  strtoupper($this->urlRouter->siteLanguage),
+                                order by NAME_".  strtoupper($this->urlRouter->language),
                                 null, 0, $this->urlRouter->cfg['ttl_long']);
                                 if(count($countryCities)>1)
                                     $sloc=$this->urlRouter->cities[array_pop($cities)][$fidx].' '.$sloc;
@@ -3101,12 +3101,12 @@ class Bin extends AjaxHandler{
                         }
 
                         if ($ad['rtl']) {
-                            $this->urlRouter->siteLanguage='ar';
+                            $this->urlRouter->language='ar';
                             $this->lnIndex=0;
                         }
                         else {
                             $this->lnIndex=1;
-                            $this->urlRouter->siteLanguage='en';
+                            $this->urlRouter->language='en';
                         }
                         $this->load_lang(array('main'));
 
@@ -4153,7 +4153,7 @@ class Bin extends AjaxHandler{
                                 $sandbox = $this->urlRouter->cfg['server_id']==99 ? true : false;
                                 $access_code = $this->urlRouter->cfg['payfor_access_code'];
                                 $webscr = $sandbox ? $this->urlRouter->cfg['payfor_url_test'] : $this->urlRouter->cfg['payfor_url'];
-                                $return_url = $this->urlRouter->cfg['host'] . '/buyu/' . ($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage . '/' : '');
+                                $return_url = $this->urlRouter->cfg['host'] . '/buyu/' . ($this->urlRouter->language!='ar' ? $this->urlRouter->language . '/' : '');
                                 $merchant_id = $this->urlRouter->cfg['payfor_merchant_id'];
 
                                 $requestParams = [
@@ -4223,15 +4223,15 @@ class Bin extends AjaxHandler{
                 
             case "ajax-sections":
                 $rootId=$this->post('ro', 'uint');
-                $siteLanguage=strtolower($this->post('sl', 'filter'));
-                if ($rootId && $siteLanguage) {
+                $language=strtolower($this->post('sl', 'filter'));
+                if ($rootId && $language) {
                     $sections=$this->urlRouter->db->queryCacheResultSimpleArray(
-                    "req_sections_{$siteLanguage}_{$rootId}",
-                    "select s.ID,s.name_".$siteLanguage."
+                    "req_sections_{$language}_{$rootId}",
+                    "select s.ID,s.name_".$language."
                     from section s
                     left join category c on c.id=s.category_id
                     where c.root_id={$rootId} and s.id not in (19,29,63,105,114)
-                    order by s.NAME_{$siteLanguage}",
+                    order by s.NAME_{$language}",
                     null, 0, $this->urlRouter->cfg['ttl_long']);
 
                     $countPerColumn=ceil(count($sections)/5);
@@ -4817,7 +4817,7 @@ class Bin extends AjaxHandler{
                                             $sKey=$this->user->encodeRequest('email_verify',array($this->user->info['id']));
                                             $verifyLink=$this->host.'/a/'.($lang=='ar'?'':$lang.'/').'?k='.$sKey.'&key='.urlencode($sessionKey);
                                             
-                                            $mailer=new MourjanMail($this->urlRouter->cfg, $this->user->info['options']['lang'] ? $this->user->info['options']['lang'] : $this->urlRouter->siteLanguage);
+                                            $mailer=new MourjanMail($this->urlRouter->cfg, $this->user->info['options']['lang'] ? $this->user->info['options']['lang'] : $this->urlRouter->language);
                                             if ($mailer->sendEmailValidation($fields['email'],$verifyLink,$this->user->info['name'])){
                                                 $this->user->info['options']['email']=$fields['email'];
                                                 $this->user->info['options']['emailKey']=$sessionKey;
@@ -5288,7 +5288,7 @@ class Bin extends AjaxHandler{
                 if ($this->user->info['id'] && isset($this->user->pending['post']['id'])){
                     $action=$this->post('action','uint');
                     $lang=  $this->post('lang');
-                    if($lang=='en'||$lang=='ar') $this->urlRouter->siteLanguage=$lang;
+                    if($lang=='en'||$lang=='ar') $this->urlRouter->language=$lang;
                     $this->load_lang(array('post'));
                     require_once 'Zend/Loader.php';
                     Zend_Loader::loadClass('Zend_Gdata_YouTube');
@@ -5377,7 +5377,7 @@ class Bin extends AjaxHandler{
                 $pass=0;
                 $rtl=0;
                 if (isset($this->user->pending['post']['rtl'])) $rtl = $this->user->pending['post']['rtl'];
-                if ($rtl) $this->urlRouter->siteLanguage='ar';
+                if ($rtl) $this->urlRouter->language='ar';
                 $this->load_lang(array('post'));
                 
                 $videoId=$this->get('id');
@@ -5433,7 +5433,7 @@ class Bin extends AjaxHandler{
                     $lang='ar';
                     $tLang=$this->post('lang');
                     if($tLang=='ar'||$tLang=='en')$lang=$tLang;
-                    $this->urlRouter->siteLanguage=$lang;
+                    $this->urlRouter->language=$lang;
                     $this->load_lang(array('post'));
                     $adContent=json_decode($this->user->pending['post']['content'],true);
                     if (isset($adContent['video']) && $adContent['video'][0]){
@@ -5943,7 +5943,7 @@ class Bin extends AjaxHandler{
                 }
                 else {
                     $in=' ';
-                    if ($this->urlRouter->siteLanguage=='en')$in=' '.$this->lang['in'].' ';
+                    if ($this->urlRouter->language=='en')$in=' '.$this->lang['in'].' ';
                     $section=$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].$in.$this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
                 }
                 break;
@@ -5954,7 +5954,7 @@ class Bin extends AjaxHandler{
         if (isset($adContent['pubTo'])) {
             $fieldIndex=2;
             $comma=',';
-            if ($this->urlRouter->siteLanguage=='ar') {
+            if ($this->urlRouter->language=='ar') {
                 $fieldIndex=1;
                 $comma='،';
             }

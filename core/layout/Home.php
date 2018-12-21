@@ -147,7 +147,7 @@ class Home extends Page {
         if ($this->router()->rootId)
             $this->router()->cacheExtension();
         $isHome = !$this->router()->rootId && $this->router()->countryId;
-        $lang=$this->router()->siteLanguage=='ar'?'':$this->router()->siteLanguage.'/';
+        $lang=$this->router()->language=='ar'?'':$this->router()->language.'/';
         if($isHome && $this->user->info['id']) {
             ?><ul class="ls us"><?php 
                 ?><li><a href="/post/<?= $lang ?>"><span class="ic apb"></span><?= $this->lang['button_ad_post_m'] ?><span class="to"></span></a></li><?php 
@@ -408,7 +408,7 @@ var setOrder=function(e)
     function _main_pane(){
         $adLang='';
         //$header=($this->router()->cityId? $this->router()->cities[$this->router()->cityId][$this->fieldNameIndex]:($this->router()->countryId ? $this->router()->countries[$this->router()->countryId][$this->fieldNameIndex] : $this->lang['mourjan_header']));
-        if ($this->router()->siteLanguage!="ar") $adLang=$this->router()->siteLanguage.'/';
+        if ($this->router()->language!="ar") $adLang=$this->router()->language.'/';
         /*if ($this->router()->countryId || $this->router()->cityId) {
             if ($adLang) $header.=' '.$this->lang['title_home'];
             else $header=$this->lang['title_home'].' '.$header;
@@ -434,7 +434,64 @@ var setOrder=function(e)
     }
 
 
-    function main_pane() {
+    function main_pane() : void {
+        echo '<div class="row">', "\n";
+        $sections = [];
+        foreach ($this->router()->pageRoots as $id=>$root) {
+            $count = $root['counter'];
+            $link = $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $id);
+            //echo '<li><a href="', $link,'"><i class="icn icn-', $id, '"></i>', $root['name'], '<span class="float-right">', number_format($count, 0), '</span></a></li>';
+            $sections[$id] = $this->router()->database()->getSectionsData($this->router()->countryId, $this->router()->cityId, $id, $this->router()->language, true);
+        }
+        $count = count($sections);
+        $odd = ($count % 2)==1;
+        $j=0;       
+        foreach ($sections as $root_id => $items) {
+            if ($odd) {
+                $j++;
+                error_log($j);
+                echo '<div class="col-', ($j==$count)?'8':'4', '"><div class="card">';
+            }
+            else {
+                echo '<div class="col-4">', '<div class="card">';
+            }
+            echo '<div class="card-header float-left" style="background-color:var(--color-',$root_id,');"><i class="icn icn-', $root_id, '"></i></div>';
+            echo '<div class="card-content">';
+            echo '<h4 class="card-title">', $this->router()->pageRoots[$root_id]['name'],'</h4>';
+            echo '<ul>';
+            $i=0;
+            foreach ($items as $section_id => $section) {
+                if ($section['counter']==0) { break; }
+                $link = $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $root_id, $section_id);
+                echo '<li><a href="', $link,'">', $section['name'], '<span class="float-right">', number_format($section['counter'],0), '</span></a></li>';
+                $i++;
+                if ($i>=10) { break; }
+            }
+            echo '</ul>';
+            echo '</div>';
+            echo '</div></div>';
+        }
+        echo '</div>', "\n";
+        
+        echo '<div class="row">';
+
+        echo '<div class="col-4">';
+        echo '<div class="card test">', '<div class="card-content">';
+        echo '<ul>';
+        echo '<li><i class="icn icnsmall icn-82"></i><span>', $this->lang['postFree'], '</span></li>';
+        if ($this->user()->info['id']) {
+            echo '<li><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></li>';
+        }
+        echo '<li><i class="icn icnsmall icn-88"></i><span>', $this->lang['contactUs'], '</span></li>';
+        echo '<li><i class="icn icnsmall icn-83"></i><span>', $this->lang['aboutUs'], '</span></li>';
+        echo '<li><i class="icn icnsmall icn-85"></i><span>', $this->lang['termsConditions'], '</span></li>';
+        echo '<li><i class="icn icnsmall icn-81"></i><span>', $this->lang['privacyPolicy'], '</span></li>';
+        echo '</ul></div></div>', "\n"; // card
+        
+        echo '</div></div>', "\n";
+    }
+    
+    function main_pane_OLD() {
     	$file= dirname( $this->router()->config()->baseDir ) . '/tmp/gen/index-' . $this->includeHash . '2.php';
     	$file= dirname( '/home/www/mourjan' ) . '/tmp/gen/index-' . $this->includeHash . '2.php';
         if (file_exists($file)) {

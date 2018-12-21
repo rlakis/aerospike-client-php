@@ -25,6 +25,7 @@ li,dd,dt{line-height:48px;}
     --color-3:limegreen;
     --color-4:darkorchid;
     --color-99:orange;
+    
 }
 .wrapper{position: relative; top: 0; height: 100vh; }
 
@@ -42,7 +43,7 @@ header {
     min-height: 90px;
 }
 header>h1 { -webkit-margin-before:0.1em; -webkit-margin-after:0.1em; font-size: 1.8em; }
-footer {}
+footer {padding-top: 44px;direction: ltr; text-align: center;}
 ul { list-style-type: none; list-style-position: inside; }
 li>i {margin: 0 4px; max-width: 32px;}
 
@@ -62,88 +63,94 @@ li>i {margin: 0 4px; max-width: 32px;}
 }
 .icn-1 {
     background-color:var(--color-1);
-    -webkit-mask: url(fa-pro-5.5.0/svgs/solid/landmark.svg) no-repeat 50% 50%;
+    -webkit-mask: url(/web/css/1.0/fa/solid/landmark.svg) no-repeat 50% 50%;
 }
 
 .icn-2 {
     background-color:firebrick;
-    -webkit-mask: url(fa-pro-5.5.0/svgs/solid/car.svg) no-repeat 50% 50%;
+    -webkit-mask: url(/web/css/1.0/fa/solid/car.svg) no-repeat 50% 50%;
 }
 .icn-3 {
     background-color:limegreen;
-    -webkit-mask: url(fa-pro-5.5.0/svgs/solid/business-time.svg) no-repeat 50% 50%;
+    -webkit-mask: url(/web/css/1.0/fa/solid/business-time.svg) no-repeat 50% 50%;
 }
 .icn-4 {
     background-color:darkorchid;
-    -webkit-mask: url(fa-pro-5.5.0/svgs/solid/handshake.svg) no-repeat 50% 50%;
+    -webkit-mask: url(/web/css/1.0/fa/solid/handshake.svg) no-repeat 50% 50%;
 }
 .icn-99 {
     background-color:orange;
-    -webkit-mask: url(fa-pro-5.5.0/svgs/solid/drum.svg) no-repeat 50% 50%;
+    -webkit-mask: url(/web/css/1.0/fa/solid/drum.svg) no-repeat 50% 50%;
 }
 .icn-81 {
     background-color:forestgreen;
-    -webkit-mask: url(fa-pro-5.5.0/svgs/solid/badge-check.svg) no-repeat 50% 50%;
+    -webkit-mask: url(/web/css/1.0/fa/solid/badge-check.svg) no-repeat 50% 50%;
 }
 .icn-82 {
     background-color:turquoise;
-    -webkit-mask: url(fa-pro-5.5.0/svgs/solid/keyboard.svg) no-repeat 50% 50%;
+    -webkit-mask: url(/web/css/1.0/fa/solid/keyboard.svg) no-repeat 50% 50%;
 }
 .icn-83 {
     background-color:mediumaquamarine;
-    -webkit-mask: url(fa-pro-5.5.0/svgs/solid/info.svg) no-repeat 50% 50%;
+    -webkit-mask: url(/web/css/1.0/fa/solid/info.svg) no-repeat 50% 50%;
     max-height: 32px;
 }
 .icn-84 {
     background-color:gold;
-    -webkit-mask: url(fa-pro-5.5.0/svgs/solid/coins.svg) no-repeat 50% 50%;
+    -webkit-mask: url(/web/css/1.0/fa/solid/coins.svg) no-repeat 50% 50%;
 }
 .icn-85 {
     background-color:royalblue;
-    -webkit-mask: url(fa-pro-5.5.0/svgs/solid/signature.svg) no-repeat 50% 50%;
+    -webkit-mask: url(/web/css/1.0/fa/solid/signature.svg) no-repeat 50% 50%;
 }
 .icn-88 {
     background-color:hotpink;
-    -webkit-mask: url(fa-pro-5.5.0/svgs/solid/paper-plane.svg) no-repeat 50% 50%;
+    -webkit-mask: url(/web/css/1.0/fa/solid/paper-plane.svg) no-repeat 50% 50%;
 }
 .icn-bars {
     background-color:white;
-    -webkit-mask: url(fa-pro-5.5.0/svgs/regular/bars.svg) no-repeat 50% 50%;
+    -webkit-mask: url(/web/css/1.0/fa/regular/bars.svg) no-repeat 50% 50%;
 }
 .icn-search {
     background-color:white;
-    -webkit-mask: url(fa-pro-5.5.0/svgs/regular/search.svg) no-repeat 50% 50%;
+    -webkit-mask: url(/web/css/1.0/fa/regular/search.svg) no-repeat 50% 50%;
 }
 .icn-bell {
     background-color: white;
-    -webkit-mask: url(fa-pro-5.5.0/svgs/solid/bell.svg) no-repeat 50% 50%;
+    -webkit-mask: url(/web/css/1.0/fa/solid/bell.svg) no-repeat 50% 50%;
 }
 .icn-user {
     background-color: white;
-    -webkit-mask: url(fa-pro-5.5.0/svgs/solid/user.svg) no-repeat 50% 50%;
+    -webkit-mask: url(/web/css/1.0/fa/solid/user.svg) no-repeat 50% 50%;
 }
+.icn-lang {
+    background-color: white;
+    -webkit-mask: url(/web/css/1.0/fa/regular/arabic.svg) no-repeat 50% 50%;    
+}
+body[dir="rtl"] .icn-lang {background-color: white; -webkit-mask: url(/web/css/1.0/fa/regular/latin.svg) no-repeat 50% 50%; }
 .icn-globe {
     background-color: navy;
-    -webkit-mask: url(fa-pro-5.5.0/svgs/regular/globe.svg) no-repeat 50% 50%;
+    -webkit-mask: url(/web/css/1.0/fa/regular/globe.svg) no-repeat 50% 50%;
 }
 
-.icn-ae { background: url(flags/4x3/ae.svg) center no-repeat; }
-.icn-sa { background: url(flags/4x3/sa.svg) center no-repeat; }
-.icn-kw { background: url(flags/4x3/kw.svg) center no-repeat; }
-.icn-bh { background: url(flags/4x3/bh.svg) center no-repeat; }
-.icn-om { background: url(flags/4x3/om.svg) center no-repeat; }
-.icn-qa { background: url(flags/4x3/qa.svg) center no-repeat; }
-.icn-iq { background: url(flags/4x3/iq.svg) center no-repeat; }
-.icn-ye { background: url(flags/4x3/ye.svg) center no-repeat; }
-.icn-lb { background: url(flags/4x3/lb.svg) center no-repeat; }
-.icn-jo { background: url(flags/4x3/jo.svg) center no-repeat; }
-.icn-sy { background: url(flags/4x3/sy.svg) center no-repeat; }
-.icn-eg { background: url(flags/4x3/eg.svg) center no-repeat; }
-.icn-ma { background: url(flags/4x3/ma.svg) center no-repeat; }
-.icn-tn { background: url(flags/4x3/tn.svg) center no-repeat; }
-.icn-dz { background: url(flags/4x3/dz.svg) center no-repeat; }
-.icn-sd { background: url(flags/4x3/sd.svg) center no-repeat; }
-.icn-ly { background: url(flags/4x3/ly.svg) center no-repeat; }
+
+.icn-ae { background: url(/web/css/flags/ae.svg) center no-repeat; }
+.icn-sa { background: url(/web/css/flags/sa.svg) center no-repeat; }
+.icn-kw { background: url(/web/css/flags/kw.svg) center no-repeat; }
+.icn-bh { background: url(/web/css/flags/bh.svg) center no-repeat; }
+.icn-om { background: url(/web/css/flags/om.svg) center no-repeat; }
+.icn-qa { background: url(/web/css/flags/qa.svg) center no-repeat; }
+.icn-iq { background: url(/web/css/flags/iq.svg) center no-repeat; }
+.icn-ye { background: url(/web/css/flags/ye.svg) center no-repeat; }
+.icn-lb { background: url(/web/css/flags/lb.svg) center no-repeat; }
+.icn-jo { background: url(/web/css/flags/jo.svg) center no-repeat; }
+.icn-sy { background: url(/web/css/flags/sy.svg) center no-repeat; }
+.icn-eg { background: url(/web/css/flags/eg.svg) center no-repeat; }
+.icn-ma { background: url(/web/css/flags/ma.svg) center no-repeat; }
+.icn-tn { background: url(/web/css/flags/tn.svg) center no-repeat; }
+.icn-dz { background: url(/web/css/flags/dz.svg) center no-repeat; }
+.icn-sd { background: url(/web/css/flags/sd.svg) center no-repeat; }
+.icn-ly { background: url(/web/css/flags/ly.svg) center no-repeat; }
 
 
 .active { background-color: #4CAF50; color: white; }
@@ -157,6 +164,7 @@ li>i {margin: 0 4px; max-width: 32px;}
     position: relative;
     display: block;
     float: left;
+    padding: 0 12px;
 }
 .nav>li .icnsmall {
     padding: 0 18px;

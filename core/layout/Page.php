@@ -49,7 +49,7 @@ class Page extends Site {
         }       
         
         $cdn = $this->router()->config()->assetsURL;
-        $this->router()->config()->setValue('url_ad_img', "https://c6.mourjan.com");        
+        //$this->router()->config()->setValue('url_ad_img', "https://c6.mourjan.com");        
         
         if ($this->router()->module=='myads' || $this->router()->module=='post') {
             $this->router()->config()->adImgURL = 'https://www.mourjan.com';
@@ -161,7 +161,7 @@ class Page extends Site {
         
         if ($this->router()->siteTranslate) {
             if (in_array($this->router()->siteTranslate, array('ar','en'))) {
-                $this->router()->siteLanguage=$this->router()->siteTranslate;
+                $this->router()->language=$this->router()->siteTranslate;
             }
         }
         
@@ -170,7 +170,7 @@ class Page extends Site {
         }
 
         $this->load_lang(array('main'));
-        $this->title = $router->pageTitle[$router->siteLanguage];
+        $this->title = $router->pageTitle[$router->language];
         if (!$this->title) $this->title = $this->lang['title_full'];        
         
         $this->fieldNameIndex=1+$this->lnIndex;
@@ -274,12 +274,12 @@ class Page extends Site {
             $this->detailAd = $this->classifieds->getById($this->router()->id);
             if (!empty ($this->detailAd)) {
                 if (!empty($this->detailAd[Classifieds::ALT_CONTENT])) {
-                    if ($this->router()->siteLanguage=="en" && $this->detailAd[Classifieds::RTL]) {
+                    if ($this->router()->language=="en" && $this->detailAd[Classifieds::RTL]) {
                         $this->detailAd[Classifieds::TITLE] = $this->detailAd[Classifieds::ALT_TITLE];
                         $this->detailAd[Classifieds::CONTENT] = $this->detailAd[Classifieds::ALT_CONTENT];
                         $this->detailAd[Classifieds::RTL] = 0;
                         $this->appendLocation=false;
-                    } elseif ($this->router()->siteLanguage=="ar" && $this->detailAd[Classifieds::RTL]==0) {
+                    } elseif ($this->router()->language=="ar" && $this->detailAd[Classifieds::RTL]==0) {
                         $this->detailAd[Classifieds::TITLE] = $this->detailAd[Classifieds::ALT_TITLE];
                         $this->detailAd[Classifieds::CONTENT] = $this->detailAd[Classifieds::ALT_CONTENT];
                         $this->detailAd[Classifieds::RTL] = 1;          
@@ -376,7 +376,6 @@ class Page extends Site {
             if (!$this->isMobile) {
                 $this->countryName=$this->lang['opt_all_countries'];
                 $counts=0;
-                var_dump($this->router()->countries);
                 foreach ($this->router()->countries as $country) {
                     $counts+=$country['counter'];
                 }
@@ -399,7 +398,7 @@ class Page extends Site {
             if ($router->siteTranslate=='ar') $lang='ar';
         }
         else {
-            $lang=$router->siteLanguage;
+            $lang=$router->language;
         }
         if(!$this->isMobile) {
             $cntLink='<b>'.($this->router()->cityId ? $this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId]['name'] : ($this->router()->countryId ? $this->router()->countries[$this->router()->countryId]['name']:'') ).'</b><span class="cf c'.($this->router()->countryId).'"></span><b>'.$this->countryCounter.'</b>';
@@ -493,7 +492,7 @@ class Page extends Site {
     {        
         if($this->user->info['id'])
         {
-            echo '<div id="balance" class="balc"><div id="balanceCounter"></div><a class="buL" href="/gold/'.($this->router()->siteLanguage=='ar' ? '':$this->router()->siteLanguage.'/').'#how-to"><span class="mc24"></span>'.$this->lang['buy_gold_bt'].'</a><a class="buL" href="/gold/'.($this->router()->siteLanguage=='ar' ? '':$this->router()->siteLanguage.'/').'"><span class="rj add"></span>'.$this->lang['get_gold'].'</a></div>';
+            echo '<div id="balance" class="balc"><div id="balanceCounter"></div><a class="buL" href="/gold/'.($this->router()->language=='ar' ? '':$this->router()->language.'/').'#how-to"><span class="mc24"></span>'.$this->lang['buy_gold_bt'].'</a><a class="buL" href="/gold/'.($this->router()->language=='ar' ? '':$this->router()->language.'/').'"><span class="rj add"></span>'.$this->lang['get_gold'].'</a></div>';
             $this->globalScript.="var showBalance=1;";
         }
     }
@@ -502,7 +501,7 @@ class Page extends Site {
     function renderLoginBox()
     {
         $lang='';
-        if($this->router()->siteLanguage=='en')$lang='en/';
+        if($this->router()->language=='en')$lang='en/';
         if($this->user->info['id']){  
             ?><div class='lgb <?= $this->router()->module != 'premium' ? $this->router()->module : '' ?>'><?php
                 ?><ul class="hoz"><?php
@@ -558,9 +557,9 @@ class Page extends Site {
     {
         if ($this->user->info['id']){
             if((!$level || ($level && $level==5)) && $this->user->info['level']==5) {
-                $this->user->redirectTo('/blocked/'.($this->router()->siteLanguage=='ar'?'':$this->router()->siteLanguage.'/'));
+                $this->user->redirectTo('/blocked/'.($this->router()->language=='ar'?'':$this->router()->language.'/'));
             }elseif((!$level || ($level && $level==6)) && $this->user->info['level']==6) {
-                $this->user->redirectTo('/suspended/'.($this->router()->siteLanguage=='ar'?'':$this->router()->siteLanguage.'/'));
+                $this->user->redirectTo('/suspended/'.($this->router()->language=='ar'?'':$this->router()->language.'/'));
             }
         }
     }
@@ -571,7 +570,7 @@ class Page extends Site {
         $isSuspended = $this->user->getProfile() ? $this->user->getProfile()->isSuspended() : FALSE;
         if ($isSuspended) 
         { //$this->user->info['id'] && isset($this->user->info['options']['suspend']) && $this->user->info['options']['suspend']>time()){            
-            $this->user->redirectTo('/held/'.($this->router()->siteLanguage=='ar'?'':$this->router()->siteLanguage.'/'));
+            $this->user->redirectTo('/held/'.($this->router()->language=='ar'?'':$this->router()->language.'/'));
         }
     }
 
@@ -602,9 +601,9 @@ class Page extends Site {
         
         $keepme_in = (isset($this->user->params['keepme_in']) && $this->user->params['keepme_in']==0) ? 0: 1;
         
-        if ($this->router()->siteLanguage != 'ar') $lang = $this->router()->siteLanguage.'/';
+        if ($this->router()->language != 'ar') $lang = $this->router()->language.'/';
         if(isset($this->user->pending['login_attempt'])){
-            if($this->router()->siteLanguage=='ar'){
+            if($this->router()->language=='ar'){
                 ?><style type="text/css">.lgs .br{margin-top:20px}</style><?php
             }else{
                 ?><style type="text/css">.lgs .br{margin-top:32px}</style><?php
@@ -682,8 +681,8 @@ class Page extends Site {
                             $uri = '/home/'.$lang;
                         }
                         ?><li class="ctr"><input name='r' type="hidden" value="<?= $uri ?>" /><input type="submit" class="bt" value="<?= $this->lang['signin'] ?>" /></li><?php
-                        ?><li class="<?= $this->router()->siteLanguage ?> nobr"><a class="lnk" href="/signup/<?= $lang ?>"><?= $this->lang['create_account'] ?></a></li><?php
-                        ?><li class="<?= $this->router()->siteLanguage ?> nobr"><a class="lnk" href="/password/<?= $lang ?>"><?= $this->lang['forgot_pass'] ?></a></li><?php
+                        ?><li class="<?= $this->router()->language ?> nobr"><a class="lnk" href="/signup/<?= $lang ?>"><?= $this->lang['create_account'] ?></a></li><?php
+                        ?><li class="<?= $this->router()->language ?> nobr"><a class="lnk" href="/password/<?= $lang ?>"><?= $this->lang['forgot_pass'] ?></a></li><?php
                         
                     ?></ul><?php
                 }else{
@@ -700,8 +699,8 @@ class Page extends Site {
                             ?><li class="nl"><span><span class="fail"></span><?= $this->lang['login_error_captcha'] ?></span></li><?php                    
                         }
                         ?><li><b class="ah ctr act"><input name='r' type="hidden" value="<?= $this->router()->uri ?>" /><input type="submit" class="bt" value="<?= $this->lang['signin'] ?>" /></b></li><?php
-                        ?><li class="<?= $this->router()->siteLanguage ?> br"><a href="/signup/<?= $lang ?>" class="lnk"><?= $this->lang['create_account'] ?></a></li><?php
-                        ?><li class="<?= $this->router()->siteLanguage ?> br"><a class="lnk" href="/password/<?= $lang ?>"><?= $this->lang['forgot_pass'] ?></a></li><?php
+                        ?><li class="<?= $this->router()->language ?> br"><a href="/signup/<?= $lang ?>" class="lnk"><?= $this->lang['create_account'] ?></a></li><?php
+                        ?><li class="<?= $this->router()->language ?> br"><a class="lnk" href="/password/<?= $lang ?>"><?= $this->lang['forgot_pass'] ?></a></li><?php
                     ?></ul><?php
                 }
              ?></form><?php 
@@ -716,7 +715,7 @@ class Page extends Site {
                     ?><li><a class="bt wi" href="?provider=live">Windows Live</a></li><?php
                 ?></ul><?php
                 ?></div><?php
-                ?><div class="sha shau sh <?= $this->router()->siteLanguage ?> rc w"><div class="fr"><label><?= $this->lang['NB'] ?></label><?php 
+                ?><div class="sha shau sh <?= $this->router()->language ?> rc w"><div class="fr"><label><?= $this->lang['NB'] ?></label><?php 
                     ?><ul><?php 
                         ?><li><?= $this->lang['disclaimer'] ?></li><?php
                         ?><li><?= $this->lang['disclaimer_social'] ?></li><?php
@@ -725,7 +724,7 @@ class Page extends Site {
                 
                 
             }else{
-                ?><div class="str <?= $this->router()->siteLanguage ?>"><br /><label><?= $this->lang['NB'] ?></label><?php 
+                ?><div class="str <?= $this->router()->language ?>"><br /><label><?= $this->lang['NB'] ?></label><?php 
                     ?><ul><?php 
                         ?><li><?= $this->lang['disclaimer'] ?></li><?php
                         ?><li><?= $this->lang['disclaimer_social'] ?></li><?php
@@ -800,7 +799,7 @@ class Page extends Site {
                 }
             ';
             
-            if($this->router()->siteLanguage=='ar'){
+            if($this->router()->language=='ar'){
                 $this->inlineCss.='
                     .sls a {
                         padding-right: 46px !important
@@ -903,7 +902,7 @@ class Page extends Site {
         if ($this->router()->siteTranslate) {
             if ($this->router()->siteTranslate=='ar') $addOn.='_ar';
         }
-        elseif ($this->router()->siteLanguage=='ar') $addOn.='_ar'; 
+        elseif ($this->router()->language=='ar') $addOn.='_ar'; 
         $fAddon=$addOn;
         $csFile = '';
         $toRequire = [];
@@ -940,7 +939,7 @@ class Page extends Site {
         }
         if ($this->router()->siteTranslate) {
             if ($this->router()->siteTranslate=='ar') $addOn.='_ar';
-        }elseif ($this->router()->siteLanguage=='ar') $addOn.='_ar'; 
+        }elseif ($this->router()->language=='ar') $addOn.='_ar'; 
         $fAddon=$addOn;
         $csFile = '';
         $toRequire = [];
@@ -1040,7 +1039,7 @@ class Page extends Site {
         if ($this->user->params['city']) {
             $cityId=$this->user->params['city'];
         }
-        $lang=$this->router()->siteLanguage=='ar'?'':$this->router()->siteLanguage.'/';
+        $lang=$this->router()->language=='ar'?'':$this->router()->language.'/';
         ?><h4><?= $this->lang['mourjan'] ?></h4><?php
         echo '<ul class=\'sm\'>';
         echo '<li><a href=\'', $this->router()->getURL($countryId,$cityId), '\'>', $this->lang['homepage'], '</a></li>';
@@ -1089,7 +1088,7 @@ class Page extends Site {
             if ($this->user->params['city']) {
                 $cityId=$this->user->params['city'];
             }
-            $lang=$this->router()->siteLanguage=='ar'?'':$this->router()->siteLanguage.'/';
+            $lang=$this->router()->language=='ar'?'':$this->router()->language.'/';
             ?><h4><?= $this->user->info['name'] ?></h4><?php
             echo "<ul class='sm'>";
             $renderedFirst=false;
@@ -1313,7 +1312,7 @@ class Page extends Site {
 /*
     function search_bar(){
         $q=$this->router()->params['q'];
-        $this->field_name='NAME_'.strtoupper($this->router()->siteLanguage);
+        $this->field_name='NAME_'.strtoupper($this->router()->language);
         
         $uri='';
         if ($this->extendedId){
@@ -1323,13 +1322,13 @@ class Page extends Site {
             }
             $uri.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId][3].'/';
             if ($this->router()->purposeId)$uri.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-            $uri.=($this->router()->siteLanguage!='ar'?$this->router()->siteLanguage.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3:2) :1).'/';
+            $uri.=($this->router()->language!='ar'?$this->router()->language.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3:2) :1).'/';
         }elseif($this->localityId){
             $uri='/'.$this->router()->countries[$this->router()->countryId][3].'/';
             $uri.=$this->localities[$this->localityId][3].'/';
             $uri.=$this->router()->sections[$this->router()->sectionId][3].'/';
             if ($this->router()->purposeId)$uri.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-            $uri.=($this->router()->siteLanguage!='ar'?$this->router()->siteLanguage.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId ? 3:2).'/';
+            $uri.=($this->router()->language!='ar'?$this->router()->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId ? 3:2).'/';
         }else {
             $uri=$this->router()->getURL($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);
         }
@@ -1350,9 +1349,9 @@ class Page extends Site {
                         echo "<option value='".$country[3], "'>{$country[$this->fieldNameIndex]}</option>";
                 } ?></select><?php
                     /*if (!$this->rss && $this->router()->module=='search') {
-                        echo '<span class="', $this->router()->siteLanguage=='ar'?'fl':'fr' ,' gp">',
+                        echo '<span class="', $this->router()->language=='ar'?'fl':'fr' ,' gp">',
                             '<a href="', $this->router()->cfg['url_base'], 
-                                $this->router()->uri,  $this->router()->siteLanguage=='ar'?'':'en/' , '?rss=1" id="rss-link">',
+                                $this->router()->uri,  $this->router()->language=='ar'?'':'en/' , '?rss=1" id="rss-link">',
                             '<img alt="RSS ', $this->title,'" src="', $this->router()->cfg['url_resources'], '/img/rss.gif">',
                             '</a></span>';
                     }*/
@@ -1365,7 +1364,7 @@ class Page extends Site {
             return $this->pageUri;
         }
         
-        $this->field_name='NAME_'.strtoupper($this->router()->siteLanguage);
+        $this->field_name='NAME_'.strtoupper($this->router()->language);
         
         $uri='/';
         if ($this->extendedId){
@@ -1377,7 +1376,7 @@ class Page extends Site {
             }
             $uri.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
             if ($this->router()->purposeId)$uri.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-            $uri.=($this->router()->siteLanguage!='ar'?$this->router()->siteLanguage.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3:2) :1).'/';
+            $uri.=($this->router()->language!='ar'?$this->router()->language.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3:2) :1).'/';
         }elseif($this->localityId){
             if (isset($this->router()->countries[$this->router()->countryId])) {
                 $uri='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
@@ -1385,7 +1384,7 @@ class Page extends Site {
             $uri.=$this->localities[$this->localityId]['uri'].'/';
             $uri.=$this->router()->sections[$this->router()->sectionId][3].'/';
             if ($this->router()->purposeId)$uri.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-            $uri.=($this->router()->siteLanguage!='ar'?$this->router()->siteLanguage.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId ? 3:2).'/';
+            $uri.=($this->router()->language!='ar'?$this->router()->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId ? 3:2).'/';
         }else {
             $uri=$this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId);
         }
@@ -1406,9 +1405,9 @@ class Page extends Site {
                         echo "<option value='".$country[3], "'>{$country[$this->fieldNameIndex]}</option>";
                 } ?></select><?php
                     /*if (!$this->rss && $this->router()->module=='search') {
-                        echo '<span class="', $this->router()->siteLanguage=='ar'?'fl':'fr' ,' gp">',
+                        echo '<span class="', $this->router()->language=='ar'?'fl':'fr' ,' gp">',
                             '<a href="', $this->router()->cfg['url_base'], 
-                                $this->router()->uri,  $this->router()->siteLanguage=='ar'?'':'en/' , '?rss=1" id="rss-link">',
+                                $this->router()->uri,  $this->router()->language=='ar'?'':'en/' , '?rss=1" id="rss-link">',
                             '<img alt="RSS ', $this->title,'" src="', $this->router()->cfg['url_resources'], '/img/rss.gif">',
                             '</a></span>';
                     }
@@ -1466,7 +1465,7 @@ class Page extends Site {
                         $sname = $sname ? $sname.' '.$pname : $sname;
                         break;
                     case 999://various
-                        if($this->router()->siteLanguage=='ar'){                    
+                        if($this->router()->language=='ar'){                    
                             $sname = ($sname == 'متفرقات' ? $sname : ($sname=='' ? 'إعلانات متفرقة' : $sname.' متفرقة'));
                         }else{
                             $sname = ( (strpos($sname,'Misc.')===false || $sname == 'Miscellaneous') ? $sname : ($sname=='' ? 'Misc. Ads' : 'Misc. '.$sname));
@@ -1474,14 +1473,14 @@ class Page extends Site {
                         break;
                     case 6://to rent
                     case 7://to buy
-                        if($this->router()->siteLanguage=='ar'){                    
+                        if($this->router()->language=='ar'){                    
                             $sname = $sname ? $pname.' '.$sname : $pname;
                         }else{
                             $sname = $sname ? 'Looking '.$pname.' '.$sname : 'Looking '.$pname;
                         }
                         break;
                     case 3://vacancies
-                        if($this->router()->siteLanguage=='ar'){                    
+                        if($this->router()->language=='ar'){                    
                             $sname = $sname ? $pname.' '.$sname : $pname;
                         }else{
                             $sname = $sname ? $sname.' '.$pname : $pname;
@@ -1489,11 +1488,11 @@ class Page extends Site {
                         break;
                     case 4://seeking work
                         $in='';
-                        if ($this->router()->siteLanguage=="en")$in=" {$this->lang['in']}";
+                        if ($this->router()->language=="en")$in=" {$this->lang['in']}";
                         $sname= $sname ? $pname.$in.' '.$sname : $pname;
                         break;
                     case 5://services
-                        if($this->router()->siteLanguage=='ar'){                    
+                        if($this->router()->language=='ar'){                    
                             $sname = $sname ? ( strpos($sname,$pname)===false ? $pname .' '.$sname : $sname) : $pname;
                         }else{
                             $sname = $sname ? ( strpos($sname,$pname)===false ? $sname.' '.$pname : $sname) : $pname;
@@ -1503,7 +1502,7 @@ class Page extends Site {
             }else{
                 if($sname=='متفرقات')$sname = $rname .' متفرقة';
                 if($rootId==4 && $sname){
-                    if($this->router()->siteLanguage=='ar'){                    
+                    if($this->router()->language=='ar'){                    
                         $sname = $sname ? ( strpos($sname,'خدمات')===false ? 'خدمات '.$sname : $sname) : 'خدمات';
                     }else{
                         $sname = $sname ? ( strpos($sname,$pname)===false ? $sname.' Services' : $sname) : 'Services';
@@ -1536,7 +1535,7 @@ class Page extends Site {
                     $append_uri='';
                     $extended_uri='';
                     if ($this->extendedId && isset($this->router()->countries[$this->router()->countryId])){
-                        $append_uri='/'.($this->router()->siteLanguage!='ar'?$this->router()->siteLanguage.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3:2) :1);
+                        $append_uri='/'.($this->router()->language!='ar'?$this->router()->language.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3:2) :1);
                         $extended_uri='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
                         if ($this->hasCities && $this->router()->cityId && $this->router()->cities[$this->router()->cityId]) {
                             $extended_uri.=$this->router()->cities[$this->router()->cityId][3].'/';
@@ -1545,7 +1544,7 @@ class Page extends Site {
                         //echo "<b>", $extended_uri, "</b></br>";
                         
                     }elseif($this->localityId && isset($this->router()->countries[$this->router()->countryId])){
-                        $append_uri='/'.($this->router()->siteLanguage!='ar'?$this->router()->siteLanguage.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId ? 3:2);
+                        $append_uri='/'.($this->router()->language!='ar'?$this->router()->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId ? 3:2);
                         $extended_uri='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
                         
                         $extended_uri.=$this->localities[$this->localityId]['uri'].'/';
@@ -1580,7 +1579,7 @@ class Page extends Site {
                                     break;
                                 case 3:
                                     if ($this->router()->sectionId) {
-                                        if ($this->router()->siteLanguage=="ar")
+                                        if ($this->router()->language=="ar")
                                             $pname= 'مطلوب ' .$pname;
                                         else
                                             $pname= $pname.' '.$this->router()->purposes[$purpose[0]][$this->fieldNameIndex];
@@ -1592,7 +1591,7 @@ class Page extends Site {
                                 case 4:
                                 case 5:
                                     $in="";
-                                    if ($this->router()->siteLanguage=="en")$in=" {$this->lang['in']}";
+                                    if ($this->router()->language=="en")$in=" {$this->lang['in']}";
                                     if ($this->router()->sectionId) {
                                         $pname=$this->router()->purposes[$purpose[0]][$this->fieldNameIndex].$in." ".$pname;
                                     }else {
@@ -1615,7 +1614,7 @@ class Page extends Site {
                                 case 4:
                                 case 5:
                                     $in="";
-                                    if ($this->router()->siteLanguage=="en")$in=" {$this->lang['in']}";
+                                    if ($this->router()->language=="en")$in=" {$this->lang['in']}";
                                     if ($this->router()->sectionId) {
                                         $pname=$purpose['name'].$in." ".$pname;
                                     }else {
@@ -1640,7 +1639,7 @@ class Page extends Site {
                     $append_uri='';
                     $extended_uri='';
                     if ($this->extendedId){
-                        $append_uri='/'.($this->router()->siteLanguage!='ar'?$this->router()->siteLanguage.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3:2) :1);
+                        $append_uri='/'.($this->router()->language!='ar'?$this->router()->language.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3:2) :1);
                         if($this->router()->countryId){
                             $extended_uri='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
                             if ($this->hasCities && $this->router()->cityId) {
@@ -1653,7 +1652,7 @@ class Page extends Site {
                         //echo "<b>", $extended_uri, "</b></br>";
                         
                     }elseif($this->localityId){
-                        $append_uri='/'.($this->router()->siteLanguage!='ar'?$this->router()->siteLanguage.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId ? 3:2);
+                        $append_uri='/'.($this->router()->language!='ar'?$this->router()->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId ? 3:2);
                         $extended_uri='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
                         /*if ($this->hasCities && $this->router()->cityId) {
                             $extended_uri.=$this->router()->cities[$this->router()->cityId][3].'/';
@@ -1682,7 +1681,7 @@ class Page extends Site {
                             case 4:
                             case 5:
                                 $in="";
-                                if ($this->router()->siteLanguage=="en")$in=" {$this->lang['in']}";
+                                if ($this->router()->language=="en")$in=" {$this->lang['in']}";
                                 if ($this->router()->sectionId) {
                                     $pname=$purpose['name'].$in." ".$pname;
                                 }else {
@@ -1734,12 +1733,60 @@ class Page extends Site {
                 $cityId = 0;
             }
         }
+        
+        $url='';
+        switch ($this->router()->module) {
+            case 'detail':
+                if (!empty($this->detailAd)) {
+                    $url = sprintf($this->detailAd[Classifieds::URI_FORMAT], $this->router()->isArabic()?'en/':'', $this->detailAd[Classifieds::ID]);
+                    break;
+                }
+            case 'search':
+            case 'index':
+                if ($this->router()->userId) { $url='/'.($this->partnerInfo['uri']).'/'; }
+                elseif ($this->router()->watchId) { $url='/watchlist/'; }
+                elseif ($this->userFavorites) { $url='/favorites/'; }
+                else {
+                    $url=$this->router()->getURL($this->router()->countryId, $cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId, false);
+                }
+
+                if ($this->router()->isArabic()) { $url.='en/'; }
+                if ($this->router()->params['start']) { $url.=$this->router()->params['start'].'/'; }
+                if ($this->pageUserId) {
+                    $url.='?u='.$this->user->encodeId($this->pageUserId);
+                }
+                elseif ($this->router()->isDynamic) {
+                    $url.='?';
+                    $params='';
+                    $append=false;
+                    if ($this->router()->params['q']) {
+                        $params.='q='.urlencode($this->router()->params['q']);
+                        $append=true;
+                    }
+                    $url.=$params;
+                }
+                break;                
+            case 'myads':
+                $url='/myads/';
+                if ($this->router()->isArabic()) { $url.='en/'; }
+                $sub=$this->get('sub');
+                if (in_array($sub, ['pending','archive','drafts'])) {
+                    $url.='?sub='.$sub;
+                }
+                break;
+            default:
+                $url='/'.$this->router()->module.'/';
+                if ($this->router()->isArabic()) { $url.='en/'; }
+                break;
+        }
+        
         ?>
 <header>
     <nav class="navbar">
-        <div class="float-left"><a href="#" style="padding: 0;"><i class="ilogo"></i></a></div>        
+        <div class="float-left"><a href="<?= $this->router()->getURL($this->router()->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>" style="padding: 0;"><i class="ilogo"></i></a></div>        
         <div class="float-right">
             <ul class="nav float-right">
+                <li><a href="<?= $url ?>"><i class="icn icnsmall icn-lang"></i></a></li>
                 <li><a href="#"><i class="icn icnsmall icn-bell"></i></a></li>
                 <li><a href="#"><i class="icn icnsmall icn-user"></i></a></li>
             </ul>
@@ -1757,10 +1804,11 @@ class Page extends Site {
     </div>
 </div>
 <?php
-        switch ($this->router()->module) {
-            
-        }
+        
     }
+    
+    
+    
     
     function top_old() {
         $url='';
@@ -1779,7 +1827,7 @@ class Page extends Site {
         switch ($this->router()->module){
             case 'detail':
                 if (!empty($this->detailAd)){
-                    if ($this->router()->siteLanguage=='ar') {
+                    if ($this->router()->language=='ar') {
                         $url = sprintf($this->detailAd[Classifieds::URI_FORMAT], 'en/', $this->detailAd[Classifieds::ID]);
                     } 
                     else {
@@ -1794,7 +1842,7 @@ class Page extends Site {
                 elseif ($this->userFavorites) $url='/favorites/';
                 else $url=$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId,false);
 
-                if ($this->router()->siteLanguage=='ar') $url.='en/';
+                if ($this->router()->language=='ar') $url.='en/';
                 if ($this->router()->params['start']) $url.=$this->router()->params['start'].'/';
                 if($this->pageUserId){
                     $url.='?u='.$this->user->encodeId($this->pageUserId);
@@ -1812,7 +1860,7 @@ class Page extends Site {
                 break;                
             case 'myads':
                 $url='/myads/';
-                if ($this->router()->siteLanguage=='ar') $url.='en/';
+                if ($this->router()->language=='ar') $url.='en/';
                 $sub=$this->get('sub');
                 if(in_array($sub,array('pending','archive','drafts'))){
                     $url.='?sub='.$sub;
@@ -1820,13 +1868,13 @@ class Page extends Site {
                 break;
             default:
                 $url='/'.$this->router()->module.'/';
-                if ($this->router()->siteLanguage=='ar') $url.='en/';
+                if ($this->router()->language=='ar') $url.='en/';
                 break;
         }
         
         $adLang='';
         if (!$this->router()->isArabic()) {
-            $adLang=$this->router()->siteLanguage.'/';
+            $adLang=$this->router()->language.'/';
         }
         ?><div class='top'><?php
             ?><h1><?= $this->title ?></h1><?php  
@@ -1838,7 +1886,7 @@ class Page extends Site {
                     ?></a><?php
                 }
                 if (!$this->router()->userId){
-                    if ($this->router()->siteLanguage=='ar') {
+                    if ($this->router()->language=='ar') {
                         ?><a class="gl" href="<?= $url ?>">English</a><?php
                         ?><span class="gr">عربي</span><?php
                     } 
@@ -1849,7 +1897,7 @@ class Page extends Site {
                 }
             ?></div><?php
             if($this->user->info['id'] && $this->user->isSuperUser() && $this->router()->module!='admin'){
-                ?><a class="pb" style="right:<?= $this->router()->siteLanguage == 'ar' ? '97px' : '165px' ?>" href="/monitor/<?= $adLang ?>">monitor</a><?php
+                ?><a class="pb" style="right:<?= $this->router()->language == 'ar' ? '97px' : '165px' ?>" href="/monitor/<?= $adLang ?>">monitor</a><?php
                 ?><a class="pb" style="border-radius:0" href="/admin/<?= $adLang ?>"><span class="i p"></span><?= $this->lang['administration'] ?></a><?php
             }
             else{
@@ -1858,7 +1906,7 @@ class Page extends Site {
                 }
             }
             if ($this->router()->userId){
-                if ($this->router()->siteLanguage=='ar') {
+                if ($this->router()->language=='ar') {
                     ?><a class="gl" href="<?= $url ?>">English</a><?php
                     ?><span class="gr">عربي</span><?php
                 } 
@@ -1925,7 +1973,7 @@ class Page extends Site {
                 }elseif(isset($this->router()->params['loc_id']) && $this->router()->params['loc_id']){
                     if (isset($this->localities[$this->router()->params['loc_id']]) && $this->localities[$this->router()->params['loc_id']]['parent_geo_id']){
                         $tmpId=$this->router()->params['loc_id'];
-                        $tmpUrl = '/'.$this->router()->countries[$this->router()->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->router()->sections[$this->router()->sectionId][3].'/'.($this->router()->purposeId ? $this->router()->purposes[$this->router()->purposeId][3].'/' : '').($this->router()->siteLanguage!='ar' ? $this->router()->siteLanguage.'/':'').'c-'.$tmpId.'-2/';
+                        $tmpUrl = '/'.$this->router()->countries[$this->router()->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->router()->sections[$this->router()->sectionId][3].'/'.($this->router()->purposeId ? $this->router()->purposes[$this->router()->purposeId][3].'/' : '').($this->router()->language!='ar' ? $this->router()->language.'/':'').'c-'.$tmpId.'-2/';
                     }else {
                         $tmpUrl = $this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);
                     }
@@ -1958,7 +2006,7 @@ class Page extends Site {
                             }
                         }while($tmpId!=0 && $counter==1);
                         if ($tmpId && $tmpId!=$this->localityId){
-                            $backButton = '<a class="back" href="/'.$this->router()->countries[$this->router()->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->router()->sections[$this->router()->sectionId][3].'/'.($this->router()->purposeId ? $this->router()->purposes[$this->router()->purposeId][3].'/' : '').($this->router()->siteLanguage!='ar' ? $this->router()->siteLanguage.'/':'').'c-'.$tmpId.'-2/"></a>';
+                            $backButton = '<a class="back" href="/'.$this->router()->countries[$this->router()->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->router()->sections[$this->router()->sectionId][3].'/'.($this->router()->purposeId ? $this->router()->purposes[$this->router()->purposeId][3].'/' : '').($this->router()->language!='ar' ? $this->router()->language.'/':'').'c-'.$tmpId.'-2/"></a>';
                         }else {
                             $backButton = '<a class="back" href="'.$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId).'"></a>';
                         }*/
@@ -1985,13 +2033,13 @@ class Page extends Site {
                             }
                         }
                         if ($tmpId){
-                            $backButton = '<a class="back" href="/'.$this->router()->countries[$this->router()->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->router()->sections[$this->router()->sectionId][3].'/'.($this->router()->purposeId ? $this->router()->purposes[$this->router()->purposeId][3].'/' : '').($this->router()->siteLanguage!='ar' ? $this->router()->siteLanguage.'/':'').'c-'.$tmpId.'-2/"></a>';
+                            $backButton = '<a class="back" href="/'.$this->router()->countries[$this->router()->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->router()->sections[$this->router()->sectionId][3].'/'.($this->router()->purposeId ? $this->router()->purposes[$this->router()->purposeId][3].'/' : '').($this->router()->language!='ar' ? $this->router()->language.'/':'').'c-'.$tmpId.'-2/"></a>';
                         }else {
                             $backButton = '<a class="back" href="'.$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId).'"></a>';
                         }*/
                         if (isset($this->localities[$this->localityId]) && isset($this->localities[$this->localities[$this->localityId]['parent_geo_id']+0])){
                             $tmpId=$this->localities[$this->localityId]['parent_geo_id']+0;
-                            $backButton = '<a class="back" href="/'.$this->router()->countries[$this->router()->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->router()->sections[$this->router()->sectionId][3].'/'.($this->router()->purposeId ? $this->router()->purposes[$this->router()->purposeId][3].'/' : '').($this->router()->siteLanguage!='ar' ? $this->router()->siteLanguage.'/':'').'c-'.$tmpId.'-2/"></a>';
+                            $backButton = '<a class="back" href="/'.$this->router()->countries[$this->router()->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->router()->sections[$this->router()->sectionId][3].'/'.($this->router()->purposeId ? $this->router()->purposes[$this->router()->purposeId][3].'/' : '').($this->router()->language!='ar' ? $this->router()->language.'/':'').'c-'.$tmpId.'-2/"></a>';
                         }else {
                             $backButton = '<a class="back" href="'.$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId).'"></a>';
                         }
@@ -2051,7 +2099,7 @@ class Page extends Site {
             switch ($this->router()->module){
                 case 'detail':
                     if (!empty($this->detailAd)){
-                        if ($this->router()->siteLanguage=='ar') {
+                        if ($this->router()->language=='ar') {
                             //$url = $this->router()->cfg['url_base'].sprintf($this->detailAd[Classifieds::URI_FORMAT], 'en/', $this->detailAd[Classifieds::ID]);
                             $url = sprintf($this->detailAd[Classifieds::URI_FORMAT], 'en/', $this->detailAd[Classifieds::ID]);
                         } else {
@@ -2066,7 +2114,7 @@ class Page extends Site {
                 elseif ($this->userFavorites) $url='/favorites/';
                 else $url=$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId,false);
 
-                if ($this->router()->siteLanguage=='ar') $url.='en/';
+                if ($this->router()->language=='ar') $url.='en/';
                 if ($this->router()->params['start']) $url.=$this->router()->params['start'].'/';
                 if($this->pageUserId){
                     $url.='?u='.$this->user->encodeId($this->pageUserId);
@@ -2083,7 +2131,7 @@ class Page extends Site {
                 break;
             case 'myads':
                 $url='/myads/';
-                if ($this->router()->siteLanguage=='ar') $url.='en/';
+                if ($this->router()->language=='ar') $url.='en/';
                 $sub=$this->get('sub');
                 if(in_array($sub,array('pending','archive','drafts'))){
                     $url.='?sub='.$sub;
@@ -2091,7 +2139,7 @@ class Page extends Site {
                 break;
             case 'index':
                 $url=$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId,false);
-                if ($this->router()->siteLanguage=='ar') $url.='en/';
+                if ($this->router()->language=='ar') $url.='en/';
                 if ($this->router()->params['start']) $url.="{$this->router()->params['start']}/";
                 if ($this->router()->isDynamic) {
                     $url.='?';
@@ -2106,7 +2154,7 @@ class Page extends Site {
                 break;
             default:
                 $url='/'.$this->router()->module.'/';
-                if ($this->router()->siteLanguage=='ar') $url.='en/';
+                if ($this->router()->language=='ar') $url.='en/';
                 break;
         }
         $this->switchLangUrl = $url;
@@ -2124,7 +2172,7 @@ class Page extends Site {
         echo $searchButton;
         /* if ($this->router()->module!='index' || ($this->router()->module=='index' && $this->router()->rootId)) {
             ?><a class="bt fl nsh" href="<?= $this->router()->getURL($this->router()->countryId,$this->router()->cityId) ?>"><span class="bt-home"></span></a>
-            <?php } */ ?><h1 id="title" class="<?= ($this->detailAd && !$this->detailAdExpired) ? ($this->detailAd[Classifieds::RTL]==0 ? 'e':'a'):($this->router()->siteLanguage=='en'?'e':'a') ?>"><?php
+            <?php } */ ?><h1 id="title" class="<?= ($this->detailAd && !$this->detailAdExpired) ? ($this->detailAd[Classifieds::RTL]==0 ? 'e':'a'):($this->router()->language=='en'?'e':'a') ?>"><?php
         echo $headTitle;
         ?></h1></div><?php   
         
@@ -2133,7 +2181,7 @@ class Page extends Site {
         $loginErr = (isset($_GET['login']) && $_GET['login']=='error') ? 1:0;
         $loginECode = ($loginErr && isset($_GET['code']) && $_GET['code']) ? 1:0;
         $lang='';
-        if (!$this->router()->isArabic()) $lang=$this->router()->siteLanguage.'/';
+        if (!$this->router()->isArabic()) $lang=$this->router()->language.'/';
         
         /*
         if ($this->user->info['id']) {
@@ -2173,7 +2221,7 @@ class Page extends Site {
         }
         
         
-        if ($this->router()->siteLanguage=='ar') {
+        if ($this->router()->language=='ar') {
             $menu .= "<li><a href='{$url}'>English</a></li>";
             $menuIdx++;
         } else {
@@ -2192,13 +2240,13 @@ class Page extends Site {
                 }
                 $uri.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
                 if ($this->router()->purposeId)$uri.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                $uri.=($this->router()->siteLanguage!='ar'?$this->router()->siteLanguage.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3:2) :1).'/';
+                $uri.=($this->router()->language!='ar'?$this->router()->language.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3:2) :1).'/';
             }elseif($this->localityId){
                 $uri='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
                 $uri.=$this->localities[$this->localityId]['uri'].'/';
                 $uri.=$this->router()->sections[$this->router()->sectionId][3].'/';
                 if ($this->router()->purposeId)$uri.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                $uri.=($this->router()->siteLanguage!='ar'?$this->router()->siteLanguage.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId ? 3:2).'/';
+                $uri.=($this->router()->language!='ar'?$this->router()->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId ? 3:2).'/';
             }else {
                 $uri=$this->router()->getURL($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);
             }
@@ -2333,13 +2381,13 @@ class Page extends Site {
                 }
                 $uri.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId][3].'/';
                 if ($this->router()->purposeId)$uri.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                $uri.=($this->router()->siteLanguage!='ar'?$this->router()->siteLanguage.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3:2) :1).'/';
+                $uri.=($this->router()->language!='ar'?$this->router()->language.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3:2) :1).'/';
             }elseif($this->localityId){
                 $uri='/'.$this->router()->countries[$this->router()->countryId][3].'/';
                 $uri.=$this->localities[$this->localityId][3].'/';
                 $uri.=$this->router()->sections[$this->router()->sectionId][3].'/';
                 if ($this->router()->purposeId)$uri.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                $uri.=($this->router()->siteLanguage!='ar'?$this->router()->siteLanguage.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId ? 3:2).'/';
+                $uri.=($this->router()->language!='ar'?$this->router()->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId ? 3:2).'/';
             }else {
                 $uri=$this->router()->getURL($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);
             }
@@ -2383,14 +2431,14 @@ class Page extends Site {
                 $append_uri = '';
                 $extended_uri = '';
                 if ($this->extendedId) {
-                    $append_uri = '/' . ($this->router()->siteLanguage != 'ar' ? $this->router()->siteLanguage . '/' : '') . 'q-' . $this->extendedId . '-' . ($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3 : 2) : 1);
+                    $append_uri = '/' . ($this->router()->language != 'ar' ? $this->router()->language . '/' : '') . 'q-' . $this->extendedId . '-' . ($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3 : 2) : 1);
                     $extended_uri = '/' . $this->router()->countries[$this->router()->countryId]['uri'] . '/';
                     if ($this->hasCities && $this->router()->cityId) {
                         $extended_uri.=$this->router()->cities[$this->router()->cityId][3] . '/';
                     }
                     $extended_uri.=$this->router()->sections[$this->router()->sectionId][3] . '-' . $this->extended[$this->extendedId]['uri'] . '/';
                 } elseif ($this->localityId) {
-                    $append_uri = '/' . ($this->router()->siteLanguage != 'ar' ? $this->router()->siteLanguage . '/' : '') . 'c-' . $this->localityId . '-' . ($this->hasCities && $this->router()->cityId ? 3 : 2);
+                    $append_uri = '/' . ($this->router()->language != 'ar' ? $this->router()->language . '/' : '') . 'c-' . $this->localityId . '-' . ($this->hasCities && $this->router()->cityId ? 3 : 2);
                     $extended_uri = '/' . $this->router()->countries[$this->router()->countryId]['uri'] . '/';
                     $extended_uri.=$this->localities[$this->localityId]['uri'] . '/';
                     $extended_uri.=$this->router()->sections[$this->router()->sectionId][3] . '/';
@@ -2421,7 +2469,7 @@ class Page extends Site {
 
     function paginationMobile(){      
         $qtotal_found = $this->searchResults['body']['total_found'];
-        $appendLang=($this->router()->siteLanguage=='ar'?'/':'/'.$this->router()->siteLanguage.'/');
+        $appendLang=($this->router()->language=='ar'?'/':'/'.$this->router()->language.'/');
         if (!$this->paginationString) {
             
             if ($qtotal_found>0) {
@@ -2447,7 +2495,7 @@ class Page extends Site {
                         $link.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
                         if ($this->router()->purposeId)
                             $link.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                        if ($this->router()->siteLanguage!='ar')$link.=$this->router()->siteLanguage.'/';
+                        if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
                             $link.='q-'.$this->extendedId.'-'.$idx.'/%s';
                     }elseif ($this->localityId) {
                         $idx=2;
@@ -2463,7 +2511,7 @@ class Page extends Site {
                             $link.=$this->router()->pageRoots[$this->router()->rootId]['uri'].'/';
                         if ($this->router()->purposeId)
                             $link.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                        if ($this->router()->siteLanguage!='ar')$link.=$this->router()->siteLanguage.'/';
+                        if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
                             $link.='c-'.$this->localityId.'-'.$idx.'/%s';
                         }else 
                             $link=$this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId).'%s';
@@ -2523,7 +2571,7 @@ class Page extends Site {
     
     function pagination($link=null){
         if (!$this->paginationString || $link) {
-            $appendLang=($this->router()->siteLanguage=='ar'?'/':'/'.$this->router()->siteLanguage.'/');
+            $appendLang=($this->router()->language=='ar'?'/':'/'.$this->router()->language.'/');
             $result='';
             if ($this->router()->userId){
                 $link='/'.$this->partnerInfo['uri'].$appendLang.'%s';                
@@ -2544,7 +2592,7 @@ class Page extends Site {
                 $link.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
                 if ($this->router()->purposeId)
                 $link.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                if ($this->router()->siteLanguage!='ar')$link.=$this->router()->siteLanguage.'/';
+                if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
                 $link.='q-'.$this->extendedId.'-'.$idx.'/%s';
             }elseif ($this->localityId) {
                 $idx=2;
@@ -2560,7 +2608,7 @@ class Page extends Site {
                     $link.=$this->router()->pageRoots[$this->router()->rootId]['uri'].'/';
                 if ($this->router()->purposeId)
                     $link.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                if ($this->router()->siteLanguage!='ar')$link.=$this->router()->siteLanguage.'/';
+                if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
                 $link.='c-'.$this->localityId.'-'.$idx.'/%s';
             }
             else $link=$this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId).'%s';
@@ -2580,7 +2628,7 @@ class Page extends Site {
             if ($qtotal_found>0) {
                 $pages = ceil($qtotal_found/$this->num);
                 
-                $tmp=$this->router()->cfg['search_results_max']/$this->num;
+                $tmp=$this->router()->config()->get('search_results_max')/$this->num;
                 if ($pages>$tmp) $pages=$tmp;
                 if ($pages>1) {
                     //$currentPage=ceil(($this->router()->params['start']+1)/$this->num);
@@ -2656,7 +2704,7 @@ class Page extends Site {
             $rightCB='rbrc';
             $leftCB='rblc';
             $appendLang='/';
-            if ($this->router()->siteLanguage=='en') {
+            if ($this->router()->language=='en') {
                 $rightCB='rblc';
                 $leftCB='rbrc';
                 $appendLang='/en/';
@@ -2681,15 +2729,11 @@ class Page extends Site {
                 $link.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
                 if ($this->router()->purposeId)
                 $link.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                if ($this->router()->siteLanguage!='ar')$link.=$this->router()->siteLanguage.'/';
+                if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
                 $link.='q-'.$this->extendedId.'-'.$idx.'/%s';
             }elseif ($this->localityId) {
                 $idx=2;
                 $link='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
-                /*if ($this->hasCities && $this->router()->cityId) {
-                    $link.=$this->router()->cities[$this->router()->cityId][3].'/';
-                    $idx=3;
-                }*/
                 $link.=$this->localities[$this->localityId]['uri'].'/';
                 if ($this->router()->sectionId) 
                     $link.=$this->router()->sections[$this->router()->sectionId][3].'/';
@@ -2697,7 +2741,7 @@ class Page extends Site {
                     $link.=$this->router()->pageRoots[$this->router()->rootId]['uri'].'/';
                 if ($this->router()->purposeId)
                     $link.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                if ($this->router()->siteLanguage!='ar')$link.=$this->router()->siteLanguage.'/';
+                if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
                 $link.='c-'.$this->localityId.'-'.$idx.'/%s';
             }
             else $link=$this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId).'%s';
@@ -2810,8 +2854,8 @@ class Page extends Site {
             elseif($this->router()->module=='index' || ($this->router()->module=='search' && !($this->router()->watchId || $this->userFavorites))){
                 $sharingUrl.=$this->router()->uri ? substr($this->router()->uri, 1, strlen($this->router()->uri)) : '';
             }
-            if ($this->router()->siteLanguage!='ar') {
-                $sharingUrl.=$this->router()->siteLanguage.'/';
+            if ($this->router()->language!='ar') {
+                $sharingUrl.=$this->router()->language.'/';
             }
             if ($this->router()->module=='search'){
                 if ($this->router()->params['start']) {
@@ -2837,41 +2881,40 @@ class Page extends Site {
         }
         ?><meta name="msapplication-config" content="<?= $this->router()->config()->host ?>/browserconfig.xml" /><?php 
         if($this->user->info['id']==0 && in_array($this->router()->module,['home','signin','favorites','account','myads','post','statement','watchlist','signup','password','buy','buyu'])){
-            ?><script async="true" defer="true" src='https://www.google.com/recaptcha/api.js<?= $this->router()->siteLanguage=='ar'?'?hl=ar':'' ?>'></script><?php
+            ?><script async="true" defer="true" src='https://www.google.com/recaptcha/api.js<?= $this->router()->language=='ar'?'?hl=ar':'' ?>'></script><?php
         }               
     }
 
     
-    function footer(){
+    function footer() {
+        $year = date('Y');
+        echo '<footer><div class="col-12">© 2010-', $year, ' Mourjan.com Classifieds Aggregator - All Rights Reserved.';        
+        if (!isset($this->user->info['level']) || $this->user->info['level']!=9) {
+            ?><br /><?php
+            ?><script language="JavaScript" type="text/javascript">TrustLogo("https://www.mourjan.com/img/1.0.3/comodo.png", "CL1", "none");</script><?php
+        }
+        echo '</div></footer>',"\n";
+        if (1) {
+            return;
+        }
+        
+        
         $adLang='';
-        if ($this->router()->siteLanguage!="ar") $adLang=$this->router()->siteLanguage.'/';
-        if($this->router()->module=='about')$this->router()->cfg['enabled_sharing']=true;
-        if ((!$this->user->info['id'] ||  ($this->user->info['id'] && $this->user->info['level']!=9)) && $this->router()->module=='search' && !$this->userFavorites && !$this->router()->watchId && !$this->router()->userId){
+        if ($this->router()->language!="ar") $adLang=$this->router()->language.'/';
+        if ($this->router()->module=='about') $this->router()->cfg['enabled_sharing']=true;
+        if ((!$this->user->info['id'] ||  ($this->user->info['id'] && $this->user->info['level']!=9)) && $this->router()->module=='search' && !$this->userFavorites && !$this->router()->watchId && !$this->router()->userId) {
             $this->globalScript.='var upem=1;';
-            //$this->getMediaAds();
             if (isset($this->searchResults['media']) && $this->searchResults['media']['total_found']>0) {
-                //$count = count($this->mediaResults['matches']);
-                if($this->searchResults['media']['total_found']>2){
+                if ($this->searchResults['media']['total_found']>2) {
                     $k=0;
                     $images_widths = array();
                     $j=4;
-                    //$ad_keys = array_keys($this->mediaResults["matches"]);
                     $ad_cache = $this->router()->db->getCache()->getMulti($this->searchResults['media']['matches']);
                     $ad_count = count($this->searchResults['media']['matches']);
                     if($j > $ad_count) $j = $ad_count;
-                    if (!isset($this->stat['ad-imp']))
-                        $this->stat['ad-imp'] = array();
+                    if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp'] = array(); }
                     ?><h4 class="peh w"><?= $this->lang['we_suggest'] ?></h4><?php
                     ?><ul class="pe pe<?= $j ?> w"><?php
-                   /* 
-                    
-        ?><ins class="adsbygoogle"
-     style="display:block;width:728px;height:90px;margin-left:auto;margin-right:auto"
-     data-ad-client="ca-pub-2427907534283641"
-     data-ad-slot="5039560620"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-        </script><br /><?php */
                     
                     for ($ptr = 0; $ptr < $j; $ptr++) {
                         $id = $this->searchResults['media']['matches'][$ptr];
@@ -2881,34 +2924,32 @@ class Page extends Site {
                         }
                         if (isset($this->user->info['level'])) {
                             if (!($this->user->info['level'] == 9 || $this->user->info['id'] == $ad[Classifieds::USER_ID])) {
-                                //if(isset($this->mediaResults["matches"][$id])){
-                                    $this->stat['ad-imp'][]=$id;
-                                //}
+                                $this->stat['ad-imp'][]=$id;
                             }
-                        } else {
+                        } 
+                        else {
                             if(isset($this->mediaResults["matches"][$id])){
                                 $this->stat['ad-imp'][]=$id;
                             }
                         }
                         if (!empty($ad[Classifieds::ALT_CONTENT])) {
-                            if ($this->router()->siteLanguage == "en" && $ad[Classifieds::RTL]) {
+                            if ($this->router()->language == "en" && $ad[Classifieds::RTL]) {
                                 $ad[Classifieds::TITLE] = $ad[Classifieds::ALT_TITLE];
                                 $ad[Classifieds::CONTENT] = $ad[Classifieds::ALT_CONTENT];
                                 $ad[Classifieds::RTL] = 0;
-                            } elseif ($this->router()->siteLanguage == "ar" && $ad[Classifieds::RTL] == 0) {
+                            } elseif ($this->router()->language == "ar" && $ad[Classifieds::RTL] == 0) {
                                 $ad[Classifieds::TITLE] = $ad[Classifieds::ALT_TITLE];
                                 $ad[Classifieds::CONTENT] = $ad[Classifieds::ALT_CONTENT];
                                 $ad[Classifieds::RTL] = 1;
                             }
                         }
-			//$ad[Classifieds::CONTENT]=trim(preg_replace('/^"(.*)"$/u','$1',$ad[Classifieds::CONTENT]));
 
                         $isNewToUser = (isset($this->user->params['last_visit']) && $this->user->params['last_visit'] && $this->user->params['last_visit'] < $ad[Classifieds::UNIXTIME]);
                         $newSpan = '';
                         if ($isNewToUser) {
                             $newSpan.="<span class='nw'></span>";
                         }
-                        $_link = sprintf($ad[Classifieds::URI_FORMAT], ($this->router()->siteLanguage == 'ar' ? '' : $this->router()->siteLanguage . '/'), $ad[Classifieds::ID]).'?ref=mediabox';
+                        $_link = sprintf($ad[Classifieds::URI_FORMAT], ($this->router()->language == 'ar' ? '' : $this->router()->language . '/'), $ad[Classifieds::ID]).'?ref=mediabox';
                         
                         if (isset($ad[Classifieds::VIDEO]) && $ad[Classifieds::VIDEO]){
                             $images_widths[$k]=array(400,300);
@@ -2946,7 +2987,6 @@ class Page extends Site {
                             }
                         }
                         
-                        //$caption = $this->sphinx->BuildExcerpts(array($ad[Classifieds::CONTENT]), 'mouftah', '', array("limit" => 25,'chunk_separator'=>'..'));
                         $caption = $this->BuildExcerpts($ad[Classifieds::CONTENT],25,'..');
                         
                         ?><li id="e<?= $ad[Classifieds::ID] ?>"><a class="<?= $ad[Classifieds::RTL] ? 'ar':'en' ?>" href="<?= $_link ?>"><span class="ik load ik<?= $k ?>"></span><br /><?= $caption ?></a></li><?php 
@@ -3000,15 +3040,17 @@ class Page extends Site {
                         $i++;
                     }
                     ?></style><?php
-                    ?><br /><div class="adLnk"><a href="/post/<?= $this->router()->siteLanguage=='ar'?'':'en/' ?>" class="bt"><?= $this->lang['addAd'] ?></a></div><?php
+                    ?><br /><div class="adLnk"><a href="/post/<?= $this->router()->language=='ar'?'':'en/' ?>" class="bt"><?= $this->lang['addAd'] ?></a></div><?php
                 }
             }
             
-        }else{
+        }
+        else {
             $this->globalScript.='var upem=0;';
         }
+        
         if ( ($this->router()->module=='index' || $this->router()->module=='about' || ($this->router()->module=='search' && isset($this->searchResults['body']['total_found']) && $this->searchResults['body']['total_found']) ) && !$this->userFavorites && !$this->router()->watchId && !$this->router()->userId && $this->router()->cfg['enabled_sharing']){
-            ?><div class="sha sh <?= $this->router()->siteLanguage ?> rc w"><?php
+            ?><div class="sha sh <?= $this->router()->language ?> rc w"><?php
                 ?><div class="fr"><?php 
                     ?><label><?= $this->router()->module=='search' ? $this->lang['shareUsSearch']:$this->lang['shareUs'] ?></label><?php 
                      ?><span class='st_facebook_hcount'></span><span class='st_twitter_hcount'></span><span class='st_googleplus_hcount'></span><span class='st_linkedin_hcount'></span><span class='st_email_hcount'></span><span class='st_sharethis_hcount'></span><?php 
@@ -3020,6 +3062,7 @@ class Page extends Site {
         }elseif($this->router()->module!='signin'){
             ?><br /><?php
         }
+        
         if ($this->router()->userId) {
             $year = date('Y');
             ?><div class="ftr"><div class="cr">© 2010-<?= $year ?> Mourjan.com Classifieds Aggregator - All Rights Reserved.<?php        
@@ -3027,7 +3070,8 @@ class Page extends Site {
                 ?><br /><?php
                 ?><script language="JavaScript" type="text/javascript">TrustLogo("https://www.mourjan.com/img/1.0.3/comodo.png", "CL1", "none");</script><?php
             }
-        }else {
+        }
+        else {
             ?><div class="ftr"><div class="w"><?php
             ?><div class="q0 q1 fl"><?php
             ?><b class="h"><?= $this->lang['mourjan'] ?></b><?php
@@ -3065,34 +3109,18 @@ class Page extends Site {
             }
             
             ?><form action="<?= $this->router()->getURL($this->router()->countryId,$this->router()->cityId) ?>" method="post"><input type="hidden" name="mobile" value="1" /><a href='#' onclick="this.parentNode.submit();"><?= $this->lang['mobile'] ?></a></form><?php
-            /*
-            if ($this->router()->module!='advertise') {
-                ?><a href="/advertise/<?= $adLang ?>"><?= $this->lang['advertiseUs'] ?></a><?php
-            }else {
-                ?><b><?= $this->lang['advertiseUs'] ?></b><?php
-            }
-             * 
-             */
-            /*
-            if ($this->router()->module!='publication-prices') {
-                ?><a href="/publication-prices/<?= $adLang ?>"><?= $this->lang['pricelist'] ?></a><?php
-            }else {
-                ?><b><?= $this->lang['pricelist'] ?></b><?php
-            }
-             * 
-             */
+       
             ?></div><?php 
             
             ?><div class="q1"><?php
-            ?><b class="h"><?= $this->lang['pclassifieds_'.$this->router()->siteLanguage] ?></b><?php
+            ?><b class="h"><?= $this->lang['pclassifieds_'.$this->router()->language] ?></b><?php
             $cityId=$this->user->params['city'];
             $countryId=$this->user->params['country'];
             $currentRoot='';
             foreach ($this->router()->pageRoots as $rid=>$root) {
-                if($rid==$this->router()->rootId)$currentRoot=($this->router()->siteLanguage=='ar' ? 'أقسام ال'.$root['name'] : $root['name'].'\''.($rid==1 ? 's':'').' Sections');
-                //$purposeId=is_numeric($root[3]) ? (int) $root[3]: ($root[0]==3 ? 3: 0);
+                if($rid==$this->router()->rootId)$currentRoot=($this->router()->language=='ar' ? 'أقسام ال'.$root['name'] : $root['name'].'\''.($rid==1 ? 's':'').' Sections');
                 $purposeId=0;
-                ?><a href="<?= $this->router()->getURL($countryId,$cityId,$rid,0,$purposeId) ?>"><span class='i i<?= $rid ?>'></span><?= ($this->router()->siteLanguage=='ar' ? 'إعلانات ال'.$root['name'] : $root['name']) ?></a><?php
+                ?><a href="<?= $this->router()->getURL($countryId,$cityId,$rid,0,$purposeId) ?>"><span class='i i<?= $rid ?>'></span><?= ($this->router()->language=='ar' ? 'إعلانات ال'.$root['name'] : $root['name']) ?></a><?php
             }
             ?></div><?php
             
@@ -3116,58 +3144,20 @@ class Page extends Site {
                     ?></ul><?php
                     ?></div><?php
                 ?></div><?php
-            /*
-            $sectionCount=count($this->router()->pageSections);
-                
-            if( ($this->router()->module=='search' || $this->router()->module=='detail' ) && $this->router()->rootId && !$this->userFavorites && !$this->router()->watchId && $sectionCount ){
-                $divide=3;
-                if($this->router()->siteLanguage=='en' && $this->router()->rootId!=2)$divide=2;
-                $perColumn=ceil($sectionCount/$divide);
-                $idx=0;
-                ?><div class="q2<?= $divide==3 ? '':' q3' ?>"><?php
-                ?><b class="h"><?= $currentRoot ?></b><?php 
-                $cssPre='z z';
-                switch($this->router()->rootId){
-                    case 1:
-                        $cssPre='x x';
-                        break;
-                    case 2:
-                        $cssPre='z z';
-                        break;
-                    case 3:
-                        $cssPre='v v';
-                        break;
-                    case 4:
-                        $cssPre='y y';
-                        break;
-                    case 99:
-                        $cssPre='u u';
-                        break;
-                }
-                foreach($this->router()->pageSections as $section){
-                    if($idx && $idx==$perColumn){
-                        $idx=0;
-                        ?></div><div class="q2 qp<?= $divide==3 ? '':' q3' ?>"><?php
-                    }
-                    $idx++;
-                    $purposeId=is_numeric($section[3]) ? (int) $section[3]: 0;
-                    ?><a href="<?= $this->router()->getURL($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$section[0],$purposeId) ?>"><span class="<?= $cssPre.$section[0] ?>"></span><?= $this->router()->sections[$section[0]][$this->fieldNameIndex] ?></a><?php
-                }
-                ?></div><?php */
+          
             }else {
             
             
                 ?><div class="q2"><?php
                 ?><b class="h"><?= $this->lang['countries'] ?></b><?php                
-                if($this->router()->siteLanguage=='en'){                
+                if($this->router()->language=='en'){                
                     $index_1=6;
                     $index_2=13;
                 } else {
                     $index_1=5;
                     $index_2=9;
                 }
-                //$tmp='';
-                //$countryId=0;
+           
                 $countryIDX=0;
                 foreach ($this->router()->countries as $country_id => $country) {
                     $countryIDX++;
@@ -3180,51 +3170,10 @@ class Page extends Site {
                     }
                     
                 }
-                /*
-                $countryId=0;
-                $tmp='';
-                $countryIDX=0;
-                $cities=$this->router()->db->queryCacheResultSimpleArray(
-                    "ftr_cities_{$this->router()->siteLanguage}",
-                    "select c.ID,c.country_id from city c 
-                        left join country d on c.country_id=d.id 
-                        where d.blocked=0 and c.blocked=0 
-                        order by d.name_{$this->router()->siteLanguage}, c.name_{$this->router()->siteLanguage}",
-                    null, 0, $this->router()->cfg['ttl_long']);
-                $cityPerCountry=0;
-                $index_1=5;
-                $index_2=9;
-                if($this->router()->siteLanguage=='en'){                
-                    $index_1=6;
-                    $index_2=13;
-                }
-                foreach ($cities as $city) {
-                    if($countryId==$city[1]){
-                        $cityPerCountry++;
-                        $tmp.='<a class="ct" href="'.$this->router()->getSilentURL($countryId,$city[0]).'">'.$this->router()->cities[$city[0]][$this->fieldNameIndex].'</a>';
-                    }else{
-                        $countryIDX++;
-
-                        $countryId=$city[1];
-                        if($cityPerCountry>1){
-                            echo $tmp;
-                        }                    
-                        if($countryIDX==$index_1 || $countryIDX==$index_2){
-                            ?></div><div class="q2 qp"><?php
-                        }
-                        $tmp='<a class="ct" href="'.$this->router()->getSilentURL($countryId,$city[0]).'">'.$this->router()->cities[$city[0]][$this->fieldNameIndex].'</a>';
-                        $cityPerCountry=1;
-                        ?><a href="<?= $this->router()->getSilentURL($countryId,0) ?>"><span class="cf c<?= $countryId ?>"></span><?= $this->router()->countries[$city[1]]['name'] ?></a><?php
-
-                    }
-                }
-                if($cityPerCountry>1){
-                    echo $tmp;
-                }*/
+          
                 ?></div><?php
                 }
 
-                /* ?><div class="fr"><div id="google_translate_element"></div></div><?php */
                 $year = date('Y');
                 ?><div class="cr">© 2010-<?= $year ?> Mourjan.com Classifieds Aggregator - All Rights Reserved.<?php 
                 if (!isset($this->user->info['level']) || $this->user->info['level']!=9){
@@ -3232,12 +3181,11 @@ class Page extends Site {
                     ?><script language="JavaScript" type="text/javascript">TrustLogo("https://www.mourjan.com/img/1.0.3/comodo.png", "CL1", "none");</script><?php
                 }
                 ?></div><?php                    
-            //}
             
         }
         ?></div></div><?php 
-        /* ?><div class="fb-recommendations-bar" data-href="http://www.mourjan.com<?= $this->router()->uri ?>" data-action="recommend" data-site="mourjan.com"></div><?php */        
     }
+
     
     function _leading_pane(){
         ?><div class='col4'><?php $this->leading_pane() ?></div><?php
@@ -3245,6 +3193,8 @@ class Page extends Site {
     
     function leading_pane(){
     }
+    
+    
     
     function _main_pane(){
         ?><div class='col1'><?php
@@ -3265,7 +3215,7 @@ class Page extends Site {
     
     function side_app_banner(){
         ?><div class="aps"><?php
-        ?><h3><?= ($this->router()->siteLanguage == 'en' ? 'Download <span class="og">mourjan</span> App':'تحميل تطبيق <span class="og">مرجان</span>' ) ?></h3><?php
+        ?><h3><?= ($this->router()->language == 'en' ? 'Download <span class="og">mourjan</span> App':'تحميل تطبيق <span class="og">مرجان</span>' ) ?></h3><?php
         ?><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class="ios"></span></a><?php
         ?><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class="android"></span></a><?php
         ?></div><?php
@@ -3278,7 +3228,12 @@ class Page extends Site {
         ?></div><?php
     }
 
-    function body() {
+    
+    function body() : void {
+        $this->main_pane();
+    }
+    
+    function body_OLD() {
         $colSpread='col2w';
         if(!$this->hasLeadingPane){
             $colSpread='colw';
@@ -3432,13 +3387,6 @@ class Page extends Site {
                 ?>'city': "<?php echo ($this->router()->cityId && isset($this->router()->cities[$this->router()->cityId]))?$this->router()->cities[$this->router()->cityId][3]:(($this->router()->countryId && isset($this->router()->countries[$this->router()->countryId]))?$this->router()->countries[$this->router()->countryId]['uri'].'all cities':'Global');?>"<?php
             ?>});<?php
         ?></script><?php
-
-        /*
-        if(isset($this->user->pending['email_watchlist']))
-        {
-            ?>ga('set','dimension6','watchlist');<?php
-        }
-        ?>ga('send', 'pageview');</script>*/
            
         
         if ($this->isMobile && $this->router()->cfg['enabled_ads'] && in_array($this->router()->module,['search','detail']) /*&& (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745)*/)
@@ -3456,7 +3404,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
       
     function renderMobileLinks(){
         if (!$this->router()->countryId || $this->router()->rootId) return;
-        $lang=$this->router()->siteLanguage=='ar'?'':$this->router()->siteLanguage.'/';
+        $lang=$this->router()->language=='ar'?'':$this->router()->language.'/';
         if ($this->router()->rootId) return;
         ?><ul class="ls br"><?php
          ?><li><a href="/about/<?= $lang ?>"><span class="ic r102"></span><?= $this->lang['aboutUs'] ?><span class="to"></span></a></li><? 
@@ -3480,28 +3428,21 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
     }
 
     
-    function loadMobileJs_classic()
-    {
-        if ($this->globalScript) 
-        {
+    function loadMobileJs_classic() {
+        if ($this->globalScript) {
             $this->globalScript=preg_replace('/\s+/', ' ', $this->globalScript);
             $this->globalScript=preg_replace("/[\n\t\r]/", '', $this->globalScript);
             $this->globalScript.=';';
             $this->globalScript=preg_replace("/;;/", ';', $this->globalScript);
         }
         
-        if ($this->inlineScript)
-        {
+        if ($this->inlineScript) {
             $this->inlineScript=preg_replace('/\s+/', ' ', $this->inlineScript);
             $this->inlineScript=preg_replace("/[\n\t\r]/", '', $this->inlineScript);
             $this->inlineScript.=';';
             $this->inlineScript=preg_replace("/;;/", ';', $this->inlineScript);
         }
         
-        /*if ($this->router()->module=='index' && !$this->router()->rootId && $this->router()->countryId) 
-        { 
-            ?><div id="fb-root"></div><?php
-        }*/
         
         ?><script type="text/javascript"><?php
         if ($this->renderAdSense && $this->router()->cfg['enabled_ads'] 
@@ -3557,7 +3498,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         
         
         
-        ?>var SCLD,lang='<?= $this->router()->siteLanguage ?>',<?php
+        ?>var SCLD,lang='<?= $this->router()->language ?>',<?php
         ?>hasQ=<?= $this->router()->params['q'] ? 1:0 ?>,canSh=<?= $this->router()->cfg['enabled_sharing']?1:0 ?>,<?php
         ?>sic=[],<?php
         ?>isApp=<?= $this->router()->isApp ? "'".$this->router()->isApp."'":0 ?>,<?php
@@ -3624,12 +3565,12 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 ?>_pu=<?= $this->router()->purposeId ?>,<?php
                 ?>_ext=<?= $this->extendedId ?>,<?php
                 ?>_loc=<?= $this->localityId ?>,<?php
-                ?>_ttl='<span class="<?= $this->router()->siteLanguage ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
+                ?>_ttl='<span class="<?= $this->router()->language ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
                 ?>_q='<?= $this->router()->params['q'] ? addcslashes($this->router()->params['q'], "'") :'' ?>',<?php
             }
         }
         ?>hrs=<?= isset($this->searchResults['body']['total_found']) && $this->searchResults['body']['total_found']>0 ? 1:0 ?>,<?php
-        ?>hd='<?= ($this->detailAd && !$this->detailAdExpired) ? ($this->detailAd[Classifieds::RTL]==0 ? 'e':'a'):($this->router()->siteLanguage=='en'?'e':'a') ?>',<?php 
+        ?>hd='<?= ($this->detailAd && !$this->detailAdExpired) ? ($this->detailAd[Classifieds::RTL]==0 ? 'e':'a'):($this->router()->language=='en'?'e':'a') ?>',<?php 
         ?>ucss='<?= $this->router()->cfg['url_css_mobile'] ?>',<?php
         
         if ($this->router()->module=='search' || $this->router()->module=='detail' || $this->router()->module=='myads'){
@@ -3648,14 +3589,6 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         ?>c=<?= $this->router()->cityId ?>,<?php
         ?>se=<?= $this->router()->sectionId ?>,<?php
         ?>pu=<?= $this->router()->purposeId ?>;<?php
-        /*if (isset($this->requires['css'])) {
-            foreach ($this->requires['css'] as $css) {
-                ?>loadCss(ucss+'<?= $css ?>');<?php  
-            }            
-        } */
-        /*?>loadCss(ucss+"/mms.css");<?php  */
-        /*?>addEvent(window,'load',function(){loadCss(ucss+"/mms.css")});<?php */
-        /* ?>loadCss(ucss+"/mms.css");<?php  */
         echo $this->globalScript;        
         echo $this->inlineScript;       
         ?>function inlineQS(){<?= $this->inlineQueryScript; ?>}<?php
@@ -3742,7 +3675,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                     ?><script type="text/javascript" defer="true" src="<?= $this->router()->cfg['url_js_mobile'] ?>/m_post.js"></script><?php
                 }elseif($renderMobileVerifyPage){
                     ?><script defer="true" type="text/javascript" onload="inlineQS()" src="<?= $this->router()->cfg['url_jquery_mobile'] ?>jquery.mob.min.js"></script><?php
-                    ?><script defer="true" type="text/javascript" onload="$('#code').select2({language:'<?= $this->router()->siteLanguage ?>',dir:'<?= $this->router()->siteLanguage=='ar'?'rtl':'ltr' ?>'})" src="<?= $this->router()->cfg['url_jquery'] ?>select2.min.js"></script><?php
+                    ?><script defer="true" type="text/javascript" onload="$('#code').select2({language:'<?= $this->router()->language ?>',dir:'<?= $this->router()->language=='ar'?'rtl':'ltr' ?>'})" src="<?= $this->router()->cfg['url_jquery'] ?>select2.min.js"></script><?php
                 }
                 break;
             case 'detail':
@@ -3804,7 +3737,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         }
                 
         
-        ?>var SCLD,lang='<?= $this->router()->siteLanguage ?>',<?php
+        ?>var SCLD,lang='<?= $this->router()->language ?>',<?php
         ?>hasQ=<?= $this->router()->params['q'] ? 1:0 ?>,canSh=<?= $this->router()->cfg['enabled_sharing']?1:0 ?>,<?php
         ?>sic=[],<?php
         ?>isApp=<?= $this->router()->isApp ? "'".$this->router()->isApp."'":0 ?>,<?php
@@ -3889,13 +3822,13 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 ?>_pu=<?= $this->router()->purposeId ?>,<?php
                 ?>_ext=<?= $this->extendedId ?>,<?php
                 ?>_loc=<?= $this->localityId ?>,<?php
-                ?>_ttl='<span class="<?= $this->router()->siteLanguage ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
+                ?>_ttl='<span class="<?= $this->router()->language ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
                 ?>_q='<?= $this->router()->params['q'] ? addcslashes($this->router()->params['q'], "'") :'' ?>',<?php
             }
         }
         
         ?>hrs=<?= isset($this->searchResults['body']['total_found']) && $this->searchResults['body']['total_found']>0 ? 1:0 ?>,<?php
-        ?>hd='<?= ($this->detailAd && !$this->detailAdExpired) ? ($this->detailAd[Classifieds::RTL]==0 ? 'e':'a'):($this->router()->siteLanguage=='en'?'e':'a') ?>',<?php 
+        ?>hd='<?= ($this->detailAd && !$this->detailAdExpired) ? ($this->detailAd[Classifieds::RTL]==0 ? 'e':'a'):($this->router()->language=='en'?'e':'a') ?>',<?php 
         ?>ucss='<?= $this->router()->cfg['url_css_mobile'] ?>',<?php
         
         if ($this->router()->module=='search' || $this->router()->module=='detail' || $this->router()->module=='myads')
@@ -4121,10 +4054,10 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 {
                     ?>ubs='',<?php
                 }else{
-                    $tmp=$this->router()->siteLanguage;
-                    $this->router()->siteLanguage='ar';
+                    $tmp=$this->router()->language;
+                    $this->router()->language='ar';
                     ?>ubs='<?= $this->router()->getURL($this->router()->countryId,$this->router()->cityId) ?>',<?php                 
-                    $this->router()->siteLanguage=$tmp;
+                    $this->router()->language=$tmp;
                 }
             }
             
@@ -4150,7 +4083,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 ?>uixf='<?= $this->router()->cfg['url_image_lib'] ?>/load-image.all.min.js',<?php 
             }
             
-            ?>lang='<?= $this->router()->siteLanguage ?>',<?php
+            ?>lang='<?= $this->router()->language ?>',<?php
             ?>share=<?= $this->router()->cfg['enabled_sharing'] ? 1:0 ?>,<?php
             ?>hads=<?= $this->router()->cfg['enabled_ads'] ? 1:0 ?>,<?php
             ?>SCLD=0,<?php //script loading var
@@ -4205,7 +4138,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                     ?>_pu=<?= $this->router()->purposeId ?>,<?php
                     ?>_ext=<?= $this->extendedId ?>,<?php
                     ?>_loc=<?= $this->localityId ?>,<?php
-                    ?>_ttl='<span class="<?= $this->router()->siteLanguage ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
+                    ?>_ttl='<span class="<?= $this->router()->language ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
                     ?>_q='<?= $this->router()->params['q'] ? addcslashes($this->router()->params['q'], "'") :'' ?>',<?php
                 }
             }
@@ -4531,10 +4464,10 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 if($this->userFavorites || $this->router()->watchId){
                     ?>ubs='',<?php
                 }else{
-                    $tmp=$this->router()->siteLanguage;
-                    $this->router()->siteLanguage='ar';
+                    $tmp=$this->router()->language;
+                    $this->router()->language='ar';
                     ?>ubs='<?= $this->router()->getURL($this->router()->countryId,$this->router()->cityId) ?>',<?php                 
-                    $this->router()->siteLanguage=$tmp;
+                    $this->router()->language=$tmp;
                 }
             }
             ?>AID=<?= (isset($this->detailAd[Classifieds::ID]) && !$this->detailAdExpired ? $this->detailAd[Classifieds::ID] : 0) ?>,<?php 
@@ -4554,7 +4487,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 ?>uixf='<?= $this->router()->cfg['url_image_lib'] ?>/load-image.all.min.js',<?php 
             }
             
-            ?>lang='<?= $this->router()->siteLanguage ?>',<?php
+            ?>lang='<?= $this->router()->language ?>',<?php
             ?>share=<?= $this->router()->config()->get('enabled_sharing') ? 1:0 ?>,<?php
             ?>hads=<?= $this->router()->config()->enabledAds() ? 1:0 ?>,<?php
             ?>SCLD=0,<?php //script loading var
@@ -4599,14 +4532,14 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                     ?>_pu=<?= $this->router()->purposeId ?>,<?php
                     ?>_ext=<?= $this->extendedId ?>,<?php
                     ?>_loc=<?= $this->localityId ?>,<?php
-                    ?>_ttl='<span class="<?= $this->router()->siteLanguage ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
+                    ?>_ttl='<span class="<?= $this->router()->language ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
                     ?>_q='<?= $this->router()->params['q'] ? addcslashes($this->router()->params['q'], "'") :'' ?>',<?php
                 }
             }
             ?>_wsp=<?= (isset($this->user->params['screen'][0]) && $this->user->params['screen'][0]) ? 0 : 1  ?>,<?php
             ?>ICH='<?= $this->includeHash ?>',<?php
             ?>LSM='<?= $this->router()->last_modified ?>';<?php
-            if(0 && in_array($this->router()->module,['index','search','detail'])){ ?>loadCss(ucss+"/gen<?= $this->router()->siteLanguage=='ar'?'_ar':'' ?>.css");<?php }
+            if(0 && in_array($this->router()->module,['index','search','detail'])){ ?>loadCss(ucss+"/gen<?= $this->router()->language=='ar'?'_ar':'' ?>.css");<?php }
             /*if (isset($this->requires['css'])) {
                 foreach ($this->requires['css'] as $css) {
                     ?>loadCss(ucss+'<?= $css ?>');<?php  
@@ -4838,7 +4771,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                     }*/
                     ?><script type="text/javascript" defer="true" src="<?= $this->router()->cfg['url_js'] ?>/post.js"></script><?php
                 }elseif($this->user->info['id']){
-                    ?><script type="text/javascript" onload="$('#code').select2({language:'<?= $this->router()->siteLanguage ?>',dir:'<?= $this->router()->siteLanguage=='ar'?'rtl':'ltr' ?>'})" defer="true" src="<?= $this->router()->cfg['url_jquery'] ?>select2.min.js"></script><?php
+                    ?><script type="text/javascript" onload="$('#code').select2({language:'<?= $this->router()->language ?>',dir:'<?= $this->router()->language=='ar'?'rtl':'ltr' ?>'})" defer="true" src="<?= $this->router()->cfg['url_jquery'] ?>select2.min.js"></script><?php
                 }
                 break;
             case 'password':
@@ -4906,12 +4839,12 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         if ($this->router()->isAMP && $this->router()->module=='search') {
             
             ?><!doctype html><?php
-            ?><html amp lang="<?= $this->router()->siteLanguage ?>"><?php
+            ?><html amp lang="<?= $this->router()->language ?>"><?php
                 $this->_headerAMP();
                 $this->_bodyAMP();
             ?></html><?php
             /*echo '<!doctype html>', PHP_EOL;
-            echo '<html amp lang="', $this->router()->siteLanguage, '" dir="', $this->router()->isArabic() ? 'rtl' : 'ltr', '">', PHP_EOL, '<head>';
+            echo '<html amp lang="', $this->router()->language, '" dir="', $this->router()->isArabic() ? 'rtl' : 'ltr', '">', PHP_EOL, '<head>';
             echo '<meta charset="utf-8">', PHP_EOL,'<script async src="https://cdn.ampproject.org/v0.js"></script>', PHP_EOL;
             echo '<link rel="shortcut icon" href="https://www.mourjan.com/img/1.0.3/favicon.ico">', PHP_EOL;
             echo '<title>', $this->title, '</title>', PHP_EOL;
@@ -4955,7 +4888,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
 
     function _headerAMP(){
         ?><head><?php
-            ?><meta lang="<?= $this->router()->siteLanguage ?>"><?php
+            ?><meta lang="<?= $this->router()->language ?>"><?php
             ?><meta charset="utf-8"><?php
             ?><link rel="canonical" href="https://www.mourjan.com<?= $this->router()->uri ?>"><?php
             ?><meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1"><?php
@@ -4991,9 +4924,9 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
     }
     
     function sidebarAMP(){        
-        $lang=$this->router()->siteLanguage=='ar'?'':$this->router()->siteLanguage.'/';
+        $lang=$this->router()->language=='ar'?'':$this->router()->language.'/';
         
-        ?><amp-sidebar id="sidebar" layout="nodisplay" side="<?= $this->router()->siteLanguage == 'ar' ? 'right':'left' ?>"><?php
+        ?><amp-sidebar id="sidebar" layout="nodisplay" side="<?= $this->router()->language == 'ar' ? 'right':'left' ?>"><?php
             
         ?><ul><?php            
                         
@@ -5090,7 +5023,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 $countryId=$this->router()->countryId=$this->user->params['country'];
             if (isset($this->user->params['city']) && $this->user->params['city'])
                 $cityId=$this->router()->cityId=$this->user->params['city'];
-            $this->router()->pageRoots = $this->router()->db->getRootsData($countryId, $cityId, $this->router()->siteLanguage);
+            $this->router()->pageRoots = $this->router()->db->getRootsData($countryId, $cityId, $this->router()->language);
             //roots
             $i=0;
             foreach ($this->router()->pageRoots as $key=>$root) {
@@ -5170,7 +5103,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         $keywords='';
         $keywords.=  $this->lang['mourjan'].',';
         $keywords.=  $this->lang['pclassifieds'].',';
-        if($this->router()->siteLanguage=='ar'){
+        if($this->router()->language=='ar'){
             $keywords.='نشر إعلان,إعلان,';
         }else{
             $keywords.='ad,post ad,';
@@ -5253,7 +5186,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         }
         
         echo '<!doctype html>';
-        echo '<html lang="', $this->router()->siteLanguage, $country_code,'" xmlns:fb="http://ogp.me/ns/fb#" xmlns:og="http://ogp.me/ns#"';
+        echo '<html lang="', $this->router()->language, $country_code,'" xmlns:fb="http://ogp.me/ns/fb#" xmlns:og="http://ogp.me/ns#"';
         if (isset($this->detailAd[Classifieds::VIDEO]) && $this->detailAd[Classifieds::VIDEO]) {
             echo ' xmlns:video="http://ogp.me/ns/video#"';
         }
@@ -5273,10 +5206,10 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         <meta name="format-detection" content="telephone=no">
         <link rel="manifest" href="/manifest.json"><?php          
         if ($country_code && isset($this->router()->cities)) {
-            echo '<meta http-equiv="content-language" content="', $this->router()->siteLanguage, $country_code, '">';
+            echo '<meta http-equiv="content-language" content="', $this->router()->language, $country_code, '">';
         } 
         else {
-            echo '<meta http-equiv="content-language" content="', $this->router()->siteLanguage, $country_code,'" />';
+            echo '<meta http-equiv="content-language" content="', $this->router()->language, $country_code,'" />';
         }
         
         if ($this->forceNoIndex) {
@@ -5301,7 +5234,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                             $qTotal = $this->searchResults['body']['total_found'];
                             $__fpages=$qTotal/$this->num;
                             $qPages = ($__fpages<1) ? 0 : ceil($__fpages);
-                            $qTmp=ceil($this->router()->cfg['search_results_max']/$this->num);
+                            $qTmp=ceil($this->router()->config()->get('search_results_max')/$this->num);
                             if ($qPages>$qTmp) $qPages=(int)$qTmp;
                         
                             if (array_key_exists('q', $_GET)) {
@@ -5310,8 +5243,8 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                             
                                 if ($this->router()->params['start']<$qPages && !$this->isMobile) {
                                     $next = $this->router()->params['start']==0 ? 2 : $this->router()->params['start']+1;
-                                    echo '<link rel="prerender" href="', $this->router()->cfg['url_base'], $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
-                                    echo '<link rel="prefetch" href="', $this->router()->cfg['url_base'], $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
+                                    echo '<link rel="prerender" href="', $this->router()->config()->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
+                                    echo '<link rel="prefetch" href="', $this->router()->config()->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
                                 }                            
                             }
                             else {                            
@@ -5334,7 +5267,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                                 // page is not qualified to be multi language indexable
                                 if ($qTotal<static::SearchEngineLegitimateEntries && !$this->router()->isArabic()) {
                                     if ($this->extendedId || $this->localityId) {
-                                        $canonicalCurrentUrl = preg_replace("/\/{$this->router()->siteLanguage}\//", "/", $this->extended_uri);
+                                        $canonicalCurrentUrl = preg_replace("/\/{$this->router()->language}\//", "/", $this->extended_uri);
                                     
                                         if ($this->localityId) {
                                             $alter = $this->router()->database()->index()
@@ -5377,7 +5310,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                                         echo "pu={$this->router()->purposeId}&";
                                         echo "tx={$this->extendedId}&";
                                         echo "gx={$this->localityId}&";
-                                        echo "hl={$this->router()->siteLanguage}";
+                                        echo "hl={$this->router()->language}";
                                         echo '" />';
                                     }
                                 }
@@ -5389,7 +5322,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                             
                                 if ($this->router()->params['start']>1) {
                                     $prev=$this->router()->params['start']-1;
-                                    echo "<link rel='prev' href='", $this->router()->cfg['url_base'], $currentUrl;
+                                    echo "<link rel='prev' href='", $this->router()->config()->baseURL, $currentUrl;
                                     if ($prev>1) {
                                         echo $prev, '/';
                                     }
@@ -5399,9 +5332,9 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                                 if ($this->router()->params['start']<$qPages && !$this->isMobile) {
                                     $next = $this->router()->params['start']+1;
                                     if ($next==1) $next=2;
-                                    echo "<link rel='next' href='", $this->router()->cfg['url_base'], $currentUrl, $next, "/' />";
-                                    echo '<link rel="prerender" href="', $this->router()->cfg['url_base'], $currentUrl, $next, '/" />';
-                                    echo '<link rel="prefetch" href="', $this->router()->cfg['url_base'], $currentUrl, $next, '/" />';
+                                    echo "<link rel='next' href='", $this->router()->config()->baseURL, $currentUrl, $next, "/' />";
+                                    echo '<link rel="prerender" href="', $this->router()->config()->baseURL, $currentUrl, $next, '/" />';
+                                    echo '<link rel="prefetch" href="', $this->router()->config()->baseURL, $currentUrl, $next, '/" />';
                                 }
                             }
                         }
@@ -5411,7 +5344,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                     }
 
                     if (!$this->router()->isMobile) {
-                        echo '<link href="', $this->router()->cfg['url_base'], $this->router()->uri, $this->router()->getLanguagePath(), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
+                        echo '<link href="', $this->router()->config()->baseURL, $this->router()->uri, $this->router()->getLanguagePath(), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
                     }
 
                     break;
@@ -5462,7 +5395,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                     echo '<meta name="robots" content="noindex, nofollow" />';
                 } 
                 elseif($this->router()->module=='privacy'||$this->router()->module=='terms'||$this->router()->module=='about'||$this->router()->module=='advertise') {
-                    if ($this->router()->siteLanguage=='en'){
+                    if ($this->router()->language=='en'){
                         echo '<meta name="robots" content="noodp, noydir, index, follow" />';
                     }
                     else {
@@ -5491,9 +5424,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         echo '>', "\n";
         
         
-        if (1) {
-            return;
-        }
+        if (1) {  return; }
         
         
         /*-------------- OLD code --------------------------*/
@@ -5612,13 +5543,13 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         echo '<!doctype html>';
         //if ($this->ampEnabled)
         //{
-        //    echo '<html amp lang="', $this->router()->siteLanguage, '"><head>';
+        //    echo '<html amp lang="', $this->router()->language, '"><head>';
         //    echo '<meta charset="utf-8"><script async src="https://cdn.ampproject.org/v0.js"></script>'; 
         //    echo '<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>';
         //}
         //else
         //{
-        echo '<html lang="', $this->router()->siteLanguage, $country_code,'" xmlns:fb="http://ogp.me/ns/fb#" xmlns:og="http://ogp.me/ns#"';
+        echo '<html lang="', $this->router()->language, $country_code,'" xmlns:fb="http://ogp.me/ns/fb#" xmlns:og="http://ogp.me/ns#"';
         if (isset($this->detailAd[Classifieds::VIDEO]) && $this->detailAd[Classifieds::VIDEO]) {
             echo ' xmlns:video="http://ogp.me/ns/video#"';
         }
@@ -5666,10 +5597,10 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 echo '<meta name="geo.region" content="" />';
                 if ($geo) echo '<meta name="ICBM" content="', $geo[7], ', ', $geo[8], '" />';                       
             }*/
-            echo '<meta http-equiv="content-language" content="', $this->router()->siteLanguage, $country_code, '">';
+            echo '<meta http-equiv="content-language" content="', $this->router()->language, $country_code, '">';
         } 
         else {
-            echo '<meta http-equiv="content-language" content="', $this->router()->siteLanguage, $country_code,'" />';
+            echo '<meta http-equiv="content-language" content="', $this->router()->language, $country_code,'" />';
         }
         
         if ($this->forceNoIndex) {
@@ -5713,9 +5644,9 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                     }
                     echo '<link rel="canonical" href="http://www.mourjan.com', sprintf($_uri, ($_rtl?'':'en/'), $_cid_), '" />';
 
-                    if (($_rtl==1 && $this->router()->siteLanguage!='ar')||($_rtl==0 && $this->router()->siteLanguage=='ar')) {
+                    if (($_rtl==1 && $this->router()->language!='ar')||($_rtl==0 && $this->router()->language=='ar')) {
                         echo '<meta name="robots" content="noindex, follow" />';
-                        echo '<meta name="mourjan" content="'. $_rtl . ", {$this->router()->siteLanguage}" , '" />';
+                        echo '<meta name="mourjan" content="'. $_rtl . ", {$this->router()->language}" , '" />';
                     }else {
                         echo '<meta name="robots" content="noodp, noydir, index, follow" />';
                     }
@@ -5753,8 +5684,8 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                             if ($this->router()->params['start']<$qPages && !$this->isMobile) 
                             {
                                 $next = $this->router()->params['start']==0 ? 2 : $this->router()->params['start']+1;
-                                echo '<link rel="prerender" href="', $this->router()->cfg['url_base'], $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
-                                echo '<link rel="prefetch" href="', $this->router()->cfg['url_base'], $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
+                                echo '<link rel="prerender" href="', $this->router()->config()->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
+                                echo '<link rel="prefetch" href="', $this->router()->config()->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
                             }                            
                         }
                         else {
@@ -5782,7 +5713,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                             // page is not qualified to be multi language indexable
                             if ($qTotal<static::SearchEngineLegitimateEntries && !$this->router()->isArabic()) {
                                 if ($this->extendedId || $this->localityId) {
-                                    $canonicalCurrentUrl= preg_replace("/\/{$this->router()->siteLanguage}\//", "/", $this->extended_uri);
+                                    $canonicalCurrentUrl= preg_replace("/\/{$this->router()->language}\//", "/", $this->extended_uri);
                                     
                                     if ($this->localityId) {
                                         $alter = $this->router()->database()->index()
@@ -5829,7 +5760,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                                     echo "pu={$this->router()->purposeId}&";
                                     echo "tx={$this->extendedId}&";
                                     echo "gx={$this->localityId}&";
-                                    echo "hl={$this->router()->siteLanguage}";
+                                    echo "hl={$this->router()->language}";
                                     echo '" />';
                                 }
                             }else {
@@ -5841,7 +5772,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
 
                             if ($this->router()->params['start']>1) {
                                 $prev=$this->router()->params['start']-1;
-                                echo "<link rel='prev' href='", $this->router()->cfg['url_base'], $currentUrl;
+                                echo "<link rel='prev' href='", $this->router()->config()->baseURL, $currentUrl;
                                 if ($prev>1) {
                                     echo $prev, '/';
                                 }
@@ -5851,9 +5782,9 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                             if ($this->router()->params['start']<$qPages && !$this->isMobile) {
                                 $next = $this->router()->params['start']+1;
                                 if ($next==1) $next=2;
-                                echo "<link rel='next' href='", $this->router()->cfg['url_base'], $currentUrl, $next, "/' />";
-                                echo '<link rel="prerender" href="', $this->router()->cfg['url_base'], $currentUrl, $next, '/" />';
-                                echo '<link rel="prefetch" href="', $this->router()->cfg['url_base'], $currentUrl, $next, '/" />';
+                                echo "<link rel='next' href='", $this->router()->config()->baseURL, $currentUrl, $next, "/' />";
+                                echo '<link rel="prerender" href="', $this->router()->config()->baseURL, $currentUrl, $next, '/" />';
+                                echo '<link rel="prefetch" href="', $this->router()->config()->baseURL, $currentUrl, $next, '/" />';
                             }
                         }
                     }
@@ -5863,7 +5794,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 }
 
                 if (!$this->router()->isMobile) {
-                    echo '<link href="', $this->router()->cfg['url_base'], $this->router()->uri, $this->router()->getLanguagePath(), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
+                    echo '<link href="', $this->router()->config()->baseURL, $this->router()->uri, $this->router()->getLanguagePath(), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
                 }
 
                 break;
@@ -5887,9 +5818,9 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 }
                 $__name = $__cn ? 
                         (
-                         ($this->router()->siteLanguage=='ar' ? 'مرجان ' : 'Mourjan ').
+                         ($this->router()->language=='ar' ? 'مرجان ' : 'Mourjan ').
                         
-                         ($this->router()->siteLanguage=='ar' ? 
+                         ($this->router()->language=='ar' ? 
                             $this->router()->countries[$this->router()->countryId]['name'] : 
                             $this->router()->countries[$this->router()->countryId]['name']
                          )
@@ -5918,7 +5849,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 if ($this->router()->module=='notfound') {
                     echo '<meta name="robots" content="noindex, nofollow" />';
                 } elseif($this->router()->module=='privacy' || $this->router()->module=='terms' || $this->router()->module=='about' || $this->router()->module=='advertise') {
-                    if ($this->router()->siteLanguage=='en'){
+                    if ($this->router()->language=='en'){
                         echo '<meta name="robots" content="noodp, noydir, index, follow" />';
                     }else {
                         echo '<meta name="robots" content="noindex, nofollow" />';
@@ -5959,7 +5890,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
 
         //Setting the channel elements
         //Use wrapper functions for common channel elements
-        //$feed->setTitle(trim($this->router()->pageTitle[$this->router()->siteLanguage]));
+        //$feed->setTitle(trim($this->router()->pageTitle[$this->router()->language]));
         $feed->setTitle($this->title);
         $feed->setLink($this->router()->cfg['host'] . $this->router()->uri);
         if ($this->lang['description']) {
@@ -5975,13 +5906,13 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
             $country_code = '-'.$this->router()->countries[$this->router()->countryId]['uri'];
         }
 
-        $feed->setChannelElement('language', $this->router()->siteLanguage.$country_code);
+        $feed->setChannelElement('language', $this->router()->language.$country_code);
         $feed->setChannelElement('pubDate', date(DATE_RSS, time()));
         return $feed;
     }
     
     function footerMobile(){
-        $lang=$this->router()->siteLanguage=='ar'?'':$this->router()->siteLanguage.'/';
+        $lang=$this->router()->language=='ar'?'':$this->router()->language.'/';
         if(!$this->router()->isApp){
             ?> <!--googleoff: index --> <?php
             ?><div id="side" class="side"><ul class="ls"><?php            
@@ -6079,7 +6010,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 $countryId=$this->router()->countryId=$this->user->params['country'];
             if (isset($this->user->params['city']) && $this->user->params['city'])
                 $cityId=$this->router()->cityId=$this->user->params['city'];
-            $this->router()->pageRoots = $this->router()->db->getRootsData($countryId, $cityId, $this->router()->siteLanguage);
+            $this->router()->pageRoots = $this->router()->db->getRootsData($countryId, $cityId, $this->router()->language);
             //roots
             $i=0;
             foreach ($this->router()->pageRoots as $key=>$root) {
@@ -6155,7 +6086,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                     ?><li><div><?php
                         ?><h5><?= $this->lang['mourjan_app'] ?></h5><?php
                         ?><p><?= $this->lang['app_desc'] ?></p><?php
-                        ?><span class='rating <?= $this->router()->siteLanguage ?>'>(7,562)</span><?php
+                        ?><span class='rating <?= $this->router()->language ?>'>(7,562)</span><?php
                     ?></div></li><?php
                     ?><li><a type="button" href='https://play.google.com/store/apps/details?id=com.mourjan.classifieds' class="bt"><?= $this->lang['install'] ?></a></li><?php
                     ?></ul><br /><?php
@@ -6173,6 +6104,8 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
     function _body() {
         echo '<div class="wrapper">', "\n";
         $this->top();
+        $this->body();
+        $this->footer();
         echo '</div></body></html>';
         if (1) { return; }
         /*--------------------------- Old Code ---------------------------*/
@@ -6372,7 +6305,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 };
             ';
         }
-        $editPageLink='/page/'.($this->router()->siteLanguage == 'ar' ? '':'en/');
+        $editPageLink='/page/'.($this->router()->language == 'ar' ? '':'en/');
         ?><div class='w'><?php
             ?><div class="tbn"<?php
                 if (isset($this->partnerInfo['banner'][0])){

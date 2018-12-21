@@ -31,7 +31,7 @@ class Site {
         global $argc;        
         $this->router = Router::getInstance();
         //$this->router = $router;
-        if ($this->router->siteLanguage=='en') {
+        if ($this->router->language=='en') {
             $this->lnIndex=1;
         }
         if (isset($argc)) { return; }
@@ -156,7 +156,7 @@ class Site {
     
 
     function load_lang($langArray, $langStr='') : void {
-        if ($langStr=='') { $langStr=$this->router()->siteLanguage; }
+        if ($langStr=='') { $langStr=$this->router()->language; }
         if ($this->router->extendedLanguage)$langStr=$this->router->extendedLanguage;
         foreach ($langArray as $langFile) {
             include_once "{$this->router()->config()->baseDir}/core/lang/{$langFile}.php";
@@ -242,7 +242,7 @@ class Site {
         $sinceText=$this->lang['since'].' ';
         $agoText=' '.$this->lang['ago'];
         if ($days) {
-            if ($this->router->siteLanguage=='ar') {
+            if ($this->router->language=='ar') {
                 $stamp=$sinceText.$this->formatPlural($days, 'day');
             }
             else {
@@ -252,7 +252,7 @@ class Site {
         else {
             $hours=floor($seconds/3600);
             if ($hours){
-                if ($this->router->siteLanguage=='ar') {
+                if ($this->router->language=='ar') {
                     $stamp=$sinceText.$this->formatPlural($hours, 'hour');
                 }else {
                     $stamp=$this->formatPlural($hours, 'hour').$agoText;
@@ -260,7 +260,7 @@ class Site {
             }else {
                 $minutes=floor($seconds/60);
                 if (!$minutes) $minutes=1;
-                if ($this->router->siteLanguage=='ar') {
+                if ($this->router->language=='ar') {
                     $stamp=$sinceText.$this->formatPlural($minutes, 'minute');
                 }else {
                     $stamp=$this->formatPlural($minutes, 'minute').$agoText;
@@ -274,13 +274,13 @@ class Site {
     function formatPlural($number, $fieldName){
         $str='';
         if ($number==1) {
-            if ($this->router->siteLanguage=='ar') {
+            if ($this->router->language=='ar') {
                 $str=$this->lang[$fieldName];
             }else {
                 $str='1 '.$this->lang[$fieldName];
             }
         }elseif ($number==2) {
-            if ($this->router->siteLanguage=='ar') {
+            if ($this->router->language=='ar') {
                 $str=$this->lang['2'.$fieldName];
             }else {
                 $str='2 '.$this->lang['2'.$fieldName];
@@ -447,7 +447,7 @@ class Site {
                         $lng = 'IF(rtl<>1,0,1) as lngmask';
                         break;
                     default:
-                        $lng = ($this->router->siteLanguage=='ar') ? 'IF(rtl>0,0,1) as lngmask' : 'IF(rtl<>1,0,1) as lngmask';
+                        $lng = ($this->router->language=='ar') ? 'IF(rtl>0,0,1) as lngmask' : 'IF(rtl<>1,0,1) as lngmask';
                         break;
                 }
            
@@ -570,7 +570,7 @@ class Site {
                     break;
 
                 default:
-                    $rtlFilter=($this->router->siteLanguage=='ar')?[1,2]:[0,2];
+                    $rtlFilter=($this->router->language=='ar')?[1,2]:[0,2];
                     break;
             }
             
@@ -845,7 +845,7 @@ class Site {
                     $section = $this->router->purposes[$ad['pu']][$fieldNameIndex] . ' ' . $section;
                     break;
                 case 3:
-                    if ($this->router->siteLanguage == 'ar') {
+                    if ($this->router->language == 'ar') {
                         $in = ' ';
                         $section = 'وظائف ' . $section;
                     }
@@ -855,7 +855,7 @@ class Site {
                     break;
                 case 4:
                     $in = ' ';
-                    if ($this->router->siteLanguage == "en")
+                    if ($this->router->language == "en")
                         $in = ' ' . $this->lang['in'] . ' ';
                     $section = $this->router->purposes[$ad['pu']][$fieldNameIndex] . $in . $section;
                     break;
