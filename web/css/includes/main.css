@@ -220,7 +220,7 @@ li>i {margin: 0 4px; max-width: 32px;}
     height: 90px;
     width: 90px;
     display: inline-block;
-    -webkit-mask: url(logo.svg) no-repeat center;
+    -webkit-mask: url(/web/rd/logo.svg) no-repeat center;
     -webkit-mask-size: 125%;
     background-color: white;
     margin: 0 8px;

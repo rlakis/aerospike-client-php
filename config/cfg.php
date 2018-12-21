@@ -13,6 +13,7 @@ class Config extends Singleton {
     public $baseDir;
     public $cssDir;
     public $jsURL;
+    public $baseURL;
     public $cssURL;
     public $imgURL;
     public $assetsURL;
@@ -32,6 +33,7 @@ class Config extends Singleton {
         $this->host = $this->config['host'];
         $this->baseDir = $this->config['dir'];
         $this->cssDir = $this->config['dir_css'];
+        $this->baseURL = $this->config['url_base'];
         $this->jsURL = $this->config['url_js'];
         $this->cssURL = $this->config['url_css'];
         $this->imgURL = $this->config['url_img'];
@@ -40,6 +42,8 @@ class Config extends Singleton {
         $this->jQueryURL = $this->config['url_jquery'];
         $this->adImgURL = $this->config['url_ad_img'];
         $this->imgLibURL = $this->config['url_image_lib'];
+        
+        error_log($this->host);
     }
     
     

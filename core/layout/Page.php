@@ -1734,6 +1734,29 @@ class Page extends Site {
                 $cityId = 0;
             }
         }
+        ?>
+<header>
+    <nav class="navbar">
+        <div class="float-left"><a href="#" style="padding: 0;"><i class="ilogo"></i></a></div>        
+        <div class="float-right">
+            <ul class="nav float-right">
+                <li><a href="#"><i class="icn icnsmall icn-bell"></i></a></li>
+                <li><a href="#"><i class="icn icnsmall icn-user"></i></a></li>
+            </ul>
+        </div>
+    </nav>
+</header>
+<div class="row">
+    <div class="col-12">
+        <div class="search">
+            <form class="" onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">
+                <input id="q" name="q" class="searchTerm" type="search" placeholder="<?=$this->lang['search_what']; ?>">
+                <button class="searchButton float-right" type="submit"><i class="icn icnsmall icn-search"></i></button>
+            </form>
+        </div>
+    </div>
+</div>
+<?php
         switch ($this->router()->module) {
             
         }
@@ -5237,7 +5260,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         echo '><head><meta charset="utf-8">', "\n";
         echo "<style>\n";
         include $this->router()->config()->baseDir.'/web/css/includes/main.css';
-        echo "\n<\style>\n";
+        echo "\n</style>\n";
         $this->header();
         echo '<title>', $this->title, '</title>';
         $imgURL = $this->router()->config()->imgURL;
@@ -5454,7 +5477,8 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         }
                 
         ?><link rel="icon" href="<?= $this->router()->config()->imgURL ?>/favicon.ico" type="image/x-icon" /><?php 
-        $this->set_analytics_header();            
+        $this->set_analytics_header();
+        echo "\n", '<meta itemprop="isFamilyFriendly" content="true" />', "\n";        
         echo '</head>', "\n";
         flush();
         echo '<body dir="', $this->router()->isArabic() ? 'rtl':'ltr', '" ', $this->pageItemScope;
@@ -5464,7 +5488,9 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         if ($this->router()->isAcceptWebP) {
             echo ' class="wbp"';
         }
-        echo '>', "\n", '<meta itemprop="isFamilyFriendly" content="true" />', "\n";
+        echo '>', "\n";
+        
+        
         if (1) {
             return;
         }
@@ -6146,6 +6172,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
     
     function _body() {
         echo '<div class="wrapper">', "\n";
+        $this->top();
         echo '</div></body></html>';
         if (1) { return; }
         /*--------------------------- Old Code ---------------------------*/

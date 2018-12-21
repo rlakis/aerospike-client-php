@@ -25,10 +25,8 @@ if(0){
 
 
 ?>
-<link rel='preconnect' href='https://pagead2.googlesyndication.com' /><style><?php
-    include '/var/www/mourjan/web/css/includes/main.css';
-?>
-
+<link rel='preconnect' href='https://pagead2.googlesyndication.com' /><style>
+<?php include '/var/www/mourjan/web/css/includes/main.css'; ?>
 </style>
 
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>

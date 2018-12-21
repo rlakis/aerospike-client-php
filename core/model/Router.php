@@ -421,7 +421,7 @@ class Router extends \Singleton {
             $this->countries = $this->db->getCountriesData($this->siteLanguage);
             
             if (isset($_session_params['visit']) && isset($_session_params['user_country'])) { 
-                if (!$this->countryId && strpos($this->cfg['url_base'], 'dv.mourjan.com')===false) {  
+                if (!$this->countryId && strpos($this->config->baseURL, 'dv.mourjan.com')===false && strpos($this->config->baseURL, 'h1.mourjan.com')===false) {  
                     $curi = $this->uri;
                     if (isset($this->cookie->cn) && $this->cookie->cn) {
 		        if (!isset($_GET['app']) && isset($this->cookie->lg) && in_array($this->cookie->lg, array('ar','en'))) {
@@ -440,14 +440,14 @@ class Router extends \Singleton {
                         
                         if ($this->uri!=$curi) {
                             $_SESSION['_u']['params'] = $_session_params;
-                            $this->redirect($this->cfg['url_base'].$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->siteLanguage != 'ar' ? $this->siteLanguage .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
+                            $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->siteLanguage != 'ar' ? $this->siteLanguage .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
                         }
                     } 
                     else {
                         $_SESSION['_u']['params'] = $_session_params;
                         $this->setGeoByIp();
                         if ($this->uri!=$curi) {                            
-                            $this->redirect($this->cfg['url_base'].$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->siteLanguage != 'ar' ? $this->siteLanguage .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
+                            $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->siteLanguage != 'ar' ? $this->siteLanguage .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
                         }
                     }                    
                 }
@@ -459,7 +459,7 @@ class Router extends \Singleton {
                 $_SESSION['_u']['params'] = $_session_params;
                 $this->setGeoByIp();
                 if ($current_uri!=$this->uri) {                    
-                    $this->redirect($this->cfg['url_base'].$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->siteLanguage != 'ar' ? $this->siteLanguage .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );                
+                    $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->siteLanguage != 'ar' ? $this->siteLanguage .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );                
                 }
                 
                 if (!$this->countryId) {                
@@ -475,7 +475,7 @@ class Router extends \Singleton {
                         }
                         if ($current_uri!=$this->uri) {
                             $_SESSION['_u']['params'] = $_session_params;
-                            $this->redirect($this->cfg['url_base'].$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->siteLanguage != 'ar' ? $this->siteLanguage .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
+                            $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->siteLanguage != 'ar' ? $this->siteLanguage .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
                         }
                     }
                 }    
@@ -499,7 +499,7 @@ class Router extends \Singleton {
             if (!isset($_GET['app']) && isset($this->cookie->lg) && in_array($this->cookie->lg, array('ar','en'))) {
                 $this->siteLanguage=$_session_params['lang']=$this->cookie->lg;
                 $_SESSION['_u']['params'] = $_session_params;
-                $this->redirect($this->cfg['url_base'].$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).$this->getLanguagePath().($this->id ? $this->id.'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
+                $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).$this->getLanguagePath().($this->id ? $this->id.'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
             } 
             else {
                 $_session_params['lang']=$this->siteLanguage;
@@ -553,9 +553,6 @@ class Router extends \Singleton {
     public function config() : \Config {
         return $this->config;
     }
-    //public function config(string $key) {
-    //    return $this->config->config[$key];
-    //}
 	
     
     private function setGeoByIp() {
@@ -568,8 +565,8 @@ class Router extends \Singleton {
             $_session_params['latitude'] = $geo['location']['latitude'] ?? 0.0;
             $_session_params['longitude'] = $geo['location']['longitude'] ?? 0.0;
                 
-            if (array_key_exists($country_code, $this->cfg['iso_countries'])) {
-                $this->countryId = $this->cfg['iso_countries'][$country_code];                    
+            if (array_key_exists($country_code, $this->config->get('iso_countries'))) {
+                $this->countryId = $this->config->get('iso_countries')[$country_code];                    
                     
                 $this->uri='/'.$country_code; 
                 $_session_params['city']=0;
