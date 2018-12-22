@@ -1729,7 +1729,7 @@ class Page extends Site {
             if ($this->router()->countryId==0) {
                 $cityId = 0;
             }
-            else if (empty($this->router()->countries[$this->router()->countryId]['cities'])) {
+            elseif (empty($this->router()->countries[$this->router()->countryId]['cities'])) {
                 $cityId = 0;
             }
         }
@@ -1783,7 +1783,17 @@ class Page extends Site {
         ?>
 <header>
     <nav class="navbar">
-        <div class="float-left"><a href="<?= $this->router()->getURL($this->router()->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>" style="padding: 0;"><i class="ilogo"></i></a></div>        
+        <div class="float-left">
+            <a href="<?= $this->router()->getURL($this->router()->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>" style="padding: 0;"><i class="ilogo"></i></a>
+            <?php
+            if ($this->router()->countryId && isset($this->router()->countries[$this->router()->countryId])) {
+                echo '<i class="icn icntop icn-', $this->router()->countries[$this->router()->countryId]['uri'], '"></i>';
+            }
+            else {
+                echo '<i class="icn icntop icn-globe"></i>';
+            }
+            ?>
+        </div>        
         <div class="float-right">
             <ul class="nav float-right">
                 <li><a href="<?= $url ?>"><i class="icn icnsmall icn-lang"></i></a></li>
@@ -2890,8 +2900,9 @@ class Page extends Site {
         $year = date('Y');
         echo '<footer><div class="col-12">© 2010-', $year, ' Mourjan.com Classifieds Aggregator - All Rights Reserved.';        
         if (!isset($this->user->info['level']) || $this->user->info['level']!=9) {
-            ?><br /><?php
-            ?><script language="JavaScript" type="text/javascript">TrustLogo("https://www.mourjan.com/img/1.0.3/comodo.png", "CL1", "none");</script><?php
+            ?><br /><br />
+            <a href="https://sectigo.com/trust-seal" style="font-family: arial; font-size: 10px; color: #212121; text-decoration: none;"><img src="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png" srcset="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png, https://sectigo.com/images/seals/sectigo_trust_seal_lg_2x.png 2x" width="140" height="54" alt="Protected by Sectigo SSL" border="0" /></a><div style="font-family: arial;font-weight:bold;font-size:15px;color:#86BEE0;"><a href="https://sectigo.com" style="color:#86BEE0; text-decoration: none;">SSL Certificate</a></div>
+            <?php
         }
         echo '</div></footer>',"\n";
         if (1) {

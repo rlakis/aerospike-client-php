@@ -777,5 +777,6 @@ $lang=array(
     'premium_cancel'    =>  'إلغاء التمييز',
     
     'all_pubs'      =>  'كل المصادر',
-    'other_sources'         =>  'المصادر الأخرى'
+    'other_sources'         =>  'المصادر الأخرى',
+    'countries_regions' => 'البلدان والمناطق'
 );

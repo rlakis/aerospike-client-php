@@ -4,7 +4,6 @@ ini_set('display_errors', get_cfg_var('mourjan.server_id')=='99'?1:0);
 
 include_once dirname(__DIR__) . '/core/model/Singleton.php';
 
-
 class Config extends Singleton {
     public $config;
         
@@ -291,35 +290,19 @@ $config=array(
     'url_image_lib'         => '/lix/2.0.0',
     'url_highcharts'        => '/hc/3.0.9',
     
-    //iso countries
-    'iso_countries'         => [
-                                'lb'=>1,
-                                'ae'=>2,
-                                'bh'=>3,
-                                'sa'=>4,
-                                'eg'=>5,
-                                'sy'=>6,
-                                'kw'=>7,
-                                'jo'=>8,
-                                'qa'=>9, 
-                                'sd'=>10,
-                                'tn'=>11,
-                                'ye'=>12,
-                                'dz'=>15,
-                                'iq'=>106,
-                                'ly'=>122,
-                                'ma'=>145,
-                                'om'=>161
-                            ],
+    'iso_countries'         => ['lb'=>1, 'ae'=>2, 'bh'=>3, 'sa'=>4, 'eg'=>5,
+                                'sy'=>6, 'kw'=>7, 'jo'=>8, 'qa'=>9, 'sd'=>10,
+                                'tn'=>11, 'ye'=>12, 'dz'=>15, 'iq'=>106,
+                                'ly'=>122, 'ma'=>145, 'om'=>161],
 
     'modules'               => array(
-                                'admin'        => array('Admin',0),
-                                'ajax-pay'        => array('Bin',0),
-                                'ajax-mobile'        => array('Bin',0),
-                                'ajax-keyword'        => array('Bin',0),
-                                'ajax-propspace'        => array('Bin',0),
-                                'detail'        => array('Detail',1),
-                                'index'         => array('Home',1),
+                                'admin'             => array('Admin',0),
+                                'ajax-pay'          => array('Bin',0),
+                                'ajax-mobile'       => array('Bin',0),
+                                'ajax-keyword'      => array('Bin',0),
+                                'ajax-propspace'    => array('Bin',0),
+                                'detail'            => array('Detail',1),
+                                'index'             => array('Home',1),
                                 'home'         => array('Panel',1),
                                 'search'        => array('Search',1),
                                 'contact'       => array('Contact',1),
@@ -466,7 +449,6 @@ $config['url_uploader']         = 'https://h1.mourjan.com';
 $config['server_id'] = get_cfg_var('mourjan.server_id');
 $config['active_maintenance']=0;
 
-error_log(__FILE__ . ' ' .$config['url_ad_img']);
 
 Config::instance()->setConfig($config);
 
@@ -487,9 +469,4 @@ function libFile(string $file_name) {
         $config['lib-dir'] = $config['dir'] . '/core/lib/';
     }
     include_once $config['lib-dir'] . $file_name;
-}
-
-
-function bin_file(string $file_name) : string {
-    
 }

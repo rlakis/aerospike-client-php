@@ -770,6 +770,8 @@ $lang=array(
     'premium_cancel'    =>  'Cancel Premium',
     
     'all_pubs'      =>  'All Publications',
-    'other_sources'         =>  'Other Sources'
+    'other_sources'         =>  'Other Sources',
+    'countries_regions' => 'Countries & regions'
+    
     
 );

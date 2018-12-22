@@ -9,11 +9,17 @@ class Home extends Page {
         header('Vary: User-Agent');
         parent::__construct($router);
         $this->lang['description']=$this->lang['home_description'];
+        if ($this->router()->countryId) {
+            $this->lang['description'].=' '.$this->lang['in'].' '.$this->title;
+        }
+        else {
+            $this->lang['description'].=$this->lang['home_description_all'];
+        }
         $this->render();
     }
     
-    
-    function __construct1($router){       
+    /*
+    function __construct($router){       
         header('Vary: User-Agent');
         parent::__construct($router);
         $this->lang['description']=$this->lang['home_description'];
@@ -140,7 +146,7 @@ class Home extends Page {
             $this->lang['description'].=$this->lang['home_description_all'];
         }
         $this->render();
-    }
+    }*/
 
     
     function mainMobile(){
@@ -407,17 +413,10 @@ var setOrder=function(e)
     
     function _main_pane(){
         $adLang='';
-        //$header=($this->router()->cityId? $this->router()->cities[$this->router()->cityId][$this->fieldNameIndex]:($this->router()->countryId ? $this->router()->countries[$this->router()->countryId][$this->fieldNameIndex] : $this->lang['mourjan_header']));
         if ($this->router()->language!="ar") $adLang=$this->router()->language.'/';
-        /*if ($this->router()->countryId || $this->router()->cityId) {
-            if ($adLang) $header.=' '.$this->lang['title_home'];
-            else $header=$this->lang['title_home'].' '.$header;
-        }*/
         if(0 && $this->router()->countryId==1){
-            $rand = rand(0, 1);
-            
+            $rand = rand(0, 1);            
             ?><div onclick="ga('send', 'event', 'OutLinks', 'click', 'Servcorp-HomeBanner');wn('http://www.servcorp.com.lb/en/locations/beirut/beirut-souks-louis-vuitton-building/virtual-offices/');" class="tvs tvs<?= $rand ?>"></div><?php 
-            /* ?><div class="tvf"></div><?php */
         }
         else {
             ?><div class="tv rcb"><div class="tx sh"><div class="tz"><?= $this->lang['billboard'] ?><p class="ctr"><?php
@@ -435,6 +434,7 @@ var setOrder=function(e)
 
 
     function main_pane() : void {
+        echo '<!--googleoff: snippet-->';
         echo '<div class="row">', "\n";
         $sections = [];
         foreach ($this->router()->pageRoots as $id=>$root) {
@@ -463,7 +463,8 @@ var setOrder=function(e)
             foreach ($items as $section_id => $section) {
                 if ($section['counter']==0) { break; }
                 $link = $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $root_id, $section_id);
-                echo '<li><a href="', $link,'">', $section['name'], '<span class="float-right">', number_format($section['counter'],0), '</span></a></li>';
+                $cls = $this->checkNewUserContent($section['unixtime']) ? ' hot': '';
+                echo '<li><a href="', $link,'">', $section['name'], '<span class="float-right', $cls, '">', number_format($section['counter'],0), '</span></a></li>';
                 $i++;
                 if ($i>=10) { break; }
             }
@@ -487,8 +488,32 @@ var setOrder=function(e)
         echo '<li><i class="icn icnsmall icn-85"></i><span>', $this->lang['termsConditions'], '</span></li>';
         echo '<li><i class="icn icnsmall icn-81"></i><span>', $this->lang['privacyPolicy'], '</span></li>';
         echo '</ul></div></div>', "\n"; // card
+        echo '</div>'; // col-4
         
-        echo '</div></div>', "\n";
+        echo '<div class="col-8">';
+
+        $cc=['ae'=>null, 'sa'=>null, 'kw'=>null, 'bh'=>null, 'qa'=>null, 'om'=>null, 'ye'=>null, 
+            'lb'=>null, 'jo'=>null, 'iq'=>null, 'sy'=>null, 
+            'eg'=>null, 'ma'=>null, 'tn'=>null, 'dz'=>null, 'sd'=>null, 'ly'=>null];
+        foreach ($this->router()->countries as $id => $cn) {
+            if (!isset($cc[$cn['uri']])) { $cc['uri']=null; }
+            if ($cc[$cn['uri']]==null) {
+                $cc[$cn['uri']] = "<dt><a href={$this->router()->getURL($id)}><i class=\"icn icnsmall icn-{$cn['uri']}\"></i><span>{$cn['name']}</span></a></dt>\n";
+            }
+            foreach ($cn['cities'] as $cid=>$city) {
+                $href = $this->router()->getURL($id, $cid);
+                $cc[$cn['uri']].= "<dd><a href={$href}>{$city['name']}</a></dd>\n";
+            }
+        }
+        echo '<div class=card>', '<div class="card-header float-left" style="background-color:navy;"><i class="icn icn-globe"></i></div>', '<div class=card-content><h4 class=card-title>', $this->lang['countries_regions'], '</h4>';
+        echo '<dl class="dl col-4">', $cc['ae'], $cc['bh'], $cc['qa'], $cc['kw'], '</dl>', "\n"; 
+        echo '<dl class="dl col-4">', $cc['sa'], $cc['om'], $cc['ye'], $cc['iq'], '</dl>', "\n"; 
+        echo '<dl class="dl col-4">', $cc['lb'], $cc['jo'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], $cc['sd'], $cc['ly'],  $cc['sy'], '</dl>', "\n"; 
+        echo '</div>'; // card-content
+
+        echo '</div>' /* card */, '</div>'; // col-8
+        echo '</div>', "\n";
+        echo '<!--googleon: snippet-->';
     }
     
     function main_pane_OLD() {
