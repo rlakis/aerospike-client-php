@@ -107,7 +107,7 @@ class Router extends \Singleton {
             $_SESSION['webp'] = 1;
         }
         
-        if ($this->isAcceptWebP) {
+        if (0 && $this->isAcceptWebP) {
             $this->_png = ".webp";
             $this->_jpg = ".webp";
             $this->_jpeg = ".webp";

@@ -2579,15 +2579,19 @@ class Page extends Site {
     }
 
     
-    function pagination($link=null){
-        if (!$this->paginationString || $link) {
-            $appendLang=($this->router()->language=='ar'?'/':'/'.$this->router()->language.'/');
+    function pagination($link=null) : string {
+        if (!$this->paginationString||$link) {
+            $appendLang=$this->router()->getLanguagePath();
             $result='';
-            if ($this->router()->userId){
+            if ($this->router()->userId) {
                 $link='/'.$this->partnerInfo['uri'].$appendLang.'%s';                
-            }elseif ($this->router()->watchId){
+            }
+            elseif ($this->router()->watchId) {
                 $link='/watchlist'.$appendLang.'%s';                
-            }elseif ($this->userFavorites) $link='/favorites'.$appendLang.'%s';
+            }
+            elseif ($this->userFavorites) {
+                $link='/favorites'.$appendLang.'%s';                
+            }
             elseif ($this->extendedId) {
                 $idx=1;
                 $link='/';
@@ -2604,13 +2608,10 @@ class Page extends Site {
                 $link.=$this->router()->purposes[$this->router()->purposeId][3].'/';
                 if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
                 $link.='q-'.$this->extendedId.'-'.$idx.'/%s';
-            }elseif ($this->localityId) {
+            }
+            elseif ($this->localityId) {
                 $idx=2;
                 $link='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
-                /*if ($this->hasCities && $this->router()->cityId) {
-                    $link.=$this->router()->cities[$this->router()->cityId][3].'/';
-                    $idx=3;
-                }*/
                 $link.=$this->localities[$this->localityId]['uri'].'/';
                 if ($this->router()->sectionId) 
                     $link.=$this->router()->sections[$this->router()->sectionId][3].'/';
@@ -2625,7 +2626,7 @@ class Page extends Site {
 
             $uri_query='';
             $linkAppend='?';
-            if($this->pageUserId){
+            if ($this->pageUserId) {
                 $uri_query=$linkAppend.'u='.$this->user->encodeId($this->pageUserId);
                 $linkAppend='&';
             }
@@ -2640,20 +2641,19 @@ class Page extends Site {
                 
                 $tmp=$this->router()->config()->get('search_results_max')/$this->num;
                 if ($pages>$tmp) $pages=$tmp;
-                if ($pages>1) {
-                    //$currentPage=ceil(($this->router()->params['start']+1)/$this->num);
-                    
+                if ($pages>1) {                    
                     $currentPage = ($this->router()->params['start']?$this->router()->params['start']:1);
                     $isFirst=true;
                     if ($currentPage>1) {
-                        $result.='<li class="prev">';
-                        $result.='<a target="_self" href="';
+                        $result.='<li class="prev"><a target="_self" href="';
                         
                         $page_no= $currentPage-1;
-                        if ($page_no>1)
+                        if ($page_no>1) {
                             $result.=sprintf ($link, "{$page_no}/{$uri_query}");
-                        else 
+                        } 
+                        else {
                             $result.=sprintf ($link, $uri_query);
+                        }
                         
                         $result.='">';
                         $result.='< '.$this->lang['previous'];
@@ -2662,7 +2662,6 @@ class Page extends Site {
                         $isFirst=false;
                     }
                     $pageMargin=3;
-                    //if($this->router()->userId) $pageMargin=4;
                     $startPage=$currentPage-$pageMargin;
                     if ($startPage<=0) $startPage=1;
                     $endPage=$currentPage+$pageMargin;
@@ -2670,7 +2669,8 @@ class Page extends Site {
                     while ($startPage<=$endPage) {
                         if ($startPage==$currentPage) {
                             $result.='<li class="'.($isFirst ? 'fst ':'').'op">'.$startPage.'</li>';
-                        } else {
+                        } 
+                        else {
                             $page_no=$startPage-1;
                             $result.='<li'.($isFirst ? ' class="fst"':'').'><a target="_self" href="';
                             
@@ -2684,20 +2684,20 @@ class Page extends Site {
                         $isFirst=false;
                         $startPage++;
                     }
+                    
                     if ($currentPage<$pages) {
                         $result.='<li class="next">';
                         $offset=$this->router()->params['start']+$this->num;
-                        $result.='<a target="_self" href="';
-                        
-                        //$result.=$link.$linkAppend.'start='.$offset;
+                        $result.='<a target="_self" href="';                        
                         $page_no=$currentPage+1;
                         $result.=sprintf ($link, "{$page_no}/{$uri_query}");
                         $result.='">';
                         $result.=$this->lang['next'].' >';
                         $result.='</a></li>';
                         $result.= '</ul>';
-                        $result= '<ul class="nav">'.$result;
-                    }else{                        
+                        $result= '<div class="col-12"><ul class="nav">'.$result.'</div>';
+                    }
+                    else { 
                         $result.= '</ul>';
                         $result= '<ul class="nav nev">'.$result;
                     }
@@ -2709,131 +2709,7 @@ class Page extends Site {
         return $this->paginationString;
     }
     
-    function pagination_bk($link=null){
-        if (!$this->paginationString || $link) {
-            $rightCB='rbrc';
-            $leftCB='rblc';
-            $appendLang='/';
-            if ($this->router()->language=='en') {
-                $rightCB='rblc';
-                $leftCB='rbrc';
-                $appendLang='/en/';
-            }
-            $result='';
-            if ($this->router()->userId){
-                $link='/'.$this->partnerInfo['uri'].$appendLang.'%s';                
-            }elseif ($this->router()->watchId){
-                $link='/watchlist'.$appendLang.'%s';                
-            }elseif ($this->userFavorites) $link='/favorites'.$appendLang.'%s';
-            elseif ($this->extendedId) {
-                $idx=1;
-                $link='/';
-                if ($this->router()->countryId) {
-                    $idx=2;
-                    $link='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
-                }
-                if (isset($this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId])) {
-                    $link.=$this->router()->cities[$this->router()->cityId][3].'/';
-                    $idx=3;
-                }
-                $link.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
-                if ($this->router()->purposeId)
-                $link.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
-                $link.='q-'.$this->extendedId.'-'.$idx.'/%s';
-            }elseif ($this->localityId) {
-                $idx=2;
-                $link='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
-                $link.=$this->localities[$this->localityId]['uri'].'/';
-                if ($this->router()->sectionId) 
-                    $link.=$this->router()->sections[$this->router()->sectionId][3].'/';
-                else 
-                    $link.=$this->router()->pageRoots[$this->router()->rootId]['uri'].'/';
-                if ($this->router()->purposeId)
-                    $link.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
-                $link.='c-'.$this->localityId.'-'.$idx.'/%s';
-            }
-            else $link=$this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId).'%s';
-
-            $uri_query='';
-            $linkAppend='?';
-            if ($this->router()->params['q']) {
-                $uri_query=$linkAppend.'q='.urlencode($this->router()->params['q']);
-                $linkAppend='&';
-            }
-            
-            $qtotal_found = $this->searchResults['body']['total_found'];
-            if ($qtotal_found>0) {
-                
-                $pages = ceil($qtotal_found/$this->num);
-                
-                $tmp=$this->router()->cfg['search_results_max']/$this->num;
-                if ($pages>$tmp) $pages=$tmp;
-                if ($pages>1) {
-                    //$currentPage=ceil(($this->router()->params['start']+1)/$this->num);
-                    
-                    $currentPage = ($this->router()->params['start']?$this->router()->params['start']:1);
-                    
-                    if ($currentPage>1) {
-                        $result.='<td class="prev">';
-                        $result.='<a target="_self" class="'.$rightCB.'" href="';
-                        
-                        $page_no= $currentPage-1;
-                        if ($page_no>1)
-                            $result.=sprintf ($link, "{$page_no}/{$uri_query}");
-                        else 
-                            $result.=sprintf ($link, $uri_query);
-                        
-                        $result.='">';
-                        $result.=$this->lang['previous'];
-                        $result.='</a>';
-                        $result.='</td>';
-                    }
-                    $pageMargin=5;
-                    //if($this->router()->userId) $pageMargin=4;
-                    $startPage=$currentPage-$pageMargin;
-                    if ($startPage<=0) $startPage=1;
-                    $endPage=$currentPage+$pageMargin;
-                    if ($endPage>$pages) $endPage=$pages;
-                    while ($startPage<=$endPage) {
-                        if ($startPage==$currentPage) {
-                            $result.='<td><span'.($startPage==1 ? ' class="'.$rightCB.'"' : ($startPage==$endPage ? ' class="'.$leftCB.'"' :'')).'>'.$startPage.'</span></td>';
-                        } else {
-                            $page_no=$startPage-1;
-                            $result.='<td><a target="_self" href="';
-                            
-                            if ($page_no)
-                                $result.=sprintf ($link, "{$startPage}/{$uri_query}");
-                            else 
-                                $result.=sprintf($link, $uri_query);
-                            
-                            $result.='">'.$startPage.'</a></td>';
-                        }
-                        $startPage++;
-                    }
-                    if ($currentPage<$pages) {
-                        $result.='<td class="next">';
-                        $offset=$this->router()->params['start']+$this->num;
-                        $result.='<a target="_self" class="'.$leftCB.'" href="';
-                        
-                        //$result.=$link.$linkAppend.'start='.$offset;
-                        $page_no=$currentPage+1;
-                        $result.=sprintf ($link, "{$page_no}/{$uri_query}");
-                        $result.='">';
-                        $result.=$this->lang['next'];
-                        $result.='</a></td>';
-                    }
-                    $result.= '</tr></table></div>';
-                    $result= '<div class="nav rcb"><table><tr>'.$result;
-                    $this->paginationString=$result;
-                }
-
-            }
-        }
-        return $this->paginationString;
-    }
-
+   
     /********************************************************************/
     /*                           abstract functions                     */
     /********************************************************************/
@@ -2853,8 +2729,8 @@ class Page extends Site {
         if ($this->lang['description']) {             
             ?><meta name="description" content="<?= preg_replace("/<.*?>/", "", $this->lang['description']) ?>" /><?php 
         } 
-        if ($this->router()->cfg['enabled_sharing'] && $this->router()->module!="detail") {
-            $sharingUrl=$this->router()->cfg['host'].'/';
+        if ($this->router()->config()->get('enabled_sharing') && $this->router()->module!="detail") {
+            $sharingUrl=$this->router()->config()->baseURL.'/';
             if ($this->router()->userId){
                 $sharingUrl.=$this->partnerInfo['uri'].'/';
             }
@@ -2875,12 +2751,12 @@ class Page extends Site {
                     $sharingUrl.='?q='.urlencode($this->router()->params['q']);
                 }
             }
-            $pageThumb=$this->router()->cfg["url_img"].'/mourjan-icon'.$this->router()->_png;
+            $pageThumb=$this->router()->config()->imgURL.'/mourjan-icon'.$this->router()->_png;
             if($this->router()->sectionId && isset($this->router()->sections[$this->router()->sectionId])){
-                $pageThumb=$this->router()->cfg["url_img"].'/200/'.$this->router()->sectionId.$this->router()->_png;
+                $pageThumb=$this->router()->config()->imgURL.'/200/'.$this->router()->sectionId.$this->router()->_png;
             }
             elseif ($this->router()->rootId && isset($this->router()->pageRoots[$this->router()->rootId])){
-                $pageThumb=$this->router()->cfg["url_img"].'/'.$this->router()->rootId.$this->router()->_png;
+                $pageThumb=$this->router()->config()->imgURL.'/'.$this->router()->rootId.$this->router()->_png;
             }
             
             ?><meta property="og:title" content="<?= ($this->router()->watchId || $this->userFavorites) ? $this->lang['title_full']:$this->title ?>" /><meta property="og:description" content="<?= $this->lang['description'] ?>" /><meta property="og:type" content="website" /><?php
@@ -3400,8 +3276,7 @@ class Page extends Site {
         ?></script><?php
            
         
-        if ($this->isMobile && $this->router()->cfg['enabled_ads'] && in_array($this->router()->module,['search','detail']) /*&& (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745)*/)
-        {
+        if ($this->isMobile && $this->router()->config()->get('enabled_ads') && in_array($this->router()->module,['search','detail'])) {
             ?><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php
         }        
         if (!$this->isMobile){
