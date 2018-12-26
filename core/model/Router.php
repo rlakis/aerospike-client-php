@@ -515,7 +515,7 @@ class Router extends \Singleton {
     
     
     public function getLanguagePath() : string {
-        return $this->language=='ar' ? '' : $this->language.'/';
+        return ($this->language=='ar'?'':$this->language).'/';
     }
     
     
