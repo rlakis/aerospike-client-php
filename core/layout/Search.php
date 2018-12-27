@@ -346,16 +346,16 @@ class Search extends Page {
                 $this->extended = $this->router()->db->getSectionTagsData($this->router()->countryId, $this->router()->cityId, $this->router()->sectionId, $this->router()->language);
             }
         }
+        
         if ($this->router()->module == 'search' &&
-                (
-                ($this->router()->purposeId && !$this->router()->rootId && !$this->router()->sectionId) ||
-                ($this->router()->rootId == 99 && !$this->router()->sectionId)
-                )
-        ) {
+                (($this->router()->purposeId && !$this->router()->rootId && !$this->router()->sectionId) ||
+                ($this->router()->rootId == 99 && !$this->router()->sectionId))) {
             $this->forceNoIndex = true;
         }
+        
         if (!$this->router()->userId && !$this->router()->watchId) {
-            $this->getBreadCrumb($this->router()->module == 'detail');
+            //$hasResults = $this->searchResults['body']['total_found']>0 && isset($this->searchResults['body']['matches']) && count($this->searchResults['body']['matches'])>0;
+            //$this->getBreadCrumb($this->router()->module=='detail');
             $this->buildTitle();
         }
         
@@ -2462,14 +2462,8 @@ class Search extends Page {
                 echo '<div class="ad adslot">';
                 echo '<div class="card card-product">', "\n";
                 ?>
-                <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- mobile responsive ad navigate -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-2427907534283641"
-     data-ad-slot="7030570808"
-     data-ad-format="auto"
-     data-full-width-responsive="true"></ins>
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="auto" data-full-width-responsive="true"></ins>
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
@@ -3893,8 +3887,8 @@ class Search extends Page {
             else {
                 $hasShare=false;
                 $formatted = number_format($count);
-                if (!$this->userFavorites) {
-                    $bread=$this->getBreadCrumb($forceRebuild, $count);                 
+                if (!$this->userFavorites) { 
+                    $bread=$this->getBreadCrumb($forceRebuild, $count);                     
                 }
                 if (!$this->router()->isPriceList && ($this->router()->module!='detail' || ($this->router()->module=='detail' && $this->detailAdExpired))) {
                     if ($count) {
@@ -3905,7 +3899,7 @@ class Search extends Page {
                                 $hasEye=1;
                             }
                         }
-                        if ($this->user->info['id'] && ($this->user->info['level']==6 || $this->user->info['id']==5)) {
+                        if ($this->user->info['id'] && ($this->user->info['level']==6||$this->user->info['id']==5)) {
                             $hasEye=0;                        
                         }
                         
@@ -3913,7 +3907,7 @@ class Search extends Page {
                             $bread.= "<p class='ph phb'>";
                         }
                         else {
-                            $bread.= '<p class="ph'.($hasEye ? ' phx':'').'">';
+                            $bread.= '<p class="lakis ph'. ($hasEye ? ' phx':''). $count. '">';
                         }
                         $bread.='<span><b>';
                         
@@ -4914,7 +4908,7 @@ class Search extends Page {
     }
    
     
-    function getBreadCrumb(bool $forceSetting=false, int $count=0) : string {
+    function getBreadCrumb(bool $forceSetting=false, int $count=0) : string {        
         if ($this->crumbString && !$forceSetting) { return $this->crumbString; }
         if (!$forceSetting || $this->router()->module=='detail') {
             if (isset($this->router()->params['tag_id']) && isset($this->extended[$this->router()->params['tag_id']])) {
@@ -5070,8 +5064,7 @@ class Search extends Page {
             $countryName = $this->router()->countries[$this->user->params["country"]]['name'];
         }
         
-        //$bc[] = "<div class='breadcrumb' itemprop='breadcrumb'><a href='" . $this->router()->getURL($countryId) . "'>{$countryName}</a>";
-        $bc[] = "<div class='brd' itemprop='breadcrumb'><a href='" . $this->router()->getURL($countryId) . "'>{$countryName}</a>";
+        $bc[] = "<div class='brd' itemprop='breadcrumb'><div><a href='" . $this->router()->getURL($countryId) . "'>{$countryName}</a>";
 
         if ($this->hasCities && $this->router()->cityId) {
             $bc[] = "<a href='" . $this->router()->getURL($this->router()->countryId, $this->router()->cityId) . "'>{$this->cityName}</a>";
@@ -5255,7 +5248,7 @@ class Search extends Page {
             }
         }
 
-        $bread = '<div class="row col-12">' . implode("", $bc) . '</div></div>';
+        $bread = '<div class=row><div class=col-12>' . implode("", $bc) . '</div><span style="margin:0 8px;"><b>'.$count.' '.$this->lang['ads']. '</b></span>'.  '</div></div></div>';
 
         $this->crumbTitle = $this->title;
 
