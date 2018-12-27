@@ -1784,18 +1784,16 @@ class Page extends Site {
 <header>
     <nav class="navbar">
         <div class="float-left">
-            <a href="<?= $this->router()->getURL($this->router()->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>" style="padding: 0;"><i class="ilogo"></i></a>
-            <?php
-            if ($this->router()->countryId && isset($this->router()->countries[$this->router()->countryId])) {
-                echo '<i class="icn icntop icn-', $this->router()->countries[$this->router()->countryId]['uri'], '"></i>';
-            }
-            else {
-                echo '<i class="icn icntop icn-globe"></i>';
-            }
-            ?>
+            <a href="<?= $this->router()->getURL($this->router()->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>" style="padding: 0;"><i class="ilogo"></i></a>            
         </div>        
         <div class="float-right">
-            <ul class="nav float-right">
+            <ul class="nav float-right"><?php
+                if ($this->router()->countryId && isset($this->router()->countries[$this->router()->countryId])) {
+                    echo '<li><a href="#"><i class="icn icnsmall icn-', $this->router()->countries[$this->router()->countryId]['uri'], '"></i></a></li>';
+                }
+                else {
+                    echo '<li><a href="#"><i class="icn icnsmall icn-globe"></i></a></li>';
+                }?>
                 <li><a href="<?= $url ?>"><i class="icn icnsmall icn-lang"></i></a></li>
                 <li><a href="#"><i class="icn icnsmall icn-bell"></i></a></li>
                 <li><a href="#"><i class="icn icnsmall icn-user"></i></a></li>
@@ -1808,13 +1806,11 @@ class Page extends Site {
         <div class="search">
             <form class="" onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">
                 <input id="q" name="q" class="searchTerm" type="search" placeholder="<?=$this->lang['search_what']; ?>">
-                <button class="searchButton float-right" type="submit"><i class="icn icnsmall icn-search"></i></button>
+                <button class="searchButton" type="submit"><i class="icn icnsmall icn-search"></i></button>
             </form>
         </div>
     </div>
-</div>
-<?php
-        
+</div><?php        
     }
     
     
@@ -2774,7 +2770,7 @@ class Page extends Site {
     
     function footer() {
         $year = date('Y');
-        echo '<footer><div class="col-12">© 2010-', $year, ' Mourjan.com Classifieds Aggregator - All Rights Reserved.';        
+        echo '<footer><div class="col-12">© 2010-', $year, ' Mourjan.com Classifieds - All Rights Reserved.';        
         if (!isset($this->user->info['level']) || $this->user->info['level']!=9) {
             ?><br /><br />
             <a href="https://sectigo.com/trust-seal" style="font-family: arial; font-size: 10px; color: #212121; text-decoration: none;"><img src="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png" srcset="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png, https://sectigo.com/images/seals/sectigo_trust_seal_lg_2x.png 2x" width="140" height="54" alt="Protected by Sectigo SSL" border="0" /></a><div style="font-family: arial;font-weight:bold;font-size:15px;color:#86BEE0;"><a href="https://sectigo.com" style="color:#86BEE0; text-decoration: none;">SSL Certificate</a></div>
@@ -5073,9 +5069,9 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         
         echo '<!doctype html>';
         echo '<html lang="', $this->router()->language, $country_code,'" xmlns:fb="http://ogp.me/ns/fb#" xmlns:og="http://ogp.me/ns#"';
-        if (isset($this->detailAd[Classifieds::VIDEO]) && $this->detailAd[Classifieds::VIDEO]) {
-            echo ' xmlns:video="http://ogp.me/ns/video#"';
-        }
+        //if (isset($this->detailAd[Classifieds::VIDEO]) && $this->detailAd[Classifieds::VIDEO]) {
+        //    echo ' xmlns:video="http://ogp.me/ns/video#"';
+        //}
         echo '><head><meta charset="utf-8">', "\n";
         echo "<style>\n";
         include $this->router()->config()->baseDir.'/web/css/includes/main.css';
@@ -5981,7 +5977,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 ?> <!--googleon: index --> <?php 
             }
             $year = date('Y');
-            ?><div id="footer" class="copy"><span>© 2010-<?= $year ?> mourjan.com Classifieds Aggregator</span><span class="sep"> - </span><span>All Rights Reserved</span></div><?php 
+            ?><div id="footer" class="copy"><span>© 2010-<?= $year ?> mourjan.com Classifieds </span><span class="sep"> - </span><span>All Rights Reserved</span></div><?php 
         
         }
     }

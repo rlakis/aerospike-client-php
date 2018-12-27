@@ -435,7 +435,7 @@ var setOrder=function(e)
 
     function main_pane() : void {
         echo '<!--googleoff: snippet-->';
-        echo '<div class="row">', "\n";
+        echo '<div class="row home">', "\n";
         $sections = [];
         foreach ($this->router()->pageRoots as $id=>$root) {
             $count = $root['counter'];
@@ -447,15 +447,14 @@ var setOrder=function(e)
         $odd = ($count % 2)==1;
         $j=0;       
         foreach ($sections as $root_id => $items) {
-            if ($odd) {
-                $j++;
-                error_log($j);
-                echo '<div class="col-', ($j==$count)?'8':'4', '"><div class="card">';
-            }
-            else {
+            //if ($odd) {
+            //    $j++;
+            //    echo '<div class="col-', ($j==$count)?'8':'4', '"><div class="card">';
+            //}
+            //else {
                 echo '<div class="col-4">', '<div class="card">';
-            }
-            echo '<div class="card-header float-left" style="background-color:var(--color-',$root_id,');"><i class="icn icn-', $root_id, '"></i></div>';
+            //}
+            echo '<div class="card-header" style="background-color:var(--color-',$root_id,');"><i class="icn icn-', $root_id, '"></i></div>';
             echo '<div class="card-content">';
             echo '<h4 class="card-title">', $this->router()->pageRoots[$root_id]['name'],'</h4>';
             echo '<ul>';
@@ -472,9 +471,7 @@ var setOrder=function(e)
             echo '</div>';
             echo '</div></div>';
         }
-        echo '</div>', "\n";
         
-        echo '<div class="row">';
 
         echo '<div class="col-4">';
         echo '<div class="card test">', '<div class="card-content">';
@@ -490,7 +487,10 @@ var setOrder=function(e)
         echo '</ul></div></div>', "\n"; // card
         echo '</div>'; // col-4
         
-        echo '<div class="col-8">';
+        echo '</div>', "\n";
+        
+        echo '<div class="row">';
+        echo '<div class="col-12">';
 
         $cc=['ae'=>null, 'sa'=>null, 'kw'=>null, 'bh'=>null, 'qa'=>null, 'om'=>null, 'ye'=>null, 
             'lb'=>null, 'jo'=>null, 'iq'=>null, 'sy'=>null, 
@@ -505,10 +505,10 @@ var setOrder=function(e)
                 $cc[$cn['uri']].= "<dd><a href={$href}>{$city['name']}</a></dd>\n";
             }
         }
-        echo '<div class=card>', '<div class="card-header float-left" style="background-color:navy;"><i class="icn icn-globe"></i></div>', '<div class=card-content><h4 class=card-title>', $this->lang['countries_regions'], '</h4>';
-        echo '<dl class="dl col-4">', $cc['ae'], $cc['bh'], $cc['qa'], $cc['kw'], '</dl>', "\n"; 
-        echo '<dl class="dl col-4">', $cc['sa'], $cc['om'], $cc['ye'], $cc['iq'], '</dl>', "\n"; 
-        echo '<dl class="dl col-4">', $cc['lb'], $cc['jo'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], $cc['sd'], $cc['ly'],  $cc['sy'], '</dl>', "\n"; 
+        echo '<div class=card>', '<div class="card-header" style="background-color:navy;"><i class="icn icn-globe"></i></div>', '<div class=card-content><h4 class=card-title>', $this->lang['countries_regions'], '</h4>';
+        echo '<div class=col-4><dl class=dl>', $cc['ae'], $cc['bh'], $cc['qa'], $cc['kw'], '</dl></div>', "\n"; 
+        echo '<div class=col-4><dl class=dl>', $cc['sa'], $cc['om'], $cc['ye'], $cc['iq'], '</dl></div>', "\n"; 
+        echo '<div class=col-4><dl class=dl>', $cc['lb'], $cc['jo'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], $cc['sd'], $cc['ly'],  $cc['sy'], '</dl></div>', "\n"; 
         echo '</div>'; // card-content
 
         echo '</div>' /* card */, '</div>'; // col-8

@@ -48,7 +48,10 @@ class Search extends Page {
     const IS_NEW                = 40;
           
 
-    var $id = 0, $paginationString = '', $adCount = 0, $subTitle = '';
+    protected $id = 0;
+    protected $paginationString = '';
+    protected $adCount = 0;
+    protected $subTitle = '';
     var $tmpRootId = 0, $tmpPurposeId = 0;
     var $classifieds = null, $breadString = '', $crumbTitle = '', $crumbString = '', $adRef = '', $dynamicTitle = '',
         $pageThumb = '', $partnerSection = '', $watchName = '', $formatNumbers=false, $mobileValidator=null, $phoneNumber=null;
@@ -62,7 +65,7 @@ class Search extends Page {
         $this->tmpPurposeId = 0;
         $this->tmpRootId = 0;
         
-        if(isset($_GET['rt'])) { $this->isRT = 1; }
+        if (isset($_GET['rt'])) { $this->isRT = 1; }
         
         if ($this->userFavorites && !$this->user->info['id']) {
             $this->router()->config()->setValue('enabled_ads', 0);
@@ -90,64 +93,12 @@ class Search extends Page {
             $this->inlineCss .= '.thb,.thz{width:124px;height:124px}.thb img,.thz img{width:122px}.thb.prem{height:50px}h3{margin:10px}';
             $this->inlineCss .= '.txtd input[type="email"]{direction:ltr;width:90%;margin:10px auto;padding:5px 10px;border: 1px solid #CCC}';
         }
+        
         if (!$this->isMobile && !$this->router()->userId && !$this->userFavorites && !$this->router()->watchId) {
             $this->hasLeadingPane=true;
             if ($this->user->info['id'] && $this->user->info['level']==9) {
                 $this->isAdminSearch=isset($_SERVER['HTTP_REFERER']) && preg_match('/\/myads\/\?sub=pending$/', $_SERVER['HTTP_REFERER']) ? 1 : 0;
-            }
-            
-            $this->inlineCss.='                
-                .col2w .col1 {width:765px;}
-                .ph{width:448px;}
-                .nav{width:458px;}
-    .nav li{width:40px;}
-    .nav .prev{width:90px;}
-.ls{width:458px;}
-.ls li{height:160px;}
-.crd{top:119px;}
-.ls p{height:125px;}
-.pics img{max-width:448px;}
-.kq{background-color:yellow;padding:0 10px;display:block;text-align:left;direction:ltr;position:absolute;top:65px;left:0;color:#666}
-@media all and (min-width:1250px) {
-    .pics img{max-width:648px;}
-    body{min-width:1206px}
-    .w,.col2w,.colw{width:1206px;}
-    .ftr .w{width:970px;}
-    .tpb{width:1200px}
-    .col2w .col1{width:990px;}
-    .mav,.ph,.lgs,.lgt{width:663px}
-    .phx{width:613px!important}
-    .ls{width:673px}
-    .dur{width:860px}
-    .u2,.u2.uc1{width:317px!important}
-    .mul{width:1176px}
-    .mul li{width:230px}
-    .mul ul{width:230px}
-    .tz{left:330px}
-    .crd{top:89px;}
-    .ls p{height:95px;}
-    .ls li{height:130px;}
-    .nav{width:673px}
-    .nav .prev{width:110px;}
-    .nav li{width:60px;}
-    .dt{width:669px}
-    .shas label{width:auto;}
-    .tbs{width:1204px;}
-    .tbs.t2 li{width:602px}
-    .tbs.t3 li{width:401px}
-    .tbs.t4 li{width:300px}
-    .tbs.t5 li{width:240px}
-    .tbs.t6 li{width:200px}
-    .sug{width:661px}
-    .sug li{width:320px}
-    '.($this->router()->language=='ar' ? '
-    .dl ul{margin-left:9px;float:left;}
-    .uhl,.u2{float:right!important}':'
-    .dl ul{margin-right:9px;float:right;}
-    .uhl,.u2{float:left!important
-    }').'
-}
-';
+            }                        
         }
         
         if($this->isMobile && $this->router()->watchId && $this->channelId==0){
@@ -324,50 +275,12 @@ class Search extends Page {
         }
         
         if ($this->isMobile) {            
-            $this->inlineCss.='.yad{text-align:center;display:block}.lbad{text-align:center;overflow:visible!important;background-color:transparent!important;border:0!important}.lbad.responsive{margin:-5px auto 5px}';
-            /*
-            $this->inlineCss.='.ad > div{display:inline-block}.yad{text-align:center}.lbad{text-align:center;overflow:visible!important;background-color:transparent!important;border:0!important}.lbad.responsive{margin:-5px auto 5px}';
-            if (isset($this->user->params['screen'][0]) && $this->user->params['screen'][0]) {
-                $width = $this->user->params['screen'][0];
-                if ($width >= 745) {
-                    $this->inlineCss .= '.w336 > div{width:336px;height:280px}';
-                    $this->inlineCss .= '.w728 > div{width:728px;height:90px}';
-                    $this->inlineCss .= '@media all and (max-width:744px){.w728{display: none}}';
-                    $this->inlineCss .= '@media all and (max-width:352px){.w336{display: none}}';
-                    $this->set_ad(array('Leaderboard' => array('/1006833/M728x90', 728, 90, 'lad-' . $this->router()->cfg['server_id'])));
-                    $this->set_ad(array('Square' => array('/1006833/M336x280', 336, 280, 'ad-' . $this->router()->cfg['server_id'])));
-                } elseif ($width >= 485) {
-                    $this->inlineCss .= '.w336 > div{width:336px;height:280px}';
-                    $this->inlineCss .= '.w468 > div{width:468px;height:60px}';
-                    $this->inlineCss .= '@media all and (max-width:484px){.w468{display: none}}';
-                    $this->inlineCss .= '@media all and (max-width:352px){.w336{display: none}}';
-                    $this->set_ad(array('Leaderboard' => array('/1006833/M468x60', 468, 60, 'lad-' . $this->router()->cfg['server_id'])));
-                    $this->set_ad(array('Square' => array('/1006833/M336x280', 336, 280, 'ad-' . $this->router()->cfg['server_id'])));
-                } elseif ($width >= 353) {
-                    $this->inlineCss .= '.w336 > div{width:336px;height:280px}';
-                    $this->inlineCss .= '.w320 > div{width:320px;height:50px}';
-                    $this->inlineCss .= '.ad100{width:320px;height:100px}';
-                    $this->inlineCss .= '@media all and (max-width:352px){.w336{display: none}}';
-                    $this->set_ad(array('Square' => array('/1006833/M336x280', 336, 280, 'ad-' . $this->router()->cfg['server_id'])));
-                    $this->set_ad(array('Leaderboard' => array('/1006833/M320x50', 320, 50, 'lad-' . $this->router()->cfg['server_id'])));
-                } else {
-                    $this->inlineCss .= '.w300 > div{width:300px;height:250px}';
-                    $this->inlineCss .= '.w320 > div{width:320px;height:50px}';
-                    $this->inlineCss .= '.ad100{width:320px;height:100px}';
-                    $this->set_ad(array('Square' => array('/1006833/M300x250', 300, 250, 'ad-' . $this->router()->cfg['server_id'])));
-                    $this->set_ad(array('Leaderboard' => array('/1006833/M320x50', 320, 50, 'lad-' . $this->router()->cfg['server_id'])));
-                }
-            } else {
-                $this->inlineCss .= '.w300 > div{width:300px;height:250px}';
-                $this->inlineCss .= '.w320 > div{width:320px;height:50px}';
-                $this->inlineCss .= '.ad100{width:320px;height:100px}';
-                $this->set_ad(array('Square' => array('/1006833/M300x250', 300, 250, 'ad-' . $this->router()->cfg['server_id'])));
-                $this->set_ad(array('Leaderboard' => array('/1006833/M320x50', 320, 50, 'lad-' . $this->router()->cfg['server_id'])));
-            }*/
+            $this->inlineCss.='.yad{text-align:center;display:block}.lbad{text-align:center;overflow:visible!important;background-color:transparent!important;border:0!important}.lbad.responsive{margin:-5px auto 5px}';      
             
             $this->num = 5;
-            if (array_key_exists('HTTP_USER_AGENT', $_SERVER) && strstr($_SERVER['HTTP_USER_AGENT'], 'iPad;'))
+            if (array_key_exists('HTTP_USER_AGENT', $_SERVER) && strstr($_SERVER['HTTP_USER_AGENT'], 'iPad;')) {
                 $this->num = 10;
+            }
         }
         else {            
             $this->globalScript.='var sic=[];';
@@ -768,19 +681,13 @@ class Search extends Page {
                             $ad[Classifieds::RTL] = 1;
                         }
                     }               
-                    //$ad[Classifieds::CONTENT]=trim(preg_replace('/^"(.*)"$/u','$1',$ad[Classifieds::CONTENT]));
 
                     if (!isset($ad[Classifieds::TELEPHONES])) {
                         error_log("wrong cache, ad id: ".$ad[Classifieds::ID]);
                     }
                     $this->replacePhonetNumbers($ad[Classifieds::CONTENT], $ad[Classifieds::COUNTRY_CODE], $ad[Classifieds::TELEPHONES][0], $ad[Classifieds::TELEPHONES][1], $ad[Classifieds::TELEPHONES][2],$ad[Classifieds::EMAILS]);
                     
-                    //if ($ad[Classifieds::PUBLICATION_ID] == 1 || $this->router()->publications[$ad[Classifieds::PUBLICATION_ID]][6]=='http://www.waseet.net/') {
-                        $pub_link = ($feature?'<b class="b">':'<b>') . ($this->router()->language=='ar' ? 'موقع مرجان':'mourjan.com') . '</b>';
-                    //}else {
-                    //    $pub_link = "<b>" . $this->router()->publications[$ad[Classifieds::PUBLICATION_ID]][$this->fieldNameIndex] . '</b>';
-                    //}
-
+                    $pub_link = ($feature?'<b class="b">':'<b>') . ($this->router()->language=='ar' ? 'موقع مرجان':'mourjan.com') . '</b>';
 
                     $ad[Classifieds::CONTENT] = preg_replace('/www(?!\s+)\.(?!\s+).*(?!\s+)\.(?!\s+)(com|org|net|mil|edu|COM|ORG|NET|MIL|EDU)/', '', $ad[Classifieds::CONTENT]);
                     $ad[Classifieds::CONTENT] = preg_replace('/^[\s-]*/', '', $ad[Classifieds::CONTENT]);                    
@@ -976,128 +883,40 @@ class Search extends Page {
         }
         
         
-        function _rss() {
-            $feed = parent::_rss();
-            if ($this->router()->rootId == 2 && $this->router()->sectionId > 0) {
-                $feed->setImage(trim($this->router()->pageTitle[$this->router()->language]), $this->router()->cfg['host'] . $this->router()->uri, $this->router()->cfg['url_img'] . "/200/{$this->router()->sectionId}.png");
-            }
 
-            if (isset($this->searchResults['body']['matches']) && $this->searchResults['body']['matches']) {
-                $ad_keys = $this->searchResults['body']['matches'];
-                $ad_cache = $this->router()->db->getCache()->getMulti($ad_keys);
-                $ad_count = count($ad_keys);
-                //if ($ad_count>$this->num) $ad_count=$this->num;
-                for ($ptr = 0; $ptr < $ad_count; $ptr++) {
-                    $id = $ad_keys[$ptr];
+    function shortText($ad) {
+        $text = $ad[Classifieds::CONTENT];
+        $text = preg_replace("/<(.*?)>/", "", $text);
 
-                    $ad = $this->classifieds->getById($id,false,$ad_cache);
-                    if (!$ad[Classifieds::ID])
-                        continue;
+        $pattern = '/^(([\w]+:)?\/\/)?(([\d\w]|%[a-fA-f\d]{2,2})+(:([\d\w]|%[a-fA-f\d]{2,2})+)?@)?([\d\w][-\d\w]{0,253}[\d\w]\.)+[\w]{2,4}(:[\d]+)?(\/([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)*(\?(&amp;?([-+_~.\d\w]|%[a-fA-f\d]{2,2})=?)*)?(#([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)?$/i';
+        $text = preg_replace($pattern, "", $text);
 
-                    if (!empty($ad[Classifieds::ALT_CONTENT])) {
-                        if ($this->router()->language == "en" && $ad[Classifieds::RTL]) {
-                            $ad[Classifieds::TITLE] = $ad[Classifieds::ALT_TITLE];
-                            $ad[Classifieds::CONTENT] = $ad[Classifieds::ALT_CONTENT];
-                            $ad[Classifieds::RTL] = 0;
-                        } elseif ($this->router()->language == "ar" && $ad[Classifieds::RTL] == 0) {
-                            $ad[Classifieds::TITLE] = $ad[Classifieds::ALT_TITLE];
-                            $ad[Classifieds::CONTENT] = $ad[Classifieds::ALT_CONTENT];
-                            $ad[Classifieds::RTL] = 1;
-                        }
-                    }
-                    //$ad[Classifieds::CONTENT]=trim(preg_replace('/^"(.*)"$/u','$1',$ad[Classifieds::CONTENT]));
+        $pattern = "/[_a-z0-9-]+(\.[_a-z0-9-]+)*(\s|)@(\s|)[a-z0-9-]+(\.[a-z0-9-]+)*((\s|)\.(\s|)[a-z]{2,4})*(\s|$)/i";
+        $text = preg_replace($pattern, "", $text);
 
-                    /*
-                    if (empty($ad[Classifieds::TITLE]) || $ad[Classifieds::TITLE]=='' || $ad[Classifieds::TITLE] == 'test')
-                        $this->getAdTitle($ad);
-                        */
-                    $_link = $this->router()->cfg['host'] . sprintf($ad[Classifieds::URI_FORMAT], ($this->router()->language == "ar" ? "" : "{$this->router()->language}/"), $ad[Classifieds::ID]);
-
-                    $item = $feed->createNewItem();
-
-                    //$item->setTitle('');
-                    $item->setLink($_link);
-                    $item->setDate($ad[Classifieds::DATE_ADDED]);
-                    $item->setDescription($this->shortText($ad));
-                    $gfx = false;
-                    if (isset($ad[Classifieds::VIDEO]) && $ad[Classifieds::VIDEO] && count($ad[Classifieds::VIDEO])) {
-                        $pic = $ad[Classifieds::VIDEO][2];
-                        $item->setEncloser($ad[Classifieds::VIDEO][1], '', 'application/x-shockwave-flash');
-                        $gfx = true;
-                    } 
-                    elseif ($ad[Classifieds::PICTURES] && count($ad[Classifieds::PICTURES])) {
-                        $pic = $ad[Classifieds::PICTURES][0];
-                        preg_match("/\.(.*)$/", $pic, $matches);
-                        $media_type = '';
-                        if ($matches && count($matches)) {
-                            switch ($matches[1]) {
-                                case 'png' : $media_type = 'image/png';
-                                    break;
-                                case 'jpeg':
-                                case 'jpg' : $media_type = 'image/jpeg';
-                                    break;
-                                case 'gif' :
-                                    $media_type = 'image/gif';
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        if ($media_type) {
-                            $item->setEncloser($this->router()->cfg['url_ad_img'] . "/repos/d/{$pic}", '', $media_type);
-                            $gfx = true;
-                        }
-                    }
-
-                    if (!$gfx && $_GET['rss'] == 'fb') {
-                        $pageThumb = $this->router()->cfg['url_img'] . "/90/{$this->router()->sectionId}.png";
-
-                        $item->setEncloser($pageThumb, '', "image/png");
-                    }
-
-                    $feed->addItem($item);
-                }
-            }
-
-            //OK. Everything is done. Now genarate the feed.
-            $feed->generateFeed();
+        if (preg_match("/للاتصال|للإتصال|للتواصل|للمفاهم(ه|ة)|للاستعلام|للإستعلام|الاتصال|الإتصال|للاستفسار|للإستفسار|للمراجعة|للمراجعه/", $text, $matches)) {
+            $text = trim(strstr($text, $matches[0], true));
         }
-        
-
-        function shortText($ad) {
-            $text = $ad[Classifieds::CONTENT];
-            $text = preg_replace("/<(.*?)>/", "", $text);
-
-            $pattern = '/^(([\w]+:)?\/\/)?(([\d\w]|%[a-fA-f\d]{2,2})+(:([\d\w]|%[a-fA-f\d]{2,2})+)?@)?([\d\w][-\d\w]{0,253}[\d\w]\.)+[\w]{2,4}(:[\d]+)?(\/([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)*(\?(&amp;?([-+_~.\d\w]|%[a-fA-f\d]{2,2})=?)*)?(#([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)?$/i';
-            $text = preg_replace($pattern, "", $text);
-
-            $pattern = "/[_a-z0-9-]+(\.[_a-z0-9-]+)*(\s|)@(\s|)[a-z0-9-]+(\.[a-z0-9-]+)*((\s|)\.(\s|)[a-z]{2,4})*(\s|$)/i";
-            $text = preg_replace($pattern, "", $text);
-
-            if (preg_match("/للاتصال|للإتصال|للتواصل|للمفاهم(ه|ة)|للاستعلام|للإستعلام|الاتصال|الإتصال|للاستفسار|للإستفسار|للمراجعة|للمراجعه/", $text, $matches))
-                $text = trim(strstr($text, $matches[0], true));
-            elseif (preg_match("/هاتف:/", $text, $matches)) {
-                $text = trim(strstr($text, $matches[0], true));
-            } elseif (preg_match("/ت:/", $text, $matches)) {
-                $text = trim(strstr($text, $matches[0], true));
-            } elseif (preg_match("/Tel:|call(:?)/i", $text, $matches)) {
-                $text = trim(strstr($text, $matches[0], true));
-            }
-
-            $text = preg_replace("/\d{6,}-0\d+|0\d{1,2}-\d{6,}|0\d{6,}/", "", $text);
-            if ($this->router()->countryId == 1) {
-                $text = preg_replace("/7\d{6,}/", "", $text);
-            }
-
-
-            $text = trim(preg_replace("/\s\+\d+/", "", $text));
-
-            $text = trim(preg_replace("/-*$/", "", $text));
-            $text = trim(preg_replace("/\s(ج|ت)*$/", "", $text));
-
-
-            return trim($text);
+        elseif (preg_match("/هاتف:/", $text, $matches)) {
+            $text = trim(strstr($text, $matches[0], true));
+        } 
+        elseif (preg_match("/ت:/", $text, $matches)) {
+            $text = trim(strstr($text, $matches[0], true));
+        } 
+        elseif (preg_match("/Tel:|call(:?)/i", $text, $matches)) {
+            $text = trim(strstr($text, $matches[0], true));
         }
+
+        $text = preg_replace("/\d{6,}-0\d+|0\d{1,2}-\d{6,}|0\d{6,}/", "", $text);
+        if ($this->router()->countryId == 1) {
+            $text = preg_replace("/7\d{6,}/", "", $text);
+        }
+
+        $text = trim(preg_replace("/\s\+\d+/", "", $text));
+        $text = trim(preg_replace("/-*$/", "", $text));
+        $text = trim(preg_replace("/\s(ج|ت)*$/", "", $text));
+        return trim($text);
+    }
 
         
     function alternateSearchMobile($keywords = "") {
@@ -2599,7 +2418,7 @@ class Search extends Page {
     }
     
     
-    function renderDResults($keywords) {
+    function renderDResults($keywords) : void {
         //$debug=($this->router()->config()->serverId==99);
         $ad_keys = [];
         $topFeatureCount = 0;
@@ -2902,11 +2721,7 @@ class Search extends Page {
     }
     
     
-    function renderDResultsOOOOOOOO($keywords) {
-        $debug=( get_cfg_var('mourjan.server_id')=='99' );
-        // print_r($this->searchResults['body']['scores']);
-        //die('found');
-        
+    function renderDResultsOOOOOOOO($keywords) {        
         $idx = 0;
         $ad_keys = array();
         $topFeatureCount = 0;
@@ -2917,9 +2732,7 @@ class Search extends Page {
 
         $ad_count = count($ad_keys);
         if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp'] = []; }        
-        if (!isset($this->user->params['feature'])) { $this->user->params['feature']=[]; }
-        
-        
+        if (!isset($this->user->params['feature'])) { $this->user->params['feature']=[]; }                
         
         if($ad_count && ( (isset($_GET['cmp']) && is_numeric($_GET['cmp'])) || (isset($_GET['aid']) && is_numeric($_GET['aid']))) ) {
             
@@ -5103,7 +4916,7 @@ class Search extends Page {
     
     function getBreadCrumb(bool $forceSetting=false, int $count=0) : string {
         if ($this->crumbString && !$forceSetting) { return $this->crumbString; }
-        if (!$forceSetting || $this->router()->module == 'detail') {
+        if (!$forceSetting || $this->router()->module=='detail') {
             if (isset($this->router()->params['tag_id']) && isset($this->extended[$this->router()->params['tag_id']])) {
                 $this->extendedId = $this->router()->params['tag_id'];
             }
@@ -5128,7 +4941,7 @@ class Search extends Page {
             $this->title = $this->extended[$this->extendedId]['name'];
             
             if ($this->router()->isPriceList) {
-                $this->title= ($this->router()->language=='ar' ? $this->lang['price_more'].$this->title : $this->title.$this->lang['price_more']);
+                $this->title= ($this->router()->isArabic() ? $this->lang['price_more'].$this->title : $this->title.$this->lang['price_more']);
             }
             elseif ($this->router()->purposeId) {
                 switch ($this->router()->purposeId) {
@@ -5432,10 +5245,11 @@ class Search extends Page {
                             }
                         }
                     }
-                    $bc[] = '<a class="icn icnsmall icn-rss" target="_blank" href="' .
-                            ($this->extendedId || $this->localityId ? $extended_uri : $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId)) .
-                            '?rss=1" id="rss-link">' .
-                            '</a><b itemprop="headline name">' . $sub_title . '</b>';
+                    //$bc[] = '<a class="icn icnsmall icn-rss" target="_blank" href="' .
+                    //        ($this->extendedId || $this->localityId ? $extended_uri : $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId)) .
+                    //        '?rss=1" id="rss-link">' .
+                    //        '</a><b itemprop="headline name">' . $sub_title . '</b>';
+                    $bc[] = '<b itemprop="headline name">' . $sub_title . '</b>';
                 }
                 $this->subTitle = $sub_title;
             }
