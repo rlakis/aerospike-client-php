@@ -92,7 +92,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .premium{background-color:var(--premium) !important;color: var(--midnight) !important}
 .active{background-color:#4CAF50;color:white;}
 
-.nav{padding-left:0;margin-bottom:0;list-style:none;}
+.nav{padding-left:0;margin-bottom:0;list-style:none;display:inherit;justify-content:flex-end !important;}
 .nav>li{position:relative;display:block;float:left;padding:0 12px;}
 .nav>li .icnsmall{padding:0 18px;margin-top:-20px;}
 .nav .navright{position:relative;width:calc(100% - 100px);}
@@ -128,23 +128,9 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .card-header{display:inline-block;position:absolute;height:68px;margin:-20px 15px 0 15px;padding:15px;box-shadow:0 4px 20px 0px rgba(0, 0, 0, 0.14), 0 7px 10px -5px rgba(255, 152, 0, 0.4);border-radius:inherit;}
 .card .card-header{z-index:3;}
 
-.card .card-footer {
-    margin: 0 20px 10px;
-    padding-top: 10px;
-    border-top: 1px solid #eeeeee;
-}
-
-
-.card-stats .card-content {
-    text-align: right;
-    padding-top: 10px;
-}
-.card .card-content {
-    display: inline-block;
-    width: 100%;
-    padding: 15px 20px;
-    position: relative;
-}
+.card .card-footer {margin:0 20px 10px;padding-top:10px;border-top:1px solid #eeeeee;}
+.card-stats .card-content {text-align:right;padding-top:10px;}
+.card .card-content {display:inline-block;width: 100%;padding: 15px 20px;position: relative;}
 
 .card .card-header.card-header-icon, .card-content .card-title{padding-bottom: 24px;}
 .card .card-title{margin:0 78px 3px;font-weight:300;}
@@ -210,14 +196,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .block-with-text{overflow:hidden;position:relative;line-height:1.5em;height:4.5em;}
 .seclogo{background-color: var(--midnight); display: flex; align-items: center; justify-content: center;}
 .seclogo img{float:none; width:auto !important; height:auto !important;}
-.card .cbox {
-    display: flex;
-    color:white;
-    position:absolute;
-    font-size: 0.8em;
-    align-items: center;
-    font-weight:bold;
-}
+.card .cbox{display:flex;color:white;position:absolute;font-size:0.8em;align-items:center;font-weight:bold;}
 .card .cbox.ctl {top:0px;left:0px;}
 .card .cbox.ctl.new {background-color: red; color: white; opacity: 0.8;padding: 2px 5px;font-size: 0.7em;border-bottom-right-radius: 5px;}
 .card .cbox.ctr {top:8px;right:8px;font-weight:bold;}
@@ -299,7 +278,21 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 }
 
 
-
+.pagination{
+    display: inherit;
+    background-color: var(--mourjanC);
+    width:100%;
+    border-radius: 5px;
+    justify-content: space-around;
+    color:yellow;
+    font-weight: bolder;
+}
+.pagination a {
+  color: whitesmoke;
+  padding: 8px 16px;  
+  text-decoration: none;
+  font-weight: normal;
+}
 
 .brd {
     display: inherit;
