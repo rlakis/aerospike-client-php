@@ -2618,7 +2618,9 @@ class Page extends Site {
                 if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
                 $link.='c-'.$this->localityId.'-'.$idx.'/%s';
             }
-            else $link=$this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId).'%s';
+            else {
+                $link=$this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId).'%s';                
+            }
 
             $uri_query='';
             $linkAppend='?';
@@ -2626,6 +2628,7 @@ class Page extends Site {
                 $uri_query=$linkAppend.'u='.$this->user->encodeId($this->pageUserId);
                 $linkAppend='&';
             }
+            
             if ($this->router()->params['q']) {
                 $uri_query=$linkAppend.'q='.urlencode($this->router()->params['q']);
                 $linkAppend='&';
@@ -2634,10 +2637,9 @@ class Page extends Site {
             $qtotal_found = $this->searchResults['body']['total_found'];
             if ($qtotal_found>0) {
                 $pages = ceil($qtotal_found/$this->num);
-                
                 $tmp=$this->router()->config()->get('search_results_max')/$this->num;
-                if ($pages>$tmp) $pages=$tmp;
-                if ($pages>1) {                    
+                if ($pages>$tmp) { $pages=$tmp; }
+                if ($pages>1) {    
                     $currentPage = ($this->router()->params['start']?$this->router()->params['start']:1);
                     $isFirst=true;
                     if ($currentPage>1) {
@@ -2691,15 +2693,16 @@ class Page extends Site {
                         $result.=$this->lang['next'].' >';
                         $result.='</a></li>';
                         $result.= '</ul>';
-                        $result= '<div class="col-12"><ul class="nav">'.$result.'</div>';
+                        
+                        $result= '<div class=row><div class=col-12><ul class="pagination">'.$result.'</div></div>';
                     }
                     else { 
                         $result.= '</ul>';
-                        $result= '<ul class="nav nev">'.$result;
+                        $result= '<div class=row><div class=col-12><ul class="pagination">'.$result.'</div></div>';
+                        //$result= '<ul class="nav nev">'.$result;
                     }
                     $this->paginationString=$result;
                 }
-
             }
         }
         return $this->paginationString;

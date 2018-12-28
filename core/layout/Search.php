@@ -3040,6 +3040,7 @@ class Search extends Page {
             $this->updateUserSearchCriteria();
         }
                         
+        /*
         if (isset($_GET['cmp']) && $this->user->isSuperUser() && $this->router()->params['q'])  {
             $filename = '/var/log/mourjan/keywords.log';
             preg_match('/\s(.*)$/ui', $this->router()->params['q'],$matches);
@@ -3052,7 +3053,7 @@ class Search extends Page {
                 }
             }
         }
-        
+        */
         
         ?><div id="results" class="row"><?php
         $hasResults = $this->searchResults['body']['total_found']>0 && isset($this->searchResults['body']['matches']) && count($this->searchResults['body']['matches'])>0;
@@ -3077,7 +3078,7 @@ class Search extends Page {
         } 
         else {
             if ($hasResults) {
-                echo $this->summerizeSearch();
+                echo $this->summarizeSearch();
                 if ($this->router()->userId) {
                     $this->renderSidePage();
                 }
@@ -3089,10 +3090,14 @@ class Search extends Page {
                 if ($this->router()->module=='detail' && !$this->detailAdExpired) {
                     $this->displayDetail();
                 }
-                ?><div class="ls col-12"<?= $this->router()->module == 'detail' ? '' : ' itemprop="mainContentOfPage" ' ?>itemscope itemtype="https://schema.org/ItemList"><?php
-                    echo '<meta itemprop="name" content="' . $this->subTitle . '" />';
-                    $this->renderDResults($keywords);
-                ?></div><?php 
+                echo '<div class="ls col-12" ';
+                if ($this->router()->module!='detail') {
+                    echo 'itemprop="mainContentOfPage" ';
+                }
+                echo 'itemscope itemtype="https://schema.org/ItemList">';
+                echo '<meta itemprop="name" content="', $this->subTitle, '" />';
+                $this->renderDResults($keywords);
+                echo '</div>',"\n";                
                 echo $this->pagination();
                                 
                 if (($this->router()->module=='search'||$this->router()->module=='detail') && !$this->userFavorites && !$this->router()->watchId && !$this->router()->userId) {
@@ -3736,10 +3741,57 @@ class Search extends Page {
                 }
                 
                 return $bread;
-            }
+    }
 
+    
+    function getResulstHint(bool $forceRebuild=false) : string {
+        $count = $this->searchResults['body']['total_found'];
+        $hasShare=0;
+        $result='';               
+                        
+        if ($this->userFavorites) {
+            //$result.= "<p class='ph phb'>";
+        }
+        else {
+            //$result.= '<p class=" ph'. ($hasEye ? ' phx':''). $count. '">';
+        }
+        
+        $result.='<span><b>';                        
+        if ($this->router()->isArabic()) {
+            if ($count>10) {
+                $result.= number_format($count) ." ".$this->lang['ads'];
+            }
+            elseif ($count>2) {
+                $result.= number_format($count)." ".$this->lang['3ad'];
+            }
+            elseif ($count==1) {
+                $result.= $this->lang['ad'];
+            }
+            else {
+                $result.= $this->lang['2ad'];
+            }
+        }
+        else {
+            $result.= $this->formatPlural($count, "ad");
+        }        
+        $result.= '</b> ';
+                       
+        if ($this->router()->params['q']) {
+            $result.=' '.$this->lang['for'].' '.$this->crumbTitle.($hasShare?'&nbsp;<span class="st_email"></span><span class="st_facebook"></span><span class="st_twitter"></span><span class="st_googleplus"></span><span class="st_linkedin"></span><span class="st_sharethis"></span>' : '');
+        }
+        elseif ($this->userFavorites) {
+            $result.=' '.$this->lang['in'].' '. $this->lang['myFavorites'];
+        } 
+        else { 
+            $result.=' '.$this->crumbTitle.($hasShare ? '&nbsp;<span class="st_email"></span><span class="st_facebook"></span><span class="st_twitter"></span><span class="st_googleplus"></span><span class="st_linkedin"></span><span class="st_sharethis"></span>' : '');                             
+        }
+                      
+        $result.='</span>';
+        return $result;
+    }
             
-    function summerizeSearch(bool $forceRebuild = false) : string {
+    
+    function summarizeSearch(bool $forceRebuild=false) : string {
         $count = $this->searchResults['body']['total_found'];
         $adLang='';
         if (!$this->router()->isArabic()) { $adLang=$this->router()->language.'/'; }
@@ -3892,7 +3944,8 @@ class Search extends Page {
                 }
                 if (!$this->router()->isPriceList && ($this->router()->module!='detail' || ($this->router()->module=='detail' && $this->detailAdExpired))) {
                     if ($count) {
-                        $bread.='<div class="row col-12">';
+                        //$bread.='<div class="row col-12 target">';
+                        
                         $hasEye=0;
                         if ($this->router()->module=='search' && !$this->userFavorites && !$this->router()->watchId && !$forceRebuild) {
                             if (($this->router()->countryId && $this->router()->sectionId && $this->router()->purposeId) || ($this->router()->params['q'] && $this->searchResults['body']['total_found']<100)) {
@@ -3902,15 +3955,15 @@ class Search extends Page {
                         if ($this->user->info['id'] && ($this->user->info['level']==6||$this->user->info['id']==5)) {
                             $hasEye=0;                        
                         }
-                        
+                         /*
                         if ($this->userFavorites) {
                             $bread.= "<p class='ph phb'>";
                         }
                         else {
-                            $bread.= '<p class="lakis ph'. ($hasEye ? ' phx':''). $count. '">';
+                            $bread.= '<p class="ph'. ($hasEye ? ' phx':''). $count. '">';
                         }
                         $bread.='<span><b>';
-                        
+                       
                         if ($this->router()->isArabic()) {
                             if ($count>10) {
                                 $bread.= $formatted." ".$this->lang['ads'];
@@ -3927,7 +3980,7 @@ class Search extends Page {
                         }
                         else {
                             $bread.= $this->formatPlural($count, "ad");
-                        }
+                       
                         $bread.= '</b> ';
                        
                         if ($this->router()->params['q']) {
@@ -3941,6 +3994,8 @@ class Search extends Page {
                         }
                       
                         $bread .= '</span></p></div>';
+                        }*/
+                        //$bread .= '</div>';
                     }
                 }
         
@@ -5194,7 +5249,7 @@ class Search extends Page {
                             }
                             $k = count($tmp);
                             if ($k) {
-                                for ($j = $k - 1; $j >= 0; $j--) {
+                                for ($j=$k-1; $j>=0; $j--) {
                                     $bc[] = $tmp[$j];
                                 }
                             }
@@ -5248,10 +5303,9 @@ class Search extends Page {
             }
         }
 
-        $bread = '<div class=row><div class=col-12>' . implode("", $bc) . '</div><span style="margin:0 8px;"><b>'.$count.' '.$this->lang['ads']. '</b></span>'.  '</div></div></div>';
-
         $this->crumbTitle = $this->title;
-
+        $bread = '<div class=row><div class=col-12>' . implode("", $bc) . '</div><span style="margin:0 8px;">'. $this->getResulstHint($forceSetting). '</span>'.  '</div></div></div>';
+      
         if ($tempTitle) { $this->title = $tempTitle;  }
         return $this->crumbString = $bread;
     }
