@@ -2654,7 +2654,7 @@ class Page extends Site {
                         }
                         
                         $result.='">';
-                        $result.='< '.$this->lang['previous'];
+                        $result.=$this->lang['previous'];
                         $result.='</a>';
                         $result.='</li>';
                         $isFirst=false;
@@ -2666,11 +2666,11 @@ class Page extends Site {
                     if ($endPage>$pages) $endPage=$pages;
                     while ($startPage<=$endPage) {
                         if ($startPage==$currentPage) {
-                            $result.='<li class="'.($isFirst ? 'fst ':'').'op">'.$startPage.'</li>';
+                            $result.='<li id="pointer" class="'.($isFirst ? 'fst ':'').'op"><span>'.$startPage.'</span></li>';
                         } 
                         else {
                             $page_no=$startPage-1;
-                            $result.='<li'.($isFirst ? ' class="fst"':'').'><a target="_self" href="';
+                            $result.='<li'.($isFirst ? ' class="fst"':'').' id="pointer"><a target="_self" href="';
                             
                             if ($page_no)
                                 $result.=sprintf ($link, "{$startPage}/{$uri_query}");
@@ -2684,13 +2684,13 @@ class Page extends Site {
                     }
                     
                     if ($currentPage<$pages) {
-                        $result.='<li class="next">';
+                        $result.='<li id="pointer" class="next">';
                         $offset=$this->router()->params['start']+$this->num;
                         $result.='<a target="_self" href="';                        
                         $page_no=$currentPage+1;
                         $result.=sprintf ($link, "{$page_no}/{$uri_query}");
                         $result.='">';
-                        $result.=$this->lang['next'].' >';
+                        $result.=$this->lang['next'];
                         $result.='</a></li>';
                         $result.= '</ul>';
                         
