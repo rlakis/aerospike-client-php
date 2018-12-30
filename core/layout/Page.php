@@ -49,7 +49,6 @@ class Page extends Site {
         }       
         
         $cdn = $this->router()->config()->assetsURL;
-        //$this->router()->config()->setValue('url_ad_img', "https://c6.mourjan.com");        
         
         if ($this->router()->module=='myads' || $this->router()->module=='post') {
             $this->router()->config()->adImgURL = 'https://www.mourjan.com';
@@ -150,11 +149,9 @@ class Page extends Site {
         
         if ($this->router()->module=='watchlist'||$this->router()->module=='favorites'){
             if ($this->user->info['id']) {
-                //if (!$this->router()->isMobile) $this->inlineCss.='.list{padding-top:5px}';
                 $this->pageUserId = $this->user->info['id'];
             }
             elseif($tmp = $this->get('u')){
-                //if (!$this->router()->isMobile) $this->inlineCss.='.list{padding-top:5px}';
                 $this->pageUserId = $this->user->decodeId($tmp);
             }
         }
@@ -182,20 +179,7 @@ class Page extends Site {
             $this->isMobileAd=true;
             $this->isMobile=true;
             $this->appendLang= $this->router()->getLanguagePath();
-            
-            /*
-            if(in_array($this->router()->module,array('index','search','detail','contact'))){
-                if ( (isset($this->user->params['mobile_ios_app_bottom_banner']) && $this->user->params['mobile_ios_app_bottom_banner']==1)
-                        || (isset($this->user->params['mobile_android_app_bottom_banner']) && $this->user->params['mobile_android_app_bottom_banner']==1) ){
-                    $this->inlineCss.='#footer{margin-bottom:70px}';
-                }
-            }            
-             * 
-             */
-            
-            
-            //$this->globalScript.="function FastClick(layer){'use strict';var oldOnClick,self=this;this.trackingClick=false;this.trackingClickStart=0;this.targetElement=null;this.touchStartX=0;this.touchStartY=0;this.lastTouchIdentifier=0;this.touchBoundary=10;this.layer=layer;if(!layer||!layer.nodeType){throw new TypeError('Layer must be a document node')}this.onClick=function(){return FastClick.prototype.onClick.apply(self,arguments)};this.onMouse=function(){return FastClick.prototype.onMouse.apply(self,arguments)};this.onTouchStart=function(){return FastClick.prototype.onTouchStart.apply(self,arguments)};this.onTouchMove=function(){return FastClick.prototype.onTouchMove.apply(self,arguments)};this.onTouchEnd=function(){return FastClick.prototype.onTouchEnd.apply(self,arguments)};this.onTouchCancel=function(){return FastClick.prototype.onTouchCancel.apply(self,arguments)};if(FastClick.notNeeded(layer)){return}if(this.deviceIsAndroid){layer.addEventListener('mouseover',this.onMouse,true);layer.addEventListener('mousedown',this.onMouse,true);layer.addEventListener('mouseup',this.onMouse,true)}layer.addEventListener('click',this.onClick,true);layer.addEventListener('touchstart',this.onTouchStart,false);layer.addEventListener('touchmove',this.onTouchMove,false);layer.addEventListener('touchend',this.onTouchEnd,false);layer.addEventListener('touchcancel',this.onTouchCancel,false);if(!Event.prototype.stopImmediatePropagation){layer.removeEventListener=function(type,callback,capture){var rmv=Node.prototype.removeEventListener;if(type==='click'){rmv.call(layer,type,callback.hijacked||callback,capture)}else{rmv.call(layer,type,callback,capture)}};layer.addEventListener=function(type,callback,capture){var adv=Node.prototype.addEventListener;if(type==='click'){adv.call(layer,type,callback.hijacked||(callback.hijacked=function(event){if(!event.propagationStopped){callback(event)}}),capture)}else{adv.call(layer,type,callback,capture)}}}if(typeof layer.onclick==='function'){oldOnClick=layer.onclick;layer.addEventListener('click',function(event){oldOnClick(event)},false);layer.onclick=null}}FastClick.prototype.deviceIsAndroid=navigator.userAgent.indexOf('Android')> 0;FastClick.prototype.deviceIsIOS=/iP(ad|hone|od)/.test(navigator.userAgent);FastClick.prototype.deviceIsIOS4=FastClick.prototype.deviceIsIOS&&(/OS 4_\d(_\d)?/).test(navigator.userAgent);FastClick.prototype.deviceIsIOSWithBadTarget=FastClick.prototype.deviceIsIOS&&(/OS([6-9]|\d{2})_\d/).test(navigator.userAgent);FastClick.prototype.needsClick=function(target){'use strict';switch(target.nodeName.toLowerCase()){case 'button':case 'select':case 'textarea':if(target.disabled){return true}break;case 'input':if((this.deviceIsIOS&&target.type==='file')||target.disabled){return true}break;case 'label':case 'video':return true}return(/\bneedsclick\b/).test(target.className)};FastClick.prototype.needsFocus=function(target){'use strict';switch(target.nodeName.toLowerCase()){case 'textarea':return true;case 'select':return !this.deviceIsAndroid;case 'input':switch(target.type){case 'button':case 'checkbox':case 'file':case 'image':case 'radio':case 'submit':return false}return !target.disabled&&!target.readOnly;default:return(/\bneedsfocus\b/).test(target.className)}};FastClick.prototype.sendClick=function(targetElement,event){'use strict';var clickEvent,touch;if(document.activeElement&&document.activeElement !==targetElement){document.activeElement.blur()}touch=event.changedTouches[0];clickEvent=document.createEvent('MouseEvents');clickEvent.initMouseEvent(this.determineEventType(targetElement),true,true,window,1,touch.screenX,touch.screenY,touch.clientX,touch.clientY,false,false,false,false,0,null);clickEvent.forwardedTouchEvent=true;targetElement.dispatchEvent(clickEvent)};FastClick.prototype.determineEventType=function(targetElement){'use strict';if(this.deviceIsAndroid&&targetElement.tagName.toLowerCase()==='select'){return 'mousedown'}return 'click'};FastClick.prototype.focus=function(targetElement){'use strict';var length;if(this.deviceIsIOS&&targetElement.setSelectionRange&&targetElement.type.indexOf('date')!==0&&targetElement.type !=='time'){length=targetElement.value.length;targetElement.setSelectionRange(length,length)}else{targetElement.focus()}};FastClick.prototype.updateScrollParent=function(targetElement){'use strict';var scrollParent,parentElement;scrollParent=targetElement.fastClickScrollParent;if(!scrollParent||!scrollParent.contains(targetElement)){parentElement=targetElement;do{if(parentElement.scrollHeight > parentElement.offsetHeight){scrollParent=parentElement;targetElement.fastClickScrollParent=parentElement;break}parentElement=parentElement.parentElement}while(parentElement)}if(scrollParent){scrollParent.fastClickLastScrollTop=scrollParent.scrollTop}};FastClick.prototype.getTargetElementFromEventTarget=function(eventTarget){'use strict';if(eventTarget.nodeType===Node.TEXT_NODE){return eventTarget.parentNode}return eventTarget};FastClick.prototype.onTouchStart=function(event){'use strict';var targetElement,touch,selection;if(event.targetTouches.length > 1){return true}targetElement=this.getTargetElementFromEventTarget(event.target);touch=event.targetTouches[0];if(this.deviceIsIOS){selection=window.getSelection();if(selection.rangeCount&&!selection.isCollapsed){return true}if(!this.deviceIsIOS4){if(touch.identifier===this.lastTouchIdentifier){event.preventDefault();return false}this.lastTouchIdentifier=touch.identifier;this.updateScrollParent(targetElement)}}this.trackingClick=true;this.trackingClickStart=event.timeStamp;this.targetElement=targetElement;this.touchStartX=touch.pageX;this.touchStartY=touch.pageY;if((event.timeStamp - this.lastClickTime)< 200){event.preventDefault()}return true};FastClick.prototype.touchHasMoved=function(event){'use strict';var touch=event.changedTouches[0],boundary=this.touchBoundary;if(Math.abs(touch.pageX - this.touchStartX)> boundary||Math.abs(touch.pageY - this.touchStartY)> boundary){return true}return false};FastClick.prototype.onTouchMove=function(event){'use strict';if(!this.trackingClick){return true}if(this.targetElement !==this.getTargetElementFromEventTarget(event.target)||this.touchHasMoved(event)){this.trackingClick=false;this.targetElement=null}return true};FastClick.prototype.findControl=function(labelElement){'use strict';if(labelElement.control !==undefined){return labelElement.control}if(labelElement.htmlFor){return document.getElementById(labelElement.htmlFor)}return labelElement.querySelector('button,input:not([type=hidden]),keygen,meter,output,progress,select,textarea')};FastClick.prototype.onTouchEnd=function(event){'use strict';var forElement,trackingClickStart,targetTagName,scrollParent,touch,targetElement=this.targetElement;if(!this.trackingClick){return true}if((event.timeStamp - this.lastClickTime)< 200){this.cancelNextClick=true;return true}this.cancelNextClick=false;this.lastClickTime=event.timeStamp;trackingClickStart=this.trackingClickStart;this.trackingClick=false;this.trackingClickStart=0;if(this.deviceIsIOSWithBadTarget){touch=event.changedTouches[0];targetElement=document.elementFromPoint(touch.pageX - window.pageXOffset,touch.pageY - window.pageYOffset)||targetElement;targetElement.fastClickScrollParent=this.targetElement.fastClickScrollParent}targetTagName=targetElement.tagName.toLowerCase();if(targetTagName==='label'){forElement=this.findControl(targetElement);if(forElement){this.focus(targetElement);if(this.deviceIsAndroid){return false}targetElement=forElement}}else if(this.needsFocus(targetElement)){if((event.timeStamp - trackingClickStart)> 100||(this.deviceIsIOS&&window.top !==window&&targetTagName==='input')){this.targetElement=null;return false}this.focus(targetElement);if(!this.deviceIsIOS4||targetTagName !=='select'){this.targetElement=null;event.preventDefault()}return false}if(this.deviceIsIOS&&!this.deviceIsIOS4){scrollParent=targetElement.fastClickScrollParent;if(scrollParent&&scrollParent.fastClickLastScrollTop !==scrollParent.scrollTop){return true}}if(!this.needsClick(targetElement)){event.preventDefault();this.sendClick(targetElement,event)}return false};FastClick.prototype.onTouchCancel=function(){'use strict';this.trackingClick=false;this.targetElement=null};FastClick.prototype.onMouse=function(event){'use strict';if(!this.targetElement){return true}if(event.forwardedTouchEvent){return true}if(!event.cancelable){return true}if(!this.needsClick(this.targetElement)||this.cancelNextClick){if(event.stopImmediatePropagation){event.stopImmediatePropagation()}else{event.propagationStopped=true}event.stopPropagation();event.preventDefault();return false}return true};FastClick.prototype.onClick=function(event){'use strict';var permitted;if(this.trackingClick){this.targetElement=null;this.trackingClick=false;return true}if(event.target.type==='submit'&&event.detail===0){return true}permitted=this.onMouse(event);if(!permitted){this.targetElement=null}return permitted};FastClick.prototype.destroy=function(){'use strict';var layer=this.layer;if(this.deviceIsAndroid){layer.removeEventListener('mouseover',this.onMouse,true);layer.removeEventListener('mousedown',this.onMouse,true);layer.removeEventListener('mouseup',this.onMouse,true)}layer.removeEventListener('click',this.onClick,true);layer.removeEventListener('touchstart',this.onTouchStart,false);layer.removeEventListener('touchmove',this.onTouchMove,false);layer.removeEventListener('touchend',this.onTouchEnd,false);layer.removeEventListener('touchcancel',this.onTouchCancel,false)};FastClick.notNeeded=function(layer){'use strict';var metaViewport;var chromeVersion;if(typeof window.ontouchstart==='undefined'){return true}chromeVersion=+(/Chrome\/([0-9]+)/.exec(navigator.userAgent)||[,0])[1];if(chromeVersion){if(FastClick.prototype.deviceIsAndroid){metaViewport=document.querySelector('meta[name=viewport]');if(metaViewport){if(metaViewport.content.indexOf('user-scalable=no')!==-1){return true}if(chromeVersion > 31&&window.innerWidth <=window.screen.width){return true}}}else{return true}}if(layer.style.msTouchAction==='none'){return true}return false};FastClick.attach=function(layer){'use strict';return new FastClick(layer)};if(typeof define !=='undefined'&&define.amd){define(function(){'use strict';return FastClick})}else if(typeof module !=='undefined'&&module.exports){module.exports=FastClick.attach;module.exports.FastClick=FastClick}else{window.FastClick=FastClick};window.addEventListener('load',function(){FastClick.attach(document.body)}, false);";
-        
+                    
             $this->inlineCss.='.goobt{margin:0 0 6px;display:inline-block}';
         }
         else {   
@@ -286,9 +270,6 @@ class Page extends Site {
                         $this->appendLocation=false;
                     }
                 }
-		  //$this->detailAd[Classifieds::CONTENT]=trim(preg_replace('/^"(.*)"$/u','$1',$this->detailAd[Classifieds::CONTENT]));
-
-                //$this->detailAd=reset($this->detailAd);
                 $this->router()->cityId=$this->detailAd[Classifieds::CITY_ID];
                 $this->router()->countryId=$this->detailAd[Classifieds::COUNTRY_ID];
                 $this->router()->rootId=$this->detailAd[Classifieds::ROOT_ID];
@@ -436,70 +417,15 @@ class Page extends Site {
     }
     
     
-    /*
-    if ($this->router()->watchId) {
-                echo "<li class='".($renderedFirst ? '':'f ')."on'><b><span class='eye on'></span>{$this->lang['myList']}</b></li>";
-                $renderedFirst=true;
-            }
-            else {
-                echo "<li".($renderedFirst ? '':' class=\'f\'')."><a href='/watchlist/".$lang."'><span class='eye on'></span>{$this->lang['myList']}</a></li>";
-                $renderedFirst=true;
-            }
-            
-            if ($this->userFavorites) {
-                echo "<li class='".($renderedFirst ? '':'f ')."on'><b><span class='fav on'></span>{$this->lang['myFavorites']} (<span id='uifc'>{$this->user->info['favCount']}</span>)</b></li>";
-                $renderedFirst=true;
-            }
-            else {
-                echo "<li".($renderedFirst ? '':' class=\'f\'')."><a href='/favorites/".$lang."'><span class='fav on'></span>{$this->lang['myFavorites']} (<span id='uifc'>{$this->user->info['favCount']}</span>)</a></li>";
-                $renderedFirst=true;
-            }
-
-            if ($this->router()->module=='page'){
-                echo "<li class='".($renderedFirst ? '':'f ')."on'><b><span class='sdi'></span>{$this->lang['myPage']}".( (!$this->user->info['email'] || !$this->user->info['name']) ? ' <span class="anb us"></span>':'' )."</b></li>";
-            }else {
-                echo "<li".($renderedFirst ? '':' class=\'f\'')."><a href='/page/".$lang."'><span class='sdi'></span>{$this->lang['myPage']}</a></li>";
-                $renderedFirst=true;
-            }
-
-            if ($this->router()->module=='account'){
-                echo "<li class='".($renderedFirst ? '':'f ')."on'><b><span class='usr'></span>{$this->lang['myAccount']}".( (!$this->user->info['email'] || !$this->user->info['name']) ? ' <span class="anb us"></span>':'' )."</b></li>";
-            }else {
-                echo "<li".($renderedFirst ? '':' class=\'f\'')."><a href='/account/".$lang."'><span class='usr'></span>{$this->lang['myAccount']}</a></li>";
-                $renderedFirst=true;
-            }
-            
-            if ($this->router()->cfg['enabled_post']) {
-            $renderedFirst=true;
-            echo "<li class='".($renderedFirst ? '':'f ')."sub'><b><span class='adi'></span>{$this->lang['myAds']}</b></li>";
-                $sub='';
-                if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
-                echo '<li class="cty"><ul>';
-                echo '<li><a href="/post/'.$lang.'">'.$this->lang['create_ad'].'</a></li>';
-                if ($this->router()->module=="myads" && $sub=='') echo '<li><b class="hdrAct">'.$this->lang['ads_active'].($this->user->info['active_ads']? ' ('.$this->user->info['active_ads'].')':'').'</b></li>';
-                else echo '<li><a href="/myads/'.$lang.'" class="hdrAct">'.$this->lang['ads_active'].($this->user->info['active_ads']? ' ('.$this->user->info['active_ads'].')':'').'</a></li>';
-                if ($this->router()->module=="myads" && $sub=='pending') echo '<li><b class="hdrPen">'.$this->lang['ads_pending'].($this->user->info['pending_ads']? ' ('.$this->user->info['pending_ads'].')':'').'</b></li>';
-                else echo '<li><a href="/myads/'.$lang.'?sub=pending" class="hdrPen">'.$this->lang['ads_pending'].($this->user->info['pending_ads']? ' ('.$this->user->info['pending_ads'].')':'').'</a></li>';
-                if ($this->router()->module=="myads" && $sub=='drafts') echo '<li><b class="hdrDr">'.$this->lang['ads_drafts'].($this->user->info['draft_ads']? ' ('.$this->user->info['draft_ads'].')':'').'</b></li>';
-                else echo '<li><a href="/myads/'.$lang.'?sub=drafts" class="hdrDr">'.$this->lang['ads_drafts'].($this->user->info['draft_ads']? ' ('.$this->user->info['draft_ads'].')':'').'</a></li>';
-                if ($this->router()->module=="myads" && $sub=='archive') echo '<li><b class="hdrArc">'.$this->lang['ads_archive'].($this->user->info['archive_ads']? ' ('.$this->user->info['archive_ads'].')':'').'</b></li>';
-                else echo '<li><a href="/myads/'.$lang.'?sub=archive" class="hdrArc">'.$this->lang['ads_archive'].($this->user->info['archive_ads']? ' ('.$this->user->info['archive_ads'].')':'').'</a></li>';
-                echo '</ul></li>';
-            }*/
-    
-    
-    function renderBalanceBar()
-    {        
-        if($this->user->info['id'])
-        {
+    function renderBalanceBar() {        
+        if($this->user->info['id']) {
             echo '<div id="balance" class="balc"><div id="balanceCounter"></div><a class="buL" href="/gold/'.($this->router()->language=='ar' ? '':$this->router()->language.'/').'#how-to"><span class="mc24"></span>'.$this->lang['buy_gold_bt'].'</a><a class="buL" href="/gold/'.($this->router()->language=='ar' ? '':$this->router()->language.'/').'"><span class="rj add"></span>'.$this->lang['get_gold'].'</a></div>';
             $this->globalScript.="var showBalance=1;";
         }
     }
     
     
-    function renderLoginBox()
-    {
+    function renderLoginBox() {
         $lang='';
         if($this->router()->language=='en')$lang='en/';
         if($this->user->info['id']){  
@@ -553,28 +479,27 @@ class Page extends Site {
     }
 
     
-    function checkBlockedAccount($level=0)
-    {
-        if ($this->user->info['id']){
+    function checkBlockedAccount($level=0) {
+        if ($this->user->info['id']) {
             if((!$level || ($level && $level==5)) && $this->user->info['level']==5) {
                 $this->user->redirectTo('/blocked/'.($this->router()->language=='ar'?'':$this->router()->language.'/'));
-            }elseif((!$level || ($level && $level==6)) && $this->user->info['level']==6) {
+            }
+            elseif((!$level || ($level && $level==6)) && $this->user->info['level']==6) {
                 $this->user->redirectTo('/suspended/'.($this->router()->language=='ar'?'':$this->router()->language.'/'));
             }
         }
     }
     
     
-    function checkSuspendedAccount()
-    {
+    function checkSuspendedAccount() {
         $isSuspended = $this->user->getProfile() ? $this->user->getProfile()->isSuspended() : FALSE;
-        if ($isSuspended) 
-        { //$this->user->info['id'] && isset($this->user->info['options']['suspend']) && $this->user->info['options']['suspend']>time()){            
+        if ($isSuspended) { 
             $this->user->redirectTo('/held/'.($this->router()->language=='ar'?'':$this->router()->language.'/'));
         }
     }
 
-    function checkUserData(){
+    
+    function checkUserData() {
         if ($this->user->info['id']) {
             $this->user->loadFavorites();
         }
@@ -596,7 +521,8 @@ class Page extends Site {
         $this->requireLogin=true;
     } */
 
-    function renderLoginPage(){
+    
+    function renderLoginPage() {
         $lang='';
         
         $keepme_in = (isset($this->user->params['keepme_in']) && $this->user->params['keepme_in']==0) ? 0: 1;
@@ -1064,14 +990,6 @@ class Page extends Site {
             echo '<li class=\'on\'><b>', $this->lang['termsConditions'], '</b></li>';
         else
             echo '<li><a href=\'/terms/', $lang, '\'>', $this->lang['termsConditions'], '</a></li>';
-        /*if ($this->router()->module=='advertise')
-            echo '<li class=\'on\'><b>', $this->lang['advertiseUs'], '</b></li>';
-        else
-            echo '<li><a href=\'/advertise/', $lang, '\'>', $this->lang['advertiseUs'], '</a></li>';
-        if ($this->router()->module=='publication-prices')
-            echo '<li class=\'on\'><b>', $this->lang['pricelist'], '</b></li>';
-        else
-            echo '<li><a href=\'/publication-prices/', $lang, '\'>', $this->lang['pricelist'], '</a></li>';*/
         echo "</ul><br />";
         
         $this->menu_app_banner();
@@ -1092,14 +1010,6 @@ class Page extends Site {
             ?><h4><?= $this->user->info['name'] ?></h4><?php
             echo "<ul class='sm'>";
             $renderedFirst=false;
-            /*if(in_array($this->user->info['level'],array(1,2,3,9))){
-                echo '<li><a class="imp" href=\'/',( isset($this->user->info['options']['page']['uri']) && $this->user->info['options']['page']['uri'] ? $this->user->info['options']['page']['uri'] : $this->router()->basePartnerId+$this->user->info['id']), '/'.$lang.'\'><span class="im"></span>', $this->lang['myPageLink'], '</a></li>';
-                $renderedFirst=true;
-            }
-            if ($this->router()->module!="index") {
-                echo '<li><a href=\'', $this->router()->getURL($countryId,$cityId), '\'><span class="hom"></span>', $this->lang['homepage'], '</a></li>';
-                $renderedFirst=true;
-            }*/
 
             if ($this->router()->watchId) {
                 echo "<li class='on'><b><span class='eye on'></span>{$this->lang['myList']}</b></li>";
@@ -1110,14 +1020,6 @@ class Page extends Site {
                 $renderedFirst=true;
             }
             
-            /*if ($this->userFavorites) {
-                echo "<li class='on'><b><span class='fav on'></span>{$this->lang['myFavorites']} (<span id='uifc'>{$this->user->info['favCount']}</span>)</b></li>";
-                $renderedFirst=true;
-            }
-            else {
-                echo "<li><a href='/favorites/".$lang."'><span class='fav on'></span>{$this->lang['myFavorites']} (<span id='uifc'>{$this->user->info['favCount']}</span>)</a></li>";
-                $renderedFirst=true;
-            }*/
             if ($this->userFavorites) {
                 echo "<li class='on'><b><span class='fav on'></span>{$this->lang['myFavorites']}</b></li>";
                 $renderedFirst=true;
@@ -1126,14 +1028,6 @@ class Page extends Site {
                 echo "<li><a href='/favorites/".$lang."'><span class='fav on'></span>{$this->lang['myFavorites']}</a></li>";
                 $renderedFirst=true;
             }
-/*
-            if ($this->router()->module=='page'){
-                echo "<li class='on'><b><span class='sdi'></span>{$this->lang['myPage']}".( (!$this->user->info['email'] || !$this->user->info['name']) ? ' <span class="anb us"></span>':'' )."</b></li>";
-            }else {
-                echo "<li><a href='/page/".$lang."'><span class='sdi'></span>{$this->lang['myPage']}</a></li>";
-                $renderedFirst=true;
-            }
-*/
             if ($this->router()->module=='account'){
                 echo "<li class='on'><b><span class='usr'></span>{$this->lang['myAccount']}".( (!$this->user->info['email'] || !$this->user->info['name']) ? ' <span class="anb us"></span>':'' )."</b></li>";
             }else {
@@ -1142,8 +1036,7 @@ class Page extends Site {
             }
             echo '</ul><h4>'.$this->lang['myAds'].'</h4><ul class="sm">';
             if ($this->router()->cfg['enabled_post']) {
-            $renderedFirst=true;
-            //echo "<li class='sub'><b><span class='adi'></span>{$this->lang['myAds']}</b></li>";
+                $renderedFirst=true;
                 $sub='';
                 if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
                 //echo '<li class="cty"><ul>';
@@ -1156,20 +1049,12 @@ class Page extends Site {
                 else echo '<li><a href="/myads/'.$lang.'?sub=drafts">'.$this->lang['ads_drafts'].'</a></li>';
                 if ($this->router()->module=="myads" && $sub=='archive') echo '<li><b>'.$this->lang['ads_archive'].'</b></li>';
                 else echo '<li><a href="/myads/'.$lang.'?sub=archive">'.$this->lang['ads_archive'].'</a></li>';
-//                if ($this->router()->module=="myads" && $sub=='') echo '<li><b>'.$this->lang['ads_active'].($this->user->info['active_ads']? ' ('.$this->user->info['active_ads'].')':'').'</b></li>';
-//                else echo '<li><a href="/myads/'.$lang.'">'.$this->lang['ads_active'].($this->user->info['active_ads']? ' ('.$this->user->info['active_ads'].')':'').'</a></li>';
-//                if ($this->router()->module=="myads" && $sub=='pending') echo '<li><b>'.$this->lang['ads_pending'].($this->user->info['pending_ads']? ' ('.$this->user->info['pending_ads'].')':'').'</b></li>';
-//                else echo '<li><a href="/myads/'.$lang.'?sub=pending" class="hdrPen">'.$this->lang['ads_pending'].($this->user->info['pending_ads']? ' ('.$this->user->info['pending_ads'].')':'').'</a></li>';
-//                if ($this->router()->module=="myads" && $sub=='drafts') echo '<li><b class="hdrDr">'.$this->lang['ads_drafts'].($this->user->info['draft_ads']? ' ('.$this->user->info['draft_ads'].')':'').'</b></li>';
-//                else echo '<li><a href="/myads/'.$lang.'?sub=drafts" class="hdrDr">'.$this->lang['ads_drafts'].($this->user->info['draft_ads']? ' ('.$this->user->info['draft_ads'].')':'').'</a></li>';
-//                if ($this->router()->module=="myads" && $sub=='archive') echo '<li><b class="hdrArc">'.$this->lang['ads_archive'].($this->user->info['archive_ads']? ' ('.$this->user->info['archive_ads'].')':'').'</b></li>';
-//                else echo '<li><a href="/myads/'.$lang.'?sub=archive" class="hdrArc">'.$this->lang['ads_archive'].($this->user->info['archive_ads']? ' ('.$this->user->info['archive_ads'].')':'').'</a></li>';
-                //echo '</ul></li>';
             }
             echo '</ul>';
         }
     }
 
+    
     function renderSideRoots(){
         if(!$this->userFavorites) {
         $cityId=$this->router()->cityId;
@@ -1191,7 +1076,6 @@ class Page extends Site {
         }
         ?><h4><?= $this->lang['specify_category'] ?></h4><?php
             echo "<ul class='sm'>";
-            //echo "<li class='f'>".$this->renderListLink($this->lang['opt_all_categories'], $this->router()->getURL($countryId,$cityId).$q, $this->router()->rootId==0)."</li>";
             $i=0;
             foreach ($this->router()->pageRoots as $rid=>$root) {
                 $selected = ($this->router()->rootId == $rid ? true : false);
@@ -1203,7 +1087,6 @@ class Page extends Site {
                         $purposeId = array_keys($root['purposes'])[0];
                     }
                 }
-                //$purposeId=is_numeric($root[3]) ? (int) $root[3]: ($root[0]==3 ? 3: 0);
                 echo '<li'.($selected ? ' class="on big"':' class="big"').'>', $this->renderListLink('<span class="i i'.$rid.'"></span>'.$root['name'], $this->router()->getURL($countryId, $cityId, $rid, 0, $purposeId).$q, $selected),'</li>';
                 if($this->router()->rootId == $rid){
                     echo '<li class="sub">';
@@ -1217,8 +1100,7 @@ class Page extends Site {
     }
     
     
-    function renderSideCountries()
-    {
+    function renderSideCountries() {
         if($this->userFavorites || ($this->router()->module!='index' && $this->router()->countryId && !$this->hasCities)) return;
         
         $hasQuery=false;
@@ -1279,11 +1161,7 @@ class Page extends Site {
             }
         }
         
-        echo '</ul>'; 
-        
-        //if ($this->router()->countryId==1) {
-            //echo "<a href='http://www.new961.com/book.aspx' target=_blank><span class='a961'></span></a>";
-        //}
+        echo '</ul>';         
     }
 
     
@@ -1298,6 +1176,7 @@ class Page extends Site {
         return $result;
     }
     
+    
     function renderSubListLink($label, $link, $selected=false, $className=''){
         $result='';
         if ($selected) {
@@ -1309,57 +1188,8 @@ class Page extends Site {
         return $result;
     }
     
-/*
-    function search_bar(){
-        $q=$this->router()->params['q'];
-        $this->field_name='NAME_'.strtoupper($this->router()->language);
-        
-        $uri='';
-        if ($this->extendedId){
-            $uri='/'.$this->router()->countries[$this->router()->countryId][3].'/';
-            if ($this->hasCities && $this->router()->cityId) {
-                $uri.=$this->router()->cities[$this->router()->cityId][3].'/';
-            }
-            $uri.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId][3].'/';
-            if ($this->router()->purposeId)$uri.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-            $uri.=($this->router()->language!='ar'?$this->router()->language.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3:2) :1).'/';
-        }elseif($this->localityId){
-            $uri='/'.$this->router()->countries[$this->router()->countryId][3].'/';
-            $uri.=$this->localities[$this->localityId][3].'/';
-            $uri.=$this->router()->sections[$this->router()->sectionId][3].'/';
-            if ($this->router()->purposeId)$uri.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-            $uri.=($this->router()->language!='ar'?$this->router()->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId ? 3:2).'/';
-        }else {
-            $uri=$this->router()->getURL($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);
-        }
-                
-        ?><div class="srch"><form onsubmit="if(document.getElementById('q').value)return true;return false" action="<?= $uri ?>" method="get"><input id="q" class='q rc' name='q' value="<?= htmlspecialchars($q,ENT_QUOTES) ?>" type='text' placeholder='<?= $this->lang['search_what'] ?>' /><?php if (!$this->router()->watchId) { ?><input class='bt rc' type="submit" value="<?= ( (($this->router()->module!="search" && $this->router()->module!="detail")|| $this->userFavorites) ? $this->lang['search']:$this->lang['search_within']) ?>" /><?php } ?></form><?php 
-        if (($this->router()->module=="search" && !$this->userFavorites) || $this->router()->module=="detail") { 
-            ?><form onsubmit="if(document.getElementById('q2').value=document.getElementById('q').value)return true;return false" action="<?= $this->router()->getURL($this->router()->countryId,$this->router()->cityId) ?>" method="get"><input class='bt rc' type="submit" value="<?= $this->lang['search'] ?>" /><?php
-            ?><input type="hidden" name="q" id="q2" value="<?= htmlspecialchars($q,ENT_QUOTES) ?>" /></form><?php
-            if ($this->router()->params['q']) {
-                //$uri=  preg_replace('/\/[0-9]{1,3}\//','/',$this->router()->uri);
-                //$uri=  $this->router()->uri;
-                echo "<a class='x' href='",$uri,"'></a>";
-            }
-        }
-        ?><div class='cnd'><a href='<?= $this->router()->getURL($this->router()->countryId) ?>'><span class='ct c<?= $this->router()->countryId==0?0:$this->router()->countryId ?>'></span></a><?php if (!$this->router()->siteTranslate){ ?><select id='country'><option><?= $this->lang['change_country'] ?></option><option value='0'><?= $this->lang['opt_all_countries'] ?></option><?php
-                foreach ($this->router()->countries as $country) {
-                    if (isset($country[$this->fieldNameIndex]))
-                        echo "<option value='".$country[3], "'>{$country[$this->fieldNameIndex]}</option>";
-                } ?></select><?php
-                    /*if (!$this->rss && $this->router()->module=='search') {
-                        echo '<span class="', $this->router()->language=='ar'?'fl':'fr' ,' gp">',
-                            '<a href="', $this->router()->cfg['url_base'], 
-                                $this->router()->uri,  $this->router()->language=='ar'?'':'en/' , '?rss=1" id="rss-link">',
-                            '<img alt="RSS ', $this->title,'" src="', $this->router()->cfg['url_resources'], '/img/rss.gif">',
-                            '</a></span>';
-                    }*/
-            /*    } ?></div><?php 
-                ?></div><?php 
-    }*/
-    
-    function getPageUri(){
+
+    function getPageUri() {
         if($this->pageUri){
             return $this->pageUri;
         }
@@ -1392,36 +1222,20 @@ class Page extends Site {
         return $uri;
     }
     
+    
     function search_bar(){
         
         $q=$this->router()->params['q'];
         $uri = $this->getPageUri();
                 
         ?><div class="srch w"><?php
-        /*
-        ?><div class='cnd'><a href='<?= $this->router()->getURL($this->router()->countryId) ?>'><span class='ct c<?= $this->router()->countryId==0?0:$this->router()->countryId ?>'></span></a><?php if (!$this->router()->siteTranslate){ ?><select id='country'><option><?= $this->lang['change_country'] ?></option><option value='0'><?= $this->lang['opt_all_countries'] ?></option><?php
-                foreach ($this->router()->countries as $country) {
-                    if (isset($country[$this->fieldNameIndex]))
-                        echo "<option value='".$country[3], "'>{$country[$this->fieldNameIndex]}</option>";
-                } ?></select><?php
-                    /*if (!$this->rss && $this->router()->module=='search') {
-                        echo '<span class="', $this->router()->language=='ar'?'fl':'fr' ,' gp">',
-                            '<a href="', $this->router()->cfg['url_base'], 
-                                $this->router()->uri,  $this->router()->language=='ar'?'':'en/' , '?rss=1" id="rss-link">',
-                            '<img alt="RSS ', $this->title,'" src="', $this->router()->cfg['url_resources'], '/img/rss.gif">',
-                            '</a></span>';
-                    }
-                } ?></div><?php */
         ?><form onsubmit="if(document.getElementById('q').value)return true;return false" action="<?= $uri ?>" method="get"><?php 
             ?><div class='q'><?php 
                 ?><input id="q" name='q' value="<?= htmlspecialchars($q,ENT_QUOTES) ?>" type='text' placeholder='<?= $this->lang['search_what'] ?>' /><?php 
                 if ($this->router()->params['q']) {
-                    //$uri=  preg_replace('/\/[0-9]{1,3}\//','/',$this->router()->uri);
-                    //$uri=  $this->router()->uri;
                     echo "<a class='qx' href='",$uri,"'></a>";
                 }
             ?></div><?php 
-                /* ?><input class='bt rc bt1' type="submit" value="<?= ( (($this->router()->module!="search" && $this->router()->module!="detail")|| $this->userFavorites) ? $this->lang['search']:$this->lang['search_within']) ?>" /><?php */
                 ?><input class='bt' type="submit" value="<?=  $this->lang['search'] ?>" /><?php 
 
         ?></form><?php 
@@ -1435,15 +1249,6 @@ class Page extends Site {
         }
 
 
-        /*if ($this->router()->module=="search" || $this->router()->module=="detail") {
-            ?><span class="sse"><span class="oi"></span><div class="fltr"></div></span><?php
-        }*/
-        /* if (($this->router()->module=="search" && !$this->userFavorites) || $this->router()->module=="detail") { 
-            ?><form onsubmit="if(document.getElementById('q2').value=document.getElementById('q').value)return true;return false" action="<?= $this->router()->getURL($this->router()->countryId,$this->router()->cityId) ?>" method="get"><?php 
-                ?><input class='bt rc bt2' type="submit" value="<?= $this->lang['search'] ?>" /><?php
-                ?><input type="hidden" name="q" id="q2" value="<?= htmlspecialchars($q,ENT_QUOTES) ?>" /><?php 
-            ?></form><?php
-        }*/
             $this->renderLoginBox(); 
         ?></div><?php 
         
@@ -1960,8 +1765,6 @@ class Page extends Site {
                 $cityId=0;
             }
         }
-        //if (count($this->router()->countryCities)<2)$cityId=0;
-        //$headTitle='<a href="'.$this->router()->getURL($this->router()->countryId,$cityId).'">Mourjan.com</a>';
         $headTitle='Mourjan.com';
         switch ($this->router()->module) {
             case 'buy':
@@ -2001,48 +1804,7 @@ class Page extends Site {
                         $backButton = '<a class="back" href="'.$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId).'"></a>';
                     }elseif($this->localityId){
                         $this->localityId = $this->localityId+0;
-                        /*$tmpId=$this->localityId;
-                        $countre=0;
-                        do{
-                            if (isset($this->localities[$tmpId]) && isset($this->localities[$this->localities[$tmpId]['parent_geo_id']+0])){
-                                $tmpId=$this->localities[$tmpId]['parent_geo_id']+0;
-                                $counter = $this->localities[$tmpId]['counter'];
-                            }else{
-                                $counter=0;
-                            }
-                        }while($tmpId!=0 && $counter==1);
-                        if ($tmpId && $tmpId!=$this->localityId){
-                            $backButton = '<a class="back" href="/'.$this->router()->countries[$this->router()->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->router()->sections[$this->router()->sectionId][3].'/'.($this->router()->purposeId ? $this->router()->purposes[$this->router()->purposeId][3].'/' : '').($this->router()->language!='ar' ? $this->router()->language.'/':'').'c-'.$tmpId.'-2/"></a>';
-                        }else {
-                            $backButton = '<a class="back" href="'.$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId).'"></a>';
-                        }*/
-                        /*while($tmpId){
-                            if (isset($this->localities[$tmpId])){
-                                if(isset($this->localities[$this->localities[$tmpId]['parent_geo_id']+0])){
-                                    $counter=0;
-                                    foreach($this->localities as $id => $local){
-                                        if($id != $tmpId && $local['parent_geo_id']==$this->localities[$tmpId]['parent_geo_id']){
-                                            $counter++;
-                                            break;
-                                        }
-                                    }
-                                    $tmpId=$this->localities[$tmpId]['parent_geo_id']+0;
-                                    
-                                    if($counter){
-                                        break;
-                                    }
-                                }else{
-                                    $tmpId = 0;
-                                }
-                            }else{
-                                $tmpId=0;
-                            }
-                        }
-                        if ($tmpId){
-                            $backButton = '<a class="back" href="/'.$this->router()->countries[$this->router()->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->router()->sections[$this->router()->sectionId][3].'/'.($this->router()->purposeId ? $this->router()->purposes[$this->router()->purposeId][3].'/' : '').($this->router()->language!='ar' ? $this->router()->language.'/':'').'c-'.$tmpId.'-2/"></a>';
-                        }else {
-                            $backButton = '<a class="back" href="'.$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId).'"></a>';
-                        }*/
+
                         if (isset($this->localities[$this->localityId]) && isset($this->localities[$this->localities[$this->localityId]['parent_geo_id']+0])){
                             $tmpId=$this->localities[$this->localityId]['parent_geo_id']+0;
                             $backButton = '<a class="back" href="/'.$this->router()->countries[$this->router()->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->router()->sections[$this->router()->sectionId][3].'/'.($this->router()->purposeId ? $this->router()->purposes[$this->router()->purposeId][3].'/' : '').($this->router()->language!='ar' ? $this->router()->language.'/':'').'c-'.$tmpId.'-2/"></a>';
@@ -2084,11 +1846,8 @@ class Page extends Site {
                 }
                 break;
             case 'detail':
-                //if (!$this->detailAdExpired) {
-                    //$headTitle=$this->title;
-                    $headTitle='';
-                    break;
-                //}
+                $headTitle='';
+                break;
             case 'search':
                 $headTitle=  $this->title;
                 break;
@@ -4988,28 +4747,31 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         $keywords='';
         $keywords.=  $this->lang['mourjan'].',';
         $keywords.=  $this->lang['pclassifieds'].',';
-        if($this->router()->language=='ar'){
+        if ($this->router()->language=='ar') {
             $keywords.='نشر إعلان,إعلان,';
-        }else{
+        }
+        else {
             $keywords.='ad,post ad,';
         }
-        if($this->router()->cityId){
+        if ($this->router()->cityId) {
             $keywords.= $this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId]['name'];// $this->router()->cities[$this->router()->cityId][$this->fieldNameIndex].',';
             $keywords.= $this->router()->countries[$this->router()->countryId]['name'].',';
-        }elseif($this->router()->countryId){
+        }
+        elseif($this->router()->countryId) {
             $keywords.= $this->router()->countries[$this->router()->countryId]['name'].',';
         }
-        if($this->router()->module=='index'){
-            foreach($this->router()->pageRoots as $rid=>$root){
+        if ($this->router()->module=='index') {
+            foreach ($this->router()->pageRoots as $rid=>$root) {
                 $keywords.= $root['name'].',';
             }
-            foreach($this->router()->purposes as $ro){
+            foreach ($this->router()->purposes as $ro) {
                 if($ro[0]!=999 && $ro[0]!=5)
                 $keywords.= $ro[$this->fieldNameIndex].',';
             }
             $keywords=substr($keywords,0,-1);
             ?><meta name="keywords" content="<?= $keywords ?>"><?php
-        }elseif($this->router()->module=='search' && !$this->userFavorites && !$this->router()->watchId && !$this->router()->userId){
+        }
+        elseif($this->router()->module=='search' && !$this->userFavorites && !$this->router()->watchId && !$this->router()->userId) {
             if($this->router()->rootId){
                 $keywords.= $this->router()->roots[$this->router()->rootId][$this->fieldNameIndex].',';
             }else{
@@ -5042,21 +4804,16 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                     }
                 }
             }
-            if($this->router()->purposeId){
+            
+            if ($this->router()->purposeId) {
                 $keywords.= $this->router()->purposes[$this->router()->purposeId][$this->fieldNameIndex].',';
-            }else{                             
-                foreach($this->router()->pagePurposes as $pId=>$purpose){
-                    if($pId!=999 && $pId!=5)
-                    $keywords.= $purpose['name'].',';
-                }
-             
-                /*
-                foreach($this->router()->pagePurposes as $ro){
-                    if($ro[0]!=999 && $ro[0]!=5)
-                    $keywords.= $this->router()->purposes[$ro[0]][$this->fieldNameIndex].',';
-                }
-                 * 
-                 */
+            }
+            else {                             
+                foreach ($this->router()->pagePurposes as $pId=>$purpose) {
+                    if ($pId!=999 && $pId!=5) {
+                        $keywords.= $purpose['name'].',';
+                    }
+                }             
             }
             $keywords=substr($keywords,0,-1);
             ?><meta name="keywords" content="<?= $keywords ?>"><?php
@@ -5447,8 +5204,6 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         
         if ($this->isMobile) {            
             ?><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, maximum-scale=5.0, user-scalable=1" name="viewport"><?php
-            /* ?><link rel="apple-touch-icon-precomposed" href="<?= $this->router()->cfg["url_img"]."/mourjan-icon.png" ?>"/><?php
-            ?><link rel="apple-touch-icon" href="<?= $this->router()->cfg["url_img"]."/mourjan-icon.png" ?>"/><?php */
             ?><link rel="apple-touch-icon" sizes="57x57" href="<?= $this->router()->cfg["url_img"]."/mourjan-icon-114.png" ?>" /><?php
             ?><link rel="apple-touch-icon" sizes="114x114" href="<?= $this->router()->cfg["url_img"]."/mourjan-icon-114.png" ?>" /><?php
             ?><link rel="apple-touch-icon" sizes="72x72" href="<?= $this->router()->cfg["url_img"]."/mourjan-icon-144.png" ?>" /><?php
@@ -5457,31 +5212,9 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
             ?><link rel="apple-touch-startup-image" href="<?= $this->router()->cfg["url_img"]."/mourjan-splash.png"?>" /><?php
             ?><meta name="format-detection" content="telephone=no"><?php
             ?><link rel="manifest" href="/manifest.json"><?php
-           /* ?><meta name="apple-mobile-web-app-capable" content="yes"><?php
-            ?><meta name="apple-mobile-web-app-status-bar-style" content="black"><?php */
         }
-        //echo '<meta name="google-translate-customization" content="9d4f90b5d120d88a-90a8c23848bfb466-gb59ab1efd8ce3495-f"></meta>';
 
         if ($country_code && isset($this->router()->cities)) {
-/*
-            if ($this->router()->cityId>0 && isset($this->router()->cities[$this->router()->cityId])) {
-                $geo = $this->router()->cities[$this->router()->cityId];
-                $geo[2] = ucfirst($geo[2]);
-                echo '<meta name="geo.placename" content="', $geo[2], ' - ', $this->router()->countries[$this->router()->countryId][2], '" />';
-                echo '<meta name="geo.position" content="', $geo[7],';', $geo[8],'" />';
-                echo '<meta name="geo.region" content="',  strtoupper($this->router()->countries[$this->router()->countryId][3]) ,'-', $geo[2], '" />';
-                echo '<meta name="ICBM" content="', $geo[7], ', ', $geo[8], '" />';
-            } else {
-                $geo = NULL;
-                if (!empty($this->router()->countryCities)) {
-                    $__firstCityId = current(reset($this->router()->countryCities));
-                    $geo = isset($this->router()->cities[$__firstCityId]) ? $this->router()->cities[$__firstCityId] : NULL;
-                }
-                echo '<meta name="geo.placename" content="', $this->router()->countries[$this->router()->countryId][2], '" />';
-                if ($geo) echo '<meta name="geo.position" content="', $geo[7],';', $geo[8],'" />';
-                echo '<meta name="geo.region" content="" />';
-                if ($geo) echo '<meta name="ICBM" content="', $geo[7], ', ', $geo[8], '" />';                       
-            }*/
             echo '<meta http-equiv="content-language" content="', $this->router()->language, $country_code, '">';
         } 
         else {
@@ -5495,58 +5228,10 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
             switch ($this->router()->module) {
                 case "detail":
                     echo '<meta name="robots" content="noindex" />';
-                /*
-                if ($this->detailAd && $this->detailAd[Classifieds::ID] && !$this->detailAdExpired) {
-                    if (in_array($this->detailAd[Classifieds::SECTION_ID],array(29,63,105,117))) {
-                        $time = time()-strtotime($this->detailAd[Classifieds::DATE_ADDED]);
-                        //within 7 days no index
-                        if ($time<604800) {
-                            echo '<meta name="robots" content="noindex, follow" />';
-                            break;
-                        }
-                    }
-                    
-                    echo '<meta name="expires" content="',date('D, d M Y H:i:s T', strtotime($this->detailAd[Classifieds::EXPIRY_DATE])),'" />';
-                    $_cid_ = (int)$this->detailAd[Classifieds::CANONICAL_ID];
-                    $_rtl = (int)$this->detailAd[Classifieds::RTL];
-                    $_uri = $this->detailAd[Classifieds::URI_FORMAT];
-                    if ($_cid_) {
-                        $row = $this->router()->db->queryResultArray(
-                                "select a.rtl, a.canonical_id, a.hold,
-                                '/'||lower(c.ID_2)||'/'||cy.uri||'/'||s.uri||'/'||pu.uri||'/%s%d/' URI
-                                from ad a
-                                left join publication p on a.publication_id=p.id
-                                left join country c on c.id=p.country_id
-                                left join city cy on cy.id=p.city_id
-                                left join section s on s.id=a.section_id
-                                left join category r on r.id=s.category_id
-                                left join purpose pu on pu.id=a.purpose_id
-                                where a.id = {$_cid_} ");
-                        $_rtl = (int)$row[0]['RTL'];
-                        $_uri = $row[0]['URI'];
-                    } else {
-                        $_cid_ = $this->detailAd[Classifieds::ID];
-                    }
-                    echo '<link rel="canonical" href="http://www.mourjan.com', sprintf($_uri, ($_rtl?'':'en/'), $_cid_), '" />';
-
-                    if (($_rtl==1 && $this->router()->language!='ar')||($_rtl==0 && $this->router()->language=='ar')) {
-                        echo '<meta name="robots" content="noindex, follow" />';
-                        echo '<meta name="mourjan" content="'. $_rtl . ", {$this->router()->language}" , '" />';
-                    }else {
-                        echo '<meta name="robots" content="noodp, noydir, index, follow" />';
-                    }
-                    echo '<meta name="googlebot" content="unavailable_after: ', date('d-M-Y H:i:s T',strtotime($this->detailAd[Classifieds::EXPIRY_DATE])),'"/>';
-                    echo '<meta name="bingbot" content="noindex" />';
-                    echo '<meta name="msnbot" content="noindex" />';
-                } else {
-                    echo '<meta name="robots" content="noindex, follow" />';
-                }*/
-                // end of detail page part
                 break;
 
             case 'search':
-                if ($this->userFavorites) 
-                {
+                if ($this->userFavorites) {
                     echo '<meta name="robots" content="noindex, nofollow" />';
                 } 
                 else {
@@ -5561,13 +5246,11 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                         $qTmp=ceil($this->router()->cfg['search_results_max']/$this->num);
                         if ($qPages>$qTmp) $qPages=(int)$qTmp;
                         
-                        if (array_key_exists('q', $_GET)) 
-                        {
+                        if (array_key_exists('q', $_GET)) {
                             echo '<meta name="robots" content="noindex, follow" />';
                             $currentUrl=$this->router()->getUrl($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);                                                        
                             
-                            if ($this->router()->params['start']<$qPages && !$this->isMobile) 
-                            {
+                            if ($this->router()->params['start']<$qPages && !$this->isMobile) {
                                 $next = $this->router()->params['start']==0 ? 2 : $this->router()->params['start']+1;
                                 echo '<link rel="prerender" href="', $this->router()->config()->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
                                 echo '<link rel="prefetch" href="', $this->router()->config()->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
@@ -5578,17 +5261,14 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                             $this->includeMetaKeywords();
                             
                             $startLink='';
-                            if ($this->extendedId || $this->localityId) 
-                            {
+                            if ($this->extendedId || $this->localityId) {
                                 $currentUrl=$this->extended_uri;
                             } 
-                            else 
-                            {
+                            else {
                                 $currentUrl=$this->router()->getUrl($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);
                             }
                             
-                            if ($this->router()->params['start']>1) 
-                            {
+                            if ($this->router()->params['start']>1) {
                                 $startLink=$this->router()->params['start'].'/';
                             }
                             
@@ -5611,21 +5291,17 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                                         }
                                     }
                                     
-                                    if ($this->extendedId)
-                                    {
+                                    if ($this->extendedId) {
                                         $alter = $this->router()->database()->index()
                                                 ->directQuery("select id, section_tag_id from section_tag_counts where country_id={$this->router()->countryId} and section_id={$this->router()->sectionId} and lang='ar' and uri='{$this->extended[$this->extendedId]['uri']}'");
-                                        if ($alter && count($alter)==1)
-                                        {
-                                            foreach ($alter as $value) 
-                                            {
+                                        if ($alter && count($alter)==1) {
+                                            foreach ($alter as $value) {
                                                 $canonicalCurrentUrl= preg_replace("/\/q\-{$this->extendedId}\-/", "/q-{$value[1]}-", $canonicalCurrentUrl);
                                             }
                                         }                                        
                                     }                                    
                                 } 
-                                else 
-                                {
+                                else {
                                     $canonicalCurrentUrl=$this->router()->getUrl($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId, FALSE);
                                 }
                                 $canonical_link = 'https://www.mourjan.com'.$canonicalCurrentUrl.$startLink;                                
@@ -5648,7 +5324,8 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                                     echo "hl={$this->router()->language}";
                                     echo '" />';
                                 }
-                            }else {
+                            }
+                            else {
                                 echo '<meta name="robots" content="noindex, follow" />';
                             }
                                     
@@ -5730,16 +5407,18 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 break;
                 
             default:
-                //echo '<meta name="expires" content="never" />';
                 if ($this->router()->module=='notfound') {
                     echo '<meta name="robots" content="noindex, nofollow" />';
-                } elseif($this->router()->module=='privacy' || $this->router()->module=='terms' || $this->router()->module=='about' || $this->router()->module=='advertise') {
+                } 
+                elseif($this->router()->module=='privacy' || $this->router()->module=='terms' || $this->router()->module=='about' || $this->router()->module=='advertise') {
                     if ($this->router()->language=='en'){
                         echo '<meta name="robots" content="noodp, noydir, index, follow" />';
-                    }else {
+                    }
+                    else {
                         echo '<meta name="robots" content="noindex, nofollow" />';
                     }
-                }else {
+                }
+                else {
                     echo '<meta name="robots" content="noodp, noydir, index, follow" />';
                 }
                 break;
@@ -5747,54 +5426,12 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         }
 
         ?><link rel="icon" href="<?= $this->router()->config()->imgURL ?>/favicon.ico" type="image/x-icon" /><?php 
-        /* if (!$this->isMobile) {?><meta http-equiv="X-UA-Compatible" content="IE=8" /><?php } */
             $this->set_analytics_header();
-            /*$valentine_day = date('j');
-             *  <script async src="<?= $this->router()->cfg['url_jquery_mobile'] ?>/jq.min.js"></script>
-            ?></head><?php flush() ?><body class="<?= ($this->router()->userId ? 'partner':'').
-                    ( ($valentine_day==14 && in_array($this->router()->countryId,array(1,2,5,6,10,11,15,122,145))) ? ' valentine':'' ) 
-                    ?>" <?= $this->pageItemScope ?>><meta itemprop="isFamilyFriendly" content="true" /><?php
-             * 
-             */
             
         ?></head><?php flush() ?><body<?= $this->isAdminSearch ? ' oncontextmenu="return false;"':'' ?> class="<?= ($this->router()->isAcceptWebP ? 'wbp':'') ?>" <?= $this->pageItemScope ?>><meta itemprop="isFamilyFriendly" content="true" /><?php
-        /*
-        if ($this->isMobile && ($this->router()->module=='search' || $this->router()->module=='detail')) {
-            ?><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php
-            ?><script>(adsbygoogle = window.adsbygoogle || []).push({google_ad_client: "ca-pub-2427907534283641",enable_page_level_ads: true});</script><?php
-        }*/
     }
 
 
-    protected function _rss() {
-        include($this->router()->cfg['dir']. "/core/lib/rss/FeedTypes.php");
-
-        //Creating an instance of RSS2FeedWriter class.
-        //The constant RSS2 is passed to mention the version
-        $feed = new RSS2FeedWriter();
-
-        //Setting the channel elements
-        //Use wrapper functions for common channel elements
-        //$feed->setTitle(trim($this->router()->pageTitle[$this->router()->language]));
-        $feed->setTitle($this->title);
-        $feed->setLink($this->router()->cfg['host'] . $this->router()->uri);
-        if ($this->lang['description']) {
-            $feed->setDescription(preg_replace("/<.*?>/", "", $this->lang['description']));
-        }
-
-        //Image title and link must match with the 'title' and 'link' channel elements for RSS 2.0
-        //$TestFeed->setImage('Testing the RSS writer class','http://www.ajaxray.com/projects/rss','http://www.rightbrainsolution.com/_resources/img/logo.png');
-
-        //Use core setChannelElement() function for other optional channels
-        $country_code="";
-        if ($this->router()->countryId && array_key_exists($this->router()->countryId, $this->router()->countries)) {
-            $country_code = '-'.$this->router()->countries[$this->router()->countryId]['uri'];
-        }
-
-        $feed->setChannelElement('language', $this->router()->language.$country_code);
-        $feed->setChannelElement('pubDate', date(DATE_RSS, time()));
-        return $feed;
-    }
     
     function footerMobile(){
         $lang=$this->router()->language=='ar'?'':$this->router()->language.'/';
@@ -5953,7 +5590,6 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
 
                 if (isset($this->user->params['mobile_ios_app_bottom_banner']) && $this->user->params['mobile_ios_app_bottom_banner']==1){
 
-
                     ?><br /><ul class="install rc sh"><?php
                     ?><li><span class="ilogo" /></li><?php
                     ?><li><div><?php
@@ -6069,63 +5705,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                     return false
                 });
            ';
-            /*
-             
-                    $(".elnk.lglk").colorbox({
-                        inline:true,
-                        title:"'.(isset($this->partnerInfo['logo'][0]) ? $this->lang['editLogo']:$this->lang['addLogo']).'",
-                        innerWidth:430,
-                        innerHeight:130
-                    });
-             
-                var gdel=function(e,path){
-                    if(confirm("'.$this->lang['askDelImage'].'")){
-                        $.ajax({
-                            type:"POST",
-                            url:path,
-                            dataType:"json",
-                            success:function(rp){
-                                var d,e;
-                                if(path=="/ajax-gdel/"){  
-                                    d=$(".logo");
-                                    d.html("<div class=\'dlogo\'></div><div class=\'ebx rcb\'><a class=\'elnk lglk\' href=\'#uploadLogo\'><span class=\'ek\'></span>'.$this->lang['addLogo'].'</a></div>");
-                                }else {
-                                    d=$(".tbn");
-                                    d.attr("id","uTX");
-                                    d.html("<div class=\'ebx bxmin rcb\'><a class=\'elnk banlk\' href=\'#uploadBanner\'><span class=\'ek\'></span>'.$this->lang['addBanner'].'</a></div>");
-                                    d.append(e);
-                                }
-                                initCBX();
-                            },
-                            error:function(){}
-                        });
-                    }
-                };
-             
-                var uploadCallback=function(fn,fp,field,w,h){
-                    var f=curForm[field];
-                    var n=$(".lnb",f);
-                    n.removeClass("loading");
-                    if(fn) {
-                        f[0].reset();
-                        var d;
-                        if(field=="picBU"){
-                            d=$(".tbn");
-                            d.attr("id","");
-                            d.html("<img width=\'"+w+"px\' height=\'"+h+"px\' src=\'"+fp+"\' /><div class=\'ebx bxmax rcb\'><a class=\'elnk banlk\' href=\'#uploadBanner\'><span class=\'ek\'></span>'.$this->lang['editBanner'].'</a><span class=\'sep\'>|</span><span class=\'lnk elnk\' onclick=\'gdel(this,\"/ajax-bdel/\")\'><span class=\'ek dk\'></span>'.$this->lang['delImage'].'</span></div>");
-                        }else{
-                            d=$(".logo");
-                            d.html("<img width=\'"+w+"px\' height=\'"+h+"px\' src=\'"+fp+"\' /><div class=\'e2bx ebx rcb\'><a class=\'elnk lglk\' href=\'#uploadLogo\'><span class=\'ek\'></span>'.$this->lang['editLogo'].'</a><span class=\'sep\'></span><span class=\'lnk elnk\' onclick=\'gdel(this,\"/ajax-gdel/\")\'><span class=\'ek dk\'></span>'.$this->lang['delImage'].'</span></div>");
-                        }
-                        resP(n,f.attr("id"));
-                        $.colorbox.close();
-                        initCBX();
-                    }else {
-                        n.html("'.$this->lang['upload_fail'].'");
-                        n.addClass("notice err");
-                    }
-                };
-             */
+
             $this->globalScript.='
                 var curForm=[];
                 var initCBX=function(){                
@@ -6200,90 +5780,6 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                 }
             ?></div><?php
         ?></div><?php
-        /* ?><div class="w"><div id="menu" class="menu sh<?= $rc ?>"><div class="row<?= $rc ?>"><?php 
-                    ?><h1><?= $this->title ?></h1><?= ($isOwner ? ' <a class="elnk" href="'.$editPageLink.'?edit=title#title"><span class="ek"></span>'.$this->lang['editPageTitle'].'</a>':'') ?><?php 
-                    $socialString='';
-                    if (isset($this->partnerInfo['links']) && is_array($this->partnerInfo['links'])) {
-
-                        foreach ($this->partnerInfo['links'] as $id => $value){
-                            if ($id && $value){
-                                switch($id){
-                                    case 'fb':
-                                        //if ($socialString) $socialString.=' - ';
-                                        $socialString.="<a target='blank' href='http://www.facebook.com/".$value."'><span class='fb-link'></span></a>";
-                                        break;
-                                    case 'tw':
-                                        //if ($socialString) $socialString.=' - ';
-                                        $socialString.="<a target='blank' href='http://twitter.com/".$value."'><span class='tw-link'></span></a>";
-                                        break;
-                                    case 'gp':
-                                        //if ($socialString) $socialString.=' - ';
-                                        $socialString.="<a target='blank' href='http://plus.google.com/".$value."'><span class='gp-link'></span></a>";
-                                        break;
-                                    case 'lk':
-                                        //if ($socialString) $socialString.=' - ';
-                                        $socialString.="<a target='blank' href='http://www.linkedin.com/in/".$value."'><span class='lk-link'></span></a>";
-                                        break;                                        
-                                }
-                            }
-                        }
-                        if ($socialString) {                            
-                            $res='<div class="pis">';
-                            if($isOwner) $res.='<a class="elnk" href="'.$editPageLink.'?edit=links#links"><span class="ek"></span>'.$this->lang['editSocialLinks'].'</a>';
-                            $res.='<label>'.$this->lang['followUs'].'</label>'.$socialString."</div>";
-                            $socialString=$res;
-                        }elseif($isOwner) $socialString='<div class="pis"><a class="elnk" href="'.$editPageLink.'?edit=links#links"><span class="ek"></span>'.$this->lang['addSocialLinks'].'</a></div>';
-                        
-                        //if ($socialString) $socialString=  htmlentities ($socialString, ENT_QUOTES);
-                    }elseif($isOwner) $socialString='<div class="pis"><a class="elnk" href="'.$editPageLink.'?edit=links#links"><span class="ek"></span>'.$this->lang['addSocialLinks'].'</a></div>';
-                    echo $socialString;
-                ?></div><?php 
-                echo '<div class="tbn"';
-                if (isset($this->partnerInfo['banner'][0])){
-                    echo '><img src="'.$this->router()->cfg['url_ad_img'].'/usr/banner/'.$this->partnerInfo['banner'][0].'" width="'.$this->partnerInfo['banner'][1].'px" height="'.$this->partnerInfo['banner'][2].'px" />';
-                }else {
-                    echo ' id="uTX">';
-                }
-                if ($isOwner) {
-                    if (isset($this->partnerInfo['banner'][0]))
-                        echo '<div class="ebx bxmax rcb"><a class="elnk banlk" href="#uploadBanner"><span class="ek"></span>'.$this->lang['editBanner'].'</a><span class="sep">|</span><span class="lnk elnk" onclick="gdel(this,\'/ajax-bdel/\')"><span class="ek dk"></span>'.$this->lang['delImage'].'</span></div>';
-                    else     
-                        echo '<div class="ebx bxmin rcb"><a class="elnk banlk" href="#uploadBanner"><span class="ek"></span>'.$this->lang['addBanner'].'</a></div>';
-                }
-                
-                echo '</div>';
-                if ($isOwner) {
-                    ?><div class="hid"><div class="uForm" id="uploadBanner"><?php
-                        ?><form target="uploadifb" id="picBU" action="/ajax-banner/" enctype="multipart/form-data" method="post"><?php 
-                            ?><input type="hidden" name="MAX_FILE_SIZE" value="<?= $this->router()->cfg['max_upload'] ?>" /><?php 
-                           ?><h2><?= $this->lang['choosePicture'] ?></h2><?php
-                                ?><p class="lnb"><?= $this->lang['bannerHint'] ?></p><?php
-                                ?><p class="frm rc"><?php 
-                                    ?><input id="picBF" name="pic" class="rc en" type="file" value="" /><?php 
-                                    ?><input id="picBS" class="bt rc unv" type="submit" value="<?= $this->lang['upload'] ?>" /><?php
-                                ?></p><?php 
-                        ?></form><iframe class="hid" id="uploadifb" name="uploadifb" src="/web/blank.html"></iframe><?php 
-                    ?></div></div><?php  
-                    
-                    ?><div class="hid"><div class="uForm" id="uploadLogo"><?php
-                        ?><form target="uploadif" id="picLU" action="/ajax-logo/" enctype="multipart/form-data" method="post"><?php 
-                            ?><input type="hidden" name="MAX_FILE_SIZE" value="<?= $this->router()->cfg['max_upload'] ?>" /><?php 
-                                ?><h2><?= $this->lang['choosePicture'] ?></h2><?php
-                                ?><p class="lnb"><?= $this->lang['logoHint'] ?></p><?php
-                                ?><p class="frm rc"><?php 
-                                    ?><input id="picLF" name="pic" class="rc en" type="file" value="" /><?php 
-                                    ?><input id="picLS" class="bt rc unv" type="submit" value="<?= $this->lang['upload'] ?>" /><?php
-                                ?></p><?php 
-                        ?></form><iframe class="hid" id="uploadif" name="uploadif" src="/web/blank.html"></iframe><?php 
-                    ?></div></div><?php                       
-                }
-                
-                ?></div></div><?php */
-                
-                
     }
     
-
 }
-
-?>
