@@ -3921,7 +3921,7 @@ class Search extends Page {
             $hasShare = false;
             $bread='';
             $hasPost = (!$forceRebuild && $count);
-            if ($this->userFavorites && $count==0) {
+            if ($this->userFavorites && $count==0) {                
                 $bread.= "<p class='ph phb'>";
                 $bread.=$this->lang['noFavoritesBrd'];
                 $bread.= '</p>';
@@ -4105,26 +4105,28 @@ class Search extends Page {
                 return $bread;
             }
 
-            function updateUserSearchCriteria() {
-                $time = time();
-                if (!isset($this->user->params['search']) || (isset($this->user->params['search']['time']) && ($time - $this->user->params['search']['time'] > 3))) {
-                    $this->user->params['search'] = array(
-                        'cn' => $this->router()->countryId,
-                        'c' => $this->router()->cityId,
-                        'ro' => $this->router()->rootId,
-                        'se' => $this->router()->sectionId,
-                        'pu' => $this->router()->purposeId,
-                        'start' => $this->router()->params['start'],
-                        'q' => $this->router()->params['q'],
-                        'exId' => $this->extendedId,
-                        'locId' => $this->localityId,
-                        'uId' => $this->router()->userId,
-                        'time' => $time
-                    );
-                    $this->user->update();
-                }
-            }
+            
+    function updateUserSearchCriteria() {
+        $time = time();
+        if (!isset($this->user->params['search']) || (isset($this->user->params['search']['time']) && ($time-$this->user->params['search']['time']>3))) {
+            $this->user->params['search'] = array(
+                'cn' => $this->router()->countryId,
+                'c' => $this->router()->cityId,
+                'ro' => $this->router()->rootId,
+                'se' => $this->router()->sectionId,
+                'pu' => $this->router()->purposeId,
+                'start' => $this->router()->params['start'],
+                'q' => $this->router()->params['q'],
+                'exId' => $this->extendedId,
+                'locId' => $this->localityId,
+                'uId' => $this->router()->userId,
+                'time' => $time
+            );
+            $this->user->update();
+        }
+    }
 
+    
     function renderSubSections() {
         if ($this->router()->rootId && count($this->router()->pageSections) > 1) {
             $hasQuery = false;
@@ -5230,11 +5232,12 @@ class Search extends Page {
             }
         }
 
-        $this->crumbTitle = $this->title;
-        $bread = '<div class=row><div class=col-12>' . implode("", $bc) . '</div><span style="margin:0 8px;">'. $this->getResulstHint($forceSetting). '</span>'.  '</div></div></div>';
+        $this->crumbTitle = $this->title;       
+        
+        $this->crumbString = '<div class=row><div class=col-12>' . implode("", $bc) . '</div><span style="margin:0 8px;">'. $this->getResulstHint($forceSetting). '</span>'.  '</div></div></div>';
       
         if ($tempTitle) { $this->title = $tempTitle;  }
-        return $this->crumbString = $bread;
+        return $this->crumbString;
     }
 
     
