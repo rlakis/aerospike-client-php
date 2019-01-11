@@ -443,14 +443,13 @@ trait MobileTrait {
     
     
     public function mobileVerfiedRelatedNumber(int $number, &$record) : int {
-        $number = 9611489386;
         $time = time() - (1 * 8760 * 3600); // one year ago
         $where = \Aerospike::predicateEquals("reference", $number);
         $status = $this->getConnection()->query(NS_EDIGEAR, "rtp", $where, 
                 function ($_record) use (&$record, &$time) {
                     //error_log(var_export($_record['bins'], true));
                     if (isset($_record['bins']['verified_date']) && $_record['bins']['verified_date']>=$time) {
-                        $record[]=$_record['bins'];           
+                        $record[$_record['bins']['number']]=$_record['bins'];           
                     }
                 }, ["number", "uuid", "verified_date"]);
                 

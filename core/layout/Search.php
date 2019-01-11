@@ -2678,7 +2678,7 @@ class Search extends Page {
             }
             echo $itemDesc, '>', "\n";
             if ($ad[Classifieds::LATITUDE] || $ad[Classifieds::LONGITUDE]) {
-                echo '<div class=float-left style="margin-top:-3px;margin-left:-3px;">','<a href="#" title="', $ad[Classifieds::LOCATION], '"><i class="icn icnsmall icn-map-marker"></i></a>', '</div>', "\n"; 
+                echo '<a href="#" title="', $ad[Classifieds::LOCATION], '"><i class="icn icnsmall icn-map-marker"></i></a>', "\n"; 
             }
             echo $ad[Classifieds::CONTENT], '</div>', "\n";
             //if ($feature||$isFeatured) {
@@ -3185,7 +3185,7 @@ class Search extends Page {
                                         $iTmp.='<span class="v'.$section[0].'"></span>';
                                     }
                                     
-                                    $followStr.='<li><a href="'.$uri.'">'.$iTmp.$sName.'</a></li>';
+                                    $followStr.='<li><button class="btn"><a href="'.$uri.'">'.$iTmp.$sName.'</a></button></li>';
                                     $procSec[$section[0]]=1;
                                     $k++;
                                     if($k==5)break;
@@ -3361,8 +3361,8 @@ class Search extends Page {
         }
                 
         ?></div><?php 
-                
-        if ($this->searchResults['body']['total_found']) {
+        
+        if (0 && $this->searchResults['body']['total_found']) {
             ?> <!--googleoff: all--> <div id="rpd" class="rpd cct"><?php
             ?><b><?= $this->lang['abuseTitle'] ?></b><?php
             ?><textarea onkeydown="idir(this)" onchange="idir(this,1)"></textarea><?php
@@ -3610,9 +3610,9 @@ class Search extends Page {
                             $uri.=$this->router()->sections[$ad[Classifieds::SECTION_ID]][3] . '-' . $this->extended[$extID]['uri'] . '/';
                             $uri.=$this->router()->purposes[$ad[Classifieds::PURPOSE_ID]][3] . '/';
                             $uri.=($this->router()->language == 'ar' ? '' : $this->router()->language . '/') . 'q-' . $extID . '-' . $idx . '/';
-                            $section = '<a href="' . $uri . '">' . $section . '</a>';
+                            $section = '<li><a href="' . $uri . '">' . $section . '</a></li>';
                         } else {
-                            $section = '<a href="' . $this->router()->getURL($countryId, $cityId, $ad[Classifieds::ROOT_ID], $ad[Classifieds::SECTION_ID], $ad[Classifieds::PURPOSE_ID]) . '">' . $section . '</a>';
+                            $section = '<li><a href="' . $this->router()->getURL($countryId, $cityId, $ad[Classifieds::ROOT_ID], $ad[Classifieds::SECTION_ID], $ad[Classifieds::PURPOSE_ID]) . '">' . $section . '</a></li>';
                         }
                     }
                 }
@@ -3626,7 +3626,8 @@ class Search extends Page {
                 //if ($ad[Classifieds::LATITUDE] || $ad[Classifieds::LONGITUDE]) {
                 //    $locIcon = "<span class='i loc'></span>";
                 //}
-                return '<ul class="k">'. $locIcon . $section . '</ul>';
+                return '<ul>'. $locIcon . $section . '</ul>';
+                //return $locIcon . $section;
             }
         }
     }

@@ -115,9 +115,7 @@ $config=array(
     
     'enabled_js_log'        => 0,
     //'enabled_ads'           => 1,
-    'restricted_section_ads'=> array(
-        350
-    ),
+    'restricted_section_ads'=> [350],
     'restricted_email_domains'=>array(
         'crapmail.org',
         'zoho.com',
@@ -262,7 +260,7 @@ $config=array(
     'search_index'          => 'ad',
     'search_results_max'    => 1000,
 
-    'sphinxql'		    => array('host'=>'p1.mourjan.com', 'port'=>9307, 'socket'=>'/var/run/mourjanQL'),
+    'sphinxql'		    => ['host'=>'p1.mourjan.com', 'port'=>9307, 'socket'=>'/var/run/mourjanQL'],
     
     //resourses parameters
     'host'                  => 'https://h1.mourjan.com',

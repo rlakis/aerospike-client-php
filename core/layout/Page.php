@@ -2425,11 +2425,11 @@ class Page extends Site {
                     if ($endPage>$pages) $endPage=$pages;
                     while ($startPage<=$endPage) {
                         if ($startPage==$currentPage) {
-                            $result.='<li id="pointer" class="'.($isFirst ? 'fst ':'').'op"><span>'.$startPage.'</span></li>';
+                            $result.='<li class="disabled"><span>'.$startPage.'</span></li>';
                         } 
                         else {
                             $page_no=$startPage-1;
-                            $result.='<li'.($isFirst ? ' class="fst"':'').' id="pointer"><a target="_self" href="';
+                            $result.='<li><a target="_self" href="';
                             
                             if ($page_no)
                                 $result.=sprintf ($link, "{$startPage}/{$uri_query}");
@@ -2443,7 +2443,7 @@ class Page extends Site {
                     }
                     
                     if ($currentPage<$pages) {
-                        $result.='<li id="pointer" class="next">';
+                        $result.='<li class="next">';
                         $offset=$this->router()->params['start']+$this->num;
                         $result.='<a target="_self" href="';                        
                         $page_no=$currentPage+1;
