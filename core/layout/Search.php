@@ -3185,14 +3185,14 @@ class Search extends Page {
                                         $iTmp.='<span class="v'.$section[0].'"></span>';
                                     }
                                     
-                                    $followStr.='<li><button class="btn"><a href="'.$uri.'">'.$iTmp.$sName.'</a></button></li>';
+                                    $followStr.='<li class="btn"><a href="'.$uri.'">'.$iTmp.$sName.'</a></li>';
                                     $procSec[$section[0]]=1;
                                     $k++;
                                     if($k==5)break;
                                 }
                             }
                             if ($followStr) {
-                                $followStr='<b>'.$this->lang['interestSection'].'</b><ul>'.$followStr.'</ul></div>';
+                                $followStr='<div class=card-header><div class=card-title><h5>'.$this->lang['interestSection'].'</h5></div></div><div class=card-content><ul>'.$followStr.'</ul></div></div>';
                             }
                         }
                     }
@@ -3203,7 +3203,8 @@ class Search extends Page {
                             $followStr='<div class="sug sugf">'.$followStr;
                         }
                         else {
-                            $followStr='<div class="sug col-12">'.$followStr;
+                            $followStr='<div class=row><div class=col-12><div class="card card-menu">'.$followStr.'</div></div>';
+                            //$followStr='<div class=row><div class=col-12><div class="card card-menu"></div></div></div>';
                         }
                         echo ' <!--googleoff: index --> ', $followStr, ' <!--googleon: index --> ';
                     }
