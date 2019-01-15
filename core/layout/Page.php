@@ -2418,7 +2418,7 @@ class Page extends Site {
                         $result.='</li>';
                         $isFirst=false;
                     }
-                    $pageMargin=3;
+                    $pageMargin=1;
                     $startPage=$currentPage-$pageMargin;
                     if ($startPage<=0) $startPage=1;
                     $endPage=$currentPage+$pageMargin;
@@ -2458,7 +2458,6 @@ class Page extends Site {
                     else { 
                         $result.= '</ul>';
                         $result= '<div class=row><div class=col-12><ul class="pagination">'.$result.'</div></div>';
-                        //$result= '<ul class="nav nev">'.$result;
                     }
                     $this->paginationString=$result;
                 }
@@ -2467,6 +2466,138 @@ class Page extends Site {
         return $this->paginationString;
     }
     
+    
+    function mt_pagination($link=null) : string {
+        //if (!$this->paginationString||$link) {
+            $appendLang=$this->router()->getLanguagePath();
+            $result='';
+            if ($this->router()->userId) {
+                $link='/'.$this->partnerInfo['uri'].$appendLang.'%s';                
+            }
+            elseif ($this->router()->watchId) {
+                $link='/watchlist'.$appendLang.'%s';                
+            }
+            elseif ($this->userFavorites) {
+                $link='/favorites'.$appendLang.'%s';                
+            }
+            elseif ($this->extendedId) {
+                $idx=1;
+                $link='/';
+                if ($this->router()->countryId) {
+                    $idx=2;
+                    $link='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
+                }
+                if (isset($this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId])) {
+                    $link.=$this->router()->cities[$this->router()->cityId][3].'/';
+                    $idx=3;
+                }
+                $link.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
+                if ($this->router()->purposeId)
+                $link.=$this->router()->purposes[$this->router()->purposeId][3].'/';
+                if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
+                $link.='q-'.$this->extendedId.'-'.$idx.'/%s';
+            }
+            elseif ($this->localityId) {
+                $idx=2;
+                $link='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
+                $link.=$this->localities[$this->localityId]['uri'].'/';
+                if ($this->router()->sectionId) 
+                    $link.=$this->router()->sections[$this->router()->sectionId][3].'/';
+                else 
+                    $link.=$this->router()->pageRoots[$this->router()->rootId]['uri'].'/';
+                if ($this->router()->purposeId)
+                    $link.=$this->router()->purposes[$this->router()->purposeId][3].'/';
+                if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
+                $link.='c-'.$this->localityId.'-'.$idx.'/%s';
+            }
+            else {
+                $link=$this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId).'%s';                
+            }
+
+            $uri_query='';
+            $linkAppend='?';
+            if ($this->pageUserId) {
+                $uri_query=$linkAppend.'u='.$this->user->encodeId($this->pageUserId);
+                $linkAppend='&';
+            }
+            
+            if ($this->router()->params['q']) {
+                $uri_query=$linkAppend.'q='.urlencode($this->router()->params['q']);
+                $linkAppend='&';
+            }
+            
+            $qtotal_found = $this->searchResults['body']['total_found'];
+            if ($qtotal_found>0) {
+                $pages = ceil($qtotal_found/$this->num);
+                $tmp=$this->router()->config()->get('search_results_max')/$this->num;
+                if ($pages>$tmp) { $pages=$tmp; }
+                if ($pages>1) {    
+                    $currentPage = ($this->router()->params['start']?$this->router()->params['start']:1);
+                    $isFirst=true;
+                    if ($currentPage>1) {
+                        $result.='<li><a target="_self" href="';
+                        
+                        $page_no= $currentPage-1;
+                        if ($page_no>1) {
+                            $result.=sprintf ($link, "{$page_no}/{$uri_query}");
+                        } 
+                        else {
+                            $result.=sprintf ($link, $uri_query);
+                        }
+                        
+                        $result.='">';
+                        $result.='<';// $this->lang['previous'];
+                        $result.='</a>';
+                        $result.='</li>';
+                        $isFirst=false;
+                    }
+                    $pageMargin=2;
+                    $startPage=$currentPage-$pageMargin;
+                    if ($startPage<=0) $startPage=1;
+                    $endPage=$currentPage+$pageMargin;
+                    if ($endPage>$pages) $endPage=$pages;
+                    while ($startPage<=$endPage) {
+                        if ($startPage==$currentPage) {
+                            $result.='<li class="active"><span>'.$startPage.'</span></li>';
+                        } 
+                        else {
+                            $page_no=$startPage-1;
+                            $result.='<li><a target="_self" href="';
+                            
+                            if ($page_no)
+                                $result.=sprintf ($link, "{$startPage}/{$uri_query}");
+                            else 
+                                $result.=sprintf($link, $uri_query);
+                            
+                            $result.='">'.$startPage.'</a></li>';
+                        }
+                        $isFirst=false;
+                        $startPage++;
+                    }
+                    
+                    if ($currentPage<$pages) {
+                        $result.='<li>';
+                        $offset=$this->router()->params['start']+$this->num;
+                        $result.='<a target="_self" href="';                        
+                        $page_no=$currentPage+1;
+                        $result.=sprintf ($link, "{$page_no}/{$uri_query}");
+                        $result.='">';
+                        $result.='>'; //$this->lang['next'];
+                        $result.='</a></li>';
+                        $result.= '</ul>';
+                        
+                        $result= '<div class=row><div class=col-12><ul class="pgn">'.$result.'</div></div>';
+                    }
+                    else { 
+                        $result.= '</ul>';
+                        $result= '<div class=row><div class=col-12><ul class="pgn">'.$result.'</div></div>';
+                    }
+                    $this->paginationString=$result;
+                }
+            }
+        //}
+        return $this->paginationString;
+    }
    
     /********************************************************************/
     /*                           abstract functions                     */
@@ -2532,7 +2663,7 @@ class Page extends Site {
     
     function footer() {
         $year = date('Y');
-        echo '<footer><div class="col-12">© 2010-', $year, ' Mourjan.com Classifieds - All Rights Reserved.';        
+        echo '<footer><div class="col-12">© 2010-', $year, ' Mourjan.com Classifieds<br/>All Rights Reserved.';        
         if (!isset($this->user->info['level']) || $this->user->info['level']!=9) {
             ?><br /><br />
             <a href="https://sectigo.com/trust-seal" style="font-family: arial; font-size: 10px; color: #212121; text-decoration: none;"><img src="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png" srcset="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png, https://sectigo.com/images/seals/sectigo_trust_seal_lg_2x.png 2x" width="140" height="54" alt="Protected by Sectigo SSL" border="0" /></a><div style="font-family: arial;font-weight:bold;font-size:15px;color:#86BEE0;"><a href="https://sectigo.com" style="color:#86BEE0; text-decoration: none;">SSL Certificate</a></div>

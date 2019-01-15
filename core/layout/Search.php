@@ -3098,7 +3098,8 @@ class Search extends Page {
                 echo '<meta itemprop="name" content="', $this->subTitle, '" />';
                 $this->renderDResults($keywords);
                 echo '</div>',"\n";                
-                echo $this->pagination();
+                //echo $this->pagination();
+                echo $this->mt_pagination();
                                 
                 if (($this->router()->module=='search'||$this->router()->module=='detail') && !$this->userFavorites && !$this->router()->watchId && !$this->router()->userId) {
                     $followStr='';
@@ -3185,7 +3186,7 @@ class Search extends Page {
                                         $iTmp.='<span class="v'.$section[0].'"></span>';
                                     }
                                     
-                                    $followStr.='<li class="btn"><a href="'.$uri.'">'.$iTmp.$sName.'</a></li>';
+                                    $followStr.='<li class="btn sim"><a href="'.$uri.'">'.$iTmp.$sName.'</a></li>';
                                     $procSec[$section[0]]=1;
                                     $k++;
                                     if($k==5)break;
