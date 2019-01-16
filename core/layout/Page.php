@@ -2546,7 +2546,8 @@ class Page extends Site {
                         }
                         
                         $result.='">';
-                        $result.='<';// $this->lang['previous'];
+                        //$result.='<';// $this->lang['previous'];
+                        $result.='<i class="icn icnsmall icn-angle-left"></i>';
                         $result.='</a>';
                         $result.='</li>';
                         $isFirst=false;
@@ -2565,7 +2566,7 @@ class Page extends Site {
                             $result.='<li><a target="_self" href="';
                             
                             if ($page_no)
-                                $result.=sprintf ($link, "{$startPage}/{$uri_query}");
+                                $result.=sprintf($link, "{$startPage}/{$uri_query}");
                             else 
                                 $result.=sprintf($link, $uri_query);
                             
@@ -2582,7 +2583,8 @@ class Page extends Site {
                         $page_no=$currentPage+1;
                         $result.=sprintf ($link, "{$page_no}/{$uri_query}");
                         $result.='">';
-                        $result.='>'; //$this->lang['next'];
+                        $result.='<i class="icn icnsmall icn-angle-right"></i>';
+                        //$result.='>'; //$this->lang['next'];
                         $result.='</a></li>';
                         $result.= '</ul>';
                         
