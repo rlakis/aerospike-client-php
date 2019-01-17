@@ -4,10 +4,6 @@ include_once __DIR__ . '/config/cfg.php';
 
 Config::instance()->incModelFile('Router')->incModelFile('Db')->incLibFile('MCSessionHandler');
 
-//use hybridauth\Hybrid;
-//use MaxMind\Db\Reader;
-//use Detection\MobileDetect;
-
 use Core\Model\Router;
 use Core\Model\DB;
 
@@ -56,8 +52,7 @@ if (isset($_GET['provider']) && isset($_GET['connect'])) {
 
 
 if (php_sapi_name()!='cli') {
-    //$handler = new MCSessionHandler(isset($_GET['app']) && $_GET['app']==1 && preg_match('/\/post\//', $_SERVER['REQUEST_URI']));
-    new MCSessionHandler();
+    MCSessionHandler::getInstance();
     //require_once( $config['dir'].'/core/model/User.php');
     //$user = new User(new DB($config), $config, null, 0);
     //$user->sysAuthById(717151);
@@ -65,8 +60,6 @@ if (php_sapi_name()!='cli') {
 
 
 $router = Router::instance();
-//$router = new Router($config);
-
 
 if (!isset($argc)) {
     $router->decode();
@@ -106,7 +99,7 @@ if (!isset($argc)) {
                             }
                         }
                         else {
-                            if($router->siteLanguage!='ar')$uri.=$router->siteLanguage.'/';
+                            if($router->siteLanguage!='ar') { $uri.=$router->siteLanguage.'/'; }
                         }
                     }
                     $user->update();
@@ -156,9 +149,7 @@ if (!isset($argc)) {
     
     if (!$stop && array_key_exists($router->module, $config['modules'])) {
         $mod_class = $config['modules'][$router->module][0];
-        error_log("here ".$mod_class);
-        include_once $config['dir'].($router->module=='cache'?'/core/gen/':'/core/layout/').$mod_class.'.php';
-        
+        include_once $config['dir'].($router->module=='cache'?'/core/gen/':'/core/layout/').$mod_class.'.php';        
         $object = new $mod_class( $router );    
     }     
     else {
