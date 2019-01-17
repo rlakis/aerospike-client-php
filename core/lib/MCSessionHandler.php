@@ -1,6 +1,7 @@
 <?php
+include_once dirname(__DIR__) . '/model/Singleton.php';
 
-class MCSessionHandler implements \SessionHandlerInterface {
+class MCSessionHandler extends Singleton implements \SessionHandlerInterface {
     const SESSION_PREFIX = 'ms_';
     const FULL_CACHE = 1;
     const AEROSPIKE_STORAGE = 1;
@@ -10,13 +11,18 @@ class MCSessionHandler implements \SessionHandlerInterface {
     private $ttl;
     private $shared;
     private $version;
-    function __construct($useMemcached=TRUE, $autoStart=TRUE) {        
+    
+    public static function instance() : MCSessionHandler {
+        return static::getInstance();
+    }
+    
+    
+    protected function __construct() {        
         $this->version = phpversion("aerospike");
-        $this->shared = $useMemcached;
+        $this->shared = true;
         $this->ttl = intval(get_cfg_var("session.gc_maxlifetime"), 10);
         session_set_save_handler($this, TRUE);
-
-        if ($autoStart) { session_start(); }
+        session_start();
     }
 
     

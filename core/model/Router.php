@@ -510,7 +510,6 @@ class Router extends \Singleton {
         }
         $_SESSION['_u']['params'] = $_session_params;
         
-        error_log(__CLASS__);
     }
     
     

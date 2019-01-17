@@ -293,7 +293,7 @@ class Site {
         return $str;
     }
 
-
+/*
     function shortenAd($ad, $max_len=0,$ellipsis=true){
         $len = (int)strlen($ad);
         if ($max_len > $len-20) $max_len = 0;
@@ -306,7 +306,7 @@ class Site {
         }
         return $ad.($ellipsis ? '...':'');
     }
-
+*/
 
     function initSphinx($forceInit=false) {
         if ($this->router->db->ql) {
@@ -354,6 +354,7 @@ class Site {
     function execute(bool $forceInit=false) {
         $offset = ($this->router()->params['start'] ? ($this->router()->params['start']-1) : 0) * $this->num;
         $this->initSphinx($forceInit);
+        
         
         $rootId=$this->router->rootId;
         $q=preg_replace('/@/', '\@', $this->router->params['q']);
@@ -417,8 +418,8 @@ class Site {
                 $this->searchResults = $this->router()->database()->index()->executeBatch();
             } 
             else {
-                $__compareID = $this->router()->getPositiveVariable('cmp', INPUT_GET);// filter_input(INPUT_GET, 'cmp', FILTER_VALIDATE_INT, ["options" => ["default" => 0, "min_range" => 0]]);
-                $__compareAID = $this->router()->getPositiveVariable('aid', INPUT_GET);// filter_input(INPUT_GET, 'aid', FILTER_VALIDATE_INT, ["options" => ["default" => 0, "min_range" => 0]]);
+                $__compareID = $this->router()->getPositiveVariable('cmp', INPUT_GET);
+                $__compareAID = $this->router()->getPositiveVariable('aid', INPUT_GET);
                 
                 $this->router()->database()->index()
                         ->region($this->router()->countryId, $this->router()->cityId)
@@ -470,7 +471,6 @@ class Site {
         
                                 
                 if($__compareAID) {                    
-                    //include_once $this->router->cfg['dir'] . '/core/lib/MCSaveHandler.php';
                     libFile('MCSaveHandler.php');
                     $handler = new MCSaveHandler($this->router()->cfg);
                     $this->searchResults = $handler->searchByAdId($__compareAID);
@@ -479,7 +479,10 @@ class Site {
                     $this->searchResults = $this->router()->database()->index()->executeBatch();   
                 }                
             }       
-        }                
+        }
+        
+        
+        //error_log("num {$this->num} vs ". count($this->searchResults['body']['matches']) ." out of {$this->searchResults['body']['total_found']}");
     }
        
     

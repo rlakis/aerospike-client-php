@@ -9,7 +9,7 @@ class Page extends Site {
     protected $action='';
     protected $requires=array('js'=>array(),'css'=>array());
     protected $title='', $description='';
-    protected $rss = false;
+    //protected $rss = false;
     public $isUserMobileVerified = false;
     var $stat;
     var $pageUri = '';
@@ -370,7 +370,8 @@ class Page extends Site {
         if ($this->countryCounter) {
             if ($this->router()->isArabic()) {
                 $this->countryCounter.=' '.$this->lang['ads'];
-            }else {
+            }
+            else {
                 $this->countryCounter=$this->formatPlural($this->countryCounter, 'ad');
             }
         }
@@ -2525,12 +2526,16 @@ class Page extends Site {
                 $uri_query=$linkAppend.'q='.urlencode($this->router()->params['q']);
                 $linkAppend='&';
             }
+            //$this->num = 12;
             
             $qtotal_found = $this->searchResults['body']['total_found'];
             if ($qtotal_found>0) {
                 $pages = ceil($qtotal_found/$this->num);
+                
                 $tmp=$this->router()->config()->get('search_results_max')/$this->num;
+                
                 if ($pages>$tmp) { $pages=$tmp; }
+                
                 if ($pages>1) {    
                     $currentPage = ($this->router()->params['start']?$this->router()->params['start']:1);
                     $isFirst=true;
@@ -4652,14 +4657,14 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
             return;
         }
         
-        if ($this->rss) {
-            $this->_rss();
-        } 
-        else {
-            $this->_header();
-            $this->_body();
-            $this->user->setStats();
-        }
+        //if ($this->rss) {
+        //    $this->_rss();
+        //} 
+        //else {
+        $this->_header();
+        $this->_body();
+        $this->user->setStats();
+        //}
     }
     
 
@@ -5016,11 +5021,14 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                                 echo '<meta name="robots" content="noindex, follow" />';
                                 $currentUrl=$this->router()->getUrl($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);                                                        
                             
+                                /*
                                 if ($this->router()->params['start']<$qPages && !$this->isMobile) {
                                     $next = $this->router()->params['start']==0 ? 2 : $this->router()->params['start']+1;
                                     echo '<link rel="prerender" href="', $this->router()->config()->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
                                     echo '<link rel="prefetch" href="', $this->router()->config()->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
-                                }                            
+                                } 
+                                 * 
+                                 */                           
                             }
                             else {                            
                                 $this->includeMetaKeywords();                            
@@ -5108,8 +5116,8 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                                     $next = $this->router()->params['start']+1;
                                     if ($next==1) $next=2;
                                     echo "<link rel='next' href='", $this->router()->config()->baseURL, $currentUrl, $next, "/' />";
-                                    echo '<link rel="prerender" href="', $this->router()->config()->baseURL, $currentUrl, $next, '/" />';
-                                    echo '<link rel="prefetch" href="', $this->router()->config()->baseURL, $currentUrl, $next, '/" />';
+                                    //echo '<link rel="prerender" href="', $this->router()->config()->baseURL, $currentUrl, $next, '/" />';
+                                    //echo '<link rel="prefetch" href="', $this->router()->config()->baseURL, $currentUrl, $next, '/" />';
                                 }
                             }
                         }
@@ -5118,9 +5126,9 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                         }
                     }
 
-                    if (!$this->router()->isMobile) {
-                        echo '<link href="', $this->router()->config()->baseURL, $this->router()->uri, $this->router()->getLanguagePath(), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
-                    }
+                    //if (!$this->router()->isMobile) {
+                    //    echo '<link href="', $this->router()->config()->baseURL, $this->router()->uri, $this->router()->getLanguagePath(), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
+                    //}
 
                     break;
                 
@@ -5385,8 +5393,8 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                             
                             if ($this->router()->params['start']<$qPages && !$this->isMobile) {
                                 $next = $this->router()->params['start']==0 ? 2 : $this->router()->params['start']+1;
-                                echo '<link rel="prerender" href="', $this->router()->config()->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
-                                echo '<link rel="prefetch" href="', $this->router()->config()->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
+                                //echo '<link rel="prerender" href="', $this->router()->config()->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
+                                //echo '<link rel="prefetch" href="', $this->router()->config()->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
                             }                            
                         }
                         else {
@@ -5478,8 +5486,8 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                                 $next = $this->router()->params['start']+1;
                                 if ($next==1) $next=2;
                                 echo "<link rel='next' href='", $this->router()->config()->baseURL, $currentUrl, $next, "/' />";
-                                echo '<link rel="prerender" href="', $this->router()->config()->baseURL, $currentUrl, $next, '/" />';
-                                echo '<link rel="prefetch" href="', $this->router()->config()->baseURL, $currentUrl, $next, '/" />';
+                                //echo '<link rel="prerender" href="', $this->router()->config()->baseURL, $currentUrl, $next, '/" />';
+                                //echo '<link rel="prefetch" href="', $this->router()->config()->baseURL, $currentUrl, $next, '/" />';
                             }
                         }
                     }
@@ -5488,9 +5496,9 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
                     }
                 }
 
-                if (!$this->router()->isMobile) {
-                    echo '<link href="', $this->router()->config()->baseURL, $this->router()->uri, $this->router()->getLanguagePath(), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
-                }
+                //if (!$this->router()->isMobile) {
+                //    echo '<link href="', $this->router()->config()->baseURL, $this->router()->uri, $this->router()->getLanguagePath(), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
+                //}
 
                 break;
                 

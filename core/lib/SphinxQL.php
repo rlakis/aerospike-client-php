@@ -122,6 +122,9 @@ class SphinxQL {
                     die('Connect Error ' . $this->server['host'] .' (' . $this->_sphinx->connect_errno . ') ' . $this->_sphinx->connect_error);
                 //}
             }
+            else {
+                $this->_sphinx->options(MYSQLI_OPT_INT_AND_FLOAT_NATIVE, true);
+            }
         }     
     }
 
@@ -193,22 +196,15 @@ class SphinxQL {
     
     public function region(int $country_id, int $city_id=0) : SphinxQL {
         if ($city_id) {
-            return $this->setFilter(static::CITY, $city_id);
+            return $this->setFilter('ANY('.static::CITY.')', $city_id);
         }        
         elseif ($country_id) {
-            return $this->setFilter(static::COUNTRY, $country_id);
+            return $this->setFilter('ANY('.static::COUNTRY.')', $country_id);
         }        
         return $this;
     }
     
     
-    public function publication(int $value, bool $exclude=false) : SphinxQL {
-        //if ($value) {
-        //    $this->intFilter(static::PUBLICATION, $value, $exclude);
-        //}
-        return $this;
-    }
-
     
     public function media(int $value=1, bool $exclude=false) : SphinxQL {
         $this->boolFilter(static::MEDIA, $value, $exclude);
@@ -226,7 +222,7 @@ class SphinxQL {
     
     public function section(int $value, bool $exclude=false) : SphinxQL {
         if ($value) {            
-            $this->intFilter(static::SECTION, $value, $exclude);
+            $this->intFilter('ANY('.static::SECTION.')', $value, $exclude);
             if (!$exclude) {
                 unset($this->filters[static::ROOT]);
             }
@@ -535,9 +531,9 @@ class SphinxQL {
     }
     
     
-    function executeBatch($fullRow=FALSE) {
+    function executeBatch(bool $fullRow=FALSE) : array {
         $result = [];        
-        foreach ($this->_batch as $name => $info) {
+        foreach ($this->_batch as $name=>$info) {
             $q = $info[0];
             $assoc = $info[1];
             $rs = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'time'=>0, 'matches'=>[], 'facet'=>[], 'sql'=>$q];
@@ -579,7 +575,8 @@ class SphinxQL {
                     $result[$name]=$rs;
                     break;
                 }
-            } while ($this->_sphinx->next_result());
+            } 
+            while ($this->_sphinx->next_result());
             
         }
         return $result;
@@ -846,7 +843,7 @@ class SphinxQL {
     }
     
     
-    public function fetchMetaData(&$resultQuery=NULL) {
+    public function fetchMetaData(&$resultQuery=NULL) : void {
         if (($rs = $this->_sphinx->query('SHOW META'))!==FALSE) {
             while ($value = $rs->fetch_array(MYSQLI_NUM)) {
                 $resultQuery[$value[0]] = $value[1];

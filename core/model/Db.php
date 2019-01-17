@@ -822,7 +822,6 @@ class DB {
         $result = self::$Cache->get($label);
         
         if ($result!==FALSE) {
-            error_log("cached");
             return $result;
         }
         else {        

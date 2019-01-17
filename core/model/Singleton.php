@@ -8,10 +8,6 @@ abstract class Singleton {
     public static function getInstance() : Singleton {
         if (!isset(self::$instances[static::class])) {
             self::$instances[static::class] = new static();
-            error_log(static::class . " created");
-        }
-        elseif (static::class!='Config') {
-            error_log(static::class . " used");
         }
         return self::$instances[static::class];
     }

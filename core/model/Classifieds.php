@@ -5,6 +5,8 @@ use libphonenumber\PhoneNumber;
 use libphonenumber\PhoneNumberToCarrierMapper;
 use libphonenumber\PhoneNumberUtil;
 
+include_once 'Ad.php';
+
 class Classifieds {
 
     const ID                    = 0;
@@ -88,6 +90,12 @@ class Classifieds {
         unset($this->stmt_get_ad);
     }
             
+    
+    function getAd(int $id, array $cache) : Ad {
+        $result = $cache[$id] ?? $this->db->getCache()->get($id);
+        return new Ad($result);
+    }
+    
     
     function getById($id, $forceCache=false, $cacheSet=array()) {
         if (!is_numeric($id)) { return FALSE; }
