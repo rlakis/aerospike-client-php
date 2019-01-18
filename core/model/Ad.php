@@ -2,13 +2,23 @@
 namespace Core\Model;
 
 class Ad {
-    private $data;
-        
+    private $data;              // raw classified array
+    private $text;              // ad text without contacts
+    private $translation;       // ad text alter language without contacts
+    
+    private $numberValidator = null;
+    
+    
     function __construct(array $data=[]) {
         $this->data = $data;
         if (!isset($this->data[Classifieds::RTL])) { $this->data[Classifieds::RTL] = 0; }
         if (!isset($this->data[Classifieds::ROOT_ID])) { $this->data[Classifieds::ROOT_ID] = 0; }
         if (!isset($this->data[Classifieds::SECTION_ID])) { $this->data[Classifieds::SECTION_ID] = 0; }
+        $this->text = preg_split("/\x{200b}/u", $this->data[Classifieds::CONTENT])[0];
+        
+        if (isset($this->data[Classifieds::ALT_CONTENT])) {
+            $this->translation = preg_split("/\x{200b}/u", $this->data[Classifieds::ALT_CONTENT])[0];
+        }
     }
     
     
@@ -47,22 +57,29 @@ class Ad {
     }
     
     
-    public function text() : string {
-        return preg_split("/\x{200b}/u", $this->data[Classifieds::CONTENT])[0];
+    public function text() : string {        
+        return $this->text;
     }
     
+    
+    public function translation() : string {        
+        return $this->translation;
+    }
+    
+    
     public function mobiles() : array {
-        return $this->data[Classifieds::TELEPHONES][0];
+        //error_log(var_export($this->data[Classifieds::TELEPHONES][0][0], true));
+        return $this->data[Classifieds::TELEPHONES][0][0];
     }
     
     
     public function landlines() : array {
-        return $this->data[Classifieds::TELEPHONES][1];
+        return $this->data[Classifieds::TELEPHONES][1][0] ?? [];
     }
     
     
     public function otherlines() : array {
-        return $this->data[Classifieds::TELEPHONES][2];
+        return $this->data[Classifieds::TELEPHONES][2][0] ?? [];
     }
     
     
@@ -81,6 +98,11 @@ class Ad {
     }
     
     
+    public function uid() : int {
+        return $this->data[Classifieds::USER_ID] ?? 0;
+    }
+    
+    
     public function latitude() : float {
         return $this->data[Classifieds::LATITUDE] ?? 0;
     }
@@ -95,6 +117,46 @@ class Ad {
         return $this->data[Classifieds::LOCATION] ?? '';
     }
 
+    
+    private function formatPhoneNumber($number, $userISO='') : string{
+        if (!$this->numberValidator) {
+            $this->numberValidator = \libphonenumber\PhoneNumberUtil::getInstance();
+        }
+        $num = $this->numberValidator->parse($number, $userISO);
+        $result = '';
+        if($this->numberValidator->getRegionCodeForNumber($num, $userISO) === $userISO){
+            $result = $this->numberValidator->formatInOriginalFormat($num, $userISO);
+        }else{
+            //$result = $this->numberValidator->formatOutOfCountryCallingNumber($num, $userISO);
+            $result = $this->numberValidator->format($num, \libphonenumber\PhoneNumberFormat::INTERNATIONAL);
+        }
+        return $result;
+    }
+    
+    
+    public function contactInfo($userISO='') : array {
+        $result = $this->data[Classifieds::CONTACT_INFO] ?? [];
+        if(isset($result['p']) && is_array($result['p'])){
+            
+            $nums = [];
+            foreach ($result['p'] as $num){
+                $nums[] = [
+                    'v' => $this->formatPhoneNumber( $num['v'], $userISO),
+                    't' => $num['t'],
+                    'n' => substr($num['v'], 1)
+                ];
+            }
+            $result['p'] = $nums;
+        }
+        if(!(isset($result['e']) && $result['e'])){
+            unset($result['e']);
+        }
+        unset($result['b']);
+        unset($result['s']);
+        unset($result['t']);
+        return $result;
+    }
+    
     
     public function url() : string {
         return sprintf($this->data[Classifieds::URI_FORMAT], (Router::getInstance()->language=='ar' ? '' : Router::getInstance()->language.'/'), $this->id());    
@@ -203,6 +265,11 @@ class Ad {
         $content = $this->data[Classifieds::ALT_CONTENT];
         $this->data[Classifieds::ALT_CONTENT] = $this->data[Classifieds::CONTENT];
         $this->data[Classifieds::CONTENT] = $content;
+        
+        $content = $this->translation;
+        $this->translation = $this->text;        
+        $this->text = $content;
+        
         return $this;
     }
     
@@ -277,6 +344,39 @@ class Ad {
             $str=number_format($number).' '.$lang[$fieldName.'s'];
         }
         return $str;
+    }
+    
+    
+    public function htmlDataAttributes($userISO='') : string {
+        $result='';
+        if (!empty($this->translation)) {
+            $result.='data-alt="' .  htmlspecialchars($this->translation , ENT_QUOTES, 'UTF-8') . '" ';
+        }
+        /*
+        if (!empty($this->mobiles())) {
+            $result.='data-mobiles="' . implode(',', $this->mobiles()).'" ';
+        }
+        if (!empty($this->landlines())) {
+            $result.='data-phones="' . implode(',', $this->landlines()).'" ';
+        }
+        if (!empty($this->otherlines())) {
+            $result.='data-otherlines="' . implode(',', $this->otherlines()).'" ';
+        }
+         * 
+         */
+        
+        if ($this->latitude()||$this->longitude()) {
+            $result.='data-coord="'.$this->latitude().','.$this->longitude().'" ';
+        }
+        if ($this->picturesCount()) {
+            $result.='data-pics="' . implode(',', $this->data[Classifieds::PICTURES]).'" ';            
+        }
+        
+        if ($this->contactInfo()) {
+            $result.='data-cui="' . htmlspecialchars(json_encode($this->contactInfo($userISO)), ENT_QUOTES, 'UTF-8') . '" ';            
+        }
+        
+        return $result;
     }
     
 }

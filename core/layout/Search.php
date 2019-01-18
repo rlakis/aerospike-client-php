@@ -5,50 +5,7 @@ use Core\Model\Classifieds;
 use Core\Lib\SphinxQL;
 
 class Search extends Page {    
-    /*
-    const ID                    = 0;
-    const CONTENT               = 1;
-    const KEYWORDS              = 2;
-    const ALT_CONTENT           = 3;
-    const ROOT_NAME_EN          = 4;
-    const ROOT_NAME_AR          = 5;
-    const SECTION_NAME_EN       = 6;
-    const SECTION_NAME_AR       = 7;
-    const SECTION_KEYWORDS      = 8;
-    const COUNTRY_NAME_EN       = 9;
-    const COUNTRY_NAME_AR       = 10;
-    const COUNTRY_CODE          = 11;
-    const CITY_NAME_EN          = 12;
-    const CITY_NAME_AR          = 13;
-    const PURPOSE_NAME_EN       = 14;
-    const PURPOSE_NAME_AR       = 15;
-    const PUBLICATION_ID        = 16;
-    const HELD                  = 17;
-    const COUNTRY_ID            = 18;
-    const CITY_ID               = 19;
-    const CANONICAL_ID          = 20;
-    const DATE_ADDED            = 21;
-    const DATE_ENDED            = 22;
-    const FEATURED_DATE_ENDED   = 23;
-    const PURPOSE_ID            = 24;
-    const SECTION_ID            = 25;
-    const ROOT_ID               = 26;
-    const RTL                   = 27;
-    const USER_ID               = 28;
-    const USER_RANK             = 29;
-    const USER_LEVEL            = 30;
-    const URI_FORMAT            = 31;
-    const OUTBOUND_LINK         = 32;
-    const IMPRESSIONS           = 33;
-    const MEDIA                 = 34;
-    const COUNTRY               = 35;
-    const CITY                  = 36;
-    const SECTION_TAG_ID        = 37;
-    const LOCALITY_ID           = 38;
-    const STARRED               = 39;
-    const IS_NEW                = 40;
-          
-*/
+
     protected $id = 0;
     protected $paginationString = '';
     protected $adCount = 0;
@@ -1267,6 +1224,7 @@ class Search extends Page {
             $fc=count($ad_keys);
             for ($i=0; $i<$count && $fc+$i<$max; $i++) {
                 $ad_keys[] = $this->searchResults['zone0']['matches'][$i];
+                $this->user()->params['feature'][] = $this->searchResults['zone0']['matches'][$i];
             }
         }
     }
@@ -1286,15 +1244,12 @@ class Search extends Page {
     function renderDResults($keywords) : void {
         $ad_keys = [];
         $topFeatureCount = 0;
-        $this->mergeResults($topFeatureCount, $ad_keys);     
-        //$current_time = time();
-        $ad_cache = $this->router()->database()->getCache()->getMulti($ad_keys);
-        $ad_count = count($ad_keys);
         if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp'] = []; }        
         if (!isset($this->user->params['feature'])) { $this->user->params['feature']=[]; }
-        
-        error_log(var_export($ad_keys, true));
-        
+        $this->mergeResults($topFeatureCount, $ad_keys);
+        $ad_cache = $this->router()->database()->getCache()->getMulti($ad_keys);
+        $ad_count = count($ad_keys);
+               
         if ($ad_count) {
             $cmp = filter_input(INPUT_GET, 'cmp', FILTER_VALIDATE_INT, ['options'=>['default'=>0]]);
             $aid = filter_input(INPUT_GET, 'aid', FILTER_VALIDATE_INT, ['options'=>['default'=>0]]);
@@ -1319,43 +1274,23 @@ class Search extends Page {
         
         for ($ptr=0; $ptr<$ad_count; $ptr++) {
             $id = $ad_keys[$ptr];
-            $feature = false; $paid = false;
             
             if ($ptr==4 || $ptr==14) { $this->adSlot(); }
             
-            if ($topFeatureCount) {
-                $topFeatureCount--;
-                if (isset($this->searchResults['zone1']) && in_array($id, $this->searchResults['zone1']['matches'])) {
-                    $feature = true;
-                    $paid = true;
-                }
-                elseif (in_array($id, $this->searchResults['zone0']['matches'])) {
-                    $this->user()->params['feature'][] = $id;
-                    $feature = true;
-                }
-            }
-            else {
-                if (isset($this->searchResults['zone1']) && in_array($id, $this->searchResults['zone1']['matches'])) { continue; }
-            }
-            $this->user()->update();
-            
-            $ad = $this->classifieds()->getAd($id, $ad_cache);
-            //$ad = $this->classifieds->getById($id, false, $ad_cache);
+            $ad = $this->classifieds()->getAd($id, $ad_cache);            
             if ($ad->id()==0) { 
                 error_log("Could not fetch ad {$id} from cache");
                 continue;                 
             }
-
             
-            $hasDetail = true;            
             $pic = null;
             $this->appendLocation = true;
             
-            if (!(isset($this->detailAd[Classifieds::ID]) && $this->detailAd[Classifieds::ID]==$ad[Classifieds::ID])) {
+            if (!(isset($this->detailAd[Classifieds::ID]) && $this->detailAd[Classifieds::ID]==$ad->id())) {
                 if (!isset($this->user->info['level'])) {
                     $this->stat['ad-imp'][]=$id;
                 }
-                elseif (!($this->user->info['level']==9 || $this->user->info['id']==$ad[Classifieds::USER_ID])) {
+                elseif (!($this->user->info['level']==9 || $this->user->info['id']==$ad->uid())) {
                     $this->stat['ad-imp'][]=$id;
                 }
             } 
@@ -1366,7 +1301,7 @@ class Search extends Page {
                     $ad->reverseContent()->setLTR();
                     $this->appendLocation = false;
                 } 
-                elseif (($langSortIdx==1||$this->router()->isArabic()) && $ad[Classifieds::RTL]==0) {
+                elseif (($langSortIdx==1||$this->router()->isArabic()) && $ad->rtl()!=0) {
                     $ad->reverseContent()->setRTL();
                     $this->appendLocation = false;
                 }
@@ -1381,30 +1316,7 @@ class Search extends Page {
                 $itemScope = ' itemscope itemtype="https://schema.org/Product"';
             }
             
-            /*
-            if (isset($ad[Classifieds::FEATURE_ENDING_DATE])) {
-                $isFeatured = $current_time < $ad[Classifieds::FEATURE_ENDING_DATE];
-                $isFeatureBooked = $current_time < $ad[Classifieds::BO_ENDING_DATE];
-            }
-            else {
-                $isFeatured = FALSE;
-                $isFeatureBooked = FALSE;
-                error_log(__FILE__. '.' . __FUNCTION__ . '.' . __LINE__ . ' missing fearure_ending_date attribute for ad '.$ad[Classifieds::ID]);
-                $ad[Classifieds::FEATURE_ENDING_DATE] = 0;
-                $ad[Classifieds::BO_ENDING_DATE] = 0;
-            }
-            */
-            
-            //$_link = sprintf($ad[Classifieds::URI_FORMAT], ($this->router()->language == "ar" ? "" : "{$this->router()->language}/"), $ad->id());
-            
-            //$this->replacePhonetNumbers($ad->content(), $ad->countryCode(), $ad->mobiles(), $ad->landlines(), $ad->otherlines(), $ad->emails());
-            
-            $l_inc = 2;
-            $in = 'in';
-            if ($ad->rtl()) {
-                $l_inc = 1;
-                $in = "في";
-            }
+            $in = $ad->rtl() ? "في" : 'in';
             
             $isNewToUser = (isset($this->user->params['last_visit']) && $this->user->params['last_visit'] && $this->user->params['last_visit'] < $ad->epoch());
             $textClass = "en";
@@ -1422,7 +1334,7 @@ class Search extends Page {
                 $pic = '<div class=card-image><div class="cbox footer"></div>';
                 $pix = $ad->picturePath();
                 if ($this->router()->isAcceptWebP) { $pix = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pix); }                
-                $pic.= '<img src="'.$this->router()->config()->adImgURL.'/repos/m/'.$pix.'" /><div class=ripple-container></div>';                
+                $pic.= '<img src="'.$this->router()->config()->adImgURL.'/repos/m/'.$pix.'" />';                
                 if ($pix_count>1) {
                     $pic.='<div class="cbox ctr">'.$pix_count.'&nbsp;<span class="icn icnsmall icn-camera"></span></div>';                  
                 }
@@ -1491,58 +1403,32 @@ class Search extends Page {
                     }
                 }
             }
-            //if ($isFeatureBooked) { $liClass.=' vpz'; }
-            //if ($isFeatured) { 
-            //    $liClass.=' vp vpd';
-            //}
-            //else {
-            //    if ($feature) { $liClass.=' vp'; }
-            //    if ($paid) { $liClass.=' vpd'; }
-            //}
                 
             if ($liClass) { $liClass = "class='" . trim($liClass) . "'"; }
             
             echo "\n";
-            echo '<div class=ad>';
+            echo '<div class=ad ', $ad->htmlDataAttributes($this->formatNumbers);
+            echo ' onclick=oad(this);';
+            echo '>';
             echo '<div class="card card-product', ($ad->isFeatured()?' premium':''),'" id=', $ad->id(), ' itemprop="itemListElement" ',  $itemScope, '>', "\n";                
-            //$ccmDiv = $this->getAdSection($ad->data(), $hasSchema);
             echo $pic, "\n";
             
             echo '<div class=card-content>', "\n";
             echo '<div class="adc block-with-text card-description ', $textClass, '" ';
-            if ($this->router()->id!=$ad->id()) {
-                echo ' onclick="wo(\'', $ad->url(), '\')" ';
-            }
+            
             echo $itemDesc, '>', "\n";
             if ($ad->latitude() || $ad->longitude()) {
                 echo '<a href="#" title="', $ad->location(), '"><i class="icn icnsmall icn-map-marker"></i></a>', "\n"; 
             }
             echo $ad->text(), '</div>', "\n";
-            //if ($feature||$isFeatured) {
-            //    if($paid||$isFeatured){
-            //        echo '<span class="mark float-right">'.$this->lang['premium_ad'].'<span class="vpdi '.$this->router()->language.'"></span></span>';
-            //    }
-            //}
-            //else {
-                //echo $newSpan;
-            //}
             
             echo '</div>', "\n";            
             echo '<div class=card-footer>', "\n";       
             echo $this->getAdSection($ad->data(), $hasSchema);
-            //echo $ccmDiv;                    
-            //if ($debug) {
-            //    echo "<div style=\"display:inline;font-size:9pt;\">&nbsp;{$ad[Classifieds::ID]} - {$ad[Classifieds::PRICE]}</div>";
-            //}
-                                                  
-            echo $favLink, '</div>', "\n", '</div>', "\n";
-            
-            echo '</div>', "\n";//, '</li>', "\n";        
-            //$idx++;
-        }
-        
-        
-        $this->user()->update();
+            //if ($debug) { echo "<div style=\"display:inline;font-size:9pt;\">&nbsp;{$ad[Classifieds::ID]} - {$ad[Classifieds::PRICE]}</div>"; }                                                  
+            echo $favLink, '</div>', "\n", '</div>', "\n";            
+            echo '</div>', "\n";//, '</li>', "\n";
+        }              
     }
     
     
@@ -1930,7 +1816,7 @@ class Search extends Page {
                 
                 $this->renderDResults($keywords);
                 echo '</div>',"\n";                
-                
+          
                 echo $this->mt_pagination();
                                 
                 if (($this->router()->module=='search'||$this->router()->module=='detail') && !$this->userFavorites && !$this->router()->watchId && !$this->router()->userId) {
@@ -2206,10 +2092,152 @@ class Search extends Page {
             ?><input type="button" onclick="rpa(this,1)" class="bt cl" value="<?= $this->lang['cancel'] ?>" /><?php
             ?></div> <!--googleon: all--> <?php
         }
+        $this->detailHolder();
+               
     }
             
             
   
+    function detailHolder() {
+        echo '<div id=adScreen class=modal><div class="card card-product col-6"><span class="close">&times;</span>';
+        echo '<div id=adImage class=card-image>', '</div>';       
+        echo '<div id=adContent class=card-content>', '</div>';
+        echo '<div class=card-footer>', '</div>';       
+        echo '</div></div>';
+        ?>
+        <script>
+        var modal = document.getElementById('adScreen');
+        var span = document.getElementsByClassName("close")[0];
+
+        function oad(ad) {
+            var cui=JSON.parse(ad.dataset.cui);
+            var pics=[];
+            if (ad.dataset.pics) {
+                pics=ad.dataset.pics.split(',');
+            }
+            console.log(pics);
+            var $=document;
+            console.log(cui);
+           
+            var content = ad.querySelectorAll('.adc')[0].cloneNode(true);
+            var adImg=$.getElementById("adImage");
+            adImg.innerHTML='';
+            document.getElementById("adContent").innerHTML='';
+            if (pics.length) {
+                adImg.className='card-image';
+                var t=ad.querySelectorAll('img')[0].src;
+                var host = t.substring(0, t.indexOf('/repos/'));                
+                var img = new Image();
+                img.src = host+'/repos/d/'+pics[0];
+                adImg.appendChild(img);                
+            }
+            else {
+                adImg.className='card-media';
+                var ins=$.createElement('ins');
+                ins.className='adsbygoogle';
+                ins.style='display:inline-block;';
+                ins.setAttribute('data-ad-client', 'ca-pub-2427907534283641');
+                ins.setAttribute('data-ad-slot', '7030570808');
+                ins.setAttribute('data-ad-format', 'auto');
+                ins.setAttribute('data-full-width-responsive', 'true');
+                adImg.appendChild(ins);
+               
+            }
+            
+            document.getElementById("adContent").appendChild(content);
+            
+            var ch = $.createElement('div');
+            ch.className='contact';
+            if (cui.p) {
+                for (var i in cui.p) {
+                    var btn=$.createElement('a');
+                    btn.className='btn';
+                    btn.text = cui.p[i].v;
+                    
+                    if (cui.p[i].t==5) {
+                        var icn=$.createElement('i');
+                        icn.className='icn icn-whatsapp';
+                        btn.appendChild(icn);
+                        btn.href='https://api.whatsapp.com/send?phone='+cui.p[i].n;
+                        btn.target='_blank';
+                    }
+                    else {     
+                        var icn=$.createElement('i');
+                        icn.className='icn icn-phone';
+                        btn.appendChild(icn);
+                        btn.href = 'tel:'+cui.p[i].v.replace(/\s/g, '');                     
+                    }
+                                        
+                    ch.appendChild(btn);
+                    
+                    if (cui.p[i].t==3) {
+                        var btn=$.createElement('a');
+                        btn.className='btn';
+                        btn.text = cui.p[i].v;
+                        btn.href='https://api.whatsapp.com/send?phone='+cui.p[i].n;
+                        btn.target='_blank';
+                        var icn=$.createElement('i');
+                        icn.className='icn icn-whatsapp';
+                        btn.insertBefore(icn, btn.firstChild);
+                        ch.appendChild(btn);
+                    }
+                }
+            }
+            if (cui.e) {
+                var btn=$.createElement('a');
+                btn.text = cui.e;
+                btn.href = 'mailto:'+cui.e;
+                btn.className='btn';
+                var icn=$.createElement('i');
+                icn.className='icn icn-email';
+                btn.appendChild(icn);
+                ch.appendChild(btn);
+            }
+            document.getElementById("adContent").appendChild(ch);
+            
+            if (ad.dataset.coord) {
+                var btn=$.createElement('a');
+                btn.className='btn';
+                console.log($.body.dir);
+                btn.text = $.body.dir=='rtl'?'عرض على الخريطة':'View on map';
+                btn.href = 'https://maps.google.com/maps/?saddr=My+location&z=14&daddr='+ad.dataset.coord;
+                btn.target='_blank';
+                var icn=$.createElement('i');
+                icn.className='icn icn-map-marker';
+                icn.style.backgroundColor='white';
+                btn.insertBefore(icn, btn.firstChild);
+                ch.appendChild(btn);
+            }
+            modal.style.display = "block";
+            
+            if (pics.length==0) {                
+                ins.style='display:inline-block;width:'+adImg.offsetWidth+'px;';
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            }
+            var state={'detail':1};
+            window.history.pushState(state, document.title, document.location.href);
+            $.body.setAttribute('data-detail', 1);
+        }
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick=function(){modal.style.display="none";}
+
+        window.onclick=function(event){if(event.target==modal){modal.style.display="none";}}
+        window.onpopstate=function(event){
+            console.log(document.body.dataset.detail);
+            if (document.body.hasAttribute('data-detail')) {
+                modal.style.display = "none";
+                document.body.removeAttribute('data-detail');
+            } else {
+                window.history.back();
+            }
+        }
+        </script>
+        <?php
+    }
+    
+    
+    
     function alternate_search($keywords = "") {
         
         if($this->router()->rootId){

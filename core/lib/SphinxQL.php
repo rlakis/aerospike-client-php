@@ -846,7 +846,7 @@ class SphinxQL {
     public function fetchMetaData(&$resultQuery=NULL) : void {
         if (($rs = $this->_sphinx->query('SHOW META'))!==FALSE) {
             while ($value = $rs->fetch_array(MYSQLI_NUM)) {
-                $resultQuery[$value[0]] = $value[1];
+                $resultQuery[$value[0]] = is_numeric($value[1]) ? $value[1]+0 : $value[1];
             }
             $rs->close();
         }
@@ -869,3 +869,18 @@ class SphinxQL {
     }
     
 }
+
+
+/*
+class SearchResult {
+    public $error;
+    public $warning;
+    public $total;
+    public $total_found;
+    public $time;
+    
+    function __construct() {
+        
+    }
+}
+*/
