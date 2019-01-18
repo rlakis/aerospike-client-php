@@ -67,6 +67,9 @@ li>i{margin:0 4px;max-width:32px;}
 .icn-camera{background-color:white !important;-webkit-mask:url(/web/css/1.0/fa/solid/camera.svg) no-repeat 50% 50%;}
 .icn-angle-left{background-color:white !important;-webkit-mask:url(/web/css/1.0/fa/regular/angle-left.svg) no-repeat 50% 50%;}
 .icn-angle-right{background-color:white !important;-webkit-mask:url(/web/css/1.0/fa/regular/angle-right.svg) no-repeat 50% 50%;}
+.icn-whatsapp{background-color:white !important;-webkit-mask:url(/web/css/1.0/fa/brands/whatsapp.svg) no-repeat 50% 50%;}
+.icn-phone{background-color:white !important;-webkit-mask:url(/web/css/1.0/fa/solid/phone.svg) no-repeat 50% 50%;}
+.icn-email{background-color:white !important;-webkit-mask:url(/web/css/1.0/fa/solid/envelope.svg) no-repeat 50% 50%;}
 
 
 body[dir="rtl"] .icn-lang{background-color:white;-webkit-mask:url(/web/css/1.0/fa/regular/latin.svg) no-repeat 50% 50%;}
@@ -261,9 +264,101 @@ body[dir="rtl"] .brd a:hover:after{border-right-color:#ff9100!important}
 .btn.sim a{padding:12px 30px;}
 .btn.sim:hover{background-color:orange;color:white;box-shadow:0 14px 26px -12px rgba(255,165,0, 0.42), 0 4px 23px 0px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(255,165,0, 0.2);}
 
+.contact .btn {
+    background-color: #5bc236;
+    color: white;
+    display: block;
+    direction: ltr;
+    text-transform:none;
+    font-size: 1rem;
+}
 
+.contact .icn {
+    position: absolute;
+    left: 4px;
+    top: 8px;
+}
 .list{float:right;position:relative;z-index:100;margin:0 0 0 5px;width:300px;}
 .list ul{columns:1}
+
+
+
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 999; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.modal .card {
+    display: block;
+    margin: 160px auto;
+    padding: 16px;
+    min-height: 60%;
+    position: relative;
+    float: none !important;
+}
+
+
+.modal .card .card-image {
+    height: 60%;
+    max-width: 620px;
+    min-height: 340px;
+    position: relative;
+    overflow: hidden;
+    margin: -60px auto 0;
+    border-radius: 6px;
+    z-index: 1003;
+    box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.42), 0 4px 25px 0px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+.modal .card .card-media {
+    top: 8px;
+    min-height: 90px;
+    position: relative;
+    overflow: hidden;
+    margin: 0 auto;
+    border-radius: 0;
+    text-align: center;
+    z-index: 1003;
+}
+
+
+.modal .block-with-text{height: auto; min-height: 2em;}
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+}
+
+/* The Close Button */
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  position: absolute;
+  right: 15px;
+  bottom: 15px;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
 
 @media screen and (max-width: 768px) {
     .ad{float: left; margin: 0;min-width: 320px;}
