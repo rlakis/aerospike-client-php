@@ -476,7 +476,7 @@ class Site {
                     $this->searchResults = $handler->searchByAdId($__compareAID);
                 }
                 else {
-                    $this->searchResults = $this->router()->database()->index()->executeBatch();   
+                    $this->searchResults = $this->router()->database()->index()->executeBatchNew();   
                 }                
             }       
         }
@@ -489,7 +489,7 @@ class Site {
     function getMediaAds() { 
         $this->router()->database()->index()->resetFilters()
                 ->region($this->router()->countryId, $this->router()->cityId)
-                ->native()->media()
+                ->media()
                 ->setFilter(Core\Lib\SphinxQL::SECTION, [834,1079,1314,1112,617,513,293,298,343,350,515,539,108,84,85,114,214,116,123,125,135,144,279])
                 ->rtl($this->router()->isArabic() ? [1,2] : [0,2])
                 ->setSelect('id')
@@ -499,8 +499,7 @@ class Site {
     }
 
 
-    function getFeaturedAds() {
-            
+    function getFeaturedAds() {            
         $q = preg_replace('/@/', '\@', $this->router->params['q']);        
         $currentPage=($this->router->params['start']?$this->router->params['start']:1);
         
@@ -509,8 +508,7 @@ class Site {
             $publisher_type=0;
             if ($this->publisherTypeSorting && in_array($this->router->rootId,[1,2,3]) && 
                ($this->router->rootId!=3 || ($this->router->rootId==3 && $this->router->purposeId==3)) && 
-               ($this->router->rootId!=2 || ($this->router->rootId==2 && $this->router->purposeId==1)) )
-            {
+               ($this->router->rootId!=2 || ($this->router->rootId==2 && $this->router->purposeId==1)) ) {
                 $publisher_type = $this->publisherTypeSorting == 1 ? 1 : 3;
             }
             
@@ -527,20 +525,7 @@ class Site {
                     ->setSelect("id")
                     ->setSortBy("rand()")
                     ->setLimits(0, 40)
-                    ->addQuery('zone1', $q); 
-            
-            //if ($this->publisherTypeSorting && in_array($this->urlRouter->rootId,[1,2,3]) && 
-            //   ($this->urlRouter->rootId!=3 || ($this->urlRouter->rootId==3 && $this->urlRouter->purposeId==3)) && 
-            //   ($this->urlRouter->rootId!=2 || ($this->urlRouter->rootId==2 && $this->urlRouter->purposeId==1)) )
-            //{
-            //    $this->router()->database()->index()->publisherType($this->publisherTypeSorting == 1 ? 1 : 3);
-            //}
-
-            //$this->router()->database()->index()
-            //        ->setSelect("id")
-            //        ->setSortBy("rand()")
-            //        ->setLimits(0, 40)
-            //        ->addQuery('zone1', $q);
+                    ->addQuery('zone1', $q);                       
         }
         
         // 2 - get side column paid ads related
@@ -578,7 +563,6 @@ class Site {
             }
             
             $this->router()->database()->index()->resetFilters()
-                ->native()
                 ->region($this->router()->countryId, $this->router()->cityId)                
                 ->root($this->router()->rootId)
                 ->section($this->router()->sectionId)

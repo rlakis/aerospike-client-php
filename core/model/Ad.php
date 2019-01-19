@@ -118,25 +118,31 @@ class Ad {
     }
 
     
-    private function formatPhoneNumber($number, $userISO='') : string{
-        if (!$this->numberValidator) {
-            $this->numberValidator = \libphonenumber\PhoneNumberUtil::getInstance();
+    private function formatPhoneNumber($number, $userISO='') : string {                
+        $key='P.'.$userISO.$number;
+        $value = DB::getCache()->get($key);
+        if ($value) { 
+            //error_log("cached ".$value);
+            return $value;             
         }
+        
+        if (!$this->numberValidator) { $this->numberValidator = \libphonenumber\PhoneNumberUtil::getInstance(); }
         $num = $this->numberValidator->parse($number, $userISO);
         $result = '';
-        if($this->numberValidator->getRegionCodeForNumber($num, $userISO) === $userISO){
+        if ($this->numberValidator->getRegionCodeForNumber($num, $userISO)===$userISO) {
             $result = $this->numberValidator->formatInOriginalFormat($num, $userISO);
-        }else{
-            //$result = $this->numberValidator->formatOutOfCountryCallingNumber($num, $userISO);
+        }
+        else {
             $result = $this->numberValidator->format($num, \libphonenumber\PhoneNumberFormat::INTERNATIONAL);
         }
+        DB::getCache()->set($key, $result);
         return $result;
     }
     
     
     public function contactInfo($userISO='') : array {
         $result = $this->data[Classifieds::CONTACT_INFO] ?? [];
-        if(isset($result['p']) && is_array($result['p'])){
+        if (isset($result['p']) && is_array($result['p'])) {
             
             $nums = [];
             foreach ($result['p'] as $num){
@@ -148,7 +154,7 @@ class Ad {
             }
             $result['p'] = $nums;
         }
-        if(!(isset($result['e']) && $result['e'])){
+        if (!(isset($result['e']) && $result['e'])) {
             unset($result['e']);
         }
         unset($result['b']);

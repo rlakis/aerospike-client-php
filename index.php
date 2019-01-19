@@ -1,4 +1,5 @@
 <?php 
+if (!isset($argc)) {tideways_xhprof_enable();}
 include_once __DIR__ . '/deps/autoload.php';
 include_once __DIR__ . '/config/cfg.php';
 
@@ -159,4 +160,17 @@ if (!isset($argc)) {
     }
     
     $router->close();
+    
+    $data = tideways_xhprof_disable();
+    //file_put_contents(sys_get_temp_dir() . "/" . uniqid() . ".mourjan.xhprof", serialize($data));
+    $XHPROF_ROOT = realpath(dirname(__FILE__).'/web/xhprof');
+    include_once $XHPROF_ROOT . "/lib/utils/xhprof_lib.php";
+    include_once $XHPROF_ROOT . "/lib/utils/xhprof_runs.php";
+    
+    $xhprof_runs = new XHProfRuns_Default();
+
+    // save the run under a namespace "xhprof_foo"
+    $run_id = $xhprof_runs->save_run($data, "xhprof_mourjan");
+    echo '<p>&nbsp;&nbsp;<a target=_blank href="', "https://h1.mourjan.com/web/xhprof/html/index.php?run=$run_id&source=xhprof_mourjan", '">Page profiler</a></p><br/>';
+    
 }

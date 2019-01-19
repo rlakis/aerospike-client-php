@@ -60,12 +60,20 @@ class MCCache extends \Redis {
     }
 
 
+    public function get($key) {
+        if (isset($this->buffer[$key])) {
+            return $this->buffer[$key];
+        }
+        return parent::get($key);
+    }
+    
+    
     function touch($key, $ttl) {
         parent::expire($key, $ttl);
     }
 
 
-    function set($key, $value, $buffer_it=TRUE) {
+    function set($key, $value, $buffer_it=TRUE) : bool {
         if ($this->writeBuffering && $buffer_it) {
             $this->buffer[$key] = $value;
             return TRUE;

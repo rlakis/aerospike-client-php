@@ -4,7 +4,6 @@ namespace Core\Lib;
 class SphinxQL {
     const ID                = 'id';
     const UID               = 'user_id';
-    const PUBLICATION       = 'publication_id';
     const HOLD              = 'hold';
     const COUNTRY           = 'country';
     const CITY              = 'city';
@@ -84,6 +83,7 @@ class SphinxQL {
 
 
     function __construct($host, $index, $port=0) {
+        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
         $this->indexName = $index;
         if (is_array($host)) {
             $this->server = $host;    
@@ -108,24 +108,17 @@ class SphinxQL {
     }
     
     
-    function connect($try=1) {
+    function connect() {
         if ($this->_sphinx==NULL) {
             $this->_sphinx = new \mysqli($this->server['host'], '', '', '', $this->server['port'], $this->server['socket']);
             if ($this->_sphinx->connect_error) {
                 $this->Log(['host'=>$this->server['host'], 'error'=>'['.$this->_sphinx->connect_errno . '] ' . $this->_sphinx->connect_error]);
-            	
-                //if ($this->_sphinx->connect_errno==2002 && $try==1) {
-                //    system("/opt/RestartSphinx.sh");
-                //    $this->connect(0);                
-                //}
-                //else {
-                    die('Connect Error ' . $this->server['host'] .' (' . $this->_sphinx->connect_errno . ') ' . $this->_sphinx->connect_error);
-                //}
+                die('Connect Error ' . $this->server['host'] .' (' . $this->_sphinx->connect_errno . ') ' . $this->_sphinx->connect_error);
             }
             else {
                 $this->_sphinx->options(MYSQLI_OPT_INT_AND_FLOAT_NATIVE, true);
             }
-        }     
+        }
     }
 
     /**
@@ -147,8 +140,7 @@ class SphinxQL {
     /**
      * Closes and unset the connection to the Sphinx server.
      */
-    public function close() {
-        
+    public function close() {        
         $this->_sphinx->close();
         $this->_sphinx = null;
     }
@@ -289,16 +281,11 @@ class SphinxQL {
     
     
     public function featured() : SphinxQL {
-        //$this->filters[static::PUBLICATION]='=1';
         $this->filters[static::FEATURED_TTL]='>='.time();
         return $this;
     }
     
     
-    public function native() : SphinxQL {
-        //$this->filters[static::PUBLICATION]='=1';
-        return $this;
-    }
 
     
     public function exclude(array $ids) : SphinxQL {
@@ -437,14 +424,14 @@ class SphinxQL {
     
     function addQuery($name, $keywords='', $assoc=FALSE) {
         $this->build($keywords);
-        $this->_batch[$name] = [$this->_query, $assoc];
+        $this->_batch[$name] = [$this->_query, $assoc, 0];
 
         $this->_query="";
     }
     
     
     function execute($queryQL) {
-        return ($this->_sphinx->multi_query($queryQL.'; SHOW META;'));
+        return ($this->_sphinx->multi_query($queryQL."; SHOW META LIKE 'total%';"));
     }
 
 
@@ -487,7 +474,7 @@ class SphinxQL {
             $queryQL = $this->_query;            
         }
 
-        $result = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'time'=>0, 'matches'=>[], 'sql'=>$queryQL];
+        $result = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'matches'=>[], 'sql'=>$queryQL];
 
         try {
             if ($this->_sphinx->multi_query($queryQL)) {
@@ -531,12 +518,70 @@ class SphinxQL {
     }
     
     
+    function executeBatchNew() : array {
+        $result = [];
+        $q='';
+        $i=0;
+        $running=[];
+        foreach ($this->_batch as $name => $info) {
+            if ($name!='body') {
+                $running[$i]=[$info[1], $info[0], $name];
+                $q.=$info[0].';'.PHP_EOL;
+                $this->_batch[$name][2]=$i;
+                $i++;
+            }
+        }
+        
+        $running[$i]=[$this->_batch['body'][1], $this->_batch['body'][0],'body'];
+        $q.=$this->_batch['body'][0].';'.PHP_EOL;
+        
+        $rs = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'matches'=>[], 'facet'=>[], 'sql'=>$q];
+        $this->_sphinx->multi_query($q);
+        if ($this->_sphinx->error) {
+            $this->Log(['query'=>$q, 'error'=>'['.$this->_sphinx->connect_errno . '] ' . $this->_sphinx->connect_error]);
+            $result[$name] = '['.$this->_sphinx->errno.'] '.$this->_sphinx->error.' [ '.$q.']';
+            $result[$name]=$rs;
+            return $result;
+        }
+        
+        $i=0;
+        do {
+            $name = $running[$i][2];
+            error_log($name);
+            $rs = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'matches'=>[], 'sql'=>$running[$i][1]];
+            if ($res = $this->_sphinx->store_result()) {
+                while ($row=$res->fetch_assoc()) {
+                    $rs['matches'][]=$row['id'];
+                }
+                $res->free();
+            }
+
+            if ($name=='body') {
+                $this->fetchMetaData($rs);
+            }
+            else {
+                $rs['total'] = count($rs['matches']);
+                $rs['total_found'] = count($rs['matches']);
+            }
+            $result[$name]=$rs;
+            
+            if (!$this->_sphinx->more_results()) { break; }
+            
+            $i++;
+        } while ($this->_sphinx->next_result());
+        
+        error_log(var_export($result, true));
+        
+        return $result;       
+    }
+    
+    
     function executeBatch(bool $fullRow=FALSE) : array {
         $result = [];        
         foreach ($this->_batch as $name=>$info) {
             $q = $info[0];
             $assoc = $info[1];
-            $rs = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'time'=>0, 'matches'=>[], 'facet'=>[], 'sql'=>$q];
+            $rs = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'matches'=>[], 'facet'=>[], 'sql'=>$q];
             $this->_sphinx->multi_query($q);
             if ($this->_sphinx->error) {
                 $this->Log(['query'=>$q, 'error'=>'['.$this->_sphinx->connect_errno . '] ' . $this->_sphinx->connect_error]);
@@ -584,7 +629,7 @@ class SphinxQL {
     
     
     function singleSelectQuery($q, $assoc=FALSE) {
-        $result = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'time'=>0, 'matches'=>[], 'sql'=>$q];
+        $result = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'matches'=>[], 'sql'=>$q];
 
         try {
             $resource = $this->_sphinx->query($q);
@@ -618,7 +663,7 @@ class SphinxQL {
     
     function getAds($keywords="") {
         $this->build($keywords);
-        $result = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'time'=>0, 'matches'=>[], 'sql'=>$this->_query];
+        $result = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'matches'=>[], 'sql'=>$this->_query];
 
         try {
             $resource = $this->_sphinx->query($this->_query);
@@ -844,9 +889,10 @@ class SphinxQL {
     
     
     public function fetchMetaData(&$resultQuery=NULL) : void {
-        if (($rs = $this->_sphinx->query('SHOW META'))!==FALSE) {
-            while ($value = $rs->fetch_array(MYSQLI_NUM)) {
-                $resultQuery[$value[0]] = is_numeric($value[1]) ? $value[1]+0 : $value[1];
+        if (($rs = $this->_sphinx->query('SHOW META LIKE \'total%\''))!==FALSE) {
+            $res = $rs->fetch_all();
+            foreach ($res as $rec) {
+                $resultQuery[$rec[0]] = $rec[1]+0;
             }
             $rs->close();
         }
@@ -869,18 +915,3 @@ class SphinxQL {
     }
     
 }
-
-
-/*
-class SearchResult {
-    public $error;
-    public $warning;
-    public $total;
-    public $total_found;
-    public $time;
-    
-    function __construct() {
-        
-    }
-}
-*/

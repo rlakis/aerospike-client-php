@@ -2102,27 +2102,30 @@ class Search extends Page {
         echo '<div id=adScreen class=modal><div class="card card-product col-6"><span class="close">&times;</span>';
         echo '<div id=adImage class=card-image>', '</div>';       
         echo '<div id=adContent class=card-content>', '</div>';
-        echo '<div class=card-footer>', '</div>';       
+        echo '<div id=adFooter class=card-footer>', '</div>';       
         echo '</div></div>';
         ?>
-        <script>
-        var modal = document.getElementById('adScreen');
-        var span = document.getElementsByClassName("close")[0];
-
+        <script>        
+        var $=document;
+        var newE=function(t,c){var e=$.createElement(t);if(c)e.className=c;return e;}
+        var byId=function(id){return $.getElementById(id);}
+        var modal=byId('adScreen');
+        var span=$.getElementsByClassName("close")[0];
+        
         function oad(ad) {
             var cui=JSON.parse(ad.dataset.cui);
             var pics=[];
-            if (ad.dataset.pics) {
-                pics=ad.dataset.pics.split(',');
-            }
-            console.log(pics);
-            var $=document;
-            console.log(cui);
-           
+            if(ad.dataset.pics){pics=ad.dataset.pics.split(',');}
             var content = ad.querySelectorAll('.adc')[0].cloneNode(true);
-            var adImg=$.getElementById("adImage");
-            adImg.innerHTML='';
-            document.getElementById("adContent").innerHTML='';
+            var adImg=byId("adImage");var adCnt=byId("adContent");var adFtr=byId('adFooter');
+            adImg.innerHTML='';adCnt.innerHTML='';adFtr.innerHTML='';
+            var ins=newE('ins', 'adsbygoogle');
+            //ins.style='display:inline-block;';
+            ins.setAttribute('data-ad-client', 'ca-pub-2427907534283641');
+            ins.setAttribute('data-ad-slot', '7030570808');
+            ins.setAttribute('data-ad-format', 'auto');
+            ins.setAttribute('data-full-width-responsive', 'true');
+            adFtr.style.setProperty("text-align", "center");
             if (pics.length) {
                 adImg.className='card-image';
                 var t=ad.querySelectorAll('img')[0].src;
@@ -2133,101 +2136,116 @@ class Search extends Page {
             }
             else {
                 adImg.className='card-media';
-                var ins=$.createElement('ins');
-                ins.className='adsbygoogle';
-                ins.style='display:inline-block;';
-                ins.setAttribute('data-ad-client', 'ca-pub-2427907534283641');
-                ins.setAttribute('data-ad-slot', '7030570808');
-                ins.setAttribute('data-ad-format', 'auto');
-                ins.setAttribute('data-full-width-responsive', 'true');
-                adImg.appendChild(ins);
-               
+                adImg.style.setProperty('top', '8px');
+                adImg.appendChild(ins);               
             }
             
-            document.getElementById("adContent").appendChild(content);
+            adCnt.appendChild(content);
             
-            var ch = $.createElement('div');
-            ch.className='contact';
+            var ch = newE('div', 'contact');
             if (cui.p) {
                 for (var i in cui.p) {
-                    var btn=$.createElement('a');
-                    btn.className='btn';
+                    var btn=newE('a','btn');
                     btn.text = cui.p[i].v;
                     
-                    if (cui.p[i].t==5) {
-                        var icn=$.createElement('i');
-                        icn.className='icn icn-whatsapp';
-                        btn.appendChild(icn);
+                    if (cui.p[i].t===5) {
+                        btn.appendChild(newE('i', 'icn icn-whatsapp'));
                         btn.href='https://api.whatsapp.com/send?phone='+cui.p[i].n;
                         btn.target='_blank';
                     }
                     else {     
-                        var icn=$.createElement('i');
-                        icn.className='icn icn-phone';
-                        btn.appendChild(icn);
+                        btn.appendChild(newE('i', 'icn icn-phone'));
                         btn.href = 'tel:'+cui.p[i].v.replace(/\s/g, '');                     
-                    }
-                                        
+                    }                                        
                     ch.appendChild(btn);
                     
-                    if (cui.p[i].t==3) {
-                        var btn=$.createElement('a');
-                        btn.className='btn';
+                    if (cui.p[i].t===3) {
+                        var btn=newE('a', 'btn');
                         btn.text = cui.p[i].v;
                         btn.href='https://api.whatsapp.com/send?phone='+cui.p[i].n;
                         btn.target='_blank';
-                        var icn=$.createElement('i');
-                        icn.className='icn icn-whatsapp';
-                        btn.insertBefore(icn, btn.firstChild);
+                        btn.insertBefore(newE('i', 'icn icn-whatsapp'), btn.firstChild);
                         ch.appendChild(btn);
                     }
                 }
             }
             if (cui.e) {
-                var btn=$.createElement('a');
+                var btn=newE('a', 'btn');
                 btn.text = cui.e;
                 btn.href = 'mailto:'+cui.e;
-                btn.className='btn';
-                var icn=$.createElement('i');
-                icn.className='icn icn-email';
-                btn.appendChild(icn);
+                btn.appendChild(newE('i', 'icn icn-email'));
                 ch.appendChild(btn);
             }
-            document.getElementById("adContent").appendChild(ch);
+            adCnt.appendChild(ch);
             
             if (ad.dataset.coord) {
-                var btn=$.createElement('a');
-                btn.className='btn';
-                console.log($.body.dir);
-                btn.text = $.body.dir=='rtl'?'عرض على الخريطة':'View on map';
+                var btn=newE('a', 'btn');
+                btn.text = $.body.dir==='rtl'?'عرض على الخريطة':'View on map';
                 btn.href = 'https://maps.google.com/maps/?saddr=My+location&z=14&daddr='+ad.dataset.coord;
                 btn.target='_blank';
-                var icn=$.createElement('i');
-                icn.className='icn icn-map-marker';
+                var icn=newE('i', 'icn icn-map-marker');
                 icn.style.backgroundColor='white';
                 btn.insertBefore(icn, btn.firstChild);
                 ch.appendChild(btn);
             }
-            modal.style.display = "block";
             
-            if (pics.length==0) {                
+            var f=ad.querySelectorAll('.card-footer>ul');
+            if(f.length){adFtr.appendChild(f[0].cloneNode(true));}
+            var btn=newE('a', 'btn');
+            btn.text='Share';
+            btn.style.backgroundColor='#3b5998';btn.style.fontWeight='bold';
+            btn.style.setProperty("color", "white", "important");
+            btn.style.setProperty("display", "inline-block", "important");
+            btn.style.setProperty("margin", "0 12px");
+            btn.style.setProperty("width", "120px");
+            adFtr.appendChild(btn);
+
+            var btn=newE('a', 'btn');
+            btn.text='Report';
+            btn.style.backgroundColor='red';btn.style.fontWeight='bold';
+            btn.style.setProperty("color", "white", "important");
+            btn.style.setProperty("display", "inline-block", "important");
+            btn.style.setProperty("margin", "0 12px");
+            btn.style.setProperty("width", "120px");
+            adFtr.appendChild(btn);
+            var dv=newE('div');
+            dv.style='display:flex;justify-content:space-between;font-size:0.9rem;padding:20px 0;';
+            if (ad.querySelectorAll('.cbox.cbl').length){
+                var st=newE('span');st.textContent=ad.querySelectorAll('.cbox.cbl')[0].textContent;
+                dv.appendChild(st);
+            }
+            if (ad.querySelectorAll('.cbox.cbr').length){
+                var pt=newE('span');pt.textContent=ad.querySelectorAll('.cbox.cbr')[0].textContent;            
+                dv.appendChild(pt);
+            }
+            adFtr.appendChild(dv);
+            
+            if (pics.length){
+                var adv=newE('div','card-media');                
+                adv.appendChild(ins);      
+                adFtr.appendChild(adv);
+            }
+            
+            modal.style.display = "flex";     
+            
+            //if (pics.length===0) {                
                 ins.style='display:inline-block;width:'+adImg.offsetWidth+'px;';
                 (adsbygoogle = window.adsbygoogle || []).push({});
-            }
+            //}
             var state={'detail':1};
-            window.history.pushState(state, document.title, document.location.href);
+            window.history.pushState(state, $.title, $.location.href);
             $.body.setAttribute('data-detail', 1);
         }
 
-        // When the user clicks on <span> (x), close the modal
+        
         span.onclick=function(){modal.style.display="none";}
 
         window.onclick=function(event){if(event.target==modal){modal.style.display="none";}}
         window.onpopstate=function(event){
-            console.log(document.body.dataset.detail);
-            if (document.body.hasAttribute('data-detail')) {
+            console.log($.body.dataset.detail);
+            if ($.body.hasAttribute('data-detail')) {
                 modal.style.display = "none";
-                document.body.removeAttribute('data-detail');
+                $.body.removeAttribute('data-detail');
             } else {
                 window.history.back();
             }
