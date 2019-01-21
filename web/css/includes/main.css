@@ -264,25 +264,20 @@ body[dir="rtl"] .brd a:hover:after{border-right-color:#ff9100!important}
 .btn.sim a{padding:12px 30px;}
 .btn.sim:hover{background-color:orange;color:white;box-shadow:0 14px 26px -12px rgba(255,165,0, 0.42), 0 4px 23px 0px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(255,165,0, 0.2);}
 
-.contact .btn {
-    background-color: #5bc236;
-    color: white;
-    display: block;
-    direction: ltr;
-    text-transform:none;
-    font-size: 1rem;
-}
+.contact .btn{background-color:#5bc236;color:white;display:block;direction:ltr;text-transform:none;font-size:1rem;}
+.contact .icn{position:absolute;left:4px;top:8px;}
 
-.contact .icn {
-    position: absolute;
-    left: 4px;
-    top: 8px;
-}
 .list{float:right;position:relative;z-index:100;margin:0 0 0 5px;width:300px;}
 .list ul{columns:1}
 
-.modal{display:none;position:fixed;z-index:999;left:0;top:0;width:100%;height:100%;background-color:rgba(0,0,0,0.75);align-items:center;justify-content:center;}
-.modal .card{display:block;min-height:60%;position:relative;float:none !important;}
+.modal{display:none;position:fixed;z-index:999;left:0;top:0;width:100%;height:100%;
+    background-color:rgba(0,0,0,0.75);
+    align-items:center;
+    justify-content:center;
+    overflow-y: scroll;
+    overflow-x: hidden}
+.modal .card{display:block;min-height:60%;position:relative;float:none !important;
+box-sizing: content-box}
 
 .modal .card .card-image {
     height: 60%;

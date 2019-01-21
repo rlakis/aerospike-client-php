@@ -2099,7 +2099,7 @@ class Search extends Page {
             
   
     function detailHolder() {
-        echo '<div id=adScreen class=modal><div class="card card-product col-6"><span class="close">&times;</span>';
+        echo '<div id=adScreen class=modal><div class="card card-product col-6"><!--<span class="close">&times;</span>-->';
         echo '<div id=adImage class=card-image>', '</div>';       
         echo '<div id=adContent class=card-content>', '</div>';
         echo '<div id=adFooter class=card-footer>', '</div>';       
@@ -2110,7 +2110,7 @@ class Search extends Page {
         var newE=function(t,c){var e=$.createElement(t);if(c)e.className=c;return e;}
         var byId=function(id){return $.getElementById(id);}
         var modal=byId('adScreen');
-        var span=$.getElementsByClassName("close")[0];
+        //var span=$.getElementsByClassName("close")[0];
         
         function oad(ad) {
             var cui=JSON.parse(ad.dataset.cui);
@@ -2191,23 +2191,27 @@ class Search extends Page {
             
             var f=ad.querySelectorAll('.card-footer>ul');
             if(f.length){adFtr.appendChild(f[0].cloneNode(true));}
+            var dv=newE('div');
+            dv.style='display:block;font-size:1.0rem;font-weight:bold;padding:20px 0;';
             var btn=newE('a', 'btn');
             btn.text='Share';
-            btn.style.backgroundColor='#3b5998';btn.style.fontWeight='bold';
+            btn.style.backgroundColor='#3b5998';
             btn.style.setProperty("color", "white", "important");
             btn.style.setProperty("display", "inline-block", "important");
-            btn.style.setProperty("margin", "0 12px");
+            //btn.style.setProperty("margin", "0 12px");
             btn.style.setProperty("width", "120px");
-            adFtr.appendChild(btn);
+            dv.appendChild(btn);
 
             var btn=newE('a', 'btn');
             btn.text='Report';
-            btn.style.backgroundColor='red';btn.style.fontWeight='bold';
+            btn.style.backgroundColor='red';
             btn.style.setProperty("color", "white", "important");
             btn.style.setProperty("display", "inline-block", "important");
             btn.style.setProperty("margin", "0 12px");
             btn.style.setProperty("width", "120px");
-            adFtr.appendChild(btn);
+            dv.appendChild(btn);
+            adFtr.appendChild(dv);
+            
             var dv=newE('div');
             dv.style='display:flex;justify-content:space-between;font-size:0.9rem;padding:20px 0;';
             if (ad.querySelectorAll('.cbox.cbl').length){
@@ -2226,6 +2230,7 @@ class Search extends Page {
                 adFtr.appendChild(adv);
             }
             
+            $.body.style.setProperty('overflow', 'hidden');
             modal.style.display = "flex";     
             
             //if (pics.length===0) {                
@@ -2238,13 +2243,14 @@ class Search extends Page {
         }
 
         
-        span.onclick=function(){modal.style.display="none";}
+        //span.onclick=function(){modal.style.display="none";$.body.style.setProperty('overflow', 'scroll');}
 
-        window.onclick=function(event){if(event.target==modal){modal.style.display="none";}}
+        window.onclick=function(event){if(event.target==modal){modal.style.display="none";$.body.style.setProperty('overflow', 'scroll');}}
         window.onpopstate=function(event){
             console.log($.body.dataset.detail);
             if ($.body.hasAttribute('data-detail')) {
-                modal.style.display = "none";
+                modal.style.display = "none";       
+                $.body.style.setProperty('overflow', 'scroll');
                 $.body.removeAttribute('data-detail');
             } else {
                 window.history.back();
