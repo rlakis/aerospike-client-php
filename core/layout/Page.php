@@ -4973,6 +4973,9 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         echo '><head><meta charset="utf-8">', "\n";
         echo "<style>\n";
         include $this->router()->config()->baseDir.'/web/css/includes/main.css';
+        if ($this->router()->module=='search') {
+            include $this->router()->config()->baseDir.'/web/css/includes/ad-view.css';
+        }
         echo "\n</style>\n";
         $this->header();
         echo '<title>', $this->title, '</title>';

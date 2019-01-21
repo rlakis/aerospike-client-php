@@ -2099,153 +2099,251 @@ class Search extends Page {
             
   
     function detailHolder() {
-        echo '<div id=adScreen class=modal><div class="card card-product col-6"><!--<span class="close">&times;</span>-->';
-        echo '<div id=adImage class=card-image>', '</div>';       
-        echo '<div id=adContent class=card-content>', '</div>';
-        echo '<div id=adFooter class=card-footer>', '</div>';       
-        echo '</div></div>';
+        //echo '<div id=adScreen class=modal><div id=adCard class="card card-product col-6"><!--<span class="close">&times;</span>-->';
+        //echo '<div id=adImage class=card-image>', '</div>';       
+        //echo '<div id=adContent class=card-content>', '</div>';
+        //echo '<div id=adFooter class=card-footer>', '</div>';       
+        //echo '</div></div>';
         ?>
         <script>        
         var $=document;
         var newE=function(t,c){var e=$.createElement(t);if(c)e.className=c;return e;}
         var byId=function(id){return $.getElementById(id);}
-        var modal=byId('adScreen');
-        //var span=$.getElementsByClassName("close")[0];
-        
-        function oad(ad) {
-            var cui=JSON.parse(ad.dataset.cui);
-            var pics=[];
-            if(ad.dataset.pics){pics=ad.dataset.pics.split(',');}
-            var content = ad.querySelectorAll('.adc')[0].cloneNode(true);
-            var adImg=byId("adImage");var adCnt=byId("adContent");var adFtr=byId('adFooter');
-            adImg.innerHTML='';adCnt.innerHTML='';adFtr.innerHTML='';
-            var ins=newE('ins', 'adsbygoogle');
-            //ins.style='display:inline-block;';
-            ins.setAttribute('data-ad-client', 'ca-pub-2427907534283641');
-            ins.setAttribute('data-ad-slot', '7030570808');
-            ins.setAttribute('data-ad-format', 'auto');
-            ins.setAttribute('data-full-width-responsive', 'true');
-            adFtr.style.setProperty("text-align", "center");
-            if (pics.length) {
-                adImg.className='card-image';
-                var t=ad.querySelectorAll('img')[0].src;
-                var host = t.substring(0, t.indexOf('/repos/'));                
-                var img = new Image();
-                img.src = host+'/repos/d/'+pics[0];
-                adImg.appendChild(img);                
+
+        function stopBodyScrolling (bool) {
+            if (bool===true) {
+                document.body.addEventListener("touchmove", freezeVp, false);
+            } else {
+                document.body.removeEventListener("touchmove", freezeVp, false);
             }
-            else {
-                adImg.className='card-media';
-                adImg.style.setProperty('top', '8px');
-                adImg.appendChild(ins);               
+        }
+        var freezeVp = function(e) {
+            e.preventDefault();
+        };
+
+                
+        class AdScreen {
+            constructor(ad){
+                this.cui=JSON.parse(ad.dataset.cui);
+                this.coord=ad.dataset.coord;
+                this.pics=[];
+                if(ad.dataset.pics){this.pics=ad.dataset.pics.split(',');}
+                
+                this._modal=this.newTag('div','modal');this._modal.setAttribute('id', 'adScreen');                
+                this._card=this.newTag('div','card col-6');
+                if (this.pics.length===0) {
+                    this._top=this.newTag('div', 'top');
+                }
+                this._media=this.newTag('div','card-image');
+                this._body=this.newTag('div','card-content');
+                this._footer=this.newTag('div','card-footer');
+                this._close=this.newTag('span','close'); 
+                this._close.onclick=this.close;
+                if (this.pics.length===0) {
+                    this._close.className='close nopix';
+                    this._top.appendChild(this._close);
+                }
+                else {
+                    this._card.appendChild(this._close);
+                }
+                this._card. appendChild(this._media);
+                if (this._top){this._card.appendChild(this._top);}
+                this._card.appendChild(this._body);
+                this._card.appendChild(this._footer);
+                
+                this._modal.appendChild(this._card);
+                
+                
+                this._body.appendChild(ad.querySelectorAll('.adc')[0].cloneNode(true));
+                
+                this._ad_slot=this.newTag('ins', 'adsbygoogle');
+                this._ad_slot.setAttribute('data-ad-client', 'ca-pub-2427907534283641');
+                this._ad_slot.setAttribute('data-ad-slot', '7030570808');
+                this._ad_slot.setAttribute('data-ad-format', 'auto');
+                this._ad_slot.setAttribute('data-full-width-responsive', 'true');     
+                
+                if (this.pics.length) {
+                    var t=ad.querySelectorAll('img')[0].src;
+                    this.host = t.substring(0, t.indexOf('/repos/'));
+                }
+                
+                var ul=ad.querySelectorAll('.card-footer>ul');
+                if(ul.length){this._footer.appendChild(ul[0].cloneNode(true));}
+                
+                if (ad.querySelectorAll('.cbox.cbl').length){
+                    this._since=ad.querySelectorAll('.cbox.cbl')[0].textContent;
+                }
+                if (ad.querySelectorAll('.cbox.cbr').length){
+                    this._pubType=ad.querySelectorAll('.cbox.cbr')[0].textContent;
+                }
+            }        
+
+            newTag(tag,cls){
+                var t=$.createElement(tag);
+                if (cls) {t.className=cls;}
+                return t;
             }
             
-            adCnt.appendChild(content);
-            
-            var ch = newE('div', 'contact');
-            if (cui.p) {
-                for (var i in cui.p) {
-                    var btn=newE('a','btn');
-                    btn.text = cui.p[i].v;
-                    
-                    if (cui.p[i].t===5) {
-                        btn.appendChild(newE('i', 'icn icn-whatsapp'));
-                        btn.href='https://api.whatsapp.com/send?phone='+cui.p[i].n;
-                        btn.target='_blank';
-                    }
-                    else {     
-                        btn.appendChild(newE('i', 'icn icn-phone'));
-                        btn.href = 'tel:'+cui.p[i].v.replace(/\s/g, '');                     
-                    }                                        
-                    ch.appendChild(btn);
-                    
-                    if (cui.p[i].t===3) {
-                        var btn=newE('a', 'btn');
-                        btn.text = cui.p[i].v;
-                        btn.href='https://api.whatsapp.com/send?phone='+cui.p[i].n;
-                        btn.target='_blank';
-                        btn.insertBefore(newE('i', 'icn icn-whatsapp'), btn.firstChild);
-                        ch.appendChild(btn);
+            btn(text,href,icon,target){
+                var a=this.newTag('a','btn');
+                a.text=text;                
+                a.href=href;
+                if(icon)a.appendChild(this.newTag('i', 'icn icn-'+icon));
+                if(target)a.target=target;
+                return a;
+            }
+            inlineBtn(text,bgc){
+                var a=this.btn(text,'#');
+                a.style.backgroundColor=bgc;
+                a.style.setProperty("color", "white", "important");
+                a.style.setProperty("display", "inline-block", "important");
+                a.style.setProperty("margin", "0 12px");
+                a.style.setProperty("width", "120px");
+                return a;
+            }
+
+            open(){
+                stopBodyScrolling(true);
+                this._close.innerHTML='&times;';
+                this._footer.style.setProperty("text-align", "center");
+                
+                if (this.pics.length) {                    
+                    var img = new Image();
+                    img.src = this.host+'/repos/d/'+this.pics[0];
+                    this._media.appendChild(img);
+                    img.onload = function () {
+                        //var hh=img.offsetHeight;
+                        //if (hh>window.innerHeight/2.5){hh=Math.round(window.innerHeight/2.5)};
+                        //this.parentElement.style.setProperty('min-height',hh+'px');
                     }
                 }
-            }
-            if (cui.e) {
-                var btn=newE('a', 'btn');
-                btn.text = cui.e;
-                btn.href = 'mailto:'+cui.e;
-                btn.appendChild(newE('i', 'icn icn-email'));
-                ch.appendChild(btn);
-            }
-            adCnt.appendChild(ch);
+                else {
+                    this._media.className='card-media';
+                    this._media.style.setProperty('top', '8px');
+                    this._media.appendChild(this._ad_slot);               
+                }
             
-            if (ad.dataset.coord) {
-                var btn=newE('a', 'btn');
-                btn.text = $.body.dir==='rtl'?'عرض على الخريطة':'View on map';
-                btn.href = 'https://maps.google.com/maps/?saddr=My+location&z=14&daddr='+ad.dataset.coord;
-                btn.target='_blank';
-                var icn=newE('i', 'icn icn-map-marker');
-                icn.style.backgroundColor='white';
-                btn.insertBefore(icn, btn.firstChild);
-                ch.appendChild(btn);
-            }
+                var ch = this.newTag('div', 'contact');
+                if (this.cui.p) {
+                    for (var i in this.cui.p) {
+                        var btn;
+                        if (this.cui.p[i].t===5) {
+                            btn=this.btn(this.cui.p[i].v, 'https://api.whatsapp.com/send?phone='+this.cui.p[i].n, 'whatsapp', '_blank');
+                        }
+                        else {
+                            btn=this.btn(this.cui.p[i].v, 'tel:'+this.cui.p[i].v.replace(/\s/g, ''), 'phone');
+                        }                                        
+                        ch.appendChild(btn);
+                    
+                        if (this.cui.p[i].t===3) {
+                            btn=this.btn(this.cui.p[i].v, 'https://api.whatsapp.com/send?phone='+this.cui.p[i].n, 'whatsapp', '_blank');
+                            ch.appendChild(btn);
+                        }
+                    }                    
+                }
+                if (this.cui.e) {
+                    var btn=this.btn(this.cui.e, 'mailto:'+this.cui.e, 'email');
+                    ch.appendChild(btn);
+                }
+                if (this.coord) {
+                    var btn=this.btn($.body.dir==='rtl'?'عرض على الخريطة':'View on map', 'https://maps.google.com/maps/?saddr=My+location&z=14&daddr='+this.coord, 'map-marker', '_blank');
+                    btn.querySelectorAll('.icn')[0].style.backgroundColor='white';
+                    ch.appendChild(btn);
+                }
+                this._body.appendChild(ch);
             
-            var f=ad.querySelectorAll('.card-footer>ul');
-            if(f.length){adFtr.appendChild(f[0].cloneNode(true));}
-            var dv=newE('div');
-            dv.style='display:block;font-size:1.0rem;font-weight:bold;padding:20px 0;';
-            var btn=newE('a', 'btn');
-            btn.text='Share';
-            btn.style.backgroundColor='#3b5998';
-            btn.style.setProperty("color", "white", "important");
-            btn.style.setProperty("display", "inline-block", "important");
-            //btn.style.setProperty("margin", "0 12px");
-            btn.style.setProperty("width", "120px");
-            dv.appendChild(btn);
+                var dv=this.newTag('div');
+                dv.style='display:block;font-size:1.0rem;font-weight:bold;padding:20px 0;';
+                var btn=this.inlineBtn('Share', '#3b5998'); dv.appendChild(btn);
 
-            var btn=newE('a', 'btn');
-            btn.text='Report';
-            btn.style.backgroundColor='red';
-            btn.style.setProperty("color", "white", "important");
-            btn.style.setProperty("display", "inline-block", "important");
-            btn.style.setProperty("margin", "0 12px");
-            btn.style.setProperty("width", "120px");
-            dv.appendChild(btn);
-            adFtr.appendChild(dv);
+                var btn=this.inlineBtn('Report', 'red'); dv.appendChild(btn);
+                this._footer.appendChild(dv);
+                                
+                var dv=this.newTag('div');
+                dv.style='display:flex;justify-content:space-between;font-size:0.9rem;padding:20px 0;';
+                if (this._since){
+                    var st=newE('span');st.textContent=this._since;
+                    dv.appendChild(st);
+                }
+                if (this._pubType){
+                    var pt=newE('span');pt.textContent=this._pubType;            
+                    dv.appendChild(pt);
+                }
+                this._footer.appendChild(dv);
             
-            var dv=newE('div');
-            dv.style='display:flex;justify-content:space-between;font-size:0.9rem;padding:20px 0;';
-            if (ad.querySelectorAll('.cbox.cbl').length){
-                var st=newE('span');st.textContent=ad.querySelectorAll('.cbox.cbl')[0].textContent;
-                dv.appendChild(st);
+                if(this.pics.length){
+                    var adH=this.newTag('div', 'card-media');
+                    adH.style.setProperty('margin-bottom', '40px');
+                    adH.appendChild(this._ad_slot);
+                    adH.appendChild(this.newTag('br'));
+                    this._card.appendChild(adH);
+                }
+                $.body.appendChild(this._modal);
+            
+                $.body.style.setProperty('overflow', 'hidden');
+                this._modal.style.display = "flex";
+                if(this._modal.clientWidth<1200){this._card.className='card col-8';}
+                
+                if (this._card.offsetWidth+30>this._modal.clientWidth){
+                    this._modal.style.display = "block";                    
+                }
+                else if (this._card.offsetHeight+16>this._modal.clientHeight) {
+                    this._card.style.setProperty('margin-top', (this._card.offsetHeight+48-this._modal.clientHeight)+'px');
+                }
+                this._ad_slot.style='display:inline-block;width:'+this._media.offsetWidth+'px;';
+                (adsbygoogle = window.adsbygoogle || []).push({});
+                
             }
-            if (ad.querySelectorAll('.cbox.cbr').length){
-                var pt=newE('span');pt.textContent=ad.querySelectorAll('.cbox.cbr')[0].textContent;            
-                dv.appendChild(pt);
+            
+            close(){
+                //$.querySelectorAll('.wrapper')[0].style.display='block';
+                adScreen._modal.style.display='none';
+                $.body.removeChild(adScreen._modal);
+                adScreen._modal=null;
+                $.body.style.setProperty('overflow','scroll');                  
+                adScreen=null;
             }
-            adFtr.appendChild(dv);
-            
-            if (pics.length){
-                var adv=newE('div','card-media');                
-                adv.appendChild(ins);      
-                adFtr.appendChild(adv);
-            }
-            
-            $.body.style.setProperty('overflow', 'hidden');
-            modal.style.display = "flex";     
-            
-            //if (pics.length===0) {                
+        }
+        var adScreen=null;
+                       
+                       /*
+        var adView=function(o, adImg, ins) {
+            $.body.style.setProperty('overflow', o?'hidden':'scroll');
+            if(o){                
+                modal.style.display = "flex";
                 ins.style='display:inline-block;width:'+adImg.offsetWidth+'px;';
                 (adsbygoogle = window.adsbygoogle || []).push({});
-            //}
+                if (modal.clientWidth<1200) {
+                    byId('adCard').className='card card-product col-8';
+                }
+                if (modal.clientHeight>=byId('adCard').offsetHeight){
+                    byId('adCard').style.setProperty('margin-top', '0');
+                }
+                else {
+                    byId('adCard').style.setProperty('margin-top',(40+byId('adCard').offsetHeight-modal.clientHeight)+'px');
+                }
+            }
+            
+            else {
+                modal.style.display = "none";
+            }
+        }
+        */
+        
+        function oad(ad) {
+            adScreen=new AdScreen(ad);
+            adScreen.open();
+            if (1) return;            
+
             var state={'detail':1};
             window.history.pushState(state, $.title, $.location.href);
             $.body.setAttribute('data-detail', 1);
         }
-
+       
+        window.onclick=function(event){
+            if(adScreen && event.target===byId('adScreen'))adScreen.close();
+        };
         
-        //span.onclick=function(){modal.style.display="none";$.body.style.setProperty('overflow', 'scroll');}
-
-        window.onclick=function(event){if(event.target==modal){modal.style.display="none";$.body.style.setProperty('overflow', 'scroll');}}
         window.onpopstate=function(event){
             console.log($.body.dataset.detail);
             if ($.body.hasAttribute('data-detail')) {

@@ -1,0 +1,9 @@
+@media screen and (max-width: 768px) {
+    .modal .card{padding:20px auto}
+    .modal .card .card-image{margin:0;border-radius:0}
+    .modal .card-image img{-webkit-transform:none;top:0;left:0;border-radius:0;min-height: 0;}
+    .modal .top {display:block;height:50px;background-color:var(--mourjanC);}
+    .close{right:8px;top:4px;}
+    .nopix{position: relative; margin-top: -4px;}
+    .modal div:first-child{padding-top:0}
+}
