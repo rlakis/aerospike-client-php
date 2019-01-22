@@ -2099,11 +2099,6 @@ class Search extends Page {
             
   
     function detailHolder() {
-        //echo '<div id=adScreen class=modal><div id=adCard class="card card-product col-6"><!--<span class="close">&times;</span>-->';
-        //echo '<div id=adImage class=card-image>', '</div>';       
-        //echo '<div id=adContent class=card-content>', '</div>';
-        //echo '<div id=adFooter class=card-footer>', '</div>';       
-        //echo '</div></div>';
         ?>
         <script>        
         var $=document;
@@ -2111,15 +2106,15 @@ class Search extends Page {
         var byId=function(id){return $.getElementById(id);}
 
         function stopBodyScrolling (bool) {
+            //var w=$.querySelectorAll('.wrapper')[0];
             if (bool===true) {
-                document.body.addEventListener("touchmove", freezeVp, false);
-            } else {
-                document.body.removeEventListener("touchmove", freezeVp, false);
+                document.body.addEventListener("touchmove", freezeVp, {passive: false });
+            } 
+            else {
+                document.body.removeEventListener("touchmove", freezeVp, {passive: false});
             }
         }
-        var freezeVp = function(e) {
-            e.preventDefault();
-        };
+        var freezeVp = function(e) { e.preventDefault(); e.stopPropagation(); };
 
                 
         class AdScreen {
@@ -2296,10 +2291,10 @@ class Search extends Page {
             }
             
             close(){
-                //$.querySelectorAll('.wrapper')[0].style.display='block';
                 adScreen._modal.style.display='none';
                 $.body.removeChild(adScreen._modal);
                 adScreen._modal=null;
+                stopBodyScrolling(false);
                 $.body.style.setProperty('overflow','scroll');                  
                 adScreen=null;
             }
