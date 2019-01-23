@@ -399,13 +399,13 @@ class Page extends Site {
 
         if (in_array($this->user->info['id'],array(1,2,2100,38813,44835,53456))) {
             $this->router()->cfg['enabled_sharing']=false;
-            $this->router()->cfg['enabled_ads']=false;
+            $this->router()->config()->disableAds();
         }
         
         if ($this->router()->params['q']) {
             $query = trim($this->router()->params['q']);
             if($query == 'مساج'){
-                $this->router()->cfg['enabled_ads']=false;
+                $this->router()->config()->disableAds();
             }
         }
         
@@ -3102,7 +3102,7 @@ class Page extends Site {
         }
         
         if (preg_match('/Firefox\/27\.0/ui', $_SERVER['HTTP_USER_AGENT'])) {
-            $this->router()->cfg['enabled_ads'] = 0;
+            $this->router()->config()->disableAds();
         }
         
         ?><script async src="https://www.googletagmanager.com/gtag/js?id=UA-435731-13"></script><?php
@@ -3227,7 +3227,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         
         
         ?><script type="text/javascript"><?php
-        if ($this->renderAdSense && $this->router()->cfg['enabled_ads'] 
+        if ($this->renderAdSense && $this->router()->config()->enabledAds() 
                 && in_array($this->router()->module,['search','detail']) 
                 /*&& (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745)*/){
             /* ?>(adsbygoogle = window.adsbygoogle || []).push({google_ad_client: "ca-pub-2427907534283641",enable_page_level_ads: true,vignettes: {google_ad_channel: 'mourjan-vignette'},overlays: {google_ad_channel: 'mourjan-overlay'}});<?php */
@@ -3867,7 +3867,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
             
             ?>lang='<?= $this->router()->language ?>',<?php
             ?>share=<?= $this->router()->cfg['enabled_sharing'] ? 1:0 ?>,<?php
-            ?>hads=<?= $this->router()->cfg['enabled_ads'] ? 1:0 ?>,<?php
+            ?>hads=<?= $this->router()->config()->enabledAds() ? 1:0 ?>,<?php
             ?>SCLD=0,<?php //script loading var
             ?>ITC=0,<?php //is touch flag 
             ?>jsLog=<?= $this->router()->cfg['enabled_js_log'] ?>,<?php 
@@ -5200,7 +5200,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
         echo "\n", '<meta itemprop="isFamilyFriendly" content="true" />', "\n";        
         echo '</head>', "\n";
         flush();
-        echo '<body dir="', $this->router()->isArabic() ? 'rtl':'ltr', '" ', $this->pageItemScope;
+        echo '<body dir="', $this->router()->isArabic() ? 'rtl':'ltr', '" data-ads='.($this->router()->config()->enabledAds()?1:0),' ', $this->pageItemScope;
         if ($this->isAdminSearch) {
             echo ' oncontextmenu="return false;"';
         }
@@ -5767,7 +5767,7 @@ document.write(unescape("%3Cscript src='" + tlJsHost + "trustlogo/javascript/tru
 
     
     function _body() {
-        echo '<div class="wrapper">', "\n";
+        echo '<div id="wrapper" class="wrapper">', "\n";
         $this->top();
         $this->body();
         $this->footer();

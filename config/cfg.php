@@ -67,13 +67,16 @@ class Config extends Singleton {
     
     
     public function enabledUsers() : bool {
-        return ($this->config['enabled_users']==1);
+        return ($this->config['enabled_users']);
     }
     
     public function enabledAds() : bool {
-        return ($this->config['enabled_ads']==1);
+        return ($this->config['enabled_ads']);
     }
     
+    public function disableAds() : void {
+        $this->config['enabled_ads']=0;
+    }
     
     public function incModelFile(string $file) : Config {
         if (!isset($this->config['model-dir'])) {

@@ -16,7 +16,7 @@ class Ad {
         if (!isset($this->data[Classifieds::SECTION_ID])) { $this->data[Classifieds::SECTION_ID] = 0; }
         $this->text = preg_split("/\x{200b}/u", $this->data[Classifieds::CONTENT])[0];
         
-        if (isset($this->data[Classifieds::ALT_CONTENT])) {
+        if (isset($this->data[Classifieds::ALT_CONTENT]) && !empty($this->data[Classifieds::ALT_CONTENT])) {
             $this->translation = preg_split("/\x{200b}/u", $this->data[Classifieds::ALT_CONTENT])[0];
         }
     }
@@ -47,7 +47,7 @@ class Ad {
     }
     
     
-    public function rtl() : bool {
+    public function rtl() : bool {        
         return $this->data[Classifieds::RTL]==1;
     }
         
@@ -357,6 +357,9 @@ class Ad {
         $result='';
         if (!empty($this->translation)) {
             $result.='data-alt="' .  htmlspecialchars($this->translation , ENT_QUOTES, 'UTF-8') . '" ';
+        }
+        if ($this->isFeatured()) {
+            $result.='data-premuim=1 ';
         }
         /*
         if (!empty($this->mobiles())) {
