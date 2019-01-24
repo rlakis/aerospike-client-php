@@ -547,7 +547,6 @@ class SphinxQL {
         $i=0;
         do {
             $name = $running[$i][2];
-            error_log($name);
             $rs = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'matches'=>[], 'sql'=>$running[$i][1]];
             if ($res = $this->_sphinx->store_result()) {
                 while ($row=$res->fetch_assoc()) {
@@ -569,8 +568,6 @@ class SphinxQL {
             
             $i++;
         } while ($this->_sphinx->next_result());
-        
-        error_log(var_export($result, true));
         
         return $result;       
     }

@@ -478,6 +478,7 @@ class Search extends Page {
             ?></ul><?php
         }
 
+        
         function side_pane() {
             if ($this->router()->userId) {
                 //$this->renderSidePage();
@@ -526,15 +527,18 @@ class Search extends Page {
 
         
         function main_pane() {
-            if($this->router()->isPriceList){
+            if ($this->router()->isPriceList) {
                 $this->priceResults();
-            }elseif ($this->userFavorites && !$this->user->info['id'] && (!$this->pageUserId || ($this->pageUserId && !$this->searchResults['body']['total_found']))) {
+            }
+            elseif ($this->userFavorites && !$this->user->info['id'] && (!$this->pageUserId || ($this->pageUserId && !$this->searchResults['body']['total_found']))) {
                 $this->lang['hint_login'] = $this->lang['hint_login_favorites'];
                 $this->renderLoginPage();
-            } elseif ($this->router()->watchId && !$this->user->info['id'] && (!$this->pageUserId || ($this->pageUserId && !$this->searchResults['body']['total_found']))) {
+            } 
+            elseif ($this->router()->watchId && !$this->user->info['id'] && (!$this->pageUserId || ($this->pageUserId && !$this->searchResults['body']['total_found']))) {
                 $this->lang['hint_login'] = $this->lang['hint_login_watch'];
                 $this->renderLoginPage();
-            } else {                
+            } 
+            else {                
                 $this->results();                
             }
         }
@@ -1232,13 +1236,12 @@ class Search extends Page {
     
     private function adSlot() : void {
         if($this->router()->config()->enabledAds()){
-        echo '<div class="ad adslot"><div class="card card-product">';?>
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+            echo '<div class="ad adslot"><div class="card card-product">';?>
 <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="auto" data-full-width-responsive="true"></ins>
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script><?php
-        echo '</div></div>', "\n";
+            echo '</div></div>', "\n";
         }
     }
     
@@ -1319,7 +1322,7 @@ class Search extends Page {
                 $itemScope = ' itemscope itemtype="https://schema.org/Product"';
             }
             
-            $in = $ad->rtl() ? "في" : 'in';
+            //$in = $ad->rtl() ? "في" : 'in';
             
             $isNewToUser = (isset($this->user->params['last_visit']) && $this->user->params['last_visit'] && $this->user->params['last_visit'] < $ad->epoch());
             
@@ -1812,7 +1815,14 @@ class Search extends Page {
                 if ($this->router()->module=='detail' && !$this->detailAdExpired) {
                     $this->displayDetail();
                 }
-                echo '<div class="ls col-12" ';
+                echo '<div class=row>';
+                echo '<div class=col-2 style="display:block">', 
+                        $this->renderSearchSettings(),
+                        $this->renderExtendedLinks(),
+                        $this->renderLocalityLinks(), 
+                        $this->renderSideRoots(),
+                        '</div>';
+                echo '<div class="ls col-10" ';
                 if ($this->router()->module!='detail') {
                     echo 'itemprop="mainContentOfPage" ';
                 }
@@ -1820,7 +1830,7 @@ class Search extends Page {
                 echo '<meta itemprop="name" content="', $this->subTitle, '" />';
                 
                 $this->renderDResults($keywords);
-                echo '</div>',"\n";                
+                echo '</div></div>',"\n";                
           
                 echo $this->mt_pagination();
                                 

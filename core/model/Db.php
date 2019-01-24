@@ -24,6 +24,8 @@ class DB {
     private $slaveOfRedis;
     public $ql;
     
+    private $version=0;
+    
     public function __construct($readonly=TRUE) {
         $this->slaveOfRedis = (get_cfg_var('mourjan.server_id')!='1');
         self::$dbUri = 'firebird:dbname='.\Config::instance()->get('db_host').':'.\Config::instance()->get('db_name').';charset=UTF8';
@@ -41,9 +43,16 @@ class DB {
 
         $versions=self::$Cache->getMulti(['section-counts-version', 'locality-counts-version', 'tag-counts-version']);
 
+        //$this->version = self::$Cache->incrBy('api-mem-version', 0);
+        //error_log($this->version);
+        
         self::$SectionsVersion = $versions['section-counts-version'];
         self::$LocalitiesVersion = $versions['locality-counts-version'];
         self::$TagsVersion = $versions['tag-counts-version'];
+        
+        //self::$SectionsVersion = $this->version;
+        //self::$LocalitiesVersion = $this->version;
+        //self::$TagsVersion = $this->version;
         
         $this->ql = new SphinxQL(\Config::instance()->get('sphinxql'), \Config::instance()->get('search_index'));    
     }
@@ -679,17 +688,16 @@ class DB {
     }
 
         
-    function getCountriesData($lang) 
-    {
+    function getCountriesData($lang) {
         $vv = ($this->slaveOfRedis) ? self::$SectionsVersion : self::$SectionsVersion+1;
+        
         $label = "country-data-{$lang}-{$vv}";        
         $result = self::$Cache->get($label);
-        if ($result!==FALSE) 
-        {
+        if ($result!==FALSE) {
             return $result;
         }
-        else
-        {
+        else {
+            
             $result=array();
         }
         /*
@@ -706,13 +714,11 @@ class DB {
         $countries = $this->getCountriesDictionary();
         $f=($lang=='ar')?1:2;
         $resource = $this->ql->getConnection()->query("select groupby(), count(*), max(date_added) from ad group by country limit 1000");
-        if ($this->ql->getConnection()->error) 
-        {
+        if ($this->ql->getConnection()->error) {
             throw new Exception('['.$this->ql->getConnection()->errno.'] '.$this->ql->getConnection()->error.' [ '.$label.']');
         }
         
-        if ($resource instanceof \mysqli_result) 
-        { 
+        if ($resource instanceof \mysqli_result) { 
             while ($row = $resource->fetch_array()) 
             {
                 $purposes = $this->getPurpusesData($row[0], 0, 0, 0, $lang);
@@ -874,8 +880,8 @@ class DB {
     function getPurpusesData($countryId, $cityId, $rootId, $sectionId, $lang) {
         $vv = ($this->slaveOfRedis) ? self::$SectionsVersion : self::$SectionsVersion+1;
         $label = "purpose-data-{$countryId}-{$cityId}-{$rootId}-{$sectionId}-{$lang}-{$vv}";
-
         
+        error_log(__FUNCTION__.' '.$label);
         $result = self::$Cache->get($label);
         if ($result!==FALSE) {
             return $result;

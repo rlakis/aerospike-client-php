@@ -73,7 +73,7 @@ class Classifieds {
 
     private $db;
     
-    private $formatNumbers=1;
+    private $formatNumbers='LB';
     private $mobileValidator=null;
     
     private $isDebugMode=false;
@@ -92,8 +92,8 @@ class Classifieds {
             
     
     function getAd(int $id, array $cache) : Ad {
-        $result = $cache[$id] ?? $this->db->getCache()->get($id);
-        return new Ad($result);
+        $result = $cache[$id] ?? $this->db->getCache()->get($id);                
+        return new Ad($result===false?[]:$result);
     }
     
     
