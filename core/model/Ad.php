@@ -14,8 +14,10 @@ class Ad {
         if (!isset($this->data[Classifieds::RTL])) { $this->data[Classifieds::RTL] = 0; }
         if (!isset($this->data[Classifieds::ROOT_ID])) { $this->data[Classifieds::ROOT_ID] = 0; }
         if (!isset($this->data[Classifieds::SECTION_ID])) { $this->data[Classifieds::SECTION_ID] = 0; }
-        $this->text = preg_split("/\x{200b}/u", $this->data[Classifieds::CONTENT])[0];
         
+        if (isset($this->data[Classifieds::CONTENT]) && !empty($this->data[Classifieds::CONTENT])) {
+            $this->text = preg_split("/\x{200b}/u", $this->data[Classifieds::CONTENT])[0];
+        }        
         if (isset($this->data[Classifieds::ALT_CONTENT]) && !empty($this->data[Classifieds::ALT_CONTENT])) {
             $this->translation = preg_split("/\x{200b}/u", $this->data[Classifieds::ALT_CONTENT])[0];
         }

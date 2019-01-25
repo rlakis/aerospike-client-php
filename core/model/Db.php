@@ -696,8 +696,7 @@ class DB {
         if ($result!==FALSE) {
             return $result;
         }
-        else {
-            
+        else {            
             $result=array();
         }
         /*
@@ -729,8 +728,7 @@ class DB {
             $resource->free_result();                
         }
         
-        if (!empty($result)) 
-        {
+        if (!empty($result)) {
             asort($result);
             self::$Cache->set($label, $result);
         }
@@ -738,20 +736,16 @@ class DB {
     }
     
     
-    function getCitiesData($countryId, $lang) 
-    {
+    function getCitiesData($countryId, $lang) {
         $vv = ($this->slaveOfRedis) ? self::$SectionsVersion : self::$SectionsVersion+1;
         $label = "city-data-{$countryId}-{$lang}-{$vv}";
         $result = self::$Cache->get($label);
-        if ($result!==FALSE) 
-        {
+        if ($result!==FALSE) {
             return $result;
         }
-        else
-        {
+        else {
             $result=[];
-            if ($this->slaveOfRedis) 
-            {
+            if ($this->slaveOfRedis) {
                 return $result;
             }
         }
@@ -760,10 +754,8 @@ class DB {
         $f=($lang=='ar')?1:2;
         
         $resource = $this->ql->getConnection()->query("select groupby(), sum(counter), max(unixtime) from section_counts where country_id={$countryId} and city_id>0 group by city_id limit 1000");        
-        if ($resource instanceof \mysqli_result) 
-        {        
-            while ($row = $resource->fetch_array()) 
-            {
+        if ($resource instanceof \mysqli_result) {        
+            while ($row = $resource->fetch_array()) {
                 $purposes = $this->getPurpusesData($countryId, $row[0], 0, 0, $lang);
                 $result[$row[0]]=['name'=>$cities[$row[0]][$f], 'counter'=>$row[1], 'unixtime'=>$row[2], 
                                   'uri'=>$cities[$row[0]][3], 'latitude'=>$cities[$row[0]][5], 
@@ -772,8 +764,7 @@ class DB {
             $resource->free_result();                
         }
         
-        if (!empty($result)) 
-        {
+        if (!empty($result)) {
             asort($result);
             self::$Cache->set($label, $result);
         }
@@ -832,9 +823,6 @@ class DB {
         }
         else {        
             $result=[];
-            //if ($this->slaveOfRedis) {
-            //    return $result;
-            //}
         }
        
         
@@ -881,11 +869,8 @@ class DB {
         $vv = ($this->slaveOfRedis) ? self::$SectionsVersion : self::$SectionsVersion+1;
         $label = "purpose-data-{$countryId}-{$cityId}-{$rootId}-{$sectionId}-{$lang}-{$vv}";
         
-        error_log(__FUNCTION__.' '.$label);
         $result = self::$Cache->get($label);
-        if ($result!==FALSE) {
-            return $result;
-        }
+        if ($result!==FALSE) { return $result; }
                 
         $result=array();
         if ($this->slaveOfRedis) {
@@ -1014,11 +999,8 @@ class DB {
     function getExtendPurposesData($countryId, $cityId, $localityId, $tagId, $lang, $purposes) {
         $vv = ($this->slaveOfRedis) ? self::$LocalitiesVersion : self::$LocalitiesVersion+1;
         $label = "extended-purposes-{$countryId}-{$cityId}-{$localityId}-{$tagId}-{$lang}-{$vv}";
-        //error_log($label);
         $result = self::$Cache->get($label);
-        if ($result!==FALSE) {
-                return $result;
-        }
+        if ($result!==FALSE) { return $result; }
                 
         $f = strtolower($lang)=='ar'?1:2;
         $result=array();

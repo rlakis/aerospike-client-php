@@ -1075,11 +1075,10 @@ class Page extends Site {
                 $hasQuery=true;
                 $q='?q='.urlencode($this->router()->params['q']);
             }
-            ?><h4><?= $this->lang['specify_category'] ?></h4><?php
-            echo "<ul class='sm'>";
+            echo '<div class="title"><h5>', $this->lang['specify_category'], '</h5></div>', '<ul>';
             $i=0;
             foreach ($this->router()->pageRoots as $rid=>$root) {
-                $selected = ($this->router()->rootId == $rid ? true : false);
+                $selected = ($this->router()->rootId==$rid);
                 $purposeId = 0;
                 if ($rid==3) {
                     $purposeId=3;
@@ -1089,8 +1088,10 @@ class Page extends Site {
                         $purposeId = array_keys($root['purposes'])[0];
                     }
                 }
-                echo '<li'.($selected ? ' class="on big"':' class="big"').'>', $this->renderListLink('<span class="i i'.$rid.'"></span>'.$root['name'], $this->router()->getURL($countryId, $cityId, $rid, 0, $purposeId).$q, $selected),'</li>';
-                if ($this->router()->rootId == $rid) {
+                echo '<li '.($selected ? 'class="on big"':'class="big"').'>', 
+                        $this->renderListLink('<i class="icn icn-'.$rid.'"></i>'.$root['name'], $this->router()->getURL($countryId, $cityId, $rid, 0, $purposeId).$q, $selected),
+                        '</li>';
+                if ($this->router()->rootId==$rid) {
                     echo '<li class="sub">';
                     $this->renderSubSections();
                     echo '</li>';
@@ -2957,7 +2958,7 @@ class Page extends Site {
     function side_pane(){}
     
     
-    function side_app_banner(){
+    function side_app_banner() {
         ?><div class="aps"><?php
         ?><h3><?= ($this->router()->language == 'en' ? 'Download <span class="og">mourjan</span> App':'تحميل تطبيق <span class="og">مرجان</span>' ) ?></h3><?php
         ?><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class="ios"></span></a><?php
@@ -2965,7 +2966,8 @@ class Page extends Site {
         ?></div><?php
     }
     
-    function menu_app_banner(){
+    
+    function menu_app_banner() {
         ?><div class="mps"><?php
         ?><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class="mios"></span></a><?php
         ?><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class="mandroid"></span></a><?php

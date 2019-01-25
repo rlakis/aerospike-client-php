@@ -268,7 +268,7 @@ class AdScreen {
 
 var adScreen=null;
 
-function oad(ad) {
+function oad(ad){
     adScreen = new AdScreen(ad);
     adScreen.open();
     if (1) return;
@@ -276,6 +276,14 @@ function oad(ad) {
     window.history.pushState(state, $.title, $.location.href);
     $.body.setAttribute('data-detail', 1);
 }
+
+function sorting(o){
+    var idx = o.selectedIndex; 
+    console.log(idx);
+    console.log(o.value);
+    location.href = o.value;
+}
+
 
 window.onclick=function(event){
     if (adScreen && event.target === byId('adScreen'))adScreen.close();
