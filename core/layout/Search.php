@@ -2851,22 +2851,7 @@ class Search extends Page {
         echo '</select>';
         echo '<span class="select-highlight"></span>', '<span class="select-bar"></span>', '<label class="select-label">', $this->lang['sorting'],'</label>';
         echo '</div>';
-       
-        /*
-            ?><li class='f Zorder' onclick="oFtr(this,'order')"><a href="javascript:void(0)"><?= $this->lang['sorting'] . ' ' . $this->lang['sorting_'.$this->sortingMode] ?> <span class="im arrowD"></span></a></li><?php
-            if($this->sortingMode==0){
-                ?><li class="ov order hid sbr" onclick="cFtr(this,'order')"><?=  $this->lang['sorting_0'] ?></li><?php
-            }else{
-                ?><li class="order hid"><a class="sbr" href="<?= $q.'0' ?>" rel="nofollow"><?=  $this->lang['sorting_0'] ?></a></li><?php
-            }
-            if($this->sortingMode==1){
-                ?><li class="ov order hid sbr" onclick="cFtr(this,'order')"><?=  $this->lang['sorting_1'] ?></li><?php
-            }else{
-                ?><li class="order hid"><a class="sbr" href="<?= $q.'1' ?>" rel="nofollow"><?=  $this->lang['sorting_1'] ?></a></li><?php
-            }
-          */
-        
-        //$langSortIdx = $this->langSortingMode>-1?$this->langSortingMode:($this->router()->isArabic()?1:2);
+              
         echo '<div class=select><select class="select-text" onchange="sorting(this)">';
         echo '<option value="', $ql, '0"', ($this->langSortingMode==0)?' selected':'', '>', $this->lang['lg_sorting_0'], '</option>';
         echo '<option value="', $ql, '1"', ($this->langSortingMode==1)?' selected':'', '>', $this->lang['lg_sorting_1'], '</option>';
@@ -2875,26 +2860,6 @@ class Search extends Page {
         echo '<span class="select-highlight"></span>', '<span class="select-bar"></span>', '<label class="select-label">', $this->lang['lg_sorting'],'</label>';
         echo '</div>';
         
-        //echo '<ul>';
-        /*
-            
-            ?><li class='f Zolang' onclick="oFtr(this,'olang')"><a href="javascript:void(0)"><?=  $this->lang['lg_sorting'] . ' ' .$this->lang['lg_sorting_'.$langSortIdx] ?> <span class="im arrowD"></span></a></li><?php
-            if($langSortIdx==0){
-                ?><li class="ov olang hid sbr" onclick="cFtr(this,'olang')"><?=  $this->lang['lg_sorting_0'] ?></li><?php
-            }else{
-                ?><li class="olang hid"><a class="sbr" href="<?= $ql.'0' ?>" rel="nofollow"><?=  $this->lang['lg_sorting_0'] ?></a></li><?php
-            }
-            if($langSortIdx==1){
-                ?><li class="ov olang hid sbr" onclick="cFtr(this,'olang')"><?=  $this->lang['lg_sorting_1'] ?></li><?php
-            }else{
-                ?><li class="olang hid"><a class="sbr" href="<?= $ql.'1' ?>" rel="nofollow"><?=  $this->lang['lg_sorting_1'] ?></a></li><?php
-            }
-            if($langSortIdx==2){
-                ?><li class="ov olang hid sbr" onclick="cFtr(this,'olang')"><?=  $this->lang['lg_sorting_2'] ?></li><?php
-            }else{
-                ?><li class="olang hid"><a class="sbr" href="<?= $ql.'2' ?>" rel="nofollow"><?=  $this->lang['lg_sorting_2'] ?></a></li><?php
-            }
-        */
         if (in_array($this->router()->rootId,[1,2,3])) {
             echo '<div class=select style="margin:8px 0"><select class="select-text" onchange="sorting(this)">';
             echo '<option value="', $pl, '0"', ($this->publisherTypeSorting==0)?' selected':'', '>', $this->lang['spub_0'], '</option>';
@@ -2902,31 +2867,8 @@ class Search extends Page {
             echo '<option value="', $pl, '2"', ($this->publisherTypeSorting==2)?' selected':'', '>', $this->lang['spub_3_'.$this->router()->rootId], '</option>';
             echo '</select>';
             echo '<span class="select-highlight"></span>', '<span class="select-bar"></span>' /*, '<label class="select-label">', $this->lang['lg_sorting'],'</label>'*/;
-            echo '</div>';
-            /*
-            ?><ul><li class='f Zopub' onclick="oFtr(this,'opub')"><a href="javascript:void(0)"><?= ($this->publisherTypeSorting ? '':"<span class='i nw'></span>").$this->lang['lg_sorting'] . ' ' . $this->lang[($this->publisherTypeSorting == 2 ? 'spub_3_'.$this->router()->rootId: ( $this->publisherTypeSorting == 1 ? ($this->router()->rootId == 3 ? 'sbpub_1' : 'spub_1') : 'spub_0') )] ?> <span class="im arrowD"></span></a></li><?php
-                if($this->publisherTypeSorting == 0){
-                    ?><li class="ov opub hid sbr" onclick="cFtr(this,'opub')"><?=  $this->lang['spub_0'] ?></li><?php
-                }else{
-                    ?><li class="opub hid"><a class="sbr" href="<?= $pl.'0' ?>" rel="nofollow"><?=  $this->lang['spub_0'] ?></a></li><?php
-                }
-                if($this->publisherTypeSorting == 1){
-                    ?><li class="ov opub hid sbr" onclick="cFtr(this,'opub')"><?=  $this->router()->rootId == 3 ? $this->lang['sbpub_1']:$this->lang['spub_1'] ?></li><?php
-                }else{
-                    ?><li class="opub hid"><a class="sbr" href="<?= $pl.'1' ?>" rel="nofollow"><?=  $this->router()->rootId == 3 ? $this->lang['sbpub_1']:$this->lang['spub_1'] ?></a></li><?php
-                }
-                if($this->publisherTypeSorting == 2){
-                    ?><li class="ov opub hid sbr" onclick="cFtr(this,'opub')"><?=  $this->lang['spub_3_'.$this->router()->rootId] ?></li><?php
-                }else{
-                    ?><li class="opub hid"><a class="sbr" href="<?= $pl.'2' ?>" rel="nofollow"><?=  $this->lang['spub_3_'.$this->router()->rootId] ?></a></li><?php
-                }*/
-        }
-            
-        //echo '</ul>';
-            
-        if (!($this->userFavorites || $this->router()->watchId)) {
-            $this->menu_app_banner();
-        }
+            echo '</div>';          
+        }         
     }
     
     
@@ -2951,7 +2893,6 @@ class Search extends Page {
             $suffix_uri = '/';
             $prefix = '';
             $suffix = '';
-
 
             if (isset($this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId])) {
                 $keyIndex++;
