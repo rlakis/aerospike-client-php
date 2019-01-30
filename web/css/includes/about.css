@@ -1,0 +1,32 @@
+
+.card-doc {
+    border-radius: 6px;
+    box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.2);
+    margin-top:0;
+    margin-bottom:100px;
+    padding:20px;
+    line-height: 1.5em;
+}
+
+.card-doc .card-title{color:#3C4858;text-align:center;}
+.card-doc .col-9{display: block;}
+.card-doc .col-3{display: block;padding-inline-start:40px;}
+.card-doc .addr{height: 92px;}
+/*
+span.ctr{display:block}
+.card-doc ul {display: inline-block};
+.cb,.cb ul{list-style:none!important;margin:0 !important;overflow:hidden}
+.cb label{font-weight:bold}
+.cb .cb1{width:515px;float:left}
+.cb .cb2{width:200px;float:right;color:#666}
+.cb2 li{padding:0px 5px;background-color:#FFFFBF}
+
+.pf{font-size:12px;line-height:20px;margin-bottom:15px;overflow:hidden;width:260px;padding:5px;border:1px solid #CEDAF4;color:#333 !important}
+.pf img{float:left}
+.pf ul{float:left;margin:0 0 0 10px;list-style:none}
+.pf li{padding:2px 0}
+.pf p{font-style:italic;background-color:#ECECEC;padding:5px;clear:both;margin:0}
+.pf:hover {-moz-box-shadow:3px 3px 3px #999;-o-box-shadow:3px 3px 3px #999;-webkit-box-shadow:3px 3px 3px #999;box-shadow:3px 3px 3px #999}
+.pfa{float:left;margin-right:50px}
+.pfa:hover{text-decoration:none!important}
+*/

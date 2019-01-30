@@ -17,137 +17,7 @@ class Home extends Page {
         }
         $this->render();
     }
-    
-    /*
-    function __construct($router){       
-        header('Vary: User-Agent');
-        parent::__construct($router);
-        $this->lang['description']=$this->lang['home_description'];
-        if ($this->isMobile) {
-            $this->inlineCss.='h2{margin-top:10px}';
-            $this->isMobileCssLegacy=false;
-            $this->clear_require('css');
-            $this->set_require('css', 's_home');
-            if($this->router()->rootId){
-                $this->set_require('css', 's_ro');
-                $this->set_require('css', 's_root_'.$this->router()->rootId.'_m');
-            }
-            if($this->user->info['id']){
-                $this->set_require('css', 's_user');
-            }
-        }
-        else {
-            $this->inlineCss.='
-                .col2w .col1 {
-                    width:765px;
-                }
-@media all and (min-width:1250px) {
-    body{
-        min-width:1206px
-    }
-    .w,.col2w,.colw{
-        width:1206px;
-    }
-    .ftr .w{
-        width:970px;
-    }
-    .tpb{
-        width:1200px
-    }
-    .col2w .col1{
-        width:990px;
-    }
-    .mav,.ph,.lgs,.lgt,.sug{
-        width:663px
-    }
-    .phx{
-        width:613px
-    }
-    .ls{
-        width:673px
-    }
-    .dur{
-        width:860px
-    }
-    .u2,.u2.uc1{
-        width:317px!important
-    }
-    .mul{
-        width:1176px
-    }
-    .mul li{
-        width:230px
-    }
-    .mul ul{
-        width:230px
-    }
-    .tz{
-        left:330px
-    }
-    .crd{
-        top:89px;
-    }
-    .ls p{
-        height:95px;
-    }
-    .ls li{
-        height:130px;
-    }
-    .nav{
-        width:673px
-    }
-    .nav .prev{
-        width:110px;
-    }
-    .nav li{
-        width:60px;
-    }
-    .dt{
-        width:669px
-    }
-    .shas label{
-        width:auto;
-    }
-    .tbs{
-        width:1204px;
-    }
-    .tbs.t2 li{width:602px}
-    .tbs.t3 li{width:401px}
-    .tbs.t4 li{width:300px}
-    .tbs.t5 li{width:240px}
-    .tbs.t6 li{width:200px}
-    '.($this->router()->isArabic() ? '
-    .dl ul{
-        margin-left:9px;
-        float:left;
-    }
-    .uhl,.u2{
-        float:right!important
-    }':'
-    .dl ul{
-        margin-right:9px;
-        float:right;
-    }
-    .uhl,.u2{
-        float:left!important
-    }').'
-}
-            ';
-            $this->set_ad(array(
-                'zone_2'=>array('/1006833/LargeRectangle', 336, 280, 'div-gpt-ad-1319707248075-0-'.$this->router()->config()->serverId)
-                //'zone_3'=>array('/1006833/mourjan-navigator-square', 200, 200, 'div-gpt-ad-1349258304441-0-'.$this->router()->cfg['server_id']),
-                ));                     
-        }
         
-        if ($this->router()->countryId) {
-            $this->lang['description'].=' '.$this->lang['in'].' '.$this->title;
-        }
-        else {
-            $this->lang['description'].=$this->lang['home_description_all'];
-        }
-        $this->render();
-    }*/
-
     
     function mainMobile(){
         if ($this->router()->rootId)
@@ -414,21 +284,18 @@ var setOrder=function(e)
     function _main_pane(){
         $adLang='';
         if ($this->router()->language!="ar") $adLang=$this->router()->language.'/';
-        if(0 && $this->router()->countryId==1){
-            $rand = rand(0, 1);            
-            ?><div onclick="ga('send', 'event', 'OutLinks', 'click', 'Servcorp-HomeBanner');wn('http://www.servcorp.com.lb/en/locations/beirut/beirut-souks-louis-vuitton-building/virtual-offices/');" class="tvs tvs<?= $rand ?>"></div><?php 
-        }
-        else {
-            ?><div class="tv rcb"><div class="tx sh"><div class="tz"><?= $this->lang['billboard'] ?><p class="ctr"><?php
-            if (!$this->router()->siteTranslate) {
-                if ($this->user->info['id']){
-                    echo '<a class="bt" href="/post/'.$adLang.'" rel="nofollow">'.$this->lang['placeAd'].'</a>';
-                }else {
-                    echo '<a class="bt login" href="/post/'.$adLang.'" rel="nofollow">'.$this->lang['placeAd'].'</a>';
-                }
+        
+        ?><div class="tv rcb"><div class="tx sh"><div class="tz"><?= $this->lang['billboard'] ?><p class="ctr"><?php
+        if (!$this->router()->siteTranslate) {
+            if ($this->user->info['id']){
+                echo '<a class="bt" href="/post/'.$adLang.'" rel="nofollow">'.$this->lang['placeAd'].'</a>';
             }
-            ?></p></div></div></div><?php 
+            else {
+                echo '<a class="bt login" href="/post/'.$adLang.'" rel="nofollow">'.$this->lang['placeAd'].'</a>';
+            }
         }
+        ?></p></div></div></div><?php 
+        
         parent::_main_pane();
     }
 
@@ -481,7 +348,7 @@ var setOrder=function(e)
             echo '<li><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></li>';
         }
         echo '<li><i class="icn icnsmall icn-88"></i><span>', $this->lang['contactUs'], '</span></li>';
-        echo '<li><i class="icn icnsmall icn-83"></i><span>', $this->lang['aboutUs'], '</span></li>';
+        echo '<li><a href="', $this->router()->getLanguagePath('/about/'), '"><i class="icn icnsmall icn-83"></i><span>', $this->lang['aboutUs'], '</span></a></li>';
         echo '<li><i class="icn icnsmall icn-85"></i><span>', $this->lang['termsConditions'], '</span></li>';
         echo '<li><i class="icn icnsmall icn-81"></i><span>', $this->lang['privacyPolicy'], '</span></li>';
         echo '</ul></div></div>', "\n"; // card
@@ -515,6 +382,8 @@ var setOrder=function(e)
         echo '</div>', "\n";
         echo '<!--googleon: snippet-->';
     }
+    
+    
     
     function main_pane_OLD() {
     	$file= dirname( $this->router()->config()->baseDir ) . '/tmp/gen/index-' . $this->includeHash . '2.php';

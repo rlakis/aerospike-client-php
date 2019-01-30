@@ -513,7 +513,16 @@ class Router extends \Singleton {
     }
     
     
-    public function getLanguagePath() : string {
+    public function getLanguagePath(string $url='') : string {
+        if ($url) {
+            if (substr($url, -1)!='/') {
+                $url.='/';
+            }
+            if ($this->language!='ar') {
+                $url.= $this->language.'/';
+            }
+            return $url;
+        }
         return ($this->language=='ar'?'':$this->language).'/';
     }
     

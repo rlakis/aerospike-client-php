@@ -1,33 +1,29 @@
 <?php
-include $config['dir']. '/core/layout/Page.php';
+\Config::instance()->incLayoutFile('Page');
+
 class Doc extends Page{
 
-    function __construct($router){
+    function __construct(\Core\Model\Router $router) {
         header('Vary: User-Agent');
         parent::__construct($router); 
-        if($this->urlRouter->module =='buy' || $this->urlRouter->module == 'buyu'){
-            if($this->urlRouter->cfg['active_maintenance']){
-                $this->user->redirectTo('/maintenance/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
+        if ($this->router()->module=='buy' || $this->router()->module=='buyu'){
+            if ($this->router()->cfg['active_maintenance']) {
+                $this->user()->redirectTo('/maintenance/'.($this->router()->siteLanguage=='ar'?'':$this->router()->siteLanguage.'/'));
             }
-            $this->checkBlockedAccount();
-            /*if(!$this->user->info['id']){
-                $this->user->redirectTo('/signin/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
-            }*/
+            $this->checkBlockedAccount();            
         }
-        $isRTL = $this->urlRouter->siteLanguage == 'ar' ? true : false;
-        if(!$this->isMobile) {
-            if ($this->urlRouter->module=='about') { 
-                $this->inlineCss.='span.ctr{display:block}.cb,.cb ul{list-style:none!important;margin:0 !important;overflow:hidden}.cb label{font-weight:bold}.cb .cb1{width:515px;float:left}.cb .cb2{width:200px;float:right;color:#666}.cb2 li{padding:0px 5px;background-color:#FFFFBF}h2 {display:block;margin-bottom:15px !important}.pf{font-size:12px;line-height:20px;margin-bottom:15px;overflow:hidden;width:260px;padding:5px;border:1px solid #CEDAF4;color:#333 !important}.pf img{float:left}.pf ul{float:left;margin:0 0 0 10px;list-style:none}.pf li{padding:2px 0}.pf p{font-style:italic;background-color:#ECECEC;padding:5px;clear:both;margin:0}.pf:hover {-moz-box-shadow:3px 3px 3px #999;-o-box-shadow:3px 3px 3px #999;-webkit-box-shadow:3px 3px 3px #999;box-shadow:3px 3px 3px #999}.pfa{float:left;margin-right:50px}.pfa:hover{text-decoration:none!important}';
-            } 
-            if ($this->urlRouter->module=='publication-prices'){
-                if($this->urlRouter->siteLanguage=='ar') { 
+                
+        if (!$this->isMobile) {            
+            if ($this->router()->module=='publication-prices'){
+                if ($this->router()->isArabic()) { 
                     $this->inlineCss.='.doc ul{list-style:none;margin:0 !important;overflow:hidden}.doc li{float:right;padding:5px;border-left:1px solid #CCC;border-bottom:1px solid #CCC}.doc li.h{font-weight:bold;background-color:#143D55 !important;color:#fff;font-size:13px;border-left:1px solid #fff}.h.v4{border-left:1px solid #CCC !important}li.v1,li.v2,li.v3,li.v4{border-top:1px solid #ccc;background-color:#143D55;color:#FFF}li.h.v1,li.h.v2,li.h.v3,li.h.v4{border-bottom:0}li.v1{width:247px;border-right:1px solid #ccc}li.v2{width:89px;text-align:center}li.v3{width:109px;text-align:center}li.v4{width:259px}ul a{color:#FFF}li.v10,li.v11,li.v12,li.v13,li.v14,li.v15,li.v16{text-align:center;width:85px;font-size:11.5px !important}li.h.v10,li.h.v11,li.h.v12,li.h.v13,li.h.v14,li.h.v15,li.h.v16{background-color:#3087B4 !important;border-top:0}li.v10{margin-right:50px;width:197px;text-align:right;border-right:1px solid #CCC}li.v11{width:70px}li.v12{width:74px}li.v15{width:121px}li.v15,li.v14{direction:ltr}li.h.v15,li.h.v14{direction:rtl}.h.v15{border-left:1px solid #CCC !important}li.br{width:100%;clear:both;border:0;height:25px;}li.v20{margin-right:50px;width:687px;border-right:1px solid #CCC;text-align:center;border-bottom:1px solid #369}.bv{background-color:#F8F8F8}';
-                }else {
+                }
+                else {
                     $this->inlineCss.='.doc ul{list-style:none;margin:0 !important;overflow:hidden}.doc li{float:left;padding:5px;border-right:1px solid #CCC;border-bottom:1px solid #CCC}.doc li.h{font-weight:bold;background-color:#143D55 !important;color:#fff;font-size:11px;border-right:1px solid #fff}.h.v4{border-right:1px solid #CCC !important}li.v1,li.v2,li.v3,li.v4{border-top:1px solid #ccc;background-color:#143D55;color:#FFF}li.h.v1,li.h.v2,li.h.v3,li.h.v4{border-bottom:0}li.v1{width:247px;border-left:1px solid #ccc}li.v2{width:89px;text-align:center}li.v3{width:109px;text-align:center}li.v4{width:259px}ul a{color:#FFF}li.v10,li.v11,li.v12,li.v13,li.v14,li.v15,li.v16{text-align:center;width:85px;font-size:11px !important}li.h.v10,li.h.v11,li.h.v12,li.h.v13,li.h.v14,li.h.v15,li.h.v16{background-color:#3087B4 !important;border-top:0}li.v10{margin-left:50px;width:197px;text-align:left;border-left:1px solid #CCC}li.v11{width:70px}li.v12{width:84px}li.v14{width:75px}li.v15{width:121px}.h.v15{border-right:1px solid #CCC !important}li.br{width:100%;clear:both;border:0;height:25px;}li.v20{margin-left:50px;width:687px;border-left:1px solid #CCC;text-align:center;border-bottom:1px solid #369}.bv{background-color:#F8F8F8}'; 
                 }
             }
 
-            if($this->urlRouter->module=='premium'){
+            if ($this->router()->module=='premium') {
                 $this->inlineCss.='
                     .uln{
                         list-style-type: none!important;  
@@ -58,7 +54,7 @@ class Doc extends Page{
                         ';
             }
 
-            if($this->urlRouter->module=='buy' || $this->urlRouter->module=='buyu'){
+            if ($this->router()->module=='buy' || $this->router()->module=='buyu'){
                 $this->inlineCss.='
                     .prices{margin:0!important;list-style:disc inside!important;padding:0 40px;}
                     .prices ul{display:inline-block;line-height:1em;margin:0!important}
@@ -82,31 +78,9 @@ class Doc extends Page{
                     .tt{text-align:right!important}
                     .ar .tt{text-align:left!important}
                 ';    
-            }
+            }            
 
-            if($this->urlRouter->module=='gold'){
-                $this->inlineCss.='
-                    .prices{margin:0!important;list-style:disc inside!important;padding:0 40px;}
-                    .prices ul{display:inline-block;line-height:1em;margin:0!important}
-                    .prices ul li{float:left;width:100px;list-style:none}
-                    p.pad{margin:0;padding:5px 10px}
-                    .ar .prices ul li{float:right}
-                    li.ctr{width:50px!important}
-                    .alt{background-color:#ececec;}
-                    .alinks{overflow:hidden;margin:0!important;list-style:none!important}
-                    .alinks li{float:left;width:50%;text-align:center;}
-                    .android{margin:0}
-                    .ar{line-height:25px}
-                    .btH{text-align:center;margin-top:20px}
-                    .bt{color:#FFF!important}
-                    .bt:hover{text-decoration:none!important}
-                    .ick{vertical-align:middle}
-                    hr{display: block; height: 1px;border: 0; border-top: 1px solid powderblue;margin:20px 0}
-                    .credits{width:338px;height:110px;margin-bottom:20px;display:inline-block;background:url('.$this->urlRouter->cfg['url_css'].'/i/creditcards'.$this->urlRouter->_jpg.') no-repeat center}                
-                ';            
-            }
-
-            if($this->urlRouter->module=='guide' || $this->urlRouter->module=='iguide'){
+            if($this->router()->module=='guide' || $this->router()->module=='iguide'){
                 $this->inlineCss.='
                     .uld{list-style:none!important;margin:0!important;}
                     .uld > li{padding:5px;border-bottom:1px solid #CCC;padding-top:30px}
@@ -114,7 +88,7 @@ class Doc extends Page{
                     .alt{background-color:#ececec;}
                     .uld > li > ul{list-style:none;overflow:hidden;margin:0!important}
                     .uld > li > ul > li{float:left;width:210px;text-align:center;margin-bottom:30px}
-                    .uld > li > ul > li:first-child{margin-top:30px;margin-right:10px;width:50px;height:50px;font-size:40px;color:#FFF;line-height:46px;text-shadow: 2px 2px #666;background:url('.$this->urlRouter->cfg['url_img'].'/presentation2/radio'.$this->urlRouter->_jpg.') no-repeat top left}  
+                    .uld > li > ul > li:first-child{margin-top:30px;margin-right:10px;width:50px;height:50px;font-size:40px;color:#FFF;line-height:46px;text-shadow: 2px 2px #666;background:url('.$this->router()->cfg['url_img'].'/presentation2/radio'.$this->urlRouter->_jpg.') no-repeat top left}  
                     .uld > li > ul > li.t{margin-top:30px;width:250px;margin-right:10px;text-align:left}
                     .tld{list-style-type:decimal!important;margin:15px 0 10px 30px!important}
                     .tld li{width:100%;height:auto;margin-bottom:15px}
@@ -128,23 +102,24 @@ class Doc extends Page{
                     .ar{line-height:25px}
                 ';            
             }
-        }else{
+        }
+        else {
             
-            if(in_array($this->urlRouter->module,['buy','buyu'])){
+            if(in_array($this->router()->module,['buy','buyu'])){
                 $this->requireLogin = true;
             }
             
             $this->inlineCss.='h2{margin-top:10px;display:inline-block}'
                     . '.doc{margin:10px;padding:5px;background-color:#FFF}'
                     . 'p{padding:10px 0;}';
-            if($this->urlRouter->module=='gold'){
+            if($this->router()->module=='gold'){
                 
                 $this->inlineCss.=
                         '.prices{list-style:none;margin-top:15px}'
                         . '.prices > li{overflow:hidden;list-style:none;padding:5px 5px;border-bottom:1px solid #FFF}'
-                        . '.prices ul li{float:'.($isRTL ? 'right':'left').';width:80px;list-style:none;padding:5px 20px}'
+                        . '.prices ul li{float:'.($this->router()->isArabic() ? 'right':'left').';width:80px;list-style:none;padding:5px 20px}'
                         . '.prices ul li:nth-child(2){width:20px}'
-                        . '.pad{text-align:'.($isRTL ? 'right':'left').';padding:5px 10px;margin:15px 0 0}'
+                        . '.pad{text-align:'.($this->router()->isArabic() ? 'right':'left').';padding:5px 10px;margin:15px 0 0}'
                         . '.alt{
 background: rgb(234,239,181);
 background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1) 100%);
@@ -159,7 +134,7 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
 }';
             }
             
-            if($this->urlRouter->module=='buy' || $this->urlRouter->module=='buyu'){
+            if($this->router()->module=='buy' || $this->router()->module=='buyu'){
                 $this->inlineCss.='
                     .prices{margin:0!important;list-style:disc inside!important;padding:0 40px;}
                     .prices ul{display:inline-block;line-height:1em;margin:0!important}
@@ -215,47 +190,51 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                         ';
             }
         }
-        if($this->urlRouter->module=='iguide'){
-            $this->forceNoIndex = true;
-        }
         
-            $this->hasLeadingPane=true;     
-        $this->urlRouter->cfg['enabled_sharing']=0;
-        $this->urlRouter->cfg['enabled_ads']=0;
-        if ($this->urlRouter->module=='about') {
-            $this->lang['title']    =   'About Mourjan.com';
-            $this->lang['description']=  'Mourjan.com is an online classifieds search engine that helps you search and browse ads listed in major classifieds newspapers, websites and user submitted free ads';
-        }elseif ($this->urlRouter->module=='publication-prices'){
+        if ($this->router()->module=='iguide') { $this->forceNoIndex = true; }
+        
+        $this->hasLeadingPane=true;
+        $this->router()->config()->disableAds();        
+        $this->router()->config()->setValue('enabled_sharing', 0);
+
+        if ($this->router()->module=='about') {
+            $this->lang['title']        = 'About Mourjan.com';
+            $this->lang['description']  = 'Mourjan.com is an online classifieds search engine that helps you search and browse ads listed in major classifieds newspapers, websites and user submitted free ads';
+        }
+        elseif ($this->router()->module=='publication-prices') {
             $this->load_lang(array('pricing'));
             $this->title=$this->lang['header'];
             $this->lang['description']=  $this->lang['desc'];
-        }elseif($this->urlRouter->module=='advertise'){ 
-            if ($this->urlRouter->siteLanguage=='ar') {
+        }
+        elseif($this->router()->module=='advertise'){ 
+            if ($this->router()->isArabic()) {
                 $this->title='أعلن مع مرجان';
                 $this->lang['description']='قم بتسويق شركتك، منتجاتك أو خدماتك بأسلوب متميز مستفيداً من أكثر من 3.5 مليون انطباع وأكثر من 250،000 زائر فريد شهريا على موقع مرجان';
-            }else {
+            }
+            else {
                 $this->title='Advertise with Mourjan.com';
                 $this->lang['description']=  'Market your online business with style and benefit from over 3.5 million impressions and over 250,000 unique visitors per month';
             }
-        }elseif($this->urlRouter->module=='gold'){
-                $this->title=$this->lang['gold_title'];
-                $this->lang['description']= $this->lang['gold_desc'];
-        }elseif($this->urlRouter->module=='buy' || $this->urlRouter->module == 'buyu'){
+        }
+        elseif ($this->router()->module=='gold') {
+            $this->title=$this->lang['gold_title'];
+            $this->lang['description']= $this->lang['gold_desc'];
+        }
+        elseif ($this->router()->module=='buy' || $this->urlRouter->module == 'buyu') {
             $this->forceNoIndex=true;
-                //$this->lang['description']= $this->lang['buy_desc'];
         }
         
-        if(($this->urlRouter->module == 'buy' || $this->urlRouter->module == 'buyu') && $this->user->info['id']==0){
+        if (($this->router()->module=='buy' || $this->router()->module=='buyu') && $this->user->info['id']==0) {
             $this->hasLeadingPane = false;
         }
         
         $this->render();
     }
     
-    function header() {     
-        
-        if ($this->urlRouter->module=='advertise'){
-            if ($this->urlRouter->siteLanguage=='ar') {
+    
+    function header() {        
+        if ($this->router()->module=='advertise') {
+            if ($this->router()->isArabic()) {
                 ?><style type="text/css">
                     .doc ul{list-style:none;margin:0 !important;overflow:hidden}
                     .doc li{float:right;padding:5px;border-left:1px solid #CCC;border-bottom:1px solid #CCC}
@@ -322,12 +301,14 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
         parent::header();
     }
 
+    
     function side_pane(){
-        if( ($this->urlRouter->module != 'buy' && $this->urlRouter->module != 'buyu') || (($this->urlRouter->module == 'buyu' || $this->urlRouter->module == 'buy') && $this->user->info['id'])){            
+        if( ($this->router()->module!='buy' && $this->router()->module!='buyu') || (($this->router()->module=='buyu' || $this->router()->module=='buy') && $this->user->info['id'])) {            
             $this->renderSideSite();
         }
         //$this->renderSideUserPanel();
     }
+    
     
     function formatWord($num){
         if ($this->urlRouter->siteLanguage=='ar'){
@@ -358,20 +339,16 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
     }
 
     
-    private function payforButton($product) 
-    {
-        echo '<form method="post" onsubmit="buy('.$product[5].',this);" action="javascript:void(0);" name="payment">';
-        
-        echo "<input type=image name=submit border='0' src='https://www.paypalobjects.com/en_US/i/btn/btn_buynow_LG.gif' alt='Visa/Mastercard'>";
-        
+    private function payforButton($product) {
+        echo '<form method="post" onsubmit="buy('.$product[5].',this);" action="javascript:void(0);" name="payment">';        
+        echo "<input type=image name=submit border='0' src='https://www.paypalobjects.com/en_US/i/btn/btn_buynow_LG.gif' alt='Visa/Mastercard'>";        
         echo "</form>";
         
     }
     
     
-    public function calculateSignature($arrData, $signType = 'request')
-    {
-        $shaString             = '';
+    public function calculateSignature($arrData, $signType = 'request') {
+        $shaString = '';
         ksort($arrData);
         foreach ($arrData as $k => $v) {
             $shaString .= "$k=$v";
@@ -386,8 +363,8 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
         return $signature;
     }
     
-    private function paypalButton($name, $price) 
-    {
+    
+    private function paypalButton($name, $price) {
         $sandbox = $this->urlRouter->cfg['server_id']==99 ? true : false;
         $business = $sandbox ? 'nooralex-facilitator@gmail.com' : 'nooralex@gmail.com';
         $webscr = $sandbox ? 'https://www.sandbox.paypal.com/cgi-bin/webscr' : 'https://www.paypal.com/cgi-bin/webscr';
@@ -422,16 +399,17 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
     }
     
     
-    function main_pane(){
+    function main_pane() {
         $adLang='';
-        if ($this->urlRouter->siteLanguage!='ar') $adLang=$this->urlRouter->siteLanguage.'/';
-        switch ($this->urlRouter->module){
+        if (!$this->router()->isArabic()) { $adLang=$this->router()->language.'/'; }
+        switch ($this->router()->module){
             case 'buyu':
-                if($this->user->info['id']==0){ 
+                if ($this->user->info['id']==0) { 
                     echo '<div>';
                     if(!$this->isMobile)
                         $this->renderLoginPage();
-                }else{
+                }
+                else {
                     if($this->isMobile){                        
                         $uid = $this->user->info['id'];
                         $data = $this->user->getStatement($uid, 0, false, null, $this->urlRouter->siteLanguage);
@@ -730,13 +708,15 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                 echo '<p>'.$this->lang['guide_droid_skip'].'</p>';
                 echo '<ul class="uld">'.$this->lang['guide_droid'].'</ul>';
                 break;
+                
             case 'gold':
-                if ($this->urlRouter->siteLanguage=='ar') {
+                if ($this->router()->isArabic()) {
                     echo '<div class="doc ar">';
-                }else{
+                }
+                else {
                     echo '<div class="doc en">';
                 }
-                $imgPath = $this->urlRouter->cfg['url_img'].'/presentation2/';
+                $imgPath = $this->router()->config()->imgURL.'/presentation2/';
                 echo "<h2>{$this->lang['gold_subtitle']}</h2><br />";
                 echo "<p>{$this->lang['gold_p2']}</p>";
                 echo "<p class='pad alt rc'>{$this->lang['gold_p2_1']}</p>";
@@ -967,43 +947,32 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                     }
                     ?></ul><br /><?php 
                 break;
+                
             case 'about':            
-     if(!$this->isMobile){    
-        echo '<div class="doc en">';
-    ?> <h2>About Mourjan.com</h2><?php     
-    }else {
-        echo '<div class="str en">';
-} ?>
-<ul class="cb"><li class="cb1"><?php
-       /* <p>Founded by <span itemscope itemtype="http://schema.org/LocalBusiness"><a itemprop="url" href="http://www.berysoft.com">Berysoft SARL</a>, <span itemprop="description">a press software solution provider located in Lebanon</span></span>, Mourjan.com came to bytes in 2008 as an additional free service provided by Berysoft to its affiliated classifieds publications to empower their online presence with a powerful Arabic search engine.</p><?php 
-        ?><p>Mourjan.com came to bytes in 2008 as an additional free service provided by Berysoft to its affiliated classifieds publications to empower their online presence with a powerful Arabic search engine.</p><?php
-?><p>Along two years, Mourjan.com proved itself to be a reliable search engine for those classifieds and nothing more was needed to be done. Until one day, Berysoft’s top minds were challenged by how fast the web is evolving and how fast websites are becoming.  Driven by curiosity and a passion to learn something new, the journey to deliver a world class fast website began in late 2011 and Mourjan.com seemed the right choice for this venture especially that it would not only satisfy the knowledge thirst but it would also deliver reliable and trusted ads for job, real estate and car seekers / hunters suffering from slow internet service providers and websites in the MENA region which in turn would expand the reach of Berysoft’s affiliated classifieds.</p>
-<p>In mid 2012, Mourjan.com was faster than ever and in response to the overwhelming users’ feedbacks, the site enabled its users with free online ad posting in their countries of choice.  Currently, Berysoft continues to support, improve and develop new services on Mourjan.com.  Some services that we see to be helpful and other services that you might simply ask us for. <a href="/contact/<?= $adLang ?>">Let us know your opinion</a>.</p><?php */
-        ?><p>In 2010, <span itemscope itemtype="https://schema.org/LocalBusiness">Mourjan.com</span> was founded.</p><?php 
-        ?><p>With over 15 years of experience in the field of classifieds and IT solutions, we - the team behind Mourjan.com - were looking for a new venture and specifically in the fast evolving World Wide Web.</p><?php
-?><p>While online classifieds was not something new and with many top of mind classifieds websites, we knew that in order to succeed we had to deliver something new. Therefore, we started working on Mourjan.com with a main concern of achieving a fast performing website with an Arabic oriented search engine which would deliver a pleasant experience for users who are seeking an apartment to rent or a car to buy.</p>
-<p>In mid-2012, Mourjan.com was faster than ever and in response to the overwhelming users’ feedbacks, the site enabled its users with free online ad posting in their countries of choice while always adopting the latest techniques and trends in website development and having users’ best interest at heart.</p>
-<p>Currently, we are still working on improving Mourjan.com and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="/contact/<?= $adLang ?>">Let us know your opinion</a>.</p><?php 
-    ?></li><li class="cb2" itemscope itemtype="https://schema.org/LocalBusiness"><?php
-        /* <img itemprop="image" width="200px" height="54px" src="<?= $this->urlRouter->cfg['url_img'] ?>/berysoft.png" alt="Berysoft logo" /></a> */
-        if(!$this->isMobile) { ?><img itemprop="image" width="130px" height="90px" src="<?= $this->urlRouter->cfg['url_css'] ?>/i/logo<?= $this->urlRouter->_jpg ?>" alt="Berysoft logo" /></a><?php }
-        ?><ul><li><p><b itemprop="name"><?php /* Berysoft SARL */ ?>Mourjan.com</b>, <span itemprop="address" itemscope itemtype="https://schema.org/PostalAddress"><span itemprop="streetAddress">4th floor, Bld 1440, New Slav street</span>, <span itemprop="addressLocality">Dekwaneh</span>, <?php /*registered in */ ?><span itemprop="addressCountry">Lebanon</span></span><?php /* with number 2013375-Baabda */ ?></p></li><?php
-            /* <li><p><label>Website:</label> <a itemprop="url" href="http://www.berysoft.com">www.berysoft.com</a></p></li> */ 
-        ?><li><p><label>Phone:</label> <span itemprop="telephone">+961 70 424 018</span><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span itemprop="telephone">+20 109 136 5353</span></p></li>
-    <li><p><label>Office hours:</label><br /><span class="ctr" itemprop="openingHours">Monday to Friday<br />7:00AM to 3:00PM GMT</span></p></li></ul>
-</li></ul><?php /*
-<h2>Join us on Google+</h2>
-<a class="pfa" target="blank" href="https://plus.google.com/115595321578758914729"><div itemscope itemtype="http://schema.org/Person" class="pf"><img itemprop="image" height="80px" width="80px" src="https://plus.google.com/s2/photos/profile/115595321578758914729" /><ul>
-    <li><b itemprop="name">Robert Lakis</b></li>
-    <li itemprop="jobTitle">CEO of Berysoft</li>
-    <li>Technical Project Manager</li>
-    </ul><p class="ctr">“In Google we trust!”</p></div></a>
-<a class="pfa" target="blank" href="https://plus.google.com/117418991820151780412"><div itemscope itemtype="http://schema.org/Person" class="pf"><img itemprop="image" height="80px" width="80px" src="https://plus.google.com/s2/photos/profile/117418991820151780412" /><ul>
-    <li><b itemprop="name">Bassel Mourjan</b></li>
-    <li itemprop="jobTitle">Project Manager</li>
-    <li>Senior Web Developer</li>
-    </ul><p class="ctr">“Keep a positive thinking!”</p></div></a>
-*/ 
+                echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
+                echo '<h2 class="card-title">About Mourjan.com</h2>';?>
+<div class="col-12" style="display:block">  
+    <p>In July 2010, <span itemscope itemtype="https://schema.org/LocalBusiness">Mourjan.com</span> was founded.</p>
+    <p>With over 15 years of experience in the field of classifieds and IT solutions, we - the team behind Mourjan.com - were looking for a new venture and specifically in the fast evolving World Wide Web.</p>
+    <p>While online classifieds was not something new and with many top of mind classifieds websites, we knew that in order to succeed we had to deliver something new. Therefore, we started working on Mourjan.com with a main concern of achieving a fast performing website with an Arabic oriented search engine which would deliver a pleasant experience for users who are seeking an apartment to rent or a car to buy.</p>
+    <p>In mid-2012, Mourjan.com was faster than ever and in response to the overwhelming users’ feedbacks, the site enabled its users with free online ad posting in their countries of choice while always adopting the latest techniques and trends in website development and having users’ best interest at heart.</p>
+    <p>Currently, we are still working on improving Mourjan.com and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="/contact/<?= $adLang ?>">Let us know your opinion</a>.</p>
+</div>
+<div class="col-12" itemscope itemtype="https://schema.org/LocalBusiness">
+<div itemprop="address" itemscope itemtype="https://schema.org/PostalAddress" class="card-footer">
+    <div class="addr float-left"><img itemprop="image" width="130" height="90" src="<?= $this->router()->config()->cssURL ?>/i/logo<?= $this->router()->_jpg ?>" alt="Berysoft logo" /></div>
+    <div class="addr float-left" style="padding-inline-end:20px;border-right:1px #CCC solid; -webkit-padding-end:20px"><b itemprop="name">mourjan.com</b><br>
+        <span itemprop="streetAddress">4th Floor, Dekwaneh 1044 bldg, New Slav Street</span><br><span itemprop="addressLocality">Dekwaneh</span>, <span itemprop="addressCountry">Lebanon</span>
+    </div>
+    <div class="addr float-left" style="margin: 0 8px;padding-inline-end:20px;border-right:1px #CCC solid; -webkit-padding-end:20px">
+        <label>Phone&nbsp;/&nbsp;Lebanon:</label><span itemprop="telephone">+961 70 424 018</span><br>
+        <label>Phone&nbsp;/&nbsp;Egypt:</label>&nbsp;&nbsp;&nbsp;<span itemprop="telephone">+20 109 136 5353</span>
+    </div>
+    <div class="addr float-left" style="margin: 0 8px;">
+        <label>Office hours:</label><br><span class="ctr" itemprop="openingHours">Monday to Friday<br />7:00AM to 3:00PM GMT</span>
+    </div></div>
+</div><?php 
+    echo '</div></div>';
                 break;
             case 'terms':             
  if(!$this->isMobile){    

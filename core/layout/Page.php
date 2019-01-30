@@ -957,6 +957,7 @@ class Page extends Site {
     }
 
 
+    // wanted by robert
     function renderSideSite(){
         $countryId=0;
         $cityId=0;
@@ -993,7 +994,7 @@ class Page extends Site {
             echo '<li><a href=\'/terms/', $lang, '\'>', $this->lang['termsConditions'], '</a></li>';
         echo "</ul><br />";
         
-        $this->menu_app_banner();
+        //$this->menu_app_banner();
     }
 
 
@@ -2634,7 +2635,7 @@ class Page extends Site {
         echo '<div class="col-12">© 2010-', $year, ' Mourjan.com Classifieds<br/>All Rights Reserved.';
         if (!isset($this->user->info['level']) || $this->user->info['level']!=9) {
             ?><br /><br />
-            <a href="https://sectigo.com/trust-seal" style="font-family: arial; font-size: 10px; color: #212121; text-decoration: none;"><img src="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png" srcset="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png, https://sectigo.com/images/seals/sectigo_trust_seal_lg_2x.png 2x" width="140" height="54" alt="Protected by Sectigo SSL" border="0" /></a><div style="font-family: arial;font-weight:bold;font-size:15px;color:#86BEE0;"><a href="https://sectigo.com" style="color:#86BEE0; text-decoration: none;">SSL Certificate</a></div>
+            <a href="https://sectigo.com/trust-seal" style="font-family: arial; font-size: 10px; color: #212121; text-decoration: none;"><img src="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png" srcset="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png, https://sectigo.com/images/seals/sectigo_trust_seal_lg_2x.png 2x" width="140" height="54" alt="Protected by Sectigo SSL" /></a><div style="font-family: arial;font-weight:bold;font-size:15px;color:#86BEE0;"><a href="https://sectigo.com" style="color:#86BEE0; text-decoration: none;">SSL Certificate</a></div>
             <?php
         }
         echo '</div></footer>',"\n";
@@ -4931,17 +4932,31 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         }
         
         echo '<!doctype html>';
-        echo '<html lang="', $this->router()->language, $country_code,'" xmlns:fb="http://ogp.me/ns/fb#" xmlns:og="http://ogp.me/ns#"';
-        //if (isset($this->detailAd[Classifieds::VIDEO]) && $this->detailAd[Classifieds::VIDEO]) {
+        echo '<html lang="', $this->router()->language, $country_code,'" xmlns:og="http://ogp.me/ns#"';
+        //if (isset($this->detailAd[Classifieds::VIDEO]) && $this->detailAd[Classifieds::VIDEO]) {xmlns:fb="http://ogp.me/ns/fb#"
         //    echo ' xmlns:video="http://ogp.me/ns/video#"';
         //}
         echo '><head><meta charset="utf-8">', "\n";
         echo "<style>\n";
         include $this->router()->config()->baseDir.'/web/css/includes/main.css';
-        if ($this->router()->module=='search') {
-            include $this->router()->config()->baseDir.'/web/css/includes/breadcrumb.css';
-            include $this->router()->config()->baseDir.'/web/css/includes/ad-view.css';
+        switch ($this->router()->module) {
+            case 'search':
+                include $this->router()->config()->baseDir.'/web/css/includes/breadcrumb.css';
+                include $this->router()->config()->baseDir.'/web/css/includes/ad-view.css';
+                break;
+
+            case 'about':
+                include $this->router()->config()->baseDir.'/web/css/includes/about.css';
+                break;
+            
+            case 'gold':
+                include $this->router()->config()->baseDir.'/web/css/includes/gold.css';
+                break;
+            
+            default:
+                break;
         }
+        
         echo "\n</style>\n";
         $this->header();
         echo '<title>', $this->title, '</title>';
@@ -4953,13 +4968,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         <link rel="apple-touch-icon" sizes="144x144" href="<?= "{$imgURL}/mourjan-icon-144.png" ?>" />            
         <link rel="apple-touch-startup-image" href="<?= "{$imgURL}/mourjan-splash.png"?>" />
         <meta name="format-detection" content="telephone=no">
-        <link rel="manifest" href="/manifest.json"><?php          
-        if ($country_code && isset($this->router()->cities)) {
-            echo '<meta http-equiv="content-language" content="', $this->router()->language, $country_code, '">';
-        } 
-        else {
-            echo '<meta http-equiv="content-language" content="', $this->router()->language, $country_code,'" />';
-        }
+        <link rel="manifest" href="/manifest.json"><?php
         
         if ($this->forceNoIndex) {
             echo '<meta name="robots" content="noindex,nofollow,noarchive" />';
@@ -5163,7 +5172,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 
         ?><link rel="icon" href="<?= $this->router()->config()->imgURL ?>/favicon.ico" type="image/x-icon" /><?php 
         $this->set_analytics_header();
-        echo "\n", '<meta itemprop="isFamilyFriendly" content="true" />', "\n";        
+               
         echo '</head>', "\n";
         flush();
         echo '<body dir="', $this->router()->isArabic() ? 'rtl':'ltr', '" data-ads='.($this->router()->config()->enabledAds()?1:0),' ', $this->pageItemScope;
@@ -5173,8 +5182,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         if ($this->router()->isAcceptWebP) {
             echo ' class="wbp"';
         }
-        echo '>', "\n";
-        
+        echo '>', '<meta itemprop="isFamilyFriendly" content="true" />', "\n"; 
         
         if (1) {  return; }
         
