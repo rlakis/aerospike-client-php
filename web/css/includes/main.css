@@ -75,6 +75,7 @@ li>i{margin:0 4px;max-width:32px;}
 .icn-whatsapp{background-color:white !important;-webkit-mask:url(/web/css/1.0/fa/brands/whatsapp.svg) no-repeat 50% 50%;}
 .icn-phone{background-color:white !important;-webkit-mask:url(/web/css/1.0/fa/solid/phone.svg) no-repeat 50% 50%;}
 .icn-email{background-color:white !important;-webkit-mask:url(/web/css/1.0/fa/solid/envelope.svg) no-repeat 50% 50%;}
+.icn-coin{background:url(/web/css/1.0/assets/coin.svg) no-repeat 50% 50%;background-size: contain}
 
 
 body[dir="rtl"] .icn-lang{background-color:white;-webkit-mask:url(/web/css/1.0/fa/regular/latin.svg) no-repeat 50% 50%;}

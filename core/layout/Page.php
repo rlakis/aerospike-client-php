@@ -958,43 +958,37 @@ class Page extends Site {
 
 
     // wanted by robert
-    function renderSideSite(){
-        $countryId=0;
-        $cityId=0;
-        if ($this->user->params['country']) {
-            $countryId=$this->user->params['country'];
-        }
-        if ($this->user->params['city']) {
-            $cityId=$this->user->params['city'];
-        }
+    function renderSideSite() : void {
+        $countryId = $this->user->params['country'] ?? 0;
+        $cityId = $this->user->params['city'] ?? 0;
+
         $lang=$this->router()->language=='ar'?'':$this->router()->language.'/';
-        ?><h4><?= $this->lang['mourjan'] ?></h4><?php
-        echo '<ul class=\'sm\'>';
+        echo '<div class=title><h5>', $this->lang['mourjan'], '</h5></div>';
+        
+        echo '<ul class=sm>';
         echo '<li><a href=\'', $this->router()->getURL($countryId,$cityId), '\'>', $this->lang['homepage'], '</a></li>';
 
         if ($this->router()->module=='about')
-            echo '<li class=\'on\'><b>', $this->lang['aboutUs'], '</b></li>';
+            echo '<li class=on><b>', $this->lang['aboutUs'], '</b></li>';
         else
             echo '<li><a href=\'/about/', $lang, '\'>', $this->lang['aboutUs'], '</a></li>';
         if ($this->router()->module=='contact')
-            echo '<li class=\'on\'><b>', $this->lang['contactUs'], '</b></li>';
+            echo '<li class=on><b>', $this->lang['contactUs'], '</b></li>';
         else
             echo '<li><a href=\'/contact/', $lang, '\'>', $this->lang['contactUs'], '</a></li>';
         if ($this->router()->module=='gold')
-            echo '<li class=\'on\'><b>', $this->lang['gold_title'], '</b></li>';
+            echo '<li class=on><b>', $this->lang['gold_title'], '</b></li>';
         else
             echo '<li><a href=\'/gold/', $lang, '\'>', $this->lang['gold_title'], '</a></li>';
         if ($this->router()->module=='privacy')
-            echo '<li class=\'on\'><b>', $this->lang['privacyPolicy'], '</b></li>';
+            echo '<li class=on><b>', $this->lang['privacyPolicy'], '</b></li>';
         else
             echo '<li><a href=\'/privacy/', $lang, '\'>', $this->lang['privacyPolicy'], '</a></li>';
         if ($this->router()->module=='terms')
-            echo '<li class=\'on\'><b>', $this->lang['termsConditions'], '</b></li>';
+            echo '<li class=on><b>', $this->lang['termsConditions'], '</b></li>';
         else
             echo '<li><a href=\'/terms/', $lang, '\'>', $this->lang['termsConditions'], '</a></li>';
-        echo "</ul><br />";
-        
-        //$this->menu_app_banner();
+        echo "</ul>";      
     }
 
 
@@ -4945,12 +4939,27 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 include $this->router()->config()->baseDir.'/web/css/includes/ad-view.css';
                 break;
 
+            
+            case 'terms':
+            case 'privacy':
+            case 'premium':
+                include $this->router()->config()->baseDir.'/web/css/includes/doc.css';
+                break;
+                
             case 'about':
+                include $this->router()->config()->baseDir.'/web/css/includes/doc.css';
                 include $this->router()->config()->baseDir.'/web/css/includes/about.css';
                 break;
             
             case 'gold':
+                include $this->router()->config()->baseDir.'/web/css/includes/doc.css';
                 include $this->router()->config()->baseDir.'/web/css/includes/gold.css';
+                break;
+            
+            case 'guide':
+            case 'iguide':
+                include $this->router()->config()->baseDir.'/web/css/includes/doc.css';
+                include $this->router()->config()->baseDir.'/web/css/includes/guide.css';
                 break;
             
             default:

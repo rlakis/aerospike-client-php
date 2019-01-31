@@ -6,26 +6,25 @@ class Doc extends Page{
     function __construct(\Core\Model\Router $router) {
         header('Vary: User-Agent');
         parent::__construct($router); 
-        if ($this->router()->module=='buy' || $this->router()->module=='buyu'){
+        if ($this->router()->module=='buy' || $this->router()->module=='buyu') {
             if ($this->router()->cfg['active_maintenance']) {
-                $this->user()->redirectTo('/maintenance/'.($this->router()->siteLanguage=='ar'?'':$this->router()->siteLanguage.'/'));
+                $this->user()->redirectTo($this->router()->getLanguagePath('/maintenance/'));
             }
             $this->checkBlockedAccount();            
         }
-                
-        if (!$this->isMobile) {            
-            if ($this->router()->module=='publication-prices'){
-                if ($this->router()->isArabic()) { 
-                    $this->inlineCss.='.doc ul{list-style:none;margin:0 !important;overflow:hidden}.doc li{float:right;padding:5px;border-left:1px solid #CCC;border-bottom:1px solid #CCC}.doc li.h{font-weight:bold;background-color:#143D55 !important;color:#fff;font-size:13px;border-left:1px solid #fff}.h.v4{border-left:1px solid #CCC !important}li.v1,li.v2,li.v3,li.v4{border-top:1px solid #ccc;background-color:#143D55;color:#FFF}li.h.v1,li.h.v2,li.h.v3,li.h.v4{border-bottom:0}li.v1{width:247px;border-right:1px solid #ccc}li.v2{width:89px;text-align:center}li.v3{width:109px;text-align:center}li.v4{width:259px}ul a{color:#FFF}li.v10,li.v11,li.v12,li.v13,li.v14,li.v15,li.v16{text-align:center;width:85px;font-size:11.5px !important}li.h.v10,li.h.v11,li.h.v12,li.h.v13,li.h.v14,li.h.v15,li.h.v16{background-color:#3087B4 !important;border-top:0}li.v10{margin-right:50px;width:197px;text-align:right;border-right:1px solid #CCC}li.v11{width:70px}li.v12{width:74px}li.v15{width:121px}li.v15,li.v14{direction:ltr}li.h.v15,li.h.v14{direction:rtl}.h.v15{border-left:1px solid #CCC !important}li.br{width:100%;clear:both;border:0;height:25px;}li.v20{margin-right:50px;width:687px;border-right:1px solid #CCC;text-align:center;border-bottom:1px solid #369}.bv{background-color:#F8F8F8}';
-                }
-                else {
-                    $this->inlineCss.='.doc ul{list-style:none;margin:0 !important;overflow:hidden}.doc li{float:left;padding:5px;border-right:1px solid #CCC;border-bottom:1px solid #CCC}.doc li.h{font-weight:bold;background-color:#143D55 !important;color:#fff;font-size:11px;border-right:1px solid #fff}.h.v4{border-right:1px solid #CCC !important}li.v1,li.v2,li.v3,li.v4{border-top:1px solid #ccc;background-color:#143D55;color:#FFF}li.h.v1,li.h.v2,li.h.v3,li.h.v4{border-bottom:0}li.v1{width:247px;border-left:1px solid #ccc}li.v2{width:89px;text-align:center}li.v3{width:109px;text-align:center}li.v4{width:259px}ul a{color:#FFF}li.v10,li.v11,li.v12,li.v13,li.v14,li.v15,li.v16{text-align:center;width:85px;font-size:11px !important}li.h.v10,li.h.v11,li.h.v12,li.h.v13,li.h.v14,li.h.v15,li.h.v16{background-color:#3087B4 !important;border-top:0}li.v10{margin-left:50px;width:197px;text-align:left;border-left:1px solid #CCC}li.v11{width:70px}li.v12{width:84px}li.v14{width:75px}li.v15{width:121px}.h.v15{border-right:1px solid #CCC !important}li.br{width:100%;clear:both;border:0;height:25px;}li.v20{margin-left:50px;width:687px;border-left:1px solid #CCC;text-align:center;border-bottom:1px solid #369}.bv{background-color:#F8F8F8}'; 
-                }
+                           
+        if ($this->router()->module=='publication-prices'){
+            if ($this->router()->isArabic()) { 
+                $this->inlineCss.='.doc ul{list-style:none;margin:0 !important;overflow:hidden}.doc li{float:right;padding:5px;border-left:1px solid #CCC;border-bottom:1px solid #CCC}.doc li.h{font-weight:bold;background-color:#143D55 !important;color:#fff;font-size:13px;border-left:1px solid #fff}.h.v4{border-left:1px solid #CCC !important}li.v1,li.v2,li.v3,li.v4{border-top:1px solid #ccc;background-color:#143D55;color:#FFF}li.h.v1,li.h.v2,li.h.v3,li.h.v4{border-bottom:0}li.v1{width:247px;border-right:1px solid #ccc}li.v2{width:89px;text-align:center}li.v3{width:109px;text-align:center}li.v4{width:259px}ul a{color:#FFF}li.v10,li.v11,li.v12,li.v13,li.v14,li.v15,li.v16{text-align:center;width:85px;font-size:11.5px !important}li.h.v10,li.h.v11,li.h.v12,li.h.v13,li.h.v14,li.h.v15,li.h.v16{background-color:#3087B4 !important;border-top:0}li.v10{margin-right:50px;width:197px;text-align:right;border-right:1px solid #CCC}li.v11{width:70px}li.v12{width:74px}li.v15{width:121px}li.v15,li.v14{direction:ltr}li.h.v15,li.h.v14{direction:rtl}.h.v15{border-left:1px solid #CCC !important}li.br{width:100%;clear:both;border:0;height:25px;}li.v20{margin-right:50px;width:687px;border-right:1px solid #CCC;text-align:center;border-bottom:1px solid #369}.bv{background-color:#F8F8F8}';
             }
+            else {
+                $this->inlineCss.='.doc ul{list-style:none;margin:0 !important;overflow:hidden}.doc li{float:left;padding:5px;border-right:1px solid #CCC;border-bottom:1px solid #CCC}.doc li.h{font-weight:bold;background-color:#143D55 !important;color:#fff;font-size:11px;border-right:1px solid #fff}.h.v4{border-right:1px solid #CCC !important}li.v1,li.v2,li.v3,li.v4{border-top:1px solid #ccc;background-color:#143D55;color:#FFF}li.h.v1,li.h.v2,li.h.v3,li.h.v4{border-bottom:0}li.v1{width:247px;border-left:1px solid #ccc}li.v2{width:89px;text-align:center}li.v3{width:109px;text-align:center}li.v4{width:259px}ul a{color:#FFF}li.v10,li.v11,li.v12,li.v13,li.v14,li.v15,li.v16{text-align:center;width:85px;font-size:11px !important}li.h.v10,li.h.v11,li.h.v12,li.h.v13,li.h.v14,li.h.v15,li.h.v16{background-color:#3087B4 !important;border-top:0}li.v10{margin-left:50px;width:197px;text-align:left;border-left:1px solid #CCC}li.v11{width:70px}li.v12{width:84px}li.v14{width:75px}li.v15{width:121px}.h.v15{border-right:1px solid #CCC !important}li.br{width:100%;clear:both;border:0;height:25px;}li.v20{margin-left:50px;width:687px;border-left:1px solid #CCC;text-align:center;border-bottom:1px solid #369}.bv{background-color:#F8F8F8}'; 
+            }
+        }
 
-            if ($this->router()->module=='premium') {
-                $this->inlineCss.='
-                    .uln{
+        if ($this->router()->module=='premium') {
+            $this->inlineCss.='
+                .uln{
                         list-style-type: none!important;  
                     }
                     .uln ul{
@@ -80,116 +79,8 @@ class Doc extends Page{
                 ';    
             }            
 
-            if($this->router()->module=='guide' || $this->router()->module=='iguide'){
-                $this->inlineCss.='
-                    .uld{list-style:none!important;margin:0!important;}
-                    .uld > li{padding:5px;border-bottom:1px solid #CCC;padding-top:30px}
-                    .uld > li:last-child{border:0}
-                    .alt{background-color:#ececec;}
-                    .uld > li > ul{list-style:none;overflow:hidden;margin:0!important}
-                    .uld > li > ul > li{float:left;width:210px;text-align:center;margin-bottom:30px}
-                    .uld > li > ul > li:first-child{margin-top:30px;margin-right:10px;width:50px;height:50px;font-size:40px;color:#FFF;line-height:46px;text-shadow: 2px 2px #666;background:url('.$this->router()->cfg['url_img'].'/presentation2/radio'.$this->urlRouter->_jpg.') no-repeat top left}  
-                    .uld > li > ul > li.t{margin-top:30px;width:250px;margin-right:10px;text-align:left}
-                    .tld{list-style-type:decimal!important;margin:15px 0 10px 30px!important}
-                    .tld li{width:100%;height:auto;margin-bottom:15px}
-                    .seic{vertical-align:middle}
-                    .tlong{height:500px}
-                    .itlong{height:900px}
-                    .ar .uld > li > ul > li{float:right}
-                    .ar .uld > li > ul > li:first-child{margin-right:0;margin-left:10px}
-                    .ar .uld > li > ul > li.t{margin-right:0;margin-left:10px;text-align:right}
-                    .ar .tld{margin:15px 30px 10px 0!important}
-                    .ar{line-height:25px}
-                ';            
-            }
-        }
-        else {
-            
-            if(in_array($this->router()->module,['buy','buyu'])){
-                $this->requireLogin = true;
-            }
-            
-            $this->inlineCss.='h2{margin-top:10px;display:inline-block}'
-                    . '.doc{margin:10px;padding:5px;background-color:#FFF}'
-                    . 'p{padding:10px 0;}';
-            if($this->router()->module=='gold'){
-                
-                $this->inlineCss.=
-                        '.prices{list-style:none;margin-top:15px}'
-                        . '.prices > li{overflow:hidden;list-style:none;padding:5px 5px;border-bottom:1px solid #FFF}'
-                        . '.prices ul li{float:'.($this->router()->isArabic() ? 'right':'left').';width:80px;list-style:none;padding:5px 20px}'
-                        . '.prices ul li:nth-child(2){width:20px}'
-                        . '.pad{text-align:'.($this->router()->isArabic() ? 'right':'left').';padding:5px 10px;margin:15px 0 0}'
-                        . '.alt{
-background: rgb(234,239,181);
-background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1) 100%);
-}'
-                        . '.doc ul{list-style: disc inside}'
-                        . '.listnote li{padding:10px}'
-                        . '.credits {
-    width: 300px;
-    height: 110px;
-    display: inline-block;
-    background: url('.$this->urlRouter->cfg['url_css'].'/i/creditcards'.$this->urlRouter->_jpg.') no-repeat center;
-}';
-            }
-            
-            if($this->router()->module=='buy' || $this->router()->module=='buyu'){
-                $this->inlineCss.='
-                    .prices{margin:0!important;list-style:disc inside!important;padding:0 40px;}
-                    .prices ul{display:inline-block;line-height:1em;margin:0!important}
-                    .prices ul li{float:left;width:100px;list-style:none}
-                    p.pad{margin:0;padding:5px 10px}
-                    .ar .prices ul li{float:right}
-                    li.ctr{width:50px!important}
-                    .alt{background-color:#ececec;}
-                    .alinks{overflow:hidden;margin:0!important;list-style:none!important}
-                    .alinks li{float:left;width:50%;text-align:center;}
-                    .android{margin:0}
-                    .ar{line-height:25px}
-                    .btH{text-align:center;margin-top:20px}
-                    .bt{color:#FFF!important}
-                    .bt:hover{text-decoration:none!important}
-                    .table{list-style:none!important;overflow:hidden}
-                    .table li{float:left;width:25%;height:60px;line-height:60px;white-space:nowrap;
-                    border-bottom:1px solid seagreen}
-                    .ar .table li{float:right;text-align:right}
-                    li.tt{width:50%}
-                    .table input{vertical-align:middle;padding:0;border:0}
-                    .tt{text-align:right!important}
-                    .ar .tt{text-align:left!important}
-                    .dialog-box{text-align:center}
-                    .dialog .load{display:inline-block}
-                    .ph{background-color:#FFF;padding:15px 10px;border-bottom:1px solid #afafaf}
-                ';    
-            }
-            
-            
-            if($this->urlRouter->module=='premium'){
-                $this->inlineCss.='
-                    .uln{
-                        list-style-type: none!important;  
-                    }
-                    .uln ul{
-                        list-style:none;
-                        margin:0
-                    }
-                    .uld{
-                        list-style:disc inside!important;
-                        margin:0
-                    }
-                    .doc li{padding: 5px 10px}
-                    .alt{background-color:#ececec;}
-                    li.clr{list-style:none;padding:0;padding-top:15px;margin-bottom:30px}
-                    li.clr li{text-align:center;margin:10px;padding:0}
-                    .vpdi{vertical-align:bottom}
-                    .btH{text-align:center;margin-top:20px}
-                    .bt{color:#FFF!important}
-                    .bt:hover{text-decoration:none!important}
-                    .ar{line-height:25px}
-                        ';
-            }
-        }
+           
+                                      
         
         if ($this->router()->module=='iguide') { $this->forceNoIndex = true; }
         
@@ -220,7 +111,7 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
             $this->title=$this->lang['gold_title'];
             $this->lang['description']= $this->lang['gold_desc'];
         }
-        elseif ($this->router()->module=='buy' || $this->urlRouter->module == 'buyu') {
+        elseif ($this->router()->module=='buy' || $this->router()->module == 'buyu') {
             $this->forceNoIndex=true;
         }
         
@@ -405,9 +296,8 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
         switch ($this->router()->module){
             case 'buyu':
                 if ($this->user->info['id']==0) { 
-                    echo '<div>';
-                    if(!$this->isMobile)
-                        $this->renderLoginPage();
+                    echo '<div>';                    
+                    $this->renderLoginPage();
                 }
                 else {
                     if($this->isMobile){                        
@@ -424,6 +314,7 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                             echo $subHeader.' ';
                         ?></p><?php 
                     }
+                    
                     if ($this->urlRouter->siteLanguage=='ar') {
                         echo '<div class="doc ar">';
                     }else{
@@ -439,8 +330,7 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                         echo '<div class="htf">'.$message.'</div>';
                     }else{
                     
-                    if (isset($_GET['response_code']) && isset($_GET['command']) && isset($_GET['order_description'])) 
-                    {
+                    if (isset($_GET['response_code']) && isset($_GET['command']) && isset($_GET['order_description'])) {
                     //    error_log("called");
                     //if(isset($_GET['payfort']) && $_GET['payfort']=='process'){
                         require_once $this->urlRouter->cfg['dir'].'/core/lib/PayfortIntegration.php';
@@ -571,17 +461,18 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                 };
                 ';
         
-        ?><div id="paypro" class="dialog"><?php
+        ?><div id=paypro class=dialog><?php
         ?><div class="dialog-box"><span class="loads load"></span><?= $this->lang['payment_redirect'] ?></div><?php 
             ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /></div><?php 
         ?></div><?php
         ?><div id="alert_dialog" class="dialog"><?php
                         ?><div class="dialog-box ctr"></div><?php 
                         ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
-                    ?></div><?php
+        ?></div><?php
                     }
                 }
                 break;
+                
             case 'buy':
                 if($this->user->info['id']==0){ 
                     echo '<div>';
@@ -658,113 +549,105 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
                     ?><!--<div class="htf db">< //$this->lang['paypal_suspended'] </div>--><?php
                 }
                 break;
+                
             case 'iguide':
-                if ($this->urlRouter->siteLanguage=='ar') {
-                    echo '<div class="doc ar">';
-                    //echo '<div class="ctr" style="font-size:48px;line-height:48px;color:#999;margin-top:130px;">سيكون متوفر قريباً</div>';
-                }else{
-                    echo '<div class="doc en">';
-                    //echo '<div class="ctr" style="font-size:48px;line-height:48px;color:#999;margin-top:130px;">Available Soon</div>';                
-                }
-                $imgPath = $this->urlRouter->cfg['url_img'].'/presentation2/';
+                echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
+                $imgPath = $this->router()->config()->imgURL.'/presentation2/';
                 $this->lang['guide_apple'] = preg_replace(
                 ['/{IMG0}/','/{IMG01}/','/{IMG1}/','/{IMG2}/','/{IMG3}/','/{IMG4}/','/{IMG5}/','/{IMG6}/','/{IMG7}/','/{IMG8}/'], 
                 [
-                    '<img class="seic" width=24 height=24 src="'.$imgPath.'settings-icon'.$this->urlRouter->_jpg.'" />',
-                    '<img class="seic" width=24 height=24 src="'.$imgPath.'home-icon'.$this->urlRouter->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-home'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-settings'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-account'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-activate'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-activated'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-balance'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-buy'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-coins'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
+                    '<img class="seic" width=24 height=24 src="'.$imgPath.'settings-icon'.$this->router()->_jpg.'" />',
+                    '<img class="seic" width=24 height=24 src="'.$imgPath.'home-icon'.$this->router()->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-home'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-settings'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-account'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-activate'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-activated'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-balance'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-buy'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-coins'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
                 ], 
                 $this->lang['guide_apple']);
-                echo '<p>'.$this->lang['guide_apple_skip'].'</p>';
-                echo '<ul class="uld">'.$this->lang['guide_apple'].'</ul>';
+                echo '<p>', $this->lang['guide_apple_skip'], '</p>';
+                echo '<div class=uld>', $this->lang['guide_apple'], '</div>';
+                echo '</div></div></div>';
                 break;
+                
             case 'guide':
-                if ($this->urlRouter->siteLanguage=='ar') {
-                    echo '<div class="doc ar">';
-                }else{
-                    echo '<div class="doc en">';
-                }
-                $imgPath = $this->urlRouter->cfg['url_img'].'/presentation2/';
+                echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
+                
+                $imgPath = $this->router()->config()->imgURL.'/presentation2/';
+                                
                 $this->lang['guide_droid'] = preg_replace(
                 ['/{IMG0}/','/{IMG1}/','/{IMG2}/','/{IMG3}/','/{IMG4}/','/{IMG5}/','/{IMG6}/','/{IMG7}/'], 
                 [
-                    '<img class="seic" width=24 height=24 src="'.$imgPath.'settings-icon'.$this->urlRouter->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-lang'.$this->urlRouter->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-country'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-home'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-settings'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-connect'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-connected'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-purchase'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" />',
+                    '<img class="seic" width=24 height=24 src="'.$imgPath.'settings-icon'.$this->router()->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-lang'.$this->router()->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-country'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-home'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-settings'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-connect'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-connected'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-purchase'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
                 ], 
                 $this->lang['guide_droid']);
-                echo '<p>'.$this->lang['guide_droid_skip'].'</p>';
-                echo '<ul class="uld">'.$this->lang['guide_droid'].'</ul>';
+                echo '<p>', $this->lang['guide_droid_skip'], '</p>';
+                echo '<ul class=uld>', $this->lang['guide_droid'], '</ul>';
+                echo '</div></div></div>';
                 break;
                 
             case 'gold':
-                if ($this->router()->isArabic()) {
-                    echo '<div class="doc ar">';
-                }
-                else {
-                    echo '<div class="doc en">';
-                }
+                echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
+                echo '<h2 class="card-title">',$this->lang['gold_subtitle'], '</h2>';
+                
                 $imgPath = $this->router()->config()->imgURL.'/presentation2/';
-                echo "<h2>{$this->lang['gold_subtitle']}</h2><br />";
-                echo "<p>{$this->lang['gold_p2']}</p>";
+                
+                echo '<div class=col-12 style="display: block">';
+                echo '<p>', $this->lang['gold_p2'], '</p>';
                 echo "<p class='pad alt rc'>{$this->lang['gold_p2_1']}</p>";
                 echo "<ul class='prices alt rc'>{$this->lang['gold_p2_2']}</ul>";
                 echo "<p class='pad alt rc'>{$this->lang['gold_p2_3']}</p>";
-                echo "<br /><p>{$this->lang['gold_p2_0']}</p>";
-                /* ?><div class="btH"><a href="/buy/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>" class="bt"><?= substr($this->lang['buy_gold'],0,-1)  ?></a></div><?php */
-                echo "<hr /><h2 id='how-to'>{$this->lang['buy_gold']}</h2><br />";
-                echo "<p>{$this->lang['gold_p2_5_0']}</p>";
+                echo "<br><p>{$this->lang['gold_p2_0']}</p>";
+                echo '<hr><h4 id=how-to>', $this->lang['buy_gold'], '</h4>';
+                echo '<p>', $this->lang['gold_p2_5_0'], '</p>';
                 echo "<p>{$this->lang['gold_p2_5']}</p>";
                 echo "<p>".$this->lang['gold_p2_6'.($this->isMobile ? '_m':'')]."</p>";
-                ?><div class="btH"><a href="/buy/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>"><img width="228" height="44" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png" alt="Buy now with PayPal" /></a></div><br /><?php 
-                ?><div class="btH"><a href="/buy/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>"><img width="319" height="110" src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg" alt="Buy now with PayPal" /></a></div><br /><?php 
-                if(!$this->isMobile){
-                    echo "<p>{$this->lang['gold_p2_4']}</p>";
-                    echo '<ul class="alinks"><li><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class="android"></span></a></li><li><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class="ios"></span></a></li></ul>';
-                    echo "<br /><h2>{$this->lang['buy_gold_0']}</h2>";
-                    echo "<p>{$this->lang['buy_gold_1']}</p>";
-                    echo '<ul class="alinks"><li><a href="/guide/'.($this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ).'"><img width=119 height=230 src="'.$imgPath.'guide'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" /></a></li><li><a href="/iguide/'.($this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ).'"><img width=119 height=230 src="'.$imgPath.'iguide'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_jpg.'" /></a></li></ul>';
-                }
+                ?><div class="btH"><a href="<?= $this->router()->getLanguagePath('/buy') ?>"><img width="228" height="44" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png" alt="Buy now with PayPal" /></a></div><br /><?php 
+                ?><div class="btH"><a href="<?= $this->router()->getLanguagePath('/buy') ?>"><img width="319" height="110" src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg" alt="Buy now with PayPal" /></a></div><br /><?php 
+
+                echo '<p>', $this->lang['gold_p2_4'], '</p>';
+                echo '<ul class="alinks"><li><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class="android"></span></a></li><li><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class="ios"></span></a></li></ul>';
+                echo '<br><h4>', $this->lang['buy_gold_0'], '</h4>';
+                echo "<p>{$this->lang['buy_gold_1']}</p>";
+                echo '<ul class="alinks"><li><a href="'. $this->router()->getLanguagePath('/guide/') .'">', 
+                    '<img width=119 height=230 src="'.$imgPath.'guide'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" /></a></li>', 
+                    '<li><a href="/iguide/'.($this->router()->isArabic()?'':$this->router()->language.'/' ).'"><img width=119 height=230 src="'.$imgPath.'iguide'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" /></a></li></ul>';
+                
+                echo '</div></div></div>';
                 break;
+                
             case 'premium':
-                if ($this->urlRouter->siteLanguage=='ar') {
-                    echo '<div class="doc ar">';
-                }else{
-                    echo '<div class="doc en">';
-                }
-                echo "<h2>{$this->lang['gold_p1_title']}</h2>";
-                ?><ul class="uln"><?php 
-                        ?><li><?php
-                        $imgPath = $this->urlRouter->cfg['url_img'].'/presentation2/';
-                        $this->lang['gold_p1_desc'] = preg_replace(
-                                ['/{IMG1}/','/{IMG2}/','/{IMG3}/','/{IMG4}/','/{IMG5}/','/{IMG6}/'], 
-                                [
-                                    '<img width=200 height=150 src="'.$imgPath.'desktop-premium'.$this->urlRouter->_jpg.'" />',
-                                    '<img width=74 height=150 src="'.$imgPath.'mobile-site-premium'.$this->urlRouter->_jpg.'" />',
-                                    '<img width=74 height=150 src="'.$imgPath.'app-premium'.$this->urlRouter->_jpg.'" />',
-                                    '<img width=300 height=228 src="'.$imgPath.'desktop-side-premium'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_png.'" />',
-                                    '<img width=300 height=228 src="'.$imgPath.'desktop-side-hover-premium'.($this->urlRouter->siteLanguage=='ar'?'-ar':'').$this->urlRouter->_png.'" />',
-                                    '<img width=74 height=150 src="'.$imgPath.'mobile-bottom-premium'.$this->urlRouter->_jpg.'" />'
-                                ], 
-                                $this->lang['gold_p1_desc']);
+                echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
+                echo '<h2 class="card-title">',$this->lang['gold_p1_title'], '</h2>';
+                echo '<div class=col-12 style="display: block"><ul class=uln><li>';
+                $imgPath = $this->router()->config()->imgURL.'/presentation2/';
+                $this->lang['gold_p1_desc'] = preg_replace(
+                        ['/{IMG1}/','/{IMG2}/','/{IMG3}/','/{IMG4}/','/{IMG5}/','/{IMG6}/'], 
+                            [
+                            '<img width=200 height=150 src="'.$imgPath.'desktop-premium'.$this->router()->_jpg.'" />',
+                            '<img width=74 height=150 src="'.$imgPath.'mobile-site-premium'.$this->router()->_jpg.'" />',
+                            '<img width=74 height=150 src="'.$imgPath.'app-premium'.$this->router()->_jpg.'" />',
+                            '<img width=300 height=228 src="'.$imgPath.'desktop-side-premium'.($this->router()->isArabic()?'-ar':'').$this->router()->_png.'" />',
+                            '<img width=300 height=228 src="'.$imgPath.'desktop-side-hover-premium'.($this->router()->isArabic()?'-ar':'').$this->router()->_png.'" />',
+                            '<img width=74 height=150 src="'.$imgPath.'mobile-bottom-premium'.$this->router()->_jpg.'" />'
+                            ], 
+                            $this->lang['gold_p1_desc']);
                         
-                        ?><ul class="uld"><?= $this->lang['gold_p1_desc'] ?></ul><?php
-                        ?></li><?php 
-                    ?></ul><?php 
-                    ?><div class="btH"><a href="/gold/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>" class="bt"><?= $this->lang['back_to_gold']  ?></a></div><?php
+                echo '<ul class=uld>', $this->lang['gold_p1_desc'], '</ul></li></ul>';                    
+                echo '<div class=btH><a class=bt href="', $this->router()->getLanguagePath('/gold/'), '">', $this->lang['back_to_gold'], '</a></div>';
+                echo '</div></div></div>';
                 break;
+            
             case 'advertise':
                 if ($this->urlRouter->siteLanguage=='ar') {
                     echo '<div class="doc ar">';
@@ -955,8 +838,8 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
     <p>In July 2010, <span itemscope itemtype="https://schema.org/LocalBusiness">Mourjan.com</span> was founded.</p>
     <p>With over 15 years of experience in the field of classifieds and IT solutions, we - the team behind Mourjan.com - were looking for a new venture and specifically in the fast evolving World Wide Web.</p>
     <p>While online classifieds was not something new and with many top of mind classifieds websites, we knew that in order to succeed we had to deliver something new. Therefore, we started working on Mourjan.com with a main concern of achieving a fast performing website with an Arabic oriented search engine which would deliver a pleasant experience for users who are seeking an apartment to rent or a car to buy.</p>
-    <p>In mid-2012, Mourjan.com was faster than ever and in response to the overwhelming users’ feedbacks, the site enabled its users with free online ad posting in their countries of choice while always adopting the latest techniques and trends in website development and having users’ best interest at heart.</p>
-    <p>Currently, we are still working on improving Mourjan.com and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="/contact/<?= $adLang ?>">Let us know your opinion</a>.</p>
+    <p>In mid-2012, mourjan.com was faster than ever and in response to the overwhelming users’ feedbacks, the site enabled its users with free online ad posting in their countries of choice while always adopting the latest techniques and trends in website development and having users’ best interest at heart.</p>
+    <p>Currently, we are still working on improving mourjan.com and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="/contact/<?= $adLang ?>">Let us know your opinion</a>.</p>
 </div>
 <div class="col-12" itemscope itemtype="https://schema.org/LocalBusiness">
 <div itemprop="address" itemscope itemtype="https://schema.org/PostalAddress" class="card-footer">
@@ -965,8 +848,8 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
         <span itemprop="streetAddress">4th Floor, Dekwaneh 1044 bldg, New Slav Street</span><br><span itemprop="addressLocality">Dekwaneh</span>, <span itemprop="addressCountry">Lebanon</span>
     </div>
     <div class="addr float-left" style="margin: 0 8px;padding-inline-end:20px;border-right:1px #CCC solid; -webkit-padding-end:20px">
-        <label>Phone&nbsp;/&nbsp;Lebanon:</label><span itemprop="telephone">+961 70 424 018</span><br>
-        <label>Phone&nbsp;/&nbsp;Egypt:</label>&nbsp;&nbsp;&nbsp;<span itemprop="telephone">+20 109 136 5353</span>
+        <label>Phone&nbsp;/&nbsp;Lebanon:&nbsp;</label><span itemprop="telephone">+961 70 424 018</span><br>
+        <label>Phone&nbsp;/&nbsp;Egypt:&nbsp;</label>&nbsp;&nbsp;&nbsp;<span itemprop="telephone">+20 109 136 5353</span>
     </div>
     <div class="addr float-left" style="margin: 0 8px;">
         <label>Office hours:</label><br><span class="ctr" itemprop="openingHours">Monday to Friday<br />7:00AM to 3:00PM GMT</span>
@@ -974,45 +857,42 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
 </div><?php 
     echo '</div></div>';
                 break;
-            case 'terms':             
- if(!$this->isMobile){    
-        echo '<div class="doc en">';
-    ?> <h2>Mourjan Terms of Use</h2><?php     
-    }else {
-        echo '<div class="str en">';
-} ?>
-<h2>Introduction</h2>
+            
+            case 'terms':
+                echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
+                echo '<h2 class="card-title">Mourjan Terms of Use</h2>';?>
+<h4>Introduction</h4>
 <p>Welcome to www.mourjan.com ("Mourjan"). By accessing Mourjan you are agreeing to the following terms, which are designed to make sure that Mourjan works for everyone. Mourjan is provided to you by Berysoft SARL, Le Point Center, Fouad Shehab Street, Dekwaneh, registered in Lebanon with number 2013375-Baabda. This policy is effective January 1st, 2012.</p>
-<h2>Using Mourjan</h2>
+<h4>Using Mourjan</h4>
 <p>As a condition of your use of Mourjan you agree that you will not:</p>
-<ul>
-    <li><p>violate any laws;</p></li>
-	<li><p>violate the Posting Rules;</p></li>
-	<li><p>post any threatening, abusive, defamatory, obscene or indecent material;</p></li>
-	<li><p>be false or misleading;</p></li>
-	<li><p>infringe any third-party right;</p></li>
-	<li><p>distribute or contain spam, chain letters, or pyramid schemes;</p></li>
-	<li><p>distribute viruses or any other technologies that may harm Mourjan or the interests or property of Mourjan users;</p></li>
-	<li><p>impose an unreasonable load on our infrastructure or interfere with the proper working of Mourjan;</p></li>
-	<li><p>copy, modify, or distribute any other person's content without their consent;</p></li>
-	<li><p>use any robot spider, scraper or other automated means to access Mourjan and collect content for any purpose without our express written permission;</p></li>
-	<li><p>harvest or otherwise collect information about others, including email addresses, without their consent;</p></li>
-	<li><p>bypass measures used to prevent or restrict access to Mourjan.</p></li>
-</ul>
+<div class="card-description">
+    <p>-&nbsp;violate any laws;</p>
+    <p>-&nbsp;violate the Posting Rules;</p>
+    <p>-&nbsp;post any threatening, abusive, defamatory, obscene or indecent material;</p>
+    <p>-&nbsp;be false or misleading;</p>
+    <p>-&nbsp;infringe any third-party right;</p>
+    <p>-&nbsp;distribute or contain spam, chain letters, or pyramid schemes;</p>
+    <p>-&nbsp;distribute viruses or any other technologies that may harm Mourjan or the interests or property of Mourjan users;</p>
+    <p>-&nbsp;impose an unreasonable load on our infrastructure or interfere with the proper working of Mourjan;</p>
+    <p>-&nbsp;copy, modify, or distribute any other person's content without their consent;</p>
+    <p>-&nbsp;use any robot spider, scraper or other automated means to access Mourjan and collect content for any purpose without our express written permission;</p>
+    <p>-&nbsp;harvest or otherwise collect information about others, including email addresses, without their consent;</p>
+    <p>-&nbsp;bypass measures used to prevent or restrict access to Mourjan.</p>
+</div>
 <p>You are solely responsible for all information that you submit to Mourjan and any consequences that may result from your post. We reserve the right at our discretion to refuse or delete content that we believe is inappropriate or breaching the above terms. We also reserve the right at our discretion to restrict a user's usage of the site either temporarily or permanently, or refuse a user's registration.</p>
-<h2>Abusing Mourjan</h2>
+<h4>Abusing Mourjan</h4>
 <p>Mourjan and the Mourjan community work together to keep the site working properly and the community safe. Please report problems, offensive content and policy breaches to us using the reporting system.</p>
 <p>Without limiting other remedies, we may issue warnings, limit or terminate our service, remove hosted content and take technical and legal steps to keep users off Mourjan if we think that they are creating problems or acting inconsistently with the letter or spirit of our policies. However, whether we decide to take any of these steps, remove hosted content or keep a user off Mourjan or not, we do not accept any liability for monitoring Mourjan or for unauthorized or unlawful content on Mourjan or use of Mourjan by users.</p>
-<h2>Global Marketplace</h2>
+<h4>Global Marketplace</h4>
 <p>Some of Mourjan's features may display your ad on other sites such search engines or our classifieds sites in other countries. By using Mourjan, you agree that your ads can be displayed on these other sites. The terms for our other sites are similar to these terms, but you may be subject to additional laws or other restrictions in the countries where your ad is posted. When you choose to post your ad on another site, you may be responsible for ensuring that it does not violate our other site policies. We may remove your ad if it is reported on any our sites, or if we believe it causes problems or violates any law or policy.</p>
-<h2>Fees and Services</h2>
+<h4>Fees and Services</h4>
 <p>Using Mourjan is generally free, but we sometimes charge a fee for certain services. If the service you use incurs a fee, you'll be able to review and accept terms that will be clearly disclosed at the time you post your ad. Our fees are quoted in your local currency and/or US Dollar, and we may change them from time to time. We'll notify you of changes to our fee policy by posting such changes on the site. We may choose to temporarily change our fees for promotional events or new services; these changes are effective when we announce the promotional event or new service.</p>
 <p>Our fees are non-refundable, and you are responsible for paying them when they're due. If you don't, we may limit your ability to use the services. If your payment method fails or your account is past due, we may collect fees owed using other collection mechanisms.</p>
-<h2>Content</h2>
+<h4>Content</h4>
 <p>Mourjan contains content from us, you, other users, and other classifieds publications affiliates. Mourjan is protected by copyright laws and international treaties. Content displayed on or via Mourjan is protected as a collective work and/or compilation, pursuant to copyrights laws and international conventions. You agree not to copy, distribute or modify content from Mourjan without our express written consent. You may not disassemble or decompile, reverse engineer or otherwise attempt to discover any source code contained in Mourjan. Without limiting the foregoing, you agree not to reproduce, copy, sell, resell, or exploit for any purposes any aspect of Mourjan (other than your own content). When you give us content, you are granting us and representing that you have the right to grant us, a non-exclusive, worldwide, perpetual, irrevocable, royalty-free, sub-licensable right to exercise the copyright, publicity, and database rights to that content.</p>
-<h2>Infringement</h2>
+<h4>Infringement</h4>
 <p>Do not post content that infringes the rights of third parties, This includes, but is not limited to, content that infringes on intellectual property rights such as copyright and trademark (e.g. offering counterfeit items for sale). A large number of very varied products are offered on Mourjan by private individuals. Entitled parties, in particular the owners of copyright, trademark rights or other rights owned by third parties can report any offers which many infringe on their rights, and submit a request for this offer to be removed. If a legal representative of the entitled party reports this to us in the correct manner, products infringing on the intellectual property rights will be removed by Mourjan.</p>
-<h2>Liability</h2>
+<h4>Liability</h4>
 <p>Nothing in these terms shall limit our liability for fraudulent misrepresentation, for death or personal injury resulting from our negligence or the negligence of our agents or employees. You agree not to hold us responsible for things other users post or do.</p>
 <p>We do not review users' postings and are not involved in the actual transactions between users. As most of the content on Mourjan comes from other users, we do not guarantee the accuracy of postings or user communications or the quality, safety, or legality of what's offered.</p>
 <p>In no event do we accept liability of any description for the posting of any unlawful, threatening, abusive, defamatory, obscene or indecent information, or material of any kind which violates or infringes upon the rights of any other person, including without limitation any transmissions constituting or encouraging conduct that would constitute a criminal offence, give rise to civil liability or otherwise violate any applicable law.</p>
@@ -1020,7 +900,7 @@ background: linear-gradient(to bottom, rgba(234,239,181,1) 0%,rgba(225,233,160,1
 <p>Accordingly, to the extent legally permitted we expressly disclaim all warranties, representations and conditions, express or implied, including those of quality, merchantability, merchantable quality, durability, fitness for a particular purpose and those arising by statute. We are not liable for any loss, whether of money (including profit), goodwill, or reputation, or any special, indirect, or consequential damages arising out of your use of Mourjan, even if you advise us or we could reasonably foresee the possibility of any such damage occurring. Some jurisdictions do not allow the disclaimer of warranties or exclusion of damages, so such disclaimers and exclusions may not apply to you. Despite the previous paragraph, if we are found to be liable, our liability to you or any third party (whether in contract, tort, negligence, strict liability in tort, by statute or otherwise) is limited to the greater of (a) the total fees you pay to us in the 12 months prior to the action giving rise to liability, and (b) 100 US Dollar.</p>
 Personal Information
 <p>By using Mourjan, you agree to the collection, transfer, storage and use of your personal information by Mourjan on servers located in the Germany, and Lebanon as further described in our Privacy Policy. You also agree to receive marketing communications from us unless you tell us that you prefer not receive such communications.</p>
-<h2>Resolution of disputes</h2>
+<h4>Resolution of disputes</h4>
 <p>If a dispute arises between you and Mourjan, we strongly encourage you to first contact us directly to seek a resolution by going to the Mourjan contact page. We will consider reasonable requests to resolve the dispute through alternative dispute resolution procedures, such as mediation or arbitration, as alternatives to litigation.</p>
 General
 <p>These terms and the other policies posted on Mourjan constitute the entire agreement between Mourjan and you, superseding any prior agreements.</p>
@@ -1030,78 +910,68 @@ General
 <p>We may update this agreement at any time, with updates taking effect when you next post or 30 days after we post the updated policy on the site, whichever is sooner. No other amendment to this agreement will be effective unless made in writing, signed by users and by us.</p>
 
 <?php
+                echo '</div></div>';
                 break;
-            case 'privacy':                
- if(!$this->isMobile){    
-        echo '<div class="doc en">';
-    ?><h2>Privacy policy</h2><?php     
-    }else {
-        echo '<div class="str en">';
-        ?><h2>Privacy policy</h2><?php
-} ?>
-
+            case 'privacy':
+                echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
+                echo '<h2 class="card-title">Privacy policy</h2>';?>
 <p>This privacy policy describes how we handle your personal information. We collect, use, and share personal information to help the Mourjan website ('Mourjan') work and to keep it safe (details below). In formal terms, Berysoft SARL, Le Point Center, Fouad Shehab Street, Dekwaneh, registered in Lebanon with number 2013375-Baabda, acting itself and through its subsidiaries, is the 'data controller' of your personal information. This policy is effective 1 Jan 2012.</p>
-<h2>Collection</h2>
+<h4>Collection</h4>
 <p>Information posted on Mourjan is obviously publicly available. Our servers are located in Germany and Lebanon. Mourjan will hold and transmit your information in a safe, confidential and secure environment. If you choose to provide us with personal information, you are consenting to the transfer and storage of that information on our servers in Germany and Lebanon. We collect and store the following personal information:</p>
-<ul>
-    <li><p>email address, physical contact information, and (depending on the service used) sometimes financial information;</p></li>
-    <li><p>computer sign-on data, statistics on page views, traffic to and from Mourjan and ad data (all through cookies - you can take steps to disable the cookies on your browser although this is likely to affect your ability to use the site);</p></li>
-    <li><p>other information, including users IP address and standard web log information.</p></li>
-    <li><p>Google Analytics data such as age, gender and interests based on Display Advertising (e.g., Remarketing, Google Display Network Impression Reporting, the DoubleClick Campaign Manager integration, or Google Analytics Demographics and Interest Reporting).</p></li>
-    <li><p>Visitors can opt-out of Google Analytics for Display Advertising and customize Google Display Network ads using the <a href='https://www.google.com/settings/ads'>Ads Settings</a> or by downloading and installing <a href='https://tools.google.com/dlpage/gaoptout/'>Google Analytics opt-out browser add-on</a>.</p></li>
-</ul>
-<h2>Use</h2>
+<div>
+    <p>email address, physical contact information, and (depending on the service used) sometimes financial information;</p>
+    <p>computer sign-on data, statistics on page views, traffic to and from Mourjan and ad data (all through cookies - you can take steps to disable the cookies on your browser although this is likely to affect your ability to use the site);</p>
+    <p>other information, including users IP address and standard web log information.</p>
+    <p>Google Analytics data such as age, gender and interests based on Display Advertising (e.g., Remarketing, Google Display Network Impression Reporting, the DoubleClick Campaign Manager integration, or Google Analytics Demographics and Interest Reporting).</p>
+    <p>Visitors can opt-out of Google Analytics for Display Advertising and customize Google Display Network ads using the <a href='https://www.google.com/settings/ads'>Ads Settings</a> or by downloading and installing <a href='https://tools.google.com/dlpage/gaoptout/'>Google Analytics opt-out browser add-on</a>.</p>
+</div>
+<h4>Use</h4>
 <p>We use users' personal and collected information to:</p>
-<ul>
-    <li><p>provide our services;</p></li>
-    <li><p>resolve disputes and troubleshoot problems;</p></li>
-    <li><p>encourage safe trading and enforce our policies;</p></li>
-    <li><p>customize users' experience, measure interest in our services, and inform users about services and updates;</p></li>
-    <li><p>communicate marketing and promotional offers to you;</p></li>
-    <li><p>do other things for users as described when we collect the information.</p></li>
-</ul>
-<h2>Disclosure</h2>
+<div>
+    <p>provide our services;</p>
+    <p>resolve disputes and troubleshoot problems;</p>
+    <p>encourage safe trading and enforce our policies;</p>
+    <p>customize users' experience, measure interest in our services, and inform users about services and updates;</p>
+    <p>communicate marketing and promotional offers to you;</p>
+    <p>do other things for users as described when we collect the information.</p>
+</div>
+<h4>Disclosure</h4>
 <p>We don't sell or rent your personal information to third parties for their marketing purposes without your explicit consent. We may disclose personal information to respond to legal requirements, enforce our policies, respond to claims that a posting or other content violates others' rights, or protect anyone's rights, property, or safety (for example, if you submit false contact details or impersonate another person, we may pass your personal information to any aggrieved third party, their agent or to any law enforcement agency). We may also share personal information with service providers who help with our business operations.</p>
-<h2>Cookies</h2>
-<ul>
-    <li><p>Our website uses cookies, web beacons, and third-parties to provide you with services that support your buying and selling activities within our online marketplace. To protect your privacy, use of these tools is limited.</p></li>
-    <li><p>Mourjan and third-party vendors, including Google, use first-party cookies (such as the Google Analytics cookies) and third-party cookies (such as the DoubleClick cookie) together to report how Mourjan's ad impressions, other uses of ad services, and interactions with these ad impressions and ad services are related to visits to Mourjan.</p></li>
-</ul>
-<h2>About cookies</h2>
+<h4>Cookies</h4>
+    <p>Our website uses cookies, web beacons, and third-parties to provide you with services that support your buying and selling activities within our online marketplace. To protect your privacy, use of these tools is limited.</p>
+    <p>Mourjan and third-party vendors, including Google, use first-party cookies (such as the Google Analytics cookies) and third-party cookies (such as the DoubleClick cookie) together to report how Mourjan's ad impressions, other uses of ad services, and interactions with these ad impressions and ad services are related to visits to Mourjan.</p>
+<h4>About cookies</h4>
 <p>Cookies are small files placed on the hard drive of your computer. Mourjan uses both persistent/permanent and session cookies to provide services to you and help ensure account security. Most cookies are 'session cookies', meaning that they are automatically deleted from your hard drive once you end your session (log out or close your browser).</p>
-<h2>Mourjan uses cookies on certain pages of the website to:</h2>
-<ul>
-    <li><p>Enable you to enter your password less frequently during a session.</p></li>
-    <li><p>Provide information that is targeted to your interests.</p></li>
-    <li><p>Promote and enforce trust and safety.</p></li>
-    <li><p>Offer certain features that are only available through the use of cookies.</p></li>
-    <li><p>Measure promotional effectiveness.</p></li>
-    <li><p>Analyse our site traffic.</p></li>
-</ul>
-<h2>Cookies we use for trust and safety</h2>
+<h4>Mourjan uses cookies on certain pages of the website to:</h4>
+    <p>Enable you to enter your password less frequently during a session.</p>
+    <p>Provide information that is targeted to your interests.</p>
+    <p>Promote and enforce trust and safety.</p>
+    <p>Offer certain features that are only available through the use of cookies.</p>
+    <p>Measure promotional effectiveness.</p>
+    <p>Analyse our site traffic.</p>
+<h4>Cookies we use for trust and safety</h4>
 <p>Mourjan uses cookies, to help ensure that your account security is not compromised and to spot irregularities in behaviour to prevent your account from being fraudulently taken over.</p>
-<h2>Your choices about cookies</h2>
+<h4>Your choices about cookies</h4>
 <p>We offer certain features that are only available through the use of a cookie. You're always free to decline cookies if your browser permits. However, if you decline cookies, you may not be able to use certain features on the website, and you may be required to re-enter your password more frequently during a session.</p>
-<h2>Web beacons</h2>
+<h4>Web beacons</h4>
 <p>A web beacon is an electronic image, called a single-pixel (1x1) or clear GIF placed in the web page code. Web beacons serve many of the same purposes as cookies. In addition, web beacons are used to track the traffic patterns of users from one page to another in order to maximise web traffic flow.</p>
-<h2>Use of cookies and web beacons by third parties</h2>
+<h4>Use of cookies and web beacons by third parties</h4>
 <p>We may work with other companies who place cookies or web beacons on our websites. These service providers help operate our websites, by for example compiling anonymous site metrics and analytics. We require these companies to use the information they collect only to provide us with these services under contract, and not for their own purposes.</p>
 <p>We don't permit third-party content on Mourjan (such as item listings) to include cookies or web beacons. If you believe a listing might be collecting personal information or using cookies, please report it to support@berysoft.com.</p>
-<h2>Using Information from Mourjan</h2>
+<h4>Using Information from Mourjan</h4>
 <p>You may use personal information gathered from Mourjan only to follow up with another user about a specific posting, not to send spam or collect personal information from someone who hasn't agreed to that.</p>
-<h2>Marketing</h2>
+<h4>Marketing</h4>
 <p>If you do not wish to receive marketing communications from us, you can simply email us at any time.</p>
-<h2>Remarketing with Google Analytics</h2>
-<ul>
-    <li><p>Mourjan uses Remarketing with Google Analytics to advertise online.</p></li>
-    <li><p>Third-party vendors, including Google, show Mourjan ads on sites across the Internet.</p></li>
-    <li><p>Mourjan and third-party vendors, including Google, use first-party cookies (such as the Google Analytics cookie) and third-party cookies (such as the DoubleClick cookie) together to inform, optimize, and serve ads based on someone's past visits to Mourjan.</p></li>
-</ul>
-<h2>Security</h2>
+<h4>Remarketing with Google Analytics</h4>
+    <p>Mourjan uses Remarketing with Google Analytics to advertise online.</p>
+    <p>Third-party vendors, including Google, show Mourjan ads on sites across the Internet.</p>
+    <p>Mourjan and third-party vendors, including Google, use first-party cookies (such as the Google Analytics cookie) and third-party cookies (such as the DoubleClick cookie) together to inform, optimize, and serve ads based on someone's past visits to Mourjan.</p>
+<h4>Security</h4>
 <p>We use many tools to protect your personal information against unauthorized access and disclosure, but as you probably know, nothing's perfect, so we make no guarantees.</p>
-<h2>General</h2>
+<h4>General</h4>
 <p>We may update this policy at any time, with updates taking effect when you next post or after 30 days, whichever is sooner. If we or our corporate affiliates are involved in a merger or acquisition, we may share personal information with another company, and this other company shall be entitled to share your personal information with other companies but at all times otherwise respecting your personal information in accordance with this policy.</p>
 <p><b>Privacy Policy updated 4 Oct 2013</b></p><?php
+                echo '</div></div>';
                 break;
             default:
                 break;

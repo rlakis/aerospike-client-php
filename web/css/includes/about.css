@@ -1,14 +1,5 @@
 
-.card-doc {
-    border-radius: 6px;
-    box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.2);
-    margin-top:0;
-    margin-bottom:100px;
-    padding:20px;
-    line-height: 1.5em;
-}
 
-.card-doc .card-title{color:#3C4858;text-align:center;}
 .card-doc .col-9{display: block;}
 .card-doc .col-3{display: block;padding-inline-start:40px;}
 .card-doc .addr{height: 92px;}

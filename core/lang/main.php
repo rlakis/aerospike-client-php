@@ -597,7 +597,7 @@ $lang=array(
     . '<li class="clr"><ul class="g1"><li>{IMG6}<br />Bottom Banner</li></ul></li>'
     . '<li class="alt">Finally, premium ads have a <b>premium ad</b> <span class="vpdi en"></span> label which reflects more credibility to the ad listing.</li>',
     'back_to_gold'      =>  'Back To Mourjan Gold',
-    'gold_p2'       =>  'One Mourjan gold <span class="mc24"></span> is equal to one day of premium ad listing. click on <a href="/premium/en/">premium ad</a> to find out more about premium listing service.',
+    'gold_p2'       =>  'One Mourjan gold <i class="icn icnsmall icn-coin"></i> is equal to one day of premium ad listing. click on <a href="/premium/en/">premium ad</a> to find out more about premium listing service.',
     'gold_p2_0'       =>  '<b>Also please note</b> that if for example you choose to make your ad premium for 10 days for the value of 10 gold, the 10 gold will not be instantly deducted from your balance. Instead 1 gold will be deducted on daily basis for each new day of premium listing until:<ul class="listnote"><li>the specified 10 days have expired</li><li>you have 0 gold left in your balance</li><li>you chose to end the premium listing</li><li>you chose to stop the ad</li></ul>',
     'gold_p2_1'       =>  'Pricing for Mourjan gold packages are as follows:',
     'gold_p2_2'       =>  '<li><ul><li>1 Gold</li><li class="ctr">=</li><li>1 USD</li></ul></li>'
@@ -606,10 +606,10 @@ $lang=array(
     . '<li><ul><li>21 Gold</li><li class="ctr">=</li><li>13 USD</li></ul></li>'
     . '<li><ul><li>30 Gold</li><li class="ctr">=</li><li>18 USD</li></ul></li>'
     . '<li><ul><li>100 Gold</li><li class="ctr">=</li><li>50 USD</li></ul></li>',
-    'gold_p2_3'       =>  '<b>nb: prices are in US dollar and may be subject to VAT (value added tax)</b>',
-    'gold_p2_5_0'       =>  'Mourjan gold can be purchased directly using your credit card. Click on the cards to choose/purchase the package that is best suitable for you or keep on reading to find out other payment options.<div class="btH"><a href="/buyu/en/"><span class="credits"></span></a></div>',
-    'gold_p2_5'       =>  'Also, Mourjan gold can be purchased using <a href="https://www.paypal.com/" target="_blank"><img width=100 height=26 class="ick" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/PP_logo_h_100x26.png" alt="PayPal" /></a>',// OR <a href="https://sandbox.cashu.com/" target="_blank"><img class="ick" src="https://images.cashu.com/images/cashULogo/en/92-54.jpg" border="0" width="92" height="54" ></a>',
-    'gold_p2_6'       =>  'If you have a <b>PayPal</b> account and would like to purchase gold now, click on the suitable button below or continue reading for alternatives',
+    'gold_p2_3'     => '<b>nb: prices are in US dollar and may be subject to VAT (value added tax)</b>',
+    'gold_p2_5_0'   => 'Mourjan gold can be purchased directly using your credit card. Click on the cards to choose/purchase the package that is best suitable for you or keep on reading to find out other payment options.<div class="btH"><a href="/buyu/en/"><span class="credits"><i class="icn visa"></i><i class="icn mc"></i></span></a></div>',
+    'gold_p2_5'     => 'Also, Mourjan gold can be purchased using <a href="https://www.paypal.com/" target="_blank"><img width=100 height=26 class="ick" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/PP_logo_h_100x26.png" alt="PayPal" /></a>',// OR <a href="https://sandbox.cashu.com/" target="_blank"><img class="ick" src="https://images.cashu.com/images/cashULogo/en/92-54.jpg" border="0" width="92" height="54" ></a>',
+    'gold_p2_6'     => 'If you have a <b>PayPal</b> account and would like to purchase gold now, click on the suitable button below or continue reading for alternatives',
     'gold_p2_6_m'       =>  'If you have a <b>PayPal</b> account and would like to purchase gold now, click on the button below',
     'gold_p2_4'       =>  'As an alternative, mourjan gold can be purchased through mourjan app for <b>Apple</b> and <b>android</b>. If you do not have mourjan app yet and would like to download it, go to the <b>Google Play Store</b> or the <b>Apple App Store</b> from within your mobile and search for <b>mourjan</b> or click on one of the images below to go directly to the app page:',
     //'gold_p2_4'       =>  'mourjan gold can be purchased through mourjan app for <b>Apple</b> and <b>android</b>. If you do not have mourjan app yet and would like to download it, go to the <b>Google Play Store</b> or the <b>Apple App Store</b> from within your mobile and search for <b>mourjan</b> or click on one of the images below to go directly to the app page:',
@@ -617,12 +617,12 @@ $lang=array(
     'buy_gold_0'       =>  'Buying Gold Using Mourjan App',
     'buy_gold_1'       =>  'Click on one of the walkthroughs found below to find a step by step guide for buying mourjan gold in accordance to your mobile device:',
     
-    'guide_droid'       =>  '<li id="step1"><ul>'
+    'guide_droid'       =>  '<li id="step1"><ul style="display:block;">'
     . '<li>1</li>'
     . '<li class="t">The first time you run mourjan app you will be asked to choose desired <b>Language</b> and then to choose desired <b>Country/City</b> both of these settings can be changed anytime from within the application.</li>'
     . '<li>{IMG1}<br />1 - Choose Language</li>'
     . '<li>{IMG2}<br />2 - Choose Country/City</li>'
-    . '</ul></li><li id="step2"><ul>'
+    . '</ul></li><li id="step2"><ul style="display:block">'
     . '<li>2</li>'
     . '<li class="t tlong">Although most of mourjan app features can be used without signing in, before being able to purchase mourjan gold you will be required to <b>Connect With Mourjan</b> (sign in in other words) and that is for one good reason; we do not want you to lose the gold that you purchase.<br /><br />'
     . 'To connect with mourjan:'
@@ -637,7 +637,7 @@ $lang=array(
     . '<li>{IMG3}<br />1 - Go To Settings</li>'
     . '<li>{IMG4}<br />2 - Tap Connect With Mourjan</li>'
     . '<li>{IMG5}<br />3 - Choose An Account</li>'
-    . '</ul></li><li id="step3"><ul>'
+    . '</ul></li><li id="step3"><ul style="display:block">'
     . '<li>3</li>'
     . '<li class="t">Once connected, you will be automatically redirected to home screen where you will instantly notice a new feature called <b>Account Balance</b>.<br />Tap on it to go to the <b>mourjan gold</b> buying screen.<br />'
     . '<br />After completing your purchase, your account will be credited with the amount of gold that you have purchased.<br />'
@@ -648,8 +648,8 @@ $lang=array(
     . '</ul></li>',
     
     
-    'guide_apple'       =>  '<li id="step1"><ul>'
-    . '<li>1</li>'
+    'guide_apple' => '<div id=step1><ul style="display:block">'
+    . '<i>1</i>'
     . '<li class="t itlong">Before being able to purchase mourjan gold or even post an ad using mourjan app, you will be required to <b>Activate Your Account</b> by verifying your phone number.<br /><br />'
     . 'To activate your account:'
     . '<ul class="tld">'
@@ -665,7 +665,7 @@ $lang=array(
     . '<li>{IMG3}<br />3 - Go To Account Activation</li>'
     . '<li>{IMG4}<br />4 - Activate Account</li>'
     . '<li>{IMG5}<br />5 - Go Back To Home Screen</li>'
-    . '</ul></li><li id="step2"><ul>'
+    . '</ul></div><li id="step2"><ul>'
     . '<li>2</li>'
     . '<li class="t tlong">On home screen you will instantly notice a new feature called <b>My Balance is 0 coins</b><br /><br />'
     . 'To proceed with buying mourjan gold:'

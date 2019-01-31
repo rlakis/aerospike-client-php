@@ -5,7 +5,7 @@ p.pad{margin:0;padding:5px 10px}
 .ar .prices ul li{float:right}
 li.ctr{width:50px!important}
 .alt{background-color:#ececec;}
-.alinks{overflow:hidden;margin:0!important;list-style:none!important}
+.alinks{display:block !important;overflow:hidden;margin:0!important;list-style:none!important}
 .alinks li{float:left;width:50%;text-align:center;}
 .android{margin:0}
 .ar{line-height:25px}
@@ -14,4 +14,7 @@ li.ctr{width:50px!important}
 .bt:hover{text-decoration:none!important}
 .ick{vertical-align:middle}
 hr{display: block; height: 1px;border: 0; border-top: 1px solid powderblue;margin:20px 0}
-/*.credits{width:338px;height:110px;margin-bottom:20px;display:inline-block;background:url('.$this->router()->cfg['url_css'].'/i/creditcards'.$this->router()->_jpg.') no-repeat center}  */
+
+.credits {text-align: center;margin-bottom: 40px;}
+.credits .mc{width:160px;height:100px;background:url(/web/css/1.0/assets/mc.svg) no-repeat 50% 50%; background-size: contain;}
+.credits .visa{width:160px;height:100px;background:url(/web/css/1.0/assets/visa.svg) no-repeat 50% 50%;background-size: contain;}

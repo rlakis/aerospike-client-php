@@ -1,0 +1,19 @@
+.uld{list-style:none!important;margin:0!important;display:block!important}
+.uld > li{padding:5px;border-bottom:1px solid #CCC;padding-top:30px}
+.uld > li:last-child{border:0}
+.alt{background-color:#ececec;}
+.uld > li > ul{list-style:none;overflow:hidden;margin:0!important}
+.uld > li > ul > li{float:left;width:210px;text-align:center;margin-bottom:30px}
+.uld > li > ul > li:first-child{margin-top:30px;margin-right:10px;width:50px;height:50px;font-size:40px;color:#FFF;line-height:46px;text-shadow: 2px 2px #666;background:url('https://www.mourjan.com/img/1.0.3/presentation2/radio.jpg') no-repeat top left}
+.uld > li > ul > li.t{margin-top:30px;width:250px;margin-right:10px;text-align:left}
+.tld{display:block!important;list-style-type:decimal!important;margin:15px 0 10px 30px!important}
+.tld li{width:100%;height:auto;margin-bottom:15px}
+.seic{vertical-align:middle}
+/*
+.tlong{height:500px}
+.itlong{height:900px}*/
+.ar .uld > li > ul > li{float:right}
+.ar .uld > li > ul > li:first-child{margin-right:0;margin-left:10px}
+.ar .uld > li > ul > li.t{margin-right:0;margin-left:10px;text-align:right}
+.ar .tld{margin:15px 30px 10px 0!important}
+.ar{line-height:25px}
