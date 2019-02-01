@@ -523,141 +523,100 @@ class Page extends Site {
     } */
 
     
-    function renderLoginPage() {
-        $lang='';
+    function renderLoginPage() : void {
+        \Config::instance()->incLibFile('phpqrcode');
+        echo '<div class=row><div class="col-12 sign">';
+        $keepme_in = (isset($this->user->params['keepme_in']) && $this->user->params['keepme_in']==0)?0:1;
         
-        $keepme_in = (isset($this->user->params['keepme_in']) && $this->user->params['keepme_in']==0) ? 0: 1;
-        
-        if ($this->router()->language != 'ar') $lang = $this->router()->language.'/';
-        if(isset($this->user->pending['login_attempt'])){
-            if($this->router()->language=='ar'){
+        if (isset($this->user->pending['login_attempt'])) {
+            if ($this->router()->isArabic()) {
                 ?><style type="text/css">.lgs .br{margin-top:20px}</style><?php
-            }else{
+            }
+            else {
                 ?><style type="text/css">.lgs .br{margin-top:32px}</style><?php
             }
         }
-        /* ?><div class="lgb"><ul class="drp"><?php
-                    ?><li><p class="ctr"><b><?= $this->lang['signin_m'] ?></b></p></li><?php
-                    ?><li><a class="bt fb" href="?provider=facebook">Facebook</a></li><?php
-                    ?><li><a class="bt tw" href="?provider=twitter">Twitter</a></li><?php
-                    ?><li><a class="bt lk" href="?provider=linkedin">LinkedIn</a></li><?php
-                    ?><li><a class="bt go" href="?provider=google">Google</a></li><?php
-                    ?><li><a class="bt ya" href="?provider=yahoo">Yahoo</a></li><?php
-                    ?><li><a class="bt wi" href="?provider=live">Windows Live</a></li><?php
-                    ?><li><p class="nb"><?= $this->lang['disclaimer'] ?></p></li><?php
-        ?></ul></div><?php */
-        if(!$this->isMobile){
-            //if(!$this->router()->cfg['site_production']){
-                include_once $this->router()->cfg['dir']. '/core/lib/phpqrcode.php';
-                $qrfile = dirname( $this->router()->cfg['dir'] ) . "/tmp/qr/".  session_id() . ".png";
-                QRcode::png("mourjan:login:".  session_id() . str_pad($this->router()->cfg['server_id'],4,'0', STR_PAD_LEFT) . str_pad(time(),16,'0', STR_PAD_LEFT), $qrfile, QR_ECLEVEL_L, 5 );
 
-                $sh = '0';
-                if (isset($_COOKIE['mourjan_user'])) {            
-                    $cook = json_decode($_COOKIE['mourjan_user']);            
-                    //error_log(var_export($_COOKIE['mourjan_user'], TRUE)."\n\n".$savePath);
+        
+        $qrfile = dirname( $this->router()->config()->get('dir')).'/tmp/qr/'.session_id().'.png';
+        QRcode::png('mourjan:login:'.session_id().str_pad($this->router()->config()->serverId, 4, '0', STR_PAD_LEFT) . str_pad(time(),16, '0', STR_PAD_LEFT), $qrfile, QR_ECLEVEL_L, 5);
 
-                    if (is_object($cook) && isset($cook->mu)) {
-                        $sh='1';
-                    }
-                }
-            
-                $redis = new Redis();
-                $redis->connect($this->router()->cfg['rs-host'], $this->router()->cfg['rs-port'], 1, NULL, 100); // 1 sec timeout, 100ms delay between reconnection attempts.
-                $redis->setOption(Redis::OPT_PREFIX, 'SESS:');
-                $redis->select(1);
-                $redis->setex(session_id(), 300, $this->router()->cfg['server_id'].':'.$sh);
-                $redis->close();
-            //}
-                
-            //if($this->router()->module=='signin'){
-                //if(!$this->router()->cfg['site_production']){
-                $data = file_get_contents($qrfile);
-                $type = pathinfo($qrfile, PATHINFO_EXTENSION);
-                $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-                //echo "<div class='list htn'><img width='185' height='185' src='{$this->router()->cfg['host']}/qr/".session_id().".png' />";
-                echo "<div class='list htn'><img width='185' height='185' src='{$base64}' />";
-                    echo '<span class="bt scan"><span class="apple"></span><span class="apple up"></span> '.$this->lang['hint_login_signin'].' <span class="apple up"></span><span class="apple"></span></span>';                    
-                /*    
-                }else{
-                    echo "<div class='list htn'>";
-                }*/
-                ?><a href="/signup/<?= $lang ?>" class="bt"><?= $this->lang['create_account'] ?></a></div><?php
-            /*}else{
-                ?><div class='list htn'><?= $this->lang['hint_login'] ?><a href="/signup/<?= $lang ?>" class="bt"><?= $this->lang['create_account'] ?></a></div><?php
-            }*/
-            ?><div class="lgs"><?php 
-        }
-            ?><form method="post" action="/a/<?= $lang ?>" onsubmit="lgi(this);return false;"><?php 
-                if(!$this->isMobile){
-                    ?><ul class="dpr"><?php
-                        ?><li class="h"><?= $this->lang['signin_mourjan'] ?></li><?php
-                        ?><li class="lbl"><?= $this->lang['email'] ?></li><?php
-                        ?><li class="fld"><input name="u" placeholder="my-email@gmail.com" onfocus="cle(this)" class="en" type="email" /></li><?php
-                        ?><li class="lbl"><?= $this->lang['password'] ?></li><?php
-                        ?><li class="fld"><input name="p" onfocus="cle(this)" placeholder="********" type="password" /></li><?php
-                        ?><li class="lbl"><input name="o" type="checkbox" <?= $keepme_in ? 'checked="checked"':'' ?> /> <?= $this->lang['keepme_in'] ?></li><?php
-                        ?><li class="cap"><div class="g-recaptcha" data-sitekey="<?= $this->router()->cfg['recap-key'] ?>"></div></li><?php
-                        if(isset($this->user->pending['login_attempt'])) {
-                            ?><li class="nl"><span><span class="fail"></span><?= $this->lang['login_error'] ?></span></li><?php                    
-                        }elseif(isset($this->user->pending['login_attempt_captcha'])) {
-                            ?><li class="nl"><span><span class="fail"></span><?= $this->lang['login_error_captcha'] ?></span></li><?php                    
-                        }
-                        $uri = $this->router()->uri;
-                        if(preg_match('/signin/',$this->router()->uri)){
-                            $uri = '/home/'.$lang;
-                        }
-                        ?><li class="ctr"><input name='r' type="hidden" value="<?= $uri ?>" /><input type="submit" class="bt" value="<?= $this->lang['signin'] ?>" /></li><?php
-                        ?><li class="<?= $this->router()->language ?> nobr"><a class="lnk" href="/signup/<?= $lang ?>"><?= $this->lang['create_account'] ?></a></li><?php
-                        ?><li class="<?= $this->router()->language ?> nobr"><a class="lnk" href="/password/<?= $lang ?>"><?= $this->lang['forgot_pass'] ?></a></li><?php
-                        
-                    ?></ul><?php
-                }else{
-                    ?><ul class="ls po"><?php
-                        ?><li class="h"><b><?= $this->lang['email'] ?></b></li><?php
-                        ?><li><div class="ipt"><input name="u" placeholder="my-email@gmail.com" onfocus="cle(this)" class="en" type="email" /></div></li><?php
-                        ?><li class="h"><b><?= $this->lang['password'] ?></b></li><?php
-                        ?><li><div class="ipt"><input name="p" onfocus="cle(this)" placeholder="********" type="password" /></div></li><?php
-                        ?><li onclick="skO(this)" class="ckn button<?= $keepme_in ? ' on':'' ?>"><input name="o" type="hidden" value="<?= $keepme_in ?>" /><b class="ah"><?= $this->lang['keepme_in'] ?><span class="cbx"></span></b></li><?php  
-                        ?><li class="recap"><div class="g-recaptcha" data-sitekey="<?= $this->router()->cfg['recap-key'] ?>"></div></li><?php
-                        if(isset($this->user->pending['login_attempt'])) {
-                            ?><li class="nl"><b><span class="fail"></span><?= $this->lang['login_error'] ?></b></li><?php                    
-                        }elseif(isset($this->user->pending['login_attempt_captcha'])) {
-                            ?><li class="nl"><span><span class="fail"></span><?= $this->lang['login_error_captcha'] ?></span></li><?php                    
-                        }
-                        ?><li><b class="ah ctr act"><input name='r' type="hidden" value="<?= $this->router()->uri ?>" /><input type="submit" class="bt" value="<?= $this->lang['signin'] ?>" /></b></li><?php
-                        ?><li class="<?= $this->router()->language ?> br"><a href="/signup/<?= $lang ?>" class="lnk"><?= $this->lang['create_account'] ?></a></li><?php
-                        ?><li class="<?= $this->router()->language ?> br"><a class="lnk" href="/password/<?= $lang ?>"><?= $this->lang['forgot_pass'] ?></a></li><?php
-                    ?></ul><?php
-                }
-             ?></form><?php 
-            if(!$this->isMobile){
-                ?><ul class="drp"><?php
-                    ?><li class="h"><?= $this->lang['signin_m'] ?></li><?php
-                    ?><li><a class="bt fb" href="?provider=facebook">Facebook</a></li><?php
-                    ?><li><a class="goobt" href="?provider=google"><img src="<?= $this->router()->cfg['url_img']?>/google-login<?= $this->router()->_png ?>" /></a></li><?php
-                    ?><li><a class="bt tw" href="?provider=twitter">Twitter</a></li><?php
-                    ?><li><a class="bt ya" href="?provider=yahoo">Yahoo</a></li><?php
-                    ?><li><a class="bt lk" href="?provider=linkedin">LinkedIn</a></li><?php
-                    ?><li><a class="bt wi" href="?provider=live">Windows Live</a></li><?php
-                ?></ul><?php
-                ?></div><?php
-                ?><div class="sha shau sh <?= $this->router()->language ?> rc w"><div class="fr"><label><?= $this->lang['NB'] ?></label><?php 
-                    ?><ul><?php 
-                        ?><li><?= $this->lang['disclaimer'] ?></li><?php
-                        ?><li><?= $this->lang['disclaimer_social'] ?></li><?php
-                    ?></ul><?php
-                ?></div></div><?php
-                
-                
-            }else{
-                ?><div class="str <?= $this->router()->language ?>"><br /><label><?= $this->lang['NB'] ?></label><?php 
-                    ?><ul><?php 
-                        ?><li><?= $this->lang['disclaimer'] ?></li><?php
-                        ?><li><?= $this->lang['disclaimer_social'] ?></li><?php
-                    ?></ul><?php
-                ?></div><?php
+        $sh = '0';
+        $mu = filter_input(INPUT_COOKIE, 'mourjan_user', FILTER_SANITIZE_STRING);
+        if ($mu) {            
+            $cook = json_decode($mu);            
+            if (is_object($cook) && isset($cook->mu)) {
+                $sh='1';
             }
+        }
+
+        $redis = new Redis();
+        $redis->connect($this->router()->config()->get('rs-host'), $this->router()->config()->get('rs-port'), 1, NULL, 100); 
+        $redis->setOption(Redis::OPT_PREFIX, 'SESS:');
+        $redis->select(1);
+        $redis->setex(session_id(), 300, $this->router()->config()->serverId.':'.$sh);
+        $redis->close();
+
+        $data = file_get_contents($qrfile);
+        $type = pathinfo($qrfile, PATHINFO_EXTENSION);
+        $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        
+        
+        
+        ?><div class="card card-doc"><?php
+        ?><div class="title"><h5><?= $this->lang['signin_mourjan'] ?></h5></div><?php
+        ?><form method="post" action="<?= $this->router()->getLanguagePath('/a/') ?>" onsubmit="lgi(this);return false;"><?php 
+        ?><div class="card-content"><?php
+        ?>
+            <br><div class=group><input class="en" name="u" type=email required><span class=highlight></span><span class=bar></span><label><?= $this->lang['email'] ?></label></div>
+            <div class=group><input name="p" type=password required><span class=highlight></span><span class=bar></span><label><?= $this->lang['password'] ?></label></div>
+            <div class=chkbox style="padding-bottom:20px"><input name=o type=checkbox <?= $keepme_in ? 'checked':'' ?>><span><?= $this->lang['keepme_in'] ?></span></div>
+            <div class="g-recaptcha" data-sitekey="<?= $this->router()->config()->get('recap-key') ?>"></div>
+            
+            <?php           
+            if (isset($this->user->pending['login_attempt'])) {
+                ?><p class="nl"><span><span class="fail"></span><?= $this->lang['login_error'] ?></span></p><?php                    
+            }
+            elseif (isset($this->user->pending['login_attempt_captcha'])) {
+                ?><p class="nl"><span><span class="fail"></span><?= $this->lang['login_error_captcha'] ?></span></p><?php                    
+            }
+            $uri = $this->router()->uri;
+            if (preg_match('/signin/',$this->router()->uri)) {
+                $uri = $this->router()->getLanguagePath('/home/');
+            }
+            ?><p class=ctr><input name='r' type="hidden" value="<?= $uri ?>" /><input type="submit" class="bt" value="<?= $this->lang['signin'] ?>" /></p><?php            
+                        
+        ?>
+            <p><a class=lnk href="<?= $this->router()->getLanguagePath('/signup/') ?>"><?= $this->lang['create_account'] ?></a></p>
+            <p><a class=lnk href="<?= $this->router()->getLanguagePath('/password/') ?>"><?= $this->lang['forgot_pass'] ?></a></p>
+        </div><?php                
+        ?></form></div><?php
+        
+        ?><div class="card card-doc"><?php
+        ?><div class="title"><h5><?= $this->lang['signin_m'] ?></h5></div><?php
+        ?><div class="card-content"><ul class=drp><?php            
+            ?><li><a class="bt fb" href="?provider=facebook">Facebook</a></li><?php
+            ?><li><a class="goobt" href="?provider=google"><img src="<?= $this->router()->config()->imgURL?>/google-login<?= $this->router()->_png ?>" /></a></li><?php
+            ?><li><a class="bt tw" href="?provider=twitter">Twitter</a></li><?php
+            ?><li><a class="bt ya" href="?provider=yahoo">Yahoo</a></li><?php
+            ?><li><a class="bt lk" href="?provider=linkedin">LinkedIn</a></li><?php
+            ?><li><a class="bt wi" href="?provider=live">Windows Live</a></li><?php
+        ?></ul><?php
+        ?></div></div><?php
+        
+        
+        echo '<div class="card card-doc"><img width=185 height=185 src="', $base64, '" />';
+        echo '<span class="bt scan"><span class=apple></span><span class="apple up"></span> ', 
+            $this->lang['hint_login_signin'],
+            ' <span class="apple up"></span><span class=apple></span></span>';
+        ?><a href="<?= $this->router()->getLanguagePath('/signup/') ?>" class=bt><?= $this->lang['create_account'] ?></a><?php
+        echo '</div>';
+        
+        echo '</div></div>'; // close signin div
+        
+        ?><div class="col-12"><div class="card card-doc"><div class="card-title"><h4><?= $this->lang['NB'] ?></h4></div><?php 
+        ?><div class="card-content"><p>&bull;&nbsp;<?= $this->lang['disclaimer'] ?></p><p>&bull;&nbsp;<?= $this->lang['disclaimer_social'] ?></p></div><?php
+        ?></div></div><?php                                
             
             
         $this->globalScript.='var lgi,uin,pin,cle;';
@@ -680,21 +639,23 @@ class Page extends Site {
                 }
             };
             cle=function(e){$(e).removeClass("err")};';
-        /* ?><div class="sum rc"><div class="brd"><h1><?= $this->lang['loginTo'].$this->title ?></h1></div><p><?= $this->lang['hint_login']; ?></p></div><br /><br /><div class="fake"></div><?php */
-           $this->requireLogin=true;
-        if(isset($this->user->pending['login_attempt'])){
+        $this->requireLogin=true;
+           
+        if (isset($this->user->pending['login_attempt'])) {
             unset($this->user->pending['login_attempt']);
             $this->user->update();
         }
-        if(isset($this->user->pending['login_attempt_captcha'])){
+        if (isset($this->user->pending['login_attempt_captcha'])) {
             unset($this->user->pending['login_attempt_captcha']);
             $this->user->update();
         }
+        
+        echo '</div></div>';
     }
 
     
-    function renderDisabledPage()
-    {
+    
+    function renderDisabledPage() {
         ?><div class="sum rc"><div class="brd"><h1><?= $this->lang['title_not_supported'] ?></h1></div><p><?= $this->lang['hint_not_supported']; ?></p></div><div class="fake"></div><?php
     }
 
@@ -2937,8 +2898,6 @@ class Page extends Site {
     function _main_pane(){
         ?><div class='col1'><?php
             $this->main_pane();
-//            if ( ($this->router()->module=='detail' || $this->router()->params['start']<2) && $this->searchResults!==false && !($this->router()->watchId && !$this->searchResults['total_found']) )
-//                echo $this->fill_ad('zone_4', 'ad_w');
         ?></div><?php 
     }
     
@@ -3843,12 +3802,6 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             
             //menu slider vars
             ?>tmr,tmu,tmd,func,fupc,mul,menu,mp,<?php
-            //if ($this->router()->cfg['enabled_disqus'] && $this->router()->module=='detail' && !$this->detailAdExpired && $this->detailAd[Classifieds::PUBLICATION_ID]==1) {
-            //    disqus_shortname = 'mourjan',disqus_config=function(){this.language = 'en'},disqus_identifier = '<?= $this->detailAd[Classifieds::ID] ',
-            //}
-            //elseif ($this->router()->cfg['enabled_disqus'] && $this->router()->module=='myads'){
-            //    disqus_shortname = 'mourjan',disqus_config=function(){this.language = 'en'},
-            //}
             
             if ($this->stat) {
                 $this->stat['page']=($this->router()->params['start']) ? $this->router()->params['start'] : 1;
@@ -4058,13 +4011,6 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                     break;
                 case 'post':
                     if($this->user->info['id'] && $this->isUserMobileVerified){                    
-                        /*if($this->user->info['id'] && $this->user->info['level']==9 && $this->router()->module=='post'){
-                            if($this->router()->cfg['site_production']){
-                                $requires[] ='https://h5.mourjan.com/js/3.0.7/pvc.js';
-                            }else{
-                                $requires[] =  $this->router()->cfg['url_js'] . '/pvc.js';
-                            }
-                        }*/
                         $requires[] = $this->router()->cfg['url_js'] . '/post.js';
                     }elseif($this->user->info['id']){
                         $requires[] = $this->router()->cfg['url_jquery'] . 'select2.min.js';
@@ -4960,6 +4906,10 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             case 'iguide':
                 include $this->router()->config()->baseDir.'/web/css/includes/doc.css';
                 include $this->router()->config()->baseDir.'/web/css/includes/guide.css';
+                break;
+            
+            case 'buyu':
+                include $this->router()->config()->baseDir.'/web/css/includes/doc.css';
                 break;
             
             default:

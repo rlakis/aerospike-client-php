@@ -588,17 +588,17 @@ $lang=array(
     'gold_subtitle'        =>  'Make your ad premium with Mourjan gold',
     'gold_desc'        =>  'Make your ads premium with Mourjan gold. Find out how you can purchase Mourjan gold and use that gold to make your ads top listed',
     'gold_p1_title'            =>  'what is a Premium ad?',
-    'gold_p1_desc'      =>  '<li>Premium ads are always displayed on <b>top of the list</b> and above regular free ads.</li>'
-    . '<li>Premium ads have a <b>golden</b> background color to attract readers\' attention.</li>'
-    . '<li class="clr"><ul class="g3"><li>{IMG1}<br />Desktop Website</li><li>{IMG2}<br />Mobile Website</li><li>{IMG3}<br />Mourjan App (Apple|Android)</li></ul></li>'
-    . '<li class="alt">Premium ads are rotated and displayed on <b>top side of other section pages</b> to allow maximum exposure. <b>(available only on the desktop version of the website)</b></li>'
-    . '<li class="clr alt"><ul class="g2"><li>{IMG4}<br />Top Side</li><li>{IMG5}<br />On Hover Expansion</li></ul></li>'
-    . '<li>Premium ads are rotated and displayed on the <b>bottom of other section pages</b> to allow maximum exposure. <b>(available only on the mobile version of the website)</b></li>'
-    . '<li class="clr"><ul class="g1"><li>{IMG6}<br />Bottom Banner</li></ul></li>'
-    . '<li class="alt">Finally, premium ads have a <b>premium ad</b> <span class="vpdi en"></span> label which reflects more credibility to the ad listing.</li>',
+    'gold_p1_desc'      =>  '<p>&bull;&nbsp;Premium ads are always displayed on <b>top of the list</b> and above regular free ads.</p>'
+    . '<p>&bull;&nbsp;Premium ads have a <b>golden</b> background color to attract readers\' attention.</p>'
+    . '<div class=row><div class=col-12 style="justify-content: space-between;text-align: center;padding-top: 12px;padding-bottom: 36px;"><span style="float:left">{IMG1}<br>Desktop Website</span><span style="float:left">{IMG2}<br>Mobile Website</span><span>{IMG3}<br>Mourjan App (Apple|Android)</span></div></div>'
+    . '<p>&bull;&nbsp;Premium ads are rotated and displayed on <b>top side of other section pages</b> to allow maximum exposure. <b>(available only on the desktop version of the website)</b></p>'
+    . '<div class=row><div class=col-12 style="justify-content: space-between;text-align: center;padding-top: 12px;padding-bottom: 36px;"><span>{IMG4}<br>Top Side</span><span>{IMG5}<br>On Hover Expansion</span></div></div>'
+    . '<p>&bull;&nbsp;Premium ads are rotated and displayed on the <b>bottom of other section pages</b> to allow maximum exposure. <b>(available only on the mobile version of the website)</b></p>'
+    . '<div class=row><div class=col-12 style="justify-content: space-between;text-align: center;padding-top: 12px;padding-bottom: 36px;"><span>{IMG6}<br>Bottom Banner</span></div></div>'
+    . '<p>&bull;&nbsp;Finally, premium ads have a <b>premium ad</b> <span class="vpdi en"></span> label which reflects more credibility to the ad listing.</p>',
     'back_to_gold'      =>  'Back To Mourjan Gold',
     'gold_p2'       =>  'One Mourjan gold <i class="icn icnsmall icn-coin"></i> is equal to one day of premium ad listing. click on <a href="/premium/en/">premium ad</a> to find out more about premium listing service.',
-    'gold_p2_0'       =>  '<b>Also please note</b> that if for example you choose to make your ad premium for 10 days for the value of 10 gold, the 10 gold will not be instantly deducted from your balance. Instead 1 gold will be deducted on daily basis for each new day of premium listing until:<ul class="listnote"><li>the specified 10 days have expired</li><li>you have 0 gold left in your balance</li><li>you chose to end the premium listing</li><li>you chose to stop the ad</li></ul>',
+    'gold_p2_0'       =>  '<b>Also please note</b> that if for example you choose to make your ad premium for 10 days for the value of 10 gold, the 10 gold will not be instantly deducted from your balance. Instead 1 gold will be deducted on daily basis for each new day of premium listing until:<div class="listnote"><p>&bull;&nbsp;the specified 10 days have expired</p><p>&bull;&nbsp;you have 0 gold left in your balance</p><p>&bull;&nbsp;you chose to end the premium listing</p><p>&bull;&nbsp;you chose to stop the ad</p></div>',
     'gold_p2_1'       =>  'Pricing for Mourjan gold packages are as follows:',
     'gold_p2_2'       =>  '<li><ul><li>1 Gold</li><li class="ctr">=</li><li>1 USD</li></ul></li>'
     . '<li><ul><li>7 Gold</li><li class="ctr">=</li><li>5 USD</li></ul></li>'

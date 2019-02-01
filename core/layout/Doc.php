@@ -7,13 +7,13 @@ class Doc extends Page{
         header('Vary: User-Agent');
         parent::__construct($router); 
         if ($this->router()->module=='buy' || $this->router()->module=='buyu') {
-            if ($this->router()->cfg['active_maintenance']) {
+            if ($this->router()->config()->get('active_maintenance')) {
                 $this->user()->redirectTo($this->router()->getLanguagePath('/maintenance/'));
             }
             $this->checkBlockedAccount();            
         }
                            
-        if ($this->router()->module=='publication-prices'){
+        if ($this->router()->module=='publication-prices') {
             if ($this->router()->isArabic()) { 
                 $this->inlineCss.='.doc ul{list-style:none;margin:0 !important;overflow:hidden}.doc li{float:right;padding:5px;border-left:1px solid #CCC;border-bottom:1px solid #CCC}.doc li.h{font-weight:bold;background-color:#143D55 !important;color:#fff;font-size:13px;border-left:1px solid #fff}.h.v4{border-left:1px solid #CCC !important}li.v1,li.v2,li.v3,li.v4{border-top:1px solid #ccc;background-color:#143D55;color:#FFF}li.h.v1,li.h.v2,li.h.v3,li.h.v4{border-bottom:0}li.v1{width:247px;border-right:1px solid #ccc}li.v2{width:89px;text-align:center}li.v3{width:109px;text-align:center}li.v4{width:259px}ul a{color:#FFF}li.v10,li.v11,li.v12,li.v13,li.v14,li.v15,li.v16{text-align:center;width:85px;font-size:11.5px !important}li.h.v10,li.h.v11,li.h.v12,li.h.v13,li.h.v14,li.h.v15,li.h.v16{background-color:#3087B4 !important;border-top:0}li.v10{margin-right:50px;width:197px;text-align:right;border-right:1px solid #CCC}li.v11{width:70px}li.v12{width:74px}li.v15{width:121px}li.v15,li.v14{direction:ltr}li.h.v15,li.h.v14{direction:rtl}.h.v15{border-left:1px solid #CCC !important}li.br{width:100%;clear:both;border:0;height:25px;}li.v20{margin-right:50px;width:687px;border-right:1px solid #CCC;text-align:center;border-bottom:1px solid #369}.bv{background-color:#F8F8F8}';
             }
@@ -293,184 +293,9 @@ class Doc extends Page{
     function main_pane() {
         $adLang='';
         if (!$this->router()->isArabic()) { $adLang=$this->router()->language.'/'; }
-        switch ($this->router()->module){
+        switch ($this->router()->module) {
             case 'buyu':
-                if ($this->user->info['id']==0) { 
-                    echo '<div>';                    
-                    $this->renderLoginPage();
-                }
-                else {
-                    if($this->isMobile){                        
-                        $uid = $this->user->info['id'];
-                        $data = $this->user->getStatement($uid, 0, false, null, $this->urlRouter->siteLanguage);
-                        $hasError = 0;
-                        if($data && $data['balance']!==null){
-                            $subHeader = '<span class="mc24"></span>'.$data['balance'].' '.$this->lang['gold'];
-                        }else{
-                            $subHeader = '<br />';
-                            $hasError = 1;
-                        }
-                        ?><p class="ph phb db bph"><?php
-                            echo $subHeader.' ';
-                        ?></p><?php 
-                    }
-                    
-                    if ($this->urlRouter->siteLanguage=='ar') {
-                        echo '<div class="doc ar">';
-                    }else{
-                        echo '<div class="doc en">';
-                    }
-                    
-                    
-                    if ( !$this->user->info['email']) {
-                        $message = $this->lang['requireEmailPay'];
-                        if ( (isset($this->user->info['options']['email']) && isset($this->user->info['options']['emailKey']) )) {
-                            $message = preg_replace('/{email}/', $this->user->info['options']['email'], $this->lang['validateEmailPay']);                    
-                        }
-                        echo '<div class="htf">'.$message.'</div>';
-                    }else{
-                    
-                    if (isset($_GET['response_code']) && isset($_GET['command']) && isset($_GET['order_description'])) {
-                    //    error_log("called");
-                    //if(isset($_GET['payfort']) && $_GET['payfort']=='process'){
-                        require_once $this->urlRouter->cfg['dir'].'/core/lib/PayfortIntegration.php';
-                        
-                        $payFort = new PayfortIntegration();
-                        $payFort->setLanguage($this->urlRouter->siteLanguage);
-                        $payment = $payFort->processResponse();
-                        
-                        $success = true;
-                        $internalError = false;
-                        if(isset($payment['error_msg'])){
-                            $success = false;
-                        }
-                        
-                        $orderId = 0;
-                        $flag_id=0;
-                        if(isset($payment['merchant_reference'])){
-                            $orderId = preg_split('/-/', $payment['merchant_reference']);
-                            if($orderId && (count($orderId)==2 || count($orderId)==3) && is_numeric($orderId[0]) && is_numeric($orderId[1])){
-                                if($orderId[0] == $this->user->info['id']){
-                                    $orderId = (int)$orderId[1];
-                                    if(isset($orderId[2]) && $orderId[2]){
-                                        $flag_id = $orderId[2];
-                                    }
-                                }else{
-                                    $orderId=0;
-                                }
-                            }else{
-                                $orderId=0;
-                            }
-                        }
-                        
-                        if($orderId){
-                            if($success){
-                                $res = $this->urlRouter->db->queryResultArray(
-                                            "update t_order set state=?, msg=?,flag=? where id=? and uid=? and state=0 returning id",
-                                            [2, $payment['fort_id'],$flag_id, $orderId, $this->user->info['id']], TRUE);
-                                
-                                if($res !== false){
-                                    $goldCount = preg_replace('/[^0-9]/', '', $payment['order_description']);
-                                    $msg = preg_replace('/{gold}/', $goldCount, $this->lang['paypal_ok']);
-                                    echo "<div class='mnb rc'><p><span class='done'></span> {$msg}</p></div>";
-                                }else{
-                                    $msg = preg_replace('/{payfort}/', $payment['fort_id'], $this->lang['payfort_fail']);
-                                    echo "<div class='mnb rc'><p><span class='fail'></span> {$msg}</p></div>";
-                                }
-                                
-                                $this->user->update();
-                            }else{
-                                $state = 3;
-                                if( ($error_code = substr($payment['response_code'],-3))=="072"){
-                                    $state = 1;
-                                }
-                                echo "<div class='mnb rc'><p><span class='fail'></span> {$this->lang['paypal_failure']} {$payment['error_msg']}</p></div>";
-
-                                $res = $this->urlRouter->db->queryResultArray(
-                                            "update t_order set state=?, msg=?, flag=? where id=? and uid=? and state=0 returning id",
-                                            [$state, $payment['error_msg'], $flag_id, $orderId, $this->user->info['id']], TRUE);
-
-                                $this->user->update();
-                            }
-                        }
-                    }                    
-                
-                    $products = $this->urlRouter->db->queryCacheResultSimpleArray("products_payfort",
-                                        "select product_id, name_ar, name_en, usd_price, mcu, id  
-                                        from product 
-                                        where iphone=0 
-                                        and blocked=0 
-                                        and usd_price > 3 
-                                        order by mcu asc",
-                                        null, 0, $this->urlRouter->cfg['ttl_long'], TRUE);
-                    
-                    echo '<ul class="table">';
-                    $i=1;$j=0;
-                    foreach($products as $product){
-                        $alt = $i++%2;
-                        $product[3] = number_format($product[3],2);
-                        echo "<li>{$product[ $this->urlRouter->siteLanguage == 'ar' ? 1 : 2]}</li><li>{$product[3]} USD</li><li class='tt'>";
-                        $this->payforButton($product);
-                        echo "</li>";
-                        $j++;
-                    }
-                    
-                    echo '</ul>';
-                    
-                    ?><br /><br /><div class="bth ctr"><img width="288" height="60" src="<?= $this->urlRouter->cfg['url_css'] ?>/i/payfort<?= $this->urlRouter->_jpg ?>" alt="Verified by PAYFORT"></div><br /><?php
-                    
-        $this->globalScript .= '
-                var xhr;
-                function buy(i,f){                    
-                    f=$(f);
-                    var r=f.attr("ready");
-                    if(r=="true"){
-                        return true;
-                    }else{
-                        try{
-                            Dialog.show("paypro",null,function(){
-                                if(xhr && xhr.readyState != 4){
-                                    xhr.abort();
-                                }
-                            });
-                            xhr = $.ajax({
-                                type:"POST",
-                                url:"/ajax-pay/",
-                                data:{i:i,hl:lang},
-                                dataType:"json",
-                                success:function(rp){
-                                    if (rp.RP) {
-                                        f.attr("ready","true");
-                                        f.attr("action",rp.DATA.U);
-                                        f.prepend(rp.DATA.D);
-                                        f.submit();
-                                    }else {
-                                        errDialog();
-                                    }
-                                },
-                                error:function(){
-                                    errDialog();
-                                }
-                            })
-                        }catch(e){}
-                        return false;
-                    }
-                };
-                function errDialog(){
-                    Dialog.show("alert_dialog",\''.$this->lang['payment_redirect_fail'].'\');
-                };
-                ';
-        
-        ?><div id=paypro class=dialog><?php
-        ?><div class="dialog-box"><span class="loads load"></span><?= $this->lang['payment_redirect'] ?></div><?php 
-            ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /></div><?php 
-        ?></div><?php
-        ?><div id="alert_dialog" class="dialog"><?php
-                        ?><div class="dialog-box ctr"></div><?php 
-                        ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
-        ?></div><?php
-                    }
-                }
+                $this->renderBuyU();                
                 break;
                 
             case 'buy':
@@ -597,55 +422,11 @@ class Doc extends Page{
                 break;
                 
             case 'gold':
-                echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
-                echo '<h2 class="card-title">',$this->lang['gold_subtitle'], '</h2>';
-                
-                $imgPath = $this->router()->config()->imgURL.'/presentation2/';
-                
-                echo '<div class=col-12 style="display: block">';
-                echo '<p>', $this->lang['gold_p2'], '</p>';
-                echo "<p class='pad alt rc'>{$this->lang['gold_p2_1']}</p>";
-                echo "<ul class='prices alt rc'>{$this->lang['gold_p2_2']}</ul>";
-                echo "<p class='pad alt rc'>{$this->lang['gold_p2_3']}</p>";
-                echo "<br><p>{$this->lang['gold_p2_0']}</p>";
-                echo '<hr><h4 id=how-to>', $this->lang['buy_gold'], '</h4>';
-                echo '<p>', $this->lang['gold_p2_5_0'], '</p>';
-                echo "<p>{$this->lang['gold_p2_5']}</p>";
-                echo "<p>".$this->lang['gold_p2_6'.($this->isMobile ? '_m':'')]."</p>";
-                ?><div class="btH"><a href="<?= $this->router()->getLanguagePath('/buy') ?>"><img width="228" height="44" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png" alt="Buy now with PayPal" /></a></div><br /><?php 
-                ?><div class="btH"><a href="<?= $this->router()->getLanguagePath('/buy') ?>"><img width="319" height="110" src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg" alt="Buy now with PayPal" /></a></div><br /><?php 
-
-                echo '<p>', $this->lang['gold_p2_4'], '</p>';
-                echo '<ul class="alinks"><li><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class="android"></span></a></li><li><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class="ios"></span></a></li></ul>';
-                echo '<br><h4>', $this->lang['buy_gold_0'], '</h4>';
-                echo "<p>{$this->lang['buy_gold_1']}</p>";
-                echo '<ul class="alinks"><li><a href="'. $this->router()->getLanguagePath('/guide/') .'">', 
-                    '<img width=119 height=230 src="'.$imgPath.'guide'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" /></a></li>', 
-                    '<li><a href="/iguide/'.($this->router()->isArabic()?'':$this->router()->language.'/' ).'"><img width=119 height=230 src="'.$imgPath.'iguide'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" /></a></li></ul>';
-                
-                echo '</div></div></div>';
+                $this->renderGold();                
                 break;
                 
             case 'premium':
-                echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
-                echo '<h2 class="card-title">',$this->lang['gold_p1_title'], '</h2>';
-                echo '<div class=col-12 style="display: block"><ul class=uln><li>';
-                $imgPath = $this->router()->config()->imgURL.'/presentation2/';
-                $this->lang['gold_p1_desc'] = preg_replace(
-                        ['/{IMG1}/','/{IMG2}/','/{IMG3}/','/{IMG4}/','/{IMG5}/','/{IMG6}/'], 
-                            [
-                            '<img width=200 height=150 src="'.$imgPath.'desktop-premium'.$this->router()->_jpg.'" />',
-                            '<img width=74 height=150 src="'.$imgPath.'mobile-site-premium'.$this->router()->_jpg.'" />',
-                            '<img width=74 height=150 src="'.$imgPath.'app-premium'.$this->router()->_jpg.'" />',
-                            '<img width=300 height=228 src="'.$imgPath.'desktop-side-premium'.($this->router()->isArabic()?'-ar':'').$this->router()->_png.'" />',
-                            '<img width=300 height=228 src="'.$imgPath.'desktop-side-hover-premium'.($this->router()->isArabic()?'-ar':'').$this->router()->_png.'" />',
-                            '<img width=74 height=150 src="'.$imgPath.'mobile-bottom-premium'.$this->router()->_jpg.'" />'
-                            ], 
-                            $this->lang['gold_p1_desc']);
-                        
-                echo '<ul class=uld>', $this->lang['gold_p1_desc'], '</ul></li></ul>';                    
-                echo '<div class=btH><a class=bt href="', $this->router()->getLanguagePath('/gold/'), '">', $this->lang['back_to_gold'], '</a></div>';
-                echo '</div></div></div>';
+                $this->renderPremium();
                 break;
             
             case 'advertise':
@@ -831,41 +612,286 @@ class Doc extends Page{
                     ?></ul><br /><?php 
                 break;
                 
-            case 'about':            
-                echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
-                echo '<h2 class="card-title">About Mourjan.com</h2>';?>
-<div class="col-12" style="display:block">  
+            case 'about':
+                $this->renderAbout();               
+                break;
+            
+            case 'terms':
+                $this->renderTerms();
+                break;
+            
+            case 'privacy':
+                $this->renderPrivacy();
+                break;
+                        
+            default:
+                break;
+        }
+        echo "</div>";
+    }
+    
+    
+    private function renderGold() : void {
+        echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
+        echo '<h2 class="card-title">',$this->lang['gold_subtitle'], '</h2>';
+                
+        $imgPath = $this->router()->config()->imgURL.'/presentation2/';
+                
+        echo '<div class="col-12 block">';
+        echo '<p>', $this->lang['gold_p2'], '</p>';
+        //echo '<p class="pad alt rc">', $this->lang['gold_p2_1'], '</p>';
+        ?><div class="col-12"><table class="col-6 pricelist block"><caption><?= $this->lang['gold_p2_1'] ?></caption>
+            <tr><th>Quantity</th><th>Price</th></tr>
+            <tr><td>1 Gold</td><td align="right">$0.99</td></tr>
+            <tr><td>7 Gold</td><td align="right">$4.99</td></tr>
+            <tr><td>14 Gold</td><td align="right">$8.99</td></tr>
+            <tr><td>21 Gold</td><td align="right">$12.99</td></tr>
+            <tr><td>30 Gold</td><td align="right">$17.99</td></tr>
+            <tr><td>100 Gold</td><td align="right">$49.99</td></tr>
+            <tfoot><tr><td colspan="2"><?= $this->lang['gold_p2_3'] ?></td></tr></tfoot>
+            </table></div><br><?php
+        //echo "<ul class='prices alt rc'>{$this->lang['gold_p2_2']}</ul>";
+        //echo "<p class='pad alt rc'>{$this->lang['gold_p2_3']}</p>";
+        echo "<p>{$this->lang['gold_p2_0']}</p>";
+        echo '<hr><h4 id=how-to>', $this->lang['buy_gold'], '</h4>';
+        echo '<p>', $this->lang['gold_p2_5_0'], '</p>';
+        echo "<p>{$this->lang['gold_p2_5']}</p>";
+        echo "<p>".$this->lang['gold_p2_6'.($this->isMobile ? '_m':'')]."</p>";
+        ?><div class="btH"><a href="<?= $this->router()->getLanguagePath('/buy') ?>"><img width="228" height="44" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png" alt="Buy now with PayPal" /></a></div><br /><?php 
+        ?><div class="btH"><a href="<?= $this->router()->getLanguagePath('/buy') ?>"><img width="319" height="110" src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg" alt="Buy now with PayPal" /></a></div><br /><?php 
+
+        echo '<p>', $this->lang['gold_p2_4'], '</p>';
+        echo '<ul class="alinks"><li><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class="android"></span></a></li><li><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class="ios"></span></a></li></ul>';
+        echo '<br><h4>', $this->lang['buy_gold_0'], '</h4>';
+        echo "<p>{$this->lang['buy_gold_1']}</p>";
+        echo '<ul class="alinks"><li><a href="'. $this->router()->getLanguagePath('/guide/') .'">', 
+            '<img width=119 height=230 src="'.$imgPath.'guide'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" /></a></li>', 
+            '<li><a href="/iguide/'.($this->router()->isArabic()?'':$this->router()->language.'/' ).'"><img width=119 height=230 src="'.$imgPath.'iguide'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" /></a></li></ul>';
+                
+        echo '</div></div></div>';
+    }
+    
+    
+    private function renderPremium() : void {
+        echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
+        echo '<h2 class="card-title">',$this->lang['gold_p1_title'], '</h2>';
+        echo '<div class="col-12 block"><div><p>';
+        $imgPath = $this->router()->config()->imgURL.'/presentation2/';
+        $this->lang['gold_p1_desc'] = preg_replace(
+                        ['/{IMG1}/','/{IMG2}/','/{IMG3}/','/{IMG4}/','/{IMG5}/','/{IMG6}/'], 
+                        [
+                            '<img width=200 height=150 src="'.$imgPath.'desktop-premium'.$this->router()->_jpg.'" />',
+                            '<img width=74 height=150 src="'.$imgPath.'mobile-site-premium'.$this->router()->_jpg.'" />',
+                            '<img width=74 height=150 src="'.$imgPath.'app-premium'.$this->router()->_jpg.'" />',
+                            '<img width=300 height=228 src="'.$imgPath.'desktop-side-premium'.($this->router()->isArabic()?'-ar':'').$this->router()->_png.'" />',
+                            '<img width=300 height=228 src="'.$imgPath.'desktop-side-hover-premium'.($this->router()->isArabic()?'-ar':'').$this->router()->_png.'" />',
+                            '<img width=74 height=150 src="'.$imgPath.'mobile-bottom-premium'.$this->router()->_jpg.'" />'
+                        ], 
+                        $this->lang['gold_p1_desc']);
+                        
+        echo '<div class=uld>', $this->lang['gold_p1_desc'], '</div></li></div>';                    
+        echo '<div class=btH><a class=bt href="', $this->router()->getLanguagePath('/gold/'), '">', $this->lang['back_to_gold'], '</a></div>';
+        echo '</div></div></div>';        
+    }
+    
+    
+    private function renderBuyU() : void {        
+        if ($this->user->info['id']==0) { 
+            $this->renderLoginPage();
+            return;
+        }
+
+        echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
+                                        
+        if (!$this->user->info['email']) {
+            $message = $this->lang['requireEmailPay'];
+            if ((isset($this->user->info['options']['email']) && isset($this->user->info['options']['emailKey']))) {
+                $message = preg_replace('/{email}/', $this->user->info['options']['email'], $this->lang['validateEmailPay']);                    
+            }
+            echo '<div class="htf">'.$message.'</div>';
+        }
+        else {                    
+            if (isset($_GET['response_code']) && isset($_GET['command']) && isset($_GET['order_description'])) {
+                require_once $this->urlRouter->cfg['dir'].'/core/lib/PayfortIntegration.php';
+    
+                $payFort = new PayfortIntegration();
+                $payFort->setLanguage($this->urlRouter->siteLanguage);
+                $payment = $payFort->processResponse();
+
+                $success = true;
+                $internalError = false;
+                if (isset($payment['error_msg'])) {
+                    $success = false;
+                }
+                        
+                $orderId = 0;
+                $flag_id=0;
+                if (isset($payment['merchant_reference'])) {
+                    $orderId = preg_split('/-/', $payment['merchant_reference']);
+                    if ($orderId && (count($orderId)==2 || count($orderId)==3) && is_numeric($orderId[0]) && is_numeric($orderId[1])) {
+                        if ($orderId[0] == $this->user->info['id']) {
+                            $orderId = (int)$orderId[1];
+                            if (isset($orderId[2]) && $orderId[2]) {
+                                $flag_id = $orderId[2];
+                            }
+                        }
+                        else {
+                            $orderId=0;
+                        }
+                    }
+                    else {
+                        $orderId=0;
+                    }
+                }
+
+                if ($orderId) {
+                    if ($success) {
+                        $res = $this->router()->db->queryResultArray(
+                                    "update t_order set state=?, msg=?,flag=? where id=? and uid=? and state=0 returning id",
+                                    [2, $payment['fort_id'],$flag_id, $orderId, $this->user->info['id']], TRUE);
+
+                        if ($res!==false) {
+                            $goldCount = preg_replace('/[^0-9]/', '', $payment['order_description']);
+                            $msg = preg_replace('/{gold}/', $goldCount, $this->lang['paypal_ok']);
+                            echo "<div class='mnb rc'><p><span class='done'></span> {$msg}</p></div>";
+                        }
+                        else {
+                            $msg = preg_replace('/{payfort}/', $payment['fort_id'], $this->lang['payfort_fail']);
+                            echo "<div class='mnb rc'><p><span class='fail'></span> {$msg}</p></div>";
+                        }
+
+                        $this->user->update();
+                    }
+                    else {
+                        $state = 3;
+                        if (($error_code=substr($payment['response_code'],-3))=="072") {
+                            $state = 1;
+                        }
+                        echo "<div class='mnb rc'><p><span class='fail'></span> {$this->lang['paypal_failure']} {$payment['error_msg']}</p></div>";
+
+                        $res = $this->router()->db->queryResultArray(
+                                    "update t_order set state=?, msg=?, flag=? where id=? and uid=? and state=0 returning id",
+                                    [$state, $payment['error_msg'], $flag_id, $orderId, $this->user->info['id']], TRUE);
+
+                        $this->user->update();
+                    }
+                }
+            }                    
+                
+            $products = $this->router()->db->queryCacheResultSimpleArray("products_payfort",
+                                    "select product_id, name_ar, name_en, usd_price, mcu, id  
+                                    from product 
+                                    where iphone=0 
+                                    and blocked=0 
+                                    and usd_price > 3 
+                                    order by mcu asc",
+                                    null, 0, $this->urlRouter->cfg['ttl_long'], TRUE);
+
+            echo '<ul class="table">';
+            $i=1;$j=0;
+            foreach ($products as $product) {
+                $alt = $i++%2;
+                $product[3] = number_format($product[3],2);
+                echo "<li>{$product[ $this->urlRouter->siteLanguage == 'ar' ? 1 : 2]}</li><li>{$product[3]} USD</li><li class='tt'>";
+                    $this->payforButton($product);
+                    echo "</li>";
+                    $j++;
+            }
+
+            echo '</ul>';
+
+            ?><br /><br /><div class="bth ctr"><img width="288" height="60" src="<?= $this->urlRouter->cfg['url_css'] ?>/i/payfort<?= $this->urlRouter->_jpg ?>" alt="Verified by PAYFORT"></div><br /><?php
+                    
+            $this->globalScript .= '
+            var xhr;
+                function buy(i,f){                    
+                    f=$(f);
+                    var r=f.attr("ready");
+                    if(r=="true"){
+                        return true;
+                    }else{
+                        try{
+                            Dialog.show("paypro",null,function(){
+                                if(xhr && xhr.readyState != 4){
+                                    xhr.abort();
+                                }
+                            });
+                            xhr = $.ajax({
+                                type:"POST",
+                                url:"/ajax-pay/",
+                                data:{i:i,hl:lang},
+                                dataType:"json",
+                                success:function(rp){
+                                    if (rp.RP) {
+                                        f.attr("ready","true");
+                                        f.attr("action",rp.DATA.U);
+                                        f.prepend(rp.DATA.D);
+                                        f.submit();
+                                    }else {
+                                        errDialog();
+                                    }
+                                },
+                                error:function(){
+                                    errDialog();
+                                }
+                            })
+                        }catch(e){}
+                        return false;
+                    }
+                };
+                function errDialog(){
+                    Dialog.show("alert_dialog",\''.$this->lang['payment_redirect_fail'].'\');
+                };
+                ';
+        
+        ?><div id=paypro class=dialog><?php
+        ?><div class="dialog-box"><span class="loads load"></span><?= $this->lang['payment_redirect'] ?></div><?php 
+            ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /></div><?php 
+        ?></div><?php
+        ?><div id="alert_dialog" class="dialog"><?php
+                        ?><div class="dialog-box ctr"></div><?php 
+                        ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
+        ?></div><?php
+                    }
+    }     
+    
+    
+    private function renderAbout() : void {
+        echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
+        echo '<h2 class="card-title">About Mourjan.com</h2>';
+?><div class="col-12" style="display:block">  
     <p>In July 2010, <span itemscope itemtype="https://schema.org/LocalBusiness">Mourjan.com</span> was founded.</p>
     <p>With over 15 years of experience in the field of classifieds and IT solutions, we - the team behind Mourjan.com - were looking for a new venture and specifically in the fast evolving World Wide Web.</p>
     <p>While online classifieds was not something new and with many top of mind classifieds websites, we knew that in order to succeed we had to deliver something new. Therefore, we started working on Mourjan.com with a main concern of achieving a fast performing website with an Arabic oriented search engine which would deliver a pleasant experience for users who are seeking an apartment to rent or a car to buy.</p>
     <p>In mid-2012, mourjan.com was faster than ever and in response to the overwhelming users’ feedbacks, the site enabled its users with free online ad posting in their countries of choice while always adopting the latest techniques and trends in website development and having users’ best interest at heart.</p>
-    <p>Currently, we are still working on improving mourjan.com and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="/contact/<?= $adLang ?>">Let us know your opinion</a>.</p>
+    <p>Currently, we are still working on improving mourjan.com and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="<?= $this->router()->getLanguagePath('/contact/') ?>">Let us know your opinion</a>.</p>
 </div>
-<div class="col-12" itemscope itemtype="https://schema.org/LocalBusiness">
-<div itemprop="address" itemscope itemtype="https://schema.org/PostalAddress" class="card-footer">
-    <div class="addr float-left"><img itemprop="image" width="130" height="90" src="<?= $this->router()->config()->cssURL ?>/i/logo<?= $this->router()->_jpg ?>" alt="Berysoft logo" /></div>
-    <div class="addr float-left" style="padding-inline-end:20px;border-right:1px #CCC solid; -webkit-padding-end:20px"><b itemprop="name">mourjan.com</b><br>
-        <span itemprop="streetAddress">4th Floor, Dekwaneh 1044 bldg, New Slav Street</span><br><span itemprop="addressLocality">Dekwaneh</span>, <span itemprop="addressCountry">Lebanon</span>
-    </div>
-    <div class="addr float-left" style="margin: 0 8px;padding-inline-end:20px;border-right:1px #CCC solid; -webkit-padding-end:20px">
-        <label>Phone&nbsp;/&nbsp;Lebanon:&nbsp;</label><span itemprop="telephone">+961 70 424 018</span><br>
-        <label>Phone&nbsp;/&nbsp;Egypt:&nbsp;</label>&nbsp;&nbsp;&nbsp;<span itemprop="telephone">+20 109 136 5353</span>
-    </div>
-    <div class="addr float-left" style="margin: 0 8px;">
+<div class=col-12 itemscope itemtype="https://schema.org/LocalBusiness">
+    <div itemprop="address" itemscope itemtype="https://schema.org/PostalAddress" class="card-footer">
+        <div class="addr float-left"><img itemprop="image" width="130" height="90" src="<?= $this->router()->config()->cssURL ?>/i/logo<?= $this->router()->_jpg ?>" alt="Berysoft logo" /></div>
+        <div class="addr float-left" style="padding-inline-end:20px;border-right:1px #CCC solid; -webkit-padding-end:20px"><b itemprop="name">mourjan.com</b><br>
+            <span itemprop="streetAddress">4th Floor, Dekwaneh 1044 bldg, New Slav Street</span><br><span itemprop="addressLocality">Dekwaneh</span>, <span itemprop="addressCountry">Lebanon</span>
+        </div>
+        <div class="addr float-left" style="margin: 0 8px;padding-inline-end:20px;border-right:1px #CCC solid; -webkit-padding-end:20px">
+            <label>Phone&nbsp;/&nbsp;Lebanon:&nbsp;</label><span itemprop="telephone">+961 70 424 018</span><br>
+            <label>Phone&nbsp;/&nbsp;Egypt:&nbsp;</label>&nbsp;&nbsp;&nbsp;<span itemprop="telephone">+20 109 136 5353</span>
+        </div>
+        <div class="addr float-left" style="margin: 0 8px;">
         <label>Office hours:</label><br><span class="ctr" itemprop="openingHours">Monday to Friday<br />7:00AM to 3:00PM GMT</span>
-    </div></div>
-</div><?php 
-    echo '</div></div>';
-                break;
-            
-            case 'terms':
-                echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
-                echo '<h2 class="card-title">Mourjan Terms of Use</h2>';?>
+        </div>
+    </div>
+</div></div></div><?php 
+    }
+ 
+    
+    private function renderTerms() : void {
+        echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
+        echo '<h2 class=card-title>Mourjan Terms of Use</h2>';?>
 <h4>Introduction</h4>
 <p>Welcome to www.mourjan.com ("Mourjan"). By accessing Mourjan you are agreeing to the following terms, which are designed to make sure that Mourjan works for everyone. Mourjan is provided to you by Berysoft SARL, Le Point Center, Fouad Shehab Street, Dekwaneh, registered in Lebanon with number 2013375-Baabda. This policy is effective January 1st, 2012.</p>
 <h4>Using Mourjan</h4>
 <p>As a condition of your use of Mourjan you agree that you will not:</p>
-<div class="card-description">
+<div>
     <p>-&nbsp;violate any laws;</p>
     <p>-&nbsp;violate the Posting Rules;</p>
     <p>-&nbsp;post any threatening, abusive, defamatory, obscene or indecent material;</p>
@@ -908,13 +934,14 @@ General
 <p>If we don't enforce any particular provision, we are not waiving our right to do so later. If a court strikes down any of these terms, the remaining terms will survive. We may automatically assign this agreement in our sole discretion in accordance with the notice provision below.</p>
 <p>Except for notices relating to illegal or infringing content, your notices to us must be sent by registered mail to Berysoft SARL, Le Point Center, Fouad Shehab Street, Dekwaneh, registered in Lebanon with number 2013375-Baabda. We will send notices to you via the email address you provide, or by registered mail. Notices sent by registered mail will be deemed received five days following the date of mailing.</p>
 <p>We may update this agreement at any time, with updates taking effect when you next post or 30 days after we post the updated policy on the site, whichever is sooner. No other amendment to this agreement will be effective unless made in writing, signed by users and by us.</p>
-
-<?php
-                echo '</div></div>';
-                break;
-            case 'privacy':
-                echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
-                echo '<h2 class="card-title">Privacy policy</h2>';?>
+                </div></div>
+        <?php                
+    }
+    
+    
+    private function renderPrivacy() : void {
+        echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
+        echo '<h2 class="card-title">Privacy policy</h2>';?>
 <p>This privacy policy describes how we handle your personal information. We collect, use, and share personal information to help the Mourjan website ('Mourjan') work and to keep it safe (details below). In formal terms, Berysoft SARL, Le Point Center, Fouad Shehab Street, Dekwaneh, registered in Lebanon with number 2013375-Baabda, acting itself and through its subsidiaries, is the 'data controller' of your personal information. This policy is effective 1 Jan 2012.</p>
 <h4>Collection</h4>
 <p>Information posted on Mourjan is obviously publicly available. Our servers are located in Germany and Lebanon. Mourjan will hold and transmit your information in a safe, confidential and secure environment. If you choose to provide us with personal information, you are consenting to the transfer and storage of that information on our servers in Germany and Lebanon. We collect and store the following personal information:</p>
@@ -971,13 +998,7 @@ General
 <h4>General</h4>
 <p>We may update this policy at any time, with updates taking effect when you next post or after 30 days, whichever is sooner. If we or our corporate affiliates are involved in a merger or acquisition, we may share personal information with another company, and this other company shall be entitled to share your personal information with other companies but at all times otherwise respecting your personal information in accordance with this policy.</p>
 <p><b>Privacy Policy updated 4 Oct 2013</b></p><?php
-                echo '</div></div>';
-                break;
-            default:
-                break;
-        }
-        echo "</div>";
+        echo '</div></div>';
     }
-    
 }
 ?>

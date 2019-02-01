@@ -15,6 +15,12 @@ li.ctr{width:50px!important}
 .ick{vertical-align:middle}
 hr{display: block; height: 1px;border: 0; border-top: 1px solid powderblue;margin:20px 0}
 
+.pricelist{display: block !important; border-spacing: 5px;margin: 0 auto; padding: 24px 0 !important}
+th, td {
+  padding: 15px;width: 50%;
+  border: 1px solid #3C4858;
+  border-collapse: collapse;
+}
 .credits {text-align: center;margin-bottom: 40px;}
 .credits .mc{width:160px;height:100px;background:url(/web/css/1.0/assets/mc.svg) no-repeat 50% 50%; background-size: contain;}
 .credits .visa{width:160px;height:100px;background:url(/web/css/1.0/assets/visa.svg) no-repeat 50% 50%;background-size: contain;}
