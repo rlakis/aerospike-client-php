@@ -570,7 +570,7 @@ class Page extends Site {
         ?>
             <br><div class=group><input class="en" name="u" type=email required><span class=highlight></span><span class=bar></span><label><?= $this->lang['email'] ?></label></div>
             <div class=group><input name="p" type=password required><span class=highlight></span><span class=bar></span><label><?= $this->lang['password'] ?></label></div>
-            <div class=chkbox style="padding-bottom:20px"><input name=o type=checkbox <?= $keepme_in ? 'checked':'' ?>><span><?= $this->lang['keepme_in'] ?></span></div>
+            <label class=chkbox style="padding-bottom:20px"><input name=o type=checkbox <?= $keepme_in ? 'checked':'' ?>><span><?= $this->lang['keepme_in'] ?></span></label>
             <div class="g-recaptcha" data-sitekey="<?= $this->router()->config()->get('recap-key') ?>"></div>
             
             <?php           
