@@ -1,0 +1,93 @@
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group {
+    position: relative;
+}
+
+.form-group {
+    padding-bottom: 10px;
+    margin: 8px 0 0 0;
+}
+
+.form-control {
+    height: 36px;
+    padding: 7px 0;
+    font-size: 14px;
+    line-height: 1.428571429;
+}
+.form-control {
+    display: block;
+    width: 100%;
+    height: 34px;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 1.42857143;
+    color: #555;
+    background-color: #fff;
+    background-image: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+    -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+    -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+    transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+}
+
+.form-control, .form-group .form-control {
+    border: 0;
+    background-image: linear-gradient(#9c27b0, #9c27b0), linear-gradient(#D2D2D2, #D2D2D2);
+    background-size: 0 2px, 100% 1px;
+    background-repeat: no-repeat;
+    background-position: center bottom, center calc(100% - 1px);
+    background-color: rgba(0, 0, 0, 0);
+    transition: background 0s ease-out;
+    float: none;
+    box-shadow: none;
+    border-radius: 0;
+    font-weight: 400;
+}
+
+
+.form-group.label-floating label.control-label, .form-group.label-placeholder label.control-label {
+    top: -7px;
+    font-size: 14px;
+    line-height: 1.428571429;
+}
+.form-group.label-floating label.control-label {
+    will-change: left, top, contents;
+}
+.form-group.label-static label.control-label, .form-group.label-placeholder label.control-label, .form-group.label-floating label.control-label {
+    position: absolute;
+    pointer-events: none;
+    transition: 0.3s ease all;
+}
+.form-group label.control-label {
+    font-size: 11px;
+    line-height: 1.0714285718;
+    color: #AAAAAA;
+    font-weight: 400;
+    margin: 16px 0 0 0;
+}
+.form-group .checkbox label, .form-group .radio label, .form-group label, .form-group .label-on-left, .form-group .label-on-right {
+    font-size: 14px;
+    line-height: 1.428571429;
+    color: #AAAAAA;
+    font-weight: 400;
+}
+label.control-label {
+    font-size: 11px;
+    line-height: 1.0714285718;
+    color: #AAAAAA;
+    font-weight: 400;
+    margin: 16px 0 0 0;
+}
+.checkbox label, .radio label, label, .label-on-left, .label-on-right {
+    font-size: 14px;
+    line-height: 1.428571429;
+    color: #AAAAAA;
+    font-weight: 400;
+}

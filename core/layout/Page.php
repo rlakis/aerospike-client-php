@@ -564,7 +564,7 @@ class Page extends Site {
         
         
         ?><div class="card card-doc"><?php
-        ?><div class="title"><h5><?= $this->lang['signin_mourjan'] ?></h5></div><?php
+        ?><div class=title><h5><?= $this->lang['signin_mourjan'] ?></h5></div><?php
         ?><form method="post" action="<?= $this->router()->getLanguagePath('/a/') ?>" onsubmit="lgi(this);return false;"><?php 
         ?><div class="card-content"><?php
         ?>
@@ -575,16 +575,16 @@ class Page extends Site {
             
             <?php           
             if (isset($this->user->pending['login_attempt'])) {
-                ?><p class="nl"><span><span class="fail"></span><?= $this->lang['login_error'] ?></span></p><?php                    
+                ?><p class=nl><span><span class=fail></span><?= $this->lang['login_error'] ?></span></p><?php                    
             }
             elseif (isset($this->user->pending['login_attempt_captcha'])) {
-                ?><p class="nl"><span><span class="fail"></span><?= $this->lang['login_error_captcha'] ?></span></p><?php                    
+                ?><p class=nl><span><span class=fail></span><?= $this->lang['login_error_captcha'] ?></span></p><?php                    
             }
             $uri = $this->router()->uri;
             if (preg_match('/signin/',$this->router()->uri)) {
                 $uri = $this->router()->getLanguagePath('/home/');
             }
-            ?><p class=ctr><input name='r' type="hidden" value="<?= $uri ?>" /><input type="submit" class="bt" value="<?= $this->lang['signin'] ?>" /></p><?php            
+            ?><div class=group><input name='r' type="hidden" value="<?= $uri ?>" /><input type="submit" class="btn" value="<?= $this->lang['signin'] ?>" /></div><?php            
                         
         ?>
             <p><a class=lnk href="<?= $this->router()->getLanguagePath('/signup/') ?>"><?= $this->lang['create_account'] ?></a></p>
