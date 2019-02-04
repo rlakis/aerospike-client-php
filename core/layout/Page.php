@@ -36,7 +36,7 @@ class Page extends Site {
     function __construct(Core\Model\Router $router) {
         parent::__construct($router); 
         
-        if($this->user->info['id']) {
+        if ($this->user->info['id']) {
             if($this->router()->isApp) {
                 $this->isUserMobileVerified = true;
             }
@@ -46,7 +46,7 @@ class Page extends Site {
             else{
                 $this->isUserMobileVerified = (isset($this->user->info['verified']) && $this->user->info['verified']);
             }
-        }       
+        }
         
         $cdn = $this->router()->config()->assetsURL;
         
@@ -505,22 +505,6 @@ class Page extends Site {
             $this->user->loadFavorites();
         }
     }
-/*
-    function renderLoginPage(){
-        ?><div class="lgb"><ul class="drp"><?php
-                    ?><li><p class="ctr"><b><?= $this->lang['signin_m'] ?></b></p></li><?php
-                    ?><li><a class="bt fb" href="?provider=facebook">Facebook</a></li><?php
-                    ?><li><a class="bt tw" href="?provider=twitter">Twitter</a></li><?php
-                    ?><li><a class="bt lk" href="?provider=linkedin">LinkedIn</a></li><?php
-                    ?><li><a class="bt go" href="?provider=google">Google</a></li><?php
-                    ?><li><a class="bt ya" href="?provider=yahoo">Yahoo</a></li><?php
-                    ?><li><a class="bt wi" href="?provider=live">Windows Live</a></li><?php
-                    ?><li><p class="nb"><?= $this->lang['disclaimer'] ?></p></li><?php
-        ?></ul></div><?php
-        ?><p class="ph phb"><b><?= $this->lang['loginTo'].$this->title ?></b></p><?php
-        ?><p class="htn"><?= $this->lang['hint_login'] ?></p><?php 
-        $this->requireLogin=true;
-    } */
 
     
     function renderLoginPage() : void {
@@ -536,7 +520,6 @@ class Page extends Site {
                 ?><style type="text/css">.lgs .br{margin-top:32px}</style><?php
             }
         }
-
         
         $qrfile = dirname( $this->router()->config()->get('dir')).'/tmp/qr/'.session_id().'.png';
         QRcode::png('mourjan:login:'.session_id().str_pad($this->router()->config()->serverId, 4, '0', STR_PAD_LEFT) . str_pad(time(),16, '0', STR_PAD_LEFT), $qrfile, QR_ECLEVEL_L, 5);
@@ -570,7 +553,7 @@ class Page extends Site {
         ?>
             <br><div class=group><input class="en" name="u" type=email required><span class=highlight></span><span class=bar></span><label><?= $this->lang['email'] ?></label></div>
             <div class=group><input name="p" type=password required><span class=highlight></span><span class=bar></span><label><?= $this->lang['password'] ?></label></div>
-            <label class=chkbox style="padding-bottom:20px"><input name=o type=checkbox <?= $keepme_in ? 'checked':'' ?>><span><?= $this->lang['keepme_in'] ?></span></label>
+            <label class=chkbox style="padding-bottom:8px"><input name=o type=checkbox <?= $keepme_in ? 'checked':'' ?>><span><?= $this->lang['keepme_in'] ?></span></label>
             <div class="g-recaptcha" data-sitekey="<?= $this->router()->config()->get('recap-key') ?>"></div>
             
             <?php           
@@ -584,61 +567,38 @@ class Page extends Site {
             if (preg_match('/signin/',$this->router()->uri)) {
                 $uri = $this->router()->getLanguagePath('/home/');
             }
-            ?><div class=group><input name='r' type="hidden" value="<?= $uri ?>" /><input type="submit" class="btn" value="<?= $this->lang['signin'] ?>" /></div><?php            
-                        
+            ?><div class=group style="margin:0"><input name=r type=hidden value="<?= $uri ?>" /><i class="icn icn-sign-in"></i><input type="submit" class=btn value="<?= $this->lang['signin'] ?>" /></div><?php            
+          
+            echo '<div class=group style="margin:0"><a class=btn href="', $this->router()->getLanguagePath('/signup/'), '">', $this->lang['create_account'], '<i class="icn icn-sign-up"></i></a></div>';
         ?>
-            <p><a class=lnk href="<?= $this->router()->getLanguagePath('/signup/') ?>"><?= $this->lang['create_account'] ?></a></p>
             <p><a class=lnk href="<?= $this->router()->getLanguagePath('/password/') ?>"><?= $this->lang['forgot_pass'] ?></a></p>
         </div><?php                
         ?></form></div><?php
         
-        ?><div class="card card-doc"><?php
-        ?><div class="title"><h5><?= $this->lang['signin_m'] ?></h5></div><?php
-        ?><div class="card-content"><ul class=drp><?php            
-            ?><li><a class="bt fb" href="?provider=facebook">Facebook</a></li><?php
-            ?><li><a class="goobt" href="?provider=google"><img src="<?= $this->router()->config()->imgURL?>/google-login<?= $this->router()->_png ?>" /></a></li><?php
-            ?><li><a class="bt tw" href="?provider=twitter">Twitter</a></li><?php
-            ?><li><a class="bt ya" href="?provider=yahoo">Yahoo</a></li><?php
-            ?><li><a class="bt lk" href="?provider=linkedin">LinkedIn</a></li><?php
-            ?><li><a class="bt wi" href="?provider=live">Windows Live</a></li><?php
-        ?></ul><?php
+        ?><div class="card card-doc"><div class="title"><h5><?= $this->lang['signin_m'] ?></h5></div><?php
+        ?><div class="card-content"><?php            
+        ?><a class="btn" style="background-color:#3b5998" href="/web/lib/hybridauth/?provider=facebook">Facebook<i class="icn icn-facebook"></i></a><?php
+        ?><a class="btn" style="background-color:#4285F4" href="/?provider=google">Google<i class="icn icn-google"></i></a><?php
+        ?><a class="btn" style="background-color:#1da1f2" href="?provider=twitter">Twitter<i class="icn icn-twitter"></i></a><?php
+        ?><a class="btn" style="background-color:#410093" href="?provider=yahoo">Yahoo<i class="icn icn-yahoo"></i></a><?php
+        ?><a class="btn" style="background-color:#0075b5" href="?provider=linkedin">LinkedIn<i class="icn icn-linkedin"></i></a><?php
+        ?><a class="btn" style="background-color:#7fba00;" href="?provider=live">Windows Live<i class="icn icn-microsoft"></i></a><?php
         ?></div></div><?php
         
         
-        echo '<div class="card card-doc"><img width=185 height=185 src="', $base64, '" />';
-        echo '<span class="bt scan"><span class=apple></span><span class="apple up"></span> ', 
+        echo '<div class="card card-doc"><div class=title><h5>Mourjan iPhone App</h5></div>';
+        echo '<div class=card-content style="text-align:center; padding:36px 0">', '<img width=200 height=200 src="', $base64, '" />';
+        echo '<p style="padding-top:30px;><span class="bt scan"><span class=apple></span><span class="apple up"></span> ', 
             $this->lang['hint_login_signin'],
-            ' <span class="apple up"></span><span class=apple></span></span>';
-        ?><a href="<?= $this->router()->getLanguagePath('/signup/') ?>" class=bt><?= $this->lang['create_account'] ?></a><?php
-        echo '</div>';
+            ' <span class="apple up"></span><span class=apple></span></span></p>';        
+        echo '</div></div>';
         
         echo '</div></div>'; // close signin div
         
         ?><div class="col-12"><div class="card card-doc"><div class="card-title"><h4><?= $this->lang['NB'] ?></h4></div><?php 
         ?><div class="card-content"><p>&bull;&nbsp;<?= $this->lang['disclaimer'] ?></p><p>&bull;&nbsp;<?= $this->lang['disclaimer_social'] ?></p></div><?php
         ?></div></div><?php                                
-            
-            
-        $this->globalScript.='var lgi,uin,pin,cle;';
-        $this->inlineScript.='lgi=function(e){
-                if(!uin){
-                    uin=$("input[name=u]",e);
-                    pin=$("input[name=p]",e);
-                }
-                var f=1;
-                if(!isEmail(uin.val())){
-                    f=0;
-                    uin.addClass("err");
-                }
-                if(pin.val().length<6){
-                    f=0;
-                    pin.addClass("err");
-                }
-                if(f){
-                    e.submit();
-                }
-            };
-            cle=function(e){$(e).removeClass("err")};';
+                               
         $this->requireLogin=true;
            
         if (isset($this->user->pending['login_attempt'])) {
@@ -1519,7 +1479,7 @@ class Page extends Site {
                 }?>
                 <li><a href="<?= $url ?>"><i class="icn icnsmall icn-lang"></i></a></li>
                 <li><a href="#"><i class="icn icnsmall icn-bell"></i></a></li>
-                <li><a href="#"><i class="icn icnsmall icn-user"></i></a></li>
+                <li><a href="<?= $this->router()->getLanguagePath('/signin/') ?>"><i class="icn icnsmall icn-user"></i></a></li>
             </ul>
         </div>
     </nav>
@@ -4909,6 +4869,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 break;
             
             case 'buyu':
+            case 'signin':
                 include $this->router()->config()->baseDir.'/web/css/includes/doc.css';
                 break;
             

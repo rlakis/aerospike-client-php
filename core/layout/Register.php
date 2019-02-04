@@ -1,70 +1,30 @@
 <?php
-require_once 'Page.php';
+\Config::instance()->incLayoutFile('Page');
 
 class Register extends Page{
     
     var $include_password_js = false;
 
-    function __construct($router){
+    function __construct(Core\Model\Router $router){
         parent::__construct($router);
-        if($this->urlRouter->cfg['active_maintenance']){
-            $this->user->redirectTo('/maintenance/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
+        if ($this->router()->config()->get('active_maintenance')) {
+            $this->user->redirectTo($this->router()->getLanguagePath('/maintenance/'));
         }
         $title = $this->lang['create_account'];
-        if(!$this->isMobile && $this->user->info['id'] && (
-                $this->urlRouter->module=='welcome' || 
-                isset($this->user->pending['password_new']) || 
-                isset($this->user->pending['password_reset']) || 
-                isset($this->user->pending['social_new']))){
-            
-                $this->set_require('css', 'home');
-                $this->inlineCss.='
-                    h2 .j.home{display: inline-block;
-                    vertical-align: middle;
-                    margin-top: -15px;}
-                    h2 {
-  font-size: '.($this->urlRouter->siteLanguage == 'ar' ? '16':'14').'px;
-   '.($this->urlRouter->siteLanguage == 'ar' ? 'text-align:right;direction:rtl;':'text-align:left;direction:ltr;').'
-  padding: 0 10px;
-}
-                        ';
-                }
-        if($this->user->info['id'] && $this->urlRouter->module=='welcome' && (isset($this->user->pending['password_new']) || isset($this->user->pending['social_new']) )){
+        if ($this->user->info['id'] && $this->router()->module=='welcome' && (isset($this->user->pending['password_new']) || isset($this->user->pending['social_new']))) {
             $title = $this->lang['welcome_mourjan'];
-        }elseif($this->user->info['id'] && !isset($this->user->pending['password_reset']) && !isset($this->user->pending['password_new'])){
-            $this->user->redirectTo($this->urlRouter->getURL($this->urlRouter->countryId,$this->urlRouter->cityId));
-        }else{
-            if($this->urlRouter->module=='password' && !isset($this->user->pending['password_new'])){
+        }
+        elseif ($this->user->info['id'] && !isset($this->user->pending['password_reset']) && !isset($this->user->pending['password_new'])) {
+            $this->user->redirectTo($this->router()->getURL($this->router()->countryId, $this->router()->cityId));
+        }
+        else {
+            if ($this->router()->module=='password' && !isset($this->user->pending['password_new'])) {
                 $title = $this->lang['title_pass_reset'];
             }
         }
         $this->forceNoIndex=true;
         $this->title=$title;
-        $this->urlRouter->cfg['enabled_ads']=0;
-        if(!$this->isMobile){
-            $this->inlineCss.='.account{overflow:hidden!important;margin:0!important}.lgt{overflow:visible}';
-            if($this->urlRouter->siteLanguage=='ar'){
-            $this->inlineCss.='.htu{width:300px;float:left;display:block;height:400px;margin-top:5px;}.lgt{margin:10px 1px;line-height:30px;color:#143D55;text-align:center;font-size:18px;background-color:#efefef;border:1px solid #ccc;position:relative;}.lgt ul{width:100%;}.lgt li{padding:10px 0}.lgt label{font-size:24px;color:#999;}.lgt label.sm{font-size:20px;}.lgt .fld{width:500px;font-size:22px;padding:5px;}.lgt .fldp{width:250px;}#eWait{width:630px;position:absolute;top:0;left:10px;margin-top:60px;display:none;}';
-            }else{
-                $this->inlineCss.='.htu{width:300px;float:right;display:block;height:400px;margin-top:5px;}.lgt{margin:10px 1px;line-height:30px;color:#143D55;text-align:center;font-size:18px;background-color:#efefef;border:1px solid #ccc;position:relative;}.lgt ul{width:100%;}.lgt li{padding:10px 0}.lgt label{font-size:22px;color:#999;}.lgt label.sm{font-size:18px;}.lgt .fld{width:500px;font-size:20px;padding:5px;}.lgt .fldp{width:250px;}#eWait{width:630px;position:absolute;top:0;left:10px;margin-top:60px;display:none;}';
-            }
-            if($this->urlRouter->module=='password'){
-                if($this->urlRouter->siteLanguage=='ar'){
-                    $this->inlineCss.='#pout{position:absolute;top:73px;right:470px;text-align:right;font-size:16px}';
-                }else{
-                    $this->inlineCss.='#pout{position:absolute;top:73px;left:470px;text-align:left;font-size:14px;}';
-                }
-            }
-        }else{
-            $this->inlineCss.='.str p{margin-bottom:5px}';
-            if($this->urlRouter->module=='password'){
-                if($this->urlRouter->siteLanguage=='ar'){
-                    $this->inlineCss.='#pout{text-align:center;font-size:22px;height:30px;margin:5px 10px}';
-                }else{
-                    $this->inlineCss.='#pout{text-align:center;font-size:20px;height:30px;margin:5px 10px}';
-                }
-            }
-        }
+        $this->router()->config()->disableAds();                    
         $this->render();
     }
     
@@ -343,10 +303,9 @@ class Register extends Page{
         }
     }
     
-    function main_pane(){ 
+    function main_pane() { 
         $notFound=0;
-        $lang = $this->urlRouter->siteLanguage == 'ar' ? '':$this->urlRouter->siteLanguage.'/';
-        if($this->user->info['id']){
+        if ($this->user->info['id']) {
             $msg = '';
             if(isset($this->user->pending['password_new'])){
                 $msg = $this->lang['congrats_account'];
@@ -382,7 +341,8 @@ class Register extends Page{
             if(isset($this->user->pending['password_new']))unset($this->user->pending['password_new']);
             if(isset($this->user->pending['social_new']))unset($this->user->pending['social_new']);
             $this->user->update();
-        }elseif($this->urlRouter->module=='signup'){
+        }
+        elseif ($this->router()->module=='signup') {
             ?><div class='list htn'><?= $this->lang['hint_reg_1'] ?></div><?php
             ?><br /><p><?= $this->lang['account_email'] ?></p><?php
             ?><div class="lgt rc sh"><?php 
@@ -472,7 +432,8 @@ class Register extends Page{
                 p.css("display","none");
                 p.prev().css("visibility","visible");
             };';
-        }elseif($this->urlRouter->module=='password'){
+        }
+        elseif ($this->router()->module=='password') {
             if(isset($this->user->pending['password_new']) || isset($this->user->pending['password_reset'])){
                 $this->include_password_js = true;
                 $step = isset($this->user->pending['password_reset']) ? 1 : 0;

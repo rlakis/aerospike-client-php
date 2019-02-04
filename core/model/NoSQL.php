@@ -84,7 +84,7 @@ class NoSQL extends \Singleton {
                 \Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE, 
                 ];
     
-    private function __construct() {
+    protected function __construct() {
         if (version_compare(phpversion("aerospike"), '7.2.0') >= 0) { 
             $this->options[\Aerospike::OPT_MAX_RETRIES]=2;
             $this->options[\Aerospike::OPT_POLICY_EXISTS]=\Aerospike::POLICY_EXISTS_IGNORE;

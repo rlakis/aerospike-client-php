@@ -39,7 +39,7 @@ class MCJsonMapper {
 
 class MCUser extends MCJsonMapper {   
     public $id = 0;
-    public $pid;               // Provider identifier
+    public $pid;                  // Provider identifier
     protected $email;
     protected $prvdr;             // Provider
     protected $fn;                // Full name

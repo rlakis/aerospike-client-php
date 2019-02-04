@@ -151,11 +151,11 @@ class User {
     }
     
     
-    function __construct(/*$db, $config,*/ Site $site , $init=1) {
+    function __construct(?Site $site , $init=1) {
         $this->db = \Core\Model\Router::instance()->db;
         $this->config= \Config::instance();
         $this->reset();
-        if($init) {
+        if ($init) {
             $this->site=$site;
             //$this->sysAuthById(480301);
             $this->populate();
@@ -1394,6 +1394,12 @@ class User {
             }
         }
         return $succeed;
+    }
+    
+    
+    public function getBalance() : int {
+        $rs = $this->db->get("select sum(credit-debit) balance from T_TRAN where uid=?", [$this->info['id']]);
+        return (int)$rs[0]['BALANCE'];
     }
     
     
@@ -2654,19 +2660,19 @@ class User {
     }
 
     
-    function _loadFavorites() {
+    function _loadFavorites() : array {
         $site=$this->site;
         $showFavorites=$site->userFavorites;
         $num=$site->num;
-        $start=$site->urlRouter->params['start'];
+        $start=$site->router()->params['start'];
         $site->userFavorites=1;
         $site->user->info['id']=$this->info['id'];
         $site->num=1000;
-        $site->urlRouter->params['start']=0;
+        $site->router()->params['start']=0;
         $site->execute();
-        $ids=array();
+        //$ids=array();
         $this->info['favCount']=$site->searchResults['body']['total_found'];
-        $site->urlRouter->params['start']=$start;
+        $site->router()->params['start']=$start;
         $site->num=$num;
         $site->userFavorites=$showFavorites;
         return $site->searchResults['body']['matches'];
@@ -2819,9 +2825,9 @@ class User {
         $this->session_id=session_id();
         $_u = $_SESSION['_u'] ?? [];
         
-        if (isset($_u['info'])) $this->info=$_u['info'];
-        if (isset($_u['params'])) $this->params=$_u['params'];
-        if (isset($_u['pending'])) $this->pending=$_u['pending'];
+        if (isset($_u['info'])) { $this->info=$_u['info']; }
+        if (isset($_u['params'])) { $this->params=$_u['params']; }
+        if (isset($_u['pending'])) { $this->pending=$_u['pending']; }
 
         if ($this->info['id']) {            
             $this->data = new MCUser($this->info['id']);

@@ -311,19 +311,11 @@ var setOrder=function(e)
             $sections[$id] = $this->router()->database()->getSectionsData($this->router()->countryId, $this->router()->cityId, $id, $this->router()->language, true);
         }
         $count = count($sections);
-        $odd = ($count % 2)==1;
-        $j=0;       
         foreach ($sections as $root_id => $items) {
-            //if ($odd) {
-            //    $j++;
-            //    echo '<div class="col-', ($j==$count)?'8':'4', '"><div class="card">';
-            //}
-            //else {
-                echo '<div class="col-4">', '<div class="card">';
-            //}
-            echo '<div class="card-header" style="background-color:var(--color-',$root_id,');"><i class="icn icn-', $root_id, '"></i></div>';
-            echo '<div class="card-content">';
-            echo '<h4 class="card-title">', $this->router()->pageRoots[$root_id]['name'],'</h4>';
+            echo '<div class=col-4>', '<div class=card>';
+            echo '<div class=card-header style="background-color:var(--color-',$root_id,');"><i class="icn icn-', $root_id, '"></i></div>';
+            echo '<div class=card-content>';
+            echo '<h4 class=card-title>', $this->router()->pageRoots[$root_id]['name'],'</h4>';
             echo '<ul>';
             $i=0;
             foreach ($items as $section_id => $section) {
@@ -335,16 +327,15 @@ var setOrder=function(e)
                 if ($i>=10) { break; }
             }
             echo '</ul>';
-            echo '</div>';
-            echo '</div></div>';
+            echo '</div></div></div>';
         }
         
 
-        echo '<div class="col-4">';
-        echo '<div class="card test">', '<div class="card-content">';
+        echo '<div class=col-4>', '<div class="card test">', '<div class=card-content>';
         echo '<ul>';
         echo '<li><i class="icn icnsmall icn-82"></i><span>', $this->lang['postFree'], '</span></li>';
         if ($this->user()->info['id']) {
+            $balance_label='My balance is '.$this->user()->getBalance() . ' coins';
             echo '<li><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></li>';
         }
         echo '<li><i class="icn icnsmall icn-88"></i><span>', $this->lang['contactUs'], '</span></li>';
@@ -356,12 +347,11 @@ var setOrder=function(e)
         
         echo '</div>', "\n";
         
-        echo '<div class="row">';
-        echo '<div class="col-12">';
+        echo '<div class=row>', '<div class=col-12>';
 
         $cc=['ae'=>null, 'sa'=>null, 'kw'=>null, 'bh'=>null, 'qa'=>null, 'om'=>null, 'ye'=>null, 
-            'lb'=>null, 'jo'=>null, 'iq'=>null, 'sy'=>null, 
-            'eg'=>null, 'ma'=>null, 'tn'=>null, 'dz'=>null, 'sd'=>null, 'ly'=>null];
+             'lb'=>null, 'jo'=>null, 'iq'=>null, 'sy'=>null, 
+             'eg'=>null, 'ma'=>null, 'tn'=>null, 'dz'=>null, 'sd'=>null, 'ly'=>null];
         foreach ($this->router()->countries as $id => $cn) {
             if (!isset($cc[$cn['uri']])) { $cc['uri']=null; }
             if ($cc[$cn['uri']]==null) {

@@ -72,12 +72,11 @@ class Router extends \Singleton {
     protected function __construct() {
         global $argc;       
         $this->config = \Config::instance();
-        //$this->cfg=$params;
         $this->db = new DB();
         
-        if (isset($argc)) return;   
+        if (isset($argc)) { return; }
 
-	if(isset($_GET['shareapp'])) {
+        if(isset($_GET['shareapp'])) {
             $device = new \Detection\MobileDetect();
             if($device->isMobile()) {
                 if( $device->isAndroidOS() ) {
