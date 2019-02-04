@@ -87,11 +87,11 @@ try {
     
     $hybridauth = new Hybridauth($hybridConfig);   
     
-    if ($provider = $storage->get('provider')) {
+    if ($provider==$storage->get('provider')) {
         
         $uid = 0;
         $uuid = 0;
-        if($isAndroid){
+        if ($isAndroid) {
             $uid = $storage->get('uid');
             $uuid = $storage->get('uuid');
         }       
@@ -104,8 +104,7 @@ try {
         
         $adapter = $hybridauth->getAdapter($provider);                
                 
-        if($adapter->isConnected()){           
-                      
+        if ($adapter->isConnected()) {                      
             
             $provider=strtolower(trim($provider));
             if($provider == 'windowslive') $provider = 'live';            
@@ -119,39 +118,32 @@ try {
 //            error_log("4 ".(!is_null($info->displayName) ? $info->displayName : ''));
 //            error_log("5 ".(!is_null($info->profileURL) ? $info->profileURL : '')); 
             
-            if($isAndroid){
-                if ($uid>0 && $uuid){
+            if ($isAndroid) {
+                if ($uid>0 && $uuid) {
                     $newId = $user->connectDeviceToAccount($auth_info, $provider, $uid, $uuid);
-                    if ($newId==0) {
-                        $failed = 1;
-                    }
-                }else{
-                    $failed = 1;
+                    if ($newId==0) { $failed = 1; }
                 }
-                
-            }else{
-                      
+                else {
+                    $failed = 1;
+                }                
+            }
+            else {                      
                 $user->updateUserRecord($auth_info, $provider);
             }
          
-        }else{
+        }
+        else {
             $failed = 1;
         }
-        if($isAndroid){
-            
-            $storage->set('android',null); 
-            $storage->set('uid',null); 
-            $storage->set('uuid',null); 
-            
+        
+        if ($isAndroid) {            
+            $storage->set('android', null); 
+            $storage->set('uid', null); 
+            $storage->set('uuid', null);             
             header('Location: connect://' . ($failed==1 ? '0' : $newId));
-            exit(0);
-            
-        }else{        
-
-            /*if (!$failed && isset($user->pending['social_new'])) {
-                $uri='/welcome/';
-                if($user->params['slang']!='ar')$uri.=$user->params['slang'].'/';
-            }*/
+            exit(0);            
+        }
+        else {
             if (isset($user->pending['redirect_login'])) {
                 $uri=$user->pending['redirect_login'];
                 unset($user->pending['redirect_login']);
@@ -162,40 +154,35 @@ try {
                         }
                     }
                     else {
-                        if($user->params['slang']!='ar')$uri.=$user->params['slang'].'/';
+                        if ($user->params['slang']!='ar') {
+                            $uri.=$user->params['slang'].'/';
+                        }
                     }
                 }
                 $user->update();
             }
             else {
-                if ( (!isset($user->params['isMobile']) || !$user->params['isMobile']) && !in_array($user->params['uri'], ['/favorites/','/account/','/myads/','/post/','/watchlist/','/statement/','/buy/','/buyu/'])) {
+                if (!isset($user->params['uri']) || !in_array($user->params['uri'], ['/favorites/', '/account/', '/myads/', '/post/', '/watchlist/', '/statement/', '/buy/', '/buyu/'])) {
                     $uri='/home/';
                 }
                 else {
-                    $uri = $user->params['uri'];
+                    $uri=$user->params['uri'];
                 }
 
                 $hasParam=0;
-                if($user->params['slang']!='ar')$uri.=$user->params['slang'].'/';
+                if ($user->params['slang']!='ar') {
+                    $uri.=$user->params['slang'].'/';
+                }            
 
-                /*
-                if($router->id)$uri.=$router->id.'/';
-                if($router->params['start'])$uri.=$router->params['start'].'/';
-
-                if($router->module=='watchlist'||$router->module=='favorites') {
-                    $uri.='?u='.$user->info['idKey'];
-                    $hasParam=1;
-                }*/
-
-                if($failed) {
+                if ($failed) {
                     $uri.=($hasParam)?'&':'?';                      
-                    $uri .='signin=error';
+                    $uri.='signin=error';
                 }
             }
-            redirectToUrl($uri);
-        
+            redirectToUrl($uri);        
         }
     }
+    
     
     /**
      * This will erase the current user authentication data from session, and any further
