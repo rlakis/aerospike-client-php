@@ -1023,7 +1023,7 @@ class Router extends \Singleton {
     }
     
     
-    function getURL($cn=0, $c=0, $ro=0, $se=0, $pu=0, $appendLanguage=true, $mustFound=false) {
+    function getURL(int $cn=0, int $c=0, int $ro=0, int $se=0, int $pu=0, bool $appendLanguage=true) : string {
         $result = '/';
 
         if ($cn) {
@@ -1041,11 +1041,12 @@ class Router extends \Singleton {
                 if ($cn==0) {
                     $cn = $this->cities[$c][4];
                     if (isset($this->countries[$cn])) {
-                        $result.=$this->countries[$cn]['uri'].'/';
-                        $result.=$this->cities[$c][3].'/';
+                        $result.=$this->countries[$cn]['uri'].'/'.$this->cities[$c][3].'/';
                     }
-                } else
-                $result.=$this->cities[$c][3].'/';
+                } 
+                else {
+                    $result.=$this->cities[$c][3].'/';
+                }
             }
         }
        

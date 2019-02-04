@@ -1,18 +1,20 @@
 <?php
 require_once 'Page.php';
 
-class Panel extends Page{
+class Panel extends Page {
 
-    function __construct($router){
+    function __construct(Core\Model\Router $router) {
         parent::__construct($router);
-        if($this->isMobile && $this->user->info['id']){
-            $this->user->redirectTo($this->urlRouter->getURL($this->urlRouter->countryId,$this->urlRouter->cityId));
+        //if($this->isMobile && $this->user->info['id']){
+        //    $this->user->redirectTo($this->router()->getURL($this->urlRouter->countryId,$this->urlRouter->cityId));
+        //}
+        if ($this->router()->config()->get('active_maintenance')) {
+            $this->user->redirectTo($this->router()->getLanguagePath('/maintenance/'));
         }
-        if($this->urlRouter->cfg['active_maintenance']){
-            $this->user->redirectTo('/maintenance/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
-        }        
         $this->forceNoIndex=true;        
-        $this->urlRouter->cfg['enabled_ads']=0;
+        $this->router()->config()->disableAds();
+        
+        /*
         $this->set_require('css', array('home'));
         
         $this->inlineCss.='input.prop{    
@@ -30,9 +32,10 @@ class Panel extends Page{
         .dialog-box .msg{
             margin-top:10px;
             width:424px;font-size:';
-        if($this->urlRouter->siteLanguage=='ar'){
+        if ($this->router()->isArabic()) {
             $this->inlineCss.='16';
-        }else{
+        }
+        else {
             $this->inlineCss.='14';
         }
         $this->inlineCss.='px}
@@ -46,7 +49,7 @@ class Panel extends Page{
         .seli .lnk,.seli .load{float:right}
         ';
         
-        if($this->urlRouter->siteLanguage=='ar'){
+        if ($this->router()->isArabic()) {
             $this->inlineCss.='
                 .account{float:right}
             ';
@@ -55,14 +58,17 @@ class Panel extends Page{
                 .account{float:left}
             ';
         }
-        
+        */
         $this->render();
     }
+    
     
     function mainMobile() {
     }
     
-    function main_pane(){ 
+    
+    function main_pane() { 
+        echo '<div class=row>', '<div class=col-12><div class=card>';
         $this->renderBalanceBar();
         $this->inlineQueryScript.='
             $.ajax({
@@ -146,7 +152,7 @@ class Panel extends Page{
             
         ';
         if($this->user->info['id'] && $this->user->info['level']!=5){
-                $this->globalScript .= 'function prini(){var t=$(\'<div id="prob" class="account '. $this->urlRouter->siteLanguage .'">         
+                $this->globalScript .= 'function prini(){var t=$(\'<div id="prob" class="account '. $this->router()->language .'">         
                 <a href="javascript:void(0)" onclick="prop()" class="option full settings"><span class="j prop"></span> '. $this->lang['myPropspace'] .'</a>
                 </div><div id="prop_dialog" class="dialog dlg-fix"><div class="dialog-box"><div><input id="purl" onfocus="mprop(\\\'\\\')" class="prop" type="text" placeholder="http://xml.propspace.com/feed/xml.php" /></div><div class="msg inf err ctr"></div></div> 
                     <div class="dialog-action"><input type="button" class="cl" value="'. $this->lang['cancel'] .'" /><input type="button" value="'. $this->lang['connect'] .'" /></div> 
@@ -294,33 +300,39 @@ class Panel extends Page{
                 prop();
                 $("#purl").val(v);
             };';
-        $lang = $this->urlRouter->siteLanguage == 'ar' ? '':$this->urlRouter->siteLanguage.'/';
-        if($this->user->info['id']){
-            ?><ul id="note" class='note <?= $this->urlRouter->siteLanguage ?>'></ul><?php
-            ?><div class="account <?= $this->urlRouter->siteLanguage ?>"><?php 
-            ?><a href="/post/<?= $lang ?>" class="option half"><span class="j pub"></span> <?= $this->lang['button_ad_post_m'] ?></a><?php
-                ?><a href="/statement/<?= $lang ?>" class="option half balance"><span class="pj coin"></span> <span id="coins"><?= $this->lang['myBalance'] ?></span></a><?php
-            ?></div><div class="account <?= $this->urlRouter->siteLanguage ?>"><?php     
-                ?><a id="active" href="/myads/<?= $lang ?>" class="option quarter active"><span class="pj ads1"></span><br /><?= $this->lang['ads_active'] ?></a><?php
-                ?><a id="pending" href="/myads/<?= $lang ?>?sub=pending" class="option quarter pending"><span class="pj ads2"></span><br /><?= $this->lang['home_pending'] ?></a><?php
-                ?><a id="draft" href="/myads/<?= $lang ?>?sub=drafts" class="option quarter draft"><span class="pj ads3"></span><br /><?= $this->lang['home_drafts'] ?></a><?php
-                ?><a id="archive" href="/myads/<?= $lang ?>?sub=archive" class="option quarter archive"><span class="pj ads4"></span><br /><?= $this->lang['home_archive'] ?></a><?php
-            ?></div><div class="account <?= $this->urlRouter->siteLanguage ?>"><?php         
-                ?><a id="favorite" href="/favorites/<?= $lang ?>?u=<?= $this->user->info['idKey'] ?>" class="option half favorite"><span class="j fva"></span> <?= $this->lang['myFavorites'] ?></a><?php
-                ?><a id="watchlist" href="/watchlist/<?= $lang ?>?u=<?= $this->user->info['idKey'] ?>" class="option half watchlist"><span class="j eye"></span> <?= $this->lang['myList'] ?></a><?php
-            ?></div><div class="account <?= $this->urlRouter->siteLanguage ?>"><?php         
-                ?><a href="/account/<?= $lang ?>" class="option full settings"><span class="j sti"></span> <?= $this->lang['myAccount'] ?></a><?php
-            ?></div><?php
+        
+        if ($this->user->info['id']) {
+            echo '<div class=account>';
+            echo '<a href="', $this->router()->getLanguagePath('/post/'), '" class="btn half"><span class="j pub"></span>', $this->lang['button_ad_post_m'], '</a>';
+            echo '<a href="', $this->router()->getLanguagePath('/statement/'), '" class="btn half balance"><span class="pj coin"></span><span id=coins>', $this->lang['myBalance'], '</span></a></div>';
+            
+            echo '<div class=account>';
+            echo '<a id=active href="', $this->router()->getLanguagePath('/myads/'), '" class="btn option quarter active"><span class="pj ads1"></span>', $this->lang['ads_active'], '</a>';
+            echo '<a id=pending href="', $this->router()->getLanguagePath('/myads/'), '?sub=pending" class="btn option quarter pending"><span class="pj ads2"></span>', $this->lang['home_pending'], '</a>';
+            echo '<a id=draft href="', $this->router()->getLanguagePath('/myads/'), '?sub=drafts" class="btn option draft"><span class="pj ads3"></span>', $this->lang['home_drafts'], '</a>';
+            echo '<a id=archive href="', $this->router()->getLanguagePath('/myads/'), '?sub=archive" class="btn option archive"><span class="pj ads4"></span>', $this->lang['home_archive'], '</a>';
+            echo '</div>';
+            
+            echo '<div class=account>';         
+            echo '<a id=favorite href="', $this->router()->getLanguagePath('/favorites/'), '?u=', $this->user->info['idKey'], '" class="btn option half favorite"><span class="j fva"></span>', $this->lang['myFavorites'], '</a>';
+            echo '</div>';
+            
+            echo '<div class=account>';
+            echo '<a href="', $this->router()->getLanguagePath('/account/'), '" class="btn option full settings"><span class="j sti"></span>', $this->lang['myAccount'], '</a>';
+            echo '</div>';
+
            /* if($this->user->info['level']!=5){
                 ?><div id="prob" class="account <?= $this->urlRouter->siteLanguage ?>"><?php         
                 ?><a href="javascript:void(0)" onclick="prop()" class="option full settings"><span class="j prop"></span> <?= $this->lang['myPropspace'] ?></a><?php
                 ?></div><?php
             }*/
             
-        }else{
+        }
+        else {
             $this->renderLoginPage();
         }
+        
+        echo '</div></div></div>';
     }
     
 }
-?>

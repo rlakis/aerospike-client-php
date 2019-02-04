@@ -419,8 +419,11 @@ class Page extends Site {
     
     
     function renderBalanceBar() {        
-        if($this->user->info['id']) {
-            echo '<div id="balance" class="balc"><div id="balanceCounter"></div><a class="buL" href="/gold/'.($this->router()->language=='ar' ? '':$this->router()->language.'/').'#how-to"><span class="mc24"></span>'.$this->lang['buy_gold_bt'].'</a><a class="buL" href="/gold/'.($this->router()->language=='ar' ? '':$this->router()->language.'/').'"><span class="rj add"></span>'.$this->lang['get_gold'].'</a></div>';
+        if ($this->user->info['id']) {
+            
+            echo '<div id=balance class=balc><div id=balanceCounter></div><a class=btn href="', $this->router()->getLanguagePath('/gold/'), '#how-to"><span class=mc24> </span>',
+                    $this->lang['buy_gold_bt'],'</a><a class=btn href="', $this->router()->getLanguagePath('/gold/'), '"><span class="rj add"></span>',
+                    $this->lang['get_gold'], '</a></div>';
             $this->globalScript.="var showBalance=1;";
         }
     }
@@ -578,11 +581,11 @@ class Page extends Site {
         ?><div class="card card-doc"><div class="title"><h5><?= $this->lang['signin_m'] ?></h5></div><?php
         ?><div class="card-content"><?php            
         ?><a class="btn" style="background-color:#3b5998" href="/web/lib/hybridauth/?provider=facebook">Facebook<i class="icn icn-facebook"></i></a><?php
-        ?><a class="btn" style="background-color:#4285F4" href="/?provider=google">Google<i class="icn icn-google"></i></a><?php
-        ?><a class="btn" style="background-color:#1da1f2" href="?provider=twitter">Twitter<i class="icn icn-twitter"></i></a><?php
-        ?><a class="btn" style="background-color:#410093" href="?provider=yahoo">Yahoo<i class="icn icn-yahoo"></i></a><?php
-        ?><a class="btn" style="background-color:#0075b5" href="?provider=linkedin">LinkedIn<i class="icn icn-linkedin"></i></a><?php
-        ?><a class="btn" style="background-color:#7fba00;" href="?provider=live">Windows Live<i class="icn icn-microsoft"></i></a><?php
+        ?><a class="btn" style="background-color:#4285F4" href="/web/lib/hybridauth/?provider=google">Google<i class="icn icn-google"></i></a><?php
+        ?><a class="btn" style="background-color:#1da1f2" href="/web/lib/hybridauth?provider=twitter">Twitter<i class="icn icn-twitter"></i></a><?php
+        ?><a class="btn" style="background-color:#410093" href="/web/lib/hybridauth?provider=yahoo">Yahoo<i class="icn icn-yahoo"></i></a><?php
+        ?><a class="btn" style="background-color:#0075b5" href="/web/lib/hybridauth?provider=linkedin">LinkedIn<i class="icn icn-linkedin"></i></a><?php
+        ?><a class="btn" style="background-color:#7fba00;" href="/web/lib/hybridauth?provider=live">Windows Live<i class="icn icn-microsoft"></i></a><?php
         ?></div></div><?php
         
         
@@ -1467,7 +1470,7 @@ class Page extends Site {
 <header>
     <nav class="navbar">
         <div class="float-left">
-            <a href="<?= $this->router()->getURL($this->router()->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>" style="padding: 0;"><i class="ilogo"></i></a>            
+            <a href="<?= $this->router()->getURL($this->router()->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>" style="padding: 0;"><i class=ilogo></i></a>            
         </div>        
         <div class="float-right">
             <ul class="nav float-right"><?php
@@ -1475,19 +1478,19 @@ class Page extends Site {
                     echo '<li><a href="#"><i class="icn icnsmall icn-', $this->router()->countries[$this->router()->countryId]['uri'], '"></i></a></li>';
                 }
                 else {
-                    echo '<li><a href="#"><i class="icn icnsmall icn-globe"></i></a></li>';
+                    echo '<li><a href="#"><i class="icn icnsmall icn-globe invert"></i></a></li>';
                 }?>
-                <li><a href="<?= $url ?>"><i class="icn icnsmall icn-lang"></i></a></li>
-                <li><a href="#"><i class="icn icnsmall icn-bell"></i></a></li>
-                <li><a href="<?= $this->router()->getLanguagePath('/signin/') ?>"><i class="icn icnsmall icn-user"></i></a></li>
+                <li><a href="<?= $url ?>"><i class="icn icnsmall icn-lang invert"></i></a></li>
+                <li><a href="#"><i class="icn icnsmall icn-bell invert"></i></a></li>
+                <li><a href="<?= $this->router()->getLanguagePath('/signin/') ?>"><i class="icn icnsmall icn-user invert"></i></a></li>
             </ul>
         </div>
     </nav>
 </header>
-<div class="row"><div class="col-12"><div class="search">
-    <form class="" onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">
-        <input id="q" name="q" class="searchTerm" type="search" placeholder="<?=$this->lang['search_what']; ?>">
-        <button class="searchButton" type="submit"><i class="icn icnsmall icn-search"></i></button>
+<div class=row><div class=col-12><div class=search>
+    <form onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">
+        <input id="q" name="q" class=searchTerm type=search placeholder="<?=$this->lang['search_what']; ?>">
+        <button class=searchButton type="submit"><i class="icn icnsmall icn-search invert"></i></button>
     </form>
 </div></div></div><?php
         echo $this->filter_purpose();

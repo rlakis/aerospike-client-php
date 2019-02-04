@@ -5,10 +5,10 @@ require_once 'Page.php';
 
 class Signin extends Page {
 
-    function __construct($router) {
+    function __construct(Core\Model\Router $router) {
         parent::__construct($router);
         if ($this->user->info['id']) {            
-            $this->user->redirectTo($this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId));
+            $this->user->redirectTo($this->router()->getURL($this->router()->countryId, $this->router()->cityId));
         }
         
         if ($this->isMobile) {

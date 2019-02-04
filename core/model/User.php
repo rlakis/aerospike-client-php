@@ -2381,8 +2381,8 @@ class User {
             }
             
             $ul = $this->info['options']['lang'] ?? '';
-            if ($ul!=$this->site->urlRouter->siteLanguage) {
-                $this->info['options']['lang'] = $this->site->urlRouter->siteLanguage;
+            if ($ul!=Core\Model\Router::getInstance()->language) {
+                $this->info['options']['lang'] = Core\Model\Router::getInstance()->language;
                 $updateOptions=true;
             }            
             
@@ -2724,17 +2724,24 @@ class User {
     }
     
     
-    function getSessionHandlerCookieData() {
+    function getSessionHandlerCookieData() : void {
         $data=null;
-        if (isset ($_COOKIE['mourjan_user'])) {
-            $data=json_decode($_COOKIE['mourjan_user']);
-            if (is_object($data)) {
+        $cookie = filter_input(INPUT_COOKIE, 'mourjan_user', FILTER_DEFAULT, ['options'=>['default'=>'{}']]);
+        if ($cookie) {
+            $data = \json_decode($cookie);
+            if (json_last_error()==JSON_ERROR_NONE) {
                 if (isset($data->mu)) {
                     $this->params['mourjan_user']=1;
+                    if (isset($data->lg) && ($data->lg==='ar'||$data->lg==='en'||$data->lg==='fr')) {
+                        $this->params['slang']=$data->lg;
+                    }
                     $this->update();
                 }
             }
-        }
+            else {
+                error_log(__FUNCTION__.'('.json_last_error().') '.json_last_error_msg().PHP_EOL.$cookie);
+            }
+        }              
     }
 
     
@@ -2905,8 +2912,8 @@ class User {
     }
     
 
-    function update() {
-        $_SESSION['_u'] = ['info' => $this->info, 'params' => $this->params, 'pending'=> $this->pending];
+    function update() : void {
+        $_SESSION['_u'] = ['info'=>$this->info, 'params'=>$this->params, 'pending'=>$this->pending];
     }
 
     

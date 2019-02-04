@@ -302,17 +302,16 @@ var setOrder=function(e)
 
     function main_pane() : void {
         echo '<!--googleoff: snippet-->';
-        echo '<div class="row home">', "\n";
+        echo '<div class="row home">';
         $sections = [];
         foreach ($this->router()->pageRoots as $id=>$root) {
             $count = $root['counter'];
             $link = $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $id);
-            //echo '<li><a href="', $link,'"><i class="icn icn-', $id, '"></i>', $root['name'], '<span class="float-right">', number_format($count, 0), '</span></a></li>';
             $sections[$id] = $this->router()->database()->getSectionsData($this->router()->countryId, $this->router()->cityId, $id, $this->router()->language, true);
         }
         $count = count($sections);
         foreach ($sections as $root_id => $items) {
-            echo '<div class=col-4>', '<div class=card>';
+            echo '<div class=col-4><div class=card>';
             echo '<div class=card-header style="background-color:var(--color-',$root_id,');"><i class="icn icn-', $root_id, '"></i></div>';
             echo '<div class=card-content>';
             echo '<h4 class=card-title>', $this->router()->pageRoots[$root_id]['name'],'</h4>';
@@ -331,9 +330,9 @@ var setOrder=function(e)
         }
         
 
-        echo '<div class=col-4>', '<div class="card test">', '<div class=card-content>';
+        echo '<div class=col-4><div class="card test"><div class=card-content>';
         echo '<ul>';
-        echo '<li><i class="icn icnsmall icn-82"></i><span>', $this->lang['postFree'], '</span></li>';
+        echo '<li class=t><i class="icn icnsmall icn-82"></i><span>', $this->lang['postFree'], '</span></li>';
         if ($this->user()->info['id']) {
             $balance_label='My balance is '.$this->user()->getBalance() . ' coins';
             echo '<li><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></li>';
