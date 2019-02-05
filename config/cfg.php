@@ -70,13 +70,21 @@ class Config extends Singleton {
         return ($this->config['enabled_users']);
     }
     
+    
     public function enabledAds() : bool {
         return ($this->config['enabled_ads']);
     }
     
+    
     public function disableAds() : void {
         $this->config['enabled_ads']=0;
     }
+    
+    
+    public function isMaintenanceMode() : bool {
+        return ($this->config['active_maintenance']!=0);
+    }
+    
     
     public function incModelFile(string $file) : Config {
         if (!isset($this->config['model-dir'])) {

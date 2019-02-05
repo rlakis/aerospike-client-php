@@ -16,7 +16,7 @@ function redirectTo($user) : void {
     $router = Router::getInstance();
     $router->language = $user->params['slang'];
     $router->cache();
-    $url = $router->getURL($user->params['country'],$user->params['city']);  
+    $url = $router->getURL($user->params['country'], $user->params['city']);  
     $router->close();
     
     HttpClient\Util::redirect($url);
@@ -40,8 +40,8 @@ $user->populate();
 
 $newId = 0;
 
-if ($user->info['id'] && isset($_GET['logout'])) {   
-    $provider=$_GET['logout'];
+if ($user->id() && isset($_GET['logout'])) {   
+    $provider = filter_input(INPUT_GET, 'logout', FILTER_SANITIZE_STRING);
     if ($provider=='mourjan' || $provider=="mourjan-iphone" || $provider=='Android' || $provider=='mourjan-android') {        
         $user->logout();
         redirectTo($user);
@@ -87,7 +87,7 @@ try {
     
     $hybridauth = new Hybridauth($hybridConfig);   
     
-    if ($provider==$storage->get('provider')) {
+    if ($provider=$storage->get('provider')) {
         
         $uid = 0;
         $uuid = 0;
@@ -179,6 +179,7 @@ try {
                     $uri.='signin=error';
                 }
             }
+            
             redirectToUrl($uri);        
         }
     }
@@ -188,13 +189,22 @@ try {
      * This will erase the current user authentication data from session, and any further
      * attempt to communicate with provider.
      */
-    if ($user->info['id'] && isset($_GET['logout'])) {   
+    if ($user->id() && isset($_GET['logout'])) {   
         $provider=$_GET['logout'];
-        if($provider == 'live') $provider = 'WindowsLive';
-        if($provider == 'yahoo') $provider = 'YahooOpenID';
-        elseif($provider == 'linkedin') $provider = 'LinkedIn';
-        else $provider = ucfirst($provider);
-        if($provider!='mourjan' && $provider!="mourjan-iphone" && $provider!='Android' && $provider != 'mourjan-android') {
+        if ($provider=='live') { 
+            $provider = 'WindowsLive';             
+        }
+        elseif ($provider=='yahoo') { 
+            $provider = 'YahooOpenID';             
+        }
+        elseif ($provider=='linkedin') { 
+            $provider = 'LinkedIn';
+        }
+        else {
+            $provider = ucfirst($provider);
+        }
+        
+        if ($provider!='mourjan' && $provider!='mourjan-iphone' && $provider!='Android' && $provider!='mourjan-android') {
             $adapter = $hybridauth->getAdapter($provider);
             $adapter->disconnect();
         }
@@ -210,6 +220,7 @@ try {
     if (isset($user->params['slang']) && $user->params['slang']!='ar') {
         $url .= $user->params['slang'].'/';
     }
+    error_log($url);
     HttpClient\Util::redirect($url);
 } 
 catch (Exception $e) {

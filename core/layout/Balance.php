@@ -8,20 +8,15 @@ class Balance extends Page{
     private $statementMode = false;
     private $downloadLinkPath = '/web/invoice.php';
 
-    function __construct($router){
+    function __construct(Core\Model\Router $router){
         parent::__construct($router);
-        /*if($this->isMobile){
-            if (!$this->user->info['id']) {
-                $this->user->redirectTo($this->urlRouter->getURL($this->urlRouter->countryId, $this->urlRouter->cityId));
-            }
-        }*/
-        if($this->urlRouter->cfg['active_maintenance']){
-            $this->user->redirectTo('/maintenance/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
+        if ($this->router()->config()->get('active_maintenance')) {
+            $this->user()->redirectTo($this->router()->getLanguagePath('/maintenance/'));
         }
         
         $title = $this->lang['myBalance'];
         
-        if(isset($_GET['list']) && $_GET['list']==1){
+        if (isset($_GET['list']) && $_GET['list']==1) {
             $this->statementMode = true;
             $title = $this->lang['account_balance'];
         }
@@ -29,7 +24,7 @@ class Balance extends Page{
         $this->forceNoIndex=true;
         $this->title=$title;
         $this->requireLogin = true;
-        $this->urlRouter->cfg['enabled_ads']=0;
+        $this->router()->config()->disableAds();
         
         $this->inlineCss.='
             ct{text-align:center;display:block}
@@ -56,7 +51,7 @@ class Balance extends Page{
             .stmt .et0{width:463px;text-align:left}
             .stmt .et1{width:423px;text-align:left}
             .stmt .dwt{width:30px;height:30px}
-            .dwt a{width:30px;height:30px;display:inline-block;background-repeat:no-repeat;background-position:0 0;background-image:url('.$this->urlRouter->cfg['url_css'].'/i/download'.$this->urlRouter->_png.')}
+            .dwt a{width:30px;height:30px;display:inline-block;background-repeat:no-repeat;background-position:0 0;background-image:url('.$this->router()->config()->cssURL.'/i/download'.$this->router()->_png.')}
             .stmt .ct0{width:90px;text-align:center}
             .stmt .xt0{width:957px;border-top:1px solid #aaa;display:none}
             ul.ps{background-color:#D9FAC8}
@@ -125,6 +120,7 @@ class Balance extends Page{
         $this->render();
     }
     
+    
     function mainMobile() {
         if ($this->user->info['id']) {
 
@@ -170,15 +166,15 @@ class Balance extends Page{
         }
     }
     
-    function main_pane(){
-        if ($this->user->info['id']) {
-
-            if (!$this->urlRouter->cfg['enabled_post'] && $this->topMenuIE) {
+    
+    function main_pane() {
+        if ($this->user()->id()) {
+            if (!$this->router()->config()->get('enabled_post') && $this->topMenuIE) {
                 $this->renderDisabledPage();
                 return;
             }
 
-            switch($this->urlRouter->module){
+            switch ($this->router()->module) {
                 case 'statement':
                     $this->showStatement();
                     break;
@@ -186,10 +182,12 @@ class Balance extends Page{
                     break;
             }
 
-        }else{
+       }
+        else {
             $this->renderLoginPage();
         }
     } 
+    
     
     function showMobileStatement(){ 
         $lang = $this->urlRouter->siteLanguage;
@@ -355,17 +353,17 @@ class Balance extends Page{
         }
     }
     
-    function showStatement(){ 
-        $lang = $this->urlRouter->siteLanguage;
+    
+    function showStatement() { 
+        $lang = $this->router()->language;
         $uid = 0;
-        if(isset($_GET['u']) && is_numeric($_GET['u'])){
-            $uid = $_GET['u'];
-        }
-        $data = $this->user->getStatement($uid, 0, false, null, $this->urlRouter->siteLanguage);
+        if (isset($_GET['u']) && is_numeric($_GET['u'])) { $uid = $_GET['u']; }
+        $data = $this->user()->getStatement($uid, 0, false, null, $this->router()->language);
         $hasError = 0;
-        if($data && $data['balance']!==null){
+        if ($data && $data['balance']!==null) {
             $subHeader = $this->lang['current_balance'].'<span class="mc24"></span>'.$data['balance'].' '.$this->lang['gold'];
-        }else{
+        }
+        else {
             $subHeader = '<br />';
             $hasError = 1;
         }
@@ -401,22 +399,14 @@ class Balance extends Page{
                     
                     $canFilter = false;
                     
-//                    $startTime = strtotime($startDate);
-//                    $ago31DaysTime = time()-2678400;
-//                    if($startTime < $ago31DaysTime){
-//                        $canFilter = true;
-//                    }
-                    
                     $endDate = date("Y-m-d");
                     
                     echo '<div class="stmt'.($lang=='ar' ? ' ar':'').'">';
-                    //echo '<div class="filters">'.$this->lang['from'].': <input value="'.$startDate.'" name="from" type="date" '.($canFilter ? '':'disabled="disabled"').' /><span class="sep"></span> '.$this->lang['till'].': <input value="'.$endDate.'" name="till" type="date" '.($canFilter ? '':'disabled="disabled"').' /></div>';
                     echo '<ul class="hdr"><li class="dt0">'.$this->lang['date'].'</li>';
-                    //echo '<li class="ct0">Amount</li>';
                     echo '<li class="ct0">'.$this->lang['balance'].'</li><li class="ct0">'.$this->lang['credit'].'</li><li class="ct0">'.$this->lang['debit'].'</li><li class="et0">'.(ucfirst($this->lang['detailMore_'.$lang])).'</li></ul>';
                     
                     $alt = 0;
-                    for($i=0;$i<$count;$i++){
+                    for ($i=0; $i<$count; $i++) {
                         echo '<ul class="'.($data['recs'][$i][$fieldCredit] > 0 ? 'ps': ($alt ? 'ck a':'ck') ).'">';
                         
                         if($data['recs'][$i][$fieldCredit]==0){
@@ -441,7 +431,7 @@ class Balance extends Page{
                         }
                         
                         echo '<li class="et'.($hasDownload ? 1 : 0).'">';
-                        //'.($data['recs'][$i][$fieldState]==8 ? ' sj':'').'
+                       
                         echo '<b>';
                         if( $data['recs'][$i][$fieldCredit] > 0){
                             if($data['recs'][$i][$fieldCurrency] == 'MCU'){
@@ -454,12 +444,11 @@ class Balance extends Page{
                         echo ($data['recs'][$i][$fieldTitle]);
                         echo '</b>';
                         echo '</li>';
-                        if($hasDownload){
-                            echo $hasDownload;
-                        }
+                        
+                        if ($hasDownload) { echo $hasDownload; }
                         if($data['recs'][$i][$fieldDebit] > 0){
                             if($data['recs'][$i][$fieldId] && $data['recs'][$i][$fieldDesc]=='NA' || $data['recs'][$i][$fieldDesc]==''){  
-                                echo '<li class="xt0 '.($this->urlRouter->siteLanguage ? 'ar':'en' ).'">';                              
+                                echo '<li class="xt0 '.($this->router()->language ? 'ar':'en' ).'">';                              
                                 echo $this->lang['unavailable_balance_detail'];
                             }else{
                                 echo '<li class="xt0 '.($data['recs'][$i][$fieldRtl] ? 'ar':'en' ).'">';
@@ -485,65 +474,17 @@ class Balance extends Page{
                             }
                             echo '</li>';
                         }
-                        
-                        /*if($data['recs'][$i][$fieldId]===null){
-                            if(trim($data['recs'][$i]['CURRENCY_ID'])=='MCU'){
-                                echo '<b>Redeem of '.((int)$data['recs'][$i]['CREDIT']).' Gold<span class="mc16"></span></b>';
-                            }else{
-                                echo '<b>Purchase of '.((int)$data['recs'][$i]['CREDIT']).' Gold<span class="mc16"></span></b>';
-                            }
-                        }else{
-                            $content = json_decode($data['recs'][$i]['CONTENT'], true);
-                            
-                            $text = $content['other'];
-                            $rtl = $content['rtl'];
-                            if($lang!='' && $content['extra']['t']!=2 && isset($content['altother']) && $content['altother']!=''){
-                                $text = $content['altother'];
-                                $rtl = $content['altRtl'];
-                            }
-                            $text = $this->BuildExcerpts($text, 35);
-                            $link='';
-                            $class='';
-                            switch($data['recs'][$i]['STATE']){
-                                case 9:
-                                    $link = '/myads/'.$lang.'?sub=archive#'.$data['recs'][$i]['ID'];
-                                    break;
-                                case 7:
-                                    $class=' class="a"';
-                                    $link = '/myads/'.$lang.'#'.$data['recs'][$i]['ID'];
-                                    break;
-                                case 3:
-                                case 2:
-                                case 1:
-                                    $class=' class="b"';
-                                    $link = '/myads/'.$lang.'?sub=pending#'.$data['recs'][$i]['ID'];
-                                    break;
-                                case 0:
-                                default:
-                                    $class=' class="r"';
-                                    $link = '/myads/'.$lang.'?sub=drafts#'.$data['recs'][$i]['ID'];
-                                    break;
-                            }
-                            $closeLink=0;
-                            if($link){
-                                $closeLink=1;
-                                echo '<a'.$class.' href="'.$link.'">';
-                            }
-                            echo 'Premium listing: <span class="'.($rtl ? 'ar':'en').'">'.$text.'</span>';                     
-                            if($closeLink){
-                                echo '</a>';
-                            }
-                        }*/
+                                               
                         echo '</ul>';
                     }
                     echo '</div>';
                 }
             }
-            if(!$pass){
+            
+            if (!$pass) {
                 ?><div class="htf db"><?= $this->lang['no_statement_history'] ?><br /><br /><input onclick="document.location='/gold/<?= $lang=='ar' ? '':$lang.'/' ?>'" class="bt" type="button" value="<?= $this->lang['get_gold'] ?>" /></div><?php
             }
         }
     }
     
 }
-?>

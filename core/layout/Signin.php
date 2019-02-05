@@ -7,22 +7,14 @@ class Signin extends Page {
 
     function __construct(Core\Model\Router $router) {
         parent::__construct($router);
-        if ($this->user->info['id']) {            
-            $this->user->redirectTo($this->router()->getURL($this->router()->countryId, $this->router()->cityId));
+        if ($this->user()->id()) {
+            $this->user()->redirectTo( $this->router()->getURL($this->router()->countryId, $this->router()->cityId) );
         }
-        
-        if ($this->isMobile) {
-            $this->inlineCss.='
-            .str ul{margin:10px 20px}
-            .str li{margin-bottom:10px}
-            label{font-weight:bold}
-            ';
-        }
-        
+                
         $this->forceNoIndex=true;
         $this->title=$this->lang['title_sign_in'];
-        $this->urlRouter->cfg['enabled_ads']=0;
-        $this->urlRouter->cfg['enabled_sharing']=0;
+        $this->router()->config()->disableAds();
+        //$this->urlRouter->cfg['enabled_sharing']=0;
         $this->render();
     }
 
@@ -30,11 +22,5 @@ class Signin extends Page {
     function main_pane() {
         $this->renderLoginPage();
     }
-    
-    
-    function mainMobile() {         
-        $this->renderLoginPage();
-    }
-    
+        
 }
-?>

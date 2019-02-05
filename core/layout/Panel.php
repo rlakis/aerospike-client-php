@@ -5,60 +5,12 @@ class Panel extends Page {
 
     function __construct(Core\Model\Router $router) {
         parent::__construct($router);
-        //if($this->isMobile && $this->user->info['id']){
-        //    $this->user->redirectTo($this->router()->getURL($this->urlRouter->countryId,$this->urlRouter->cityId));
-        //}
         if ($this->router()->config()->get('active_maintenance')) {
             $this->user->redirectTo($this->router()->getLanguagePath('/maintenance/'));
         }
         $this->forceNoIndex=true;        
         $this->router()->config()->disableAds();
         
-        /*
-        $this->set_require('css', array('home'));
-        
-        $this->inlineCss.='input.prop{    
-            width: 400px;
-            padding: 5px 10px;
-            direction: ltr;
-            text-align: left;
-        }
-        .rs{            
-            list-style: disc inside;
-            text-align: right;
-            margin-top: 15px;
-            font-size: 16px;
-        }
-        .dialog-box .msg{
-            margin-top:10px;
-            width:424px;font-size:';
-        if ($this->router()->isArabic()) {
-            $this->inlineCss.='16';
-        }
-        else {
-            $this->inlineCss.='14';
-        }
-        $this->inlineCss.='px}
-        .ldl{
-            width:424px
-        }
-        .account.seli{width:625px}
-        .account.seli.h span{float:right;margin:0 10px}
-        .account.seli:not(.h){margin: 0;list-style:none;text-align:left;direction:ltr}
-        .seli li{width:auto}
-        .seli .lnk,.seli .load{float:right}
-        ';
-        
-        if ($this->router()->isArabic()) {
-            $this->inlineCss.='
-                .account{float:right}
-            ';
-        }else{
-            $this->inlineCss.='
-                .account{float:left}
-            ';
-        }
-        */
         $this->render();
     }
     
@@ -68,7 +20,7 @@ class Panel extends Page {
     
     
     function main_pane() { 
-        echo '<div class=row>', '<div class=col-12><div class=card>';
+        echo '<div class=row><div class=col-12><div class=card>';
         $this->renderBalanceBar();
         $this->inlineQueryScript.='
             $.ajax({
@@ -151,7 +103,8 @@ class Panel extends Page {
             $(".close").click(function(){$(this).parent().remove()}).hover(function(){$(this).next().addClass("on")},function(){$(this).next().removeClass("on")});
             
         ';
-        if($this->user->info['id'] && $this->user->info['level']!=5){
+        
+        if ($this->user()->id() && $this->user()->level()!=5) {
                 $this->globalScript .= 'function prini(){var t=$(\'<div id="prob" class="account '. $this->router()->language .'">         
                 <a href="javascript:void(0)" onclick="prop()" class="option full settings"><span class="j prop"></span> '. $this->lang['myPropspace'] .'</a>
                 </div><div id="prop_dialog" class="dialog dlg-fix"><div class="dialog-box"><div><input id="purl" onfocus="mprop(\\\'\\\')" class="prop" type="text" placeholder="http://xml.propspace.com/feed/xml.php" /></div><div class="msg inf err ctr"></div></div> 
@@ -167,9 +120,11 @@ class Panel extends Page {
                 </div>\');
                 $(".col1").append(t)};
                 ';
-            }else{
-                $this->globalScript .='function prini(){};';
-            }
+        }
+        else {
+            $this->globalScript .='function prini(){};';
+        }
+        
         $this->globalScript.='
             function prop(){
                 $("#purl").val("");
@@ -301,25 +256,18 @@ class Panel extends Page {
                 $("#purl").val(v);
             };';
         
-        if ($this->user->info['id']) {
-            echo '<div class=account>';
+        if ($this->user()->id()) {
+            echo '<div class="account">';
             echo '<a href="', $this->router()->getLanguagePath('/post/'), '" class="btn half"><span class="j pub"></span>', $this->lang['button_ad_post_m'], '</a>';
-            echo '<a href="', $this->router()->getLanguagePath('/statement/'), '" class="btn half balance"><span class="pj coin"></span><span id=coins>', $this->lang['myBalance'], '</span></a></div>';
-            
-            echo '<div class=account>';
             echo '<a id=active href="', $this->router()->getLanguagePath('/myads/'), '" class="btn option quarter active"><span class="pj ads1"></span>', $this->lang['ads_active'], '</a>';
             echo '<a id=pending href="', $this->router()->getLanguagePath('/myads/'), '?sub=pending" class="btn option quarter pending"><span class="pj ads2"></span>', $this->lang['home_pending'], '</a>';
             echo '<a id=draft href="', $this->router()->getLanguagePath('/myads/'), '?sub=drafts" class="btn option draft"><span class="pj ads3"></span>', $this->lang['home_drafts'], '</a>';
             echo '<a id=archive href="', $this->router()->getLanguagePath('/myads/'), '?sub=archive" class="btn option archive"><span class="pj ads4"></span>', $this->lang['home_archive'], '</a>';
-            echo '</div>';
-            
-            echo '<div class=account>';         
             echo '<a id=favorite href="', $this->router()->getLanguagePath('/favorites/'), '?u=', $this->user->info['idKey'], '" class="btn option half favorite"><span class="j fva"></span>', $this->lang['myFavorites'], '</a>';
-            echo '</div>';
-            
-            echo '<div class=account>';
+            echo '<a href="', $this->router()->getLanguagePath('/statement/'), '" class="btn half balance"><span class="pj coin"></span><span id=coins>', $this->lang['myBalance'], '</span></a>';
             echo '<a href="', $this->router()->getLanguagePath('/account/'), '" class="btn option full settings"><span class="j sti"></span>', $this->lang['myAccount'], '</a>';
             echo '</div>';
+            
 
            /* if($this->user->info['level']!=5){
                 ?><div id="prob" class="account <?= $this->urlRouter->siteLanguage ?>"><?php         

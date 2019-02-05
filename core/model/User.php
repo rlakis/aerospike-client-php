@@ -151,10 +151,13 @@ class User {
     }
     
     
-    function __construct(?Site $site , $init=1) {
+    function __construct($site , $init=1) {
         $this->db = \Core\Model\Router::instance()->db;
-        $this->config= \Config::instance();
+        $this->config = \Config::instance();
         $this->reset();
+        if($site){
+            $_SESSION['_u']['params']['slang'] = $site->router()->language;
+        }
         if ($init) {
             $this->site=$site;
             //$this->sysAuthById(480301);
@@ -291,6 +294,29 @@ class User {
                 $this->redirectTo($currentUrl);
             }
         }
+    }
+    
+    
+    function id() : int {
+        return $this->info['id'] ?? 0;
+    }
+    
+    
+    function level() : int {
+        return $this->info['level'] ?? 0;
+    }
+
+    
+    public function isLoggedIn(int $user_level=0) : bool {
+        if ($user_level>0) {
+            return ($this->id()>0 && $this->level()==$user_level);
+        }
+        return ($this->id()>0);
+    }
+    
+    
+    function provider() : string {
+        return $this->info['provider'] ?? '';
     }
     
     
@@ -1859,7 +1885,7 @@ class User {
 
     
     function redirectTo($url) {
-        $this->site->urlRouter->close();
+        $this->site->router()->close();
         header('Location: '.$url);
         exit(0);
     }
@@ -2813,12 +2839,13 @@ class User {
         
         setcookie('mourjan_user', json_encode($info), time()+31536000,'/', $this->config->get('site_domain'), false);
         
+        /*
         if(isset($_COOKIE['mourjan_log']) || isset($_COOKIE['mourjan_login'])) {
             // deprecated
             setcookie('mourjan_login', '', 1,'/','.mourjan.com');
             setcookie('mourjan_login', '', 1,'/',$this->cfg['site_domain']);
             setcookie('mourjan_log', '', 1,'/',$this->cfg['site_domain']);
-        }
+        }*/
     }
     
     
@@ -2920,6 +2947,7 @@ class User {
     function logout() {
         $countryId=isset($this->params['country'])?$this->params['country']:0;
         $cityId=isset($this->params['city'])?$this->params['city']:0;
+        $lang=isset($this->params['slang'])?$this->params['slang']:'ar';
         $sorting=isset($this->params['sorting'])?$this->params['sorting']:-1;
         $sortingLang=isset($this->params['list_lang'])?$this->params['list_lang']:-1;
         $mourjanUser = isset($this->params['mourjan_user']) ? 1 : NULL;
@@ -2938,6 +2966,7 @@ class User {
             $this->params['country']=$countryId;
             $this->params['city']=$cityId;
             $this->params['visit']=1;
+            $this->params['slang']=$lang;
             if($sorting > -1) {
                 $this->params['sorting']=$sorting;
             }

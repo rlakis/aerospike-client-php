@@ -33,11 +33,13 @@ class Page extends Site {
     var $pageItemScope='itemscope itemtype="https://schema.org/WebPage"';
     
     
+    private $included = [];
+    
     function __construct(Core\Model\Router $router) {
         parent::__construct($router); 
         
-        if ($this->user->info['id']) {
-            if($this->router()->isApp) {
+        if ($this->user()->id()) {
+            if ($this->router()->isApp) {
                 $this->isUserMobileVerified = true;
             }
             elseif ($this->user->info['level']==9 && $this->user->info['id']!=1 && $this->user->info['id']!=2) {
@@ -419,10 +421,9 @@ class Page extends Site {
     
     
     function renderBalanceBar() {        
-        if ($this->user->info['id']) {
-            
-            echo '<div id=balance class=balc><div id=balanceCounter></div><a class=btn href="', $this->router()->getLanguagePath('/gold/'), '#how-to"><span class=mc24> </span>',
-                    $this->lang['buy_gold_bt'],'</a><a class=btn href="', $this->router()->getLanguagePath('/gold/'), '"><span class="rj add"></span>',
+        if ($this->user()->id()) {            
+            echo '<div id=balance class=balc><div id=balanceCounter></div><a class=btn href="', $this->router()->getLanguagePath('/gold/'), '#how-to"><span style="padding-bottom:20px;font-size:3em;">', $this->user()->getBalance(),'</span><br>',
+                    $this->lang['buy_gold_bt'],'</a><a href="', $this->router()->getLanguagePath('/gold/'), '"><span class="rj add"></span>',
                     $this->lang['get_gold'], '</a></div>';
             $this->globalScript.="var showBalance=1;";
         }
@@ -512,6 +513,11 @@ class Page extends Site {
     
     function renderLoginPage() : void {
         \Config::instance()->incLibFile('phpqrcode');
+        if (!isset($this->included['doc'])) {
+            echo '<style>';
+            $this->css('doc');
+            echo '</style>';
+        }
         echo '<div class=row><div class="col-12 sign">';
         $keepme_in = (isset($this->user->params['keepme_in']) && $this->user->params['keepme_in']==0)?0:1;
         
@@ -528,7 +534,7 @@ class Page extends Site {
         QRcode::png('mourjan:login:'.session_id().str_pad($this->router()->config()->serverId, 4, '0', STR_PAD_LEFT) . str_pad(time(),16, '0', STR_PAD_LEFT), $qrfile, QR_ECLEVEL_L, 5);
 
         $sh = '0';
-        $mu = filter_input(INPUT_COOKIE, 'mourjan_user', FILTER_SANITIZE_STRING);
+        $mu = filter_input(INPUT_COOKIE, 'mourjan_user', FILTER_DEFAULT);
         if ($mu) {            
             $cook = json_decode($mu);            
             if (is_object($cook) && isset($cook->mu)) {
@@ -545,9 +551,7 @@ class Page extends Site {
 
         $data = file_get_contents($qrfile);
         $type = pathinfo($qrfile, PATHINFO_EXTENSION);
-        $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-        
-        
+        $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);                
         
         ?><div class="card card-doc"><?php
         ?><div class=title><h5><?= $this->lang['signin_mourjan'] ?></h5></div><?php
@@ -578,14 +582,14 @@ class Page extends Site {
         </div><?php                
         ?></form></div><?php
         
-        ?><div class="card card-doc"><div class="title"><h5><?= $this->lang['signin_m'] ?></h5></div><?php
-        ?><div class="card-content"><?php            
-        ?><a class="btn" style="background-color:#3b5998" href="/web/lib/hybridauth/?provider=facebook">Facebook<i class="icn icn-facebook"></i></a><?php
-        ?><a class="btn" style="background-color:#4285F4" href="/web/lib/hybridauth/?provider=google">Google<i class="icn icn-google"></i></a><?php
-        ?><a class="btn" style="background-color:#1da1f2" href="/web/lib/hybridauth?provider=twitter">Twitter<i class="icn icn-twitter"></i></a><?php
-        ?><a class="btn" style="background-color:#410093" href="/web/lib/hybridauth?provider=yahoo">Yahoo<i class="icn icn-yahoo"></i></a><?php
-        ?><a class="btn" style="background-color:#0075b5" href="/web/lib/hybridauth?provider=linkedin">LinkedIn<i class="icn icn-linkedin"></i></a><?php
-        ?><a class="btn" style="background-color:#7fba00;" href="/web/lib/hybridauth?provider=live">Windows Live<i class="icn icn-microsoft"></i></a><?php
+        ?><div class="card card-doc"><div class=title><h5><?= $this->lang['signin_m'] ?></h5></div><?php
+        ?><div class=card-content><?php            
+        ?><a class=btn style="background-color:#3b5998" href="/web/lib/hybridauth/?provider=facebook">Facebook<i class="icn icn-facebook"></i></a><?php
+        ?><a class=btn style="background-color:#4285F4" href="/web/lib/hybridauth/?provider=google">Google<i class="icn icn-google"></i></a><?php
+        ?><a class=btn style="background-color:#1da1f2" href="/web/lib/hybridauth?provider=twitter">Twitter<i class="icn icn-twitter"></i></a><?php
+        ?><a class=btn style="background-color:#410093" href="/web/lib/hybridauth?provider=yahoo">Yahoo<i class="icn icn-yahoo"></i></a><?php
+        ?><a class=btn style="background-color:#0075b5" href="/web/lib/hybridauth?provider=linkedin">LinkedIn<i class="icn icn-linkedin"></i></a><?php
+        ?><a class=btn style="background-color:#7fba00;" href="/web/lib/hybridauth?provider=live">Windows Live<i class="icn icn-microsoft"></i></a><?php
         ?></div></div><?php
         
         
@@ -598,8 +602,8 @@ class Page extends Site {
         
         echo '</div></div>'; // close signin div
         
-        ?><div class="col-12"><div class="card card-doc"><div class="card-title"><h4><?= $this->lang['NB'] ?></h4></div><?php 
-        ?><div class="card-content"><p>&bull;&nbsp;<?= $this->lang['disclaimer'] ?></p><p>&bull;&nbsp;<?= $this->lang['disclaimer_social'] ?></p></div><?php
+        ?><div class=col-12><div class="card card-doc"><div class=card-title><h4><?= $this->lang['NB'] ?></h4></div><?php 
+        ?><div class=card-content><p>&bull;&nbsp;<?= $this->lang['disclaimer'] ?></p><p>&bull;&nbsp;<?= $this->lang['disclaimer_social'] ?></p></div><?php
         ?></div></div><?php                                
                                
         $this->requireLogin=true;
@@ -772,56 +776,7 @@ class Page extends Site {
         foreach ($this->requires['css'] as $css) {
             echo '<link rel=\'stylesheet\' type=\'text/css\' href=\'', $css ,'\' />';
         }
-        /*$addOn='';
-        $mobileDir='';
-        $source=$this->router()->cfg['url_css'];
-        $sourceFile = '/home/www/css/5.4.2';
-        $sourceFile = $this->router()->cfg['dir_css'].substr($source,strlen($this->router()->cfg['url_resources']));
-        if ($this->isMobile) {
-            $addOn.='_m';
-            $source=$this->router()->cfg['url_css_mobile'];
-            $sourceFile = '/home/www/css/5.2.8g';
-            $sourceFile = $this->router()->cfg['dir_css'].substr($source,strlen($this->router()->cfg['url_resources']));
-            if($this->isMobileCssLegacy){
-                $this->requires['css'][]='mms';
-            }
-        }else{
-            $this->requires['css'][]='imgs';
-        }
-        if ($this->router()->siteTranslate) {
-            if ($this->router()->siteTranslate=='ar') $addOn.='_ar';
-        }elseif ($this->router()->language=='ar') $addOn.='_ar'; 
-        $fAddon=$addOn;
-        $csFile = '';
-        $toRequire = [];
-        foreach ($this->requires['css'] as $css) {
-            if (substr($css, 0, 7)=='s_root_' || $css=='ie6' || $css=='ie7' || $css=='imgs' || $css=='mms' || $css == 'home' || $css == 'select2') $addOn='';
-            else $addOn=$fAddon;
-            //if($css == 'main' && $this->isMobile){
-            //if (!isset($this->user->params['visit']) || $this->user->params['visit']<2) {
-            //if (0 && $this->isMobile) {
-            if (strpos($source,'dv.mourjan.com')===false) {
-                $fn = $css.$addOn.'.css';
-                if($this->isMobile){
-                    $fn = 'm'.$fn;
-                }
-                $content = $this->router()->db->getCache()->get($fn);
-                if($content){
-                    $csFile .= preg_replace('/url\((?:\.\/|)i/', 'url('.$source.'/i', $content);
-                }else{
-                    $toRequire[]='/'.$css.$addOn.'.css';
-                    $csFile .= preg_replace('/url\((?:\.\/|)i/', 'url('.$source.'/i', file_get_contents($sourceFile. '/'.$css.$addOn. '.css'));
-                }
-                
-            }else{
-                echo '<link rel=\'stylesheet\' type=\'text/css\' href=\'', $source, '/',$css,$addOn, '.css'.'\' />';
-            }
-        }
-        if($csFile){
-            $this->requires['css'] = $toRequire;
-        }else{
-            unset ($this->requires['css']);
-        }*/
+       
         $csFile = '';
         
         if ($this->inlineCss){
@@ -838,13 +793,7 @@ class Page extends Site {
         if($csFile || $this->inlineCss){            
             echo '<style type="text/css">',$csFile, $this->inlineCss, '</style>';
         }
-        /*if (isset($this->user->params['visit']) && $this->user->params['visit']>= 2) {
-            if($this->isMobile){
-                echo '<link rel=\'stylesheet\' type=\'text/css\' href=\'', $source, '/mms.css\' />';
-            }else{
-                echo '<link rel=\'stylesheet\' type=\'text/css\' href=\'', $source, '/imgs.css\' />';
-            }
-        }*/
+       
         if (!$this->isMobile) {
             if ($this->router()->isArabic()) {
                 ?><!--[if IE 7]><link rel="stylesheet" type="text/css" href="<?= $this->router()->config()->cssDir ?>/ie7_ar.css"><![endif]--><?php
@@ -870,14 +819,7 @@ class Page extends Site {
     function renderSideLike(){
         
         ?><div class="fb-like-box fb-like-side" data-href="http://www.facebook.com/pages/Mourjan/318337638191015" data-width="200" data-show-faces="true" data-stream="false" data-show-border="false" data-header="false"></div><?php 
-        /*if (false && $this->router()->cfg['enabled_sharing']) {
-        ?><h4><?= $this->lang['askUserLike'] ?></h4><?php
-        ?><ul class='list ssh'>
-            <li class="fbl"><span class='st_fblike_hcount'></span></li>
-            <li><span class='st_plusone_hcount'></span></li>
-            <li><span class='st_google_translate_large'></span></li>
-        </ul><?php 
-        }*/
+      
     }
 
 
@@ -1482,7 +1424,7 @@ class Page extends Site {
                 }?>
                 <li><a href="<?= $url ?>"><i class="icn icnsmall icn-lang invert"></i></a></li>
                 <li><a href="#"><i class="icn icnsmall icn-bell invert"></i></a></li>
-                <li><a href="<?= $this->router()->getLanguagePath('/signin/') ?>"><i class="icn icnsmall icn-user invert"></i></a></li>
+                <li><a href="<?= $this->router()->getLanguagePath($this->user()->id() ? '/home/' : '/signin/') ?>"><i class="icn icnsmall icn-user invert"></i></a></li>
             </ul>
         </div>
     </nav>
@@ -1979,23 +1921,7 @@ class Page extends Site {
             ?><li><a class="bt cl" href="?logout=<?= $this->user->info['provider'] ?>"><?= $this->lang['signout'] ?></a></li><?php
             ?></ul><?php
             
-        }/*elseif($this->requireLogin) {
-            if ($loginErr) {
-                ?><div class="nb ctr err"><?= $this->lang['signin_error'] ?></div><?php
-            }
-            ?><h2 class="ctr"><?= $this->lang['signin_m'] ?></h2><?php
-            ?><ul><?php
-            ?><li><a class="bt mj" href="/signin/<?= $lang ?>">Mourjan</a></li><?php
-            ?><li><a class="bt fb" href="?provider=facebook">Facebook</a></li><?php
-            ?><li><a class="bt go" href="?provider=google">Google</a></li><?php
-            ?><li><a class="bt tw" href="?provider=twitter">Twitter</a></li><?php
-            ?><li><a class="bt ya" href="?provider=yahoo">Yahoo</a></li><?php
-            ?><li><a class="bt lk" href="?provider=linkedin">LinkedIn</a></li><?php
-            ?><li><a class="bt wi" href="?provider=live">Windows Live</a></li><?php
-            if (!$this->requireLogin){ ?><li><span onclick="csif()" class="button bt cl"><?= $this->lang['cancel'] ?></span></li><?php } 
-            else { ?><br /><?php }
-            ?></ul><?php 
-        }*/
+        }
     }
     /* end not isApp */
         /* ?></div><?php */
@@ -2015,39 +1941,7 @@ class Page extends Site {
             $this->renderNotificationsMobile();
             
         }
-        /* if ($this->router()->module!='contact') {
-            $uri='';
-            if ($this->extendedId){
-                $uri='/'.$this->router()->countries[$this->router()->countryId][3].'/';
-                if ($this->hasCities && $this->router()->cityId) {
-                    $uri.=$this->router()->cities[$this->router()->cityId][3].'/';
-                }
-                $uri.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId][3].'/';
-                if ($this->router()->purposeId)$uri.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                $uri.=($this->router()->language!='ar'?$this->router()->language.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3:2) :1).'/';
-            }elseif($this->localityId){
-                $uri='/'.$this->router()->countries[$this->router()->countryId][3].'/';
-                $uri.=$this->localities[$this->localityId][3].'/';
-                $uri.=$this->router()->sections[$this->router()->sectionId][3].'/';
-                if ($this->router()->purposeId)$uri.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                $uri.=($this->router()->language!='ar'?$this->router()->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId ? 3:2).'/';
-            }else {
-                $uri=$this->router()->getURL($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);
-            }
-        }
-        
-        if ($this->router()->countryId) {
-            ?><div class='srch'><?php
-                ?><form action="<?= $uri ?>" method="get"><?php
-                    ?><div class="dq"><?php
-                    ?><input id="q" name="q" class="q" value="<?= htmlspecialchars($q,ENT_QUOTES) ?>" type='text' placeholder='&nbsp;<?= $this->lang['search_what'] ?>' /><?php
-                    ?></div><?php
-                    ?><div class="dqb"><?php
-                    ?><input type="submit" class="qb" value="" /><?php
-                    ?></div><?php
-                ?></form><?php
-              ?></div><?php
-        } */
+      
        $isNotSearch = preg_match('/\/(?:watchlist|favorites)\//iu', $_SERVER['REQUEST_URI']);
         if (!$this->router()->isApp && $this->router()->module=='search' && !$isNotSearch && $this->router()->rootId!=4 /*&& ($this->router()->rootId || $this->router()->sectionId)*/ && count($this->router()->purposes)>1 && !($this->router()->purposeId && count($this->router()->pagePurposes)==1)) {
             $q = '';
@@ -2548,15 +2442,20 @@ class Page extends Site {
     function footer() : void {
         $year = date('Y');
         echo '<footer>';
-        ?><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class="mios"></span></a><?php
-        ?><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class="mandroid"></span></a><?php
-        echo '<div class="col-12">© 2010-', $year, ' Mourjan.com Classifieds<br/>All Rights Reserved.';
-        if (!isset($this->user->info['level']) || $this->user->info['level']!=9) {
+        ?><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a><?php
+        ?><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a><?php
+        echo '<div class=col-12>© 2010-', $year, ' Mourjan.com Classifieds<br/>All Rights Reserved.';
+        if ($this->user()->level()!=9) {
             ?><br /><br />
-            <a href="https://sectigo.com/trust-seal" style="font-family: arial; font-size: 10px; color: #212121; text-decoration: none;"><img src="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png" srcset="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png, https://sectigo.com/images/seals/sectigo_trust_seal_lg_2x.png 2x" width="140" height="54" alt="Protected by Sectigo SSL" /></a><div style="font-family: arial;font-weight:bold;font-size:15px;color:#86BEE0;"><a href="https://sectigo.com" style="color:#86BEE0; text-decoration: none;">SSL Certificate</a></div>
+            <a href="https://sectigo.com/trust-seal" style="font-family:arial;font-size:10px;color:#212121;text-decoration:none;"><img src="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png" srcset="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png, https://sectigo.com/images/seals/sectigo_trust_seal_lg_2x.png 2x" width="140" height="54" alt="Protected by Sectigo SSL" /></a><div style="font-family: arial;font-weight:bold;font-size:15px;color:#86BEE0;"><a href="https://sectigo.com" style="color:#86BEE0;text-decoration:none;">SSL Certificate</a></div>
             <?php
         }
-        echo '</div></footer>',"\n";
+        echo '</div>';
+        if ($this->user()->id()) {
+            echo '<div class=float-right style="padding:40px"><a href="', '/web/lib/hybridauth/?logout=', $this->user()->provider(), '">Sign out&nbsp;&nbsp;&nbsp;&nbsp;</a></div>';
+        }
+        echo '</footer>',"\n";
+        
         
         if (1) { return; }
         
@@ -2853,10 +2752,10 @@ class Page extends Site {
         ?><div class='col4'><?php $this->leading_pane() ?></div><?php
     }
     
+    
     function leading_pane(){
     }
-    
-    
+        
     
     function _main_pane(){
         ?><div class='col1'><?php
@@ -2920,36 +2819,7 @@ class Page extends Site {
         if ($this->hasLeadingPane) {
             $this->_side_pane();
         }
-        /*
-        if (!$this->router()->userId || $this->hasPartnerInfo)
-            $this->_side_pane();
-        //if ($this->router()->module=='index') 
-        //    echo '<div class="btm na rc">', $this->lang['notify_new_ads'], '</div>';
-        
-        if ($this->router()->module=='search' && !$this->router()->userId && !$this->router()->userId && !$this->userFavorites){
-        if (($this->router()->countryId && $this->router()->sectionId  && $this->router()->purposeId) || ($this->router()->params['q'] && $this->searchResults['total_found']<100)){
-            if ($this->user->info['id']) {
-                $key=$this->router()->countryId.'-'.$this->router()->cityId.'-'.$this->router()->sectionId.'-'.$this->extendedId.'-'.$this->localityId.'-'.$this->router()->purposeId.'-'.crc32($this->router()->params['q']);
-                if (!isset($this->user->info['options']['watch'][$key])){
-                    ?><div class="btm na rc dsom"><?php
-                    ?><div onclick="ti(true)" class="eck"><?= $this->lang['watchLink'].'<b>'.$this->title.'</b>' ?></div><?php
-                    ?><b class="sfl"><?= $this->lang['w_slogan'] ?></b><?php
-                    ?><div class="som"></div><?php
-                    //echo $this->lang['w_content'];
-                    echo '<p>', $this->lang['w2_slogan'],'</p>';
-                    ?></div><?php
-                }
-            }else {
-                ?><div class="btm na rc dsom"><?php
-                ?><div onclick="ti()" class="eck"><?= $this->lang['watchLink'].'<b>'.$this->title.'</b>' ?></div><?php
-                ?><b class="sfl"><?= $this->lang['w_slogan'] ?></b><?php
-                ?><div class="som"></div><?php
-                //echo $this->lang['w_content'];
-                echo '<p>', $this->lang['w2_slogan'],'</p>';
-                ?></div><?php
-            }
-        }
-        }*/
+      
         ?></div><?php
         //$this->renderNotifications();
 
@@ -2959,14 +2829,7 @@ class Page extends Site {
     function bodyMobile(){
         echo "<div id='main' class='main'>";
         $this->mainMobile();
-        /*if(in_array($this->router()->module,array('index','search','detail','contact'))){
-            if (isset($this->user->params['mobile_ios_app_bottom_banner']) && $this->user->params['mobile_ios_app_bottom_banner']==1){
-                ?><a href="https://itunes.apple.com/us/app/mourjan-mrjan/id876330682?ls=1&mt=8"><div class="bottom-banner"><div onclick="closeBanner(event,this,'mobile_ios_app_bottom_banner',1)" class="banner-close"></div><div class="ios-banner"></div></div></a><?php
-            }
-            if (isset($this->user->params['mobile_android_app_bottom_banner']) && $this->user->params['mobile_android_app_bottom_banner']==1){
-                ?><a href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><div class="bottom-banner"><div onclick="closeBanner(event,this,'mobile_android_app_bottom_banner',1)" class="banner-close"></div><div class="android-banner"></div></div></a><?php
-            }
-        }*/
+       
         echo '</div>';
     }
 
@@ -4191,14 +4054,6 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             ?>ICH='<?= $this->includeHash ?>',<?php
             ?>LSM='<?= $this->router()->last_modified ?>';<?php
             if(0 && in_array($this->router()->module,['index','search','detail'])){ ?>loadCss(ucss+"/gen<?= $this->router()->language=='ar'?'_ar':'' ?>.css");<?php }
-            /*if (isset($this->requires['css'])) {
-                foreach ($this->requires['css'] as $css) {
-                    ?>loadCss(ucss+'<?= $css ?>');<?php  
-                } 
-            } */            
-            /*?>addEvent(window,'load',function(){loadCss(ucss+"/imgs.css")});<?php */
-            /*?>if(!canImp){loadCss(ucss+"/imgs.css")}<?php */
-            /*?>loadCss(ucss+"/imgs.css");<?php */
             echo $this->globalScript;
             /* ?>function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:lang, layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false, multilanguagePage: true, gaTrack: true, gaId: 'UA-435731-13'}, 'google_translate_element');}<?php */
             
@@ -4413,13 +4268,6 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 break;
             case 'post':
                 if($this->user->info['id'] && $this->isUserMobileVerified){                    
-                    /*if($this->user->info['id'] && $this->user->info['level']==9 && $this->router()->module=='post'){
-                        if($this->router()->cfg['site_production']){
-                            ?><script type="text/javascript" src="https://h5.mourjan.com/js/3.0.7/pvc.js"></script><?php
-                        }else{
-                            ?><script type="text/javascript" src="<?= $this->router()->cfg['url_js'] ?>/pvc.js"></script><?php
-                        }
-                    }*/
                     ?><script type="text/javascript" defer="true" src="<?= $this->router()->cfg['url_js'] ?>/post.js"></script><?php
                 }elseif($this->user->info['id']){
                     ?><script type="text/javascript" onload="$('#code').select2({language:'<?= $this->router()->language ?>',dir:'<?= $this->router()->language=='ar'?'rtl':'ltr' ?>'})" defer="true" src="<?= $this->router()->cfg['url_jquery'] ?>select2.min.js"></script><?php
@@ -4551,6 +4399,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         ?></head><?php
     }
     
+    
     function _bodyAMP(){
         ?><body><?php
             $this->titleHeaderAMP();
@@ -4564,15 +4413,18 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         
     }
     
+    
     function bodyAMP(){
         
     }
+    
     
     function titleHeaderAMP(){
         ?><header><?php
             ?><div role="button" on="tap:sidebar.toggle" tabindex="0">☰</div><?php
         ?></header><?php
     }
+    
     
     function sidebarAMP(){        
         $lang=$this->router()->language=='ar'?'':$this->router()->language.'/';
@@ -4828,6 +4680,15 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     }
     
     
+    public function css(string $filename) : Page {
+        if (!isset($this->included[$filename])) {
+            include $this->router()->config()->baseDir.'/web/css/includes/'.$filename.'.css';
+            $this->included[$filename]=1;
+        }
+        return $this;
+    }
+    
+    
     protected function _header() {
         $country_code='';
         if ($this->router()->countryId && array_key_exists($this->router()->countryId, $this->router()->countries)) {
@@ -4836,13 +4697,15 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         
         echo '<!doctype html>';
         echo '<html lang="', $this->router()->language, $country_code,'" xmlns:og="http://ogp.me/ns#"';
-        //if (isset($this->detailAd[Classifieds::VIDEO]) && $this->detailAd[Classifieds::VIDEO]) {xmlns:fb="http://ogp.me/ns/fb#"
-        //    echo ' xmlns:video="http://ogp.me/ns/video#"';
-        //}
         echo '><head><meta charset="utf-8">', "\n";
         echo "<style>\n";
         include $this->router()->config()->baseDir.'/web/css/includes/main.css';
+        
+       
         switch ($this->router()->module) {
+            case 'home':
+                break;
+            
             case 'search':
                 include $this->router()->config()->baseDir.'/web/css/includes/breadcrumb.css';
                 include $this->router()->config()->baseDir.'/web/css/includes/ad-view.css';
@@ -4852,17 +4715,15 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             case 'terms':
             case 'privacy':
             case 'premium':
-                include $this->router()->config()->baseDir.'/web/css/includes/doc.css';
+                $this->css('doc');
                 break;
                 
             case 'about':
-                include $this->router()->config()->baseDir.'/web/css/includes/doc.css';
-                include $this->router()->config()->baseDir.'/web/css/includes/about.css';
+                $this->css('doc')->css('about');               
                 break;
             
             case 'gold':
-                include $this->router()->config()->baseDir.'/web/css/includes/doc.css';
-                include $this->router()->config()->baseDir.'/web/css/includes/gold.css';
+                $this->css('doc')->css('gold');               
                 break;
             
             case 'guide':
@@ -4873,7 +4734,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             
             case 'buyu':
             case 'signin':
-                include $this->router()->config()->baseDir.'/web/css/includes/doc.css';
+                $this->css('doc');                
                 break;
             
             default:
@@ -5035,8 +4896,8 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 
                 case 'index':
                     $currentUrl=$this->router()->getUrl($this->router()->countryId,$this->router()->cityId);
-                    $link=  'https://www.mourjan.com'.$currentUrl;
-                    if ($link == $this->router()->config()->host.$_SERVER['REQUEST_URI']) { 
+                    $link='https://www.mourjan.com'.$currentUrl;
+                    if ($link==$this->router()->config()->host.$_SERVER['REQUEST_URI']) { 
                         $this->includeMetaKeywords();
                         echo '<meta name="robots" content="noodp, noydir, index, follow" />';
                     }
@@ -5079,7 +4940,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                     echo '<meta name="robots" content="noindex, nofollow" />';
                 } 
                 elseif($this->router()->module=='privacy'||$this->router()->module=='terms'||$this->router()->module=='about'||$this->router()->module=='advertise') {
-                    if ($this->router()->language=='en'){
+                    if ($this->router()->language=='en') {
                         echo '<meta name="robots" content="noodp, noydir, index, follow" />';
                     }
                     else {
@@ -5563,10 +5424,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 }
                 ?><li class="sep"></li><?php
             }
-            
-            /*if($this->user->info['id']){
-                ?><li class="sep"></li><?php
-            }*/
+                      
             $countryId = $this->router()->countryId;
             $cityId = $this->router()->cityId; 
             if (isset($this->user->params['country']) && $this->user->params['country'])

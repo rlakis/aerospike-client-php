@@ -285,10 +285,10 @@ var setOrder=function(e)
         $adLang='';
         if ($this->router()->language!="ar") $adLang=$this->router()->language.'/';
         
-        ?><div class="tv rcb"><div class="tx sh"><div class="tz"><?= $this->lang['billboard'] ?><p class="ctr"><?php
+        ?><div class="tv rcb"><div class="tx sh"><div class=tz><?= $this->lang['billboard'] ?><p class="ctr"><?php
         if (!$this->router()->siteTranslate) {
             if ($this->user->info['id']){
-                echo '<a class="bt" href="/post/'.$adLang.'" rel="nofollow">'.$this->lang['placeAd'].'</a>';
+                echo '<a class=bt href="/post/'.$adLang.'" rel="nofollow">'.$this->lang['placeAd'].'</a>';
             }
             else {
                 echo '<a class="bt login" href="/post/'.$adLang.'" rel="nofollow">'.$this->lang['placeAd'].'</a>';
@@ -333,7 +333,7 @@ var setOrder=function(e)
         echo '<div class=col-4><div class="card test"><div class=card-content>';
         echo '<ul>';
         echo '<li class=t><i class="icn icnsmall icn-82"></i><span>', $this->lang['postFree'], '</span></li>';
-        if ($this->user()->info['id']) {
+        if ($this->user()->id()) {
             $balance_label='My balance is '.$this->user()->getBalance() . ' coins';
             echo '<li><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></li>';
         }

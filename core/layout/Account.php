@@ -5,11 +5,13 @@ class Account extends Page{
     
     var $action='',$liOpen='';
 
-    function __construct($router){
+    function __construct(Core\Model\Router $router){
         parent::__construct($router);
-        $this->checkBlockedAccount(5);        
+        $this->checkBlockedAccount(5);
+        
         $this->load_lang(array("account"));
-        if($this->isMobile) {
+        
+        if ($this->isMobile) {
             $this->inlineCss.='
 .po .et{display:inline-block}
 .pi .et{display:none}
@@ -28,13 +30,14 @@ class Account extends Page{
 .act2,.nobd,input.bt{border:0!important}
 form{height:auto!important;padding:0!important}
             ';
-        }else{
+        }
+        else {
             $this->set_require('css', 'account');
             $this->inlineCss.='.acc{width:660px;padding-left:0;padding-right:0;clear:none;display:inline-block}
-                    .merge{float:'.($this->urlRouter->siteLanguage=='ar'?'left':'right').';text-align:center;padding-top:10px;}
+                    .merge{float:'.($this->router()->language=='ar'?'left':'right').';text-align:center;padding-top:10px;}
                     .bt.scan{margin:15px 0 20px}
                     ';
-            if(!$this->user->info['id']){
+            if (!$this->user->info['id']) {
                 $this->inlineCss.='.ph{width:650px}.acc{height:auto}';
             }
         }
@@ -46,6 +49,7 @@ form{height:auto!important;padding:0!important}
         $this->render();
     }
    
+    
     function mainMobile(){
         if ($this->user->info['id']) {
             $language=$this->urlRouter->siteLanguage;
@@ -204,17 +208,19 @@ form{height:auto!important;padding:0!important}
         $this->renderSideUserPanel();
     }
 */
-    function main_pane(){
-        if ($this->user->info['id']) {
-        //$this->pageHeader();
-        $this->generalList();
-        }else{
-            if(isset($this->user->pending['email_validation']) && $this->user->pending['email_validation']==2){
+
+    function main_pane() {
+        if ($this->user()->id()) {
+            $this->generalList();
+        }
+        else {
+            if (isset($this->user->pending['email_validation']) && $this->user->pending['email_validation']==2) {
                 $this->lang['hint_login']=$this->lang['login_email_verify'];
             }
             $this->renderLoginPage();
         }
     }
+    
 
     function pageHeader(){
         ?><div class='sum rc'><div class="brd"><?php
@@ -224,9 +230,10 @@ form{height:auto!important;padding:0!important}
         
     }
     
+    
     function generalList(){
-        $language=$this->urlRouter->siteLanguage;
-        if (isset($this->user->info['options']['lang']))$language=$this->user->info['options']['lang'];
+        $language=$this->router()->language;
+        if (isset($this->user->info['options']['lang'])) { $language=$this->user->info['options']['lang']; }
         
         
         if (isset($_GET['action'])) $this->action=$this->get('action', 'filter');
@@ -264,50 +271,55 @@ form{height:auto!important;padding:0!important}
             default:
                 break;
         }
-        if(isset($this->user->pending['email_validation'])){
+        
+        if (isset($this->user->pending['email_validation'])) {
             $this->action='verify';
-            if($this->user->pending['email_validation']==2){
-                    if (isset($this->user->info['options']['emailKey'])) {
-                        if($this->user->pending['email_key'] == $this->user->info['options']['emailKey']){
-                            if ($this->user->emailVerified()){
-                                $this->user->pending['email_validation']=1;
-                                unset($this->user->pending['email_key']);
-                            }
-                        }else{
-                            $this->user->pending['email_validation']=3;
+            if ($this->user->pending['email_validation']==2) {
+                if (isset($this->user->info['options']['emailKey'])) {
+                    if ($this->user->pending['email_key'] == $this->user->info['options']['emailKey']) {
+                        if ($this->user->emailVerified()) {
+                            $this->user->pending['email_validation']=1;
                             unset($this->user->pending['email_key']);
                         }
-                    }else{
+                    }
+                    else {
                         $this->user->pending['email_validation']=3;
                         unset($this->user->pending['email_key']);
                     }
+                }
+                else {
+                    $this->user->pending['email_validation']=3;
+                    unset($this->user->pending['email_key']);
+                }
             }
-            switch($this->user->pending['email_validation']){
-                    case 1:
-                        ?><div class="ph pho"><span class="done"></span><?php 
-                        echo $this->lang['emailVerificationOk'];
-                        ?></div><?php 
-                        $this->liOpen='notifications';
-                        unset($this->user->pending['email_validation']);
-                        break;
-                    case 3:
-                        ?><div class="ph phe"><span class="fail"></span><?php 
-                        echo $this->lang['emailVerificationNo'];
-                        ?></div><?php
-                        unset($this->user->pending['email_validation']);
-                        break;
-                    case 2:
-                    case 0:
-                        ?><div class="ph phe"><span class="fail"></span><?php 
-                        echo $this->lang['emailVerificationSno'];
-                        ?></div><?php
-                        break;
+            
+            switch ($this->user->pending['email_validation']) {
+                case 1:
+                    ?><div class="ph pho"><span class="done"></span><?php 
+                    echo $this->lang['emailVerificationOk'];
+                    ?></div><?php 
+                    $this->liOpen='notifications';
+                    unset($this->user->pending['email_validation']);
+                    break;
+                case 3:
+                    ?><div class="ph phe"><span class="fail"></span><?php 
+                    echo $this->lang['emailVerificationNo'];
+                    ?></div><?php
+                    unset($this->user->pending['email_validation']);
+                    break;
+                case 2:
+                case 0:
+                    ?><div class="ph phe"><span class="fail"></span><?php 
+                    echo $this->lang['emailVerificationSno'];
+                    ?></div><?php
+                    break;
             }
             $this->user->update();
         }
         
         $nameAlert=( isset($this->user->info['name']) && $this->user->info['name'] ) ?false:true;
         $emailAlert=false;
+        
         if (isset($this->user->info['options']['email'])) {
             $email=$this->user->info['options']['email'];
             if ($this->action=='verify') {
@@ -373,27 +385,24 @@ form{height:auto!important;padding:0!important}
             }
         ?></ul><?php 
         ?></form><?php
-        include_once $this->urlRouter->cfg['dir']. '/core/lib/phpqrcode.php';
-        $qrfile = $this->urlRouter->cfg['dir']."/web/qr/m-".  session_id() . ".png";
-        QRcode::png("mourjan:merge:".  session_id() . str_pad($this->urlRouter->cfg['server_id'],4,'0', STR_PAD_LEFT) . str_pad(time(),16,'0', STR_PAD_LEFT), $qrfile, QR_ECLEVEL_L, 5 );
+        include_once $this->router()->config()->get('dir').'/core/lib/phpqrcode.php';
+        $qrfile = $this->router()->config()->get('dir').'/web/qr/m-'.session_id().'.png';
+        QRcode::png('mourjan:merge:'.session_id().str_pad($this->router()->config()->serverId, 4, '0', STR_PAD_LEFT).str_pad(time(), 16, '0', STR_PAD_LEFT), $qrfile, QR_ECLEVEL_L, 5);
         $redis = new Redis();
-        $redis->connect($this->urlRouter->cfg['rs-host'], $this->urlRouter->cfg['rs-port'], 1, NULL, 100); // 1 sec timeout, 100ms delay between reconnection attempts.
+        $redis->connect($this->router()->config()->get('rs-host'), $this->router()->config()->get('rs-port'), 1, NULL, 100); 
         $redis->setOption(Redis::OPT_PREFIX, 'SESS:');
         $redis->select(1);
-        $redis->setex('m-'.session_id(), 300, $this->urlRouter->cfg['server_id'].':1:'.$this->user->info['id']);
+        $redis->setex('m-'.session_id(), 300, $this->router()->config()->serverId.':1:'.$this->user->info['id']);
         $redis->close();
             //error_log(var_export($this->user->info, TRUE));
         
         ?></div><?php 
         
         echo "<div class='merge'>";
-        echo "<img width=185 height=185 src='{$this->urlRouter->cfg['host']}/web/qr/m-".session_id().".png'></img>";
+        echo "<img width=185 height=185 src='{$this->router()->config()->host}/web/qr/m-".session_id().".png'></img>";
         echo '<br /><span class="bt scan"><span class="apple"></span><span class="apple up"></span> '.$this->lang['hint_merge_Account'].' <span class="apple up"></span><span class="apple"></span></span>';                    
         echo '</div>';
         $this->globalScript.='var curForm="'.$this->liOpen.'";';
-        //$this->inlineScript.='actBx=$(".am");$(".lnk.edit").click(function(){clsOpen();e=$(this);var p=e.parent();var li=p.parent();curForm=li.attr("id");p.css("display","none");p.next().css("display","block");p.next().append(actBx);li.addClass("open");});$("[name]").focus(function(i,e){var n=$(this).next();if(n.length)n.remove();});';
-        //$this->globalScript.='var curForm="'.$this->liOpen.'",actBx;var clsOpen=function(){var li=$("ul.ts li.open");if (li.length){$(".fm",li).css("display","none");$(".lm",li).css("display","block");li.removeClass("open");$("[name]",$("#"+curForm)).each(function(i,e){var n=$(e).next();if(n.length) n.remove();});var nb=$(".notice",actBx);nb.html("");nb.removeClass("err");}};var save=function(){var nb=$(".notice",actBx);nb.html("");nb.removeClass("err");nb.addClass("loading");var f=$("#"+curForm);var d=$("[name]",f);if (validate(d)) {var vals={};try{d.each(function(i,e){e=$(e);if (e.attr("type")=="checkbox"){vals[e.attr("name")]=e.attr("checked");}else {vals[e.attr("name")]=e.attr("value");}});$.ajax({type:"POST",url:"/ajax-account/",cache:false,data:{form:curForm,fields:vals,lang:"'.$this->urlRouter->siteLanguage.'"},dataType:"json",success:function(rp){d.each(function(i,e){$(e).attr("disabled",false)});$("input",actBx).attr("disabled",false);if (rp.RP) {if(rp.DATA.fields){var es=rp.DATA.fields;var p=$(".lm",d.parents("li"));d.each(function(i,e){e=$(e);if (es[e.attr("name")]){e=$(e);var v=es[e.attr("name")];var c=$(\'[label="\'+e.attr("name")+\'"]\',p);if (c.length){c.html(v[2] ? v[2] : v[1]);}if (v[0]=="checked") {if (v[1]=="checked"){e.attr("checked","checked");}else {e.attr("checked",false);}var h=e.parent().html();}else {e.attr(v[0],v[1]);}var h=e.parent().html();e.replaceWith($(h));}});clsOpen();}}else {if (isNaN(rp.MSG)){nb.addClass("err");nb.html(rp.MSG);}if(rp.DATA.fields){var es=rp.DATA.fields;d.each(function(i,e){e=$(e);if (es[e.attr("name")]){setFN(e,es[e.attr("name")]);}});}}nb.removeClass("loading");},error:function(){nb.removeClass("loading");nb.addClass("err");nb.html("'.$this->lang['systemErr'].'");d.each(function(i,e){$(e).attr("disabled",false)});$("input",actBx).attr("disabled",false);}});}catch(e){console.log(e)}}else {nb.removeClass("loading");d.each(function(i,e){$(e).attr("disabled",false)});$("input",actBx).attr("disabled",false);}return false;};var setFN=function(e,msg){var s=$("<span class=\'notice alert err inv\'>"+msg+"</span>");$(e).after(s);if(s.height()<20) {s.css("margin-top","8px");}s.removeClass("inv");};var validate=function(d){var r=true;d.each(function(i,e){var ps=false,em="";e=$(e);var n=e.next();if(n.length) n.remove();var v=e.attr("value");var min=e.attr("minLength") ? parseInt(e.attr("minLength")):0;if(e.attr("req") && (v.length==0 || v.length<min)) ps=true;em=e.attr("yErr");if (!ps){var re=e.attr("regex");if (re){try{re=new RegExp(re);var o=e.attr("regexMatch")=="true"?true:false;var f=re.exec(v);if (f == null) {if (o) ps=true;}else {if(!o)ps=true;}if(ps){var tm=e.attr("vErr");if(tm)em=tm;}}catch(x){console.log(x)}}}if (ps){r=false;setFN(e,em);}});if (r){d.each(function(i,e){$(e).attr("disabled",true)});$("input",actBx).attr("disabled",true);}return r;};';
     }
     
 }
-?>
