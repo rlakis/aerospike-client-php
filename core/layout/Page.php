@@ -422,10 +422,10 @@ class Page extends Site {
     
     function renderBalanceBar() {        
         if ($this->user()->id()) {            
-            echo '<div id=balance class=balc><div id=balanceCounter></div><a class=btn href="', $this->router()->getLanguagePath('/gold/'), '#how-to"><span style="padding-bottom:20px;font-size:3em;">', $this->user()->getBalance(),'</span><br>',
-                    $this->lang['buy_gold_bt'],'</a><a href="', $this->router()->getLanguagePath('/gold/'), '"><span class="rj add"></span>',
-                    $this->lang['get_gold'], '</a></div>';
-            $this->globalScript.="var showBalance=1;";
+            echo '<div id=balance class=balc>',       
+                    '<a style="display:inherit;background-color:var(--premium);width:80%;padding:12px;margin:-20px auto 20px auto;border-bottom-left-radius:0;border-bottom-right-radius:0;" class=btn href="', $this->router()->getLanguagePath('/gold/'), '#how-to">', 
+                    '<span style="padding-bottom:16px;font-size:3em;text-transform:none;text-decoration-line:underline;text-decoration-color:white;text-decoration-style: wavy;">Current balance is ', $this->user()->getBalance(),' coins</span><br><b>',
+                    $this->lang['buy_gold_bt'], '</b></a></div>';
         }
     }
     
@@ -2451,9 +2451,6 @@ class Page extends Site {
             <?php
         }
         echo '</div>';
-        if ($this->user()->id()) {
-            echo '<div class=float-right style="padding:40px"><a href="', '/web/lib/hybridauth/?logout=', $this->user()->provider(), '">Sign out&nbsp;&nbsp;&nbsp;&nbsp;</a></div>';
-        }
         echo '</footer>',"\n";
         
         
@@ -2796,6 +2793,7 @@ class Page extends Site {
     function body() : void {
         $this->main_pane();
     }
+    
     
     function body_OLD() {
         $colSpread='col2w';
@@ -4734,9 +4732,12 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             
             case 'buyu':
             case 'signin':
-                $this->css('doc');                
+                $this->css('doc');          
                 break;
             
+            case 'myads':
+                $this->css('myads');          
+                break;
             default:
                 break;
         }
@@ -5521,7 +5522,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     }
 
     
-    function _body() {
+    function _body() : void {
         echo '<div id="wrapper" class="wrapper">', "\n";
         $this->top();
         $this->body();

@@ -347,19 +347,17 @@ class User {
     }
     
     
-    function getAdminFilters() {
+    function getAdminFilters() : array {
         $filters=[];
-        $filters['root'] = $_GET['fro'] ?? 0;
-        $filters['purpose'] = $_GET['fpu'] ?? 0;
-        $filters['lang'] = $_GET['fhl'] ?? 0;
-        $filters['uid'] = $_GET['fuid'] ?? 0;
+        $filters['root'] = filter_input(INPUT_GET, 'fro', FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
+        $filters['purpose'] = filter_input(INPUT_GET, 'fpu', FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
+        $filters['lang'] = filter_input(INPUT_GET, 'fhl', FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
+        $filters['uid'] = filter_input(INPUT_GET, 'fuid', FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
         $filters['active']=false;
         
         foreach ($filters as $key => $value) {
             $filters['active'] = $value>0;
-            if($filters['active']) {
-                break;
-            }
+            if ($filters['active']) { break; }
         }
         return $filters;
     }
@@ -642,15 +640,11 @@ class User {
     
     function getPendingAds($id=0, $state=0, $pagination=0, $commit=false) {
         $res=false;
-        $aid=0;
-        if (isset ($_GET['a']) && is_numeric($_GET['a'])) $aid=(int)$_GET['a'];
+        $aid= filter_input(INPUT_GET, 'a', FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
         
         $pagination_str = '';
-        if($pagination) {
+        if ($pagination) {
             $recNum = 50;
-            /*if (!$id && !$aid && $this->info['level']==9 && !$this->isSuperUser() && in_array($state,[1,2,3])){
-                $recNum = 200;
-            }*/
             $offset = $this->site->get('o','uint');
             if (is_numeric($offset) && $offset) {
                 $pagination_str = 'first '.($recNum+1).' skip '.($offset*$recNum);
@@ -660,10 +654,9 @@ class User {
             }
         }        
         
-        //error_log(__FUNCTION__ . ' ' . var_export($this->info, TRUE));
-        if ($this->info['id']) {
+        if ($this->id()) {
             if ($id) {
-                if ($this->info['level']==9) {
+                if ($this->level()===9) {
                     $res=$this->db->get(
                         'select a.*, u.full_name, u.lvl, u.provider, u.email, u.DISPLAY_NAME,
                         u.user_name,u.user_email,u.profile_url, u.user_rank, 
@@ -692,7 +685,7 @@ class User {
             }
             else {                
                 if ($this->info['level']==9) {                    
-                    if($aid) {
+                    if ($aid) {
                         if ($state>6) {
                             $res=$this->db->get(
                                 'select '.$pagination_str.' a.*, u.full_name, u.lvl, u.DISPLAY_NAME, u.profile_url, u.user_rank,u.provider 
@@ -1844,7 +1837,7 @@ class User {
     
     function authenticate() {        
         if (isset($_GET["connected_with"]) || isset($_GET["logout"])) {
-            $config = $this->cfg['dir'] . '/web/lib/hybridauth/config.php';
+            $config = $this->config->baseDir . '/web/lib/hybridauth/config.php';
             $loaded=true;
             try {
                 $hybridauth = new Hybrid_Auth( $config );
@@ -1861,7 +1854,7 @@ class User {
                         $adapter->logout();
                     }
                     $this->logout();
-                    $this->redirectTo($this->site->urlRouter->getURL($this->params['country'],$this->params['city']));
+                    $this->redirectTo($this->site->router()->getURL($this->params['country'],$this->params['city']));
                 }
                 elseif (isset( $_GET["connected_with"] ) && $_GET["connected_with"]!='mourjan' && $hybridauth->isConnectedWith( $_GET["connected_with"] ) ) {
                     $provider = $_GET["connected_with"];
@@ -1875,7 +1868,7 @@ class User {
             $id=$this->site->get('identifier', 'uint');
             $key=$this->site->get('cks');
             if ($id && $key)  {
-                $id=$id-$this->site->urlRouter->baseUserId;
+                $id=$id-$this->site->router()->baseUserId;
                 if ($id>0) {
                     $this->authenticateById($id, $key);
                 }

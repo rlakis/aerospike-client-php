@@ -332,15 +332,15 @@ var setOrder=function(e)
 
         echo '<div class=col-4><div class="card test"><div class=card-content>';
         echo '<ul>';
-        echo '<li class=t><i class="icn icnsmall icn-82"></i><span>', $this->lang['postFree'], '</span></li>';
+        echo '<li><i class="icn s icn-82"></i><span>', $this->lang['postFree'], '</span></li>';
         if ($this->user()->id()) {
             $balance_label='My balance is '.$this->user()->getBalance() . ' coins';
             echo '<li><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></li>';
         }
-        echo '<li><i class="icn icnsmall icn-88"></i><span>', $this->lang['contactUs'], '</span></li>';
-        echo '<li><a href="', $this->router()->getLanguagePath('/about/'), '"><i class="icn icnsmall icn-83"></i><span>', $this->lang['aboutUs'], '</span></a></li>';
-        echo '<li><i class="icn icnsmall icn-85"></i><span>', $this->lang['termsConditions'], '</span></li>';
-        echo '<li><i class="icn icnsmall icn-81"></i><span>', $this->lang['privacyPolicy'], '</span></li>';
+        echo '<li><i class="icn s icn-88"></i><span>', $this->lang['contactUs'], '</span></li>';
+        echo '<li><a href="', $this->router()->getLanguagePath('/about/'), '"><i class="icn s icn-83"></i><span>', $this->lang['aboutUs'], '</span></a></li>';
+        echo '<li><i class="icn s icn-85"></i><span>', $this->lang['termsConditions'], '</span></li>';
+        echo '<li><i class="icn s icn-81"></i><span>', $this->lang['privacyPolicy'], '</span></li>';
         echo '</ul></div></div>', "\n"; // card
         echo '</div>'; // col-4
         
@@ -354,7 +354,7 @@ var setOrder=function(e)
         foreach ($this->router()->countries as $id => $cn) {
             if (!isset($cc[$cn['uri']])) { $cc['uri']=null; }
             if ($cc[$cn['uri']]==null) {
-                $cc[$cn['uri']] = "<dt><a href={$this->router()->getURL($id)}><i class=\"icn icnsmall icn-{$cn['uri']}\"></i><span>{$cn['name']}</span></a></dt>\n";
+                $cc[$cn['uri']] = "<dt><a href={$this->router()->getURL($id)}><i class=\"icn s icn-{$cn['uri']}\"></i><span>{$cn['name']}</span></a></dt>\n";
             }
             foreach ($cn['cities'] as $cid=>$city) {
                 $href = $this->router()->getURL($id, $cid);

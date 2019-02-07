@@ -51,7 +51,12 @@ li>i{margin:0 4px;max-width:32px;}
 .invert{background-color: transparent!important;filter: invert(100%)}
 .icn{position:relative;display:inline-block;width:32px;height:32px;margin:0 6px;}
 .icn:before,.ilogo:before{content:"\00a0";}
-.icnsmall{width:20px;height:21px!important;margin:0;background-size:contain !important;mask-size:contain !important}
+
+.icn.s{width:20px;height:21px!important;margin:0;background-size:contain !important;mask-size:contain !important}
+
+.icnsmall{width:20px;height:21px!important;margin:0;background-size:contain !important;}
+.icn.m{width:24px;height:24px!important;margin:0;background-size:contain !important;mask-size:contain !important}
+.icnmed{width:24px;height:24px!important;margin:0;background-size:contain !important;mask-size:contain !important}
 
 .icntop{width:44px;top:65px;right:12px;position:absolute}
 .trq {background-color: transparent!important;filter: hue-rotate(174deg) saturate(72%) brightness(56%);}
@@ -62,27 +67,17 @@ li>i{margin:0 4px;max-width:32px;}
 .icn-4{background:url(/web/css/1.0/fa/solid/handshake.svg) no-repeat center}
 .icn-99{background:url(/web/css/1.0/fa/solid/drum.svg) no-repeat center}
 
-.icn-81{background-color:forestgreen;
-       mask:url(/web/css/1.0/fa/solid/badge-check.svg) no-repeat center / cover; 
-       -webkit-mask:url(/web/css/1.0/fa/solid/badge-check.svg) no-repeat center / cover}
+.icn-81{
+       background:transparent url(/web/css/1.0/fa/solid/badge-check.svg) no-repeat center;filter:invert(38%) sepia(75%) saturate(614%) hue-rotate(73deg) brightness(93%) contrast(86%)}
 
-.icn-82{background-color:black;
-       mask:url(/web/css/1.0/fa/solid/keyboard.svg) no-repeat center / cover;
-       -webkit-mask:url(/web/css/1.0/fa/solid/keyboard.svg) no-repeat center / cover;
-       filter: invert(75%) sepia(88%) saturate(342%) hue-rotate(111deg) brightness(91%) contrast(91%);}
-.icn-83{background-color:mediumaquamarine;
-       mask:url(/web/css/1.0/fa/solid/info.svg) no-repeat 50% 50% / contain;
-       -webkit-mask:url(/web/css/1.0/fa/solid/info.svg) no-repeat 50% 50% / contain;
-       max-height: 32px;}
+
+.icn-82{background:transparent url("/web/css/1.0/fa/solid/keyboard.svg") no-repeat center;filter:invert(75%) sepia(88%) saturate(342%) hue-rotate(111deg) brightness(91%) contrast(91%)}
+.icn-83{background:transparent url(/web/css/1.0/fa/solid/info.svg) no-repeat center;max-height:32px;filter:invert(78%) sepia(49%) saturate(362%) hue-rotate(105deg) brightness(86%) contrast(90%)}
 .icn-84{background-color:gold;
        mask:url(/web/css/1.0/fa/solid/coins.svg) no-repeat 50% 50% / cover;
        -webkit-mask:url(/web/css/1.0/fa/solid/coins.svg) no-repeat 50% 50% / cover;}
-.icn-85{background-color:royalblue;
-       mask:url(/web/css/1.0/fa/solid/signature.svg) no-repeat 50% 50%;
-       -webkit-mask:url(/web/css/1.0/fa/solid/signature.svg) no-repeat 50% 50%;}
-.icn-88{background-color:hotpink;
-       mask:url(/web/css/1.0/fa/solid/paper-plane.svg) no-repeat 50% 50%;
-       -webkit-mask:url(/web/css/1.0/fa/solid/paper-plane.svg) no-repeat 50% 50%;}
+.icn-85{background:transparent url(/web/css/1.0/fa/solid/signature.svg) no-repeat 50% 50%;filter:invert(36%) sepia(75%) saturate(3020%) hue-rotate(216deg) brightness(92%) contrast(90%)}
+.icn-88{background:transparent url(/web/css/1.0/fa/solid/paper-plane.svg) no-repeat center;filter:invert(70%) sepia(36%) saturate(5143%) hue-rotate(294deg) brightness(100%) contrast(103%)}
 
 .icn-bars{background-color:white;-webkit-mask:url(/web/css/1.0/fa/regular/bars.svg) no-repeat 50% 50%;}
 .icn-search{background:url(/web/css/1.0/fa/regular/search.svg) no-repeat center}
@@ -258,8 +253,9 @@ filter:drop-shadow(8px 8px 5px rgba(0,0,0,0.9))}
 .list ul{columns:1}
 
 
-.account {display: flex; flex: 1 auto;justify-content: space-around;}
+.account {display: flex; flex: 1 auto;justify-content: space-around;flex-flow: row wrap;}
 .account .btn {min-width: 150px;color:white; background-color: #007bff;text-transform: none}
+.account .btn.current {font-weight: bold; opacity: 0.75}
 .modal{display:none;position:fixed;z-index:999;left:0;top:0;width:100%;height:100%;
     background-color:rgba(0,0,0,0.75);
     align-items:center;

@@ -1,5 +1,5 @@
 <?php
-require_once 'Page.php';
+\Config::instance()->incLayoutFile('Page');
 
 class Panel extends Page {
 
@@ -269,6 +269,10 @@ class Panel extends Page {
             echo '</div>';
             
 
+            echo '<div class=card-footer>';
+            echo '<a href="', $this->router()->getLanguagePath('/gold/'), '"><span class="rj add"></span>', $this->lang['get_gold'], '</a>';
+            echo '<div class=float-right style="padding-bottom:12px"><a href="', '/web/lib/hybridauth/?logout=', $this->user()->provider(), '">Sign out</a></div>';
+            echo '</div>';
            /* if($this->user->info['level']!=5){
                 ?><div id="prob" class="account <?= $this->urlRouter->siteLanguage ?>"><?php         
                 ?><a href="javascript:void(0)" onclick="prop()" class="option full settings"><span class="j prop"></span> <?= $this->lang['myPropspace'] ?></a><?php
