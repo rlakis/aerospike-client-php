@@ -24,6 +24,7 @@
 .myad.pending .icon-state{background:transparent url(/web/css/1.0/fa/regular/alarm-clock.svg) no-repeat center / cover;filter: invert(68%) sepia(47%) saturate(2740%) hue-rotate(359deg) brightness(100%) contrast(105%);}
 .myad.rejected{}
 .myad.approved header{background-color: #d3f1c4 !important; color:green}
+.myad.approved section{background-color:#eed4ff;}
 .myad.approved .icon-state{background:transparent url(/web/css/1.0/fa/solid/check.svg) no-repeat center / cover;filter:invert(20%) sepia(52%) saturate(3178%) hue-rotate(99deg) brightness(97%) contrast(104%);}
 
 .myad .icn.m{margin: 0 4px;}

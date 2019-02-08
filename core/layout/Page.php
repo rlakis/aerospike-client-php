@@ -2435,7 +2435,9 @@ class Page extends Site {
         ?><meta name="msapplication-config" content="<?= $this->router()->config()->host ?>/browserconfig.xml" /><?php 
         if($this->user->info['id']==0 && in_array($this->router()->module,['home','signin','favorites','account','myads','post','statement','watchlist','signup','password','buy','buyu'])){
             ?><script async="true" defer="true" src='https://www.google.com/recaptcha/api.js<?= $this->router()->language=='ar'?'?hl=ar':'' ?>'></script><?php
-        }               
+        }
+        
+        
     }
 
     
@@ -4688,14 +4690,19 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     
     
     protected function _header() {
+        if ($this->router()->module=='myads') {
+            header("Link: </web/js/1.0/socket.io.js>; rel=preload; as=script;", false);
+        }
         $country_code='';
         if ($this->router()->countryId && array_key_exists($this->router()->countryId, $this->router()->countries)) {
             $country_code = '-'.$this->router()->countries[$this->router()->countryId]['uri'];
         }
-        
         echo '<!doctype html>';
         echo '<html lang="', $this->router()->language, $country_code,'" xmlns:og="http://ogp.me/ns#"';
         echo '><head><meta charset="utf-8">', "\n";
+        if ($this->router()->module=='myads') {
+            echo '<script asyc src=/web/js/1.0/socket.io.js></script>';
+        }
         echo "<style>\n";
         include $this->router()->config()->baseDir.'/web/css/includes/main.css';
         
@@ -4743,6 +4750,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         }
         
         echo "\n</style>\n";
+        
         $this->header();
         echo '<title>', $this->title, '</title>';
         $imgURL = $this->router()->config()->imgURL;
@@ -4966,6 +4974,10 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         }
         if ($this->router()->isAcceptWebP) {
             echo ' class="wbp"';
+        }
+        if ($this->user()->id()) {
+            echo ' data-key="',$this->user->info['idKey'],'" data-level=', $this->user()->level();
+            //$this->user()->
         }
         echo '>', '<meta itemprop="isFamilyFriendly" content="true" />', "\n"; 
         

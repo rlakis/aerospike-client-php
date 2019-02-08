@@ -939,7 +939,7 @@ var rtMsgs={
 
         if (($this->user()->isLoggedIn(9) && filter_input(INPUT_GET, 'sub', FILTER_SANITIZE_STRING)==='pending') || $isSuperUser) {
             if (!isset($filters) || !$filters['active']) {   
-                echo '<div class=account style="padding-top:12px">';
+                echo '<div id=editors class=account style="padding-top:12px">';
                 ?><span class="hvn50okt2 d2d9s5pl1g n2u2hbyqsn"><?= $isSuperUser ? '<a href="'. $link .'69905">Robert</a>' : 'Robert' ?></span><?php
                 ?><span class="f3iw09ojp5 a1zvo4t2vk"><?= $isSuperUser ? '<a href="'. $link .'1">Bassel</a>' : 'Bassel' ?></span><?php
                 ?><span class="a1zvo4t4b8"><?= $isSuperUser ? '<a href="'. $link .'2100">Nooralex</a>':'Nooralex' ?></span><?php
@@ -1075,12 +1075,10 @@ var rtMsgs={
         $sub = filter_input(INPUT_GET, 'sub', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);  
 
         $ads = $this->user()->getPendingAds(0, $state, true);
-        $count=0;
-        if (!empty($ads)) { $count=count($ads); }
+        $count= !empty($ads) ? count($ads) : 0; 
+        $allCounts = $count>0 ? $this->user()->getPendingAdsCount($state) : 0;
         $this->user()->update();
         
-        $lang='';
-        if ($this->router()->language!='ar') { $lang=$this->router()->language.'/'; }
         
         echo '<div class=row><div class=col-12><div class=card>';
         $this->renderBalanceBar();
@@ -1088,9 +1086,9 @@ var rtMsgs={
         echo '<a href="', $this->router()->getLanguagePath('/post/'), '" class="btn half"><span class="j pub"></span>', $this->lang['button_ad_post_m'], '</a>';
         echo '<a id=active href="', $this->router()->getLanguagePath('/myads/'), '" class="btn active', $sub==''?' current':'', '"><span class="pj ads1"></span>', $this->lang['ads_active'], '</a>';
 
-        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=pending', $this->lang['home_pending'], $sub=='pending', $count>0?$this->user()->getPendingAdsCount($state):0);
-        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=drafts', $this->lang['home_drafts'], $sub=='drafts', $count>0?$this->user()->getPendingAdsCount($state):0);
-        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=archive', $this->lang['home_archive'], $sub=='archive', $count>0?$this->user()->getPendingAdsCount($state):0);
+        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=pending', $this->lang['home_pending'], $sub=='pending', $allCounts);
+        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=drafts', $this->lang['home_drafts'], $sub=='drafts', $allCounts);
+        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=archive', $this->lang['home_archive'], $sub=='archive', $allCounts);
             
         echo '<a id=favorite href="', $this->router()->getLanguagePath('/favorites/'), '?u=', $this->user->info['idKey'], '" class="btn half favorite', $sub=='favorite'?' current':'', '"><span class="j fva"></span>', $this->lang['myFavorites'], '</a>';
         echo '<a href="', $this->router()->getLanguagePath('/statement/'), '" class="btn half balance"><span class="pj coin"></span>', $this->lang['myBalance'], '</a>';
@@ -1448,7 +1446,7 @@ var rtMsgs={
                         if ($XX) { $profileLabel = '('.$XX. ')' . $profileLabel; }
                     }
                     
-                    $title='<div class=user><a target=_blank onclick="openW(this.href);return false" href="'.($isSuperAdmin ? '/admin/'.$lang.'?p='.$ad['WEB_USER_ID'] : $ad['PROFILE_URL']).'">'.$profileLabel.'</a><a target=_blank'.$style.' onclick="openW(this.href);return false;" href="/myads/'.$lang.'?u='.$ad['WEB_USER_ID'].'">'.$name.'</a>';
+                    $title='<div class=user><a target=_blank onclick="openW(this.href);return false" href="'.($isSuperAdmin ? $this->router()->getLanguagePath('/admin/').'?p='.$ad['WEB_USER_ID'] : $ad['PROFILE_URL']).'">'.$profileLabel.'</a><a target=_blank'.$style.' onclick="openW(this.href);return false;" href="'.$this->router()->getLanguagePath('/myads/').'?u='.$ad['WEB_USER_ID'].'">'.$name.'</a>';
                     if (isset($content['userLOC'])) {
                         $geo = preg_replace('/[0-9\.]|(?:^|\s|,)[a-zA-Z]{1,3}\s/','',$content['userLOC']);
                         $geo = preg_replace('/,/', '' , $geo);
