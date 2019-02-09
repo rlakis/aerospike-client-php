@@ -1522,8 +1522,7 @@ var rtMsgs={
                     $adClass.=' alert';
                 }
                 // new look
-                echo '<article id=', $ad['ID'], ' class="', $adClass, '"';
-                if ($ad['STATE']==2||$ad['STATE']==3||$ad['STATE']==4) { echo ' data-status=', $ad['STATE']; }
+                echo '<article id=', $ad['ID'], ' class="', $adClass, '" data-status=', $ad['STATE'];
                 if ($this->user()->level()==9) {
                     echo ' data-ro=', $content['ro'], ' data-se=', $content['se'], ' pu='.$content['pu'];
                 }
@@ -1537,14 +1536,13 @@ var rtMsgs={
                         if ($onlySuper) {
                             echo '<span title="', $onlySuper, '" onmouseover="ipCheck(this)"></span>';
                         }
-                        echo '<span>', $this->lang['pendingMsg'],'</span></div>';
-                        echo '<span>', ($assignedAdmin?$assignedAdmin:''), '</span>';
-                        //echo '<div>', $onlySuper ? '<span title="'. $onlySuper. '" onmouseover="ipCheck(this)"><i class="icn icnmed icn-fail"></i></span></div>' : '<i class="icn icnmed icn-wait"></i>&nbsp;</div><div>', $this->lang['pendingMsg'], ($assignedAdmin?$assignedAdmin:''), '</div>';
+                        echo '<span class=msg>', $this->lang['pendingMsg'],'</span></div>';
+                        echo '<span class=alloc>', ($assignedAdmin?$assignedAdmin:''), '</span>';
                         break;
 
                     case 2:
-                        echo '<div><i class="icn m icon-state"></i>', $this->lang['approvedMsg'], '</div>';
-                        if ($assignedAdmin) { echo '<span>', $assignedAdmin, '</span>'; }
+                        echo '<div><i class="icn m icon-state"></i><span class=msg>', $this->lang['approvedMsg'], '</span></div>';
+                        if ($assignedAdmin) { echo '<span class=alloc>', $assignedAdmin, '</span>'; }
                         //echo '<div class="nb nbg"><span class="done"></span>',$this->lang['approvedMsg'],($assignedAdmin ? $assignedAdmin:'') ,'</div>';
                         break;
                     

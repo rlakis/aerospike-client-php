@@ -1,4 +1,4 @@
-.myad {width:100%;box-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);}
+.myad {position:relative;width:100%;box-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);}
 .myad header {display:flex;flex:1 auto;opacity:0.95;min-height:auto;height:32px;border-top-left-radius:6px;border-top-right-radius:6px;padding:4px 8px;justify-content:space-between;align-items:center;box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.14);}
 .myad header > span {margin: 0 8px !important}
 .myad header > div{display:inherit;}
@@ -7,7 +7,7 @@
 .myad footer{height:32px;padding-top:0px;border-bottom-left-radius:6px;border-bottom-right-radius:6px;background-image:linear-gradient(90deg,white,#f1f3f4);display:flex;flex:1 auto;justify-content:space-around;align-items:center;}
 .myad hr{margin:0 8px;border-top:1px dotted silver;border-bottom:0}
 .myad .ar{font-size:1.2rem;}
-.myad .note{display: flex; flex: 1 auto; min-height: 28px; background-image:linear-gradient(90deg,silver,#f1f3f4); justify-content: space-between; align-items: center; padding: 4px 8px;}
+.myad .note{display:flex;flex:1 auto;min-height:28px;background-image:linear-gradient(90deg,lightgray,#f1f3f4);justify-content:space-between;align-items:center;padding:4px 8px;font-size:0.9em}
 .icn-fail{mask:url(/web/css/1.0/fa/solid/lightbulb-exclamation.svg) no-repeat center;background-color: yellow}
 .icn-wait{mask:url(/web/css/1.0/fa/solid/alarm-clock.svg) no-repeat center;background-color: whitesmoke;margin:0 4px;}
 .icn-done{mask:url(/web/css/1.0/fa/solid/check.svg) no-repeat center;background-color: darkgreen}
@@ -18,13 +18,19 @@
 .myad.alert .icon-state{background:transparent url(/web/css/1.0/fa/regular/bell.svg) no-repeat center / cover !important;filter:invert(20%) sepia(52%) saturate(3178%) hue-rotate(99deg) brightness(97%) contrast(104%);}
 
 .myad.feature{}
-.myad.feature .user{background-color: goldenrod;color:white}
+.myad.feature .user{background-color:goldenrod;color:white}
 .myad.fail{}
 .myad.pending header{background-color: dimgrey}
 .myad.pending .icon-state{background:transparent url(/web/css/1.0/fa/regular/alarm-clock.svg) no-repeat center / cover;filter: invert(68%) sepia(47%) saturate(2740%) hue-rotate(359deg) brightness(100%) contrast(105%);}
 .myad.rejected{}
+.myad.rejected header{background-color:#f8d3d3 !important; color:darkred}
+.myad.rejected .icon-state{background:transparent url(/web/css/1.0/fa/regular/lightbulb-exclamation.svg) no-repeat center / cover;filter: invert(15%) sepia(31%) saturate(5635%) hue-rotate(346deg) brightness(105%) contrast(111%);}
+
 .myad.approved header{background-color: #d3f1c4 !important; color:green}
 .myad.approved section{background-color:#eed4ff;}
-.myad.approved .icon-state{background:transparent url(/web/css/1.0/fa/solid/check.svg) no-repeat center / cover;filter:invert(20%) sepia(52%) saturate(3178%) hue-rotate(99deg) brightness(97%) contrast(104%);}
+.myad.approved .icon-state{background:transparent url(/web/css/1.0/fa/solid/check.svg) no-repeat center / cover !important;filter:invert(20%) sepia(52%) saturate(3178%) hue-rotate(99deg) brightness(97%) contrast(104%);}
+.myad.locked{background-color: #fac8c8}
 
 .myad .icn.m{margin: 0 4px;}
+
+.myad .mask{position:absolute !important;background-color:#000;opacity:.65;text-align:center;font-size:26px;color:#fff;z-index:10;top:0;left:0}
