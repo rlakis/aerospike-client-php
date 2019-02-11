@@ -1,23 +1,40 @@
 <script type="text/javascript">
 
+var $=document;
 var articleId=0;
 var articles = document.querySelectorAll("article");
 var len=articles.length;
 for (var x=0; x<len; x++) {
-    articles[x].addEventListener("click", function(e){        
+    articles[x].addEventListener("click", function(e){          
+        //console.log(this.classList.contains('locked'));
+        
+        if(e.target.tagName==='A'&&e.target.className===''&&e.target.parentElement.className==='mask'){            
+            console.log('article '+e.target.parentElement.nodeName+' > '+e.target.parentElement.className);
+            e.stopPropagation();
+            return;
+        }
+        if((e.target.tagName==='DIV'&&e.target.className==='mask')||this.classList.contains('locked')){
+            console.log("sdgkjfskdjhfkjsdhfkjshfjkd");
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
         if(articleId!=this.id){
             //console.log('article '+e.target.tagName+', '+e.target.className+', parent: '+e.target.parentElement.nodeName);
             if(e.target.tagName==='A'&&e.target.className===''){
                 console.log('article '+e.target.parentElement.nodeName+' > '+e.target.parentElement.className);
             }
+            
             if(articleId>0){
                 document.getElementById(articleId).classList.remove('selected');
             }
             articleId=this.id;
             this.classList.add("selected");
         }
+        
         e.preventDefault();   
         e.stopPropagation();
+        return false;
     });        
 }
 
@@ -31,8 +48,70 @@ document.body.addEventListener("click", function(e){
 
 function EAD(){}
 
-//var ws = new WebSocket("wss://ws.mourjan.com:1414");
-let editors=document.getElementById('editors');
+function getArticle(kID){
+    return $.getElementById(kID);
+}
+
+
+function Ad(kID){
+    this.node=$.getElementById(kID);
+    this.headerNode=null;
+    this.editorNode=null;
+}
+Ad.prototype = {
+    exists:function(){return(this.node!==null);},
+    header:function(){        
+        if(this.headerNode===null){
+            this.headerNode=this.node.querySelectorAll('header')[0];
+            this.editorNode=this.headerNode.querySelector('.alloc');
+        }
+        return this.headerNode;
+    },
+    editor:function(){
+        if(this.editorNode===null){this.header();}
+        return this.editorNode;
+    },
+    getName:function(){
+        return this.editor().innerText;
+    },
+    setName: function(value){        
+        if(this.editor().innerText!=value){
+            this.editor().innerHTML=value+'/'+this.editor().innerText;
+        }
+    },
+    replName:function(value){
+        if(this.editor().innerText!=value){
+            this.editor().innerHTML='<b>'+value+'</b>';
+        }
+    },
+    setSelected:function(){this.node.classList.add('selected');},
+    setLocked:function(){
+        this.node.classList.add('locked');
+        this.addMask();
+        
+    },
+    setUnLocked:function(){
+        this.node.classList.remove('locked');
+        this.removeMask();
+    },
+    addMask:function(){
+        var mask=this.node.querySelector('.mask');
+        if (mask==null){
+            mask=document.createElement("div");
+            mask.style.lineHeight=this.node.offsetHeight+'px';
+            mask.className='mask';
+            this.node.appendChild(mask);    
+        }
+        return mask;
+    },
+    removeMask:function(){
+        var mask=this.node.querySelector('.mask');
+        if (mask){this.node.removeChild(mask);}
+    },
+    
+}
+
+var editors=document.getElementById('editors');
 const options = {transports: ['websocket'], 'force new connection': false};
 const socket = io.connect("ws.mourjan.com:1313", options);
 socket.on('admins',function(data){
@@ -65,30 +144,16 @@ socket.on('admins',function(data){
         console.log(data.b);
         for(uid in data.b){
             if(data.b[uid]===0){continue;}
-            //console.log(uid);
-            let article=document.getElementById(data.b[uid]);
-            if(article==null){ continue; }
-            let header=article.querySelectorAll('header')[0];
-            let allocatedTo=header.querySelector('.alloc');
-            if(allocatedTo){
-                var editor=editors.querySelector('.'+uid);
-                if(editor && allocatedTo.innerText!=editor.innerText){
-                    allocatedTo.innerHTML='<b>'+editor.innerText+'</b>';
-                }                
-            }
+            let ad=new Ad(data.b[uid]);
+            if(!ad.exists()){continue;}
+            ad.replName(editorName(uid));            
             
             if(uid==document.body.dataset.key){
+                ad.setSelected();
             }
             else{
-                console.log(data.b[uid]);                
-                article.classList.add('locked');
-                /*
-                if(allocatedTo){                        
-                    if(editor){
-                        console.log(editor.innerText);
-                        allocatedTo.innerHTML=editor.innerText;
-                    }
-                }*/
+                console.log(data.b[uid]);  
+                ad.setLocked();
             }
         }
         /*
@@ -109,6 +174,39 @@ socket.on('admins',function(data){
                 setOwner(n,g);
             }
         }*/
+    }
+});
+
+
+socket.on("ad_touch",function(data){
+    console.log('touched ', data);
+    if(data.hasOwnProperty('x')){
+        if(data.hasOwnProperty('i') && data.i>0){
+            console.log('touched by', editorName(data.x));
+            let ad=new Ad(data.i);
+            if(ad.exists()){
+                ad.setName(editorName(data.x));
+                ad.setLocked();
+            }
+        }
+        if(data.hasOwnProperty('o') && data.o>0){
+            console.log('release touched by', editorName(data.x));
+            let ad=new Ad(data.o);
+            if(ad.exists()){
+                //ad.setName(editorName(data.x));
+                ad.setUnLocked();
+            }
+        }
+
+    }
+    
+});
+
+socket.on("ad_release",function(data){
+    console.log('releasing ', data);
+    if(data.hasOwnProperty('i') && data.i>0){
+        let ad=new Ad(data.i);
+        if(ad.exists()){ad.setUnLocked();}
     }
 });
 
@@ -194,12 +292,21 @@ socket.on('disconnect',function(){
 socket.on('event', function(data){console.log('event')});
 
 
-function mask(e, r){
+
+
+function editorName(kUID){
+    var x=editors.getElementsByClassName(kUID);
+    if(x && x.length){
+        return x[0].innerText;
+    }
+    return 'Anonymous/'+kUID;
+}
+
+
+function mask(e,r){
     var exists=e.querySelector('.mask');
     if(exists){e.removeChild(exists);}
     var d=document.createElement("div");
-    d.style.width='100%';//e.offsetWidth+'px';
-    d.style.height='100%'; //e.offsetHeight+'px';
     d.style.lineHeight=e.offsetHeight+'px';
     d.className='mask';
     e.appendChild(d);    
