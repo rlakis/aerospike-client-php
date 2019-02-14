@@ -1252,7 +1252,8 @@ var rtMsgs={
                         continue;
                     }
                     if ($isSuperAdmin && $assignedAdmin) {
-                        $assignedAdmin = '<span style="padding:0 5px;">'.$this->editors[$assignedAdmin].'</span>';
+                        $__e=$this->editors[$assignedAdmin]??$assignedAdmin;
+                        $assignedAdmin = '<span style="padding:0 5px;">'.$__e.'</span>';
                     }
                     else {
                         $assignedAdmin = '';
@@ -1566,7 +1567,7 @@ var rtMsgs={
                 if ($hasAdminImgs) { echo '<p class=pimgs>', $thumbs, '</p>'; }
                 
                 echo '<section class="card-content ', $ad['RTL']?'ar"':'en"';
-                echo $link?' onclick="wo('.$link.')"' : ($isAdmin?' onclick="EAD(this,1)" onselect="MSAD(this)" ' : '');
+                echo $link?' onclick="wo('.$link.')"' : '';
                 echo '>', ($pic ? $pic :'').$text;
                 echo '</section>';
                 
@@ -1663,7 +1664,7 @@ var rtMsgs={
                     if (!$isSystemAd && (!$isAdmin || ($isAdmin && $isAdminOwner))) {
                         ?><span class="lnk" onclick="adel(this,1)"><span class="rj del"></span><?= $this->lang['delete'] ?></span><?php 
                     }
-                    if ($this->router()->cfg['enabled_ad_stats'] && !$isAdminProfiling) {
+                    if ($this->router()->config()->get('enabled_ad_stats') && !$isAdminProfiling) {
                         ?><span class="stad load"></span><?php
                     }
                 }
@@ -1970,40 +1971,43 @@ var rtMsgs={
                     ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['stop'] ?>" /></div><?php 
                 ?></div><?php
             }
-            ?><div id="delete_ad" class="dialog"><?php
-                    ?><div class="dialog-box"><?= $this->lang['delete_ad'] ?></div><?php 
-                    ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= ucfirst($this->lang['delete']) ?>" /></div><?php 
-                ?></div><?php
+            
+            ?><div id=delete_ad class=dialog style="display:none"><?php
+                ?><div class=dialog-box><?= $this->lang['delete_ad'] ?></div><?php 
+                ?><div class=dialog-action><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= ucfirst($this->lang['delete']) ?>" /></div><?php 
+            ?></div><?php
                 
             if ($isSuperAdmin) { 
-                ?><div id="rtp_dialog" class="dialog"><?php
+                ?><div id=rtp_dialog class=dialog style="display:none"><?php
                     ?><div class="dialog-box ctr"><input type="button" class="approve bt" value="<?= ucfirst($this->lang['approve']) ?>" /></div><?php 
                     ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= ucfirst($this->lang['reject']) ?>" /></div><?php 
                 ?></div><?php
             }    
             
             if($hasNext || $hasPrevious){
-                ?><div class="mav"><?php 
+                ?><div class="pgn"><div class="card"><?php 
                 echo ($currentOffset+1).' '.$this->lang['of'].' '.ceil($allCounts/$recNum);
                 $appendOp = '?';
                 $link = $this->router()->uri.($this->router()->isArabic()?'':$this->router()->language.'/');
                 
                 
-                $sub='';
-                if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
-                switch($sub){
+                $sub=filter_input(INPUT_GET, 'sub', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                switch ($sub) {
                     case 'pending':
                         $link.='?sub=pending';
                         $appendOp='&';
                         break;
+                    
                     case 'drafts':
                         $link.='?sub=drafts';
                         $appendOp='&';
                         break;
+                    
                     case 'archive':
                         $link.='?sub=archive';
                         $appendOp='&';
                         break;
+                    
                     case '':
                     default:
                         break;
@@ -2038,25 +2042,25 @@ var rtMsgs={
                 
                 if($hasPrevious){
                     $offset = $currentOffset - 1;
-                    ?><a class="bt p" href='<?= $link.($offset ? $appendOp.'o='.$offset : '') ?>'><?= $this->lang['prev_50'] ?></a><?php
+                    ?><a class=float-left href='<?= $link.($offset ? $appendOp.'o='.$offset : '') ?>'><?= $this->lang['prev_50'] ?></a><?php
                 }
                 if($hasNext){
-                    ?><a class="bt n" href='<?= $link.$appendOp.'o='.($currentOffset + 1)  ?>'><?= $this->lang['next_50'] ?></a><?php
+                    ?><a class=float-right href='<?= $link.$appendOp.'o='.($currentOffset + 1)  ?>'><?= $this->lang['next_50'] ?></a><?php
                 }
-                ?></div><?php
+                ?></div></div><?php
             }
             
             if ($this->user->info['level']==9 && $state<7) {
-                ?><div id="rejForm" class="rpd cct"><select id="rejS" onchange="psrej(this)"></select><?php
+                ?><div id=rejForm class="rpd cct" style="display:none"><select id="rejS" onchange="psrej(this)"></select><?php
                 ?><textarea id="rejT" onkeydown="idir(this)" onchange="idir(this,1)"></textarea><?php
                 ?><input type="button" class="bt" value="<?= $this->lang['reject'] ?>" /><?php
                 ?><input class="bt cl" type="button" value="<?= $this->lang['cancel'] ?>" /><?php 
                 ?></div><?php
-                ?><div id="suspForm" class="rpd cct"><select id="suspT"></select><?php
+                ?><div id=suspForm class="rpd cct" style="display:none"><select id="suspT"></select><?php
                 ?><textarea style="height:100px" onkeydown="idir(this)" onchange="idir(this,1)" id="suspM" placeholder="<?= $this->lang['reason_suspension'] ?>"></textarea><?php
                 ?><input type="button" class="bt" onclick="suspA(this)" value="<?= $this->lang['suspend'] ?>" /><?php
                 ?><input class="bt cl" type="button" onclick="suspC(this)"  value="<?= $this->lang['cancel'] ?>" /></div><?php
-                ?><div id="banForm" class="rpd cct"><textarea id="banT" onkeydown="idir(this)" onchange="idir(this,1)"></textarea><?php
+                ?><div id="banForm" class="rpd cct" style="display:none"><textarea id="banT" onkeydown="idir(this)" onchange="idir(this,1)"></textarea><?php
                 ?><input type="button" class="bt" value="<?= $this->lang['block'] ?>" /><?php
                 ?><input class="bt cl" type="button" value="<?= $this->lang['cancel'] ?>" /></div><?php
             }

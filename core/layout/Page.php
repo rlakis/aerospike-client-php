@@ -125,11 +125,6 @@ class Page extends Site {
             }
         }
         else {
-            if(date('d-m')=='14-02'){
-                if($this->router()->module=='index' || $this->router()->module=='search' || $this->router()->module=='detail'){
-                    $this->inlineCss.='.ad,.aps,.dt{background-color:#FFF}.colw,.col2w,.tpb{background:url('.$this->router()->cfg['url_css'].'/i/iv'.$this->router()->_png.') repeat top left}';
-                }
-            }
             if ($this->router()->isArabic()) {
                 $this->inlineCss.='.g-recaptcha{float:right}';
             }
@@ -4976,7 +4971,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             echo ' class="wbp"';
         }
         if ($this->user()->id()) {
-            echo ' data-key="',$this->user->info['idKey'],'" data-level=', $this->user()->level();
+            echo ' data-key="',$this->user->info['idKey'],'" data-level=', $this->user()->level()*($this->user()->isSuperUser()?10:1);
             //$this->user()->
         }
         echo '>', '<meta itemprop="isFamilyFriendly" content="true" />', "\n"; 

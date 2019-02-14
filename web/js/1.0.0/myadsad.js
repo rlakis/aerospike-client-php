@@ -1155,7 +1155,7 @@ if(PEND){
                                 break;                 
                         }
                     }
-                    if(data.c==1){
+                    if(data.c===1){
                         newad++;
                         if(!newd){
                             newd=$('<div class="rct adminNB">'+newad+' new ad'+(newad>1?'s':'')+'</div>');
