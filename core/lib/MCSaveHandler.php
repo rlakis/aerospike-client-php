@@ -74,7 +74,7 @@ class MCSaveHandler {
 
 
      
-    function _Connect () {
+    function _Connect() {
         if ( $this->_socket!==false ) {
             // we are in persistent connection mode, so we have a socket
             // however, need to check whether it's still alive
@@ -473,15 +473,14 @@ class MCSaveHandler {
 
     
     function searchByAdId($reference) {
-        $db = new DB($this->cfg);
-        include_once $this->cfg['dir'].'/core/lib/SphinxQL.php';
+        $db = new DB(true);
+        Config::instance()->incLibFile('SphinxQL');
         $sphinx = new SphinxQL(['host'=>'p1.mourjan.com', 'port'=>9307, 'socket'=>NULL], 'ad');
         $sphinx->connect();
         $rs = $db->queryResultArray("select * from ad_user where id=?", [$reference])[0];
         $db->close();        
 
         $obj = json_decode($rs['CONTENT']);
-        //error_log(json_encode($obj->attrs));
         $words = explode(' ', $obj->attrs->ar);
         
         $q = "select id, attrs, locality_id, IF(featured_date_ended>=NOW(),1,0) featured, section_id, purpose_id";

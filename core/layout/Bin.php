@@ -1,8 +1,6 @@
 <?php
 require_once 'deps/autoload.php';
-layout_file('Site.php');
-model_file('NoSQL.php');
-model_file('MobileValidation.php');
+Config::instance()->incLayoutFile('Site')->incModelFile('NoSQL')->incModelFile('MobileValidation');
 
 use MaxMind\Db\Reader;
 use Core\Model\NoSQL;
@@ -68,23 +66,19 @@ class AjaxHandler extends Site {
 
 class Bin extends AjaxHandler{
 
-    function __construct($router){
+    function __construct(Core\Model\Router $router){
         parent::__construct($router);
         $this->actionSwitch();
     }
 
-    function logAdmin($adId,$state,$msg=""){
-        if($this->user->info['id'] && $this->user->info['level']==9 && $adId){
-            $this->urlRouter->db->queryResultArray(
-                'insert into log_admin (ad_id, admin_id, state,msg) values (?,?,?,?)', array(
-                $adId,
-                $this->user->info['id'],
-                $state,
-                $msg
-            ));
+    
+    function logAdmin(int $adId, int $state, string $msg="") : void {
+        if ($this->user()->isLoggedIn(9) && $adId) {
+            $this->router()->db->queryResultArray('insert into log_admin (ad_id, admin_id, state,msg) values (?, ?, ?, ?)', [$adId, $this->user()->id(), $state, $msg]);
         }
     }
 
+    
     function getCountryUnit($countryId){
         $unit='$ USD';
         $currencies = $this->urlRouter->db->queryCacheResultSimpleArray(
@@ -100,8 +94,9 @@ class Bin extends AjaxHandler{
     }    
 
     
-    function actionSwitch() {
+    function actionSwitch() : void {
         switch ($this->router()->module) {
+            /*
             case 'ajax-screen':
                 if (isset($_POST['w']) && $_POST['w'] && isset($_POST['h']) && $_POST['h']) {
                     $w=$_POST['w'];
@@ -129,7 +124,7 @@ class Bin extends AjaxHandler{
                 }
                 $this->process();
                 break;
-                
+                */
             case 'ajax-sorting':
                 $order = $this->get('or','boolean');
                 $this->user->params['catsort']=$order;
@@ -3777,10 +3772,15 @@ class Bin extends AjaxHandler{
                 break;
                 
             case 'ajax-approve':
-                if ($this->user->info['id'] && $this->user->info['level']==9 && isset($_POST['i'])) {
-                    $id=$_POST['i'];
-                    $rtp=$_POST['rtp']??0;
-                    if (is_numeric($id)) {
+                $id = 0;
+                $contentType = filter_input(INPUT_SERVER, 'CONTENT_TYPE', FILTER_SANITIZE_STRING);
+                if ($contentType==='application/json') {
+                    $content = trim(file_get_contents("php://input"));
+                    $decoded = json_decode($content, true);
+                    $id=$decoded['i']??0;
+                    $rtp=$decoded['rtp']??0;
+                               
+                    if ($this->user()->isLoggedIn(9) && is_int($id) && $id>0) {                    
                         $rejected = false;
                         if ($rtp) {
                             $record = $this->router()->db->queryResultArray("select web_user_id, content from ad_user where id={$id}");
@@ -3792,39 +3792,38 @@ class Bin extends AjaxHandler{
                                     error_log( json_encode($content['attrs']['phones']) );
                                     $len=$content['attrs']['phones']['n']?count($content['attrs']['phones']['n']):0;
                                     NoSQL::getInstance()->mobileVerfiedRelatedNumber($mobile_number, $numbers);
-                                    
+                
                                     for ($i=0; $i<$len; $i++) {
                                         $to=$content['attrs']['phones']['n'][$i];
                                         if ($to!=$mobile_number && !isset($numbers[$to])) {
-                                           
+            
                                             $type = $content['attrs']['phones']['t'][$i]??0;
                                             if ($type==1) {
                                                 error_log("rtp {$to}");
                                                 $bins=['RTP'=>1];
                                                 if (MobileValidation::getInstance()->sendEdigearRTPRequest($to, $record[0]['WEB_USER_ID'], $mobile_number, $bins)) {
-                                                    //if ($rtp==2 || isset($content['app'])) {
-                                                        // application
-                                                        $user_lang = $content['hl']??"en";
-                                                        if ($user_lang=="ar") {
-                                                            $msg = "لعدم ازعاج صاحب الرقم " . $to . " نتيجة أي خطأ. نتمنى عليك ارسال رسالة نصية من موبايل الرقم المذكور على ". "00".$bins['to'] . " تحتوي هذا الرمز: " . $bins['code'];
-                                                        }
-                                                        else {
-                                                            $msg = "In order to prevent any discomfort to the owner of {$to} due to whatever mistake. Please, send an SMS from that number to 00{$bins['to']} with a message including: {$bins['code']}";
-                                                        }
+                                                //if ($rtp==2 || isset($content['app'])) {
+                                                    // application
+                                                    $user_lang = $content['hl']??"en";
+                                                    if ($user_lang=="ar") {
+                                                        $msg = "لعدم ازعاج صاحب الرقم " . $to . " نتيجة أي خطأ. نتمنى عليك ارسال رسالة نصية من موبايل الرقم المذكور على ". "00".$bins['to'] . " تحتوي هذا الرمز: " . $bins['code'];
+                                                    }
+                                                    else {
+                                                        $msg = "In order to prevent any discomfort to the owner of {$to} due to whatever mistake. Please, send an SMS from that number to 00{$bins['to']} with a message including: {$bins['code']}";
+                                                    }
                                                         
-                                                        //error_log("here in {$id}  {$msg}");
-                                                        
-                                                        $this->user()->rejectAd($id, $msg);
-                                                        $rejected = true;
-                                                    //}
-                                                    //else {
-                                                        
-                                                        // website 
-                                                    //}                                                    
+                                                    //error_log("here in {$id}  {$msg}");
+        
+                                                    $this->user()->rejectAd($id, $msg);
+                                                    $rejected = true;
+                                                //}
+                                                //else {
+    
+                                                    // website 
+                                                //}                                                    
                                                 }
-                                                else {
-                                                
-                                                }                                                
+                                                else {                                            
+                                                }                                            
                                             }
                                         }
                                     }
@@ -3832,11 +3831,11 @@ class Bin extends AjaxHandler{
                             }
                         }
                         
-                        if (!$rejected && $this->user->approveAd($id)) {
+                        if (!$rejected && $this->user()->approveAd($id)) {
                             $this->process();
                             $this->logAdmin($id, 2);
                         }
-                        else { $this->fail('103'); }
+                        else { $this->fail('103'); }                   
                     }
                     else { $this->fail('102'); }
                 }

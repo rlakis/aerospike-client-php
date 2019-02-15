@@ -4974,7 +4974,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             echo ' data-key="',$this->user->info['idKey'],'" data-level=', $this->user()->level()*($this->user()->isSuperUser()?10:1);
             //$this->user()->
         }
-        echo '>', '<meta itemprop="isFamilyFriendly" content="true" />', "\n"; 
+        echo ' data-repo="', $this->router()->config()->adImgURL, '">', '<meta itemprop="isFamilyFriendly" content="true" />', "\n"; 
         
         if (1) {  return; }
         

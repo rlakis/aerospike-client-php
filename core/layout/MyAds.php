@@ -1297,7 +1297,7 @@ var rtMsgs={
                         foreach($content['pics'] as $img => $dim){
                             if ($images) { $images.="||"; }
                             $images.='<img width=\"118\" src=\"'.$this->router()->config()->adImgURL.'/repos/s/' . $img . '\" />';
-                            $thumbs .= '<span class="ig"></span>';
+                            $thumbs .= '<span class=ig data-pix="'.$img.'"></span>';
                             $hasAdminImgs = 1;
                         }
                     }
@@ -1306,8 +1306,7 @@ var rtMsgs={
                     $images.='<img class=\"ir\" src=\"'.$this->router()->config()->imgURL.'/90/' . $ad['SECTION_ID'] . $this->router()->_png .'\" />';
                     $pic = '<span class="ig"></span>';
                     
-                    $this->globalScript.='sic[' . $ad['ID'] . ']="'.$images.'";';
-                    
+                    $this->globalScript.='sic[' . $ad['ID'] . ']="'.$images.'";';                    
                 }
                 else {
                     if (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])>0) {
@@ -1447,7 +1446,10 @@ var rtMsgs={
                         if ($XX) { $profileLabel = '('.$XX. ')' . $profileLabel; }
                     }
                     
-                    $title='<div class=user><a target=_blank onclick="openW(this.href);return false" href="'.($isSuperAdmin ? $this->router()->getLanguagePath('/admin/').'?p='.$ad['WEB_USER_ID'] : $ad['PROFILE_URL']).'">'.$profileLabel.'</a><a target=_blank'.$style.' onclick="openW(this.href);return false;" href="'.$this->router()->getLanguagePath('/myads/').'?u='.$ad['WEB_USER_ID'].'">'.$name.'</a>';
+                    $title='<div class=user><a target=_blank onclick="openW(this.href);return false" href="'.
+                            ($isSuperAdmin ? $this->router()->getLanguagePath('/admin/').'?p='.$ad['WEB_USER_ID'] : $ad['PROFILE_URL']).
+                            '">'.$profileLabel.'</a><a target=_blank'.$style.' onclick="openW(this.href);return false;" href="'.
+                            $this->router()->getLanguagePath('/myads/').'?u='.$ad['WEB_USER_ID'].'">'.$name.'</a>';
                     if (isset($content['userLOC'])) {
                         $geo = preg_replace('/[0-9\.]|(?:^|\s|,)[a-zA-Z]{1,3}\s/','',$content['userLOC']);
                         $geo = preg_replace('/,/', '' , $geo);
@@ -1523,7 +1525,7 @@ var rtMsgs={
                     $adClass.=' alert';
                 }
                 // new look
-                echo '<article id=', $ad['ID'], ' class="', $adClass, '" data-status=', $ad['STATE'];
+                echo '<article id=', $ad['ID'], ' class="', $adClass, '" data-status=', $ad['STATE'], ' data-fetched=0';
                 if ($this->user()->level()==9) {
                     echo ' data-ro=', $content['ro'], ' data-se=', $content['se'], ' pu='.$content['pu'];
                 }
@@ -1577,7 +1579,7 @@ var rtMsgs={
                         echo ' onclick="wo(', $altlink, ')"';
                     }
                     elseif ($isAdmin) {
-                        echo ' onclick="EAD(this,2)" onselect="MSAD(this)" ';
+                        echo ' onselect="MSAD(this)" ';
                     }
                     echo '>',  ($pic ? $pic :''), $altText;
                     echo '</section>';
@@ -1614,9 +1616,10 @@ var rtMsgs={
                             ?><span class=lnk onclick="fsub(this)"><span class="rj edi"></span><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></span><?php
                             ?></form><?php
                         }
-                    }
-                    if (!$isSystemAd && (!$isAdmin || ($isAdmin && $isAdminOwner))) {
-                        ?><span class=lnk onclick="adel(this)"><span class="rj del"></span><?= $this->lang['delete'] ?></span><?php
+                    
+                        if (!$isAdmin || ($isAdmin && $isAdminOwner)) {
+                            ?><span class=lnk onclick="adel(this)"><span class="rj del"></span><?= $this->lang['delete'] ?></span><?php
+                        }
                     }
                 }
                 elseif ($state==7) {
@@ -1687,7 +1690,7 @@ var rtMsgs={
                     else { 
                         if ($state>0 && $state<7) {
                             if (!$isSystemAd || $isSuperAdmin) {         
-                                ?><span class="lnk" onclick="app(this)"><?= $this->lang['approve'] ?></span><?php
+                                ?><span onclick="d.approve(this)"><?= $this->lang['approve'] ?></span><?php
                                 if ($isSuperAdmin) {
                                     ?><span class="lnk" onclick="rtp(this,)">RTP</span><?php                                    
                                 }
@@ -1710,7 +1713,8 @@ var rtMsgs={
                             
                             $contactInfo=$this->getContactInfo($content);                          
                             if ($isSuperAdmin) {
-                                ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->router()->isArabic()?'':'/en' ?>/?aid=<?= $ad['ID'] ?>&q="><?= $this->lang['similar'] ?></a><?php
+                                //onclick="openW(this.href);return false"
+                                ?><a target=_blank href="<?= $this->router()->isArabic()?'':'/en' ?>/?aid=<?= $ad['ID'] ?>&q="><?= $this->lang['similar'] ?></a><?php
                             }
                             if (!$isSystemAd || $isSuperAdmin) {
                                 if ($contactInfo) {                        

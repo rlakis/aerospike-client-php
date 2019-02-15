@@ -3053,7 +3053,7 @@ class Search extends Page {
         if ($this->router()->params['q']) {
             $q = htmlspecialchars($this->router()->params['q'], ENT_QUOTES);
         } 
-        elseif ($this->router()->force_search && !$this->rss) {
+        elseif ($this->router()->force_search) {
             $q = $this->lang['search_general'];
         }
         
