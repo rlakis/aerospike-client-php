@@ -19,7 +19,7 @@ class AjaxHandler extends Site {
     var $dir='';
     var $host='';
 
-    function __construct(Router $router) {
+    function __construct(Core\Model\Router $router) {
         parent::__construct($router);
         $this->dir=$router->config()->baseDir;
         $this->host=$router->config()->host;
@@ -133,63 +133,70 @@ class Bin extends AjaxHandler{
                 break;
             
             case 'ajax-changepu':                
-                if($this->user->info['id'] && $this->user->info['level']==9){
+                if ($this->user()->isLoggedIn(9)) {
+                    
                     if(isset($_GET['fraud']) && is_numeric($_GET['fraud'])){
                         $content = file_get_contents('http://h8.mourjan.com:8080/v1/fraud/ad/'.$_GET['fraud']);
-                        //$this->setData($content, 'content');
                         $this->processJson($content);
                         break;
                     }
-                    $lang = $this->get('hl');
+                    $lang = $this->getGetString('hl');
                     $this->fieldNameIndex=1;
-                    if(!in_array($lang,array('ar','en'))){
-                        $lang = 'ar';
-                    }
-                    if($lang=='en'){
-                        $this->fieldNameIndex=2;
-                    }
-                    $this->urlRouter->language=$lang;
+                    if (!in_array($lang, ['ar','en'])) { $lang = 'ar'; }
+                    if ($lang==='en') { $this->fieldNameIndex=2; }
+                    $this->router()->language=$lang;
                     $this->load_lang(array('main'), $lang);
                     
-                    $id = $this->get('i');
+                    $id = $this->getGetInt('i', 0);
                     $ro = $this->get('r');
                     $se = $this->get('s');
                     $pu = $this->get('p');
                     
+                    
                     $text = '';
-                    if(isset($_POST['t'])){
-                        $text = $_POST['t'];
-                    }
+                    if (isset($_POST['t'])) { $text = $_POST['t']; }
                     $textIdx = $this->post('dx');
                     $textRtl = $this->post('rtl');
-                    
-                    $imgAdmin = $this->get('img','boolean');
-                    $imgIdx = $this->get('ix');
-                    
-                    $this->urlRouter->db->setWriteMode();  
+                                                           
+                    $this->router()->db->setWriteMode();  
                     
                     $ad=$this->user->getPendingAds($id);
                     if (!empty($ad)) {
                         $textOnly=false;
-                        
+                        $imgAdmin = $this->get('img', 'boolean');
+                        $imgIdx = $this->getGetInt('ix', -1);
+                        $pixPath = $this->getGetString('pix');
+                    
                         $ad=$ad[0];
-                        $content=json_decode($ad['CONTENT'],true);
+                        $content=json_decode($ad['CONTENT'], true);
                         
-                        if($imgAdmin){
+                        if ($imgAdmin) {
                             $newImgs = [];
                             $i=0;
                             $imageToRemove = '';
-                            foreach($content['pics'] as $img => $dim){
-                                if($i++ != $imgIdx){
-                                    $newImgs[$img]=$dim;
-                                }else{
-                                    $imageToRemove = $img;
+                            if ($pixPath) {
+                                $imageToRemove = $pixPath;
+                                 foreach($content['pics'] as $img => $dim) {
+                                     if ($img!==$pixPath) {
+                                         $newImgs[$img]=$dim;
+                                     }                                 
+                                 }
+                            }
+                            elseif ($imgIdx!==-1) {
+                                foreach($content['pics'] as $img => $dim){
+                                    if($i++ != $imgIdx){
+                                        $newImgs[$img]=$dim;
+                                    }
+                                    else {
+                                        $imageToRemove = $img;
+                                    }
                                 }
                             }
-                            if($imageToRemove){
-                                $media = $this->urlRouter->db->queryResultArray("select * from media where filename = ?",[$imageToRemove],true);
-                                if($media && count($media)){
-                                    $this->urlRouter->db->queryResultArray("delete from ad_media where ad_id = ? and media_id = ?",[$id,$media[0]['ID']],true);
+                            
+                            if ($imageToRemove) {
+                                $media = $this->router()->db->queryResultArray("select * from media where filename=?", [$imageToRemove], true);
+                                if ($media && count($media)) {
+                                    $this->router()->db->queryResultArray("delete from ad_media where ad_id=? and media_id=?",[$id, $media[0]['ID']], true);
                                 }
                             }
                             
@@ -205,36 +212,26 @@ class Bin extends AjaxHandler{
                                     if($images){
                                         $images.="||";
                                     }
-                                    $images.='<img width="118" src="'.$this->urlRouter->cfg['url_ad_img'].'/repos/s/' . $img . '" />';
+                                    $images.='<img width="118" src="'.$this->router()->config()->adImgURL.'/repos/s/'.$img.'" />';
                                     $pass=1;
                                 }
-                            }else{
+                            }
+                            else {
                                 unset($content['pic_def']);
                                 $content['extra']['p']=2;
                             }
-                            if (isset($content['video']) && $content['video'] && count($content['video'])) {
-                                if($images){
-                                    $images.="||";
-                                }
-                                $vid = $content['video'][2];
-                                $images .='<img width="118" height="93" src="' . $vid . '" /><span class="play"></span>';
-                            }
 
-                            if($images){
-                                $images.="||";
-                            }
-                            $images.='<img class="ir" src="'.$this->urlRouter->cfg['url_img'].'/90/' . $ad['SECTION_ID'] . $this->urlRouter->_png .'" />';
+                            if ($images) { $images.="||"; }
+                            $images.='<img class="ir" src="'.$this->router()->config()->imgURL.'/90/' . $ad['SECTION_ID'] . $this->router()->_png .'" />';
                             
                         }
                         
-                        if($ro){
-                            $content['ro']=$ro;
-                        }
-                        if($se){
+                        if ($ro) { $content['ro']=$ro; }
+                        if ($se) {
                             $content['se']=$se;
                             $ad['SECTION_ID']=$se;
                         }
-                        if($pu){                            
+                        if ($pu) {                            
                             $content['pu']=$pu;
                             $ad['PURPOSE_ID']=$pu;
                         }
@@ -265,22 +262,14 @@ class Bin extends AjaxHandler{
                         $text2 = isset($content['altother']) ? $content['altother'] : '';
                         $rtl2 = isset($content['altRtl']) ? $content['altRtl'] : '';
                         
-                        if($text2==''){
-                            $content['extra']['t']=2;
-                        }
+                        if ($text2=='') { $content['extra']['t']=2; }
                         
                         $root = $content['ro'];
                         $section=$content['se'];
                         $purpose=$content['pu'];
                         $content = json_encode($content);
                         
-                        if($this->urlRouter->db->queryResultArray(
-                            'update ad_user set content=?, section_id=?, purpose_id=? where id = ?', array(
-                             $content,
-                                $section,
-                                $purpose,
-                                $id
-                        ))){
+                        if ($this->router()->db->queryResultArray('update ad_user set content=?, section_id=?, purpose_id=? where id=?', [$content, $section, $purpose, $id])) {
                             if($imgAdmin){
                                 $redisAction = 'editorialImg'; 
                                 $this->setData($images, 'sic');
@@ -303,25 +292,23 @@ class Bin extends AjaxHandler{
                             $this->setData($id, 'id');
                             $this->process();
                             
-                            try {
-            	
+                            try {            	
                                 $redis = new Redis();
-                                $data = [
-                                    'cmd'   =>  $redisAction,
-                                    'data'  => $this->data
-                                ];
+                                $data = ['cmd' => $redisAction, 'data' => $this->data];
                                 if ($redis->connect('h8.mourjan.com', 6379, 1, NULL, 50)) {
                                     $redis->publish('editorial', json_encode($data));
-                                } 
-
-                            } catch (RedisException $re) {}
+                                }
+                            } 
+                            catch (RedisException $re) {}
                             
                             $this->logAdmin($id, 6);
-                        }else{
+                        }
+                        else {
                             $this->fail();
                         }
                     }
-                }else{
+                }
+                else {
                     $this->fail();
                 }
                 break;      

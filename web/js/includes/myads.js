@@ -34,22 +34,6 @@ var d={
     // ad actions
     approve:function(e){
         if(this.currentId!=e.parentElement.parentElement.id){return;}
-        /*
-        (async()=>{
-            const rawResponse=await fetch('/ajax-approve/', {
-                method: 'POST',
-                mode:'same-origin',
-                credentials:'same-origin',
-                headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({i:parseInt(this.currentId)})
-            });
-            const content = await rawResponse.json();
-            console.log(content);
-        })();
-        */       
         fetch('/ajax-approve/',{
             method: 'POST',
             mode:'same-origin',
@@ -60,8 +44,61 @@ var d={
         .then(response => {console.log('Success:', JSON.stringify(response));})
         .catch(error => { console.error('Error:', error); });
     },
+    slideShow:function(ad){
+        let s=new SlideShow(ad);
+    },
 }
-console.log(d);
+
+class SlideShow{
+    constructor(kAd){        
+        this.ad=kAd;
+        this.index=1;
+        this.container=$.createElement('DIV');
+        this.container.className='slideshow-container';
+        let dots=$.createElement('DIV');
+        dots.style.textAlign='center';
+        dots.style.paddingTop='20px';
+        let self=this;
+        for(var i=0;i<this.ad.mediaCount;i++){
+            let slide=$.createElement('DIV');
+            slide.className='mySlides fade';
+            slide.innerHTML='<div class=numbertext>'+(i+1)+' / '+this.ad.mediaCount+'</div><img src="'+d.pixHost+'/repos/d/'+this.ad.pixSpans[i].dataset.pix+'" style="width:100%;max-height:700px;">';
+            this.container.appendChild(slide);
+            
+            let dot=$.createElement('SPAN');
+            dot.className='dot'; 
+            dot.onclick=function(){self.current(i+1);};
+            dots.appendChild(dot);
+        }
+        let prev=$.createElement('A');prev.className='prev';prev.innerHTML='&#10094;';
+        prev.onclick=function(){self.plus(-1);};
+        let next=$.createElement('A');next.className='next';next.innerHTML='&#10095;';
+        next.onclick=function(){self.plus(1);};
+        this.container.appendChild(prev);
+        this.container.appendChild(next);
+        
+        this.container.appendChild(dots);
+        $.body.appendChild(this.container);
+        this.show();
+    }
+    current(n){this.show(this.index=n);}
+    plus(n){this.show(this.index+=n);}
+    show(n){
+        var i;
+        var slides = this.container.getElementsByClassName("mySlides");
+        var dots = this.container.getElementsByClassName("dot");
+        if(n>this.ad.mediaCount){this.index=1}
+        if(n<1){this.index=this.ad.mediaCount}
+        for(i=0;i<slides.length;i++){
+            slides[i].style.display = "none";  
+        }
+        for(i=0;i<dots.length;i++){
+            dots[i].className=dots[i].className.replace(" active", "");
+        }
+        slides[this.index-1].style.display = "block";  
+        dots[this.index-1].className += " active";
+    }
+}
 
 for(var x=0;x<d.count;x++){
     d.nodes[x].oncontextmenu=function(e){e.preventDefault();};
@@ -74,10 +111,7 @@ for(var x=0;x<d.count;x++){
                     e.stopPropagation();
                     return;
                 }
-                if(parent.tagName==='FOOTER'){
-                    e.stopPropagation();
-                    return;
-                }
+                if(parent.tagName==='FOOTER'){e.stopPropagation();return;}
             }
             else if(tagName==='DIV'){
                 if(e.target.className==='mask'||this.classList.contains('locked')){
@@ -102,6 +136,11 @@ class Ad{
             this._editor=this._header.querySelector('.alloc');
             this._message=this._header.querySelector('.msg');            
             this.dataset=this._node.dataset;
+            this.mediaCount=0;
+            var wrp=this._node.querySelector('p.pimgs');
+            if(wrp){this.pixSpans=wrp.querySelectorAll('span');
+                if(this.pixSpans&&this.pixSpans.length){this.mediaCount=this.pixSpans.length;}
+            }
         }
     }
     exists(){return this._node!==null;}
@@ -119,30 +158,30 @@ class Ad{
     setAs(c){this._node.classList.add(c);}
     unsetAs(c){this._node.classList.remove(c);}
     rejected(t){this.unsetAs('approved');this.setAs('rejected');this.setMessage(t);}
-    fetchPics(){
-        var wrapper=this._node.querySelector('p.pimgs');
-        if(wrapper){var pxs=wrapper.querySelectorAll('span');
-            if(pxs && pxs.length){
-                for(var i=0;i<pxs.length;i++){                    
-                    var img=new Image();
-                    img.src = d.pixHost+'/repos/s/'+pxs[i].dataset.pix;
-                    pxs[i].appendChild(img);
-                    var del=$.createElement("div");
-                    del.className='del';
-                    del.innerHTML='<i class="icn icn-minus-circle"></i>';
-                    del.onclick=function(){                        
-                        console.log('delete image', this.parentElement.dataset.pix);
-                        fetch('/ajax-changepu/?img=1&i='+this.id+'&p="'+this.parentElement.dataset.pix+'"', {method:'GET',mode:'same-origin',credentials:'same-origin',headers:{'Accept':'application/json','Content-Type':'application/json'}})
-                                .then(response=>{return response.json();})
-                                .then(data=>{
-                                    console.log(data);
-                                }).catch(err=>{
-                                });
-                                
-                    }
-                    pxs[i].appendChild(del);
+    fetchPics(){        
+        if(this.mediaCount>0){            
+            let self=this;
+            for(var i=0;i<this.mediaCount;i++){
+                var img=new Image();
+                img.src = d.pixHost+'/repos/s/'+this.pixSpans[i].dataset.pix;                    
+                img.onclick=function(){d.slideShow(self);}
+                this.pixSpans[i].appendChild(img);
+                var del=$.createElement("div");
+                del.className='del';
+                del.innerHTML='<i class="icn icnsmall icn-minus-circle"></i>';
+                del.onclick=function(){                        
+                    console.log('delete image', this.parentElement.dataset.pix);
+                    fetch('/ajax-changepu/?img=1&i='+self.id+'&pix='+this.parentElement.dataset.pix, {method:'GET',mode:'same-origin',credentials:'same-origin',headers:{'Accept':'application/json','Content-Type':'application/json'}})
+                            .then(response=>{return response.json();})
+                            .then(data=>{
+                                console.log(data);
+                            }).catch(err=>{
+                                console.log(err);
+                            });                                
                 }
+                this.pixSpans[i].appendChild(del);
             }
+            
         }
         this.dataset.fetched=1;
     }

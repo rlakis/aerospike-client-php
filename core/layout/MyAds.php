@@ -1227,7 +1227,7 @@ var rtMsgs={
                 ?></div><?php
             }
 
-            echo '<div class=row><div class=col-12>';            
+            echo '<div class=row><div class="col-12 myadls">';            
             $idx=0;
             $this->globalScript.='var sic=[];';
             $linkLang = $this->router()->language=='ar' ? '':$this->router()->language.'/';
@@ -2110,7 +2110,7 @@ var rtMsgs={
             }
             
             ?><div class="htf db"><?= $msg ?><br /><br /><?php
-            ?><input onclick="document.location='/post/<?= $lang ?>'" class="bt" type="button" value="<?= $this->lang['create_ad'] ?>" /><?php
+            ?><input onclick="document.location='<?= $this->router()->getLanguagePath('/post/') ?>'" class=bt type=button value="<?= $this->lang['create_ad'] ?>" /><?php
             ?></div><?php
         }
         include $this->router()->config()->baseDir.'/web/js/includes/myads.js';

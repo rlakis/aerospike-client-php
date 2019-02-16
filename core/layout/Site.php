@@ -122,6 +122,18 @@ class Site {
     }
 
     
+    function getGetInt(string $parameter, int $default=0) : int {
+        $result = filter_input(INPUT_GET, $parameter, FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>$default]]);
+        return $result;
+    }
+    
+    
+    function getGetString(string $parameter, string $default='') : string {
+        $result = filter_input(INPUT_GET, $parameter, FILTER_SANITIZE_STRING, ['options'=>['default'=>$default]]);
+        return $result;
+    }
+    
+    
     function get($str='', $type='', $ignoreCase=false) {
         if (!$ignoreCase)$str=strtolower($str);
         if (!isset($this->params['get'][$str])) {
