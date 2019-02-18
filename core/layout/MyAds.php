@@ -2215,6 +2215,12 @@ var rtMsgs={
         }
     }
     
+    
+    function drawSlideShow() : void {
+        ?><div class="slideshow-container"></div>                                
+        <?php        
+    }
+    
 }
             
 

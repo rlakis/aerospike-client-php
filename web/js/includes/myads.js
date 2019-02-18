@@ -1,15 +1,15 @@
-<script type="text/javascript">
+<script>
 var $=document,ALT=false,MULTI=false;
-$.body.onkeydown=function(e){ALT=(e.which=="18");MULTI=(e.which=="90");};
-$.body.onkeyup=function(){ALT=false;MULTI=false;}
-$.body.onclick=function(e){d.setId(0);}
+$.onkeydown=function(e){ALT=(e.which=="18");MULTI=(e.which=="90");if(e.key==='Escape'&&d.slides){d.slides.destroy();d.slides=null;}};
+$.onkeyup=function(){ALT=false;MULTI=false;}
+$.body.onclick=function(e){d.setId(0);/*let ss=$.querySelector('.slideshow-container');if(ss){ss.parentElement.removeChild(ss);}*/}
 
 var d={
-    currentId:0,n:0,panel:null,ad:null,
+    currentId:0,n:0,panel:null,ad:null,slides:null,
     KUID:$.body.dataset.key,
     pixHost:$.body.dataset.repo,
     su:parseInt($.body.dataset.level)===90,
-    level:this.parseInt($.body.dataset.level)==90?9:parseInt($.body.dataset.level),    
+    level:this.parseInt($.body.dataset.level)===90?9:parseInt($.body.dataset.level),    
     nodes:$.querySelectorAll("article"),
     editors:$.getElementById('editors'),
     ar:$.body.dir==='rtl',
@@ -45,7 +45,7 @@ var d={
         .catch(error => { console.error('Error:', error); });
     },
     slideShow:function(ad){
-        let s=new SlideShow(ad);
+        this.slides=new SlideShow(ad);
     },
 }
 
@@ -54,10 +54,11 @@ class SlideShow{
         this.ad=kAd;
         this.index=1;
         this.container=$.createElement('DIV');
-        this.container.className='slideshow-container';
-        let dots=$.createElement('DIV');
-        dots.style.textAlign='center';
-        dots.style.paddingTop='20px';
+        this.container.className='slideshow';
+        let h=$.createElement('HEADER');        
+        this.container.appendChild(h);
+        let dots=$.createElement('FOOTER');
+        
         let self=this;
         for(var i=0;i<this.ad.mediaCount;i++){
             let slide=$.createElement('DIV');
@@ -85,19 +86,20 @@ class SlideShow{
     plus(n){this.show(this.index+=n);}
     show(n){
         var i;
-        var slides = this.container.getElementsByClassName("mySlides");
-        var dots = this.container.getElementsByClassName("dot");
+        var slides=this.container.getElementsByClassName("mySlides");
+        var dots=this.container.getElementsByClassName("dot");
         if(n>this.ad.mediaCount){this.index=1}
         if(n<1){this.index=this.ad.mediaCount}
         for(i=0;i<slides.length;i++){
-            slides[i].style.display = "none";  
+            slides[i].style.display="none";  
         }
         for(i=0;i<dots.length;i++){
             dots[i].className=dots[i].className.replace(" active", "");
         }
-        slides[this.index-1].style.display = "block";  
+        slides[this.index-1].style.display="block";  
         dots[this.index-1].className += " active";
     }
+    destroy(){$.body.removeChild(this.container);}
 }
 
 for(var x=0;x<d.count;x++){

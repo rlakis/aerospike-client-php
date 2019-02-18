@@ -47,23 +47,17 @@
 .adminNB{position:fixed;cursor:pointer;bottom:0;left:8px;background-color:#D9FAC8;padding:5px 15px;border:1px solid #ccc;font-weight:bold;color:#00e;width:140px;border-top-right-radius:6px;border-top-left-radius:6px;z-index:999;text-align:center}
 
 
-.mySlides{display:none;max-width:1024px;max-height:768px; text-align: center;margin:20px auto;}
-.mySlides img{max-width:1024px;max-width:768px}
-.slideshow-container {
-  width:100%;
-  height:800px;
-  position:fixed;
-  margin:auto;
-  z-index:10;
-  top:0;
-  left:0;
-  right:0;
-  background-color:black;
-}
+.mySlides{display:none;max-width:1024px;max-height:768px;text-align:center;margin:4px auto;}
+.mySlides img{max-width:1024px;max-height:768px;}
 
-.slideshow-container img {vertical-align: middle;}
+.slideshow {width:100%;height:800px;position:fixed;margin:auto;z-index:10;top:0;left:0;right:0;background-color:black;}
+.slideshow header, footer{width:100%;height:20px;min-height:auto;background-color:inherit}
+.slideshow footer{position:absolute;bottom:28px;text-align:center;padding-top:20px;}
+.slideshow section{height: 100%;}
+
+
 /* Next & previous buttons */
-.slideshow-container .prev, .next{
+.slideshow .prev, .next{
   cursor: pointer;
   position: absolute;
   top: 50%;
@@ -79,10 +73,10 @@
 }
 
 /* Position the "next button" to the right */
-.slideshow-container .next{right:0;border-radius:3px 0 0 3px;}
+.slideshow .next{right:0;border-radius:3px 0 0 3px;}
 
 /* On hover, add a black background color with a little bit see-through */
-.slideshow-container .prev:hover, .next:hover{background-color:rgba(0,0,0,0.8);}
+.slideshow .prev:hover, .next:hover{background-color:rgba(0,0,0,0.8);}
 
 /* Caption text */
 .text{color:#f2f2f2;font-size:15px;padding:8px 12px;position:absolute;bottom:8px;width:100%;text-align:center;}
