@@ -561,25 +561,23 @@ class PayfortIntegration
         return $decimalPoint;
     }
 
-    public function getUrl($path='')
-    {
+    
+    public function getUrl($path='') {
         $url = 'https://' . $_SERVER['HTTP_HOST'] . $this->projectUrlPath .'/'. ($this->language == 'ar' ? '':$this->language.'/') . $path;
         return $url;
     }
 
-    public function generateMerchantReference()
-    {
+    
+    public function generateMerchantReference() {
         return rand(0, 9999999999);
     }
     
     /**
      * Log the error on the disk
      */
-    public function log($messages) 
-    { 
+    public function log($messages) { 
         $logfile = '/var/log/mourjan/payfort.log';
-        if (!file_exists($logfile)) 
-        {
+        if (!file_exists($logfile)) {
             $fh = @fopen($logfile, 'w');
             fclose($fh);
         }

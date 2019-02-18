@@ -34,36 +34,29 @@ var d={
     // ad actions
     approve:function(e){
         if(this.currentId!=e.parentElement.parentElement.id){return;}
-        fetch('/ajax-approve/',{
-            method: 'POST',
-            mode:'same-origin',
-            credentials:'same-origin',
-            body:JSON.stringify({i:parseInt(this.currentId)}),
-            headers:{'Accept':'application/json','Content-Type':'application/json'}
-        }).then(res => res.json())
+        fetch('/ajax-approve/',{method: 'POST',mode:'same-origin',credentials:'same-origin',body:JSON.stringify({i:parseInt(this.currentId)}),headers:{'Accept':'application/json','Content-Type':'application/json'}}).then(res=>res.json())
         .then(response => {console.log('Success:', JSON.stringify(response));})
         .catch(error => { console.error('Error:', error); });
     },
-    slideShow:function(ad){
-        this.slides=new SlideShow(ad);
+    slideShow:function(ad,n){
+        this.slides=new SlideShow(ad,n);
     },
 }
 
 class SlideShow{
-    constructor(kAd){        
+    constructor(kAd,_n){        
         this.ad=kAd;
-        this.index=1;
-        this.container=$.createElement('DIV');
-        this.container.className='slideshow';
-        let h=$.createElement('HEADER');        
-        this.container.appendChild(h);
-        let dots=$.createElement('FOOTER');
-        
+        this.index=parseInt(_n);        
         let self=this;
+        this.container=$.createElement('DIV');this.container.className='slideshow';
+        let h=$.createElement('HEADER');
+        this.container.appendChild(h);
+        let dots=$.createElement('FOOTER');                
+        let close=$.createElement('SPAN');close.className='close';close.innerHTML='×';close.onclick=function(){self.destroy();};
+        h.appendChild(close);
         for(var i=0;i<this.ad.mediaCount;i++){
-            let slide=$.createElement('DIV');
-            slide.className='mySlides fade';
-            slide.innerHTML='<div class=numbertext>'+(i+1)+' / '+this.ad.mediaCount+'</div><img src="'+d.pixHost+'/repos/d/'+this.ad.pixSpans[i].dataset.pix+'" style="width:100%;max-height:700px;">';
+            let slide=$.createElement('DIV');slide.className='mySlides fade';            
+            slide.innerHTML='<img src="'+d.pixHost+'/repos/d/'+this.ad.pixSpans[i].dataset.path+'">';
             this.container.appendChild(slide);
             
             let dot=$.createElement('SPAN');
@@ -71,16 +64,14 @@ class SlideShow{
             dot.onclick=function(){self.current(i+1);};
             dots.appendChild(dot);
         }
-        let prev=$.createElement('A');prev.className='prev';prev.innerHTML='&#10094;';
-        prev.onclick=function(){self.plus(-1);};
-        let next=$.createElement('A');next.className='next';next.innerHTML='&#10095;';
-        next.onclick=function(){self.plus(1);};
+        let prev=$.createElement('A');prev.className='prev';prev.innerHTML='&#10094;';prev.onclick=function(){self.plus(-1);};
+        let next=$.createElement('A');next.className='next';next.innerHTML='&#10095;';next.onclick=function(){self.plus(1);};
         this.container.appendChild(prev);
         this.container.appendChild(next);
         
         this.container.appendChild(dots);
         $.body.appendChild(this.container);
-        this.show();
+        this.show(this.index);
     }
     current(n){this.show(this.index=n);}
     plus(n){this.show(this.index+=n);}
@@ -90,20 +81,16 @@ class SlideShow{
         var dots=this.container.getElementsByClassName("dot");
         if(n>this.ad.mediaCount){this.index=1}
         if(n<1){this.index=this.ad.mediaCount}
-        for(i=0;i<slides.length;i++){
-            slides[i].style.display="none";  
-        }
-        for(i=0;i<dots.length;i++){
-            dots[i].className=dots[i].className.replace(" active", "");
-        }
-        slides[this.index-1].style.display="block";  
+        for(i=0;i<slides.length;i++){slides[i].style.display="none";}
+        for(i=0;i<dots.length;i++){dots[i].className=dots[i].className.replace(" active", "");}
+        slides[this.index-1].style.display="flex";
         dots[this.index-1].className += " active";
     }
     destroy(){$.body.removeChild(this.container);}
 }
 
 for(var x=0;x<d.count;x++){
-    d.nodes[x].oncontextmenu=function(e){e.preventDefault();};
+    //d.nodes[x].oncontextmenu=function(e){e.preventDefault();};
     d.nodes[x].onclick=function(e){
         //console.log(e.target.tagName + ' ['+this.id+' vs '+ d.currentId+']');
         if(this.id==d.currentId){
@@ -160,26 +147,38 @@ class Ad{
     setAs(c){this._node.classList.add(c);}
     unsetAs(c){this._node.classList.remove(c);}
     rejected(t){this.unsetAs('approved');this.setAs('rejected');this.setMessage(t);}
-    fetchPics(){        
-        if(this.mediaCount>0){            
+    fetchPics(){if(this.mediaCount>0){
             let self=this;
-            for(var i=0;i<this.mediaCount;i++){
+            for(var i=0;i<this.mediaCount;i++){                
+                if(typeof this.pixSpans[i].dataset.pix==='string'){
+                    let j=JSON.parse(this.pixSpans[i].dataset.pix);
+                    this.pixSpans[i].dataset.path=j.p;
+                    this.pixSpans[i].dataset.width=j.w;
+                    this.pixSpans[i].dataset.height=j.h;
+                }
+                
                 var img=new Image();
-                img.src = d.pixHost+'/repos/s/'+this.pixSpans[i].dataset.pix;                    
-                img.onclick=function(){d.slideShow(self);}
+                img.src = d.pixHost+'/repos/s/'+this.pixSpans[i].dataset.path;
+                img.dataset.n=i+1;
+                img.onclick=function(){d.slideShow(self,this.dataset.n);}
                 this.pixSpans[i].appendChild(img);
                 var del=$.createElement("div");
                 del.className='del';
                 del.innerHTML='<i class="icn icnsmall icn-minus-circle"></i>';
                 del.onclick=function(){                        
-                    console.log('delete image', this.parentElement.dataset.pix);
-                    fetch('/ajax-changepu/?img=1&i='+self.id+'&pix='+this.parentElement.dataset.pix, {method:'GET',mode:'same-origin',credentials:'same-origin',headers:{'Accept':'application/json','Content-Type':'application/json'}})
-                            .then(response=>{return response.json();})
-                            .then(data=>{
-                                console.log(data);
+                    var answer=window.confirm(d.ar?"هل انت اكيد من حذف هذه الصورة من الاعلان؟":"Do you really want to remove this picture?");
+                    if(answer){                                       
+                        fetch('/ajax-changepu/?img=1&i='+self.id+'&pix='+this.parentElement.dataset.path,{method:'GET',mode:'same-origin',credentials:'same-origin',headers:{'Accept':'application/json','Content-Type':'application/json'}})
+                            .then(response=>{return response.json();}).then(data=>{
+                                let holder=this.parentElement.parentElement;
+                                if(data.RP===1){
+                                    holder.removeChild(this.parentElement);
+                                    if(holder.childNodes.length==0){holder.parentElement.removeChild(holder);}
+                                }
                             }).catch(err=>{
                                 console.log(err);
-                            });                                
+                            });
+                    }
                 }
                 this.pixSpans[i].appendChild(del);
             }
@@ -189,7 +188,7 @@ class Ad{
     }
     mask(){this._m=this._node.querySelector('div.mask');if(this._m===null){
         this._m=$.createElement("div");var h=this._node.offsetHeight-60;
-        this._m.style.lineHeight=h+'px';//this._m.style.height=h+'px';
+        this._m.style.lineHeight=h+'px';
         this._m.className='mask';this._node.appendChild(this._m);
     }}
     removeMask(){this._m=this._node.querySelector('div.mask');if(this._m){this._node.removeChild(this._m);this._m=null;}}

@@ -13,7 +13,9 @@
 .icn-fail{background:transparent url(/web/css/1.0/fa/solid/lightbulb-exclamation.svg) no-repeat center;filter: invert(86%) sepia(64%) saturate(484%) hue-rotate(355deg) brightness(105%) contrast(106%);}
 .icn-wait{mask:url(/web/css/1.0/fa/solid/alarm-clock.svg) no-repeat center;background-color: whitesmoke;margin:0 4px;}
 .icn-done{background:transparent url(/web/css/1.0/fa/solid/check.svg) no-repeat center / cover !important;filter:invert(20%) sepia(52%) saturate(3178%) hue-rotate(99deg) brightness(97%) contrast(104%);}
-.icn-minus-circle{background:transparent url(/web/css/1.0/fa/solid/minus-circle.svg) no-repeat center / cover !important;filter: invert(14%) sepia(99%) saturate(7473%) hue-rotate(2deg) brightness(87%) contrast(117%);}
+.icn-minus-circle{background:transparent url(/web/css/1.0/fa/solid/minus-circle.svg) no-repeat center / cover !important;
+                 filter: invert(11%) sepia(67%) saturate(6919%) hue-rotate(352deg) brightness(106%) contrast(114%);
+}
 .myad .user {display:flex;flex:1 auto;justify-content:space-between;background-color:#f1f3f4;height:28px;padding:0 8px;align-items:center;box-shadow:0 1px 4px 0 rgba(0, 0, 0, 0.14);}
 .myad .user > div{display:flex;}
 .myad.selected section{background-color:#d3f1c4;}
@@ -47,51 +49,28 @@
 .adminNB{position:fixed;cursor:pointer;bottom:0;left:8px;background-color:#D9FAC8;padding:5px 15px;border:1px solid #ccc;font-weight:bold;color:#00e;width:140px;border-top-right-radius:6px;border-top-left-radius:6px;z-index:999;text-align:center}
 
 
-.mySlides{display:none;max-width:1024px;max-height:768px;text-align:center;margin:4px auto;}
-.mySlides img{max-width:1024px;max-height:768px;}
+.mySlides{display:none;height: 100%;width:100%;text-align:center;justify-content: center;align-items: center;}
+.mySlides img{max-width:1024px;max-height:768px;filter:brightness(1.1)}
 
-.slideshow {width:100%;height:800px;position:fixed;margin:auto;z-index:10;top:0;left:0;right:0;background-color:black;}
-.slideshow header, footer{width:100%;height:20px;min-height:auto;background-color:inherit}
-.slideshow footer{position:absolute;bottom:28px;text-align:center;padding-top:20px;}
+.slideshow {width:100%;height:100%;position:fixed;margin:auto;z-index:10;top:0;left:0;right:0;background-color:black}
+.slideshow header, .slideshow footer{width:100%;height:24px;min-height:auto;position:absolute;}
+.slideshow header{background-color:inherit}
+.slideshow footer{bottom:28px;text-align:center;}
 .slideshow section{height: 100%;}
-
-
-/* Next & previous buttons */
-.slideshow .prev, .next{
-  cursor: pointer;
-  position: absolute;
-  top: 50%;
-  width: auto;
-  padding: 16px;
-  margin-top: -22px;
-  color: white;
-  font-weight: bold;
-  font-size: 18px;
-  transition: 0.6s ease;
-  border-radius: 0 3px 3px 0;
-  user-select: none;
-}
-
-/* Position the "next button" to the right */
+.slideshow .close{right:8px;top:0}
+.slideshow .prev, .next{cursor:pointer;position:absolute;top:50%;width:auto;padding:16px;color:white;font-weight:bold;font-size:18px;transition:0.6s ease;border-radius:0 3px 3px 0;user-select:none;}
 .slideshow .next{right:0;border-radius:3px 0 0 3px;}
-
-/* On hover, add a black background color with a little bit see-through */
 .slideshow .prev:hover, .next:hover{background-color:rgba(0,0,0,0.8);}
 
 /* Caption text */
 .text{color:#f2f2f2;font-size:15px;padding:8px 12px;position:absolute;bottom:8px;width:100%;text-align:center;}
-
 /* Number text (1/3 etc) */
 .numbertext{color:#f2f2f2;font-size:12px;padding:8px 12px;position:absolute;top:0;}
 
-/* The dots/bullets/indicators */
 .dot{cursor:pointer;height:15px;width:15px;margin:0 2px;background-color:#bbb;border-radius:50%;display:inline-block;transition:background-color 0.6s ease;}
 .active, .dot:hover{background-color:#717171;}
-
-/* Fading animation */
 .fade{-webkit-animation-name:fade;-webkit-animation-duration:1.5s;animation-name:fade;animation-duration:1.5s;}
 
 @-webkit-keyframes fade{from{opacity:.4} to{opacity:1}}
 @keyframes fade{from{opacity:.4} to{opacity:1}}
-/* On smaller screens, decrease text size */
 @media only screen and (max-width:300px){.prev, .next,.text {font-size:11px}}

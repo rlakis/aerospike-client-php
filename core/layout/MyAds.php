@@ -931,7 +931,7 @@ var rtMsgs={
                 }
                 
                 if ($filters['active']) {
-                    echo '<input type=reset onclick="location.href=', $baseUrl, '?sub=pending" value="', $this->lang['search_cancel'], '" />';
+                    echo '<input type=reset onclick="location.href=\'', $baseUrl, '?sub=pending\'" value="', $this->lang['search_cancel'], '" />';
                 }
                 echo '</form></div>';
             }
@@ -1297,7 +1297,7 @@ var rtMsgs={
                         foreach($content['pics'] as $img => $dim){
                             if ($images) { $images.="||"; }
                             $images.='<img width=\"118\" src=\"'.$this->router()->config()->adImgURL.'/repos/s/' . $img . '\" />';
-                            $thumbs .= '<span class=ig data-pix="'.$img.'"></span>';
+                            $thumbs .= "<span class=ig data-pix={\"p\":\"{$img}\",\"w\":{$dim[0]},\"h\":{$dim[1]}}></span>";
                             $hasAdminImgs = 1;
                         }
                     }
@@ -1690,7 +1690,7 @@ var rtMsgs={
                     else { 
                         if ($state>0 && $state<7) {
                             if (!$isSystemAd || $isSuperAdmin) {         
-                                ?><span onclick="d.approve(this)"><?= $this->lang['approve'] ?></span><?php
+                                ?><a onclick="d.approve(this)" href="javascript:void(0)"><?= $this->lang['approve'] ?></a><?php
                                 if ($isSuperAdmin) {
                                     ?><span class="lnk" onclick="rtp(this,)">RTP</span><?php                                    
                                 }
