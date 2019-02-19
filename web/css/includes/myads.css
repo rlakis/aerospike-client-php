@@ -16,7 +16,7 @@
 .icn-minus-circle{background:transparent url(/web/css/1.0/fa/solid/minus-circle.svg) no-repeat center / cover !important;
                  filter: invert(11%) sepia(67%) saturate(6919%) hue-rotate(352deg) brightness(106%) contrast(114%);
 }
-.myad .user {display:flex;flex:1 auto;justify-content:space-between;background-color:#f1f3f4;height:28px;padding:0 8px;align-items:center;box-shadow:0 1px 4px 0 rgba(0, 0, 0, 0.14);}
+.myad .user {direction:ltr;display:flex;flex:1 auto;justify-content:space-between;background-color:#f1f3f4;height:28px;padding:0 8px;align-items:center;box-shadow:0 1px 4px 0 rgba(0, 0, 0, 0.14);}
 .myad .user > div{display:flex;}
 .myad.selected section{background-color:#d3f1c4;}
 .myad.alert .icon-state{background:transparent url(/web/css/1.0/fa/regular/bell.svg) no-repeat center / cover !important;filter:invert(20%) sepia(52%) saturate(3178%) hue-rotate(99deg) brightness(97%) contrast(104%);}
@@ -52,14 +52,15 @@
 .mySlides{display:none;height: 100%;width:100%;text-align:center;justify-content: center;align-items: center;}
 .mySlides img{max-width:1024px;max-height:768px;filter:brightness(1.1)}
 
-.slideshow {width:100%;height:100%;position:fixed;margin:auto;z-index:10;top:0;left:0;right:0;background-color:black}
+.slideshow {width:100%;height:100%;position:fixed;margin:auto;z-index:10;top:0;left:0;right:0;background-color:black;direction:ltr!important}
 .slideshow header, .slideshow footer{width:100%;height:24px;min-height:auto;position:absolute;}
 .slideshow header{background-color:inherit}
 .slideshow footer{bottom:28px;text-align:center;}
 .slideshow section{height: 100%;}
 .slideshow .close{right:8px;top:0}
-.slideshow .prev, .next{cursor:pointer;position:absolute;top:50%;width:auto;padding:16px;color:white;font-weight:bold;font-size:18px;transition:0.6s ease;border-radius:0 3px 3px 0;user-select:none;}
+.slideshow .prev, .next{cursor:pointer;position:absolute;top:50%;width:auto;padding:16px;color:white;font-weight:bold;font-size:2em;transition:0.6s ease;border-radius:0 3px 3px 0;user-select:none;}
 .slideshow .next{right:0;border-radius:3px 0 0 3px;}
+.slideshow .prev{left:0;}
 .slideshow .prev:hover, .next:hover{background-color:rgba(0,0,0,0.8);}
 
 /* Caption text */

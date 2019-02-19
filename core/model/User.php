@@ -2938,37 +2938,29 @@ class User {
 
     
     function logout() {
-        $countryId=isset($this->params['country'])?$this->params['country']:0;
-        $cityId=isset($this->params['city'])?$this->params['city']:0;
+        $countryId=$this->params['country']??0;
+        $cityId=$this->params['city']??0;
         $lang=isset($this->params['slang'])?$this->params['slang']:'ar';
         $sorting=isset($this->params['sorting'])?$this->params['sorting']:-1;
         $sortingLang=isset($this->params['list_lang'])?$this->params['list_lang']:-1;
         $mourjanUser = isset($this->params['mourjan_user']) ? 1 : NULL;
         
         if(isset($_COOKIE['__uvme'])) {
-            setcookie('__uvme', '', 1,'/',$this->cfg['site_domain']);
+            setcookie('__uvme', '', 1,'/',$this->config->get('site_domain'));
         }
                 
         if (session_destroy()) {
             session_start();
-            if ($this->data) {
-                $this->data->destroyToken();
-            }
+            if ($this->data) { $this->data->destroyToken(); }
             
             $this->reset();
             $this->params['country']=$countryId;
             $this->params['city']=$cityId;
             $this->params['visit']=1;
             $this->params['slang']=$lang;
-            if($sorting > -1) {
-                $this->params['sorting']=$sorting;
-            }
-            if($sortingLang > -1) {
-                $this->params['list_lang']=$sortingLang;
-            }
-            if ($mourjanUser!==NULL) {
-                $this->params['mourjan_user']=1;
-            }
+            if ($sorting > -1) { $this->params['sorting']=$sorting; }
+            if ($sortingLang > -1) { $this->params['list_lang']=$sortingLang; }
+            if ($mourjanUser!==NULL) { $this->params['mourjan_user']=1; }
             $this->update();
             return true;
         }

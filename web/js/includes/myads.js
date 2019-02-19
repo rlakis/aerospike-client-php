@@ -3,6 +3,13 @@ var $=document,ALT=false,MULTI=false;
 $.onkeydown=function(e){ALT=(e.which=="18");MULTI=(e.which=="90");if(e.key==='Escape'&&d.slides){d.slides.destroy();d.slides=null;}};
 $.onkeyup=function(){ALT=false;MULTI=false;}
 $.body.onclick=function(e){d.setId(0);/*let ss=$.querySelector('.slideshow-container');if(ss){ss.parentElement.removeChild(ss);}*/}
+createElem = function(tag, className, content, isHtml) {
+    var el = document.createElement(tag);
+    el.className = className;
+    if (typeof content !== 'undefined')
+        el[isHtml || false ? 'innerHTML' : 'innerText'] = content;
+    return el;
+};
 
 var d={
     currentId:0,n:0,panel:null,ad:null,slides:null,
@@ -19,7 +26,7 @@ var d={
     getName:function(kUID){var x=this.editors.getElementsByClassName(kUID);return (x && x.length)?x[0].innerText:'Anonymous/'+kUID;},
     inc:function(){this.n++;        
         if(this.panel===null){this.panel=$.querySelector('.adminNB');
-            if(this.panel==null){this.panel=$.createElement("div");this.panel.className='adminNB';$.body.appendChild(this.panel);}
+            if(this.panel==null){this.panel=createElem("div", 'adminNB');$.body.appendChild(this.panel);}
         }
         if(this.panel){this.panel.innerHTML=this.n+(this.ar?' اعلان جديد':' new ad');this.panel.onclick=function(e){document.location=''};}
     },
@@ -44,28 +51,32 @@ var d={
 }
 
 class SlideShow{
+    ad;
+    index=0;
+    
     constructor(kAd,_n){        
         this.ad=kAd;
         this.index=parseInt(_n);        
         let self=this;
-        this.container=$.createElement('DIV');this.container.className='slideshow';
-        let h=$.createElement('HEADER');
+        this.container=createElem('DIV', 'slideshow');
+        let h=createElem('HEADER');
         this.container.appendChild(h);
-        let dots=$.createElement('FOOTER');                
-        let close=$.createElement('SPAN');close.className='close';close.innerHTML='×';close.onclick=function(){self.destroy();};
+        let dots=$.createElement('FOOTER');
+        
+        let close=createElem('SPAN', 'close', '×');
+        close.onclick=function(){self.destroy();};
+        
         h.appendChild(close);
         for(var i=0;i<this.ad.mediaCount;i++){
-            let slide=$.createElement('DIV');slide.className='mySlides fade';            
-            slide.innerHTML='<img src="'+d.pixHost+'/repos/d/'+this.ad.pixSpans[i].dataset.path+'">';
+            let slide=createElem('DIV', 'mySlides fade', '<img src="'+d.pixHost+'/repos/d/'+this.ad.pixSpans[i].dataset.path+'">', 1);
             this.container.appendChild(slide);
             
-            let dot=$.createElement('SPAN');
-            dot.className='dot'; 
+            let dot=createElem('SPAN', 'dot');
             dot.onclick=function(){self.current(i+1);};
             dots.appendChild(dot);
         }
-        let prev=$.createElement('A');prev.className='prev';prev.innerHTML='&#10094;';prev.onclick=function(){self.plus(-1);};
-        let next=$.createElement('A');next.className='next';next.innerHTML='&#10095;';next.onclick=function(){self.plus(1);};
+        let prev=createElem('A', 'prev', '&#10094;', 1);prev.onclick=function(){self.plus(-1);};
+        let next=createElem('A', 'next', '&#10095;', 1);next.onclick=function(){self.plus(1);};
         this.container.appendChild(prev);
         this.container.appendChild(next);
         
@@ -148,27 +159,25 @@ class Ad{
     unsetAs(c){this._node.classList.remove(c);}
     rejected(t){this.unsetAs('approved');this.setAs('rejected');this.setMessage(t);}
     fetchPics(){if(this.mediaCount>0){
-            let self=this;
-            for(var i=0;i<this.mediaCount;i++){                
-                if(typeof this.pixSpans[i].dataset.pix==='string'){
-                    let j=JSON.parse(this.pixSpans[i].dataset.pix);
-                    this.pixSpans[i].dataset.path=j.p;
-                    this.pixSpans[i].dataset.width=j.w;
-                    this.pixSpans[i].dataset.height=j.h;
+            let _=this;
+            for(var i=0;i<_.mediaCount;i++){                
+                if(typeof _.pixSpans[i].dataset.pix==='string'){
+                    let j=JSON.parse(_.pixSpans[i].dataset.pix);
+                    _.pixSpans[i].dataset.path=j.p;
+                    _.pixSpans[i].dataset.width=j.w;
+                    _.pixSpans[i].dataset.height=j.h;
                 }
                 
                 var img=new Image();
-                img.src = d.pixHost+'/repos/s/'+this.pixSpans[i].dataset.path;
+                img.src = d.pixHost+'/repos/s/'+_.pixSpans[i].dataset.path;
                 img.dataset.n=i+1;
-                img.onclick=function(){d.slideShow(self,this.dataset.n);}
-                this.pixSpans[i].appendChild(img);
-                var del=$.createElement("div");
-                del.className='del';
-                del.innerHTML='<i class="icn icnsmall icn-minus-circle"></i>';
+                img.onclick=function(){d.slideShow(_,this.dataset.n);}
+                _.pixSpans[i].appendChild(img);
+                var del=createElem("div", 'del', '<i class="icn icnsmall icn-minus-circle"></i>', 1);
                 del.onclick=function(){                        
                     var answer=window.confirm(d.ar?"هل انت اكيد من حذف هذه الصورة من الاعلان؟":"Do you really want to remove this picture?");
                     if(answer){                                       
-                        fetch('/ajax-changepu/?img=1&i='+self.id+'&pix='+this.parentElement.dataset.path,{method:'GET',mode:'same-origin',credentials:'same-origin',headers:{'Accept':'application/json','Content-Type':'application/json'}})
+                        fetch('/ajax-changepu/?img=1&i='+_.id+'&pix='+this.parentElement.dataset.path,{method:'GET',mode:'same-origin',credentials:'same-origin',headers:{'Accept':'application/json','Content-Type':'application/json'}})
                             .then(response=>{return response.json();}).then(data=>{
                                 let holder=this.parentElement.parentElement;
                                 if(data.RP===1){
@@ -180,17 +189,21 @@ class Ad{
                             });
                     }
                 }
-                this.pixSpans[i].appendChild(del);
+                _.pixSpans[i].appendChild(del);
             }
             
         }
         this.dataset.fetched=1;
     }
-    mask(){this._m=this._node.querySelector('div.mask');if(this._m===null){
-        this._m=$.createElement("div");var h=this._node.offsetHeight-60;
-        this._m.style.lineHeight=h+'px';
-        this._m.className='mask';this._node.appendChild(this._m);
-    }}
+    mask(){var _=this;
+        _._m=_._node.querySelector('div.mask');
+        if(_._m===null){
+            _._m=createElem("div", 'mask');
+            var h=_._node.offsetHeight-60;
+            _._m.style.lineHeight=h+'px';
+            _._node.appendChild(this._m);
+        }
+    }
     removeMask(){this._m=this._node.querySelector('div.mask');if(this._m){this._node.removeChild(this._m);this._m=null;}}
     maskText(t){this._m.innerHTML=t;}
     opacity(v){this._m.style.opacity=v;}

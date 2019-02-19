@@ -1687,7 +1687,7 @@ var rtMsgs={
                             }
                         }
                     }
-                    else { 
+                    else {
                         if ($state>0 && $state<7) {
                             if (!$isSystemAd || $isSuperAdmin) {         
                                 ?><a onclick="d.approve(this)" href="javascript:void(0)"><?= $this->lang['approve'] ?></a><?php
@@ -1714,11 +1714,11 @@ var rtMsgs={
                             $contactInfo=$this->getContactInfo($content);                          
                             if ($isSuperAdmin) {
                                 //onclick="openW(this.href);return false"
-                                ?><a target=_blank href="<?= $this->router()->isArabic()?'':'/en' ?>/?aid=<?= $ad['ID'] ?>&q="><?= $this->lang['similar'] ?></a><?php
+                                ?><a target=_similar href="<?= $this->router()->isArabic()?'':'/en' ?>/?aid=<?= $ad['ID'] ?>&q="><?= $this->lang['similar'] ?></a><?php
                             }
                             if (!$isSystemAd || $isSuperAdmin) {
                                 if ($contactInfo) {                        
-                                    ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->router()->isArabic()?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
+                                    ?><a target=_similar class="lnk" onclick="openW(this.href);return false" href="<?= $this->router()->isArabic()?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
                                 }
                             }                            
                         }

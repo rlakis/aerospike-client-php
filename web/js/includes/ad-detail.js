@@ -1,7 +1,7 @@
 <script>
 var wrapperTop=0;
 var $=document;
-var byId=function(id){return $.getElementById(id); }
+var byId=function(id){return $.getElementById(id);}
 
 const preventEventProp = (e) => { e.preventDefault(); e.stopPropagation(); return false; };
 const preventEventPropagation = (e) => {e.stopPropagation()};
@@ -106,7 +106,6 @@ class AdScreen {
         var a=this.newTag(tag, 'btn');
         a.text=text;
         if(href){
-            console.log(typeof(href));
             if (typeof(href)==='function'){
                 a.onclick=function(){href();}
             }
@@ -141,10 +140,8 @@ class AdScreen {
             adScreen.pixIndex--;
             adScreen._media.firstChild.src=adScreen.host + '/repos/d/' + adScreen.pics[adScreen.pixIndex];   
             if (adScreen.nextDiv.style.display==='none'){adScreen.nextDiv.style.display='initial';}
-        }
-        
-        adScreen.prevDiv.style.display=adScreen.pixIndex===0?'none':'initial';
-        
+        }        
+        adScreen.prevDiv.style.display=adScreen.pixIndex===0?'none':'initial';        
     }
     
     nextPix(){
@@ -166,9 +163,6 @@ class AdScreen {
             img.onload = function () {
                 console.log('size: '+img.naturalWidth+'x'+img.naturalHeight);
                 console.log(img);
-                //var hh = img.offsetHeight;
-                //if (hh > window.innerHeight / 3){hh = Math.round(window.innerHeight / 3)};
-                //this.parentElement.style.setProperty('min-height', hh + 'px');
             }
         }
         else {
@@ -277,6 +271,10 @@ function oad(ad){
     $.body.setAttribute('data-detail', 1);
 }
 
+function report(){
+    
+}
+
 function sorting(o){
     var idx = o.selectedIndex; 
     console.log(idx);
@@ -285,9 +283,7 @@ function sorting(o){
 }
 
 
-window.onclick=function(event){
-    if (adScreen && event.target === byId('adScreen'))adScreen.close();
-};
+window.onclick=function(e){if(adScreen&&e.target===byId('adScreen'))adScreen.close();}
 
 window.onpopstate=function(event){
     console.log($.body.dataset.detail);
@@ -301,39 +297,5 @@ window.onpopstate=function(event){
     }
 }
 
-
-/*
- adScreen._modal.addEventListener("touchstart", function(e){
- if(touchY===null){
- touchY = e.touches[0].pageY;
- }
- });
- adScreen._modal.addEventListener("touchmove", function(e){
- var t=adScreen._modal;
- var delta = touchY - e.touches[0].pageY;
- console.log(delta);
- if(delta>0){
- if(t.scrollHeight <= t.offsetHeight + t.scrollTop + delta){
- console.log("limit down "+(t.scrollHeight - t.offsetHeight - 1));
- t.scrollTop = (t.scrollHeight - t.offsetHeight - 1)+"px";
- e.preventDefault();
- e.stopPropagation();
- }
- }else{
- if(t.scrollTop > 1){
- var y = t.scrollTop + delta;
- if(y < 1) {
- console.log("limit up");
- t.scrollTop = "1px";
- e.preventDefault();
- e.stopPropagation();
- }
- }else{
- e.preventDefault();
- e.stopPropagation();
- }
- }
- return;
- });*/
 
 </script>
