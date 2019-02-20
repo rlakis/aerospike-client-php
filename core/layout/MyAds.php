@@ -762,9 +762,8 @@ class MyAds extends Page {
                 
                 case 'pending':
                     $this->pendingAds(1);
-                    if ($this->user()->level()===9) {                    
-                    $this->globalScript.="                            
-var rtMsgs={
+                    if ($this->user()->level()===9) {
+                        ?><script>var rtMsgs={
     'ar':[
         'إختر السبب...',
         'group=نص الاعلان',
@@ -839,8 +838,7 @@ var rtMsgs={
         'This ad contradicts with the sense of your other published ads, and this is a warning before blocking your account for fraud',
         'The user behind proxy ad posting is prohibited'
     ]
-};
-                            ";
+};</script><?php
                 }
                 break;
             case 'drafts':
@@ -1321,46 +1319,45 @@ var rtMsgs={
                     }
                 }
                 
-                
-                $onlySuper = ($isAdmin && isset($ad['SUPER_ADMIN']) && $ad['SUPER_ADMIN']) ? $ad['SUPER_ADMIN']+0 : 0;
-                if ($onlySuper) {
-                    if ($onlySuper && $onlySuper < 1000) {                        
-                        switch($onlySuper) {
-                            case 998:
-                                $onlySuper = "email contains + sign";
-                                break;
-                            case 997:
-                                $onlySuper = "email contains hotel word";
-                                break;
-                            case 996:
-                                $onlySuper = "email contains more than one dot";
-                                break;
-                            case 995:
-                                $onlySuper = "user verified number is from other country";
-                                break;
-                            case 999:
-                                $onlySuper = "System General";
-                                break;
-                            case 1:
-                                $onlySuper = "contains stop words";
-                                break;
-                            default:
-                                $onlySuper = "not specified";
-                                break;
-                        }
-                        
-                    }
-                    else {
-                        if (isset($this->editors[$onlySuper])) {
-                            $onlySuper = "requested by ".$this->editors[$onlySuper];
+                if ($this->user()->isLoggedIn(9)) {
+                    $onlySuper = (isset($ad['SUPER_ADMIN']) && ($ad['SUPER_ADMIN']) ? $ad['SUPER_ADMIN']+0 : 0);
+                    if ($onlySuper) {
+                        if ($onlySuper && $onlySuper < 1000) {                        
+                            switch($onlySuper) {
+                                case 998:
+                                    $onlySuper = "email contains + sign";
+                                    break;
+                                case 997:
+                                    $onlySuper = "email contains hotel word";
+                                    break;
+                                case 996:
+                                    $onlySuper = "email contains more than one dot";
+                                    break;
+                                case 995:
+                                    $onlySuper = "user verified number is from other country";
+                                    break;
+                                case 999:
+                                    $onlySuper = "System General";
+                                    break;
+                                case 1:
+                                    $onlySuper = "contains stop words";
+                                    break;
+                                default:
+                                    $onlySuper = "not specified";
+                                    break;
+                            }
+
                         }
                         else {
-                            $onlySuper = "requested by user #".$onlySuper."#";
+                            if (isset($this->editors[$onlySuper])) {
+                                $onlySuper = "requested by ".$this->editors[$onlySuper];
+                            }
+                            else {
+                                $onlySuper = "requested by user #".$onlySuper."#";
+                            }
                         }
-                    }
-                }
-                                
-                if ($this->user()->level()===9) {
+                    }                    
+                                                                
                     $mcUser = new MCUser((int)$ad['WEB_USER_ID']);
                     $userMobile = $mcUser->getMobile(TRUE)->getNumber();
                     
@@ -1490,7 +1487,7 @@ var rtMsgs={
                     $title.='<b'.$class.'>#'.$ad['ID'].'#' . $ss. '</b>';
                     $title.='</div>';
                 
-                }
+                } // here
                     
 
                 if ($state==7) {
@@ -1507,8 +1504,7 @@ var rtMsgs={
                     $ad['CITY_ID']=$ad['ACTIVE_CITY_ID'];
                     $ad['COUNTRY_ID']=$ad['ACTIVE_COUNTRY_ID'];
                 }
-                    
-                //if ($liClass) $liClass='class="'.trim($liClass).'"';
+                                
                 $adClass='card myad';
                 
                 if ($isFeatured||$isFeatureBooked) {
@@ -1535,10 +1531,14 @@ var rtMsgs={
                 switch ($ad['STATE']) {
                     case 1:
                     case 4:
-                        echo '<div><i class="icn m icon-state"></i>';
+                        echo '<div><div class=tooltip><i class="icn m icon-state"></i>';
                         if ($onlySuper) {
-                            echo '<span title="', $onlySuper, '" onmouseover="ipCheck(this)"></span>';
+                            echo '<span class=tooltiptext onmouseover="d.ipCheck(this)">', $onlySuper, '</span>';
                         }
+                        elseif ($this->user()->level()==9) {
+                            echo '<span class=tooltiptext onmouseover="d.ipCheck(this)">...</span>';
+                        }
+                        echo '</div>';
                         echo '<span class=msg>', $this->lang['pendingMsg'],'</span></div>';
                         echo '<span class=alloc>', ($assignedAdmin?$assignedAdmin:''), '</span>';
                         break;
@@ -1694,7 +1694,7 @@ var rtMsgs={
                                 if ($isSuperAdmin) {
                                     ?><span class="lnk" onclick="rtp(this,)">RTP</span><?php                                    
                                 }
-                                ?><span class="lnk" onclick="rejF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['reject'] ?></span><?php 
+                                ?><a onclick="d.reject(this,<?= $ad['WEB_USER_ID'] ?>)" href="javascript:void(0)"><?= $this->lang['reject'] ?></a><?php 
                             }
                             if (!$isSuperAdmin && !$onlySuper && !$isSystemAd) {
                                 ?><span class="lnk" onclick="help(this)"><?= $this->lang['ask_help'] ?></span><?php
@@ -2054,12 +2054,13 @@ var rtMsgs={
                 ?></div></div><?php
             }
             
-            if ($this->user->info['level']==9 && $state<7) {
+            if ($this->user()->level()==9 && $state<7) {
                 ?><div id=rejForm class="rpd cct" style="display:none"><select id="rejS" onchange="psrej(this)"></select><?php
                 ?><textarea id="rejT" onkeydown="idir(this)" onchange="idir(this,1)"></textarea><?php
-                ?><input type="button" class="bt" value="<?= $this->lang['reject'] ?>" /><?php
-                ?><input class="bt cl" type="button" value="<?= $this->lang['cancel'] ?>" /><?php 
+                ?><input type=button class="btn ok" value="<?= $this->lang['reject'] ?>" /><?php
+                ?><input class="btn cancel" type=button value="<?= $this->lang['cancel'] ?>" /><?php 
                 ?></div><?php
+                                
                 ?><div id=suspForm class="rpd cct" style="display:none"><select id="suspT"></select><?php
                 ?><textarea style="height:100px" onkeydown="idir(this)" onchange="idir(this,1)" id="suspM" placeholder="<?= $this->lang['reason_suspension'] ?>"></textarea><?php
                 ?><input type="button" class="bt" onclick="suspA(this)" value="<?= $this->lang['suspend'] ?>" /><?php

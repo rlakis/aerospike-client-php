@@ -1285,7 +1285,7 @@ class Search extends Page {
             echo $this->getAdSection($ad->data(), $hasSchema);
             //if ($debug) { echo "<div style=\"display:inline;font-size:9pt;\">&nbsp;{$ad[Classifieds::ID]} - {$ad[Classifieds::PRICE]}</div>"; }
             //if (!$end_user && $this->user()->isLoggedIn(9)) {
-            echo '<div class=abuse onclick="event.stopPropagation();alert(\'1\');"><i class="icn icn-ban"></i></div>';
+            echo '<div title="', $this->lang['reportAbuse'], '" class=abuse onclick="event.stopPropagation();report(this);"><i class="icn icn-ban"></i></div>';
             //}
             echo $favLink, '</div>', "\n", '</div>', "\n";            
             echo '</div>', "\n";

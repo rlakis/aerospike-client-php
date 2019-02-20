@@ -65,9 +65,15 @@ class AjaxHandler extends Site {
 
 
 class Bin extends AjaxHandler{
-
+    private $_JPOST = [];
+    
     function __construct(Core\Model\Router $router){
         parent::__construct($router);
+        $contentType = filter_input(INPUT_SERVER, 'CONTENT_TYPE', FILTER_SANITIZE_STRING);
+        if ($contentType==='application/json') {
+            $content = trim(file_get_contents("php://input"));
+            $this->_JPOST = json_decode($content, true);
+        }
         $this->actionSwitch();
     }
 
@@ -93,6 +99,16 @@ class Bin extends AjaxHandler{
         return $unit;
     }    
 
+    
+    private function getPostedJson() : array {
+        $contentType = filter_input(INPUT_SERVER, 'CONTENT_TYPE', FILTER_SANITIZE_STRING);
+        if ($contentType==='application/json') {
+            $content = trim(file_get_contents("php://input"));
+            return json_decode($content, true);
+        }
+        return [];
+    }
+    
     
     function actionSwitch() : void {
         switch ($this->router()->module) {
@@ -3986,19 +4002,24 @@ class Bin extends AjaxHandler{
                     $this->fail('401');
                 }
                 break;
+                
             case 'ajax-reject':
-                if ($this->user->info['level']==9 && isset ($_POST['i'])) {
-                    $msg=trim($_POST['msg']);
-                    $id=$_POST['i'];
-                    $warn=$_POST['w'];
-                    if (is_numeric($id)){
-                        if ($this->user->rejectAd($id,$msg,0)) {
+                if ($this->user()->isLoggedIn(9) && isset($this->_JPOST['i'])) {
+                    $msg=trim($this->_JPOST['msg']);
+                    $id=$this->_JPOST['i'];
+                    $warn=$this->_JPOST['w'];
+                    if (is_numeric($id)) {
+                        if ($this->user()->rejectAd($id, $msg, 0)) {
                             $this->process();
-                            $this->logAdmin($id,3,$msg);
-                        }else $this->fail('103');
-                    }else $this->fail('102');
-                }else $this->fail('101');
+                            $this->logAdmin($id, 3, $msg);
+                        }
+                        else $this->fail('103');
+                    }
+                    else $this->fail('102');
+                }
+                else $this->fail('101');
                 break;
+                
             case 'ajax-ahold':
                 if ($this->user->info['id'] && isset ($_POST['i'])) {
                     $id=$_POST['i'];
@@ -5085,9 +5106,12 @@ class Bin extends AjaxHandler{
                 }else $this->fail("101");
                 }else $this->fail();
                 break;
-            case 'ajax-report':                
-                $mobile= (isset($this->user->params['mobile']) && $this->user->params['mobile'])? 1 : 0;
-                $id=$this->post('id', 'int');
+                
+            case 'ajax-report':
+                $mobile = (isset($this->user->params['mobile']) && $this->user->params['mobile'])? 1 : 0;
+                $id = $this->_JPOST['id'] ?? 0;
+                if (!is_int($id)) { $id=0; }
+                //$id =  $this->post('id', 'int');
                 $name = $this->post('name', 'filter');
                 $userEmail = $this->post('email', 'filter');
                 
@@ -5096,14 +5120,15 @@ class Bin extends AjaxHandler{
                 if(isset($_POST['flag']) && in_array($_POST['flag'],[0,1,2,3,4,5])){
                     $flag=$this->post('flag', 'int');
                 }
-                if ($id && isset($this->user->info['level']) && $this->user->info['level']==9) {                    
-                    $this->urlRouter->db->queryResultArray("EXECUTE PROCEDURE SP\$HOLD_AD({$id})");
+                
+                if ($this->user()->isLoggedIn(9) && $id) {                    
+                    $this->router()->database()->queryResultArray("EXECUTE PROCEDURE SP\$HOLD_AD({$id})");
                     $this->process();
                     $this->logAdmin($id, 9);
                 }
                 elseif($id) {
                     $feed='';
-                    switch($flag){
+                    switch ($flag) {
                         case 0:
                             $subject = 'Expired/Sold/Rented';
                             break;
@@ -5129,51 +5154,45 @@ class Bin extends AjaxHandler{
                     $geo = $this->urlRouter->getIpLocation();
                 
                     $geostr = "";
-                    if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en'])){
+                    if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en'])) {
                         $geostr.= $geo['country']['names']['en'];
                     }
 
-                    if (isset($geo['location']) && isset($geo['location']['time_zone'])){
+                    if (isset($geo['location']) && isset($geo['location']['time_zone'])) {
                         $geostr.= " - {$geo['location']['time_zone']} [{$geo['location']['latitude']}, {$geo['location']['longitude']}]";
                     }
-                    if ($mobile){
+                    if ($mobile) {
                         $geostr.= " - Mobile";
                     }
 
                     $msg = "<style>table{border-collapse:collapse;border-spacing:2px;border-color:gray;} th,td{border: 1px solid #cecfd5;padding: 10px 15px;}</style><table><tr>";
-                    if (isset($this->user->info['id']) && $this->user->info['id']>0){
+                    if (isset($this->user->info['id']) && $this->user->info['id']>0) {
                         $name=$this->user->info['name'];
                         $msg.="<td><b>Name</b></td><td><a href='{$this->urlRouter->cfg['host']}/myads/?u={$this->user->info['id']}' target='_blank'>{$name}</a></td>";
                     }
                     $msg.="<td><b>Location</b></td><td>{$geostr}</td>";
-                    if (isset($this->user->params['country']))
-                    {
-                        if (isset($this->urlRouter->countries[$this->user->params['country']]))
-                        {
+                    if (isset($this->user->params['country'])) {
+                        if (isset($this->urlRouter->countries[$this->user->params['country']])) {
                             $msg.="<td><b>Target</b></td><td>{$this->urlRouter->countries[$this->user->params['country']]['uri']}";
-                            if (isset($this->user->params['city']) && $this->user->params['city']>0)
-                            {
-                                if (isset($this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']]))
-                                {
+                            if (isset($this->user->params['city']) && $this->user->params['city']>0) {
+                                if (isset($this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']])) {
                                     $msg.=" - {$this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']]['uri']}";
                                 }
-                                else
-                                {
+                                else {
                                     $msg.=" - {$this->user->params['city']}";
                                 }
                             }
                         }
-                        else
-                        {
+                        else {
                             $msg.="<td><b>Target</b></td><td>{$this->user->params['country']}";
-                            if (isset($this->user->params['city']))
-                            {
+                            if (isset($this->user->params['city'])) {
                                 $msg.=" - {$this->user->params['city']}";
                             }
                         }
 
                         $msg.="</td></tr>";
-                    } else $msg.="</tr>";
+                    } 
+                    else $msg.="</tr>";
                     $msg.="<tr><td><b>Locale</b></td><td>".filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE', FILTER_SANITIZE_STRING)."</td>";
                     $msg.="<td><b>Browser</b></td><td colspan='3'>".filter_input(INPUT_SERVER, 'HTTP_USER_AGENT', FILTER_SANITIZE_STRING)."</td></tr>";
                     $msg.="<tr><td colspan='6'><a href='{$this->urlRouter->cfg['host']}/{$id}' target=_blank>{$feed}</a></td></tr>";
@@ -5181,10 +5200,12 @@ class Bin extends AjaxHandler{
                   
                     $res=$this->sendMail("Mourjan Admin", $this->urlRouter->cfg['admin_email'], ($name) ? $name : 'Abusive Report', ($userEmail ? $userEmail : $this->urlRouter->cfg['smtp_user']), $subject, $msg, $this->urlRouter->cfg['smtp_contact'], $id, $helpTopic);
                     $this->process();
-                }else{
+                }
+                else {
                     $this->fail('101');
                 }
                 break;
+                
                 
             case 'ajax-ususpend':
                 if ($this->user->info['level']==9 && isset ($_POST['i'])) 

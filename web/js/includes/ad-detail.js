@@ -271,9 +271,29 @@ function oad(ad){
     $.body.setAttribute('data-detail', 1);
 }
 
-function report(){
-    
+function report(e){
+    let level=parseInt($.body.dataset.level);
+    console.log($.body.dataset);
+    if(level===9||level===90){
+        console.log(e.parentElement.parentElement.id);
+        if(confirm("Hold this ad?")){
+            fetch('/ajax-report/',{method:'POST',mode:'same-origin',credentials:'same-origin',
+                     body:JSON.stringify({id:parseInt(e.parentElement.parentElement.id)}),headers:{'Accept':'application/json','Content-Type':'application/json'}})
+            .then(res=>res.json())
+            .then(response => {
+                //console.log('Success:', JSON.stringify(response));
+                //console.log(response);
+                if(response.RP==1){
+                    e.parentElement.parentElement.style.backgroundColor='red';
+                }
+            })
+            .catch(error => { console.error('Error:', error); });
+        }
+        //var rpa=function(id,e){if(confirm("Hold this ad?")){e=$(e);if (!e.hasClass("loading")){e.addClass("loading");
+        //$.ajax({type:"POST",url:"/ajax-report/",data:{id:id},dataType:"json",success:function(rp){if(rp.RP){e.click=function(){};e.css("background", "0");e.html("Done")}e.removeClass("loading")},error:function(rp){e.removeClass("loading")}})}}};';
+    }    
 }
+
 
 function sorting(o){
     var idx = o.selectedIndex; 
