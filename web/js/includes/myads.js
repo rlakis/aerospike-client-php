@@ -2,7 +2,7 @@
 var $=document,ALT=false,MULTI=false;
 $.onkeydown=function(e){ALT=(e.which=="18");MULTI=(e.which=="90");if(e.key==='Escape'&&d.slides){d.slides.destroy();d.slides=null;}};
 $.onkeyup=function(){ALT=false;MULTI=false;}
-$.body.onclick=function(e){d.setId(0);/*let ss=$.querySelector('.slideshow-container');if(ss){ss.parentElement.removeChild(ss);}*/}
+$.body.onclick=function(e){d.setId(0);}
 createElem=function(tag, className, content, isHtml) {
     var el = document.createElement(tag);
     el.className = className;
@@ -10,6 +10,18 @@ createElem=function(tag, className, content, isHtml) {
         el[isHtml || false ? 'innerHTML' : 'innerText'] = content;
     return el;
 };
+dirElem=function(e){
+    var v=e.value;
+    if(!v){e.className='';}else{e.className=(v.match(/[\u0621-\u064a\u0750-\u077f]/))?'ar':'en';}
+}
+_options=function(m,d){
+    if(m.toUpperCase()==='POST'){
+        return {method: 'POST', mode: 'same-origin', credentials: 'same-origin',
+            body:JSON.stringify(d), headers: {'Accept':'application/json','Content-Type':'application/json'}
+        };
+    }
+}
+
 
 var d={
     currentId:0,n:0,panel:null,ad:null,slides:null,
@@ -38,9 +50,43 @@ var d={
         return v;
     },
 
+    lookup:function(e){       
+        var selection=null;
+        if (window.getSelection) {
+            selection=window.getSelection().toString();
+        } else if (document.selection) {
+            selection=document.selection.createRange().text;
+        }
+        if(selection){
+            let revise=$.getElementById('revise');
+            if(revise){                
+                let q=revise.dataset.contact;
+                if(selection.split(' ').length>1) {
+                    q+=' "'+selection+'"';
+                }
+                else {
+                    q+=' '+selection;
+                }
+                let url=(this.ar?'/':'/en/')+'?cmp='+e.parentElement.id+'&q='+q;
+                window.open(url,'_similar');
+            }
+        }
+    },
+            
+    textSelected:function(e){
+        //console.log(e);
+        //var selection='';        
+        if (window.getSelection) {
+            selection=window.getSelection().toString();
+        } else if (document.selection) {
+            selection=document.selection.createRange().text;
+        }
+        //console.log(selection);
+    },
+            
     // ad actions
     approve:function(e){if(this.currentId!=e.parentElement.parentElement.id){return;}
-        fetch('/ajax-approve/',{method: 'POST',mode:'same-origin',credentials:'same-origin',body:JSON.stringify({i:parseInt(this.currentId)}),headers:{'Accept':'application/json','Content-Type':'application/json'}})
+        fetch('/ajax-approve/', _options('POST', {i:parseInt(this.currentId)}))
             .then(res=>res.json())
             .then(response => {
                 console.log('Success:', JSON.stringify(response));
@@ -56,8 +102,6 @@ var d={
         var children=form.children;
         var select=children[0];
         select.innerHTML='';
-        //var options=select.children;
-        //while(options.firstChild) { options.removeChild(options.firstChild); }
         var cn='en';
         if(article.querySelector('section.ar')){cn='ar';}
         select.className=cn;
@@ -82,14 +126,9 @@ var d={
                 var v=parseInt(this.value);
                 var t=$.getElementById('rejT');
                 console.log(rtMsgs[cn][v]);
-                console.log(t);
                 if(v){
                     t.innerHTML=rtMsgs[cn][v];
-                    if(rtMsgs[cn][v].match(/[\u0621-\u064a\u0750-\u077f]/)){
-                        t.className='ar';
-                    }else{
-                        t.className='en';
-                    }
+                    t.className=(rtMsgs[cn][v].match(/[\u0621-\u064a\u0750-\u077f]/))?'ar':'en';
                 }
                 else {
                     t.value='';
@@ -99,14 +138,11 @@ var d={
         form.querySelector('input.btn.cancel').onclick=function(){form.style.display='none';}
         form.querySelector('input.btn.ok').onclick=function(){
             if(!uid)uid=0;            
-            console.log(uid);
-            console.log(article.id);
             let ad=new Ad(article.id);
             let txt=$.getElementById('rejT').value;
             ad.mask();ad.maskText(txt);
-            console.log(txt);
             
-            fetch('/ajax-reject/',{method:'POST',mode:'same-origin',credentials:'same-origin',body:JSON.stringify({i:parseInt(article.id),msg:txt,w:uid}),headers:{'Accept':'application/json','Content-Type':'application/json'}})
+            fetch('/ajax-reject/', _options('POST', {i:parseInt(article.id),msg:txt,w:uid}))
             .then(res=>res.json())
             .then(response => {
                 console.log('Success:', JSON.stringify(response));
@@ -115,7 +151,10 @@ var d={
                     //ad.approved();
                 }
             })
-            .catch(error => { console.error('Error:', error); });
+            .catch(error => { 
+                console.error('Error:', error); 
+                ad.removeMask();
+            });
 
             form.style.display='none';
             
@@ -123,31 +162,33 @@ var d={
         
         form.style.display='block';
     },
-      /*      
-            function arej(i,e,ta,usr){
-    if(!usr)usr=0;
-    crej(e);
-    var d=mask(e);
-    $.ajax({
-        type:"POST",
-        url:"/ajax-reject/",
-        data:{i:i,msg:ta.value,w:usr},
-        dataType:"json",
-        success:function(rp){
-            if (rp.RP) {
-                d.removeClass("load");
-                d.html('Rejected');
-            }else {
-                d.remove();
-                srej(e);
-            }
-        },
-        error:function(){
-            d.remove();
-            srej(e);
+            
+    ban:function(e,uid){let article=e.parentElement.parentElement;if(this.currentId!=article.id){return;}
+        console.log(e);
+        var form=$.getElementById('banForm');
+        $.getElementById('banT').value='';
+        article.appendChild(form);
+        form.querySelector('input.btn.cancel').onclick=function(){form.style.display='none';}
+        form.querySelector('input.btn.ok').onclick=function(){
+            if(!uid)uid=0;            
+            let ad=new Ad(article.id);
+            let txt=$.getElementById('banT').value;
+            ad.mask();ad.maskText(txt);
+            fetch('/ajax-ublock/', _options('POST', {i:uid,msg:txt}))
+            .then(res=>res.json())
+            .then(response => {
+                console.log('Success:', JSON.stringify(response));
+                if(response.RP==1){ad.maskText('User Account Blocked');}
+            })
+            .catch(error => { 
+                console.error('Error:', error); 
+                ad.removeMask();
+            });
+            form.style.display='none';
         }
-    })
-}*/
+        form.style.display='block';
+    },
+    
     slideShow:function(ad,n){
         this.slides=new SlideShow(ad,n);
     },
@@ -320,15 +361,7 @@ class Ad{
         }
         this.dataset.fetched=1;
     }
-    mask(){var _=this;
-        _._m=_._node.querySelector('div.mask');
-        if(_._m===null){
-            _._m=createElem("div", 'mask');
-            var h=_._node.offsetHeight-60;
-            _._m.style.lineHeight=h+'px';
-            _._node.appendChild(this._m);
-        }
-    }
+    mask(){var _=this;_._m=_._node.querySelector('div.mask');if(_._m===null){_._m=createElem("div", 'mask');_._node.appendChild(_._m);}}
     removeMask(){this._m=this._node.querySelector('div.mask');if(this._m){this._node.removeChild(this._m);this._m=null;}}
     maskText(t){this._m.innerHTML=t;}
     opacity(v){this._m.style.opacity=v;}

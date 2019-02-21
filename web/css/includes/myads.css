@@ -6,7 +6,7 @@
 .myad header > div{display:inherit;}
 .myad header span {line-height: 24px;}
 .myad section {line-height: 1.5rem}
-.myad footer{height:32px;padding-top:0px;border-bottom-left-radius:6px;border-bottom-right-radius:6px;background-image:linear-gradient(90deg,white,#f1f3f4);display:flex;flex:1 auto;justify-content:space-around;align-items:center;}
+.myad footer{height:32px;padding-top:0px;border-bottom-left-radius:6px;border-bottom-right-radius:6px;background-image:linear-gradient(90deg,white,#f1f3f4);display:flex;flex:1 auto;justify-content:space-around;align-items:center;direction: inherit}
 .myad hr{margin:0 8px;border-top:1px dotted silver;border-bottom:0}
 .myad .ar{font-size:1.2rem;line-height:1.65em}
 .myad .note{display:flex;flex:1 auto;min-height:28px;background-image:linear-gradient(90deg,lightgray,#f1f3f4);justify-content:space-between;align-items:center;padding:4px 8px;font-size:0.9em}
@@ -40,17 +40,21 @@
     unicode-bidi: bidi-override;
     white-space: nowrap;
 }
-    
+
+.myad section > img {display:inline; width:90px; height:90px;border: 1px solid red}
+.myad section.ar > img {float:right;margin-left:8px;border:0}
+.myad section.en > img {float:left;margin-right:8px;border:0}
+
 .myad .pn.png{color:darkgreen}
-.myad #rejForm{width:100%;padding:4px;font-size:20px;text-align:center}
+.myad #rejForm, .myad #banForm{width:100%;padding:4px;font-size:20px;text-align:center}
 .myad #rejS{width:100%;padding:4px;}
-.myad #rejT{width:100%;height:4.5em;line-height:1.5em;padding:4px;}
+.myad #rejT,.myad #banT{width:100%;height:4.5em;line-height:1.5em;padding:4px;}
 .myad .btn{margin:4px 8px;color:white}
 .myad .btn.ok{background-color: #007bff}
 
 .myad .icn.m{margin: 0 4px;}
 
-.myad .mask{position:absolute !important;background-color:#000;opacity:.65;text-align:center;font-size:26px;color:#fff;z-index:10;width:100%;height:calc(100% - 60px);top:60px;left:0;border-bottom-right-radius:6px;border-bottom-left-radius:6px}
+.myad .mask{display:flex;position:absolute !important;background-color:#000;opacity:.65;align-items:center;justify-content:center;font-size:2.5em;color:#fff;z-index:10;width:100%;height:calc(100% - 60px);top:60px;left:0;border-bottom-right-radius:6px;border-bottom-left-radius:6px;line-height:3em}
 
 .pimgs{display:flex;flex-flow:row wrap;flex:1 auto;align-items:flex-start;justify-content: space-around;min-height: 200px}
 .pimgs span{max-height:240px;position:relative}

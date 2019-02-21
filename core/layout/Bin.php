@@ -5242,52 +5242,47 @@ class Bin extends AjaxHandler{
                 break;
                 
             case 'ajax-ublock':
-                if ($this->user->info['level']==9 && isset($_POST['i'])) 
-                {
-                    $id=$_POST['i'];
-                    $msg=trim($_POST['msg']);
-                    if($msg=='')$msg='Scam Detection';
-                    if(!preg_match('/by admin/ui',$msg))
-                    {
-                        $msg .= ' by admin '.$this->user->info['id'];
+                if ($this->user()->isLoggedIn(9) && isset($this->_JPOST['i'])) {
+                    $id=$this->_JPOST['i'];
+                    $msg=trim($this->_JPOST['msg']);
+                    if ($msg=='') { $msg='Scam Detection'; };
+                    if(!preg_match('/by admin/ui',$msg)) {
+                        $msg .= ' by admin '.$this->user()->id();
                     }
                     $msg.=' date:'.date("d.m.y");
 
-                    if (is_numeric($id))
-                    {
+                    if (is_numeric($id)) {
                         $mcUser = new MCUser($id);
-                        if($mcUser->isMobileVerified())
-                        {
-                            if($this->user->block($id, $mcUser->getMobileNumber(), $msg))
-                            {
+                        if ($mcUser->isMobileVerified()) {
+                            if ($this->user->block($id, $mcUser->getMobileNumber(), $msg)) {
                                 $this->process();
                             }
-                            else
-                            {
+                            else {
                                 $this->fail('103');
                             }
-                        }else{
-                            if($msg)
-                            {
-                                $options = NoSQL::getInstance()->getOptions($id);// $this->user->getOptions($id);
-                                if($options) 
-                                {
-                                    //$options =  json_decode($options,true);
+                        }
+                        else {
+                            if ($msg) {
+                                $options = NoSQL::getInstance()->getOptions($id);
+                                if ($options) {
                                     if(!isset($options['block']))$options['block']=array();
                                     $options['block'][]=$msg;
-                                    if($this->user->updateOptions($id, $options)) 
-                                    {
+                                    if($this->user->updateOptions($id, $options)) {
                                         //$this->user->setReloadFlag($id);
                                     }
                                     else $this->fail('105');
-                                }else $this->fail('104');
+                                }
+                                else $this->fail('104');
                             }
-                            if ($this->user->setLevel($id,5)) 
-                                    $this->process();
+                            if ($this->user->setLevel($id, 5)) {
+                                $this->process();
+                            }
                             else $this->fail('103');
                         }
-                    }else $this->fail('102');
-                }else $this->fail('101');
+                    }
+                    else $this->fail('102');
+                }
+                else $this->fail('101');
                 break;
                 
             case 'ajax-video-upload':

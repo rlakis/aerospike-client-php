@@ -1302,7 +1302,7 @@ class MyAds extends Page {
                     
                     if ($images) { $images.="||"; }
                     $images.='<img class=\"ir\" src=\"'.$this->router()->config()->imgURL.'/90/' . $ad['SECTION_ID'] . $this->router()->_png .'\" />';
-                    $pic = '<span class="ig"></span>';
+                    $pic = '<img class=ir src="'.$this->router()->config()->imgURL.'/90/'.$ad['SECTION_ID'].$this->router()->_png.'" />';
                     
                     $this->globalScript.='sic[' . $ad['ID'] . ']="'.$images.'";';                    
                 }
@@ -1311,11 +1311,11 @@ class MyAds extends Page {
                         $picCount=count($content['pics']);
                         $pic = isset($content['pic_def']) ? $content['pic_def'] : array_keys($content['pics'])[0];
                         $this->globalScript.='sic[' . $ad['ID'] . ']="<img width=\"120\" src=\"'.$this->router()->cfg['url_ad_img'].'/repos/s/' . $pic . '\" /><span class=\"cnt\">'.$picCount.'<span class=\"i sp\"></span></span>";';
-                        $pic = '<span class="ig"></span>';
+                        $pic = '<span class=ig></span>';
                     } 
                     else {
                         $this->globalScript.='sic[' . $ad['ID'] . ']="<img class=\"ir\" src=\"'.$this->router()->cfg['url_img'].'/90/' . $ad['SECTION_ID'] .$this->router()->_png. '\" />";';
-                        $pic = '<span class="ig"></span>';
+                        $pic = '<span class=ig><img class=ir src="'.$this->router()->config()->imgURL.'/90/'. $ad['SECTION_ID'] .$this->router()->_png .'"</span>';
                     }
                 }
                 
@@ -1570,6 +1570,8 @@ class MyAds extends Page {
                 
                 echo '<section class="card-content ', $ad['RTL']?'ar"':'en"';
                 echo $link?' onclick="wo('.$link.')"' : '';
+                if ($isAdmin) { echo ' onmouseup="d.textSelected(this);"'; }
+                if ($isAdmin) { echo ' oncontextmenu="d.lookup(this);return false;"'; }
                 echo '>', ($pic ? $pic :'').$text;
                 echo '</section>';
                 
@@ -1700,7 +1702,7 @@ class MyAds extends Page {
                                 ?><span class="lnk" onclick="help(this)"><?= $this->lang['ask_help'] ?></span><?php
                             }                            
                             if ($isSuperAdmin && $ad['USER_RANK'] < 2) {
-                                ?><span class="lnk" onclick="banF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['block'] ?></span><?php 
+                                ?><a onclick="d.ban(this,<?= $ad['WEB_USER_ID'] ?>)" href="javascript:void(0)"><?= $this->lang['block'] ?></a><?php 
                             }
                             if (!$isSystemAd) {
                                 if ($ad['USER_RANK'] < 3) {
@@ -1718,7 +1720,7 @@ class MyAds extends Page {
                             }
                             if (!$isSystemAd || $isSuperAdmin) {
                                 if ($contactInfo) {                        
-                                    ?><a target=_similar class="lnk" onclick="openW(this.href);return false" href="<?= $this->router()->isArabic()?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
+                                    ?><a id=revise data-contact="<?= $contactInfo ?>" target=_similar href="<?= $this->router()->isArabic()?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
                                 }
                             }                            
                         }
@@ -2055,19 +2057,20 @@ class MyAds extends Page {
             }
             
             if ($this->user()->level()==9 && $state<7) {
-                ?><div id=rejForm class="rpd cct" style="display:none"><select id="rejS" onchange="psrej(this)"></select><?php
-                ?><textarea id="rejT" onkeydown="idir(this)" onchange="idir(this,1)"></textarea><?php
+                ?><div id=rejForm style="display:none"><select id=rejS></select><?php
+                ?><textarea id=rejT onkeydown="dirElem(this)" onchange="idir(this,1)"></textarea><?php
                 ?><input type=button class="btn ok" value="<?= $this->lang['reject'] ?>" /><?php
-                ?><input class="btn cancel" type=button value="<?= $this->lang['cancel'] ?>" /><?php 
+                ?><input type=button class="btn cancel" value="<?= $this->lang['cancel'] ?>" /><?php 
                 ?></div><?php
                                 
                 ?><div id=suspForm class="rpd cct" style="display:none"><select id="suspT"></select><?php
                 ?><textarea style="height:100px" onkeydown="idir(this)" onchange="idir(this,1)" id="suspM" placeholder="<?= $this->lang['reason_suspension'] ?>"></textarea><?php
                 ?><input type="button" class="bt" onclick="suspA(this)" value="<?= $this->lang['suspend'] ?>" /><?php
                 ?><input class="bt cl" type="button" onclick="suspC(this)"  value="<?= $this->lang['cancel'] ?>" /></div><?php
-                ?><div id="banForm" class="rpd cct" style="display:none"><textarea id="banT" onkeydown="idir(this)" onchange="idir(this,1)"></textarea><?php
-                ?><input type="button" class="bt" value="<?= $this->lang['block'] ?>" /><?php
-                ?><input class="bt cl" type="button" value="<?= $this->lang['cancel'] ?>" /></div><?php
+                
+                ?><div id=banForm style="display:none"><textarea id=banT onkeydown="dirElem(this)"></textarea><?php
+                ?><input type=button class="btn ok" value="<?= $this->lang['block'] ?>" /><?php
+                ?><input type=button class="btn cancel" value="<?= $this->lang['cancel'] ?>" /></div><?php
             }
         } // end ad count>0
         else {

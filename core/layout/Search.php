@@ -1280,7 +1280,10 @@ class Search extends Page {
             }
             echo $ad->text(), '</div>', "\n";
             
-            echo '</div>', "\n";            
+            echo '</div>', "\n";
+            if ($this->user()->isSuperUser() && isset($this->searchResults['body']['scores'][$ad->id()])) {
+                echo '<span style="direction:ltr;display:block;padding-left:20px">', $this->searchResults['body']['scores'][$ad->id()], '</span>';
+            }
             echo '<div class=card-footer>', "\n";    
             echo $this->getAdSection($ad->data(), $hasSchema);
             //if ($debug) { echo "<div style=\"display:inline;font-size:9pt;\">&nbsp;{$ad[Classifieds::ID]} - {$ad[Classifieds::PRICE]}</div>"; }
@@ -1338,9 +1341,7 @@ class Search extends Page {
                 $this->renderSideRoots(),
                 '</div>';
             echo '<div class="ls col-10" ';
-            if ($this->router()->module!='detail') {
-                echo 'itemprop="mainContentOfPage" ';
-            }
+            if ($this->router()->module!='detail') { echo 'itemprop="mainContentOfPage" '; }
             echo 'itemscope itemtype="https://schema.org/ItemList">';
             echo '<meta itemprop="name" content="', $this->subTitle, '" />';
                 
@@ -1611,8 +1612,8 @@ class Search extends Page {
             ?><textarea onkeydown="idir(this)" onchange="idir(this,1)"></textarea><?php
             ?><b><?= $this->lang['abuseContact'] ?></b><?php
             ?><input type=email placeholder="your.email@gmail.com" /><?php
-            ?><input type=button onclick="rpa(this,2)" class="bt" value="<?= $this->lang['send'] ?>" /><?php
-            ?><input type=button onclick="rpa(this,1)" class="bt cl" value="<?= $this->lang['cancel'] ?>" /><?php
+            ?><input type=button onclick="rpa(this,2)" class="btn" value="<?= $this->lang['send'] ?>" /><?php
+            ?><input type=button onclick="rpa(this,1)" class="btn cl" value="<?= $this->lang['cancel'] ?>" /><?php
             ?></div> <!--googleon: all--> <?php
         }
         include $this->router()->config()->baseDir.'/web/js/includes/ad-detail.js';               
@@ -3243,8 +3244,9 @@ class Search extends Page {
                 } 
                 else {
                     $qStr = '';
-                    if ($this->router()->params['q'])
-                        $qStr = '?q=' . urlencode($this->router()->params['q']);
+                    if ($this->router()->params['q']) {
+                        $qStr = '?q='.urlencode($this->router()->params['q']);
+                    }
                     if ($this->router()->rootId || $this->router()->sectionId || $this->router()->purposeId) {
                         $bc[] = '<a class="icn icnsmall icn-rss" target="_blank" href="' .
                                 (($this->extendedId || $this->localityId) ? $extended_uri . $qStr : $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId) . $qStr ) .
@@ -3253,9 +3255,7 @@ class Search extends Page {
                             $this->title = $q . ' ' . $this->lang['in'] . ' ' . $this->title;
                     }
                     else {
-                        $bc[] = '<a class="i rss" target="_blank" href="' .
-                                (($this->extendedId || $this->localityId) ? $extended_uri . $qStr : $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId) . $qStr ) .
-                                '&rss=1" id="rss-link">' . '</a><b itemprop="headline">' . $q . '</b>';
+                        $bc[] = '<b itemprop="headline">' . $q . '</b>';
                         if (!$isDynamic)
                             $this->title = $q . ' ' . $this->lang['in'] . ' ' . $this->title;
                     }
