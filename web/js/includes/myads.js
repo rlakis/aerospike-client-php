@@ -97,10 +97,25 @@ var d={
             })
             .catch(error => { console.error('Error:', error); });
     },
+            
+    getForm:function(prefix, moveTo){
+        var form=$.getElementById(prefix+'Form');
+        let select=form.querySelector('select');
+        let text=$.getElementById(prefix+'T');
+        let ok=form.querySelector('input.btn.ok');
+        let cancel=form.querySelector('input.btn.cancel');        
+        if(text){text.value=''}        
+        if(typeof cancel!=='function'){cancel.onclick=function(){form.style.display='none'}}
+        if(moveTo){moveTo.appendChild(form)}
+        return {'form':form, 'select':select, 'text':text, 'ok':ok, 
+            'show':function(){form.style.display='block'}, 
+            'hide':function(){form.style.display='none'}};        
+    },
+    
     reject:function(e,uid){let article=e.parentElement.parentElement;if(this.currentId!=article.id){return;}
-        var form=$.getElementById('rejForm');
-        var children=form.children;
-        var select=children[0];
+        var inline=this.getForm('rej', article);
+        var children=inline.form.children;
+        var select=inline.select;
         select.innerHTML='';
         var cn='en';
         if(article.querySelector('section.ar')){cn='ar';}
@@ -113,85 +128,108 @@ var d={
                 select.appendChild(g);
             }
             else{
-                var o=createElem('option', 'ww', os[i]);o.setAttribute('value', i);
+                var o=createElem('option', '', os[i]);o.setAttribute('value', i);
                 if(g!=null){g.appendChild(o);}else{select.appendChild(o);}
             }
         }
         if(g!=null){select.appendChild(g);}
-        children[1].innerHTML='';
-        article.appendChild(form);
         
         select.onchange=function(e){
             if(cn=='ar'||cn=='en'){
                 var v=parseInt(this.value);
-                var t=$.getElementById('rejT');
-                console.log(rtMsgs[cn][v]);
+                inline.text.value='';
                 if(v){
-                    t.innerHTML=rtMsgs[cn][v];
-                    t.className=(rtMsgs[cn][v].match(/[\u0621-\u064a\u0750-\u077f]/))?'ar':'en';
-                }
-                else {
-                    t.value='';
+                    inline.text.value=rtMsgs[cn][v];
+                    inline.text.className=(rtMsgs[cn][v].match(/[\u0621-\u064a\u0750-\u077f]/))?'ar':'en';
                 }
             }
         };
-        form.querySelector('input.btn.cancel').onclick=function(){form.style.display='none';}
-        form.querySelector('input.btn.ok').onclick=function(){
-            if(!uid)uid=0;            
-            let ad=new Ad(article.id);
-            let txt=$.getElementById('rejT').value;
-            ad.mask();ad.maskText(txt);
+        if(typeof inline.ok.onclick!=='function'){
+            inline.ok.onclick=function(){
+                if(!uid)uid=0;            
+                let ad=new Ad(article.id, inline.text.value);
             
-            fetch('/ajax-reject/', _options('POST', {i:parseInt(article.id),msg:txt,w:uid}))
-            .then(res=>res.json())
-            .then(response => {
-                console.log('Success:', JSON.stringify(response));
-                if(response.RP==1){
-                    //let ad=new Ad(e.parentElement.parentElement.id);
-                    //ad.approved();
-                }
-            })
-            .catch(error => { 
-                console.error('Error:', error); 
-                ad.removeMask();
-            });
-
-            form.style.display='none';
-            
+                fetch('/ajax-reject/', _options('POST', {i:parseInt(article.id),msg:inline.text.value,w:uid}))
+                .then(res=>res.json())
+                .then(response => {
+                    console.log('Success:', JSON.stringify(response));
+                    if(response.RP==1){
+                        //let ad=new Ad(e.parentElement.parentElement.id);
+                        //ad.approved();
+                    }
+                })
+                .catch(error => { 
+                    console.error('Error:', error); 
+                    ad.removeMask();
+                });
+                inline.hide();
+            }
         }
-        
-        form.style.display='block';
+        inline.show();
     },
             
-    ban:function(e,uid){let article=e.parentElement.parentElement;if(this.currentId!=article.id){return;}
-        console.log(e);
-        var form=$.getElementById('banForm');
-        $.getElementById('banT').value='';
-        article.appendChild(form);
-        form.querySelector('input.btn.cancel').onclick=function(){form.style.display='none';}
-        form.querySelector('input.btn.ok').onclick=function(){
-            if(!uid)uid=0;            
-            let ad=new Ad(article.id);
-            let txt=$.getElementById('banT').value;
-            ad.mask();ad.maskText(txt);
-            fetch('/ajax-ublock/', _options('POST', {i:uid,msg:txt}))
-            .then(res=>res.json())
-            .then(response => {
-                console.log('Success:', JSON.stringify(response));
-                if(response.RP==1){ad.maskText('User Account Blocked');}
-            })
-            .catch(error => { 
-                console.error('Error:', error); 
-                ad.removeMask();
-            });
-            form.style.display='none';
+    suspend:function(e,uid){let article=e.parentElement.parentElement;if(this.currentId!=article.id){return;}
+        var inline=this.getForm('susp', article);
+        if(inline.select.childNodes.length===0){
+            let o=createElem('option', '', d.ar?'ساعة':'1 hour');o.setAttribute('value',1);
+            inline.select.appendChild(o);
+            for(var i=6;i<=72;i=i+6){
+                if(i>48 && d.su){ break; }
+                let o=createElem('option', '', i+(d.ar?' ساعة':' hour'));o.setAttribute('value',i);
+                inline.select.appendChild(o);
+            }
         }
-        form.style.display='block';
+        
+        if(typeof inline.ok.onclick!=='function'){
+            inline.ok.onclick=function(){
+                if(!uid)uid=0;
+                let ad=new Ad(article.id,inline.text.value);
+                
+                fetch('/ajax-ususpend/', _options('POST', {i:uid,v:inline.select.value,m:inline.text.value?inline.text.value:''}))
+                .then(res=>res.json())
+                .then(response => {
+                    console.log('Success:', JSON.stringify(response));
+                    if(response.RP==1){
+                        //let ad=new Ad(e.parentElement.parentElement.id);
+                        //ad.approved();
+                    }
+                })
+                .catch(error => { 
+                    console.error('Error:', error); 
+                    ad.removeMask();
+                });
+                inline.hide();
+            }
+        }
+        inline.show();
+    },
+    
+    ban:function(e,uid){let article=e.parentElement.parentElement;if(this.currentId!=article.id){return;}
+        var inline=this.getForm('ban',article);
+        if(typeof inline.ok.onclick!=='function'){
+            inline.ok.onclick=function(){
+                if(!uid)uid=0;            
+                let ad=new Ad(article.id,inline.text.value);
+                fetch('/ajax-ublock/', _options('POST', {i:uid,msg:inline.text.value}))
+                .then(res=>res.json())
+                .then(response => {
+                    console.log('Success:', JSON.stringify(response));
+                    if(response.RP==1){ad.maskText('User Account Blocked');}
+                })
+                .catch(error => { 
+                    console.error('Error:', error); 
+                    ad.removeMask();
+                });
+                inline.hide();
+            }
+        }
+        inline.show();
     },
     
     slideShow:function(ad,n){
         this.slides=new SlideShow(ad,n);
     },
+            
     ipCheck:function(e){if(e.dataset.fetched){return;}
         let id=e.parentElement.parentElement.parentElement.parentElement.id;        
         fetch('/ajax-changepu/?fraud='+id, {method:'GET',mode:'same-origin',credentials:'same-origin'})
@@ -268,15 +306,15 @@ class SlideShow{
 for(var x=0;x<d.count;x++){
     //d.nodes[x].oncontextmenu=function(e){e.preventDefault();};
     d.nodes[x].onclick=function(e){
-        //console.log(e.target.tagName + ' ['+this.id+' vs '+ d.currentId+']');
         if(this.id==d.currentId){
             var tagName=e.target.tagName;var parent=e.target.parentElement;
             if(tagName==='A'){
-                if(e.target.className===''&&parent.className==='mask'){
+                if((e.target.className===''&&parent.className==='mask')||e.target.target=='_similar'){
                     e.stopPropagation();
                     return;
                 }
                 if(parent.tagName==='FOOTER'){e.stopPropagation();return;}
+                
             }
             else if(tagName==='DIV'){
                 if(e.target.className==='mask'||this.classList.contains('locked')){
@@ -292,7 +330,7 @@ for(var x=0;x<d.count;x++){
 }
 
 class Ad{    
-    constructor(kId){
+    constructor(kId, kMaskMessage){
         this._m=null;
         this.id=parseInt(kId);
         this._node=$.getElementById(kId);        
@@ -306,6 +344,7 @@ class Ad{
             if(wrp){this.pixSpans=wrp.querySelectorAll('span');
                 if(this.pixSpans&&this.pixSpans.length){this.mediaCount=this.pixSpans.length;}
             }
+            if(kMaskMessage){this.mask();this.maskText(kMaskMessage);}
         }
     }
     exists(){return this._node!==null;}

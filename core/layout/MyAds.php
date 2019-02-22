@@ -1443,9 +1443,9 @@ class MyAds extends Page {
                         if ($XX) { $profileLabel = '('.$XX. ')' . $profileLabel; }
                     }
                     
-                    $title='<div class=user><a target=_blank onclick="openW(this.href);return false" href="'.
+                    $title='<div class=user><a target=_similar href="'.
                             ($isSuperAdmin ? $this->router()->getLanguagePath('/admin/').'?p='.$ad['WEB_USER_ID'] : $ad['PROFILE_URL']).
-                            '">'.$profileLabel.'</a><a target=_blank'.$style.' onclick="openW(this.href);return false;" href="'.
+                            '">'.$profileLabel.'</a><a target=_similar'.$style.' href="'.
                             $this->router()->getLanguagePath('/myads/').'?u='.$ad['WEB_USER_ID'].'">'.$name.'</a>';
                     if (isset($content['userLOC'])) {
                         $geo = preg_replace('/[0-9\.]|(?:^|\s|,)[a-zA-Z]{1,3}\s/','',$content['userLOC']);
@@ -1704,24 +1704,19 @@ class MyAds extends Page {
                             if ($isSuperAdmin && $ad['USER_RANK'] < 2) {
                                 ?><a onclick="d.ban(this,<?= $ad['WEB_USER_ID'] ?>)" href="javascript:void(0)"><?= $this->lang['block'] ?></a><?php 
                             }
-                            if (!$isSystemAd) {
-                                if ($ad['USER_RANK'] < 3) {
-                                    ?><span class="lnk" onclick="suspF(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['suspend'] ?></span><?php
-                                }
+                            if (!$isSystemAd && $ad['USER_RANK']<3) {
+                                ?><a onclick="d.suspend(this,<?= $ad['WEB_USER_ID'] ?>)" href="javascript:void(0)"><?= $this->lang['suspend'] ?></a><?php
                             }
                             if ($isSuperAdmin && $filters['uid']==0) {
-                                ?><a class="lnk" href="/myads/<?= $this->router()->language=='ar'?'':'en/' ?>?sub=pending&fuid=<?= $ad['WEB_USER_ID'] ?>"><?= $this->lang['user_type_option_1'] ?></a><?php
+                                ?><a href="/myads/<?= $this->router()->isArabic()?'':'en/' ?>?sub=pending&fuid=<?= $ad['WEB_USER_ID'] ?>"><?= $this->lang['user_type_option_1'] ?></a><?php
                             }
                             
                             $contactInfo=$this->getContactInfo($content);                          
                             if ($isSuperAdmin) {
-                                //onclick="openW(this.href);return false"
                                 ?><a target=_similar href="<?= $this->router()->isArabic()?'':'/en' ?>/?aid=<?= $ad['ID'] ?>&q="><?= $this->lang['similar'] ?></a><?php
                             }
-                            if (!$isSystemAd || $isSuperAdmin) {
-                                if ($contactInfo) {                        
-                                    ?><a id=revise data-contact="<?= $contactInfo ?>" target=_similar href="<?= $this->router()->isArabic()?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
-                                }
+                            if ((!$isSystemAd || $isSuperAdmin) && $contactInfo) {
+                                ?><a id=revise data-contact="<?= $contactInfo ?>" target=_similar href="<?= $this->router()->isArabic()?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
                             }                            
                         }
                     }
@@ -2057,20 +2052,23 @@ class MyAds extends Page {
             }
             
             if ($this->user()->level()==9 && $state<7) {
-                ?><div id=rejForm style="display:none"><select id=rejS></select><?php
-                ?><textarea id=rejT onkeydown="dirElem(this)" onchange="idir(this,1)"></textarea><?php
-                ?><input type=button class="btn ok" value="<?= $this->lang['reject'] ?>" /><?php
-                ?><input type=button class="btn cancel" value="<?= $this->lang['cancel'] ?>" /><?php 
+                ?><div id=rejForm class=inline><select id=rejS></select><?php
+                echo '<textarea id=rejT onkeydown="dirElem(this)"></textarea>';
+                echo '<input type=button class="btn ok" value="', $this->lang['reject'], '" />';
+                echo '<input type=button class="btn cancel" value="', $this->lang['cancel'], '" />';
                 ?></div><?php
                                 
-                ?><div id=suspForm class="rpd cct" style="display:none"><select id="suspT"></select><?php
-                ?><textarea style="height:100px" onkeydown="idir(this)" onchange="idir(this,1)" id="suspM" placeholder="<?= $this->lang['reason_suspension'] ?>"></textarea><?php
-                ?><input type="button" class="bt" onclick="suspA(this)" value="<?= $this->lang['suspend'] ?>" /><?php
-                ?><input class="bt cl" type="button" onclick="suspC(this)"  value="<?= $this->lang['cancel'] ?>" /></div><?php
+                ?><div id=suspForm class=inline><select id=suspS></select><?php
+                echo '<textarea id=suspT onkeydown="dirElem(this)" placeholder="', $this->lang['reason_suspension'], '"></textarea>';
+                echo '<input type=button class="btn ok" value="', $this->lang['suspend'], '" />';
+                echo '<input type=button class="btn cancel" value="', $this->lang['cancel'], '" />';
+                ?></div><?php
                 
-                ?><div id=banForm style="display:none"><textarea id=banT onkeydown="dirElem(this)"></textarea><?php
-                ?><input type=button class="btn ok" value="<?= $this->lang['block'] ?>" /><?php
-                ?><input type=button class="btn cancel" value="<?= $this->lang['cancel'] ?>" /></div><?php
+                ?><div id=banForm class=inline><?php
+                echo '<textarea id=banT onkeydown="dirElem(this)"></textarea>';
+                echo '<input type=button class="btn ok" value="', $this->lang['block'], '" />';
+                echo '<input type=button class="btn cancel" value="', $this->lang['cancel'], '" />';
+                ?></div><?php
             }
         } // end ad count>0
         else {

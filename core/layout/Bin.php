@@ -5208,37 +5208,32 @@ class Bin extends AjaxHandler{
                 
                 
             case 'ajax-ususpend':
-                if ($this->user->info['level']==9 && isset ($_POST['i'])) 
-                {
-                    $id=$_POST['i'];
-                    $hours=(int)$_POST['v'];
-                    $reason = isset($_POST['m']) && $_POST['m'] ? $_POST['m'] : 0;
-                    if (is_numeric($id) && $hours)
-                    {
-                        //$userData = MCSessionHandler::getUser($id);
-                        //$mcUser = new MCUser($userData);
+                if ($this->user()->level()===9 && isset ($this->_JPOST['i'])) {
+                    $id=$this->_JPOST['i'];
+                    $hours=(int)$this->_JPOST['v'];
+                    $reason = isset($this->_JPOST['m']) && $this->_JPOST['m'] ? $this->_JPOST['m'] : 0;
+                    if (is_numeric($id) && $hours) {
                         $mcUser = new MCUser($id);
-                        if($mcUser->isMobileVerified())
-                        {
-                            if($this->user->suspend($id,$hours,$mcUser->getMobileNumber(), $reason)){
+                        if($mcUser->isMobileVerified()) {
+                            if ($this->user->suspend($id, $hours, $mcUser->getMobileNumber(), $reason)) {
                                 $this->process();
-                            }else{
+                            }
+                            else {
                                 $this->fail('104');
                             }
                         }
-                        else
-                        {
-                            if($this->user->suspend($id,$hours))
-                            {
+                        else {
+                            if ($this->user->suspend($id, $hours)) {
                                 $this->process();
                             }
-                            else
-                            {
+                            else {
                                 $this->fail('104');
                             }
                         }
-                    }else $this->fail('102');
-                }else $this->fail('101');
+                    }
+                    else $this->fail('102');
+                }
+                else $this->fail('101');
                 break;
                 
             case 'ajax-ublock':
