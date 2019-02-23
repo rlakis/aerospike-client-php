@@ -22,7 +22,7 @@ class MCSaveHandler {
 
     //private $address;
     private $_socket;
-    private $cfg;
+    //private $cfg;
 
     //private $client;
 
@@ -30,8 +30,7 @@ class MCSaveHandler {
     var $_warning;		///< last warning message
     var $_connerror;		///< connection error vs remote error flag
 
-    function __construct($config) {
-        $this->cfg = $config;
+    function __construct() {
         // per-client-object settings
         $this->_host		= 'h8.mourjan.com'; /* $this->cfg['db_host'];*/
         $this->_port		= 1337;
@@ -716,7 +715,7 @@ class MCSaveHandler {
 
 
 if (php_sapi_name()=='cli' && get_cfg_var('mourjan.server_id')=='99') {
-    $saveHandler = new MCSaveHandler($config);
+    $saveHandler = new MCSaveHandler();
     $saveHandler->getFromDatabase($argv[1]);
     //$saveHandler->searchByAdId($argv[1]);
     //$saveHandler->testRealEstate(9);

@@ -1,8 +1,20 @@
 <script>
 var $=document,ALT=false,MULTI=false;
-$.onkeydown=function(e){ALT=(e.which=="18");MULTI=(e.which=="90");if(e.key==='Escape'&&d.slides){d.slides.destroy();d.slides=null;}};
-$.onkeyup=function(){ALT=false;MULTI=false;}
-$.body.onclick=function(e){d.setId(0);}
+$.onkeydown=function(e){
+    ALT=(e.which=="18");
+    MULTI=(e.which=="90");
+    if(e.key==='Escape'&&d.slides){d.slides.destroy();d.slides=null;}
+};
+$.onkeyup=function(){
+    ALT=false;MULTI=false;
+}
+$.body.onclick=function(e){
+    d.setId(0);
+    let editable=$.querySelectorAll("[contenteditable=true]");
+    if(editable&&editable.length>0){
+        editable[0].setAttribute("contenteditable", false);
+    }
+}
 createElem=function(tag, className, content, isHtml) {
     var el = document.createElement(tag);
     el.className = className;
@@ -74,19 +86,18 @@ var d={
     },
             
     textSelected:function(e){
-        //console.log(e);
-        //var selection='';        
         if (window.getSelection) {
             selection=window.getSelection().toString();
         } else if (document.selection) {
             selection=document.selection.createRange().text;
         }
-        //console.log(selection);
     },
             
     // ad actions
-    approve:function(e){if(this.currentId!=e.parentElement.parentElement.id){return;}
-        fetch('/ajax-approve/', _options('POST', {i:parseInt(this.currentId)}))
+    approve:function(e,rtpFlag){if(this.currentId!=e.parentElement.parentElement.id){return;}
+        var data={i:parseInt(this.currentId)};
+        if(typeof rtpFlag!=='undefined'){data['rtp']=rtpFlag}
+        fetch('/ajax-approve/', _options('POST', data))
             .then(res=>res.json())
             .then(response => {
                 console.log('Success:', JSON.stringify(response));
@@ -101,6 +112,7 @@ var d={
     getForm:function(prefix, moveTo){
         var form=$.getElementById(prefix+'Form');
         let select=form.querySelector('select');
+        if(prefix==='rej'){select.innerHTML='';}
         let text=$.getElementById(prefix+'T');
         let ok=form.querySelector('input.btn.ok');
         let cancel=form.querySelector('input.btn.cancel');        
@@ -109,32 +121,37 @@ var d={
         if(moveTo){moveTo.appendChild(form)}
         return {'form':form, 'select':select, 'text':text, 'ok':ok, 
             'show':function(){form.style.display='block'}, 
-            'hide':function(){form.style.display='none'}};        
+            'hide':function(){form.style.display='none'}
+        };        
+    },
+    
+    rtp:function(e){
+        var answer=window.confirm("Do you really want to ask Real Time Password verification?");
+        if(answer){
+            this.approve(e,2);
+        }
     },
     
     reject:function(e,uid){let article=e.parentElement.parentElement;if(this.currentId!=article.id){return;}
         var inline=this.getForm('rej', article);
-        var children=inline.form.children;
-        var select=inline.select;
-        select.innerHTML='';
         var cn='en';
         if(article.querySelector('section.ar')){cn='ar';}
-        select.className=cn;
+        inline.select.className=cn;
         var os=rtMsgs[cn];var len=os.length;
         var g=null;
         for(var i=0;i<len;i++){
             if(os[i].substr(0,6)=='group='){
                 g=createElem('optgroup');g.setAttribute('label', os[i].substr(6));
-                select.appendChild(g);
+                inline.select.appendChild(g);
             }
             else{
                 var o=createElem('option', '', os[i]);o.setAttribute('value', i);
-                if(g!=null){g.appendChild(o);}else{select.appendChild(o);}
+                if(g!=null){g.appendChild(o);}else{inline.select.appendChild(o);}
             }
         }
-        if(g!=null){select.appendChild(g);}
+        if(g!=null){inline.select.appendChild(g);}
         
-        select.onchange=function(e){
+        inline.select.onchange=function(e){
             if(cn=='ar'||cn=='en'){
                 var v=parseInt(this.value);
                 inline.text.value='';
@@ -144,12 +161,11 @@ var d={
                 }
             }
         };
-        if(typeof inline.ok.onclick!=='function'){
-            inline.ok.onclick=function(){
-                if(!uid)uid=0;            
-                let ad=new Ad(article.id, inline.text.value);
+        inline.ok.onclick=function(){
+            if(!uid)uid=0;            
+            let ad=new Ad(article.id, inline.text.value);
             
-                fetch('/ajax-reject/', _options('POST', {i:parseInt(article.id),msg:inline.text.value,w:uid}))
+            fetch('/ajax-reject/', _options('POST', {i:parseInt(article.id),msg:inline.text.value,w:uid}))
                 .then(res=>res.json())
                 .then(response => {
                     console.log('Success:', JSON.stringify(response));
@@ -162,8 +178,7 @@ var d={
                     console.error('Error:', error); 
                     ad.removeMask();
                 });
-                inline.hide();
-            }
+            inline.hide();
         }
         inline.show();
     },
@@ -180,12 +195,11 @@ var d={
             }
         }
         
-        if(typeof inline.ok.onclick!=='function'){
-            inline.ok.onclick=function(){
-                if(!uid)uid=0;
-                let ad=new Ad(article.id,inline.text.value);
+        inline.ok.onclick=function(){
+            if(!uid)uid=0;
+            let ad=new Ad(article.id,inline.text.value);
                 
-                fetch('/ajax-ususpend/', _options('POST', {i:uid,v:inline.select.value,m:inline.text.value?inline.text.value:''}))
+            fetch('/ajax-ususpend/', _options('POST', {i:uid,v:inline.select.value,m:inline.text.value?inline.text.value:''}))
                 .then(res=>res.json())
                 .then(response => {
                     console.log('Success:', JSON.stringify(response));
@@ -198,19 +212,17 @@ var d={
                     console.error('Error:', error); 
                     ad.removeMask();
                 });
-                inline.hide();
-            }
+            inline.hide();
         }
         inline.show();
     },
     
     ban:function(e,uid){let article=e.parentElement.parentElement;if(this.currentId!=article.id){return;}
         var inline=this.getForm('ban',article);
-        if(typeof inline.ok.onclick!=='function'){
-            inline.ok.onclick=function(){
-                if(!uid)uid=0;            
-                let ad=new Ad(article.id,inline.text.value);
-                fetch('/ajax-ublock/', _options('POST', {i:uid,msg:inline.text.value}))
+        inline.ok.onclick=function(){
+            if(!uid)uid=0;            
+            let ad=new Ad(article.id,inline.text.value);
+            fetch('/ajax-ublock/', _options('POST', {i:uid,msg:inline.text.value}))
                 .then(res=>res.json())
                 .then(response => {
                     console.log('Success:', JSON.stringify(response));
@@ -220,8 +232,7 @@ var d={
                     console.error('Error:', error); 
                     ad.removeMask();
                 });
-                inline.hide();
-            }
+            inline.hide();
         }
         inline.show();
     },
@@ -254,6 +265,23 @@ var d={
             })
             .catch(error => { console.error('Error:', error); });        
     },
+    
+    normalize:function(e){
+        let data={id:parseInt(this.currentId), text:e.innerText};
+        console.log(data);
+        fetch('/ajax-text/', _options('POST', data))
+            .then(res=>res.json())
+            .then(response => {
+                console.log('Success:', JSON.stringify(response));
+                if(response.RP==1){
+                    console.log(response.DATA.normalized);
+                    e.innerHTML=response.DATA.normalized.other+e.dataset.contacts;
+                }
+            })
+            .catch(error => { 
+                console.error('Error:', error); 
+            });
+    }
 }
 
 class SlideShow{    
@@ -322,16 +350,34 @@ for(var x=0;x<d.count;x++){
                     return false;
                 }
             }
+            if(tagName==='SECTION'&&ALT&&!e.target.isContentEditable){
+                var re=/\u200b/;var parts=e.target.innerText.split(re);
+                if(parts.length===2){
+                    e.target.dataset.contacts=parts[1];
+                    e.target.contentEditable="true";
+                    e.target.innerHTML=parts[0].trim();
+                    e.stopPropagation();
+                    e.target.focus();
+                    return;
+                }
+            }
         }
         if(d.currentId!=this.id){d.setId(this.id);}
+        let editable=$.querySelectorAll("[contenteditable=true]");
+        if(editable&&editable.length>0){
+            editable[0].setAttribute("contenteditable", false);
+            d.normalize(editable[0]);
+            
+        }
         e.preventDefault();e.stopPropagation();
         return false;
-    };       
+    };
 }
 
 class Ad{    
     constructor(kId, kMaskMessage){
         this._m=null;
+        this.ok=false;
         this.id=parseInt(kId);
         this._node=$.getElementById(kId);        
         if(this._node!==null){
@@ -345,6 +391,7 @@ class Ad{
                 if(this.pixSpans&&this.pixSpans.length){this.mediaCount=this.pixSpans.length;}
             }
             if(kMaskMessage){this.mask();this.maskText(kMaskMessage);}
+            this.ok=true;
         }
     }
     exists(){return this._node!==null;}
@@ -358,7 +405,7 @@ class Ad{
     select(){if(this.exists()){this.setAs('selected');socket.emit("touch",[this.id,d.KUID]);}}
     unselect(){if(this.exists()){this.unsetAs('selected');socket.emit("release",[this.id,d.KUID]);}}
     lock(){this.setAs('locked');this.mask();this.opacity(0.25);}
-    release(){this.unsetAs('locked');this.removeMask();}
+    release(){if(this.ok){this.unsetAs('locked');this.removeMask()}}
     setAs(c){this._node.classList.add(c);}
     unsetAs(c){this._node.classList.remove(c);}
     rejected(t){this.unsetAs('approved');this.setAs('rejected');this.setMessage(t);}
@@ -367,10 +414,16 @@ class Ad{
             let _=this;
             for(var i=0;i<_.mediaCount;i++){                
                 if(typeof _.pixSpans[i].dataset.pix==='string'){
-                    let j=JSON.parse(_.pixSpans[i].dataset.pix);
-                    _.pixSpans[i].dataset.path=j.p;
-                    _.pixSpans[i].dataset.width=j.w;
-                    _.pixSpans[i].dataset.height=j.h;
+                    try{
+                        let j=JSON.parse(_.pixSpans[i].dataset.pix);
+                        _.pixSpans[i].dataset.path=j.p;
+                        _.pixSpans[i].dataset.width=j.w;
+                        _.pixSpans[i].dataset.height=j.h;
+                    }
+                    catch(error){
+                        console.error(error);
+                        continue;
+                    }
                 }
                 
                 var img=new Image();
@@ -437,7 +490,7 @@ socket.on('admins',function(data){
     }
     
     if(typeof data.b==='object'){
-        console.log(data.b);
+        //console.log(data.b);
         for(uid in data.b){if(data.b[uid]===0){continue;}
             let ad=new Ad(data.b[uid]);
             if(ad.exists()){
@@ -447,7 +500,7 @@ socket.on('admins',function(data){
         }
     }
 });
-socket.on("ad_touch",function(data){console.log('touched', data);
+socket.on("ad_touch",function(data){//console.log('touched', data);
     if(data.hasOwnProperty('x')){
         if(data.hasOwnProperty('i')&&data.i>0){
             let ad=new Ad(data.i);if(ad.exists()){ad.setName(d.getName(data.x));ad.lock();}                        
@@ -455,7 +508,7 @@ socket.on("ad_touch",function(data){console.log('touched', data);
         if(data.hasOwnProperty('o')&&data.o>0){let ad=new Ad(data.o);if(ad.exists()){ad.release();}}
     } 
 });
-socket.on("ad_release",function(data){console.log('releasing', data);
+socket.on("ad_release",function(data){//console.log('releasing', data);
     if(data.hasOwnProperty('i')&&data.i>0){let ad=new Ad(data.i);if(ad.exists()){ad.release();}}
 });
 socket.on("ads",function(data){

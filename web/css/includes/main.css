@@ -188,8 +188,8 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .ar{direction:rtl;text-align:right}
 .en{direction:ltr;text-align:left}
 .ad{display:inherit;min-width:300px;max-width:360px;margin:auto;}
-.ad.full{width:100%;max-width:100%;}
-.ad.full .card-image {max-width:768px;margin:-30px auto 0 !important}
+.ad.full{width:100%;max-width:768px;}
+/*.ad.full .card-image {max-width:768px;margin:-30px auto 0 !important}*/
 .ad .abuse{background-color:transparent;width:32px;height:32px;position:absolute;left:0;top:6px;display:none;cursor:pointer}
 .ad:hover .abuse {display: block}
 

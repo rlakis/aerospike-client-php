@@ -684,7 +684,7 @@ class User {
                 }
             }
             else {                
-                if ($this->info['level']==9) {                    
+                if ($this->level()===9) {                    
                     if ($aid) {
                         if ($state>6) {
                             $res=$this->db->get(
@@ -719,8 +719,7 @@ class User {
                                 'select '.$pagination_str.' a.*, u.full_name, u.lvl, 
                                 u.DISPLAY_NAME, u.profile_url, u.user_rank, 
                                 IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
-                                IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended,
-                                u.provider  
+                                IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended, u.provider  
                                 from ad_user a
                                 left join web_users u on u.id=a.web_user_id 
                                 left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
@@ -730,10 +729,7 @@ class User {
                                 [$uid, $state], $commit);
                         }
                         elseif ($state) {
-                            $adLevel=0;
-                            if($this->isSuperUser()) {
-                                $adLevel=100000000;
-                            }
+                            $adLevel= $this->isSuperUser() ? $adLevel=100000000 : 0;
                             $filters = $this->getAdminFilters();
                             $q='select '.$pagination_str.' a.*, ao.super_admin, u.full_name, u.lvl, u.DISPLAY_NAME, u.profile_url, '
                                 . 'iif((a.section_id=190 or a.section_id=1179 or a.section_id=540), 1, 0) ppn, '

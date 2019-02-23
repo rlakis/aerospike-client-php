@@ -112,35 +112,7 @@ class Bin extends AjaxHandler{
     
     function actionSwitch() : void {
         switch ($this->router()->module) {
-            /*
-            case 'ajax-screen':
-                if (isset($_POST['w']) && $_POST['w'] && isset($_POST['h']) && $_POST['h']) {
-                    $w=$_POST['w'];
-                    $h=$_POST['h'];
-                    $update=0;
-                    if (isset($_POST['c'])) {
-                        $c = $this->post('c','boolean');
-                        $this->user->params['hasCanvas'] = $c ? 1 : 0;
-                        $update=1;
-                    }
-                    if (is_numeric($w) && is_numeric($h) && $w && $h) {
-                        if (!$this->user->info['id']) {
-                            $this->user->params['etag']=$w*-1;
-                        }
-                        elseif(isset($this->user->params['etag'])){
-                            unset($this->user->params['etag']);
-                        }
-                        $this->user->params['screen']=array($w,$h);
-                        $update=1;
-                    }
-                    if ($update) {
-                        $this->user->update();
-                        $this->user->setCookieData();
-                    }
-                }
-                $this->process();
-                break;
-                */
+            
             case 'ajax-sorting':
                 $order = $this->get('or','boolean');
                 $this->user->params['catsort']=$order;
@@ -328,7 +300,27 @@ class Bin extends AjaxHandler{
                     $this->fail();
                 }
                 break;      
-                
+            
+            case 'ajax-text':
+                if ($this->user()->isLoggedIn(9)) {
+                    $id = $this->_JPOST['id']??0;
+                    $text = $this->_JPOST['text']??'';
+                    Config::instance()->incLibFile('MCSaveHandler');
+                    $normalizer = new MCSaveHandler();    
+                    $normalized = $normalizer->getFromContentObject(['id'=>$id, 'other'=>$text], true);
+                    if ($normalized) {
+                        $this->setData($normalized,'normalized');
+                        $this->process();
+                    }
+                    else {
+                        $this->fail('102');
+                    }
+                }
+                else {
+                    $this->fail('101');
+                }
+                break;
+            
             case 'ajax-number':   
                 if ($this->user->info['id'] && $this->user->info['level']==9) {
                     $numero = $this->post('num','uint');
@@ -422,107 +414,7 @@ class Bin extends AjaxHandler{
                         }
                         
                         $this->setData($number,'i');
-                        $this->process();
-                        /*
-                        $request = \Berysoft\EdigearRequest::Create()->
-                            setAction(\Berysoft\EGAction::CheckNumber)->
-                            setChannel(\Berysoft\EGChannel::Undefined)->
-                            setPlatform(\Berysoft\EGPlatform::Website)->
-                            setPhoneNumber($number);
-                        
-                        $response = \Berysoft\Edigear::getInstance()->setSecretKey("D38D5D58-572B-49EC-BAB5-63B6081A55E6")->send($request);
-                        
-                        if($response){
-                            
-                            if(isset($response['status']) && $response['status']==200){
-                                
-                                $data = $response['data'];
-                                
-                                $types = [
-                                    'FIXED_LINE'    =>  0,
-                                    'MOBILE'    =>  1,
-                                    'FIXED_LINE_OR_MOBILE'    =>  2,
-                                    'TOLL_FREE'    =>  3,
-                                    'PREMIUM_RATE'    =>  4,
-                                    'SHARED_COST'    =>  5,
-                                    'VOIP'    =>  6,
-                                    'PERSONAL_NUMBER'    =>  7,
-                                    'PAGER'    =>  8,
-                                    'UAN'    =>  9,
-                                    'VOICEMAIL'    =>  10,
-                                    'UNKNOWN'    =>  -1
-                                ];
-                                
-                                $number = [
-                                    'e' =>  '',
-                                    'i' =>  $data['valid'] ? $data['formatting'] : 'invalid',
-                                    'n' =>  $this->post('num','uint'),
-                                    'p' =>  true,
-                                    't' =>  0,
-                                    'v' =>  $data['valid'] ? true : false,
-                                    'idx'=>$index
-                                ];
-                                
-                                switch($types[$data['type']]){                                    
-                                    case 0:
-                                        if ($ot >= 7 && $ot <= 9)
-                                            $number['t'] = true;
-                                        break;
-                                    case 1:
-                                        if (($ot >= 1 && $ot < 6) || $ot == 13)
-                                            $number['t'] = true;
-                                        break;
-                                    case 2:
-                                        if (($ot >= 1 && $ot <= 9 && $ot != 6) || $ot == 13)
-                                            $number['t'] = true;
-                                        break;
-                                    case 3:
-                                        if ($ot >= 7 && $ot <= 9)
-                                            $number['t'] = true;
-                                        break;
-                                    case 4:
-                                        $number['e'] = "PREMIUM RATE";
-                                        break;
-                                    case 5:
-                                        if (($ot >= 1 && $ot <= 9 && $ot != 6) || $ot == 13)
-                                            $number['t'] = true;
-                                        break;
-                                    case 6:
-                                        $number['e'] = "VOIP";
-                                        break;
-                                    case 7:
-                                        $number['e'] = "PERSONAL NUMBER";
-                                        break;
-                                    case 8:
-                                        $number['e'] = "PAGER";
-                                        break;
-                                    case 9:
-                                        $number['e'] = "UAN";
-                                        break;
-                                    case 10:
-                                        $number['e'] = "VOICEMAIL";
-                                        break;
-                                    case -1:
-                                        $number['e'] = "UNKNOWN";
-                                        break;
-                                }
-                                
-                                if($data['valid']){
-                                    $validator = libphonenumber\PhoneNumberUtil::getInstance();
-                                    $num = $validator->parse($number['i'], $iso);
-                                    if($validator->isValidNumber($num)){
-                                        $number['n'] = $validator->formatInOriginalFormat($num, $iso);
-                                    }
-                                }
-                                
-                                $this->setData($number,'i');
-                                $this->process();
-                            }else{
-                                $this->fail('103');
-                            }
-                        }else{
-                            $this->fail('102');
-                        }*/
+                        $this->process();                     
                     }
                     else {
                         $this->fail('101');
@@ -2355,209 +2247,7 @@ class Bin extends AjaxHandler{
                         
                     }else{
                         $this->fail('101');
-                    }
-                /*}else{
-                if (isset ($_POST['loc']) && is_array($_POST['loc'])) {
-                    $lang=strtoupper($_POST['lang']);
-                    if (!isset ($this->user->pending['post'])){
-                        $this->user->pending['post']=array(
-                            'id'=>0,
-                            'user'=>  $this->user->info['id'],
-                            'ro'=>0,
-                            'pu'=>0,
-                            'se'=>0,
-                            'rtl'=>0,
-                            'cn'=>0,
-                            'c'=>0,
-                            'dc'=>0,
-                            'dcn'=>0,
-                            'lon'=>0,
-                            'lat'=>0,
-                            'state'=>0,
-                            'content'=>json_encode(array()),
-                            'title'=>'',
-                            'dcni'=>'',
-                            'dci'=>'',
-                            'loc'=>'',
-                            'gloc'=>'',
-                            'tloc'=>'',
-                            'zloc'=>'',
-                            'code'=>''
-                        );
-                    }
-                    $types=$this->urlRouter->db->queryCacheResultSimpleArray(
-                        'map_types',
-                        'select name,id from gtypes',
-                        null, 0, $this->urlRouter->cfg['ttl_long']);
-
-                    $stmt=$this->urlRouter->db->prepareQuery(
-                        "update or insert into gmap (type_id,name_{$lang},short_name_{$lang},latitude,longitude,parent_id) values (?,?,?,?,?,?) matching(type_id,latitude,longitude) returning id"
-                    );
-                    $cityStmt=$this->urlRouter->db->prepareQuery(
-                        "update or insert into city
-                        (name_{$lang},latitude,longitude,parent_id,country_id) values (?,?,?,?,?)
-                        matching(latitude,longitude) returning id,blocked"
-                    );
-
-                    $locations=$_POST['loc'];                    
-                    $parentId=0;
-                    $countryId=0;
-                    $cityId=0;
-                    $level=0;
-                    $gLocation='';
-                    $tLocation='';
-                    $localCities=array();
-                    $adLocation=array();
-                    $newCountry=false;
-                    $lastLat=0;
-                    $lastLong=0;
-                    $forceDefCity=0;
-                    $len=count($locations);
-                    for($k=1;$k<$len;$k++){
-                        if ($locations[$k]['type']==$locations[$k-1]['type']) {
-                            unset ($locations[$k-1]);
-                        }
-                    }
-                    $adContent=json_decode($this->user->pending['post']['content'],true);
-                    foreach ($locations as $loc){
-                        if (isset ($types[$loc['type']])) {
-                            $loc['latitude']=  number_format($loc['latitude'], 8);
-                            $loc['longitude']=  number_format($loc['longitude'], 8);
-                            $type=$types[$loc['type']][1];
-                            if ($type==5) {
-                                $miniStmt=$this->urlRouter->db->prepareQuery("update or insert into country
-                                        (name_{$lang},id_2,latitude,longitude)
-                                        values
-                                        (?,?,?,?) matching(id_2) returning id,code,blocked");
-                                if($miniStmt->execute(array($loc['name'],$loc['short'],$loc['latitude'],$loc['longitude']))){
-                                    $tmp=$miniStmt->fetch(PDO::FETCH_NUM);
-                                    $countryId=$tmp[0];
-                                    if ($tmp[2]) $forceDefCity=1;
-                                    if ($countryId==2){
-                                        if ($lang=='AR') $loc['name']='الإمارات';
-                                        else $loc['name']='Emirates';
-                                    }
-                                    $this->user->pending['post']['cn']=$countryId;
-                                    $this->user->pending['post']['dcn']=$countryId;
-                                    $this->user->pending['post']['dcni']=strtolower(trim($loc['name']));
-                                    $this->user->pending['post']['code']=strtolower(trim($loc['short'])).'|+'.$tmp[1];
-                                    $adContent['fields']['pc1']=$adContent['fields']['pc2']=$adContent['fields']['pc3']=$this->user->pending['post']['code'];
-                                    $this->user->pending['post']['content']=json_encode($adContent);
-                                }
-                            }else{
-                                if($level != $type && in_array($type,array(6,7,8,9,10,11,12)) && $countryId){
-                                    $level=$type;
-                                    $loc['name']=preg_replace('/\(.*\)?/', '', $loc['name']);
-                                    $loc['short']=preg_replace('/\(.*\)?/', '', $loc['short']);
-                                    $short=$loc['short'];
-                                    if ($lastLat!=$loc['latitude'] || $lastLong!=$loc['longitude']) {
-                                    if ($cityStmt->execute(array($loc['name'],$loc['latitude'],$loc['longitude'], $cityId, $countryId))) {
-                                        $lastLat=$loc['latitude'];
-                                        $lastLong=$loc['longitude'];
-                                        $tmp=$cityStmt->fetch(PDO::FETCH_NUM);
-                                        $cityId=$tmp[0];
-                                        if ($tmp[1]==0 || $forceDefCity){
-                                            $forceDefCity=0;
-                                            $this->user->pending['post']['dc']=$tmp[1];
-                                            $this->user->pending['post']['dci']=$loc['name'];
-                                        }
-
-                                        if ($type==6 || $type==10) $tLocation=$short;
-
-                                        if($tmp[1] && !in_array($short, $localCities)) {
-                                            if ($type>6) {
-                                                $loc['name']=preg_replace('/\(.*\)?/', '', $loc['name']);
-                                                $adLocation[]=$loc['name'];
-                                            }
-                                            $localCities[]=$short;
-                                            if (in_array($type, array(6,7,8,10))) {
-                                                $gLocation=$short;
-                                            }
-                                        }
-                                        
-                                        $this->user->pending['post']['c']=$cityId;
-                                    }}
-                                }
-                                elseif (in_array($type,array(2,3)) && $countryId){
-                                    $adLocation[]=$loc['name'];
-                                }
-                            }
-                            if ($stmt->execute(array($type,$loc['name'],$loc['short'],$loc['latitude'],$loc['longitude'],$parentId))) {
-                                $tmp=$stmt->fetch(PDO::FETCH_NUM);
-                                $parentId=$tmp[0];
-                            }
-                        }
-                    }
-                    if (!$countryId || !$cityId){                        
-                        if (!isset($adContent['pubTo']))$adContent['pubTo']=array();
-                        $this->user->pending['post']['dcn']=0;
-                        $this->user->pending['post']['dcni']='';
-                        $this->user->pending['post']['dc']=0;
-                        $this->user->pending['post']['dci']='';
-                        $this->user->pending['post']['gloc']='';
-                        $this->user->pending['post']['tloc']='';
-                        $this->user->pending['post']['loc']='';
-                        $this->user->pending['post']['lat']=0;
-                        $this->user->pending['post']['lon']=0;
-                        if (!count($adContent['pubTo'])) {
-                            if (!$this->user->pending['post']['dcn']){
-                                $this->user->pending['post']['c']=0;
-                                $this->user->pending['post']['cn']=0;
-                                $countryId=0;
-                                $cityId=0;
-                            }
-                            unset($adContent['pubTo']);                        
-                        }else {
-                            foreach ($adContent['pubTo'] as $cty=>$val) {
-                                $this->user->pending['post']['cn']=$countryId=$this->urlRouter->cities[$cty][6];
-                                $this->user->pending['post']['c']=$cityId=$cty;
-                                break;
-                            }
-                        }
-                        if(isset($adContent['pubTo']) && count($adContent['pubTo'])) {
-                            $countries=array();
-                            $cities=array();
-                            foreach ($adContent['pubTo'] as $cty=>$val) {
-                                $countries[$countryId]=$countryId;
-                                $cities[$cty]=$cty;
-                            }
-                            if (count($countries)==1){
-                                $countryId=array_pop($countries);
-                                $sloc=$this->urlRouter->countries[$countryId][$fidx];
-                                $this->user->pending['post']['code']=$this->urlRouter->countries[$countryId][3].'|+'.$this->urlRouter->countries[$countryId][7];
-                            }
-                            if (count($cities)==1){
-                                $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$countryId}_{$this->urlRouter->language}",
-                                "select c.ID
-                                from city c
-                                where c.country_id={$countryId}
-                                and c.blocked=0
-                                order by NAME_".  strtoupper($this->urlRouter->language),
-                                null, 0, $this->urlRouter->cfg['ttl_long']);
-                                if(count($countryCities)>1)
-                                    $sloc=$this->urlRouter->cities[array_pop($cities)][$fidx].' '.$sloc;
-                            }
-                            $sloc=trim($sloc);
-                            $this->user->pending['post']['zloc']=$sloc;
-                        }else {
-                            $this->user->pending['post']['zloc']=$sloc;
-                        }
-                    }else {
-                        if (count($adLocation))$adLocation=implode(' ', array_reverse($adLocation));
-                        $this->user->pending['post']['zloc']='';
-                        $this->user->pending['post']['gloc']=ucfirst(strtolower($gLocation));
-                        $this->user->pending['post']['tloc']=ucfirst(strtolower($tLocation));
-                        if ($adLocation=="") $adLocation=$this->user->pending['post']['tloc'];
-                        $this->user->pending['post']['loc']=ucfirst(strtolower($adLocation));
-                        $this->user->pending['post']['lat']=$loc['latitude'];
-                        $this->user->pending['post']['lon']=$loc['longitude'];
-                    }
-                    $this->user->update();
-                    $data=array('cn'=>$countryId,'c'=>$cityId);
-                    $this->setData($data,'loc');
-                    $this->process();
-                    
-                }else $this->fail();}*/
+                    }             
                 break;
                 
             case "ajax-pending":
@@ -4008,6 +3698,7 @@ class Bin extends AjaxHandler{
                     $msg=trim($this->_JPOST['msg']);
                     $id=$this->_JPOST['i'];
                     $warn=$this->_JPOST['w'];
+                    error_log("reject id: {$id}, uid: {$warn} => {$msg}");
                     if (is_numeric($id)) {
                         if ($this->user()->rejectAd($id, $msg, 0)) {
                             $this->process();
