@@ -122,12 +122,16 @@ class Bin extends AjaxHandler{
             
             case 'ajax-changepu':                
                 if ($this->user()->isLoggedIn(9)) {
+                    foreach ($this->_JPOST as $key => $value) {
+                        $_POST[$key]=$value;
+                    }
                     
                     if(isset($_GET['fraud']) && is_numeric($_GET['fraud'])){
                         $content = file_get_contents('http://h8.mourjan.com:8080/v1/fraud/ad/'.$_GET['fraud']);
                         $this->processJson($content);
                         break;
                     }
+                    
                     $lang = $this->getGetString('hl');
                     $this->fieldNameIndex=1;
                     if (!in_array($lang, ['ar','en'])) { $lang = 'ar'; }
@@ -141,8 +145,7 @@ class Bin extends AjaxHandler{
                     $pu = $this->get('p');
                     
                     
-                    $text = '';
-                    if (isset($_POST['t'])) { $text = $_POST['t']; }
+                    $text = $this->_JPOST['t']??'';
                     $textIdx = $this->post('dx');
                     $textRtl = $this->post('rtl');
                                                            
@@ -215,10 +218,12 @@ class Bin extends AjaxHandler{
                         }
                         
                         if ($ro) { $content['ro']=$ro; }
+                        
                         if ($se) {
                             $content['se']=$se;
                             $ad['SECTION_ID']=$se;
                         }
+                        
                         if ($pu) {                            
                             $content['pu']=$pu;
                             $ad['PURPOSE_ID']=$pu;
@@ -226,19 +231,21 @@ class Bin extends AjaxHandler{
                         
                         if($textIdx){
                             $text=trim($text);
-                            if($text){
+                            if ($text) {
                                 $text.=json_decode('"\u200b"').' '.$this->user->parseUserAdTime($content['cui'],$content['cut'],$textRtl);
                             }
                             $textOnly=true;
-                            if($textIdx==1){
+                            if ($textIdx==1) {
                                 $content['other']=$text;
                                 $content['rtl']=$textRtl;
-                            }else{
+                            }
+                            else {
                                 $content['altother']=$text;
                                 $content['altRtl']=$textRtl;
                             }
                         }
-                        if($content['other']=='' && $content['altother']){
+                        
+                        if (empty($content['other']) && $content['altother']){
                             $content['other']=$content['altother'];
                             $content['rtl']=$content['altRtl'];
                             $content['altother']='';
@@ -252,24 +259,41 @@ class Bin extends AjaxHandler{
                         
                         if ($text2=='') { $content['extra']['t']=2; }
                         
+                        // fix here
+                        Config::instance()->incLibFile('MCSaveHandler');
+                        $normalizer = new MCSaveHandler();    
+                        $normalized = $normalizer->getFromContentObject($content, false);
+                        if ($normalized) {
+                            error_log(var_export($normalized, true));
+                            //$this->setData($normalized,'normalized');
+                            //$this->process();
+                        }
+                        //else {
+                        //    $this->fail('102');
+                        //}
                         $root = $content['ro'];
                         $section=$content['se'];
                         $purpose=$content['pu'];
+                        
                         $content = json_encode($content);
                         
+                        
+                        
                         if ($this->router()->db->queryResultArray('update ad_user set content=?, section_id=?, purpose_id=? where id=?', [$content, $section, $purpose, $id])) {
-                            if($imgAdmin){
+                            if ($imgAdmin) {
                                 $redisAction = 'editorialImg'; 
                                 $this->setData($images, 'sic');
                                 $this->setData($imgIdx, 'dx');
-                            }elseif($textOnly){
+                            }
+                            elseif ($textOnly) {
                                 $redisAction = 'editorialText';
                                 $this->setData($text, 't');
                                 $this->setData($text2, 't2');
                                 $this->setData($rtl, 'rtl');
                                 $this->setData($rtl2, 'rtl2');
                                 $this->setData($textIdx, 'dx');
-                            }else{                                
+                            }
+                            else {                                
                                 $label = $this->getAdSection($ad, $root);
                                 $this->setData($label, 'label');
                                 $this->setData($root, 'ro');
@@ -5617,37 +5641,37 @@ class Bin extends AjaxHandler{
             case 2:
             case 999:
             case 8:
-                $section=$this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex].' '.$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex];
+                $section=$this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex].' '.$this->router()->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex];
                 break;
             case 6:
             case 7:
-                $section=$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].' '.$this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
+                $section=$this->router()->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].' '.$this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
                 break;
             case 3:
             case 4:
             case 5:
-                if (preg_match('/'.$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].'/', $this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex])) {
-                    $section=$this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
+                if (preg_match('/'.$this->router()->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].'/', $this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex])) {
+                    $section=$this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
                 }
                 else {
                     $in=' ';
-                    if ($this->urlRouter->language=='en')$in=' '.$this->lang['in'].' ';
-                    $section=$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].$in.$this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
+                    if ($this->router()->language=='en')$in=' '.$this->lang['in'].' ';
+                    $section=$this->router()->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].$in.$this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
                 }
                 break;
         }
            
         $adContent = json_decode($ad['CONTENT'], true);
-        $countries = $this->urlRouter->db->getCountriesDictionary(); // $this->urlRouter->countries;
+        $countries = $this->router()->database()->getCountriesDictionary(); // $this->urlRouter->countries;
         if (isset($adContent['pubTo'])) {
             $fieldIndex=2;
             $comma=',';
-            if ($this->urlRouter->language=='ar') {
+            if ($this->router()->isArabic()) {
                 $fieldIndex=1;
                 $comma='،';
             }
             $countriesArray=array();
-            $cities = $this->urlRouter->cities;
+            $cities = $this->router()->cities;
 
             $content='';
             foreach ($adContent['pubTo'] as $city => $value) {                    
@@ -5681,7 +5705,7 @@ class Bin extends AjaxHandler{
         elseif (isset ($countries[$ad['COUNTRY_ID']])) {
             $countryId=$ad['COUNTRY_ID']; 
             $countryCities=$countries[$countryId][6];
-            if (count($countryCities)>0 && isset($this->urlRouter->cities[$ad['CITY_ID']])) {
+            if (count($countryCities)>0 && isset($this->router()->cities[$ad['CITY_ID']])) {
                 $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
             }
             else {

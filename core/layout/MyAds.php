@@ -1031,7 +1031,7 @@ class MyAds extends Page {
                 echo '</section>';
                 
                 if ($altText) {
-                    echo '<hr /><section class="card-content en"';
+                    echo '<hr /><section class="card-content en" data-foreign=1';
                     if ($altlink) {
                         echo ' onclick="wo(', $altlink, ')"';
                     }

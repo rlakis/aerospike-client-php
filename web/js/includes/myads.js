@@ -4,16 +4,17 @@ $.onkeydown=function(e){
     ALT=(e.which=="18");
     MULTI=(e.which=="90");
     if(e.key==='Escape'&&d.slides){d.slides.destroy();d.slides=null;}
-};
+}
 $.onkeyup=function(){
     ALT=false;MULTI=false;
 }
 $.body.onclick=function(e){
-    d.setId(0);
     let editable=$.querySelectorAll("[contenteditable=true]");
     if(editable&&editable.length>0){
         editable[0].setAttribute("contenteditable", false);
+        d.normalize(editable[0]);   
     }
+    d.setId(0);  
 }
 createElem=function(tag, className, content, isHtml) {
     var el = document.createElement(tag);
@@ -21,7 +22,7 @@ createElem=function(tag, className, content, isHtml) {
     if (typeof content !== 'undefined')
         el[isHtml || false ? 'innerHTML' : 'innerText'] = content;
     return el;
-};
+}
 dirElem=function(e){
     var v=e.value;
     if(!v){e.className='';}else{e.className=(v.match(/[\u0621-\u064a\u0750-\u077f]/))?'ar':'en';}
@@ -267,19 +268,18 @@ var d={
     },
     
     normalize:function(e){
-        let data={id:parseInt(this.currentId), text:e.innerText};
+        let data={dx:e.dataset.foreign?2:1, rtl:e.classList.contains('ar')?1:0, t:e.innerText};
         console.log(data);
-        fetch('/ajax-text/', _options('POST', data))
-            .then(res=>res.json())
+        fetch('/ajax-changepu/?i='+this.currentId, _options('POST', data)).then(res=>res.json())
             .then(response => {
-                console.log('Success:', JSON.stringify(response));
-                if(response.RP==1){
-                    console.log(response.DATA.normalized);
-                    e.innerHTML=response.DATA.normalized.other+e.dataset.contacts;
+                console.log(response);
+                if(response.DATA.dx==1 && response.DATA.t){
+                    e.innerHTML=response.DATA.t;
+                    console.log('done');
                 }
             })
             .catch(error => { 
-                console.error('Error:', error); 
+                console.log(error); 
             });
     }
 }
@@ -331,48 +331,6 @@ class SlideShow{
     destroy(){$.body.removeChild(this.container);}
 }
 
-for(var x=0;x<d.count;x++){
-    //d.nodes[x].oncontextmenu=function(e){e.preventDefault();};
-    d.nodes[x].onclick=function(e){
-        if(this.id==d.currentId){
-            var tagName=e.target.tagName;var parent=e.target.parentElement;
-            if(tagName==='A'){
-                if((e.target.className===''&&parent.className==='mask')||e.target.target=='_similar'){
-                    e.stopPropagation();
-                    return;
-                }
-                if(parent.tagName==='FOOTER'){e.stopPropagation();return;}
-                
-            }
-            else if(tagName==='DIV'){
-                if(e.target.className==='mask'||this.classList.contains('locked')){
-                    e.preventDefault();e.stopPropagation();
-                    return false;
-                }
-            }
-            if(tagName==='SECTION'&&ALT&&!e.target.isContentEditable){
-                var re=/\u200b/;var parts=e.target.innerText.split(re);
-                if(parts.length===2){
-                    e.target.dataset.contacts=parts[1];
-                    e.target.contentEditable="true";
-                    e.target.innerHTML=parts[0].trim();
-                    e.stopPropagation();
-                    e.target.focus();
-                    return;
-                }
-            }
-        }
-        if(d.currentId!=this.id){d.setId(this.id);}
-        let editable=$.querySelectorAll("[contenteditable=true]");
-        if(editable&&editable.length>0){
-            editable[0].setAttribute("contenteditable", false);
-            d.normalize(editable[0]);
-            
-        }
-        e.preventDefault();e.stopPropagation();
-        return false;
-    };
-}
 
 class Ad{    
     constructor(kId, kMaskMessage){
@@ -563,5 +521,51 @@ socket.on('event',function(data){console.log('event')});
 
 window.onscroll=function(){var nodes=d.visibleAds(0);let len=nodes.length;for(var i=0;i<len;i++){let ad=new Ad(nodes[i]);ad.fetchPics();}}
 window.onload=function(){this.onscroll();}
+
+for(var x=0;x<d.count;x++){
+    //d.nodes[x].oncontextmenu=function(e){e.preventDefault();};
+    d.nodes[x].onclick=function(e){
+        if(this.id==d.currentId){
+            var tagName=e.target.tagName;var parent=e.target.parentElement;
+            if(tagName==='A'){
+                if((e.target.className===''&&parent.className==='mask')||e.target.target=='_similar'){
+                    e.stopPropagation();
+                    return;
+                }
+                if(parent.tagName==='FOOTER'){e.stopPropagation();return;}
+                
+            }
+            else if(tagName==='DIV'){
+                if(e.target.className==='mask'||this.classList.contains('locked')){
+                    e.preventDefault();e.stopPropagation();
+                    return false;
+                }
+            }
+            if(tagName==='SECTION'){
+                console.log('section clicked');
+                if(ALT&&!e.target.isContentEditable){
+                    var re=/\u200b/;var parts=e.target.innerText.split(re);
+                    if(parts.length===2){
+                        e.target.dataset.contacts=parts[1];
+                        e.target.contentEditable="true";
+                        e.target.innerHTML=parts[0].trim();
+                        e.target.focus();
+                    }                
+                }
+                e.preventDefault();
+                e.stopPropagation();                
+                return;
+            }
+        }
+        if(d.currentId!=this.id){d.setId(this.id);}
+        let editable=$.querySelectorAll("[contenteditable=true]");
+        if(editable&&editable.length>0){
+            editable[0].setAttribute("contenteditable", false);
+            d.normalize(editable[0]);   
+        }
+        e.preventDefault();e.stopPropagation();
+        return false;
+    };
+}
 
 </script>
