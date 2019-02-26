@@ -550,7 +550,7 @@ class MyAds extends Page {
                    
         echo '<div class=card-footer><div class=account>';
         $this->renderEditorsBox($state);
-        echo '</div></div></div></div></div>';
+        echo '</div></div></div></div></div>',"\n";
         
         
         if ($count) {            
@@ -682,7 +682,6 @@ class MyAds extends Page {
 
             echo '<div class=row><div class="col-12 myadls">';            
             $idx=0;
-            $this->globalScript.='var sic=[];';
             $linkLang = $this->router()->language=='ar' ? '':$this->router()->language.'/';
             
             $displayIdx = 0;
@@ -975,11 +974,10 @@ class MyAds extends Page {
                 if ($onlySuper) {
                     $adClass.=' alert';
                 }
+                
                 // new look
-                echo '<article id=', $ad['ID'], ' class="', $adClass, '" data-status=', $ad['STATE'], ' data-fetched=0';
-                if ($this->user()->level()==9) {
-                    echo ' data-ro=', $content['ro'], ' data-se=', $content['se'], ' pu='.$content['pu'];
-                }
+                echo "\n",'<article id=', $ad['ID'], ' class="', $adClass, '" data-status=', $ad['STATE'], ' data-fetched=0';
+                if ($this->user()->level()==9) { echo ' data-ro=', $content['ro'], ' data-se=', $content['se'], ' pu='.$content['pu']; }
                 if (isset($content['hl']) && in_array($content['hl'], ['en','ar'])) { echo ' data-hl="',$content['hl'], '"'; }
                 echo '>';
                 echo '<header>';//, $ad['STATE']==2?' class=approved>':'>';
@@ -1048,9 +1046,7 @@ class MyAds extends Page {
                 }
                 
                 echo '<div class=note';
-                if (!$isAdminProfiling && $this->user()->level()==9 && in_array($state,[1,2,3])) {
-                    echo ' onclick="quickSwitch(this)"';
-                }
+                if (!$isAdminProfiling && $this->user()->level()==9 && in_array($state,[1,2,3])) { echo ' onclick="d.quick(this)"'; }
                 $isMultiCountry = false;
                 echo '>', $this->getAdSection($ad, $content['ro'], $isMultiCountry), '</div>';
                 //if ($state>6) {
@@ -1181,7 +1177,7 @@ class MyAds extends Page {
                 echo '</article>';                           
                 $idx++;
             }
-            
+            echo "\n";
             
             if ($state==7) {
                 if($this->userBalance){
@@ -1325,6 +1321,13 @@ class MyAds extends Page {
                 echo '<textarea id=banT onkeydown="dirElem(this)"></textarea>';
                 echo '<input type=button class="btn ok" value="', $this->lang['block'], '" />';
                 echo '<input type=button class="btn cancel" value="', $this->lang['cancel'], '" />';
+                ?></div><?php
+                echo "\n";
+                ?><div id=fixForm class=inline><?php
+                echo '<div class=col-12><input id=fixT type=text onkeydown="dirElem(this)" /></div>';
+                echo '<div id=qAlt class="float-left col-2" style="background-color:red"></div>';
+                echo '<div id=qSec class="float-left col-8" style="background-color:green"></div>';
+                echo '<div id=qRoot class="float-right col-2" style="background-color:yellow"></div>';
                 ?></div><?php
             }
         } // end ad count>0

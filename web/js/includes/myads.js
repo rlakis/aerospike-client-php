@@ -1,3 +1,4 @@
+
 <script>
 var $=document,ALT=false,MULTI=false;
 $.onkeydown=function(e){
@@ -27,17 +28,16 @@ dirElem=function(e){
     var v=e.value;
     if(!v){e.className='';}else{e.className=(v.match(/[\u0621-\u064a\u0750-\u077f]/))?'ar':'en';}
 }
-_options=function(m,d){
-    if(m.toUpperCase()==='POST'){
-        return {method: 'POST', mode: 'same-origin', credentials: 'same-origin',
-            body:JSON.stringify(d), headers: {'Accept':'application/json','Content-Type':'application/json'}
-        };
-    }
+_options=function(m,dat){
+    m=m.toUpperCase();
+    let opt={method: m, mode: 'same-origin', credentials: 'same-origin', headers:{'Accept':'application/json','Content-Type':'application/json'}};
+    if(m==='POST'){opt['body']=JSON.stringify(dat);}
+    return opt;
 }
 
 
 var d={
-    currentId:0,n:0,panel:null,ad:null,slides:null,
+    currentId:0,n:0,panel:null,ad:null,slides:null,roots:null,sections:null,
     KUID:$.body.dataset.key,
     pixHost:$.body.dataset.repo,
     su:parseInt($.body.dataset.level)===90,
@@ -118,7 +118,7 @@ var d={
         let ok=form.querySelector('input.btn.ok');
         let cancel=form.querySelector('input.btn.cancel');        
         if(text){text.value=''}        
-        if(typeof cancel!=='function'){cancel.onclick=function(){form.style.display='none'}}
+        if(cancel && typeof cancel!=='function'){cancel.onclick=function(){form.style.display='none'}}
         if(moveTo){moveTo.appendChild(form)}
         return {'form':form, 'select':select, 'text':text, 'ok':ok, 
             'show':function(){form.style.display='block'}, 
@@ -244,7 +244,7 @@ var d={
             
     ipCheck:function(e){if(e.dataset.fetched){return;}
         let id=e.parentElement.parentElement.parentElement.parentElement.id;        
-        fetch('/ajax-changepu/?fraud='+id, {method:'GET',mode:'same-origin',credentials:'same-origin'})
+        fetch('/ajax-changepu/?fraud='+id, {method:'GET', mode:'same-origin',credentials:'same-origin'})
             .then(res=>res.json())
             .then(response => {
                 console.log('Success:', JSON.stringify(response, undefined, 2));
@@ -269,7 +269,6 @@ var d={
     
     normalize:function(e){
         let data={dx:e.dataset.foreign?2:1, rtl:e.classList.contains('ar')?1:0, t:e.innerText};
-        console.log(data);
         fetch('/ajax-changepu/?i='+this.currentId, _options('POST', data)).then(res=>res.json())
             .then(response => {
                 console.log(response);
@@ -281,6 +280,32 @@ var d={
             .catch(error => { 
                 console.log(error); 
             });
+    },
+            
+    quick(e){let article=e.parentElement;if(this.currentId!=article.id){return;}
+        var inline=this.getForm('fix',article);
+        console.log(inline);
+        window.scrollTo(0,article.offsetTop);
+        const request = async () => {
+            if(this.sections==null){            
+                const response = await fetch('/ajax-menu/?sections='+(this.ar?'ar':'en'), _options('GET'));
+                const json = await response.json();
+                this.roots=json.DATA.roots;
+                this.sections=json.DATA.sections;
+            }
+            let r=inline.form.querySelector('#qRoot');
+            if(r.childNodes.length===0){
+                let ul=createElem('ul');
+                for(var rr in this.roots){
+                    let li=createElem('li','',this.roots[rr][1]);
+                    ul.appendChild(li);
+                }
+                r.appendChild(ul);
+            }
+            inline.show();
+        }
+        request();
+        
     }
 }
 

@@ -1624,29 +1624,35 @@ class Bin extends AjaxHandler{
                 if (isset($_GET['sections'])) {
                     $lang=$_GET['sections'];
                     $nameIdx = ($lang == 'ar' ?1:2);
-                    $result='ROOTS=[';
-                    $i=0;
-                    foreach ($this->urlRouter->roots as $root) {
-                        if ($i) { $result.=','; }
-                        $result.="[{$root[0]},'{$root[$nameIdx]}']";
-                        $i++;
+                    $result=['r'=>[], 's'=>[]];
+                    //$result='ROOTS=[';
+                    //$i=0;
+                    foreach ($this->router()->roots as $root) {
+                        $result['r'][]=[$root[0], $root[$nameIdx]];
+                        //if ($i) { $result.=','; }
+                        //$result.="[{$root[0]},'{$root[$nameIdx]}']";
+                        //$i++;
                     }
-                    $i=0;
-                    $result.='];SECTIONS=[';
+                    //$i=0;
+                    //$result.='];SECTIONS=[';
                     
                     $nameArray = [];
-                    foreach ($this->urlRouter->sections as $key => $root) {
+                    foreach ($this->router()->sections as $key => $root) {
                         $nameArray[$key] = $root[$nameIdx];
                     }
-                    array_multisort($nameArray, SORT_ASC, SORT_STRING, $this->urlRouter->sections);
+                    array_multisort($nameArray, SORT_ASC, SORT_STRING, $this->router()->sections);
                     
-                    foreach ($this->urlRouter->sections as $root) {
-                        if($i)$result.=',';
-                        $result.="[{$root[0]},'{$root[$nameIdx]}','{$root[4]}']";
-                        $i++;
+                    foreach ($this->router()->sections as $root) {
+                        $result['s'][]=[$root[0], $root[$nameIdx], $root[4]+0];
+                        //if($i)$result.=',';
+                        //$result.="[{$root[0]},'{$root[$nameIdx]}','{$root[4]}']";
+                        //$i++;
                     }
-                    $result.='];';
-                    echo $result;
+                    $this->setData($result['r'],'roots');
+                    $this->setData($result['s'],'sections');
+                    $this->process();
+                    //$result.='];';
+                    //echo $result;
                 }
                 else {
                     if (isset($_GET['c'])) {
