@@ -1550,13 +1550,8 @@ var quickSwitch = function (e) {
     AE=e;
     var li = $(e.parentNode);
     ALI=li;
-    if (li.hasClass("focus")) {
-        return;
-    }
-    var id = li.attr("id"),
-            ro = li.attr("ro"),
-            se = li.attr("se"),
-            pu = li.attr("pu");
+    if (li.hasClass("focus")) { return; }
+    var id=li.attr("id"), ro=li.attr("ro"), se=li.attr("se"), pu=li.attr("pu");
     AID = id;
     ARO=ro;
     ASE=se;
@@ -1626,6 +1621,7 @@ var quickSwitch = function (e) {
     bdy.append(zone);
     bdy.append(TON);
 };
+
 var filterSections=function(e){
     var s=e.value;
     var secs=$('.sections',TON);

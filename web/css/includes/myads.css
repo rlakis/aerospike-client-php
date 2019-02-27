@@ -54,6 +54,17 @@
 
 .myad .mask{display:flex;position:absolute !important;background-color:#000;opacity:.65;align-items:center;justify-content:center;font-size:2.5em;color:#fff;z-index:10;width:100%;height:calc(100% - 60px);top:60px;left:0;border-bottom-right-radius:6px;border-bottom-left-radius:6px;line-height:1.5em;text-align:center}
 
+.myad #fixForm{font-size:1rem;color:white;}
+.myad #fixForm li{cursor: pointer}
+.myad #fixForm div{padding: 0 4px;}
+.myad #fixT{font-size:1em;margin:8px 0;width: 100%;}
+
+.myad #qSec{display:inherit;background-color:olive}
+.myad #qRoot{display:inherit;background-color:darkcyan;font-weight:bold}
+.myad #qAlt{display:inherit;background-color:olivedrab;padding:2px;font-weight:bold}
+.myad #qSec ul {display:flex;flex-flow:row wrap;flex:1 auto;align-items:flex-start;justify-content:space-between}
+.myad #qSec li {min-width: 200px;}
+
 .pimgs{display:flex;flex-flow:row wrap;flex:1 auto;align-items:flex-start;justify-content: space-around;min-height: 200px}
 .pimgs span{max-height:240px;position:relative}
 .pimgs img{max-height:240px}

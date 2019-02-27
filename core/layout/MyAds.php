@@ -596,72 +596,7 @@ class MyAds extends Page {
             $isAdminProfiling = (boolean)($this->get('a') && $this->user->info['level']==9);
             if ($isAdminProfiling) {
                 $renderAssignedAdsOnly = false;
-            }
-            if (!$isAdminProfiling && $this->user->info['level']==9 && in_array($state,[1,2,3])) {
-                $this->globalScript.='
-                    var SETN={
-                    ';
-                $rdx=0;
-                $lnIndex= $this->router()->isArabic() ? 4 : 3;
-                foreach ($this->router()->config()->get('smart_section_fix') as $SID => $switches) {  
-                    if($rdx++>0)$this->globalScript.=',';
-                    $this->globalScript.=$SID.':[';
-                    $pdx=0;
-                    foreach ($switches as $switch){
-                        if($pdx++>0)$this->globalScript.=',';
-                        $this->globalScript.='['.$switch[0].','.$switch[1].','.$switch[2].',"'.$switch[$lnIndex].'"]';
-                    }
-                    $this->globalScript.=']';
-                }                
-                $this->globalScript.='
-                    };
-                ';
-                
-                
-                
-                $this->globalScript.='
-                    var ROTN={
-                    ';
-                $rdx=0;
-                foreach ($this->router()->config()->get('smart_root_fix') as $SID => $switches) {
-                    if($rdx++>0)$this->globalScript.=',';
-                    $this->globalScript.=$SID.':[';
-                    $pdx=0;
-                    foreach ($switches as $switch) {
-                        if($pdx++>0)$this->globalScript.=',';
-                        $this->globalScript.='['.$switch[0].','.$switch[1].','.$switch[2].',"'.$switch[$lnIndex].'"]';
-                    }
-                    $this->globalScript.=']';
-                }                
-                $this->globalScript.='  
-                    };
-                ';
-                
-                                                
-                $this->globalScript.='
-                    var ROPU={
-                    ';
-                $rdx=0;
-                foreach ($this->router()->pageRoots as $Rid => $root) {  
-                    if($rdx++>0)$this->globalScript.=',';
-                    $this->globalScript.=$Rid.':[';
-                    $pdx=0;
-                    foreach ($root['purposes'] as $Pid => $pu) {
-                        if($Pid != 999){
-                            if($pdx++>0)$this->globalScript.=',';
-                            $this->globalScript.='['.$Pid.',"'.$pu['name'].'"]';
-                        }
-                    }
-                    $this->globalScript.=']';
-                }
-                $this->globalScript.='
-                    };
-                ';
-                
-                $this->globalScript.=' 
-                ';
-                 
-            }
+            }           
             
             if ($state==7) {
                 if ($this->router()->cfg['enabled_charts'] && !$isAdminProfiling) {                    
@@ -1324,10 +1259,10 @@ class MyAds extends Page {
                 ?></div><?php
                 echo "\n";
                 ?><div id=fixForm class=inline><?php
-                echo '<div class=col-12><input id=fixT type=text onkeydown="dirElem(this)" /></div>';
-                echo '<div id=qAlt class="float-left col-2" style="background-color:red"></div>';
-                echo '<div id=qSec class="float-left col-8" style="background-color:green"></div>';
-                echo '<div id=qRoot class="float-right col-2" style="background-color:yellow"></div>';
+                echo '<div class=col-12><input id=fixT type=text onkeydown="dirElem(this)" style="width:100%" /></div>';
+                echo '<div id=qRoot class="float-left col-2"><ul></ul></div>';                
+                echo '<div id=qSec class="float-left col-8 sections"><ul></ul></div>';
+                echo '<div id=qAlt class="float-left col-2"><ul></ul></div>';
                 ?></div><?php
             }
         } // end ad count>0

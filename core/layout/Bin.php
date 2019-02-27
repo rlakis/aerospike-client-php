@@ -140,9 +140,9 @@ class Bin extends AjaxHandler{
                     $this->load_lang(array('main'), $lang);
                     
                     $id = $this->getGetInt('i', 0);
-                    $ro = $this->get('r');
-                    $se = $this->get('s');
-                    $pu = $this->get('p');
+                    $ro = $this->post('r');
+                    $se = $this->post('s');
+                    $pu = $this->post('p');
                     
                     
                     $text = $this->_JPOST['t']??'';
@@ -1623,18 +1623,11 @@ class Bin extends AjaxHandler{
             case 'ajax-menu':
                 if (isset($_GET['sections'])) {
                     $lang=$_GET['sections'];
-                    $nameIdx = ($lang == 'ar' ?1:2);
-                    $result=['r'=>[], 's'=>[]];
-                    //$result='ROOTS=[';
-                    //$i=0;
+                    $nameIdx = ($lang=='ar'?1:2);
+                    $result=['r'=>[], 's'=>[], 'qs'=>[]];
                     foreach ($this->router()->roots as $root) {
-                        $result['r'][]=[$root[0], $root[$nameIdx]];
-                        //if ($i) { $result.=','; }
-                        //$result.="[{$root[0]},'{$root[$nameIdx]}']";
-                        //$i++;
+                        $result['r'][]=[$root[0]+0, $root[$nameIdx]];
                     }
-                    //$i=0;
-                    //$result.='];SECTIONS=[';
                     
                     $nameArray = [];
                     foreach ($this->router()->sections as $key => $root) {
@@ -1643,16 +1636,35 @@ class Bin extends AjaxHandler{
                     array_multisort($nameArray, SORT_ASC, SORT_STRING, $this->router()->sections);
                     
                     foreach ($this->router()->sections as $root) {
-                        $result['s'][]=[$root[0], $root[$nameIdx], $root[4]+0];
-                        //if($i)$result.=',';
-                        //$result.="[{$root[0]},'{$root[$nameIdx]}','{$root[4]}']";
-                        //$i++;
+                        $result['s'][]=[$root[0], $root[$nameIdx], $root[4]+0];                       
                     }
+                    $lnIndex = $lang=='ar' ? 4 : 3;
+                    foreach ($this->router()->config()->get('smart_section_fix') as $SID => $switches) { 
+                         foreach ($switches as $switch){
+                            $result['qs'][$SID][]=[$switch[0], $switch[1] , $switch[2] , $switch[$lnIndex]];
+                         }
+                    }
+                               
+                    foreach ($this->router()->config()->get('smart_root_fix') as $SID => $switches) {                        
+                        foreach ($switches as $switch) {
+                            $result['qr'][$SID][]=[$switch[0], $switch[1], $switch[2] , $switch[$lnIndex]];
+                        }
+                    }    
+                    foreach ($this->router()->pageRoots as $Rid => $root) {  
+                        foreach ($root['purposes'] as $Pid => $pu) {
+                            if ($Pid!=999){
+                                $result['qp'][$Rid][]=[$Pid, $this->router()->purposes[$Pid][$nameIdx] ?? $pu['name']];
+                            }
+                        }
+                    }
+
+                
                     $this->setData($result['r'],'roots');
                     $this->setData($result['s'],'sections');
+                    $this->setData($result['qs'],'sswitch');
+                    $this->setData($result['qr'],'rswitch');
+                    $this->setData($result['qp'],'purposes');
                     $this->process();
-                    //$result.='];';
-                    //echo $result;
                 }
                 else {
                     if (isset($_GET['c'])) {

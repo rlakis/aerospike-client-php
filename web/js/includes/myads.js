@@ -6,20 +6,22 @@ $.onkeydown=function(e){
     MULTI=(e.which=="90");
     if(e.key==='Escape'&&d.slides){d.slides.destroy();d.slides=null;}
 }
-$.onkeyup=function(){
-    ALT=false;MULTI=false;
-}
+$.onkeyup=function(){ALT=false;MULTI=false;}
 $.body.onclick=function(e){
     let editable=$.querySelectorAll("[contenteditable=true]");
     if(editable&&editable.length>0){
         editable[0].setAttribute("contenteditable", false);
-        d.normalize(editable[0]);   
+        d.normalize(editable[0]);
     }
-    d.setId(0);  
+    d.setId(0);
+    let f=$.getElementById('fixForm');
+    if(f && window.getComputedStyle(f).visibility!=="hidden"){
+        f.style.display='none';
+    }
 }
 createElem=function(tag, className, content, isHtml) {
-    var el = document.createElement(tag);
-    el.className = className;
+    var el=document.createElement(tag);
+    if(className){el.className = className;}
     if (typeof content !== 'undefined')
         el[isHtml || false ? 'innerHTML' : 'innerText'] = content;
     return el;
@@ -282,26 +284,92 @@ var d={
             });
     },
             
-    quick(e){let article=e.parentElement;if(this.currentId!=article.id){return;}
+    updateAd:function(e, adId, ro, se, pu){
+        let data={r:ro,s:se,p:pu,hl:this.ar?'ar':'en'};
+        fetch('/ajax-changepu/?i='+adId, _options('POST', data))
+        .then(res=>res.json())
+        .then(response => {
+            console.log(response);
+            if(response.DATA.RP==1){
+                //e.innerHTML=response.DATA.t;
+                console.log('done');
+            }
+        })
+        .catch(error => { 
+            console.log(error); 
+        });
+    },
+    
+    quick(e){var _=this;let article=e.parentElement;if(_.currentId!=article.id){return;}
         var inline=this.getForm('fix',article);
-        console.log(inline);
+        let rDIV=inline.form.querySelector('#qRoot');
+        let rUL=rDIV.querySelector('ul');
+        let sDIV=inline.form.querySelector('#qSec');
+        var fillSections=function(rId){
+            if(!rDIV.dataset.rootId||rDIV.dataset.rootId!=rId){
+                let ul=sDIV.querySelector('ul');
+                ul.innerHTML='';
+                for(var i in _.sections){
+                    if(_.sections[i][2]==rId){
+                        let li=createElem('li','',_.sections[i][1]);
+                        li.dataset.id=_.sections[i][0];li.dataset.type='s';
+                        ul.appendChild(li);
+                    }
+                }
+                rDIV.dataset.rootId=rId;
+            }
+        };
         window.scrollTo(0,article.offsetTop);
         const request = async () => {
             if(this.sections==null){            
-                const response = await fetch('/ajax-menu/?sections='+(this.ar?'ar':'en'), _options('GET'));
+                const response = await fetch('/ajax-menu/?sections='+(_.ar?'ar':'en'), _options('GET'));
                 const json = await response.json();
-                this.roots=json.DATA.roots;
-                this.sections=json.DATA.sections;
+                _.roots=json.DATA.roots;
+                _.sections=json.DATA.sections;
+                _.rootPurposes=json.DATA.purposes;
+                _.secSwitches=json.DATA.sswitch;
+                _.rootSwitches=json.DATA.rswitch;
             }
-            let r=inline.form.querySelector('#qRoot');
-            if(r.childNodes.length===0){
-                let ul=createElem('ul');
-                for(var rr in this.roots){
-                    let li=createElem('li','',this.roots[rr][1]);
-                    ul.appendChild(li);
+            
+            
+            if(rUL.childNodes.length===0){
+                for(var i in _.roots){
+                    let li=createElem('li', '', _.roots[i][1]);
+                    li.dataset.id=_.roots[i][0];li.dataset.type='r';
+                    li.onclick=function(e){fillSections(e.target.dataset.id)}
+                    rUL.appendChild(li);
                 }
-                r.appendChild(ul);
             }
+            fillSections(article.dataset.ro);                              
+            
+            let aDIV=inline.form.querySelector('#qAlt');
+            let aUL=aDIV.querySelector('ul');aUL.innerHTML='';
+            if(typeof _.rootPurposes[article.dataset.ro]==='object'){
+                for(i in _.rootPurposes[article.dataset.ro]){
+                    let rp=_.rootPurposes[article.dataset.ro][i];
+                    let li=createElem('li', '', rp[1]);li.dataset.id=rp[0];li.dataset.type='p';
+                    li.onclick=function(e){
+                        _.updateAd(article.id, 0, 0, e.target.dataset.id);
+                    }
+                    console.log(rp);
+                    aUL.appendChild(li);
+                }
+                aUL.appendChild(createElem('li','','&nbsp;',true));
+            }
+            
+            if(typeof _.secSwitches[article.dataset.se]==='object'){
+                for(i in _.secSwitches[article.dataset.se]){
+                    let ss=_.secSwitches[article.dataset.se][i];
+                    let li=createElem('li', '', ss[3]);
+                    li.dataset.ro=ss[0];li.dataset.se=ss[1];li.dataset.pu=ss[2];
+                    li.onclick=function(e){
+                        _.updateAd(article, article.id, e.target.dataset.ro, e.target.dataset.se, e.target.dataset.pu);
+                    }
+                    aUL.appendChild(li);
+                }
+            }
+            
+            
             inline.show();
         }
         request();
@@ -385,7 +453,10 @@ class Ad{
     replName(v){this._editor.innerHTML=v;}
     getMessage(){return this._message.innerText;}
     setMessage(v){this._message.innerHTML=v;}
-    select(){if(this.exists()){this.setAs('selected');socket.emit("touch",[this.id,d.KUID]);}}
+    select(){if(this.exists()){this.setAs('selected');socket.emit("touch",[this.id,d.KUID]);
+            let f=$.getElementById('fixForm');
+            if(f && window.getComputedStyle(f).visibility!=="hidden"){f.style.display='none';}
+    }}
     unselect(){if(this.exists()){this.unsetAs('selected');socket.emit("release",[this.id,d.KUID]);}}
     lock(){this.setAs('locked');this.mask();this.opacity(0.25);}
     release(){if(this.ok){this.unsetAs('locked');this.removeMask()}}
