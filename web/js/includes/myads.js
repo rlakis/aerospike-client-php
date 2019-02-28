@@ -39,7 +39,7 @@ _options=function(m,dat){
 
 
 var d={
-    currentId:0,n:0,panel:null,ad:null,slides:null,roots:null,sections:null,
+    currentId:0,n:0,panel:null,ad:null,slides:null,roots:null,
     KUID:$.body.dataset.key,
     pixHost:$.body.dataset.repo,
     su:parseInt($.body.dataset.level)===90,
@@ -100,16 +100,19 @@ var d={
     approve:function(e,rtpFlag){if(this.currentId!=e.parentElement.parentElement.id){return;}
         var data={i:parseInt(this.currentId)};
         if(typeof rtpFlag!=='undefined'){data['rtp']=rtpFlag}
+        let ad=new Ad(this.currentId).mask(true);
         fetch('/ajax-approve/', _options('POST', data))
             .then(res=>res.json())
             .then(response => {
                 console.log('Success:', JSON.stringify(response));
-                if(response.RP==1){
-                    let ad=new Ad(e.parentElement.parentElement.id);
-                    ad.approved();
+                if(response.RP===1){                    
+                    ad.approved().removeMask();                   
                 }
             })
-            .catch(error => { console.error('Error:', error); });
+            .catch(error => { 
+                console.log('Error:', error);
+                ad.removeMask();
+            });
     },
             
     getForm:function(prefix, moveTo){
@@ -178,7 +181,7 @@ var d={
                     }
                 })
                 .catch(error => { 
-                    console.error('Error:', error); 
+                    console.log('Error:', error); 
                     ad.removeMask();
                 });
             inline.hide();
@@ -271,6 +274,8 @@ var d={
     
     normalize:function(e){
         let data={dx:e.dataset.foreign?2:1, rtl:e.classList.contains('ar')?1:0, t:e.innerText};
+        this.updateAd(e,d.currentId,0,0,0,data);
+        /*
         fetch('/ajax-changepu/?i='+this.currentId, _options('POST', data)).then(res=>res.json())
             .then(response => {
                 console.log(response);
@@ -281,22 +286,31 @@ var d={
             })
             .catch(error => { 
                 console.log(error); 
-            });
+            });*/
     },
             
-    updateAd:function(e, adId, ro, se, pu){
-        let data={r:ro,s:se,p:pu,hl:this.ar?'ar':'en'};
+    updateAd:function(e, adId, ro, se, pu, dat){
+        let ad=new Ad(adId);ad.mask(true).opacity(0.3);
+        let data=dat?dat:{r:ro, s:se, p:pu, hl:(this.ar?'ar':'en')};
+
         fetch('/ajax-changepu/?i='+adId, _options('POST', data))
         .then(res=>res.json())
         .then(response => {
-            console.log(response);
-            if(response.DATA.RP==1){
-                //e.innerHTML=response.DATA.t;
-                console.log('done');
+            console.log('updateAd', response);
+            if(response.RP===1){
+                console.log('updateAd success');
+                if(dat){
+                    if(response.DATA.dx==1 && response.DATA.t){
+                        e.innerHTML=response.DATA.t;
+                        console.log('text changed');
+                    }
+                }                
             }
+            ad.removeMask();
         })
         .catch(error => { 
-            console.log(error); 
+            console.log(error);
+            ad.maskText(error);
         });
     },
     
@@ -309,12 +323,17 @@ var d={
             if(!rDIV.dataset.rootId||rDIV.dataset.rootId!=rId){
                 let ul=sDIV.querySelector('ul');
                 ul.innerHTML='';
-                for(var i in _.sections){
-                    if(_.sections[i][2]==rId){
-                        let li=createElem('li','',_.sections[i][1]);
-                        li.dataset.id=_.sections[i][0];li.dataset.type='s';
-                        ul.appendChild(li);
-                    }
+                for(var i in _.roots[rId]['sections']){
+                    let li=createElem('li','',_.roots[rId]['sections'][i]);
+                    li.dataset.id=i;
+                    ul.appendChild(li);
+                    li.onclick=function(e){
+                        let pu=article.dataset.pu;
+                        if(!_.roots[rId]['purposes'][pu]){
+                            pu=_.roots[rId]['purposes'][Object.keys(_.roots[rId]['purposes'])[0]];
+                        }
+                        _.updateAd(e.target, article.id, rId, e.target.dataset.id, pu);
+                    }                    
                 }
                 rDIV.dataset.rootId=rId;
             }
@@ -325,8 +344,6 @@ var d={
                 const response = await fetch('/ajax-menu/?sections='+(_.ar?'ar':'en'), _options('GET'));
                 const json = await response.json();
                 _.roots=json.DATA.roots;
-                _.sections=json.DATA.sections;
-                _.rootPurposes=json.DATA.purposes;
                 _.secSwitches=json.DATA.sswitch;
                 _.rootSwitches=json.DATA.rswitch;
             }
@@ -334,8 +351,8 @@ var d={
             
             if(rUL.childNodes.length===0){
                 for(var i in _.roots){
-                    let li=createElem('li', '', _.roots[i][1]);
-                    li.dataset.id=_.roots[i][0];li.dataset.type='r';
+                    let li=createElem('li', '', _.roots[i]['name']);
+                    li.dataset.id=i;li.dataset.type='r';
                     li.onclick=function(e){fillSections(e.target.dataset.id)}
                     rUL.appendChild(li);
                 }
@@ -344,18 +361,16 @@ var d={
             
             let aDIV=inline.form.querySelector('#qAlt');
             let aUL=aDIV.querySelector('ul');aUL.innerHTML='';
-            if(typeof _.rootPurposes[article.dataset.ro]==='object'){
-                for(i in _.rootPurposes[article.dataset.ro]){
-                    let rp=_.rootPurposes[article.dataset.ro][i];
-                    let li=createElem('li', '', rp[1]);li.dataset.id=rp[0];li.dataset.type='p';
-                    li.onclick=function(e){
-                        _.updateAd(article.id, 0, 0, e.target.dataset.id);
-                    }
-                    console.log(rp);
-                    aUL.appendChild(li);
+            let rootId=article.dataset.ro;
+            for(i in _.roots[rootId]['purposes']){
+                let li=createElem('li', '', _.roots[rootId]['purposes'][i]);li.dataset.id=i;
+                li.onclick=function(e){
+                    _.updateAd(e.target, article.id, rootId, article.dataset.se, e.target.dataset.id);
                 }
-                aUL.appendChild(createElem('li','','&nbsp;',true));
+                aUL.appendChild(li);
             }
+            aUL.appendChild(createElem('li','','&nbsp;',true));
+            
             
             if(typeof _.secSwitches[article.dataset.se]==='object'){
                 for(i in _.secSwitches[article.dataset.se]){
@@ -462,8 +477,8 @@ class Ad{
     release(){if(this.ok){this.unsetAs('locked');this.removeMask()}}
     setAs(c){this._node.classList.add(c);}
     unsetAs(c){this._node.classList.remove(c);}
-    rejected(t){this.unsetAs('approved');this.setAs('rejected');this.setMessage(t);}
-    approved(){this.unsetAs('rejected');this.setAs('approved');}
+    rejected(t){this.unsetAs('approved');this.setAs('rejected');this.setMessage(t);this._node.dataset.status=3;}
+    approved(){this.unsetAs('rejected');this.setAs('approved');this._node.dataset.status=2;return this;}
     fetchPics(){if(this.mediaCount>0){
             let _=this;
             for(var i=0;i<_.mediaCount;i++){                
@@ -507,10 +522,40 @@ class Ad{
         }
         this.dataset.fetched=1;
     }
-    mask(){var _=this;_._m=_._node.querySelector('div.mask');if(_._m===null){_._m=createElem("div", 'mask');_._node.appendChild(_._m);}}
-    removeMask(){this._m=this._node.querySelector('div.mask');if(this._m){this._node.removeChild(this._m);this._m=null;}}
-    maskText(t){this._m.innerHTML=t;}
-    opacity(v){this._m.style.opacity=v;}
+    mask(loader){
+        var _=this;
+        _._m=_._node.querySelector('div.mask');
+        if(_._m===null){
+            _._m=createElem("div", 'mask');
+            _._node.appendChild(_._m);
+        }
+        if(loader)this.showLoader();
+        return this
+    }
+    removeMask(){
+        this._m=this._node.querySelector('div.mask');
+        if(this._m){
+            this._node.removeChild(this._m);
+            this._m=null;
+        }
+        return this;
+    }
+    maskText(t){
+        this._m=this._node.querySelector('div.mask');
+        if(this._m){this._m.innerHTML=t}
+        return this;
+    }
+    showLoader(){
+        this._m=this._node.querySelector('div.mask');
+        if(this._m){this._m.innerHTML='<div class=loader></div>';}
+        return this;
+    }
+    hideLoader(){
+        this._m=this._node.querySelector('div.mask');
+        if(this._m){this._m.innerHTML='';}
+        return this
+    }
+    opacity(v){this._m.style.opacity=v;return this}
 }
 
 const socket=io.connect('ws.mourjan.com:1313',{transports:['websocket'],'force new connection':false});
@@ -565,6 +610,75 @@ socket.on("ad_touch",function(data){//console.log('touched', data);
 socket.on("ad_release",function(data){//console.log('releasing', data);
     if(data.hasOwnProperty('i')&&data.i>0){let ad=new Ad(data.i);if(ad.exists()){ad.release();}}
 });
+socket.on('superAdmin',function(data){
+    console.log(typeof data, data);
+    if(typeof data!=='undefined'&&data.id&&data.id>0){
+        let ad=new Ad(data.id);
+        if(ad.ok){
+            ad.mask();
+            ad.maskText('Sent To Super Admin');
+        }
+    }
+});
+socket.on('editorialUpdate',function(data){
+    console.log(data);
+    if(typeof data==='object'&&data.id){
+        let ad=new Ad(data.id);if(ad.ok){
+            ad._node.dataset.ro=data.ro;
+            ad._node.dataset.se=data.se;
+            ad._node.dataset.pu=data.pu;
+            ad._node.querySelector('div.note').innerHTML=data.label;
+        }
+    }
+});        
+socket.on('editorialImg',function(data){
+    console.log('editorialImg', data);
+    if(typeof data==='object'){
+        let ad=new Ad(data.id);if(ad.ok){
+            let p=ad._node.querySelector('p.pimgs');
+            for(c in p.childNodes){
+                console.log(p.childNodes[c]);
+            }
+        }
+        return;
+        var li=$('#'+data.id);
+        if(li.length && data.sic !=sic[data.id]){
+            sic[data.id]=data.sic;
+            var p=$('p.pimgs',li);
+            var dx=parseInt(data.dx);
+            $(p[0].childNodes[dx]).remove();
+            if(p.children().length==0){
+                p.remove()
+            }
+        }
+    }
+});        
+socket.on('editorialText',function(data){
+    console.log('editorialText', data);
+    if(typeof data==='object'){
+        let ad=new Ad(data.id);if(!ad.ok){return;}        
+        let arText=ad._node.querySelector('section.ar');
+        let enText=ad._node.querySelector('section.en');        
+        if(data.rtl==1){
+            if(arText.classList.contains('en')){arText.classList.remove('en');arText.dataset.foreign=0;}
+            if(!arText.classList.contains('ar')){arText.classList.add('ar')}
+            arText.innerHTML=data.t;
+            if(data.t2&&data.t2.length>0){
+                if(!enText){
+                    enText=createElem('section','card-content en',t2,true);
+                    enText.dataset.foreign=1;
+                    arText.parentElement.appendChild(enText);
+                }
+                else{enText.innerHTML=data.t2;}
+            }
+        }
+        else {
+            arText.classList.remove('ar');
+            if(!arText.classList.contains('en')){arText.classList.add('n')}
+            arText.innerHTML=data.t;
+        }
+    }
+});
 socket.on("ads",function(data){
     if(typeof data.c=='undefined'){return;}
     data.c=parseInt(data.c);    
@@ -594,6 +708,7 @@ socket.on("ads",function(data){
                     ad.rejected(t);
                     break;
                 case 7:
+                    ad.dataset.status=7;
                     ad.mask();ad.opacity(0.75);
                     var link;
                     if(d.isAdmin()){
@@ -638,7 +753,6 @@ for(var x=0;x<d.count;x++){
                 }
             }
             if(tagName==='SECTION'){
-                console.log('section clicked');
                 if(ALT&&!e.target.isContentEditable){
                     var re=/\u200b/;var parts=e.target.innerText.split(re);
                     if(parts.length===2){

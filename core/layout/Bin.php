@@ -133,6 +133,7 @@ class Bin extends AjaxHandler{
                     }
                     
                     $lang = $this->getGetString('hl');
+                    if(!$lang){$lang=$this->_JPOST['hl']??'en';}
                     $this->fieldNameIndex=1;
                     if (!in_array($lang, ['ar','en'])) { $lang = 'ar'; }
                     if ($lang==='en') { $this->fieldNameIndex=2; }
@@ -144,6 +145,8 @@ class Bin extends AjaxHandler{
                     $se = $this->post('s');
                     $pu = $this->post('p');
                     
+                    if ($se) { $ro = $this->router()->sections[$se][4]; }
+                    if ($ro==4) { $pu = 5; }
                     
                     $text = $this->_JPOST['t']??'';
                     $textIdx = $this->post('dx');
@@ -271,7 +274,7 @@ class Bin extends AjaxHandler{
                         //else {
                         //    $this->fail('102');
                         //}
-                        $root = $content['ro'];
+                        $root= $content['ro'];
                         $section=$content['se'];
                         $purpose=$content['pu'];
                         
@@ -1624,9 +1627,9 @@ class Bin extends AjaxHandler{
                 if (isset($_GET['sections'])) {
                     $lang=$_GET['sections'];
                     $nameIdx = ($lang=='ar'?1:2);
-                    $result=['r'=>[], 's'=>[], 'qs'=>[]];
+                    $result=['r'=>[], 'qs'=>[]];
                     foreach ($this->router()->roots as $root) {
-                        $result['r'][]=[$root[0]+0, $root[$nameIdx]];
+                        $result['r'][$root[0]]=['name'=>$root[$nameIdx], 'sections'=>[], 'purposes'=>[]];
                     }
                     
                     $nameArray = [];
@@ -1636,7 +1639,7 @@ class Bin extends AjaxHandler{
                     array_multisort($nameArray, SORT_ASC, SORT_STRING, $this->router()->sections);
                     
                     foreach ($this->router()->sections as $root) {
-                        $result['s'][]=[$root[0], $root[$nameIdx], $root[4]+0];                       
+                        $result['r'][$root[4]]['sections'][$root[0]]=$root[$nameIdx];                                       
                     }
                     $lnIndex = $lang=='ar' ? 4 : 3;
                     foreach ($this->router()->config()->get('smart_section_fix') as $SID => $switches) { 
@@ -1653,17 +1656,15 @@ class Bin extends AjaxHandler{
                     foreach ($this->router()->pageRoots as $Rid => $root) {  
                         foreach ($root['purposes'] as $Pid => $pu) {
                             if ($Pid!=999){
-                                $result['qp'][$Rid][]=[$Pid, $this->router()->purposes[$Pid][$nameIdx] ?? $pu['name']];
+                                $result['r'][$Rid]['purposes'][$Pid]=$this->router()->purposes[$Pid][$nameIdx] ?? $pu['name'];
                             }
                         }
                     }
 
                 
                     $this->setData($result['r'],'roots');
-                    $this->setData($result['s'],'sections');
                     $this->setData($result['qs'],'sswitch');
                     $this->setData($result['qr'],'rswitch');
-                    $this->setData($result['qp'],'purposes');
                     $this->process();
                 }
                 else {
@@ -5736,7 +5737,7 @@ class Bin extends AjaxHandler{
                 $section='<b class="ah">'.$section.'</b>';
             }
             else {
-                $section='<span class="k">'.$section.' - <b>' . $this->formatSinceDate(strtotime($ad['DATE_ADDED'])) . '</b></span>';
+                $section='<span>'.$section.' - <b>' . $this->formatSinceDate(strtotime($ad['DATE_ADDED'])) . '</b></span>';
             }
         }
         return $section;

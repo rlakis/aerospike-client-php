@@ -501,7 +501,7 @@ class MyAds extends Page {
                 $section='<b class="ah">'.$section.'</b>';
             }
             else {
-                $section='<span class="k">'.$section.' - <b>' . $this->formatSinceDate(strtotime($ad['LAST_UPDATE'])) . '</b></span>';
+                $section='<span>'.$section.' - <b>'.$this->formatSinceDate(strtotime($ad['LAST_UPDATE'])).'</b></span>';
             }
         }
         return $section;
@@ -912,7 +912,7 @@ class MyAds extends Page {
                 
                 // new look
                 echo "\n",'<article id=', $ad['ID'], ' class="', $adClass, '" data-status=', $ad['STATE'], ' data-fetched=0';
-                if ($this->user()->level()==9) { echo ' data-ro=', $content['ro'], ' data-se=', $content['se'], ' pu='.$content['pu']; }
+                if ($this->user()->level()==9) { echo ' data-ro=', $content['ro'], ' data-se=', $content['se'], ' data-pu='.$content['pu']; }
                 if (isset($content['hl']) && in_array($content['hl'], ['en','ar'])) { echo ' data-hl="',$content['hl'], '"'; }
                 echo '>';
                 echo '<header>';//, $ad['STATE']==2?' class=approved>':'>';
