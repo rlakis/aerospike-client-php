@@ -267,7 +267,8 @@ class Bin extends AjaxHandler{
                         $normalizer = new MCSaveHandler();    
                         $normalized = $normalizer->getFromContentObject($content, false);
                         if ($normalized) {
-                            error_log(var_export($normalized, true));
+                            $content=$normalized;
+                            //error_log(var_export($normalized, true));
                             //$this->setData($normalized,'normalized');
                             //$this->process();
                         }
