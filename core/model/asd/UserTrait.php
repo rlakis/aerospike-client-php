@@ -28,6 +28,7 @@ const USER_RANK             = 'rank';
 const USER_PRIOR_VISITED    = 'prior_visited';
 const USER_PUBLISHER_STATUS = 'pblshr_status';
 const USER_LAST_AD_RENEWED  = 'last_renewed';
+const USER_BALANCE          = 'balance';
 const USER_DEPENDANTS       = 'dependants';
 
 const USER_OPTIONS          = 'options';
