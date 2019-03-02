@@ -55,6 +55,7 @@ class MCUser extends MCJsonMapper {
     protected $pvts;              // Previous visit timestamp
     protected $ps;                // Publisher status;
     protected $lrts;              // last ad renew timestamp
+    protected $balance;
     
     protected $opts;              // MCUserOptions    
     protected $mobile;            // MCMobile
@@ -141,6 +142,7 @@ class MCUser extends MCJsonMapper {
         $this->pvts = $record['prior_visited'] ?? 0;
         $this->ps = $record['pblshr_status'] ?? 0;
         $this->lrts = $record[ASD\USER_LAST_AD_RENEWED] ?? 0;
+        $this->balance = $record[ASD\USER_BALANCE] ?? 0;
         $this->dependants = $record[ASD\USER_DEPENDANTS] ?? [];
 
         $this->opts->parseAssoc($record[ASD\USER_OPTIONS] ?? []);
@@ -188,6 +190,7 @@ class MCUser extends MCJsonMapper {
             ASD\USER_PRIOR_VISITED => $this->getPreviousVisitUnixtime(),
             ASD\USER_PUBLISHER_STATUS => $this->getPublisherStatus(),
             ASD\USER_LAST_AD_RENEWED => $this->getLastAdRenewUnixtime(),
+            ASD\USER_BALANCE => $this->getBalance(),
             ASD\USER_DEPENDANTS => $this->getDependants(),
             ASD\USER_OPTIONS => $this->opts->getAsArray(),
             ASD\USER_MOBILE => $this->mobile->getAsArray(),
@@ -208,8 +211,7 @@ class MCUser extends MCJsonMapper {
     
     public function exists() : bool {
         return $this->id ? true : FALSE;
-    }
-    
+    }    
     
     
     public function isMobileVerified() : bool {
@@ -338,8 +340,11 @@ class MCUser extends MCJsonMapper {
         return $date;
     }
     
-    
-    
+    public function getBalance() : double {
+        return $this->balance;
+    }
+
+
     public function getOptions() : MCUserOptions {
         if ($this->opts==null) {
             $this->opts = new MCUserOptions();
@@ -920,4 +925,4 @@ class MCPropSpace extends MCJsonMapper {
     protected $st;        // State
     protected $dats;      // date added ts
 }
-?>
+

@@ -24,7 +24,7 @@ class NoSQL extends \Singleton {
     const ERR_RECORD_GENERATION         = \Aerospike::ERR_RECORD_GENERATION;
     const ERR_REQUEST_INVALID           = \Aerospike::ERR_REQUEST_INVALID;
     const ERR_RECORD_EXISTS             = \Aerospike::ERR_RECORD_EXISTS;
-    const ERR_BIN_EXISTS                = \Aerospike::ERR_BIN_EXISTS;
+    //const ERR_BIN_EXISTS                = \Aerospike::ERR_BIN_EXISTS;
     const ERR_CLUSTER_CHANGE            = \Aerospike::ERR_CLUSTER_CHANGE;
     const ERR_SERVER_FULL               = \Aerospike::ERR_SERVER_FULL;
     const ERR_TIMEOUT                   = \Aerospike::ERR_TIMEOUT;
@@ -35,7 +35,7 @@ class NoSQL extends \Singleton {
     const ERR_RECORD_BUSY               = \Aerospike::ERR_RECORD_BUSY;
     const ERR_SCAN_ABORTED              = \Aerospike::ERR_SCAN_ABORTED;
     const ERR_UNSUPPORTED_FEATURE       = \Aerospike::ERR_UNSUPPORTED_FEATURE;
-    const ERR_BIN_NOT_FOUND             = \Aerospike::ERR_BIN_NOT_FOUND;
+    //const ERR_BIN_NOT_FOUND             = \Aerospike::ERR_BIN_NOT_FOUND;
     const ERR_DEVICE_OVERLOAD           = \Aerospike::ERR_DEVICE_OVERLOAD;
     const ERR_RECORD_KEY_MISMATCH       = \Aerospike::ERR_RECORD_KEY_MISMATCH;
     const ERR_NAMESPACE_NOT_FOUND       = \Aerospike::ERR_NAMESPACE_NOT_FOUND;
