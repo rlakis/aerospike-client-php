@@ -1628,20 +1628,19 @@ class Bin extends AjaxHandler{
                 if (isset($_GET['sections'])) {
                     $lang=$_GET['sections'];
                     $nameIdx = ($lang=='ar'?1:2);
-                    $result=['r'=>[], 'qs'=>[]];
+                    $result=['r'=>[], 'qs'=>[], 'qr'=>[], 'n'=>[]];
                     foreach ($this->router()->roots as $root) {
                         $result['r'][$root[0]]=['name'=>$root[$nameIdx], 'sections'=>[], 'purposes'=>[]];
                     }
-                    
-                    $nameArray = [];
-                    foreach ($this->router()->sections as $key => $root) {
-                        $nameArray[$key] = $root[$nameIdx];
+                                    
+                    $sections= $this->router()->sections;
+                    usort($sections, function(array $a, array $b) use ($nameIdx) {return ($a[$nameIdx]<=>$b[$nameIdx]);});
+                    $result['n'] = $sections;
+                    $len = count($sections);
+                    for ($i=0; $i<$len; $i++) {                  
+                        $result['r'][ $sections[$i][4] ]['sections'][ $sections[$i][0] ] = $sections[$i][$nameIdx];                                       
                     }
-                    array_multisort($nameArray, SORT_ASC, SORT_STRING, $this->router()->sections);
-                    
-                    foreach ($this->router()->sections as $root) {
-                        $result['r'][$root[4]]['sections'][$root[0]]=$root[$nameIdx];                                       
-                    }
+
                     $lnIndex = $lang=='ar' ? 4 : 3;
                     foreach ($this->router()->config()->get('smart_section_fix') as $SID => $switches) { 
                          foreach ($switches as $switch){
@@ -1653,7 +1652,8 @@ class Bin extends AjaxHandler{
                         foreach ($switches as $switch) {
                             $result['qr'][$SID][]=[$switch[0], $switch[1], $switch[2] , $switch[$lnIndex]];
                         }
-                    }    
+                    }
+                    
                     foreach ($this->router()->pageRoots as $Rid => $root) {  
                         foreach ($root['purposes'] as $Pid => $pu) {
                             if ($Pid!=999){
@@ -1661,11 +1661,11 @@ class Bin extends AjaxHandler{
                             }
                         }
                     }
-
                 
-                    $this->setData($result['r'],'roots');
-                    $this->setData($result['qs'],'sswitch');
-                    $this->setData($result['qr'],'rswitch');
+                    $this->setData($result['r'], 'roots');
+                    $this->setData($result['qs'], 'sswitch');
+                    $this->setData($result['qr'], 'rswitch');
+                    $this->setData($result['n'], 'names');
                     $this->process();
                 }
                 else {
