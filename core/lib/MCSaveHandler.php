@@ -215,7 +215,7 @@ class MCSaveHandler {
 
     
     public function checkFromDatabase(int $reference) {
-        $db = new DB($this->cfg);
+        $db = new DB(true);
         $rs = $db->queryResultArray("select * from ad_user where id=?", [$reference], TRUE);
         if ($rs && count($rs)==1) {
             $rs = $rs[0];
@@ -259,13 +259,11 @@ class MCSaveHandler {
                         //}   
                     
                     } 
-                    else 
-                    {
+                    else {
                         echo $this->_error, "\n";
                     }
                 }
-                else
-                {
+                else {
                     echo $this->_error, "\n";
                 }
                 $this->Close();

@@ -1,0 +1,7 @@
+.admin{}
+.admin .btn{background-color: #007bff;color:white}
+.admin .ts, .admin .tbs {display:flex;overflow:visible;justify-content:space-around;align-items: center; flex-flow: row}
+.admin li{border: 0;flex:unset}
+.admin .dialog {display: none}
+.admin .multi{flex-wrap: wrap}
+.admin .multi li{padding: 4px 12px}

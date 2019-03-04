@@ -1,5 +1,5 @@
 <?php
-require_once 'Page.php';
+Config::instance()->incLayoutFile('Page');
 
 class Admin extends Page {
 
@@ -9,7 +9,7 @@ class Admin extends Page {
     private $userdata = 0;
     private $multipleAccounts = [];
 
-    function __construct($router) {
+    function __construct(\Core\Model\Router $router) {
         parent::__construct($router);
         $this->uid = 0;
         $this->sub = $_GET['sub'] ?? '';
@@ -19,126 +19,22 @@ class Admin extends Page {
         $this->hasLeadingPane = true;
 
         if ($this->isMobile || !$this->user->isSuperUser()) {
-            $this->user->redirectTo('/notfound/' . ($this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage . '/'));
+            $this->user->redirectTo($this->router()->getLanguagePath('/notfound/'));
         }
 
-        $this->load_lang(array("account"));
-
-        $this->inlineCss .= '.ts .bt{width:auto;padding:5px 30px!important}'
-                . '#cron{direction:ltr;margin-top:5px}#cron a{color:#00e;margin-right:30px}#cron a:hover{text-decoration:underline}'
-                . '#statDv{width:760px}'
-                . '.ts .lm{overflow:visible}'
-                . '.ts label{vertical-align:middle}'
-                . '.ts.multi{overflow:hidden;margin:-15px 0;border-bottom:1px solid #ccc}'
-                . '.ts.multi li{border:0;padding:10px 15px;float:right}'
-                . '.hy li{float:right;width:370px;border:0!important}'
-                . '.hy label{margin-bottom:10px}'
-                . 'textarea{width:300px;height:200px;padding:3px}'
-                . '.action{width:800px!important;text-align:center}'
-                . '.options{position:absolute;border:1px solid #aaa;border-bottom:0;width:306px;background-color:#FFF}'
-                . '.options li{cursor:pointer;border-bottom:1px solid #aaa;direction:rtl;text-align:right;padding:10px;}'
-                . '.options li:hover,.options li.focus{background-color:#00e;color:#FFF}'
-                . '#msg{height:40px;display:block}'
-                . '.rpd{display:block}.rpd textarea{width:740px}'
-                . '.tbs{width:750px}.tbs li{float:left;width:80px}'
-                . '.load{width: 30px;height: 30px;display: inline-block;vertical-align: middle}'
-                . '.filters{background-color:#ECECEC}.filters select{padding:2px 10px;margin:10px 20px}';
+        $this->load_lang(array("account"));      
         
-        switch($this->sub){
-            case 'synonym':
-            case 'dic':
-                $this->inlineCss.='
-                    .ts label{width:100px}
-                    #delHolder{text-align:center;display:none;margin:30px 0}
-                    li.ar{text-align:right!important;direction:rtl!important}
-                    li.en{text-align:left!important;direction:ltr!important}
-                    .col1 > div{display:block;overflow:hidden}
-                    #related{font-size:18px;line-height:25px;margin-top:20px;border-top:1px solid #CCC;min-height:200px}
-                    #related li{text-align:left;direction:ltr;padding:10px;margin:15px;border:1px solid #aaa}
-                    #related li:not(.edit):hover {
-                        background-color: #00e;
-                        color: #FFF;
-                        cursor:pointer
-                    }
-                    #related li.edit{background-color:lightgoldenrodyellow;}
-                    #related input{width:450px;margin:0 30px;padding:5px}
-                    #related a{font-size:16px;margin:0 20px;}
-                    #msg{font-size:30px;text-align:center}
-                    .md-checkbox {
-  position: relative;
-  margin: 16px 0;
-  text-align: left;
-  direction:ltr;
-}
-.md-checkbox.md-checkbox-inline {
-  display: inline-block;
-}
-.md-checkbox label {
-  cursor: pointer;
-}
-.md-checkbox label:before, .md-checkbox label:after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-.md-checkbox label:before {
-  width: 36px;
-  height: 36px;
-  background: #fff;
-  border: 2px solid rgba(0, 0, 0, 0.54);
-  border-radius: 2px;
-  cursor: pointer;
-  transition: background .3s;
-}
-.md-checkbox input[type="checkbox"] {
-  outline: 0;
-  margin-right: 33px;
-  visibility: hidden;
-  margin-top: 10px;
-}
-.md-checkbox input[type="checkbox"]:checked + label:before {
-  background: #337ab7;
-  border: none;
-}
-.md-checkbox input[type="checkbox"]:checked + label:after {
-  transform: rotate(-45deg);
-  top: 7.4px;
-  left: 4px;
-  width: 28px;
-  height: 14px;
-  border: 2px solid #fff;
-  border-top-style: none;
-  border-right-style: none;
-}
-.md-checkbox input[type="checkbox"]:disabled + label:before {
-  border-color: rgba(0, 0, 0, 0.26);
-}
-.md-checkbox input[type="checkbox"]:disabled:checked + label:before {
-  background: rgba(0, 0, 0, 0.26);
-}
-
-.ul_checkbox li{
-    float:left;
-    width:25%;
-}
-
-                ';
-                break;
-        }
-
-        $this->set_require('css', 'account');
+        echo '<link href="/web/css/1.0/jsonTree.css" rel="stylesheet" /> ';
+        
+        //$this->set_require('css', 'account');
         $this->title = $this->lang['title'];
         $this->description = $this->lang['description'];
         $this->forceNoIndex = true;
-        $this->urlRouter->cfg['enabled_sharing'] = 0;
-        $this->urlRouter->cfg['enabled_ads'] = 0;
+        $this->router()->config()->setValue('enabled_sharing', 0);
+        $this->router()->config()->disableAds();
 
 
         $parameter = filter_input(INPUT_GET, 'p', FILTER_SANITIZE_STRING);
-
-
-
         $action = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_STRING);
 
         if ($action) {
@@ -152,17 +48,17 @@ class Admin extends Page {
                     unset($_GET['reason']);
 
                     \Core\Model\NoSQL::getInstance()->blacklistInsert($parameter, $reason);
-
                     break;
+                
                 case 'unlist':
                     \Core\Model\NoSQL::getInstance()->removeNumberFromBlacklist($parameter);
                     $_GET['t'] = $_GET['p'];
                     unset($_GET['p']);
                     break;
+                
                 case 'unblock':
                     $unblockNumbers = [];
                     $userdata = [$this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($parameter))];
-
 
                     if (isset($userdata[0]['mobiles'])) {
                         $accounts = [];
@@ -187,6 +83,7 @@ class Admin extends Page {
                         $this->user->unblock($uids, $numbers);
                     }
                     break;
+                    
                 default:
                     break;
             }
@@ -253,13 +150,10 @@ class Admin extends Page {
 
             $this->userdata = [$this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($this->uid))];
 
-            if ($uuid) {
-                $this->uid = $uuid;
-            }
-            if ($isEmail) {
-                $this->uid = $email;
-            }
-        } else {
+            if ($uuid) { $this->uid = $uuid; }
+            if ($isEmail) { $this->uid = $email; }
+        } 
+        else {
             $parameter = filter_input(INPUT_GET, 't', FILTER_SANITIZE_NUMBER_INT, ['options' => ['default' => 0]]);
             if ($parameter) {
                 $this->userdata = [];
@@ -300,8 +194,8 @@ class Admin extends Page {
             } else {
                 if ($this->aid) {
                     $this->userdata = [];
-                    include_once $this->urlRouter->cfg['dir'] . '/core/lib/MCSaveHandler.php';
-                    $handler = new MCSaveHandler($this->urlRouter->cfg);
+                    Config::instance()->incLibFile('MCSaveHandler');
+                    $handler = new MCSaveHandler();
                     $this->userdata = $handler->checkFromDatabase($this->aid);
                     //$uids = \Core\Model\NoSQL::getInstance()->mobileGetLinkedUIDs($parameter);
                     //foreach ($uids as $bins) 
@@ -314,7 +208,7 @@ class Admin extends Page {
 
         if ($release === -1) {
             unset($_GET['a']);
-            $url = "";
+            $url = '';
 
             foreach ($_GET as $key => $value) {
                 if ($url) {
@@ -329,6 +223,7 @@ class Admin extends Page {
         }
 
         $this->render();
+        include $this->router()->config()->baseDir.'/web/js/includes/admin.js';
     }
 
     private function parseUserBins($bins) {
@@ -350,7 +245,13 @@ class Admin extends Page {
             unset($bins['mobile']);
             $_mobiles = \Core\Model\NoSQL::getInstance()->mobileFetchByUID($bins[\Core\Model\ASD\USER_PROFILE_ID]);
             $_devices = \Core\Model\NoSQL::getInstance()->getUserDevices($bins[\Core\Model\ASD\USER_PROFILE_ID]);
-
+            for ($i=0; $i<count($_devices); $i++) {
+                $_device=$_devices[$i];
+                if (isset($_device['app_prefs'])) {
+                    $_devices[$i]['app_prefs']= \json_decode($_devices[$i]['app_prefs'], true);
+                }
+                
+            }
 
             for ($i = 0; $i < count($_mobiles); $i++) {
                 unset($_mobiles[$i][\Core\Model\ASD\USER_UID]);
@@ -422,63 +323,33 @@ class Admin extends Page {
         $sub = $this->sub;
         $lang = $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage . '/';
         ?><h4><?= $this->lang['myPanel'] ?></h4><?php
-        echo '<ul class=\'sm\'>';
-        //echo '<li><a href=\'', $this->urlRouter->getURL($countryId,$cityId), '\'>', $this->lang['homepage'], '</a></li>';
+        echo '<ul class=sm>';
 
         if ($sub == '')
-            echo '<li class=\'on\'><b>', $this->lang['label_users'], '</b></li>';
+            echo '<li class=on><b>', $this->lang['label_users'], '</b></li>';
         else
             echo '<li><a href=\'/admin/', $lang, '\'>', $this->lang['label_users'], '</a></li>';
 
         if ($sub == 'areas')
-            echo '<li class=\'on\'><b>', $this->lang['label_areas'], '</b></li>';
+            echo '<li class=on><b>', $this->lang['label_areas'], '</b></li>';
         else
             echo '<li><a href=\'/admin/', $lang, '?sub=areas\'>', $this->lang['label_areas'], '</a></li>';               
 
         if ($sub == 'dic')
-            echo '<li class=\'on\'><b>', $this->lang['label_dic'], '</b></li>';
+            echo '<li class=on><b>', $this->lang['label_dic'], '</b></li>';
         else
             echo '<li><a href=\'/admin/', $lang, '?sub=dic\'>', $this->lang['label_dic'], '</a></li>';
         
         if ($sub == 'synonym')
-            echo '<li class=\'on\'><b>', $this->lang['synonyms'], '</b></li>';
+            echo '<li class=on><b>', $this->lang['synonyms'], '</b></li>';
         else
             echo '<li><a href=\'/admin/', $lang, '?sub=synonym\'>', $this->lang['synonyms'], '</a></li>'; 
 
         if ($sub == 'ads')
-            echo '<li class=\'on\'><b>', $this->lang['label_ads_monitor'], '</b></li>';
+            echo '<li class=on><b>', $this->lang['label_ads_monitor'], '</b></li>';
         else
-            echo '<li><a href=\'/admin/', $lang, '?sub=ads\'>', $this->lang['label_ads_monitor'], '</a></li>';
-        /*
-          if ($this->urlRouter->module=='about')
-          echo '<li class=\'on\'><b>', $this->lang['aboutUs'], '</b></li>';
-          else
-          echo '<li><a href=\'/about/', $lang, '\'>', $this->lang['aboutUs'], '</a></li>';
-          if ($this->urlRouter->module=='contact')
-          echo '<li class=\'on\'><b>', $this->lang['contactUs'], '</b></li>';
-          else
-          echo '<li><a href=\'/contact/', $lang, '\'>', $this->lang['contactUs'], '</a></li>';
-          if ($this->urlRouter->module=='gold')
-          echo '<li class=\'on\'><b>', $this->lang['gold_title'], '</b></li>';
-          else
-          echo '<li><a href=\'/gold/', $lang, '\'>', $this->lang['gold_title'], '</a></li>';
-          if ($this->urlRouter->module=='privacy')
-          echo '<li class=\'on\'><b>', $this->lang['privacyPolicy'], '</b></li>';
-          else
-          echo '<li><a href=\'/privacy/', $lang, '\'>', $this->lang['privacyPolicy'], '</a></li>';
-          if ($this->urlRouter->module=='terms')
-          echo '<li class=\'on\'><b>', $this->lang['termsConditions'], '</b></li>';
-          else
-          echo '<li><a href=\'/terms/', $lang, '\'>', $this->lang['termsConditions'], '</a></li>';
-          /*if ($this->urlRouter->module=='advertise')
-          echo '<li class=\'on\'><b>', $this->lang['advertiseUs'], '</b></li>';
-          else
-          echo '<li><a href=\'/advertise/', $lang, '\'>', $this->lang['advertiseUs'], '</a></li>';
-          if ($this->urlRouter->module=='publication-prices')
-          echo '<li class=\'on\'><b>', $this->lang['pricelist'], '</b></li>';
-          else
-          echo '<li><a href=\'/publication-prices/', $lang, '\'>', $this->lang['pricelist'], '</a></li>'; */
-        echo "</ul><br />";
+            echo '<li><a href=\'/admin/', $lang, '?sub=ads\'>', $this->lang['label_ads_monitor'], '</a></li>';       
+        echo '</ul>';
     }
 
     function unixTimestampToDateTime(int $ts): string {
@@ -524,7 +395,7 @@ class Admin extends Page {
                         ?><label for="keyword"><?= $this->lang['keyword'] ?></label><?php
                         ?><input type="text" id="keyword" autocomplete="off" onfocus="setFocus(this,event);" onkeydown="idir(this);navList(event)" onkeyup="load(this,event);" onchange="idir(this, 1);" /><?php
                      /*   ?><input id="add" type="button" class="bt" onclick="save(this)" style="margin:0 25px" value="<?= $this->lang['new_key'] ?>" /><?php */
-                        ?><input id="rotate" type="button" class="bt" onclick="rotate(this)" style="margin:0 25px" value="Rotate" /><?php 
+                        ?><input id="rotate" type="button" class=btn onclick="rotate(this)" style="margin:0 25px" value="Rotate" /><?php 
                     ?></div><?php
                 ?></li><?php
             ?></ul><?php
@@ -774,8 +645,8 @@ class Admin extends Page {
                     ?><div class="lm"><?php
                         ?><label for="keyword"><?= $this->lang['keyword'] ?></label><?php
                         ?><input type="text" id="keyword" autocomplete="off" onkeydown="idir(this);navList(event)" onfocus="setFocus(this,event);" onkeyup="load(this,event);" onchange="idir(this, 1);" /><?php
-                        ?><input id="add" type="button" class="bt" onclick="save(this)" style="margin:0 25px" value="<?= $this->lang['new_key'] ?>" /><?php
-                        ?><input id="rotate" type="button" class="bt" onclick="rotate(this)" style="margin:0 25px" value="Rotate" /><?php
+                        ?><input id="add" type="button" class=btn onclick="save(this)" style="margin:0 25px" value="<?= $this->lang['new_key'] ?>" /><?php
+                        ?><input id="rotate" type="button" class=btn onclick="rotate(this)" style="margin:0 25px" value="Rotate" /><?php
                     ?></div><?php
                 ?></li><?php
             ?></ul><?php
@@ -1138,11 +1009,11 @@ class Admin extends Page {
         foreach ($this->urlRouter->countries as $country) {
             echo "<option value=" . strtoupper($country['uri']) . ">{$country['name']}</option>";
         }
-        ?></select><input id="rotate" type="button" class="bt" onclick="rotate(this)" style="margin:0 30px" value="<?= $this->lang['rotate'] ?>" /></div><?php
+        ?></select><input id=rotate type=button class=btn onclick="rotate(this)" style="margin:0 30px" value="<?= $this->lang['rotate'] ?>" /></div><?php
         ?></li><?php
         ?><li><?php
         ?><div class="lm"><label><?= $this->lang['keyword'] ?></label><input onfocus="build()" onkeydown="idir(this)" onkeyup="load(this)" onchange="idir(this, 1)" id="keyword" type="text" /><?php
-        ?><input onclick="nek(this)" type="button" class="bt" style="margin:0 30px" value="<?= $this->lang['new_key'] ?>" /><?php
+        ?><input onclick="nek(this)" type=button class=btn style="margin:0 30px" value="<?= $this->lang['new_key'] ?>" /><?php
         ?></div></li><?php
         ?></ul><?php
         ?><form onsubmit="save();return false"><input id="id" type="hidden" value="0" /><?php
@@ -1152,7 +1023,7 @@ class Admin extends Page {
         ?><li><label>English</label><input onchange="rmsg()" id="en" class="en" type="text" /></li><?php
         ?><li><textarea onchange="rmsg()" id="tar" class="ar"></textarea></li><?php
         ?><li><textarea onchange="rmsg()" id="ten" class="en"></textarea></li><?php
-        ?><li class="action"><input id="submit" type="submit" class="bt" value="<?= $this->lang['save'] ?>" disabled="true"/></li><?php
+        ?><li class="action"><input id="submit" type="submit" class=btn value="<?= $this->lang['save'] ?>" disabled="true"/></li><?php
         ?></ul><?php
         ?></form><?php
         ?></div><?php
@@ -1460,17 +1331,22 @@ $.ajax({
     }
 
     function renderUserAdminPanel() {
-        ?><form method="get"><?php
-        ?><ul class="ts"><?php
+        ?><div class=row><?php
+        ?><div class="col-12"><?php
+        ?><div class="card admin"><?php
+        ?><ul class=ts><?php
+        ?><form method=get><?php
+        
         ?><li><?php
         ?><div class="lm"><label>UID/UUID/EMAIL:</label><input name="p" type="text" value="<?= $this->uid ? $this->uid : '' ?>" /><?php
-        ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review'] ?>" /><?php
+        ?><input type=submit class=btn value="<?= $this->lang['review'] ?>" /><?php
         ?></div><?php
-        ?></li><?php
-        ?></ul><?php
+        
         ?></form><?php
+        ?></li><?php
+        
         if (isset($_GET['p']) && count($this->multipleAccounts)) {
-            $lang = $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage . '/';
+            $lang = $this->router()->isArabic() ? '' : $this->router()->language . '/';
 
             $selected = $this->get('selected', 'uint') ? $this->get('selected', 'uint') : $this->multipleAccounts[0];
             ?><ul class="ts multi"><?php
@@ -1483,71 +1359,64 @@ $.ajax({
             }
             ?></ul><?php
         }
-        ?><form method="get"><?php
-        ?><ul class="ts"><?php
-        ?><li><?php
-        ?><div class="lm"><label><?= $this->lang['labelP0'] ?>:</label><input name="t" type="tel" value="<?= $this->mobile_param ?>" /><?php
-        ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review'] ?>" /><?php
-        ?></div></li><?php
-        ?></ul><?php
+
+        
+        ?><li><?php        
+        ?><form method=get><?php
+        ?><div class="lm"><label><?= $this->lang['labelP0'] ?>:</label><input name="t" type=tel value="<?= $this->mobile_param ?>" /><?php
+        ?><input type=submit class=btn value="<?= $this->lang['review'] ?>" /><?php
+        ?></div><?php
         ?></form><?php
+        ?></li><?php
+        
+        
         if (isset($_GET['t']) && count($this->multipleAccounts)) {
-            $lang = $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage . '/';
+            $usersHTML=[];
+            $lang = $this->router()->isArabic() ? '' : $this->router()->language . '/';
             $parameter = filter_input(INPUT_GET, 't', FILTER_SANITIZE_NUMBER_INT, ['options' => ['default' => 0]]);
             $selected = $this->get('selected', 'uint') ? $this->get('selected', 'uint') : $this->multipleAccounts[0];
-            ?><ul class="ts multi"><?php
+            $usersHTML[]='<ul class="ts multi">';
             foreach ($this->multipleAccounts as $acc) {
-                if ($selected == $acc) {
-                    echo "<li><b>{$acc}</b></li>";
+                if ($selected==$acc) {
+                    $usersHTML[]="<li><b>{$acc}</b></li>";
                 } else {
-                    echo "<li><a href='/admin/{$lang}?t={$parameter}&selected={$acc}'>{$acc}</a></li>";
+                    $usersHTML[]="<li><a href='/admin/{$lang}?t={$parameter}&selected={$acc}'>{$acc}</a></li>";
                 }
             }
-            ?></ul><?php
+            $usersHTML[]='</ul>';
         }
-
-        /*
-          if($this->mobile_param){
-          $lang=$this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/';
-          $selected = $this->get('selected', 'uint');
-          ?><ul class="ts multi"><?php
-          foreach ($this->multipleAccounts as $acc){
-          if($selected == $acc){
-          echo "<li><b>{$acc}</b></li>";
-          }else{
-          echo "<li><a href='/admin/{$lang}?p={$this->uid}&selected={$acc}'>{$acc}</a></li>";
-          }
-          }
-          ?></ul><?php
-          } */
-        ?><form method="get"><?php
-        ?><ul class="ts"><?php
-        ?><li><?php
+        
+        ?><li><?php        
+        ?><form method=get><?php
         ?><div class="lm"><label>AID:</label><input name="r" type="ad" value="<?= $this->aid ? $this->aid : '' ?>" /><?php
-        ?><input type="submit" class="bt" style="margin:0 30px" value="<?= $this->lang['review'] ?>" /><?php
-        ?></div></li><?php
-        ?></ul><?php
+        ?><input type=submit class=btn value="<?= $this->lang['review'] ?>" /><?php
+        ?></div><?php
         ?></form><?php
-            if ($this->userdata && count($this->userdata) && (($this->aid == 0 && $this->userdata[0]) || ($this->aid))) {
-                if ($this->aid == 0) {
-                    foreach ($this->userdata as $record) {
-                        $this->parseUserRecordData($record);
-                        echo '<br/>';
-                    }
-                } else {
-                    echo '<div dir="ltr">';
-                    echo '<pre style="font-size:12pt;font-family:arial;line-height:18pt;">';
-                    $str = preg_replace_callback('/\\\\u([0-9a-fA-F]{4})/', function ($match) {
-                        return mb_convert_encoding(pack('H*', $match[1]), 'UTF-8', 'UTF-16BE');
-                    }, json_encode($this->userdata));
+        ?></li><?php
+        ?></ul><?php
 
-                    $this->userdata = json_decode($str);
-                    if (isset($this->userdata->TITLE)) {
-                        unset($this->userdata->TITLE);
-                    }
-                    echo json_encode($this->userdata, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-                    echo '</pre></div>';
+        if ($this->userdata && count($this->userdata) && (($this->aid == 0 && $this->userdata[0]) || ($this->aid))) {
+            if ($this->aid==0) {
+                foreach ($this->userdata as $record) {
+                    $this->parseUserRecordData($record);
+                    echo '<br/>';
                 }
+            } 
+            else {
+                
+                $str = preg_replace_callback('/\\\\u([0-9a-fA-F]{4})/', 
+                            function ($match) {
+                                return mb_convert_encoding(pack('H*', $match[1]), 'UTF-8', 'UTF-16BE');
+                            }, 
+                            json_encode($this->userdata, JSON_FORCE_OBJECT));
+
+                $this->userdata = json_decode(str_replace('class=\"pn\"', 'class=pn', $str));
+                if (isset($this->userdata->TITLE)) { unset($this->userdata->TITLE); }
+                ?><script>
+                    var userRaw='<?= json_encode($this->userdata) ?>';
+                </script><?php
+                //echo json_encode($this->userdata, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            }
 
                 $this->globalScript .= '
                             var block=function(id,e){
@@ -1607,8 +1476,9 @@ $.ajax({
                                 }
                             };
                         ';
-            } else {
-                ?><div class="ctr"><?php
+            } 
+            else {
+                ?><div class=ctr><?php
             if ($this->uid || $this->mobile_param != '') {
                 ?><h4>NO USER DATA FOUND</h4><?php
             }
@@ -1642,7 +1512,7 @@ $.ajax({
                             ?><textarea onkeydown="idir(this)" onchange="idir(this, 1)" name="reason" id="breason" style="padding:10px;margin:20px;width:660px;height:100px" placeholder="please specify a reason"></textarea><?php
                             ?><input type="hidden" name="p" value="<?= $_GET['t'] ?>" /><?php
                             ?><input type="hidden" name="action" value="blacklist" /><?php
-                            ?><p style="text-align:center"><input class="bt" type="submit" value="blacklist"/></p><?php
+                            ?><p style="text-align:center"><input class=btn type="submit" value="blacklist"/></p><?php
                             ?></form></div><br /><?php
                             $this->globalScript .= '
                                                 var black=function(){
@@ -1665,33 +1535,39 @@ $.ajax({
                 }
             }
         }
+        ?></ul><?php
+        if(isset($usersHTML)){
+            echo implode('', $usersHTML);
+        }
+        echo '</div>';
+        ?></div></div></div><?php
+        echo '<div id=userDIV dir=ltr></div>';
     }
 
     function parseUserRecordData($record) {
         if (is_array($record) && count($record)) {
-            echo '<ul class="tbs">';
-            echo '<li><a href="/myads/?sub=drafts&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Drafts</a></li>';
-            echo '<li><a href="/myads/?sub=pending&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Pending</a></li>';
-            echo '<li><a href="/myads/?u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Active</a></li>';
-            echo '<li><a href="/myads/?sub=archive&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Archived</a></li>';
-            echo '<li><a href="/myads/?sub=deleted&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Deleted</a></li>';
-            echo '<li><a href="/statement/?u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Balance</a></li>';
+            echo '<ul class=tbs>';
+            echo '<li><a class=btn href="/myads/?sub=drafts&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Drafts</a></li>';
+            echo '<li><a class=btn href="/myads/?sub=pending&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Pending</a></li>';
+            echo '<li><a class=btn href="/myads/?u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Active</a></li>';
+            echo '<li><a class=btn href="/myads/?sub=archive&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Archived</a></li>';
+            echo '<li><a class=btn href="/myads/?sub=deleted&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Deleted</a></li>';
+            echo '<li><a class=btn href="/statement/?u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Balance</a></li>';
             if (isset($record['suspended']) && $record['suspended'] == 'YES') {
-                echo '<li><a href="/admin/?p=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '&a=-1">Release</a></li>';
+                echo '<li><a class=btn href="/admin/?p=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '&a=-1">Release</a></li>';
             }
-            if ($record[\Core\Model\ASD\USER_LEVEL] == 5) {
-                echo '<li style="float:right"><a style="border-left:1px solid #CCC" href="?p=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '&action=unblock">Unblock</a></li>';
+            if ($record[\Core\Model\ASD\USER_LEVEL]==5) {
+                echo '<li><a class=btn style="border-left:1px solid #CCC" href="?p=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '&action=unblock">Unblock</a></li>';
             } else {
-                echo '<li style="float:right"><a style="border-left:1px solid #CCC" onclick="block(' . $record[\Core\Model\ASD\SET_RECORD_ID] . ',this)" href="javascript:void(0);">Block</a></li>';
-                if (!(isset($record['suspended']) && $record['suspended'] == 'YES')) {
-                    echo '<li style="float:right"><a style="border-left:1px solid #CCC" onclick="suspend(' . $record[\Core\Model\ASD\SET_RECORD_ID] . ',this)" href="javascript:void(0);">Suspend</a></li>';
+                echo '<li><a class=btn onclick="block(' . $record[\Core\Model\ASD\SET_RECORD_ID] . ',this)" href="javascript:void(0);">Block</a></li>';
+                if (!(isset($record['suspended']) && $record['suspended']=='YES')) {
+                    echo '<li><a class=btn onclick="suspend(' . $record[\Core\Model\ASD\SET_RECORD_ID] . ',this)" href="javascript:void(0);">Suspend</a></li>';
                 }
             }
             echo '</ul>';
-            echo '<div dir="ltr">';
-            echo '<pre style="font-size:12pt;font-family:arial;line-height:18pt;">';
-            echo json_encode($record, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-            echo '</pre></div>';
+            
+            //echo json_encode($record, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
             ?><div id="susp_dialog" class="dialog"><?php
             ?><div class="dialog-box ctr"><select id="suspT" style="direction:ltr;width:200px"><option value="1">1 hour</option><option value="6">6 hours</option><option value="12">12 hours</option><option value="18">18 hours</option><option value="24">24 hours</option><option value="30">30 hours</option><option value="36">36 hours</option><option value="42">42 hours</option><option value="48">48 hours</option><option value="54">54 hours</option><option value="60">60 hours</option><option value="66">66 hours</option><option value="72">72 hours</option></select><?php
             ?><br /><br /><textarea style="height:100px" onkeydown="idir(this)" onchange="idir(this, 1)" id="suspM" placeholder="<?= $this->lang['reason_suspension'] ?>"></textarea><?php
@@ -1700,8 +1576,22 @@ $.ajax({
             ?><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['suspend'] ?>" /><?php
             ?></div><?php
             ?></div><?php
-            }
-        }
+            
+            
+            ?><script>
+                try {
+                    var wrapper = document.getElementById("userDIV");
+                    var userRaw='<?= json_encode($record, JSON_FORCE_OBJECT) ?>';
+                    //var data = JSON.parse('<?= json_encode($record, JSON_FORCE_OBJECT) ?>');
+                    
+                    //var tree = jsonTree.create(data, wrapper);
+                    //tree.expand();
+                } catch (e) {
+                    console.log(e);
+                    console.log('<?= json_encode($record) ?>');
+                }
 
+            </script><?php
+        }
+    }
 }
-?>

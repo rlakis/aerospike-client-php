@@ -312,6 +312,8 @@ var d={
         let aUL=aDIV.querySelector('ul');
         var fillSections=function(rId){
             if(!rDIV.dataset.rootId||rDIV.dataset.rootId!=rId){
+                let rr=rDIV.querySelectorAll('li');
+                rr.forEach(function(item){if(item.dataset.id==rId){item.classList.add('cur');}else if(item.classList.contains('cur')){item.classList.remove('cur');}});
                 let ul=sDIV.querySelector('ul');
                 ul.innerHTML='';
                 _.roots[rId]['sindex'].forEach(function(sid){

@@ -599,14 +599,15 @@ class MyAds extends Page {
             }           
             
             if ($state==7) {
-                if ($this->router()->cfg['enabled_charts'] && !$isAdminProfiling) {                    
+                if ($this->router()->config()->get('enabled_charts') && !$isAdminProfiling) {                    
                     ?><div class="stin <?= $this->router()->siteLanguage ?>"></div><?php                    
                     $this->renderEditorsBox($state);
                     ?></div><?php
                     ?><div class="phld"><?php
                         ?><div id="statDv" class="load"></div><?php
                     ?></div><?php
-                } else {
+                } 
+                else {
                     $this->renderEditorsBox($state);
                     ?></div><?php
                 }

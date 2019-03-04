@@ -230,7 +230,7 @@ class Bin extends AjaxHandler{
                             $ad['PURPOSE_ID']=$pu;
                         }
                         
-                        if($textIdx){
+                        if ($textIdx) {
                             $text=trim($text);
                             if ($text) {
                                 $text.=json_decode('"\u200b"').' '.$this->user->parseUserAdTime($content['cui'],$content['cut'],$textRtl);
@@ -253,12 +253,7 @@ class Bin extends AjaxHandler{
                             $content['altRtl']=0;
                             $textIdx=1;
                         }
-                        $text = $content['other'];
-                        $rtl = $content['rtl'];
-                        $text2 = isset($content['altother']) ? $content['altother'] : '';
-                        $rtl2 = isset($content['altRtl']) ? $content['altRtl'] : '';
                         
-                        if ($text2=='') { $content['extra']['t']=2; }
                         
                         // fix here
                         Config::instance()->incLibFile('MCSaveHandler');
@@ -270,6 +265,12 @@ class Bin extends AjaxHandler{
                             //$this->setData($normalized,'normalized');
                             //$this->process();
                         }
+                        $text = $content['other'];
+                        $rtl = $content['rtl'];
+                        $text2 = isset($content['altother']) ? $content['altother'] : '';
+                        $rtl2 = isset($content['altRtl']) ? $content['altRtl'] : '';
+                        
+                        if ($text2=='') { $content['extra']['t']=2; }
                         //else {
                         //    $this->fail('102');
                         //}
@@ -1658,12 +1659,19 @@ class Bin extends AjaxHandler{
                     
                     foreach ($this->router()->pageRoots as $Rid => $root) {  
                         foreach ($root['purposes'] as $Pid => $pu) {
-                            if ($Pid!=999){
-                                $result['r'][$Rid]['purposes'][$Pid]=$this->router()->purposes[$Pid][$nameIdx] ?? $pu['name'];
+                            if ($Rid!=999){
+                                if($Rid!=4){
+                                    $result['r'][$Rid]['purposes'][$Pid]=$this->router()->purposes[$Pid][$nameIdx] ?? $pu['name'];
+                                }
+                                else {
+                                    if ($Pid==5) {
+                                        $result['r'][$Rid]['purposes'][$Pid]=$this->router()->purposes[$Pid][$nameIdx] ?? $pu['name'];
+                                    }
+                                }
                             }
                         }
                     }
-                
+                    
                     $this->setData($result['r'], 'roots');
                     $this->setData($result['qs'], 'sswitch');
                     $this->setData($result['qr'], 'rswitch');
@@ -3536,32 +3544,73 @@ class Bin extends AjaxHandler{
                                         if ($to!=$mobile_number && !isset($numbers[$to])) {
             
                                             $type = $content['attrs']['phones']['t'][$i]??0;
-                                            if ($type==1) {
+                                            if ($type==1) {                                                                                                                                                
                                                 error_log("rtp {$to}");
                                                 $bins=['RTP'=>1];
                                                 if (MobileValidation::getInstance()->sendEdigearRTPRequest($to, $record[0]['WEB_USER_ID'], $mobile_number, $bins)) {
-                                                //if ($rtp==2 || isset($content['app'])) {
-                                                    // application
-                                                    $user_lang = $content['hl']??"en";
-                                                    if ($user_lang=="ar") {
-                                                        $msg = "لعدم ازعاج صاحب الرقم " . $to . " نتيجة أي خطأ. نتمنى عليك ارسال رسالة نصية من موبايل الرقم المذكور على ". "00".$bins['to'] . " تحتوي هذا الرمز: " . $bins['code'];
+                                                    if ($rtp==2) {//rejected and pending
+                                                    
+                                                        $user_lang = $content['hl']??"en";
+                                                        if ($user_lang=="ar") {
+                                                            $msg = "تم الرفض بانتظار ارسال رسالة نصية تحتوي على " .
+                                                                    $bins['code'] . 
+                                                                    " من +" .
+                                                                    $to . 
+                                                                    " الى +" .
+                                                                    $bins['to'] . 
+                                                                    ". بعد ارسال الرسالة، يرجى الانتظار بضع دقائق واعادة النشر.";
+                                                        }
+                                                        else {                                                                                          
+                                                            $msg = 'Rejected and pedning your action of sending an SMS message containing ' .
+                                                                    $bins['code'] . 
+                                                                    " from +" .
+                                                                    $to . 
+                                                                    " to +" .
+                                                                    $bins['to'] . 
+                                                                    ". After sending the message, please wait a couple of minutes and re-publish your ad.";
+                                                        }
+                                                        $rejected = true;
+                                                                                            
+                                                        if($this->user->rejectAd($id, $msg)) {
+                                                            $this->process();
+                                                            $this->logAdmin($id, 3);
+                                                        }
+                                                        else { $this->fail('105'); }
                                                     }
-                                                    else {
-                                                        $msg = "In order to prevent any discomfort to the owner of {$to} due to whatever mistake. Please, send an SMS from that number to 00{$bins['to']} with a message including: {$bins['code']}";
-                                                    }
+                                                    elseif($rtp == 1) {//approved and pending
                                                         
-                                                    //error_log("here in {$id}  {$msg}");
-        
-                                                    $this->user()->rejectAd($id, $msg);
-                                                    $rejected = true;
-                                                //}
-                                                //else {
-    
-                                                    // website 
-                                                //}                                                    
+                                                        $lastCode = '';
+                                                        
+                                                        $user_lang = $content['hl']??"en";
+                                                        if ($user_lang=="ar") {
+                                                            $msg = "تمت الموافقة وبانتظار ارسال رسالة نصية تحتوي على " .
+                                                                    $bins['code'] . 
+                                                                    " من +" .
+                                                                    $to . 
+                                                                    " الى +" .
+                                                                    $bins['to'] . 
+                                                                    " ليتم النشر.";
+                                                        }
+                                                        else {                                                            
+                                                            $msg = 'Approved but pending your action of sending an SMS message containing ' .
+                                                                    $bins['code'] . 
+                                                                    " from +" .
+                                                                    $to . 
+                                                                    " to +" .
+                                                                    $bins['to'] . 
+                                                                    " before publishing.";
+                                                        }
+                                                        $rejected = true;
+                                                        
+                                                        if($this->user->approveAd($id, $msg)) {
+                                                            $this->process();
+                                                            $this->logAdmin($id, 2);
+                                                        }
+                                                        else { $this->fail('104'); }
+                                                        
+                                                    }                                                      
+                                            
                                                 }
-                                                else {                                            
-                                                }                                            
                                             }
                                         }
                                     }

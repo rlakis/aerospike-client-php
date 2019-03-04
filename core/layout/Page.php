@@ -727,7 +727,10 @@ class Page extends Site {
     function set_require($type, $str){
         if (is_array($str)) {
             $this->requires[$type]=array_merge($this->requires[$type], $str);
-        }else $this->requires[$type][]=$str;
+        }
+        else {
+            $this->requires[$type][]=$str;
+        }
     }
     
     
@@ -4688,6 +4691,9 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         if ($this->router()->module=='myads') {
             header("Link: </web/js/1.0/socket.io.js>; rel=preload; as=script;", false);
         }
+        if ($this->router()->module=='admin') {
+            header("Link: </web/js/1.0/jsonTree.js>; rel=preload; as=script;", false);
+        }
         $country_code='';
         if ($this->router()->countryId && array_key_exists($this->router()->countryId, $this->router()->countries)) {
             $country_code = '-'.$this->router()->countries[$this->router()->countryId]['uri'];
@@ -4698,9 +4704,11 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         if ($this->router()->module=='myads') {
             echo '<script asyc src=/web/js/1.0/socket.io.js></script>';
         }
+        if ($this->router()->module=='admin') {
+            echo '<script asyc src=/web/js/1.0/jsonTree.js></script>';
+        }
         echo "<style>\n";
-        include $this->router()->config()->baseDir.'/web/css/includes/main.css';
-        
+        include $this->router()->config()->baseDir.'/web/css/includes/main.css';        
        
         switch ($this->router()->module) {
             case 'home':
@@ -4710,7 +4718,6 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 include $this->router()->config()->baseDir.'/web/css/includes/breadcrumb.css';
                 include $this->router()->config()->baseDir.'/web/css/includes/ad-view.css';
                 break;
-
             
             case 'terms':
             case 'privacy':
@@ -4740,6 +4747,11 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             case 'myads':
                 $this->css('myads');          
                 break;
+            
+            case 'admin':
+                $this->css('admin');  
+                break;
+            
             default:
                 break;
         }

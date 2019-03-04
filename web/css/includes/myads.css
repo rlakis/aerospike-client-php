@@ -56,7 +56,7 @@
 
 .myad #fixForm{font-size:1rem;color:white;}
 .myad #fixForm li{cursor: pointer}
-.myad #fixForm .cur{color: lightcoral}
+.myad #fixForm .cur{background-color: lightcoral}
 .myad #fixForm div{padding: 0 4px;}
 .myad #fixT{font-size:1em;margin:8px 0;width: 100%;}
 
