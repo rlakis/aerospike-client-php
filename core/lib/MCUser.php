@@ -340,7 +340,7 @@ class MCUser extends MCJsonMapper {
         return $date;
     }
     
-    public function getBalance() : double {
+    public function getBalance() : float {
         return $this->balance;
     }
 

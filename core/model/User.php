@@ -152,7 +152,7 @@ class User {
     
     
     function __construct($site , $init=1) {
-        $this->db = \Core\Model\Router::instance()->db;
+        $this->db = \Core\Model\Router::instance()->database();
         $this->config = \Config::instance();
         $this->reset();
         if($site){
@@ -731,17 +731,19 @@ class User {
                         elseif ($state) {
                             $adLevel= $this->isSuperUser() ? $adLevel=100000000 : 0;
                             $filters = $this->getAdminFilters();
-                            $q='select '.$pagination_str.' a.*, ao.super_admin, u.full_name, u.lvl, u.DISPLAY_NAME, u.profile_url, '
-                                . 'iif((a.section_id=190 or a.section_id=1179 or a.section_id=540), 1, 0) ppn, '
-                                . 'iif(a.state=4, 1, 0) primo, '
-                                . 'u.user_rank,IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
-                                    IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended, '
-                                . 'u.provider '
-                                . 'from ad_user a '
-                                . 'left join web_users u on u.id=a.web_user_id '
-                                . 'left join ad_object ao on ao.id=a.id '
-                                . 'left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 '
-                                . 'left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date ';
+                            $q = 'select '.$pagination_str
+                                .' a.ID, a.CONTENT, a.DATE_ADDED, a.PURPOSE_ID, a.SECTION_ID, a.RTL, a.STATE, a.LAST_UPDATE, a.COUNTRY_ID, '
+                                .'a.CITY_ID, a.LATITUDE, a.LONGITUDE, a.WEB_USER_ID, /*a.ACTIVE_COUNTRY_ID, a.ACTIVE_CITY_ID, a.MEDIA, */ a.ADMIN_ID, /*a.ADMIN_STAMP, */ a.DOC_ID, '
+                                .'ao.super_admin, u.full_name, u.lvl, u.DISPLAY_NAME, u.profile_url, '
+                                .'iif((a.section_id=190 or a.section_id=1179 or a.section_id=540), 1, 0) ppn, '
+                                .'iif(a.state=4, 1, 0) primo, '
+                                .'u.user_rank, IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, ' 
+                                .'IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended, u.provider '
+                                .'from ad_user a '
+                                .'left join web_users u on u.id=a.web_user_id '
+                                .'left join ad_object ao on ao.id=a.id '
+                                .'left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 '
+                                .'left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date ';
                             
                             if($filters['root']) {
                                 $q .= 'left join section s on a.section_id=s.id ';
@@ -860,7 +862,7 @@ class User {
                     if (isset ($_GET['u']) && is_numeric($_GET['u'])) $uid=(int)$_GET['u'];
                     
                     if ($state>6) {
-                        $res=$this->db->get('select count(*) from ad_user where web_user_id=? and state=?', [$uid, $state]);
+                        $res=$this->db->get('select count(*) from ad_user where web_user_id=? and state+0=?', [$uid, $state]);
                     }
                     elseif ($state) {                        
                         $adLevel=0;
@@ -877,12 +879,12 @@ class User {
                         $q .= 'where ';
                         
                         if ($filters['uid']) {
-                            $q.= '( (a.state in (1,2,4)) and a.web_user_id='.$filters['uid'].' ) ';
+                            $q.= '( (a.state+0 in (1,2,4)) and a.web_user_id='.$filters['uid'].' ) ';
                         }
                         else {
-                            $q.= '( (a.state in (1,2,4)) or (a.state=3 and a.web_user_id='.$uid.') ) ';
+                            $q.= '( (a.state+0=3 and a.web_user_id='.$uid.') or (a.state in (1,2,4)) ) ';
                         }
-                        $q .= ' and (ao.super_admin is null or ao.super_admin<='.$adLevel.') ';
+                        //$q .= ' and (ao.super_admin is null or ao.super_admin<='.$adLevel.') ';
                                     
                         if ($filters['purpose']) {
                             $q.='and a.purpose_id='.$filters['purpose'].' ';
@@ -892,6 +894,7 @@ class User {
                         if ($filters['root']) {
                             $q.='and s.root_id='.$filters['root'].' ';
                         }
+                        //error_log($q);
                         $res=$this->db->get($q);
                     }
                     else {
@@ -1413,8 +1416,9 @@ class User {
     
     
     public function getBalance() : int {
-        $rs = $this->db->get("select sum(credit-debit) balance from T_TRAN where uid=?", [$this->info['id']]);
-        return (int)$rs[0]['BALANCE'];
+        return (int)$this->data->getBalance();
+        //$rs = $this->db->get("select sum(credit-debit) balance from T_TRAN where uid=?", [$this->info['id']]);
+        //return (int)$rs[0]['BALANCE'];
     }
     
     

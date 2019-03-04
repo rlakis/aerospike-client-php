@@ -4,10 +4,11 @@ var $=document,ALT=false,MULTI=false;
 $.onkeydown=function(e){
     ALT=(e.which=="18");
     MULTI=(e.which=="90");
-    if(e.key==='Escape'&&d.slides){d.slides.destroy();d.slides=null;}
+    if(e.key==='Escape'&&d.slides){d.slides.destroy();d.slides=null}
 }
 $.onkeyup=function(){ALT=false;MULTI=false;}
 $.body.onclick=function(e){
+    console.log('body clicked');
     let editable=$.querySelectorAll("[contenteditable=true]");
     if(editable&&editable.length>0){
         editable[0].setAttribute("contenteditable", false);
@@ -275,18 +276,6 @@ var d={
     normalize:function(e){
         let data={dx:e.dataset.foreign?2:1, rtl:e.classList.contains('ar')?1:0, t:e.innerText};
         this.updateAd(e,d.currentId,0,0,0,data);
-        /*
-        fetch('/ajax-changepu/?i='+this.currentId, _options('POST', data)).then(res=>res.json())
-            .then(response => {
-                console.log(response);
-                if(response.DATA.dx==1 && response.DATA.t){
-                    e.innerHTML=response.DATA.t;
-                    console.log('done');
-                }
-            })
-            .catch(error => { 
-                console.log(error); 
-            });*/
     },
             
     updateAd:function(e, adId, ro, se, pu, dat){
@@ -319,22 +308,47 @@ var d={
         let rDIV=inline.form.querySelector('#qRoot');
         let rUL=rDIV.querySelector('ul');
         let sDIV=inline.form.querySelector('#qSec');
+        let aDIV=inline.form.querySelector('#qAlt');
+        let aUL=aDIV.querySelector('ul');
         var fillSections=function(rId){
             if(!rDIV.dataset.rootId||rDIV.dataset.rootId!=rId){
                 let ul=sDIV.querySelector('ul');
                 ul.innerHTML='';
-                for(var i in _.roots[rId]['sections']){
-                    let li=createElem('li','',_.roots[rId]['sections'][i]);
-                    li.dataset.id=i;
-                    ul.appendChild(li);
+                _.roots[rId]['sindex'].forEach(function(sid){
+                    let li=createElem('li', sid==article.dataset.se?'cur':'', _.roots[rId]['sections'][sid]);
+                    li.dataset.id=sid;
                     li.onclick=function(e){
                         let pu=article.dataset.pu;
                         if(!_.roots[rId]['purposes'][pu]){
                             pu=_.roots[rId]['purposes'][Object.keys(_.roots[rId]['purposes'])[0]];
                         }
                         _.updateAd(e.target, article.id, rId, e.target.dataset.id, pu);
-                    }                    
+                    }
+                    ul.appendChild(li);
+                })
+                
+                aUL.innerHTML='';
+                for(i in _.roots[rId]['purposes']){
+                    let li=createElem('li', i==article.dataset.pu?'cur':'', _.roots[rId]['purposes'][i]);li.dataset.id=i;
+                    li.onclick=function(e){
+                        _.updateAd(e.target, article.id, rId, article.dataset.se, e.target.dataset.id);
+                    }
+                    aUL.appendChild(li);
                 }
+                aUL.appendChild(createElem('li','','&nbsp;',true));
+             
+                if(typeof _.secSwitches[article.dataset.se]==='object'){
+                    for(i in _.secSwitches[article.dataset.se]){
+                        let ss=_.secSwitches[article.dataset.se][i];
+                        let li=createElem('li', '', ss[3]);
+                        li.dataset.ro=ss[0];li.dataset.se=ss[1];li.dataset.pu=ss[2];
+                        li.onclick=function(e){
+                            _.updateAd(article, article.id, rId, e.target.dataset.se, e.target.dataset.pu);
+                        }
+                        aUL.appendChild(li);
+                    }
+                }
+            
                 rDIV.dataset.rootId=rId;
             }
         };
@@ -352,37 +366,14 @@ var d={
             if(rUL.childNodes.length===0){
                 for(var i in _.roots){
                     let li=createElem('li', '', _.roots[i]['name']);
-                    li.dataset.id=i;li.dataset.type='r';
+                    li.dataset.id=i;
                     li.onclick=function(e){fillSections(e.target.dataset.id)}
                     rUL.appendChild(li);
                 }
             }
+            
             fillSections(article.dataset.ro);                              
             
-            let aDIV=inline.form.querySelector('#qAlt');
-            let aUL=aDIV.querySelector('ul');aUL.innerHTML='';
-            let rootId=article.dataset.ro;
-            for(i in _.roots[rootId]['purposes']){
-                let li=createElem('li', '', _.roots[rootId]['purposes'][i]);li.dataset.id=i;
-                li.onclick=function(e){
-                    _.updateAd(e.target, article.id, rootId, article.dataset.se, e.target.dataset.id);
-                }
-                aUL.appendChild(li);
-            }
-            aUL.appendChild(createElem('li','','&nbsp;',true));
-            
-            
-            if(typeof _.secSwitches[article.dataset.se]==='object'){
-                for(i in _.secSwitches[article.dataset.se]){
-                    let ss=_.secSwitches[article.dataset.se][i];
-                    let li=createElem('li', '', ss[3]);
-                    li.dataset.ro=ss[0];li.dataset.se=ss[1];li.dataset.pu=ss[2];
-                    li.onclick=function(e){
-                        _.updateAd(article, article.id, e.target.dataset.ro, e.target.dataset.se, e.target.dataset.pu);
-                    }
-                    aUL.appendChild(li);
-                }
-            }
             
             
             inline.show();
@@ -468,9 +459,11 @@ class Ad{
     replName(v){this._editor.innerHTML=v;}
     getMessage(){return this._message.innerText;}
     setMessage(v){this._message.innerHTML=v;}
-    select(){if(this.exists()){this.setAs('selected');socket.emit("touch",[this.id,d.KUID]);
-            let f=$.getElementById('fixForm');
-            if(f && window.getComputedStyle(f).visibility!=="hidden"){f.style.display='none';}
+    select(){if(this.exists()){
+        this.setAs('selected');
+        socket.emit("touch",[this.id,d.KUID]);
+        //let f=$.getElementById('fixForm');
+        //if(f && window.getComputedStyle(f).visibility!=="hidden"){f.style.display='none';}
     }}
     unselect(){if(this.exists()){this.unsetAs('selected');socket.emit("release",[this.id,d.KUID]);}}
     lock(){this.setAs('locked');this.mask();this.opacity(0.25);}

@@ -37,12 +37,10 @@ class AjaxHandler extends Site {
     }
 
     function process(){
-        $res=array();
-        $res['RP']=$this->rp;
-        $res['MSG']=$this->msg;
-        $res['DATA']=$this->data;
+        $res=['RP'=>$this->rp, 'MSG'=>$this->msg, 'DATA'=>$this->data];
         header("Content-Type: application/json");
-        print json_encode($res);
+        error_log(json_encode($res));
+        echo json_encode($res);
     }
 
     function processRaw($res){
@@ -1628,17 +1626,21 @@ class Bin extends AjaxHandler{
                 if (isset($_GET['sections'])) {
                     $lang=$_GET['sections'];
                     $nameIdx = ($lang=='ar'?1:2);
-                    $result=['r'=>[], 'qs'=>[], 'qr'=>[], 'n'=>[]];
-                    foreach ($this->router()->roots as $root) {
-                        $result['r'][$root[0]]=['name'=>$root[$nameIdx], 'sections'=>[], 'purposes'=>[]];
-                    }
-                                    
+                    $result=['r'=>[],  'qs'=>[], 'qr'=>[]];
+                    
                     $sections= $this->router()->sections;
                     usort($sections, function(array $a, array $b) use ($nameIdx) {return ($a[$nameIdx]<=>$b[$nameIdx]);});
                     $result['n'] = $sections;
                     $len = count($sections);
+                    
+                    foreach ($this->router()->roots as $root) {
+                        $result['r'][$root[0]]=['name'=>$root[$nameIdx], 'sections'=>[], 'purposes'=>[], 'sindex'=>[]];
+                    }
+                                    
+                    
                     for ($i=0; $i<$len; $i++) {                  
-                        $result['r'][ $sections[$i][4] ]['sections'][ $sections[$i][0] ] = $sections[$i][$nameIdx];                                       
+                        $result['r'][ $sections[$i][4] ]['sections'][ $sections[$i][0] ] = $sections[$i][$nameIdx];                                                             
+                        $result['r'][ $sections[$i][4] ]['sindex'][] = $sections[$i][0];                                       
                     }
 
                     $lnIndex = $lang=='ar' ? 4 : 3;
@@ -1665,7 +1667,6 @@ class Bin extends AjaxHandler{
                     $this->setData($result['r'], 'roots');
                     $this->setData($result['qs'], 'sswitch');
                     $this->setData($result['qr'], 'rswitch');
-                    $this->setData($result['n'], 'names');
                     $this->process();
                 }
                 else {

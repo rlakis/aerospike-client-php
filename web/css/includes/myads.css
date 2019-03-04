@@ -56,8 +56,10 @@
 
 .myad #fixForm{font-size:1rem;color:white;}
 .myad #fixForm li{cursor: pointer}
+.myad #fixForm .cur{color: lightcoral}
 .myad #fixForm div{padding: 0 4px;}
 .myad #fixT{font-size:1em;margin:8px 0;width: 100%;}
+
 
 .myad #qSec{display:inherit;background-color:olive}
 .myad #qRoot{display:inherit;background-color:darkcyan;font-weight:bold}
