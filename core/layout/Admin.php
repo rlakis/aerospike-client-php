@@ -23,8 +23,7 @@ class Admin extends Page {
         }
 
         $this->load_lang(array("account"));      
-        
-        echo '<link href="/web/css/1.0/jsonTree.css" rel="stylesheet" /> ';
+                
         
         //$this->set_require('css', 'account');
         $this->title = $this->lang['title'];
@@ -314,6 +313,12 @@ class Admin extends Page {
         return $bins;
     }
 
+    
+    function header() {
+        echo '<link href="/web/css/1.0/jsonTree.css" rel="stylesheet" /> ';
+    }
+    
+    
     function side_pane() {
         $this->renderSideAdmin();
         //$this->renderSideUserPanel();
@@ -1578,20 +1583,7 @@ $.ajax({
             ?></div><?php
             
             
-            ?><script>
-                try {
-                    var wrapper = document.getElementById("userDIV");
-                    var userRaw='<?= json_encode($record, JSON_FORCE_OBJECT) ?>';
-                    //var data = JSON.parse('<?= json_encode($record, JSON_FORCE_OBJECT) ?>');
-                    
-                    //var tree = jsonTree.create(data, wrapper);
-                    //tree.expand();
-                } catch (e) {
-                    console.log(e);
-                    console.log('<?= json_encode($record) ?>');
-                }
-
-            </script><?php
+            ?><script>var userRaw='<?= json_encode($record, JSON_FORCE_OBJECT) ?>';</script><?php
         }
     }
 }

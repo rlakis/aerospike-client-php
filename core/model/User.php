@@ -1140,7 +1140,7 @@ class User {
     }
     
     
-    function getStatement($user_id=0, $offset=0, $balanceOnly=false, $startDate=null, $language='ar') {
+    function getStatement(int $user_id=0, int $offset=0, bool $balanceOnly=false, string $startDate=null, string $language='ar') {
         if (isset($this->info['level']) && $this->info['level']==9 && $user_id) {
             $userId=$user_id;
         }
@@ -1152,13 +1152,13 @@ class User {
         }
         $result = false;
         
-        if($userId) {
+        if ($userId) {
             $q='select sum(credit-debit) as balance from t_tran where uid=?';
             $res=$this->db->get($q, [$userId]);
-            if($res && isset($res[0]['BALANCE']) && $res[0]['BALANCE']!=null) {
+            if ($res && isset($res[0]['BALANCE']) && $res[0]['BALANCE']!=null) {
                 $result['balance']=(int)$res[0]['BALANCE'];
                 
-                if(!$balanceOnly) {                                                                           
+                if (!$balanceOnly) {
                     $rs = $this->db->get("SELECT count(*) as total FROM T_TRAN r where r.UID=?", [$userId]);
                     $total = 0;
                     if($rs && isset($rs[0]['TOTAL']) && $rs[0]['TOTAL']>0) {
@@ -1247,12 +1247,13 @@ class User {
 
                                 $label = '';
                                 if ($rs[$i]['DEBIT']>0) {
-                                    if(stristr($rs[$i]['SECTION_NAME'], $rs[$i]['PURPOSE_NAME'])) {
-                                        $label = $rs[$i]['SECTION_NAME'];
-                                    }
-                                    else {
+                                    
+                                    //if (stristr($rs[$i]['SECTION_NAME'], $rs[$i]['PURPOSE_NAME'])) {
+                                    //    $label = $rs[$i]['SECTION_NAME'];
+                                    //}
+                                    //else {
                                         $label = $rs[$i]['SECTION_NAME'].' | '.$rs[$i]['PURPOSE_NAME'];
-                                    }
+                                    //}
 
                                     $newRs[$i][] = $label;
                                     $rtl = 0;

@@ -1,26 +1,23 @@
 <?php
-require_once 'Page.php';
+Config::instance()->incLayoutFile('Page');
 
 use Core\Model\DB;
 use Core\Model\NoSQL;
 
-class Monitor extends Page
-{
+class Monitor extends Page {
     
     var $action='',$liOpen='';
     private $uid = 0;
     private $aid = 0;
     private $userdata = 0;
     
-    function __construct($router)
-    {
+    function __construct(\Core\Model\Router $router) {
         parent::__construct($router);
         $this->uid = 0;
         $this->sub = $_GET['sub'] ?? '';
         $this->hasLeadingPane=false;
         
-        if($this->isMobile || !$this->user->isSuperUser())
-        {
+        if($this->isMobile || !$this->user->isSuperUser()) {
             $this->user->redirectTo('/notfound/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
         }     
         

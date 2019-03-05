@@ -120,8 +120,10 @@ class Bin extends AjaxHandler{
             
             case 'ajax-changepu':                
                 if ($this->user()->isLoggedIn(9)) {
-                    foreach ($this->_JPOST as $key => $value) {
-                        $_POST[$key]=$value;
+                    if (is_array($this->_JPOST)) {
+                        foreach ($this->_JPOST as $key => $value) {
+                            $_POST[$key]=$value;
+                        }
                     }
                     
                     if(isset($_GET['fraud']) && is_numeric($_GET['fraud'])){
@@ -168,22 +170,12 @@ class Bin extends AjaxHandler{
                             $imageToRemove = '';
                             if ($pixPath) {
                                 $imageToRemove = $pixPath;
-                                 foreach($content['pics'] as $img => $dim) {
+                                foreach($content['pics'] as $img => $dim) {
                                      if ($img!==$pixPath) {
                                          $newImgs[$img]=$dim;
                                      }                                 
                                  }
-                            }
-                            elseif ($imgIdx!==-1) {
-                                foreach($content['pics'] as $img => $dim){
-                                    if($i++ != $imgIdx){
-                                        $newImgs[$img]=$dim;
-                                    }
-                                    else {
-                                        $imageToRemove = $img;
-                                    }
-                                }
-                            }
+                            }                                                        
                             
                             if ($imageToRemove) {
                                 $media = $this->router()->db->queryResultArray("select * from media where filename=?", [$imageToRemove], true);
@@ -287,6 +279,7 @@ class Bin extends AjaxHandler{
                                 $redisAction = 'editorialImg'; 
                                 $this->setData($images, 'sic');
                                 $this->setData($imgIdx, 'dx');
+                                $this->setData($imageToRemove, 'removed');
                             }
                             elseif ($textOnly) {
                                 $redisAction = 'editorialText';

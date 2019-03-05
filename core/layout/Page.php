@@ -2760,6 +2760,7 @@ class Page extends Site {
         ?></div><?php 
     }
     
+    
     function main_pane(){}
     
     
@@ -4687,6 +4688,16 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     }
     
     
+    public function inlineJS(string $filename) : Page {
+        if (!isset($this->included[$filename])) {
+            echo '<script>';
+            include $this->router()->config()->baseDir.'/web/js/includes/'.$filename;
+            echo '</script>';
+            $this->included[$filename]=1;
+        }
+        return $this;
+    }
+    
     protected function _header() {
         if ($this->router()->module=='myads') {
             header("Link: </web/js/1.0/socket.io.js>; rel=preload; as=script;", false);
@@ -4708,15 +4719,15 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             echo '<script asyc src=/web/js/1.0/jsonTree.js></script>';
         }
         echo "<style>\n";
-        include $this->router()->config()->baseDir.'/web/css/includes/main.css';        
+        
+        $this->css('main');        
        
         switch ($this->router()->module) {
             case 'home':
                 break;
             
             case 'search':
-                include $this->router()->config()->baseDir.'/web/css/includes/breadcrumb.css';
-                include $this->router()->config()->baseDir.'/web/css/includes/ad-view.css';
+                $this->css('breadcrumb')->css('ad-view');
                 break;
             
             case 'terms':
@@ -4735,8 +4746,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             
             case 'guide':
             case 'iguide':
-                include $this->router()->config()->baseDir.'/web/css/includes/doc.css';
-                include $this->router()->config()->baseDir.'/web/css/includes/guide.css';
+                $this->css('doc')->css('guide');
                 break;
             
             case 'buyu':
@@ -4750,6 +4760,10 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             
             case 'admin':
                 $this->css('admin');  
+                break;
+            
+            case 'statement':
+                $this->css('balance');  
                 break;
             
             default:
@@ -5542,11 +5556,12 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
 
     
     function _body() : void {
-        echo '<div id="wrapper" class="wrapper">', "\n";
+        echo '<div id=wrapper class=wrapper>', "\n";
         $this->top();
         $this->body();
         $this->footer();
         echo '</div></body></html>';
+        
         if (1) { return; }
         /*--------------------------- Old Code ---------------------------*/
         
