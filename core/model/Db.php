@@ -29,8 +29,6 @@ class DB {
     public function __construct($readonly=TRUE) {
         $this->slaveOfRedis = (get_cfg_var('mourjan.server_id')!='1');
         self::$dbUri = 'firebird:dbname='.\Config::instance()->get('db_host').':'.\Config::instance()->get('db_name').';charset=UTF8';
-        //self::$user = $cfg['db_user'];
-        //self::$pass = $cfg['db_pass'];
         self::$WaitTimeout = 10;
         
         $this->setTransactionIsolation($readonly);
@@ -488,53 +486,7 @@ class DB {
                 s.country_id = {$countryId}  
                 order by year_make desc", null, 0, 86400, $force);
     }
-    
-    /*
-    function getCountries($lang='ar',$force=0){
-        return $this->queryCacheResultSimpleArray(
-                'countries_'.$lang,
-                'select c.ID, NAME_AR, NAME_EN, lower(trim(id_2)) URI, d.counter, d.UNIXTIME,c.currency_id,code 
-                from country c
-                left join counts d 
-                    on c.id=d.country_id 
-                    and d.city_id=0 
-                    and d.root_id=0 
-                    and d.section_id=0 
-                    and d.purpose_id=0 
-                    where c.blocked=0 
-                    and d.counter>0 
-                    order by NAME_'. $lang,
-                    null, 0, 86400, $force);
-    }
-    
-    
-    function getCities($force=0){
-        return $this->queryCacheResultSimpleArray(
-                'cities',
-                'select c.ID, c.NAME_AR, c.NAME_EN, c.URI, s.counter, s.UNIXTIME, c.COUNTRY_ID, c.LATITUDE, c.LONGITUDE
-                from city c 
-                left join counts s 
-                        on s.country_id=c.country_id 
-                        and s.city_id=c.id
-                        and s.root_id=0 
-                        and s.section_id=0 
-                        and s.purpose_id=0 
-                where s.counter>=0 
-                and c.blocked=0',
-                null, 0, 86400,$force);
-    }
-    
-    
-    function getCountryCities($countryId,$lang='ar',$force=0){
-        return $this->queryCacheResultSimpleArray("cities_{$countryId}_{$lang}",
-                "select c.ID 
-                 from city c
-                 where c.country_id={$countryId} 
-                 and c.blocked=0
-                 order by NAME_".  strtoupper($lang),
-                null, 0, 86400,$force);
-    }
-    */
+       
     
     function queryQLCacheResultSimpleArray($label, $query, $params=null, $key=0, $lifetime=86400, $forceSetting=false, $forceIfEmpty=false) {
         $records=array();        
@@ -664,18 +616,15 @@ class DB {
     }
     
     
-    function getSections($forceSetting=false)
-    {
+    function getSections($forceSetting=false) {
         $label = 'sections';
         $records = false;
         
-        if(!$forceSetting)
-        {
+        if (!$forceSetting) {
             $records = self::$Cache->get($label);
         }
         
-        if ($forceSetting || $records===FALSE) 
-        {
+        if ($forceSetting || $records===FALSE) {
             $records = $this->ql->directQuery(
                     "select id, section_name_ar as name_ar, section_name_en as name_en, "
                     . " section_uri as uri, root_id, "
@@ -699,17 +648,7 @@ class DB {
         else {            
             $result=array();
         }
-        /*
-        if ($this->slaveOfRedis) {
-        	error_log("Could not get v1:{$label} from cache!!!");
-        	usleep(100);
-        	$result = self::$Cache->get($label);
-        	if ($result!==FALSE) {
-        		error_log("Got v1:{$label} from cache after 0.1 ms!!!");
-        	}
-            return $result;
-        }
-        */
+
         $countries = $this->getCountriesDictionary();
         $f=($lang=='ar')?1:2;
         $resource = $this->ql->getConnection()->query("select groupby(), count(*), max(date_added) from ad group by country limit 1000");

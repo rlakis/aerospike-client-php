@@ -27,10 +27,9 @@ class Site {
     var $publisherTypeSorting = 0;
 
 
-    function __construct(/*Router $router*/) {
+    function __construct() {
         global $argc;        
         $this->router = Router::getInstance();
-        //$this->router = $router;
         if ($this->router->language=='en') {
             $this->lnIndex=1;
         }

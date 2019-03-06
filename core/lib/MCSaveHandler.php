@@ -543,16 +543,22 @@ class MCSaveHandler {
             $sbMails.=" FOR x IN attrs.mails)";
         }
             
+        $contactFilter=false;
         if ($sbPhones && $sbMails) {
             $q.=", ({$sbPhones} OR {$sbMails}) cfilter";
+            $contactFilter=true;
         }
         else if ($sbPhones && empty($sbMails)) {
             $q.=", {$sbPhones} cfilter";
+            $contactFilter=true;
         }
         else if (empty($sbPhones) && $sbMails) {
             $q.=", {$sbMails} cfilter";
+            $contactFilter=true;
         }
-        $q.=" FROM ad WHERE id!={$reference} and hold=0 and cfilter=1 limit 1000";
+        $q.=" FROM ad WHERE id!={$reference} and hold=0 ";
+        if ($contactFilter) { $q.='and cfilter=1 '; }
+        $q.= 'limit 1000';
 
         //echo $q, "\n";
         $res = $sphinx->search($q);

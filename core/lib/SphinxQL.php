@@ -896,7 +896,7 @@ class SphinxQL {
     }
 
 
-    private function Log($message) {
+    private function Log(string $message) : void {
         $dbt = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 2);
         if (!empty($dbt)) {
             unset($dbt[0]['function']);

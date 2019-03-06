@@ -1,0 +1,22 @@
+#main {width: 100%;display:flex;flex:1 auto;flex-flow: column}
+#main .card{margin: 12px 0}
+#main .card-header{display: flex;align-items: center;background-color: white;padding: 0;height:40px; min-width: 240px}
+#main .card .card-title{margin: 0 44px !important}
+#main .card .card-content{padding-top: 32px}
+#main h5{margin: 0;font-size: 1.1rem}
+#main .btn.blue{background-color: #007bff; color:white}
+.card .pictures{display: flex; flex: 1 auto; flex-flow: row wrap; align-items: center; justify-content: space-between;}
+#main .pix {display:inline-block; width: 306px; height: 192px; border: 1px solid lightgray}
+.card textarea{width: 100%; height: 120px;border: 1px solid lightgray}
+#main .card ul{padding:15px 20px}
+
+@media screen and (max-width: 768px) {    
+    .modal{position:absolute;top:0;left:0;width:100%;height:100%;bottom:0;-webkit-overflow-scrolling:touch;background-color: white}
+    .modal *{-webkit-overflow-scrolling: auto;overflow-y: auto;}
+    .close{right:8px;top:4px;}
+    .nopix{position: relative;}
+    .modal div:first-child{padding-top:0}
+}
+
+.modal h6{margin: 24px 0 12px}
+.modal li{cursor: pointer}

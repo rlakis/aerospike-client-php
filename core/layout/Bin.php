@@ -1622,6 +1622,12 @@ class Bin extends AjaxHandler{
                     $nameIdx = ($lang=='ar'?1:2);
                     $result=['r'=>[],  'qs'=>[], 'qr'=>[]];
                     
+                    error_log($_SERVER["HTTP_REFERER"]);
+                    
+                    $referer= filter_input(INPUT_SERVER, 'HTTP_REFERER', FILTER_SANITIZE_STRING);
+                    $path=parse_url($referer, PHP_URL_PATH);
+                    if(strlen($path)>5){ $path=substr($path, 0, 6); }
+                    $forPostAd=($path==='/post/');
                     $sections= $this->router()->sections;
                     usort($sections, function(array $a, array $b) use ($nameIdx) {return ($a[$nameIdx]<=>$b[$nameIdx]);});
                     $result['n'] = $sections;
@@ -1629,24 +1635,28 @@ class Bin extends AjaxHandler{
                     
                     foreach ($this->router()->roots as $root) {
                         $result['r'][$root[0]]=['name'=>$root[$nameIdx], 'sections'=>[], 'purposes'=>[], 'sindex'=>[]];
-                    }
-                                    
+                    }                                    
                     
                     for ($i=0; $i<$len; $i++) {                  
                         $result['r'][ $sections[$i][4] ]['sections'][ $sections[$i][0] ] = $sections[$i][$nameIdx];                                                             
                         $result['r'][ $sections[$i][4] ]['sindex'][] = $sections[$i][0];                                       
                     }
 
-                    $lnIndex = $lang=='ar' ? 4 : 3;
-                    foreach ($this->router()->config()->get('smart_section_fix') as $SID => $switches) { 
-                         foreach ($switches as $switch){
-                            $result['qs'][$SID][]=[$switch[0], $switch[1] , $switch[2] , $switch[$lnIndex]];
-                         }
+                    if ($forPostAd) {
+                        
                     }
+                    else {
+                        $lnIndex = $lang=='ar' ? 4 : 3;
+                        foreach ($this->router()->config()->get('smart_section_fix') as $SID => $switches) { 
+                             foreach ($switches as $switch){
+                                $result['qs'][$SID][]=[$switch[0], $switch[1] , $switch[2] , $switch[$lnIndex]];
+                            }
+                        }
                                
-                    foreach ($this->router()->config()->get('smart_root_fix') as $SID => $switches) {                        
-                        foreach ($switches as $switch) {
-                            $result['qr'][$SID][]=[$switch[0], $switch[1], $switch[2] , $switch[$lnIndex]];
+                        foreach ($this->router()->config()->get('smart_root_fix') as $SID => $switches) {                        
+                            foreach ($switches as $switch) {
+                                $result['qr'][$SID][]=[$switch[0], $switch[1], $switch[2] , $switch[$lnIndex]];
+                            }
                         }
                     }
                     
@@ -1666,8 +1676,13 @@ class Bin extends AjaxHandler{
                     }
                     
                     $this->setData($result['r'], 'roots');
-                    $this->setData($result['qs'], 'sswitch');
-                    $this->setData($result['qr'], 'rswitch');
+                    if (!$forPostAd) {
+                        $this->setData($result['qs'], 'sswitch');
+                        $this->setData($result['qr'], 'rswitch');
+                    }
+                    else {
+                        
+                    }
                     $this->process();
                 }
                 else {

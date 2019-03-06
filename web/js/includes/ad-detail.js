@@ -283,8 +283,8 @@ function report(e){
             .then(response => {
                 console.log('Success:', response);
                 //console.log(response);
-                if(response.RP==1){
-                    e.parentElement.parentElement.style.backgroundColor='red';
+                if(response.RP===1){
+                    e.parentElement.parentElement.style.backgroundColor='lightgray';
                 }
             })
             .catch(error => { 

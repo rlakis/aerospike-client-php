@@ -1,45 +1,35 @@
 <?php
-require_once 'Page.php';
+Config::instance()->incLayoutFile('Page');
 
-class PostAd extends Page{
-
-    var $unit='',$globalScript='',$inlineScript='',$adContent=null,$presetTitle=false,$id=0,$advanced=false;
+class PostAd extends Page {
+    private $adContent = null;
+    var $unit='',$globalScript='',$inlineScript='',$presetTitle=false,$id=0,$advanced=false;
     var $pageGlobal='',$pageInline='',$ad=null, $loadColorBox=false, $sectionCrumb='', $userBalance=0;
-    
-    
-    function __construct($router)
-    {
+        
+    function __construct(Core\Model\Router $router) {
         parent::__construct($router);
         
-        if($this->urlRouter->cfg['active_maintenance'])
-        {
-            $this->user->redirectTo('/maintenance/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
+        if($this->router()->config()->isMaintenanceMode()) {
+            $this->user()->redirectTo($this->router()->getLanguagePath('/maintenance/'));
         }
         
         $this->checkBlockedAccount();
         $this->checkSuspendedAccount();
         
         $tmp = $this->get('ad');
-        if($tmp=='new')
-        {
+        if ($tmp=='new') {
             unset($this->user->pending['post']);
             $this->user->update();
-            //$this->urlRouter->redirect($this->urlRouter->uri . ($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'), 302);
         }
         
-        //syslog(LOG_INFO, json_encode($this->user->info));
+        //syslog(LOG_INFO, json_encode($this->user->info));        
+        $this->router()->config()->setValue('enabled_sharing', 0);
+        $this->router()->config()->disableAds();               
         
-        $this->urlRouter->cfg['enabled_sharing']=0;
-        $this->urlRouter->cfg['enabled_ads']=0;
-        if($this->isMobile){
-            $this->inlineCss.='.ls li.alt{background-color:#FFF}li.h b{height:auto}.bt.ah{white-space:normal}'
-                    . '.bt.gold{background-color:orange}';
-        }else{
-            $this->set_ad(array('zone_0'=>array('/1006833/PublicRelation', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->urlRouter->cfg['server_id'])));
-        }
-        if($this->urlRouter->siteLanguage == 'ar'){
+        if ($this->router()->isArabic()) {
             $this->inlineCss.='.upload_bt input{direction:ltr!important}';
-        }else{
+        }
+        else {
             $this->inlineCss.='.upload_bt input{direction:rtl!important}';
         }
         $this->inlineCss.='.upload_bt{white-space:nowrap!important;overflow:visible}';
@@ -47,15 +37,15 @@ class PostAd extends Page{
         $this->set_require('css', array('post'));
         $this->title=$this->lang['title'];
 
-        if ($this->user->params["country"]){
-            $this->urlRouter->countryId=$this->user->params["country"];
+        if ($this->user->params['country']) {
+            $this->router()->countryId=$this->user->params['country'];
         }
-        if ($this->user->params["city"]){
-            $this->urlRouter->cityId=$this->user->params["city"];
+        if ($this->user->params['city']) {
+            $this->router()->cityId=$this->user->params['city'];
         }
         //$this->isUserMobileVerified=false;
         $this->hasLeadingPane = $this->user->info['id'] && !$this->isUserMobileVerified;
-        if($this->user->info['id']){
+        if ($this->user()->isLoggedIn()) {
             if(!$this->isUserMobileVerified){
                 $this->title=$this->lang['verify_mobile'];
                 $this->set_require('css', array('select2'));
@@ -69,7 +59,7 @@ class PostAd extends Page{
                         #mb_check ul{display:block;width:100%;overflow:hidden;background-color:#ececec;margin-bottom:5px}
                         #mb_check li{padding:15px 10px;height: 60px;line-height: 50px}                        
                         ';
-                if($this->urlRouter->siteLanguage=='ar'){                    
+                if($this->router()->siteLanguage=='ar'){                    
                     $this->inlineCss.='
                         #mb_check li{float:right}
                         #mb_check li:last-child{float:left}
@@ -93,7 +83,7 @@ class PostAd extends Page{
                     $this->inlineCss.='
                         #mb_check li{padding:5px;height:auto;line-height:25px}
                     ';
-                    if($this->urlRouter->siteLanguage=='ar'){                    
+                    if($this->router()->siteLanguage=='ar'){                    
                         $this->inlineCss.='
                             #mb_check li{text-align:right}
                         ';
@@ -103,31 +93,27 @@ class PostAd extends Page{
                         ';
                     }
                 }
-                /*if($this->urlRouter->siteLanguage=='ar'){
-                    $this->inlineCss.='.select2-selection__rendered,.select2-results__option{unicode-bidi:bidi-override;}';
-                }*/
-            }else{
+            }
+            else {
                 if (isset ($_REQUEST['ad']) && is_numeric($_REQUEST['ad'])) {
-
                     $this->ad=$this->user->loadAdToSession($_REQUEST['ad']);
                     $this->id=$this->user->pending['post']['id'];
                     $this->countryId=$this->user->pending['post']['cn'];
-                        $this->cityId=$this->user->pending['post']['c'];
-                        $this->sectionId=$this->user->pending['post']['se'];
-                        $this->purposeId=$this->user->pending['post']['pu'];
-                        $this->rootId=$this->user->pending['post']['ro'];
-                        $this->adContent=json_decode($this->user->pending['post']['content'],true);
-                        if($this->user->info['id']==$this->user->pending['post']['user']) {
-                            $this->user->saveAd(0,$this->user->info['id']);
-                        }
+                    $this->cityId=$this->user->pending['post']['c'];
+                    $this->sectionId=$this->user->pending['post']['se'];
+                    $this->purposeId=$this->user->pending['post']['pu'];
+                    $this->rootId=$this->user->pending['post']['ro'];
+                    $this->adContent=json_decode($this->user->pending['post']['content'],true);
+                    if ($this->user->info['id']==$this->user->pending['post']['user']) {
+                        $this->user->saveAd(0, $this->user->info['id']);
+                    }
                 }
 
-                if (isset ($_REQUEST['adr']) && is_numeric($_REQUEST['adr'])) {
+                if (isset($_REQUEST['adr']) && is_numeric($_REQUEST['adr'])) {
                     //$res = $this->user->renewAd($_POST['adr'],0);
                     $id = $_REQUEST['adr'];
-                    if($id){
+                    if ($id) {
                         $this->user->holdAd($id);
-                    //if(!empty($res)){
                         $this->ad=$this->user->loadAdToSession($id);
                         $this->id=$this->user->pending['post']['id']; 
                         $this->user->pending['post']['state']=0;
@@ -158,34 +144,33 @@ class PostAd extends Page{
                 $this->userBalance = $this->userBalance['balance'];
             }
         }
-        //error_log($this->urlRouter->isApp);
-        if($this->urlRouter->isApp > '1.0.4'){
+
+        if($this->router()->isApp > '1.0.4'){
             $this->inlineCss.='.spimg{width:300px!important}';
         }
-        if($this->urlRouter->isApp){
+        
+        if($this->router()->isApp){
             $this->inlineCss.='body{margin-top:0!important}';
         }
+        
         $this->render();
-    }    
+    }  
     
     
-    function mainMobile(){
-        if ($this->user->info['id']) {
+    function mainMobile() {
+        if (!$this->user()->isLoggedIn()) { return; }
             
-            if($this->isUserMobileVerified){
+        if ($this->isUserMobileVerified) {
             
             $seqHide=false;
             $preview='';
             $altPreview='';
             $maximumChars=400;
             $minimumChars=30;
-            //$this->rootId=1;
-            //$this->purposeId=1;
-            //$this->sectionId=1;
             
-            if(!isset($this->adContent['lat']))$this->adContent['lat']=0;
-            if(!isset($this->adContent['lon']))$this->adContent['lon']=0;
-            if(!isset($this->adContent['loc']))$this->adContent['loc']='';
+            if (!isset($this->adContent['lat'])) $this->adContent['lat']=0;
+            if (!isset($this->adContent['lon'])) $this->adContent['lon']=0;
+            if (!isset($this->adContent['loc'])) $this->adContent['loc']='';
             
             $uAlt=0;
             if(isset($this->adContent['extra']['t']))$uAlt=$this->adContent['extra']['t'];
@@ -200,71 +185,62 @@ class PostAd extends Page{
             if(isset($this->adContent['extra']['m']))$uMap=$this->adContent['extra']['m'];
             
             $hasMap=0;
-            if($this->adContent['lat'] && $this->adContent['lon'] && $this->adContent['loc']){
+            if ($this->adContent['lat'] && $this->adContent['lon'] && $this->adContent['loc']) {
                 $hasMap=1;
                 $uMap=1;
-            }elseif($uMap!=2){
+            }
+            elseif ($uMap!=2) {
                 $uMap=0;
             }
-            if($uMap==2){
+            
+            if ($uMap==2) {
                 $this->adContent['lat']=0;
                 $this->adContent['lon']=0;
                 $this->adContent['loc']='';
             }
             
-            $adRTL=($this->urlRouter->siteLanguage=='ar' ? 1:0);          
-            $altRTL=($this->urlRouter->siteLanguage=='ar' ? 0:1);     
+            $adRTL=($this->router()->isArabic() ? 1 : 0);          
+            $altRTL=($this->router()->isArabic() ? 0 : 1);     
+            
             //load contact time vars
-            $hasContactTime=true;
-            //$this->adContent['cut']=  json_decode('{"t":1,"a":0,"b":14}',true);
-            if(!isset($this->adContent['cut']) || (isset($this->adContent['cut']) && !is_array($this->adContent['cut']))){
-                if(isset($this->user->info['options']['cut']) && is_array($this->user->info['options']['cut'])){
+            if (!isset($this->adContent['cut']) || (isset($this->adContent['cut']) && !is_array($this->adContent['cut']))) {
+                if (isset($this->user->info['options']['cut']) && is_array($this->user->info['options']['cut'])) {
                     $this->adContent['cut']=$this->user->info['options']['cut'];
-                }else{
-                    $this->adContent['cut']= json_decode('{"t":-1,"b":24,"a":6}',true);
+                }
+                else {
+                    $this->adContent['cut']=["t"=>-1, "b"=>24, "a"=>6];
                 }
             }
-            if($this->adContent['cut']['t']<0){
-                $hasContactTime=false;
-            }
+            
+            $hasContactTime = ($this->adContent['cut']['t']>=0);
             
             //load contact info
-            //$this->adContent['cui']= json_decode('{"p":[{"v":"+9613071049","t":3,"c":961,"i":"LB","r":"03071049"},{"v":"+96130710499","t":3,"c":961,"r":"030710499"}],"b":"","e":"","s":"","t":"@mourjan"}',true);
-            //$this->adContent['cui']= json_decode('{"p":[],"b":"","e":"","s":"","t":"@mourjan"}',true);
-            if(!isset($this->adContent['cui']) || (isset($this->adContent['cui']) && !is_array($this->adContent['cui']))){
-                if(isset($this->user->info['options']['cui']) && is_array($this->user->info['options']['cui'])){
+            if (!isset($this->adContent['cui']) || (isset($this->adContent['cui']) && !is_array($this->adContent['cui']))) {
+                if (isset($this->user->info['options']['cui']) && is_array($this->user->info['options']['cui'])) {
                     $this->adContent['cui']=$this->user->info['options']['cui'];
-                }else{
-                    $this->adContent['cui']=json_decode('{"p":[],"b":"","e":"","s":"","t":""}',true);
+                }
+                else {
+                    $this->adContent['cui']=["p"=>[], "b"=>"", "e"=>"", "s"=>"", "t"=>""];
                 }
             }     
-            if(!isset($this->adContent['cui']['p']) || (isset($this->adContent['cui']['p']) && !is_array($this->adContent['cui']['p']))){
+            if (!isset($this->adContent['cui']['p']) || (isset($this->adContent['cui']['p']) && !is_array($this->adContent['cui']['p']))) {
                 $this->adContent['cui']['p']=array();
             }
-            if(!isset($this->adContent['cui']['e'])){
-                $this->adContent['cui']['e']='';
-            }
-            if(!isset($this->adContent['cui']['b'])){
-                $this->adContent['cui']['b']='';
-            }
-            if(!isset($this->adContent['cui']['s'])){
-                $this->adContent['cui']['s']='';
-            }
-            if(!isset($this->adContent['cui']['t'])){
-                $this->adContent['cui']['t']='';
-            }
-            $hasContact=false;
-            $hasContactNumbers=false;
-            if(count($this->adContent['cui']['p'])) $hasContactNumbers=true;
-            if ($this->adContent['cui']['e'] || $this->adContent['cui']['s'] || $this->adContent['cui']['t'] || $this->adContent['cui']['b'] || $hasContactNumbers) $hasContact=true;
+            if (!isset($this->adContent['cui']['e'])) { $this->adContent['cui']['e']=''; }
+            if (!isset($this->adContent['cui']['b'])) { $this->adContent['cui']['b']=''; }
+            if (!isset($this->adContent['cui']['s'])) { $this->adContent['cui']['s']=''; }
+            if (!isset($this->adContent['cui']['t'])) { $this->adContent['cui']['t']=''; }
+            $hasContactNumbers = (count($this->adContent['cui']['p']));
+            $hasContact = ($this->adContent['cui']['e'] || $this->adContent['cui']['s'] || $this->adContent['cui']['t'] || $this->adContent['cui']['b'] || $hasContactNumbers);
             
-            if($hasContactNumbers){
+            if ($hasContactNumbers) {
                 $fixedArray = [];
-                foreach ($this->adContent['cui']['p'] as $num){                    
-                    if(!isset($num['r']) || (isset($num['r']) && $num['r']=='')){
+                foreach ($this->adContent['cui']['p'] as $num) { 
+                    if (!isset($num['r']) || (isset($num['r']) && $num['r']=='')) {
                         $num['r'] = $num['v'];
                         $fixedArray[] = $num;
-                    }else{
+                    }
+                    else {
                         $fixedArray[] = $num;
                     }
                 }
@@ -275,66 +251,34 @@ class PostAd extends Page{
             $other='';
             $altOther='';
             $save=0;
-            //$this->adContent['fields']['other']='للبيع بالتجمع الخامس شقه 137م النرجس عمارات في القاهرة مصر - للبيع بالتجمع الخامس شقه 137م النرجس عمارات 2 نوم / ليفنج / 2 رسيبشن / حمام / مطبخ الطابق الثانى / خلفيه على حديقه / استلام فورى حصه بالارض / جراج + مخزن / عداد كهرباء 4/3 تشطيب / سباكه / كهرباء / نقاشه اسقف جبس / بيت نور / كرانيش';
-            //$this->adContent['fields']['altother']='Check out the cover i made for this song if you want﻿ and tell me what you think!';
-            /*if (isset ($this->adContent['rawOther']) && $this->adContent['rawOther']){
-                $save=1;
-                $other=$this->adContent['rawOther'];
-                $adRTL=preg_match('/[\x{0621}-\x{064a}]/u', $other);
-                $preview=$other;
-                $preview.=$this->user->parseUserAdTime($this->adContent['cui'],$this->adContent['cut'],$adRTL);
-            }else */
-            if (isset ($this->adContent['other']) && $this->adContent['other']){
+            if (isset($this->adContent['other']) && $this->adContent['other']) {
                 $save=1;
                 $other=$this->adContent['other'];
                 $other=preg_replace('/\x{200B}.*/u', '', $other);
                 $adRTL=preg_match('/[\x{0621}-\x{064a}]/u', $other);
                 $preview=$other;
-                $preview.=$this->user->parseUserAdTime($this->adContent['cui'],$this->adContent['cut'],$adRTL);
+                $preview.=$this->user->parseUserAdTime($this->adContent['cui'], $this->adContent['cut'], $adRTL);
             }
             
-            /*if (isset ($this->adContent['rawAltOther']) && $this->adContent['rawAltOther']){
-                $altOther=$this->adContent['rawAltOther'];
-                $altRTL=preg_match('/[\x{0621}-\x{064a}]/u', $altOther);
-                $altPreview=$altOther;
-                $altPreview.=$this->user->parseUserAdTime($this->adContent['cui'],$this->adContent['cut'],$altRTL);
-            }else */
-            if (isset ($this->adContent['altother']) && $this->adContent['altother']){
-                $altOther=$this->adContent['altother'];
+            if (isset($this->adContent['altother']) && $this->adContent['altother']) {
+                $altOther=$this->adContent['altother']; 
                 $altOther=preg_replace('/\x{200B}.*/u', '', $altOther);
                 $altRTL=preg_match('/[\x{0621}-\x{064a}]/u', $altOther);
                 $altPreview=$altOther;
-                $altPreview.=$this->user->parseUserAdTime($this->adContent['cui'],$this->adContent['cut'],$altRTL);
+                $altPreview.=$this->user->parseUserAdTime($this->adContent['cui'], $this->adContent['cut'], $altRTL);
             }
-            /*if($altOther){
-                if($this->urlRouter->siteLanguage=='en'){
-                    $tmp=$other;
-                    $other=$altOther;
-                    $altOther=$tmp;
-                    
-                    $tmp=$adRTL;
-                    $adRTL=$altRTL;
-                    $altRTL=$tmp;
-                    
-                    $tmp=$preview;
-                    $preview=$altPreview;
-                    $altPreview=$tmp;
-                }
-            }*/
+            
             $otherLength=mb_strlen($other,'UTF-8');
             $altLength=mb_strlen($altOther,'UTF-8');
-            $hasContent=$otherLength<30 ? 0:1;
-            $hasAltContent=$altLength<30 ? 0:1;
-            if($hasAltContent) {
-                $uAlt=1;
-            }
+            $hasContent=$otherLength<30 ? 0 : 1;
+            $hasAltContent=$altLength<30 ? 0 : 1;
+            if ($hasAltContent) { $uAlt=1; }
+
             //load publishing countries
-            //$this->adContent['pubTo']= json_decode('{"1":1}',true);    
-            $hasLocs=(isset ($this->adContent['pubTo']) && count($this->adContent['pubTo']));
-            if($hasLocs){
-                foreach($this->adContent['pubTo'] as $key => $val){
-                    if(!is_numeric($key))
-                        unset($this->adContent['pubTo'][$key]);
+            $hasLocs=(isset($this->adContent['pubTo']) && count($this->adContent['pubTo']));
+            if ($hasLocs) {
+                foreach ($this->adContent['pubTo'] as $key => $val) {
+                    if (!is_numeric($key)) { unset($this->adContent['pubTo'][$key]); }
                 }
             }
             
@@ -346,13 +290,13 @@ class PostAd extends Page{
             if (isset ($this->adContent['video'])) {
                 $hasVideo=$this->adContent['video'][0] ? 2 : 1;
                 $this->globalScript.='var tvl="<a class=\'ctr ah\' target=\'blank\' href=\''.$this->adContent['video'][1].'&autoplay=1\'><span onclick=\'delV(this)\' title=\''.$this->lang['removeVideo'].'\' class=\'button pz pzd\'></span><img src=\''.$this->adContent['video'][2].'\' width=\'250\' height=\'200\' /><span class=\'play\'></span></a>";';
-            }else{
+            }
+            else {
                 $this->globalScript.='var tvl="";';
             }
-            if($hasVideo)$uVideo=1;
-            elseif($uVideo!=2) $uVideo=0;
+            if ($hasVideo) $uVideo=1; elseif($uVideo!=2) $uVideo=0;
             
-            $this->globalScript.='var isrc="'.$this->urlRouter->cfg['url_ad_img'].'/repos/",SAVE='.$save.',extra={t:'.$uAlt.',v:'.$uVideo.',p:'.$uPics.',m:'.$uMap.'},hasAT='.$hasAltContent.',brtl='.$altRTL.',hasT='.$hasContent.',artl='.$adRTL.',pro='.$this->rootId.',ppro='.$this->rootId.',ppu='.$this->purposeId.',pse='.$this->sectionId.',pc=[],pcl=0,pzv='.($hasContact ? 1:0).',hNum='.($hasContactNumbers ? 1 : 0).',cui='.json_encode($this->adContent['cui']).',cut='.json_encode($this->adContent['cut']).',cutS="",maxC='.$maximumChars.',minC='.$minimumChars.',picL='.$hasPics.',hasVd='.$hasVideo.',hasM='.$hasMap.',lat='.$this->adContent['lat'].',lon='.$this->adContent['lon'].',HOME="'.$this->urlRouter->getURL($this->urlRouter->countryId,$this->urlRouter->cityId).'";';
+            $this->globalScript.='var isrc="'.$this->router()->config()->adImgURL.'/repos/",SAVE='.$save.',extra={t:'.$uAlt.',v:'.$uVideo.',p:'.$uPics.',m:'.$uMap.'},hasAT='.$hasAltContent.',brtl='.$altRTL.',hasT='.$hasContent.',artl='.$adRTL.',pro='.$this->rootId.',ppro='.$this->rootId.',ppu='.$this->purposeId.',pse='.$this->sectionId.',pc=[],pcl=0,pzv='.($hasContact ? 1:0).',hNum='.($hasContactNumbers ? 1 : 0).',cui='.json_encode($this->adContent['cui']).',cut='.json_encode($this->adContent['cut']).',cutS="",maxC='.$maximumChars.',minC='.$minimumChars.',picL='.$hasPics.',hasVd='.$hasVideo.',hasM='.$hasMap.',lat='.$this->adContent['lat'].',lon='.$this->adContent['lon'].',HOME="'.$this->router()->getURL($this->router()->countryId,$this->router()->cityId).'";';
             
             $budget = (isset($this->adContent['budget']) && is_numeric($this->adContent['budget']) ? $this->adContent['budget'] : 0);
             
@@ -370,16 +314,13 @@ class PostAd extends Page{
                 (isset($this->adContent['app_v']) ? ',app_v:"'.$this->adContent['app_v'].'"':'').
                 '
             };';
+            
             //prefetch country_code info
             $setccv=0;
-            if(isset($this->user->params['country']) && $this->user->params['country']){
+            if (isset($this->user->params['country']) && $this->user->params['country']) {
                 $cid=$this->user->params['country'];
-                $q='select c.code,c.id,c.name_ar,c.name_en,c.locked, trim(id_2)    
-                        from country c';
-                $cc=$this->urlRouter->db->queryCacheResultSimpleArray(
-                   'country_codes_req',
-                   $q,
-                   null, 1, $this->urlRouter->cfg['ttl_long']);
+                $q='select c.code, c.id, c.name_ar, c.name_en, c.locked, trim(id_2) from country c';
+                $cc=$this->urlRouter->db->queryCacheResultSimpleArray('country_codes_req', $q, null, 1, $this->router()->config()->get('ttl_long'));
                 if (isset($cc[$cid])){
                     $setccv=1;
                     $this->globalScript.='var ccv={c:'.$cc[$cid][0].',n:'.($cc[$cid][4] ? $cc[$cid][1]:0).',en:"'.$cc[$cid][3].'",ar:"'.$cc[$cid][2].'",i:"'.$cc[$cid][5].'"};';
@@ -419,36 +360,72 @@ class PostAd extends Page{
                 ?></style><?php
             }
             
-            if(!$this->isMobile && $this->user->info['level']==9){
-                $this->globalScript.='var PVC=1;';
-                ?><ul tabindex="0" class="ls po"><?php
-                    ?><li class="h"><b><?= $this->lang['m_h_admin'] ?></b></li><?php
-                    ?><li onclick="toLower()"><b class="lnk">To Lower Case<span class="to"></span></b></li><?php
-                ?></ul><?php
+            echo '<div class=col-12><div class=card>';
+            if ($this->user()->isLoggedIn(9)) {
+                $this->globalScript.='var PVC=1;';                
+                echo '<div class=card-content>', '<a class="btn blue float-right" href="javascript:void(0)" onclick="toLower()">Lower case</a></div>';               
             }
+             echo '</div></div>';
                 
+            //pictures
+            echo '<div class=col-12><div class=card><div class=card-header><div class=card-title><h5>', "Pictures", '</h5></div></div>';
+            echo '<div class="card-content pictures">';
+            for ($i=0; $i<5; $i++){
+                echo '<span class=pix data-index=', $i, '></span>';
+            }
+            echo '</div>';
+            echo '</div></div>';
+            
+            echo '<div class=col-12><div class=card><div class=card-header><div class=card-title><h5>', "Ad Text 1", '</h5></div></div>';
+            echo '<div class="card-content">';
+            ?><textarea></textarea><?php
+            echo '</div>';
+            echo '</div></div>';
+            
+            echo '<div class=col-12><div class=card><div class=card-header><div class=card-title><h5>', "Ad Text 2", '</h5></div></div>';
+            echo '<div class="card-content">';
+            ?><textarea></textarea><?php
+            echo '</div>';
+            echo '</div></div>';
+
+            echo '<div class=col-12><div class=card><ul>';
+            echo '<li><a href="javascript:void(0)" onclick="Ed.chooseRootPurpose()">Choose listing section</a></li>';
+            echo '<li>Map Address/Location</li>';
+            echo '<li>Where to publish your ad?</li>';
+            echo '</ul></div></div>';
+            
+            echo '<div class=col-12><div class=card>';
+            ?><ul>
+                <li>Phone number 1</li>
+                <li>Phone number 2</li>
+                <li>Email</li>
+            </ul><?php
+            echo '</div></div>';
+            
+            echo '<div class=col-12><div class=card>';
+            //echo '<div class="card-content">';
+            ?><ul>
+                <li><a href=# class="btn blue">Save</a></li>
+                <li><a href=# class="btn blue">Publish</a></li>
+                <li><a href=# class="btn">Cancel</a></li>
+            </ul><?php
+            //echo '</div>';
+            echo '</div></div>';
+            
             $q='select cn.id, cn.NAME_AR, cn.NAME_EN,lower(trim(cn.id_2)), c.id, c.NAME_AR, c.NAME_EN, c.uri,
                     cn.id||\'-\'||c.id
                     from country cn
                     left join city c on c.country_id=cn.id                    
                     where cn.blocked=0
                     and c.blocked=0                    
-                    order by cn.NAME_'.$this->urlRouter->siteLanguage.', c.name_'.$this->urlRouter->siteLanguage;
-/*
- * left join counts d
-                        on cn.id=d.country_id
-                        and d.city_id=c.id
-                        and d.root_id=0
-                        and d.section_id=0
-                        and d.purpose_id=0
- * and d.counter>0
- */
+                    order by cn.NAME_'.$this->router()->language.', c.name_'.$this->router()->language;
                 
-            $countries = $this->urlRouter->db->queryCacheResultSimpleArray(
-                    'mobile_countries_'.$this->urlRouter->siteLanguage, $q, NULL, 8, $this->urlRouter->cfg['ttl_long']);
-            //$countries = $this->urlRouter->db->getCountriesDictionary();
+            $countries = $this->router()->database()->queryCacheResultSimpleArray(
+                    'mobile_countries_'.$this->router()->language, $q, NULL, 8, $this->router()->config()->get('ttl_long'));
 
-            if(!$this->isMobile && $this->user->info['level']==9 && ( (isset($this->ad) && $this->ad) || (isset($this->adContent['ip']) || isset($this->adContent['userLOC']) || isset($this->adContent['agent'])) )){   
+            
+            if (!$this->isMobile && $this->user->info['level']==9 && ((isset($this->ad) && $this->ad) || (isset($this->adContent['ip']) || isset($this->adContent['userLOC']) || isset($this->adContent['agent'])) )) {
+                
                 ?><ul tabindex="0" class="ls po info"><?php   
                 ?><li class="h"><b><?= $this->lang['m_h_user'] ?></b></li><?php
                 if(isset($this->ad) && $this->ad) {
@@ -537,7 +514,7 @@ class PostAd extends Page{
             
             ?><ul tabindex="0" id="rou" class="ls rct po<?= $this->rootId ? ' pi' : '' ?>"><?php
                 ?><li class="h"><b><?= $this->lang['m_h_root'] ?><span class="et"></span></b></li><?php
-                foreach ($this->urlRouter->roots as $root) {
+                foreach ($this->router()->roots as $root) {
                     ?><li val="<?= $root[0] ?>"<?= $this->rootId ? ($this->rootId==$root[0] ? '' : ' class="hid"') : '' ?>><b><span class="ic r<?= $root[0] ?>"></span><?= $root[$this->fieldNameIndex] ?></b></li><?php                    
                 }
             ?></ul><?php
@@ -618,7 +595,7 @@ class PostAd extends Page{
                 $cityCount=0;
                 $country_index = 2;
                 $city_index = 6;
-                if ($this->urlRouter->siteLanguage=='ar') {
+                if ($this->router()->isArabic()) {
                     $country_index = 1;
                     $city_index = 5;
                 }
@@ -679,17 +656,9 @@ class PostAd extends Page{
                 ?><li onclick="wpz(this)" class="button h"><b><?= $this->lang['m_h_contact'] ?><span class="et"></span></b></li><?php 
                 ?><li class="nobd<?= $hasContact ? ' hid':'' ?>"><ul><?php
                     ?><li val="1" onclick="pz(this,1)" class="button"><b><span class="pz pz1"></span><?= $this->lang['contact_h_1'] ?></b></li><?php
-                    /* ?><li val="2" onclick="pz(this,1)" class="button"><b><span class="pz pz2"></span><span class="pz pz1"></span><?= $this->lang['contact_h_2'] ?></b></li><?php */
                     ?><li val="3" onclick="pz(this,1)" class="button"><b><span class="pz pz3"></span><span class="pz pz1"></span><?= $this->lang['contact_h_3'] ?></b></li><?php
-                    /* ?><li val="4" onclick="pz(this,1)" class="button"><b><span class="pz pz3"></span><span class="pz pz2"></span><span class="pz pz1"></span><?= $this->lang['contact_h_4'] ?></b></li><?php */
-                    /* ?><li val="13" onclick="pz(this,1)" class="button"><b><span class="pz pz3"></span><span class="pz pz2"></span><?= $this->lang['contact_h_13'] ?></b></li><?php */
                     ?><li val="5" onclick="pz(this,1)" class="button"><b><span class="pz pz3"></span><?= $this->lang['contact_h_5'] ?></b></li><?php
                     ?><li val="7" onclick="pz(this,1)" class="button"><b><span class="pz pz5"></span><?= $this->lang['contact_h_7'] ?></b></li><?php
-                    /* ?><li val="8" onclick="pz(this,1)" class="button"><b><span class="pz pz6"></span><?= $this->lang['contact_h_8'] ?></b></li><?php 
-                    ?><li val="9" onclick="pz(this,1)" class="button"><b><span class="pz pz6"></span><?= $this->lang['contact_h_9'] ?></b></li><?php 
-                    ?><li val="6" onclick="pz(this)" class="button"><b><span class="pz pz4"></span><?= $this->lang['contact_h_6'] ?></b></li><?php
-                    ?><li val="12" onclick="pz(this)" class="button"><b><span class="pz pz9"></span><?= $this->lang['contact_h_12'] ?></b></li><?php                    
-                    ?><li val="11" onclick="pz(this)" class="button"><b><span class="pz pz8"></span><?= $this->lang['contact_h_11'] ?></b></li><?php */                   
                     ?><li val="10" onclick="pz(this)" class="button"><b><span class="pz pz7"></span><?= $this->lang['contact_h_10'] ?></b></li><?php
                     ?><li class="hid"><b class="ah ctr"><span onclick="rpz(this)" class="button bt btw cl"><?= $this->lang['cancel'] ?></span></b></li><?php
                 ?></ul></li><?php
@@ -780,7 +749,7 @@ class PostAd extends Page{
                     ?><li><b class="ah ctr"><span onclick="ttm(0,this)" class="button bt btw cl"><?= $this->lang['cancel'] ?></span></b></li><?php
                 ?></ul></li><?php
                 ?><li class="hid nobd"><ul class="hvr"><?php 
-                if ($this->urlRouter->siteLanguage=='ar'){
+                if ($this->router()->isArabic()) {
                     for($i=6;$i<=24;$i++){
                         echo '<li onclick="ctm(this)" val="',$i,'" class="button"><b>',($i<12 ? $i.' '.$this->lang['AM'] : ($i==12 ? $i.' '.$this->lang['NOON']:($i<16 ? ($i-12).' '.$this->lang['ANOON']: ($i<18 ? ($i-12).' '.$this->lang['BPM'] : ($i-12).' '.$this->lang['PM'])))),'<span class="to"></span></b></li>';
                     }
@@ -823,50 +792,7 @@ class PostAd extends Page{
             ?></ul><?php 
             if(!$hasAltContent && $uAlt!=2) $seqHide=true;
             
-            
-            
-            
-            
-            /*
-            ?><ul id="xpc" class="ls po<?= ($hasPics || $uPics==2 ? ' pi':''),(!$seqHide ? '':' hid') ?>"><?php
-                ?><li onclick="edOP(this)" class="button h"><b><?= $this->lang['m_h_pics'] ?><span class="et"></span></b></li><?php 
-                ?><li class="nobd <?= $uPics==1 ? '': ' hid'?>"><ul><?php 
-                    ?><li class="lig pbr"><b><?= $this->lang['maximum'] ?> <span><?= $hasPics.' / 5' ?></span> <?= $this->lang['pictures']  ?></b></li><?php 
-                    ?><li class="nobd<?= $hasPics ? '': ' hid'?>"><?php
-                        ?><ul id="pics" class="pics"><?php 
-                        if($hasPics) {
-                            $k=0;
-                            foreach($this->adContent['pics'] as $key => $val){
-                                $this->globalScript.='imgs['.$k.']="'.$key.'";';
-                            ?><?php
-                                ?><li onclick="edOP($b($p(this,4)));" class="button"><b class="ah ctr"><span title="<?= $this->lang['removePic'] ?>" onclick="delP('<?= $key ?>',this)" class="button pz pzd"></span><?= $this->user->info['level']==9 ? '<a onclick="spe()" class="button iah" target="blank" href="'.$this->urlRouter->cfg['url_ad_img'].'/repos/l/'.$key.'"><span id="sp'. $k .'" class="sp'. $k .' load"></span></a>':'<span id="sp'. $k .'" class="sp'. $k .' load"></span>' ?></b></li><?php 
-                                $k++;
-                            }
-                        }
-                        ?></ul><?php 
-                    ?></li><?php
-                    ?><li class="button pid<?= $hasPics ? '': ' hid'?>" onclick="addPic(this)"><b class="lnk"><span class="pz pza"></span><?= $this->lang['contact_h_pic'] ?></b></li><?php 
-                    ?><li class="pid<?= $hasPics ? '': ' hid'?>"><b class="ah ctr"><span onclick="dpic(this)" class="button bt btw ok"><?= $this->lang['next'] ?></span></b></li><?php
-                    ?><li class="pid<?= $hasPics ? '': ' hid'?>"><?php
-                        ?><form target="upload" onsubmit="if(FLK){upPic(this)}return false;" id="picF" action="/ajax-upload/" enctype="multipart/form-data" method="post"><?php 
-                            ?><ul><li class="nobd"><div class="ipt"><?php
-                            ?><input id="picB" class="nsh" type="file" name="pic" multiple="multiple"/><div class="phf"><span class="load"></span><?= $this->lang['preparing_file'] ?></div><?php
-                                ?><input type="hidden" name="MAX_FILE_SIZE" value="<?= $this->urlRouter->cfg['max_upload'] ?>" /><?php 
-                                ?></div></li><?php 
-                                ?><li class="liw hid"><b class="ah"><?= $this->lang['image_file_format'] ?></b></li><?php
-                                ?><li class="nobd hid"><b class="load h_43"></b></li><?php
-                                ?><li><b class="ah ctr act2"><?php
-                                ?><input class="bt ok off" type="submit" value="<?= $this->lang['upload'] ?>" /><?php 
-                                ?><span onclick="noUp(this)" class="button bt cl"><?= $this->lang['cancel'] ?></span><?php
-                                ?></b></li><?php 
-                            ?></ul><?php    
-                         ?></form><iframe id="upForm" class="hid" name="upload" src="/web/blank.html"></iframe><?php 
-                    ?></li><?php
-                ?></ul></li><?php
-                ?><li class="<?= $uPics==0 ? '': ' hid'?>"><b class="ah ctr act2"><span onclick="edOP(this,1)" class="button bt ok"><?= $this->lang['yes'] ?></span><span onclick="noO(this,'p')" class="button bt cl"><?= $this->lang['no'] ?></span></b></li><?php 
-                ?><li onclick="edOP(this)" class="button<?= $uPics==2 ? '': ' hid'?>"><b><?= $this->lang['no']  ?></b></li><?php
-            ?></ul><?php */
-            //$uPics = 0;
+                                                            
             ?><ul id="xpc" class="ls po<?= ($hasPics || $uPics==2 ? ' pi':''),(!$seqHide ? '':' hid') ?>"><?php
                 ?><li onclick="edOP(this)" class="button h"><b><?= $this->lang['m_h_pics'] ?><span class="et"></span></b></li><?php 
                 ?><li class="nobd"><ul id="pics" class="imgList"><?php 
@@ -882,7 +808,7 @@ class PostAd extends Page{
                     }
                 ?></ul></li><?php 
                 ?><li class="pid"><b class="ah ctr act2"><?php 
-                    ?><form target="upload"<?= $hasPics < 5 ? '':' class="hid"' ?> id="picF" action="<?= $this->urlRouter->cfg['url_uploader'] ?>/upload/" enctype="multipart/form-data" method="post"><?php 
+                    ?><form target="upload"<?= $hasPics < 5 ? '':' class="hid"' ?> id="picF" action="<?= $this->router()->config()->get('url_uploader') ?>/upload/" enctype="multipart/form-data" method="post"><?php 
                     ?><span class="button bt ok upload_bt"><input id="upKey" type="hidden" name="UPLOAD_IDENTIFIER" value="<?= $this->user->info['id'] ?>" /><input id="picB" name="pic" type="file" multiple="multiple" /><?= $this->lang['add_images'] ?></span><?php 
                     ?><input name="picS" type="submit" class="hid" /><?php
                     ?></form><span id="noPBT" onclick="noPO(this)" class="button bt<?= $hasPics ? '' : ' cl' ?>"><?= $hasPics ? $this->lang['next'] : $this->lang['no'] ?></span><?php 
@@ -892,12 +818,7 @@ class PostAd extends Page{
             ?></ul><?php
             
             if(!$hasPics && $uPics!=2) $seqHide=true;
-            
-            
-            
-            
-            
-            
+                        
             
             $isPi=($hasVideo || $uVideo==2);
             ?><ul id="xvd" class="ls po<?= ($isPi ? ' pi':''),(!$seqHide ? '':' hid') ?>"><?php
@@ -933,7 +854,7 @@ class PostAd extends Page{
             ?></ul><?php 
             if(!$hasVideo && $uVideo!=2) $seqHide=true;
             
-            if(!$this->urlRouter->isApp){
+            if(!$this->router()->isApp){
                 ?><ul id="xmp" class="ls po<?= ($hasMap || $uMap==2 ? ' pi':''),(!$seqHide ? '':' hid') ?>"><?php 
                     ?><li onclick="edOM(this)" class="button h"><b><?= $this->lang['m_h_map'] ?><span class="et"></span></b></li><?php 
                     ?><li class="nobd <?= $uMap==1 ? '': ' hid'?>"><ul><?php 
@@ -944,12 +865,12 @@ class PostAd extends Page{
                     ?><li onclick="edOM(this)" class="button<?= $uMap==2 ? '': ' hid'?>"><b><?= $this->lang['no']  ?></b></li><?php
                 ?></ul><?php 
             }
-            if(!$this->urlRouter->isApp && !$hasMap && $uMap!=2) $seqHide=true;
+            if(!$this->router()->isApp && !$hasMap && $uMap!=2) $seqHide=true;
             ?><ul class="ls cls nsh po<?= (!$seqHide ? '':' hid') ?>"><?php 
                 ?><li class="pid nobd"><p><?= $this->lang['ad_review'] ?></p></li><?php  
                 if($budget && $this->userBalance && $this->user->pending['post']['user'] == $this->user->info['id']){
                     $with = '';
-                    if($this->urlRouter->siteLanguage == 'ar'){
+                    if($this->router()->isArabic()){
                         if($budget == 1){
                             $with = 'ذهبية واحدة';
                         }else if($budget == 2){
@@ -980,7 +901,7 @@ class PostAd extends Page{
                     ?><li class="pid"><b class="ah ctr"><span onclick="savAd(-1,true)" class="button bt btw cl ah"><?= $this->lang['savePending'] ?></span></b></li><?php
                 }
             ?></ul><?php 
-            if($this->isMobile || $this->urlRouter->isApp > '1.0.4'){                
+            if($this->isMobile || $this->router()->isApp > '1.0.4'){                
                 ?><div id="loading_dialog" class="dialog loading"><?php
                     ?><div class="dialog-box"></div><?php 
                 ?></div><?php
@@ -1021,7 +942,9 @@ class PostAd extends Page{
             
             
             
-            }else{                
+            }
+            else {
+                // unverified user
                 $q='select c.code,c.id,c.name_'.$this->urlRouter->siteLanguage.',c.locked,trim(id_2)    
                         from country c 
                         where id != 109 
@@ -1326,19 +1249,10 @@ class PostAd extends Page{
             
             
             
-        }
+        
     }
+        
     
-  /*  function load_js() {
-//        $this->pageGlobal=preg_replace('/\s+/', ' ', $this->pageGlobal);
-//        $this->globalScript.=preg_replace('/[\n\t]/', '', $this->pageGlobal);
-//        $this->pageInline=preg_replace('/\s+/', ' ', $this->pageInline);
-//        $this->inlineScript.=preg_replace('/[\n\t]/', '', $this->pageInline);
-        //$this->globalScript.=$this->pageGlobal;
-        //$this->inlineScript.=$this->pageInline;
-        //parent::load_js();
-    }*/
-
     function side_pane(){
         //$this->renderSideUserPanel();
         //if (!$this->user->info['id'] || !$this->isUserMobileVerified){
@@ -1346,155 +1260,25 @@ class PostAd extends Page{
         //}
     }
 
-    function main_pane(){
-        if ($this->user->info['id']) {
-
-            if (!$this->urlRouter->cfg['enabled_post']) {
+    
+    function main_pane() {
+        if ($this->user()->isLoggedIn()) {
+            if (!$this->router()->config()->get('enabled_post')) {
                 $this->renderDisabledPage();
                 return;
             }
-            ?><div id="main" class="rct"><?php
+            
+            ?><div class=row><div class=col-12><div id=main class="rct"><?php
             $this->mainMobile();    
-            ?></div><?php
-/*
-        echo '<div class="sum rc"><div class="brd"><h1>'.$this->title.'</h1>';
-        $func='';
-        //if ($this->countryId && $this->cityId && isset ($this->user->pending['post'])) {
-        if(isset($_POST['map'])) {
-            echo '<span>'.$this->lang['sep'].'</span> <b>'.$this->lang['specify_location'].'</b> ';
-            echo '</div><p id="nb">';
-            echo $this->lang['hint_detail_location'];
-            $func="viewLocation";
-        }else {
-        if (!isset ($this->user->pending['post'])){
-            $this->user->pending['post']=array(
-                'id'=>0,
-                'user'=>  $this->user->info['id'],
-                'ro'=>0,
-                'pu'=>0,
-                'se'=>0,
-                'rtl'=>0,
-                'cn'=>0,
-                'c'=>0,
-                'dc'=>0,
-                'dcn'=>0,
-                'lon'=>0,
-                'lat'=>0,
-                'state'=>0,
-                'content'=>json_encode(array()),
-                'title'=>'',
-                'dcni'=>'',
-                'dci'=>'',
-                'loc'=>'',
-                'gloc'=>'',
-                'tloc'=>'',
-                'zloc'=>'',
-                'code'=>''
-            );
+            ?></div></div></div><?php
+            $this->inlineJS('post.js');
         }
-
-            if ($this->sectionId && $this->rootId && $this->purposeId) {
-                $this->user->pending['post']['ro']=$this->rootId;
-                $this->user->pending['post']['se']=$this->sectionId;
-                $this->user->pending['post']['pu']=$this->purposeId;
-                $this->user->pending['post']['rtl']=$this->urlRouter->siteLanguage=='ar'? 1:0;
-                $this->countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$this->countryId}_{$this->urlRouter->siteLanguage}",
-                        "select c.ID
-                        from city c
-                        where c.country_id={$this->countryId}
-                        and c.blocked=0
-                        order by NAME_".  strtoupper($this->urlRouter->siteLanguage),
-                        null, 0, $this->urlRouter->cfg['ttl_long']);
-
-                if ($this->user->pending['post']['dc']==0) {                    
-                    if(count($this->countryCities)>1){
-                        $dst=0;
-                        foreach($this->countryCities as $key => $val){
-                            $tmp=$this->urlRouter->distance(
-                                    $this->user->pending['post']['lat'],
-                                    $this->user->pending['post']['lon'],
-                                    $this->urlRouter->cities[$key][7],
-                                    $this->urlRouter->cities[$key][8]);
-                            if (!$dst || $tmp<$dst) {
-                                $dst=$tmp;
-                                $this->user->pending['post']['dc']=$key;
-                                $this->user->pending['post']['dci']=$this->urlRouter->cities[$key][$this->fieldNameIndex];
-                            }
-                        }
-                    }else {
-                        $this->user->pending['post']['dc']=0;
-                        $this->user->pending['post']['dci']='';
-                    }
-                }
-                $this->user->update();
-                
-                if (!$this->adContent) {
-                    $this->adContent=json_decode($this->user->pending['post']['content'],true);
-                    if ($this->post('edv','boolean')===false && isset($this->adContent['fields']['edv'])) $this->advanced=$this->adContent['fields']['edv'];
-                }
-
-                //$siteLanguage=$this->urlRouter->siteLanguage;
-
-                $this->purposes=$this->urlRouter->db->queryCacheResultSimpleArray(
-                "post_purposes",
-                "select p.ID, p.NAME_AR, p.NAME_EN
-                from purpose p
-                where p.id != 999
-                order by p.id",
-                null, 0, $this->urlRouter->cfg['ttl_long']);
-
-                $this->sectionName=$this->urlRouter->sections[$this->sectionId][$this->fieldNameIndex];
-
-                ?><br /><form method="post">
-                    <input type="hidden" name="cn" value="<?= $this->countryId ?>" />
-                    <input type="hidden" name="c" value="<?= $this->cityId ?>" />
-                    <input type="hidden" name="ro" value="<?= $this->rootId ?>" />
-                    <input type="hidden" name="pu" value="<?= $this->purposeId ?>" /><?php
-                echo '<a onclick="this.parentNode.submit()">'.$this->lang['change_category'].'</a> ';
-                ?></form><?php 
-                echo '<span>'.$this->lang['sep'].'</span> ';
-                $this->sectionCrumb.= '<b>'.$this->urlRouter->roots[$this->rootId][$this->fieldNameIndex].'</b> ';
-                $this->sectionCrumb.= '<span>'.$this->lang['sep'].'</span> <b>'.$this->sectionName.'</b> ';
-                $this->sectionCrumb.= '<span>'.$this->lang['sep'].'</span> <b>'.$this->purposes[$this->purposeId][$this->fieldNameIndex].'</b> ';
-                echo $this->sectionCrumb.'</div><p id="nb">';
-                echo $this->lang['hint_detail'];
-                $func="viewDetail";
-                $this->loadColorBox=true;
-            } else {
-                echo '</div><p id="nb">';
-                echo $this->lang['hint_root'];
-                $func="viewCategory";
-            }
-        }
-        /*}else {
-            echo '<span>'.$this->lang['sep'].'</span> <b>'.$this->lang['specify_location'].'</b> ';
-            echo '</div><p id="nb">';
-            echo $this->lang['hint_detail_location'];
-            $func="viewLocation";
-        }*/
-      
-       /*     
-       echo '</p></div>';
-        if ((isset($this->user->info['active_ads']) && $this->user->info['active_ads']>0) && $this->user->info['level']<9 && $func == 'viewDetail') {
-            ?><div class="sum rc nb na"><p><?= $this->lang['noAdRepeat'] ?></p></div><?php
-        }
-        if ($func) eval('$this->'.$func.'();');
-*/
-        }else {
-         /*   if (isset($_POST['cn'])) {
-                $this->user->pending['adform']=array(
-                    'cn'    => $this->post('cn', 'uint'),
-                    'c'    => $this->post('c', 'uint'),
-                    'ro'    => $this->post('ro', 'uint'),
-                    'se'    => $this->post('se', 'uint'),
-                    'pu'    => $this->post('pu', 'uint')
-                );
-                $this->user->update();
-            } */
+        else {
             $this->renderLoginPage();
         }
     }
 
+    
     function getCountryUnit(){
         if ($this->countryId){
         if ($this->unit) return $this->unit;

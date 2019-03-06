@@ -9,7 +9,6 @@ class Page extends Site {
     protected $action='';
     protected $requires=array('js'=>array(),'css'=>array());
     protected $title='', $description='';
-    //protected $rss = false;
     public $isUserMobileVerified = false;
     var $stat;
     var $pageUri = '';
@@ -35,8 +34,8 @@ class Page extends Site {
     
     private $included = [];
     
-    function __construct(Core\Model\Router $router) {
-        parent::__construct($router); 
+    function __construct() {
+        parent::__construct(); 
         
         if ($this->user()->id()) {
             if ($this->router()->isApp) {
@@ -102,15 +101,9 @@ class Page extends Site {
         }
         
         if(isset($this->user->params['hasCanvas']) && $this->user->params['hasCanvas']==0){
-            $router->cfg['enabled_charts']=0;
+            $this->router()->cfg['enabled_charts']=0;
         }
         
-        if(($this->router()->module=='search'||$this->router()->module=='detail') && !$this->isMobile){
-            $this->inlineCss.='
-            .big{font-size:20px;height:auto!important}
-            .big a,.big b{padding:10px 5px !important;font-weight:normal!important;}
-                ';
-        }
         
         if ($this->router()->isMobile) {
             $this->inlineCss.='.str{padding:15px 0}.ls li.h{background-color:cadetblue}';
@@ -123,25 +116,12 @@ class Page extends Site {
                     $this->inlineCss.='body{background:url('.$this->router()->cfg['url_css'].'/i/iv'.$this->router()->_png.') repeat top left}';
                 }
             }
-        }
-        else {
-            if ($this->router()->isArabic()) {
-                $this->inlineCss.='.g-recaptcha{float:right}';
-            }
-            else {
-                $this->inlineCss.='.g-recaptcha{float:left}';
-            }
-            $this->inlineCss.='.lgs .cap{padding:0;margin:10px 0;min-height: 73px}ul.dpr, ul.drp{width:302px}';
-        }
+        }        
 
-        if (!in_array($this->router()->countryId,$this->router()->config()->get('iso_countries'))){
+        if (!in_array($this->router()->countryId, $this->router()->config()->get('iso_countries'))) {
             $this->router()->countryId=0;
             $this->router()->cityId=0;
             if ($this->router()->module!='index') { $this->forceNoIndex=1; }
-        }
-        
-        if ($this->router()->params['rss'] && ($this->router()->module=='search'||$this->router()->module=='watchlist')) {
-            $this->rss = TRUE;
         }
         
         if ($this->router()->module=='watchlist'||$this->router()->module=='favorites'){
@@ -164,7 +144,7 @@ class Page extends Site {
         }
 
         $this->load_lang(array('main'));
-        $this->title = $router->pageTitle[$router->language];
+        $this->title = $this->router()->pageTitle[$this->router()->language];
         if (!$this->title) $this->title = $this->lang['title_full'];        
         
         $this->fieldNameIndex=1+$this->lnIndex;
@@ -373,18 +353,18 @@ class Page extends Site {
             }
         }
         $lang='en';
-        if ($router->siteTranslate) {
-            if ($router->siteTranslate=='ar') $lang='ar';
+        if ($this->router()->siteTranslate) {
+            if ($this->router()->siteTranslate=='ar') $lang='ar';
         }
         else {
-            $lang=$router->language;
+            $lang=$this->router()->language;
         }
         if(!$this->isMobile) {
             $cntLink='<b>'.($this->router()->cityId ? $this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId]['name'] : ($this->router()->countryId ? $this->router()->countries[$this->router()->countryId]['name']:'') ).'</b><span class="cf c'.($this->router()->countryId).'"></span><b>'.$this->countryCounter.'</b>';
             $this->countryCounter=$cntLink;
         }
         
-        $this->includeHash=($router->countryId?$router->countries[$router->countryId]['uri']:'zz').'-'.$lang.'-'.($router->countryId?$router->cityId:'0').'-';
+        $this->includeHash=($this->router()->countryId?$this->router()->countries[$this->router()->countryId]['uri']:'zz').'-'.$lang.'-'.($this->router()->countryId?$this->router()->cityId:'0').'-';
         if ($this->router()->params['start'] && $this->router()->params['start']>100){
             $this->router()->params['start']=0;
             $this->forceNoIndex=true;
@@ -411,7 +391,7 @@ class Page extends Site {
         }
         
         
-        $this->user->update();
+        $this->user()->update();
     }
     
     
@@ -4756,6 +4736,10 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             
             case 'myads':
                 $this->css('myads');          
+                break;
+            
+            case 'post':
+                $this->css('post');
                 break;
             
             case 'admin':
