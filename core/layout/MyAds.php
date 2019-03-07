@@ -685,7 +685,7 @@ class MyAds extends Page {
                         foreach($content['pics'] as $img => $dim){
                             if ($images) { $images.="||"; }
                             $images.='<img width=\"118\" src=\"'.$this->router()->config()->adImgURL.'/repos/s/' . $img . '\" />';
-                            $thumbs.='<span class=ig data-pix={"p":"'.$img.'","w":'.$dim[0].',"h":'.$dim[1].'}></span>';
+                            $thumbs.='<span class=ig data-w='.$dim[0].' data-h='.$dim[1].'><img class=lazy data-path="'.$img.'" /></span>';
                             $hasAdminImgs = 1;
                         }
                     }
@@ -935,7 +935,6 @@ class MyAds extends Page {
                     case 2:
                         echo '<div><i class="icn m icon-state"></i><span class=msg>', $this->lang['approvedMsg'], '</span></div>';
                         if ($assignedAdmin) { echo '<span class=alloc>', $assignedAdmin, '</span>'; }
-                        //echo '<div class="nb nbg"><span class="done"></span>',$this->lang['approvedMsg'],($assignedAdmin ? $assignedAdmin:'') ,'</div>';
                         break;
                     
                     case 3:
@@ -1311,7 +1310,7 @@ class MyAds extends Page {
             ?><input onclick="document.location='<?= $this->router()->getLanguagePath('/post/') ?>'" class=bt type=button value="<?= $this->lang['create_ad'] ?>" /><?php
             ?></div><?php
         }
-        include $this->router()->config()->baseDir.'/web/js/includes/myads.js';
+        $this->inlineJS('myads.js');
     }
     
     

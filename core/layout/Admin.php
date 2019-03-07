@@ -222,7 +222,7 @@ class Admin extends Page {
         }
 
         $this->render();
-        include $this->router()->config()->baseDir.'/web/js/includes/admin.js';
+        $this->inlineJS('admin.js');
     }
 
     private function parseUserBins($bins) {

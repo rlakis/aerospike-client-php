@@ -1,4 +1,4 @@
-<script>
+
 if(typeof userRaw==='string'){
     var wrapper = document.getElementById("userDIV");
     try {
@@ -9,5 +9,3 @@ if(typeof userRaw==='string'){
         console.log(e);
     }
 }
-
-</script>

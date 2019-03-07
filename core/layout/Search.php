@@ -1616,7 +1616,7 @@ class Search extends Page {
             ?><input type=button onclick="rpa(this,1)" class="btn cl" value="<?= $this->lang['cancel'] ?>" /><?php
             ?></div> <!--googleon: all--> <?php
         }
-        include $this->router()->config()->baseDir.'/web/js/includes/ad-detail.js';               
+        $this->inlineJS('ad-detail.js');
     }                
     
     
@@ -1646,10 +1646,9 @@ class Search extends Page {
                 $q = "";
                 if ($this->router()->params['q']) 
                     $q = htmlspecialchars($this->router()->params['q'], ENT_QUOTES);
-                ?><ul class="ph"><?php
-                    ?><li><?= $this->lang['no_result_pre'].' <b>'.$q.'</b> '.$this->lang['no_result_after'] ?></li><?php
-                    ?><li><?= $this->lang['search_help_1'] ?></li><?php
-                    
+                ?><div class="row"><div class="col-12"><div class="card oops"><ul class="ph"><?php
+                ?><li class="title warn"><i class="icn icn-alert float-left"></i><?= $this->lang['no_result_pre'].' <b>'.$q.'</b> '.$this->lang['no_result_after'] ?></li><?php
+                ?><li class="hint"><?= $this->lang['search_help_1'] ?></li><?php    
                     if ($this->publisherTypeSorting && in_array($this->tmpRootId,[1,2,3])){
                             
                         $uri = $this->getPageUri().'?';
@@ -1660,13 +1659,13 @@ class Search extends Page {
                             
                             switch($this->publisherTypeSorting){
                                 case 2: 
-                                    ?><li class="in"><?= ' <a href="'.$uri.'">'.($this->router()->language == 'ar' ? ($this->lang['npub_cancel_in'].' '.$this->lang['mpub_3_'.$this->tmpRootId]) : ($this->lang['remove'].' '.strtolower($this->lang['spub_3_'.$this->tmpRootId]).' '.$this->lang['filter'])); ?></a></li><?php
+                                    ?><li><?= ' <a href="'.$uri.'">'.($this->router()->language == 'ar' ? ($this->lang['npub_cancel_in'].' '.$this->lang['mpub_3_'.$this->tmpRootId]) : ($this->lang['remove'].' '.strtolower($this->lang['spub_3_'.$this->tmpRootId]).' '.$this->lang['filter'])); ?></a></li><?php
                                     break;
                                 case 1:
                                     if($this->tmpRootId == 3){
-                                        ?><li class="in"><?= ' <a href="'.$uri.'">'.($this->router()->language == 'ar' ? ($this->lang['npub_cancel_in'].' '.$this->lang['mbpub_1']):($this->lang['remove'].' '.strtolower($this->lang['sbpub_1']).' '.$this->lang['filter'])); ?></a></li><?php
+                                        ?><li><?= ' <a href="'.$uri.'">'.($this->router()->language == 'ar' ? ($this->lang['npub_cancel_in'].' '.$this->lang['mbpub_1']):($this->lang['remove'].' '.strtolower($this->lang['sbpub_1']).' '.$this->lang['filter'])); ?></a></li><?php
                                     }else{
-                                        ?><li class="in"><?= ' <a href="'.$uri.'">'.($this->router()->language == 'ar' ? ($this->lang['npub_cancel_in'].' '.$this->lang['mpub_1']):($this->lang['remove'].' '.strtolower($this->lang['spub_1']).' '.$this->lang['filter'])); ?></a></li><?php
+                                        ?><li><?= ' <a href="'.$uri.'">'.($this->router()->language == 'ar' ? ($this->lang['npub_cancel_in'].' '.$this->lang['mpub_1']):($this->lang['remove'].' '.strtolower($this->lang['spub_1']).' '.$this->lang['filter'])); ?></a></li><?php
                                     }
                                     break;
                                 default:
@@ -1675,11 +1674,10 @@ class Search extends Page {
                         }
                     
                     
-                    ?><li class="in"><?= $this->lang['search_help_2'] ?></li><?php
-                    ?><li class="in"><?= $this->lang['search_help_3'] ?></li><?php
-                    ?><li class="in"><?= $this->lang['search_help_4'] ?></li><?php
-                ?></ul><?php
-                ?><span class='naf'></span><?php
+                    ?><li><?= $this->lang['search_help_2'] ?></li><?php
+                    ?><li><?= $this->lang['search_help_3'] ?></li><?php
+                    ?><li><?= $this->lang['search_help_4'] ?></li><?php
+                ?></ul></div></div></div><?php
                 return false;
             }
         }

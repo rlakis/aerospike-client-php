@@ -1681,7 +1681,19 @@ class Bin extends AjaxHandler{
                         $this->setData($result['qr'], 'rswitch');
                     }
                     else {
-                        
+                         Config::instance()->incLibFile('MCPostPreferences');
+                        $pref = new MCPostPreferences();
+                        $result['prefs']=[];
+                        //$result['prefs']['version']=$pref->getVersion();
+                        //$dataVersion = filter_input(INPUT_GET, 'version', FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
+                        //if ($dataVersion != $pref->getVersion()) {
+                        $pref->setup();
+                        $this->setData($pref, 'prefs');
+                        //$this->result['d']= $this->isIOS() ? \json_decode(\json_encode($pref), true) : $pref;  
+                        //$this->result['d']= $pref;
+                        //return;
+                        //}
+                        //$this->result['no-change']=1;                           
                     }
                     $this->process();
                 }

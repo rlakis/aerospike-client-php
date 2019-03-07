@@ -1,7 +1,7 @@
 var $=document;
 $.addEventListener("DOMContentLoaded", function(e) {
     console.log('document loaded');
-    Ed.init();
+    UI.init();
 });
 $.onkeydown=function(e){
     if(e.key==='Escape'){console.log('esc');Ed.close()}
@@ -21,9 +21,13 @@ _options=function(m, dat){
     return opt;
 }
 
-var Ed={
+var UI={
     ar:$.body.dir==='rtl',
     dic:null,
+    prefs:null,
+    rootId:0,    
+    purposeId:0,
+    
     dialogs:{},
     init:function(){
         let _=this;
@@ -32,6 +36,8 @@ var Ed={
         .then(response => {
             if(response.RP && response.RP===1){
                 _.dic=response.DATA.roots;
+                _.prefs=response.DATA.prefs;
+                console.log(_.prefs);
                 
                 for(i in _.dic){
                     _.dic[i].menu=[];
@@ -117,8 +123,9 @@ var Ed={
                     let item= _.dic[i].menu[j];                
                     let li=createElem('li', '', item[_.ar?'ar':'en']);
                     li.dataset.ro=i;li.dataset.pu=item.id;
-                    li.onclick=function(e){                   
-                        Ad.setRootId(e.target.dataset.ro, e.target.dataset.pu);
+                    li.onclick=function(e){
+                        _.rootId=e.target.dataset.ro;
+                        _.purposeId=e.target.dataset.pu;
                         _.chooseSection();
                     };
                     ul.appendChild(li);
@@ -134,17 +141,25 @@ var Ed={
     },
     
     chooseSection:function(){
-        let _=this, dialog, card, ref='sec-'+Ad.rootId;
+        let _=this, dialog, card, ref='sec-'+_.rootId;
+        let r=_.dic[_.rootId];
+        if(!r){return;}
         _.close();
         if(!_.dialogs[ref]){
             dialog=_.createDialog(ref);
             card=dialog.querySelector('div.card');
             let ul=createElem('ul');
-            let r=_.dic[Ad.rootId];
             
-            for(i in r.sindex){
+            
+            for(var i in r.sindex){
                 if(r.sections[r.sindex[i]]){
                     let li=createElem('li', '', r.sections[r.sindex[i]]);
+                    li.dataset.se=r.sindex[i];
+                    li.onclick=function(e){
+                        Ad.setClassification(_.rootId, e.target.dataset.se, _.purposeId);
+                        _.close();
+                        Ad.log();
+                    };
                     ul.appendChild(li);
                 }
             }
@@ -156,17 +171,33 @@ var Ed={
         _.showDialog(dialog);
     },
     
+    getRootName:function(ro){
+        return this.dic[ro] ? this.dic[ro].name : '';
+    },
+    
+    getSectionName:function(ro, se){
+        return UI.dic[ro] && UI.dic[ro].sections[se] ? UI.dic[ro].sections[se] : '';
+    },
+    
+    getPurposeName:function(ro, pu){
+        return UI.dic[ro] && UI.dic[ro].purposes[pu] ? UI.dic[ro].purposes[pu] : '';
+    },
+    
+    rootChanged:function(ro, pu){
+        $.querySelector('#ad-class').querySelector('a.ro').innerHTML=this.getRootName(ro) + ' / ' + this.getPurposeName(ro, pu);
+    },
+    
     close:function(e){
-        for(i in Ed.dialogs){
-            Ed.dialogs[i].style.display='none';
-            if(Ed.dialogs[i].parentElement){
-                $.body.removeChild(Ed.dialogs[i]);
+        for(i in UI.dialogs){
+            UI.dialogs[i].style.display='none';
+            if(UI.dialogs[i].parentElement){
+                $.body.removeChild(UI.dialogs[i]);
             }
         }
     }
 };
 
-var Ad={
+var Ad={    
     rootId:0,
     sectionId:0,
     purposeId:0,
@@ -178,20 +209,48 @@ var Ad={
     phone1:null,
     phone2:null,
     email:null,
+    
+    
     init:function(){
         
     },
-    setRootId:function(ro, pu){
-        if(this.rootId!==ro){
-            this.rootId=parseInt(ro);
-            this.sectionId=0;
-        }
-        this.purposeId=pu?parseInt(pu):0;
-        console.log(this);
-        console.log(this.getRootName());
+    
+    setClassification:function(ro, se, pu){
+        this.setRootId(ro);
+        this.setSectionId(se);
+        this.setPurposeId(pu);
     },
-    getRootName:function(){return Ed.dic[this.rootId].name;},
-    getSectionName:function(){return Ed.dic[this.rootId].sections[this.sectionId];}
+    
+    setRootId:function(ro){        
+        if(ro!==this.rootId) {
+            this.rootId=parseInt(ro);
+            this.setSectionId(0);
+            if(!UI.dic[this.rootId].purposes[this.purposeId]){
+                this.setPurposeId(0);
+            }
+            UI.rootChanged(this.rootId, this.purposeId);
+        }        
+    },
+    
+    setSectionId:function(se){
+        if(this.sectionId!==se){
+            this.sectionId=parseInt(se);
+            $.querySelector('#ad-class').querySelector('a.se').innerHTML=this.getSectionName();
+        }        
+    },
+    
+    setPurposeId:function(pu){
+        if(this.purposeId!==pu){
+            this.purposeId=parseInt(pu);
+            UI.rootChanged(this.rootId, this.purposeId);
+        }
+    },
+    
+
+    getSectionName:function(){return UI.dic[this.rootId] && UI.dic[this.rootId].sections[this.sectionId] ? UI.dic[this.rootId].sections[this.sectionId] : '';},
+    getPurposeName:function(){return UI.dic[this.rootId] && UI.dic[this.rootId].purposes[this.purposeId] ? UI.dic[this.rootId].purposes[this.purposeId] : '';},
+    
+    log:function(){console.log(this);}
 };
 
 function toLower(){

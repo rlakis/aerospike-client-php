@@ -1,4 +1,3 @@
-<script>
 var wrapperTop=0;
 var $=document;
 var byId=function(id){return $.getElementById(id);}
@@ -234,7 +233,6 @@ class AdScreen {
         
         this.stopBodyScrolling(true);
         $.body.appendChild(this._modal);
-        this._modal.style.display = "block";
         this._modal.style.display = "flex";
         if(this._modal.clientWidth<1200){this._card.className='card col-8';}
         //if(this._modal.clientWidth<=1024){this._card.className='card col-12';}
@@ -253,7 +251,7 @@ class AdScreen {
 
     close(){
         adScreen._modal.style.display = 'none';
-        $.body.removeChild(adScreen._modal);
+        adScreen._modal.remove();
         adScreen._modal = null;
         adScreen.stopBodyScrolling(false);
         adScreen = null;
@@ -305,19 +303,16 @@ function sorting(o){
 }
 
 
-window.onclick=function(e){if(adScreen&&e.target===byId('adScreen'))adScreen.close();}
+window.onclick=function(e){if(adScreen&&e.target===byId('adScreen'))adScreen.close();};
 
 window.onpopstate=function(event){
     console.log($.body.dataset.detail);
     if ($.body.hasAttribute('data-detail')) {
-        modal.style.display = "none";
+        AdScreen._modal.style.display = "none";
         $.body.style.setProperty('overflow', 'scroll');
         $.body.removeAttribute('data-detail');
     }
     else {
         window.history.back();
     }
-}
-
-
-</script>
+};

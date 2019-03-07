@@ -368,7 +368,7 @@ class PostAd extends Page {
              echo '</div></div>';
                 
             //pictures
-            echo '<div class=col-12><div class=card><div class=card-header><div class=card-title><h5>', "Pictures", '</h5></div></div>';
+            echo '<div class=col-12><div class=card>';
             echo '<div class="card-content pictures">';
             for ($i=0; $i<5; $i++){
                 echo '<span class=pix data-index=', $i, '></span>';
@@ -376,20 +376,21 @@ class PostAd extends Page {
             echo '</div>';
             echo '</div></div>';
             
-            echo '<div class=col-12><div class=card><div class=card-header><div class=card-title><h5>', "Ad Text 1", '</h5></div></div>';
+            echo '<div class=col-12><div class=card>';
             echo '<div class="card-content">';
-            ?><textarea></textarea><?php
+            ?><textarea placeholder="Enter ad text"></textarea><?php
             echo '</div>';
             echo '</div></div>';
             
-            echo '<div class=col-12><div class=card><div class=card-header><div class=card-title><h5>', "Ad Text 2", '</h5></div></div>';
+            echo '<div class=col-12><div class=card>';
             echo '<div class="card-content">';
-            ?><textarea></textarea><?php
+            ?><textarea placeholder=""></textarea><?php
             echo '</div>';
             echo '</div></div>';
 
-            echo '<div class=col-12><div class=card><ul>';
-            echo '<li><a href="javascript:void(0)" onclick="Ed.chooseRootPurpose()">Choose listing section</a></li>';
+            echo '<div class=col-12><div id=ad-class class=card><ul>';
+            echo '<li><a class=ro href="javascript:void(0)" onclick="UI.chooseRootPurpose()">Choose listing section</a></li>';
+            echo '<li><a class=se href="javascript:void(0)" onclick="UI.chooseSection()">Choose section</a></li>';
             echo '<li>Map Address/Location</li>';
             echo '<li>Where to publish your ad?</li>';
             echo '</ul></div></div>';

@@ -4973,7 +4973,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                
         echo '</head>', "\n";
         flush();
-        echo '<body dir="', $this->router()->isArabic() ? 'rtl':'ltr', '" data-ads='.($this->router()->config()->enabledAds()?1:0),' ', $this->pageItemScope;
+        echo '<body dir="', $this->router()->isArabic() ? 'rtl':'ltr', '" class="',$this->router()->isArabic() ? 'rtl':'ltr','" data-ads='.($this->router()->config()->enabledAds()?1:0),' ', $this->pageItemScope;
         if ($this->isAdminSearch) {
             echo ' oncontextmenu="return false;"';
         }
