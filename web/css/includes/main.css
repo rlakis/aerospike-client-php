@@ -337,7 +337,12 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .oops .title{
     border-top-left-radius:6px;
     border-top-right-radius:6px;
-    line-height: 36px
+    line-height: 36px;
+    display: flex;
+    align-items: center;
+}
+.oops .title b{
+    margin:0 5px;
 }
 .oops .title.warn{
     background-color:mediumorchid!important;
