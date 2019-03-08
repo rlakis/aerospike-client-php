@@ -24,7 +24,6 @@ _options=function(m, dat){
 var UI={
     ar:$.body.dir==='rtl',
     dic:null,
-    prefs:null,
     rootId:0,    
     purposeId:0,
     
@@ -36,8 +35,7 @@ var UI={
         .then(response => {
             if(response.RP && response.RP===1){
                 _.dic=response.DATA.roots;
-                _.prefs=response.DATA.prefs;
-                console.log(_.prefs);
+                Prefs.init(response.DATA.prefs);
                 
                 for(i in _.dic){
                     _.dic[i].menu=[];
@@ -71,12 +69,64 @@ var UI={
                             break;
                     }
                 }
-                console.log(_.dic);                
+                console.log(_.dic);
+                
+                $.querySelectorAll('span.pix').forEach(function(pix){pix.onclick=_.openImage;});
             }
         })
         .catch(error => { 
             console.log(error);
         });
+    },
+    
+    openImage:function(e){
+        if (window.File && window.FileReader && window.FileList && window.Blob) {
+            let curr=e.target.closest('span').dataset.index;
+            let spans=$.querySelector('div.pictures').childNodes;
+            return new Promise(resolve => {
+                let input = document.createElement('input');
+                input.type = 'file';
+                input.multiple = true;
+                input.accept = 'image/*';
+                input.onchange = ee => {
+                    let files = Array.from(input.files);
+                    resolve(files);
+                    files.forEach(function(file){
+                        
+                        //console.log(file.name, /\.(jpe?g|png|gif|webp)$/i.test(file.name))
+                        
+                        if ( /\.(jpe?g|png|gif|webp)$/i.test(file.name) ) {
+                            var reader = new FileReader();
+                            reader.onload = readerEvent => {
+                                let img=spans[curr].querySelector('img');
+                                if(!img){
+                                    img=new Image();
+                                    spans[curr].appendChild(img);
+                                }
+                                img.onload=function(){
+                                    var height = img.naturalHeight;
+                                    var width = img.naturalWidth;
+                                    console.log('The image size is '+width+'*'+height);
+                                };
+                                img.src=readerEvent.target.result; 
+                                                                
+                                curr++;
+                                if(curr>4){curr=0;}                                                                
+                                
+                            };
+                            reader.readAsDataURL(file);
+                            
+                            
+                        }
+                    });
+                };
+                input.click();
+            });
+          
+        } 
+        else {
+            alert('The File APIs are not fully supported in this browser.');
+        }
     },
     
     createDialog:function(name){
@@ -257,3 +307,382 @@ function toLower(){
     console.log(this);
 }
 
+
+var RegionType={
+    Single:0, Country: 1, MultiCountry: 2, Any: 9, 
+    isValid:function(v){
+        v=parseInt(v);
+        return (v===this.Single||v===this.Country||v===this.MultiCountry||v===this.Any);
+    }
+};
+var PublishLevel={Single: 1, Country: 2, Intl: 3};
+
+class Filter{
+    constructor(dictionary) {
+        this.source=RegionType.Country;
+        this.countries=[];
+        this.cities=[];
+        this.purposes=[];
+        this.movedTo=0;
+        if(dictionary){this.setConstraints(dictionary);}
+    }
+    
+    setConstraints(dict){
+        let _=this;
+        if (dict.mv && Number.isInteger(dict.mv)) {
+            _.movedTo=parseInt(dict.mv);
+        }
+        if (dict.src && Number.isInteger(dict.src) && RegionType.isValid(dict.src)) {
+            _.source=parseInt(dict.src);
+        }
+        if (dict.p && Array.isArray(dict.p)) {
+            dict.p.forEach(function(pu){_.purposes.push(pu);});
+        }
+        if (dict.cn && Array.isArray(dict.cn)) {
+            dict.cn.forEach(function(cn){_.countries.push(cn);});
+        }
+        if (dict.ct && Array.isArray(dict.ct)) {
+            dict.ct.forEach(function(cc){_.cities.push(cc);});
+        }
+    }
+    
+    isBlocked(){
+        return (this.movedTo>0);
+    }
+    
+    hasPurpose(pu){
+        return this.purposes.indexOf(pu)>=0;
+    }
+    
+    hasCountry(co){
+        return this.countries.indexOf(co)>=0;
+    }
+    
+    hasCity(cc){
+        return this.countries.indexOf(cc)>=0;
+    }
+    
+    isMovedTo(){
+        return this.movedTo;
+    }
+    
+};
+
+const kConstraintKey = "constraints";
+const kAllow = "allow";
+const kDeny = "deny";
+const kSections = "sections";
+const kIndex = "index";
+const kRule = "rules";
+const kTail = "tail";
+const kPublishLevel = "level";
+
+
+var Prefs={
+    major:0,
+    minor:0,
+    countries:null,
+    chains:null,
+    activationCountryCode:null,
+    activationCountryId:0,
+    carrierCountryCode:null,
+    carrierCountryId:0,
+    
+    init:function(data){
+        let _=this, rules={}, index={};
+        _.countries=[];
+        _.chains={[kRule]:rules, [kIndex]:index};
+        for (var key in data) {
+            let dict=data[key];
+            if(key==='version'){
+                _.major=dict.major;
+                _.minor=dict.minor;
+            }
+            else if(key==='countries'){
+                _.countries=[...dict];
+            }
+            else {
+                let rootId = dict.id;
+                rules[rootId]={[kAllow]:[], [kDeny]:[], [kSections]:{}, [kTail]:[], [kPublishLevel]:{}};
+                for(let level in dict[kPublishLevel]){
+                    if (dict[kPublishLevel][level]){
+                        for(let pu in dict[kPublishLevel][level]){
+                            rules[rootId][kPublishLevel][dict[kPublishLevel][level][pu]]=parseInt(level);
+                        }
+                    }
+                    else {
+                        conosle.log('invalid publish level');
+                    }
+                }
+                
+                //rules[rootId][kPublishLevel]=dict[kPublishLevel];
+                
+                for (let i in dict[kTail]) {
+                    rules[rootId][kTail].push(dict[kTail][i]);
+                }
+                
+                for (let i in dict[kAllow]){
+                    if(dict[kAllow][i][kConstraintKey]){
+                        let filter = new Filter();
+                        filter.setConstraints(dict[kAllow][i][kConstraintKey]);
+                        rules[rootId][kAllow].push(filter);
+                    }
+                }
+                
+                for (let i in dict[kDeny]){
+                    if(dict[kDeny][i][kConstraintKey]){
+                        let filter = new Filter();
+                        filter.setConstraints(dict[kDeny][i][kConstraintKey]);
+                        rules[rootId][kDeny].push(filter);
+                    }
+                }
+                
+                for (let i in dict[kSections]) {
+                    let secDict=dict[kSections][i];
+                    let secId=secDict.id;
+                    index[secId]=rootId;
+                    
+                    let sectionRules={[kAllow]:[], [kDeny]:[], [kPublishLevel]:{}};
+                    for (let j in secDict[kPublishLevel]) {                        
+                        if(secDict[kPublishLevel][j]){
+                            for (let k in secDict[kPublishLevel][j]) {
+                                sectionRules[kPublishLevel][secDict[kPublishLevel][j][k]]=secDict[kPublishLevel][j];
+                            }
+                        }
+                        else {
+                            console.log('publish level problem');
+                        }
+                    }
+                    
+                    for (let j in secDict[kAllow]) {
+                        if(secDict[kAllow][j][kConstraintKey]){
+                            let filter=new Filter(secDict[kAllow][j][kConstraintKey]);
+                            sectionRules[kAllow].push(filter);
+                        }
+                    }
+                    
+                    for (let j in secDict[kDeny]) {
+                        if(secDict[kDeny][j][kConstraintKey]){
+                            let filter=new Filter(secDict[kDeny][j][kConstraintKey]);
+                            sectionRules[kDeny].push(filter);
+                        }
+                    }
+                    
+                    rules[rootId][kSections][secId]=sectionRules;
+                }
+            }
+        }
+        console.log(_);
+    },
+    
+    
+    getRootPrefs:function(se){
+        if (this.chains[kIndex][se]) {
+            return this.chains[kRule][this.chains[kIndex][se]];
+        }
+        return null;        
+    },
+    
+    isBlockedSection:function(se){
+        let rootPrefs=this.getRootPrefs(se);
+        if(rootPrefs && rootPrefs[kSections][se]){
+            for(let i in rootPrefs[kSections][se]){
+                let filter=rootPrefs[kSections][se][i];
+                if(filter.isBlocked()){
+                    if(filter.purposes.length===0||filter.hasPurpose(Ad.purposeId)){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    },
+    
+    getMovedSection:function(se){
+        let rootPrefs=this.getRootPrefs(se);
+        if(rootPrefs && rootPrefs[kSections][se]){
+            for(let i in rootPrefs[kSections][se][kDeny]){
+                let filter=rootPrefs[kSections][se][kDeny][i];
+                if(filter.isBlocked()){
+                    return filter.isMovedTo;
+                }
+            }
+        }
+        return 0;
+    },
+    
+    isTailSection:function(se){
+        let rootPrefs=this.getRootPrefs(se);
+        if(rootPrefs && rootPrefs[kSections][se]){
+            return rootPrefs[kTail].indexOf(se)>-1;
+        }
+        return false;
+    },
+    
+    getRootTail:function(ro){
+        return this.chains[kRule][ro][kTail];
+        return [];
+    },
+    
+    getPublishLevel:function(){
+        if(Ad.sectionId>0 && Ad.purposeId>0){
+            let rootPrefs=this.getRootPrefs(Ad.sectionId);
+            if(rootPrefs){
+                let res = parseInt(rootPrefs[kSections][Ad.sectionId][kPublishLevel][Ad.purposeId]);
+                if(res>0){ return res; }
+            }
+        }
+        return PublishLevel.Intl;
+    },
+
+    getAllowedCountriesForUserSource:function(){
+        let _=this;
+        let rootSource = RegionType.Country;
+        let sectionSource = RegionType.Country;
+        let result=[];
+        let level=_.getPublishLevel();
+        if(level===PublishLevel.Intl){
+            result=[..._.countries];
+            return result;
+        }
+        
+        if(_.countries.indexOf(_.carrierCountryId)!==-1){
+            result.push(_.carrierCountryId);
+        }
+        
+        if(_.countries.indexOf(_.activationCountryId)!==-1 && result.indexOf(_.activationCountryId)===-1){
+            result.push(_.activationCountryId);
+        }
+        
+        if(Ad.sectionId>0 && Ad.purposeId>0){
+            let rootPrefs=this.getRootPrefs(Ad.sectionId);
+            if(rootPrefs){
+                _.countries.forEach(function(cn){
+                    rootSource=RegionType.Country;
+                    for (let i in rootPrefs[kAllow]) {
+                        let filter=rootPrefs[kAllow][i];
+                        if(filter.hasPurpose(Ad.purposeId)||filter.hasCountry(cn)){
+                            rootSource=filter.source;
+                        }
+                    }
+                    
+                    let allow=rootPrefs[kSections][Ad.sectionId][kAllow];
+                    sectionSource=rootSource;
+                    for (let i in allow) {
+                        let filter=allow[i];
+                        if(filter.hasPurpose(Ad.purposeId)||filter.hasCountry(cn)){
+                            sectionSource=filter.source;
+                        }
+                    }
+                    
+                    if (sectionSource==RegionType.Any||sectionSource==RegionType.MultiCountry) {
+                        if(result.indexOf(cn)===-1){
+                            result.push(cn);
+                        }
+                    }
+                    else {
+                        if(_.carrierCountryId===cn||_.activationCountryId===cn){
+                            if(result.indexOf(cn)===-1){
+                                result.push(cn);
+                            }
+                        }
+                    }
+                    
+                });
+            }
+        }
+        else {
+            result=[..._.countries];
+        }    
+        return result;
+    },
+    
+    isSourceAllowForCountry:function(cn, se, pu){
+        let rootPrefs=this.getRootPrefs(se);
+        if(rootPrefs){
+            let rootSource=RegionType.Country;
+            for (let i in rootPrefs[kAllow]) {
+                let filter=rootPrefs[kAllow][i];
+                if(filter.hasPurpose(pu)){
+                    rootSource=filter.source;
+                }
+                if(filter.hasCountry(cn) && filter.source!==RegionType.Any){
+                    rootSource=filter.source;
+                }
+            }
+            
+            let allow=rootPrefs[kSections][se][kAllow];
+            sectionSource=rootSource;
+            for (let i in allow) {
+                let filter=allow[i];
+                if(filter.hasPurpose(pu)){
+                    sectionSource=filter.source;
+                }
+                if(filter.hasCountry(cn) && filter.source!==RegionType.Any){
+                    sectionSource=filter.source;
+                }
+            }
+            
+            if(sectionSource===RegionType.Country){
+                if ((this.carrierCountryId>0 && cn!==this.carrierCountryId) && (this.activationCountryId>0 && cn!==this.activationCountryId) /* and not equal selected website country id*/) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    },
+
+    canPostToCountry:function(cn, se, pu){
+        let rootPrefs=this.getRootPrefs(se);
+        if(rootPrefs){
+            let rootSource=RegionType.Country;
+            for (let i in rootPrefs[kAllow]) {
+                let filter=rootPrefs[kAllow][i];
+                if(filter.hasPurpose(pu)){
+                    rootSource=filter.source;
+                }
+                if(filter.hasCountry(cn) && filter.source!==RegionType.Any){
+                    rootSource=filter.source;
+                }
+            }
+            
+            let allow=rootPrefs[kSections][se][kAllow];
+            sectionSource=rootSource;
+            for (let i in allow) {
+                let filter=allow[i];
+                if(filter.hasPurpose(pu)){
+                    sectionSource=filter.source;
+                }
+                if(filter.hasCountry(cn) && filter.source!==RegionType.Any){
+                    sectionSource=filter.source;
+                }
+            }
+            
+            if(sectionSource===RegionType.Country){
+                if(this.carrierCountryId>0){}
+                if(this.activationCountryId>0){}
+            }
+            
+            let deny=rootPrefs[kSections][se][kDeny];
+            for (let i in deny) {
+                let filter=deny[i];
+                if(filter.hasCountry(cn) && (filter.purposes.length===0||filter.hasPurpose(pu))){
+                    return false;
+                }
+                else if(filter.hasPurpose(pu) && filter.countries.length===0){
+                    return false;
+                }
+            }
+        }
+        return true;
+    },
+    
+    getCarrierCountryCode:function(){
+        return this.carrierCountryCode;
+    },
+    
+    getActivationCountryCode:function(){
+        return this.activationCountryCode;
+    }
+    
+};

@@ -518,7 +518,7 @@ var d = {
 
     quick(e) {
         var _ = this;
-        let article = e.parentElement;
+        let article = e.closest('article');
         if (_.currentId !== article.id) {
             return;
         }
@@ -532,7 +532,7 @@ var d = {
             if (!rDIV.dataset.rootId || rDIV.dataset.rootId != rId) {
                 let rr = rDIV.querySelectorAll('li');
                 rr.forEach(function (item) {
-                    if (item.dataset.id == rId) {
+                    if (item.dataset.id === rId) {
                         item.classList.add('cur');
                     } else if (item.classList.contains('cur')) {
                         item.classList.remove('cur');
