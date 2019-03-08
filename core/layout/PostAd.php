@@ -392,7 +392,7 @@ class PostAd extends Page {
             echo '<li><a class=ro href="javascript:void(0)" onclick="UI.chooseRootPurpose()">Choose listing section</a></li>';
             echo '<li><a class=se href="javascript:void(0)" onclick="UI.chooseSection()">Choose section</a></li>';
             echo '<li>Map Address/Location</li>';
-            echo '<li>Where to publish your ad?</li>';
+            echo '<li>', $this->lang['m_h_city'], '</li>';
             echo '</ul></div></div>';
             
             echo '<div class=col-12><div class=card>';
@@ -513,34 +513,8 @@ class PostAd extends Page {
                 ?></ul><?php
             }
             
-            ?><ul tabindex="0" id="rou" class="ls rct po<?= $this->rootId ? ' pi' : '' ?>"><?php
-                ?><li class="h"><b><?= $this->lang['m_h_root'] ?><span class="et"></span></b></li><?php
-                foreach ($this->router()->roots as $root) {
-                    ?><li val="<?= $root[0] ?>"<?= $this->rootId ? ($this->rootId==$root[0] ? '' : ' class="hid"') : '' ?>><b><span class="ic r<?= $root[0] ?>"></span><?= $root[$this->fieldNameIndex] ?></b></li><?php                    
-                }
-            ?></ul><?php
+        
             if(!$this->rootId) $seqHide=true;
-            ?><ul id="puu" class="ls po<?= !$seqHide ? ($this->purposeId ? ($this->rootId==4 ? ' hid':' pi') : '') : ' hid' ?>"><?php
-                ?><li class="h"><b><?= $this->lang['m_h_purpose'] ?><span class="et"></span></b></li><?php
-                 ?><li val="1" ro="1"<?= $this->rootId ? ($this->rootId==1 ? ($this->purposeId==1 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m1_1'] ?></b></li><?php 
-                 ?><li val="2" ro="1"<?= $this->rootId ? ($this->rootId==1 ? ($this->purposeId==2 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m1_2'] ?></b></li><?php 
-                 ?><li val="8" ro="1"<?= $this->rootId ? ($this->rootId==1 ? ($this->purposeId==8 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m1_8'] ?></b></li><?php 
-                 ?><li val="7" ro="1"<?= $this->rootId ? ($this->rootId==1 ? ($this->purposeId==7 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m1_7'] ?></b></li><?php 
-                 ?><li val="6" ro="1"<?= $this->rootId ? ($this->rootId==1 ? ($this->purposeId==6 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m1_6'] ?></b></li><?php 
-                 ?><li val="1" ro="2"<?= $this->rootId ? ($this->rootId==2 ? ($this->purposeId==1 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m2_1'] ?></b></li><?php 
-                 ?><li val="2" ro="2"<?= $this->rootId ? ($this->rootId==2 ? ($this->purposeId==2 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m2_2'] ?></b></li><?php 
-                 ?><li val="8" ro="2"<?= $this->rootId ? ($this->rootId==2 ? ($this->purposeId==8 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m2_8'] ?></b></li><?php 
-                 ?><li val="7" ro="2"<?= $this->rootId ? ($this->rootId==2 ? ($this->purposeId==7 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m2_7'] ?></b></li><?php 
-                 ?><li val="6" ro="2"<?= $this->rootId ? ($this->rootId==2 ? ($this->purposeId==6 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m2_6'] ?></b></li><?php 
-                 ?><li val="1" ro="99"<?= $this->rootId ? ($this->rootId==99 ? ($this->purposeId==1 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m99_1'] ?></b></li><?php 
-                 ?><li val="2" ro="99"<?= $this->rootId ? ($this->rootId==99 ? ($this->purposeId==2 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m99_2'] ?></b></li><?php 
-                 ?><li val="8" ro="99"<?= $this->rootId ? ($this->rootId==99 ? ($this->purposeId==8 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m99_8'] ?></b></li><?php 
-                 ?><li val="7" ro="99"<?= $this->rootId ? ($this->rootId==99 ? ($this->purposeId==7 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m99_7'] ?></b></li><?php 
-                 ?><li val="6" ro="99"<?= $this->rootId ? ($this->rootId==99 ? ($this->purposeId==6 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m99_6'] ?></b></li><?php 
-                 ?><li val="3" ro="3"<?= $this->rootId ? ($this->rootId==3 ? ($this->purposeId==3 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m3_3'] ?></b></li><?php 
-                 ?><li val="4" ro="3"<?= $this->rootId ? ($this->rootId==3 ? ($this->purposeId==4 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m3_4'] ?></b></li><?php 
-                 ?><li val="5" ro="3"<?= $this->rootId ? ($this->rootId==3 ? ($this->purposeId==5 ? '':' class="hid"') : ' class="hid"') : '' ?>><b><?= $this->lang['m3_5'] ?></b></li><?php 
-            ?></ul><?php
             if(!$this->purposeId) $seqHide=true;
             ?><ul id="seu" class="ls po<?= !$seqHide ? ($this->sectionId ? ' pi':'') : ' hid' ?>"><?php
                 ?><li class="h"><b><?= $this->rootId ? $this->lang['m_h_s'.$this->rootId] : $this->lang['loading'] ?><span class="et"></span></b></li><?php
@@ -586,72 +560,8 @@ class PostAd extends Page {
             ?></ul><?php
             if(!$this->sectionId) $seqHide=true;
             //ad location 
-            ?><ul id="cnu" class="ls po<?= ($hasLocs ? ' pi':'').( ($this->rootId && (in_array($this->rootId, array(1,2,99))) && (!$this->sectionId || ($this->sectionId && !in_array($this->sectionId,array(748,766,223,924)) )) ) ? ' uno' : '' ).(!$seqHide ? '':' hid') ?>"><?php
-                ?><li class="h"><b><?= $this->lang['m_h_city'] ?><span class="et"></span></b></li><?php 
-                
-                $tmp='';
-                $tmpCn='';
-                $cid=0;
-                $lastCity=0;
-                $cityCount=0;
-                $country_index = 2;
-                $city_index = 6;
-                if ($this->router()->isArabic()) {
-                    $country_index = 1;
-                    $city_index = 5;
-                }
-                $open=false;
-                $checkedCity=false;
-                $cityList='';
-                $tmpList='';
-                $countryName='';
-                
-                foreach ($countries as $key=>$country) {
-                    if (isset($country[0]) && $country[0]!=110) {
-                    if ($cid != (int)$country[0]) {
-                        if ($cityCount>1 && $tmp) {
-                            echo '<li'.($hasLocs?' class="hid"':'').'>'.$tmpCn,'</b>';
-                            $tmpCn='';
-                            echo '<ul class="sls">',$tmp,'</ul></li>';
-                            $cityList.=$tmpList;
-                        }elseif($cid) {
-                            echo '<li'.($hasLocs?' class="hid'.($checkedCity ? ' on':'').'"':($checkedCity ? ' class="on"':'')).' val="'.$lastCity.'">'.$tmpCn,'<span class="cbx"></span></b></li>';
-                            $tmpCn='';  
-                            if($checkedCity) {
-                                $cityList.=' - '.$countryName;
-                                $this->globalScript.='pc['.$lastCity.']="'.$countryName.'";';
-                            }
-                        }
-                        if($open)echo '</li>';
-                        $tmp='';
-                        $tmpList='';
-                        $cityCount=0;
-                        $open=true;
-                        $cid=(int)$country[0];
-                        $countryName=$country[$country_index];
-                        $tmpCn='<b><span class="cf c'.$cid.'"></span>'. $country[$country_index];
-                    }
-                    $lastCity=$country[4];
-                    $checkedCity = $hasLocs && in_array($country[4], $this->adContent['pubTo']);
-                    if($checkedCity) $tmpList.=' - '.$country[$city_index];
-                    $tmp.='<li val="'.$country[4].'"'.($checkedCity ? ' class="on"':'').'><b>'.$country[$city_index].'<span class="cbx"></span></b></li>';
-
-                    $cityCount++;
-                    }
-                }
-                if($tmpCn){
-                    if ($cityCount>1 && $tmp) {
-                        echo '<li'.($hasLocs?' class="hid"':'').'>',$tmpCn,'</b>';
-                        echo '<ul class="sls">',$tmp,'</ul>';
-                        $cityList.=$tmpList;
-                    }else {
-                        if($checkedCity) $cityList.=' - '.$countryName;
-                        echo '<li'.($hasLocs?' class="hid'.($checkedCity ? ' on':'').'"':($checkedCity ? ' class="on"':'')).' val="'.$lastCity.'">'.$tmpCn,'<span class="cbx"></span></b></li>';
-                    }
-                }
-                ?><li<?= ($hasLocs?'':' class="hid"') ?>><b class="ah"><?= ($cityList ? substr($cityList, 3) : '') ?></b></li><?php
-                ?><li class="hid"><b class="ah ctr"><span onclick="cnT(this.parentNode.parentNode.parentNode)" class="button bt btw ok"><?= $this->lang['next'] ?></span></b></li><?php                
-            ?></ul><?php 
+            
+            
             if(!$hasLocs) $seqHide=true;
              ?><ul id="ccu" class="ls po<?= ($hasContact ? ' pi':'').(!$seqHide ? '':' hid') ?>"><?php
                 ?><li onclick="wpz(this)" class="button h"><b><?= $this->lang['m_h_contact'] ?><span class="et"></span></b></li><?php 
@@ -765,94 +675,22 @@ class PostAd extends Page {
             ?></ul><?php
             if(!$hasContact || ( ($hasContact && count($this->adContent['cui']['p'])) && !$hasContactTime ) ) $seqHide=true;
             $charsLeft=$otherLength;
-            ?><ul id="ctx" class="ls po<?= ($hasContent ? ' pi':''),(!$seqHide ? '':' hid') ?>"><?php
-                ?><li class="lib nobd<?= ($hasContent ? ' hid':'') ?>"><b class="ah"><?= $this->lang['ad_text_append'] ?></b></li><?php
-                ?><li onclick="etxt(this)" class="button h"><b><?= $this->lang['m_h_text'] ?><span class="et"></span></b></li><?php
-                ?><li class="lig<?= ($hasContent ? ' hid':'') ?>"><b><?= $this->lang['maximum'] ?> <span><?= $charsLeft.' / '.$maximumChars ?></span> <?= $this->lang['characters']  ?></b></li><?php
-                ?><li class="lit ctr<?= ($hasContent ? ' hid':'') ?>"><textarea id="mText" class="<?= ($adRTL ? 'ar':'en') ?>" onchange="rdrT()" onfocus="initT(this)"><?= $other ?></textarea></li><?php
-                ?><li class="pid<?= ($hasContent ? ' hid':'') ?>"><b class="ah ctr"><span onclick="nxt(this,0)" class="button bt btw ok<?= $hasContent ? '': ' off' ?>"><?= $this->lang['next'] ?></span></b></li><?php
-                ?><li class="button liw hid" onclick="hidNB(this)"><b class="bpd ctr"><?= $this->lang['min_content']  ?></b></li><?php
-                ?><li onclick="etxt(this)" class="button <?= ($hasContent ? '':'hid') ?>"><b id="mPreview" class="ah <?= ($adRTL ? 'ar':'en') ?>"><?= $preview ?></b></li><?php
-            ?></ul><?php
+            
             if(!$hasContent) $seqHide=true;
             ?><ul id="xnu" class="ls po pi<?= (!$seqHide ? '':' hid') ?>"><?php
                 ?><li class="lib nobd"><b class="ah"><?= $this->lang['ext_data'] ?></b></li><?php
             ?></ul><?php 
             $charsLeft=$altLength;
-            ?><ul id="xct" class="ls po<?= ($hasAltContent || $uAlt==2 ? ' pi':''),(!$seqHide ? '':' hid') ?>"><?php
-                ?><li onclick="edOT(this)" class="button h"><b><?= $this->lang['m_h_alt_'.$adRTL] ?><span class="et"></span></b></li><?php 
-                ?><li class="nobd<?= $uAlt==1 ? '': ' hid'?>"><ul><?php 
-                    ?><li class="lig<?= ($hasAltContent ? ' hid':'') ?>"><b><?= $this->lang['maximum'] ?> <span><?= $charsLeft.' / '.$maximumChars ?></span> <?= $this->lang['characters']  ?></b></li><?php
-                    ?><li class="lit ctr<?= ($hasAltContent ? ' hid':'') ?>"><textarea id="altText" class="<?= ($altRTL ? 'ar':'en') ?>" onblur="capk()" onkeyup="capk()" onchange="rdrT()" onfocus="initT(this)"><?= $altOther ?></textarea></li><?php
-                    ?><li class="pid <?= ($hasAltContent ? ' hid':'') ?>"><b class="ah ctr act2"><span onclick="nxt(this,1)" class="button bt ok<?= $hasAltContent ? '': ' off' ?>"><?= $this->lang['next'] ?></span><span onclick="xcnl(this)" class="button bt cl"><?= $this->lang['cancel'] ?></span></b></li><?php 
-                    ?><li class="button liw hid" onclick="hidNB(this)"><b class="bpd ctr"><?= $this->lang['min_content']  ?></b></li><?php
-                    ?><li onclick="edOT(this)" class="button <?= ($hasAltContent ? '':'hid') ?>"><b id="mAltPreview" class="ah <?= ($altRTL ? 'ar':'en') ?>"><?= $altPreview ?></b></li><?php
-                ?></ul></li><?php
-                ?><li class="<?= $uAlt==0 ? '': ' hid'?>"><b class="ah ctr act2"><span onclick="edOT(this,1)" class="button bt ok"><?= $this->lang['yes'] ?></span><span onclick="noO(this,'t')" class="button bt cl"><?= $this->lang['no'] ?></span></b></li><?php 
-                ?><li onclick="edOT(this)" class="button<?= $uAlt==2 ? '': ' hid'?>"><b><?= $this->lang['no']  ?></b></li><?php
-            ?></ul><?php 
+            
             if(!$hasAltContent && $uAlt!=2) $seqHide=true;
             
                                                             
-            ?><ul id="xpc" class="ls po<?= ($hasPics || $uPics==2 ? ' pi':''),(!$seqHide ? '':' hid') ?>"><?php
-                ?><li onclick="edOP(this)" class="button h"><b><?= $this->lang['m_h_pics'] ?><span class="et"></span></b></li><?php 
-                ?><li class="nobd"><ul id="pics" class="imgList"><?php 
-                    ?><li class="lig pbr"><b><?= $this->lang['maximum'] ?> <span><?= $hasPics.' / 5' ?></span> <?= $this->lang['pictures']  ?></b></li><?php 
-                    if($hasPics) {
-                        $k=0;
-                        foreach($this->adContent['pics'] as $key => $val){
-                            $this->globalScript.='imgs['.$k.']="'.$key.'";';
-                        ?><?php
-                            ?><li onclick="edOP($p(this,2));" class="button"><b class="ah ctr"><span title="<?= $this->lang['removePic'] ?>" onclick="delP('<?= $key ?>',this)" class="button pz pzd"></span><?= $this->user->info['level']==9 && !$this->isMobile ? '<a onclick="spe()" class="button iah" target="blank" href="'.$this->urlRouter->cfg['url_ad_img'].'/repos/l/'.$key.'"><span id="sp'. $k .'" class="sp'. $k .' load spimg"></span></a>':'<span id="sp'. $k .'" class="sp'. $k .' load spimg"></span>' ?></b></li><?php 
-                            $k++;
-                        }
-                    }
-                ?></ul></li><?php 
-                ?><li class="pid"><b class="ah ctr act2"><?php 
-                    ?><form target="upload"<?= $hasPics < 5 ? '':' class="hid"' ?> id="picF" action="<?= $this->router()->config()->get('url_uploader') ?>/upload/" enctype="multipart/form-data" method="post"><?php 
-                    ?><span class="button bt ok upload_bt"><input id="upKey" type="hidden" name="UPLOAD_IDENTIFIER" value="<?= $this->user->info['id'] ?>" /><input id="picB" name="pic" type="file" multiple="multiple" /><?= $this->lang['add_images'] ?></span><?php 
-                    ?><input name="picS" type="submit" class="hid" /><?php
-                    ?></form><span id="noPBT" onclick="noPO(this)" class="button bt<?= $hasPics ? '' : ' cl' ?>"><?= $hasPics ? $this->lang['next'] : $this->lang['no'] ?></span><?php 
-                    ?><iframe id="upForm" class="hid" name="upload" src="/web/blank.html"></iframe><?php
-                ?></b></li><?php 
-                ?><li onclick="edOP(this)" class="button<?= $uPics==2 ? '': ' hid'?>"><b><?=  $this->lang['no']  ?></b></li><?php
-            ?></ul><?php
-            
+         
             if(!$hasPics && $uPics!=2) $seqHide=true;
                         
             
             $isPi=($hasVideo || $uVideo==2);
-            ?><ul id="xvd" class="ls po<?= ($isPi ? ' pi':''),(!$seqHide ? '':' hid') ?>"><?php
-                ?><li onclick="edOV(this)" class="button h"><b><?= $this->lang['m_h_video'] ?><span class="et"></span></b></li><?php 
-                ?><li class="nobd <?= $uVideo==1 ? '': ' hid'?>"><ul><?php 
-                    ?><li onclick="shV(this,0)" class="button pid<?= $hasVideo ? '': ' hid'?>"><b><span class="pz pzy"></span><?= $this->lang['up_video_link'] ?><span class="to"></span></b></li><?php
-                    ?><li onclick="shV(this,1)" class="button pid<?= $hasVideo ? '': ' hid'?>" style="display:none!important"><b><span class="pz pza"></span><?= $this->lang['up_video'] ?><span class="to"></span></b></li><?php
-                    ?><li class="pid<?= $hasVideo ? ' hid': ''?>"><b class="ah ctr"><span onclick="noVUp(this)" class="button bt btw cl"><?= $this->lang['cancel'] ?></span></b></li><?php
-                    ?><li onclick="edOV(this)" class="button pics<?= $hasVideo ? '': ' hid'?>"><?php
-                        if($hasVideo){
-                            if($isPi) {
-                                ?><b class="ctr ah"><span title="<?= $this->lang['removeVideo'] ?>" onclick='delV(this)' class='button pz pzd'></span><img src='<?= $this->adContent['video'][2] ?>' width='250' height='200' /><span class='play'></span></b><?php
-                            }else {
-                                ?><a class='ctr ah' target='blank' href='<?= $this->adContent['video'][1] ?>&autoplay=1'><span  title="<?= $this->lang['removeVideo'] ?>" onclick='delV(this)' class='button pz pzd'></span><img src='<?= $this->adContent['video'][2] ?>' width='250' height='200' /><span class='play'></span></a><?php
-                            }
-                        }
-                    ?></li><?php
-                    ?><li class="nobd pid<?= $hasVideo ? ' hid': ''?>"><ul><?php
-                        ?><li><div class="ipt"><input type="text" class="pn" placeholder="https://www.youtube.com/watch?v={VIDEO-ID}" /></div></li><?php 
-                        ?><li class="nobd hid"></li><?php                                    
-                        ?><li><b class="ah ctr act2"><?php
-                            ?><input onclick="linkVd(this)" class="button bt ok" type="button" value="<?= $this->lang['add'] ?>" /><?php 
-                            ?><span onclick="cVUp(this)" class="button bt cl"><?= $this->lang['cancel'] ?></span><?php
-                        ?></b></li><?php
-                    ?></ul></li><?php
-                    ?><li id="hi" class="nobd<?= $hasVideo ? '': ' hid'?>"><?php
-                        //video goes here
-                    ?></li><?php
-                    ?><li class="pid<?= $hasVideo ? '': ' hid'?>"><b class="ah ctr"><span onclick="dvid(this)" class="button bt btw ok"><?= $this->lang['next'] ?></span></b></li><?php
-                ?></ul></li><?php
-                ?><li class="<?= $uVideo==0 ? '': ' hid'?>"><b class="ah ctr act2"><span onclick="edOV(this,1)" class="button bt ok"><?= $this->lang['yes'] ?></span><span onclick="noO(this,'v')" class="button bt cl"><?= $this->lang['no'] ?></span></b></li><?php 
-                ?><li onclick="edOV(this)" class="button<?= $uVideo==2 ? '': ' hid'?>"><b><?= $this->lang['no']  ?></b></li><?php
-            ?></ul><?php 
+           
             if(!$hasVideo && $uVideo!=2) $seqHide=true;
             
             if(!$this->router()->isApp){
