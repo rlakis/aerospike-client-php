@@ -3,7 +3,7 @@
     .modal *{-webkit-overflow-scrolling: auto;overflow-y: auto;}
     .modal .card{padding:20px auto;overflow-y:auto !important; min-height:320px;height:auto;border-radius:0;}
     .modal .card .card-image{margin:30px auto 15px;border-radius:0;overflow-y: hidden;background-color: black}
-    .modal .card-image img{-webkit-transform:none;top:0;left:0;border-radius:0;min-height: 0;overflow-y: auto !important}
+    .modal .card .card-image img{-webkit-transform:none;top:0;left:0;border-radius:0;min-height: 0;overflow-y: auto !important;}
     .modal .top {display:block;height:60px;background-color:var(--mourjanC);}
     .close{right:8px;top:4px;}
     .nopix{position: relative;}

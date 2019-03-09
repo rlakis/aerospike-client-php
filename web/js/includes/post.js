@@ -71,7 +71,7 @@ var UI={
                 }
                 console.log(_.dic);
                 
-                $.querySelectorAll('span.pix').forEach(function(pix){pix.onclick=_.openImage;});
+                $.querySelectorAll('span.pix').forEach(function(pix){pix.onclick=_.openImage;pix.classList.add('icn-camera')});
             }
         })
         .catch(error => { 
@@ -83,6 +83,39 @@ var UI={
         if (window.File && window.FileReader && window.FileList && window.Blob) {
             let curr=e.target.closest('span').dataset.index;
             let spans=$.querySelector('div.pictures').childNodes;
+            
+            if(e.target.closest('span').querySelector('img')){
+                let dialog, card, image;
+                if(!UI.dialogs.pix){
+                    dialog=UI.createDialog('pix');
+                    card=dialog.querySelector('div.card');
+                    image=new Image();
+                    card.appendChild(image);
+                    let f=createElem('div', 'card-footer');
+                    let btnRotate=createElem('a', 'btn blue', 'Rotate');                    
+                    f.appendChild(btnRotate);
+                    let btnRemove=createElem('a', 'btn blue', 'Remove');
+                    btnRemove.onclick=function(){
+                        Ad.pictures[curr].image.style.display='none';
+                        Ad.pictures[curr].image.parentElement.classList.add('icn-camera');
+                        Ad.pictures[curr].image.remove();
+                        Ad.pictures[curr]={};
+                        UI.close();
+                    };
+                    f.appendChild(btnRemove);
+                    let btnReplace=createElem('a', 'btn blue', 'Replace');
+                    f.appendChild(btnReplace);
+                    card.appendChild(f);
+                } 
+                else {
+                    dialog=UI.dialogs.pix;
+                    image=dialog.querySelector('img');
+                }
+                image.src=Ad.pictures[curr].image.src;
+                UI.showDialog(dialog);
+                return;
+            }
+            
             return new Promise(resolve => {
                 let input = document.createElement('input');
                 input.type = 'file';
@@ -102,11 +135,13 @@ var UI={
                                 if(!img){
                                     img=new Image();
                                     spans[curr].appendChild(img);
+                                    spans[curr].classList.remove('icn-camera');
                                 }
                                 img.onload=function(){
-                                    var height = img.naturalHeight;
-                                    var width = img.naturalWidth;
-                                    console.log('The image size is '+width+'*'+height);
+                                    //var height = img.naturalHeight;
+                                    //var width = img.naturalWidth;
+                                    Ad.pictures[img.closest('span').dataset.index]={'image':img};
+                                    //console.log('The image size is '+width+'*'+height);
                                 };
                                 img.src=readerEvent.target.result; 
                                                                 
@@ -158,6 +193,13 @@ var UI={
         }
         else if (card.offsetHeight+16>dialog.clientHeight) {
             card.style.setProperty('margin-top', (card.offsetHeight + 48 - dialog.clientHeight) + 'px');
+        }
+        let img=card.querySelector('img');
+        if(img){
+            img.style.width='100%';
+            img.style.height=Math.round(img.width/1.5)+'px';
+            img.style.setProperty('object-fit', 'cover');
+            img.style.setProperty('object-position', 'center');            
         }
     },
     
@@ -254,7 +296,7 @@ var Ad={
     natural:"",
     foreign:"",
     address:null,
-    pictures:[],
+    pictures:{},
     regions:[],
     phone1:null,
     phone2:null,

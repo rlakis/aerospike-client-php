@@ -320,7 +320,7 @@ class PostAd extends Page {
             if (isset($this->user->params['country']) && $this->user->params['country']) {
                 $cid=$this->user->params['country'];
                 $q='select c.code, c.id, c.name_ar, c.name_en, c.locked, trim(id_2) from country c';
-                $cc=$this->urlRouter->db->queryCacheResultSimpleArray('country_codes_req', $q, null, 1, $this->router()->config()->get('ttl_long'));
+                $cc=$this->router()->database()->queryCacheResultSimpleArray('country_codes_req', $q, null, 1, $this->router()->config()->get('ttl_long'));
                 if (isset($cc[$cid])){
                     $setccv=1;
                     $this->globalScript.='var ccv={c:'.$cc[$cid][0].',n:'.($cc[$cid][4] ? $cc[$cid][1]:0).',en:"'.$cc[$cid][3].'",ar:"'.$cc[$cid][2].'",i:"'.$cc[$cid][5].'"};';
