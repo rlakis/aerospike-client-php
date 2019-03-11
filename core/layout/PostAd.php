@@ -1110,7 +1110,7 @@ class PostAd extends Page {
             ?><div class=row><div class=col-12><div id=main class="rct"><?php
             $this->mainMobile();    
             ?></div></div></div><?php
-            $this->inlineJS('post.js');
+            $this->inlineJS('util.js')->inlineJS('post.js');
         }
         else {
             $this->renderLoginPage();

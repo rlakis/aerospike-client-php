@@ -25,3 +25,5 @@
 
 .pictures span.icn-camera{background-color:lightgrey !important;-webkit-mask:url(/web/css/1.0/fa/regular/camera-retro.svg) no-repeat 50% 50%;}
 .modal .card .card-footer{display: flex; flex-flow: row; flex: 1 auto; justify-content: space-around}
+.modal .pix {display:inline-flex; width: 100%; align-items: center; justify-content: center}
+.modal .pix > img {display:block; object-fit: cover; object-position: center;height: 100%;width: 100%}

@@ -1,4 +1,4 @@
-var $ = document, ALT = false, MULTI = false;
+var ALT = false, MULTI = false;
 
 $.addEventListener("DOMContentLoaded", function () {
     var lazyloadImages;
@@ -113,35 +113,6 @@ $.body.onclick = function (e) {
         f.style.display = 'none';
     }
 };
-
-createElem = function (tag, className, content, isHtml) {
-    var el = document.createElement(tag);
-    if (className) {
-        el.className = className;
-    }
-    if (typeof content !== 'undefined')
-        el[isHtml || false ? 'innerHTML' : 'innerText'] = content;
-    return el;
-};
-
-dirElem = function (e) {
-    var v = e.value;
-    if (!v) {
-        e.className = '';
-    } else {
-        e.className = (v.match(/[\u0621-\u064a\u0750-\u077f]/)) ? 'ar' : 'en';
-    }
-};
-
-_options = function (m, dat) {
-    m = m.toUpperCase();
-    let opt = {method: m, mode: 'same-origin', credentials: 'same-origin', headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}};
-    if (m === 'POST') {
-        opt['body'] = JSON.stringify(dat);
-    }
-    return opt;
-};
-
 
 var d = {
     currentId: 0, n: 0, panel: null, ad: null, slides: null, roots: null,

@@ -1,24 +1,9 @@
 var $=document,Ed;
 $.addEventListener("DOMContentLoaded", function(e) {
-    console.log('document loaded');
     UI.init();
 });
 $.onkeydown=function(e){
     if(e.key==='Escape'){console.log('esc');Ed.close();}
-};
-createElem=function(tag, className, content, isHtml) {
-    var el=document.createElement(tag);
-    if(className){el.className = className;}
-    if (typeof content !== 'undefined')
-        el[isHtml || false ? 'innerHTML' : 'innerText'] = content;
-    return el;
-};
-
-_options=function(m, dat){
-    m=m.toUpperCase();
-    let opt={method: m, mode: 'same-origin', credentials: 'same-origin', headers:{'Accept':'application/json','Content-Type':'application/json'}};
-    if(m==='POST'){opt['body']=JSON.stringify(dat);}
-    return opt;
 };
 
 var UI={
@@ -26,6 +11,7 @@ var UI={
     dic:null,
     rootId:0,    
     purposeId:0,
+    pixIndex:0,
     
     dialogs:{},
     init:function(){
@@ -71,7 +57,13 @@ var UI={
                 }
                 console.log(_.dic);
                 
-                $.querySelectorAll('span.pix').forEach(function(pix){pix.onclick=_.openImage;pix.classList.add('icn-camera')});
+                $.querySelectorAll('span.pix').forEach(function(pix){
+                    pix.onclick=_.openImage;pix.classList.add('icn-camera')
+                });
+                $.querySelectorAll('textarea').forEach(function(txt){
+                    txt.oninput=dirElem;
+                    console.log(txt);
+                });
             }
         })
         .catch(error => { 
@@ -81,43 +73,53 @@ var UI={
     
     openImage:function(e){
         if (window.File && window.FileReader && window.FileList && window.Blob) {
-            let curr=e.target.closest('span').dataset.index;
-            let spans=$.querySelector('div.pictures').childNodes;
+            UI.pixIndex=e.target.closest('span').dataset.index;
             
+            let spans=$.querySelector('div.pictures').childNodes;
+            let cw=$.body.clientWidth;
+            let ch=$.body.clientHeight;
             if(e.target.closest('span').querySelector('img')){
                 let dialog, card, image;
                 if(!UI.dialogs.pix){
                     dialog=UI.createDialog('pix');
                     card=dialog.querySelector('div.card');
+                    let span=createElem('span', 'pix');
+                    span.style.height=Math.round((cw/2)/1.5)+'px';
                     image=new Image();
-                    card.appendChild(image);
+                    span.appendChild(image);
+                    card.appendChild(span);
                     let f=createElem('div', 'card-footer');
+                    f.style.position='absolute';
+                    f.style.bottom=0;
+                    f.style.setProperty('width', 'calc(100% - 52px)');
                     
                     let btnRotate=createElem('a', 'btn blue', 'Rotate');
                     btnRotate.onclick=function(){
-                        if(!Ad.pictures[curr].rotate){ Ad.pictures[curr].rotate=0; }
+                        let curr=UI.pixIndex;
+                        
                         Ad.pictures[curr].rotate+=90;
                         if(Ad.pictures[curr].rotate>=360){ Ad.pictures[curr].rotate=0; }
                         Ad.pictures[curr].image.style.setProperty('transform', 'rotate('+Ad.pictures[curr].rotate+'deg)');
                         image.style.setProperty('transform', 'rotate('+Ad.pictures[curr].rotate+'deg)');
                         let h=Ad.pictures[curr].image.closest('span').offsetHeight;
                         let w=Ad.pictures[curr].image.closest('span').offsetWidth;
-                        let hh=image.offsetHeight;
-                        let ww=image.offsetWidth;
-                        let portrait=(Ad.pictures[curr].rotate===90||Ad.pictures[curr].rotate===270);                        
+                        let hh=image.closest('span').offsetHeight;
+                        let ww=image.closest('span').offsetWidth;
+                        let portrait=(Ad.pictures[curr].rotate===90||Ad.pictures[curr].rotate===270);
                         Ad.pictures[curr].image.style.setProperty('width', (portrait?h:w)+'px', 'important');
                         Ad.pictures[curr].image.style.setProperty('height', (portrait?w:h)+'px', 'important');
-                        //image.style.setProperty('width', portrait?hh+'px':'100%');
-                        //image.style.setProperty('height', portrait?'100%':hh+'px');
+                        
+                        image.style.setProperty('width', (portrait?hh:ww)+'px', 'important');
+                        image.style.setProperty('height', (portrait?ww:hh)+'px', 'important');
                     };
                     f.appendChild(btnRotate);
                     
                     let btnRemove=createElem('a', 'btn blue', 'Remove');
                     btnRemove.onclick=function(){
-                        Ad.pictures[curr].image.style.display='none';
-                        Ad.pictures[curr].image.parentElement.classList.add('icn-camera');
-                        Ad.pictures[curr].image.remove();
-                        Ad.pictures[curr]={};
+                        Ad.pictures[UI.pixIndex].image.style.display='none';
+                        Ad.pictures[UI.pixIndex].image.parentElement.classList.add('icn-camera');
+                        Ad.pictures[UI.pixIndex].image.remove();
+                        Ad.pictures[UI.pixIndex]={};
                         UI.close();
                     };
                     f.appendChild(btnRemove);
@@ -133,7 +135,7 @@ var UI={
                     dialog=UI.dialogs.pix;
                     image=dialog.querySelector('img');
                 }
-                image.src=Ad.pictures[curr].image.src;
+                image.src=Ad.pictures[UI.pixIndex].image.src;
                 UI.showDialog(dialog);
                 return;
             }
@@ -146,6 +148,7 @@ var UI={
                 input.onchange = ee => {
                     let files = Array.from(input.files);
                     resolve(files);
+                    let curr=UI.pixIndex;
                     files.forEach(function(file){
                                
                         if ( /\.(jpe?g|png|gif|webp)$/i.test(file.name) ) {
@@ -157,21 +160,18 @@ var UI={
                                     spans[curr].appendChild(img);
                                     spans[curr].classList.remove('icn-camera');
                                 }
-                                img.onload=function(){
-                                    //var height = img.naturalHeight;
-                                    //var width = img.naturalWidth;
-                                    Ad.pictures[img.closest('span').dataset.index]={'image':img};
+                                img.onload=function(){                              
+                                    Ad.pictures[img.closest('span').dataset.index]={'image':img, 'rotate':0, 'width':img.naturalWidth, 'height':img.naturalHeight};
+                                    img.style.setProperty('transform', 'rotate(0deg)');
                                     //console.log('The image size is '+width+'*'+height);
                                 };
                                 img.src=readerEvent.target.result; 
                                                                 
                                 curr++;
-                                if(curr>4){curr=0;}                                                                
+                                if(curr>4){curr=0;}                                              
                                 
                             };
-                            reader.readAsDataURL(file);
-                            
-                            
+                            reader.readAsDataURL(file);                                                        
                         }
                     });
                 };
@@ -214,12 +214,19 @@ var UI={
         else if (card.offsetHeight+16>dialog.clientHeight) {
             //card.style.setProperty('margin-top', (card.offsetHeight + 48 - dialog.clientHeight) + 'px');
         }
+        
         let img=card.querySelector('img');
         if(img){
-            img.style.width='100%';
-            img.style.height=Math.round(img.width/1.5)+'px';
-            img.style.setProperty('object-fit', 'cover');
-            img.style.setProperty('object-position', 'center');            
+            if(!Ad.pictures[UI.pixIndex].rotate){ Ad.pictures[UI.pixIndex].rotate=0; }
+            let cw=$.body.clientWidth;
+            let portrait=(Ad.pictures[UI.pixIndex].rotate===90||Ad.pictures[UI.pixIndex].rotate===270);
+            img.closest('span').style.height=Math.round((cw/2)/1.5)+'px';
+            let hh=img.closest('span').offsetHeight;
+            let ww=img.closest('span').offsetWidth;
+            img.style.setProperty('width', (portrait?hh:ww)+'px');
+            img.style.setProperty('height', (portrait?ww:hh)+'px');
+            img.style.setProperty('transform', 'rotate('+Ad.pictures[UI.pixIndex].rotate+'deg)');
+            console.log(Ad.pictures);
         }
     },
     

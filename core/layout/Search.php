@@ -1616,7 +1616,7 @@ class Search extends Page {
             ?><input type=button onclick="rpa(this,1)" class="btn cl" value="<?= $this->lang['cancel'] ?>" /><?php
             ?></div> <!--googleon: all--> <?php
         }
-        $this->inlineJS('ad-detail.js');
+        $this->inlineJS('util.js')->inlineJS('ad-detail.js');
     }                
     
     

@@ -1,6 +1,4 @@
 var wrapperTop=0;
-var $=document;
-var byId=function(id){return $.getElementById(id);}
 
 const preventEventProp = (e) => { e.preventDefault(); e.stopPropagation(); return false; };
 const preventEventPropagation = (e) => {e.stopPropagation()};

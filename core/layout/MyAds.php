@@ -1310,7 +1310,7 @@ class MyAds extends Page {
             ?><input onclick="document.location='<?= $this->router()->getLanguagePath('/post/') ?>'" class=bt type=button value="<?= $this->lang['create_ad'] ?>" /><?php
             ?></div><?php
         }
-        $this->inlineJS('myads.js');
+        $this->inlineJS('util.js')->inlineJS('myads.js');
     }
     
     
