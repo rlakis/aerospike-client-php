@@ -5,15 +5,16 @@ $.addEventListener("DOMContentLoaded", function(e) {
 $.onkeydown=function(e){
     if(e.key==='Escape'){console.log('esc');Ed.close();}
 };
-
 var UI={
     ar:$.body.dir==='rtl',
     dic:null,
+    //validator:null,
     rootId:0,    
     purposeId:0,
     pixIndex:0,
     
     dialogs:{},
+    
     init:function(){
         let _=this;
         fetch('/ajax-menu/?sections='+(_.ar?'ar':'en'), _options('GET'))
@@ -64,20 +65,164 @@ var UI={
                     txt.oninput=dirElem;
                     console.log(txt);
                 });
+                $.querySelectorAll('select').forEach(function(sel){
+                    if(sel.name==='cut'){
+                        sel.onchange=UI.cutChanged;
+                    }
+                    else if(sel.name==='cui'){
+                        sel.onchange=UI.cuiChanged;
+                    }
+                });
+                $.querySelectorAll('input[type=tel]').forEach(function(tel){
+                    tel.addEventListener('keydown',enforceFormat);
+                    tel.addEventListener('keyup',formatToPhone);
+                });
             }
         })
         .catch(error => { 
             console.log(error);
         });
+       
+        
+        //_.validator=new FormValidator(  );
     },
     
+    submit:function(e){
+        let form=e.closest('form');
+        form.querySelectorAll('input[type=tel]')[0].setCustomValidity('Invalid phone number');
+        console.log(form.checkValidity());
+        if(!form.querySelector('input[type=email]').checkValidity()){
+            console.log(form.querySelector('input[type=email]').validity);
+            form.querySelector('input[type=email]').reportValidity();
+        }
+        
+        console.log(form.querySelectorAll('input[type=tel]')[0].validity);
+        if (!form.checkValidity()) {
+            form.insertAdjacentHTML( "afterbegin", "<ul class='error-messages'></ul>" );
+            var invalidFields = form.querySelectorAll( ":invalid" ),
+            listHtml = "",
+            errorMessages = form.querySelector( ".error-messages" ),
+            label;
+
+            for ( var i = 0; i < invalidFields.length; i++ ) {
+                console.log(invalidFields[i]);
+                let label = invalidFields[i];//form.querySelector( "label[for=" + invalidFields[ i ].id + "]" );
+                listHtml += "<li>" + 
+                    label.innerHTML +
+                    " " +
+                    invalidFields[ i ].validationMessage +
+                    "</li>";
+            }
+
+            // Update the list with the new error messages
+            errorMessages.innerHTML = listHtml;
+
+            // If there are errors, give focus to the first invalid field and show
+            // the error messages container
+            if ( invalidFields.length > 0 ) {
+                invalidFields[ 0 ].focus();
+                errorMessages.style.display = "block";
+            }
+        }
+        return false;
+    },
+        
+    replaceValidationUI:function( form ) {
+        // Suppress the default bubbles
+        form.addEventListener( "invalid", function( event ) { event.preventDefault(); }, true );
+
+        // Support Safari, iOS Safari, and the Android browser—each of which do not prevent
+        // form submissions by default
+        form.addEventListener( "submit", function( event ) {
+            if ( !this.checkValidity() ) {
+                event.preventDefault();
+            }
+        });
+
+        // Add a container to hold error messages
+        form.insertAdjacentHTML( "afterbegin", "<ul class='error-messages'></ul>" );
+
+        var submitButton = form.querySelector( "button:not([type=button]), input[type=submit]" );
+        submitButton.addEventListener( "click", function( event ) {
+            var invalidFields = form.querySelectorAll( ":invalid" ),
+            listHtml = "",
+            errorMessages = form.querySelector( ".error-messages" ),
+            label;
+
+            for ( var i = 0; i < invalidFields.length; i++ ) {
+                label = form.querySelector( "label[for=" + invalidFields[ i ].id + "]" );
+                listHtml += "<li>" + 
+                    label.innerHTML +
+                    " " +
+                    invalidFields[ i ].validationMessage +
+                    "</li>";
+            }
+
+            // Update the list with the new error messages
+            errorMessages.innerHTML = listHtml;
+
+            // If there are errors, give focus to the first invalid field and show
+            // the error messages container
+            if ( invalidFields.length > 0 ) {
+                invalidFields[ 0 ].focus();
+                errorMessages.style.display = "block";
+            }
+        });
+    },
+
     openImage:function(e){
         if (window.File && window.FileReader && window.FileList && window.Blob) {
             UI.pixIndex=e.target.closest('span').dataset.index;
             
             let spans=$.querySelector('div.pictures').childNodes;
             let cw=$.body.clientWidth;
-            let ch=$.body.clientHeight;
+            let openFileDialog=function(multiple, largeImage){
+                return new Promise(resolve => {
+                    let input = document.createElement('input');
+                    input.type = 'file';
+                    input.multiple = multiple;
+                    input.accept = 'image/*';
+                    input.onchange = ee => {
+                        let files = Array.from(input.files);
+                        resolve(files);
+                        let curr=UI.pixIndex;
+                        files.forEach(function(file){
+
+                            if ( /\.(jpe?g|png|gif|webp)$/i.test(file.name) ) {
+                                var reader = new FileReader();
+                                reader.onload = readerEvent => {
+                                    let img=spans[curr].querySelector('img');
+                                    if(!img){
+                                        img=new Image();
+                                        spans[curr].appendChild(img);
+                                        spans[curr].classList.remove('icn-camera');
+                                    }
+                                    img.onload=function(){                              
+                                        Ad.pictures[img.closest('span').dataset.index]={'image':img, 'rotate':0, 'width':img.naturalWidth, 'height':img.naturalHeight};
+                                        img.style.setProperty('transform', 'rotate(0deg)');
+                                        if(largeImage){
+                                            largeImage.src=Ad.pictures[UI.pixIndex].image.src;
+                                            let hh=largeImage.closest('span').offsetHeight;
+                                            let ww=largeImage.closest('span').offsetWidth;
+                                            largeImage.style.setProperty('width', ww+'px');
+                                            largeImage.style.setProperty('height', hh+'px');
+                                            largeImage.style.setProperty('transform', 'rotate(0deg)');
+                                        }
+                                    };
+                                    img.src=readerEvent.target.result; 
+
+                                    curr++;
+                                    if(curr>4){curr=0;}                                              
+
+                                };
+                                reader.readAsDataURL(file);                                                        
+                            }
+                        });
+                    };
+                    input.click();
+                });
+            };
+            
             if(e.target.closest('span').querySelector('img')){
                 let dialog, card, image;
                 if(!UI.dialogs.pix){
@@ -126,7 +271,7 @@ var UI={
                     
                     let btnReplace=createElem('a', 'btn blue', 'Replace');
                     btnReplace.onclick=function(){
-                        console.log('replace');
+                        openFileDialog(false, image);                        
                     };
                     f.appendChild(btnReplace);
                     card.appendChild(f);
@@ -139,44 +284,8 @@ var UI={
                 UI.showDialog(dialog);
                 return;
             }
+            openFileDialog(true);
             
-            return new Promise(resolve => {
-                let input = document.createElement('input');
-                input.type = 'file';
-                input.multiple = true;
-                input.accept = 'image/*';
-                input.onchange = ee => {
-                    let files = Array.from(input.files);
-                    resolve(files);
-                    let curr=UI.pixIndex;
-                    files.forEach(function(file){
-                               
-                        if ( /\.(jpe?g|png|gif|webp)$/i.test(file.name) ) {
-                            var reader = new FileReader();
-                            reader.onload = readerEvent => {
-                                let img=spans[curr].querySelector('img');
-                                if(!img){
-                                    img=new Image();
-                                    spans[curr].appendChild(img);
-                                    spans[curr].classList.remove('icn-camera');
-                                }
-                                img.onload=function(){                              
-                                    Ad.pictures[img.closest('span').dataset.index]={'image':img, 'rotate':0, 'width':img.naturalWidth, 'height':img.naturalHeight};
-                                    img.style.setProperty('transform', 'rotate(0deg)');
-                                    //console.log('The image size is '+width+'*'+height);
-                                };
-                                img.src=readerEvent.target.result; 
-                                                                
-                                curr++;
-                                if(curr>4){curr=0;}                                              
-                                
-                            };
-                            reader.readAsDataURL(file);                                                        
-                        }
-                    });
-                };
-                input.click();
-            });
           
         } 
         else {
@@ -304,6 +413,14 @@ var UI={
     
     rootChanged:function(ro, pu){
         $.querySelector('#ad-class').querySelector('a.ro').innerHTML=this.getRootName(ro) + ' / ' + this.getPurposeName(ro, pu);
+    },
+    
+    cuiChanged:function(e){
+        console.log(e);
+    },
+    
+    cutChanged:function(e){
+        console.log(e);
     },
     
     close:function(e){
@@ -755,3 +872,78 @@ var Prefs={
     }
     
 };
+
+
+const isNumericInput = (event) => {
+    const key = event.keyCode;
+    return ((key >= 48 && key <= 57) || // Allow number line
+        (key >= 96 && key <= 105) // Allow number pad
+    );
+};
+
+const isModifierKey = (event) => {
+    const key = event.keyCode;
+    return (event.shiftKey === true || key === 35 || key === 36) || // Allow Shift, Home, End
+        (key === 8 || key === 9 || key === 13 || key === 46) || // Allow Backspace, Tab, Enter, Delete
+        (key > 36 && key < 41) || // Allow left, up, right, down
+        (
+            // Allow Ctrl/Command + A,C,V,X,Z
+            (event.ctrlKey === true || event.metaKey === true) &&
+            (key === 65 || key === 67 || key === 86 || key === 88 || key === 90)
+        );
+};
+
+const enforceFormat = (event) => {
+    // Input must be of a valid number format or a modifier key, and not longer than ten digits
+    if(!isNumericInput(event) && !isModifierKey(event)){
+        event.preventDefault();
+    }
+};
+
+const formatToPhone = (event) => {
+    if(isModifierKey(event)) {return;}
+
+    // I am lazy and don't like to type things more than once
+    const target = event.target;
+    const input = target.value.replace(/[^+0-9]/g,'');//.substring(0,16); // First ten digits of input only
+    
+    var result = '';
+    try
+    {
+        const asYouType = new libphonenumber.AsYouType('LB')
+        target.value = asYouType.input(input);
+        target.setCustomValidity('ooops');
+        
+       
+//        const phoneNumber = new libphonenumber.parsePhoneNumberFromString(input, 'LB');
+//        console.log(phoneNumber);
+//        target.value = phoneNumber.formatInternational();
+    } catch (error){
+        console.log(error);
+    }
+    //console.log(result);
+    /*let zip, middle, last;
+    switch(input.length){
+        case 7:
+            zip = '0'+input.substring(0,1);
+            middle = input.substring(1,4);
+            last = input.substring(4,7);
+            target.value = `(${zip}) ${middle} - ${last}`;
+            break;
+            
+        default:
+            zip = input.substring(0,3);
+            middle = input.substring(3,6);
+            last = input.substring(6,16);
+
+            if(input.length > 6){target.value = `(${zip}) ${middle} - ${last}`;}
+            else if(input.length > 3){target.value = `(${zip}) ${middle}`;}
+            else if(input.length > 0){target.value = `(${zip}`;}
+            break;
+    }*/
+    //console.log(input);
+    
+};
+
+
+

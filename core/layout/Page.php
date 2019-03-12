@@ -3680,8 +3680,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                             break;
                 
                         case 'account':
-                            if($this->user->info['id'])
-                            {
+                            if($this->user->info['id']) {
                                 ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/account.js';<?php                                            
                             }else{
                                 ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/gen.js';<?php
@@ -3690,20 +3689,17 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                             break;
             
                         case 'post':
-                            if($this->user->info['id'] && $this->isUserMobileVerified)
-                            {
+                            if($this->user->info['id'] && $this->isUserMobileVerified) {
                                 ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/post.js';<?php                                            
                             }
-                            else
-                            {
+                            else {
                                 ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/gen.js';<?php
                             }
                             ?>head.insertBefore(sh,head.firstChild);<?php 
                             break;
                             
                         case 'password':
-                            if($this->include_password_js)
-                            {
+                            if($this->include_password_js) {
                                 ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/pwd.js';head.insertBefore(sh,head.firstChild);<?php 
                             }
                             break;
@@ -3729,20 +3725,10 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             ?>})();<?php
         
         ?></script><?php
-        /*
-        if($this->user->info['id'] && $this->user->info['level']==9 && $this->router()->module=='post')
-        {
-            if($this->router()->cfg['site_production'])
-            {
-                ?><script type="text/javascript" async="true" src="https://h5.mourjan.com/js/3.0.7/pvc.js"></script><?php
-            }else{
-                ?><script type="text/javascript" async="true" src="<?= $this->router()->cfg['url_js'] ?>/pvc.js"></script><?php
-            }
-        }       */         
     }
     
     
-    function prepare_js() {        
+    function prepare_js() {
         $requires = [];        
         if ($this->router()->isMobile) {               
             $renderMobileVerifyPage = $this->router()->module=='password' || ($this->router()->module=='post' && $this->user->info['id'] && !$this->isUserMobileVerified);
@@ -3801,10 +3787,12 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                         if($this->user->info['level']==9){     
                             if($this->router()->cfg['site_production']){
                                 $requires[] = 'https://h5.mourjan.com/js/3.5.1/myadsad.js';
-                            }else{
+                            }
+                            else{
                                 $requires[] = $this->router()->cfg['url_js'] . '/myadsad.js';
                             }
-                        }else{
+                        }
+                        else{
                             $requires[] = $this->router()->cfg['url_js'] . '/myads.js';                                          
                         }
                     }
@@ -3836,8 +3824,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     }
     
     
-    function load_js_classic()
-    {
+    function load_js_classic() {
         if ($this->globalScript) {
             $this->globalScript=preg_replace('/\s+/', ' ', $this->globalScript);
             $this->globalScript=preg_replace("/[\n\t\r]/", '', $this->globalScript);
@@ -3877,51 +3864,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
          */
             ?>var head = document.getElementsByTagName("head")[0] || document.documentElement;<?php
             ?>function addEvent(e, en, fn){if (e.addEventListener)e.addEventListener(en, fn, false);else if(e.attachEvent)e.attachEvent('on' + en, fn)}<?php
-            /* ?>function loadCss(fn,cb){var s=document.getElementsByTagName("link"),l=s.length-1,p=0,e;for(i=l;i>=0;i--){if(s[i].rel=='stylesheet'){e=s[i];break;}}if(typeof e==='undefined'){p=1;e=head.firstChild}var l=document.createElement('link');l.rel='stylesheet';l.type="text/css";l.media='all';l.href=fn;e.parentNode.insertBefore(l,e.nextSibling)}<?php */
-            /*?>function loadCss(fn,cb){var e=document.getElementsByTagName('script')[0];var l=document.createElement('link');l.rel='stylesheet';l.type="text/css";l.media='all';l.href=fn;e.parentNode.insertBefore(l,e.nextSibling)}<?php */
-            
-            /*function AJAXLoad(type,url) {
-                    var ext;
-                    if (type == "js") {
-                        ext = document.createElement('script');
-                        ext.setAttribute("type","text/javascript");
-                    }
-                    if (type == "css") {
-                        ext = document.createElement('style');
-                        ext.rel= "stylesheet";
-                        ext.type="text/css";
-                        ext.media="all";
-                    }
-                    var xr;
-                    if (window.XMLHttpRequest) {xr=new XMLHttpRequest()}
-                    else {xr=new ActiveXObject("Microsoft.XMLHTTP")}
-                    xr.onreadystatechange=function(){
-                        if (xr.readyState==4) {
-                            if (xr.status == 200) {
-                                if (type == "css") {
-                                    var reg=new RegExp('url\\(','g');
-                                    var x=xr.responseText;
-                                    x=x.replace(reg,'url(<?= $this->router()->cfg['url_css'] ?>/');
-                                    ext.innerHTML=x;
-                                    document.body.appendChild(ext);
-                                }else{
-                                    ext.innerHTML=xr.responseText;
-                                    head.appendChild(ext);
-                                }
-                            } else {
-                                console.log('cannot load external file :'+url);
-                            }
-                        }
-                    }
-                    xr.open("GET",url,true);
-                    xr.send();
-                }*/
-            /*
-            if ($this->router()->cfg['enabled_ads'] && count($this->googleAds)) {
-                ?>(function(){var gads=document.createElement('script');gads.async=true;gads.type='text/javascript';var useSSL='https:'==document.location.protocol;gads.src=(useSSL?'https:':'http:')+'//www.googletagservices.com/tag/js/gpt.js';head.appendChild(gads);})();<?php
-            }
-             * 
-             */
+        
             ?>var ucss='<?= $this->router()->config()->cssURL ?>',<?php 
             ?>uimg='<?= $this->router()->config()->adImgURL ?>',<?php 
             if(isset($this->user->params['hasCanvas'])){            
@@ -4034,110 +3977,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             ?>LSM='<?= $this->router()->last_modified ?>';<?php
             if(0 && in_array($this->router()->module,['index','search','detail'])){ ?>loadCss(ucss+"/gen<?= $this->router()->language=='ar'?'_ar':'' ?>.css");<?php }
             echo $this->globalScript;
-            /* ?>function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:lang, layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false, multilanguagePage: true, gaTrack: true, gaId: 'UA-435731-13'}, 'google_translate_element');}<?php */
             
-            
-            /* ?>window.onload=function(){<?php */
-            
-            /*
-                    switch($this->router()->module){
-                        case 'signin':
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router()->cfg['url_jquery'] ?>jquery.min.js';<?php 
-                            ?>sh.onload=sh.onreadystatechange=function(){<?php
-                                ?>if (!SCLD && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete")){<?php
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router()->cfg['url_js'] ?>/signin.js';head.insertBefore(sh,head.firstChild);<?php 
-                                ?>}<?php 
-                            ?>};<?php
-                            ?>head.insertBefore(sh,head.firstChild)})();<?php 
-                            break;
-                        case 'detail':
-                        case 'search':
-                             ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router()->cfg['url_jquery'] ?>jquery.min.js';<?php 
-                            ?>sh.onload=sh.onreadystatechange=function(){<?php
-                                ?>if (!SCLD && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete")){<?php
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router()->cfg['url_js'] ?>/search.js';head.insertBefore(sh,head.firstChild);<?php 
-                                ?>}<?php 
-                            ?>};<?php
-                            ?>head.insertBefore(sh,head.firstChild)})();<?php 
-                            break;
-                        case 'myads':
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router()->cfg['url_jquery'] ?>jquery.min.js';<?php 
-                            ?>sh.onload=sh.onreadystatechange=function(){<?php
-                                ?>if (!SCLD && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete")){<?php
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;<?php 
-                                    if($this->user->info['id']){
-                                        if($this->user->info['level']==9){     
-                                            if($this->router()->cfg['site_production']){
-                                                ?>sh.src='https://h5.mourjan.com/js/3.0.8/myadsad.js';<?php
-                                            }else{
-                                                ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/myadsad.js';<?php 
-                                            }
-                                        }else{
-                                            ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/myads.js';<?php                                            
-                                        }
-                                    }else{
-                                        ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/gen.js';<?php
-                                    }
-                                    ?>head.insertBefore(sh,head.firstChild);<?php 
-                                ?>}<?php 
-                            ?>};<?php
-                            ?>head.insertBefore(sh,head.firstChild)})();<?php 
-                            break;
-                        case 'account':
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router()->cfg['url_jquery'] ?>jquery.min.js';<?php 
-                            ?>sh.onload=sh.onreadystatechange=function(){<?php
-                                ?>if (!SCLD && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete")){<?php
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;<?php 
-                                    if($this->user->info['id']){
-                                        ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/account.js';<?php                                            
-                                    }else{
-                                        ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/gen.js';<?php
-                                    }
-                                    ?>head.insertBefore(sh,head.firstChild);<?php 
-                                ?>}<?php 
-                            ?>};<?php
-                            ?>head.insertBefore(sh,head.firstChild)})();<?php 
-                            break;
-                        case 'post':
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router()->cfg['url_jquery'] ?>jquery.min.js';<?php 
-                            ?>sh.onload=sh.onreadystatechange=function(){<?php
-                                ?>if (!SCLD && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete")){<?php
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;<?php 
-                                    if($this->user->info['id']){
-                                        ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/post.js';<?php                                            
-                                    }else{
-                                        ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/gen.js';<?php
-                                    }
-                                    ?>head.insertBefore(sh,head.firstChild);<?php 
-                                ?>}<?php 
-                            ?>};<?php
-                            ?>head.insertBefore(sh,head.firstChild)})();<?php 
-                            break;
-                        case 'password':
-                            if($this->include_password_js){
-                                ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router()->cfg['url_jquery'] ?>jquery.min.js';<?php 
-                                ?>sh.onload=sh.onreadystatechange=function(){<?php
-                                    ?>if (!SCLD && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete")){<?php
-                                        ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router()->cfg['url_js'] ?>/pwd.js';head.insertBefore(sh,head.firstChild);<?php 
-                                    ?>}<?php 
-                                ?>};<?php
-                                ?>head.insertBefore(sh,head.firstChild)})();<?php 
-                                break;
-                            }
-                        case 'index':
-                        default:
-                            ?>(function(){var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router()->cfg['url_jquery'] ?>jquery.min.js';<?php 
-                            ?>sh.onload=sh.onreadystatechange=function(){<?php
-                                ?>if (!SCLD && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete")){<?php
-                                    ?>SCLD=true;var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router()->cfg['url_js'] ?>/gen.js';head.insertBefore(sh,head.firstChild);<?php 
-                                    echo $this->inlineQueryScript;
-                                ?>}<?php 
-                            ?>};<?php
-                            ?>head.insertBefore(sh,head.firstChild)})();<?php 
-                            break;
-                    } */
-                echo $this->inlineScript;
-            /* ?>};<?php */
                 
                 /*
                 switch($this->router()->module){

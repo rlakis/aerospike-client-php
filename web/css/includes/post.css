@@ -27,3 +27,58 @@
 .modal .card .card-footer{display: flex; flex-flow: row; flex: 1 auto; justify-content: space-around}
 .modal .pix {display:inline-flex; width: 100%; align-items: center; justify-content: center}
 .modal .pix > img {display:block; object-fit: cover; object-position: center;height: 100%;width: 100%}
+
+
+.select{margin-top: 0;width:auto}
+.select select{width:180px}
+.select .select-text{border-bottom:0}
+
+#main .field {height: 1.5em;font-size: 1.1rem;
+    display: block;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    color: #444;
+    outline: 0;
+    border: none;
+
+    border-bottom: 0;
+	-webkit-transition: all 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
+	   -moz-transition: all 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
+	     -o-transition: all 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
+			transition: all 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
+
+    background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0) 96%, #2196f3 4%);
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 96%, #2196f3 4%);
+    background-position: -400px 0;
+    background-size: 400px 100%;
+    background-repeat: no-repeat;
+}
+#main .field:error{
+    -webkit-transition: all 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
+        -moz-transition: all 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
+        -o-transition: all 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
+        transition: all 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
+
+        background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0) 96%, #f44336 4%);
+        background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 96%, #f44336 4%);
+        background-position: 0 0;
+        background-size: 400px 100%;
+        background-repeat: no-repeat;
+}
+#main .field:required{
+     box-shadow: none;
+}
+#main .field:invalid{
+     color: red;
+}
+#main .field:focus{
+    background-position: 0 0;
+    color: #444;
+    -webkit-transition: transform 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
+    -moz-transition: transform 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
+    -o-transition: transform 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
+    transition: transform 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
+}
+
+#main .card li {align-items: center}
