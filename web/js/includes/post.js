@@ -3,16 +3,18 @@ $.addEventListener("DOMContentLoaded", function(e) {
     UI.init();
 });
 $.onkeydown=function(e){
-    if(e.key==='Escape'){console.log('esc');Ed.close();}
+    if(e.key==='Escape'){UI.close();}
 };
 var UI={
     ar:$.body.dir==='rtl',
     dic:null,
-    //validator:null,
+    map:null,
+    infoWindow:null,
     rootId:0,    
     purposeId:0,
     pixIndex:0,
     
+    numbers:{1:null, 2:null},
     dialogs:{},
     
     init:function(){
@@ -59,23 +61,14 @@ var UI={
                 console.log(_.dic);
                 
                 $.querySelectorAll('span.pix').forEach(function(pix){
-                    pix.onclick=_.openImage;pix.classList.add('icn-camera')
+                    pix.onclick=_.openImage;
+                    pix.classList.add('icn-camera');
                 });
                 $.querySelectorAll('textarea').forEach(function(txt){
                     txt.oninput=dirElem;
-                    console.log(txt);
                 });
-                $.querySelectorAll('select').forEach(function(sel){
-                    if(sel.name==='cut'){
-                        sel.onchange=UI.cutChanged;
-                    }
-                    else if(sel.name==='cui'){
-                        sel.onchange=UI.cuiChanged;
-                    }
-                });
-                $.querySelectorAll('input[type=tel]').forEach(function(tel){
-                    tel.addEventListener('keydown',enforceFormat);
-                    tel.addEventListener('keyup',formatToPhone);
+                $.querySelectorAll('input[type=tel]').forEach(function(tel){                    
+                    _.numbers[tel.dataset.no] = new ContactNumber(tel);
                 });
             }
         })
@@ -89,14 +82,19 @@ var UI={
     
     submit:function(e){
         let form=e.closest('form');
-        form.querySelectorAll('input[type=tel]')[0].setCustomValidity('Invalid phone number');
+        //form.querySelectorAll('input[type=tel]')[0].setCustomValidity('Invalid phone number');
         console.log(form.checkValidity());
-        if(!form.querySelector('input[type=email]').checkValidity()){
-            console.log(form.querySelector('input[type=email]').validity);
+        if(!form.querySelector('input[type=email]').checkValidity()){            
             form.querySelector('input[type=email]').reportValidity();
         }
         
-        console.log(form.querySelectorAll('input[type=tel]')[0].validity);
+        form.querySelectorAll('input[type=tel]').forEach(function(tel){
+            let telType=tel.closest('li').querySelector('select.select-text');
+            console.log(tel.value, tel.validity, telType.value);
+        });
+        
+        
+        /*
         if (!form.checkValidity()) {
             form.insertAdjacentHTML( "afterbegin", "<ul class='error-messages'></ul>" );
             var invalidFields = form.querySelectorAll( ":invalid" ),
@@ -123,52 +121,10 @@ var UI={
                 invalidFields[ 0 ].focus();
                 errorMessages.style.display = "block";
             }
-        }
+        }*/
         return false;
     },
-        
-    replaceValidationUI:function( form ) {
-        // Suppress the default bubbles
-        form.addEventListener( "invalid", function( event ) { event.preventDefault(); }, true );
-
-        // Support Safari, iOS Safari, and the Android browser—each of which do not prevent
-        // form submissions by default
-        form.addEventListener( "submit", function( event ) {
-            if ( !this.checkValidity() ) {
-                event.preventDefault();
-            }
-        });
-
-        // Add a container to hold error messages
-        form.insertAdjacentHTML( "afterbegin", "<ul class='error-messages'></ul>" );
-
-        var submitButton = form.querySelector( "button:not([type=button]), input[type=submit]" );
-        submitButton.addEventListener( "click", function( event ) {
-            var invalidFields = form.querySelectorAll( ":invalid" ),
-            listHtml = "",
-            errorMessages = form.querySelector( ".error-messages" ),
-            label;
-
-            for ( var i = 0; i < invalidFields.length; i++ ) {
-                label = form.querySelector( "label[for=" + invalidFields[ i ].id + "]" );
-                listHtml += "<li>" + 
-                    label.innerHTML +
-                    " " +
-                    invalidFields[ i ].validationMessage +
-                    "</li>";
-            }
-
-            // Update the list with the new error messages
-            errorMessages.innerHTML = listHtml;
-
-            // If there are errors, give focus to the first invalid field and show
-            // the error messages container
-            if ( invalidFields.length > 0 ) {
-                invalidFields[ 0 ].focus();
-                errorMessages.style.display = "block";
-            }
-        });
-    },
+          
 
     openImage:function(e){
         if (window.File && window.FileReader && window.FileList && window.Blob) {
@@ -293,11 +249,128 @@ var UI={
         }
     },
     
-    createDialog:function(name){
+    initMap:function(){
+        let _=this, marker, geocoder;
+        _.map = new google.maps.Map($.querySelector('#gmapView'), {
+          center: {lat: -34.397, lng: 150.644},
+          zoom: 12
+        });
+        
+        google.maps.event.addDomListener(_.map, "click", function(e){
+            geocoder.geocode({"latLng": e.latLng},
+                function(results, status) {
+                    if (status===google.maps.GeocoderStatus.OK) {
+                        if (results[0]) {
+                            loc=results;
+                            marker.setPosition(e.latLng);
+                            setInfo(results);//cacheLoc(results);
+                        }
+                    } 
+                    else {
+                        //mapQ.css("color","#ff0000");
+                    }
+                });
+        });
+        
+        
+        
+        _.infoWindow = new google.maps.InfoWindow;
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                var pos = {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude
+                };
+                geocoder = new google.maps.Geocoder();
+                marker = new google.maps.Marker({position: pos, map: _.map, animation: google.maps.Animation.DROP, title:'Location here'});
+     
+                //_.infoWindow.setPosition(pos);
+                //_.infoWindow.setContent(null);
+                //_.infoWindow.open(_.map);
+                _.map.setCenter(pos);
+            }, function() {
+                handleLocationError(true, _.infoWindow, _.map.getCenter());
+            });
+        } else {
+          // Browser doesn't support Geolocation
+          handleLocationError(false, _.infoWindow, _.map.getCenter());
+        }
+
+        var setInfo=function(results){
+            var idx=0;
+            if (results.length>1 && results[0].types[0]==="route" && results[0]["address_components"][1]["short_name"]!==results[1]["address_components"][0]["short_name"]){
+                idx++;
+            }
+            var adc=results[idx].address_components;
+            var len=adc.length;
+            if (len===1&&adc[len-1]["short_name"]!=="IL") {
+                _.infoWindow.setContent("'.$this->lang['be_specific'].'"+"<b>"+adc[0].long_name+"</b>");
+                _.infoWindow.open(map, marker);
+                return true;
+            };
+            var tmp="",res="";
+            for (var i=len-1;i>=0;i--) {
+                if (tmp!==adc[i].long_name && adc[i].types[0]!=="locality"){
+                    if(res) {res=", "+res;};
+                    res=adc[i].long_name+res;
+                    tmp=adc[i].long_name;
+                }
+            }
+            if(adc[len-1]["short_name"]!=="IL")setZoom(results[idx].types[0]);
+            _.infoWindow.setContent(res);
+            _.infoWindow.open(map, marker);
+            return true;
+        };
+               
+        var setZoom=function(type){
+            var cz=_.map.getZoom();switch(type){
+                case "route":
+                    if(cz<15)_.map.setZoom(15);
+                    break;
+                case "country":
+                    if(cz<7)_.map.setZoom(7);
+                    break;
+                case "sublocality":
+                    if(cz<14)_.map.setZoom(14);
+                    break;
+                default:
+                    if(cz<13)_.map.setZoom(13);
+                    break;
+            }
+        };
+            
+        var handleLocationError=function(browserHasGeolocation, infoWindow, pos) {
+            infoWindow.setPosition(pos);
+            infoWindow.setContent(browserHasGeolocation ?
+                              'Error: The Geolocation service failed.' :
+                              'Error: Your browser doesn\'t support geolocation.');
+            infoWindow.open(map);
+        };
+    },
+    
+    createDialog:function(name, full){
         let dialog=createElem('div', 'modal');
         dialog.setAttribute('id', name);
-        let card=createElem('div', 'card col-6');
+        dialog.dataset.fullSize=full;
+        let card=createElem('div', full?'card col-12':'card col-6');
         let X = createElem('span', 'close', '&times;', true);
+        if(full){
+            card.style.setProperty('height',window.innerHeight+'px');           
+        }
+        if(name==='map'){
+            let cc=createElem('div', 'card-content');  cc.style.setProperty('height', '100%');          
+            let gmap=createElem('div');
+            gmap.id='gmapView';
+            gmap.style.setProperty('width', '100%');
+            gmap.style.setProperty('height', '100%');            
+            cc.appendChild(gmap);
+            card.appendChild(cc);
+            
+            var script=$.createElement('script');script.type="text/javascript";
+            script.src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXdUTLoKUM4Dc8LtMYQM-otRB2Rn59xXk&sensor=true&callback=UI.initMap&language="+(UI.ar?'ar':'en');           
+            $.body.appendChild(script);
+            
+        }
         X.onclick = this.close;
         if (this._top) {
             X.className = 'close nopix';
@@ -312,18 +385,21 @@ var UI={
     },
     
     showDialog:function(dialog){
-        $.body.appendChild(dialog);
-        dialog.style.display = "flex";
-        let card=dialog.querySelector('div.card');
-        if(dialog.clientWidth<1200){card.className='card col-8';}
-
-        if(card.offsetWidth+30>dialog.clientWidth){
+        $.body.appendChild(dialog);                        
+        if(!dialog.dataset.fullSize){
+            dialog.style.display = "flex";
+            if(dialog.clientWidth<1200){card.className='card col-8';}
+            if(card.offsetWidth+30>dialog.clientWidth){
+                dialog.style.display = "block";
+            }
+            else if (card.offsetHeight+16>dialog.clientHeight) {
+                //card.style.setProperty('margin-top', (card.offsetHeight + 48 - dialog.clientHeight) + 'px');
+            }
+        }
+        else {
             dialog.style.display = "block";
         }
-        else if (card.offsetHeight+16>dialog.clientHeight) {
-            //card.style.setProperty('margin-top', (card.offsetHeight + 48 - dialog.clientHeight) + 'px');
-        }
-        
+        let card=dialog.querySelector('div.card');
         let img=card.querySelector('img');
         if(img){
             if(!Ad.pictures[UI.pixIndex].rotate){ Ad.pictures[UI.pixIndex].rotate=0; }
@@ -335,7 +411,6 @@ var UI={
             img.style.setProperty('width', (portrait?hh:ww)+'px');
             img.style.setProperty('height', (portrait?ww:hh)+'px');
             img.style.setProperty('transform', 'rotate('+Ad.pictures[UI.pixIndex].rotate+'deg)');
-            console.log(Ad.pictures);
         }
     },
     
@@ -377,8 +452,7 @@ var UI={
             dialog=_.createDialog(ref);
             card=dialog.querySelector('div.card');
             let ul=createElem('ul');
-            
-            
+                        
             for(var i in r.sindex){
                 if(r.sections[r.sindex[i]]){
                     let li=createElem('li', '', r.sections[r.sindex[i]]);
@@ -395,6 +469,18 @@ var UI={
         }
         else {
             dialog=_.dialogs[ref];
+        }
+        _.showDialog(dialog);
+    },
+    
+    openMap:function(){
+        let _=this, dialog, card;
+        _.close();
+        if(!_.dialogs.map){
+            dialog=_.createDialog('map',true);
+        }
+        else {
+            dialog=_.dialogs.map;
         }
         _.showDialog(dialog);
     },
@@ -418,11 +504,7 @@ var UI={
     cuiChanged:function(e){
         console.log(e);
     },
-    
-    cutChanged:function(e){
-        console.log(e);
-    },
-    
+        
     close:function(e){
         for(let i in UI.dialogs){
             UI.dialogs[i].style.display='none';
@@ -873,6 +955,77 @@ var Prefs={
     
 };
 
+var ContactNumberType={Mobile: 1, MobileWhatsapp: 3, Whatsapp: 5, Landline: 7};
+class ContactNumber{
+    constructor(elem) {
+        this.tel=elem;
+        this.kind=elem.closest('li').querySelector('select.select-text');
+        this.phoneNumber=null;
+        this.tel.addEventListener('keydown', enforceFormat);
+        this.tel.addEventListener('keyup', formatToPhone);
+        this.kind.onchange=this.changed;
+        this.tel.onchange=this.changed;
+    }
+    
+    getType(){
+        return parseInt(this.kind.value);
+    }
+    
+    changed(e){
+        UI.numbers[e.target.closest('li').querySelector('input[type=tel]').dataset.no].verify();
+        return true;
+    }
+    
+    verify(){
+        let _=this;
+        _.tel.setCustomValidity('');
+        if(_.tel.value){            
+            let num=_.tel.value.replace(/\s/g, '');
+            _.phoneNumber=new libphonenumber.parsePhoneNumberFromString(num, 'LB');
+            if(_.phoneNumber){
+                
+                //console.log(_.phoneNumber);
+                //console.log('national:', _.phoneNumber.formatNational());
+                console.log('intl:', _.phoneNumber.formatInternational());
+                console.log('type:', _.phoneNumber.getType(), _.getType());
+                console.log('valid:', _.phoneNumber.isValid());
+                console.log('possible:', _.phoneNumber.isPossible());
+                
+                _.tel.value=_.phoneNumber.formatNational();
+                if(_.phoneNumber.isValid()){
+                    let tp=_.phoneNumber.getType();
+                    switch(_.getType()){
+                        case ContactNumberType.Landline:
+                            if(tp!=='FIXED_LINE'&&tp!=='FIXED_LINE_OR_MOBILE'){
+                                _.tel.setCustomValidity('This number is not a fixed/land phone!');
+                            }
+                            break;
+                        case ContactNumberType.Mobile:
+                        case ContactNumberType.Whatsapp:
+                        case ContactNumberType.MobileWhatsapp:
+                            if(tp!=='MOBILE'&&tp!=='FIXED_LINE_OR_MOBILE'){
+                                _.tel.setCustomValidity('This number is not a mobile!');
+                            }
+                            break;
+                    }                    
+                }
+                else {
+                    _.tel.setCustomValidity('This number is not a valid phone mobile!');
+                }
+            }
+            else {
+                _.tel.setCustomValidity('Could not read this number!');
+            }
+        }
+        else {
+            _.phoneNumber=null;
+        }
+        console.log(_.tel.validity);
+        _.tel.reportValidity();
+        return false;
+    }        
+};
+
 
 const isNumericInput = (event) => {
     const key = event.keyCode;
@@ -888,7 +1041,7 @@ const isModifierKey = (event) => {
         (key > 36 && key < 41) || // Allow left, up, right, down
         (
             // Allow Ctrl/Command + A,C,V,X,Z
-            (event.ctrlKey === true || event.metaKey === true) &&
+            (event.ctrlKey===true || event.metaKey===true) &&
             (key === 65 || key === 67 || key === 86 || key === 88 || key === 90)
         );
 };
@@ -903,46 +1056,16 @@ const enforceFormat = (event) => {
 const formatToPhone = (event) => {
     if(isModifierKey(event)) {return;}
 
-    // I am lazy and don't like to type things more than once
     const target = event.target;
-    const input = target.value.replace(/[^+0-9]/g,'');//.substring(0,16); // First ten digits of input only
+    const input = target.value.replace(/[^+0-9]/g,'');//.substring(0,16);
     
-    var result = '';
-    try
-    {
-        const asYouType = new libphonenumber.AsYouType('LB')
-        target.value = asYouType.input(input);
-        target.setCustomValidity('ooops');
-        
-       
-//        const phoneNumber = new libphonenumber.parsePhoneNumberFromString(input, 'LB');
-//        console.log(phoneNumber);
-//        target.value = phoneNumber.formatInternational();
+    try {
+        //const asYouType = new libphonenumber.AsYouType('LB')
+        //target.value = asYouType.input(input);
+        UI.numbers[target.dataset.no].verify();
     } catch (error){
         console.log(error);
     }
-    //console.log(result);
-    /*let zip, middle, last;
-    switch(input.length){
-        case 7:
-            zip = '0'+input.substring(0,1);
-            middle = input.substring(1,4);
-            last = input.substring(4,7);
-            target.value = `(${zip}) ${middle} - ${last}`;
-            break;
-            
-        default:
-            zip = input.substring(0,3);
-            middle = input.substring(3,6);
-            last = input.substring(6,16);
-
-            if(input.length > 6){target.value = `(${zip}) ${middle} - ${last}`;}
-            else if(input.length > 3){target.value = `(${zip}) ${middle}`;}
-            else if(input.length > 0){target.value = `(${zip}`;}
-            break;
-    }*/
-    //console.log(input);
-    
 };
 
 

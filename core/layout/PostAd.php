@@ -365,7 +365,8 @@ class PostAd extends Page {
                 ?></style><?php
             }
             
-            echo '<form id="adForm">';
+            
+            echo '<form id=adForm action="" method=post>';
             echo '<div class=col-12><div class=card>';                       
             
             if ($this->user()->isLoggedIn(9)) {
@@ -398,7 +399,7 @@ class PostAd extends Page {
             echo '<div class=col-12><div id=ad-class class=card><ul>';
             echo '<li><a class=ro href="javascript:void(0)" onclick="UI.chooseRootPurpose()">Choose listing section</a></li>';
             echo '<li><a class=se href="javascript:void(0)" onclick="UI.chooseSection()">Choose section</a></li>';
-            echo '<li>Map Address/Location</li>';
+            echo '<li><a class=lc href="javascript:void(0)" onclick="UI.openMap()">Map Address/Location</a></li>';
             echo '<li>', $this->lang['m_h_city'], '</li>';
             echo '</ul></div></div>';
             
@@ -413,7 +414,7 @@ class PostAd extends Page {
                     <option value=7><?= $this->lang['contact_h_7'] ?></option>
                 </select>
                 </div>
-                <input type=tel class=field name=phone placeholder="+961 3 287 nnn" maxlength=22>
+                <input type=tel class=field name=phone placeholder="+961 3 287 nnn" maxlength=22 data-no=1>
                 </li>
 
                 <li>
@@ -425,25 +426,19 @@ class PostAd extends Page {
                     <option value=7><?= $this->lang['contact_h_7'] ?></option>
                 </select>
                 </div>                                        
-                <input type=tel class=field name=phone placeholder="+966 55 123 nnnn" maxlength=22>
-                <div class=select>
-                <select name=cut class=select-text>
-                    <option value=1><?= $this->lang['anytime'] ?></option>
-                    <option value=2><?= $this->lang['before'] ?></option>
-                    <option value=3><?= $this->lang['between'] ?></option>
-                    <option value=4><?= $this->lang['after'] ?></option>
-                </select></div>
+                <input type=tel class=field name=phone placeholder="+966 55 123 nnnn" maxlength=22 data-no=2>
                 </li>
                 <li><span style="width:180px"><?= $this->lang['contact_h_10'] ?></span><input type=email class=field id=email placeholder="name@gmail.com" data-value-missing=”This field is required"></li>
             </ul><?php
             echo '</div></div>';
             
             echo '<div class=col-12><div class=card>';
-            //echo '<div class="card-content">';
             ?><ul>
-                <li><input type="button" class="btn blue" value="Submit" onclick="UI.submit(this);" /></li>
+                <li>
+                    <button name="submit" type="submit" id="ad-submit" class="btn blue" onclick="return UI.submit(this)" data-submit="...Sending">Submit</button>
+                </li>
                 <li><a href=# class="btn blue">Save</a></li>
-                <li><a href=# class="btn blue">Publish</a></li>
+                <li class=publish><a href=# class="btn blue">Publish</a><span><?= $this->lang['ad_review'] ?></span></li>
                 <li><a href=# class="btn">Cancel</a></li>
             </ul><?php
             //echo '</div>';
@@ -552,74 +547,18 @@ class PostAd extends Page {
             
         
             if(!$this->rootId) $seqHide=true;
-            if(!$this->purposeId) $seqHide=true;
-           
+            if(!$this->purposeId) $seqHide=true;           
             if(!$this->sectionId) $seqHide=true;
-            //ad location 
-            
-            
+            //ad location                         
             if(!$hasLocs) $seqHide=true;
-             ?><ul id="ccu" class="ls po<?= ($hasContact ? ' pi':'').(!$seqHide ? '':' hid') ?>"><?php
-                ?><li onclick="wpz(this)" class="button h"><b><?= $this->lang['m_h_contact'] ?><span class="et"></span></b></li><?php 
-                ?><li class="hid nobd"><ul><?php
-                    ?><li id="CCodeLi" onclick="pzc(this)" class="button"></li><?php
-                    ?><li><div class="ipt"><input type="text" class="pn" /></div></li><?php
-                    ?><li><b class="ah ctr act2"><span onclick="savC(this)" class="button bt ok"><?= $this->lang['add'] ?></span><span onclick="rpz(this)" class="button bt cl"><?= $this->lang['cancel'] ?></span></b></li><?php
-                ?></ul></li><?php
-                ?><li class="<?= $hasContact ? '':' hid' ?>"></li><?php
-            ?></ul><?php 
             if(!$hasContact) $seqHide=true;
-            ?><ul id="cct" class="ls po uno<?= ($hasContactTime ? ' pi':''),(!$seqHide ? '':' hid'),($hasContact && !count($this->adContent['cui']['p']) ? ' off':'') ?>"><?php
-                ?><li onclick="stm(this)" class="button h"><b><?= $this->lang['m_h_time'] ?><span class="et"></span></b></li><?php 
-                $time_t=$this->adContent['cut']['t']>=0 ? $this->adContent['cut']['t'] : 0;
-                $cutS=$this->lang['time_'.$time_t];
-                if ($this->adContent['cut']['t']>0){
-                    if($this->adContent['cut']['t']==1 || $this->adContent['cut']['t']==3){
-                        $i=$this->adContent['cut']['t']==1 ? $this->adContent['cut']['b']:$this->adContent['cut']['a'];
-                        $cutS.=' '.($i<12 ? $i.' '.$this->lang['AM'] : ($i==12 ? $i.' '.$this->lang['NOON']:($i<16 ? ($i-12).' '.$this->lang['ANOON']: ($i<18 ? ($i-12).' '.$this->lang['BPM'] : ($i-12).' '.$this->lang['PM']))));
-                    }else {
-                        $i=$this->adContent['cut']['a'];
-                        $cutS.=' '.($i<12 ? $i.' '.$this->lang['AM'] : ($i==12 ? $i.' '.$this->lang['NOON']:($i<16 ? ($i-12).' '.$this->lang['ANOON']: ($i<18 ? ($i-12).' '.$this->lang['BPM'] : ($i-12).' '.$this->lang['PM']))));
-                        $cutS.=' '.($this->urlRouter->siteLanguage=='ar'?'و':'and').' ';
-                        $i=$this->adContent['cut']['b'];
-                        $cutS.=($i<12 ? $i.' '.$this->lang['AM'] : ($i==12 ? $i.' '.$this->lang['NOON']:($i<16 ? ($i-12).' '.$this->lang['ANOON']: ($i<18 ? ($i-12).' '.$this->lang['BPM'] : ($i-12).' '.$this->lang['PM']))));
-                    }
-                }
-                $this->globalScript.='cutS="'.$cutS.'";';
-                ?><li onclick="stm(this)" class="button"><b><?= $cutS ?><span class="et"></span></b></li><?php 
-                
-                ?><li class="hid nobd"><ul class="hvr"><?php 
-                if ($this->router()->isArabic()) {
-                    for($i=6;$i<=24;$i++){
-                        echo '<li onclick="ctm(this)" val="',$i,'" class="button"><b>',($i<12 ? $i.' '.$this->lang['AM'] : ($i==12 ? $i.' '.$this->lang['NOON']:($i<16 ? ($i-12).' '.$this->lang['ANOON']: ($i<18 ? ($i-12).' '.$this->lang['BPM'] : ($i-12).' '.$this->lang['PM'])))),'<span class="to"></span></b></li>';
-                    }
-                }else {
-                    for($i=6;$i<=24;$i++){
-                        echo '<li onclick="ctm(this)" val="',$i,'" class="button"><b>',($i>12?($i-12).' '.$this->lang['PM']:$i.' '.$this->lang['AM']),'<span class="to"></span></b></li>';
-                    }
-                }
-                ?><li><b class="ah ctr"><span onclick="ttm(0,this)" class="button bt btw cl"><?= $this->lang['cancel'] ?></span></b></li><?php
-                ?></ul></li><?php
-                ?><li class="pid"><b class="ah ctr"><span onclick="ntm(this)" class="button bt btw ok"><?= $this->lang['next'] ?></span></b></li><?php
-            ?></ul><?php
             if(!$hasContact || ( ($hasContact && count($this->adContent['cui']['p'])) && !$hasContactTime ) ) $seqHide=true;
-            $charsLeft=$otherLength;
-            
-            if(!$hasContent) $seqHide=true;
-            ?><ul id="xnu" class="ls po pi<?= (!$seqHide ? '':' hid') ?>"><?php
-                ?><li class="lib nobd"><b class="ah"><?= $this->lang['ext_data'] ?></b></li><?php
-            ?></ul><?php 
-            $charsLeft=$altLength;
-            
-            if(!$hasAltContent && $uAlt!=2) $seqHide=true;
-            
-                                                            
-         
-            if(!$hasPics && $uPics!=2) $seqHide=true;
-                        
-            
-            $isPi=($hasVideo || $uVideo==2);
-           
+            $charsLeft=$otherLength;            
+            if(!$hasContent) $seqHide=true;           
+            $charsLeft=$altLength;            
+            if(!$hasAltContent && $uAlt!=2) $seqHide=true;                                                                                 
+            if(!$hasPics && $uPics!=2) $seqHide=true;                                    
+            $isPi=($hasVideo || $uVideo==2);           
             if(!$hasVideo && $uVideo!=2) $seqHide=true;
             
             if(!$this->router()->isApp){
@@ -634,8 +573,7 @@ class PostAd extends Page {
                 ?></ul><?php 
             }
             if(!$this->router()->isApp && !$hasMap && $uMap!=2) $seqHide=true;
-            ?><ul class="ls cls nsh po<?= (!$seqHide ? '':' hid') ?>"><?php 
-                ?><li class="pid nobd"><p><?= $this->lang['ad_review'] ?></p></li><?php  
+            ?><ul class="ls cls nsh po<?= (!$seqHide ? '':' hid') ?>"><?php                  
                 if($budget && $this->userBalance && $this->user->pending['post']['user'] == $this->user->info['id']){
                     $with = '';
                     if($this->router()->isArabic()){
