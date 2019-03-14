@@ -5,10 +5,182 @@ $.addEventListener("DOMContentLoaded", function(e) {
 $.onkeydown=function(e){
     if(e.key==='Escape'){UI.close();}
 };
+var MAP={
+    view:null,
+    marker:null,
+    coder:null,
+    infoWindow:null,
+    result:null,
+    
+    init:function(){
+        let _=this;
+        _.view = new google.maps.Map($.querySelector('#gmapView'), {
+            center: {lat: parseFloat(UI.ip.ipquality.latitude), lng: parseFloat(UI.ip.ipquality.longitude)},
+            zoom: 12
+        });
+        google.maps.event.addDomListener(_.view, "click", function(e){
+            _.coder.geocode({"latLng": e.latLng},
+                function(results, status) {
+                    if (status===google.maps.GeocoderStatus.OK) {
+                        if (results[0]) {
+                            _.result=results[0];
+                            _.marker.setPosition(e.latLng);
+                            _.setInfo(results);
+                            //cacheLoc(results);
+                        }
+                    } 
+                    else {
+                        //mapQ.css("color","#ff0000");
+                    }
+                });
+        });
+                        
+        _.infoWindow = new google.maps.InfoWindow;
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                let pos = {lat: position.coords.latitude, lng: position.coords.longitude};
+                _.coder = new google.maps.Geocoder();
+                _.marker = new google.maps.Marker({position: pos, map: _.view, animation: google.maps.Animation.DROP, title:'Location'});
+     
+                //_.infoWindow.setPosition(pos);
+                //_.infoWindow.setContent(null);
+                //_.infoWindow.open(_.map);
+                _.view.setCenter(pos);
+                _.getCoordAddress(pos);
+                
+            }, function() {
+                handleLocationError(true, _.infoWindow, _.view.getCenter());
+            });
+        }
+        var handleLocationError=function(browserHasGeolocation, infoWindow, pos) {
+            infoWindow.setPosition(pos);
+            infoWindow.setContent(browserHasGeolocation?'Error: The Geolocation service failed.':'Error: Your browser doesn\'t support geolocation.');
+            infoWindow.open(_.view);
+        };
+    },
+    
+    setInfo:function(results){
+        var idx=0;
+        if (results.length>1 && results[0].types[0]==="route" && results[0]["address_components"][1]["short_name"]!==results[1]["address_components"][0]["short_name"]){
+            idx++;
+        }
+        var adc=results[idx].address_components;
+        var len=adc.length;
+        if (len===1&&adc[len-1]["short_name"]!=="IL") {
+            this.infoWindow.setContent("'.$this->lang['be_specific'].'"+"<b>"+adc[0].long_name+"</b>");
+            this.infoWindow.open(this.view, this.marker);
+            return true;
+        };
+        var tmp="",res="";
+        for (var i=len-1;i>=0;i--) {
+            if (tmp!==adc[i].long_name && adc[i].types[0]!=="locality"){
+                if(res) {res=", "+res;};
+                res=adc[i].long_name+res;
+                tmp=adc[i].long_name;
+            }
+        }
+        if(adc[len-1]["short_name"]!=="IL")this.setZoom(results[idx].types[0]);
+        this.infoWindow.setContent(res);
+        this.infoWindow.open(this.view, this.marker);
+        return true;
+    },
+               
+    setZoom:function(type){
+        let _=this;
+        if(Number.isInteger(type)){
+            _.view.setZoom(parseInt(type));
+            return;
+        }
+        var cz=_.view.getZoom();
+        switch(type){
+            case "route":
+                if(cz<15)_.view.setZoom(15);
+                break;
+            case "country":
+                if(cz<7)_.view.setZoom(7);
+                break;
+            case "sublocality":
+                if(cz<14)_.view.setZoom(14);
+                break;
+            default:
+                if(cz<13)_.view.setZoom(13);
+                break;
+        }
+    },
+    
+    setPosition:function(pos, zoom){
+        if(zoom){this.setZoom(15);}
+        this.view.setCenter(pos);
+        //this.marker.setMap(this.map);
+        //let mpos = {lat: pos.lat(), lng: pos.lng()};
+        this.marker.setPosition(pos);
+    },
+
+    getCoordAddress:function(latlng){
+        let _=this;
+        _.coder.geocode({'location': latlng}, function(results, status) {
+            if (status==='OK') {
+                if (results[0]) {
+                    _.setZoom(15);
+                    _.result=results[0];
+                    _.setPosition(latlng);
+                    _.setInfo(results);
+                    //var marker = new google.maps.Marker({position: latlng, map: map});
+                    //infowindow.setContent(results[0].formatted_address);
+                    //infowindow.open(map, marker);
+                } 
+                else {
+                    window.alert('No results found');
+                }
+            } 
+            else {
+                window.alert('Geocoder failed due to: ' + status);
+            }
+        });
+    },
+    
+    search:function(e){
+        let _=MAP, q=e.querySelector('input.searchTerm');
+        if(q&&q.value){
+            _.coder.geocode({address:q.value}, function(res, status) {
+                if (status===google.maps.GeocoderStatus.OK&&res[0]) {
+                    res=res[0];
+                    _.result=res[0];
+                    let v='',s='',t='';
+                    if(res.formatted_address){
+                        s=res.formatted_address;
+                    }
+                    else {
+                        res['address_components'].forEach(function(item){
+                            v=item['long_name'];
+                            if(v!==t){t=v;if(s)s+=' - ';s+=v;}
+                        });
+                    }
+                    _.infoWindow.setContent(s);
+                    _.infoWindow.open(_.view, _.marker);
+                    
+                    //cacheLoc(res,1);
+                    _.setPosition(new google.maps.LatLng(res.geometry.location.lat(), res.geometry.location.lng()));
+                }
+                else{
+                    //fdT(q,0,'err');
+                    //failM();
+                }
+            });
+        }
+        
+        return false;
+    }
+            
+        
+};
+
 var UI={
     ar:$.body.dir==='rtl',
+    ip:null,
     dic:null,
     map:null,
+    geocoder:null,
     infoWindow:null,
     rootId:0,    
     purposeId:0,
@@ -25,7 +197,8 @@ var UI={
             if(response.RP && response.RP===1){
                 _.dic=response.DATA.roots;
                 Prefs.init(response.DATA.prefs);
-                
+                _.ip=response.DATA.ip;
+                console.log(_.ip);
                 for(i in _.dic){
                     _.dic[i].menu=[];
                     let m=_.dic[i].menu;
@@ -134,24 +307,24 @@ var UI={
             let cw=$.body.clientWidth;
             let openFileDialog=function(multiple, largeImage){
                 return new Promise(resolve => {
-                    let input = document.createElement('input');
-                    input.type = 'file';
-                    input.multiple = multiple;
-                    input.accept = 'image/*';
+                    let input=$.createElement('input');
+                    input.type='file';
+                    input.multiple=multiple;
+                    input.accept='image/*';
                     input.onchange = ee => {
                         let files = Array.from(input.files);
                         resolve(files);
                         let curr=UI.pixIndex;
                         files.forEach(function(file){
-
                             if ( /\.(jpe?g|png|gif|webp)$/i.test(file.name) ) {
                                 var reader = new FileReader();
                                 reader.onload = readerEvent => {
                                     let img=spans[curr].querySelector('img');
                                     if(!img){
-                                        img=new Image();
+                                        img=new Image();                                        
                                         spans[curr].appendChild(img);
                                         spans[curr].classList.remove('icn-camera');
+                                        img.setAttribute('id', 'picture');
                                     }
                                     img.onload=function(){                              
                                         Ad.pictures[img.closest('span').dataset.index]={'image':img, 'rotate':0, 'width':img.naturalWidth, 'height':img.naturalHeight};
@@ -247,129 +420,20 @@ var UI={
         else {
             alert('The File APIs are not fully supported in this browser.');
         }
-    },
-    
-    initMap:function(){
-        let _=this, marker, geocoder;
-        _.map = new google.maps.Map($.querySelector('#gmapView'), {
-          center: {lat: -34.397, lng: 150.644},
-          zoom: 12
-        });
-        
-        google.maps.event.addDomListener(_.map, "click", function(e){
-            geocoder.geocode({"latLng": e.latLng},
-                function(results, status) {
-                    if (status===google.maps.GeocoderStatus.OK) {
-                        if (results[0]) {
-                            loc=results;
-                            marker.setPosition(e.latLng);
-                            setInfo(results);//cacheLoc(results);
-                        }
-                    } 
-                    else {
-                        //mapQ.css("color","#ff0000");
-                    }
-                });
-        });
-        
-        
-        
-        _.infoWindow = new google.maps.InfoWindow;
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                var pos = {
-                  lat: position.coords.latitude,
-                  lng: position.coords.longitude
-                };
-                geocoder = new google.maps.Geocoder();
-                marker = new google.maps.Marker({position: pos, map: _.map, animation: google.maps.Animation.DROP, title:'Location here'});
-     
-                //_.infoWindow.setPosition(pos);
-                //_.infoWindow.setContent(null);
-                //_.infoWindow.open(_.map);
-                _.map.setCenter(pos);
-            }, function() {
-                handleLocationError(true, _.infoWindow, _.map.getCenter());
-            });
-        } else {
-          // Browser doesn't support Geolocation
-          handleLocationError(false, _.infoWindow, _.map.getCenter());
-        }
-
-        var setInfo=function(results){
-            var idx=0;
-            if (results.length>1 && results[0].types[0]==="route" && results[0]["address_components"][1]["short_name"]!==results[1]["address_components"][0]["short_name"]){
-                idx++;
-            }
-            var adc=results[idx].address_components;
-            var len=adc.length;
-            if (len===1&&adc[len-1]["short_name"]!=="IL") {
-                _.infoWindow.setContent("'.$this->lang['be_specific'].'"+"<b>"+adc[0].long_name+"</b>");
-                _.infoWindow.open(map, marker);
-                return true;
-            };
-            var tmp="",res="";
-            for (var i=len-1;i>=0;i--) {
-                if (tmp!==adc[i].long_name && adc[i].types[0]!=="locality"){
-                    if(res) {res=", "+res;};
-                    res=adc[i].long_name+res;
-                    tmp=adc[i].long_name;
-                }
-            }
-            if(adc[len-1]["short_name"]!=="IL")setZoom(results[idx].types[0]);
-            _.infoWindow.setContent(res);
-            _.infoWindow.open(map, marker);
-            return true;
-        };
-               
-        var setZoom=function(type){
-            var cz=_.map.getZoom();switch(type){
-                case "route":
-                    if(cz<15)_.map.setZoom(15);
-                    break;
-                case "country":
-                    if(cz<7)_.map.setZoom(7);
-                    break;
-                case "sublocality":
-                    if(cz<14)_.map.setZoom(14);
-                    break;
-                default:
-                    if(cz<13)_.map.setZoom(13);
-                    break;
-            }
-        };
-            
-        var handleLocationError=function(browserHasGeolocation, infoWindow, pos) {
-            infoWindow.setPosition(pos);
-            infoWindow.setContent(browserHasGeolocation ?
-                              'Error: The Geolocation service failed.' :
-                              'Error: Your browser doesn\'t support geolocation.');
-            infoWindow.open(map);
-        };
-    },
+    },    
     
     createDialog:function(name, full){
         let dialog=createElem('div', 'modal');
         dialog.setAttribute('id', name);
-        dialog.dataset.fullSize=full;
+        dialog.dataset.fullSize=(full?full:false);
         let card=createElem('div', full?'card col-12':'card col-6');
         let X = createElem('span', 'close', '&times;', true);
-        if(full){
-            card.style.setProperty('height',window.innerHeight+'px');           
-        }
-        if(name==='map'){
-            let cc=createElem('div', 'card-content');  cc.style.setProperty('height', '100%');          
-            let gmap=createElem('div');
-            gmap.id='gmapView';
-            gmap.style.setProperty('width', '100%');
-            gmap.style.setProperty('height', '100%');            
-            cc.appendChild(gmap);
-            card.appendChild(cc);
-            
+        if(full){card.style.setProperty('height',window.innerHeight+'px');}
+        if(name==='map'){                      
             var script=$.createElement('script');script.type="text/javascript";
-            script.src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXdUTLoKUM4Dc8LtMYQM-otRB2Rn59xXk&sensor=true&callback=UI.initMap&language="+(UI.ar?'ar':'en');           
+            script.src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXdUTLoKUM4Dc8LtMYQM-otRB2Rn59xXk&sensor=true&callback=MAP.init&language="+(UI.ar?'ar':'en');           
             $.body.appendChild(script);
-            
+            X.style.display='none';
         }
         X.onclick = this.close;
         if (this._top) {
@@ -385,9 +449,10 @@ var UI={
     },
     
     showDialog:function(dialog){
-        $.body.appendChild(dialog);                        
+        $.body.appendChild(dialog);  
+        dialog.style.display = "flex";
         if(!dialog.dataset.fullSize){
-            dialog.style.display = "flex";
+            
             if(dialog.clientWidth<1200){card.className='card col-8';}
             if(card.offsetWidth+30>dialog.clientWidth){
                 dialog.style.display = "block";
@@ -396,11 +461,11 @@ var UI={
                 //card.style.setProperty('margin-top', (card.offsetHeight + 48 - dialog.clientHeight) + 'px');
             }
         }
-        else {
-            dialog.style.display = "block";
-        }
-        let card=dialog.querySelector('div.card');
-        let img=card.querySelector('img');
+        //else {
+            //dialog.style.display="block";
+        //}
+        let card=dialog.querySelector('div.card');        
+        let img=card.querySelector('span.pix img');
         if(img){
             if(!Ad.pictures[UI.pixIndex].rotate){ Ad.pictures[UI.pixIndex].rotate=0; }
             let cw=$.body.clientWidth;
@@ -478,6 +543,10 @@ var UI={
         _.close();
         if(!_.dialogs.map){
             dialog=_.createDialog('map',true);
+            card=dialog.querySelector('div.card');
+            let b=$.querySelector('#adLocation');
+            card.appendChild(b);
+            b.style.display='flex';
         }
         else {
             dialog=_.dialogs.map;

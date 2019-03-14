@@ -48,51 +48,7 @@ class PostAd extends Page {
         if ($this->user()->isLoggedIn()) {
             if(!$this->isUserMobileVerified){
                 $this->title=$this->lang['verify_mobile'];
-                $this->set_require('css', array('select2'));
-                $this->inlineCss.='div.row{display:block}.phwrap{padding:0 20px}p.ph{padding-bottom:15px;line-height:28px;border:0px;background-color:transparent;width:100%}p.corr{padding-bottom:0px;margin-bottom:0px}#main{background-color:#FFF;border:0;padding-bottom:20px}';
-                $this->inlineCss.='
-                    .ph.num{direction:ltr}
-                    .row .bt{width:200px}
-                    .row.err{padding:10px 0;color:red}
-                    #code{width:272px;visibility:hidden;height:28px}
-                        #number,#vcode{direction:ltr;font-size:22px;width:250px;padding:10px;border:1px solid #aaa;border-radius:4px;text-align:center}
-                        #mb_check ul{display:block;width:100%;overflow:hidden;background-color:#ececec;margin-bottom:5px}
-                        #mb_check li{padding:15px 10px;height: 60px;line-height: 50px}                        
-                        ';
-                if($this->router()->siteLanguage=='ar'){                    
-                    $this->inlineCss.='
-                        #mb_check li{float:right}
-                        #mb_check li:last-child{float:left}
-                    ';
-                }else{
-                    $this->inlineCss.='
-                        #mb_check li{float:left}
-                        #mb_check li:last-child{float:right}
-                    ';
-                }
-                if(isset($this->user->pending['mobile'])){
-                    $this->inlineCss .= '#mb_notice{display:none}';                
-                }else{                
-                    $this->inlineCss .= '#mb_validate{display:none}';
-                }
-                $this->inlineCss .= '#mb_check{display:none}';
-                $this->inlineCss .= '#mb_load{display:none}';
-                $this->inlineCss .= '#mb_done{display:none}';
-                
-                if($this->isMobile){
-                    $this->inlineCss.='
-                        #mb_check li{padding:5px;height:auto;line-height:25px}
-                    ';
-                    if($this->router()->siteLanguage=='ar'){                    
-                        $this->inlineCss.='
-                            #mb_check li{text-align:right}
-                        ';
-                    }else{
-                        $this->inlineCss.='
-                            #mb_check li{text-align:left}
-                        ';
-                    }
-                }
+                $this->set_require('css', array('select2'));                
             }
             else {
                 if (isset ($_REQUEST['ad']) && is_numeric($_REQUEST['ad'])) {
@@ -145,14 +101,6 @@ class PostAd extends Page {
             }
         }
 
-        if($this->router()->isApp > '1.0.4'){
-            $this->inlineCss.='.spimg{width:300px!important}';
-        }
-        
-        if($this->router()->isApp){
-            $this->inlineCss.='body{margin-top:0!important}';
-        }
-        
         $this->render();
     }  
     
@@ -974,9 +922,24 @@ class PostAd extends Page {
                 return;
             }
             
-            ?><div class=row><div class=col-12><div id=main class="rct"><?php
+            ?><div class=row><div class=col-12><div id=main class=rct><?php
             $this->mainMobile();    
             ?></div></div></div><?php
+            
+            ?><div id=adLocation class=row style="display:none;height:100%;flex-flow:column"><?php
+            ?><div class=col-12 style="padding:0 0 4px;height:46px"><?php
+            ?><div class=search><?php
+            ?><form onsubmit="event.preventDefault(); return MAP.search(this);"><?php
+            ?><input id=q name=q class=searchTerm type=search placeholder="enter location name are you looking for?"><?php
+            ?><button class=searchButton type=submit><i class="icn icnsmall icn-search invert"></i></button><?php
+            ?><button class="btn blue" type=button style="margin:0 0 0 8px;height:36px">Confirm</button><?php
+            ?><button class="btn blue" type=button style="margin:0 8px;height:36px">Remove</button><?php
+            ?><button class="btn blue" type=button style="margin:0;height:36px" onclick="UI.close();">Cancel</button><?php
+            ?></form><?php
+            ?></div><?php
+            ?></div><?php
+            ?><div class=col-12 style="padding:0;height:100%"><div id=gmapView style="width:100%;height:100%"></div></div><?php
+            ?></div><?php
             $this->inlineJS('util.js')->inlineJS('post.js');
         }
         else {

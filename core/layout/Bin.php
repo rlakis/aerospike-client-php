@@ -1693,7 +1693,10 @@ class Bin extends AjaxHandler{
                         //$this->result['d']= $pref;
                         //return;
                         //}
-                        //$this->result['no-change']=1;                           
+                        //$this->result['no-change']=1;
+                        //$ip=IPQuality::getClientIP();                        
+                        //$this->setData($this->router()->getIpLocation($ip), 'ip');
+                        $this->setData(IPQuality::fetchJson(false), 'ip');
                     }
                     $this->process();
                 }
