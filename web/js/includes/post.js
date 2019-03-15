@@ -23,7 +23,7 @@ var MAP={
                 function(results, status) {
                     if (status===google.maps.GeocoderStatus.OK) {
                         if (results[0]) {
-                            _.result=results[0];
+                            _.result=results;
                             _.marker.setPosition(e.latLng);
                             _.setInfo(results);
                             //cacheLoc(results);
@@ -36,51 +36,54 @@ var MAP={
         });
                         
         _.infoWindow = new google.maps.InfoWindow;
+        _.myLocation();
+    },
+    
+    handleLocationError:function(browserHasGeolocation, infoWindow, pos){
+            infoWindow.setPosition(pos);
+            infoWindow.setContent(browserHasGeolocation?'Error: The Geolocation service failed.':'Error: Your browser doesn\'t support geolocation.');
+            infoWindow.open(this.view);
+    },
+    
+    myLocation:function(){
+        let _=this;
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
                 let pos = {lat: position.coords.latitude, lng: position.coords.longitude};
                 _.coder = new google.maps.Geocoder();
-                _.marker = new google.maps.Marker({position: pos, map: _.view, animation: google.maps.Animation.DROP, title:'Location'});
-     
-                //_.infoWindow.setPosition(pos);
-                //_.infoWindow.setContent(null);
-                //_.infoWindow.open(_.map);
+                _.marker = new google.maps.Marker({position: pos, map: _.view, animation: google.maps.Animation.DROP, title:'My Location'});
                 _.view.setCenter(pos);
-                _.getCoordAddress(pos);
-                
-            }, function() {
-                handleLocationError(true, _.infoWindow, _.view.getCenter());
-            });
+                _.getCoordAddress(pos, true);
+            }, function() { _.handleLocationError(true, _.infoWindow, _.view.getCenter()); });
         }
-        var handleLocationError=function(browserHasGeolocation, infoWindow, pos) {
-            infoWindow.setPosition(pos);
-            infoWindow.setContent(browserHasGeolocation?'Error: The Geolocation service failed.':'Error: Your browser doesn\'t support geolocation.');
-            infoWindow.open(_.view);
-        };
+    },
+    
+    getText:function(results){
+        if(typeof results==='object'){
+            let i=(results.length>1&&results[0].types[0]==="route"&&results[0]["address_components"][1]["short_name"]!==results[1]["address_components"][0]["short_name"])?1:0;
+            let adc=results[i].address_components;
+            let len=adc.length;
+            if(len>1&&adc[len-1]["short_name"]!=="IL"){
+                let tmp="",res="";
+                for (var j=len-1;j>=0;j--) {
+                    let name=adc[j].long_name?adc[j].long_name:adc[j].short_name;
+                    if (tmp!==name && adc[j].types[0]!=="locality"){
+                        if(res){res=", "+res;};
+                        res=name+res;
+                        tmp=name;
+                    }
+                }
+                if(results[0].formatted_address && results[0].formatted_address.length>res.length){
+                    return results[0].formatted_address;
+                }
+                return res.length>0?res:null;
+            }
+        }
+        return null;
     },
     
     setInfo:function(results){
-        var idx=0;
-        if (results.length>1 && results[0].types[0]==="route" && results[0]["address_components"][1]["short_name"]!==results[1]["address_components"][0]["short_name"]){
-            idx++;
-        }
-        var adc=results[idx].address_components;
-        var len=adc.length;
-        if (len===1&&adc[len-1]["short_name"]!=="IL") {
-            this.infoWindow.setContent("'.$this->lang['be_specific'].'"+"<b>"+adc[0].long_name+"</b>");
-            this.infoWindow.open(this.view, this.marker);
-            return true;
-        };
-        var tmp="",res="";
-        for (var i=len-1;i>=0;i--) {
-            if (tmp!==adc[i].long_name && adc[i].types[0]!=="locality"){
-                if(res) {res=", "+res;};
-                res=adc[i].long_name+res;
-                tmp=adc[i].long_name;
-            }
-        }
-        if(adc[len-1]["short_name"]!=="IL")this.setZoom(results[idx].types[0]);
-        this.infoWindow.setContent(res);
+        this.infoWindow.setContent(this.getText(results));
         this.infoWindow.open(this.view, this.marker);
         return true;
     },
@@ -116,18 +119,16 @@ var MAP={
         this.marker.setPosition(pos);
     },
 
-    getCoordAddress:function(latlng){
+    getCoordAddress:function(latlng, current){
         let _=this;
         _.coder.geocode({'location': latlng}, function(results, status) {
             if (status==='OK') {
                 if (results[0]) {
                     _.setZoom(15);
-                    _.result=results[0];
+                    _.result=results;
                     _.setPosition(latlng);
                     _.setInfo(results);
-                    //var marker = new google.maps.Marker({position: latlng, map: map});
-                    //infowindow.setContent(results[0].formatted_address);
-                    //infowindow.open(map, marker);
+                    if(current){ Ad.userLocation=results[0]; }
                 } 
                 else {
                     window.alert('No results found');
@@ -139,39 +140,36 @@ var MAP={
         });
     },
     
+    confirm:function(){
+        UI.addressChanged(this.result);
+        UI.close();
+    },
+    
+    remove:function(){
+        this.result=null;
+        UI.addressChanged(this.result);
+        UI.close();
+    },
+    
     search:function(e){
         let _=MAP, q=e.querySelector('input.searchTerm');
         if(q&&q.value){
             _.coder.geocode({address:q.value}, function(res, status) {
                 if (status===google.maps.GeocoderStatus.OK&&res[0]) {
-                    res=res[0];
-                    _.result=res[0];
-                    let v='',s='',t='';
-                    if(res.formatted_address){
-                        s=res.formatted_address;
-                    }
-                    else {
-                        res['address_components'].forEach(function(item){
-                            v=item['long_name'];
-                            if(v!==t){t=v;if(s)s+=' - ';s+=v;}
-                        });
-                    }
-                    _.infoWindow.setContent(s);
-                    _.infoWindow.open(_.view, _.marker);
-                    
+                    console.log(_.getText(res));
+                    _.result=res;
+                    _.setInfo(res);
                     //cacheLoc(res,1);
-                    _.setPosition(new google.maps.LatLng(res.geometry.location.lat(), res.geometry.location.lng()));
+                    _.setPosition(new google.maps.LatLng(res[0].geometry.location.lat(), res[0].geometry.location.lng()));
                 }
                 else{
                     //fdT(q,0,'err');
                     //failM();
                 }
             });
-        }
-        
+        }        
         return false;
-    }
-            
+    }            
         
 };
 
@@ -422,13 +420,22 @@ var UI={
         }
     },    
     
-    createDialog:function(name, full){
+    createDialog:function(name, fullW, fullH){
         let dialog=createElem('div', 'modal');
         dialog.setAttribute('id', name);
-        dialog.dataset.fullSize=(full?full:false);
-        let card=createElem('div', full?'card col-12':'card col-6');
+        dialog.dataset.fullWidth=fullW;
+        dialog.dataset.fullHeight=fullH;
+        let card=createElem('div', 'card col-'+((dialog.dataset.fullWidth==='true'&&dialog.dataset.fullHeight==='true')?'12':'8'));
+        if(dialog.dataset.fullHeight==='true'){
+            card.style.setProperty('padding-top', '0');
+            card.style.setProperty('padding-bottom', '0');
+            card.style.setProperty('height', window.innerHeight+'px');
+        }
+        if(dialog.dataset.fullWidth==='true'){
+            card.style.setProperty('padding-left', '0');
+            card.style.setProperty('padding-right', '0');            
+        }
         let X = createElem('span', 'close', '&times;', true);
-        if(full){card.style.setProperty('height',window.innerHeight+'px');}
         if(name==='map'){                      
             var script=$.createElement('script');script.type="text/javascript";
             script.src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXdUTLoKUM4Dc8LtMYQM-otRB2Rn59xXk&sensor=true&callback=MAP.init&language="+(UI.ar?'ar':'en');           
@@ -449,22 +456,19 @@ var UI={
     },
     
     showDialog:function(dialog){
+        $.body.classList.add('modal-open');
         $.body.appendChild(dialog);  
         dialog.style.display = "flex";
-        if(!dialog.dataset.fullSize){
-            
-            if(dialog.clientWidth<1200){card.className='card col-8';}
-            if(card.offsetWidth+30>dialog.clientWidth){
-                dialog.style.display = "block";
-            }
-            else if (card.offsetHeight+16>dialog.clientHeight) {
-                //card.style.setProperty('margin-top', (card.offsetHeight + 48 - dialog.clientHeight) + 'px');
-            }
+        dialog.style.setProperty('max-height', window.innerHeight+'px');
+        let card=dialog.querySelector('div.card');
+        console.log('before', dialog.dataset);
+        if(!dialog.dataset.fullWidth!=='true' && dialog.dataset.fullHeight==='true'){
+            console.log('after', dialog.dataset);
+            let X=card.querySelector('span.close');
+            console.log(X);
+            X.style.setProperty('top', '0px');
         }
-        //else {
-            //dialog.style.display="block";
-        //}
-        let card=dialog.querySelector('div.card');        
+               
         let img=card.querySelector('span.pix img');
         if(img){
             if(!Ad.pictures[UI.pixIndex].rotate){ Ad.pictures[UI.pixIndex].rotate=0; }
@@ -482,10 +486,11 @@ var UI={
     chooseRootPurpose:function(){
         let _=this, dialog, card;
         if(!_.dialogs.roots){
-            dialog=_.createDialog('roots');
+            dialog=_.createDialog('roots', false, false);
             card=dialog.querySelector('div.card');
             for(let i in _.dic) {
-                card.appendChild(createElem('h6','',_.dic[i].name));
+                let div=createElem('div');
+                div.appendChild(createElem('h6','',_.dic[i].name));
                 let ul=createElem('ul');
                 for(let j in _.dic[i].menu){
                     let item= _.dic[i].menu[j];                
@@ -498,7 +503,8 @@ var UI={
                     };
                     ul.appendChild(li);
                 }
-                card.appendChild(ul);
+                div.appendChild(ul);
+                card.appendChild(div);
             }
             _.dialogs.roots=dialog;
         }
@@ -514,10 +520,10 @@ var UI={
         if(!r){return;}
         _.close();
         if(!_.dialogs[ref]){
-            dialog=_.createDialog(ref);
-            card=dialog.querySelector('div.card');
+            dialog=_.createDialog(ref, false, true);
+            card=dialog.querySelector('div.card');                      
             let ul=createElem('ul');
-                        
+            ul.style.setProperty('height', window.innerHeight+'px');   
             for(var i in r.sindex){
                 if(r.sections[r.sindex[i]]){
                     let li=createElem('li', '', r.sections[r.sindex[i]]);
@@ -542,7 +548,7 @@ var UI={
         let _=this, dialog, card;
         _.close();
         if(!_.dialogs.map){
-            dialog=_.createDialog('map',true);
+            dialog=_.createDialog('map',true,true);
             card=dialog.querySelector('div.card');
             let b=$.querySelector('#adLocation');
             card.appendChild(b);
@@ -573,8 +579,21 @@ var UI={
     cuiChanged:function(e){
         console.log(e);
     },
+    
+    addressChanged:function(addr){
+        Ad.setGMapAddr(addr);
+        let node=$.querySelector('#ad-class').querySelector('a.lc');
+        let p=node.innerText.split(': ');
+        if(addr){
+            node.innerHTML=p[0]+': '+MAP.getText(addr);
+        }
+        else {
+            node.innerHTML=p[0];
+        }
+    },
         
     close:function(e){
+        $.body.classList.remove('modal-open');
         for(let i in UI.dialogs){
             UI.dialogs[i].style.display='none';
             if(UI.dialogs[i].parentElement){
@@ -596,6 +615,11 @@ var Ad={
     phone1:null,
     phone2:null,
     email:null,
+    userLocation:null,
+    location:null,
+    lat:0,
+    lon:0,
+    sloc:'',
     
     
     init:function(){
@@ -631,9 +655,36 @@ var Ad={
             this.purposeId=parseInt(pu);
             UI.rootChanged(this.rootId, this.purposeId);
         }
+    },        
+
+    setGMapAddr(addr, user){
+        console.log('address', addr);
+        if(user){
+            this.userLocation=addr;
+        }
+        else {
+            this.location=addr;
+            if(this.location){
+                for(let i in this.location){
+                    if(this.location[i].geometry){
+                        this.lat=this.location[i].geometry.location.lat();
+                        this.lon=this.location[i].geometry.location.lng();
+                        break;
+                    }
+                }
+            }
+            else {
+                this.lat=0;
+                this.lon=0;
+            }
+            
+            
+            this.sloc=(this.location)?MAP.getText(addr):'';
+            console.log(this.sloc);
+        }
+        console.log(this);
     },
     
-
     getSectionName:function(){return UI.dic[this.rootId] && UI.dic[this.rootId].sections[this.sectionId] ? UI.dic[this.rootId].sections[this.sectionId] : '';},
     getPurposeName:function(){return UI.dic[this.rootId] && UI.dic[this.rootId].purposes[this.purposeId] ? UI.dic[this.rootId].purposes[this.purposeId] : '';},
     
@@ -701,7 +752,7 @@ class Filter{
     
     isMovedTo(){
         return this.movedTo;
-    }
+    }        
     
 };
 

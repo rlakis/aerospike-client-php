@@ -14,38 +14,31 @@ use Core\Model\DB;
 $raw_post_data = file_get_contents('php://input');
 $raw_post_array = explode('&', $raw_post_data);
 $myPost = array();
-foreach ($raw_post_array as $keyval) 
-{
+foreach ($raw_post_array as $keyval) {
     $keyval = explode ('=', $keyval);
-    if (count($keyval) == 2)
-    {
+    if (count($keyval) == 2) {
         $myPost[$keyval[0]] = urldecode($keyval[1]);
     }
 }
 
 // read the IPN message sent from PayPal and prepend 'cmd=_notify-validate'
 $req = 'cmd=_notify-validate';
-if(function_exists('get_magic_quotes_gpc')) 
-{
+if(function_exists('get_magic_quotes_gpc')) {
    $get_magic_quotes_exists = true;
 }
 
-foreach ($myPost as $key => $value) 
-{
-    if($get_magic_quotes_exists == true && get_magic_quotes_gpc() == 1) 
-    {
+foreach ($myPost as $key => $value) {
+    if($get_magic_quotes_exists == true && get_magic_quotes_gpc() == 1) {
         $value = urlencode(stripslashes($value));
     } 
-    else 
-    {
+    else {
         $value = urlencode($value);
     }
     $req .= "&$key=$value";
 }
 
 
-if (!file_exists($logfile)) 
-{
+if (!file_exists($logfile)) {
     $fh = @fopen($logfile, 'w');
     fclose($fh);
 }
@@ -68,8 +61,7 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, array('Connection: Close'));
 // please download 'cacert.pem' from "http://curl.haxx.se/docs/caextract.html" and set
 // the directory path of the certificate as shown below:
 // curl_setopt($ch, CURLOPT_CAINFO, dirname(__FILE__) . '/cacert.pem');
-if( !($res = curl_exec($ch)) ) 
-{
+if( !($res = curl_exec($ch)) ) {
     error_log("Got " . curl_error($ch) . " when processing IPN data");
     curl_close($ch);
     exit;
@@ -79,8 +71,7 @@ curl_close($ch);
 
 // STEP 3: Inspect IPN validation result and act accordingly
 
-if (strcmp ($res, "VERIFIED") == 0)
-{
+if (strcmp ($res, "VERIFIED") == 0) {
     include get_cfg_var('mourjan.path').'/config/cfg.php';
     
     $success = false;
@@ -119,15 +110,15 @@ if (strcmp ($res, "VERIFIED") == 0)
 
     $db = new DB($config, FALSE);
     
-    if ($txn_type=='web_accept')
-    {
+    if ($txn_type=='web_accept') {
         
         $old_transaction = $db->queryResultArray("select id from t_tran where TRANSACTION_ID=?", [$txn_id]);
         if ($old_transaction && count($old_transaction) > 0) {
             //do nothing
             //$user->pending['PAYPAL_OLD'] = true;
             
-        } else {
+        } 
+        else {
             $processed = $db->queryResultArray(
                 "INSERT INTO T_TRAN 
                 (UID, DATED, CURRENCY_ID, AMOUNT, DEBIT, CREDIT, USD_VALUE, XREF_ID, PRODUCT_ID, TRANSACTION_ID, TRANSACTION_DATE, VALID, SERVER_ID, NET, GATEWAY) VALUES 
@@ -143,11 +134,7 @@ if (strcmp ($res, "VERIFIED") == 0)
         error_log( $key." = ". $value );
     }*/
 }
-else if (strcmp ($res, "INVALID") == 0)
-{
+else if (strcmp ($res, "INVALID") == 0) {
     // IPN invalid, log for manual investigation
     error_log(sprintf("%s\t%s", date("Y-m-d H:i:s"), "The response from IPN was: " .$res.PHP_EOL), 3, $logfile);
 }
-
-
-?>

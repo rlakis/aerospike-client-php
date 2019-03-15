@@ -932,8 +932,9 @@ class PostAd extends Page {
             ?><form onsubmit="event.preventDefault(); return MAP.search(this);"><?php
             ?><input id=q name=q class=searchTerm type=search placeholder="enter location name are you looking for?"><?php
             ?><button class=searchButton type=submit><i class="icn icnsmall icn-search invert"></i></button><?php
-            ?><button class="btn blue" type=button style="margin:0 0 0 8px;height:36px">Confirm</button><?php
-            ?><button class="btn blue" type=button style="margin:0 8px;height:36px">Remove</button><?php
+            ?><button class=searchButton type=button style="margin:0 0 0 8px;"><i class="icn icnsmall icn-map-marker" onclick="MAP.myLocation();"></i></button><?php
+            ?><button class="btn blue" type=button style="margin:0 0 0 8px;height:36px" onclick="MAP.confirm();">Confirm</button><?php
+            ?><button class="btn blue" type=button style="margin:0 8px;height:36px" onclick="MAP.remove();">Remove</button><?php
             ?><button class="btn blue" type=button style="margin:0;height:36px" onclick="UI.close();">Cancel</button><?php
             ?></form><?php
             ?></div><?php
