@@ -14,6 +14,7 @@ class Redirect extends Site {
         parent::__construct($router);
         
         $userLogin = $this->post('u');
+        error_log($userLogin);
         if ($userLogin && $this->isEmail($userLogin)) {
             $ref = $this->post('r');
             if (isset($_SERVER['HTTP_REFERER']) &&
@@ -23,15 +24,17 @@ class Redirect extends Site {
 
                 $userPass = $this->post('p');
                 $keepme_in = $this->post('o', 'boolean');
+                
+                error_log($userPass);
 
                 if ($userPass && strlen($userPass) >= 6) {
                     $pass = false;
-                    if (isset($_POST['g-recaptcha-response'])) {
-                        $cred = DB::getCacheStorage()->get('recaptcha');
-                        $recaptcha = new \ReCaptcha\ReCaptcha($cred['secret']);
-                        $resp = $recaptcha->verify($_POST['g-recaptcha-response'], $_SERVER['REMOTE_ADDR']);
-                        if ($resp->isSuccess()) {
-                            $pass = $this->user->authenticateByEmail($userLogin, $userPass);
+                    //if (isset($_POST['g-recaptcha-response'])) {
+                        //$cred = DB::getCacheStorage()->get('recaptcha');
+                        //$recaptcha = new \ReCaptcha\ReCaptcha($cred['secret'], new \ReCaptcha\RequestMethod\SocketPost());
+                        //$resp = $recaptcha->verify($_POST['g-recaptcha-response'], $_SERVER['REMOTE_ADDR']);
+                        //if ($resp->isSuccess()) {
+                            $pass = $this->user()->authenticateByEmail($userLogin, $userPass);
                             if ($pass) {
                                 $this->user->params['keepme_in'] = $keepme_in ? 1 : 0;
                                 if ($keepme_in) {
@@ -41,12 +44,12 @@ class Redirect extends Site {
                             } else {
                                 $this->user->pending['login_attempt'] = true;
                             }
-                        } else {
-                            $this->user->pending['login_attempt_captcha'] = true;
-                        }
-                    } else {
-                        $this->user->pending['login_attempt_captcha'] = true;
-                    }
+                        //} else {
+                        //    $this->user->pending['login_attempt_captcha'] = true;
+                        //}
+                    //} else {
+                    //    $this->user->pending['login_attempt_captcha'] = true;
+                    //}
 
                     if (!$this->router()->isArabic() && !preg_match('/\/' . $this->router()->language . '\//', $ref)) {
                         $ref.=$this->router()->language . '/';
