@@ -4,17 +4,15 @@ require_once 'deps/autoload.php';
 require_once 'Site.php';
 require_once $config['dir'] . '/core/model/NoSQL.php';
 
-use Core\Model\Router;
 use Core\Model\NoSQL;
-use Core\Model\DB;
+
 
 class Redirect extends Site {
 
-    function __construct(Core\Model\Router $router) {
-        parent::__construct($router);
+    function __construct() {
+        parent::__construct();
         
         $userLogin = $this->post('u');
-        error_log($userLogin);
         if ($userLogin && $this->isEmail($userLogin)) {
             $ref = $this->post('r');
             if (isset($_SERVER['HTTP_REFERER']) &&
@@ -25,8 +23,6 @@ class Redirect extends Site {
                 $userPass = $this->post('p');
                 $keepme_in = $this->post('o', 'boolean');
                 
-                error_log($userPass);
-
                 if ($userPass && strlen($userPass) >= 6) {
                     $pass = false;
                     //if (isset($_POST['g-recaptcha-response'])) {
@@ -72,7 +68,6 @@ class Redirect extends Site {
                         }
                     }
                     $this->user->update();
-                    //error_log(__CLASS__ . '.' . __FUNCTION__ . ": called {$ref}");
                     $this->router()->redirect($ref);
                 }
             }
@@ -99,6 +94,7 @@ class Redirect extends Site {
                             $uri = '/myads/' . $addLang . '?sub=pending' . $uriHash;
                         }
                         break;
+                        
                     case 'ad_stop':
                         $userId = $cmd['params'][0];
                         $adId = $cmd['params'][1];
@@ -109,6 +105,7 @@ class Redirect extends Site {
                             $this->user->update();
                         }
                         break;
+                        
                     case 'my_archive':
                         $userId = $cmd['params'][0];
                         $uri = '/myads/' . $addLang . '?sub=archive';
@@ -116,6 +113,7 @@ class Redirect extends Site {
                             $this->user->sysAuthById($userId);
                         }
                         break;
+                        
                     case 'my_watch':
                         $userId = $cmd['params'][0];
                         if (is_numeric($userId) && $userId) {
@@ -128,6 +126,7 @@ class Redirect extends Site {
                             $this->user->update();
                         }
                         break;
+                        
                     case 'channel':
                         $userId = $cmd['params'][0];
                         $channelId = $cmd['params'][1];
@@ -176,7 +175,7 @@ class Redirect extends Site {
                         break;
                     case 'reset_password':
                         $userId = $cmd['params'][0];
-                        if (is_numeric($userId) && $userId && !$this->user->info['id']) {
+                        if (is_numeric($userId) && $userId && !$this->user()->isLoggedIn()) {
                             $userOptions = NoSQL::getInstance()->getOptions($userId);
                             if ($userOptions) {
                                 if (is_array($userOptions)) {
@@ -186,7 +185,8 @@ class Redirect extends Site {
                                             $this->user->pending['user_id'] = $userId;
                                             $this->user->update();
                                             $uri = '/password/' . $addLang;
-                                        } else {
+                                        } 
+                                        else {
                                             //wrong ticket
                                         }
                                     } elseif (isset($userOptions['resetKey'])) {
@@ -195,16 +195,19 @@ class Redirect extends Site {
                                             $this->user->pending['user_id'] = $userId;
                                             $this->user->update();
                                             $uri = '/password/' . $addLang;
-                                        } else {
+                                        } 
+                                        else {
                                             //wrong ticket
                                         }
-                                    } else {
+                                    } 
+                                    else {
                                         //invalid ticket
                                     }
                                 }
                             }
                         }
                         break;
+                        
                     case 'email_verify':
                         $userId = $cmd['params'][0];
                         if (is_numeric($userId) && $userId) {
@@ -231,7 +234,8 @@ class Redirect extends Site {
                                 } else {
                                     //invalid ticket
                                 }
-                            } else {
+                            } 
+                            else {
                                 $userOptions = NoSQL::getInstance()->getOptions($userId);
                                 if ($userOptions) {
                                     if (is_array($userOptions)) {
@@ -261,5 +265,3 @@ class Redirect extends Site {
     }
 
 }
-
-?>

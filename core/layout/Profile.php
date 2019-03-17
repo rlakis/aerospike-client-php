@@ -5,8 +5,8 @@ class Profile extends Page{
     
     var $action='',$liOpen='';
 
-    function Profile($router){
-        parent::Page($router);
+    function Profile(){
+        parent::Page();
         $this->checkBlockedAccount();      
         $this->load_lang(array("account","profile"));  
         $this->set_require('css', 'account');

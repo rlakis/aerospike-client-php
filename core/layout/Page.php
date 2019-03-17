@@ -155,12 +155,9 @@ class Page extends Site {
             //$this->set_require('css', array('mob'));
             $this->isMobileAd=true;
             $this->isMobile=true;
-            $this->appendLang= $this->router()->getLanguagePath();
-                    
-            $this->inlineCss.='.goobt{margin:0 0 6px;display:inline-block}';
+            $this->appendLang= $this->router()->getLanguagePath();                    
         }
         else {   
-            $this->inlineCss.='.goobt{margin:15px 0 12px;display:inline-block}';
             $width = 0;
             if (isset($this->user->params['screen'][0]) && $this->user->params['screen'][0]) {
                 $width = $this->user->params['screen'][0];
@@ -323,12 +320,12 @@ class Page extends Site {
             else {
                 $this->router()->cityId=0;
             }
-                if ($this->router()->cityId) {
-                    $this->countryCounter=$this->router()->isArabic() ? number_format($this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId]['counter']) :$this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId]['counter'];
-                }
-                else {
-                    $this->countryCounter=$this->router()->isArabic() ? number_format($this->router()->countries[$this->router()->countryId]['counter']) :$this->router()->countries[$this->router()->countryId]['counter'];
-                }
+            if ($this->router()->cityId) {
+                $this->countryCounter=$this->router()->isArabic() ? number_format($this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId]['counter']) :$this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId]['counter'];
+            }
+            else {
+                $this->countryCounter=$this->router()->isArabic() ? number_format($this->router()->countries[$this->router()->countryId]['counter']) :$this->router()->countries[$this->router()->countryId]['counter'];
+            }
         }
         else {
             if (!$this->isMobile) {
@@ -391,7 +388,7 @@ class Page extends Site {
         }
         
         
-        $this->user()->update();
+        $this->user()->update();                
     }
     
     

@@ -3,8 +3,8 @@ require_once 'Page.php';
 
 class NotFound extends Page{
 
-    function __construct($router) {
-        parent::__construct($router);
+    function __construct() {
+        parent::__construct();
         $this->hasLeadingPane=true;
         $this->forceNoIndex=true;
         if ($this->router()->module=='invalid') {

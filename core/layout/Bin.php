@@ -2,11 +2,8 @@
 require_once 'deps/autoload.php';
 Config::instance()->incLayoutFile('Site')->incModelFile('NoSQL')->incModelFile('MobileValidation');
 
-use MaxMind\Db\Reader;
 use Core\Model\NoSQL;
 use Core\Model\MobileValidation;
-use Core\Model\DB;
-use Core\Model\Router;
 use Core\Model\Classifieds;
 use Core\Lib\SphinxQL;
 
@@ -19,10 +16,10 @@ class AjaxHandler extends Site {
     var $dir='';
     var $host='';
 
-    function __construct(Core\Model\Router $router) {
-        parent::__construct($router);
-        $this->dir=$router->config()->baseDir;
-        $this->host=$router->config()->host;
+    function __construct() {
+        parent::__construct();
+        $this->dir=$this->router()->config()->baseDir;
+        $this->host=$this->router()->config()->host;
         $this->sid=session_id();
     }
 
@@ -5443,10 +5440,11 @@ class Bin extends AjaxHandler{
                 break;
                 
             case 'ajax-preset':
-                $email=trim(strtolower(filter_var($this->post('v'), FILTER_SANITIZE_EMAIL)));
+                $email= trim(strtolower(filter_var($this->_JPOST['v']??'', FILTER_SANITIZE_EMAIL)));
+                error_log($email);
                 $user_id = 0;
                 $lang='ar';
-                $tLang=$this->post('lang');
+                $tLang=$this->_JPOST['lang']??'ar';
                 if($tLang=='ar'||$tLang=='en')$lang=$tLang;
                 $date = date('Ymd');
                 $send_email=false;
@@ -5458,54 +5456,46 @@ class Bin extends AjaxHandler{
                         }
                         else {
                             if(!empty($user)) {
-                                //$user = $user[0];
                                 $user_id = $user[\Core\Model\ASD\USER_PROFILE_ID]; //$user['ID'];
                                 $opt = $user[Core\Model\ASD\USER_OPTIONS]; //json_decode($user['OPTS'], true);
-                                if(isset($opt['validating'])) {
+                                if (isset($opt['validating'])) {
                                     $this->fail('106');
                                 }
-                                elseif(!isset($opt['resetting']) || (isset($opt['resetting']) && !isset($opt['resetting'][$date])) )
-                                {
+                                elseif (!isset($opt['resetting']) || (isset($opt['resetting']) && !isset($opt['resetting'][$date]))) {
                                     $send_email=true;
                                     if(isset($opt['lang']))$lang=$opt['lang'];
                                 }
                                 
-                                if(!$send_email)
-                                {
+                                if (!$send_email) {
                                     $this->fail('105');
                                 }
-                                else
-                                {
+                                else {
                                     require_once $this->dir.'/bin/utils/MourjanMail.php';
-                                    $mailer=new MourjanMail($this->urlRouter->cfg, $lang);
-
+                                    $mailer=new MourjanMail($lang);
                                     $verifyLink='';
-
                                     $sessionKey=md5($this->sid.$user_id.time());
                                                                         
-                                    $sKey=$this->user->encodeRequest('reset_password',array($user_id));
+                                    $sKey=$this->user()->encodeRequest('reset_password', [$user_id]);
                                     $verifyLink=$this->host.'/a/'.($lang=='ar'?'':$lang.'/').'?k='.$sKey.'&key='.urlencode($sessionKey);
-                                    
-                                    if ($mailer->sendResetPass($email,$verifyLink))
-                                    {
+                                    //error_log($verifyLink);
+                                    if ($mailer->sendResetPass($email, $verifyLink)) {
                                         if(!isset($opt['resetting'])) $opt['resetting'] = array();
                                         $opt['resetting'][$date]=1;
                                         $opt['resetKey']=$sessionKey;
                                         $this->user->updateOptions($user_id,$opt);
                                         $this->process();
                                     }
-                                    else
-                                    {
+                                    else {
                                         $this->fail('107');
                                     }
                                 }
                             }
-                            else $this->fail('104');
+                            else { $this->fail('104'); }
                         }
                     }
-                    else $this->fail('102');
+                    else { $this->fail('102'); }
                 }
-                else $this->fail('101');
+                else { $this->fail('101'); }
                 break;
                 
             case 'ajax-register':

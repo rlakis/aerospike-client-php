@@ -7,18 +7,18 @@ require_once get_cfg_var('mourjan.path') . '/deps/autoload.php';
 class MourjanMail extends PHPMailer {
     
     public 
-            $user = null,$db=null,
-            $templatePath   =  'include',
-            $mLanguage,
-            $debug=false,
-            $dir='',
-            $notifiers=array(),
-            $notifierMailIndex=0,
-            $notifierMailIndexDefault=0,
-            $notifierMailIndexFile=null,
-            $templates=array(),
+        $user = null, $db=null,
+        $templatePath = 'include',
+        $mLanguage,
+        $debug=false,
+        $dir='',
+        $notifiers=array(),
+        $notifierMailIndex=0,
+        $notifierMailIndexDefault=0,
+        $notifierMailIndexFile=null,
+        $templates=array(),
             
-            $emailHeader_en='<body style="padding:0;margin:0">
+        $emailHeader_en='<body style="padding:0;margin:0">
 	<table width="100%" cellpadding="0" cellspacing="0">
     	<tr>
         	<td align="center">
@@ -395,30 +395,32 @@ class MourjanMail extends PHPMailer {
             ;
 
 
-    function __construct($config, $lang='en', $debug=false) {
-        parent::__construct();
-        $this->dir = $config['dir'];
-        $this->notifiers    = $config['notifier_mail'];
+    function __construct($lang='en', $debug=false) {
+        parent::__construct(true);
         
+        $this->dir          = Config::instance()->baseDir;
+        $this->notifiers    = Config::instance()->get('notifier_mail');
+        
+        $this->SMTPDebug    = 2;
         $this->IsSMTP();
-        $this->debug=false;
+        
+        $this->debug        = false;
         $this->SMTPAuth     = true;
-        $this->SMTPSecure   = 'ssl';
-        $this->Host         = $config['smtp_server'];
-        $this->Port         = $config['smtp_port'];
-        $this->Username     = $config['smtp_user'];
-        $this->Password     = $config['smtp_pass'];
+        $this->SMTPSecure   = 'tls';
+        $this->Host         = Config::instance()->get('smtp_server');
+        $this->Port         = 587;// Config::instance()->get('smtp_port');
+        $this->Username     = Config::instance()->get('smtp_user');
+        $this->Password     = Config::instance()->get('smtp_pass');
         $this->CharSet      = 'UTF-8';
-        $this->SetFrom($config['smtp_user'], 'Mourjan.com');
-        //$this->setLanguage($lan);
+        $this->SetFrom(Config::instance()->get('smtp_user'), 'Mourjan.com');
         $this->mLanguage=$lang;
-        require_once $config['dir'].'/core/model/Db.php';
-        require_once $config['dir'].'/core/model/User.php';
-        $this->db = new DB($config);
+        Config::instance()->incModelFile('Db')->incModelFile('User');
+        $this->db = new DB();
         $this->db->setWriteMode(true);
-        $this->user = new User($this->db,$config,null,0);
-        $this->templatePath = $config['dir'].'/bin/utils/include';
-        //$this->templatePath = '/var/www/dev.mourjan/bin/utils/include';
+        $this->user = new User(null, 0);
+        $this->templatePath = $this->dir.'/bin/utils/include';
+        
+        error_log($this->Host.':'.$this->Port.' -> '.$this->Username.' / '.$this->Password);
     }
 
     
@@ -431,9 +433,8 @@ class MourjanMail extends PHPMailer {
         $this->ClearReplyTos();
     }    
     
+    
     function MsgTemplate($template, $params=array(), $genParams=array(), $basedir = '', $plainFooter=0) {
-        //echo __DIR__, "\n";
-        global $config;
         $templateUri=$this->templatePath.'/'.($this->mLanguage!='en'?$this->mLanguage.'/':'').$template.'.html';
         if (!isset($this->templates[$templateUri])) {
             $this->templates[$templateUri]=file_get_contents($templateUri, true);
@@ -445,26 +446,32 @@ class MourjanMail extends PHPMailer {
         }
         $message=addcslashes($this->templates[$templateUri],'"');
         eval("\$message= \"$message\";");
-        if (count($genParams)){
-            if($this->mLanguage=='ar'){
-                if($plainFooter)
+        if (count($genParams)) {
+            if ($this->mLanguage=='ar') {
+                if ($plainFooter) {
                     $message = $this->emailHeader_ar.$message.$this->plainFooter_ar;
-                else 
+                } 
+                else {
                     $message = $this->emailHeader_ar.$message.$this->emailFooter_ar;
-            }else{
-                if($plainFooter)
-                    $message = $this->emailHeader_en.$message.$this->plainFooter_en;
-                else 
-                    $message = $this->emailHeader_en.$message.$this->emailFooter_en;
+                }
             }
-            $genParams['base_url']=$config['host'].'/';
-            foreach ($genParams as $key => $value){
+            else {
+                if ($plainFooter) {
+                    $message = $this->emailHeader_en.$message.$this->plainFooter_en;
+                }
+                else {
+                    $message = $this->emailHeader_en.$message.$this->emailFooter_en;
+                }
+            }
+            $genParams['base_url']=Config::instance()->host.'/';
+            foreach ($genParams as $key => $value) {
                 $message=preg_replace('/{'.$key.'}/', $value, $message);
             }
         }
-        if ($this->debug) echo $message;
+        //if ($this->debug) echo $message;
         parent::MsgHTML($message, $basedir);
     }
+    
     
     function commentNotify($user,$comment,$adLink,$adTitle,$email,$pic,$rtl,$userId,$username=''){
         global $config;
@@ -576,9 +583,9 @@ class MourjanMail extends PHPMailer {
         else return $this->Send();
     }
     
-    function sendResetPass($userEmail,$verifyLink){
-        global $config;
-        $imgUrlLink=$config['url_resources'].$config['url_img'];
+    function sendResetPass($userEmail, $verifyLink) {
+        $config=Config::instance();
+        $imgUrlLink= $config->get('url_resources').$config->imgURL;
         $this->doClearAll();
         $this->Username = 'account@mourjan.com';
         $this->SetFrom('account@mourjan.com', 'Mourjan.com');
@@ -593,9 +600,9 @@ class MourjanMail extends PHPMailer {
             'img_url'   =>  $imgUrlLink,
             'title'     =>  ($this->mLanguage == 'ar' ? 'إعادة تعيين كلمة السر' :'Password Reset')
         );
-        $this->MsgTemplate('password-reset',$params,$genParams,'',1);
-        if($this->debug) return 1;
-        else return $this->Send();
+        $this->MsgTemplate('password-reset', $params, $genParams, '', 1);
+        error_log($userEmail.PHP_EOL.$verifyLink);
+        return ($this->debug) ? 1 : $this->Send();
     }
     
     function sendPageEmailValidation($userEmail,$verifyLink,$userName=''){
@@ -1061,7 +1068,7 @@ class MourjanMail extends PHPMailer {
     
     
     function parsePageLabel($sname, $purposeId, $pname){
-                switch($purposeId){
+        switch ($purposeId) {
                     case 1://for sale
                     case 2://for rent
                     case 8://for trade
@@ -1106,15 +1113,18 @@ class MourjanMail extends PHPMailer {
     }
     
     function Send() {
-        if($this->Username == 'account@mourjan.com'){
+        error_log('sending mail');
+        if ($this->Username=='account@mourjan.com') {  
             $sent = parent::Send();
+            error_log("is sent {$sent}");
             return $sent;
-        }else{
+        }
+        else {
             if ($this->debug) {
                 echo "\n------------------------------------------------------\n";
                 echo 'sending mail',"\n";
             }
-            if(!$this->notifierMailIndexFile){                
+            if (!$this->notifierMailIndexFile) {                
                 $this->getNotifierMailIndex();
                 $this->notifierMailIndexDefault=$this->notifierMailIndex;
                 $this->Username     = $this->notifiers[$this->notifierMailIndex];
@@ -1162,6 +1172,7 @@ class MourjanMail extends PHPMailer {
         }
     }
     
+    
     function getNotifierMailIndex(){
         $filename=$this->dir.'/config/notifier_mail_index';
         $this->notifierMailIndexFile=fopen($filename, 'r+');
@@ -1176,4 +1187,3 @@ class MourjanMail extends PHPMailer {
         fwrite($this->notifierMailIndexFile, $this->notifierMailIndex);
     }
 }
-?>

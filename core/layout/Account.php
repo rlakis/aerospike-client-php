@@ -5,8 +5,8 @@ class Account extends Page{
     
     var $action='',$liOpen='';
 
-    function __construct(Core\Model\Router $router){
-        parent::__construct($router);
+    function __construct(){
+        parent::__construct();
         $this->checkBlockedAccount(5);
         
         $this->load_lang(array("account"));
@@ -334,7 +334,7 @@ form{height:auto!important;padding:0!important}
                 $emailMsg=$email=$this->user->info['email'];
             }
         }
-        $actionDiv='<div class="am"><input class="bt" type="submit" value="'.$this->lang['saveChanges'].'" /><input class="bt cl" type="reset" onclick="clsOpen()" value="'.$this->lang['cancel'].'" /><span class="notice"></span></div>';
+        $actionDiv='<div class=am><input class="bt" type="submit" value="'.$this->lang['saveChanges'].'" /><input class="bt cl" type="reset" onclick="clsOpen()" value="'.$this->lang['cancel'].'" /><span class="notice"></span></div>';
         if (!$this->liOpen) echo $actionDiv;
         ?><div class="acc"><?php
         ?><form onsubmit="save();return false"><?php
@@ -398,7 +398,7 @@ form{height:auto!important;padding:0!important}
         
         ?></div><?php 
         
-        echo "<div class='merge'>";
+        echo "<div class=merge>";
         echo "<img width=185 height=185 src='{$this->router()->config()->host}/web/qr/m-".session_id().".png'></img>";
         echo '<br /><span class="bt scan"><span class="apple"></span><span class="apple up"></span> '.$this->lang['hint_merge_Account'].' <span class="apple up"></span><span class="apple"></span></span>';                    
         echo '</div>';

@@ -5,9 +5,9 @@ class Register extends Page{
     
     var $include_password_js = false;
 
-    function __construct(Core\Model\Router $router){
-        parent::__construct($router);
-        if ($this->router()->config()->get('active_maintenance')) {
+    function __construct(){
+        parent::__construct();
+        if ($this->router()->config()->isMaintenanceMode()) {
             $this->user->redirectTo($this->router()->getLanguagePath('/maintenance/'));
         }
         $title = $this->lang['create_account'];
@@ -307,11 +307,13 @@ class Register extends Page{
         $notFound=0;
         if ($this->user->info['id']) {
             $msg = '';
-            if(isset($this->user->pending['password_new'])){
+            if (isset($this->user->pending['password_new'])) {
                 $msg = $this->lang['congrats_account'];
-            }elseif(isset($this->user->pending['password_reset'])){
+            }
+            elseif (isset($this->user->pending['password_reset'])) {
                 $msg = $this->lang['congrats_password'];
-            }else{
+            }
+            else {
                 $msg = $this->lang['congrats_social'];
             }
             ?><div class='list htu'></div><?php
@@ -434,10 +436,12 @@ class Register extends Page{
             };';
         }
         elseif ($this->router()->module=='password') {
-            if(isset($this->user->pending['password_new']) || isset($this->user->pending['password_reset'])){
+            
+            if (isset($this->user->pending['password_new']) || isset($this->user->pending['password_reset'])) {
+                error_log('two');
                 $this->include_password_js = true;
                 $step = isset($this->user->pending['password_reset']) ? 1 : 0;
-                if($step){                    
+                if ($step) {                    
                     ?><div class='list'><span class="naf"></span></div><?php
                 }else{
                     ?><div class='list htn'><?= $this->lang['hint_reg_2'] ?></div><?php
@@ -515,21 +519,112 @@ class Register extends Page{
                         p.prev().css("visibility","visible");
                     };
                 ';
-            }else{
+            }
+            else {
                 $notFound=1;
             }
-        }else{
+        }
+        else {
             $notFound=1;
         }
-        if($notFound){
+        
+        if ($notFound) {
+            ?><script>
+                var reg,ivf,rst,ivo=0;
+                let isEmail=function(v){
+                    return v.match(/(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/);
+                };
+                ivf=function(e){
+                    var v=e.value;                    
+                    if(isEmail(v)){
+                        if(ivo===0){tglEB(e,1);}
+                    }else{
+                        if(ivo===1){tglEB(e,0);}
+                    }
+                };
+                function tglEB(e,s){
+                    var p=e.parentNode.parentNode;
+                    let b=document.querySelector('input[type=button].bt');                    
+                    if(s){
+                        b.classList.remove('off');ivo=1;
+                    }else{
+                        b.classList.add('off');ivo=0;
+                    }
+                };
+            reg=function(e){
+                if(ivo){
+                    let p=e.parentNode.parentNode;
+                    let d=p.parentNode;
+                    d.style.setProperty('visibility', 'hidden');
+                    let dn=d.nextSibling;
+                    dn.innerHTML='<?=$this->lang['emailing_preset']?>'+"<br /><span class=\'loads load\'></span>";
+                    dn.style.setProperty("margin-top","60px");
+                    dn.style.setProperty("display","block");
+                    var f=p.querySelector('input[type=email].fld');
+                    var v=f.value;
+                    let opt={method: 'POST', mode: 'same-origin', credentials: 'same-origin',
+                        body:JSON.stringify({v:f.value, lang:(document.body.dir==='rtl'?'ar':'en')}),
+                        headers:{'Accept':'application/json','Content-Type':'application/json'}};
+
+                    fetch("/ajax-preset/", opt)
+                    .then(res => res.json())
+                    .then(response => {
+                        console.log('Success:', JSON.stringify(response));
+                        if (response.RP===1) {
+                            //ad.approved().removeMask();
+                        }
+                    })
+                    .catch(error => {
+                        console.log('Error:', error);
+                        //ad.removeMask();
+                    });
+                         
+                         /*
+                    $.ajax({
+                        type:"POST",
+                        url:"/ajax-preset/",
+                        data:{
+                            v:v,
+                            lang:lang
+                        },
+                        dataType:"json",
+                        success:function(rp){
+                            if(rp && rp.RP){
+                                dn.css("margin-top","40px");
+                                dn.html("<span class=\'done\'></span> '.$this->lang['sent_preset'].'".replace("{email}",v));                    
+                            }else{
+                                switch(rp.MSG){
+                                    case "104":
+                                        dn.css("margin-top","10px");
+                                        dn.html("<span class=\'fail\'></span> '.$this->lang['account_notfound'].'".replace("{email}",v));
+                                        break;
+                                    case "105":
+                                        dn.css("margin-top","40px");
+                                        dn.html("<span class=\'fail\'></span> '.$this->lang['emailed_preset'].'".replace("{email}",v));
+                                        break;
+                                    default:
+                                        failAc(dn);
+                                        break;
+                                }
+                            }
+                        },
+                        error:function(rp){
+                            failAc(dn);
+                        }
+                    });*/
+                }
+            };
+               
+            </script><?php
             //$this->user->redirectTo('/invalid/'.$lang);
-            ?><div class='list'><span class="naf"></span></div><?php
-            ?><br /><p><?= $this->lang['account_pass_reset'] ?></p><?php
-            ?><div class="lgt rc sh"><?php 
+            ?><div class=row style="align-items: center; justify-content: center"><div class="col-8"><div class="card"><?php
+            ?><div class=list><span class=naf></span></div><?php
+            ?><div class=card-title><p style="line-height: 1.5em"><?= $this->lang['account_pass_reset'] ?></p></div><?php
+            ?><div class="card-content lgt rc sh"><?php 
                 ?><div id="eform"><?php
                     ?><ul><?php
                         ?><li><label><?= $this->lang['your_email'] ?></label></li><?php
-                        ?><li><input onkeyup="ivf(this)" class="fld en" type="email" /></li><?php
+                        ?><li><input onkeyup="ivf(this)" class="fld en" type=email /></li><?php
                         ?><li class="ctr"><input type="button" onclick="reg(this)" class="bt ok off" value="<?= $this->lang['pass_reset_bt'] ?>" /></li><?php
                     ?></ul><?php
                 ?></div><?php
@@ -612,6 +707,7 @@ class Register extends Page{
                 p.css("display","none");
                 p.prev().css("visibility","visible");
             };';
+            ?></div></div></div><?php
         }
     }
     
