@@ -2,12 +2,23 @@
 Config::instance()->incLayoutFile('Page');
 
 class PostAd extends Page {
+    public $globalScript='';
+    public $inlineScript='';
+
     private $adContent = null;
-    var $unit='',$globalScript='',$inlineScript='',$presetTitle=false,$id=0,$advanced=false;
-    var $pageGlobal='',$pageInline='',$ad=null, $loadColorBox=false, $sectionCrumb='', $userBalance=0;
+    private $unit='';
+    private $presetTitle=false;
+    protected $id=0;
+    private $advanced=false;
+    private $pageGlobal='';
+    private $pageInline='';
+    private $ad=null;
+    private $loadColorBox=false;
+    private $sectionCrumb='';
+    private $userBalance=0;
         
-    function __construct(Core\Model\Router $router) {
-        parent::__construct($router);
+    function __construct() {
+        parent::__construct();
         
         if($this->router()->config()->isMaintenanceMode()) {
             $this->user()->redirectTo($this->router()->getLanguagePath('/maintenance/'));
@@ -17,6 +28,7 @@ class PostAd extends Page {
         $this->checkSuspendedAccount();
         
         $tmp = $this->get('ad');
+        error_log(var_export($_POST, true));
         if ($tmp=='new') {
             unset($this->user->pending['post']);
             $this->user->update();
@@ -26,13 +38,6 @@ class PostAd extends Page {
         $this->router()->config()->setValue('enabled_sharing', 0);
         $this->router()->config()->disableAds();               
         
-        if ($this->router()->isArabic()) {
-            $this->inlineCss.='.upload_bt input{direction:ltr!important}';
-        }
-        else {
-            $this->inlineCss.='.upload_bt input{direction:rtl!important}';
-        }
-        $this->inlineCss.='.upload_bt{white-space:nowrap!important;overflow:visible}';
         $this->load_lang(array("post"));
         $this->set_require('css', array('post'));
         $this->title=$this->lang['title'];
@@ -44,7 +49,7 @@ class PostAd extends Page {
             $this->router()->cityId=$this->user->params['city'];
         }
         //$this->isUserMobileVerified=false;
-        $this->hasLeadingPane = $this->user->info['id'] && !$this->isUserMobileVerified;
+        $this->hasLeadingPane = $this->user()->id() && !$this->isUserMobileVerified;
         if ($this->user()->isLoggedIn()) {
             if(!$this->isUserMobileVerified){
                 $this->title=$this->lang['verify_mobile'];
@@ -53,6 +58,7 @@ class PostAd extends Page {
             else {
                 if (isset ($_REQUEST['ad']) && is_numeric($_REQUEST['ad'])) {
                     $this->ad=$this->user->loadAdToSession($_REQUEST['ad']);
+                    
                     $this->id=$this->user->pending['post']['id'];
                     $this->countryId=$this->user->pending['post']['cn'];
                     $this->cityId=$this->user->pending['post']['c'];
@@ -95,8 +101,8 @@ class PostAd extends Page {
                 $this->cityId=(int)$this->user->pending['post']['c'];
             }
 
-            $this->userBalance = $this->user->getStatement(0, 0, true);
-            if(isset($this->userBalance['balance'])){
+            $this->userBalance = $this->user()->getStatement(0, 0, true);
+            if (isset($this->userBalance['balance'])) {
                 $this->userBalance = $this->userBalance['balance'];
             }
         }
@@ -240,6 +246,7 @@ class PostAd extends Page {
             if($hasPics)$uPics=1;
             elseif($uPics!=2) $uPics=0;
             $hasVideo=0;
+            /*
             if (isset ($this->adContent['video'])) {
                 $hasVideo=$this->adContent['video'][0] ? 2 : 1;
                 $this->globalScript.='var tvl="<a class=\'ctr ah\' target=\'blank\' href=\''.$this->adContent['video'][1].'&autoplay=1\'><span onclick=\'delV(this)\' title=\''.$this->lang['removeVideo'].'\' class=\'button pz pzd\'></span><img src=\''.$this->adContent['video'][2].'\' width=\'250\' height=\'200\' /><span class=\'play\'></span></a>";';
@@ -248,11 +255,12 @@ class PostAd extends Page {
                 $this->globalScript.='var tvl="";';
             }
             if ($hasVideo) $uVideo=1; elseif($uVideo!=2) $uVideo=0;
+            */
             
-            $this->globalScript.='var isrc="'.$this->router()->config()->adImgURL.'/repos/",SAVE='.$save.',extra={t:'.$uAlt.',v:'.$uVideo.',p:'.$uPics.',m:'.$uMap.'},hasAT='.$hasAltContent.',brtl='.$altRTL.',hasT='.$hasContent.',artl='.$adRTL.',pro='.$this->rootId.',ppro='.$this->rootId.',ppu='.$this->purposeId.',pse='.$this->sectionId.',pc=[],pcl=0,pzv='.($hasContact ? 1:0).',hNum='.($hasContactNumbers ? 1 : 0).',cui='.json_encode($this->adContent['cui']).',cut='.json_encode($this->adContent['cut']).',cutS="",maxC='.$maximumChars.',minC='.$minimumChars.',picL='.$hasPics.',hasVd='.$hasVideo.',hasM='.$hasMap.',lat='.$this->adContent['lat'].',lon='.$this->adContent['lon'].',HOME="'.$this->router()->getURL($this->router()->countryId,$this->router()->cityId).'";';
+            //$this->globalScript.='var isrc="'.$this->router()->config()->adImgURL.'/repos/",SAVE='.$save.',extra={t:'.$uAlt.',v:'.$uVideo.',p:'.$uPics.',m:'.$uMap.'},hasAT='.$hasAltContent.',brtl='.$altRTL.',hasT='.$hasContent.',artl='.$adRTL.',pro='.$this->rootId.',ppro='.$this->rootId.',ppu='.$this->purposeId.',pse='.$this->sectionId.',pc=[],pcl=0,pzv='.($hasContact ? 1:0).',hNum='.($hasContactNumbers ? 1 : 0).',cui='.json_encode($this->adContent['cui']).',cut='.json_encode($this->adContent['cut']).',cutS="",maxC='.$maximumChars.',minC='.$minimumChars.',picL='.$hasPics.',hasVd='.$hasVideo.',hasM='.$hasMap.',lat='.$this->adContent['lat'].',lon='.$this->adContent['lon'].',HOME="'.$this->router()->getURL($this->router()->countryId,$this->router()->cityId).'";';
             
             $budget = (isset($this->adContent['budget']) && is_numeric($this->adContent['budget']) ? $this->adContent['budget'] : 0);
-            
+            /*
             $this->globalScript.='var ad={
                 hl:"'.(isset($this->user->info['options']['lang']) && $this->user->info['options']['lang'] ? $this->user->info['options']['lang']:'').'",
                 id:'.$this->user->pending['post']['id'].',
@@ -267,6 +275,7 @@ class PostAd extends Page {
                 (isset($this->adContent['app_v']) ? ',app_v:"'.$this->adContent['app_v'].'"':'').
                 '
             };';
+            */
             
             //prefetch country_code info
             $setccv=0;
@@ -314,7 +323,7 @@ class PostAd extends Page {
             }
             
             
-            echo '<form id=adForm action="" method=post>';
+            echo '<form id=adForm action="" method=post data-id=', $this->id, '>';
             echo '<div class=col-12><div class=card>';                       
             
             if ($this->user()->isLoggedIn(9)) {
@@ -385,7 +394,7 @@ class PostAd extends Page {
                 <li>
                     <button name="submit" type="submit" id="ad-submit" class="btn blue" onclick="return UI.submit(this)" data-submit="...Sending">Submit</button>
                 </li>
-                <li><a href=# class="btn blue">Save</a></li>
+                <li><a href='javascript:void(0)' onclick='Ad.save();' class="btn blue">Save</a></li>
                 <li class=publish><a href=# class="btn blue">Publish</a><span><?= $this->lang['ad_review'] ?></span></li>
                 <li><a href=# class="btn">Cancel</a></li>
             </ul><?php
@@ -405,7 +414,7 @@ class PostAd extends Page {
                     'mobile_countries_'.$this->router()->language, $q, NULL, 8, $this->router()->config()->get('ttl_long'));
 
             
-            if (!$this->isMobile && $this->user->info['level']==9 && ((isset($this->ad) && $this->ad) || (isset($this->adContent['ip']) || isset($this->adContent['userLOC']) || isset($this->adContent['agent'])) )) {
+            if ($this->user()->level()===9 && ((isset($this->ad) && $this->ad) || (isset($this->adContent['ip']) || isset($this->adContent['userLOC']) || isset($this->adContent['agent'])) )) {
                 
                 ?><ul tabindex="0" class="ls po info"><?php   
                 ?><li class="h"><b><?= $this->lang['m_h_user'] ?></b></li><?php
@@ -443,7 +452,7 @@ class PostAd extends Page {
                 $cityCount=0;
                 $country_index = 2;
                 $city_index = 6;
-                if ($this->urlRouter->siteLanguage=='ar') {
+                if ($this->router()->isArabic()) {
                     $country_index = 1;
                     $city_index = 5;
                 }
@@ -487,8 +496,8 @@ class PostAd extends Page {
                         if($checkedCity) $cityList.=' - '.$countryName;
                     }
                 }
-                ?><li class="en"><b>Selected Cities:</b></li><?php
-                ?><li class="<?= $this->urlRouter->siteLanguage ?>"><b class="ah"><?= ($cityList ? substr($cityList, 3) : '') ?></b></li><?php
+                ?><li class=en><b>Selected Cities:</b></li><?php
+                ?><li class="<?= $this->router()->language ?>"><b class="ah"><?= ($cityList ? substr($cityList, 3) : '') ?></b></li><?php
                 
                 ?></ul><?php
             }

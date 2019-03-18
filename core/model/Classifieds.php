@@ -121,7 +121,7 @@ class Classifieds {
         
         if (!$this->stmt_get_ad || !$this->db->inTransaction()) {
             $this->stmt_get_ad = $this->db->prepareQuery(
-                "select ad.id, ad.hold, ad.title, ad.publication_id, ad.country_id, ad.city_id, 
+                "select ad.id, ad.hold, '' title, ad.publication_id, ad.country_id, ad.city_id, 
                     section.category_id, ad.purpose_id, section.root_id, ad.content, ad.rtl, 
                     ad.date_added, ad.section_id, trim(country.id_2), 
                     DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', ad.DATE_ADDED), 
@@ -130,7 +130,7 @@ class Classifieds {
                     section.name_ar, section.name_en, 
                     DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', ad.LAST_UPDATE),
                     ad_user.latitude, ad_user.longitude,
-                    ad_translated.title alter_title, ad_translated.content alter_content,
+                    '' alter_title, ad_translated.content alter_content,
                     ad_user.web_user_id,                     
                     wu.user_rank,
                     IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', featured.ended_date)) featured_date_ended, 

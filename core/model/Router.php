@@ -629,8 +629,7 @@ class Router extends \Singleton {
     
     function getAdURI($ad_id=0) {
         $result = '';
-        model_file('Classifieds.php');
-        //include_once $this->cfg['dir'].'/core/model/Classifieds.php';
+        $this->config->incModelFile('Classifieds');
         $ad_class = new Classifieds($this->db);
         $row = $ad_class->getById($ad_id);
         
@@ -663,7 +662,7 @@ class Router extends \Singleton {
             }
         }
 
-        return $this->cfg['url_base'].$result;
+        return $this->config->baseURL.$result;
     }
     
     
@@ -749,8 +748,8 @@ class Router extends \Singleton {
 
         if ($this->module=='detail' && empty($this->countryId)) {
             $cc=substr($this->uri, 1, 2);
-            if ($cc && array_key_exists($cc, $this->cfg['iso_countries'])) {
-                $this->countryId = $this->cfg['iso_countries'][$cc];
+            if ($cc && array_key_exists($cc, $this->config->get('iso_countries'))) {
+                $this->countryId = $this->config->get('iso_countries')[$cc];
             }
         }
 

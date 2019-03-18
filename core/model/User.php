@@ -2,7 +2,7 @@
 
 Config::instance()->incLibFile('MCUser')->incLibFile('MCAudit')->incModelFile('NoSQL');
 
-use mourjan\Hybrid;
+//use mourjan\Hybrid;
 use Core\Lib\SphinxQL;
 use Core\Lib\Audit;
 use Core\Model\NoSQL;
@@ -621,7 +621,7 @@ class User {
                 $this->pending['post']['id']=$ad['ID'];
                 $this->pending['post']['user']=$ad['WEB_USER_ID'];
                 $this->pending['post']['content']=$ad['CONTENT'];
-                $this->pending['post']['title']=$ad['TITLE'];
+                //$this->pending['post']['title']=$ad['TITLE'];
                 $this->pending['post']['rtl']=$ad['RTL'];
                 $this->pending['post']['lon']=$ad['LONGITUDE'];
                 $this->pending['post']['lat']=$ad['LATITUDE'];
@@ -1331,17 +1331,17 @@ class User {
                 
                 $stmt=$this->db->prepareQuery($q);
                 $stmt->bindValue(1, json_encode($adContent), PDO::PARAM_STR);
-                $stmt->bindValue(2, $this->pending['post']['title']);
-                $stmt->bindValue(3, $this->pending['post']['pu']);
-                $stmt->bindValue(4, $this->pending['post']['se']);
-                $stmt->bindValue(5, $this->pending['post']['rtl']);
-                $stmt->bindValue(6, $this->pending['post']['cn']);
-                $stmt->bindValue(7, $this->pending['post']['c']);
-                $stmt->bindValue(8, $this->pending['post']['lat']);
-                $stmt->bindValue(9, $this->pending['post']['lon']);
-                $stmt->bindValue(10, $publish, PDO::PARAM_INT);
-                $stmt->bindValue(11, $media, PDO::PARAM_INT);
-                $stmt->bindValue(12, $id, PDO::PARAM_INT);
+                //$stmt->bindValue(2, $this->pending['post']['title']);
+                $stmt->bindValue(2, $this->pending['post']['pu']);
+                $stmt->bindValue(3, $this->pending['post']['se']);
+                $stmt->bindValue(4, $this->pending['post']['rtl']);
+                $stmt->bindValue(5, $this->pending['post']['cn']);
+                $stmt->bindValue(6, $this->pending['post']['c']);
+                $stmt->bindValue(7, $this->pending['post']['lat']);
+                $stmt->bindValue(8, $this->pending['post']['lon']);
+                $stmt->bindValue(9, $publish, PDO::PARAM_INT);
+                $stmt->bindValue(10, $media, PDO::PARAM_INT);
+                $stmt->bindValue(11, $id, PDO::PARAM_INT);
                 
                 if($rawOther != null){
                     $adContent['rawOther'] = $rawOther;
@@ -1402,7 +1402,7 @@ class User {
     
     function saveRawAdContent($ad){
         $succeed=false;
-        if (isset ($this->pending['post']['id']) && $this->pending['post']['id']) {
+        if (isset($this->pending['post']['id']) && $this->pending['post']['id']) {
             if(isset($ad['rawOther']) || isset($ad['rawAltOther'])){
                 $rawOther = isset($ad['rawOther']) ? $ad['rawOther'] : '';
                 $rawAltOther = isset($ad['rawAltOther']) ? $ad['rawAltOther'] : '';
@@ -1423,25 +1423,23 @@ class User {
     }
     
     
-    function saveAd($publish=0, $user_id=0) {
+    function saveAd($publish=0, $user_id=0) : int {
         $id=0;
-        if($user_id) { 
+        if ($user_id) { 
             $userId=$user_id;             
         }
         else {
             $userId=isset($this->pending['post']['user']) && $this->pending['post']['user'] ? $this->pending['post']['user'] : 0;
         }
         
-        $this->pending['post']['title']='test';
+        //$this->pending['post']['title']='test';
         
         $ad_is_saved=FALSE;
         
         try {
-            include_once $this->cfg['dir'] . '/core/lib/IPQuality.php';
-            if ($userId) {
-                include_once $this->cfg['dir'] . '/core/lib/MCSaveHandler.php';                            
-                
-                $normalizer = new MCSaveHandler($this->cfg);
+            Config::instance()->incLibFile('IPQuality')->incLibFile('MCSaveHandler');
+            if ($userId) {                
+                $normalizer = new MCSaveHandler();
 
                 $content = json_decode($this->pending['post']['content'], true);  
                 $content['state']=$publish;                            
@@ -1485,17 +1483,17 @@ class User {
                     $attrs = isset($content['attrs']) ? $content['attrs'] : NULL;
                     
                     $q='UPDATE ad_user set /* ' . __CLASS__ .'.'.__FUNCTION__.' */ 
-                        content=?, title=?, purpose_id=?, section_id=?, rtl=?,
+                        content=?, purpose_id=?, section_id=?, rtl=?,
                         country_id=?, city_id=?, latitude=?, longitude=?, state=?, media=? ';
-                    if ($this->info['id']==$userId && ($publish==1||$publish==4)) {
+                    if ($this->id()==$userId && ($publish==1||$publish==4)) {
                         $q.=', date_added=current_timestamp ';
                     }
                     $q.='where id=? ';
-                    if ($this->info['level']!=9) {
+                    if ($this->level()!=9) {
                         $q.='and web_user_id+0=? ';
                     }
                     $q.='returning state, web_user_id';
-                                        
+
                     $tries=0;
                     $result=null;
                     
@@ -1595,26 +1593,25 @@ class User {
                 else {
                     if ($this->pending['post']['se']>0) {
                         $content['ipfs'] = IPQuality::ipScore();
-                        $adContent = json_decode($this->pending['post']['content'],true);
+                        $adContent = json_decode($this->pending['post']['content'], true);
                         $rawOther = isset($adContent['rawOther']) ? $adContent['rawOther'] : null;
                         $rawAltOther = isset($adContent['rawAltOther']) ? $adContent['rawAltOther'] : null;
                         unset($adContent['rawOther']);
                         unset($adContent['rawAltOther']);
                         
-                    	$q='insert into ad_user (web_user_id,content, title, purpose_id, section_id, rtl, country_id, city_id, latitude, longitude, media) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) returning id';
+                    	$q='insert into ad_user (web_user_id, content, purpose_id, section_id, rtl, country_id, city_id, latitude, longitude, media) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) returning id';
                         
                     	$stmt=$this->db->prepareQuery($q);
                     	$stmt->bindValue(1, $userId);
                     	$stmt->bindValue(2, json_encode($adContent), PDO::PARAM_STR);
-                    	$stmt->bindValue(3, $this->pending['post']['title'], PDO::PARAM_STR);
-                    	$stmt->bindValue(4, $this->pending['post']['pu']);
-                    	$stmt->bindValue(5, $this->pending['post']['se']);
-                    	$stmt->bindValue(6, $this->pending['post']['rtl']);
-                    	$stmt->bindValue(7, $this->pending['post']['cn']);
-                    	$stmt->bindValue(8, $this->pending['post']['c']);
-                    	$stmt->bindValue(9, $this->pending['post']['lat']);
-                    	$stmt->bindValue(10, $this->pending['post']['lon']);
-                    	$stmt->bindValue(11, $media, PDO::PARAM_INT);
+                    	$stmt->bindValue(3, $this->pending['post']['pu']);
+                    	$stmt->bindValue(4, $this->pending['post']['se']);
+                    	$stmt->bindValue(5, $this->pending['post']['rtl']);
+                    	$stmt->bindValue(6, $this->pending['post']['cn']);
+                    	$stmt->bindValue(7, $this->pending['post']['c']);
+                    	$stmt->bindValue(8, $this->pending['post']['lat']);
+                    	$stmt->bindValue(9, $this->pending['post']['lon']);
+                    	$stmt->bindValue(10, $media, PDO::PARAM_INT);
                     	$result=null;
                         
                         if ($rawOther!=null) { $adContent['rawOther'] = $rawOther; }                

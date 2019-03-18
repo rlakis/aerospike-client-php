@@ -54,7 +54,7 @@ class AjaxHandler extends Site {
 	$this->msg=$msg;
         $this->rp=0;
         $this->process();
-        exit (0);
+        exit(0);
     }
 }
 
@@ -62,8 +62,8 @@ class AjaxHandler extends Site {
 class Bin extends AjaxHandler{
     private $_JPOST = [];
     
-    function __construct(Core\Model\Router $router){
-        parent::__construct($router);
+    function __construct(){
+        parent::__construct();
         $contentType = filter_input(INPUT_SERVER, 'CONTENT_TYPE', FILTER_SANITIZE_STRING);
         if ($contentType==='application/json') {
             $content = trim(file_get_contents("php://input"));
@@ -1618,9 +1618,7 @@ class Bin extends AjaxHandler{
                     $lang=$_GET['sections'];
                     $nameIdx = ($lang=='ar'?1:2);
                     $result=['r'=>[],  'qs'=>[], 'qr'=>[]];
-                    
-                    error_log($_SERVER["HTTP_REFERER"]);
-                    
+                                        
                     $referer= filter_input(INPUT_SERVER, 'HTTP_REFERER', FILTER_SANITIZE_STRING);
                     $path=parse_url($referer, PHP_URL_PATH);
                     if(strlen($path)>5){ $path=substr($path, 0, 6); }
@@ -1686,15 +1684,32 @@ class Bin extends AjaxHandler{
                         //if ($dataVersion != $pref->getVersion()) {
                         $pref->setup();
                         $this->setData($pref, 'prefs');
-                        //$this->result['d']= $this->isIOS() ? \json_decode(\json_encode($pref), true) : $pref;  
-                        //$this->result['d']= $pref;
-                        //return;
-                        //}
-                        //$this->result['no-change']=1;
-                        //$ip=IPQuality::getClientIP();                        
-                        //$this->setData($this->router()->getIpLocation($ip), 'ip');
                         $this->setData(IPQuality::fetchJson(false), 'ip');
+                        if (filter_input(INPUT_GET, 'aid', FILTER_SANITIZE_NUMBER_INT)>0) {
+                            $ad=$this->user()->getPendingAds(filter_input(INPUT_GET, 'aid', FILTER_SANITIZE_NUMBER_INT));
+                            if(is_array($ad) && count($ad)===1){
+                                $ad=$ad[0];
+                            }
+                            unset($ad['FULL_NAME']);
+                            unset($ad['ADMIN_ID']);
+                            unset($ad['ADMIN_STAMP']);
+                            unset($ad['USER_RANK']);
+                            unset($ad['RAW_OTHER']);
+                            unset($ad['RAW_ALT_OTHER']);
+                            unset($ad['PROVIDER']);
+                            unset($ad['EMAIL']);
+                            unset($ad['DISPLAY_NAME']);
+                            unset($ad['USER_NAME']);
+                            unset($ad['USER_EMAIL']);
+                            unset($ad['PROFILE_URL']);
+                        
+                            $ad['LATITUDE']=floatval($ad['LATITUDE']);
+                            $ad['LONGITUDE']=floatval($ad['LONGITUDE']);
+                            $this->setData($ad, 'ad');
+                        }
+                        //$this->user()->getPendingAds()
                     }
+                    
                     $this->process();
                 }
                 else {
@@ -1749,7 +1764,7 @@ class Bin extends AjaxHandler{
             case 'ajax-ads':
                 $id=$this->post('id', 'uint');
                 $lang=$this->post('l');
-                if($id){
+                if ($id) {
                     if ($lang=='ar') $lang='ar';
                     else $lang='en';
                     $ad=$this->classifieds->getById($id);
@@ -2342,16 +2357,19 @@ class Bin extends AjaxHandler{
                 $this->process();
                 break;
                 
+                
             case "ajax-adsave":
-                if ($this->user->info['id'] && isset($_POST['o'])) {                        
+                error_log(var_export($this->_JPOST['o'], true));
+                
+                if ($this->user()->isLoggedIn() && isset($this->_JPOST['o'])) {
                     $error_path = "/var/log/mourjan/editor.log";
-                    $ad=(is_array($_POST['o']) ? $_POST['o'] : json_decode($_POST['o'],true) );
+                    $ad = is_array($this->_JPOST['o']) ? $this->_JPOST['o'] : json_decode($this->_JPOST['o'], true);
                     //error_log('--------------------------------------------------------------------------------------------------------'.PHP_EOL,3,$error_path);                    
                         
-                    if (!is_array($ad)) { $ad = array(); }                        
-                    if (!isset($ad['id'])) { $ad['id']=0; }                        
-                    if (!$ad['id'] || !isset($this->user->pending['post']['state']) || !isset($this->user->pending['post']['id']) 
-                                || ($ad['id'] && $ad['id']!=$this->user->pending['post']['id'])) {
+                    if (!is_array($ad)) { $ad = []; }
+                    if (!isset($ad['id'])) { $ad['id']=0; }
+                    
+                    if (!$ad['id'] || !isset($this->user->pending['post']['state']) || !isset($this->user->pending['post']['id']) || ($ad['id'] && $ad['id']!=$this->user->pending['post']['id'])) {
                         $this->user->loadAdToSession($ad['id']);
                     }
                         
@@ -2367,40 +2385,45 @@ class Bin extends AjaxHandler{
                             $ad['rawOther']=$sContent['rawOther'];
                         }
                     }
-                    /*$plugins=(isset($_POST['plugs']) && $_POST['plugs'] ? $_POST['plugs'] : '');
-                    if($plugins){
-                        error_log(PHP_EOL.$plugins.PHP_EOL,3,$error_path);
-                    }*/
-                    if ($ad['id']==0 && preg_match('/^undefined/',$ad['other'])) {
+                    if (!isset($ad['other'])) { $ad['other']=''; }
+
+                    if ($ad['id']==0 && preg_match('/^undefined/', $ad['other'])) {
                         error_log(PHP_EOL.'>>>>>>>>>>UNDEFINED<<<<<<<<<<<<'.PHP_EOL,3,$error_path);
                     }
 
                     if (!isset($ad['rtl']) && isset($sContent['rtl'])) {
                         $ad['rtl']=$sContent['rtl'];
                     }
+                    
                     if (!isset($ad['loc']) && isset($sContent['loc'])) {
                         $ad['loc']=$sContent['loc'];
                     }
+                    
                     if ($ad['extra']['t']!=2 && (!isset($ad['altother']) || (isset($ad['altother']) && preg_match('/^undefined/',$ad['altother']))) && isset($sContent['altother'])) {
                         $ad['altother']=$sContent['altother'];
                         if (!isset($ad['rawAltOther']) && isset($sContent['rawAltOther'])) {
                             $ad['rawAltOther']=$sContent['rawAltOther'];
                         }
                     }
+                    
                     if ($ad['extra']['t']!=2 && !isset($ad['altRtl']) && isset($sContent['altRtl'])) {
                         $ad['altRtl']=$sContent['altRtl'];
                     }
+                    
                     if (isset($sContent['pics'])) { $ad['pics']=$sContent['pics']; }
-                    if (!isset($ad['pic_def']) && isset($sContent['pic_def'])) { $ad['pic_def']=$sContent['pic_def']; }
+                    
+                    if (!isset($ad['pic_def']) && isset($sContent['pic_def'])) { $ad['pic_def']=$sContent['pic_def']; }                    
                     if (isset($sContent['pic_idx'])) { $ad['pic_idx']=$sContent['pic_idx']; }
-                    if (!isset($ad['video']) && isset($sContent['video'])) { $ad['video']=$sContent['video']; }
-                    if ($ad['user']==$this->user->info['id'] && isset($this->user->params['mobile']) && $this->user->params['mobile']) {
+                    
+                    //if (!isset($ad['video']) && isset($sContent['video'])) { $ad['video']=$sContent['video']; }
+                    if ($ad['user']==$this->user()->id() && isset($this->user->params['mobile']) && $this->user->params['mobile']) {
                         $ad['mobile']=1;
-                    } else {
+                    } 
+                    else {
                         $ad['mobile']=0;
                     }
                                                                         
-                    if (!$ad['id']) { $this->user->pending['post']['user']=$this->user->info['id']; }
+                    if (!$ad['id']) { $this->user->pending['post']['user']=$this->user()->id(); }
                         
                     $this->user->pending['post']['ro']=$ad['ro'];
                     $sectionId = $this->user->pending['post']['se']=$ad['se'];
@@ -2416,7 +2439,7 @@ class Bin extends AjaxHandler{
                     $isMultiCountry = false;
                                                 
                     $mcUser = new MCUser($this->user->pending['post']['user']);
-                    if ($mcUser->isBlocked()) { $this->fail('101'); }
+                    if ($mcUser->isBlocked()) { $this->fail('101: This user is blocked!'); }
                         
                     if (count($ad['pubTo'])) {
                         foreach ($ad['pubTo'] as $key => $val) {
@@ -2427,8 +2450,7 @@ class Bin extends AjaxHandler{
                             if (!$cityId && $cityId!=64) { $cityId=$key; }
                             if ($cityId==64) {
                                 if (isset($ad['pubTo']['64'])) {            
-                                    unset($ad['pubTo']['64']); 
-                                    
+                                    unset($ad['pubTo']['64']);                                     
                                 }
                                 elseif (isset($ad['pubTo'][64])) {
                                     unset($ad['pubTo'][64]);
@@ -2436,6 +2458,7 @@ class Bin extends AjaxHandler{
                                 $cityId=0;
                                 $key = 0;
                             }
+                            
                             if ($key && isset($this->urlRouter->cities[$key][4])) {
                                 if ($currentCid && $currentCid != $this->urlRouter->cities[$key][4]) {
                                     $isMultiCountry = true;
@@ -2445,26 +2468,20 @@ class Bin extends AjaxHandler{
                         }
                     }
                     
-                    if ($cityId) { $countryId=$this->urlRouter->cities[$cityId][4]; }
+                    if ($cityId) { $countryId=$this->router()->cities[$cityId][4]; }
                     $this->user->pending['post']['c']=$cityId;
                     $this->user->pending['post']['cn']=$countryId;                        
                     
                     $requireReview = 0;                        
                     $validator = libphonenumber\PhoneNumberUtil::getInstance();
                         
-                    if ($this->user->info['level']!=9) { $ad['userLvl']=$this->user->info['level']; }
+                    if ($this->user()->level()!=9) { $ad['userLvl']=$this->user()->level(); }
                     
-                    if ($this->user->info['id']==$this->user->pending['post']['user']) {
+                    if ($this->user()->id()==$this->user->pending['post']['user']) {
                         $ip=IPQuality::getClientIP();
                         $ad['agent']=$_SERVER['HTTP_USER_AGENT'];
-                        //if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-                        //    $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-                        //}
-                        //else {
-                        //    $ip = $_SERVER['REMOTE_ADDR'];
-                        //}
                         $ad['ip']=$ip;   
-                        $geo = $this->urlRouter->getIpLocation($ip);
+                        $geo = $this->router()->getIpLocation($ip);
                         $XX='';
                             
                         if ($geo && isset($geo['country'])) {
@@ -2772,10 +2789,11 @@ class Bin extends AjaxHandler{
                         }                 
                     }
                                                 
-                    $this->user->update();
-                    $this->user->saveRawAdContent($ad);
-                    if (!$isSCAM) {
-                        $this->user->saveAd($publish);
+                    $this->user()->update();
+                    //$this->user()->saveRawAdContent($ad);
+                    $savedId=0;
+                    if (!$isSCAM) {                        
+                        $savedId = $this->user()->saveAd($publish);
                         $this->logAdmin($this->user->pending['post']['id'], $publish);
                     }
                         
@@ -2790,13 +2808,13 @@ class Bin extends AjaxHandler{
                     $section_id = $this->user->pending['post']['se'];                        
                     $adObject = json_decode($this->user->pending['post']['content'], true);
                         
-                    if (($publish==1||$publish==4) && $this->user->info['level']!=9) {
+                    if (($publish==1||$publish==4) && $this->user()->level()!=9) {
                         unset($this->user->pending['post']);
                         $this->user->update();
                     }
                         
-                    $this->setData($result,'I');
-                    $this->setData($adObject,'ad');
+                    $this->setData($result, 'I');
+                    $this->setData($adObject, 'ad');
                     $this->process();
                         
                     if ($isSCAM) {
@@ -2862,51 +2880,21 @@ class Bin extends AjaxHandler{
                         }
 
                         if ($ad['rtl']) {
-                            $this->urlRouter->language='ar';
+                            $this->router()->language='ar';
                             $this->lnIndex=0;
                         }
                         else {
                             $this->lnIndex=1;
-                            $this->urlRouter->language='en';
+                            $this->router()->language='en';
                         }
                         $this->load_lang(array('main'));
-
-                        if ($status!=5 && ($publish==1||$publish==4) && isset($ad['video']) && $ad['video'][0]) {
-                            require_once 'Zend/Loader.php';
-                            Zend_Loader::loadClass('Zend_Gdata_YouTube');
-                            Zend_Loader::loadClass('Zend_Gdata_ClientLogin');
-                            Zend_Loader::loadClass('Zend_Gdata_App_Exception');
-
-                            $httpClient = Zend_Gdata_ClientLogin::getHttpClient($this->urlRouter->cfg['yt_user'],$this->urlRouter->cfg['yt_pass'], Zend_Gdata_YouTube::AUTH_SERVICE_NAME);
-                            $yt = new Zend_Gdata_YouTube($httpClient, 'Mourjan.com Uploader', null, $this->urlRouter->cfg['yt_dev_key']);
-                            try {
-                                $adSection = $this->getAdSection($ad);
-                                if (mb_strlen($adSection,'UTF-8')>60) {
-                                    $adSection = mb_substr($adSection, 0, 57,'UTF-8').'...';
-                                }
-                                $content = $ad['other'];
-                                $content=preg_replace('/\<.*?\>/u', '', $ad['other']);
-
-                                $entry = $yt->getVideoEntry($ad['video'][0],null,true);
-                                $editLink= $entry->getEditLink()->getHref();
-                                $entry->setVideoTitle($adSection);
-                                $entry->setVideoDescription($content);
-
-                                $yt->updateEntry($entry, $editLink);
-                            }
-                            catch (Zend_Gdata_App_HttpException $httpException) {
-                                error_log($httpException->getRawResponseBody());
-                            } 
-                            catch (Zend_Gdata_App_Exception $e) {
-                                error_log($e->getMessage());
-                            }
-                        }
                         
                     }
                 }
-                else $this->fail('101');
+                else { $this->fail('101'); }
                 
                 break;
+                
                 
             case "ajax-logo":                
                 require_once("lib/class.upload.php");
@@ -4745,55 +4733,43 @@ class Bin extends AjaxHandler{
                 $email = $this->post('email', 'filter');
                 $feed = $this->post('msg', 'filter');
                 			           
-        	$geo = $this->urlRouter->getIpLocation();
+                $geo = $this->urlRouter->getIpLocation();
                 $mobile= (isset($this->user->params['mobile'])) ? $mobile=$this->user->params['mobile'] : 0;
                 $geostr = "";
-                if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en']))
-                {
+                if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en'])) {
                     $geostr.= $geo['country']['names']['en'];
                 }
 
-                if (isset($geo['location']) && isset($geo['location']['time_zone']))
-                {
+                if (isset($geo['location']) && isset($geo['location']['time_zone'])) {
                     $geostr.= " - {$geo['location']['time_zone']} [{$geo['location']['latitude']}, {$geo['location']['longitude']}]";
                 }
-                if ($mobile)
-                {
+                if ($mobile) {
                     $geostr.= " - Mobile";
                 }
 
                 $msg = "<style>table{border-collapse:collapse;border-spacing:2px;border-color:gray;} th,td{border: 1px solid #cecfd5;padding: 10px 15px;}</style><table><tr>";
-                if ($this->user->info['id'])
-                {
+                if ($this->user->info['id']) {
                     $msg.="<td><b>Name</b></td><td><a href='https://www.mourjan.com/myads/?u={$this->user->info['id']}' target=_blank>{$name}</a></td>";
                 }
-                else
-                {
+                else {
                     $msg.="<td><b>Name</b></td><td>{$name}</td>";
                 }
                 $msg.="<td><b>Location</b></td><td>{$geostr}</td>";
-                if (isset($this->user->params['country']) && $this->user->params['country']>0)
-                {
-                    if (isset($this->urlRouter->countries[$this->user->params['country']]))
-                    {
+                if (isset($this->user->params['country']) && $this->user->params['country']>0) {
+                    if (isset($this->urlRouter->countries[$this->user->params['country']])) {
                         $msg.="<td><b>Target</b></td><td>{$this->urlRouter->countries[$this->user->params['country']]['uri']}";
-                        if (isset($this->user->params['city']) && $this->user->params['city']>0)
-                        {
-                            if (isset($this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']]))
-                            {
+                        if (isset($this->user->params['city']) && $this->user->params['city']>0) {
+                            if (isset($this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']])) {
                                 $msg.=" - {$this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']]['uri']}";
                             }
-                            else
-                            {
+                            else {
                                 $msg.=" - {$this->user->params['city']}";
                             }
                         }
                     }
-                    else
-                    {
+                    else {
                         $msg.="<tr><td><b>Target</b></td><td>{$this->user->params['country']}";
-                        if (isset($this->user->params['city']))
-                        {
+                        if (isset($this->user->params['city'])) {
                             $msg.=" - {$this->user->params['city']}";
                         }
                     }

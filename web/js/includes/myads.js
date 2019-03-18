@@ -37,7 +37,6 @@ $.addEventListener("DOMContentLoaded", function () {
     };
     
     if ("IntersectionObserver" in window) {
-        console.log('observer');
         lazyloadImages = document.querySelectorAll(".lazy");
         var imageObserver = new IntersectionObserver(function (entries, observer) {
             entries.forEach(function (entry) {
@@ -101,7 +100,6 @@ $.onkeyup = function () {
 };
 
 $.body.onclick = function (e) {
-    console.log('body clicked');
     let editable = $.querySelectorAll("[contenteditable=true]");
     if (editable && editable.length > 0) {
         editable[0].setAttribute("contenteditable", false);
@@ -189,7 +187,7 @@ var d = {
             selection = document.selection.createRange().text;
         }
         if (selection) {
-            let revise = $.getElementById('revise');
+            let revise =  e.closest('article').querySelector('button#revise');
             if (revise) {
                 let q = revise.dataset.contact;
                 if (selection.split(' ').length > 1) {
@@ -197,8 +195,8 @@ var d = {
                 } else {
                     q += ' ' + selection;
                 }
-                let url = (this.ar ? '/' : '/en/') + '?cmp=' + e.parentElement.id + '&q=' + q;
-                window.open(url, '_similar');
+                let url = (this.ar ? '/' : '/en/') + '?cmp=' + e.closest('article').id + '&q=' + q;
+                d.openWindow(url, '_similar');
             }
         }
     },
@@ -211,7 +209,51 @@ var d = {
         }
     },
 
+    openWindow:function(url, name){
+        let win;
+        if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1){
+            win = window.open(url, name, 'width=1024, height='+(window.innerHeight));
+        }
+        else {
+            win = window.open(url, name);
+        }
+        win.focus();
+    },
+    
     // ad actions
+    similar:function(e){
+        let url=(d.ar?'/':'/en/')+'?aid='+e.closest('article').id+'&q=';
+        d.openWindow(url, '_similar');
+    },
+    
+    lookFor:function(e){
+        let url=(d.ar?'/':'/en/')+'?cmp='+e.closest('article').id+'&q='+e.dataset.contact;
+        d.openWindow(url, '_similar');
+    },
+    
+    edit: function(e) {
+        if(this.level===9){
+            
+        }
+        console.log('edit button', this, e);
+        let url='/post'+(d.ar?'/':'/en/')+'?ad='+e.closest('article').id;
+        var form = $.createElement("form");
+        form.target = '';
+        form.method = "POST"; // or "post" if appropriate
+        form.action = '/post'+(d.ar?'/':'/en/');
+        var input = $.createElement("input");
+        input.type = "hidden";
+        input.name = "ad";
+        input.value = e.closest('article').id;
+        
+        form.appendChild(input);        
+        $.body.appendChild(form);
+        
+        //window.open();
+        form.submit();
+    },
+    
+    
     approve: function (e, rtpFlag) {
         if (this.currentId != e.parentElement.parentElement.id) {
             return;
@@ -367,7 +409,7 @@ var d = {
                     .then(res => res.json())
                     .then(response => {
                         console.log('Success:', JSON.stringify(response));
-                        if (response.RP == 1) {
+                        if (response.RP === 1) {
                             //let ad=new Ad(e.parentElement.parentElement.id);
                             //ad.approved();
                         }
@@ -395,7 +437,7 @@ var d = {
                     .then(res => res.json())
                     .then(response => {
                         console.log('Success:', JSON.stringify(response));
-                        if (response.RP == 1) {
+                        if (response.RP === 1) {
                             ad.maskText('User Account Blocked');
                         }
                     })
@@ -471,11 +513,9 @@ var d = {
                 .then(response => {
                     console.log('updateAd', response);
                     if (response.RP === 1) {
-                        console.log('updateAd success');
                         if (dat) {
-                            if (response.DATA.dx == 1 && response.DATA.t) {
+                            if (response.DATA.dx === 1 && response.DATA.t) {
                                 e.innerHTML = response.DATA.t;
-                                console.log('text changed');
                             }
                         }
                     }
@@ -723,7 +763,6 @@ class Ad {
         if (this.exists()) {
             this.setAs('selected');
             socket.emit("touch", [this.id, d.KUID]);
-            console.log('selected', this.id);
             let f = $.getElementById('fixForm');
             if (f && window.getComputedStyle(f).visibility !== "hidden") {
                 f.style.display = 'none';
@@ -826,7 +865,6 @@ socket.on('admins', function (data) {
     if (isNaN(active_admins)) {
         let len = active_admins.length;
         let matched = [];
-        //console.log('on<admins>/isNaN: Active Admins:'+len);
         for (var i = 0; i < len; i++) {
             if (d.editors) {
                 var x = d.editors.getElementsByClassName(active_admins[i]);
@@ -841,7 +879,7 @@ socket.on('admins', function (data) {
         }
         len = d.editors ? d.editors.childNodes.length : 0;
         for (var i = 0; i < len; i++) {
-            if (matched.indexOf(d.editors.childNodes[i].className) == -1) {
+            if (matched.indexOf(d.editors.childNodes[i].className) === -1) {
                 editors.childNodes[i].style.removeProperty('color');
             }
         }
@@ -851,7 +889,6 @@ socket.on('admins', function (data) {
     }
 
     if (typeof data.b === 'object') {
-        //console.log(data.b);
         for (uid in data.b) {
             if (data.b[uid] === 0) {
                 continue;
@@ -868,7 +905,7 @@ socket.on('admins', function (data) {
         }
     }
 });
-socket.on("ad_touch", function (data) {//console.log('touched', data);
+socket.on("ad_touch", function (data) {
     if (data.hasOwnProperty('x')) {
         if (data.hasOwnProperty('i') && data.i > 0) {
             let ad = new Ad(data.i);
@@ -1061,7 +1098,7 @@ window.onload = function () {
 }
 */
 for (var x = 0; x < d.count; x++) {
-    //d.nodes[x].oncontextmenu=function(e){e.preventDefault();};
+    d.nodes[x].oncontextmenu=function(e){e.preventDefault();};
     d.nodes[x].onclick = function (e) {
         if (this.id == d.currentId) {
             var tagName = e.target.tagName;

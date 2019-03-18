@@ -237,7 +237,7 @@ $lang=array(
     "search_mourjan"    =>  "Search On Mourjan",
     "comma"     =>  ",",
     'search_suffix' =>  ' - page ',
-    'block'   =>  'Block User',
+    'block'   =>  'Block',
     'blocked'   =>  'User account blocked',
     'reject'   =>  'Reject',
     'rejectWarn'   =>  'Reject+Warning',
@@ -358,10 +358,10 @@ $lang=array(
     "askUserLike"   =>  "Do you like Mourjan.com?",
 
     'create_ad'            =>  'Create New Ad',
-    'edit_publish'     =>  'edit / publish',
+    'edit_publish'     =>  'Edit / Publish',
     'edit_republish'     =>  'edit / republish',
     'renew'        =>  'republish',
-    'edit_ad'           =>  'edit',
+    'edit_ad'           =>  'Edit',
     'delete'            =>  'delete',
     'deleted'            =>  'Deleted',
     'ads_no_title'      =>  'No Title',
@@ -729,9 +729,9 @@ $lang=array(
     
     'switch_lang'       =>  'تبديل الى العربية',
     'user_type_label'   =>  'User Type',
-    'user_type_option_0'   =>  'unspecified',
-    'user_type_option_1'   =>  'individual',
-    'user_type_option_2'   =>  'company',
+    'user_type_option_0'   =>  'Unspecified',
+    'user_type_option_1'   =>  'Individual',
+    'user_type_option_2'   =>  'Company',
     
     'paypal_suspended'      =>  'Sorry! Paypal payments are no longer accepted',
     

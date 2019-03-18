@@ -999,14 +999,14 @@ class MyAds extends Page {
                 if ($state<7) {                                        
                     if (!$isSystemAd) {
                         if(!$isSuspended) {
-                            ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$ad['ID'] : '') ?>" method="post"><?php
-                            ?><input type="hidden" name="ad" value="<?= $ad['ID'] ?>" /><?php
-                            ?><span class=lnk onclick="fsub(this)"><span class="rj edi"></span><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></span><?php
+                            ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$ad['ID'] : '') ?>" method=post><?php
+                            ?><input type=hidden name=ad value="<?= $ad['ID'] ?>" /><?php
+                            ?><button onclick="d.edit(this)"><span class="rj edi"></span><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></button><?php
                             ?></form><?php
                         }
                     
                         if (!$isAdmin || ($isAdmin && $isAdminOwner)) {
-                            ?><span class=lnk onclick="adel(this)"><span class="rj del"></span><?= $this->lang['delete'] ?></span><?php
+                            ?><a onclick="adel(this)" href='javascript:void(0)'><span class="rj del"></span><?= $this->lang['delete'] ?></a><?php
                         }
                     }
                 }
@@ -1078,31 +1078,31 @@ class MyAds extends Page {
                     else {
                         if ($state>0 && $state<7) {
                             if (!$isSystemAd || $isSuperAdmin) {         
-                                ?><a onclick="d.approve(this)" href="javascript:void(0)"><?= $this->lang['approve'] ?></a><?php
+                                ?><button onclick="d.approve(this)"><?= $this->lang['approve'] ?></button><?php
                                 if ($isSuperAdmin) {
-                                    ?><a class=lnk onclick="d.rtp(this)" href="javascript:void(0)">RTP</a><?php                                    
+                                    ?><button class=lnk onclick="d.rtp(this)">RTP</button><?php                                    
                                 }
-                                ?><a onclick="d.reject(this,<?= $ad['WEB_USER_ID'] ?>)" href="javascript:void(0)"><?= $this->lang['reject'] ?></a><?php 
+                                ?><button onclick="d.reject(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['reject'] ?></button><?php 
                             }
                             if (!$isSuperAdmin && !$onlySuper && !$isSystemAd) {
                                 ?><span class="lnk" onclick="help(this)"><?= $this->lang['ask_help'] ?></span><?php
                             }                            
                             if ($isSuperAdmin && $ad['USER_RANK'] < 2) {
-                                ?><a onclick="d.ban(this,<?= $ad['WEB_USER_ID'] ?>)" href="javascript:void(0)"><?= $this->lang['block'] ?></a><?php 
+                                ?><button onclick="d.ban(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['block'] ?></button><?php 
                             }
                             if (!$isSystemAd && $ad['USER_RANK']<3) {
-                                ?><a onclick="d.suspend(this,<?= $ad['WEB_USER_ID'] ?>)" href="javascript:void(0)"><?= $this->lang['suspend'] ?></a><?php
+                                ?><button onclick="d.suspend(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['suspend'] ?></button><?php
                             }
                             if ($isSuperAdmin && $filters['uid']==0) {
-                                ?><a href="/myads/<?= $this->router()->isArabic()?'':'en/' ?>?sub=pending&fuid=<?= $ad['WEB_USER_ID'] ?>"><?= $this->lang['user_type_option_1'] ?></a><?php
+                                ?><button href="/myads/<?= $this->router()->isArabic()?'':'en/' ?>?sub=pending&fuid=<?= $ad['WEB_USER_ID'] ?>"><?= $this->lang['user_type_option_1'] ?></button><?php
                             }
                             
                             $contactInfo=$this->getContactInfo($content);                          
                             if ($isSuperAdmin) {
-                                ?><a target=_similar href="<?= $this->router()->isArabic()?'':'/en' ?>/?aid=<?= $ad['ID'] ?>&q="><?= $this->lang['similar'] ?></a><?php
+                                ?><button onclick=d.similar(this)><?= $this->lang['similar'] ?></button><?php
                             }
                             if ((!$isSystemAd || $isSuperAdmin) && $contactInfo) {
-                                ?><a id=revise data-contact="<?= $contactInfo ?>" target=_similar href="<?= $this->router()->isArabic()?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
+                                ?><button id=revise data-contact="<?= $contactInfo ?>" onclick=d.lookFor(this)><?= $this->lang['lookup'] ?></button><?php
                             }                            
                         }
                     }

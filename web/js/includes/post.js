@@ -178,21 +178,27 @@ var UI={
     ip:null,
     dic:null,
     map:null,
-    geocoder:null,
-    infoWindow:null,
     rootId:0,    
     purposeId:0,
     pixIndex:0,
+    version:'1.0.0',
     
     numbers:{1:null, 2:null},
     dialogs:{},
     
     init:function(){
         let _=this;
-        fetch('/ajax-menu/?sections='+(_.ar?'ar':'en'), _options('GET'))
+        
+        console.log('/ajax-menu/?sections='+(_.ar?'ar':'en')+($.querySelector('#adForm').dataset.id?'&aid='+$.querySelector('#adForm').dataset.id:''));
+        
+        fetch('/ajax-menu/?sections='+(_.ar?'ar':'en')+($.querySelector('#adForm').dataset.id?'&aid='+$.querySelector('#adForm').dataset.id:''), _options('GET'))
         .then(res=>res.json())
         .then(response => {
             if(response.RP && response.RP===1){
+                //console.log('data', response.DATA);
+                if(response.DATA.ad){
+                    Ad.parse(response.DATA.ad);
+                }
                 _.dic=response.DATA.roots;
                 Prefs.init(response.DATA.prefs);
                 _.ip=response.DATA.ip;
@@ -603,10 +609,53 @@ var UI={
     }
 };
 
-var Ad={    
-    rootId:0,
-    sectionId:0,
+
+class AdCallingTime{
+    constructor(elem) {
+        
+    }
+    
+    encode(){
+        
+    }
+}
+
+
+
+var Ad={
+    id:0,
+    dateAdded:null,
     purposeId:0,
+    sectionId:0,
+    rtl:0,
+    state:0,
+    lastUpdate:null,
+    countryId:0,
+    cityId:0,
+    latitude:0,
+    longitude:0,
+    uid:0,
+    activeCountryId:0,
+    activeCityId:0,
+    media:0,
+    docId:null,
+    level:0,
+    featuredDateEnded:0,
+    boDateEnded:0,
+    
+    content:{
+        id:0,
+        user:0,
+        hl:'',
+        state:0,
+        lat:0,
+        lon:0,
+        loc:'',
+        budget:0,
+    },
+    rootId:0,
+    
+    
     natural:"",
     foreign:"",
     address:null,
@@ -622,8 +671,34 @@ var Ad={
     sloc:'',
     
     
+    
+    
     init:function(){
         
+    },
+    
+    parse:function(ad){
+        console.log('ad', ad);
+        let _=this;
+        _.id=ad.ID;
+        let cnt;
+        if(typeof ad.CONTENT==='string'){
+            cnt=JSON.parse(ad.CONTENT);
+        }
+        else {
+            console.log(typeof ad.CONTENT);
+            cnt={};
+        }
+        
+        if(typeof cnt.id!=='undefined' && _.id!==cnt.id){cnt.id=_.id;};        
+        _.content.id=_.id;
+        _.content.hl=(UI.ar?'ar':'en');
+        //_.content.hl=cnt.hl;
+        _.content.lat=cnt.lat;
+        _.content.lon=cnt.lon;
+        
+        console.log('cnt', cnt);
+        console.log('Ad', this);        
     },
     
     setClassification:function(ro, se, pu){
@@ -687,6 +762,57 @@ var Ad={
     
     getSectionName:function(){return UI.dic[this.rootId] && UI.dic[this.rootId].sections[this.sectionId] ? UI.dic[this.rootId].sections[this.sectionId] : '';},
     getPurposeName:function(){return UI.dic[this.rootId] && UI.dic[this.rootId].purposes[this.purposeId] ? UI.dic[this.rootId].purposes[this.purposeId] : '';},
+    
+    save:function(){
+        let _=this;
+        
+        if(!(_.rootId)) {
+            window.alert(UI.ar ? 'فئة الاعلان غير محددة' : 'Please choose listing section?');
+            return;
+        }
+        
+        let ad={
+            hl:(UI.ar?'ar':'en'),
+            id:_.id, 
+            state:_.state, 
+            user:0, 
+            lat:_.lat, 
+            lon:_.lon, 
+            loc:'', 
+            budget:0, 
+            version:2, 
+            app:'web', app_v:UI.version,
+            extra:{t:0, v:0, p: 0, m: 0},
+            cut:{b:24, t:0, a: 6},
+            cui:{p:[], e:'', s:'', t:'', b:''},
+            ro:_.rootId,
+            pu:_.purposeId,
+            se:_.sectionId,
+            rtl:0,
+            altRtl:0,
+            pubTo:{},
+            pub:1
+        };
+/*
+o[cui][p][0][c]	966
+o[cui][p][0][i]	SA
+o[cui][p][0][r]	0503995790
+o[cui][p][0][t]	3
+o[cui][p][0][v]	+966503995790
+o[cui][p][0][x]	0
+*/
+        let data={o:ad};
+        fetch('/ajax-adsave/', _options('POST', data))
+            .then(res => res.json())
+            .then(response => {
+                console.log('Success:', JSON.stringify(response));
+                if (response.RP === 1) {
+                }
+            })
+            .catch(error => {
+                console.log('Error:', error);
+            });                                
+    },
     
     log:function(){console.log(this);}
 };
