@@ -528,19 +528,18 @@ var d = {
     },
 
     quick(e) {
-        var _ = this;
         let article = e.closest('article');
-        if (_.currentId !== article.id) {
-            return;
-        }
-        var inline = this.getForm('fix', article);
+        if (d.currentId !== article.id) { return; }
+        console.log(d.currentId);
+        console.log(d);
+        var inline = d.getForm('fix', article);
         let rDIV = inline.form.querySelector('#qRoot');
         let rUL = rDIV.querySelector('ul');
         let sDIV = inline.form.querySelector('#qSec');
         let aDIV = inline.form.querySelector('#qAlt');
         let aUL = aDIV.querySelector('ul');
         var fillSections = function (rId) {
-            if (!rDIV.dataset.rootId || rDIV.dataset.rootId != rId) {
+            if (!rDIV.dataset.rootId || rDIV.dataset.rootId !== rId) {
                 let rr = rDIV.querySelectorAll('li');
                 rr.forEach(function (item) {
                     if (item.dataset.id === rId) {
@@ -551,40 +550,42 @@ var d = {
                 });
                 let ul = sDIV.querySelector('ul');
                 ul.innerHTML = '';
-                _.roots[rId]['sindex'].forEach(function (sid) {
-                    let li = createElem('li', sid == article.dataset.se ? 'cur' : '', _.roots[rId]['sections'][sid]);
+                console.log('rid', rId);
+                console.log(d.roots[rId].sindex);
+                d.roots[rId].sindex.forEach(function (sid) {
+                    let li = createElem('li', sid === article.dataset.se ? 'cur' : '', d.roots[rId]['sections'][sid]);
                     li.dataset.id = sid;
                     li.onclick = function (e) {
                         let pu = article.dataset.pu;
-                        if (!_.roots[rId]['purposes'][pu]) {
-                            pu = _.roots[rId]['purposes'][Object.keys(_.roots[rId]['purposes'])[0]];
+                        if (!d.roots[rId].purposes[pu]) {
+                            pu = d.roots[rId].purposes[Object.keys(d.roots[rId]['purposes'])[0]];
                         }
-                        _.updateAd(e.target, article.id, rId, e.target.dataset.id, pu);
-                    }
+                        d.updateAd(e.target, article.id, rId, e.target.dataset.id, pu);
+                    };
                     ul.appendChild(li);
-                })
+                });
 
                 aUL.innerHTML = '';
-                for (i in _.roots[rId]['purposes']) {
-                    let li = createElem('li', i == article.dataset.pu ? 'cur' : '', _.roots[rId]['purposes'][i]);
+                for (let i in d.roots[rId]['purposes']) {
+                    let li = createElem('li', i === article.dataset.pu ? 'cur' : '', d.roots[rId]['purposes'][i]);
                     li.dataset.id = i;
                     li.onclick = function (e) {
-                        _.updateAd(e.target, article.id, rId, article.dataset.se, e.target.dataset.id);
-                    }
+                        d.updateAd(e.target, article.id, rId, article.dataset.se, e.target.dataset.id);
+                    };
                     aUL.appendChild(li);
                 }
                 aUL.appendChild(createElem('li', '', '&nbsp;', true));
 
-                if (typeof _.secSwitches[article.dataset.se] === 'object') {
-                    for (i in _.secSwitches[article.dataset.se]) {
-                        let ss = _.secSwitches[article.dataset.se][i];
+                if (typeof d.secSwitches[article.dataset.se] === 'object') {
+                    for (i in d.secSwitches[article.dataset.se]) {
+                        let ss = d.secSwitches[article.dataset.se][i];
                         let li = createElem('li', '', ss[3]);
                         li.dataset.ro = ss[0];
                         li.dataset.se = ss[1];
                         li.dataset.pu = ss[2];
                         li.onclick = function (e) {
-                            _.updateAd(article, article.id, rId, e.target.dataset.se, e.target.dataset.pu);
-                        }
+                            d.updateAd(article, article.id, rId, e.target.dataset.se, e.target.dataset.pu);
+                        };
                         aUL.appendChild(li);
                     }
                 }
@@ -592,20 +593,21 @@ var d = {
                 rDIV.dataset.rootId = rId;
             }
         };
+        
         window.scrollTo(0, article.offsetTop);
-        const request = async () => {
-            if (this.sections == null) {
-                const response = await fetch('/ajax-menu/?sections=' + (_.ar ? 'ar' : 'en'), _options('GET'));
+        const request = async () => {            
+            if (!d.sections) {
+                const response = await fetch('/ajax-menu/?sections=' + (d.ar ? 'ar' : 'en'), _options('GET'));
                 const json = await response.json();
-                _.roots = json.DATA.roots;
-                _.secSwitches = json.DATA.sswitch;
-                _.rootSwitches = json.DATA.rswitch;
+                d.roots = json.DATA.roots;
+                d.secSwitches = json.DATA.sswitch;
+                d.rootSwitches = json.DATA.rswitch;
             }
 
 
             if (rUL.childNodes.length === 0) {
-                for (var i in _.roots) {
-                    let li = createElem('li', '', _.roots[i]['name']);
+                for (var i in d.roots) {
+                    let li = createElem('li', '', d.roots[i]['name']);
                     li.dataset.id = i;
                     li.onclick = function (e) {
                         fillSections(e.target.dataset.id);
@@ -616,14 +618,12 @@ var d = {
 
             fillSections(article.dataset.ro);
 
-
-
             inline.show();
-        }
+        };
         request();
 
     }
-}
+};
 
 class SlideShow {
     constructor(kAd, _n) {
@@ -786,7 +786,7 @@ class Ad {
     release() {
         if (this.ok) {
             this.unsetAs('locked');
-            this.removeMask()
+            this.removeMask();
         }
     }
     
@@ -811,7 +811,6 @@ class Ad {
         this._node.dataset.status = 2;
         return this;
     }
-
     
     mask(loader) {
         var _ = this;
@@ -822,8 +821,9 @@ class Ad {
         }
         if (loader)
             this.showLoader();
-        return this
+        return this;
     }
+    
     removeMask() {
         this._m = this._node.querySelector('div.mask');
         if (this._m) {
@@ -832,13 +832,13 @@ class Ad {
         }
         return this;
     }
+    
     maskText(t) {
         this._m = this._node.querySelector('div.mask');
-        if (this._m) {
-            this._m.innerHTML = t
-        }
+        if (this._m) { this._m.innerHTML = t; }
         return this;
     }
+    
     showLoader() {
         this._m = this._node.querySelector('div.mask');
         if (this._m) {
@@ -889,14 +889,14 @@ socket.on('admins', function (data) {
     }
 
     if (typeof data.b === 'object') {
-        for (uid in data.b) {
+        for (let uid in data.b) {
             if (data.b[uid] === 0) {
                 continue;
             }
             let ad = new Ad(data.b[uid]);
             if (ad.exists()) {
                 ad.replName(d.getName(uid));
-                if (uid == d.KUID) {
+                if (uid === d.KUID) {
                     ad.select();
                 } else {
                     ad.lock();
@@ -930,8 +930,7 @@ socket.on("ad_release", function (data) {//console.log('releasing', data);
         }
     }
 });
-socket.on('superAdmin', function (data) {
-    console.log(typeof data, data);
+socket.on('superAdmin', function (data) { console.log(typeof data, data);
     if (typeof data !== 'undefined' && data.id && data.id > 0) {
         let ad = new Ad(data.id);
         if (ad.ok) {
@@ -940,8 +939,7 @@ socket.on('superAdmin', function (data) {
         }
     }
 });
-socket.on('editorialUpdate', function (data) {
-    console.log(data);
+socket.on('editorialUpdate', function (data) { console.log(data);
     if (typeof data === 'object' && data.id) {
         let ad = new Ad(data.id);
         if (ad.ok) {
@@ -979,18 +977,18 @@ socket.on('editorialText', function (data) {
         }
         let arText = ad._node.querySelector('section.ar');
         let enText = ad._node.querySelector('section.en');
-        if (data.rtl == 1) {
+        if (data.rtl === 1) {
             if (arText.classList.contains('en')) {
                 arText.classList.remove('en');
                 arText.dataset.foreign = 0;
             }
             if (!arText.classList.contains('ar')) {
-                arText.classList.add('ar')
+                arText.classList.add('ar');
             }
             arText.innerHTML = data.t;
             if (data.t2 && data.t2.length > 0) {
                 if (!enText) {
-                    enText = createElem('section', 'card-content en', t2, true);
+                    enText = createElem('section', 'card-content en', data.t2, true);
                     enText.dataset.foreign = 1;
                     arText.parentElement.appendChild(enText);
                 } else {
@@ -1000,21 +998,19 @@ socket.on('editorialText', function (data) {
         } else {
             arText.classList.remove('ar');
             if (!arText.classList.contains('en')) {
-                arText.classList.add('n')
+                arText.classList.add('n');
             }
             arText.innerHTML = data.t;
         }
     }
 });
 socket.on("ads", function (data) {
-    if (typeof data.c == 'undefined') {
-        return;
-    }
+    if (typeof data.c === 'undefined') { return; }
     data.c = parseInt(data.c);
     let ad = new Ad(data.id);
     if (ad.exists()) {//console.log('ads', data);             
         var t;
-        if (ad.dataset.status >= 0 || c.data == -1) {
+        if (ad.dataset.status >= 0 || c.data === -1) {
             switch (data.c) {
                 case - 1:
                 case 6:
@@ -1098,7 +1094,7 @@ window.onload = function () {
 }
 */
 for (var x = 0; x < d.count; x++) {
-    d.nodes[x].oncontextmenu=function(e){e.preventDefault();};
+    //d.nodes[x].oncontextmenu=function(e){e.preventDefault();};
     d.nodes[x].onclick = function (e) {
         if (this.id == d.currentId) {
             var tagName = e.target.tagName;

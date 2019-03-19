@@ -343,13 +343,13 @@ class PostAd extends Page {
             
             echo '<div class=col-12><div class=card>';
             echo '<div class="card-content">';
-            ?><textarea placeholder="Enter ad text"></textarea><?php
+            ?><textarea id=natural placeholder="Enter ad text"></textarea><?php
             echo '</div>';
             echo '</div></div>';
             
             echo '<div class=col-12><div class=card>';
             echo '<div class="card-content">';
-            ?><textarea placeholder=""></textarea><?php
+            ?><textarea id=foreign placeholder=""></textarea><?php
             echo '</div>';
             echo '</div></div>';
 

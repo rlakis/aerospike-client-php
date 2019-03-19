@@ -47,7 +47,8 @@
 .myadls .inline > textarea{width:100%;height:100px;line-height: 1.5em; font-size: 1em}
 .myadls .inline > select{width:100%;padding:4px;font-size:20px !important}
 
-.myad input[type=button], .myad button {color: #007bff; cursor: pointer; font-size: 16px }
+.myad input[type=button], .myad button {color: #007bff; cursor: pointer; font-size: 16px; border-color: #007bff; border-radius: 4px}
+.inline input[type=button]{color:white}
 .myad .btn{margin:4px 8px;color:white}
 .myad .btn.ok{background-color:#007bff}
 

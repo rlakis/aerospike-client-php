@@ -5,6 +5,48 @@ $.addEventListener("DOMContentLoaded", function(e) {
 $.onkeydown=function(e){
     if(e.key==='Escape'){UI.close();}
 };
+
+String.prototype.howArabic = function () {
+    var result, match, str = this;
+    // strip punctuation, digits and spaces
+    str = str.replace(/[\u0021-\u0040\s]/gm, '');
+    match = str.match(/[\u0621-\u0652]/gm) || [];
+    result =  match.length / str.length;
+    return result;
+};
+
+String.prototype.howNotArabic = function () {
+    var result, match, str = this;
+    // strip punctuation, digits and spaces
+    str = str.replace(/[\u0021-\u0040\s]/gm, '');
+    match = str.match(/[^\u0621-\u0652]/gm) || [];	
+    result =  match.length / str.length;
+    return result;
+};
+
+
+String.prototype.isArabic = function (threshold) {	
+    threshold = threshold || 0.79;
+    return this.howArabic() >= threshold;
+};
+
+String.prototype.hasArabic = function () {
+  return /[\u0621-\u064A]/.test(this);
+};
+
+String.prototype.removeTashkel = function () {
+    return this.replace(/[\u064B-\u0652]/gm, '');
+};
+
+String.prototype.removeNonArabic = function () {
+    return this.replace(/[^\u0621-\u0652]/gm, '');
+};
+
+String.prototype.removeArabic = function () {
+    return this.replace(/[\u0621-\u0652]/gm, '');
+};
+
+
 var MAP={
     view:null,
     marker:null,
@@ -195,10 +237,9 @@ var UI={
         .then(res=>res.json())
         .then(response => {
             if(response.RP && response.RP===1){
+                Ad.init();
                 //console.log('data', response.DATA);
-                if(response.DATA.ad){
-                    Ad.parse(response.DATA.ad);
-                }
+                
                 _.dic=response.DATA.roots;
                 Prefs.init(response.DATA.prefs);
                 _.ip=response.DATA.ip;
@@ -235,18 +276,56 @@ var UI={
                             break;
                     }
                 }
-                console.log(_.dic);
+                console.log('UI.dic', _.dic);
                 
                 $.querySelectorAll('span.pix').forEach(function(pix){
                     pix.onclick=_.openImage;
                     pix.classList.add('icn-camera');
                 });
                 $.querySelectorAll('textarea').forEach(function(txt){
-                    txt.oninput=dirElem;
+                    txt.oninput=function(e){
+                        console.log(e);
+                        if(e.target)e=e.target;
+                        let v=e.value;
+                        if(v){
+                            if(v.toString().isArabic(0.5)){
+                                if(e.className!=='ar'){ e.className='ar'; }
+                            }
+                            else{
+                                if(e.className!=='en'){ e.className='en'; }                                
+                            }
+                        }
+                        else { e.className=''; }
+                    };
+                    txt.onchange=function(){
+                        console.log('textarea.onchange', this);
+                        if(this.id==='natural'){
+                            Ad.natural=this.value;
+                        }
+                        else {
+                            Ad.foreign=this.value;
+                        }
+                        console.log(Ad);
+                    };
                 });
                 $.querySelectorAll('input[type=tel]').forEach(function(tel){                    
                     _.numbers[tel.dataset.no] = new ContactNumber(tel);
                 });
+                
+                let mail=$.querySelector('input[type=email]');
+                mail.onchange=function(){
+                    console.log(this, this.checkValidity());
+                    if(this.checkValidity()){
+                        Ad.email=this.value;
+                    }
+                    else {
+                        console.log('invalid email');
+                    }
+                };
+                
+                if(response.DATA.ad){
+                    Ad.parse(response.DATA.ad);
+                }
             }
         })
         .catch(error => { 
@@ -577,9 +656,45 @@ var UI={
     getPurposeName:function(ro, pu){
         return UI.dic[ro] && UI.dic[ro].purposes[pu] ? UI.dic[ro].purposes[pu] : '';
     },
+        
+    getPhone:function(n){
+        
+        let e=$.querySelectorAll('input[type="tel"]')[n];
+        console.log('e', e);
+        let p=e.closest('li');
+        console.log('p',p);
+        let t=p.querySelector('select');
+        console.log(t);
+        let phone={c:0, i:'', r:0, t:parseInt(t.value), v:e.value};
+        /*
+        o[cui][p][0][c]	966
+        o[cui][p][0][i]	SA
+        o[cui][p][0][r]	0503995790
+        o[cui][p][0][t]	3
+        o[cui][p][0][v]	+966503995790
+        o[cui][p][0][x]	0
+        */
+       return phone;        
+    },
+    
+    getEmail:function(){
+        return $.querySelector('input[type=email]').value;
+    },
+    
+    setEmail:function(v){
+        $.querySelector('input[type=email]').value=v;
+        $.querySelector('input[type=email]').checkValidity;
+    },
     
     rootChanged:function(ro, pu){
         $.querySelector('#ad-class').querySelector('a.ro').innerHTML=this.getRootName(ro) + ' / ' + this.getPurposeName(ro, pu);
+    },
+    
+    textChanged:function(text, tag){
+        let ta=$.querySelector('textarea#'+tag);
+        ta.value=text;
+        ta.onchange(ta);
+        ta.oninput(ta);
     },
     
     cuiChanged:function(e){
@@ -643,6 +758,7 @@ var Ad={
     featuredDateEnded:0,
     boDateEnded:0,
     
+    
     content:{
         id:0,
         user:0,
@@ -655,9 +771,9 @@ var Ad={
     },
     rootId:0,
     
+    natural:null,
+    foreign:null,
     
-    natural:"",
-    foreign:"",
     address:null,
     pictures:{},
     regions:[],
@@ -669,17 +785,22 @@ var Ad={
     lat:0,
     lon:0,
     sloc:'',
-    
-    
-    
+        
     
     init:function(){
-        
+        let _=this;
+        _.rootId=0;
+        _.sectionId=0;
+        _.purposeId=0;
+        _.natural=null;
+        _.foreign=null;  
+        _.email=null;
     },
     
-    parse:function(ad){
+    parse:function(ad){        
         console.log('ad', ad);
         let _=this;
+        _.init();
         _.id=ad.ID;
         let cnt;
         if(typeof ad.CONTENT==='string'){
@@ -696,9 +817,58 @@ var Ad={
         //_.content.hl=cnt.hl;
         _.content.lat=cnt.lat;
         _.content.lon=cnt.lon;
+
+        let re = /\u200b/;
+        let parts;
+        if(typeof cnt.other==='string'){
+            parts = cnt.other.split(re);
+            if (parts.length>0) {
+                _.natural=parts[0];
+                UI.textChanged(_.natural, 'natural');
+            }
+        }
+        if(typeof cnt.altother==='string'){
+            parts = cnt.altother.split(re);
+            if (parts.length>0) {
+                _.foreign=parts[0];
+                UI.textChanged(_.foreign, 'foreign');
+            }
+        }
         
         console.log('cnt', cnt);
-        console.log('Ad', this);        
+        
+        if(ad.PURPOSE_ID && ad.SECTION_ID && ad.PURPOSE_ID>0 && ad.SECTION_ID>0){
+            let ro, se, pu;
+            for (let i in UI.dic) {
+                if (UI.dic[i].sections[ad.SECTION_ID]) { ro=i; }
+                if(ro>0){
+                    se=ad.SECTION_ID;
+                    pu=ad.PURPOSE_ID;
+                    _.setClassification(ro, se, pu);
+                    break;
+                }
+            }
+        }
+        
+        if (cnt.cui) {
+            if (cnt.cui.e) {
+                _.email=cnt.cui.e;
+                UI.setEmail(_.email);
+            }
+            if (cnt.cui.p) {
+                let i=1;
+                cnt.cui.p.forEach(function(p){
+                    console.log(p);
+                    if(i<3){
+                        UI.numbers[i].kind.value=p.t;
+                        UI.numbers[i].tel.value=p.v;
+                        UI.numbers[i].verify();
+                    }
+                    i++;
+                });
+            }
+        }
+        console.log('Ad', this);   
     },
     
     setClassification:function(ro, se, pu){
@@ -759,6 +929,8 @@ var Ad={
         }
         console.log(this);
     },
+        
+    
     
     getSectionName:function(){return UI.dic[this.rootId] && UI.dic[this.rootId].sections[this.sectionId] ? UI.dic[this.rootId].sections[this.sectionId] : '';},
     getPurposeName:function(){return UI.dic[this.rootId] && UI.dic[this.rootId].purposes[this.purposeId] ? UI.dic[this.rootId].purposes[this.purposeId] : '';},
@@ -790,17 +962,57 @@ var Ad={
             se:_.sectionId,
             rtl:0,
             altRtl:0,
+            other:'',
+            altother:'',
             pubTo:{},
             pub:1
         };
-/*
-o[cui][p][0][c]	966
-o[cui][p][0][i]	SA
-o[cui][p][0][r]	0503995790
-o[cui][p][0][t]	3
-o[cui][p][0][v]	+966503995790
-o[cui][p][0][x]	0
-*/
+        
+        if (!UI.numbers[1].valid()) {
+           window.alert('[ '+UI.numbers[1].tel.value+ ' ] '+UI.numbers[1].error);
+           UI.numbers[1].tel.focus;
+        }
+        else {
+            ad.cui.p.push(UI.numbers[1].getPostData());
+        }
+        if (!UI.numbers[2].valid()) {
+           window.alert('[ '+UI.numbers[2].tel.value+ ' ] '+UI.numbers[2].error);
+           UI.numbers[2].tel.focus;
+        }
+        else {
+            ad.cui.p.push(UI.numbers[2].getPostData());
+        }
+        
+        
+        if(_.natural) _.natural=_.natural.trim();
+        if(_.foreign) _.foreign=_.foreign.trim();
+        
+        if (_.natural && _.foreign && _.natural.length>0 && _.foreign.length>0) {
+            if (_.natural.isArabic(0.5)) {
+                ad.other=_.natural;
+                if (!_.foreign.isArabic(0.5)) {
+                    ad.altother=_.foreign;
+                }
+            }
+            else {
+                if (_.foreign.isArabic(0.5)) {
+                   ad.other=_.foreign;
+                   ad.altother=_.natural;
+                }
+                else {
+                   ad.other=_.natural; 
+                }
+            }
+        }
+        else if (_.natural && _.natural.length>0 && (_.foreign===null || _.foreign.length===0)) {
+            ad.other=_.natural; 
+        }
+        else if (_.foreign && _.foreign.length>0 && (_.natural===null || _.natural.length===0)) {
+            ad.other=_.foreign; 
+        }
+        
+        ad.cui.e = UI.getEmail();
+        
         let data={o:ad};
         fetch('/ajax-adsave/', _options('POST', data))
             .then(res => res.json())
@@ -1211,6 +1423,7 @@ class ContactNumber{
         this.tel.addEventListener('keyup', formatToPhone);
         this.kind.onchange=this.changed;
         this.tel.onchange=this.changed;
+        this.error='';
     }
     
     getType(){
@@ -1224,25 +1437,22 @@ class ContactNumber{
     
     verify(){
         let _=this;
-        _.tel.setCustomValidity('');
-        if(_.tel.value){            
+        _.error='';
+                
+        if(_.tel.value && _.tel.value.length>2){  
+            
             let num=_.tel.value.replace(/\s/g, '');
+            console.log('num', num);
             _.phoneNumber=new libphonenumber.parsePhoneNumberFromString(num, 'LB');
-            if(_.phoneNumber){
-                
-                //console.log(_.phoneNumber);
-                //console.log('national:', _.phoneNumber.formatNational());
-                console.log('intl:', _.phoneNumber.formatInternational());
-                console.log('type:', _.phoneNumber.getType(), _.getType());
-                console.log('valid:', _.phoneNumber.isValid());
-                console.log('possible:', _.phoneNumber.isPossible());
-                
+            if(_.phoneNumber){                
+                console.log(_.phoneNumber);
                 _.tel.value=_.phoneNumber.formatNational();
                 if(_.phoneNumber.isValid()){
                     let tp=_.phoneNumber.getType();
                     switch(_.getType()){
                         case ContactNumberType.Landline:
                             if(tp!=='FIXED_LINE'&&tp!=='FIXED_LINE_OR_MOBILE'){
+                                _.error='This number is not a fixed/land phone!';
                                 _.tel.setCustomValidity('This number is not a fixed/land phone!');
                             }
                             break;
@@ -1250,26 +1460,54 @@ class ContactNumber{
                         case ContactNumberType.Whatsapp:
                         case ContactNumberType.MobileWhatsapp:
                             if(tp!=='MOBILE'&&tp!=='FIXED_LINE_OR_MOBILE'){
+                                _.error='This number is not a mobile!';
                                 _.tel.setCustomValidity('This number is not a mobile!');
                             }
                             break;
                     }                    
                 }
                 else {
+                    _.error='This number is not a valid phone mobile!';
                     _.tel.setCustomValidity('This number is not a valid phone mobile!');
                 }
             }
             else {
+                _.error='Could not read this number!';
                 _.tel.setCustomValidity('Could not read this number!');
             }
         }
         else {
             _.phoneNumber=null;
         }
+        _.tel.setCustomValidity(_.error);
+        _.tel.checkValidity();
+        
         console.log(_.tel.validity);
+        console.log(_.tel.validity.customError);
         _.tel.reportValidity();
         return false;
-    }        
+    }
+    
+    valid(){
+        this.verify();
+        console.log(this.error);
+        return this.phoneNumber && this.tel.validity.valid;
+    }
+    
+    
+    getPostData(){
+        if(this.phoneNumber){
+            let phone={
+                c:parseInt(this.phoneNumber.countryCallingCode), 
+                i:this.phoneNumber.country, 
+                r:this.phoneNumber.nationalNumber, 
+                t:this.getType(), 
+                v:this.phoneNumber.number};
+            console.log(phone);
+            return phone;
+        }
+        return null;
+    }
 };
 
 

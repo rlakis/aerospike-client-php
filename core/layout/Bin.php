@@ -2379,11 +2379,12 @@ class Bin extends AjaxHandler{
                     if (isset($sContent['userLOC'])) { $ad['userLOC']=$sContent['userLOC']; }
                     if (isset($sContent['agent'])) { $ad['agent']=$sContent['agent']; }
                     if (isset($sContent['state'])) { $ad['state']=$sContent['state']; }
-                    if ((!isset($ad['other']) || (isset($ad['other']) && preg_match('/^undefined/',$ad['other']))) && isset($sContent['other'])) {
+                    
+                    if ((!isset($ad['other']) || (isset($ad['other']) && preg_match('/^undefined/', $ad['other']))) && isset($sContent['other'])) {
                         $ad['other']=$sContent['other'];
-                        if (!isset($ad['rawOther']) && isset($sContent['rawOther'])) {
-                            $ad['rawOther']=$sContent['rawOther'];
-                        }
+                        //if (!isset($ad['rawOther']) && isset($sContent['rawOther'])) {
+                        //    $ad['rawOther']=$sContent['rawOther'];
+                        //}
                     }
                     if (!isset($ad['other'])) { $ad['other']=''; }
 

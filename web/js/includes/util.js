@@ -10,9 +10,7 @@ createElem=function(tag, className, content, isHtml) {
 };
 
 dirElem=function(e) {
-    if(e.target){
-        e=e.target;
-    }
+    if(e.target){e=e.target;}
     var v=e.value;
     e.className=(!v)?'':((v.match(/[\u0621-\u064a\u0750-\u077f]/)) ? 'ar' : 'en');
 };
