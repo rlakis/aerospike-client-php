@@ -530,37 +530,43 @@ var d = {
     quick(e) {
         let article = e.closest('article');
         if (d.currentId !== article.id) { return; }
+        
         console.log(d.currentId);
         console.log(d);
+        
         var inline = d.getForm('fix', article);
         let rDIV = inline.form.querySelector('#qRoot');
         let rUL = rDIV.querySelector('ul');
         let sDIV = inline.form.querySelector('#qSec');
         let aDIV = inline.form.querySelector('#qAlt');
         let aUL = aDIV.querySelector('ul');
+        
         var fillSections = function (rId) {
             if (!rDIV.dataset.rootId || rDIV.dataset.rootId !== rId) {
-                let rr = rDIV.querySelectorAll('li');
-                rr.forEach(function (item) {
-                    if (item.dataset.id === rId) {
+                let rr = rDIV.querySelectorAll('li');                
+                rr.forEach(function (item) {                    
+                    if (item.dataset.id===rId) {
                         item.classList.add('cur');
                     } else if (item.classList.contains('cur')) {
                         item.classList.remove('cur');
                     }
                 });
-                let ul = sDIV.querySelector('ul');
-                ul.innerHTML = '';
+                
+                let ul = sDIV.querySelector('ul');ul.innerHTML = '';
                 console.log('rid', rId);
-                console.log(d.roots[rId].sindex);
+                
                 d.roots[rId].sindex.forEach(function (sid) {
-                    let li = createElem('li', sid === article.dataset.se ? 'cur' : '', d.roots[rId]['sections'][sid]);
+                    console.log(typeof sid, typeof article.dataset.se);
+                    let li = createElem('li', (sid.toString()===article.dataset.se ? 'cur' : ''), d.roots[rId]['sections'][sid]);
                     li.dataset.id = sid;
                     li.onclick = function (e) {
-                        let pu = article.dataset.pu;
+                        let p=e.target.closest('article');
+                        let pu = p.dataset.pu;
                         if (!d.roots[rId].purposes[pu]) {
                             pu = d.roots[rId].purposes[Object.keys(d.roots[rId]['purposes'])[0]];
                         }
-                        d.updateAd(e.target, article.id, rId, e.target.dataset.id, pu);
+                        console.log('ad id', p.id);
+                        d.updateAd(e.target, p.id, rId, e.target.dataset.id, pu);
                     };
                     ul.appendChild(li);
                 });
@@ -996,10 +1002,8 @@ socket.on('editorialText', function (data) {
                 }
             }
         } else {
-            arText.classList.remove('ar');
-            if (!arText.classList.contains('en')) {
-                arText.classList.add('n');
-            }
+            if (arText.classList.contains('ar')) arText.classList.remove('ar');
+            if (!arText.classList.contains('en')) { arText.classList.add('en'); }
             arText.innerHTML = data.t;
         }
     }

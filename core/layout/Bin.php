@@ -1676,7 +1676,7 @@ class Bin extends AjaxHandler{
                         $this->setData($result['qr'], 'rswitch');
                     }
                     else {
-                         Config::instance()->incLibFile('MCPostPreferences');
+                        Config::instance()->incLibFile('MCPostPreferences');
                         $pref = new MCPostPreferences();
                         $result['prefs']=[];
                         //$result['prefs']['version']=$pref->getVersion();
@@ -1684,6 +1684,16 @@ class Bin extends AjaxHandler{
                         //if ($dataVersion != $pref->getVersion()) {
                         $pref->setup();
                         $this->setData($pref, 'prefs');
+                        $cndic=$this->router()->database()->getCountriesDictionary();
+                        $regions=[];
+                        foreach ($cndic as $country_id => $country) {
+                            $regions[$country_id]=['ar'=>$country[1], 'en'=>$country[2], 'cc'=>[]];                            
+                        }
+                        $ccdic=$this->router()->database()->getCitiesDictionary();
+                        foreach ($ccdic as $city_id => $city) {
+                            $regions[$city[4]]['cc'][$city_id]=['ar'=>$city[1], 'en'=>$city[2], 'lat'=>$city[5]+0, 'lng'=>$city[6]+0];
+                        }
+                        $this->setData($regions, 'regions');
                         $this->setData(IPQuality::fetchJson(false), 'ip');
                         if (filter_input(INPUT_GET, 'aid', FILTER_SANITIZE_NUMBER_INT)>0) {
                             $ad=$this->user()->getPendingAds(filter_input(INPUT_GET, 'aid', FILTER_SANITIZE_NUMBER_INT));
@@ -2359,7 +2369,6 @@ class Bin extends AjaxHandler{
                 
                 
             case "ajax-adsave":
-                error_log(var_export($this->_JPOST['o'], true));
                 
                 if ($this->user()->isLoggedIn() && isset($this->_JPOST['o'])) {
                     $error_path = "/var/log/mourjan/editor.log";
@@ -2369,52 +2378,52 @@ class Bin extends AjaxHandler{
                     if (!is_array($ad)) { $ad = []; }
                     if (!isset($ad['id'])) { $ad['id']=0; }
                     
-                    if (!$ad['id'] || !isset($this->user->pending['post']['state']) || !isset($this->user->pending['post']['id']) || ($ad['id'] && $ad['id']!=$this->user->pending['post']['id'])) {
-                        $this->user->loadAdToSession($ad['id']);
-                    }
+                    //if (!$ad['id'] || !isset($this->user->pending['post']['state']) || !isset($this->user->pending['post']['id']) || ($ad['id'] && $ad['id']!=$this->user->pending['post']['id'])) {
+                    //    $this->user->loadAdToSession($ad['id']);
+                    //}
                         
-                    $sContent=json_decode($this->user->pending['post']['content'], true);
+                    //$sContent=json_decode($this->user->pending['post']['content'], true);
                         
-                    if (isset($sContent['ip'])) { $ad['ip']=$sContent['ip']; }
-                    if (isset($sContent['userLOC'])) { $ad['userLOC']=$sContent['userLOC']; }
-                    if (isset($sContent['agent'])) { $ad['agent']=$sContent['agent']; }
-                    if (isset($sContent['state'])) { $ad['state']=$sContent['state']; }
+                    //if (isset($sContent['ip'])) { $ad['ip']=$sContent['ip']; }
+                    //if (isset($sContent['userLOC'])) { $ad['userLOC']=$sContent['userLOC']; }
+                    //if (isset($sContent['agent'])) { $ad['agent']=$sContent['agent']; }
+                    //if (isset($sContent['state'])) { $ad['state']=$sContent['state']; }
                     
-                    if ((!isset($ad['other']) || (isset($ad['other']) && preg_match('/^undefined/', $ad['other']))) && isset($sContent['other'])) {
-                        $ad['other']=$sContent['other'];
+                    //if ((!isset($ad['other']) || (isset($ad['other']) && preg_match('/^undefined/', $ad['other']))) && isset($sContent['other'])) {
+                    //    $ad['other']=$sContent['other'];
                         //if (!isset($ad['rawOther']) && isset($sContent['rawOther'])) {
                         //    $ad['rawOther']=$sContent['rawOther'];
                         //}
-                    }
+                    //}
                     if (!isset($ad['other'])) { $ad['other']=''; }
 
                     if ($ad['id']==0 && preg_match('/^undefined/', $ad['other'])) {
                         error_log(PHP_EOL.'>>>>>>>>>>UNDEFINED<<<<<<<<<<<<'.PHP_EOL,3,$error_path);
                     }
 
-                    if (!isset($ad['rtl']) && isset($sContent['rtl'])) {
-                        $ad['rtl']=$sContent['rtl'];
-                    }
+                    //if (!isset($ad['rtl']) && isset($sContent['rtl'])) {
+                    //    $ad['rtl']=$sContent['rtl'];
+                    //}
                     
-                    if (!isset($ad['loc']) && isset($sContent['loc'])) {
-                        $ad['loc']=$sContent['loc'];
-                    }
+                    //if (!isset($ad['loc']) && isset($sContent['loc'])) {
+                    //    $ad['loc']=$sContent['loc'];
+                    //}
                     
-                    if ($ad['extra']['t']!=2 && (!isset($ad['altother']) || (isset($ad['altother']) && preg_match('/^undefined/',$ad['altother']))) && isset($sContent['altother'])) {
-                        $ad['altother']=$sContent['altother'];
-                        if (!isset($ad['rawAltOther']) && isset($sContent['rawAltOther'])) {
-                            $ad['rawAltOther']=$sContent['rawAltOther'];
-                        }
-                    }
+                    //if ($ad['extra']['t']!=2 && (!isset($ad['altother']) || (isset($ad['altother']) && preg_match('/^undefined/',$ad['altother']))) && isset($sContent['altother'])) {
+                    //    $ad['altother']=$sContent['altother'];
+                    //    if (!isset($ad['rawAltOther']) && isset($sContent['rawAltOther'])) {
+                    //        $ad['rawAltOther']=$sContent['rawAltOther'];
+                    //    }
+                    //}
                     
-                    if ($ad['extra']['t']!=2 && !isset($ad['altRtl']) && isset($sContent['altRtl'])) {
-                        $ad['altRtl']=$sContent['altRtl'];
-                    }
+                    //if ($ad['extra']['t']!=2 && !isset($ad['altRtl']) && isset($sContent['altRtl'])) {
+                    //    $ad['altRtl']=$sContent['altRtl'];
+                    //}
                     
-                    if (isset($sContent['pics'])) { $ad['pics']=$sContent['pics']; }
+                    //if (isset($sContent['pics'])) { $ad['pics']=$sContent['pics']; }
                     
-                    if (!isset($ad['pic_def']) && isset($sContent['pic_def'])) { $ad['pic_def']=$sContent['pic_def']; }                    
-                    if (isset($sContent['pic_idx'])) { $ad['pic_idx']=$sContent['pic_idx']; }
+                    //if (!isset($ad['pic_def']) && isset($sContent['pic_def'])) { $ad['pic_def']=$sContent['pic_def']; }                    
+                    //if (isset($sContent['pic_idx'])) { $ad['pic_idx']=$sContent['pic_idx']; }
                     
                     //if (!isset($ad['video']) && isset($sContent['video'])) { $ad['video']=$sContent['video']; }
                     if ($ad['user']==$this->user()->id() && isset($this->user->params['mobile']) && $this->user->params['mobile']) {

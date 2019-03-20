@@ -110,12 +110,7 @@ class PostAd extends Page {
         $this->render();
     }  
     
-    
-    function header(){                
-        parent::header();
-        ?><script async src="/web/js/1.0/libphonenumber-min-1.7.10.js"></script><?php
-    }
-    
+        
     function mainMobile() {
         if (!$this->user()->isLoggedIn()) { return; }
             
@@ -357,7 +352,7 @@ class PostAd extends Page {
             echo '<li><a class=ro href="javascript:void(0)" onclick="UI.chooseRootPurpose()">Choose listing section</a></li>';
             echo '<li><a class=se href="javascript:void(0)" onclick="UI.chooseSection()">Choose section</a></li>';
             echo '<li><a class=lc href="javascript:void(0)" onclick="UI.openMap()">Map Address/Location</a></li>';
-            echo '<li>', $this->lang['m_h_city'], '</li>';
+            echo '<li><a class=rg href="javascript:void(0)" onclick="UI.chooseRegions()">', $this->lang['m_h_city'], '</a></li>';
             echo '</ul></div></div>';
             
             echo '<div class=col-12><div class=card>';
@@ -395,8 +390,11 @@ class PostAd extends Page {
                     <button name="submit" type="submit" id="ad-submit" class="btn blue" onclick="return UI.submit(this)" data-submit="...Sending">Submit</button>
                 </li>
                 <li><a href='javascript:void(0)' onclick='Ad.save();' class="btn blue">Save</a></li>
-                <li class=publish><a href=# class="btn blue">Publish</a><span><?= $this->lang['ad_review'] ?></span></li>
-                <li><a href=# class="btn">Cancel</a></li>
+                <li class=publish><a href=# class="btn blue">Publish</a><span><?= $this->lang['ad_review'] ?></span></li><?php
+                if($this->user()->level()===9){
+                    ?><li class=approve><a href=# class="btn blue"><?= $this->lang['approve'] ?></a></li><?php
+                }
+                ?><li><a href=# class="btn">Cancel</a></li>
             </ul><?php
             //echo '</div>';
             echo '</div></div>';
@@ -414,36 +412,35 @@ class PostAd extends Page {
                     'mobile_countries_'.$this->router()->language, $q, NULL, 8, $this->router()->config()->get('ttl_long'));
 
             
-            if ($this->user()->level()===9 && ((isset($this->ad) && $this->ad) || (isset($this->adContent['ip']) || isset($this->adContent['userLOC']) || isset($this->adContent['agent'])) )) {
+            if (0 && $this->user()->level()===9 && ((isset($this->ad) && $this->ad) || (isset($this->adContent['ip']) || isset($this->adContent['userLOC']) || isset($this->adContent['agent'])) )) {
+                    ?><ul tabindex="0" class="ls po info"><?php   
+                    ?><li class="h"><b><?= $this->lang['m_h_user'] ?></b></li><?php
+                    if(isset($this->ad) && $this->ad) {
+                        $name=$this->ad['WEB_USER_ID'].'#'.($this->ad['FULL_NAME']?$this->ad['FULL_NAME']:$this->ad['DISPLAY_NAME']);
+                        if ($this->ad['LVL']==4) $name='<span style="color:orange">'.$name.'</span>';
+                        elseif ($this->ad['LVL']==5) $name='<span style="color:red">'.$name.'</span>';
+                        else $name='<span>'.$name.'</span>';
+                        if(isset($this->adContent['mobile'])){
+                        ?><li class="en"><b>is Mobile? <?= $this->adContent['mobile'] ? 'yes':'no' ?></b></li><?php
+                        }
+                        ?><li class="en"><a target="blank" href="<?= $this->ad['PROFILE_URL'] ?>"><?= $this->ad['PROVIDER'].' Profile' ?></a></li><?php
+                        ?><li class="en"><b>Email: <?= $this->ad['EMAIL'] ?></b></li><?php
+                        ?><li class="en"><a target="blank" href="/myads/?u=<?= $this->ad['WEB_USER_ID'] ?>">User: <?= $name ?></a></li><?php
+                        ?><li class="en"><b>Mourjan Username: <?= $this->ad['USER_NAME'] ?></b></li><?php
+                        ?><li class="en"><b>Mourjan Email: <?= $this->ad['USER_EMAIL'] ?></b></li><?php
+                    }
+                    if (isset($this->adContent['ip']) || isset($this->adContent['userLOC']) || isset($this->adContent['agent'])){
+                        if(isset($this->adContent['ip'])) {
+                            ?><li class="en"><b class="ah">IP: <?= $this->adContent['ip'] ?></b></li><?php
+                        }
+                        if(isset($this->adContent['userLOC'])) {
+                            ?><li class="en"><b class="ah">GEO: <?= $this->adContent['userLOC'] ?></b></li><?php
+                        }
+                        if(isset($this->adContent['agent'])) {
+                            ?><li class="en"><b class="ah">User Agent: <?= $this->adContent['agent'] ?></b></li><?php
+                        }
+                    }
                 
-                ?><ul tabindex="0" class="ls po info"><?php   
-                ?><li class="h"><b><?= $this->lang['m_h_user'] ?></b></li><?php
-                if(isset($this->ad) && $this->ad) {
-                $name=$this->ad['WEB_USER_ID'].'#'.($this->ad['FULL_NAME']?$this->ad['FULL_NAME']:$this->ad['DISPLAY_NAME']);
-                if ($this->ad['LVL']==4) $name='<span style="color:orange">'.$name.'</span>';
-                elseif ($this->ad['LVL']==5) $name='<span style="color:red">'.$name.'</span>';
-                else $name='<span>'.$name.'</span>';
-                if(isset($this->adContent['mobile'])){
-                ?><li class="en"><b>is Mobile? <?= $this->adContent['mobile'] ? 'yes':'no' ?></b></li><?php
-                }
-                ?><li class="en"><a target="blank" href="<?= $this->ad['PROFILE_URL'] ?>"><?= $this->ad['PROVIDER'].' Profile' ?></a></li><?php
-                ?><li class="en"><b>Email: <?= $this->ad['EMAIL'] ?></b></li><?php
-                ?><li class="en"><a target="blank" href="/myads/?u=<?= $this->ad['WEB_USER_ID'] ?>">User: <?= $name ?></a></li><?php
-                ?><li class="en"><b>Mourjan Username: <?= $this->ad['USER_NAME'] ?></b></li><?php
-                ?><li class="en"><b>Mourjan Email: <?= $this->ad['USER_EMAIL'] ?></b></li><?php
-                }
-                if (isset($this->adContent['ip']) || isset($this->adContent['userLOC']) || isset($this->adContent['agent'])){
-                    if(isset($this->adContent['ip'])) {
-                        ?><li class="en"><b class="ah">IP: <?= $this->adContent['ip'] ?></b></li><?php
-                    }
-                    if(isset($this->adContent['userLOC'])) {
-                        ?><li class="en"><b class="ah">GEO: <?= $this->adContent['userLOC'] ?></b></li><?php
-                    }
-                    if(isset($this->adContent['agent'])) {
-                        ?><li class="en"><b class="ah">User Agent: <?= $this->adContent['agent'] ?></b></li><?php
-                    }
-
-                }
                 
                 $tmp='';
                 $tmpCn='';
@@ -500,6 +497,7 @@ class PostAd extends Page {
                 ?><li class="<?= $this->router()->language ?>"><b class="ah"><?= ($cityList ? substr($cityList, 3) : '') ?></b></li><?php
                 
                 ?></ul><?php
+            
             }
             
         
@@ -518,17 +516,6 @@ class PostAd extends Page {
             $isPi=($hasVideo || $uVideo==2);           
             if(!$hasVideo && $uVideo!=2) $seqHide=true;
             
-            if(!$this->router()->isApp){
-                ?><ul id="xmp" class="ls po<?= ($hasMap || $uMap==2 ? ' pi':''),(!$seqHide ? '':' hid') ?>"><?php 
-                    ?><li onclick="edOM(this)" class="button h"><b><?= $this->lang['m_h_map'] ?><span class="et"></span></b></li><?php 
-                    ?><li class="nobd <?= $uMap==1 ? '': ' hid'?>"><ul><?php 
-                        ?><li onclick="edOM(this,1)" class="button"><b class="ah"><span title="<?= $this->lang['removeLoc'] ?>" onclick="clearLoc()" class="button pz pzd"></span><?= $this->adContent['loc'] ?></b></li><?php
-                        ?><li class="pid"><b class="ah ctr"><span onclick="dmp()" class="button bt btw ok"><?= $this->lang['next'] ?></span></b></li><?php
-                    ?></ul></li><?php
-                    ?><li class="<?= $uMap==0 ? '': ' hid'?>"><b class="ah ctr act2"><span onclick="edOM(this,1)" class="button bt ok"><?= $this->lang['yes'] ?></span><span onclick="noO(this,'m')" class="button bt cl"><?= $this->lang['no'] ?></span></b></li><?php 
-                    ?><li onclick="edOM(this)" class="button<?= $uMap==2 ? '': ' hid'?>"><b><?= $this->lang['no']  ?></b></li><?php
-                ?></ul><?php 
-            }
             if(!$this->router()->isApp && !$hasMap && $uMap!=2) $seqHide=true;
             ?><ul class="ls cls nsh po<?= (!$seqHide ? '':' hid') ?>"><?php                  
                 if($budget && $this->userBalance && $this->user->pending['post']['user'] == $this->user->info['id']){
@@ -552,16 +539,9 @@ class PostAd extends Page {
                     }
                     ?><li class="pid"><b class="ah ctr"><span onclick="savAd(1)" class="button bt btw gold"><?= $this->lang['publish_ad_premium'].' '.$this->lang['with'].$with ?></span><br /><br /></b></li><?php
                 }
-                ?><li class="pid"><b class="ah ctr"><span onclick="savAd(1<?= ($this->user->pending['post']['user'] == $this->user->info['id']) ? ',true':'' ?>)" class="button bt btw ok"><?= $this->lang['publish_ad_free'] ?></span></b></li><?php
                 if($this->userBalance && $this->user->pending['post']['user'] == $this->user->info['id']){
                     //$this->globalScript.='uqss="'.$this->urlRouter->cfg['url_jquery_ui'].'";';
                     ?><li class="pid"><b class="ah ctr"><span onclick="savAdP()" class="button bt btw gold"><?= $this->lang['publish_ad_premium'] ?></span></b></li><?php
-                }
-                if($this->user->info['level']==9){
-                    ?><li class="pid"><b class="ah ctr"><span onclick="savAd(2)" class="button bt btw ok"><?= $this->lang['approve'] ?></span></b></li><?php
-                }
-                if($this->user->info['level']!=9 || ($this->user->pending['post']['user'] == $this->user->info['id']) ){
-                    ?><li class="pid"><b class="ah ctr"><span onclick="savAd(-1,true)" class="button bt btw cl ah"><?= $this->lang['savePending'] ?></span></b></li><?php
                 }
             ?></ul><?php 
             if($this->isMobile || $this->router()->isApp > '1.0.4'){                
@@ -594,16 +574,7 @@ class PostAd extends Page {
                     ?><div class="dialog-box"></div><?php 
                     ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /><input type="button" value="<?= $this->lang['modify'] ?>" /></div><?php 
                 ?></div><?php
-                $this->globalScript.='
-                        function mCPrem(){
-                            Dialog.show("alert_dialog",\'<span class="fail"></span>'.$this->lang['multi_premium_no'].'\',function(){var c=$("#cnu")[0];cnT(c);gto(c);});
-                        };
-                    ';
             }
-            //$this->user->pending['post']['content']=json_encode($this->adContent);
-            //$this->user->update();
-            
-            
             
             }
             else {

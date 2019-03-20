@@ -60,31 +60,54 @@ var MAP={
             center: {lat: parseFloat(UI.ip.ipquality.latitude), lng: parseFloat(UI.ip.ipquality.longitude)},
             zoom: 12
         });
-        google.maps.event.addDomListener(_.view, "click", function(e){
-            _.coder.geocode({"latLng": e.latLng},
-                function(results, status) {
-                    if (status===google.maps.GeocoderStatus.OK) {
-                        if (results[0]) {
-                            _.result=results;
-                            _.marker.setPosition(e.latLng);
-                            _.setInfo(results);
-                            //cacheLoc(results);
-                        }
-                    } 
-                    else {
-                        //mapQ.css("color","#ff0000");
+        _.coder = new google.maps.Geocoder();
+        google.maps.event.addDomListener(_.view, "click", function(e) {
+            _.coder.geocode({"latLng": e.latLng}, function(results, status) {
+                if (status===google.maps.GeocoderStatus.OK) {
+                    if (results[0]) {
+                        _.result=results;
+                        _.marker.setPosition(e.latLng);
+                        _.setInfo(results);
+                        //cacheLoc(results);
                     }
-                });
+                } 
+                else {
+                    //mapQ.css("color","#ff0000");
+                }
+            });
         });
                         
         _.infoWindow = new google.maps.InfoWindow;
-        _.myLocation();
+        _.marker =  new google.maps.Marker();
+        _.marker.setMap(_.view);
+        _.marker.setAnimation(google.maps.Animation.DROP);
+        if (Ad.content.lat!==0||Ad.content.lon!==0){
+            _.adLocation();
+        }
+        else {
+            _.myLocation();
+        }
     },
     
     handleLocationError:function(browserHasGeolocation, infoWindow, pos){
-            infoWindow.setPosition(pos);
-            infoWindow.setContent(browserHasGeolocation?'Error: The Geolocation service failed.':'Error: Your browser doesn\'t support geolocation.');
-            infoWindow.open(this.view);
+        infoWindow.setPosition(pos);
+        infoWindow.setContent(browserHasGeolocation?'Error: The Geolocation service failed.':'Error: Your browser doesn\'t support geolocation.');
+        infoWindow.open(this.view);
+    },
+    
+    adLocation:function(){
+        console.log('two');
+        let pos = {lat: Ad.content.lat, lng: Ad.content.lon};        
+        //this.coder = new google.maps.Geocoder();
+        //if(this.marker){this.marker.setMap(null);}
+        
+        //this.marker = new google.maps.Marker({position: pos, map: this.view, animation: google.maps.Animation.DROP, title:Ad.content.loc});
+        
+        //this.marker.setMap(this.view);
+        this.view.setCenter(pos);
+        this.getCoordAddress(pos, this);
+        this.marker.setPosition(pos);
+        this.marker.setTitle(Ad.content.loc);
     },
     
     myLocation:function(){
@@ -92,10 +115,11 @@ var MAP={
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
                 let pos = {lat: position.coords.latitude, lng: position.coords.longitude};
-                _.coder = new google.maps.Geocoder();
-                _.marker = new google.maps.Marker({position: pos, map: _.view, animation: google.maps.Animation.DROP, title:'My Location'});
+                //if(this.marker){this.marker.setMap(null);}
+                //_.marker = new google.maps.Marker({position: pos, map: _.view, animation: google.maps.Animation.DROP, title:'My Location'});
                 _.view.setCenter(pos);
-                _.getCoordAddress(pos, true);
+                _.getCoordAddress(pos, _);
+                _.marker.setPosition(pos);
             }, function() { _.handleLocationError(true, _.infoWindow, _.view.getCenter()); });
         }
     },
@@ -154,7 +178,8 @@ var MAP={
     },
     
     setPosition:function(pos, zoom){
-        if(zoom){this.setZoom(15);}
+        this.setZoom((zoom?zoom:14));
+        console.log(pos);
         this.view.setCenter(pos);
         //this.marker.setMap(this.map);
         //let mpos = {lat: pos.lat(), lng: pos.lng()};
@@ -211,14 +236,14 @@ var MAP={
             });
         }        
         return false;
-    }            
-        
+    }
 };
 
 var UI={
     ar:$.body.dir==='rtl',
     ip:null,
     dic:null,
+    region:null,
     map:null,
     rootId:0,    
     purposeId:0,
@@ -238,12 +263,11 @@ var UI={
         .then(response => {
             if(response.RP && response.RP===1){
                 Ad.init();
-                //console.log('data', response.DATA);
-                
+                _.region=response.DATA.regions;
                 _.dic=response.DATA.roots;
                 Prefs.init(response.DATA.prefs);
                 _.ip=response.DATA.ip;
-                console.log(_.ip);
+                console.log('UI.region', _.region);
                 for(i in _.dic){
                     _.dic[i].menu=[];
                     let m=_.dic[i].menu;
@@ -508,6 +532,7 @@ var UI={
     createDialog:function(name, fullW, fullH){
         let dialog=createElem('div', 'modal');
         dialog.setAttribute('id', name);
+        dialog.dataset.views='0';
         dialog.dataset.fullWidth=fullW;
         dialog.dataset.fullHeight=fullH;
         let card=createElem('div', 'card col-'+((dialog.dataset.fullWidth==='true'&&dialog.dataset.fullHeight==='true')?'12':'8'));
@@ -544,16 +569,15 @@ var UI={
         $.body.classList.add('modal-open');
         $.body.appendChild(dialog);  
         dialog.style.display = "flex";
+        dialog.dataset.views = parseInt(dialog.dataset.views)+1;
         dialog.style.setProperty('max-height', window.innerHeight+'px');
         let card=dialog.querySelector('div.card');
-        console.log('before', dialog.dataset);
         if(!dialog.dataset.fullWidth!=='true' && dialog.dataset.fullHeight==='true'){
-            console.log('after', dialog.dataset);
             let X=card.querySelector('span.close');
-            console.log(X);
             X.style.setProperty('top', '0px');
         }
-               
+
+        if(dialog.id==='map' && (Ad.content.lat!==0 || Ad.content.lon!==0) && dialog.dataset.views>'1'){ MAP.adLocation(); }
         let img=card.querySelector('span.pix img');
         if(img){
             if(!Ad.pictures[UI.pixIndex].rotate){ Ad.pictures[UI.pixIndex].rotate=0; }
@@ -630,8 +654,7 @@ var UI={
     },
     
     openMap:function(){
-        let _=this, dialog, card;
-        _.close();
+        let _=this, dialog, card; _.close();
         if(!_.dialogs.map){
             dialog=_.createDialog('map',true,true);
             card=dialog.querySelector('div.card');
@@ -639,11 +662,26 @@ var UI={
             card.appendChild(b);
             b.style.display='flex';
         }
-        else {
-            dialog=_.dialogs.map;
-        }
+        else { dialog=_.dialogs.map; }
         _.showDialog(dialog);
     },
+    
+    
+    chooseRegions:function(){
+        let _=this, dialog, card; _.close();
+        if(!_.dialogs.regions){
+            dialog=_.createDialog('regions',false,true);
+            card=dialog.querySelector('div.card');
+            const keys = Object.keys(_.region)
+            for (const key of keys) {
+                console.log(key);
+                console.log(_.region[key], Object.keys(_.region[key].cc).length);
+            }
+        }
+        else { dialog=_.dialogs.regions; }
+        _.showDialog(dialog);
+    },
+    
     
     getRootName:function(ro){
         return this.dic[ro] ? this.dic[ro].name : '';
@@ -701,14 +739,18 @@ var UI={
         console.log(e);
     },
     
-    addressChanged:function(addr){
-        Ad.setGMapAddr(addr);
+    addressChanged:function(addr){        
         let node=$.querySelector('#ad-class').querySelector('a.lc');
         let p=node.innerText.split(': ');
         if(addr){
+            Ad.setGMapAddr(addr);
             node.innerHTML=p[0]+': '+MAP.getText(addr);
         }
         else {
+            if(typeof Ad.content.loc==='string' && Ad.content.loc.length>0) {
+                node.innerHTML=p[0]+': '+Ad.content.loc;
+            }
+            else
             node.innerHTML=p[0];
         }
     },
@@ -747,8 +789,6 @@ var Ad={
     lastUpdate:null,
     countryId:0,
     cityId:0,
-    latitude:0,
-    longitude:0,
     uid:0,
     activeCountryId:0,
     activeCityId:0,
@@ -781,9 +821,7 @@ var Ad={
     phone2:null,
     email:null,
     userLocation:null,
-    location:null,
-    lat:0,
-    lon:0,
+    location:null,   
     sloc:'',
         
     
@@ -817,6 +855,8 @@ var Ad={
         //_.content.hl=cnt.hl;
         _.content.lat=cnt.lat;
         _.content.lon=cnt.lon;
+        _.content.loc=cnt.loc;
+        UI.addressChanged();
 
         let re = /\u200b/;
         let parts;
@@ -902,8 +942,7 @@ var Ad={
         }
     },        
 
-    setGMapAddr(addr, user){
-        console.log('address', addr);
+    setGMapAddr(addr, user){        
         if(user){
             this.userLocation=addr;
         }
@@ -912,22 +951,19 @@ var Ad={
             if(this.location){
                 for(let i in this.location){
                     if(this.location[i].geometry){
-                        this.lat=this.location[i].geometry.location.lat();
-                        this.lon=this.location[i].geometry.location.lng();
+                        this.content.lat=this.location[i].geometry.location.lat();
+                        this.content.lon=this.location[i].geometry.location.lng();
                         break;
                     }
                 }
             }
             else {
-                this.lat=0;
-                this.lon=0;
+                this.content.lat=0;
+                this.content.lon=0;
             }
-            
-            
-            this.sloc=(this.location)?MAP.getText(addr):'';
-            console.log(this.sloc);
-        }
-        console.log(this);
+                        
+            this.content.loc=(this.location)?MAP.getText(addr):'';
+        }        
     },
         
     
@@ -948,9 +984,9 @@ var Ad={
             id:_.id, 
             state:_.state, 
             user:0, 
-            lat:_.lat, 
-            lon:_.lon, 
-            loc:'', 
+            lat:_.content.lat, 
+            lon:_.content.lon, 
+            loc:_.content.loc, 
             budget:0, 
             version:2, 
             app:'web', app_v:UI.version,
@@ -1028,6 +1064,7 @@ var Ad={
     
     log:function(){console.log(this);}
 };
+
 
 function toLower(){
     console.log(this);
@@ -1438,59 +1475,62 @@ class ContactNumber{
     verify(){
         let _=this;
         _.error='';
-                
-        if(_.tel.value && _.tel.value.length>2){  
-            
-            let num=_.tel.value.replace(/\s/g, '');
-            console.log('num', num);
-            _.phoneNumber=new libphonenumber.parsePhoneNumberFromString(num, 'LB');
-            if(_.phoneNumber){                
-                console.log(_.phoneNumber);
-                _.tel.value=_.phoneNumber.formatNational();
-                if(_.phoneNumber.isValid()){
-                    let tp=_.phoneNumber.getType();
-                    switch(_.getType()){
-                        case ContactNumberType.Landline:
-                            if(tp!=='FIXED_LINE'&&tp!=='FIXED_LINE_OR_MOBILE'){
-                                _.error='This number is not a fixed/land phone!';
-                                _.tel.setCustomValidity('This number is not a fixed/land phone!');
-                            }
-                            break;
-                        case ContactNumberType.Mobile:
-                        case ContactNumberType.Whatsapp:
-                        case ContactNumberType.MobileWhatsapp:
-                            if(tp!=='MOBILE'&&tp!=='FIXED_LINE_OR_MOBILE'){
-                                _.error='This number is not a mobile!';
-                                _.tel.setCustomValidity('This number is not a mobile!');
-                            }
-                            break;
-                    }                    
+        let num=_.tel.value.replace(/\s/g, '');
+        if(num && num.length>3){
+            try {
+                _.phoneNumber=new libphonenumber.parsePhoneNumberFromString(num, 'LB');
+                //console.log(typeof _.phoneNumber);
+                if(_.phoneNumber && _.phoneNumber.hasOwnProperty('metadata')){
+                    console.log('phoneNumber', _.phoneNumber); 
+                    
+                    if(_.phoneNumber.isValid()){
+                        _.tel.value=_.phoneNumber.formatNational();
+                        let tp=_.phoneNumber.getType();
+                        switch(_.getType()){
+                            case ContactNumberType.Landline:
+                                if(tp!=='FIXED_LINE'&&tp!=='FIXED_LINE_OR_MOBILE'){
+                                    _.error='This number is not a fixed/land phone!';
+                                }
+                                break;
+                            case ContactNumberType.Mobile:
+                            case ContactNumberType.Whatsapp:
+                            case ContactNumberType.MobileWhatsapp:
+                                if(tp!=='MOBILE'&&tp!=='FIXED_LINE_OR_MOBILE'){
+                                    _.error='This number is not a mobile!';
+                                }
+                                break;
+                        }    
+                    }
+                    else {
+                        _.error='This number is not a valid phone number!';
+                    }
                 }
                 else {
-                    _.error='This number is not a valid phone mobile!';
-                    _.tel.setCustomValidity('This number is not a valid phone mobile!');
+                    _.error='Could not read this number!';
                 }
             }
-            else {
-                _.error='Could not read this number!';
-                _.tel.setCustomValidity('Could not read this number!');
+            catch(e){
+                console.log('error', e.message);
+                _.error=e.message;
             }
         }
         else {
+            _.error='Phone number is too short';
+        }
+        if(_.error!==''){
+            _.tel.setCustomValidity(_.error);
             _.phoneNumber=null;
         }
-        _.tel.setCustomValidity(_.error);
-        _.tel.checkValidity();
         
+        _.tel.checkValidity();        
         console.log(_.tel.validity);
-        console.log(_.tel.validity.customError);
         _.tel.reportValidity();
         return false;
     }
     
     valid(){
         this.verify();
-        console.log(this.error);
+        console.log('valid error', this.error);
         return this.phoneNumber && this.tel.validity.valid;
     }
     
