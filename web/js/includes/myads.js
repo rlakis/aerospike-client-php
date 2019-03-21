@@ -553,7 +553,7 @@ var d = {
                 });
                 
                 let ul = sDIV.querySelector('ul');ul.innerHTML = '';
-                console.log('rid', rId);
+                //console.log('rid', rId);
                 
                 d.roots[rId].sindex.forEach(function (sid) {
                     console.log(typeof sid, typeof article.dataset.se);
@@ -576,7 +576,8 @@ var d = {
                     let li = createElem('li', i === article.dataset.pu ? 'cur' : '', d.roots[rId]['purposes'][i]);
                     li.dataset.id = i;
                     li.onclick = function (e) {
-                        d.updateAd(e.target, article.id, rId, article.dataset.se, e.target.dataset.id);
+                        let p=e.target.closest('article');
+                        d.updateAd(e.target, p.id, rId, p.dataset.se, e.target.dataset.id);
                     };
                     aUL.appendChild(li);
                 }

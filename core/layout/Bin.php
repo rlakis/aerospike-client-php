@@ -1687,7 +1687,7 @@ class Bin extends AjaxHandler{
                         $cndic=$this->router()->database()->getCountriesDictionary();
                         $regions=[];
                         foreach ($cndic as $country_id => $country) {
-                            $regions[$country_id]=['ar'=>$country[1], 'en'=>$country[2], 'cc'=>[]];                            
+                            $regions[$country_id]=['ar'=>$country[1], 'en'=>$country[2], 'cc'=>[], 'c'=>$country[3]];                            
                         }
                         $ccdic=$this->router()->database()->getCitiesDictionary();
                         foreach ($ccdic as $city_id => $city) {

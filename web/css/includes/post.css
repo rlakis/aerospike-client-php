@@ -99,4 +99,9 @@
 div#roots.modal{display:flex}
 div#roots.modal div.card{display:flex; justify-content: space-between}
 
+div#regions.modal .card{display:flex;align-items: flex-start}
+div#regions.modal li{align-items: center}
+div#regions.modal li.on{font-weight: bold;color: green}
+div#regions.modal span{padding-inline-start: 4px;}
+
 body.modal-open{overflow: hidden;}

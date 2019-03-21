@@ -535,13 +535,13 @@ var UI={
         dialog.dataset.views='0';
         dialog.dataset.fullWidth=fullW;
         dialog.dataset.fullHeight=fullH;
-        let card=createElem('div', 'card col-'+((dialog.dataset.fullWidth==='true'&&dialog.dataset.fullHeight==='true')?'12':'8'));
+        let card=createElem('div', 'card col-'+((dialog.dataset.fullWidth==='true')?'12':'8'));
         if(dialog.dataset.fullHeight==='true'){
             card.style.setProperty('padding-top', '0');
             card.style.setProperty('padding-bottom', '0');
             card.style.setProperty('height', window.innerHeight+'px');
         }
-        if(dialog.dataset.fullWidth==='true'){
+        if(dialog.dataset.fullWidth==='true' && dialog.id!=='regions'){
             card.style.setProperty('padding-left', '0');
             card.style.setProperty('padding-right', '0');            
         }
@@ -670,12 +670,55 @@ var UI={
     chooseRegions:function(){
         let _=this, dialog, card; _.close();
         if(!_.dialogs.regions){
-            dialog=_.createDialog('regions',false,true);
+            dialog=_.createDialog('regions',true,false);
             card=dialog.querySelector('div.card');
-            const keys = Object.keys(_.region)
+            let blocks={cn:createElem('ul'), sa:createElem('ul'), ae:createElem('ul'), kj:createElem('ul'), ot:createElem('ul')};
+            card.appendChild(blocks.cn);
+            card.appendChild(blocks.ae);
+            card.appendChild(blocks.sa);
+            card.appendChild(blocks.kj);
+            card.appendChild(blocks.ot);            
+            const keys = Object.keys(_.region);
             for (const key of keys) {
-                console.log(key);
-                console.log(_.region[key], Object.keys(_.region[key].cc).length);
+                let li=createElem('li', '', '<i class="icn icnsmall icn-'+_.region[key].c+'"></i><span>'+_.region[key][_.ar?'ar':'en']+'</span>', 1);
+                li.dataset.countryId=key;
+                const ckeys=Object.keys( _.region[key].cc );
+                if(ckeys.length<2){
+                    li.onclick=function(){
+                        let c=this.classList;
+                        if(c.contains('on'))c.remove('on');else c.add('on');
+                    };
+                    blocks.cn.appendChild(li);
+                }
+                else {
+                    li.onclick=function(){
+                        console.log(this);
+                        console.log(_.region[this.dataset.countryId].cc);
+                    };
+                    let ul=createElem('ul'); ul.appendChild(li); 
+                    let cul=createElem('ul');
+                    for(const cityId of ckeys){                        
+                        let ci=createElem('li', '', _.region[key].cc[cityId][_.ar?'ar':'en']);
+                        ci.dataset.countryId=key;ci.dataset.cityId=cityId;
+                        cul.appendChild(ci);
+                    }
+                    
+                    let p=null;
+                    switch(parseInt(key)){
+                        case 2: p=blocks.ae; break;
+                        case 4: p=blocks.sa; break;
+                        case 7: case 8: p=blocks.kj; break;
+                        default: p=blocks.ot; break;                            
+                    }                    
+                    
+                    let cli=createElem('li'); ul.appendChild(cli);
+                    if(p.childNodes.length>0){
+                        
+                        p.childNodes[p.childNodes.length-1].appendChild(createElem('li','','&nbsp;',1));
+                    }
+                    cli.appendChild(cul);
+                    p.appendChild(ul);
+                }
             }
         }
         else { dialog=_.dialogs.regions; }
