@@ -1,4 +1,4 @@
-var $=document;
+var $=document,$$=$.body;
 var byId=function(id){return $.getElementById(id);}
 
 createElem=function(tag, className, content, isHtml) {
@@ -20,4 +20,18 @@ _options=function(m, dat){
     let opt={method: m, mode: 'same-origin', credentials: 'same-origin', headers:{'Accept':'application/json','Content-Type':'application/json'}};
     if(m==='POST'){opt['body']=JSON.stringify(dat);}
     return opt;
+};
+
+Node.prototype.append=function(){
+    for (let i = 0; i < arguments.length; i++) {
+        this.appendChild(arguments[i]);
+    }
+};
+
+Element.prototype.query=function(selector){
+    return this.querySelector(selector);
+};
+
+Element.prototype.queryAll=function(selector){
+    return this.querySelectorAll(selector);
 };

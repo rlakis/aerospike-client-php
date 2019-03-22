@@ -921,6 +921,7 @@ class PostAd extends Page {
             ?></div><?php
             ?><div class=col-12 style="padding:0;height:100%"><div id=gmapView style="width:100%;height:100%"></div></div><?php
             ?></div><?php
+            
             $this->inlineJS('util.js')->inlineJS('post.js');
         }
         else {

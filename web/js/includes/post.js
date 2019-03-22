@@ -1,4 +1,4 @@
-var $=document,Ed;
+var $=document,$$=$.body,Ed;
 $.addEventListener("DOMContentLoaded", function(e) {
     UI.init();
 });
@@ -56,7 +56,7 @@ var MAP={
     
     init:function(){
         let _=this;
-        _.view = new google.maps.Map($.querySelector('#gmapView'), {
+        _.view = new google.maps.Map($$.query('#gmapView'), {
             center: {lat: parseFloat(UI.ip.ipquality.latitude), lng: parseFloat(UI.ip.ipquality.longitude)},
             zoom: 12
         });
@@ -219,7 +219,7 @@ var MAP={
     },
     
     search:function(e){
-        let _=MAP, q=e.querySelector('input.searchTerm');
+        let _=MAP, q=e.query('input.searchTerm');
         if(q&&q.value){
             _.coder.geocode({address:q.value}, function(res, status) {
                 if (status===google.maps.GeocoderStatus.OK&&res[0]) {
@@ -240,7 +240,9 @@ var MAP={
 };
 
 var UI={
-    ar:$.body.dir==='rtl',
+    adForm:$$.query('form#adForm'),
+    adClass:$$.query('div#ad-class'),
+    ar:$$.dir==='rtl',
     ip:null,
     dic:null,
     region:null,
@@ -256,14 +258,14 @@ var UI={
     init:function(){
         let _=this;
         
-        console.log('/ajax-menu/?sections='+(_.ar?'ar':'en')+($.querySelector('#adForm').dataset.id?'&aid='+$.querySelector('#adForm').dataset.id:''));
+        console.log('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''));
         
-        fetch('/ajax-menu/?sections='+(_.ar?'ar':'en')+($.querySelector('#adForm').dataset.id?'&aid='+$.querySelector('#adForm').dataset.id:''), _options('GET'))
+        fetch('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''), _options('GET'))
         .then(res=>res.json())
         .then(response => {
             if(response.RP && response.RP===1){
                 Ad.init();
-                _.region=response.DATA.regions;
+                _.region=response.DATA.regions;                
                 _.dic=response.DATA.roots;
                 Prefs.init(response.DATA.prefs);
                 _.ip=response.DATA.ip;
@@ -302,11 +304,11 @@ var UI={
                 }
                 console.log('UI.dic', _.dic);
                 
-                $.querySelectorAll('span.pix').forEach(function(pix){
+                $$.queryAll('span.pix').forEach(function(pix){
                     pix.onclick=_.openImage;
                     pix.classList.add('icn-camera');
                 });
-                $.querySelectorAll('textarea').forEach(function(txt){
+                $$.queryAll('textarea').forEach(function(txt){
                     txt.oninput=function(e){
                         console.log(e);
                         if(e.target)e=e.target;
@@ -332,11 +334,11 @@ var UI={
                         console.log(Ad);
                     };
                 });
-                $.querySelectorAll('input[type=tel]').forEach(function(tel){                    
+                $$.queryAll('input[type=tel]').forEach(function(tel){                    
                     _.numbers[tel.dataset.no] = new ContactNumber(tel);
                 });
                 
-                let mail=$.querySelector('input[type=email]');
+                let mail=$$.query('input[type=email]');
                 mail.onchange=function(){
                     console.log(this, this.checkValidity());
                     if(this.checkValidity()){
@@ -362,14 +364,13 @@ var UI={
     
     submit:function(e){
         let form=e.closest('form');
-        //form.querySelectorAll('input[type=tel]')[0].setCustomValidity('Invalid phone number');
         console.log(form.checkValidity());
-        if(!form.querySelector('input[type=email]').checkValidity()){            
-            form.querySelector('input[type=email]').reportValidity();
+        if(!form.query('input[type=email]').checkValidity()){            
+            form.query('input[type=email]').reportValidity();
         }
         
-        form.querySelectorAll('input[type=tel]').forEach(function(tel){
-            let telType=tel.closest('li').querySelector('select.select-text');
+        form.queryAll('input[type=tel]').forEach(function(tel){
+            let telType=tel.closest('li').query('select.select-text');
             console.log(tel.value, tel.validity, telType.value);
         });
         
@@ -410,8 +411,8 @@ var UI={
         if (window.File && window.FileReader && window.FileList && window.Blob) {
             UI.pixIndex=e.target.closest('span').dataset.index;
             
-            let spans=$.querySelector('div.pictures').childNodes;
-            let cw=$.body.clientWidth;
+            let spans=$$.query('div.pictures').childNodes;
+            let cw=$$.clientWidth;
             let openFileDialog=function(multiple, largeImage){
                 return new Promise(resolve => {
                     let input=$.createElement('input');
@@ -426,10 +427,10 @@ var UI={
                             if ( /\.(jpe?g|png|gif|webp)$/i.test(file.name) ) {
                                 var reader = new FileReader();
                                 reader.onload = readerEvent => {
-                                    let img=spans[curr].querySelector('img');
+                                    let img=spans[curr].query('img');
                                     if(!img){
                                         img=new Image();                                        
-                                        spans[curr].appendChild(img);
+                                        spans[curr].append(img);
                                         spans[curr].classList.remove('icn-camera');
                                         img.setAttribute('id', 'picture');
                                     }
@@ -459,16 +460,16 @@ var UI={
                 });
             };
             
-            if(e.target.closest('span').querySelector('img')){
+            if(e.target.closest('span').query('img')){
                 let dialog, card, image;
                 if(!UI.dialogs.pix){
                     dialog=UI.createDialog('pix');
-                    card=dialog.querySelector('div.card');
+                    card=dialog.query('div.card');
                     let span=createElem('span', 'pix');
                     span.style.height=Math.round((cw/2)/1.5)+'px';
                     image=new Image();
-                    span.appendChild(image);
-                    card.appendChild(span);
+                    span.append(image);
+                    card.append(span);
                     let f=createElem('div', 'card-footer');
                     f.style.position='absolute';
                     f.style.bottom=0;
@@ -493,7 +494,7 @@ var UI={
                         image.style.setProperty('width', (portrait?hh:ww)+'px', 'important');
                         image.style.setProperty('height', (portrait?ww:hh)+'px', 'important');
                     };
-                    f.appendChild(btnRotate);
+                    f.append(btnRotate);
                     
                     let btnRemove=createElem('a', 'btn blue', 'Remove');
                     btnRemove.onclick=function(){
@@ -503,18 +504,18 @@ var UI={
                         Ad.pictures[UI.pixIndex]={};
                         UI.close();
                     };
-                    f.appendChild(btnRemove);
+                    f.append(btnRemove);
                     
                     let btnReplace=createElem('a', 'btn blue', 'Replace');
                     btnReplace.onclick=function(){
                         openFileDialog(false, image);                        
                     };
-                    f.appendChild(btnReplace);
-                    card.appendChild(f);
+                    f.append(btnReplace);
+                    card.append(f);
                 } 
                 else {
                     dialog=UI.dialogs.pix;
-                    image=dialog.querySelector('img');
+                    image=dialog.query('img');
                 }
                 image.src=Ad.pictures[UI.pixIndex].image.src;
                 UI.showDialog(dialog);
@@ -549,39 +550,46 @@ var UI={
         if(name==='map'){                      
             var script=$.createElement('script');script.type="text/javascript";
             script.src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXdUTLoKUM4Dc8LtMYQM-otRB2Rn59xXk&sensor=true&callback=MAP.init&language="+(UI.ar?'ar':'en');           
-            $.body.appendChild(script);
+            $$.append(script);
             X.style.display='none';
         }
         X.onclick = this.close;
         if (this._top) {
             X.className = 'close nopix';
-            this._top.appendChild(X);
+            this._top.append(X);
         }
         else {
-            card.appendChild(X);
+            card.append(X);
         }
-        dialog.appendChild(card);
+        dialog.append(card);
         this.dialogs[name]=dialog;
         return dialog;
     },
     
     showDialog:function(dialog){
-        $.body.classList.add('modal-open');
-        $.body.appendChild(dialog);  
+        $$.classList.add('modal-open');
+        $$.append(dialog);  
         dialog.style.display = "flex";
         dialog.dataset.views = parseInt(dialog.dataset.views)+1;
         dialog.style.setProperty('max-height', window.innerHeight+'px');
-        let card=dialog.querySelector('div.card');
-        if(!dialog.dataset.fullWidth!=='true' && dialog.dataset.fullHeight==='true'){
-            let X=card.querySelector('span.close');
+        let card=dialog.query('div.card');
+        let fw=(dialog.dataset.fullWidth==='true');
+        let fh=(dialog.dataset.fullHeight==='true');
+        let X=card.query('span.close');
+        if(!fw && fh){            
             X.style.setProperty('top', '0px');
         }
+        else if(fw && !fh){
+            X.style.setProperty('top', '-42px');
+            X.style.setProperty('right', '8px');
+        }
+        
 
         if(dialog.id==='map' && (Ad.content.lat!==0 || Ad.content.lon!==0) && dialog.dataset.views>'1'){ MAP.adLocation(); }
-        let img=card.querySelector('span.pix img');
+        let img=card.query('span.pix img');
         if(img){
             if(!Ad.pictures[UI.pixIndex].rotate){ Ad.pictures[UI.pixIndex].rotate=0; }
-            let cw=$.body.clientWidth;
+            let cw=$$.clientWidth;
             let portrait=(Ad.pictures[UI.pixIndex].rotate===90||Ad.pictures[UI.pixIndex].rotate===270);
             img.closest('span').style.height=Math.round((cw/2)/1.5)+'px';
             let hh=img.closest('span').offsetHeight;
@@ -596,10 +604,10 @@ var UI={
         let _=this, dialog, card;
         if(!_.dialogs.roots){
             dialog=_.createDialog('roots', false, false);
-            card=dialog.querySelector('div.card');
+            card=dialog.query('div.card');
             for(let i in _.dic) {
                 let div=createElem('div');
-                div.appendChild(createElem('h6','',_.dic[i].name));
+                div.append(createElem('h6','',_.dic[i].name));
                 let ul=createElem('ul');
                 for(let j in _.dic[i].menu){
                     let item= _.dic[i].menu[j];                
@@ -610,10 +618,10 @@ var UI={
                         _.purposeId=e.target.dataset.pu;
                         _.chooseSection();
                     };
-                    ul.appendChild(li);
+                    ul.append(li);
                 }
-                div.appendChild(ul);
-                card.appendChild(div);
+                div.append(ul);
+                card.append(div);
             }
             _.dialogs.roots=dialog;
         }
@@ -630,7 +638,7 @@ var UI={
         _.close();
         if(!_.dialogs[ref]){
             dialog=_.createDialog(ref, false, true);
-            card=dialog.querySelector('div.card');                      
+            card=dialog.query('div.card');                      
             let ul=createElem('ul');
             ul.style.setProperty('height', window.innerHeight+'px');   
             for(var i in r.sindex){
@@ -642,10 +650,10 @@ var UI={
                         _.close();
                         Ad.log();
                     };
-                    ul.appendChild(li);
+                    ul.append(li);
                 }
             }
-            card.appendChild(ul);
+            card.append(ul);
         }
         else {
             dialog=_.dialogs[ref];
@@ -657,9 +665,9 @@ var UI={
         let _=this, dialog, card; _.close();
         if(!_.dialogs.map){
             dialog=_.createDialog('map',true,true);
-            card=dialog.querySelector('div.card');
-            let b=$.querySelector('#adLocation');
-            card.appendChild(b);
+            card=dialog.query('div.card');
+            let b=$$.query('#adLocation');
+            card.append(b);
             b.style.display='flex';
         }
         else { dialog=_.dialogs.map; }
@@ -671,36 +679,39 @@ var UI={
         let _=this, dialog, card; _.close();
         if(!_.dialogs.regions){
             dialog=_.createDialog('regions',true,false);
-            card=dialog.querySelector('div.card');
+            card=dialog.query('div.card');
             let blocks={cn:createElem('ul'), sa:createElem('ul'), ae:createElem('ul'), kj:createElem('ul'), ot:createElem('ul')};
-            card.appendChild(blocks.cn);
-            card.appendChild(blocks.ae);
-            card.appendChild(blocks.sa);
-            card.appendChild(blocks.kj);
-            card.appendChild(blocks.ot);            
+            let ct1=createElem('div'); ct1.style.cssText='display:inline-flex;width:100%;align-items: flex-start;';
+            card.append(ct1);
+            ct1.append(blocks.cn, blocks.ae, blocks.sa, blocks.kj, blocks.ot);
+            
+            let onf=function(e,all){
+                let c=e.classList;
+                let wasOn=c.contains('on');
+                if(wasOn)c.remove('on');else c.add('on');
+                if(all===true){
+                    e.closest('ul').query('ul').childNodes.forEach(function(ct){if(wasOn){ct.classList.remove('on');}else{ct.classList.add('on');}});
+                }
+            };
             const keys = Object.keys(_.region);
             for (const key of keys) {
                 let li=createElem('li', '', '<i class="icn icnsmall icn-'+_.region[key].c+'"></i><span>'+_.region[key][_.ar?'ar':'en']+'</span>', 1);
                 li.dataset.countryId=key;
                 const ckeys=Object.keys( _.region[key].cc );
-                if(ckeys.length<2){
-                    li.onclick=function(){
-                        let c=this.classList;
-                        if(c.contains('on'))c.remove('on');else c.add('on');
-                    };
-                    blocks.cn.appendChild(li);
+                if(ckeys.length===1){
+                    li.dataset.cityId=ckeys[0];
+                    li.onclick=function(){ onf(this); };
+                    blocks.cn.append(li);
                 }
                 else {
-                    li.onclick=function(){
-                        console.log(this);
-                        console.log(_.region[this.dataset.countryId].cc);
-                    };
-                    let ul=createElem('ul'); ul.appendChild(li); 
-                    let cul=createElem('ul');
+                    li.onclick=function(){ onf(this, true); };
+                    let ul=createElem('ul'); ul.append(li); 
+                    let cul=createElem('ul');cul.id='cn'+key;
                     for(const cityId of ckeys){                        
                         let ci=createElem('li', '', _.region[key].cc[cityId][_.ar?'ar':'en']);
                         ci.dataset.countryId=key;ci.dataset.cityId=cityId;
-                        cul.appendChild(ci);
+                        ci.onclick=function(){ onf(this); };
+                        cul.append(ci);
                     }
                     
                     let p=null;
@@ -711,20 +722,53 @@ var UI={
                         default: p=blocks.ot; break;                            
                     }                    
                     
-                    let cli=createElem('li'); ul.appendChild(cli);
-                    if(p.childNodes.length>0){
-                        
-                        p.childNodes[p.childNodes.length-1].appendChild(createElem('li','','&nbsp;',1));
-                    }
-                    cli.appendChild(cul);
-                    p.appendChild(ul);
+                    let cli=createElem('li'); ul.append(cli);
+                    if(p.childNodes.length>0){p.childNodes[p.childNodes.length-1].append(createElem('li','','&nbsp;',1));}
+                    cli.append(cul);
+                    p.append(ul);
+                }
+            }
+            
+            let toolbar=createElem('div', 'card-footer');
+            toolbar.style.cssText='position:absolute;bottom:0px;width:calc(100% - 52px);';
+            card.append(toolbar);
+            
+            let okBtn=createElem('button', 'btn blue', 'Confirm');
+            okBtn.onclick=function(){                
+                let selected=$$.query('div#regions').queryAll('li.on');
+                Ad.regions.length=0;
+                selected.forEach(function(i){if(i.dataset.cityId){Ad.regions.push(parseInt(i.dataset.cityId));}});
+                UI.regionChanged();
+                _.close();
+            };
+            let cancelBtn=createElem('button', 'btn blue', 'Cancel');
+            cancelBtn.onclick=_.close;
+            toolbar.append(okBtn, cancelBtn);
+
+        }
+        else { dialog=_.dialogs.regions; }
+        
+        let lis=dialog.queryAll('li.on');
+        lis.forEach(function(i){i.classList.remove('on');});lis.length=0;
+        lis=dialog.queryAll('li');
+        lis.forEach(function(i){if(i.dataset.cityId){if(Ad.regions.indexOf(parseInt(i.dataset.cityId))>=0){i.classList.add('on');}}});
+        
+        for(let i in _.region){
+            let t=dialog.query('ul#cn'+i);
+            if(t){
+                if(t.queryAll('li').length===t.queryAll('li.on').length){
+                    t.parentElement.closest('ul').firstChild.classList.add('on');
                 }
             }
         }
-        else { dialog=_.dialogs.regions; }
-        _.showDialog(dialog);
+
+        _.showDialog(dialog);                
     },
     
+    getCountryByCityId:function(cc){
+        for(let i in this.region){if(this.region[i].cc[cc]){return this.region[i];}}
+        return null;
+    },
     
     getRootName:function(ro){
         return this.dic[ro] ? this.dic[ro].name : '';
@@ -738,41 +782,32 @@ var UI={
         return UI.dic[ro] && UI.dic[ro].purposes[pu] ? UI.dic[ro].purposes[pu] : '';
     },
         
-    getPhone:function(n){
-        
-        let e=$.querySelectorAll('input[type="tel"]')[n];
+    getPhone:function(n){        
+        let e=$$.queryAll('input[type="tel"]')[n];
         console.log('e', e);
         let p=e.closest('li');
         console.log('p',p);
-        let t=p.querySelector('select');
+        let t=p.query('select');
         console.log(t);
-        let phone={c:0, i:'', r:0, t:parseInt(t.value), v:e.value};
-        /*
-        o[cui][p][0][c]	966
-        o[cui][p][0][i]	SA
-        o[cui][p][0][r]	0503995790
-        o[cui][p][0][t]	3
-        o[cui][p][0][v]	+966503995790
-        o[cui][p][0][x]	0
-        */
+        let phone={c:0, i:'', r:0, t:parseInt(t.value), v:e.value};     
        return phone;        
     },
     
     getEmail:function(){
-        return $.querySelector('input[type=email]').value;
+        return $$.query('input[type=email]').value;
     },
     
     setEmail:function(v){
-        $.querySelector('input[type=email]').value=v;
-        $.querySelector('input[type=email]').checkValidity;
+        $$.query('input[type=email]').value=v;
+        $$.query('input[type=email]').checkValidity;
     },
     
     rootChanged:function(ro, pu){
-        $.querySelector('#ad-class').querySelector('a.ro').innerHTML=this.getRootName(ro) + ' / ' + this.getPurposeName(ro, pu);
+        this.adClass.query('a.ro').innerHTML=this.getRootName(ro) + ' / ' + this.getPurposeName(ro, pu);
     },
     
     textChanged:function(text, tag){
-        let ta=$.querySelector('textarea#'+tag);
+        let ta=$$.query('textarea#'+tag);
         ta.value=text;
         ta.onchange(ta);
         ta.oninput(ta);
@@ -783,7 +818,7 @@ var UI={
     },
     
     addressChanged:function(addr){        
-        let node=$.querySelector('#ad-class').querySelector('a.lc');
+        let node=this.adClass.query('a.lc');
         let p=node.innerText.split(': ');
         if(addr){
             Ad.setGMapAddr(addr);
@@ -798,12 +833,30 @@ var UI={
         }
     },
         
+    regionChanged:function(){
+        let rg=this.adClass.query('a.rg');
+        if(!this.regionLabel){this.regionLabel=rg.innerText;}
+        
+        if(Ad.regions.length>0) {
+            let lbl='';
+            Ad.regions.forEach(function(c){
+                if(lbl.length>0)lbl+=', ';
+                let country=UI.getCountryByCityId(c);
+                lbl+=country.cc[c][UI.ar?'ar':'en'];
+            });
+            rg.innerHTML=lbl;
+        }
+        else {
+            rg.innerHTML=this.regionLabel;
+        }
+    },
+    
     close:function(e){
-        $.body.classList.remove('modal-open');
+        $$.classList.remove('modal-open');
         for(let i in UI.dialogs){
             UI.dialogs[i].style.display='none';
             if(UI.dialogs[i].parentElement){
-                $.body.removeChild(UI.dialogs[i]);
+                $$.removeChild(UI.dialogs[i]);
             }
         }
     }
@@ -876,6 +929,7 @@ var Ad={
         _.natural=null;
         _.foreign=null;  
         _.email=null;
+        _.regions.length=0;
     },
     
     parse:function(ad){        
@@ -951,6 +1005,12 @@ var Ad={
                 });
             }
         }
+        console.log(typeof cnt.pubTo);
+        if(typeof cnt.pubTo==='object'){
+            _.regions=Object.values(cnt.pubTo);
+            console.log(UI.getCountryByCityId(_.regions[0]));
+            UI.regionChanged();
+        }
         console.log('Ad', this);   
     },
     
@@ -974,7 +1034,7 @@ var Ad={
     setSectionId:function(se){
         if(this.sectionId!==se){
             this.sectionId=parseInt(se);
-            $.querySelector('#ad-class').querySelector('a.se').innerHTML=this.getSectionName();
+            $$.query('#ad-class').query('a.se').innerHTML=this.getSectionName();
         }        
     },
     
@@ -1043,8 +1103,7 @@ var Ad={
             altRtl:0,
             other:'',
             altother:'',
-            pubTo:{},
-            pub:1
+            pubTo:{}
         };
         
         if (!UI.numbers[1].valid()) {
@@ -1091,6 +1150,8 @@ var Ad={
         }
         
         ad.cui.e = UI.getEmail();
+        
+        _.regions.forEach(function(r){ad.pubTo[r]=r;});
         
         let data={o:ad};
         fetch('/ajax-adsave/', _options('POST', data))
@@ -1497,7 +1558,7 @@ var ContactNumberType={Mobile: 1, MobileWhatsapp: 3, Whatsapp: 5, Landline: 7};
 class ContactNumber{
     constructor(elem) {
         this.tel=elem;
-        this.kind=elem.closest('li').querySelector('select.select-text');
+        this.kind=elem.closest('li').query('select.select-text');
         this.phoneNumber=null;
         this.tel.addEventListener('keydown', enforceFormat);
         this.tel.addEventListener('keyup', formatToPhone);
@@ -1511,7 +1572,7 @@ class ContactNumber{
     }
     
     changed(e){
-        UI.numbers[e.target.closest('li').querySelector('input[type=tel]').dataset.no].verify();
+        UI.numbers[e.target.closest('li').query('input[type=tel]').dataset.no].verify();
         return true;
     }
     

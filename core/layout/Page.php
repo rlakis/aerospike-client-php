@@ -4515,29 +4515,30 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         return $this;
     }
     
-    protected function _header() {
-        if ($this->router()->module=='myads') {
-            header("Link: </web/js/1.0/socket.io.js>; rel=preload; as=script;", false);
+    protected function _header() : void {
+        //error_log(__CLASS__ . '.' . __FUNCTION__ . '.' .$this->router()->module);
+        if ($this->router()->module==='myads') {
+            \header("Link: </web/js/1.0/socket.io.js>; rel=preload; as=script;", false);
         }
-        else if ($this->router()->module=='admin') {
-            header("Link: </web/js/1.0/jsonTree.js>; rel=preload; as=script;", false);
+        else if ($this->router()->module==='admin') {
+            \header("Link: </web/js/1.0/jsonTree.js>; rel=preload; as=script;", false);
         }        
         else if ($this->router()->module==='post') {            
-            header("Link: </web/js/1.0/libphonenumber-min-1.7.10.js>; rel=preload; as=script;", false);
+            \header("Link: </web/js/1.0/libphonenumber-min-1.7.10.js>; rel=preload; as=script;", false);
         }
         
         
         $country_code='';
-        if ($this->router()->countryId && array_key_exists($this->router()->countryId, $this->router()->countries)) {
+        if ($this->router()->countryId && \array_key_exists($this->router()->countryId, $this->router()->countries)) {
             $country_code = '-'.$this->router()->countries[$this->router()->countryId]['uri'];
         }
         echo '<!doctype html>';
         echo '<html lang="', $this->router()->language, $country_code,'" xmlns:og="http://ogp.me/ns#"';
         echo '><head><meta charset="utf-8">';
-        if ($this->router()->module=='myads') {
-            echo '<script async src=/web/js/1.0/socket.io.js></script>';
+        if ($this->router()->module==='myads') {
+            //echo '<script src=/web/js/1.0/socket.io.js async></script>';
         }
-        if ($this->router()->module=='admin') {
+        if ($this->router()->module==='admin') {
             echo '<script async src=/web/js/1.0/jsonTree.js></script>';
         }
         if ($this->router()->module==='post') {
