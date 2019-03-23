@@ -17,7 +17,7 @@ class MCJsonMapper {
                 if ($object->{$property} instanceof MCJsonMapper) {
                     $class_name = get_class($object->{$property});
                     $object->{$property} = new $class_name();
-                    $this->mapper($object->{$property}, $value);  
+                    $this->mapper($object->{$property}, $value);
                 }
                 else {
                     if (is_array($value) && count($value)>0 && isset($object->metadata[$property])) {
@@ -94,7 +94,7 @@ class MCUser extends MCJsonMapper {
             if (!($this->opts instanceof MCUserOptions)) {
                 $this->opts = new MCUserOptions();
             }
-        }
+        }        
     }
     
 
@@ -111,63 +111,61 @@ class MCUser extends MCJsonMapper {
     }
 
     
-    public function set($json) {
+    public function set($json) : void {
         $this->mapper($this, $json);
     }
 
 
-    protected function parseArray(array $record) {
-        if (empty($record)) {
-            return;
-        }
+    protected function parseArray(array $record) : void {
+        if (!empty($record)) {        
+            if (!isset($record[ASD\USER_PROFILE_ID])) {
+                error_log(json_encode($record));
+            }
         
-        if (!isset($record[ASD\USER_PROFILE_ID])) {
-            error_log(json_encode($record));
-        }
+            $this->id = $record[ASD\USER_PROFILE_ID] ?? 0;
+            $this->pid = ($record[ASD\USER_PROVIDER_ID] ?? '')."";
+            $this->email = $record[ASD\USER_PROVIDER_EMAIL] ?? '';
+            $this->prvdr = $record[ASD\USER_PROVIDER] ?? '';
+            $this->fn = $record[ASD\USER_FULL_NAME] ?? '';
+            $this->dn = $record[ASD\USER_DISPLAY_NAME] ?? '';
+            $this->pu = $record[ASD\USER_PROFILE_URL] ?? '';
+            $this->rd = $record[ASD\USER_DATE_ADDED] ?? time();
+            $this->lvts = $record['last_visited'] ?? time();
+            $this->lvl = $record['level'] ?? 0;
+            $this->name = $record['name'] ?? '';
+            $this->um = $record['user_email'] ?? '';
+            $this->up = $record['password'] ?? '';
+            $this->rnk = $record['rank'] ?? 1;
+            $this->pvts = $record['prior_visited'] ?? 0;
+            $this->ps = $record['pblshr_status'] ?? 0;
+            $this->lrts = $record[ASD\USER_LAST_AD_RENEWED] ?? 0;
+            $this->balance = $record[ASD\USER_BALANCE] ?? 0;
+            $this->dependants = $record[ASD\USER_DEPENDANTS] ?? [];
+
+            $this->opts->parseAssoc($record[ASD\USER_OPTIONS] ?? []);
+
+            $this->mobile = new MCMobile();
+
+            $uuid = '';
+            if (isset($record['logged_by_device'])) {
+                $this->device = new MCDevice($record['logged_by_device']);
+                $uuid = $this->device->getUUID();
+            }
         
-        $this->id = $record[ASD\USER_PROFILE_ID] ?? 0;
-        $this->pid = ($record[ASD\USER_PROVIDER_ID] ?? '')."";
-        $this->email = $record[ASD\USER_PROVIDER_EMAIL] ?? '';
-        $this->prvdr = $record[ASD\USER_PROVIDER] ?? '';
-        $this->fn = $record[ASD\USER_FULL_NAME] ?? '';
-        $this->dn = $record[ASD\USER_DISPLAY_NAME] ?? '';
-        $this->pu = $record[ASD\USER_PROFILE_URL] ?? '';
-        $this->rd = $record[ASD\USER_DATE_ADDED] ?? time();
-        $this->lvts = $record['last_visited'] ?? time();
-        $this->lvl = $record['level'] ?? 0;
-        $this->name = $record['name'] ?? '';
-        $this->um = $record['user_email'] ?? '';
-        $this->up = $record['password'] ?? '';
-        $this->rnk = $record['rank'] ?? 1;
-        $this->pvts = $record['prior_visited'] ?? 0;
-        $this->ps = $record['pblshr_status'] ?? 0;
-        $this->lrts = $record[ASD\USER_LAST_AD_RENEWED] ?? 0;
-        $this->balance = $record[ASD\USER_BALANCE] ?? 0;
-        $this->dependants = $record[ASD\USER_DEPENDANTS] ?? [];
-
-        $this->opts->parseAssoc($record[ASD\USER_OPTIONS] ?? []);
-
-        $this->mobile = new MCMobile();
-
-        $uuid = '';
-        if (isset($record['logged_by_device'])) {
-            $this->device = new MCDevice($record['logged_by_device']);
-            $uuid = $this->device->getUUID();
-        }
-        
-        if (isset($record[ASD\USER_DEVICES]) && is_array($record[ASD\USER_DEVICES])) {
-            $this->devices = [];
-            foreach ($record[ASD\USER_DEVICES] as $value) {
-                if ($value[ASD\USER_DEVICE_UUID]!==$uuid) {                
-                    $this->devices[]=new MCDevice($value);
+            if (isset($record[ASD\USER_DEVICES]) && is_array($record[ASD\USER_DEVICES])) {
+                $this->devices = [];
+                foreach ($record[ASD\USER_DEVICES] as $value) {
+                    if ($value[ASD\USER_DEVICE_UUID]!==$uuid) {                
+                        $this->devices[]=new MCDevice($value);
+                    }
                 }
             }
+        
+            $this->jwt['token'] = $record['jwt']['token'] ?? FALSE;
+            $this->jwt['secret'] = $record['jwt']['secret'] ?? FALSE;
+
+            $this->xmpp = $record[ASD\USER_XMPP_CREATED] ?? 0;
         }
-        
-        $this->jwt['token'] = $record['jwt']['token'] ?? FALSE;
-        $this->jwt['secret'] = $record['jwt']['secret'] ?? FALSE;
-        
-        $this->xmpp = $record[ASD\USER_XMPP_CREATED] ?? 0;
     }   
     
     
@@ -282,8 +280,9 @@ class MCUser extends MCJsonMapper {
     
     
     public function getLevel() : int {
-        if ($this->lvl==null)
+        if ($this->lvl===null) {
             $this->lvl=0;
+        }
         return $this->lvl;
     }
     
@@ -738,7 +737,6 @@ class MCDevice extends MCJsonMapper {
 
             $this->rmvd = $as_array[ASD\USER_DEVICE_UNINSTALLED] ?? 0;
             if (!isset($as_array[ASD\USER_DEVICE_DATE_ADDED])) {
-                error_log(json_encode($as_array));
                 $as_array[ASD\USER_DEVICE_DATE_ADDED] = $as_array[ASD\USER_DEVICE_LAST_VISITED];
             }
             $this->dats = $as_array[ASD\USER_DEVICE_DATE_ADDED];
@@ -785,10 +783,12 @@ class MCDevice extends MCJsonMapper {
 
     public function getPreferences() : array {
         if ($this->prefs) {
-            if ($this->prefs[0]=='{')
-                return json_decode($this->prefs, true);
-            else
-                return json_decode(base64_decode($this->prefs), true);
+            if ($this->prefs[0]=='{') {
+                return \json_decode($this->prefs, true);
+            }
+            else {
+                return \json_decode(base64_decode($this->prefs), true);
+            }
         }
         
         return [];
@@ -874,7 +874,7 @@ class MCCallingTime extends MCJsonMapper {
     protected $a; // after   
     
 
-    public function parseAssoc($array) {
+    public function parseAssoc($array) : void {
         $this->t = $array['type'] ?? 'a';
         $this->b = $array['before'] ?? 0;
         $this->a = $array['after'] ?? 0;
@@ -897,7 +897,7 @@ class MCPhoneData extends MCJsonMapper {
     protected $r;
     protected $i;
     
-    public function parseAssoc($array) {
+    public function parseAssoc($array) : void {
         $this->v = $array['humain'];
         $this->t = $array['type'];
         $this->c = $array['country_key'];

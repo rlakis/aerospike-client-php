@@ -228,6 +228,12 @@ var d = {
         d.openWindow(url, '_similar');
     },
     
+    userads:function(e, uid){
+        let url='/myads'+(d.ar?'/':'/en/')+'?sub=pending&fuid='+uid;
+        window.location=url;
+        //d.openWindow(url, window.name);        
+    },
+    
     lookFor:function(e){
         let url=(d.ar?'/':'/en/')+'?cmp='+e.article().id+'&q='+e.dataset.contact;
         d.openWindow(url, '_similar');
@@ -240,7 +246,7 @@ var d = {
         console.log('edit button', this, e);        
         var form = createElem("form");
         form.target = '';
-        form.method = "POST"; // or "post" if appropriate
+        form.method = "POST";
         form.action = '/post'+(d.ar?'/':'/en/');
         var input = createElem("input");
         input.type = "hidden";
@@ -457,9 +463,7 @@ var d = {
     },
     
     ipCheck: function (e) {
-        if (e.dataset.fetched) {
-            return;
-        }
+        if (e.dataset.fetched) { return; }
         let id = e.parentElement.parentElement.parentElement.parentElement.id;
         fetch('/ajax-changepu/?fraud=' + id, {method: 'GET', mode: 'same-origin', credentials: 'same-origin'})
                 .then(res => res.json())
@@ -467,25 +471,17 @@ var d = {
                     console.log('Success:', JSON.stringify(response, undefined, 2));
                     let t = e.innerText === '...' ? '' : e.innerText + '<br>';
                     t += 'Score: ' + response['fraud_score'];
-                    if (response['mobile'])
-                        t += ' | mobile';
-                    if (response['recent_abuse'])
-                        t += ' | abuse';
-                    if (response['proxy'])
-                        t += ' | proxy';
-                    if (response['vpn'])
-                        t += ' | VPN';
-                    if (response['tor'])
-                        t += ' | TOR';
+                    if (response['mobile']) t += ' | mobile';
+                    if (response['recent_abuse']) t += ' | abuse';
+                    if (response['proxy']) t += ' | proxy';
+                    if (response['vpn']) t += ' | VPN';
+                    if (response['tor']) t += ' | TOR';
                     t += '<br>Country: ' + response['country_code'] + ', ' + response['city'];
                     t += '<br>Coordinate: ' + response['latitude'] + ', ' + response['longitude'];
                     t += '<br>IP: ' + response['host'] + ', ' + response['ISP'];
-                    if (response['region'])
-                        t += '<br>Region: ' + response['region'];
-                    if (response['timezone'])
-                        t += '<br>Timezone: ' + response['timezone'];
-                    if (response['ttl'])
-                        t += '<br>TTL: ' + response['ttl'];
+                    if (response['region']) t += '<br>Region: ' + response['region'];
+                    if (response['timezone']) t += '<br>Timezone: ' + response['timezone'];
+                    if (response['ttl']) t += '<br>TTL: ' + response['ttl'];
                     e.innerHTML = t;
                     e.dataset.fetched = 1;
                 })

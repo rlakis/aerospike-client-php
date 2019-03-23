@@ -115,7 +115,10 @@ class PostAd extends Page {
         if (!$this->user()->isLoggedIn()) { return; }
             
         if ($this->isUserMobileVerified) {
-            
+
+            error_log( \json_encode($this->user()->getProfile()->getMobileNumber()) );
+                        
+
             $seqHide=false;
             $preview='';
             $altPreview='';
@@ -317,8 +320,15 @@ class PostAd extends Page {
                 ?></style><?php
             }
             
+            $current_country_code = isset($this->router()->countries[$this->router()->countryId]['uri']) ? \strtoupper($this->router()->countries[$this->router()->countryId]['uri']) : '';
+            $activation_country_code = '';
             
-            echo '<form id=adForm action="" method=post data-id=', $this->id, '>';
+            $ip=IPQuality::fetchJson(false)['ipquality'];
+            echo '<form id=adForm action="" method=post data-id=', $this->id, 
+                    ' data-ip-country="', $ip['country_code']??'', '" data-cur-country="', $current_country_code, '"',
+                    ' data-recent-abuse=', $ip['recent_abuse'],
+                    ' data-proxy=', $ip['proxy'], ' data-tor=', $ip['tor'], ' data-vpn=', $ip['vpn'], 
+                    ' data-score=', $ip['fraud_score'], '>';
             echo '<div class=col-12><div class=card>';                       
             
             if ($this->user()->isLoggedIn(9)) {
@@ -902,7 +912,7 @@ class PostAd extends Page {
                 return;
             }
             
-            ?><div class=row><div class=col-12><div id=main class=rct><?php
+            ?><div class=row><div class=col-12><div id=main><?php
             $this->mainMobile();    
             ?></div></div></div><?php
             

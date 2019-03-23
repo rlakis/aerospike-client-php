@@ -1094,7 +1094,7 @@ class MyAds extends Page {
                                 ?><button onclick="d.suspend(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['suspend'] ?></button><?php
                             }
                             if ($isSuperAdmin && $filters['uid']==0) {
-                                ?><button href="/myads/<?= $this->router()->isArabic()?'':'en/' ?>?sub=pending&fuid=<?= $ad['WEB_USER_ID'] ?>"><?= $this->lang['user_type_option_1'] ?></button><?php
+                                ?><button onclick="d.userads(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['user_type_option_1'] ?></button><?php
                             }
                             
                             $contactInfo=$this->getContactInfo($content);                          

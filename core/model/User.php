@@ -331,12 +331,12 @@ class User {
     
     
     public function getProfile() : MCUser {
-        if ($this->info['id']) {          
-            if ($this->data && $this->data->getID()==$this->info['id']) {
+        if ($this->id()) {          
+            if ($this->data && $this->data->getID()===$this->id()) {
                 return $this->data;
             }
             
-            $this->data = new MCUser($this->info['id']);
+            $this->data = new MCUser($this->id());
             $this->info['level'] = $this->data->getLevel();
             $this->info['verified'] = $this->data->isMobileVerified();
             $this->data->getOptions()->setSuspensionTime($this->data->getMobile()->getSuspendSeconds());

@@ -38,10 +38,7 @@ class Page extends Site {
         parent::__construct(); 
         
         if ($this->user()->id()) {
-            if ($this->router()->isApp) {
-                $this->isUserMobileVerified = true;
-            }
-            elseif ($this->user->info['level']==9 && $this->user->info['id']!=1 && $this->user->info['id']!=2) {
+            if ($this->user()->level()===9 && $this->user()->id()!==1 && $this->user()->id()!==2) {
                 $this->isUserMobileVerified = true;
             }
             else{
@@ -106,15 +103,9 @@ class Page extends Site {
         
         
         if ($this->router()->isMobile) {
-            $this->inlineCss.='.str{padding:15px 0}.ls li.h{background-color:cadetblue}';
             $this->includeCssByCountry();
             if($this->router()->module=='signin'){
                 $this->inlineCss.='.g-recaptcha{display:inline-block;min-height:78px}li.recap{text-align:center}';
-            }
-            if(date('d-m')=='14-02'){
-                if($this->router()->module=='index' || $this->router()->module=='search' || $this->router()->module=='detail'){
-                    $this->inlineCss.='body{background:url('.$this->router()->cfg['url_css'].'/i/iv'.$this->router()->_png.') repeat top left}';
-                }
             }
         }        
 

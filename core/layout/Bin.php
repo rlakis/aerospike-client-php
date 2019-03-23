@@ -35,18 +35,18 @@ class AjaxHandler extends Site {
 
     function process(){
         $res=['RP'=>$this->rp, 'MSG'=>$this->msg, 'DATA'=>$this->data];
-        header("Content-Type: application/json");
-        error_log(json_encode($res));
+        \header("Content-Type: application/json");
+        //error_log(json_encode($res));
         echo json_encode($res);
     }
 
     function processRaw($res){
-        header("Content-Type: application/json");
+        \header("Content-Type: application/json");
         echo json_encode($res);
     }
     
     function processJson($res){
-        header("Content-Type: application/json");
+        \header("Content-Type: application/json");
         echo $res;
     }
 

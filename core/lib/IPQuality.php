@@ -368,7 +368,7 @@ class IPQuality {
 
     public static function getClientIP() {
         if ($_SERVER['REMOTE_ADDR']) { return $_SERVER['REMOTE_ADDR']; }
-	if ($_SERVER['HTTP_CLIENT_IP']) { return $_SERVER['HTTP_CLIENT_IP']; }
+        if ($_SERVER['HTTP_CLIENT_IP']) { return $_SERVER['HTTP_CLIENT_IP']; }
         if ($_SERVER['HTTP_X_FORWARDED_FOR']) { return $_SERVER['HTTP_X_FORWARDED_FOR']; }
         if ($_SERVER['HTTP_X_FORWARDED']) { return $_SERVER['HTTP_X_FORWARDED']; }
         if ($_SERVER['HTTP_FORWARDED_FOR']) { return $_SERVER['HTTP_FORWARDED_FOR']; }
