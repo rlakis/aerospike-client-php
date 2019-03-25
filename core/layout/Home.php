@@ -5,9 +5,9 @@ class Home extends Page {
     
     var $hasBottomBanner = false;
 
-    function __construct(\Core\Model\Router $router) {
-        header('Vary: User-Agent');
-        parent::__construct($router);
+    function __construct() {
+        \header('Vary: User-Agent');
+        parent::__construct();
         $this->lang['description']=$this->lang['home_description'];
         if ($this->router()->countryId) {
             $this->lang['description'].=' '.$this->lang['in'].' '.$this->title;
@@ -182,6 +182,7 @@ class Home extends Page {
         }else{
             ?><span onclick="setOrder(this)" class="rbt subit numz">9-1</span><?php            
         }
+        
         $this->globalScript.='
             
 var ulList=[];
@@ -281,11 +282,12 @@ var setOrder=function(e)
     }
 
     
-    function _main_pane(){
+    // deprecated
+    function _main_pane(){        
         $adLang='';
-        if ($this->router()->language!="ar") $adLang=$this->router()->language.'/';
+        if (!$this->router()->isArabic()) { $adLang=$this->router()->language.'/'; }
         
-        ?><div class="tv rcb"><div class="tx sh"><div class=tz><?= $this->lang['billboard'] ?><p class="ctr"><?php
+        ?><div class="tv rcb"><div class="tx sh"><div class=tz><?= $this->lang['billboard'] ?><p class=ctr><?php
         if (!$this->router()->siteTranslate) {
             if ($this->user->info['id']){
                 echo '<a class=bt href="/post/'.$adLang.'" rel="nofollow">'.$this->lang['placeAd'].'</a>';
@@ -309,7 +311,6 @@ var setOrder=function(e)
             $link = $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $id);
             $sections[$id] = $this->router()->database()->getSectionsData($this->router()->countryId, $this->router()->cityId, $id, $this->router()->language, true);
         }
-        $count = count($sections);
         foreach ($sections as $root_id => $items) {
             echo '<div class=col-4><div class=card>';
             echo '<div class=card-header style="background-color:var(--color-',$root_id,');"><i class="icn icn-', $root_id, '"></i></div>';
@@ -321,7 +322,7 @@ var setOrder=function(e)
                 if ($section['counter']==0) { break; }
                 $link = $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $root_id, $section_id);
                 $cls = $this->checkNewUserContent($section['unixtime']) ? ' hot': '';
-                echo '<li><a href="', $link,'">', $section['name'], '<span class="float-right', $cls, '">', number_format($section['counter'],0), '</span></a></li>';
+                echo '<li><a href="', $link,'">', $section['name'], '<span class="float-right', $cls, '">', \number_format($section['counter'],0), '</span></a></li>';
                 $i++;
                 if ($i>=10) { break; }
             }

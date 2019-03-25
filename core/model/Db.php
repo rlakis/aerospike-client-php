@@ -56,7 +56,7 @@ class DB {
     }
 
 
-    public static function getCacheStorage() {
+    public static function getCacheStorage() : MCCache {
         if (!isset(DB::$Cache)) {
             DB::$Cache = new MCCache();
         }
@@ -82,7 +82,7 @@ class DB {
     }
     
         
-    private function setTransactionIsolation($read) {
+    private function setTransactionIsolation($read) : void {
         if ($read != DB::$Readonly) { $this->commit(); }        
         
         if ($read) {
@@ -98,7 +98,7 @@ class DB {
     }
     
     
-    public function inTransaction() {
+    public function inTransaction() : bool {
         if (DB::$Instance===NULL) {
             return FALSE;
         }
@@ -107,16 +107,16 @@ class DB {
     }
     
     
-    public function commit(bool $restartTransaction=FALSE) {
+    public function commit(bool $restartTransaction=FALSE) : bool {
         if($this->inTransaction()) {
             try {
                 DB::$Instance->commit();
-                if ($restartTransaction==TRUE) {
+                if ($restartTransaction===TRUE) {
                     DB::$Instance->beginTransaction();           
                 }
                 return TRUE;
             } 
-            catch (Exception $ex) {
+            catch (\Exception $ex) {
                 error_log($ex->getMessage());
             }
         }
@@ -141,7 +141,7 @@ class DB {
     }
     
     
-    private function newInstance() {
+    private function newInstance() : void {
         DB::$Instance = new \PDO(DB::$dbUri, \Config::instance()->get('db_user'), \Config::instance()->get('db_pass'),
                     [
                         \PDO::ATTR_PERSISTENT=>TRUE,
@@ -226,7 +226,7 @@ class DB {
     }
     
     
-    public static function getCache() {
+    public static function getCache() : MCCache {
         return self::$Cache;
     }
     
@@ -245,8 +245,8 @@ class DB {
     }	
 
 
-    function checkCorrectWriteMode($query) {
-        if (preg_match('/^(insert|update|delete|execute)/i', trim($query))) {
+    function checkCorrectWriteMode($query) : void {
+        if (\preg_match('/^(insert|update|delete|execute)/i', \trim($query))) {
             $this->setTransactionIsolation(false);
         }
     }
@@ -304,7 +304,7 @@ class DB {
                 error_log('CODE: '.$runtime.'/'.$pdoException->getCode().' | '.$pdoException->getMessage().PHP_EOL.$query.PHP_EOL.var_export($params, TRUE));
             }
         }
-        catch (Exception $ex) {
+        catch (\Exception $ex) {
             error_log(__FUNCTION__ . ' second exception '.$ex->getMessage());
             //if ($stmt instanceof \PDOStatement) { $this->closeStatement($stmt); }
             unset($stmt);
@@ -315,7 +315,7 @@ class DB {
     }
     
     
-    function closeStatement(\PDOStatement $stmt) {     
+    function closeStatement(\PDOStatement $stmt) : void {     
         $res = $stmt->closeCursor();
         if ($res==FALSE) {
             error_log("close statement failed!");

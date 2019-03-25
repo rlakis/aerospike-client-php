@@ -413,7 +413,7 @@ class MyAds extends Page {
     }
 
     
-    function getAdSection($ad, int $rootId=0, &$isMultiCountry=false) {
+    function getAdSection($ad, int $rootId=0, &$isMultiCountry=false) : string {
         $section='';
         switch($ad['PURPOSE_ID']) {
             case 1:
@@ -445,7 +445,7 @@ class MyAds extends Page {
        if (isset($adContent['pubTo'])) {
             $fieldIndex=2;
             $comma=',';
-            if ($this->router()->language=='ar'){
+            if ($this->router()->isArabic()){
                 $fieldIndex=1;
                 $comma='،';
             }
@@ -497,12 +497,12 @@ class MyAds extends Page {
         }
 
         if ($section) {
-            if ($this->isMobile) {
-                $section='<b class="ah">'.$section.'</b>';
-            }
-            else {
-                $section='<span>'.$section.' - <b>'.$this->formatSinceDate(strtotime($ad['LAST_UPDATE'])).'</b></span>';
-            }
+            //if ($this->isMobile) {
+            //    $section='<b class="ah">'.$section.'</b>';
+            //}
+            //else {
+            $section='<span>'.$section.' - <b>'.$this->formatSinceDate(strtotime($ad['LAST_UPDATE'])).'</b></span>';
+            //}
         }
         return $section;
     }

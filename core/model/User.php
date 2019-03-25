@@ -2742,68 +2742,79 @@ class User {
     
     
     function getSessionHandlerCookieData() : void {
-        $data=null;
+        //$data=null;
         $cookie = filter_input(INPUT_COOKIE, 'mourjan_user', FILTER_DEFAULT, ['options'=>['default'=>'{}']]);
-        if ($cookie) {
-            $data = \json_decode($cookie);
-            if (json_last_error()==JSON_ERROR_NONE) {
-                if (isset($data->mu)) {
-                    $this->params['mourjan_user']=1;
-                    if (isset($data->lg) && ($data->lg==='ar'||$data->lg==='en'||$data->lg==='fr')) {
-                        $this->params['slang']=$data->lg;
-                    }
-                    $this->update();
+        //if ($cookie) {
+        $data = \json_decode($cookie);
+        if (\json_last_error()===JSON_ERROR_NONE) {
+            if (isset($data->mu)) {
+                $this->params['mourjan_user']=1;
+                if (isset($data->lg) && ($data->lg==='ar'||$data->lg==='en'||$data->lg==='fr')) {
+                    $this->params['slang']=$data->lg;
                 }
-            }
-            else {
-                error_log(__FUNCTION__.'('.json_last_error().') '.json_last_error_msg().PHP_EOL.$cookie);
-            }
-        }              
-    }
-
-    
-    function getCookieData() {
-        $data=null;
-        if (isset ($_COOKIE['mourjan_user'])) {
-            $data=json_decode($_COOKIE['mourjan_user']);
-            if (is_object($data)) {
-                if (isset($data->lv) && is_numeric($data->lv) && $data->lv>0) {
-                    $this->params['last_visit']=$data->lv;
-                }
-                if (isset($data->on) && in_array($data->on,array(0,1))) {
-                    $this->params['keepme_in']=$data->on;
-                }
-                if (isset($data->m) && in_array($data->m,array(0,1))) {
-                    $this->params['mobile']=$data->m;
-                }
-                if (isset($data->or) && in_array($data->or,array(0,1))) {
-                    $this->params['catsort']=$data->or;
-                }
-                //mobile screen dimension
-                if (isset($data->sc) && is_array($data->sc) && count($data->sc)==2) {
-                    $this->params['screen']=$data->sc;
-                }
-
-                if (isset($data->mu)) {
-                    $this->params['mourjan_user']=1;
-                }                
+                $this->update();
             }
         }
+        else {
+            error_log(__FUNCTION__.'('.json_last_error().') '.json_last_error_msg().PHP_EOL.$cookie);
+        }
+        //}              
+    }
+
+    
+    function getCookieData() : void {
+        //$data=null;
+        $cookie = filter_input(INPUT_COOKIE, 'mourjan_user', FILTER_DEFAULT, ['options'=>['default'=>'{}']]);
+        $data = \json_decode($cookie);
+        //if (isset ($_COOKIE['mourjan_user'])) {
+            //$data=json_decode($_COOKIE['mourjan_user']);
+        if (\json_last_error()===JSON_ERROR_NONE) {
+            if (isset($data->lv) && \is_numeric($data->lv) && $data->lv>0) {
+                $this->params['last_visit']=$data->lv;
+            }
+            if (isset($data->on) && \in_array($data->on, [0,1])) {
+                $this->params['keepme_in']=$data->on;
+            }
+            if (isset($data->m) && \in_array($data->m, [0,1])) {
+                $this->params['mobile']=$data->m;
+            }
+            if (isset($data->or) && \in_array($data->or, [0,1])) {
+                $this->params['catsort']=$data->or;
+            }
+            //mobile screen dimension
+            if (isset($data->sc) && \is_array($data->sc) && \count($data->sc)===2) {
+                $this->params['screen']=$data->sc;
+            }
+
+            if (isset($data->mu)) {
+                $this->params['mourjan_user']=1;
+            }
+            
+            if (isset($data->cn) && $data->cn>0) {
+                $this->params['country']=$data->cn;
+            }
+        }
+        //}
     }
     
 
-    function setCookieData() {
-        if ($this->config->modules[$this->site->router()->module][0]=='Bin') { return; }
+    function setCookieData() : void {
+        //error_log(__CLASS__.'.'.__FUNCTION__. ' '.$this->config->get('site_domain'));
+        if ($this->config->modules[$this->site->router()->module][0]==='Bin') { return; }
         $info=['lv'=>time(), 'ap'=>($this->site->router()->isApp?1:0)];       
         
-        if(isset($this->params['lang']) && $this->params['lang']) {
+        if (isset($this->params['lang']) && $this->params['lang']) {
             $info['lg']=$this->params['lang'];
         }
         if (isset($this->params['country']) && $this->params['country']) {
-            $info['cn']=  $this->params['country'];
+            $info['cn']=$this->params['country'];
+        }
+        elseif(isset(\Core\Model\Router::instance()->cookie->cn) && \Core\Model\Router::instance()->cookie->cn>0) {
+            // fix search all countries preserve user selected country
+            $info['cn']=\Core\Model\Router::instance()->cookie->cn;
         }
         if (isset($this->params['city']) && $this->params['city']) {
-            $info['c']=  $this->params['city'];
+            $info['c']=$this->params['city'];
         }
         if(isset($this->params['mobile'])) {
             $info['m']=$this->params['mobile'];
@@ -2823,20 +2834,15 @@ class User {
             $info['mu']=1;    
         }
                 
-        if (isset($_COOKIE['mourjan_usr'])) {
-            setcookie('mourjan_usr', '', 1,'/','.mourjan.com');
-            setcookie('mourjan_usr', '', 1,'/',$this->cfg['site_domain']);
-        }
+        //if (isset($_COOKIE['mourjan_usr'])) {
+        //    \setcookie('mourjan_usr', '', 1,'/','.mourjan.com');
+        //    \setcookie('mourjan_usr', '', 1,'/',$this->cfg['site_domain']);
+        //}
         
-        setcookie('mourjan_user', json_encode($info), time()+31536000,'/', $this->config->get('site_domain'), false);
+        \setcookie('mourjan_user', \json_encode($info), time()+31536000,'/', $this->config->get('site_domain'), false);
         
-        /*
-        if(isset($_COOKIE['mourjan_log']) || isset($_COOKIE['mourjan_login'])) {
-            // deprecated
-            setcookie('mourjan_login', '', 1,'/','.mourjan.com');
-            setcookie('mourjan_login', '', 1,'/',$this->cfg['site_domain']);
-            setcookie('mourjan_log', '', 1,'/',$this->cfg['site_domain']);
-        }*/
+        error_log(__CLASS__.'.'.__FUNCTION__. ' -> '.\json_encode($info));
+        
     }
     
     

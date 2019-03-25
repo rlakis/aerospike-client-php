@@ -28,8 +28,8 @@ class PostAd extends Page {
         $this->checkSuspendedAccount();
         
         $tmp = $this->get('ad');
-        error_log(var_export($_POST, true));
-        if ($tmp=='new') {
+        //error_log(var_export($_POST, true));
+        if ($tmp==='new') {
             unset($this->user->pending['post']);
             $this->user->update();
         }
@@ -114,11 +114,14 @@ class PostAd extends Page {
     function mainMobile() {
         if (!$this->user()->isLoggedIn()) { return; }
             
-        if ($this->isUserMobileVerified) {
-
-            error_log( \json_encode($this->user()->getProfile()->getMobileNumber()) );
-                        
-
+        if ($this->isUserMobileVerified) {                    
+            $activation_country_code='';
+            $number = $this->user()->getProfile()->getMobileNumber();
+            if($number>0){
+                $numberValidator = \libphonenumber\PhoneNumberUtil::getInstance();
+                $num = $numberValidator->parse($number, 'LB');
+                $activation_country_code = $numberValidator->getRegionCodeForNumber($num);
+            }
             $seqHide=false;
             $preview='';
             $altPreview='';
@@ -321,18 +324,18 @@ class PostAd extends Page {
             }
             
             $current_country_code = isset($this->router()->countries[$this->router()->countryId]['uri']) ? \strtoupper($this->router()->countries[$this->router()->countryId]['uri']) : '';
-            $activation_country_code = '';
             
             $ip=IPQuality::fetchJson(false)['ipquality'];
             echo '<form id=adForm action="" method=post data-id=', $this->id, 
                     ' data-ip-country="', $ip['country_code']??'', '" data-cur-country="', $current_country_code, '"',
+                    ' data-act-country="', $activation_country_code, '"',
                     ' data-recent-abuse=', $ip['recent_abuse'],
                     ' data-proxy=', $ip['proxy'], ' data-tor=', $ip['tor'], ' data-vpn=', $ip['vpn'], 
                     ' data-score=', $ip['fraud_score'], '>';
             echo '<div class=col-12><div class=card>';                       
             
             if ($this->user()->isLoggedIn(9)) {
-                $this->globalScript.='var PVC=1;';                
+                //$this->globalScript.='var PVC=1;';                
                 echo '<div class=card-content>', '<a class="btn blue float-right" href="javascript:void(0)" onclick="toLower()">Lower case</a></div>';               
             }
              echo '</div></div>';

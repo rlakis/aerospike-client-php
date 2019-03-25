@@ -1,11 +1,11 @@
 <?php
 namespace Core\Model;
 
-use libphonenumber\PhoneNumber;
-use libphonenumber\PhoneNumberToCarrierMapper;
-use libphonenumber\PhoneNumberUtil;
+//use libphonenumber\PhoneNumber;
+//use libphonenumber\PhoneNumberToCarrierMapper;
+//use libphonenumber\PhoneNumberUtil;
 
-include_once 'Ad.php';
+\Config::instance()->incModelFile('Ad');
 
 class Classifieds {
 

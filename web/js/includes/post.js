@@ -258,6 +258,7 @@ var UI={
     init:function(){
         let _=this;
         
+        console.log(_.adForm.dataset);
         console.log('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''));
         
         fetch('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''), _options('GET'))
@@ -1339,6 +1340,9 @@ var Prefs={
                 }
             }
         }
+        let rs=UI.adForm.dataset;
+        if(rs.actCountry.length===2){_.activationCountryCode=rs.actCountry;}
+        if(rs.ipCountry.length===2 && rs.ipCountry===rs.curCountry && rs.tor==='0' && rs.vpn==='0' && rs.proxy==='0'){_.carrierCountryCode=rs.ipCountry;}
         console.log(_);
     },
     

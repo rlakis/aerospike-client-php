@@ -260,7 +260,8 @@ class Search extends Page {
                     }
                 }
                 
-            }elseif ($this->router()->sectionId) {
+            }
+            elseif ($this->router()->sectionId) {
                 $this->extended = $this->router()->db->getSectionTagsData($this->router()->countryId, $this->router()->cityId, $this->router()->sectionId, $this->router()->language);
             }
         }

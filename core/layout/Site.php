@@ -2,15 +2,12 @@
 
 \Config::instance()->incModelFile('NoSQL')->incModelFile('Classifieds')
         ->incModelFile('User')->incLibFile('SphinxQL');
-
         
 use Core\Model\Router;
 use Core\Model\Classifieds;
-use Core\Model\NoSQL;
 use Core\Lib\SphinxQL;
 use ZammadAPIClient\Client;
 use ZammadAPIClient\ResourceType;
-
 
 class Site {
     public $user;
@@ -52,14 +49,9 @@ class Site {
     }
     
     
-    public function router() : Router {
-        return $this->router;
-    }
+    public function router() : Router { return $this->router; }
     
-    
-    public function user() : User {
-        return $this->user;
-    }
+    public function user() : User { return $this->user; }
     
     
     function checkUserGeo() {
@@ -88,28 +80,28 @@ class Site {
         return false;
     }
 
-    
-    function BuildExcerpts($text, $length = 0, $separator = '...') {
-        if ($length) {
-            $str_len = mb_strlen($text, 'UTF-8');
-            if ($str_len > $length) {                
-                $text = trim(preg_replace('/\x{200B}.*/u', '', $text));
-                $text = trim(preg_replace('/[\-+=<>\\&:;,.]$/', '', $text));
-                
-                $str_len = mb_strlen($text, 'UTF-8');
-                if ($str_len > $length) {
-                    $text = mb_substr($text, 0, $length, 'UTF-8');
-                    $lastSpace = strrpos($text, ' ');
-                    $text   = substr($text, 0, $lastSpace);
-                    $text = trim(preg_replace('/[\-+=<>\\&:;,.]$/', '', $text));
-                }
-                
-                $text = trim($text).$separator;
-            }
-        }
-        return $text;
-    }
-    
+//    
+//    function BuildExcerpts($text, $length = 0, $separator = '...') {
+//        if ($length) {
+//            $str_len = mb_strlen($text, 'UTF-8');
+//            if ($str_len > $length) {                
+//                $text = trim(preg_replace('/\x{200B}.*/u', '', $text));
+//                $text = trim(preg_replace('/[\-+=<>\\&:;,.]$/', '', $text));
+//                
+//                $str_len = mb_strlen($text, 'UTF-8');
+//                if ($str_len > $length) {
+//                    $text = mb_substr($text, 0, $length, 'UTF-8');
+//                    $lastSpace = strrpos($text, ' ');
+//                    $text   = substr($text, 0, $lastSpace);
+//                    $text = trim(preg_replace('/[\-+=<>\\&:;,.]$/', '', $text));
+//                }
+//                
+//                $text = trim($text).$separator;
+//            }
+//        }
+//        return $text;
+//    }
+//    
     
     function findFlashUrl($entry) {
         foreach ($entry->mediaGroup->content as $content) {
@@ -222,7 +214,7 @@ class Site {
     }
 
 
-    function checkNewUserContent($diff){
+    function checkNewUserContent($diff) : bool {
         return (isset($this->user->params['last_visit']) && $this->user->params['last_visit']<$diff);
     }
 
@@ -243,7 +235,7 @@ class Site {
     }
 
     
-    function formatSinceDate($seconds) {
+    function formatSinceDate($seconds) : string {
         $stamp='';
         $seconds=time()-$seconds;
         if ($seconds<0) {
@@ -282,23 +274,28 @@ class Site {
     }
 
 
-    function formatPlural($number, $fieldName){
+    function formatPlural($number, $fieldName) : string {
         $str='';
         if ($number==1) {
             if ($this->router->language=='ar') {
                 $str=$this->lang[$fieldName];
-            }else {
+            }
+            else {
                 $str='1 '.$this->lang[$fieldName];
             }
-        }elseif ($number==2) {
+        }
+        elseif ($number==2) {
             if ($this->router->language=='ar') {
                 $str=$this->lang['2'.$fieldName];
-            }else {
+            }
+            else {
                 $str='2 '.$this->lang['2'.$fieldName];
             }
-        }elseif ($number>=3 && $number<11) {
+        }
+        elseif ($number>=3 && $number<11) {
             $str=$number.' '.$this->lang['3'.$fieldName];
-        }else {
+        }
+        else {
             $str=number_format($number).' '.$this->lang[$fieldName.'s'];
         }
         return $str;
@@ -319,15 +316,13 @@ class Site {
     }
 */
 
-    function initSphinx($forceInit=false) {
+    function initSphinx($forceInit=false) : void {
         if ($this->router->db->ql) {
-            if ($forceInit) {
-                $this->router->db->ql->resetFilters();               
-            }
-            return;
+            if ($forceInit) { $this->router->db->ql->resetFilters(); }
         }
-
-        $this->router->db->ql = new SphinxQL($this->router->cfg['sphinxql'], $this->router->cfg['search_index']);        
+        else {
+            $this->router->db->ql = new SphinxQL($this->router->cfg['sphinxql'], $this->router->cfg['search_index']);
+        }
     }
     
     
@@ -604,8 +599,8 @@ class Site {
     }
     
     
-    function isEmail($email){
-        if(preg_match('/(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/', $email)){
+    function isEmail($email) : bool {
+        if (preg_match('/(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/', $email)) {
             return true;
         }
         return false;
@@ -685,91 +680,7 @@ class Site {
                 
         return 1;                
     }
-    
-    
-    function faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0) {
-        $key='mEI5PRfHaBvbn6El48yZcX492NLb5Cu5';
-        $url = 'http://io.mourjan.com:8080/api/v1/authenticate';
-     
-        $myvars = 'username=rlakis@berysoft.com&password=GQ71BUT2&api_key='.$key;
-        $ch = curl_init( $url );
-        curl_setopt( $ch, CURLOPT_POST, 1);
-        curl_setopt( $ch, CURLOPT_POSTFIELDS, $myvars);
-        curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt( $ch, CURLOPT_HEADER, 0);
-        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
 
-        $auth = json_decode(curl_exec( $ch ));
-        
-        
-        $url = 'http://io.mourjan.com:8080/api/v1/helpdesk/create?user_id='.$auth->user_id.'&token='.$auth->token;
-        $myvars = array();
-        $myvars['api_key'] = $key;
-        $myvars['user_id'] = $auth->user_id;
-        $myvars['token'] = $auth->token;
-        $myvars['subject'] = $subject;
-        $myvars['body'] = $message;
-        $myvars['helptopic']=1;
-        $myvars['email']=$fromEmail;
-        $myvars['sla']=1;
-        $myvars['priority']=2;
-        $myvars['code']='0';
-        $myvars['mobile']=null;//'9611487521';
-        $myvars['phone']='';
-
-        if ($this->user->info['id'])
-        {
-            $user_name = $this->user->info['name'] ? $this->user->info['name'] : 'Anonymous';
-            $myvars['subject'].=" - ". $this->user->info['id'] . " - ".$user_name;
-            if ($user_name!=='Anonymous'){
-                $fromName = $this->user->info['name'];
-            }
-
-            if (isset($this->user->info['email']) && strpos($this->user->info['email'], '@')!==FALSE)
-            {
-                $myvars['email'] = $this->user->info['email'];
-            }
-        }
-
-        $name = preg_split('/\s+/', trim($fromName), -1, PREG_SPLIT_NO_EMPTY);
-        $myvars['first_name']= $name[0];
-        $myvars['last_name']='';
-        for($i=1; $i<count($name); $i++)
-        {
-            $myvars['last_name'].=$name[$i]." ";
-        }
-        $myvars['last_name']= trim($myvars['last_name']);
-
-        if ($fromName=='Abusive Report' && $reference>0)
-        {
-            //$ticket->aid = $reference;
-            //$ticket->topicId=12;
-            //$ticket->priority='High';
-            $myvars['subject'].= " - {$reference}";
-        }
-        
-        $ch = curl_init( $url );
-        curl_setopt( $ch, CURLOPT_POST, 1);
-        curl_setopt( $ch, CURLOPT_POSTFIELDS, $myvars);
-        curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt( $ch, CURLOPT_HTTPHEADER, array( 'Expect:', 'X-XSRF-TOKEN: '.$auth->token));
-        curl_setopt( $ch, CURLOPT_HEADER, 1);
-        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
-
-        $response = curl_exec( $ch );
-        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        if ($res === FALSE || $status!=200) {
-            $err = curl_error($ch);
-            error_log($err);
-            return 0;
-        }
-        curl_close($ch);
-        
-        return 1;
-    }
-      
-        
-        
       
     function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0, $helpTopic=1) {
         $res = $this->zammad($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account);
@@ -824,7 +735,7 @@ class Site {
     }
     
     
-    function getAdSection($ad) {
+    function getAdSection($ad) : string {
         $section = '';
         $fieldNameIndex=1+$this->lnIndex;
         if (!empty($this->router->sections)) {
@@ -843,7 +754,7 @@ class Site {
                     $section = $this->router->purposes[$ad['pu']][$fieldNameIndex] . ' ' . $section;
                     break;
                 case 3:
-                    if ($this->router->language == 'ar') {
+                    if ($this->router()->isArabic()) {
                         $in = ' ';
                         $section = 'وظائف ' . $section;
                     }
@@ -853,8 +764,9 @@ class Site {
                     break;
                 case 4:
                     $in = ' ';
-                    if ($this->router->language == "en")
-                        $in = ' ' . $this->lang['in'] . ' ';
+                    if (!$this->router()->isArabic()) {
+                        $in.= $this->lang['in'] . ' ';
+                    }
                     $section = $this->router->purposes[$ad['pu']][$fieldNameIndex] . $in . $section;
                     break;
                 case 5:
@@ -887,5 +799,3 @@ class Site {
     }
 
 }
-
-?>

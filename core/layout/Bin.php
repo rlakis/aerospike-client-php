@@ -5703,7 +5703,7 @@ class Bin extends AjaxHandler{
     }
     
     
-    function getAdSection($ad, $rootId=0) {
+    function getAdSection($ad, $rootId=0) : string {
         $section='';
         switch($ad['PURPOSE_ID']){
             case 1:

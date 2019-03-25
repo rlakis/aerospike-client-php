@@ -9,7 +9,7 @@ class Router extends \Singleton {
     var $uri;
     
     private $config;
-    public $cookie;
+    public $cookie = null;
     var $pageTitle = ['ar'=>'', 'en'=>''];
     var $language = '';
     var $extendedLanguage = '';
@@ -44,8 +44,8 @@ class Router extends \Singleton {
     var $force_search = false;
     var $isDynamic = false;
     var $isMobile = false;
-    var $isApp = 0;
     public $isAMP = 0;
+    public $isApp = 0;
     public $client_ip;
     var $host = 'www.mourjan.com';
     var $referer = '';
@@ -75,7 +75,7 @@ class Router extends \Singleton {
         
         if (isset($argc)) { return; }
 
-        if(isset($_GET['shareapp'])) {
+        if (isset($_GET['shareapp'])) {
             $device = new \Detection\MobileDetect();
             if($device->isMobile()) {
                 if( $device->isAndroidOS() ) {
@@ -87,17 +87,21 @@ class Router extends \Singleton {
             }
         }
         
-        if (isset ($_COOKIE['mourjan_user'])) {
-            $this->cookie=json_decode($_COOKIE['mourjan_user']);            
-            if (!is_object($this->cookie)) {
-                $this->cookie=null;
-            }
-        }
+        $cmu=\filter_input(INPUT_COOKIE, 'mourjan_user', FILTER_DEFAULT, ['options'=>['default'=>'{}']]);
+        $this->cookie= \json_decode($cmu);
+        error_log('cc '.var_export($this->cookie, true));
         
-        $this->session_key = session_id();
+//        if (isset ($_COOKIE['mourjan_user'])) {
+//            $this->cookie=\json_decode($_COOKIE['mourjan_user']);            
+//            if (!\is_object($this->cookie)) {
+//                $this->cookie=null;
+//            }
+//        }
+        
+        $this->session_key = \session_id();
         $_session_params = $_SESSION['_u']['params'] ?? [];
                 
-        $this->isAcceptWebP = (isset($_SERVER['HTTP_ACCEPT']) && strstr($_SERVER['HTTP_ACCEPT'], 'image/webp'));
+        $this->isAcceptWebP = (isset($_SERVER['HTTP_ACCEPT']) && \strstr($_SERVER['HTTP_ACCEPT'], 'image/webp'));
         if (isset($_SESSION['webp']) && $_SESSION['webp']) {
             $this->isAcceptWebP = 1;            
         } 
@@ -112,45 +116,45 @@ class Router extends \Singleton {
         }
         
         
-        if(isset($_GET['app'])) {
-            $this->isApp = $_GET['app'];
-        }
-        elseif(isset($_session_params['app'])) {
-            $this->isApp = $_session_params['app'];
-        }
+        //if(isset($_GET['app'])) {
+        //    $this->isApp = $_GET['app'];
+        //}
+        //elseif(isset($_session_params['app'])) {
+        //    $this->isApp = $_session_params['app'];
+        //}
 
-        if (array_key_exists('HTTP_HOST', $_SERVER)) {
+        if (\array_key_exists('HTTP_HOST', $_SERVER)) {
             $this->host = $_SERVER['HTTP_HOST'];
         }
         
-        if (array_key_exists('HTTP_REFERER', $_SERVER)) {
+        if (\array_key_exists('HTTP_REFERER', $_SERVER)) {
             $this->referer=$_SERVER['HTTP_REFERER'];
         }
 
-        if (array_key_exists('HTTP_USER_AGENT', $_SERVER)) {
-            if (array_key_exists($_SERVER['HTTP_USER_AGENT'], $this->config->get('blocked_agents')) || empty($_SERVER['HTTP_USER_AGENT'])) {
-                header("HTTP/1.1 403 Forbidden");
+        if (\array_key_exists('HTTP_USER_AGENT', $_SERVER)) {
+            if (\array_key_exists($_SERVER['HTTP_USER_AGENT'], $this->config->get('blocked_agents')) || empty($_SERVER['HTTP_USER_AGENT'])) {
+                \header("HTTP/1.1 403 Forbidden");
                 exit(0);
             }            
         } 
         else {
-            header("HTTP/1.1 403 Forbidden");
+            \header("HTTP/1.1 403 Forbidden");
             exit(0);            
         }
 
-        $pos = strpos($this->referer, $this->config->get('site_domain'));
+        $pos = \strpos($this->referer, $this->config->get('site_domain'));
         if (!($pos===FALSE)) {
             $this->internal_referer = ($pos>0 && $pos<13);
         }
         
-        if ($this->isApp) {
-            $this->isMobile = TRUE;
-            $_session_params['mobile']=1;
-            $_session_params['app']=1;
-        }
+        //if ($this->isApp) {
+        //    $this->isMobile = TRUE;
+        //    $_session_params['mobile']=1;
+        //    $_session_params['app']=1;
+        //}
       
         if (!isset($_session_params['mobile'])) {
-            if (isset($this->cookie->m) && in_array($this->cookie->m,array(0,1))) {
+            if (isset($this->cookie->m) && \in_array($this->cookie->m, [0,1])) {
                 $this->isMobile = (int)$this->cookie->m ? true : false;
                 $_session_params['mobile']=(int)$this->cookie->m;
             }
@@ -182,10 +186,10 @@ class Router extends \Singleton {
             $this->isMobile = $_session_params['mobile'];
         }
         
-        $this->explodedRequestURI= explode('/', ltrim(rtrim(parse_url(filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_URL), PHP_URL_PATH), '/'), '/'));
-        $this->language='ar';
+        $this->explodedRequestURI = \explode('/', \ltrim(\rtrim(\parse_url(\filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_URL), PHP_URL_PATH), '/'), '/'));
+        $this->language = 'ar';
         
-        $len = count($this->explodedRequestURI);
+        $len = \count($this->explodedRequestURI);
         
         if ($len>0) {        
             $lastIdx=$len-1;
@@ -201,7 +205,7 @@ class Router extends \Singleton {
             }
             
             $___p=0;
-            if (is_numeric($this->explodedRequestURI[$lastIdx])) {
+            if (\is_numeric($this->explodedRequestURI[$lastIdx])) {
                 $___p=$this->explodedRequestURI[$lastIdx]+0;
                 unset($this->explodedRequestURI[$lastIdx]);
                 $lastIdx--;
@@ -231,51 +235,50 @@ class Router extends \Singleton {
                         $this->extendedLanguage = 'fr';
                         $this->explodedRequestURI[$lastIdx]= $this->explodedRequestURI[$len-1];
                         unset($this->explodedRequestURI[$len-1]);
-                    }
-                    
+                    }                    
                 }
             }
             
-            if ($___p) { $this->explodedRequestURI[count($this->explodedRequestURI)]=$___p; }
+            if ($___p) { $this->explodedRequestURI[\count($this->explodedRequestURI)]=$___p; }
         }        
-        $this->uri = '/'.implode('/', $this->explodedRequestURI);
+        $this->uri = '/'.\implode('/', $this->explodedRequestURI);
         
         $_session_params['lang']=$this->language;
                 
-        if (isset($_SERVER['HTTP_REFERER']) && preg_match('/translate\.google\.com/', $_SERVER['HTTP_REFERER'])) {
+        if (isset($_SERVER['HTTP_REFERER']) && \preg_match('/translate\.google\.com/', $_SERVER['HTTP_REFERER'])) {
             $toLang=null;
-            preg_match('/&langpair\=[a-z]{2}(?:\||%7C)([a-z]{2})/', $_SERVER['HTTP_REFERER'], $toLang);
-            if ($toLang && count($toLang)>1) {
+            \preg_match('/&langpair\=[a-z]{2}(?:\||%7C)([a-z]{2})/', $_SERVER['HTTP_REFERER'], $toLang);
+            if ($toLang && \count($toLang)>1) {
                 $this->siteTranslate=$toLang[1];
             }
             else {
-                preg_match('/&tl\=([a-z]{2})/', $_SERVER['HTTP_REFERER'], $toLang);
-                if ($toLang && count($toLang)>1) {
+                \preg_match('/&tl\=([a-z]{2})/', $_SERVER['HTTP_REFERER'], $toLang);
+                if ($toLang && \count($toLang)>1) {
                     $this->siteTranslate=$toLang[1];
                 }
             }
         }                   
 
-	if(preg_match('/\/(?:houses|villas)(?:\/|$)/i', $this->uri)) {
-            $this->uri = preg_replace('/\/(?:houses|villas)(\/|$)/','/villas-and-houses$1',$this->uri);
-            if ($this->uri[strlen($this->uri)-1]!='/') {
+        if (\preg_match('/\/(?:houses|villas)(?:\/|$)/i', $this->uri)) {
+            $this->uri = \preg_replace('/\/(?:houses|villas)(\/|$)/','/villas-and-houses$1',$this->uri);
+            if ($this->uri[\strlen($this->uri)-1]!='/') {
                 $this->uri .= '/';
             }
             $_SESSION['_u']['params'] = $_session_params;
             $this->redirect($this->uri, 301);
         }
         
-        if (substr($this->uri, -10)=='/index.php') {
-            $this->uri = substr($this->uri, 0, strlen ($this->uri)-10);
+        if (\substr($this->uri, -10)=='/index.php') {
+            $this->uri = \substr($this->uri, 0, strlen ($this->uri)-10);
         }
                     
-        $_args = explode('&', $_SERVER['QUERY_STRING']);
+        $_args = \explode('&', $_SERVER['QUERY_STRING']);
                         
-        $count = count($_args);
+        $count = \count($_args);
         for ($i=0; $i<$count; ++$i) {
-            $node = explode('=', $_args[$i]);
-            if (!empty($node[1]) && array_key_exists($node[0], $this->params)) {                
-                $this->params[$node[0]] = trim(urldecode($node[1]));
+            $node = \explode('=', $_args[$i]);
+            if (!empty($node[1]) && \array_key_exists($node[0], $this->params)) {                
+                $this->params[$node[0]] = \trim(\urldecode($node[1]));
                 
                 switch ($node[0]) {
                     case 'rss':
@@ -285,14 +288,14 @@ class Router extends \Singleton {
                     case 'id':
                         //workaround for youtube upload callback
                         if (!isset($_GET['status'])) {
-                            $this->id = intval($node[1]);                        
+                            $this->id = \intval($node[1]);                        
                             $ad_url = $this->getAdURI($this->id);
                             $this->module = 'detail';
                             $this->http_status = 410;
-                            header('HTTP/1.1 410 Gone');
+                            \header('HTTP/1.1 410 Gone');
                             return;
                         }
-                        break;                    
+                        break;         
                     case 'q':
                         $this->force_search=true;
                         break;
@@ -303,24 +306,23 @@ class Router extends \Singleton {
             }                        
         }
         
-        if(isset($_GET['aid']) && isset($_GET['q'])) {
+        if (isset($_GET['aid']) && isset($_GET['q'])) {
             $this->force_search=true;
         }
             
-        if ($this->params['start'] && !array_key_exists('start', $_GET)) {
-            $_GET['start']=  $this->params['start'];
+        if ($this->params['start'] && !\array_key_exists('start', $_GET)) {
+            $_GET['start']=$this->params['start'];
         }
              
-
-        $_args = explode('/', $this->uri);
+        $_args = \explode('/', $this->uri);
         if (!empty($_args)) {
-            $idx=count($_args)-1;
+            $idx=\count($_args)-1;
                 
-            if (is_numeric($_args[$idx])) {
+            if (\is_numeric($_args[$idx])) {
                 $this->id=(int)$_args[$idx];
-                $rpos=strrpos($this->uri, '/');
+                $rpos=\strrpos($this->uri, '/');
                 if ($rpos) {
-                    $this->uri = substr($this->uri, 0, $rpos);
+                    $this->uri = \substr($this->uri, 0, $rpos);
                 }
                 
                 if ($this->id<1000000000) {
@@ -355,7 +357,7 @@ class Router extends \Singleton {
                 }
             }
             
-            if ($idx>=0 && isset($_args[1]) && is_numeric($_args[1])) {
+            if ($idx>=0 && isset($_args[1]) && \is_numeric($_args[1])) {
                 $id=(int)$_args[1];
                 if ($id>2000000000) {
                     $this->watchId=$id-$this->baseUserId;
@@ -363,7 +365,7 @@ class Router extends \Singleton {
                     $this->force_search=true;
                     $this->id=0;
                     unset($_args[0]);
-                    $this->uri = substr($this->uri, (strlen($id)+1));
+                    $this->uri = \substr($this->uri, (strlen($id)+1));
                 }
                 elseif ($id>1000000000) {//partner id handling
                     $this->userId=$id-$this->basePartnerId;
@@ -371,20 +373,19 @@ class Router extends \Singleton {
                     $this->force_search=true;
                     $this->id=0;
                     unset($_args[0]);
-                    $this->uri = substr($this->uri, (strlen($id)+1));
+                    $this->uri = \substr($this->uri, (strlen($id)+1));
                 }
             }
-
             
-            if ($idx>1 && substr($_args[$idx],0,2)=="q-") {
-                $tag_info = explode("-", $_args[$idx]);
-                if (count($tag_info)==3 && is_numeric($tag_info[1]) && is_numeric($tag_info[2])) {
+            if ($idx>1 && \substr($_args[$idx],0,2)=="q-") {
+                $tag_info = \explode("-", $_args[$idx]);
+                if (\count($tag_info)==3 && \is_numeric($tag_info[1]) && \is_numeric($tag_info[2])) {
                     $this->params['tag_id']=$tag_info[1];
                     if ($_args[ $tag_info[2] ]=='nissan-nissan-z') {
                         $_args[ $tag_info[2] ] = 'nissan';
                     }
                     else {
-                        $_args[ $tag_info[2] ] = substr($_args[$tag_info[2]], 0, strrpos($_args[$tag_info[2]], "-"));
+                        $_args[ $tag_info[2] ] = \substr($_args[$tag_info[2]], 0, \strrpos($_args[$tag_info[2]], "-"));
                     }
                     
                     unset($_args[$idx]);                
@@ -394,35 +395,36 @@ class Router extends \Singleton {
                     }
                     $_args=$tmp;                    
                     
-                    $this->uri = implode("/", $_args);                    
+                    $this->uri = \implode("/", $_args);
                 }
             }
-            elseif ($idx>1 && substr($_args[$idx],0,2)=="c-") {
-                $tag_info = explode("-", $_args[$idx]);
+            elseif ($idx>1 && \substr($_args[$idx],0,2)=="c-") {
+                $tag_info = \explode("-", $_args[$idx]);
                 
-                if (count($tag_info)==3 && is_numeric($tag_info[1]) && is_numeric($tag_info[2])) {
+                if (\count($tag_info)==3 && \is_numeric($tag_info[1]) && \is_numeric($tag_info[2])) {
                     $this->params['loc_id']=$tag_info[1];
                     unset($_args[$tag_info[2]]);
                     unset($_args[$idx]);
                     $tmp=array();
-                    foreach ($_args as $arg) {
-                        $tmp[]=$arg;
-                    }
-                    $_args=$tmp;                    
-                    $this->uri=  implode("/", $_args);
+                    foreach ($_args as $arg) { $tmp[]=$arg; }
+                    $_args=$tmp;
+                    $this->uri=  \implode("/", $_args);
                 }
-            }            
-        }        
+            }
+        }    
                 
 
-	if ((!$this->internal_referer || strstr($this->referer, '/oauth/')) &&  empty($_GET) && ($this->uri=='' || $this->uri=='/')  && !$this->userId && !$this->watchId) {
+        if ((!$this->internal_referer || \strstr($this->referer, '/oauth/')) &&
+            empty($_GET) && ($this->uri===''||$this->uri==='/') && 
+            !$this->userId && !$this->watchId) {
             $this->countries = $this->db->getCountriesData($this->language);
+            error_log('internal');
             
             if (isset($_session_params['visit']) && isset($_session_params['user_country'])) { 
-                if (!$this->countryId && strpos($this->config->baseURL, 'dv.mourjan.com')===false && strpos($this->config->baseURL, 'h1.mourjan.com')===false) {  
+                if (!$this->countryId && \strpos($this->config->baseURL, 'dv.mourjan.com')===false && \strpos($this->config->baseURL, 'h1.mourjan.com')===false) {  
                     $curi = $this->uri;
                     if (isset($this->cookie->cn) && $this->cookie->cn) {
-		        if (!isset($_GET['app']) && isset($this->cookie->lg) && in_array($this->cookie->lg, array('ar','en'))) {
+                        if (!isset($_GET['app']) && isset($this->cookie->lg) && \in_array($this->cookie->lg, ['ar','en'])) {
                             $this->language=$_session_params['lang']=$this->cookie->lg;                            
                         }
 
@@ -432,11 +434,11 @@ class Router extends \Singleton {
                         if(isset($this->cookie->c) && $this->cookie->c) {
                             if (isset($this->countries[$this->countryId]['cities'][$this->cookie->c])) {
                                 $this->uri.='/'.$this->countries[$this->countryId]['cities'][$this->cookie->c]['uri'];
-                    		$this->cityId=$_session_params['city']=$this->cookie->c;
+                                $this->cityId=$_session_params['city']=$this->cookie->c;
                             }
                         }
                         
-                        if ($this->uri!=$curi) {
+                        if ($this->uri!==$curi) {
                             $_SESSION['_u']['params'] = $_session_params;
                             $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->language != 'ar' ? $this->language .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
                         }
@@ -450,25 +452,24 @@ class Router extends \Singleton {
                     }                    
                 }
             }    
-            
-        
-            if ( !isset($_session_params['visit'])) {
+                    
+            if (!isset($_session_params['visit'])) {
                 $current_uri = $this->uri;
                 $_SESSION['_u']['params'] = $_session_params;
                 $this->setGeoByIp();
-                if ($current_uri!=$this->uri) {                    
-                    $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->language != 'ar' ? $this->language .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );                
+                if ($current_uri!==$this->uri) {                    
+                    $this->redirect($this->config->baseURL.$this->uri.( \strlen($this->uri)>1 && (\substr($this->uri, -1)==='/') ? '':'/' ).($this->language!=='ar' ? $this->language .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
                 }
                 
-                if (!$this->countryId) {                
+                if ($this->countryId===0) {
                     if (isset($this->cookie->cn) && $this->cookie->cn) {
                         $this->countryId=$_session_params['country']=$this->cookie->cn;
                         $this->cityId=$_session_params['city']=0;
                         $this->uri='/'. $this->countries[$this->cookie->cn]['uri'];
                         if (isset($this->cookie->c) && $this->cookie->c) {
                             if (isset($this->countries[$this->countryId]['cities'][$this->cookie->c])) {
-                    		$this->uri.='/'.$this->countries[$this->countryId]['cities'][$this->cookie->c]['uri'];
-                    		$this->cityId=$_session_params['city']=$this->cookie->c;
+                                $this->uri.='/'.$this->countries[$this->countryId]['cities'][$this->cookie->c]['uri'];
+                                $this->cityId=$_session_params['city']=$this->cookie->c;
                             }
                         }
                         if ($current_uri!=$this->uri) {
@@ -476,17 +477,25 @@ class Router extends \Singleton {
                             $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->language != 'ar' ? $this->language .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
                         }
                     }
-                }    
-            }
+                }
+            }                            
         }
 
+        if ($this->countryId===0 && isset($this->cookie->cn) && $this->cookie->cn>0) {
+            error_log('wawwww');
+            //$this->countryId=$this->cookie->cn;
+            $_SESSION['_u']['params']['country']=$this->cookie->cn;
+            $_session_params=$_SESSION['_u']['params'];           
+        }
+        
+        
         if (!isset($_GET['app']) && !isset($_session_params['user_country'])) {
             $geo = $this->getIpLocation();
             if (isset($geo['country'])) {
-            	$country_code=strtolower(trim($geo['country']['iso_code']));
-            	$_session_params['user_country']=$country_code;
-            	$_session_params['latitude'] = isset($geo['location']['latitude']) ? $geo['location']['latitude'] : 0.0;
-            	$_session_params['longitude'] = isset($geo['location']['longitude']) ? $geo['location']['longitude'] : 0.0;
+                    $country_code=\strtolower(trim($geo['country']['iso_code']));
+                    $_session_params['user_country']=$country_code;
+                    $_session_params['latitude'] = isset($geo['location']['latitude']) ? $geo['location']['latitude'] : 0.0;
+                    $_session_params['longitude'] = isset($geo['location']['longitude']) ? $geo['location']['longitude'] : 0.0;
             }
             else {
                 $_session_params['user_country']='';
@@ -494,10 +503,10 @@ class Router extends \Singleton {
         }
         
         if (!isset($_session_params['lang'])) {
-            if (!isset($_GET['app']) && isset($this->cookie->lg) && in_array($this->cookie->lg, array('ar','en'))) {
+            if (!isset($_GET['app']) && isset($this->cookie->lg) && \in_array($this->cookie->lg, ['ar','en'])) {
                 $this->language=$_session_params['lang']=$this->cookie->lg;
                 $_SESSION['_u']['params'] = $_session_params;
-                $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).$this->getLanguagePath().($this->id ? $this->id.'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
+                $this->redirect($this->config->baseURL.$this->uri.( \strlen($this->uri)>1 && (\substr($this->uri, -1)=='/') ? '':'/' ).$this->getLanguagePath().($this->id ? $this->id.'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
             } 
             else {
                 $_session_params['lang']=$this->language;
@@ -506,34 +515,37 @@ class Router extends \Singleton {
         else {
             $_session_params['lang']=$this->language;
         }
+        
         $_SESSION['_u']['params'] = $_session_params;
         
+        error_log(__CLASS__.'.'.__FUNCTION__."\n".\json_encode($_session_params, JSON_PRETTY_PRINT));
+        error_log('cookie '. json_encode($this->cookie));
     }
     
     
     public function getLanguagePath(string $url='') : string {
         if ($url) {
-            if (substr($url, -1)!='/') {
+            if (\substr($url, -1)!=='/') {
                 $url.='/';
             }
-            if ($this->language!='ar') {
+            if ($this->language!=='ar') {
                 $url.= $this->language.'/';
             }
             return $url;
         }
-        return ($this->language=='ar'?'':$this->language).'/';
+        return ($this->language==='ar'?'':$this->language).'/';
     }
     
     
     public function isArabic() : bool {
-        return ($this->language=='ar');
+        return ($this->language==='ar');
     }
     
     
     public function getIpLocation($ip=NULL) {
         if (empty($ip)) {
-            if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            	$ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+            if (\array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+                $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
             }
             else {
                 $ip = $_SERVER['REMOTE_ADDR'];
@@ -543,7 +555,7 @@ class Router extends \Singleton {
         
         $databaseFile = '/home/db/GeoLite2-City.mmdb';
         $reader = new \MaxMind\Db\Reader($databaseFile);
-        $ips = explode(',', $ip);
+        $ips = \explode(',', $ip);
         foreach ($ips as $addr) {
             $geo = $reader->get(trim($addr));
             if (isset($geo['country'])) break;
@@ -561,23 +573,25 @@ class Router extends \Singleton {
     }
 	
     
-    private function setGeoByIp() {
-    	$geo = $this->getIpLocation();
+    private function setGeoByIp() : void {
+        $geo = $this->getIpLocation();
 			
         $_session_params = $_SESSION['_u']['params'];
+        error_log(__FUNCTION__ . ' ' . \json_encode($_session_params));
+        
         if (!empty($geo) && isset($geo['country']['iso_code'])) {
-            $country_code=strtolower(trim($geo['country']['iso_code']));
+            $country_code=\strtolower(\trim($geo['country']['iso_code']));
             $_session_params['user_country']=$country_code;
             $_session_params['latitude'] = $geo['location']['latitude'] ?? 0.0;
             $_session_params['longitude'] = $geo['location']['longitude'] ?? 0.0;
                 
-            if (array_key_exists($country_code, $this->config->get('iso_countries'))) {
+            if (\array_key_exists($country_code, $this->config->get('iso_countries'))) {
                 $this->countryId = $this->config->get('iso_countries')[$country_code];                    
                     
                 $this->uri='/'.$country_code; 
                 $_session_params['city']=0;
                 
-                if (count($this->countries[$this->countryId]['cities']) > 1) {
+                if (\count($this->countries[$this->countryId]['cities']) > 1) {
                     $this->cache();
                     $default_city = -1;
                     $min = PHP_INT_MAX;
@@ -634,7 +648,7 @@ class Router extends \Singleton {
         $row = $ad_class->getById($ad_id);
         
         if (!empty($row)) {
-            if ($this->language=='ar') {
+            if ($this->language==='ar') {
                 $result = sprintf($row[18], '', $ad_id);
             }
             else {
@@ -666,7 +680,7 @@ class Router extends \Singleton {
     }
     
     
-    function redirect($url, $status=301) {
+    function redirect(string $url, int $status=301) : void {
         switch ($status) {
             case 302:
                 header('HTTP/1.1 302 Found');
@@ -882,10 +896,7 @@ class Router extends \Singleton {
     
     
     function getCanonicalURL() {
-        if ($this->module=='search') {            
-            //return $this->canonical;
-        }
-        elseif ($this->module=='index') {
+        if ($this->module==='index') {
             $path=$this->getUrl($this->countryId, $this->cityId);
             $this->canonical = 'https://www.mourjan.com'.$path;        
         }
@@ -897,7 +908,7 @@ class Router extends \Singleton {
     }
 
 
-    function decode() {        
+    function decode() : void {        
         if ($this->id) {
             $this->module='detail';
         } 
@@ -924,14 +935,14 @@ class Router extends \Singleton {
                     if ($this->force_search)  {
                         $this->module='search';
                     } 
-                    elseif ($this->isMobile && $this->rootId>0 && $this->sectionId==0) {
+                    elseif ($this->isMobile && $this->rootId>0 && $this->sectionId===0) {
                         $this->module='index';
                     } 
                     elseif ($this->purposeId>0 || $this->rootId>0 || ($this->force_search)) {
                         $this->module='search';
                     }
 
-                    if (($this->module=='search' || $this->module=='index') &&
+                    if (($this->module==='search' || $this->module==='index') &&
                         $this->purposeId==0 &&
                         $this->rootId==0 &&
                         $this->sectionId==0 &&
@@ -991,7 +1002,7 @@ class Router extends \Singleton {
             elseif ($this->module=='index') {
                 if ($this->countryId && isset ($this->countries[$this->countryId]))
                     $this->last_modified = $this->countries[$this->countryId]['unixtime'];
-  				if ($this->cityId && isset ($this->countries[$this->countryId]['cities'][$this->cityId]))
+                if ($this->cityId && isset ($this->countries[$this->countryId]['cities'][$this->cityId]))
                     $this->last_modified = $this->countries[$this->countryId]['cities'][$this->cityId]['unixtime'];
                 if ($this->rootId && isset($this->pageRoots[$this->rootId]))
                     $this->last_modified = $this->pageRoots[$this->rootId]['unixtime'];
@@ -1005,14 +1016,14 @@ class Router extends \Singleton {
     }
     
     
-    function encodeCurrent($a=0) {
+    function encodeCurrent($a=0) : string {
         return $this->encode($this->countryId, $this->cityId, $this->rootId, $this->sectionId, $this->purposeId, $a);
     }
     
     
-    function encode($cn=0, $c=0, $ro=0, $se=0, $pu=0, $a=0) {
-        $result = $this->cfg['url_base'];
-        if ($ro==4) $pu=0;
+    function encode($cn=0, $c=0, $ro=0, $se=0, $pu=0, $a=0) : string {
+        $result = $this->config->baseURL;
+        if ($ro===4) { $pu=0; }
         $rs = $this->db->queryResultArray("select path||'/' PATH from uri where country_id={$cn} and city_id={$c} and root_id={$ro} and section_id={$se} and purpose_id={$pu} and lang='{$this->language}'");
         if (!empty($rs)) {            
             $result.= $rs[0]['PATH'];
@@ -1034,17 +1045,15 @@ class Router extends \Singleton {
             }
         }
 
-        if ($c) {
-            if (isset($this->cities[$c])) {
-                if ($cn==0) {
-                    $cn = $this->cities[$c][4];
-                    if (isset($this->countries[$cn])) {
-                        $result.=$this->countries[$cn]['uri'].'/'.$this->cities[$c][3].'/';
-                    }
-                } 
-                else {
-                    $result.=$this->cities[$c][3].'/';
+        if ($c && isset($this->cities[$c])) {
+            if ($cn===0) {
+                $cn = $this->cities[$c][4];
+                if (isset($this->countries[$cn])) {
+                    $result.=$this->countries[$cn]['uri'].'/'.$this->cities[$c][3].'/';
                 }
+            } 
+            else {
+                $result.=$this->cities[$c][3].'/';
             }
         }
        
@@ -1055,7 +1064,7 @@ class Router extends \Singleton {
             $result.=$this->roots[$ro][3].'/';
         }
         
-        if ($ro!=4 && $pu && isset($this->purposes[$pu])) {
+        if ($ro!==4 && $pu && isset($this->purposes[$pu])) {
             $result.=$this->purposes[$pu][3].'/';
         }
         
@@ -1067,10 +1076,8 @@ class Router extends \Singleton {
     }
 
     
-    function close() {
-        if ($this->db) {
-            $this->db->close();            
-        }
+    function close() : void {
+        if ($this->db) { $this->db->close(); }
     }
     
     
@@ -1150,7 +1157,7 @@ class Router extends \Singleton {
             if(@fsockopen($ip??$_SERVER['REMOTE_ADDR'], $port, $errno, $errstr, 5)) {
                 error_log("Port {$port}. Please disable your proxy connection!");
             }
-	}
+        }
     }
     
     
@@ -1166,12 +1173,10 @@ class Router extends \Singleton {
     
     function distance($lat, $lon, $ulat=0, $ulon=0) {
         $_session_params = $_SESSION['_u']['params'];
-        if (!$ulat) $ulat = $_session_params['latitude'] ?? 0.0;
-        if (!$ulon) $ulon = $_session_params['longitude'] ?? 0.0;
+        if (!$ulat) { $ulat = $_session_params['latitude'] ?? 0.0; }
+        if (!$ulon) { $ulon = $_session_params['longitude'] ?? 0.0; }
         $theta = $ulon - $lon;
-        $dist = sin(deg2rad($ulat)) * sin(deg2rad($lat)) +  cos(deg2rad($ulat)) * cos(deg2rad($lat)) * cos(deg2rad($theta));
-        $dist = acos($dist);
-        $dist = rad2deg($dist);
+        $dist = rad2deg(acos(sin(deg2rad($ulat)) * sin(deg2rad($lat)) +  cos(deg2rad($ulat)) * cos(deg2rad($lat)) * cos(deg2rad($theta))));
         $miles = $dist * 60 * 1.1515;
         return $miles;
     }

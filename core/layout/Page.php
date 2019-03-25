@@ -4610,7 +4610,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         }
         else {
             switch ($this->router()->module) {
-                case "detail":
+                case 'detail':
                     echo '<meta name="robots" content="noindex" />';
                     break;
 
