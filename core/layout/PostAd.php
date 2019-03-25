@@ -326,12 +326,13 @@ class PostAd extends Page {
             $current_country_code = isset($this->router()->countries[$this->router()->countryId]['uri']) ? \strtoupper($this->router()->countries[$this->router()->countryId]['uri']) : '';
             
             $ip=IPQuality::fetchJson(false)['ipquality'];
-            echo '<form id=adForm action="" method=post data-id=', $this->id, 
+            echo '<form id=adForm action="" onsubmit="window.event.preventDefault(); return false;" method=post data-id=', $this->id, 
                     ' data-ip-country="', $ip['country_code']??'', '" data-cur-country="', $current_country_code, '"',
                     ' data-act-country="', $activation_country_code, '"',
                     ' data-recent-abuse=', $ip['recent_abuse'],
                     ' data-proxy=', $ip['proxy'], ' data-tor=', $ip['tor'], ' data-vpn=', $ip['vpn'], 
                     ' data-score=', $ip['fraud_score'], '>';
+            
             echo '<div class=col-12><div class=card>';                       
             
             if ($this->user()->isLoggedIn(9)) {
@@ -398,16 +399,14 @@ class PostAd extends Page {
             echo '</div></div>';
             
             echo '<div class=col-12><div class=card>';
-            ?><ul>
-                <li>
-                    <button name="submit" type="submit" id="ad-submit" class="btn blue" onclick="return UI.submit(this)" data-submit="...Sending">Submit</button>
-                </li>
-                <li><a href='javascript:void(0)' onclick='Ad.save();' class="btn blue">Save</a></li>
-                <li class=publish><a href=# class="btn blue">Publish</a><span><?= $this->lang['ad_review'] ?></span></li><?php
+            ?><ul class=buttons>
+                <li><button name="submit" type="submit" id="ad-submit" class="btn blue" onclick="return UI.submit(this)" data-submit="...Sending">Submit</button></li>
+                <li><button onclick=Ad.save() class="btn blue" data-state=0>Save</button></li>
+                <li><button onclick=Ad.save() class="btn blue" data-state=1>Publish</button><span><?= $this->lang['ad_review'] ?></span></li><?php
                 if($this->user()->level()===9){
-                    ?><li class=approve><a href=# class="btn blue"><?= $this->lang['approve'] ?></a></li><?php
+                    ?><li class=approve><button onclick=Ad.save() class="btn blue" data-state=2><?= $this->lang['approve'] ?></button></li><?php
                 }
-                ?><li><a href=# class="btn">Cancel</a></li>
+                ?><li><button class="btn">Cancel</button></li>
             </ul><?php
             //echo '</div>';
             echo '</div></div>';

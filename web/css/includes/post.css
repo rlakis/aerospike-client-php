@@ -85,10 +85,10 @@
 }
 
 #main .card li {align-items: center}
-.publish{flex-flow: column;line-height: auto}
-.publish a{width:100%}
-.publish span{margin:-8px 0 4px;}
-.publish .btn{margin-bottom: 0}
+ul.buttons li{flex-flow: column;line-height: auto}
+ul.buttons button{width: 100%}
+ul.buttons span{margin:-8px 0 4px;}
+ul.buttons .btn{margin-bottom: 0}
 
 #map span.close{
     top:0;

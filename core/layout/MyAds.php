@@ -1080,7 +1080,7 @@ class MyAds extends Page {
                             if (!$isSystemAd || $isSuperAdmin) {         
                                 ?><button onclick="d.approve(this)"><?= $this->lang['approve'] ?></button><?php
                                 if ($isSuperAdmin) {
-                                    ?><button class=lnk onclick="d.rtp(this)">RTP</button><?php                                    
+                                    ?><button onclick="d.rtp(this)">RTP</button><?php                                    
                                 }
                                 ?><button onclick="d.reject(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['reject'] ?></button><?php 
                             }

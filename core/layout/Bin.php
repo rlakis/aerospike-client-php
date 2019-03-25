@@ -2562,7 +2562,7 @@ class Bin extends AjaxHandler{
                     if (isset($ad['loc']) && $ad['loc']) { $ad['sloc']=$ad['loc']; }
                                                 
                     if ($publish==1) {                  
-                        $sections = $this->urlRouter->db->getSections();
+                        $sections = $this->router()->database()->getSections();
                         if (isset($sections[$sectionId]) && $sections[$sectionId][5] && $sections[$sectionId][8]==$purposeId) {
                             $this->user->pending['post']['ro']=$ad['ro']=$sections[$sections[$sectionId][5]][4];
                             $this->user->pending['post']['se']=$ad['se']=$sections[$sectionId][5];
@@ -2729,7 +2729,7 @@ class Bin extends AjaxHandler{
                                     
                             //check is local number
                             if ($requireReview && $countryId && !$isMultiCountry && trim($ad['cui']['e'])=='') {
-                                $countryCode = '+'.$this->urlRouter->countries[$countryId]['code'];
+                                $countryCode = '+'.$this->router()->countries[$countryId]['code'];
                                 $differentCodes = false;
                                 foreach ($numbers as $number) {
                                     if (substr($number['v'], 0, strlen($countryCode)) != $countryCode) {
@@ -2759,15 +2759,15 @@ class Bin extends AjaxHandler{
                     }
                         
                     $isSCAM = 0;                        
-                    if ($publish==1 && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0) {
-                        $blockedEmailPatterns = addcslashes(implode('|', $this->urlRouter->cfg['restricted_email_domains']),'.');
+                    if ($publish==1 && isset($ad['cui']['e']) && \strlen($ad['cui']['e'])>0) {
+                        $blockedEmailPatterns = \addcslashes(\implode('|', $this->router()->config()->get('restricted_email_domains')),'.');
                         $isSCAM = preg_match('/'.$blockedEmailPatterns.'/ui', $ad['cui']['e']);
                     }
                         
                     if (!$isSCAM && !$requireReview && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0) {
-                        $requireReview = preg_match('/\+.*@/', $ad['cui']['e']);
+                        $requireReview = \preg_match('/\+.*@/', $ad['cui']['e']);
                         if (!$requireReview) {
-                            $requireReview = preg_match('/hotel/', $ad['cui']['e']);
+                            $requireReview = \preg_match('/hotel/', $ad['cui']['e']);
                         }
                         else {
                             $requireReview = 998;
@@ -3537,23 +3537,23 @@ class Bin extends AjaxHandler{
                 
             case 'ajax-approve':
                 $id = 0;
-                $contentType = filter_input(INPUT_SERVER, 'CONTENT_TYPE', FILTER_SANITIZE_STRING);
+                $contentType = \filter_input(INPUT_SERVER, 'CONTENT_TYPE', FILTER_SANITIZE_STRING);
                 if ($contentType==='application/json') {
-                    $content = trim(file_get_contents("php://input"));
-                    $decoded = json_decode($content, true);
+                    $content = \trim(\file_get_contents("php://input"));
+                    $decoded = \json_decode($content, true);
                     $id=$decoded['i']??0;
                     $rtp=$decoded['rtp']??0;
                                
-                    if ($this->user()->isLoggedIn(9) && is_int($id) && $id>0) {                    
+                    if ($this->user()->isLoggedIn(9) && \is_int($id) && $id>0) {                    
                         $rejected = false;
                         if ($rtp) {
                             $record = $this->router()->db->queryResultArray("select web_user_id, content from ad_user where id={$id}");
                             $adUser = new MCUser($record[0]['WEB_USER_ID']);
                             if ($adUser->isMobileVerified()) {
                                 $mobile_number = $adUser->getMobileNumber();
-                                $content = json_decode($record[0]['CONTENT'],true);                                
+                                $content = \json_decode($record[0]['CONTENT'],true);                                
                                 if (isset($content['attrs']) && isset($content['attrs']['phones'])) {
-                                    error_log( json_encode($content['attrs']['phones']) );
+                                    //error_log( json_encode($content['attrs']['phones']) );
                                     $len=$content['attrs']['phones']['n']?count($content['attrs']['phones']['n']):0;
                                     NoSQL::getInstance()->mobileVerfiedRelatedNumber($mobile_number, $numbers);
                 
@@ -3563,7 +3563,7 @@ class Bin extends AjaxHandler{
             
                                             $type = $content['attrs']['phones']['t'][$i]??0;
                                             if ($type==1) {                                                                                                                                                
-                                                error_log("rtp {$to}");
+                                                //error_log("rtp {$to}");
                                                 $bins=['RTP'=>1];
                                                 if (MobileValidation::getInstance()->sendEdigearRTPRequest($to, $record[0]['WEB_USER_ID'], $mobile_number, $bins)) {
                                                     if ($rtp==2) {//rejected and pending
@@ -3592,6 +3592,7 @@ class Bin extends AjaxHandler{
                                                         if($this->user->rejectAd($id, $msg)) {
                                                             $this->process();
                                                             $this->logAdmin($id, 3);
+                                                            return;
                                                         }
                                                         else { $this->fail('105'); }
                                                     }
@@ -3623,6 +3624,7 @@ class Bin extends AjaxHandler{
                                                         if($this->user->approveAd($id, $msg)) {
                                                             $this->process();
                                                             $this->logAdmin($id, 2);
+                                                            return;
                                                         }
                                                         else { $this->fail('104'); }
                                                         
@@ -3636,7 +3638,7 @@ class Bin extends AjaxHandler{
                             }
                         }
                         
-                        if (!$rejected && $this->user()->approveAd($id)) {
+                        if ($rejected===false && $this->user()->approveAd($id)) {
                             $this->process();
                             $this->logAdmin($id, 2);
                         }

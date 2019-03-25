@@ -260,9 +260,7 @@ var d = {
     
     
     approve: function (e, rtpFlag) {
-        if (this.currentId != e.article().id) {
-            return;
-        }
+        if (this.currentId != e.article().id) { return; }
         var data = {i: parseInt(this.currentId)};
         if (typeof rtpFlag !== 'undefined') {
             data['rtp'] = rtpFlag

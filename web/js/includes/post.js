@@ -924,6 +924,7 @@ var Ad={
     
     init:function(){
         let _=this;
+        _.state=0;
         _.rootId=0;
         _.sectionId=0;
         _.purposeId=0;
@@ -938,6 +939,7 @@ var Ad={
         let _=this;
         _.init();
         _.id=ad.ID;
+        _.state=ad.STATE;
         let cnt;
         if(typeof ad.CONTENT==='string'){
             cnt=JSON.parse(ad.CONTENT);
@@ -1077,6 +1079,7 @@ var Ad={
     
     save:function(){
         let _=this;
+        //console.log('window.event', window.event.target.dataset);
         
         if(!(_.rootId)) {
             window.alert(UI.ar ? 'فئة الاعلان غير محددة' : 'Please choose listing section?');
@@ -1086,7 +1089,7 @@ var Ad={
         let ad={
             hl:(UI.ar?'ar':'en'),
             id:_.id, 
-            state:_.state, 
+            state:parseInt(window.event.target.dataset), 
             user:0, 
             lat:_.content.lat, 
             lon:_.content.lon, 
@@ -1341,8 +1344,10 @@ var Prefs={
             }
         }
         let rs=UI.adForm.dataset;
-        if(rs.actCountry.length===2){_.activationCountryCode=rs.actCountry;}
+        if(rs.actCountry.length===2){_.activationCountryCode=rs.actCountry;}        
         if(rs.ipCountry.length===2 && rs.ipCountry===rs.curCountry && rs.tor==='0' && rs.vpn==='0' && rs.proxy==='0'){_.carrierCountryCode=rs.ipCountry;}
+        if(_.activationCountryCode===null&&($$.dataset.level==='90'||$$.dataset.level==='9')){_.activationCountryCode=rs.ipCountry;}
+        
         console.log(_);
     },
     
@@ -1584,6 +1589,7 @@ class ContactNumber{
         let _=this;
         _.error='';
         let num=_.tel.value.replace(/\s/g, '');
+        console.log('num', num);
         if(num && num.length>3){
             try {
                 _.phoneNumber=new libphonenumber.parsePhoneNumberFromString(num, 'LB');
@@ -1592,7 +1598,7 @@ class ContactNumber{
                     console.log('phoneNumber', _.phoneNumber); 
                     
                     if(_.phoneNumber.isValid()){
-                        _.tel.value=_.phoneNumber.formatNational();
+                        _.tel.value=_.phoneNumber.country===Prefs.activationCountryCode ? _.phoneNumber.formatNational() : _.phoneNumber.formatInternational();
                         let tp=_.phoneNumber.getType();
                         switch(_.getType()){
                             case ContactNumberType.Landline:
@@ -1625,8 +1631,9 @@ class ContactNumber{
         else {
             _.error='Phone number is too short';
         }
+        
+        _.tel.setCustomValidity(_.error);
         if(_.error!==''){
-            _.tel.setCustomValidity(_.error);
             _.phoneNumber=null;
         }
         
