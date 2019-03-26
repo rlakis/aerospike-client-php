@@ -89,14 +89,6 @@ class Router extends \Singleton {
         
         $cmu=\filter_input(INPUT_COOKIE, 'mourjan_user', FILTER_DEFAULT, ['options'=>['default'=>'{}']]);
         $this->cookie= \json_decode($cmu);
-        error_log('cc '.var_export($this->cookie, true));
-        
-//        if (isset ($_COOKIE['mourjan_user'])) {
-//            $this->cookie=\json_decode($_COOKIE['mourjan_user']);            
-//            if (!\is_object($this->cookie)) {
-//                $this->cookie=null;
-//            }
-//        }
         
         $this->session_key = \session_id();
         $_session_params = $_SESSION['_u']['params'] ?? [];
@@ -482,8 +474,6 @@ class Router extends \Singleton {
         }
 
         if ($this->countryId===0 && isset($this->cookie->cn) && $this->cookie->cn>0) {
-            error_log('wawwww');
-            //$this->countryId=$this->cookie->cn;
             $_SESSION['_u']['params']['country']=$this->cookie->cn;
             $_session_params=$_SESSION['_u']['params'];           
         }
@@ -518,8 +508,8 @@ class Router extends \Singleton {
         
         $_SESSION['_u']['params'] = $_session_params;
         
-        error_log(__CLASS__.'.'.__FUNCTION__."\n".\json_encode($_session_params, JSON_PRETTY_PRINT));
-        error_log('cookie '. json_encode($this->cookie));
+        //error_log(__CLASS__.'.'.__FUNCTION__."\n".\json_encode($_session_params, JSON_PRETTY_PRINT));
+        //error_log('cookie '. json_encode($this->cookie));
     }
     
     

@@ -408,6 +408,10 @@ var UI={
     },
           
 
+    uploadImage:function(img){
+        
+    },
+    
     openImage:function(e){
         if (window.File && window.FileReader && window.FileList && window.Blob) {
             UI.pixIndex=e.target.closest('span').dataset.index;
@@ -434,6 +438,7 @@ var UI={
                                         spans[curr].append(img);
                                         spans[curr].classList.remove('icn-camera');
                                         img.setAttribute('id', 'picture');
+                                        
                                     }
                                     img.onload=function(){                              
                                         Ad.pictures[img.closest('span').dataset.index]={'image':img, 'rotate':0, 'width':img.naturalWidth, 'height':img.naturalHeight};
@@ -452,6 +457,31 @@ var UI={
                                     curr++;
                                     if(curr>4){curr=0;}                                              
 
+                                };
+                                reader.onloadend = readerEvent => {
+                                    if (readerEvent.target.readyState!==FileReader.DONE){
+                                        return;
+                                    }
+                                    var formData = new FormData();
+                                    formData.append('file', readerEvent.target.result);
+                                    formData.append('name', 'pic');
+                                    fetch('/ajax-upload/', {
+                                        method: 'POST', 
+                                        headers: {
+                                            'Accept': 'application/json', 
+                                            'Content-Type':'multipart/form-data'
+                                        }, 
+                                        body:FormData
+                                    })
+                                    .then((response) => response.json())
+                                    .then((data) => {
+                                        console.log('data', data);
+                                    })
+                                    .catch((error) => {
+                                        console.log(error)
+                                    });
+                                    
+                                    console.log(readerEvent);
                                 };
                                 reader.readAsDataURL(file);                                                        
                             }
@@ -924,6 +954,7 @@ var Ad={
     
     init:function(){
         let _=this;
+        _.id=0;
         _.state=0;
         _.rootId=0;
         _.sectionId=0;
@@ -936,68 +967,55 @@ var Ad={
     
     parse:function(ad){        
         console.log('ad', ad);
-        let _=this;
-        _.init();
-        _.id=ad.ID;
-        _.state=ad.STATE;
-        let cnt;
-        if(typeof ad.CONTENT==='string'){
-            cnt=JSON.parse(ad.CONTENT);
-        }
-        else {
-            console.log(typeof ad.CONTENT);
-            cnt={};
-        }
+        let _=this; _.init();
         
-        if(typeof cnt.id!=='undefined' && _.id!==cnt.id){cnt.id=_.id;};        
+        _.id=ad.id;
+        _.state=ad.state;
+                        
         _.content.id=_.id;
         _.content.hl=(UI.ar?'ar':'en');
         //_.content.hl=cnt.hl;
-        _.content.lat=cnt.lat;
-        _.content.lon=cnt.lon;
-        _.content.loc=cnt.loc;
+        _.content.lat=ad.lat;
+        _.content.lon=ad.lon;
+        _.content.loc=ad.loc;
         UI.addressChanged();
 
         let re = /\u200b/;
         let parts;
-        if(typeof cnt.other==='string'){
-            parts = cnt.other.split(re);
+        if(typeof ad.other==='string'){
+            parts = ad.other.split(re);
             if (parts.length>0) {
                 _.natural=parts[0];
                 UI.textChanged(_.natural, 'natural');
             }
         }
-        if(typeof cnt.altother==='string'){
-            parts = cnt.altother.split(re);
+        if(typeof ad.altother==='string'){
+            parts = ad.altother.split(re);
             if (parts.length>0) {
                 _.foreign=parts[0];
                 UI.textChanged(_.foreign, 'foreign');
             }
         }
-        
-        console.log('cnt', cnt);
-        
-        if(ad.PURPOSE_ID && ad.SECTION_ID && ad.PURPOSE_ID>0 && ad.SECTION_ID>0){
-            let ro, se, pu;
+                
+        if(ad.pu && ad.se && ad.pu>0 && ad.se>0){
+            let ro;
             for (let i in UI.dic) {
-                if (UI.dic[i].sections[ad.SECTION_ID]) { ro=i; }
+                if (UI.dic[i].sections[ad.se]) { ro=i; }
                 if(ro>0){
-                    se=ad.SECTION_ID;
-                    pu=ad.PURPOSE_ID;
-                    _.setClassification(ro, se, pu);
+                    _.setClassification(ro, ad.se, ad.pu);
                     break;
                 }
             }
         }
         
-        if (cnt.cui) {
-            if (cnt.cui.e) {
-                _.email=cnt.cui.e;
+        if (ad.cui) {
+            if (ad.cui.e) {
+                _.email=ad.cui.e;
                 UI.setEmail(_.email);
             }
-            if (cnt.cui.p) {
+            if (ad.cui.p) {
                 let i=1;
-                cnt.cui.p.forEach(function(p){
+                ad.cui.p.forEach(function(p){
                     console.log(p);
                     if(i<3){
                         UI.numbers[i].kind.value=p.t;
@@ -1008,9 +1026,9 @@ var Ad={
                 });
             }
         }
-        console.log(typeof cnt.pubTo);
-        if(typeof cnt.pubTo==='object'){
-            _.regions=Object.values(cnt.pubTo);
+        console.log(typeof ad.pubTo);
+        if(typeof ad.pubTo==='object'){
+            _.regions=Object.values(ad.pubTo);
             console.log(UI.getCountryByCityId(_.regions[0]));
             UI.regionChanged();
         }
@@ -1109,22 +1127,26 @@ var Ad={
             altother:'',
             pubTo:{}
         };
-        
-        if (!UI.numbers[1].valid()) {
-           window.alert('[ '+UI.numbers[1].tel.value+ ' ] '+UI.numbers[1].error);
-           UI.numbers[1].tel.focus;
-        }
-        else {
-            ad.cui.p.push(UI.numbers[1].getPostData());
-        }
-        if (!UI.numbers[2].valid()) {
-           window.alert('[ '+UI.numbers[2].tel.value+ ' ] '+UI.numbers[2].error);
-           UI.numbers[2].tel.focus;
-        }
-        else {
-            ad.cui.p.push(UI.numbers[2].getPostData());
+
+        for (let i in UI.numbers) {
+            if (!UI.numbers[i].valid()) {
+               window.alert('[ '+UI.numbers[i].tel.value+ ' ] '+UI.numbers[i].error);
+               UI.numbers[i].tel.focus;
+               return;
+            }
+            else if (!UI.numbers[i].empty()) {
+                ad.cui.p.push(UI.numbers[i].getPostData());            
+            }            
         }
         
+//        if (!UI.numbers[2].valid()) {
+//           window.alert('[ '+UI.numbers[2].tel.value+ ' ] '+UI.numbers[2].error);
+//           UI.numbers[2].tel.focus;
+//        }
+//        else {
+//            ad.cui.p.push(UI.numbers[2].getPostData());
+//        }
+//        
         
         if(_.natural) _.natural=_.natural.trim();
         if(_.foreign) _.foreign=_.foreign.trim();
@@ -1161,8 +1183,12 @@ var Ad={
         fetch('/ajax-adsave/', _options('POST', data))
             .then(res => res.json())
             .then(response => {
-                console.log('Success:', JSON.stringify(response));
-                if (response.RP === 1) {
+                //console.log('Success:', response);
+                if (response.RP===1) {
+                    if (typeof response.DATA.ad==='object') {
+                        console.log(response.DATA.ad);
+                        _.parse(response.DATA.ad);
+                    }                    
                 }
             })
             .catch(error => {
@@ -1451,7 +1477,7 @@ var Prefs={
                         }
                     }
                     
-                    if (sectionSource==RegionType.Any||sectionSource==RegionType.MultiCountry) {
+                    if (sectionSource===RegionType.Any||sectionSource===RegionType.MultiCountry) {
                         if(result.indexOf(cn)===-1){
                             result.push(cn);
                         }
@@ -1589,7 +1615,7 @@ class ContactNumber{
         let _=this;
         _.error='';
         let num=_.tel.value.replace(/\s/g, '');
-        console.log('num', num);
+        //console.log('num', num);
         if(num && num.length>3){
             try {
                 _.phoneNumber=new libphonenumber.parsePhoneNumberFromString(num, 'LB');
@@ -1628,40 +1654,37 @@ class ContactNumber{
                 _.error=e.message;
             }
         }
-        else {
+        else if(num.length>0){
             _.error='Phone number is too short';
         }
         
+        //console.log('num', num, _.error);
+        
         _.tel.setCustomValidity(_.error);
-        if(_.error!==''){
-            _.phoneNumber=null;
-        }
+        if(_.error!==''){ _.phoneNumber=null; }
         
         _.tel.checkValidity();        
-        console.log(_.tel.validity);
+        //console.log('validity', _.tel.validity, typeof _.phoneNumber);
         _.tel.reportValidity();
-        return false;
+        return _.tel.validity.valid;
     }
+    
     
     valid(){
         this.verify();
-        console.log('valid error', this.error);
-        return this.phoneNumber && this.tel.validity.valid;
+        console.log('valid:', this.error);
+        return (typeof this.phoneNumber==='object') && this.tel.validity.valid;
+    }
+    
+    
+    empty(){
+        return (this.phoneNumber===null || typeof this.phoneNumber!=='object');
     }
     
     
     getPostData(){
-        if(this.phoneNumber){
-            let phone={
-                c:parseInt(this.phoneNumber.countryCallingCode), 
-                i:this.phoneNumber.country, 
-                r:this.phoneNumber.nationalNumber, 
-                t:this.getType(), 
-                v:this.phoneNumber.number};
-            console.log(phone);
-            return phone;
-        }
-        return null;
+        if((typeof this.phoneNumber!=='object')) return {};
+        return {c:parseInt(this.phoneNumber.countryCallingCode), i:this.phoneNumber.country, r:this.phoneNumber.nationalNumber, t:this.getType(), v:this.phoneNumber.number};
     }
 };
 

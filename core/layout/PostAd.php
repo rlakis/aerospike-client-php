@@ -1063,14 +1063,15 @@ class PostAd extends Page {
                 ?></ul></div></div><input type="hidden" id="edv" value="<?= $this->advanced ?>" /><?php
     }
 
+    
     function viewPics(){
         $lang='';
         if ($this->urlRouter->siteLanguage!='ar') {
             $lang=$this->urlRouter->siteLanguage.'/';
             $this->lang['back']=  ucfirst($this->lang['back']);
         }
-            $hasPics=0;
-            $hasVideo=0;
+        $hasPics=0;
+        $hasVideo=0;
             
             if (isset ($this->adContent['pics'])) $hasPics=count($this->adContent['pics']);
             if (isset ($this->adContent['video'])) $hasVideo=1;

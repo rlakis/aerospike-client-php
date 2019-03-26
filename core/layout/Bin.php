@@ -1695,29 +1695,23 @@ class Bin extends AjaxHandler{
                         }
                         $this->setData($regions, 'regions');
                         $this->setData(IPQuality::fetchJson(false), 'ip');
-                        if (filter_input(INPUT_GET, 'aid', FILTER_SANITIZE_NUMBER_INT)>0) {
-                            $ad=$this->user()->getPendingAds(filter_input(INPUT_GET, 'aid', FILTER_SANITIZE_NUMBER_INT));
-                            if(is_array($ad) && count($ad)===1){
-                                $ad=$ad[0];
-                            }
-                            unset($ad['FULL_NAME']);
-                            unset($ad['ADMIN_ID']);
-                            unset($ad['ADMIN_STAMP']);
-                            unset($ad['USER_RANK']);
-                            unset($ad['RAW_OTHER']);
-                            unset($ad['RAW_ALT_OTHER']);
-                            unset($ad['PROVIDER']);
-                            unset($ad['EMAIL']);
-                            unset($ad['DISPLAY_NAME']);
-                            unset($ad['USER_NAME']);
-                            unset($ad['USER_EMAIL']);
-                            unset($ad['PROFILE_URL']);
-                        
-                            $ad['LATITUDE']=floatval($ad['LATITUDE']);
-                            $ad['LONGITUDE']=floatval($ad['LONGITUDE']);
-                            $this->setData($ad, 'ad');
+                        $aid=\filter_input(\INPUT_GET, 'aid', \FILTER_SANITIZE_NUMBER_INT);
+                        if ($aid>0) {
+                            $ad=$this->user()->getPendingAds($aid);
+                            
+                            if(\is_array($ad) && \count($ad)===1){
+                                $cnt= $ad[0]['CONTENT'];
+                                if (\is_string($cnt)) {                                    
+                                    $cnt=\json_decode($cnt, true);
+                                }
+                                
+                                $cnt['id']=$ad[0]['ID'];
+                                $cnt['se']=$ad[0]['SECTION_ID'];
+                                $cnt['pu']=$ad[0]['PURPOSE_ID'];
+                                $cnt['state']=$ad[0]['STATE'];
+                                $this->setData($cnt, 'ad');
+                            }                                                   
                         }
-                        //$this->user()->getPendingAds()
                     }
                     
                     $this->process();
@@ -2372,10 +2366,10 @@ class Bin extends AjaxHandler{
                 
                 if ($this->user()->isLoggedIn() && isset($this->_JPOST['o'])) {
                     $error_path = "/var/log/mourjan/editor.log";
-                    $ad = is_array($this->_JPOST['o']) ? $this->_JPOST['o'] : json_decode($this->_JPOST['o'], true);
+                    $ad = \is_array($this->_JPOST['o']) ? $this->_JPOST['o'] : \json_decode($this->_JPOST['o'], true);
                     //error_log('--------------------------------------------------------------------------------------------------------'.PHP_EOL,3,$error_path);                    
                         
-                    if (!is_array($ad)) { $ad = []; }
+                    if (!\is_array($ad)) { $ad = []; }
                     if (!isset($ad['id'])) { $ad['id']=0; }
                     
                     //if (!$ad['id'] || !isset($this->user->pending['post']['state']) || !isset($this->user->pending['post']['id']) || ($ad['id'] && $ad['id']!=$this->user->pending['post']['id'])) {
@@ -2433,7 +2427,13 @@ class Bin extends AjaxHandler{
                         $ad['mobile']=0;
                     }
                                                                         
-                    if (!$ad['id']) { $this->user->pending['post']['user']=$this->user()->id(); }
+                    if (!$ad['id']) { 
+                        $this->user->pending['post']['user']=$this->user()->id();                         
+                    }
+                    
+                    if (!$ad['user']) {
+                        $ad['user']=$this->user()->id();
+                    }
                         
                     $this->user->pending['post']['ro']=$ad['ro'];
                     $sectionId = $this->user->pending['post']['se']=$ad['se'];
@@ -2441,7 +2441,7 @@ class Bin extends AjaxHandler{
                     $this->user->pending['post']['rtl']=$ad['rtl'];
                     $this->user->pending['post']['lat']=$ad['lat'];
                     $this->user->pending['post']['lon']=$ad['lon'];
-                    $this->user->pending['post']['title']='';
+                    //$this->user->pending['post']['title']='';
                         
                     $cityId=0;
                     $countryId=0;
@@ -2453,7 +2453,7 @@ class Bin extends AjaxHandler{
                         
                     if (count($ad['pubTo'])) {
                         foreach ($ad['pubTo'] as $key => $val) {
-                            if (!is_numeric($key)) {
+                            if (!\is_numeric($key)) {
                                 unset($ad['pubTo'][$key]);
                                 continue;
                             }
@@ -2485,7 +2485,7 @@ class Bin extends AjaxHandler{
                     $requireReview = 0;                        
                     $validator = libphonenumber\PhoneNumberUtil::getInstance();
                         
-                    if ($this->user()->level()!=9) { $ad['userLvl']=$this->user()->level(); }
+                    if ($this->user()->level()!==9 || $this->user()->id()==$ad['user']) { $ad['userLvl']=$this->user()->level(); }
                     
                     if ($this->user()->id()==$this->user->pending['post']['user']) {
                         $ip=IPQuality::getClientIP();
@@ -2518,15 +2518,15 @@ class Bin extends AjaxHandler{
                     }
                         
                     $publish=(isset($_POST['pub']) && $_POST['pub'] ? (int)$_POST['pub'] : 0);
-                    if ($publish!=1 && ($publish!=2 || ($publish==2 && $this->user->info['level']!=9)))$publish=0;
+                    if ($publish!=1 && ($publish!=2 || ($publish==2 && $this->user()->level()!==9)))$publish=0;
                     $tmpPublish=$publish;
                         
-                    if ($this->user->info['level']==9 && $ad['user']!=$this->user->info['id'] && $this->user->pending['post']['state']==1 && $publish==0) {
+                    if ($this->user()->level()===9 && $ad['user']!=$this->user()->id() && $this->user->pending['post']['state']==1 && $publish===0) {
                         $publish=1;
                     }
                         
                     //switching all rental cars to rental services
-                    if ($publish==1 && $ad['ro']==2 && $ad['pu']==2) {
+                    if ($publish===1 && $ad['ro']==2 && $ad['pu']==2) {
                         $this->user->pending['post']['ro']=$ad['ro']=4;
                         $this->user->pending['post']['pu']=$ad['pu']=5;
                         $this->user->pending['post']['se']=$ad['se']=431;
@@ -2788,7 +2788,7 @@ class Bin extends AjaxHandler{
                     } 
                         
                     $adId = $this->user->pending['post']['id'];                        
-                    if ($publish==1) {
+                    if ($publish===1) {
                         $dbAd = $this->user->getPendingAds($adId,0,0,true);
                         if (isset($dbAd[0]['ID']) && $dbAd[0]['ID']) {
                             $dbAd=$dbAd[0];

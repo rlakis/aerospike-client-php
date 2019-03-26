@@ -2841,7 +2841,7 @@ class User {
         
         \setcookie('mourjan_user', \json_encode($info), time()+31536000,'/', $this->config->get('site_domain'), false);
         
-        error_log(__CLASS__.'.'.__FUNCTION__. ' -> '.\json_encode($info));
+        //error_log(__CLASS__.'.'.__FUNCTION__. ' -> '.\json_encode($info));
         
     }
     

@@ -21,8 +21,8 @@ class MyAds extends Page {
     ];
 
     
-    function __construct(Core\Model\Router $router) {
-        parent::__construct($router);       
+    function __construct() {
+        parent::__construct();       
         
         if ($this->router()->config()->isMaintenanceMode()) {
             $this->user->redirectTo($this->router()->getLanguagePath('/maintenance/'));
@@ -651,7 +651,7 @@ class MyAds extends Page {
                 
                 if ($ad['RTL']) { $textClass='ar'; }
 
-                $content=json_decode($ad['CONTENT'],true);  
+                $content=\json_decode($ad['CONTENT'], true);  
                                         
                 $isFeatured = isset($ad['FEATURED_DATE_ENDED']) && $ad['FEATURED_DATE_ENDED'] ? ($current_time < $ad['FEATURED_DATE_ENDED']) : false;
                 $isFeatureBooked = isset($ad['BO_DATE_ENDED']) && $ad['BO_DATE_ENDED'] ? ($current_time < $ad['BO_DATE_ENDED']) : false;
@@ -666,9 +666,9 @@ class MyAds extends Page {
                     $content['se']=$ad['SECTION_ID'];
                 }
                     
-                $text='';
-                $text = isset($content['text']) && trim($content['text']) ? $content['text'] : (isset($content['other'])?$content['other']:'');
+
                 $altText='';
+                $text = (isset($content['text']) && \trim($content['text'])) ? $content['text'] : ($content['other']??'');                
                 if (isset($content['extra']['t']) && $content['extra']['t']!=2 && isset($content['altother']) && $content['altother']) {
                     $altText=$content['altother'];
                 }
@@ -749,14 +749,10 @@ class MyAds extends Page {
                     }                    
                                                                 
                     $mcUser = new MCUser((int)$ad['WEB_USER_ID']);
-                    $userMobile = $mcUser->getMobile(TRUE)->getNumber();
+                    $userMobile = $mcUser->getMobile(TRUE)->getNumber();                    
+                    $needNumberDisplayFix=(!\preg_match('/span class=?pn/u', $text));
                     
-                    $needNumberDisplayFix=false;
-                    if (!preg_match('/span class="pn/u', $text)) {
-                        $needNumberDisplayFix = true;
-                    }
-                    
-                    if (isset($content['cui']['p']) && is_array($content['cui']['p'])) {
+                    if (isset($content['cui']['p']) && \is_array($content['cui']['p'])) {
                         foreach ($content['cui']['p'] as $p) { 
                             $isUserMobile = false;
                             try {
@@ -775,14 +771,16 @@ class MyAds extends Page {
                                         case 4:
                                         case 5:
                                         case 13:
-                                            if($type!==1 && $type!==2)
+                                            if ($type!==1 && $type!==2) {
                                                 $phoneValidErr=1;
+                                            }
                                             break;
                                         case 7:
                                         case 8:
                                         case 9:
-                                            if($type!==0 && $type!==2)
+                                            if($type!==0 && $type!==2) {
                                                 $phoneValidErr=1;
+                                            }
                                             break;
                                         default:
                                             $phoneValidErr=2;
@@ -796,24 +794,27 @@ class MyAds extends Page {
                             catch (Exception $ex) {
                                 $phoneValidErr=2;
                             }
+                            
                             if ($needNumberDisplayFix) {
-                                if (strlen($p['v'])==0) {
-                                    $p['v'] = $p['r'];
-                                }
-                                $text = preg_replace('/\\'.$p['v'].'/', '<span class="pn">'.$p['v'].'</span>', $text);
-                                if($altText){
-                                    $altText = preg_replace('/\\'.$p['v'].'/', '<span class="pn">'.$p['v'].'</span>', $altText);
+                                if (\strlen($p['v'])===0) { $p['v'] = $p['r']; }
+                                if (\strlen($p['v'])>0) {
+                                    $text = \preg_replace('/\\'.$p['v'].'/', '<span class="pn">'.$p['v'].'</span>', $text);
+                                    if ($altText){
+                                        $altText = preg_replace('/\\'.$p['v'].'/', '<span class="pn">'.$p['v'].'</span>', $altText);
+                                    }
                                 }
                             }
-                            if($isUserMobile){
+                            
+                            if ($isUserMobile) {
                                 $text = preg_replace('/\<span class="pn">\\'.$p['v'].'\<\/span\>/', '<span class="pn png">'.$p['v'].'</span>', $text);
                                 if($altText){
                                     $altText = preg_replace('/\<span class="pn">\\'.$p['v'].'\<\/span\>/', '<span class="pn png">'.$p['v'].'</span>', $altText);
                                 }
                             }
-                            if($phoneValidErr){
+                            
+                            if ($phoneValidErr) {
                                 $text = preg_replace('/\<span class="pn(?:[\sa-z0-9]*)">\\'.$p['v'].'\<\/span\>/', '<span class="vn">'.$p['v'].'</span>', $text);
-                                if($altText){
+                                if ($altText) {
                                     $altText = preg_replace('/\<span class="pn(?:[\sa-z0-9]*)">\\'.$p['v'].'\<\/span\>/', '<span class="vn">'.$p['v'].'</span>', $altText);
                                 }
                             }
@@ -924,7 +925,7 @@ class MyAds extends Page {
                         if ($onlySuper) {
                             echo '<span class=tooltiptext onmouseover="d.ipCheck(this)">', $onlySuper, '</span>';
                         }
-                        elseif ($this->user()->level()==9) {
+                        elseif ($this->user()->level()===9) {
                             echo '<span class=tooltiptext onmouseover="d.ipCheck(this)">...</span>';
                         }
                         echo '</div>';
