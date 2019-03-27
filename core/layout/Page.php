@@ -4622,15 +4622,15 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                         if ($this->searchResults && 
                             !empty($this->searchResults['body']['matches']) && 
                             !(isset($this->router()->params['tag_id']) && !$this->extendedId) && 
-                            (!(isset ($this->router()->params['loc_id']) && !$this->localityId) || ($this->localityId && in_array($this->router()->countryId, [1,2,3,7,8,9]))) ) 
+                            (!(isset ($this->router()->params['loc_id']) && !$this->localityId) || ($this->localityId && \in_array($this->router()->countryId, [1,2,3,7,8,9]))) ) 
                         {
                             $qTotal = $this->searchResults['body']['total_found'];
                             $__fpages=$qTotal/$this->num;
                             $qPages = ($__fpages<1) ? 0 : ceil($__fpages);
-                            $qTmp=ceil($this->router()->config()->get('search_results_max')/$this->num);
+                            $qTmp=\ceil($this->router()->config()->get('search_results_max')/$this->num);
                             if ($qPages>$qTmp) $qPages=(int)$qTmp;
                         
-                            if (array_key_exists('q', $_GET)) {
+                            if (\array_key_exists('q', $_GET)) {
                                 echo '<meta name="robots" content="noindex, follow" />';
                                 $currentUrl=$this->router()->getUrl($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);                                                        
                             
@@ -4818,11 +4818,11 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             echo ' class="wbp"';
         }
         if ($this->user()->id()) {
-            echo ' data-key="',$this->user->info['idKey'],'" data-level=', $this->user()->level()*($this->user()->isSuperUser()?10:1);
-            //$this->user()->
+            echo ' data-key="', $this->user->info['idKey'], '" data-level=', $this->user()->level()*($this->user()->isSuperUser()?10:1);
         }
         echo ' data-repo="', $this->router()->config()->adImgURL, '">', '<meta itemprop="isFamilyFriendly" content="true" />', "\n"; 
-        
+
+        //error_log('key '.$this->user->info['idKey']. ' decoded ' . $this->user()->decodeId($this->user->info['idKey']) . ' uid '.$this->user()->id());
         if (1) {  return; }
         
         

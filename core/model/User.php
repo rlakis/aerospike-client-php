@@ -155,7 +155,7 @@ class User {
         $this->db = \Core\Model\Router::instance()->database();
         $this->config = \Config::instance();
         $this->reset();
-        if($site){
+        if ($site) {
             $_SESSION['_u']['params']['slang'] = $site->router()->language;
         }
         if ($init) {
@@ -273,7 +273,7 @@ class User {
 
             $this->update();
 
-            if (isset( $_GET["connected_with"] )) {
+            if (isset($_GET["connected_with"])) {
                 unset($_GET["connected_with"]);
                 if ($this->info['level']==5) $currentUrl='/blocked/'.($site->urlRouter->siteLanguage=='ar'?'':$site->urlRouter->siteLanguage.'/');
                 elseif ($this->info['level']==6) $currentUrl='/suspended/'.($site->urlRouter->siteLanguage=='ar'?'':$site->urlRouter->siteLanguage.'/');
@@ -383,15 +383,15 @@ class User {
     }
     
     
-    function decodeId($id) {
-        $charToInt=array('a'=>0,'f'=>1,'h'=>2,'x'=>3,'j'=>4,'d'=>5,'b'=>6,'o'=>7,'n'=>8,'k'=>9);
-        $idx = substr($id, 0, 1);
-        if(isset($charToInt[$idx])) {
+    function decodeId(string $id) : int {
+        $charToInt = ['a'=>0,'f'=>1,'h'=>2,'x'=>3,'j'=>4,'d'=>5,'b'=>6,'o'=>7,'n'=>8,'k'=>9];
+        $idx = \substr($id, 0, 1);
+        if (isset($charToInt[$idx])) {
             $idx = $charToInt[$idx];
-            $id = substr($id, 1);
-            $id = base_convert( $id , 36, 10);
+            $id = \substr($id, 1);
+            $id = \base_convert( $id , 36, 10);
             $id = $id - User::$idBase[$idx];
-            if($id<0) $id =0;
+            if ($id<0) {$id =0;}
         }
         else {
             $id = 0;

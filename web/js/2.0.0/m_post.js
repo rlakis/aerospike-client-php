@@ -2223,7 +2223,8 @@ function uproF(uid,uog,uoh){
         url:UP_URL+'/upload/progress.php',
         data:{
             UPLOAD_IDENTIFIER:uid,
-            s:USID},
+            s:USID
+        },
         type:'POST',
         success:function(rp){
             rp = eval(rp);
@@ -2271,7 +2272,8 @@ function renderImage(rp,li){
     s.onclick=(function(i,e){return function(){delP(i,e)}})(rp,s);
 }
 var imgCounter=1;
-function uploadFile(data,type,prog,file){
+
+function uploadFile(data, type, prog, file) {
     var uuid = uid;
     for (var i = 0; i < 32; i++) {
         uuid += Math.floor(Math.random() * 16).toString(16);
@@ -2297,45 +2299,6 @@ function uploadFile(data,type,prog,file){
     
     uptimers[uuid]=1;
     imgCounter++;
-    /*
-    var f= dataURLtoBlob(data,type);
-    var fd = new FormData();
-    fd.append('UPLOAD_IDENTIFIER',uuid);
-    fd.append('pic',f);
-    var rg=new RegExp('.*\/');
-    var t=type.replace(rg,'');
-    $.ajax({
-       url:UP_URL+'/upload/?t='+t+'&s='+USID,
-       type: "POST",
-       data: fd,
-       processData: false,
-       contentType: false,
-       success:function(rp){
-           if(rp && rp!='0'){
-               uploadCB(rp,$p(prog,2),uuid);
-           }else{
-               uproFail(0,uproh,uprog); 
-           clearInterval(uptimers[uuid]);
-           delete uptimers[uuid];
-           checkUploadLock($p($p(prog,2),2));
-           }
-           //if(rp=='0') uploadCB('',$prog);
-       },error:function(rp){
-           uproFail(0,uproh,uprog); 
-           clearInterval(uptimers[uuid]);
-           delete uptimers[uuid];
-           checkUploadLock($p($p(prog,2),2));
-           //uploadCB('',prog);
-       }
-    });
-    
-    uptimers[uuid] = window.setInterval(
-        function () {
-            uproF(uuid,uprog,uproh);
-        },
-        1000
-    );
-    imgCounter++;*/
 }
 
 function progressHandler(event,uproh,uprog) {

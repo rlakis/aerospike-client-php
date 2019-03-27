@@ -408,6 +408,11 @@ var UI={
     },
           
 
+    guid:function(){
+        function s4(){return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);}
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    },
+    
     uploadImage:function(img){
         
     },
@@ -429,6 +434,7 @@ var UI={
                         resolve(files);
                         let curr=UI.pixIndex;
                         files.forEach(function(file){
+                            console.log('filename', file.name, file.type);
                             if ( /\.(jpe?g|png|gif|webp)$/i.test(file.name) ) {
                                 var reader = new FileReader();
                                 reader.onload = readerEvent => {
@@ -462,21 +468,46 @@ var UI={
                                     if (readerEvent.target.readyState!==FileReader.DONE){
                                         return;
                                     }
+                                    let consume=function(stream, total = 0) {
+                                        while (stream.state === "readable") {
+                                            var data = stream.read()
+                                            total += data.byteLength;
+                                            console.log("received " + data.byteLength + " bytes (" + total + " bytes in total).")
+                                        }
+                                        if (stream.state === "waiting") {
+                                            stream.ready.then(() => consume(stream, total))
+                                        }
+                                        return stream.closed
+                                    };
+                                    
+                                    let uSID=null;
+                                    
+                                    var decodedCookie = decodeURIComponent($.cookie);
+                                    var ca = decodedCookie.split(';');
+                                    for (let i in ca) {var c=ca[i];
+                                        while(c.charAt(0)===' '){c=c.substring(1);}
+                                        if(c.indexOf('PHPSESSID=')===0){uSID=c.substring(10,c.length);break;}
+                                    }
+                                    console.log('key', $$.dataset.key, 'sid', uSID);
+                                    console.log(readerEvent.target);
+                                    let rg=new RegExp('.*/');
+                                    let t=file.type.replace(rg,'');
                                     var formData = new FormData();
-                                    formData.append('file', readerEvent.target.result);
+                                    formData.append('UPLOAD_IDENTIFIER',UI.guid());
+                                    formData.append('pic', readerEvent.target.result);
+                                    formData.append('type', file.type);
                                     formData.append('name', 'pic');
-                                    fetch('/ajax-upload/', {
-                                        method: 'POST', 
-                                        headers: {
-                                            'Accept': 'application/json', 
-                                            'Content-Type':'multipart/form-data'
-                                        }, 
-                                        body:FormData
-                                    })
-                                    .then((response) => response.json())
+                                    const request = new Request('/upload/?t='+t+'&s='+uSID, {
+                                        method: 'POST',
+                                        body: formData
+                                    });
+                                    fetch(request)
+                                        .then(res => consume(res.body))
+                                        .then(() => console.log("consumed the entire body without keeping the whole thing in memory!"))
+                                    /*.then((response) => response.json())
                                     .then((data) => {
                                         console.log('data', data);
-                                    })
+                                    })*/
                                     .catch((error) => {
                                         console.log(error)
                                     });

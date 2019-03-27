@@ -20,7 +20,7 @@ class AjaxHandler extends Site {
         parent::__construct();
         $this->dir=$this->router()->config()->baseDir;
         $this->host=$this->router()->config()->host;
-        $this->sid=session_id();
+        $this->sid=\session_id();
     }
 
     function setData($res, $label=''){
@@ -36,13 +36,12 @@ class AjaxHandler extends Site {
     function process(){
         $res=['RP'=>$this->rp, 'MSG'=>$this->msg, 'DATA'=>$this->data];
         \header("Content-Type: application/json");
-        //error_log(json_encode($res));
-        echo json_encode($res);
+        echo \json_encode($res);
     }
 
     function processRaw($res){
         \header("Content-Type: application/json");
-        echo json_encode($res);
+        echo \json_encode($res);
     }
     
     function processJson($res){
@@ -64,10 +63,10 @@ class Bin extends AjaxHandler{
     
     function __construct(){
         parent::__construct();
-        $contentType = filter_input(INPUT_SERVER, 'CONTENT_TYPE', FILTER_SANITIZE_STRING);
+        $contentType = \filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
         if ($contentType==='application/json') {
-            $content = trim(file_get_contents("php://input"));
-            $this->_JPOST = json_decode($content, true);
+            $content = \trim(\file_get_contents("php://input"));
+            $this->_JPOST = \json_decode($content, true);
         }
         $this->actionSwitch();
     }
@@ -937,11 +936,12 @@ class Bin extends AjaxHandler{
                     $this->process();
                 }
                 break;
+                
             case 'ajax-balance':
-                if($this->user->info['id']){
+                if ($this->user()->isLoggedIn()) {
                     $userId = $this->get('u','uint');
                     if($userId){         
-                        if($this->user->info['level']==9 || $this->user->info['id']==$userId){
+                        if($this->user()->level()===9 || $this->user()->id()==$userId){
                             $res=$this->user->getStatement($userId, 0, true);
                             if($res && $res['balance']){
                                 $this->setData($res['balance'],'balance');
@@ -959,6 +959,7 @@ class Bin extends AjaxHandler{
                     $this->fail(101);
                 }
                 break;
+                
             case 'ajax-keyword':
                 if($this->user->info['id'] && $this->user->isSuperUser()){
                     $key = $this->get('k');
@@ -2217,10 +2218,8 @@ class Bin extends AjaxHandler{
                         
                         $len=count($locations);
                         
-                        if($isSearch && $len)
-                        {
-                            foreach ($locations as $loc)
-                            {
+                        if($isSearch && $len) {
+                            foreach ($locations as $loc) {
                                 if (isset ($types[$loc['type']])) {
                                     $loc['latitude']=  number_format($loc['latitude'], 8);
                                     $loc['longitude']=  number_format($loc['longitude'], 8);
@@ -3159,98 +3158,99 @@ class Bin extends AjaxHandler{
                 break;
                 
             case "ajax-upload":
-                require_once("lib/class.upload.php");
+                $this->router()->config()->incLibFile('class.upload');
                 $image_ok=false;
                 $thumb_ok=false;
                 $mobile_ok=false;
                 $widget_ok=false;
                 $handle=null;
-                if ($this->user->info['id'] && isset($_FILES['pic']) && isset($this->user->pending['post']['id']) && $this->user->pending['post']['id']) {
+                
+                if ($this->user()->isLoggedIn() && isset($_FILES['pic']) && isset($this->user->pending['post']['id']) && $this->user->pending['post']['id']) {
 
                     $id=$this->user->pending['post']['id'];
-                    $adContent=json_decode($this->user->pending['post']['content'],true);
+                    $adContent=\json_decode($this->user->pending['post']['content'], true);
+                    
                     if (isset ($adContent['pics']) && count($adContent['pics'])>4) {
                         //do nothing
-                    }else {
-                    $picIndex=0;
-                    if (isset ($adContent['pic_idx'])) {
-                        $picIndex=$adContent['pic_idx'];
-                    }
-                    $path=$this->urlRouter->cfg['dir'].'/web/repos/';
-                    $tempName=$_FILES['pic']['tmp_name'];
-                    $_size=@getimagesize($tempName);                  
-                    if (is_array($_size) && $_size[0] && $_size[1]) {
-                    $handle = new Upload($_FILES['pic']);
-                    if ($handle->uploaded) {
-                        $filename = $id."_".$picIndex++;
-                        $handle->file_new_name_body   = $filename;
-                        $handle->file_overwrite   = true;
-                        $handle->Process($path.'l/');
-                        if ($handle->processed) {
-                            $image_ok = true;
-                            $extension='.'.$handle->file_src_name_ext;
-                            list($image_width, $image_height) = getimagesize($path.'l/'.$filename.$extension);
-                        }else {
-                            @unlink($tempName);
-                        }
-                        if ($image_ok) {
-                            $handle->file_new_name_body   = $filename;
-                            $handle->file_overwrite   = true;
-                            $handle->image_resize         = true;
-                            if ($image_width>120) {
-                                $handle->image_ratio_y        = true;
-                                $handle->image_x              = 120;
-                            }else{
-                                $handle->image_ratio_y        = true;
-                                $handle->image_x              = $image_width;
-                            }
-                            $handle->Process($path.'s/');
-                            if ($handle->processed) {
-                                $thumb_ok=true;
-                            }
-                            
-                            $handle->file_new_name_body   = $filename;
-                            $handle->file_overwrite   = true;
-                            $handle->image_resize         = true;
-                            if ($image_width>300) {
-                                $handle->image_ratio_y        = true;
-                                $handle->image_x              = 300;
-                            }else{
-                                $handle->image_ratio_y        = true;
-                                $handle->image_x              = $image_width;
-                            }
-                            $handle->Process($path.'m/');
-                            if ($handle->processed) {
-                                $mobile_ok=true;
-                            }
-
-                            $handle->file_new_name_body   = $filename;
-                            $handle->file_overwrite   = true;
-                            $handle->image_resize         = true;
-                            if ($image_width>648) {
-                                $handle->image_ratio_y        = true;
-                                $handle->image_x              = 648;
-                            }else{
-                                $handle->image_ratio_y        = true;
-                                $handle->image_x              = $image_width;
-                            }
-                            $handle->Process($path.'d/');
-                            if ($handle->processed) {
-                                list($image_width, $image_height) = getimagesize($path.'d/'.$filename.$extension);
-                                $widget_ok=true;
-                            }
-                        }
-
                     }
                     else {
-                        @unlink($tempName);
-                    }
-                    
-                    }
-                    elseif($tempName) {
-                       @unlink($tempName);
-                    }
-                    
+                        $picIndex=$adContent['pic_idx']??0;
+                        $path=$this->router()->config()->get('dir').'/web/repos/';
+                        $tempName=$_FILES['pic']['tmp_name'];
+                        $_size=@getimagesize($tempName);                  
+                        if (\is_array($_size) && $_size[0] && $_size[1]) {
+                            $handle = new Upload($_FILES['pic']);
+                            if ($handle->uploaded) {
+                                $filename = $id."_".$picIndex++;
+                                $handle->file_new_name_body   = $filename;
+                                $handle->file_overwrite   = true;
+                                $handle->Process($path.'l/');
+                                if ($handle->processed) {
+                                    $image_ok = true;
+                                    $extension='.'.$handle->file_src_name_ext;
+                                    list($image_width, $image_height) = getimagesize($path.'l/'.$filename.$extension);
+                                }
+                                else {
+                                    @unlink($tempName);
+                                }
+                                if ($image_ok) {
+                                    $handle->file_new_name_body = $filename;
+                                    $handle->file_overwrite = true;
+                                    $handle->image_resize = true;
+                                    if ($image_width>120) {
+                                        $handle->image_ratio_y = true;
+                                        $handle->image_x = 120;
+                                    }
+                                    else {
+                                        $handle->image_ratio_y = true;
+                                        $handle->image_x = $image_width;
+                                    }
+                                    $handle->Process($path.'s/');
+                                    if ($handle->processed) {
+                                        $thumb_ok=true;
+                                    }
+                            
+                                    $handle->file_new_name_body   = $filename;
+                                    $handle->file_overwrite   = true;
+                                    $handle->image_resize         = true;
+                                    if ($image_width>300) {
+                                        $handle->image_ratio_y        = true;
+                                        $handle->image_x              = 300;
+                                    }
+                                    else {
+                                        $handle->image_ratio_y        = true;
+                                        $handle->image_x              = $image_width;
+                                    }
+                                    $handle->Process($path.'m/');
+                                    if ($handle->processed) {
+                                        $mobile_ok=true;
+                                    }
+
+                                    $handle->file_new_name_body   = $filename;
+                                    $handle->file_overwrite   = true;
+                                    $handle->image_resize         = true;
+                                    if ($image_width>648) {
+                                        $handle->image_ratio_y        = true;
+                                        $handle->image_x              = 648;
+                                    }
+                                    else {
+                                        $handle->image_ratio_y        = true;
+                                        $handle->image_x              = $image_width;
+                                    }
+                                    $handle->Process($path.'d/');
+                                    if ($handle->processed) {
+                                        list($image_width, $image_height) = getimagesize($path.'d/'.$filename.$extension);
+                                        $widget_ok=true;
+                                    }
+                                }
+                            }
+                            else {
+                                @unlink($tempName);
+                            }                    
+                        }
+                        elseif($tempName) {
+                           @unlink($tempName);
+                        }                    
                     }
                 }
 
