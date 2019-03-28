@@ -247,9 +247,11 @@ var UI={
     dic:null,
     region:null,
     map:null,
+    photos:[],
     rootId:0,    
     purposeId:0,
     pixIndex:0,
+    sessionID:null,
     version:'1.0.0',
     
     numbers:{1:null, 2:null},
@@ -305,10 +307,14 @@ var UI={
                 }
                 console.log('UI.dic', _.dic);
                 
-                $$.queryAll('span.pix').forEach(function(pix){
-                    pix.onclick=_.openImage;
-                    pix.classList.add('icn-camera');
-                });
+                let dc = decodeURIComponent($.cookie);
+                let ca = dc.split(';');
+                for (let i in ca) {var c=ca[i];
+                    while(c.charAt(0)===' '){c=c.substring(1);}
+                    if(c.indexOf('PHPSESSID=')===0){_.sessionID=c.substring(10,c.length);break;}
+                }
+                console.log('key', $$.dataset.key, 'sid', _.sessionID);
+                $$.queryAll('span.pix').forEach(function(pix){_.photos.push(new Photo(pix));});
                 $$.queryAll('textarea').forEach(function(txt){
                     txt.oninput=function(e){
                         console.log(e);
@@ -467,76 +473,66 @@ var UI={
                                 reader.onloadend = readerEvent => {
                                     if (readerEvent.target.readyState!==FileReader.DONE){
                                         return;
-                                    }
-                                    let consume=function(stream, total = 0) {
-                                        while (stream.state === "readable") {
-                                            var data = stream.read()
-                                            total += data.byteLength;
-                                            console.log("received " + data.byteLength + " bytes (" + total + " bytes in total).")
-                                        }
-                                        if (stream.state === "waiting") {
-                                            stream.ready.then(() => consume(stream, total))
-                                        }
-                                        return stream.closed
-                                    };
+                                    }                                    
                                     
-                                    let uSID=null;
                                     
-                                    var decodedCookie = decodeURIComponent($.cookie);
-                                    var ca = decodedCookie.split(';');
-                                    for (let i in ca) {var c=ca[i];
-                                        while(c.charAt(0)===' '){c=c.substring(1);}
-                                        if(c.indexOf('PHPSESSID=')===0){uSID=c.substring(10,c.length);break;}
-                                    }
-                                    console.log('key', $$.dataset.key, 'sid', uSID);
                                     console.log(readerEvent.target);
                                     let rg=new RegExp('.*/');
                                     let t=file.type.replace(rg,'');
+                                    
+                                    let progress=spans[curr].query('progress');                                    
+                                    
+                                    
+                                    let onprogressHandler=function(evt){
+                                        var percent = evt.loaded/evt.total*100;
+                                        console.log('Upload progress: ' + percent + '%');
+                                        progress.value=percent;
+                                        
+                                    };
+                                    let onloadstartHandler=function(evt){
+                                        //var div = document.getElementById('upload-status');
+                                        //div.innerHTML = 'Upload started.';
+                                        console.log('Upload started.');
+                                        progress.max=100;
+                                        progress.value=0;
+                                        //progress.style.display='inline-flex';                                        
+                                    };
+                                    let onloadHandler=function(evt){
+                                        console.log('File uploaded. Waiting for response.');
+                                        progress.style.display='none';
+                                    };
+                                    let onreadystatechangeHandler=function(evt){
+                                        var status, text, readyState;
+                                        try {
+                                            readyState = evt.target.readyState;
+                                            text = evt.target.responseText;
+                                            status = evt.target.status;
+                                        }
+                                        catch(e) {
+                                            return;
+                                        }
+                                        if (readyState===4 && status===200 && evt.target.responseText) {
+                                            //var status = document.getElementById('upload-status');
+                                            //status.innerHTML += '<' + 'br>Success!';
+                                            //var result = document.getElementById('result');
+                                            //result.innerHTML = '<p>The server saw it as:</p><pre>' + evt.target.responseText + '</pre>';
+                                            console.log('Success!', 'The server saw it as: '+evt.target.responseText);
+                                        }
+                                    };
                                     var formData = new FormData();
                                     const UUID=UI.guid();
                                     formData.append('UPLOAD_IDENTIFIER', UUID);
                                     formData.append('pic', readerEvent.target.result);
                                     formData.append('type', file.type);
                                     formData.append('name', 'pic');
-                                    const request = new Request('/upload/?t='+t+'&s='+uSID, {
-                                        method: 'POST',
-                                        body: formData
-                                    });
-                                    fetch(request)
-                                        .then(res => consume(res.body))
-                                        .then(() => console.log("consumed the entire body without keeping the whole thing in memory!"))
-                                    /*.then((response) => response.json())
-                                    .then((data) => {
-                                        console.log('data', data);
-                                    })*/
-                                    .catch((error) => {
-                                        console.log(error)
-                                    });
-                                   
-                                    var callback = function(){
-                                        var f=new FormData();
-                                        f.append('UPLOAD_IDENTIFIER', UUID);
-                                        f.append('s', uSID);
-                                        fetch('/upload/progress.php', {
-                                            method: 'POST', 
-                                            mode: 'same-origin', 
-                                            credentials: 'same-origin', 
-                                            headers:{
-                                                'Accept':'application/json',
-                                                'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'
-                                            },
-                                            body: f
-                                        })
-                                        .then((res) => res.json())
-                                        .then((data) => { 
-                                            console.log(data); 
-                                        })
-                                        .catch((error) => {
-                                            console.log(error)
-                                        });
-                                       
-                                    };
-                                    setTimeout(callback, 1000);
+                                    
+                                    let xhr = new XMLHttpRequest();
+                                    xhr.upload.addEventListener('loadstart', onloadstartHandler, false);
+                                    xhr.upload.addEventListener('progress', onprogressHandler, false);
+                                    xhr.upload.addEventListener('load', onloadHandler, false);
+                                    xhr.addEventListener('readystatechange', onreadystatechangeHandler, false);
+                                    xhr.open('POST', '/upload/?t='+t+'&s='+uSID, true);
+                                    xhr.send(formData);                                                                       
                                     console.log(readerEvent);
                                 };
                                 reader.readAsDataURL(file);                                                        
@@ -653,7 +649,7 @@ var UI={
         return dialog;
     },
     
-    showDialog:function(dialog){
+    showDialog:function(dialog, photo){
         $$.classList.add('modal-open');
         $$.append(dialog);  
         dialog.style.display = "flex";
@@ -673,18 +669,29 @@ var UI={
         
 
         if(dialog.id==='map' && (Ad.content.lat!==0 || Ad.content.lon!==0) && dialog.dataset.views>'1'){ MAP.adLocation(); }
-        let img=card.query('span.pix img');
-        if(img){
-            if(!Ad.pictures[UI.pixIndex].rotate){ Ad.pictures[UI.pixIndex].rotate=0; }
+        if(photo){
             let cw=$$.clientWidth;
-            let portrait=(Ad.pictures[UI.pixIndex].rotate===90||Ad.pictures[UI.pixIndex].rotate===270);
+            let portrait=(photo.rotation===90||photo.rotation===270);
+            let img=card.query('span.pix img');
             img.closest('span').style.height=Math.round((cw/2)/1.5)+'px';
             let hh=img.closest('span').offsetHeight;
             let ww=img.closest('span').offsetWidth;
             img.style.setProperty('width', (portrait?hh:ww)+'px');
             img.style.setProperty('height', (portrait?ww:hh)+'px');
-            img.style.setProperty('transform', 'rotate('+Ad.pictures[UI.pixIndex].rotate+'deg)');
+            img.style.setProperty('transform', 'rotate('+photo.rotation+'deg)');
         }
+//        let img=card.query('span.pix img');
+//        if(img){
+//            if(!Ad.pictures[UI.pixIndex].rotate){ Ad.pictures[UI.pixIndex].rotate=0; }
+//            let cw=$$.clientWidth;
+//            let portrait=(Ad.pictures[UI.pixIndex].rotate===90||Ad.pictures[UI.pixIndex].rotate===270);
+//            img.closest('span').style.height=Math.round((cw/2)/1.5)+'px';
+//            let hh=img.closest('span').offsetHeight;
+//            let ww=img.closest('span').offsetWidth;
+//            img.style.setProperty('width', (portrait?hh:ww)+'px');
+//            img.style.setProperty('height', (portrait?ww:hh)+'px');
+//            img.style.setProperty('transform', 'rotate('+Ad.pictures[UI.pixIndex].rotate+'deg)');
+//        }
     },
     
     chooseRootPurpose:function(){
@@ -950,15 +957,213 @@ var UI={
 };
 
 
-class AdCallingTime{
+class Photo{
     constructor(elem) {
-        
+        this.element=elem;
+        this.element.onclick=this.open.bind(this);
+        this.element.classList.add('icn-camera');
+        this.progress=this.element.query('progress');
+        this.file=null;
+        this.image=null;
+        this.rotation=0;
+        this.index=parseInt(this.element.dataset.index);
+        this.large=null;
     }
     
-    encode(){
-        
+    setImage(result){
+        let _=this;
+        _.image=_.element.query('img');
+        if(!_.image){
+            _.image=new Image();                                        
+            _.element.append(_.image);
+            _.element.classList.remove('icn-camera');
+            _.image.setAttribute('id', 'picture');                                        
+        }
+        _.image.onload=function(){                              
+            Ad.pictures[_.index]={'image':_.image, 'rotate':0, 'width':_.image.naturalWidth, 'height':_.image.naturalHeight};
+            _.image.style.setProperty('transform', 'rotate(0deg)');
+            if(_.large){
+                _.large.src=_.image.src;
+                let hh=_.large.closest('span').offsetHeight;
+                let ww=_.large.closest('span').offsetWidth;
+                _.large.style.setProperty('width', ww+'px');
+                _.large.style.setProperty('height', hh+'px');
+                _.large.style.setProperty('transform', 'rotate(0deg)');
+            }
+        };
+        _.image.src=result; 
     }
-}
+    
+    upload(result){
+        let _=this;        
+        _.image=_.element.query('img');
+        console.log('_', _);
+        
+        let rg=new RegExp('.*/');
+        let t=_.file.type.replace(rg,'');
+                                    
+        let onprogressHandler=function(evt){
+            var percent = evt.loaded/evt.total*100;
+            //console.log('Upload progress: ' + percent + '%');
+            _.progress.value= Math.floor(percent);
+        };
+        let onloadstartHandler=function(evt){                                   
+            _.progress.max=100;
+            _.progress.value=0;
+            _.image.style.height=(_.image.offsetHeight-8)+'px';
+            _.progress.style.display='block'
+        };
+        let onloadHandler=function(evt){
+            console.log('File uploaded. Waiting for response.');
+            _.progress.style.display='none';
+            _.image.style.height='100%';
+        };
+        let onreadystatechangeHandler=function(evt){
+            var status, text, readyState;
+            try {
+                readyState = evt.target.readyState;
+                text = evt.target.responseText;
+                status = evt.target.status;
+            }
+            catch(e) {
+                return;
+            }
+            if (readyState===4 && status===200 && evt.target.responseText) {
+                //var status = document.getElementById('upload-status');
+                //status.innerHTML += '<' + 'br>Success!';
+                //var result = document.getElementById('result');
+                //result.innerHTML = '<p>The server saw it as:</p><pre>' + evt.target.responseText + '</pre>';
+                console.log('Success!', 'The server saw it as: '+evt.target.responseText);
+            }
+        };
+        
+        let form = new FormData();
+        const UUID=UI.guid();
+        form.append('UPLOAD_IDENTIFIER', UUID);
+        form.append('pic', result);
+        form.append('type', _.file.type);
+        form.append('name', 'pic');
+                                    
+        let xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener('loadstart', onloadstartHandler, false);
+        xhr.upload.addEventListener('progress', onprogressHandler, false);
+        xhr.upload.addEventListener('load', onloadHandler, false);
+        xhr.addEventListener('readystatechange', onreadystatechangeHandler, false);
+        xhr.open('POST', '/upload/?t='+t+'&s='+UI.sessionID, true);
+        xhr.send(form);                             
+    }
+    
+    
+    open(){
+        if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
+            alert('The File APIs are not fully supported in this browser.');
+            return;
+        }
+        let _=this;
+        console.log('this', _);
+        UI.pixIndex=_.index;
+            
+        let cw=$$.clientWidth;
+        
+        let openFileDialog=function(multiple, largeImage){
+            _.large=largeImage;
+            return new Promise(resolve => {
+                let inp=createElem('input');
+                inp.type='file';
+                inp.multiple=multiple;
+                inp.accept='image/*';
+                inp.onchange = ee => {
+                    let files = Array.from(inp.files);
+                    resolve(files);
+                    let curr=_.index;
+                    files.forEach(function(file){
+                        console.log('filename', file.name, file.type);
+                        if (/\.(jpe?g|png|gif|webp)$/i.test(file.name)) {
+                            var reader = new FileReader();
+                            reader.onload = readerEvent => {
+                                UI.photos[curr].setImage(readerEvent.target.result);
+                                UI.photos[curr].file=file;                                
+                            };
+                            reader.onloadend = readerEvent => {
+                                if(readerEvent.target.readyState!==FileReader.DONE){return;}
+                                UI.photos[curr].upload(readerEvent.target.result);                                                               
+                                //console.log(readerEvent);
+                                curr++;if(curr>4)curr=0;
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                };
+                inp.click();
+            });
+        };
+            
+        if (_.image) {
+            let dialog, card, img;
+            if(!UI.dialogs.pix){
+                dialog=UI.createDialog('pix');
+                card=dialog.query('div.card');
+                let span=createElem('span', 'pix');
+                span.style.height=Math.round((cw/2)/1.5)+'px';
+                img=new Image();
+                span.append(img);
+                card.append(span);
+                let f=createElem('div', 'card-footer');
+                f.style.position='absolute';
+                f.style.bottom=0;
+                f.style.setProperty('width', 'calc(100% - 52px)');
+                    
+                let btnRotate=createElem('a', 'btn blue', 'Rotate');
+                btnRotate.onclick=function(){
+                    let curr=UI.pixIndex;
+                    _.rotation+=90;
+                    //Ad.pictures[curr].rotate+=90;
+                    if(_.rotation>=360){ _.rotation=0; }
+                    _.image.style.setProperty('transform', 'rotate('+_.rotation+'deg)');
+                    img.style.setProperty('transform', 'rotate('+_.rotation+'deg)');
+                    let h=_.element.offsetHeight;
+                    let w=_.element.offsetWidth;
+                    let hh=img.closest('span').offsetHeight;
+                    let ww=img.closest('span').offsetWidth;
+                    let portrait=(_.rotation===90||_.rotation===270);
+                    _.image.style.setProperty('width', (portrait?h:w)+'px', 'important');
+                    _.image.style.setProperty('height', (portrait?w:h)+'px', 'important');
+                        
+                    img.style.setProperty('width', (portrait?hh:ww)+'px', 'important');
+                    img.style.setProperty('height', (portrait?ww:hh)+'px', 'important');
+                };
+                f.append(btnRotate);
+                    
+                let btnRemove=createElem('a', 'btn blue', 'Remove');
+                btnRemove.onclick=function(){
+                    _.image.style.display='none';
+                    _.element.classList.add('icn-camera');
+                    _.image.remove();
+                    _.image=null;
+                    Ad.pictures[UI.pixIndex]={};
+                    UI.close();
+                    console.log(_);
+                };
+                f.append(btnRemove);
+                    
+                let btnReplace=createElem('a', 'btn blue', 'Replace');
+                btnReplace.onclick=function(){
+                    openFileDialog(false, _.image);                        
+                };
+                f.append(btnReplace);
+                card.append(f);
+            } 
+            else {
+                dialog=UI.dialogs.pix;
+                img=dialog.query('img');
+            }
+            img.src=_.image.src;
+            UI.showDialog(dialog, _);
+            return;
+        }
+        openFileDialog(true);      
+    }
+};
 
 
 

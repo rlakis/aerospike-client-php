@@ -345,7 +345,7 @@ class PostAd extends Page {
             echo '<div class=col-12><div class=card>';
             echo '<div class="card-content pictures">';
             for ($i=0; $i<5; $i++){
-                echo '<span class=pix data-index=', $i, '></span>';
+                echo '<span class=pix data-index=', $i, '><progress max=100 value=0></progress></span>';
             }
             echo '</div>';
             echo '</div></div>';
