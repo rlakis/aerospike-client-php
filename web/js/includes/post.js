@@ -493,7 +493,8 @@ var UI={
                                     let rg=new RegExp('.*/');
                                     let t=file.type.replace(rg,'');
                                     var formData = new FormData();
-                                    formData.append('UPLOAD_IDENTIFIER',UI.guid());
+                                    const UUID=UI.guid();
+                                    formData.append('UPLOAD_IDENTIFIER', UUID);
                                     formData.append('pic', readerEvent.target.result);
                                     formData.append('type', file.type);
                                     formData.append('name', 'pic');
@@ -511,7 +512,31 @@ var UI={
                                     .catch((error) => {
                                         console.log(error)
                                     });
-                                    
+                                   
+                                    var callback = function(){
+                                        var f=new FormData();
+                                        f.append('UPLOAD_IDENTIFIER', UUID);
+                                        f.append('s', uSID);
+                                        fetch('/upload/progress.php', {
+                                            method: 'POST', 
+                                            mode: 'same-origin', 
+                                            credentials: 'same-origin', 
+                                            headers:{
+                                                'Accept':'application/json',
+                                                'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'
+                                            },
+                                            body: f
+                                        })
+                                        .then((res) => res.json())
+                                        .then((data) => { 
+                                            console.log(data); 
+                                        })
+                                        .catch((error) => {
+                                            console.log(error)
+                                        });
+                                       
+                                    };
+                                    setTimeout(callback, 1000);
                                     console.log(readerEvent);
                                 };
                                 reader.readAsDataURL(file);                                                        
