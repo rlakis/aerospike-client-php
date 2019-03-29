@@ -35,3 +35,11 @@ Element.prototype.query=function(selector){
 Element.prototype.queryAll=function(selector){
     return this.querySelectorAll(selector);
 };
+
+function hasWebP() {
+    var e = createElem('canvas');
+    if (!!(e.getContext && e.getContext('2d'))) {
+        return e.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+    }
+    return false;
+}

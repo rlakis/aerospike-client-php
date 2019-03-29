@@ -1,4 +1,5 @@
 var $=document,$$=$.body,Ed;
+var HAS_WEBP=hasWebP();
 $.addEventListener("DOMContentLoaded", function(e) {
     UI.init();
 });
@@ -329,6 +330,8 @@ var UI={
                             }
                         }
                         else { e.className=''; }
+                        e.style.height = 'auto';
+                        e.style.height = (e.scrollHeight) + 'px';
                     };
                     txt.onchange=function(){
                         console.log('textarea.onchange', this);
@@ -418,200 +421,7 @@ var UI={
         function s4(){return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);}
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
     },
-    
-    uploadImage:function(img){
         
-    },
-    
-    openImage:function(e){
-        if (window.File && window.FileReader && window.FileList && window.Blob) {
-            UI.pixIndex=e.target.closest('span').dataset.index;
-            
-            let spans=$$.query('div.pictures').childNodes;
-            let cw=$$.clientWidth;
-            let openFileDialog=function(multiple, largeImage){
-                return new Promise(resolve => {
-                    let input=$.createElement('input');
-                    input.type='file';
-                    input.multiple=multiple;
-                    input.accept='image/*';
-                    input.onchange = ee => {
-                        let files = Array.from(input.files);
-                        resolve(files);
-                        let curr=UI.pixIndex;
-                        files.forEach(function(file){
-                            console.log('filename', file.name, file.type);
-                            if ( /\.(jpe?g|png|gif|webp)$/i.test(file.name) ) {
-                                var reader = new FileReader();
-                                reader.onload = readerEvent => {
-                                    let img=spans[curr].query('img');
-                                    if(!img){
-                                        img=new Image();                                        
-                                        spans[curr].append(img);
-                                        spans[curr].classList.remove('icn-camera');
-                                        img.setAttribute('id', 'picture');
-                                        
-                                    }
-                                    img.onload=function(){                              
-                                        Ad.pictures[img.closest('span').dataset.index]={'image':img, 'rotate':0, 'width':img.naturalWidth, 'height':img.naturalHeight};
-                                        img.style.setProperty('transform', 'rotate(0deg)');
-                                        if(largeImage){
-                                            largeImage.src=Ad.pictures[UI.pixIndex].image.src;
-                                            let hh=largeImage.closest('span').offsetHeight;
-                                            let ww=largeImage.closest('span').offsetWidth;
-                                            largeImage.style.setProperty('width', ww+'px');
-                                            largeImage.style.setProperty('height', hh+'px');
-                                            largeImage.style.setProperty('transform', 'rotate(0deg)');
-                                        }
-                                    };
-                                    img.src=readerEvent.target.result; 
-
-                                    curr++;
-                                    if(curr>4){curr=0;}                                              
-
-                                };
-                                reader.onloadend = readerEvent => {
-                                    if (readerEvent.target.readyState!==FileReader.DONE){
-                                        return;
-                                    }                                    
-                                    
-                                    
-                                    console.log(readerEvent.target);
-                                    let rg=new RegExp('.*/');
-                                    let t=file.type.replace(rg,'');
-                                    
-                                    let progress=spans[curr].query('progress');                                    
-                                    
-                                    
-                                    let onprogressHandler=function(evt){
-                                        var percent = evt.loaded/evt.total*100;
-                                        console.log('Upload progress: ' + percent + '%');
-                                        progress.value=percent;
-                                        
-                                    };
-                                    let onloadstartHandler=function(evt){
-                                        //var div = document.getElementById('upload-status');
-                                        //div.innerHTML = 'Upload started.';
-                                        console.log('Upload started.');
-                                        progress.max=100;
-                                        progress.value=0;
-                                        //progress.style.display='inline-flex';                                        
-                                    };
-                                    let onloadHandler=function(evt){
-                                        console.log('File uploaded. Waiting for response.');
-                                        progress.style.display='none';
-                                    };
-                                    let onreadystatechangeHandler=function(evt){
-                                        var status, text, readyState;
-                                        try {
-                                            readyState = evt.target.readyState;
-                                            text = evt.target.responseText;
-                                            status = evt.target.status;
-                                        }
-                                        catch(e) {
-                                            return;
-                                        }
-                                        if (readyState===4 && status===200 && evt.target.responseText) {
-                                            //var status = document.getElementById('upload-status');
-                                            //status.innerHTML += '<' + 'br>Success!';
-                                            //var result = document.getElementById('result');
-                                            //result.innerHTML = '<p>The server saw it as:</p><pre>' + evt.target.responseText + '</pre>';
-                                            console.log('Success!', 'The server saw it as: '+evt.target.responseText);
-                                        }
-                                    };
-                                    var formData = new FormData();
-                                    const UUID=UI.guid();
-                                    formData.append('UPLOAD_IDENTIFIER', UUID);
-                                    formData.append('pic', readerEvent.target.result);
-                                    formData.append('type', file.type);
-                                    formData.append('name', 'pic');
-                                    
-                                    let xhr = new XMLHttpRequest();
-                                    xhr.upload.addEventListener('loadstart', onloadstartHandler, false);
-                                    xhr.upload.addEventListener('progress', onprogressHandler, false);
-                                    xhr.upload.addEventListener('load', onloadHandler, false);
-                                    xhr.addEventListener('readystatechange', onreadystatechangeHandler, false);
-                                    xhr.open('POST', '/upload/?t='+t+'&s='+uSID, true);
-                                    xhr.send(formData);                                                                       
-                                    console.log(readerEvent);
-                                };
-                                reader.readAsDataURL(file);                                                        
-                            }
-                        });
-                    };
-                    input.click();
-                });
-            };
-            
-            if(e.target.closest('span').query('img')){
-                let dialog, card, image;
-                if(!UI.dialogs.pix){
-                    dialog=UI.createDialog('pix');
-                    card=dialog.query('div.card');
-                    let span=createElem('span', 'pix');
-                    span.style.height=Math.round((cw/2)/1.5)+'px';
-                    image=new Image();
-                    span.append(image);
-                    card.append(span);
-                    let f=createElem('div', 'card-footer');
-                    f.style.position='absolute';
-                    f.style.bottom=0;
-                    f.style.setProperty('width', 'calc(100% - 52px)');
-                    
-                    let btnRotate=createElem('a', 'btn blue', 'Rotate');
-                    btnRotate.onclick=function(){
-                        let curr=UI.pixIndex;
-                        
-                        Ad.pictures[curr].rotate+=90;
-                        if(Ad.pictures[curr].rotate>=360){ Ad.pictures[curr].rotate=0; }
-                        Ad.pictures[curr].image.style.setProperty('transform', 'rotate('+Ad.pictures[curr].rotate+'deg)');
-                        image.style.setProperty('transform', 'rotate('+Ad.pictures[curr].rotate+'deg)');
-                        let h=Ad.pictures[curr].image.closest('span').offsetHeight;
-                        let w=Ad.pictures[curr].image.closest('span').offsetWidth;
-                        let hh=image.closest('span').offsetHeight;
-                        let ww=image.closest('span').offsetWidth;
-                        let portrait=(Ad.pictures[curr].rotate===90||Ad.pictures[curr].rotate===270);
-                        Ad.pictures[curr].image.style.setProperty('width', (portrait?h:w)+'px', 'important');
-                        Ad.pictures[curr].image.style.setProperty('height', (portrait?w:h)+'px', 'important');
-                        
-                        image.style.setProperty('width', (portrait?hh:ww)+'px', 'important');
-                        image.style.setProperty('height', (portrait?ww:hh)+'px', 'important');
-                    };
-                    f.append(btnRotate);
-                    
-                    let btnRemove=createElem('a', 'btn blue', 'Remove');
-                    btnRemove.onclick=function(){
-                        Ad.pictures[UI.pixIndex].image.style.display='none';
-                        Ad.pictures[UI.pixIndex].image.parentElement.classList.add('icn-camera');
-                        Ad.pictures[UI.pixIndex].image.remove();
-                        Ad.pictures[UI.pixIndex]={};
-                        UI.close();
-                    };
-                    f.append(btnRemove);
-                    
-                    let btnReplace=createElem('a', 'btn blue', 'Replace');
-                    btnReplace.onclick=function(){
-                        openFileDialog(false, image);                        
-                    };
-                    f.append(btnReplace);
-                    card.append(f);
-                } 
-                else {
-                    dialog=UI.dialogs.pix;
-                    image=dialog.query('img');
-                }
-                image.src=Ad.pictures[UI.pixIndex].image.src;
-                UI.showDialog(dialog);
-                return;
-            }
-            openFileDialog(true);
-            
-          
-        } 
-        else {
-            alert('The File APIs are not fully supported in this browser.');
-        }
-    },    
     
     createDialog:function(name, fullW, fullH){
         let dialog=createElem('div', 'modal');
@@ -668,30 +478,17 @@ var UI={
         }
         
 
-        if(dialog.id==='map' && (Ad.content.lat!==0 || Ad.content.lon!==0) && dialog.dataset.views>'1'){ MAP.adLocation(); }
+        if(dialog.id==='map' && (Ad.content.lat!==0||Ad.content.lon!==0) && dialog.dataset.views>'1'){ MAP.adLocation(); }
         if(photo){
-            let cw=$$.clientWidth;
-            let portrait=(photo.rotation===90||photo.rotation===270);
+            let cw=$$.clientWidth;            
             let img=card.query('span.pix img');
-            img.closest('span').style.height=Math.round((cw/2)/1.5)+'px';
-            let hh=img.closest('span').offsetHeight;
-            let ww=img.closest('span').offsetWidth;
-            img.style.setProperty('width', (portrait?hh:ww)+'px');
-            img.style.setProperty('height', (portrait?ww:hh)+'px');
+            let spn=img.closest('span');
+            spn.style.height=Math.round((cw/2)/1.5)+'px';
+            let hh=spn.offsetHeight, ww=spn.offsetWidth;
+            img.style.setProperty('width', (photo.isPortrait()?hh:ww)+'px');
+            img.style.setProperty('height', (photo.isPortrait()?ww:hh)+'px');
             img.style.setProperty('transform', 'rotate('+photo.rotation+'deg)');
         }
-//        let img=card.query('span.pix img');
-//        if(img){
-//            if(!Ad.pictures[UI.pixIndex].rotate){ Ad.pictures[UI.pixIndex].rotate=0; }
-//            let cw=$$.clientWidth;
-//            let portrait=(Ad.pictures[UI.pixIndex].rotate===90||Ad.pictures[UI.pixIndex].rotate===270);
-//            img.closest('span').style.height=Math.round((cw/2)/1.5)+'px';
-//            let hh=img.closest('span').offsetHeight;
-//            let ww=img.closest('span').offsetWidth;
-//            img.style.setProperty('width', (portrait?hh:ww)+'px');
-//            img.style.setProperty('height', (portrait?ww:hh)+'px');
-//            img.style.setProperty('transform', 'rotate('+Ad.pictures[UI.pixIndex].rotate+'deg)');
-//        }
     },
     
     chooseRootPurpose:function(){
@@ -959,141 +756,215 @@ var UI={
 
 class Photo{
     constructor(elem) {
-        this.element=elem;
-        this.element.onclick=this.open.bind(this);
-        this.element.classList.add('icn-camera');
-        this.progress=this.element.query('progress');
-        this.file=null;
-        this.image=null;
-        this.rotation=0;
-        this.index=parseInt(this.element.dataset.index);
-        this.large=null;
+        let _=this;
+        _.e=elem;
+        _.e.onclick=_.open.bind(_);
+        _.e.classList.add('icn-camera');
+        _.p=_.e.query('progress');
+        _.file=null;
+        _.image=null;
+        _.rotation=0;
+        _.natWidth=0;
+        _.natHeight=0;
+        _.index=parseInt(_.e.dataset.index);
+        _.path=null;
+    }
+    
+    isPortrait(){return (this.rotation===90||this.rotation===270);}
+    transform(img){img.style.setProperty('transform', 'rotate('+this.rotation+'deg)');}
+    
+    clear(){
+        let _=this;
+        _.image=null;
+        _.file=null;
+        _.rotation=0;
+        _.natWidth=0;
+        _.natHeight=0;
+        _.path=null;
     }
     
     setImage(result){
         let _=this;
-        _.image=_.element.query('img');
+        _.image=_.e.query('img');
         if(!_.image){
             _.image=new Image();                                        
-            _.element.append(_.image);
-            _.element.classList.remove('icn-camera');
-            _.image.setAttribute('id', 'picture');                                        
+            _.e.append(_.image);
+            _.e.classList.remove('icn-camera');
+            _.image.setAttribute('id','picture');  
+            _.image.onload=function(){
+                console.log('_.image.onload');
+                _.natWidth=_.image.naturalWidth;_.natHeight=_.image.naturalHeight;_.rotation=0;
+                Ad.pictures[_.index]=_; 
+                _.transform(_.image);
+            };
         }
-        _.image.onload=function(){                              
-            Ad.pictures[_.index]={'image':_.image, 'rotate':0, 'width':_.image.naturalWidth, 'height':_.image.naturalHeight};
-            _.image.style.setProperty('transform', 'rotate(0deg)');
-            if(_.large){
-                _.large.src=_.image.src;
-                let hh=_.large.closest('span').offsetHeight;
-                let ww=_.large.closest('span').offsetWidth;
-                _.large.style.setProperty('width', ww+'px');
-                _.large.style.setProperty('height', hh+'px');
-                _.large.style.setProperty('transform', 'rotate(0deg)');
-            }
-        };
+        
         _.image.src=result; 
     }
     
     upload(result){
+        let _=this; 
+        var opt={maxWidth:1024, canvas:true};
+        var loadingImage = loadImage(
+            result, 
+            function(img){
+                var type = img.type;
+                var data;
+                if(HAS_WEBP){
+                    type = 'image/webp';
+                }
+                var data = img.toDataURL(type);
+                _.uploadData(data, type);
+            },
+            opt
+        );                         
+    }
+    
+    uploadData(data, type){
         let _=this;        
-        _.image=_.element.query('img');
-        console.log('_', _);
+        _.image=_.e.query('img');
         
         let rg=new RegExp('.*/');
-        let t=_.file.type.replace(rg,'');
+        let t=type.replace(rg,'');
                                     
-        let onprogressHandler=function(evt){
-            var percent = evt.loaded/evt.total*100;
-            //console.log('Upload progress: ' + percent + '%');
-            _.progress.value= Math.floor(percent);
+        let onprogressHandler=function(ev){
+            _.p.value= Math.floor(ev.loaded/ev.total*100);
         };
-        let onloadstartHandler=function(evt){                                   
-            _.progress.max=100;
-            _.progress.value=0;
+        let onloadstartHandler=function(){                                   
+            _.p.value=0;_.p.max=100;
             _.image.style.height=(_.image.offsetHeight-8)+'px';
-            _.progress.style.display='block'
+            _.p.style.display='block';
         };
-        let onloadHandler=function(evt){
+        let onloadHandler=function(){
             console.log('File uploaded. Waiting for response.');
-            _.progress.style.display='none';
+            _.p.style.display='none';
             _.image.style.height='100%';
         };
-        let onreadystatechangeHandler=function(evt){
+        let onErrorHandler=function(){
+            //TO DO
+        }
+        let onreadystatechangeHandler=function(ev){
             var status, text, readyState;
             try {
-                readyState = evt.target.readyState;
-                text = evt.target.responseText;
-                status = evt.target.status;
+                readyState = ev.target.readyState;
+                text = ev.target.responseText;
+                status = ev.target.status;
             }
             catch(e) {
                 return;
             }
-            if (readyState===4 && status===200 && evt.target.responseText) {
+            if (readyState===4 && status===200 && ev.target.responseText) {
+                if(ev.target.responseText === "0"){
+                    onErrorHandler();
+                    console.log('Failure!', _);
+                }else{
+                    _.path = ev.target.responseText;
+                    console.log('Success!', _);
+                }
                 //var status = document.getElementById('upload-status');
                 //status.innerHTML += '<' + 'br>Success!';
                 //var result = document.getElementById('result');
                 //result.innerHTML = '<p>The server saw it as:</p><pre>' + evt.target.responseText + '</pre>';
-                console.log('Success!', 'The server saw it as: '+evt.target.responseText);
+            }else{
+                onErrorHandler();
             }
         };
         
         let form = new FormData();
         const UUID=UI.guid();
         form.append('UPLOAD_IDENTIFIER', UUID);
-        form.append('pic', result);
-        form.append('type', _.file.type);
-        form.append('name', 'pic');
+        form.append('pic', data);
+        form.append('type', type);
                                     
         let xhr = new XMLHttpRequest();
         xhr.upload.addEventListener('loadstart', onloadstartHandler, false);
         xhr.upload.addEventListener('progress', onprogressHandler, false);
         xhr.upload.addEventListener('load', onloadHandler, false);
+        xhr.upload.addEventListener('error', onErrorHandler, false);
         xhr.addEventListener('readystatechange', onreadystatechangeHandler, false);
         xhr.open('POST', '/upload/?t='+t+'&s='+UI.sessionID, true);
-        xhr.send(form);                             
+        xhr.send(form);  
     }
-    
     
     open(){
         if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
             alert('The File APIs are not fully supported in this browser.');
             return;
         }
-        let _=this;
-        console.log('this', _);
-        UI.pixIndex=_.index;
-            
-        let cw=$$.clientWidth;
+        let _=this, cw=$$.clientWidth;
+        UI.pixIndex=_.index;            
         
-        let openFileDialog=function(multiple, largeImage){
-            _.large=largeImage;
+        let openFileDialog=function(multiple, isReplace){
             return new Promise(resolve => {
                 let inp=createElem('input');
                 inp.type='file';
+                inp.value='';
+                inp.style.display='none';
                 inp.multiple=multiple;
                 inp.accept='image/*';
                 inp.onchange = ee => {
+                    UI.close();
+                    
+                    var availableSpots = 0;
+                    for(var i in UI.photos){
+                        if(UI.photos[i].file === null){
+                            availableSpots++;
+                        }
+                    }
+                    if(isReplace) availableSpots = 1;
+                    
+                    var BreakException = {};
+                    
                     let files = Array.from(inp.files);
                     resolve(files);
-                    let curr=_.index;
-                    files.forEach(function(file){
-                        console.log('filename', file.name, file.type);
-                        if (/\.(jpe?g|png|gif|webp)$/i.test(file.name)) {
-                            var reader = new FileReader();
-                            reader.onload = readerEvent => {
-                                UI.photos[curr].setImage(readerEvent.target.result);
-                                UI.photos[curr].file=file;                                
-                            };
-                            reader.onloadend = readerEvent => {
-                                if(readerEvent.target.readyState!==FileReader.DONE){return;}
-                                UI.photos[curr].upload(readerEvent.target.result);                                                               
-                                //console.log(readerEvent);
-                                curr++;if(curr>4)curr=0;
-                            };
-                            reader.readAsDataURL(file);
-                        }
-                    });
+                    
+                    inp.remove();
+                    inp = null;
+                    let curr=UI.pixIndex;
+                    try{
+                        files.forEach(function(file){
+
+                            //check if image is already selected
+                            var alreadyAdded = false;
+                            for(var i in UI.photos){
+                                if(UI.photos[i].file && UI.photos[i].file.name === file.name){
+                                    alreadyAdded = true;
+                                }
+                            }
+                            if(alreadyAdded) return;
+
+                            if (/\.(jpe?g|png|gif|webp)$/i.test(file.name)) {
+                                var reader = new FileReader();
+                                reader.onload = readerEvent => {
+                                };
+                                reader.onloadend = readerEvent => {
+                                    if(readerEvent.target.readyState!==FileReader.DONE){return;}
+                                    
+                                    UI.photos[curr].setImage(readerEvent.target.result);
+                                    UI.photos[curr].file=file;
+                                    UI.photos[curr].upload(readerEvent.target.result);                                                               
+                                    if(multiple){
+                                        for(var i=0, l=UI.photos.length; i < l; i++){
+                                            if(UI.photos[i].file === null){
+                                                curr = i;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                };
+                                reader.readAsDataURL(file);
+
+                                availableSpots--;
+
+                                if (availableSpots === 0) throw BreakException;
+                            }
+                        });
+                        
+                    } catch (e) {
+                        if (e !== BreakException) throw e;
+                    }
                 };
+                $$.append(inp); 
                 inp.click();
             });
         };
@@ -1109,47 +980,35 @@ class Photo{
                 span.append(img);
                 card.append(span);
                 let f=createElem('div', 'card-footer');
-                f.style.position='absolute';
-                f.style.bottom=0;
-                f.style.setProperty('width', 'calc(100% - 52px)');
+                f.style.cssText='position:absolute;bottom:0;width:calc(100% - 52px)';
                     
                 let btnRotate=createElem('a', 'btn blue', 'Rotate');
                 btnRotate.onclick=function(){
-                    let curr=UI.pixIndex;
-                    _.rotation+=90;
-                    //Ad.pictures[curr].rotate+=90;
-                    if(_.rotation>=360){ _.rotation=0; }
-                    _.image.style.setProperty('transform', 'rotate('+_.rotation+'deg)');
-                    img.style.setProperty('transform', 'rotate('+_.rotation+'deg)');
-                    let h=_.element.offsetHeight;
-                    let w=_.element.offsetWidth;
-                    let hh=img.closest('span').offsetHeight;
-                    let ww=img.closest('span').offsetWidth;
-                    let portrait=(_.rotation===90||_.rotation===270);
-                    _.image.style.setProperty('width', (portrait?h:w)+'px', 'important');
-                    _.image.style.setProperty('height', (portrait?w:h)+'px', 'important');
-                        
-                    img.style.setProperty('width', (portrait?hh:ww)+'px', 'important');
-                    img.style.setProperty('height', (portrait?ww:hh)+'px', 'important');
+                    let pp=UI.photos[UI.pixIndex];
+                    pp.rotation+=90;if(pp.rotation>=360){pp.rotation=0;}
+                    pp.transform(pp.image);pp.transform(img);
+                    let h=pp.e.offsetHeight, w=pp.e.offsetWidth;                    
+                    pp.image.style.setProperty('width', (pp.isPortrait()?h:w)+'px', 'important');
+                    pp.image.style.setProperty('height', (pp.isPortrait()?w:h)+'px', 'important'); 
+                    let hh=img.closest('span').offsetHeight, ww=img.closest('span').offsetWidth;
+                    img.style.setProperty('width', (pp.isPortrait()?hh:ww)+'px', 'important');
+                    img.style.setProperty('height', (pp.isPortrait()?ww:hh)+'px', 'important');
                 };
                 f.append(btnRotate);
                     
                 let btnRemove=createElem('a', 'btn blue', 'Remove');
                 btnRemove.onclick=function(){
-                    _.image.style.display='none';
-                    _.element.classList.add('icn-camera');
-                    _.image.remove();
-                    _.image=null;
-                    Ad.pictures[UI.pixIndex]={};
+                    let pp=UI.photos[UI.pixIndex];
+                    pp.image.style.display='none';
+                    pp.e.classList.add('icn-camera');
+                    pp.image.remove();pp.image=null;
                     UI.close();
                     console.log(_);
                 };
                 f.append(btnRemove);
                     
                 let btnReplace=createElem('a', 'btn blue', 'Replace');
-                btnReplace.onclick=function(){
-                    openFileDialog(false, _.image);                        
-                };
+                btnReplace.onclick=function(){openFileDialog(false, true);};
                 f.append(btnReplace);
                 card.append(f);
             } 
@@ -1240,6 +1099,17 @@ var Ad={
         _.content.lon=ad.lon;
         _.content.loc=ad.loc;
         UI.addressChanged();
+        
+        UI.photos.forEach(function(p){
+            p.clear();
+        });
+        if(ad.pics){
+            UI.pixIndex=0;
+            for(var i in ad.pics){
+                UI.photos[UI.pixIndex++].setImage($$.dataset.repo+'/repos/m/'+i);
+            }
+        }
+        
 
         let re = /\u200b/;
         let parts;
@@ -1386,8 +1256,19 @@ var Ad={
             altRtl:0,
             other:'',
             altother:'',
+            pics:{},
             pubTo:{}
         };
+        
+        UI.photos.forEach(function(p){
+            console.log(p);
+            if(p.image !== null){
+                ad.pics[p.path]=[
+                    p.natWidth,
+                    p.natHeight
+                ];
+            }
+        });
 
         for (let i in UI.numbers) {
             if (!UI.numbers[i].valid()) {
@@ -1440,6 +1321,8 @@ var Ad={
         
         _.regions.forEach(function(r){ad.pubTo[r]=r;});
         
+        console.log("ADDDDDDD", ad);
+        
         let data={o:ad};
         fetch('/ajax-adsave/', _options('POST', data))
             .then(res => res.json())
@@ -1447,7 +1330,7 @@ var Ad={
                 //console.log('Success:', response);
                 if (response.RP===1) {
                     if (typeof response.DATA.ad==='object') {
-                        console.log(response.DATA.ad);
+                        console.log("RP", response.DATA.ad);
                         _.parse(response.DATA.ad);
                     }                    
                 }

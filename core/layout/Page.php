@@ -4516,6 +4516,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         }        
         else if ($this->router()->module==='post') {            
             \header("Link: </web/js/1.0/libphonenumber-min-1.7.10.js>; rel=preload; as=script;", false);
+            \header("Link: </web/js/1.0/load-image-scale.js>; rel=preload; as=script;", false);
         }
         
         
@@ -4534,6 +4535,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         }
         if ($this->router()->module==='post') {
             echo '<script async src=/web/js/1.0/libphonenumber-min-1.7.10.js></script>';
+            echo '<script async src=/web/js/1.0/load-image-scale.js></script>';
         }
         echo "<style>\n";
         
