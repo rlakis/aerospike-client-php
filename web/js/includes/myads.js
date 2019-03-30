@@ -102,60 +102,55 @@ $.onkeyup = function () {
 };
 
 $$.onclick = function (e) {
-    let editable = $.querySelectorAll("[contenteditable=true]");
-    if (editable && editable.length > 0) {
-        editable[0].setAttribute("contenteditable", false);
+    let editable=$$.queryAll("section[contenteditable=true]");
+    if (editable&&editable.length> 0) {
+        editable[0].setAttribute("contenteditable", false);        
         d.normalize(editable[0]);
     }
     d.setId(0);
-    let f = $.getElementById('fixForm');
-    if (f && window.getComputedStyle(f).visibility !== "hidden") {
-        f.style.display = 'none';
-    }
+    let f=byId('fixForm');
+    if(f&&window.getComputedStyle(f).visibility!=='hidden'){f.style.display='none'; }
 };
 
 var d = {
     currentId: 0, n: 0, panel: null, ad: null, slides: null, roots: null,
-    KUID: $.body.dataset.key,
-    pixHost: $.body.dataset.repo,
-    su: parseInt($.body.dataset.level) === 90,
-    level: this.parseInt($.body.dataset.level) === 90 ? 9 : parseInt($.body.dataset.level),
-    nodes: $.querySelectorAll("article"),
-    editors: $.getElementById('editors'),
-    ar: $.body.dir === 'rtl',
-    count: (typeof $.querySelectorAll("article") === 'object') ? $.querySelectorAll("article").length : 0,
-    isAdmin: function () {
-        return this.level >= 9;
-    },
+    KUID: $$.dataset.key,
+    pixHost: $$.dataset.repo,
+    su: $$.dataset.level==='90',
+    level: $$.dataset.level==='90' ? 9 : parseInt($$.dataset.level),
+    items:{},
+    nodes: $$.queryAll("article"),
+    editors: byId('editors'),
+    ar: $$.dir === 'rtl',
+    count: (typeof $$.queryAll("article")==='object') ? $$.queryAll("article").length : 0,
+    isAdmin: function () { return this.level >= 9; },
     setId: function (kId) {
-        if (this.ad) {
-            this.ad.unselect();
-        }
-        ;
-        this.currentId = kId;
-        this.ad = new Ad(this.currentId);
-        this.ad.select();
+        let _=this;
+        if(_.ad)_.ad.unselect();
+        _.currentId=kId;
+        _.ad=_.items[kId];
+        if(_.ad)_.ad.select();
     },
     getName: function (kUID) {
         var x = this.editors.getElementsByClassName(kUID);
         return (x && x.length) ? x[0].innerText : 'Anonymous/' + kUID;
     },
     inc: function () {
+        let _=this;
         this.n++;
-        if (this.panel === null) {
-            this.panel = $.querySelector('.adminNB');
-            if (this.panel === null) {
-                this.panel = createElem("div", 'adminNB');
-                $.body.append(this.panel);
+        if (_.panel===null) {
+            _.panel=$$.query('.adminNB');
+            if (_.panel===null) {
+                _.panel = createElem('div', 'adminNB');
+                $$.appendChild(_.panel);
             }
         }
-        if (this.panel) {
-            this.panel.innerHTML = this.n + (this.ar ? ' اعلان جديد' : ' new ad');
-            this.panel.onclick = function (e) {
-                document.location = '';
-            };
+        if (_.panel) {
+            _.panel.innerHTML = _.n + (_.ar ? ' اعلان جديد' : ' new ad');
+            if(typeof _.panel.onclick!=='function'){_.panel.onclick=function(){location.reload();};}
         }
     },
+    isSafe(adId){return parseInt(adId)===parseInt(this.currentId);},
     inViewport(e) {
         var cr = e.getBoundingClientRect();
         return(cr.top >= 0 && cr.left >= 0 && cr.top <= (window.innerHeight || $.documentElement.clientHeight));
@@ -229,9 +224,7 @@ var d = {
     },
     
     userads:function(e, uid){
-        let url='/myads'+(d.ar?'/':'/en/')+'?sub=pending&fuid='+uid;
-        window.location=url;
-        //d.openWindow(url, window.name);        
+        window.location='/myads'+(d.ar?'/':'/en/')+'?sub=pending&fuid='+uid;
     },
     
     lookFor:function(e){
@@ -254,29 +247,27 @@ var d = {
         input.value = e.article().id;
         
         form.append(input);        
-        $.body.append(form);               
+        $$.append(form);               
         form.submit();
     },
     
     
-    approve: function (e, rtpFlag) {
-        if (this.currentId != e.article().id) { return; }
+    approve: function (e, rtpFlag) {        
+        if(!this.isSafe(e.article().id))return;
         var data = {i: parseInt(this.currentId)};
-        if (typeof rtpFlag !== 'undefined') {
-            data['rtp'] = rtpFlag
-        }
-        let ad = new Ad(this.currentId).mask(true);
+        if (typeof rtpFlag!=='undefined') { data['rtp'] = rtpFlag; }
+        this.ad.mask(true);
         fetch('/ajax-approve/', _options('POST', data))
                 .then(res => res.json())
                 .then(response => {
                     console.log('Success:', JSON.stringify(response));
                     if (response.RP === 1) {
-                        ad.approved().removeMask();
+                        this.ad.approved().removeMask();
                     }
                 })
                 .catch(error => {
                     console.log('Error:', error);
-                    ad.removeMask();
+                    this.ad.removeMask();
                 });
     },
 
@@ -289,24 +280,14 @@ var d = {
         let text = $.getElementById(prefix + 'T');
         let ok = form.query('input.btn.ok');
         let cancel = form.query('input.btn.cancel');
-        if (text) {
-            text.value = ''
+        if (text) { text.value = ''; }
+        if (cancel && typeof cancel!=='function') {
+            cancel.onclick=function(){form.style.display='none';};
         }
-        if (cancel && typeof cancel !== 'function') {
-            cancel.onclick = function () {
-                form.style.display = 'none'
-            }
-        }
-        if (moveTo) {
-            moveTo.append(form)
-        }
+        if (moveTo) { moveTo.append(form); }
         return {'form': form, 'select': select, 'text': text, 'ok': ok,
-            'show': function () {
-                form.style.display = 'block'
-            },
-            'hide': function () {
-                form.style.display = 'none'
-            }
+            'show': function () {form.style.display='block';},
+            'hide': function () {form.style.display='none';}
         };
     },
 
@@ -319,9 +300,7 @@ var d = {
 
     reject: function (e, uid) {
         let article = e.article();
-        if (this.currentId != article.id) {
-            return;
-        }
+        if(!this.isSafe(article.id))return;
         var inline = this.getForm('rej', article);
         var cn = article.query('section.ar') ? 'ar' : 'en';
         inline.select.className = cn;
@@ -358,10 +337,8 @@ var d = {
             }
         };
         inline.ok.onclick = function () {
-            if (!uid)
-                uid = 0;
-            let ad = new Ad(article.id, inline.text.value);
-
+            if (!uid) uid=0;
+            let ad=d.items[article.id].mask().maskText(inline.text.value);
             fetch('/ajax-reject/', _options('POST', {i: parseInt(article.id), msg: inline.text.value, w: uid}))
                     .then(res => res.json())
                     .then(response => {
@@ -382,9 +359,7 @@ var d = {
 
     suspend: function (e, uid) {
         let article = e.article();
-        if (this.currentId !== article.id) {
-            return;
-        }
+        if(!this.isSafe(article.id))return;
         var inline = this.getForm('susp', article);
         if (inline.select.childNodes.length === 0) {
             let o = createElem('option', '', d.ar ? 'ساعة' : '1 hour');
@@ -401,15 +376,14 @@ var d = {
         }
 
         inline.ok.onclick = function () {
-            if (!uid)
-                uid = 0;
-            let ad = new Ad(article.id, inline.text.value);
+            if(!uid)uid=0;
+            let ad=d.items[article.id].mask().maskText(inline.text.value);           
 
             fetch('/ajax-ususpend/', _options('POST', {i: uid, v: inline.select.value, m: inline.text.value ? inline.text.value : ''}))
                     .then(res => res.json())
                     .then(response => {
                         console.log('Success:', JSON.stringify(response));
-                        if (response.RP === 1) {
+                        if (response.RP===1) {
                             //let ad=new Ad(e.parentElement.parentElement.id);
                             //ad.approved();
                         }
@@ -425,14 +399,12 @@ var d = {
 
     ban: function (e, uid) {
         let article = e.article();
-        if (this.currentId != article.id) {
-            return;
-        }
+        if(!this.isSafe(article.id))return;
         var inline = this.getForm('ban', article);
         inline.ok.onclick = function () {
-            if (!uid)
-                uid = 0;
-            let ad = new Ad(article.id, inline.text.value);
+            if(!uid)uid=0;
+            let ad=d.items[article.id].mask().maskText(inline.text.value);
+            //let ad = new Ad(article.id, inline.text.value);
             fetch('/ajax-ublock/', _options('POST', {i: uid, msg: inline.text.value}))
                     .then(res => res.json())
                     .then(response => {
@@ -442,22 +414,23 @@ var d = {
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
+                        console.log('Error:', error);
                         ad.removeMask();
                     });
             inline.hide();
-        }
+        };
         inline.show();
     },
 
     slideView: function (img) {
         let i=0, n=0;
         let p=img.parentElement;
-        img.parentElement.parentElement.childNodes.forEach(function(spx){
-            i++;
-            if(spx===p){ n=i; }
-        });
-        this.slides = new SlideShow(new Ad(img.parentElement.parentElement.parentElement.id), n);
+        img.closest('p.pimgs').childNodes.forEach(function(s){i++;if(s===p)n=i;});
+        //img.parentElement.parentElement.childNodes.forEach(function(spx){
+        //    i++;
+        //    if(spx===p){ n=i; }
+        //});
+        this.slides = new SlideShow(d.items[img.article().id]/* new Ad(img.parentElement.parentElement.parentElement.id)*/, n);
     },
     
     ipCheck: function (e) {
@@ -488,15 +461,18 @@ var d = {
                 });
     },
 
-    normalize: function (e) {
+    normalize: function(e){
+        console.log(e.tagName,  e.innerText);
         let data = {dx: e.dataset.foreign ? 2 : 1, rtl: e.classList.contains('ar') ? 1 : 0, t: e.innerText};
-        this.updateAd(e, d.currentId, 0, 0, 0, data);
+        if(e.tagName==='SECTION' && data.t.length>30){
+            this.updateAd(e, e.article().id, 0, 0, 0, data);
+        }
+        else console.log('data not suitable', data);
     },
 
     updateAd: function (e, adId, ro, se, pu, dat) {
-        let ad = new Ad(adId);
-        ad.mask(true).opacity(0.3);
-        let data = dat ? dat : {r: ro, s: se, p: pu, hl: (this.ar ? 'ar' : 'en')};
+        let ad=this.items[adId].mask(true).opacity(0.3);
+        let data=(dat ? dat : {r: ro, s: se, p: pu, hl: (this.ar ? 'ar' : 'en')});
 
         fetch('/ajax-changepu/?i=' + adId, _options('POST', data))
                 .then(res => res.json())
@@ -516,12 +492,62 @@ var d = {
                     ad.maskText(error);
                 });
     },
+    
+    clickedAd:function(e){
+        let ee=e.target, pp=ee.parentElement, eTag=ee.tagName, pTag=pp.tagName;
+        let prevent=function(){e.preventDefault();e.stopPropagation();return false;};
+        switch(ee.tagName) {
+            case 'A':
+                if ((ee.className===''&&pp.className==='mask')||ee.target==='_similar') {
+                    e.stopPropagation();return;
+                }
+                break;          
+            case 'DIV':
+                if (ee.className==='mask'||ee.classList.contains('locked')){
+                    return prevent();
+                }
+                break;
+            case 'SECTION':
+                if (ALT&&!ee.isContentEditable) {
+                    var re = /\u200b/;
+                    var parts = ee.innerText.split(re);
+                    if (parts.length===2) {
+                        ee.dataset.contacts = parts[1];
+                        ee.contentEditable = "true";
+                        ee.innerHTML = parts[0].trim();
+                        ee.focus();
+                    }
+                    return prevent();
+                }
+                break;
+            case 'G':
+                console.log('grammarly');
+                if (ee.dataset.grId){return prevent();}
+                break;
+            default:
+                console.log(ee.tagName+' is not supported!');
+                break;
+        }
+
+        
+        if(!d.isSafe(this.id)){
+            d.setId(this.id);
+        }
+        
+        let editable=$$.queryAll("section[contenteditable=true]");
+        if (editable && editable.length>0 &&editable[0]!==ee && editable[0].article()) {
+            console.log('catched editables');
+            editable[0].setAttribute("contenteditable",false);
+            d.normalize(editable[0]);
+        }
+     
+        return prevent();
+    },
 
     quick(e) {
-        let article = e.article();
-        if (d.currentId !== article.id) { return; }
-        
-        console.log(d.currentId);
+        let article=e.article();
+        if(!this.isSafe(article.id))return;
+                
         console.log(d);
         
         var inline = d.getForm('fix', article);
@@ -542,11 +568,8 @@ var d = {
                     }
                 });
                 
-                let ul = sDIV.query('ul');ul.innerHTML = '';
-                //console.log('rid', rId);
-                
-                d.roots[rId].sindex.forEach(function (sid) {
-                    console.log(typeof sid, typeof article.dataset.se);
+                let ul = sDIV.query('ul');ul.innerHTML = '';                
+                d.roots[rId].sindex.forEach(function (sid) {                    
                     let li = createElem('li', (sid.toString()===article.dataset.se ? 'cur' : ''), d.roots[rId]['sections'][sid]);
                     li.dataset.id = sid;
                     li.onclick = function (e) {
@@ -656,17 +679,15 @@ class SlideShow {
     plus(n) { this.show(this.index += n); }
     show(n) {
         var i;
-        var slides = this.container.getElementsByClassName("mySlides");
-        var dots = this.container.getElementsByClassName("dot");
+        var slides = this.container.queryAll(".mySlides");
+        var dots = this.container.queryAll(".dot");
         if (n > this.ad.mediaCount) {
             this.index = 1
         }
         if (n < 1) {
             this.index = this.ad.mediaCount
         }
-        for (i = 0; i < slides.length; i++) {
-            slides[i].style.display = "none";
-        }
+        slides.forEach(function(s){s.style.display='none';});
         for (i = 0; i < dots.length; i++) {
             dots[i].className = dots[i].className.replace(" active", "");
         }
@@ -680,36 +701,28 @@ class SlideShow {
 class Ad {
     constructor(kId, kMaskMessage) {
         this._m = null;
-        this.ok = false;
         this.id = parseInt(kId);
-        this._node = $.getElementById(kId);
-        if (this._node !== null) {
-            this._header = this._node.queryAll('header')[0];
+        this.node = $.getElementById(kId);
+        if (this.node !== null) {
+            this._header = this.node.queryAll('header')[0];
             this._editor = this._header.query('.alloc');
             this._message = this._header.query('.msg');
-            this.dataset = this._node.dataset;
+            this.dataset = this.node.dataset;
             this.mediaCount = 0;
-            var wrp = this._node.query('p.pimgs');
+            var wrp = this.node.query('p.pimgs');
             if (wrp) {
                 this.pixSpans = wrp.queryAll('span');
                 if (this.pixSpans && this.pixSpans.length) {
                     this.mediaCount = this.pixSpans.length;
                 }
             }
-            if (kMaskMessage) {
-                this.mask();
-                this.maskText(kMaskMessage);
-            }
-            this.ok = true;
+            if(kMaskMessage)this.mask().maskText(kMaskMessage);
+            //this.node.oncontextmenu=function(e){e.preventDefault();};
         }
     }
     
-    exists() {
-        return this._node !== null;
-    }
-    
     dataset() {
-        return this._node.dataset;
+        return this.node.dataset;
     }
     
     header() {
@@ -724,6 +737,7 @@ class Ad {
         if (!this._editor.innerText.includes(v)) {
             this._editor.innerHTML = v + '/' + this._editor.innerText;
         }
+        return this;
     }
     
     replName(v) {
@@ -737,66 +751,60 @@ class Ad {
     setMessage(v) {
         this._message.innerHTML = v;
     }
+        
     
     select() {
-        if (this.exists()) {
+        if (!this.node.classList.contains('selected')) {
             this.setAs('selected');
             socket.emit("touch", [this.id, d.KUID]);
-            let f = $.getElementById('fixForm');
-            if (f && window.getComputedStyle(f).visibility !== "hidden") {
-                f.style.display = 'none';
-            }
+            let f=byId('fixForm');
+            if(f&&window.getComputedStyle(f).visibility!=='hidden'){f.style.display='none';}
         }
     }
     
     unselect() {
-        if (this.exists()) {
-            this.unsetAs('selected');
-            socket.emit("release", [this.id, d.KUID]);
-        }
+        this.unsetAs('selected');
+        socket.emit("release", [this.id, d.KUID]);
     }
     
     lock() {
         this.setAs('locked');
-        this.mask();
-        this.opacity(0.25);
+        this.mask().opacity(0.25);
     }
     
     release() {
-        if (this.ok) {
-            this.unsetAs('locked');
-            this.removeMask();
-        }
+        this.unsetAs('locked');
+        this.removeMask();
     }
     
     setAs(c) {
-        this._node.classList.add(c);
+        this.node.classList.add(c);
     }
     
     unsetAs(c) {
-        this._node.classList.remove(c);
+        this.node.classList.remove(c);
     }
     
     rejected(t) {
         this.unsetAs('approved');
         this.setAs('rejected');
         this.setMessage(t);
-        this._node.dataset.status = 3;
+        this.node.dataset.status = 3;
     }
     
     approved() {
         this.unsetAs('rejected');
         this.setAs('approved');
-        this._node.dataset.status = 2;
+        this.node.dataset.status = 2;
         return this;
     }
     
     mask(loader) {
-        var _ = this;
-        _._m = _._node.query('div.mask');
+        var _=this;
+        _._m = _.node.query('div.mask');
         if (_._m === null) {
             _._m = createElem("div", 'mask');
-            _._node.append(_._m);
+            _.node.append(_._m);
         }
         if (loader)
             this.showLoader();
@@ -804,29 +812,33 @@ class Ad {
     }
     
     removeMask() {
-        this._m = this._node.query('div.mask');
+        this._m = this.node.query('div.mask');
         if (this._m) {
             this._m.remove();
             this._m = null;
+        }
+        if(d.isSafe(this.id)){
+            let f=byId('fixForm');
+            if (f&& window.getComputedStyle(f).visibility!=='hidden')f.style.display='none';
         }
         return this;
     }
     
     maskText(t) {
-        this._m = this._node.query('div.mask');
+        this._m = this.node.query('div.mask');
         if (this._m) { this._m.innerHTML = t; }
         return this;
     }
     
     showLoader() {
-        this._m = this._node.query('div.mask');
+        this._m = this.node.query('div.mask');
         if (this._m) {
             this._m.innerHTML = '<div class=loader></div>';
         }
         return this;
     }
     hideLoader() {
-        this._m = this._node.query('div.mask');
+        this._m = this.node.query('div.mask');
         if (this._m) {
             this._m.innerHTML = '';
         }
@@ -869,19 +881,13 @@ socket.on('admins', function (data) {
         console.log('on<admins>: Active Admins:' + active_admins);
     }
 
-    if (typeof data.b === 'object') {
+    if (typeof data.b==='object') {
         for (let uid in data.b) {
-            if (data.b[uid] === 0) {
-                continue;
-            }
-            let ad = new Ad(data.b[uid]);
-            if (ad.exists()) {
+            if (data.b[uid]===0) { continue; }
+            let ad=d.items[data.b[uid]];
+            if (ad) {
                 ad.replName(d.getName(uid));
-                if (uid === d.KUID) {
-                    ad.select();
-                } else {
-                    ad.lock();
-                }
+                if(uid===d.KUID)ad.select();else ad.lock();
             }
         }
     }
@@ -889,53 +895,43 @@ socket.on('admins', function (data) {
 socket.on("ad_touch", function (data) {
     if (data.hasOwnProperty('x')) {
         if (data.hasOwnProperty('i') && data.i > 0) {
-            let ad = new Ad(data.i);
-            if (ad.exists()) {
-                ad.setName(d.getName(data.x));
-                ad.lock();
-            }
+            let ad=d.items[data.i];
+            if(ad)ad.setName(d.getName(data.x)).lock();
         }
         if (data.hasOwnProperty('o') && data.o > 0) {
-            let ad = new Ad(data.o);
-            if (ad.exists()) {
-                ad.release();
-            }
+            let ad=d.items[data.o];
+            if(ad)ad.release();
         }
     }
 });
 socket.on("ad_release", function (data) {//console.log('releasing', data);
     if (data.hasOwnProperty('i') && data.i > 0) {
-        let ad = new Ad(data.i);
-        if (ad.exists()) {
-            ad.release();
-        }
+        let ad=d.items[data.i];
+        if (ad)ad.release();
     }
 });
 socket.on('superAdmin', function (data) { console.log(typeof data, data);
     if (typeof data !== 'undefined' && data.id && data.id > 0) {
-        let ad = new Ad(data.id);
-        if (ad.ok) {
-            ad.mask();
-            ad.maskText('Sent To Super Admin');
-        }
+        let ad = d.items[data.i];
+        if(ad)ad.mask().maskText('Sent To Super Admin');
     }
 });
 socket.on('editorialUpdate', function (data) { console.log(data);
-    if (typeof data === 'object' && data.id) {
-        let ad = new Ad(data.id);
-        if (ad.ok) {
-            ad._node.dataset.ro = data.ro;
-            ad._node.dataset.se = data.se;
-            ad._node.dataset.pu = data.pu;
-            ad._node.query('div.note').innerHTML = data.label;
+    if (typeof data==='object'&&data.id) {
+        let ad=d.items[data.id];
+        if(ad){
+            ad.node.dataset.ro = data.ro;
+            ad.node.dataset.se = data.se;
+            ad.node.dataset.pu = data.pu;
+            ad.node.query('div.note').innerHTML = data.label;
         }
     }
 });
 socket.on('editorialImg', function (data) {
     if (typeof data === 'object') {
-        let ad = new Ad(data.id);
-        if (ad.ok) {
-            let p = ad._node.query('p.pimgs');
+        let ad = d.items[data.id];
+        if (ad) {
+            let p=ad.node.query('p.pimgs');
             if(p){
                 p.childNodes.forEach(function(spx){
                     if(spx.query('img').dataset.path===data.removed){
@@ -950,15 +946,12 @@ socket.on('editorialImg', function (data) {
     }
 });
 socket.on('editorialText', function (data) {
-    //console.log('editorialText', data);
-    if (typeof data === 'object') {
-        let ad = new Ad(data.id);
-        if (!ad.ok) {
-            return;
-        }
-        let arText = ad._node.query('section.ar');
-        let enText = ad._node.query('section.en');
-        if (data.rtl === 1) {
+    if (typeof data==='object') {
+        let ad = d.items[data.id];
+        if (!ad) { return; }
+        let arText = ad.node.query('section.ar');
+        let enText = ad.node.query('section.en');
+        if (data.rtl===1) {
             if (arText.classList.contains('en')) {
                 arText.classList.remove('en');
                 arText.dataset.foreign = 0;
@@ -977,19 +970,31 @@ socket.on('editorialText', function (data) {
                 }
             }
         } else {
-            if (arText.classList.contains('ar')) arText.classList.remove('ar');
-            if (!arText.classList.contains('en')) { arText.classList.add('en'); }
-            arText.innerHTML = data.t;
+            if (arText) {
+                if (arText.classList.contains('ar')) arText.classList.remove('ar');
+                if (!arText.classList.contains('en')) arText.classList.add('en');
+                arText.innerHTML = data.t;
+            }
+            else if(enText) {
+                if (enText.classList.contains('ar')) enText.classList.remove('ar');
+                if (!enText.classList.contains('en')) enText.classList.add('en');
+
+                enText.innerHTML = data.t;
+            }
+            else {
+                console.log('arText', arText, 'enText', enText);
+            }
+            
         }
     }
 });
 socket.on("ads", function (data) {
-    if (typeof data.c === 'undefined') { return; }
+    if(typeof data.c==='undefined')return;
     data.c = parseInt(data.c);
-    let ad = new Ad(data.id);
-    if (ad.exists()) {//console.log('ads', data);             
+    let ad = d.items[data.id];
+    if (ad) {
         var t;
-        if (ad.dataset.status >= 0 || c.data === -1) {
+        if (parseInt(ad.dataset.status)>=0||c.data===-1) {
             switch (data.c) {
                 case - 1:
                 case 6:
@@ -1018,11 +1023,10 @@ socket.on("ads", function (data) {
                     break;
                 case 7:
                     ad.dataset.status = 7;
-                    ad.mask();
-                    ad.opacity(0.75);
+                    ad.mask().opacity(0.75);
                     var link;
                     if (d.isAdmin()) {
-                        var lnks = ad._node.queryAll('div.user > a');
+                        var lnks = ad.node.queryAll('div.user > a');
                         if (lnks && lnks.length > 1) {
                             link = lnks[1].href + '#' + ad.id;
                         }
@@ -1045,55 +1049,8 @@ socket.on("ads", function (data) {
     socket.on('event', function (data) { console.log('event'); });
 };
 
-for (var x = 0; x < d.count; x++) {
-    //d.nodes[x].oncontextmenu=function(e){e.preventDefault();};
-    d.nodes[x].onclick = function (e) {
-        if (this.id == d.currentId) {
-            var tagName = e.target.tagName;
-            var parent = e.target.parentElement;
-            if (tagName === 'A') {
-                if ((e.target.className === '' && parent.className === 'mask') || e.target.target === '_similar') {
-                    e.stopPropagation();
-                    return;
-                }
-                if (parent.tagName === 'FOOTER') {
-                    e.stopPropagation();
-                    return;
-                }
-
-            } else if (tagName === 'DIV') {
-                if (e.target.className === 'mask' || this.classList.contains('locked')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-            }
-            if (tagName === 'SECTION') {
-                if (ALT && !e.target.isContentEditable) {
-                    var re = /\u200b/;
-                    var parts = e.target.innerText.split(re);
-                    if (parts.length === 2) {
-                        e.target.dataset.contacts = parts[1];
-                        e.target.contentEditable = "true";
-                        e.target.innerHTML = parts[0].trim();
-                        e.target.focus();
-                    }
-                }
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-            }
-        }
-        if (d.currentId !== this.id) {
-            d.setId(this.id);
-        }
-        let editable = $.querySelectorAll("[contenteditable=true]");
-        if (editable && editable.length > 0) {
-            editable[0].setAttribute("contenteditable", false);
-            d.normalize(editable[0]);
-        }
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-    };
-}
+d.items.length=0;
+d.nodes.forEach(function(node){
+    d.items[node.id]=new Ad(node.id);
+    node.onclick=d.clickedAd.bind(d.items[node.id]); 
+});
