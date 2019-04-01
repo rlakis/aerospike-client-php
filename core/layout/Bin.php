@@ -2362,6 +2362,60 @@ class Bin extends AjaxHandler{
                 
                 
             case "ajax-adsave":
+                if ($this->router()->config()->isMaintenanceMode()) {
+                    $this->fail('503: System is in maintenance! try again later...');
+                }
+
+                if (!$this->user()->isLoggedIn()) { $this->fail('101: Unthaurized'); }
+                if ($this->user()->getProfile()->isBlocked()) { $this->fail('102: Blocked');  }
+                if ($this->user()->getProfile()->isSuspended()) {
+                    $this->setData($this->user()->getProfile()->getSuspensionTime() , 'suspendTime');
+                    $this->fail('103: Suspended');
+                }
+                
+                if (!isset($this->_JPOST['o'])) { $this->fail('104: Missing data'); }
+
+                
+                
+                
+                $err_file = '/var/log/mourjan/editor.log';
+                $ad = \is_array($this->_JPOST['o']) ? $this->_JPOST['o'] : \json_decode($this->_JPOST['o'], true);
+                if (!\is_array($ad)) { $ad = []; }
+                if (!isset($ad['id'])) { $ad['id']=0; }
+                if (!isset($ad['se'])) { $ad['se']=0; }
+                if (!isset($ad['pu'])) { $ad['pu']=0; }
+                if (!isset($ad['other'])) { $ad['other']=''; }
+                if (!isset($ad['user']) || !$ad['user']) { $ad['user']=$this->user()->id(); }
+                if ($this->user()->level()!==9 || $this->user()->id()==$ad['user']) { $ad['userLvl']=$this->user()->level(); }
+                if (!isset($ad['pubTo'])) { $ad['pubTo']=[]; }
+                if ($ad['id']==0 && preg_match('/^undefined/', $ad['other'])) { $this->router()->logToFile($err_file, '>>>>>>>>>>UNDEFINED<<<<<<<<<<<<'); }                
+                if ($ad['se']>0 && $ad['pu']==0) { $ad['pu']=5; }    
+                if (!isset($ad['mobile'])) $ad['mobile']=0;
+                $ad['user'] = \intval($ad['user']);
+                $regions = \array_values($ad['pubTo']);
+                error_log('regions '.\var_export($regions, true).PHP_EOL. \var_export($this->router()->cities, true));
+                $ad['regsions']=[];
+                $cityId = 0;
+                $countryId = 0;
+                $currentCid = 0;
+                $isMultiCountry = false;
+                foreach ($regions as $publishingTo) {
+                    if (!\is_numeric($publishingTo)) { continue; }                    
+                    if ($publishingTo>0 && isset($this->router()->cities[$publishingTo][4])) {
+                        if ($cityId===0) { $cityId = $this->router()->cities[$publishingTo][4]; }
+                        if (!$isMultiCountry && $currentCid>0 && $currentCid!=$this->router()->cities[$publishingTo][4]) {
+                            $isMultiCountry = true;
+                        }
+                        $currentCid = $this->router()->cities[$publishingTo][4];
+                    }                
+                }
+                if ($cityId>0) { $countryId=$this->router()->cities[$cityId][4]; }
+                if ($ad['user']===$this->user()->id()) {
+                    $ipQuality=IPQuality::fetch($ad['mobile']===1);
+                    $this->router()->logToFile($err_file, \json_encode($ipQuality, JSON_PRETTY_PRINT));
+                    $ad['agent']=\filter_input(\INPUT_SERVER, 'HTTP_USER_AGENT', \FILTER_SANITIZE_STRING);
+                    $ad['userLOC']=''; //parse $ipQuality
+                }
                 
                 if ($this->user()->isLoggedIn() && isset($this->_JPOST['o'])) {
                     $error_path = "/var/log/mourjan/editor.log";

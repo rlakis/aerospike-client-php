@@ -1182,4 +1182,14 @@ class Router extends \Singleton {
     }
     
     
+    public static function logToFile(string $file, string $msg, bool $EOL=true) : void {
+        //error_log('--------------------------------------------------------------------------------------------------------'.PHP_EOL, 3, $file);
+        if ($EOL) {
+            \error_log($msg.PHP_EOL, 3, $file);
+        }
+        else {
+            \error_log($msg, 3, $file);
+        }
+    }
+    
 }
