@@ -929,12 +929,12 @@ class User {
     }
 
     
-    function approveAd($id) {
+    function approveAd(int $id) : bool {
         $result=false;
-        $res=$this->db->get('update ad_user set state=2, admin_id=?, admin_stamp=current_timestamp where id=? returning state', [$this->info['id'], $id], true);
-        if (!empty($res)) {
+        $res=$this->db->get('update ad_user set state=2, admin_id=?, admin_stamp=current_timestamp where id=? and ((state+0=1) or (state+0=4)) returning state', [$this->info['id'], $id], true);
+        if (isset($res[0]['STATE']) && $res[0]['STATE']===2) {
             $result=true;
-        }
+        }        
         return $result;
     }
     
@@ -970,30 +970,29 @@ class User {
     }
 
     
-    function rejectAd($id, $msg='', $warn=0) {
+    function rejectAd(int $id, string $msg='', int $warn=0) : bool {
         $result=false;
         $ad=$this->getPendingAds($id);
         if (!empty($ad)) {
             $ad=$ad[0];
-            $adContent=json_decode($ad['CONTENT'],true);
-            $lang='en';
-            if ($ad['RTL']) $lang='ar';
+            $content=json_decode($ad['CONTENT'],true);
+            $lang=($ad['RTL'])?'ar':'en';
             $loadedLang=false;
-            if (preg_match('/(?:http|https):\/\/www\.mourjan\.com\//u', $msg)) {
+            if (\preg_match('/(?:https):\/\/(www|dv|h1)\.mourjan\.com\//u', $msg)) {
                 $loadedLang=true;
                 $this->site->load_lang(array('ad_notices'), $lang);
-                $msg=preg_replace('/{link}/u', $msg, $this->site->lang['dup']);
+                $msg=\preg_replace('/{link}/u', $msg, $this->site->lang['dup']);
             }
             if ($warn) {
                 if (!$loadedLang) $this->site->load_lang(array('ad_notices'), $lang);
                 $msg.=$this->site->lang['warn'];
             }
-            $adContent['msg']=$msg;
-            $adContent=json_encode($adContent);
+            $content['msg']=$msg;
+            $adContent=\json_encode($content);
             $res=$this->db->get(
-                    'update ad_user set state=3, admin_id=?, admin_stamp=current_timestamp, content=? where id=? returning state',
+                    'update ad_user set state=3, admin_id=?, admin_stamp=current_timestamp, content=? where id=? and state+0!=3 returning state',
                     [$this->info['id'], $adContent, $id], true);
-            if (!empty($res)) {
+            if (isset($res[0]['STATE']) && $res[0]['STATE']===3) {
                 $result=true;
                 if ($warn) {
                     if(!$this->setLevel($warn, 4)) $result=false;

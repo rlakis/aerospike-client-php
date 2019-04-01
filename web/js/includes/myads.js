@@ -261,8 +261,11 @@ var d = {
                 .then(res => res.json())
                 .then(response => {
                     console.log('Success:', JSON.stringify(response));
-                    if (response.RP === 1) {
+                    if (response.success===1) {
                         this.ad.approved().removeMask();
+                    }
+                    else {
+                        console.log(response.error);
                     }
                 })
                 .catch(error => {
@@ -343,9 +346,12 @@ var d = {
                     .then(res => res.json())
                     .then(response => {
                         console.log('Success:', JSON.stringify(response));
-                        if (response.RP == 1) {
+                        if (response.success==1) {
                             //let ad=new Ad(e.parentElement.parentElement.id);
                             //ad.approved();
+                        }
+                        else {
+                            window.alert(response.error);
                         }
                     })
                     .catch(error => {
@@ -437,28 +443,29 @@ var d = {
         if (e.dataset.fetched) { return; }
         let id = e.parentElement.parentElement.parentElement.parentElement.id;
         fetch('/ajax-changepu/?fraud=' + id, {method: 'GET', mode: 'same-origin', credentials: 'same-origin'})
-                .then(res => res.json())
-                .then(response => {
-                    console.log('Success:', JSON.stringify(response, undefined, 2));
-                    let t = e.innerText === '...' ? '' : e.innerText + '<br>';
-                    t += 'Score: ' + response['fraud_score'];
-                    if (response['mobile']) t += ' | mobile';
-                    if (response['recent_abuse']) t += ' | abuse';
-                    if (response['proxy']) t += ' | proxy';
-                    if (response['vpn']) t += ' | VPN';
-                    if (response['tor']) t += ' | TOR';
-                    t += '<br>Country: ' + response['country_code'] + ', ' + response['city'];
-                    t += '<br>Coordinate: ' + response['latitude'] + ', ' + response['longitude'];
-                    t += '<br>IP: ' + response['host'] + ', ' + response['ISP'];
-                    if (response['region']) t += '<br>Region: ' + response['region'];
-                    if (response['timezone']) t += '<br>Timezone: ' + response['timezone'];
-                    if (response['ttl']) t += '<br>TTL: ' + response['ttl'];
-                    e.innerHTML = t;
-                    e.dataset.fetched = 1;
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
+            .then(res => res.json())
+            .then(response => {                
+                console.log('Success:', JSON.stringify(response, undefined, 2));
+                let rs=response.result;
+                let t = e.innerText === '...' ? '' : e.innerText + '<br>';
+                t += 'Score: ' + rs.fraud_score;
+                if (rs.mobile) t += ' | mobile';
+                if (rs.recent_abuse) t += ' | abuse';
+                if (rs.proxy) t += ' | proxy';
+                if (rs.vpn) t += ' | VPN';
+                if (rs.tor) t += ' | TOR';
+                t += '<br>Country: ' + rs.country_code + ', ' + rs.city;
+                t += '<br>Coordinate: ' + rs.latitude + ', ' + rs.longitude;
+                t += '<br>IP: ' + rs.host + ', ' + rs.ISP;
+                if (rs.region) t += '<br>Region: ' + rs.region;
+                if (rs.timezone) t += '<br>Timezone: ' + rs.timezone;
+                if (rs.ttl) t += '<br>TTL: ' + rs.ttl;
+                e.innerHTML = t;
+                e.dataset.fetched = 1;
+            })
+            .catch(error => {
+                console.log('Error:', error);
+            });
     },
 
     normalize: function(e){
@@ -478,13 +485,14 @@ var d = {
                 .then(res => res.json())
                 .then(response => {
                     console.log('updateAd', response);
-                    if (response.RP === 1) {
+                    if (response.success===1) {
                         if (dat) {
-                            if (response.DATA.dx === 1 && response.DATA.t) {
-                                e.innerHTML = response.DATA.t;
+                            if (response.result.index===1 && response.result.native) {
+                                e.innerHTML = response.result.native;
                             }
                         }
                     }
+                    else { window.alert(response.error); }
                     ad.removeMask();
                 })
                 .catch(error => {

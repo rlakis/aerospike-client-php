@@ -274,13 +274,14 @@ function report(e){
             fetch('/ajax-report/',{method:'POST',mode:'same-origin',credentials:'same-origin',
                      body:JSON.stringify({id:parseInt(e.parentElement.parentElement.id)}),
                      headers:{'Accept':'application/json','Content-Type':'application/json'}})
-            //.then(res=>console.log(res))
             .then(res=>res.json())
             .then(response => {
                 console.log('Success:', response);
-                //console.log(response);
-                if(response.RP===1){
+                if(response.success===1){
                     e.parentElement.parentElement.style.backgroundColor='lightgray';
+                }
+                else {
+                    window.alert(response.error);
                 }
             })
             .catch(error => { 

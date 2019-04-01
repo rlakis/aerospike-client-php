@@ -59,7 +59,29 @@ class AjaxHandler extends Site {
 
 
 class Bin extends AjaxHandler{
+    const ERR_USER_BLOCKED      = 100;
+    const ERR_USER_SUSPENDED    = 101;
+    const ERR_USER_UNAUTHORIZED = 102;
+    const ERR_DATA_INVALID_PARAM= 200;
+    const ERR_DATA_INVALID_META = 201;
+    const ERR_SYS_MAINTENANCE   = 400;
+    const ERR_SYS_FAILURE       = 401;
+    const ERR_SYS_UNKNOWN       = 402;
+    
     private $_JPOST = [];
+    private $resp = ['command'=>'', 'success'=>0, 'code'=>0, 'error'=>'', 'warning'=>'', 'result'=>[]];
+    
+    private $errors = [
+        self::ERR_USER_BLOCKED      => ['en'=>'Blocked user! this account is not active anymore.', 'ar'=>'هذا الحساب مقفل ولا يمكن استعماله في مرجان!'],
+        self::ERR_USER_SUSPENDED    => ['en'=>'Suspended user! this account is suspended.', 'ar'=>'هذا الحساب معلق!'],
+        self::ERR_USER_UNAUTHORIZED => ['en'=>'Unauthorized action', 'ar'=>'حساب غير مصرح لتنفيذ الطلب!'],
+        self::ERR_DATA_INVALID_PARAM=> ['en'=>'', 'ar'=>''],
+        self::ERR_DATA_INVALID_META => ['en'=>'', 'ar'=>''],
+        self::ERR_SYS_MAINTENANCE   => ['en'=>'Sorry! System is in maintenance, try again later...', 'ar'=>'نأسف لعدم تلبيتكم الآن! النظام قيد الصيانة.'],
+        self::ERR_SYS_FAILURE       => ['en'=>'Sorry! System is failed to execute your request', 'ar'=>'عملية غير ناجحة!'],
+        self::ERR_SYS_UNKNOWN       => ['en'=>'', 'ar'=>''],
+    ];
+    
     
     function __construct(){
         parent::__construct();
@@ -71,6 +93,55 @@ class Bin extends AjaxHandler{
         $this->actionSwitch();
     }
 
+    private function output() : void {
+        \header("Content-Type: application/json");
+        echo \json_encode($this->resp);
+        exit(0);
+    }
+    
+    
+    private function error(int $code, array $details=[]) : void {
+        $this->resp['success']=0;
+        $this->resp['code']=$code;
+        $this->resp['error']=$this->errors[$this->router()->language]??'failed to get message!';
+        if (!empty($details)) {
+            $this->resp['error'].=' ';
+            $this->resp['error'].=$details[$this->router()->language];
+        }
+        $this->output();
+    }
+    
+    
+    private function success(array $result=[]) : void {        
+        $this->resp['success']=1;
+        if (!empty($result)) {
+            $this->resp['result']=$result;
+        }
+        $this->output();
+    }
+    
+    
+    private function response(string $name, $value) : void {
+        $this->resp['result'][\strtolower(\trim($name))]=$value;
+    }
+    
+    
+    private function authorize(bool $for_write=false) : void {
+        if ($for_write) {
+            if ($this->router()->config()->isMaintenanceMode()) {
+                $this->error(self::ERR_SYS_MAINTENANCE);
+            }
+        }
+        
+        if ($this->user()->getProfile()->isBlocked()) {
+            $this->error(self::ERR_USER_BLOCKED);
+        }
+        
+        if ($this->user()->getProfile()->isSuspended()) {
+            $this->error(self::ERR_USER_SUSPENDED);
+        }                
+    }
+    
     
     function logAdmin(int $adId, int $state, string $msg="") : void {
         if ($this->user()->isLoggedIn(9) && $adId) {
@@ -105,7 +176,11 @@ class Bin extends AjaxHandler{
     
     
     function actionSwitch() : void {
-        switch ($this->router()->module) {
+        $err_file = '/var/log/mourjan/editor.log';
+        $action=\substr($this->router()->module, 5);
+        $this->resp['command']=$action;
+        //error_log(substr($this->router()->module, 5));
+        switch ($action) {
             
             case 'ajax-sorting':
                 $order = $this->get('or','boolean');
@@ -114,208 +189,182 @@ class Bin extends AjaxHandler{
                 $this->process();
                 break;
             
-            case 'ajax-changepu':                
-                if ($this->user()->isLoggedIn(9)) {
-                    if (is_array($this->_JPOST)) {
-                        foreach ($this->_JPOST as $key => $value) {
-                            $_POST[$key]=$value;
-                        }
+            case 'changepu':
+                $this->authorize(true);
+                if ($this->user()->level()!==9) { $this->error(self::ERR_USER_UNAUTHORIZED); }
+                if (is_array($this->_JPOST)) {
+                    foreach ($this->_JPOST as $key => $value) {
+                        $_POST[$key]=$value;
                     }
+                }
                     
-                    if(isset($_GET['fraud']) && is_numeric($_GET['fraud'])){
-                        $content = file_get_contents('http://h8.mourjan.com:8080/v1/fraud/ad/'.$_GET['fraud']);
-                        $this->processJson($content);
-                        break;
-                    }
+                if(isset($_GET['fraud']) && is_numeric($_GET['fraud'])){
+                    $content = \json_decode(file_get_contents('http://h8.mourjan.com:8080/v1/fraud/ad/'.$_GET['fraud']), true);
+                    $this->success($content);
+                }
                     
-                    $lang = $this->getGetString('hl');
-                    if(!$lang){$lang=$this->_JPOST['hl']??'en';}
-                    $this->fieldNameIndex=1;
-                    if (!in_array($lang, ['ar','en'])) { $lang = 'ar'; }
-                    if ($lang==='en') { $this->fieldNameIndex=2; }
-                    $this->router()->language=$lang;
-                    $this->load_lang(array('main'), $lang);
+                $lang = $this->getGetString('hl');
+                if(!$lang){$lang=$this->_JPOST['hl']??'en';}
+                if (!in_array($lang, ['ar','en'])) { $lang = 'ar'; }
+                $this->fieldNameIndex=($lang==='en')?2:1;
+                $this->router()->language=$lang;
+                $this->load_lang(array('main'), $lang);
                     
-                    $id = $this->getGetInt('i', 0);
-                    $ro = $this->post('r');
-                    $se = $this->post('s');
-                    $pu = $this->post('p');
+                $id = $this->getGetInt('i', 0);
+                $ro = $this->post('r');
+                $se = $this->post('s');
+                $pu = $this->post('p');
                     
-                    if ($se) { $ro = $this->router()->sections[$se][4]; }
-                    if ($ro==4) { $pu = 5; }
+                if ($se) { $ro = $this->router()->sections[$se][4]; }
+                if ($ro==4) { $pu = 5; }
                     
-                    $text = $this->_JPOST['t']??'';
-                    $textIdx = $this->post('dx');
-                    $textRtl = $this->post('rtl');
+                $text = $this->_JPOST['t']??'';
+                $textIdx = $this->post('dx');
+                $textRtl = $this->post('rtl');
                                                            
-                    $this->router()->db->setWriteMode();  
+                $this->router()->db->setWriteMode();  
                     
-                    $ad=$this->user->getPendingAds($id);
-                    if (!empty($ad)) {
-                        $textOnly=false;
-                        $imgAdmin = $this->get('img', 'boolean');
-                        $imgIdx = $this->getGetInt('ix', -1);
-                        $pixPath = $this->getGetString('pix');
-                    
-                        $ad=$ad[0];
-                        $content=json_decode($ad['CONTENT'], true);
-                        
-                        if ($imgAdmin) {
-                            $newImgs = [];
-                            $i=0;
-                            $imageToRemove = '';
-                            if ($pixPath) {
-                                $imageToRemove = $pixPath;
-                                foreach($content['pics'] as $img => $dim) {
-                                     if ($img!==$pixPath) {
-                                         $newImgs[$img]=$dim;
-                                     }                                 
-                                 }
-                            }                                                        
-                            
-                            if ($imageToRemove) {
-                                $media = $this->router()->db->queryResultArray("select * from media where filename=?", [$imageToRemove], true);
-                                if ($media && count($media)) {
-                                    $this->router()->db->queryResultArray("delete from ad_media where ad_id=? and media_id=?",[$id, $media[0]['ID']], true);
-                                }
-                            }
-                            
-                            $content['pics']=$newImgs;
-                            
-                            $images='';
-                            if (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])) {
-                                $pass=0;
-                                foreach($content['pics'] as $img => $dim){
-                                    if($pass==0){
-                                        $content['pic_def']=$img;
-                                    }
-                                    if($images){
-                                        $images.="||";
-                                    }
-                                    $images.='<img width="118" src="'.$this->router()->config()->adImgURL.'/repos/s/'.$img.'" />';
-                                    $pass=1;
-                                }
-                            }
-                            else {
-                                unset($content['pic_def']);
-                                $content['extra']['p']=2;
-                            }
+                $ad=$this->user->getPendingAds($id);
+                if (empty($ad)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
 
-                            if ($images) { $images.="||"; }
-                            $images.='<img class="ir" src="'.$this->router()->config()->imgURL.'/90/' . $ad['SECTION_ID'] . $this->router()->_png .'" />';
+                $textOnly=false;
+                $imgAdmin = $this->get('img', 'boolean');
+                $imgIdx = $this->getGetInt('ix', -1);
+                $pixPath = $this->getGetString('pix');
+                    
+                $ad=$ad[0];
+                $content=\json_decode($ad['CONTENT'], true);
+                        
+                if ($imgAdmin) {
+                    $newImgs = [];
+                    $i=0;
+                    $imageToRemove = '';
+                    if ($pixPath) {
+                        $imageToRemove = $pixPath;
+                        foreach($content['pics'] as $img => $dim) {
+                             if ($img!==$pixPath) { $newImgs[$img]=$dim; }                                 
+                         }
+                    }                                                        
                             
-                        }
-                        
-                        if ($ro) { $content['ro']=$ro; }
-                        
-                        if ($se) {
-                            $content['se']=$se;
-                            $ad['SECTION_ID']=$se;
-                        }
-                        
-                        if ($pu) {                            
-                            $content['pu']=$pu;
-                            $ad['PURPOSE_ID']=$pu;
-                        }
-                        
-                        if ($textIdx) {
-                            $text=trim($text);
-                            if ($text) {
-                                $text.=json_decode('"\u200b"').' '.$this->user->parseUserAdTime($content['cui'],$content['cut'],$textRtl);
-                            }
-                            $textOnly=true;
-                            if ($textIdx==1) {
-                                $content['other']=$text;
-                                $content['rtl']=$textRtl;
-                            }
-                            else {
-                                $content['altother']=$text;
-                                $content['altRtl']=$textRtl;
-                            }
-                        }
-                        
-                        if (empty($content['other']) && $content['altother']){
-                            $content['other']=$content['altother'];
-                            $content['rtl']=$content['altRtl'];
-                            $content['altother']='';
-                            $content['altRtl']=0;
-                            $textIdx=1;
-                        }
-                        
-                        
-                        // fix here
-                        Config::instance()->incLibFile('MCSaveHandler');
-                        $normalizer = new MCSaveHandler();    
-                        $normalized = $normalizer->getFromContentObject($content, false);
-                        if ($normalized) {
-                            $content=$normalized;
-                            //error_log(var_export($normalized, true));
-                            //$this->setData($normalized,'normalized');
-                            //$this->process();
-                        }
-                        $text = $content['other'];
-                        $rtl = $content['rtl'];
-                        $text2 = isset($content['altother']) ? $content['altother'] : '';
-                        $rtl2 = isset($content['altRtl']) ? $content['altRtl'] : '';
-                        
-                        if ($text2=='') { $content['extra']['t']=2; }
-                        //else {
-                        //    $this->fail('102');
-                        //}
-                        $root= $content['ro'];
-                        $section=$content['se'];
-                        $purpose=$content['pu'];
-                        
-                        $content = json_encode($content);
-                        
-                        
-                        
-                        if ($this->router()->db->queryResultArray('update ad_user set content=?, section_id=?, purpose_id=? where id=?', [$content, $section, $purpose, $id])) {
-                            if ($imgAdmin) {
-                                $redisAction = 'editorialImg'; 
-                                $this->setData($images, 'sic');
-                                $this->setData($imgIdx, 'dx');
-                                $this->setData($imageToRemove, 'removed');
-                            }
-                            elseif ($textOnly) {
-                                $redisAction = 'editorialText';
-                                $this->setData($text, 't');
-                                $this->setData($text2, 't2');
-                                $this->setData($rtl, 'rtl');
-                                $this->setData($rtl2, 'rtl2');
-                                $this->setData($textIdx, 'dx');
-                            }
-                            else {                                
-                                $label = $this->getAdSection($ad, $root);
-                                $this->setData($label, 'label');
-                                $this->setData($root, 'ro');
-                                $this->setData($section, 'se');
-                                $this->setData($purpose, 'pu');
-                                $redisAction = 'editorialUpdate';
-                            }
-                            $this->setData($id, 'id');
-                            $this->process();
-                            
-                            try {            	
-                                $redis = new Redis();
-                                $data = ['cmd' => $redisAction, 'data' => $this->data];
-                                if ($redis->connect('h8.mourjan.com', 6379, 1, NULL, 50)) {
-                                    $redis->publish('editorial', json_encode($data));
-                                }
-                            } 
-                            catch (RedisException $re) {}
-                            
-                            $this->logAdmin($id, 6);
-                        }
-                        else {
-                            $this->fail();
+                    if ($imageToRemove) {
+                        $media = $this->router()->db->queryResultArray('select * from media where filename=?', [$imageToRemove], true);
+                        if ($media && count($media)) {
+                            $this->router()->db->queryResultArray('delete from ad_media where ad_id=? and media_id=?',[$id, $media[0]['ID']], true);
                         }
                     }
+                            
+                    $content['pics']=$newImgs;
+                            
+                    $images='';
+                    if (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])) {
+                        $pass=0;
+                        foreach($content['pics'] as $img => $dim){
+                            if ($pass===0) { $content['pic_def']=$img; }
+                            if ($images) { $images.="||"; }
+                                $images.='<img width="118" src="'.$this->router()->config()->adImgURL.'/repos/s/'.$img.'" />';
+                                $pass=1;
+                        }
+                    }
+                    else {
+                        unset($content['pic_def']);
+                        $content['extra']['p']=2;
+                    }
+
+                    if ($images) { $images.="||"; }
+                    $images.='<img class="ir" src="'.$this->router()->config()->imgURL.'/90/' . $ad['SECTION_ID'] . $this->router()->_png .'" />';                            
                 }
-                else {
-                    $this->fail();
+                        
+                if ($ro) { $content['ro']=$ro; }
+                        
+                if ($se) {
+                    $content['se']=$se;
+                    $ad['SECTION_ID']=$se;
                 }
-                break;      
+                        
+                if ($pu) {                            
+                    $content['pu']=$pu;
+                    $ad['PURPOSE_ID']=$pu;
+                }
+                        
+                if ($textIdx) {
+                    $text=trim($text);
+                    if ($text) {
+                        $text.=\json_decode('"\u200b"').' '.$this->user->parseUserAdTime($content['cui'], $content['cut'], $textRtl);
+                    }
+                    $textOnly=true;
+                    if ($textIdx==1) {
+                        $content['other']=$text;
+                        $content['rtl']=$textRtl;
+                    }
+                    else {
+                        $content['altother']=$text;
+                        $content['altRtl']=$textRtl;
+                    }
+                }
+                        
+                if (empty($content['other']) && $content['altother']){
+                    $content['other']=$content['altother'];
+                    $content['rtl']=$content['altRtl'];
+                    $content['altother']='';
+                    $content['altRtl']=0;
+                    $textIdx=1;
+                }
+                                                
+                // fix here
+                Config::instance()->incLibFile('MCSaveHandler');
+                $normalizer = new MCSaveHandler();    
+                $normalized = $normalizer->getFromContentObject($content, false);
+                if ($normalized) { $content=$normalized; }
+                $text = $content['other'];
+                $rtl = $content['rtl'];
+                $text2 = isset($content['altother']) ? $content['altother'] : '';
+                $rtl2 = isset($content['altRtl']) ? $content['altRtl'] : '';                        
+                if ($text2=='') { $content['extra']['t']=2; }
+                $root= $content['ro'];
+                $section=$content['se'];
+                $purpose=$content['pu'];
+            
+                $content = \json_encode($content);                                            
+                if ($this->router()->db->queryResultArray('update ad_user set content=?, section_id=?, purpose_id=? where id=?', [$content, $section, $purpose, $id])) {
+                    if ($imgAdmin) {
+                        $redisAction = 'editorialImg'; 
+                        $this->response('sic', $images);
+                        $this->response('index', $imgIdx);
+                        $this->response('removed', $imageToRemove, );
+                    }
+                    elseif ($textOnly) {
+                        $redisAction = 'editorialText';
+                        $this->response('native', $text);
+                        $this->response('foreign', $text2);
+                        $this->response('rtl', $rtl);
+                        $this->response('frtl',  $rtl2);
+                        $this->response('index', $textIdx);
+                    }
+                    else {                                
+                        $label = $this->getAdSection($ad, $root);
+                        $this->response('label', $label);
+                        $this->response('ro', $root);
+                        $this->response('se', $section);
+                        $this->response('pu', $purpose);
+                        $redisAction = 'editorialUpdate';
+                    }
+                    $this->response('id', $id);
+                            
+                    try {            	
+                        $redis = new Redis();
+                        $data = ['cmd' => $redisAction, 'data' => $this->data];
+                        if ($redis->connect('h8.mourjan.com', 6379, 1, NULL, 50)) {
+                            $redis->publish('editorial', json_encode($data));
+                        }
+                    } 
+                    catch (RedisException $re) { $this->resp['warning']=$re->getMessage(); }
+                    
+                    $this->logAdmin($id, 6);
+                    $this->success();
+                }
+                else { $this->error(self::ERR_SYS_FAILURE); }                
+                
+                break;
             
             case 'ajax-text':
                 if ($this->user()->isLoggedIn(9)) {
@@ -1614,7 +1663,7 @@ class Bin extends AjaxHandler{
                 }else $this->fail('101');
                 break;
                 
-            case 'ajax-menu':
+            case 'menu':
                 if (isset($_GET['sections'])) {
                     $lang=$_GET['sections'];
                     $nameIdx = ($lang=='ar'?1:2);
@@ -2361,7 +2410,7 @@ class Bin extends AjaxHandler{
                 break;
                 
                 
-            case "ajax-adsave":
+            case "adsave":
                 if ($this->router()->config()->isMaintenanceMode()) {
                     $this->fail('503: System is in maintenance! try again later...');
                 }
@@ -2378,7 +2427,7 @@ class Bin extends AjaxHandler{
                 
                 
                 
-                $err_file = '/var/log/mourjan/editor.log';
+                
                 $ad = \is_array($this->_JPOST['o']) ? $this->_JPOST['o'] : \json_decode($this->_JPOST['o'], true);
                 if (!\is_array($ad)) { $ad = []; }
                 if (!isset($ad['id'])) { $ad['id']=0; }
@@ -3210,7 +3259,7 @@ class Bin extends AjaxHandler{
                     ?><script type="text/javascript" language="javascript" defer>top.uploadCallback(false, false,"picBU");</script><?php
                 }
                 break;
-                
+                /*
             case "ajax-upload":
                 $this->router()->config()->incLibFile('class.upload');
                 $image_ok=false;
@@ -3368,7 +3417,7 @@ class Bin extends AjaxHandler{
                     ?><script type="text/javascript" language="javascript" defer>top.uploadCallback();</script><?php
                 }
                 break;
-                
+                */
             case "ajax-ilogo":
                 require_once("lib/class.upload.php");
                 $image_ok=false;
@@ -3589,119 +3638,98 @@ class Bin extends AjaxHandler{
                 else { $this->fail('101'); }
                 break;
                 
-            case 'ajax-approve':
-                $id = 0;
-                $contentType = \filter_input(INPUT_SERVER, 'CONTENT_TYPE', FILTER_SANITIZE_STRING);
-                if ($contentType==='application/json') {
-                    $content = \trim(\file_get_contents("php://input"));
-                    $decoded = \json_decode($content, true);
-                    $id=$decoded['i']??0;
-                    $rtp=$decoded['rtp']??0;
-                               
-                    if ($this->user()->isLoggedIn(9) && \is_int($id) && $id>0) {                    
-                        $rejected = false;
-                        if ($rtp) {
-                            $record = $this->router()->db->queryResultArray("select web_user_id, content from ad_user where id={$id}");
-                            $adUser = new MCUser($record[0]['WEB_USER_ID']);
-                            if ($adUser->isMobileVerified()) {
-                                $mobile_number = $adUser->getMobileNumber();
-                                $content = \json_decode($record[0]['CONTENT'],true);                                
-                                if (isset($content['attrs']) && isset($content['attrs']['phones'])) {
-                                    //error_log( json_encode($content['attrs']['phones']) );
-                                    $len=$content['attrs']['phones']['n']?count($content['attrs']['phones']['n']):0;
-                                    NoSQL::getInstance()->mobileVerfiedRelatedNumber($mobile_number, $numbers);
+            case 'approve':
+                $this->authorize(true);
+                if ($this->user()->level()!==9) { $this->error(self::ERR_USER_UNAUTHORIZED); }
+                $contentType = \filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
+                if ($contentType!=='application/json') { $this->error(self::ERR_DATA_INVALID_META); }
                 
-                                    for ($i=0; $i<$len; $i++) {
-                                        $to=$content['attrs']['phones']['n'][$i];
-                                        if ($to!=$mobile_number && !isset($numbers[$to])) {
-            
-                                            $type = $content['attrs']['phones']['t'][$i]??0;
-                                            if ($type==1) {                                                                                                                                                
-                                                //error_log("rtp {$to}");
-                                                $bins=['RTP'=>1];
-                                                if (MobileValidation::getInstance()->sendEdigearRTPRequest($to, $record[0]['WEB_USER_ID'], $mobile_number, $bins)) {
-                                                    if ($rtp==2) {//rejected and pending
-                                                    
-                                                        $user_lang = $content['hl']??"en";
-                                                        if ($user_lang=="ar") {
-                                                            $msg = "تم الرفض بانتظار ارسال رسالة نصية تحتوي على " .
-                                                                    $bins['code'] . 
-                                                                    " من +" .
-                                                                    $to . 
-                                                                    " الى +" .
-                                                                    $bins['to'] . 
-                                                                    ". بعد ارسال الرسالة، يرجى الانتظار بضع دقائق واعادة النشر.";
-                                                        }
-                                                        else {                                                                                          
-                                                            $msg = 'Rejected and pedning your action of sending an SMS message containing ' .
-                                                                    $bins['code'] . 
-                                                                    " from +" .
-                                                                    $to . 
-                                                                    " to +" .
-                                                                    $bins['to'] . 
-                                                                    ". After sending the message, please wait a couple of minutes and re-publish your ad.";
-                                                        }
-                                                        $rejected = true;
-                                                                                            
-                                                        if($this->user->rejectAd($id, $msg)) {
-                                                            $this->process();
-                                                            $this->logAdmin($id, 3);
-                                                            return;
-                                                        }
-                                                        else { $this->fail('105'); }
-                                                    }
-                                                    elseif($rtp == 1) {//approved and pending
-                                                        
-                                                        $lastCode = '';
-                                                        
-                                                        $user_lang = $content['hl']??"en";
-                                                        if ($user_lang=="ar") {
-                                                            $msg = "تمت الموافقة وبانتظار ارسال رسالة نصية تحتوي على " .
+                $id=$this->_JPOST['i']??0;
+                $rtp=$this->_JPOST['rtp']??0;
+                if (!(\is_int($id) && $id>0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                                                                                   
+                if ($rtp>0) {
+                    $record = $this->router()->db->queryResultArray("select web_user_id, content from ad_user where id={$id}");
+                    $adUser = new MCUser($record[0]['WEB_USER_ID']);
+                    if (!$adUser->isMobileVerified()) { $this->error(self::ERR_SYS_UNKNOWN); }
+                    
+                    $mobile_number = $adUser->getMobileNumber();
+                    $content = \json_decode($record[0]['CONTENT'],true);                                
+                    if (isset($content['attrs']) && isset($content['attrs']['phones'])) {
+                        $len=$content['attrs']['phones']['n']??0;
+                        NoSQL::getInstance()->mobileVerfiedRelatedNumber($mobile_number, $numbers);
+                
+                        for ($i=0; $i<$len; $i++) {
+                            $to=$content['attrs']['phones']['n'][$i];
+                            if ($to!=$mobile_number && !isset($numbers[$to])) {            
+                                $type = $content['attrs']['phones']['t'][$i]??0;
+                                if ($type==1) {                                                                                                                                
+                                    //error_log("rtp {$to}");
+                                    $bins=['RTP'=>1];                                        
+                                    if (MobileValidation::getInstance()->sendEdigearRTPRequest($to, $record[0]['WEB_USER_ID'], $mobile_number, $bins)) {
+                                        $user_lang = $content['hl']??'en';
+                                        if ($rtp==2) {//rejected and pending                                                  
+                                            if ($user_lang==='ar') {
+                                                $msg = "تم الرفض بانتظار ارسال رسالة نصية تحتوي على " .
+                                                        $bins['code'] . 
+                                                        " من +" .
+                                                        $to . 
+                                                        " الى +" .
+                                                        $bins['to'] . 
+                                                        ". بعد ارسال الرسالة، يرجى الانتظار بضع دقائق واعادة النشر.";
+                                            }
+                                            else {                                                                                          
+                                                $msg = 'Rejected and pedning your action of sending an SMS message containing ' .
+                                                        $bins['code'] . ' from +' . $to . ' to +' . $bins['to'] . 
+                                                        '. After sending the message, please wait a couple of minutes and re-publish your ad.';
+                                            }
+
+                                            if ($this->user->rejectAd($id, $msg)) {
+                                                    $this->logAdmin($id, 3);
+                                                    $this->success(['message'=>$msg]);
+                                            }                                            
+                                            else { 
+                                                $this->error(self::ERR_SYS_FAILURE);
+                                            }
+                                        }
+                                        elseif ($rtp==1) {//approved and pending                                                        
+                                            if ($user_lang==='ar') {
+                                                    $msg = "تمت الموافقة وبانتظار ارسال رسالة نصية تحتوي على " .
                                                                     $bins['code'] . 
                                                                     " من +" .
                                                                     $to . 
                                                                     " الى +" .
                                                                     $bins['to'] . 
                                                                     " ليتم النشر.";
-                                                        }
-                                                        else {                                                            
-                                                            $msg = 'Approved but pending your action of sending an SMS message containing ' .
-                                                                    $bins['code'] . 
-                                                                    " from +" .
-                                                                    $to . 
-                                                                    " to +" .
-                                                                    $bins['to'] . 
-                                                                    " before publishing.";
-                                                        }
-                                                        $rejected = true;
-                                                        
-                                                        if($this->user->approveAd($id, $msg)) {
-                                                            $this->process();
-                                                            $this->logAdmin($id, 2);
-                                                            return;
-                                                        }
-                                                        else { $this->fail('104'); }
-                                                        
-                                                    }                                                      
-                                            
-                                                }
                                             }
+                                            else {                                                            
+                                                $msg = 'Approved but pending your action of sending an SMS message containing ' .
+                                                        $bins['code'] . ' from +' . $to . ' to +' . $bins['to'] . ' before publishing.';
+                                            }
+                                            if ($this->user->approveAd($id, $msg)) {
+                                                    $this->logAdmin($id, 2);
+                                                    $this->success(['approved'=>1, 'message'=>$msg]);
+                                            }                                            
+                                            else { 
+                                                $this->error(self::ERR_SYS_FAILURE);
+                                            }                                                                                                    
                                         }
                                     }
                                 }
                             }
-                        }
-                        
-                        if ($rejected===false && $this->user()->approveAd($id)) {
-                            $this->process();
-                            $this->logAdmin($id, 2);
-                        }
-                        else { $this->fail('103'); }                   
+                        }                    
                     }
-                    else { $this->fail('102'); }
                 }
-                else { $this->fail('101'); }
+                
+                if ($this->user()->approveAd($id)) {
+                    $this->logAdmin($id, 2);
+                    $this->success();                    
+                }
+                else { 
+                    $this->error(self::ERR_SYS_FAILURE);                    
+                }                                    
                 break;
+                
                 
             case 'ajax-help':
                 if ($this->user->info['id'] && $this->user->info['level']==9 && isset ($_POST['i'])) {
@@ -3861,22 +3889,19 @@ class Bin extends AjaxHandler{
                 }
                 break;
                 
-            case 'ajax-reject':
-                if ($this->user()->isLoggedIn(9) && isset($this->_JPOST['i'])) {
-                    $msg=trim($this->_JPOST['msg']);
-                    $id=$this->_JPOST['i'];
-                    $warn=$this->_JPOST['w'];
-                    error_log("reject id: {$id}, uid: {$warn} => {$msg}");
-                    if (is_numeric($id)) {
-                        if ($this->user()->rejectAd($id, $msg, 0)) {
-                            $this->process();
-                            $this->logAdmin($id, 3, $msg);
-                        }
-                        else $this->fail('103');
-                    }
-                    else $this->fail('102');
+            case 'reject':
+                $this->authorize(true);
+                $id=$this->_JPOST['i'] ?? 0;
+                if (!(\is_int($id) && $id>0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                $msg=\trim($this->_JPOST['msg']??'');
+                $warn=$this->_JPOST['w'];
+                if ($this->user()->rejectAd($id, $msg, 0)) {
+                    $this->logAdmin($id, 3, $msg);
+                    $this->success();
                 }
-                else $this->fail('101');
+                else { 
+                    $this->error(self::ERR_SYS_FAILURE);
+                }
                 break;
                 
             case 'ajax-ahold':
@@ -4954,71 +4979,74 @@ class Bin extends AjaxHandler{
                 }else $this->fail();
                 break;
                 
-            case 'ajax-report':
+            case 'report':
+                $this->authorize(true);
                 $mobile = (isset($this->user->params['mobile']) && $this->user->params['mobile'])? 1 : 0;
-                $id = $this->_JPOST['id'] ?? 0;
-                if (!is_int($id)) { $id=0; }
-                //$id =  $this->post('id', 'int');
-                $name = $this->post('name', 'filter');
-                $userEmail = $this->post('email', 'filter');
+                $id = $this->_JPOST['id'] ?? 0;                
+                if (!is_int($id)) { $id=0; }                                
+                if ($id<=0) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                                                
+                if ($this->user()->level()===9) {                    
+                    if ($this->router()->database()->queryResultArray("EXECUTE PROCEDURE SP\$HOLD_AD({$id})")===TRUE) {
+                        $this->logAdmin($id, 9);
+                        $this->success();
+                    }
+                    else {
+                        $this->error(self::ERR_SYS_FAILURE);
+                    }
+                }
                 
-                $flag = -1;
+                $flag = $this->_JPOST['flag'] ?? -1;
+                if (!is_int($flag)) { $flag=-1; }
+                $name = \filter_var($this->_JPOST['name']??'', \FILTER_SANITIZE_STRING);
+                $userEmail = \filter_var($this->_JPOST['email']??'', \FILTER_SANITIZE_EMAIL);
                 $helpTopic=4;
-                if(isset($_POST['flag']) && in_array($_POST['flag'],[0,1,2,3,4,5])){
-                    $flag=$this->post('flag', 'int');
+                //if(isset($_POST['flag']) && in_array($_POST['flag'],[0,1,2,3,4,5])){
+                //    $flag=$this->post('flag', 'int');
+                //}
+                $feed= \trim(\filter_var($this->_JPOST['msg'] ?? '', \FILTER_SANITIZE_STRING));
+                switch ($flag) {
+                    case 0:
+                        $subject = 'Expired/Sold/Rented';
+                        break;
+                    case 1:
+                        $subject = 'Wrong Phone Number/Email';
+                        break;
+                    case 2:
+                        $subject = 'Miscategorized';
+                        break;
+                    case 3:
+                        $subject = 'Immoral';
+                        break;
+                    case 4:
+                        $subject = 'Spam/Overpost';
+                        break;
+                    default:
+                        $subject = 'Abusive Ad Report';
+                        break;
                 }
-                
-                if ($this->user()->isLoggedIn(9) && $id) {                    
-                    $this->router()->database()->queryResultArray("EXECUTE PROCEDURE SP\$HOLD_AD({$id})");
-                    $this->process();
-                    $this->logAdmin($id, 9);
-                }
-                elseif($id) {
-                    $feed='';
-                    switch ($flag) {
-                        case 0:
-                            $subject = 'Expired/Sold/Rented';
-                            break;
-                        case 1:
-                            $subject = 'Wrong Phone Number/Email';
-                            break;
-                        case 2:
-                            $subject = 'Miscategorized';
-                            break;
-                        case 3:
-                            $subject = 'Immoral';
-                            break;
-                        case 4:
-                            $subject = 'Spam/Overpost';
-                            break;
-                        default:
-                            $subject = 'Abusive Ad Report';
-                            break;
-                    }
-                    $feed=$this->post('msg', 'filter');
                     
-                    $feed=trim($feed);
-                    $geo = $this->urlRouter->getIpLocation();
+                $geo = $this->router()->getIpLocation();
                 
-                    $geostr = "";
-                    if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en'])) {
-                        $geostr.= $geo['country']['names']['en'];
-                    }
+                $geostr = '';
+                if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en'])) {
+                    $geostr.= $geo['country']['names']['en'];
+                }
 
-                    if (isset($geo['location']) && isset($geo['location']['time_zone'])) {
-                        $geostr.= " - {$geo['location']['time_zone']} [{$geo['location']['latitude']}, {$geo['location']['longitude']}]";
-                    }
-                    if ($mobile) {
-                        $geostr.= " - Mobile";
-                    }
+                if (isset($geo['location']) && isset($geo['location']['time_zone'])) {
+                    $geostr.= " - {$geo['location']['time_zone']} [{$geo['location']['latitude']}, {$geo['location']['longitude']}]";
+                }
+                if ($mobile) {
+                    $geostr.= " - Mobile";
+                }
 
-                    $msg = "<style>table{border-collapse:collapse;border-spacing:2px;border-color:gray;} th,td{border: 1px solid #cecfd5;padding: 10px 15px;}</style><table><tr>";
-                    if (isset($this->user->info['id']) && $this->user->info['id']>0) {
-                        $name=$this->user->info['name'];
-                        $msg.="<td><b>Name</b></td><td><a href='{$this->urlRouter->cfg['host']}/myads/?u={$this->user->info['id']}' target='_blank'>{$name}</a></td>";
-                    }
-                    $msg.="<td><b>Location</b></td><td>{$geostr}</td>";
-                    if (isset($this->user->params['country'])) {
+                $msg = "<style>table{border-collapse:collapse;border-spacing:2px;border-color:gray;} th,td{border: 1px solid #cecfd5;padding: 10px 15px;}</style><table><tr>";
+                if (isset($this->user->info['id']) && $this->user->info['id']>0) {
+                    $name=$this->user->info['name'];
+                    $msg.="<td><b>Name</b></td><td><a href='{$this->urlRouter->cfg['host']}/myads/?u={$this->user->info['id']}' target='_blank'>{$name}</a></td>";
+                }
+                $msg.="<td><b>Location</b></td><td>{$geostr}</td>";
+                if (isset($this->user->params['country'])) {
                         if (isset($this->urlRouter->countries[$this->user->params['country']])) {
                             $msg.="<td><b>Target</b></td><td>{$this->urlRouter->countries[$this->user->params['country']]['uri']}";
                             if (isset($this->user->params['city']) && $this->user->params['city']>0) {
@@ -5038,19 +5066,18 @@ class Bin extends AjaxHandler{
                         }
 
                         $msg.="</td></tr>";
-                    } 
-                    else $msg.="</tr>";
-                    $msg.="<tr><td><b>Locale</b></td><td>".filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE', FILTER_SANITIZE_STRING)."</td>";
-                    $msg.="<td><b>Browser</b></td><td colspan='3'>".filter_input(INPUT_SERVER, 'HTTP_USER_AGENT', FILTER_SANITIZE_STRING)."</td></tr>";
-                    $msg.="<tr><td colspan='6'><a href='{$this->urlRouter->cfg['host']}/{$id}' target=_blank>{$feed}</a></td></tr>";
-                    $msg.="</table>";
-                  
-                    $res=$this->sendMail("Mourjan Admin", $this->urlRouter->cfg['admin_email'], ($name) ? $name : 'Abusive Report', ($userEmail ? $userEmail : $this->urlRouter->cfg['smtp_user']), $subject, $msg, $this->urlRouter->cfg['smtp_contact'], $id, $helpTopic);
-                    $this->process();
-                }
+                } 
                 else {
-                    $this->fail('101');
+                    $msg.="</tr>";
                 }
+                $msg.="<tr><td><b>Locale</b></td><td>".filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE', FILTER_SANITIZE_STRING)."</td>";
+                $msg.="<td><b>Browser</b></td><td colspan='3'>".filter_input(INPUT_SERVER, 'HTTP_USER_AGENT', FILTER_SANITIZE_STRING)."</td></tr>";
+                $msg.="<tr><td colspan='6'><a href='{$this->urlRouter->cfg['host']}/{$id}' target=_blank>{$feed}</a></td></tr>";
+                $msg.="</table>";
+                  
+                $res=$this->sendMail("Mourjan Admin", $this->urlRouter->cfg['admin_email'], ($name) ? $name : 'Abusive Report', ($userEmail ? $userEmail : $this->urlRouter->cfg['smtp_user']), $subject, $msg, $this->urlRouter->cfg['smtp_contact'], $id, $helpTopic);
+                $this->success();
+               
                 break;
                 
                 
