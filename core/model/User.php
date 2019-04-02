@@ -1673,7 +1673,8 @@ class User {
     }
     
     
-    function block($uid, $number, $msg) {
+    function block(int $uid, int $number, string $msg) : int {
+        $pass=0;
         if (Core\Model\NoSQL::getInstance()->blacklistInsert($number, $msg, $uid)) {
             if (NoSQL::getInstance()->mobileGetLinkedUIDs($number, $linked)== NoSQL::OK) {
                 foreach ($linked as $bins) {
@@ -1682,30 +1683,25 @@ class User {
                         
                 $q = 'update or insert into bl_phone (telephone, subject, web_user_id) values (?, ?, ?) matching(telephone) returning id';
                 $block = $this->db->get($q, [$number, $msg, $uid]);
-                $pass=0;
-        
-                if(isset($block[0]['ID']) && $block[0]['ID']) {
-                    $pass=1;
-                }
                         
-                return $pass;
+                if (isset($block[0]['ID']) && $block[0]['ID']) { $pass=1; }                                        
             }
         }
-        return 0;
+        return $pass;
     }
     
     
-    function suspend($uid, $hours, $newModel=0, $reason = 0) {
+    function suspend(int $uid, int $hours, int $newModel=0, int $reason=0) : bool {
         $pass=false;
         if ($newModel) {
-            if(substr($newModel, 0, 1)=='+') {
-                $newModel = substr($newModel, 1);
+            if(\substr($newModel, 0, 1)==='+') {
+                $newModel = \substr($newModel, 1);
             }
             $pass=MCSessionHandler::setSuspendMobile($uid, $newModel, $hours*3600, false, $reason);
         }
         else {
             $options = NoSQL::getInstance()->getOptions($uid);
-            if ($options) {
+            if ($options) {                
                 $options['suspend']=time()+($hours*3600);
                 $pass=$this->updateOptions($uid,$options);
             }
@@ -1881,9 +1877,9 @@ class User {
     }
     
     
-    function setLevel($id, $level) {
+    function setLevel(int $id, int $level) : bool {
         $succeed=false;
-        if($id && is_numeric($level)) {
+        if ($id>0 && $level>=0) {
             if (\Core\Model\NoSQL::getInstance()->setUserLevel($id, $level)) {
                 $succeed=true;
             }

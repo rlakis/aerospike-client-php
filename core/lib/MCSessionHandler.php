@@ -46,7 +46,7 @@ class MCSessionHandler extends Singleton implements \SessionHandlerInterface {
     }
 
     
-    public static function setSuspendMobile($uid, $number, $secondsToSuspend, $clearLog=false, $reason = 0) {   
+    public static function setSuspendMobile($uid, $number, $secondsToSuspend, $clearLog=false, $reason = 0) : bool {   
         $pass = false;
         $redis = new Redis();
         if ($redis->connect('138.201.28.229', 6379, 2, NULL, 20)) {
@@ -55,14 +55,14 @@ class MCSessionHandler extends Singleton implements \SessionHandlerInterface {
             $redis->setOption(Redis::OPT_READ_TIMEOUT, 10);
             
             $pass = $redis->set($number, $reason ? $reason : "not specified", $secondsToSuspend);
-            if($pass) {
+            if ($pass) {               
                 if ($clearLog) {
                     $redis->setOption(Redis::OPT_PREFIX, 'ua_');
                     $redis->delete($number);                    
                 }
                 
                 $redisPublisher = new Redis();                
-                if ($redisPublisher->connect('p1.mourjan.com',6379,2,NULL,20)) {
+                if ($redisPublisher->connect('p1.mourjan.com', 6379, 2, NULL, 20)) {
                     $redisPublisher->publish('FBEventManager','{"event":"cache","action":"suspend","id":'.$uid.'}');
                 }
                                 

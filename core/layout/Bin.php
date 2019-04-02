@@ -103,7 +103,10 @@ class Bin extends AjaxHandler{
     private function error(int $code, array $details=[]) : void {
         $this->resp['success']=0;
         $this->resp['code']=$code;
-        $this->resp['error']=$this->errors[$this->router()->language]??'failed to get message!';
+        if ($this->router()->language!=='ar' && $this->router()->language!=='en') {
+            $this->router()->language='en';
+        }
+        $this->resp['error']= $this->errors[$this->router()->language] ?? ('failed to get message! > '.$this->router()->language);
         if (!empty($details)) {
             $this->resp['error'].=' ';
             $this->resp['error'].=$details[$this->router()->language];
@@ -126,7 +129,7 @@ class Bin extends AjaxHandler{
     }
     
     
-    private function authorize(bool $for_write=false) : void {
+    private function authorize(bool $for_write=false, int $level=-1) : void {
         if ($for_write) {
             if ($this->router()->config()->isMaintenanceMode()) {
                 $this->error(self::ERR_SYS_MAINTENANCE);
@@ -139,7 +142,21 @@ class Bin extends AjaxHandler{
         
         if ($this->user()->getProfile()->isSuspended()) {
             $this->error(self::ERR_USER_SUSPENDED);
-        }                
+        }
+        
+        if ($this->user()->level()<$level) {
+            $this->error(self::ERR_USER_UNAUTHORIZED);
+        }
+    }
+    
+    
+    private function check(bool $ok, int $fail_code=self::ERR_SYS_FAILURE) {
+        if ($ok) {
+            $this->success();
+        }
+        else {
+            $this->error($fail_code);
+        }
     }
     
     
@@ -190,8 +207,7 @@ class Bin extends AjaxHandler{
                 break;
             
             case 'changepu':
-                $this->authorize(true);
-                if ($this->user()->level()!==9) { $this->error(self::ERR_USER_UNAUTHORIZED); }
+                $this->authorize(true, 9);
                 if (is_array($this->_JPOST)) {
                     foreach ($this->_JPOST as $key => $value) {
                         $_POST[$key]=$value;
@@ -1664,33 +1680,31 @@ class Bin extends AjaxHandler{
                 break;
                 
             case 'menu':
-                if (isset($_GET['sections'])) {
-                    $lang=$_GET['sections'];
+                $lang = $this->getGetString('sections');
+                if ($lang) {
+                    $this->authorize();
                     $nameIdx = ($lang=='ar'?1:2);
                     $result=['r'=>[],  'qs'=>[], 'qr'=>[]];
                                         
-                    $referer= filter_input(INPUT_SERVER, 'HTTP_REFERER', FILTER_SANITIZE_STRING);
-                    $path=parse_url($referer, PHP_URL_PATH);
-                    if(strlen($path)>5){ $path=substr($path, 0, 6); }
-                    $forPostAd=($path==='/post/');
-                    $sections= $this->router()->sections;
-                    usort($sections, function(array $a, array $b) use ($nameIdx) {return ($a[$nameIdx]<=>$b[$nameIdx]);});
+                    $referer = \filter_input(\INPUT_SERVER, 'HTTP_REFERER', \FILTER_SANITIZE_STRING);
+                    $path=\parse_url($referer, \PHP_URL_PATH);
+                    if (\strlen($path)>5) { $path=\substr($path, 0, 6); }
+                    $forPostAd = ($path==='/post/');
+                    $sections = $this->router()->sections;
+                    \usort($sections, function(array $a, array $b) use ($nameIdx) {return ($a[$nameIdx]<=>$b[$nameIdx]);});
                     $result['n'] = $sections;
-                    $len = count($sections);
+                    $len = \count($sections);
                     
                     foreach ($this->router()->roots as $root) {
                         $result['r'][$root[0]]=['name'=>$root[$nameIdx], 'sections'=>[], 'purposes'=>[], 'sindex'=>[]];
                     }                                    
                     
                     for ($i=0; $i<$len; $i++) {                  
-                        $result['r'][ $sections[$i][4] ]['sections'][ $sections[$i][0] ] = $sections[$i][$nameIdx];                                                             
-                        $result['r'][ $sections[$i][4] ]['sindex'][] = $sections[$i][0];                                       
+                        $result['r'][$sections[$i][4]]['sections'][$sections[$i][0]] = $sections[$i][$nameIdx];                                                             
+                        $result['r'][$sections[$i][4]]['sindex'][] = $sections[$i][0];                                       
                     }
 
-                    if ($forPostAd) {
-                        
-                    }
-                    else {
+                    if ($forPostAd===false) {                        
                         $lnIndex = $lang=='ar' ? 4 : 3;
                         foreach ($this->router()->config()->get('smart_section_fix') as $SID => $switches) { 
                              foreach ($switches as $switch){
@@ -1720,10 +1734,10 @@ class Bin extends AjaxHandler{
                         }
                     }
                     
-                    $this->setData($result['r'], 'roots');
+                    $this->response('roots', $result['r']);
                     if (!$forPostAd) {
-                        $this->setData($result['qs'], 'sswitch');
-                        $this->setData($result['qr'], 'rswitch');
+                        $this->response('sswitch', $result['qs']);
+                        $this->response('rswitch', $result['qr']);
                     }
                     else {
                         Config::instance()->incLibFile('MCPostPreferences');
@@ -1732,8 +1746,8 @@ class Bin extends AjaxHandler{
                         //$result['prefs']['version']=$pref->getVersion();
                         //$dataVersion = filter_input(INPUT_GET, 'version', FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
                         //if ($dataVersion != $pref->getVersion()) {
-                        $pref->setup();
-                        $this->setData($pref, 'prefs');
+                        $pref->setup();                        
+                        $this->response('prefs', $pref);
                         $cndic=$this->router()->database()->getCountriesDictionary();
                         $regions=[];
                         foreach ($cndic as $country_id => $country) {
@@ -1743,8 +1757,8 @@ class Bin extends AjaxHandler{
                         foreach ($ccdic as $city_id => $city) {
                             $regions[$city[4]]['cc'][$city_id]=['ar'=>$city[1], 'en'=>$city[2], 'lat'=>$city[5]+0, 'lng'=>$city[6]+0];
                         }
-                        $this->setData($regions, 'regions');
-                        $this->setData(IPQuality::fetchJson(false), 'ip');
+                        $this->response('regions', $regions);
+                        $this->response('ip', IPQuality::fetchJson(false));
                         $aid=\filter_input(\INPUT_GET, 'aid', \FILTER_SANITIZE_NUMBER_INT);
                         if ($aid>0) {
                             $ad=$this->user()->getPendingAds($aid);
@@ -1759,13 +1773,15 @@ class Bin extends AjaxHandler{
                                 $cnt['se']=$ad[0]['SECTION_ID'];
                                 $cnt['pu']=$ad[0]['PURPOSE_ID'];
                                 $cnt['state']=$ad[0]['STATE'];
-                                $this->setData($cnt, 'ad');
+                                $this->response('ad', $cnt);
                             }                                                   
                         }
                     }
                     
-                    $this->process();
+                    $this->success();
                 }
+                $this->error(self::ERR_DATA_INVALID_PARAM);
+                /*
                 else {
                     if (isset($_GET['c'])) {
                         $c = $this->get('c','boolean');
@@ -1779,7 +1795,7 @@ class Bin extends AjaxHandler{
                         echo $content;
                     }
                     else $this->fail('101');
-                }
+                }*/
                 break;
                 
             case 'ajax-prog':
@@ -2411,22 +2427,8 @@ class Bin extends AjaxHandler{
                 
                 
             case "adsave":
-                if ($this->router()->config()->isMaintenanceMode()) {
-                    $this->fail('503: System is in maintenance! try again later...');
-                }
-
-                if (!$this->user()->isLoggedIn()) { $this->fail('101: Unthaurized'); }
-                if ($this->user()->getProfile()->isBlocked()) { $this->fail('102: Blocked');  }
-                if ($this->user()->getProfile()->isSuspended()) {
-                    $this->setData($this->user()->getProfile()->getSuspensionTime() , 'suspendTime');
-                    $this->fail('103: Suspended');
-                }
-                
-                if (!isset($this->_JPOST['o'])) { $this->fail('104: Missing data'); }
-
-                
-                
-                
+                $this->authorize(true);                
+                if (!isset($this->_JPOST['o'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }                                                
                 
                 $ad = \is_array($this->_JPOST['o']) ? $this->_JPOST['o'] : \json_decode($this->_JPOST['o'], true);
                 if (!\is_array($ad)) { $ad = []; }
@@ -3259,165 +3261,10 @@ class Bin extends AjaxHandler{
                     ?><script type="text/javascript" language="javascript" defer>top.uploadCallback(false, false,"picBU");</script><?php
                 }
                 break;
-                /*
-            case "ajax-upload":
-                $this->router()->config()->incLibFile('class.upload');
-                $image_ok=false;
-                $thumb_ok=false;
-                $mobile_ok=false;
-                $widget_ok=false;
-                $handle=null;
                 
-                if ($this->user()->isLoggedIn() && isset($_FILES['pic']) && isset($this->user->pending['post']['id']) && $this->user->pending['post']['id']) {
-
-                    $id=$this->user->pending['post']['id'];
-                    $adContent=\json_decode($this->user->pending['post']['content'], true);
-                    
-                    if (isset ($adContent['pics']) && count($adContent['pics'])>4) {
-                        //do nothing
-                    }
-                    else {
-                        $picIndex=$adContent['pic_idx']??0;
-                        $path=$this->router()->config()->get('dir').'/web/repos/';
-                        $tempName=$_FILES['pic']['tmp_name'];
-                        $_size=@getimagesize($tempName);                  
-                        if (\is_array($_size) && $_size[0] && $_size[1]) {
-                            $handle = new Upload($_FILES['pic']);
-                            if ($handle->uploaded) {
-                                $filename = $id."_".$picIndex++;
-                                $handle->file_new_name_body   = $filename;
-                                $handle->file_overwrite   = true;
-                                $handle->Process($path.'l/');
-                                if ($handle->processed) {
-                                    $image_ok = true;
-                                    $extension='.'.$handle->file_src_name_ext;
-                                    list($image_width, $image_height) = getimagesize($path.'l/'.$filename.$extension);
-                                }
-                                else {
-                                    @unlink($tempName);
-                                }
-                                if ($image_ok) {
-                                    $handle->file_new_name_body = $filename;
-                                    $handle->file_overwrite = true;
-                                    $handle->image_resize = true;
-                                    if ($image_width>120) {
-                                        $handle->image_ratio_y = true;
-                                        $handle->image_x = 120;
-                                    }
-                                    else {
-                                        $handle->image_ratio_y = true;
-                                        $handle->image_x = $image_width;
-                                    }
-                                    $handle->Process($path.'s/');
-                                    if ($handle->processed) {
-                                        $thumb_ok=true;
-                                    }
-                            
-                                    $handle->file_new_name_body   = $filename;
-                                    $handle->file_overwrite   = true;
-                                    $handle->image_resize         = true;
-                                    if ($image_width>300) {
-                                        $handle->image_ratio_y        = true;
-                                        $handle->image_x              = 300;
-                                    }
-                                    else {
-                                        $handle->image_ratio_y        = true;
-                                        $handle->image_x              = $image_width;
-                                    }
-                                    $handle->Process($path.'m/');
-                                    if ($handle->processed) {
-                                        $mobile_ok=true;
-                                    }
-
-                                    $handle->file_new_name_body   = $filename;
-                                    $handle->file_overwrite   = true;
-                                    $handle->image_resize         = true;
-                                    if ($image_width>648) {
-                                        $handle->image_ratio_y        = true;
-                                        $handle->image_x              = 648;
-                                    }
-                                    else {
-                                        $handle->image_ratio_y        = true;
-                                        $handle->image_x              = $image_width;
-                                    }
-                                    $handle->Process($path.'d/');
-                                    if ($handle->processed) {
-                                        list($image_width, $image_height) = getimagesize($path.'d/'.$filename.$extension);
-                                        $widget_ok=true;
-                                    }
-                                }
-                            }
-                            else {
-                                @unlink($tempName);
-                            }                    
-                        }
-                        elseif($tempName) {
-                           @unlink($tempName);
-                        }                    
-                    }
-                }
-
-                if ($image_ok && $thumb_ok && $mobile_ok && $widget_ok) {
-                    $filename .= $extension;
-
-                    if ($this->urlRouter->cfg['server_id']>1){
-                        $ssh = ssh2_connect('h1.mourjan.com', 22);
-                        if (ssh2_auth_password($ssh, 'mourjan-sync', 'GQ71BUT2')) {
-                            if (!ssh2_scp_send($ssh, $path.'l/'.$filename, '/var/www/mourjan/web/repos/l/'.$filename, 0664)) {
-                                $image_ok = FALSE;
-                                @unlink($path.'l/'.$filename);
-                            }
-                            elseif (!ssh2_scp_send($ssh, $path.'s/'.$filename, '/var/www/mourjan/web/repos/s/'.$filename, 0664)) {
-                                $image_ok = FALSE;
-                                @unlink($path.'l/'.$filename);
-                                @unlink($path.'s/'.$filename);
-                            }
-                            elseif (!ssh2_scp_send($ssh, $path.'d/'.$filename, '/var/www/mourjan/web/repos/d/'.$filename, 0664)) {
-                                $image_ok = FALSE;
-                                @unlink($path.'d/'.$filename);
-                                @unlink($path.'l/'.$filename);
-                                @unlink($path.'s/'.$filename);
-                            }
-                            elseif (!ssh2_scp_send($ssh, $path.'m/'.$filename, '/var/www/mourjan/web/repos/m/'.$filename, 0664)) {
-                                $image_ok = FALSE;
-                                @unlink($path.'m/'.$filename);
-                                @unlink($path.'d/'.$filename);
-                                @unlink($path.'l/'.$filename);
-                                @unlink($path.'s/'.$filename);
-                            }
-                        } else {
-                            $image_ok=FALSE;
-                        }
-                    }
-                }
-
-                if ($image_ok && $thumb_ok && $mobile_ok && $widget_ok) {
-                    if (!isset($adContent['pics'])) {
-                        $adContent['pics']=array();
-                    }
-                    $adContent['pics'][$filename]=array($image_width,$image_height);
-                    $adContent['pic_idx']=$picIndex;
-                    $isDefault=false;
-                    if (count($adContent['pics'])==1) {
-                        $adContent['pic_def']=$filename;
-                        $isDefault=true;
-                    }
-                    if(isset($adContent['extra']['p']))$adContent['extra']['p']=1;
-
-                    $this->user->pending['post']['content']=json_encode($adContent);
-                    $this->user->update();
-                    $this->user->saveAd();
-                    ?><script type="text/javascript" language="javascript" defer>top.uploadCallback(<?= '"'.$filename.'"' ?>);</script><?php
-                }
-                else {
-                    if ($handle)
-                        error_log(__CLASS__.'::'.__FUNCTION__.' '.$handle->error);
-                    else 
-                        error_log(__CLASS__.'::'.__FUNCTION__.' no user session');
-                    ?><script type="text/javascript" language="javascript" defer>top.uploadCallback();</script><?php
-                }
+            case "ajax-upload":               
                 break;
-                */
+                
             case "ajax-ilogo":
                 require_once("lib/class.upload.php");
                 $image_ok=false;
@@ -3639,8 +3486,7 @@ class Bin extends AjaxHandler{
                 break;
                 
             case 'approve':
-                $this->authorize(true);
-                if ($this->user()->level()!==9) { $this->error(self::ERR_USER_UNAUTHORIZED); }
+                $this->authorize(true, 9);
                 $contentType = \filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
                 if ($contentType!=='application/json') { $this->error(self::ERR_DATA_INVALID_META); }
                 
@@ -3890,7 +3736,7 @@ class Bin extends AjaxHandler{
                 break;
                 
             case 'reject':
-                $this->authorize(true);
+                $this->authorize(true, 9);
                 $id=$this->_JPOST['i'] ?? 0;
                 if (!(\is_int($id) && $id>0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
                 $msg=\trim($this->_JPOST['msg']??'');
@@ -3917,6 +3763,7 @@ class Bin extends AjaxHandler{
                     }else $this->fail('102');
                 }else $this->fail('101');
                 break;
+                
             case 'ajax-arenew':
                 if ($this->user->info['id'] && isset ($_POST['i'])) {
                     $id=$_POST['i'];
@@ -3972,6 +3819,7 @@ class Bin extends AjaxHandler{
                     }else $this->fail('102');
                 }else $this->fail('101');
                 break;
+                
             case 'ajax-pay':
                 if ($this->user->info['id'] && isset ($_POST['i'])) {
                     $id=$this->post('i','numeric');
@@ -5081,223 +4929,64 @@ class Bin extends AjaxHandler{
                 break;
                 
                 
-            case 'ajax-ususpend':
-                if ($this->user()->level()===9 && isset ($this->_JPOST['i'])) {
-                    $id=$this->_JPOST['i'];
-                    $hours=(int)$this->_JPOST['v'];
-                    $reason = isset($this->_JPOST['m']) && $this->_JPOST['m'] ? $this->_JPOST['m'] : 0;
-                    if (is_numeric($id) && $hours) {
-                        $mcUser = new MCUser($id);
-                        if($mcUser->isMobileVerified()) {
-                            if ($this->user->suspend($id, $hours, $mcUser->getMobileNumber(), $reason)) {
-                                $this->process();
-                            }
-                            else {
-                                $this->fail('104');
-                            }
-                        }
-                        else {
-                            if ($this->user->suspend($id, $hours)) {
-                                $this->process();
-                            }
-                            else {
-                                $this->fail('104');
-                            }
-                        }
-                    }
-                    else $this->fail('102');
+            case 'ususpend':
+                $this->authorize(true, 9);
+                $id=$this->_JPOST['i']??0;
+                $hours=$this->_JPOST['v']??0;
+                if (!(\is_int($id) && $id>0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                if (!(\is_int($hours) && $hours>0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+
+                $reason = isset($this->_JPOST['m']) && $this->_JPOST['m'] ? $this->_JPOST['m'] : 0;
+                $mcUser = new MCUser($id);
+                if ($mcUser->isMobileVerified()) {
+                    $this->check($this->user()->suspend($id, $hours, $mcUser->getMobileNumber(), $reason)===true);
                 }
-                else $this->fail('101');
+                else {
+                    $this->check($this->user()->suspend($id, $hours)===true);
+                }                   
+                
                 break;
                 
-            case 'ajax-ublock':
-                if ($this->user()->isLoggedIn(9) && isset($this->_JPOST['i'])) {
-                    $id=$this->_JPOST['i'];
-                    $msg=trim($this->_JPOST['msg']);
-                    if ($msg=='') { $msg='Scam Detection'; };
-                    if(!preg_match('/by admin/ui',$msg)) {
-                        $msg .= ' by admin '.$this->user()->id();
-                    }
-                    $msg.=' date:'.date("d.m.y");
-
-                    if (is_numeric($id)) {
-                        $mcUser = new MCUser($id);
-                        if ($mcUser->isMobileVerified()) {
-                            if ($this->user->block($id, $mcUser->getMobileNumber(), $msg)) {
-                                $this->process();
-                            }
-                            else {
-                                $this->fail('103');
-                            }
-                        }
-                        else {
-                            if ($msg) {
-                                $options = NoSQL::getInstance()->getOptions($id);
-                                if ($options) {
-                                    if(!isset($options['block']))$options['block']=array();
-                                    $options['block'][]=$msg;
-                                    if($this->user->updateOptions($id, $options)) {
-                                        //$this->user->setReloadFlag($id);
-                                    }
-                                    else $this->fail('105');
-                                }
-                                else $this->fail('104');
-                            }
-                            if ($this->user->setLevel($id, 5)) {
-                                $this->process();
-                            }
-                            else $this->fail('103');
-                        }
-                    }
-                    else $this->fail('102');
+            case 'ublock':
+                $this->authorize(true, 9);
+                $id=$this->_JPOST['i']??0;
+                if (!(\is_int($id) && $id>0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                $msg=\trim($this->_JPOST['msg']??'');
+                if ($msg=='') { $msg='Scam Detection'; };
+                if (!\preg_match('/by admin/ui', $msg)) {
+                    $msg .= ' by admin '.$this->user()->id();
                 }
-                else $this->fail('101');
+                $msg.=' date:'.date("d.m.y");
+                
+                $mcUser = new MCUser($id);
+                if ($mcUser->isMobileVerified()) {
+                    $this->check(($this->user()->block($id, $mcUser->getMobileNumber(), $msg)===1));
+                }
+                else {
+                    if ($msg) {
+                        $options = NoSQL::getInstance()->getOptions($id);
+                        if ($options) {
+                            if (!isset($options['block']))$options['block']=array();
+                                $options['block'][]=$msg;
+                                if ($this->user->updateOptions($id, $options)) {
+                                    //$this->user->setReloadFlag($id);
+                                }
+                                else { $this->error(self::ERR_SYS_FAILURE); }
+                        }
+                        else { $this->error(self::ERR_DATA_INVALID_META); }
+                    }
+                    $this->check(($this->user()->setLevel($id, 5)===true));
+                }                
                 break;
                 
             case 'ajax-video-upload':
-            case 'video-upload':
-                if ($this->user->info['id'] && isset($this->user->pending['post']['id'])){
-                    $action=$this->post('action','uint');
-                    $lang=  $this->post('lang');
-                    if($lang=='en'||$lang=='ar') $this->urlRouter->language=$lang;
-                    $this->load_lang(array('post'));
-                    require_once 'Zend/Loader.php';
-                    Zend_Loader::loadClass('Zend_Gdata_YouTube');
-                    Zend_Loader::loadClass('Zend_Gdata_ClientLogin');
-                    Zend_Loader::loadClass('Zend_Gdata_App_Exception');
-                    
-                    $httpClient = Zend_Gdata_ClientLogin::getHttpClient($this->urlRouter->cfg['yt_user'],$this->urlRouter->cfg['yt_pass'], Zend_Gdata_YouTube::AUTH_SERVICE_NAME);//, null, null, null, null, $this->urlRouter->cfg['host']);
-
-                    $yt = new Zend_Gdata_YouTube($httpClient, 'Mourjan.com Uploader', null, $this->urlRouter->cfg['yt_dev_key']);
-                    $yt->setMajorProtocolVersion(2);
-                    
-                    switch($action){
-                        case 0:
-                        default:
-                            $adContent=json_decode($this->user->pending['post']['content'],true);
-                            
-                            $newVideoEntry = new Zend_Gdata_YouTube_VideoEntry();
-                            /*$title='';
-                            if ($this->user->pending['post']['title']) {
-                                $title=$this->user->pending['post']['title'];
-                                $title=  preg_replace('/[.,;-_+=$%^&@!?،؛{}|`~]/', '', $title);
-                            }
-                            if ($title=='')*/
-                            $title='Mourjan video '.$this->user->pending['post']['id'];
-                            /*if (isset($adContent['text']) && $adContent['text']!='') {  
-                                $content=preg_replace('/[.,;-_+=$%^&@!?/\،؛{}|`~]/', '', $adContent['text']);
-                                $newVideoEntry->setVideoDescription($content);
-                            }else {*/
-                            $newVideoEntry->setVideoDescription($title);
-                            //}
-                            $newVideoEntry->setVideoTitle($title);
-
-                            //make sure first character in category is capitalized
-                            $videoCategory = $adContent['ro']==2 ? 'Autos':'People';
-                            $newVideoEntry->setVideoCategory($videoCategory);
-
-                            // convert videoTags from whitespace separated into comma separated
-                            //$videoTagsArray = explode(' ', trim($videoTags));
-                            //$newVideoEntry->setVideoTags(implode(', ', $videoTagsArray));
-                            try {
-                                $tokenArray = $yt->getFormUploadToken($newVideoEntry);
-                            } catch (Zend_Gdata_App_HttpException $httpException) {
-                                error_log($httpException->getRawResponseBody());
-                                $this->fail($httpException->getRawResponseBody());
-                            } catch (Zend_Gdata_App_Exception $e) {
-                                error_log($e->getMessage());
-                                $this->fail($e->getMessage());
-                            }
-                            if (isset($tokenArray['token'])) {
-                                $tokenValue = $tokenArray['token'];
-                                $postUrl = $tokenArray['url'];
-                                $nextUrl = $this->urlRouter->cfg['host'].'/video-upload-ready/'.($lang!='ar' ? $lang.'/':'');
-                                
-                                //if (isset($this->user->params['mobile']) && $this->user->params['mobile']){
-                                    $form='<form onsubmit="if(FLK){upVid(this);return false}" target="vupload" action="'.$postUrl.'?nexturl='.$nextUrl.'" method="post" enctype="multipart/form-data">';
-                                    $form.='<ul><li class="nobd"><div class="ipt"><input onchange="setVideo(this)" class="nsh" name="file" type="file"/><input name="token" type="hidden" value="'.$tokenValue.'"/></div></li>';
-                                    $form.='<li class="liw hid"><b class="ah">'.$this->lang['video_file_format'].'</b></li>';
-                                    $form.='<li class="nobd hid"><b class="load h_43"></b></li>';
-                                    $form.='<li><b class="ah ctr act2">';
-                                    $form.='<input class="bt ok off" value="'.$this->lang['upload'].'" type="submit" />';
-                                    $form.='<span onclick="cVUp(this,1)" class="bt cl">'.$this->lang['cancel'].'</span>';
-                                    $form.='</b></li></ul>';
-                                    $form.='</form><iframe class="hid" name="vupload" src="/web/blank.html"></iframe>';
-                                /*}else{
-                                    $form='<form onsubmit="updVo()" target="vupload" action="'.$postUrl.'?nexturl='.$nextUrl.'" method="post" enctype="multipart/form-data">';
-                                    $form.='<input class="rc vin" name="file" type="file"/>';
-                                    $form.='<input name="token" type="hidden" value="'.$tokenValue.'"/>';
-                                    $form.='<input class="rc bt bta" value="'.$this->lang['upload'].'" type="submit" />';
-                                    $form.='</form>';
-                                }*/
-                                /*$form=array(
-                                    'action'=>$postUrl.'?nexturl='.$nextUrl,
-                                    'token'=>$tokenValue
-                                );*/
-                                $this->setData($form,'form');
-                                $this->process();
-                            }else $this->fail(102);
-                            break;
-                    }
-                    
-                }else $this->fail('101');
+            case 'video-upload':                
                 break;
-            case 'ajax-upload-ready':
-            case 'video-upload-ready':
-                $result='';
-                $pass=0;
-                $rtl=0;
-                if (isset($this->user->pending['post']['rtl'])) $rtl = $this->user->pending['post']['rtl'];
-                if ($rtl) $this->urlRouter->language='ar';
-                $this->load_lang(array('post'));
                 
-                $videoId=$this->get('id');
-                $status=$this->get('status');
-                if ($status=='200' && $videoId) {
-                    require_once 'Zend/Loader.php';
-                    Zend_Loader::loadClass('Zend_Gdata_YouTube');
-                    Zend_Loader::loadClass('Zend_Gdata_ClientLogin');
-                    Zend_Loader::loadClass('Zend_Gdata_App_Exception');
-
-                    $httpClient = Zend_Gdata_ClientLogin::getHttpClient($this->urlRouter->cfg['yt_user'],$this->urlRouter->cfg['yt_pass'], Zend_Gdata_YouTube::AUTH_SERVICE_NAME);
-                    $yt = new Zend_Gdata_YouTube($httpClient, 'Mourjan.com Uploader', null, $this->urlRouter->cfg['yt_dev_key']);
-                    //$yt->setMajorProtocolVersion(2);
-                    $pass=1;
-                    try {
-                        $entry = $yt->getFullVideoEntry($videoId);
-                        $videoUrl = htmlspecialchars($this->findFlashUrl($entry));  
-                        $firstThumbnail = htmlspecialchars($entry->mediaGroup->thumbnail[0]->url);
-                        $state=$entry->getVideoState();
-                        if (is_object($state)){
-                            $name=$state->getName();
-                            if ($name!='processing') {
-                                $pass=0;
-                            }
-                        }
-                        $result = "<div class='sh vtd'><img class='vth' src='". $firstThumbnail ."' width='130' height='97' /><span class='play' href='".$videoUrl."&autoplay=1'></span><span onclick='vdel(this)' class='mx'></span></div>";
-                        
-                    } catch (Zend_Gdata_App_HttpException $httpException) {
-                        error_log($httpException->getRawResponseBody());
-                        $pass=0;
-                    } catch (Zend_Gdata_App_Exception $e) {
-                        error_log($e->getMessage());
-                        $pass=0;
-                    }                   
-                    if ($pass){
-                        $adContent=json_decode($this->user->pending['post']['content'],true);
-                        if (isset($adContent['video'])) $this->deleteVideo ($adContent['video'],$yt);
-                        $adContent['video']=array($videoId,$videoUrl,$firstThumbnail);
-                        $this->user->pending['post']['content']=json_encode($adContent);
-                        $this->user->update();
-                        $this->user->saveAd();
-                    }else {
-                        $result=$this->lang['uploadFail'];
-                    }
-                }else {
-                    $result=$this->lang['uploadFail'];
-                }
-                ?><script type="text/javascript">document.domain='mourjan.com';top.updVd(<?= $pass ?>,"<?= $result ?>");</script><?php
+            case 'ajax-upload-ready':
+            case 'video-upload-ready':               
                 break;
+                
             case 'ajax-upload-check':
             case 'video-upload-check':
                 if ($this->user->info['id'] && isset($this->user->pending['post']['id'])){
@@ -5373,6 +5062,7 @@ class Bin extends AjaxHandler{
                     }else $this->fail(102);
                 }else $this->fail(101);
                 break;
+                
             case 'ajax-video-delete':
             case 'video-delete':
                 if ($this->user->info['id'] && isset($this->user->pending['post']['id'])) {
@@ -5389,6 +5079,7 @@ class Bin extends AjaxHandler{
                     }else $this->process();
                 }else $this->fail(101);
                 break;
+                
             case 'ajax-video-link':
             case 'video-link':
                 $videoId=$this->post('id');
@@ -5698,6 +5389,7 @@ class Bin extends AjaxHandler{
                 }
                 $this->process();
                 break;
+                
             case 'ajax-close-banner':
                 $banner_label=$this->post('id');
                 if($banner_label && isset($this->user->params[$banner_label])){
@@ -5706,6 +5398,7 @@ class Bin extends AjaxHandler{
                     $this->process();
                 }else $this->fail('101');
                 break;
+                
             case 'ajax-user-type':
                 if($this->user->info['id'] && $this->user->info['level']==9){
                     $userId = $this->get('u','numeric');
@@ -5726,14 +5419,16 @@ class Bin extends AjaxHandler{
                     $this->fail('101');
                 }
                 break;
+                
             case 'ajax-mute':
                 $mute = $this->get('s','boolean');
                 $this->user->params['mute']=$mute;
                 $this->user->update();
                 $this->process();
                 break;
+            
             default:
-                $this->fail();
+                $this->error(self::ERR_DATA_INVALID_META, ['en'=>'Invalid command!!!', 'ar'=>'لا يمكن التعرف على الطلب!']);
                 break;
         }
     }

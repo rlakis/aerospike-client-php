@@ -364,7 +364,7 @@ class MCUser extends MCJsonMapper {
     }
     
     
-    public function getMobileNumber() : String {
+    public function getMobileNumber() : int {
         return $this->getMobile()->getNumber();
     }
     

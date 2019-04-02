@@ -12,9 +12,9 @@ $.addEventListener("DOMContentLoaded", function () {
                 .then(data => {                    
                     if(aa){
                         let holder = aa.query('p.pimgs'); 
-                        if (holder && data.RP === 1) {
+                        if (holder && data.success===1) {
                             this.parentElement.remove();
-                            if (holder.childNodes.length === 0) {
+                            if (holder.childNodes.length===0) {
                                 holder.remove();
                             }
                         }
@@ -412,17 +412,20 @@ var d = {
             let ad=d.items[article.id].mask().maskText(inline.text.value);
             //let ad = new Ad(article.id, inline.text.value);
             fetch('/ajax-ublock/', _options('POST', {i: uid, msg: inline.text.value}))
-                    .then(res => res.json())
-                    .then(response => {
-                        console.log('Success:', JSON.stringify(response));
-                        if (response.RP === 1) {
-                            ad.maskText('User Account Blocked');
-                        }
-                    })
-                    .catch(error => {
-                        console.log('Error:', error);
-                        ad.removeMask();
-                    });
+                .then(res => res.json())
+                .then(response => {
+                    console.log('Success:', JSON.stringify(response));
+                    if (response.success===1) {
+                        ad.maskText('User Account Blocked');
+                    }
+                    else {
+                        ad.maskText(response.error);
+                    }
+                })
+                .catch(error => {
+                    console.log('Error:', error);
+                    ad.removeMask();
+                });
             inline.hide();
         };
         inline.show();
@@ -482,23 +485,29 @@ var d = {
         let data=(dat ? dat : {r: ro, s: se, p: pu, hl: (this.ar ? 'ar' : 'en')});
 
         fetch('/ajax-changepu/?i=' + adId, _options('POST', data))
-                .then(res => res.json())
-                .then(response => {
-                    console.log('updateAd', response);
-                    if (response.success===1) {
-                        if (dat) {
-                            if (response.result.index===1 && response.result.native) {
-                                e.innerHTML = response.result.native;
-                            }
+            .then(res => res.json()).then(response => {
+                console.log('updateAd', response);
+                if (response.success===1 && response.result) {
+                    let rs=response.result;
+                    if (dat) {
+                        if (response.result.index===1 && response.result.native) {
+                            e.innerHTML = response.result.native;
                         }
                     }
-                    else { window.alert(response.error); }
-                    ad.removeMask();
-                })
-                .catch(error => {
-                    console.log(error);
-                    ad.maskText(error);
-                });
+                    if(rs.label){
+                        ad.node.query('div.note').innerHTML=rs.label;
+                        ad.node.dataset.ro = rs.ro;
+                        ad.node.dataset.se = rs.se;
+                        ad.node.dataset.pu = rs.pu;
+                    }
+                }
+                else { window.alert(response.error); }
+                ad.removeMask();
+            })
+            .catch(error => {
+                console.log(error);
+                ad.maskText(error);
+            });
     },
     
     clickedAd:function(e){
@@ -582,7 +591,7 @@ var d = {
                     li.dataset.id = sid;
                     li.onclick = function (e) {
                         let p=e.target.article();
-                        let pu = p.dataset.pu;
+                        let pu=p.dataset.pu;
                         if (!d.roots[rId].purposes[pu]) {
                             pu = d.roots[rId].purposes[Object.keys(d.roots[rId]['purposes'])[0]];
                         }
@@ -627,9 +636,9 @@ var d = {
             if (!d.sections) {
                 const response = await fetch('/ajax-menu/?sections=' + (d.ar ? 'ar' : 'en'), _options('GET'));
                 const json = await response.json();
-                d.roots = json.DATA.roots;
-                d.secSwitches = json.DATA.sswitch;
-                d.rootSwitches = json.DATA.rswitch;
+                d.roots = json.result.roots;
+                d.secSwitches = json.result.sswitch;
+                d.rootSwitches = json.result.rswitch;
             }
 
             if (rUL.childNodes.length === 0) {
