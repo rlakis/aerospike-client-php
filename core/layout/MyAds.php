@@ -556,13 +556,13 @@ class MyAds extends Page {
         if ($count) {            
             $currentOffset = $this->get('o', 'uint');
             $hasNext=false;
-            $recNum=50;
+            $recNum=25;
             
             $hasPrevious = (is_numeric($currentOffset) && $currentOffset);
             
-            if ($count==51) {
+            if ($count==26) {
                 $hasNext=true;
-                $count=50;
+                $count=25;
             }
             
             //$allCounts = $this->user()->getPendingAdsCount($state);            
@@ -1232,10 +1232,10 @@ class MyAds extends Page {
                 
                 if($hasPrevious){
                     $offset = $currentOffset - 1;
-                    ?><a class=float-left href='<?= $link.($offset ? $appendOp.'o='.$offset : '') ?>'><?= $this->lang['prev_50'] ?></a><?php
+                    ?><a class=float-left href='<?= $link.($offset ? $appendOp.'o='.$offset : '') ?>'><?= $this->lang['prev_25'] ?></a><?php
                 }
                 if($hasNext){
-                    ?><a class=float-right href='<?= $link.$appendOp.'o='.($currentOffset + 1)  ?>'><?= $this->lang['next_50'] ?></a><?php
+                    ?><a class=float-right href='<?= $link.$appendOp.'o='.($currentOffset + 1)  ?>'><?= $this->lang['next_25'] ?></a><?php
                 }
                 ?></div></div><?php
             }

@@ -4489,7 +4489,18 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     
     public function css(string $filename) : Page {
         if (!isset($this->included[$filename])) {
-            include $this->router()->config()->baseDir.'/web/css/includes/'.$filename.'.css';
+            $cssfile=$this->router()->config()->baseDir.'/web/css/includes/'.$filename.'.css';
+            if (\file_exists($cssfile)) {                
+                $mincss=$this->router()->config()->baseDir.'/web/css/includes/min/'.$filename.'.css';
+                
+                if (!\file_exists($mincss) || (\file_exists($mincss) && (filemtime($cssfile)>filemtime($mincss)))) {
+                    $cssContents = \file_get_contents($cssfile);
+                    file_put_contents($mincss, $this->router()->minifyCss($cssContents));
+                }
+                include $mincss;
+                //include $this->router()->config()->baseDir.'/web/css/includes/'.$filename.'.css';
+            }
+            
             $this->included[$filename]=1;
         }
         return $this;
@@ -4498,9 +4509,20 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     
     public function inlineJS(string $filename) : Page {
         if (!isset($this->included[$filename])) {
-            echo '<script>';
-            include $this->router()->config()->baseDir.'/web/js/includes/'.$filename;
-            echo '</script>';
+            $jsfile=$this->router()->config()->baseDir.'/web/js/includes/'.$filename;
+            if (\file_exists($jsfile)) {
+                $minjs=$this->router()->config()->baseDir.'/web/js/includes/min/'.$filename;
+                if (!\file_exists($minjs) || (\file_exists($minjs) && (filemtime($jsfile)>filemtime($minjs)))) {
+                    $minifiedCode = \JShrink\Minifier::minify(\file_get_contents($jsfile));
+                    file_put_contents($minjs, $minifiedCode);
+                    //error_log($minifiedCode);
+                }
+                echo '<script>';
+                include $minjs;
+                //include $this->router()->config()->baseDir.'/web/js/includes/'.$filename;
+                
+                echo '</script>';
+            }
             $this->included[$filename]=1;
         }
         return $this;

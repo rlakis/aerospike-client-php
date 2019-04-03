@@ -1,5 +1,4 @@
-var $=document,$$=$.body,Ed;
-var HAS_WEBP=hasWebP();
+var Ed, HAS_WEBP=hasWebP();
 $.addEventListener("DOMContentLoaded", function(e) {
     UI.init();
 });
@@ -267,12 +266,13 @@ var UI={
         fetch('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''), _options('GET'))
         .then(res=>res.json())
         .then(response => {
-            if(response.RP && response.RP===1){
+            if(response.success===1){
                 Ad.init();
-                _.region=response.DATA.regions;                
-                _.dic=response.DATA.roots;
-                Prefs.init(response.DATA.prefs);
-                _.ip=response.DATA.ip;
+                let rs=response.result;
+                _.region=rs.regions;                
+                _.dic=rs.roots;
+                Prefs.init(rs.prefs);
+                _.ip=rs.ip;
                 console.log('UI.region', _.region);
                 for(i in _.dic){
                     _.dic[i].menu=[];
@@ -350,7 +350,6 @@ var UI={
                 
                 let mail=$$.query('input[type=email]');
                 mail.onchange=function(){
-                    console.log(this, this.checkValidity());
                     if(this.checkValidity()){
                         Ad.email=this.value;
                     }
@@ -359,8 +358,8 @@ var UI={
                     }
                 };
                 
-                if(response.DATA.ad){
-                    Ad.parse(response.DATA.ad);
+                if (rs.ad){
+                    Ad.parse(rs.ad);
                 }
             }
         })

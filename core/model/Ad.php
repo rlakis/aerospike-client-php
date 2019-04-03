@@ -5,19 +5,21 @@ class Ad {
     private $data;              // raw classified array
     private $text;              // ad text without contacts
     private $translation;       // ad text alter language without contacts
-    
+    private $profile;
     private $numberValidator = null;
     
     
     function __construct(array $data=[]) {
         $this->data = $data;
+        if (!isset($this->data[Classifieds::ID])) { $this->data[Classifieds::ID] = 0; }
         if (!isset($this->data[Classifieds::RTL])) { $this->data[Classifieds::RTL] = 0; }
         if (!isset($this->data[Classifieds::ROOT_ID])) { $this->data[Classifieds::ROOT_ID] = 0; }
         if (!isset($this->data[Classifieds::SECTION_ID])) { $this->data[Classifieds::SECTION_ID] = 0; }
+        if (!isset($this->data[Classifieds::PURPOSE_ID])) { $this->data[Classifieds::PURPOSE_ID] = 0; }
         
         if (isset($this->data[Classifieds::CONTENT]) && !empty($this->data[Classifieds::CONTENT])) {
             $this->text = preg_split("/\x{200b}/u", $this->data[Classifieds::CONTENT])[0];
-        }        
+        }
         if (isset($this->data[Classifieds::ALT_CONTENT]) && !empty($this->data[Classifieds::ALT_CONTENT])) {
             $this->translation = preg_split("/\x{200b}/u", $this->data[Classifieds::ALT_CONTENT])[0];
         }
@@ -34,6 +36,12 @@ class Ad {
     }
     
     
+    public function setId(int $value) : Ad {
+        $this->data[Classifieds::ID] = ($value>0)?$value:0;
+        return $this;        
+    }
+    
+    
     public function rootId() : int {
         return $this->data[Classifieds::ROOT_ID];
     }
@@ -41,6 +49,75 @@ class Ad {
     
     public function sectionId() : int {
         return $this->data[Classifieds::SECTION_ID];
+    }
+    
+    
+    public function setSectionId(int $value) : Ad {
+        if (isset(Router::instance()->sections[$value])) {
+            $this->data[Classifieds::SECTION_ID]=$value;
+            $this->data[Classifieds::ROOT_ID]=\intval(Router::instance()->sections[$value][4]);
+        }
+        else {
+            $this->data[Classifieds::SECTION_ID]=0;
+            $this->data[Classifieds::ROOT_ID]=0;
+        }                
+        return $this;
+    }
+    
+    
+    public function setPurposeId(int $value) : Ad {
+        $this->data[Classifieds::PURPOSE_ID]=$value;
+        return $this;
+    }
+    
+    
+    public function setNativeText(string $value) : Ad {
+        $this->data[Classifieds::CONTENT]=\trim($value);
+        $success = \preg_match_all('/\p{Arabic}/u', $this->data[Classifieds::CONTENT]);
+        if ($success/\mb_strlen($this->data[Classifieds::CONTENT])>0.4) {
+            $this->setRTL();
+        }
+        else {
+            $this->setLTR();
+        }
+        return $this;
+    }
+    
+    
+    public function setForeignText(string $value) : Ad {
+        if (empty($this->data[Classifieds::CONTENT])) {
+            return $this->setNativeText($value);
+        }
+        $this->data[Classifieds::ALT_CONTENT]=\trim($value);
+        //$success = \preg_match_all('/\p{Arabic}/u', $this->data[Classifieds::ALT_CONTENT]);
+        return $this;
+    }
+    
+    
+    public function setText(string $value) : Ad {
+        $this->text=\trim($value);
+        $success = \preg_match_all('/\p{Arabic}/u', $this->text);
+        if ($success/\mb_strlen($this->text)>0.4) {
+            $this->setRTL();
+        }
+        else {
+            $this->setLTR();
+        }
+        return $this;
+    }
+
+
+    public function setTranslation(string $value) : Ad {
+        $this->translation=\trim($value);
+        return $this;
+    }
+    
+    
+    public function check() : Ad {
+        if ($this->data[Classifieds::SECTION_ID]>0 && $this->data[Classifieds::PURPOSE_ID]===0) {
+            $this->setPurposeId(5);
+        }
+        return $this;
     }
     
     
@@ -102,6 +179,12 @@ class Ad {
     
     public function uid() : int {
         return $this->data[Classifieds::USER_ID] ?? 0;
+    }
+    
+    
+    public function setUID(int $uid) : Ad {
+        $this->data[Classifieds::USER_ID]=($uid>0)?$uid:0;
+        return $this;
     }
     
     
@@ -269,6 +352,14 @@ class Ad {
     }
     
     
+    public function profile() : \MCUser {
+        if ($this->profile===null) {
+            $this->profile = new \MCUser($this->uid());
+        }
+        return $this->profile;
+    }
+    
+    
     public function reverseContent() : Ad {
         $content = $this->data[Classifieds::ALT_CONTENT];
         $this->data[Classifieds::ALT_CONTENT] = $this->data[Classifieds::CONTENT];
@@ -302,7 +393,7 @@ class Ad {
             }
         }
         else {
-            $hours=floor($seconds/3600);
+            $hours=\floor($seconds/3600);
             if ($hours) {
                 if ($isArabicInterface) {
                     $stamp=$sinceText.$this->formatPlural($hours, 'hour', $lang);
@@ -312,7 +403,7 @@ class Ad {
                 }
             }
             else {
-                $minutes=max(1, floor($seconds/60));
+                $minutes=\max(1, \floor($seconds/60));
                 //if (!$minutes) { $minutes=1; }
                 if ($isArabicInterface) {
                     $stamp=$sinceText.$this->formatPlural($minutes, 'minute', $lang);
@@ -349,7 +440,7 @@ class Ad {
             $str=$number.' '.$lang['3'.$fieldName];
         }
         else {
-            $str=number_format($number).' '.$lang[$fieldName.'s'];
+            $str=\number_format($number).' '.$lang[$fieldName.'s'];
         }
         return $str;
     }
@@ -358,7 +449,7 @@ class Ad {
     public function htmlDataAttributes($userISO='') : string {
         $result='';
         if (!empty($this->translation)) {
-            $result.='data-alt="' .  htmlspecialchars($this->translation , ENT_QUOTES, 'UTF-8') . '" ';
+            $result.='data-alt="' .  \htmlspecialchars($this->translation , \ENT_QUOTES, 'UTF-8') . '" ';
         }
         if ($this->isFeatured()) {
             $result.='data-premuim=1 ';

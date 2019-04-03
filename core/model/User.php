@@ -644,7 +644,7 @@ class User {
         
         $pagination_str = '';
         if ($pagination) {
-            $recNum = 50;
+            $recNum = 25;
             $offset = $this->site->get('o','uint');
             if (is_numeric($offset) && $offset) {
                 $pagination_str = 'first '.($recNum+1).' skip '.($offset*$recNum);
