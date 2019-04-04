@@ -132,8 +132,10 @@ var d = {
         if(_.ad)_.ad.select();
     },
     getName: function (kUID) {
-        var x = this.editors.getElementsByClassName(kUID);
-        return (x && x.length) ? x[0].innerText : 'Anonymous/' + kUID;
+        if(this.editors){
+            var x = this.editors.getElementsByClassName(kUID);
+            return (x&&x.length)?x[0].innerText:'Anonymous/'+kUID;
+        }
     },
     inc: function () {
         let _=this;
@@ -142,7 +144,7 @@ var d = {
             _.panel=$$.query('.adminNB');
             if (_.panel===null) {
                 _.panel = createElem('div', 'adminNB');
-                $$.appendChild(_.panel);
+                $$.append(_.panel);
             }
         }
         if (_.panel) {
@@ -562,12 +564,12 @@ var d = {
     },
 
     quick(e) {
-        let article=e.article();
-        if(!this.isSafe(article.id))return;
+        let a=e.article();
+        if(!this.isSafe(a.id))return;
                 
         console.log(d);
         
-        var inline = d.getForm('fix', article);
+        var inline = d.getForm('fix', a);
         let rDIV = inline.form.query('#qRoot');
         let rUL = rDIV.query('ul');
         let sDIV = inline.form.query('#qSec');
@@ -587,9 +589,10 @@ var d = {
                 
                 let ul = sDIV.query('ul');ul.innerHTML = '';                
                 d.roots[rId].sindex.forEach(function (sid) {                    
-                    let li = createElem('li', (sid.toString()===article.dataset.se ? 'cur' : ''), d.roots[rId]['sections'][sid]);
+                    let li = createElem('li', (sid.toString()===a.dataset.se ? 'cur' : ''), d.roots[rId]['sections'][sid]);
                     li.dataset.id = sid;
                     li.onclick = function (e) {
+                        e.target.classList.add('cur');
                         let p=e.target.article();
                         let pu=p.dataset.pu;
                         if (!d.roots[rId].purposes[pu]) {
@@ -603,7 +606,7 @@ var d = {
 
                 aUL.innerHTML = '';
                 for (let i in d.roots[rId]['purposes']) {
-                    let li = createElem('li', i === article.dataset.pu ? 'cur' : '', d.roots[rId]['purposes'][i]);
+                    let li = createElem('li', i === a.dataset.pu ? 'cur' : '', d.roots[rId]['purposes'][i]);
                     li.dataset.id = i;
                     li.onclick = function (e) {
                         let p=e.target.article();
@@ -613,15 +616,15 @@ var d = {
                 }
                 aUL.append(createElem('li', '', '&nbsp;', true));
 
-                if (typeof d.secSwitches[article.dataset.se] === 'object') {
-                    for (i in d.secSwitches[article.dataset.se]) {
-                        let ss = d.secSwitches[article.dataset.se][i];
+                if (typeof d.secSwitches[a.dataset.se] === 'object') {
+                    for (i in d.secSwitches[a.dataset.se]) {
+                        let ss = d.secSwitches[a.dataset.se][i];
                         let li = createElem('li', '', ss[3]);
                         li.dataset.ro = ss[0];
                         li.dataset.se = ss[1];
                         li.dataset.pu = ss[2];
                         li.onclick = function (e) {
-                            d.updateAd(article, article.id, rId, e.target.dataset.se, e.target.dataset.pu);
+                            d.updateAd(a, a.id, rId, e.target.dataset.se, e.target.dataset.pu);
                         };
                         aUL.append(li);
                     }
@@ -631,7 +634,7 @@ var d = {
             }
         };
         
-        window.scrollTo(0, article.offsetTop);
+        window.scrollTo(0, a.offsetTop);
         const request = async () => {
             if (!d.sections) {
                 const response = await fetch('/ajax-menu/?sections=' + (d.ar ? 'ar' : 'en'), _options('GET'));
@@ -645,14 +648,12 @@ var d = {
                 for (var i in d.roots) {
                     let li = createElem('li', '', d.roots[i]['name']);
                     li.dataset.id = i;
-                    li.onclick = function (e) {
-                        fillSections(e.target.dataset.id);
-                    };
+                    li.onclick = function (e) { fillSections(e.target.dataset.id); };
                     rUL.append(li);
                 }
             }
 
-            fillSections(article.dataset.ro);
+            fillSections(a.dataset.ro);
 
             inline.show();
         };

@@ -294,24 +294,23 @@ class MyAds extends Page {
         'The user behind proxy ad posting is prohibited'
     ]
 };</script><?php
-                }
+                    }
+                    break;
+                case 'drafts':
+                    $this->pendingAds();
+                    break;
+                case 'archive':
+                    $this->pendingAds(9);
+                    break;
+                case 'deleted':
+                    $this->pendingAds(8);
+                    break;
+                default:
+                    $this->pendingAds(7);
                 break;
-            case 'drafts':
-                $this->pendingAds();
-                break;
-            case 'archive':
-                $this->pendingAds(9);
-                break;
-            case 'deleted':
-                $this->pendingAds(8);
-                break;
-            default:
-                $this->pendingAds(7);
-                break;
+            }        
         }
-        
-        }
-        else{
+        else {
             $this->renderLoginPage();
         }
     }    

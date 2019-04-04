@@ -475,6 +475,7 @@ class Page extends Site {
 
     
     function renderLoginPage() : void {
+        \error_log(__FUNCTION__);
         \Config::instance()->incLibFile('phpqrcode');
         if (!isset($this->included['doc'])) {
             echo '<style>';
@@ -493,8 +494,8 @@ class Page extends Site {
             }
         }
         
-        $qrfile = dirname( $this->router()->config()->get('dir')).'/tmp/qr/'.session_id().'.png';
-        QRcode::png('mourjan:login:'.session_id().str_pad($this->router()->config()->serverId, 4, '0', STR_PAD_LEFT) . str_pad(time(),16, '0', STR_PAD_LEFT), $qrfile, QR_ECLEVEL_L, 5);
+        $qrfile = \dirname( $this->router()->config()->get('dir')).'/tmp/qr/'.\session_id().'.png';
+        QRcode::png('mourjan:login:'.\session_id().\str_pad($this->router()->config()->serverId, 4, '0', \STR_PAD_LEFT) . \str_pad(time(),16, '0', \STR_PAD_LEFT), $qrfile, QR_ECLEVEL_L, 5);
 
         $sh = '0';
         $mu = filter_input(INPUT_COOKIE, 'mourjan_user', FILTER_DEFAULT);
