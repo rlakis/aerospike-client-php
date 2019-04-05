@@ -2,6 +2,7 @@
 namespace Core\Model;
 
 include_once 'Singleton.php';
+
 class Router extends \Singleton {
     const POSITIVE_VALUE = ["options" => ["default" => 0, "min_range" => 0]];
     
@@ -63,6 +64,9 @@ class Router extends \Singleton {
     private $canonical = false;
     private $explodedRequestURI;
     
+    private $logger;
+    
+    
     public static function instance() : Router {
         return static::getInstance();
     }
@@ -72,7 +76,7 @@ class Router extends \Singleton {
         global $argc;       
         $this->config = \Config::instance();
         $this->db = new DB();
-        
+            
         if (isset($argc)) { return; }
 
         if (isset($_GET['shareapp'])) {
@@ -513,13 +517,22 @@ class Router extends \Singleton {
     }
     
     
+    public function logger() : \Core\Lib\Logger {
+        return $this->logger;
+    }
+    
+    public function setLogger(\Core\Lib\Logger $klogger) : void {
+        $this->logger = $klogger;  
+    }
+    
+    
     public function getLanguagePath(string $url='') : string {
         if ($url) {
             if (\substr($url, -1)!=='/') {
                 $url.='/';
             }
             if ($this->language!=='ar') {
-                $url.= $this->language.'/';
+                $url.=$this->language.'/';
             }
             return $url;
         }
@@ -1182,16 +1195,7 @@ class Router extends \Singleton {
     }
     
     
-    public static function logToFile(string $file, string $msg, bool $EOL=true) : void {
-        //error_log('--------------------------------------------------------------------------------------------------------'.PHP_EOL, 3, $file);
-        if ($EOL) {
-            \error_log($msg.PHP_EOL, 3, $file);
-        }
-        else {
-            \error_log($msg, 3, $file);
-        }
-    }
-    
+   
     /**
      * This function takes a css-string and compresses it, removing
      * unneccessary whitespace, colons, removing unneccessary px/em

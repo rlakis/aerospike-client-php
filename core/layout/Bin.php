@@ -2426,15 +2426,16 @@ class Bin extends AjaxHandler{
                 break;
                 
                 
-            case "adsave":
+            case 'adsave':
                 $this->authorize(true);                
                 if (!isset($this->_JPOST['o'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }                                                
                 
                 $_ad = \is_array($this->_JPOST['o']) ? $this->_JPOST['o'] : \json_decode($this->_JPOST['o'], true);
                 if (!\is_array($_ad)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                                
-                $this->router()->logToFile($err_file, \json_encode($_ad, JSON_PRETTY_PRINT));
-                $this->router()->logToFile($err_file, '------------------------------------');
+                             
+                $this->router()->logger()->info('_JPOST[o]', $_ad);
+                
+                $ad = new Core\Model\Ad();
                 $content = new Core\Model\Content();
                 $content->setID($_ad['id']??0)->setUID($_ad['user']??0)->setState($_ad['state']??0)
                         ->setSectionID($_ad['se']??0)->setPurposeID($_ad['pu']??0)->setApp($_ad['app']??'', $_ad['app_v']??'')
@@ -2448,43 +2449,38 @@ class Bin extends AjaxHandler{
                         }
                     }
                 }
+                
                 $content->setEmail($_ad['cui']['e']??'')->setUserLanguage($_ad['hl']??'ar')
                         ->setNativeText($_ad['other']??'')->setForeignText($_ad['altother']??'')
                         ->setPictures($_ad['pics']??[])->addRegions($_ad['pubTo']??[])
                         ->setCoordinate($_ad['lat']??0, $_ad['lon']??0)->setLocation($_ad['loc']??'');
-                $previous=[];
+     
                 if ($content->getID()>0) {
                     $old=$this->user()->getPendingAds($content->getID());
                     $content->setUID($old['user']??0);                    
-                    
-                    
+                                        
                     if (\is_array($old) && \count($old)===1) {
                         $previous=\json_decode($old[0]['CONTENT'], true);
-                        $content->setUserAgent($previous['agent']??'')->setIpAddress($previous['ip']??'')->setIpScore($previous['ipfs']??0);
-                        $this->router()->logToFile($err_file, 'Previous'.PHP_EOL. \json_encode($previous, JSON_PRETTY_PRINT));
-                        $this->router()->logToFile($err_file, '------------------------------------');
-                        
-                        
+                        $content->setUserAgent($previous['agent']??'')->setIpAddress($previous['ip']??'')
+                                ->setIpScore($previous['ipfs']??0)->setQualified($previous['qualified']??false);
+                        //$this->router()->logger()->info('old', $previous);
                     }
                 }
-                
+                                
                 if ($content->getUID()===0) { $content->setUID($this->user()->id()); }
+                
                 if ($this->user()->id()===$content->getUID()) {
                     $content->setUserLevel($this->user()->level())->setIpAddress(IPQuality::getClientIP());                        
                 }
-//                
-//                $ad = new Core\Model\Ad([]);
-//                $ad->setId($_ad['id']??0)
-//                    ->setSectionId($_ad['se']??0)
-//                    ->setPurposeId($_ad['pu']??0)
-//                    ->setUID($_ad['user']??0)
-//                    ->setText($_ad['other']??'')
-//                    ->setTranslation($_ad['altother']??'')
-//                    ->check();
-//                
-                error_log(var_export($content, true));
-                $this->router()->logToFile($err_file, 'New'.PHP_EOL. $content->toJsonString(\JSON_PRETTY_PRINT));
-                $this->router()->logToFile($err_file, '========================================');
+                
+                $content->setBudget($_ad['budget']??0)->setUserLocation();
+                
+                
+                
+                $ad->setDataSet($content)->check();
+                
+                $this->router()->logger()->info('New', $content->getData());
+                
                 $this->error(self::ERR_SYS_MAINTENANCE);
                 
                 if (!isset($ad['other'])) { $ad['other']=''; }

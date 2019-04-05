@@ -2,16 +2,16 @@
 
 include_once get_cfg_var('mourjan.path').'/deps/autoload.php';
 
-$sess_id = filter_input(INPUT_GET, 'sid', FILTER_SANITIZE_STRING);
-$sh = filter_input(INPUT_GET, 'sh', FILTER_VALIDATE_INT)+0;
-$uid = filter_input(INPUT_GET, 'uid', FILTER_VALIDATE_INT)+0;
+$sess_id = \filter_input(\INPUT_GET, 'sid', \FILTER_SANITIZE_STRING);
+$sh = filter_input(\INPUT_GET, 'sh', \FILTER_VALIDATE_INT)+0;
+$uid = filter_input(\INPUT_GET, 'uid', \FILTER_VALIDATE_INT)+0;
 
-session_id($sess_id);
+\session_id($sess_id);
 
-include_once get_cfg_var("mourjan.path") . '/config/cfg.php';
-include_once get_cfg_var("mourjan.path") . '/core/model/User.php';
-include_once get_cfg_var("mourjan.path") . '/core/model/Db.php';
-include_once get_cfg_var("mourjan.path") . '/core/lib/MCSessionHandler.php';
+include_once \get_cfg_var("mourjan.path") . '/config/cfg.php';
+include_once \get_cfg_var("mourjan.path") . '/core/model/User.php';
+include_once \get_cfg_var("mourjan.path") . '/core/model/Db.php';
+include_once \get_cfg_var("mourjan.path") . '/core/lib/MCSessionHandler.php';
 
 use Core\Model\DB;
 
@@ -35,6 +35,3 @@ if ($user->sysAuthById($uid)) {
         fclose($fp);
     }
 }
-
-
-?>

@@ -4,7 +4,7 @@ if (!isset($argc)) {tideways_xhprof_enable();}
 include_once __DIR__ . '/deps/autoload.php';
 include_once __DIR__ . '/config/cfg.php';
 
-Config::instance()->incModelFile('Router')->incModelFile('Db')->incLibFile('MCSessionHandler');
+Config::instance()->incModelFile('Router')->incModelFile('Db')->incLibFile('MCSessionHandler')->incLibFile('Logger');
 
 use Core\Model\Router;
 
@@ -29,6 +29,7 @@ if (php_sapi_name()!='cli') {
 
 
 $router = Router::instance();
+$router->setLogger(new \Core\Lib\Logger('/var/log/mourjan', \Psr\Log\LogLevel::DEBUG, ['filename' => 'site.log', 'logFormat'=>false]));
 
 if (!isset($argc)) {
     $router->decode();

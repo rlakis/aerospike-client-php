@@ -175,6 +175,57 @@ class IPQuality {
     }
     
     
+    public static function ipLocation(string $ip='') : string {
+        $location='';
+        if ($ip==='') {
+            static::getClientIP();
+        }
+        
+        if ($ip!='UNKNOWN') {
+            $redis = new Redis();
+            try {                              
+                if ($redis->connect('h5.mourjan.com', 6379, 1, NULL, 50)) {
+                    $redis->select(3);
+                    $redis->setOption(Redis::OPT_PREFIX, 'IP:');  
+                    $redis->setOption(Redis::OPT_READ_TIMEOUT, 3);
+                    $raw = $redis->get($ip);                    
+                    
+                    if (!empty($raw)) {
+                        $result = \json_decode($raw, true);
+                        if ($result!==null) {
+                            if (isset($result['fraud_score'])) {
+                                $redis->close();
+                                \Core\Model\Router::instance()->logger()->info('ip', $result);
+                                return $result['city']. ', ' . $result['region'] . ' ' . $result['country_code'] . ' [' . $result['latitude'] . ', ' . $result['longitude'] . '], ' . $result['timezone'];
+                            } 
+                        }
+                        else {
+                            \Core\Model\Router::instance()->logger()->critical('Error json decode!!!');
+                        }
+                    }
+                }
+            } 
+            catch (RedisException $re) {}
+        
+            $ipq = new IPQuality;
+            $raw = $ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?strictness=%s&allow_public_access_points=%s&mobile=%s', $ipq->key, $ip, 3, 'false', 'true')); 
+            $result = \json_decode($raw, true);
+            if ($result!==null) {
+                try {
+                    $redis->setex($ip, 604800, \json_encode($result));
+                } 
+                catch (RedisException $re) {}
+                if (isset($result['fraud_score'])) {
+                    $redis->close();
+                    return $result['city']. ', ' . $result['region'] . ' ' . $result['country_code'] . ' [' . $result['latitude'] . ', ' . $result['longitude'] . '], ' . $result['timezone'];
+                } 
+            } 
+            $redis->close();
+        }
+        return '';
+    }
+    
+    
     public static function fetchJson(bool $mobile) : array {
         $ret = ['datetime'=>date("Y-m-d H:i:s"), 
                 'ip'=>static::getClientIP(), 

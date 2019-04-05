@@ -7,7 +7,7 @@ class Ad {
     private $translation;       // ad text alter language without contacts
     private $profile;           // MCUser instance
     private $numberValidator = null;
-    
+    private $dataset;
     
     function __construct(array $data=[]) {
         $this->data = $data;
@@ -48,7 +48,7 @@ class Ad {
     
     
     public function sectionId() : int {
-        return $this->data[Classifieds::SECTION_ID];
+        return $this->data[Classifieds::SECTION_ID]??0;
     }
     
     
@@ -62,6 +62,11 @@ class Ad {
             $this->data[Classifieds::ROOT_ID]=0;
         }                
         return $this;
+    }
+    
+    
+    public function purposeId() : int {
+        return $this->data[Classifieds::PURPOSE_ID]??0;
     }
     
     
@@ -94,6 +99,25 @@ class Ad {
     }
     
     
+    public function setDataSet(Content $object) : Ad {
+        $this->dataset = $object;
+        if ($this->dataset->getID()>0 && $this->id()===0) {
+            $this->data[Classifieds::ID]=$this->dataset->getID();
+        }
+        if ($this->dataset->getUID()>0 && $this->uid()===0) {
+            $this->data[Classifieds::USER_ID]=$this->dataset->getUID();
+        }
+        if ($this->dataset->getSectionID()>0 && $this->sectionId()===0) {
+            $this->data[Classifieds::SECTION_ID]=$this->dataset->getSectionID();
+        }
+        if ($this->dataset->getPurposeID()>0 && $this->purposeId()===0) {
+            $this->data[Classifieds::PURPOSE_ID]=$this->dataset->getPurposeID();
+        }
+        $this->data[Classifieds::RTL]=$this->dataset->getNativeRTL();
+        return $this;
+    }
+    
+    /*
     public function setText(string $value) : Ad {
         $this->text=\trim($value);
         $success = \preg_match_all('/\p{Arabic}/u', $this->text);
@@ -111,7 +135,7 @@ class Ad {
         $this->translation=\trim($value);
         return $this;
     }
-    
+    */
     
     public function check() : Ad {
         if ($this->data[Classifieds::SECTION_ID]>0 && $this->data[Classifieds::PURPOSE_ID]===0) {
@@ -147,7 +171,6 @@ class Ad {
     
     
     public function mobiles() : array {
-        //error_log(var_export($this->data[Classifieds::TELEPHONES][0][0], true));
         return $this->data[Classifieds::TELEPHONES][0][0];
     }
     
@@ -207,7 +230,6 @@ class Ad {
         $key='P.'.$userISO.$number;
         $value = DB::getCache()->get($key);
         if ($value) { 
-            //error_log("cached ".$value);
             return $value;             
         }
         
@@ -376,7 +398,7 @@ class Ad {
     function formattedSinceDate(array $lang) : string {
         $isArabicInterface = Router::getInstance()->isArabic();
         $stamp='';
-        $seconds=time()-$this->data[Classifieds::UNIXTIME];
+        $seconds=\time()-$this->data[Classifieds::UNIXTIME];
         if ($seconds<0) {
             return $stamp;
         }
@@ -484,7 +506,7 @@ class Ad {
 
 
 class Content {
-    const VERSION_NUMBER        = 2;
+    const VERSION_NUMBER        = 3;
     
     const ID                    = 'id';
     const STATE                 = 'state';
@@ -557,6 +579,7 @@ class Content {
     const VERSION               = 'version';
     
     private $content;
+    private $profile;
     
     public function __construct() {
         $this->content = [
@@ -617,6 +640,9 @@ class Content {
     
     
     public function setUID(int $uid) : Content {
+        if ($uid!==$this->content[self::UID]) {
+            $this->profile=null;
+        }
         $this->content[self::UID]=$uid;
         return $this;
     }
@@ -627,9 +653,22 @@ class Content {
     }
     
     
+    public function getProfile() : \MCUser {
+        if ($this->profile===null) {
+            $this->profile = new \MCUser($this->getUID());
+        }
+        return $this->profile;
+    }
+    
+    
     public function setState(int $state) : Content {
         $this->content[self::STATE]=$state;
         return $this;
+    }
+    
+    
+    public function getSectionID() : int {
+        return $this->content[self::SECTION_ID];
     }
     
     
@@ -643,6 +682,11 @@ class Content {
             $this->content[self::ROOT_ID]=0;
         }               
         return $this;
+    }
+
+
+    public function getPurposeID() : int {
+        return $this->content[self::PURPOSE_ID];
     }
 
     
@@ -670,6 +714,20 @@ class Content {
     public function setUserAgent(string $user_agent) : Content {
         $this->content[self::USER_AGENT]=$user_agent;
         return $this;
+    }
+    
+    
+    public function setBudget(int $budget) : Content {
+        if ($this->getProfile()->getBalance()<=0) {
+            $budget=0;
+        }
+        $this->content[self::BUDGET] = $budget;
+        return $this;
+    }
+    
+    
+    public function getIpAddress() : string {
+        return $this->content[self::IP_ADDRESS];
     }
     
     
@@ -715,6 +773,11 @@ class Content {
     }
         
     
+    public function setUserLocation() : Content {
+        $this->content[self::USER_LOCATION] = \IPQuality::ipLocation($this->getIpAddress());
+        return $this;
+    }
+    
     private function rtl(string $text) : int {
         $success = \preg_match_all('/\p{Arabic}/u', $text);
         $spaces = \preg_match_all('/\s/u', $text);
@@ -729,6 +792,11 @@ class Content {
         $this->content[self::NATIVE_TEXT] = \trim($text);
         $this->content[self::NATIVE_RTL] = $this->rtl($this->content[self::NATIVE_TEXT]);
         return $this;
+    }
+    
+    
+    public function getNativeRTL() : int {
+        return $this->content[self::NATIVE_RTL];
     }
     
     
@@ -783,8 +851,65 @@ class Content {
     }
 
     
+    public function setQualified(bool $value) : Content {
+        $this->content[self::QUALIFIED]=$value;
+        return $this;
+    }
+    
+
+    public function getData() : array {
+        unset($this->content[self::ATTRIBUTES]);        
+        return $this->content;
+    }
+    
+    
     public function toJsonString(int $options) : string {
         unset($this->content[self::ATTRIBUTES]);        
         return \json_encode($this->content, $options);        
     }
+    
+    
+    
+    public function save(int $state=0) : bool {
+        $db = Router::instance()->database();
+        if ($this->getID()>0) {
+            $q = 'UPDATE ad_user set /* ' . __CLASS__ . '.' . __FUNCTION__ . ' */ ';
+            $q.= 'content=?, purpose_id=?, section_id=?, rtl=?, country_id=?, city_id=?, latitude=?, longitude=?, state=?, media=? ';
+            $q.= 'where id=? returning state';
+        }
+        else {
+            $q = 'INSERT INTO ad_user (content, purpose_id, section_id, rtl, country_id, city_id, latitude, longitude, state, media, web_user_id) ';
+            $q.= 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) returning ID';
+        }
+        $st=$db->prepareQuery($q);
+        $st->bindValue(1, \json_encode($adContent), \PDO::PARAM_STR);
+        $st->bindValue(2, $this->getPurposeID(), \PDO::PARAM_INT);
+        $st->bindValue(3, $this->getSectionID(), \PDO::PARAM_INT);
+        $st->bindValue(4, $this->getNativeRTL(), \PDO::PARAM_INT);
+        //$st->bindValue(5, $this->pending['post']['cn']);
+        //$st->bindValue(6, $this->pending['post']['c']);
+        $st->bindValue(7, $this->content[self::LATITUDE]);
+        $st->bindValue(8, $this->content[self::LONGITUDE]);
+        $st->bindValue(9, $this->content[self::STATE], PDO::PARAM_INT);        
+        $st->bindValue(10, (\count($this->content[self::PICTURES])>0?1:0), PDO::PARAM_INT);
+        $st->bindValue(11, $this->getID()>0 ? $this->getID() : $this->getUID(), PDO::PARAM_INT);
+        if ($st->execute()) {
+            if (($result = $st->fetch(PDO::FETCH_ASSOC))!==FALSE) {
+                if ($this->getID()>0) {
+                    $this->setState($result['STATE']);
+                }
+                else {
+                    $this->setID($result['ID']);
+                }
+            }
+            unset($st);
+            return $db->commit();
+        } 
+        else {
+            $db->rollback();
+        }
+        unset($st);
+        return false;        
+    }
+    
 }

@@ -22,8 +22,7 @@ class Site {
     var $sortingMode = 0;
     var $langSortingMode = 0;
     var $publisherTypeSorting = 0;
-
-
+        
     function __construct() {
         global $argc;        
         $this->router = Router::getInstance();
@@ -34,7 +33,7 @@ class Site {
         
         $this->initSphinx();
         
-        $this->user=new User(/*$this->router->db, $router->cfg, */$this);
+        $this->user=new User($this);
         if (!isset($this->user->params['list_lang'])) {
             $this->langSortingMode = -1;
         }
@@ -799,3 +798,5 @@ class Site {
     }
 
 }
+
+

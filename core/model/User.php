@@ -640,7 +640,7 @@ class User {
     
     function getPendingAds($id=0, $state=0, $pagination=0, $commit=false) {
         $res=false;
-        $aid= filter_input(INPUT_GET, 'a', FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
+        $aid=\filter_input(\INPUT_GET, 'a', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
         
         $pagination_str = '';
         if ($pagination) {
@@ -654,7 +654,7 @@ class User {
             }
         }        
         
-        if ($this->id()) {
+        if ($this->id()>0) {
             if ($id) {
                 if ($this->level()===9) {
                     $res=$this->db->get(
@@ -826,6 +826,9 @@ class User {
                     }
                 }
             }
+        }
+        else {
+            \error_log( __CLASS__ .'.' . __FUNCTION__ . ': not a valid user id ' . $this->id());
         }
         return $res;
     }
