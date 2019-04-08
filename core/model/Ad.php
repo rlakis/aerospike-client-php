@@ -99,7 +99,7 @@ class Ad {
     }
     
     
-    public function setDataSet(Content $object) : Ad {
+    public function setDataSet(\Utils\Content $object) : Ad {
         $this->dataset = $object;
         if ($this->dataset->getID()>0 && $this->id()===0) {
             $this->data[Classifieds::ID]=$this->dataset->getID();

@@ -161,8 +161,8 @@ class DB {
 
 
     public static function getDatabase() : \PDO {
-        if (!self::$Instance) {
-            DB::$Instance = new \PDO(DB::$dbUri, DB::$user, DB::$pass,
+        if (!DB::$Instance) {
+            DB::$Instance = new \PDO(DB::$dbUri, \Config::instance()->get('db_user'), \Config::instance()->get('db_pass'),
                     [
                         \PDO::ATTR_PERSISTENT=>TRUE,
                         \PDO::ATTR_AUTOCOMMIT=>FALSE,
@@ -172,13 +172,13 @@ class DB {
                         \PDO::ATTR_ERRMODE=>\PDO::ERRMODE_EXCEPTION,
 
                         \PDO::FB_ATTR_COMMIT_RETAINING=>FALSE,
-                        \PDO::FB_ATTR_READONLY=>DB::$Readonly,
-                        \PDO::FB_TRANS_ISOLATION_LEVEL=>DB::$IsolationLevel,
-                        \PDO::FB_ATTR_TIMEOUT=>DB::$WaitTimeout
+                        \PDO::FB_ATTR_READONLY => DB::$Readonly,
+                        \PDO::FB_TRANS_ISOLATION_LEVEL => DB::$IsolationLevel,
+                        \PDO::FB_ATTR_TIMEOUT => DB::$WaitTimeout
                     ]
                 );
         }
-        return DB::$instance;
+        return DB::$Instance;
     }
     
     

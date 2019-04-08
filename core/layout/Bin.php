@@ -2436,7 +2436,7 @@ class Bin extends AjaxHandler{
                 $this->router()->logger()->info('_JPOST[o]', $_ad);
                 
                 $ad = new Core\Model\Ad();
-                $content = new Core\Model\Content();
+                $content = new \Utils\Content();
                 $content->setID($_ad['id']??0)->setUID($_ad['user']??0)->setState($_ad['state']??0)
                         ->setSectionID($_ad['se']??0)->setPurposeID($_ad['pu']??0)->setApp($_ad['app']??'', $_ad['app_v']??'')
                         ->setVersion($_ad['version']??Core\Model\Content::VERSION_NUMBER)
@@ -2480,7 +2480,10 @@ class Bin extends AjaxHandler{
                 $ad->setDataSet($content)->check();
                 
                 $this->router()->logger()->info('New', $content->getData());
+                $this->router()->logger()->info('Page Roots', \Utils\Dictionary::instance()->pageRoots());
                 $this->router()->logger()->info('Version 3', $content->getAsVersion(3));
+                
+               
                 
                 $this->error(self::ERR_SYS_MAINTENANCE);
                 

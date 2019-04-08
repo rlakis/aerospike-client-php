@@ -31,7 +31,7 @@ class Router extends \Singleton {
     
     var $countries=NULL;
     var $cities=NULL;
-    var $publications=NULL;
+    //var $publications=NULL;
     var $roots=NULL;
     var $sections=NULL;
     var $purposes=NULL;
@@ -155,6 +155,7 @@ class Router extends \Singleton {
                 $_session_params['mobile']=(int)$this->cookie->m;
             }
             else {
+                /*
                 $device = new \Detection\MobileDetect();
 
                 if ($device->isMobile() && !$device->isTablet()) {
@@ -164,7 +165,7 @@ class Router extends \Singleton {
                 else {
                     $this->isMobile = FALSE;
                     $_session_params['mobile']=0;
-                }
+                }*/
             }
         }
 
@@ -782,16 +783,38 @@ class Router extends \Singleton {
             $countries_label = "country-data-{$this->language}-".Db::$SectionsVersion;
             $roots_label = "root-data-{$this->countryId}-{$this->cityId}-{$this->language}-".Db::$SectionsVersion;
             
-            $result = $this->db->getCache()->getMulti(['publications', 'roots', 'sections', 'purposes', 'cities-dictionary', 'last', $countries_label, $roots_label]); 
-            if (isset($result['cities-dictionary'])) $this->cities = $result['cities-dictionary'];
-            if (isset($result['publications'])) $this->publications = $result['publications'];
-            if (isset($result['roots'])) $this->roots = $result['roots'];
-            if (isset($result['sections'])) $this->sections = $result['sections'];
-            if (isset($result['purposes'])) $this->purposes = $result['purposes'];                
-            if (isset($result['last'])) $this->last_modified = $result['last'][1][2]; 
+            $result = $this->db->getCache()->getMulti(['roots', 'sections', 'purposes', 'cities-dictionary', 'last', $countries_label, $roots_label]); 
+            if (isset($result['cities-dictionary'])) {
+                $this->cities = $result['cities-dictionary'];
+                \Utils\Dictionary::instance()->setCities($result['cities-dictionary']);
+            }
+            //if (isset($result['publications'])) $this->publications = $result['publications'];
+            if (isset($result['roots'])) {
+                $this->roots = $result['roots'];
+                \Utils\Dictionary::instance()->setRoots($result['cities-dictionary']);
+            }
+            if (isset($result['sections'])) { 
+                $this->sections = $result['sections'];
+                \Utils\Dictionary::instance()->setSections($result['sections']);
+            }
+            if (isset($result['purposes'])) {
+                $this->purposes = $result['purposes'];
+                \Utils\Dictionary::instance()->setPurposes($result['purposes']);
+            }
             
-            if (isset($result[$countries_label])) $this->countries = $result[$countries_label];
-            if (isset($result[$roots_label])) $this->pageRoots = $result[$roots_label];
+            
+            
+            if (isset($result[$countries_label])) {
+                $this->countries = $result[$countries_label];
+                \Utils\Dictionary::instance()->setCountries($result[$countries_label]);
+            }
+            
+            if (isset($result[$roots_label])) {
+                $this->pageRoots = $result[$roots_label];
+                \Utils\Dictionary::instance()->setPageRoots($result[$roots_label]);
+            }
+            
+            if (isset($result['last'])) $this->last_modified = $result['last'][1][2]; 
         }
         
         if (!$this->last_modified) {
@@ -806,16 +829,17 @@ class Router extends \Singleton {
             $this->countries = $this->db->getCountriesData($this->language);
         }
                 
-        if ($this->publications===NULL || empty($this->publications)) {
-            $this->publications = $this->db->getPublications($force);
-        }
+        //if ($this->publications===NULL || empty($this->publications)) {
+        //    $this->publications = $this->db->getPublications($force);
+        //}
         
         if ($this->roots===NULL) {
             $this->roots = $this->db->getRoots($force);
         }
 
-        if ($this->sections===NULL){
+        if ($this->sections===NULL){            
             $this->sections = $this->db->getSections($force);
+            \Utils\Dictionary::instance()->setSections($this->sections);
         }
 
         if ($this->purposes===NULL) {
