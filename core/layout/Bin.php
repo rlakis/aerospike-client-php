@@ -2480,6 +2480,7 @@ class Bin extends AjaxHandler{
                 $ad->setDataSet($content)->check();
                 
                 $this->router()->logger()->info('New', $content->getData());
+                $this->router()->logger()->info('Version 3', $content->getAsVersion(3));
                 
                 $this->error(self::ERR_SYS_MAINTENANCE);
                 

@@ -870,7 +870,7 @@ class Content {
     
     
     
-    public function save(int $state=0) : bool {
+    public function save(int $state=0, int $version=3) : bool {
         $db = Router::instance()->database();
         if ($this->getID()>0) {
             $q = 'UPDATE ad_user set /* ' . __CLASS__ . '.' . __FUNCTION__ . ' */ ';
@@ -912,4 +912,73 @@ class Content {
         return false;        
     }
     
+    
+    
+    public function getAsVersion(int $version) : array {
+        switch ($version) {
+            case 2: return $this->getAsVersion2();
+            case 3: return $this->getAsVersion3();
+        }
+        return [];
+    }
+    
+    
+    private function getAsVersion3() : array {
+        $rs=[
+            self::CONTACT_INFO => $this->content[self::CONTACT_INFO],            
+            self::USER_LEVEL => $this->content[self::USER_LEVEL],
+            self::USER_LOCATION => $this->content[self::USER_LOCATION],
+            self::USER_AGENT => $this->content[self::USER_AGENT],
+            self::UI_LANGUAGE => $this->content[self::UI_LANGUAGE],
+            self::IP_ADDRESS => $this->getIpAddress(),
+            self::IP_SCORE => $this->content[self::IP_SCORE],
+            self::QUALIFIED => $this->content[self::QUALIFIED]?1:0,
+            self::BUDGET => $this->content[self::BUDGET],
+            self::NATIVE_TEXT => $this->content[self::NATIVE_TEXT],
+            
+            self::APP_NAME => $this->content[self::APP_NAME][0].'-'.$this->content[self::APP_VERSION],
+            self::VERSION => 3,
+            
+        ];
+        unset($rs[self::CONTACT_INFO][self::CONTACT_INFO_BLACKBERRY]);
+        unset($rs[self::CONTACT_INFO][self::CONTACT_INFO_TWITTER]);
+        unset($rs[self::CONTACT_INFO][self::CONTACT_INFO_SKIPE]);
+        
+        if ($this->content[self::FOREIGN_TEXT]) {
+            $rs[self::FOREIGN_TEXT] = $this->content[self::FOREIGN_TEXT];
+            $rs[self::FOREIGN_RTL] = $this->content[self::FOREIGN_RTL];
+        }
+        
+        if (\count($this->content[self::REGIONS])) {
+            $rs[self::REGIONS] = $this->content[self::REGIONS];
+        }
+        
+        if ($this->content[self::PICTURES]) {
+            $rs[self::PICTURES] = $this->content[self::PICTURES];
+        }
+        
+        if ($this->content[self::LOCATION]) {
+            $rs[self::LOCATION] = $this->content[self::LOCATION];
+        }
+        
+        if ($this->content[self::LOCATION_ARABIC]) {
+            $rs[self::LOCATION_ARABIC] = $this->content[self::LOCATION_ARABIC];
+        }
+        
+        if ($this->content[self::LOCATION_ENGLISH]) {
+            $rs[self::LOCATION_ENGLISH] = $this->content[self::LOCATION_ENGLISH];
+        }
+
+        if ($this->content[self::STATE]>0) {
+            $rs[self::ATTRIBUTES] = $this->content[self::ATTRIBUTES];
+        }
+        
+        return $rs;
+    }
+    
+    
+    private function getAsVersion2() : array {
+        
+    }
+
 }
