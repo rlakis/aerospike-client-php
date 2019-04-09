@@ -535,13 +535,13 @@ class Bin extends AjaxHandler{
                                     $number = substr($number,1);
                                 }
                                         
-                                $mrs = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number);
+                                $mrs = NoSQL::instance()->mobileFetch($this->user->info['id'], $number);
                                 if ($mrs!==FALSE) {
                                     $response = MobileValidation::getInstance()->verifyEdigearPin($mrs[Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);
                             
                                     if (isset($response['status']) && $response['status']==200 && isset($response['response'])) {
                                         if ($response['response']['validated']) {
-                                            $activated = NoSQL::getInstance()->mobileActivationByRequestId($this->user->info['id'], $number, $keyCode, $mrs[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
+                                            $activated = NoSQL::instance()->mobileActivationByRequestId($this->user->info['id'], $number, $keyCode, $mrs[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
                                             if($activated) {
                                                 $this->setData(1,'verified');
                                                 $this->user()->info['verified']=true;
@@ -561,7 +561,7 @@ class Bin extends AjaxHandler{
                                     $number = substr($number,1);
                                 }
                                     
-                                if(NoSQL::getInstance()->isBlacklistedContacts([strval($number)])) {
+                                if(NoSQL::instance()->isBlacklistedContacts([strval($number)])) {
                                     $this->fail('403');
                                 }
                                 else {
@@ -617,7 +617,7 @@ class Bin extends AjaxHandler{
                                 $sendSms= false;
                                 $keyCode = 0;
 
-                                $mrs = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number);
+                                $mrs = NoSQL::instance()->mobileFetch($this->user->info['id'], $number);
                                 if ($mrs!==FALSE) {                                                                               
                                     if (!$validateByCall && $mrs) {
                                         $mcMobile = new MCMobile($mrs);
@@ -627,7 +627,7 @@ class Bin extends AjaxHandler{
                                         $stillValid = $mcMobile->isVerified();
                                         
                                         if ($expiredDelivery) {
-                                            if (NoSQL::getInstance()->mobileUpdate($this->user->info['id'], $number, [\Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()])) {
+                                            if (NoSQL::instance()->mobileUpdate($this->user->info['id'], $number, [\Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()])) {
                                                 $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
                                                 $keyCode = $mrs[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
                                             } 
@@ -638,7 +638,7 @@ class Bin extends AjaxHandler{
                                         }
                                         else if ($expiredValidity) {
                                             $keyCode=mt_rand(1000, 9999);
-                                            if (NoSQL::getInstance()->mobileUpdate($this->user->info['id'], $number, 
+                                            if (NoSQL::instance()->mobileUpdate($this->user->info['id'], $number, 
                                                     [\Core\Model\ASD\USER_MOBILE_REQUEST_TYPE => 0,  \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $keyCode, \Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()]))
                                             {
                                                 $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
@@ -660,7 +660,7 @@ class Bin extends AjaxHandler{
                                             }
                                             else {
                                                 $keyCode=mt_rand(1000, 9999);
-                                                if (NoSQL::getInstance()->mobileUpdate($this->user->info['id'], $number, 
+                                                if (NoSQL::instance()->mobileUpdate($this->user->info['id'], $number, 
                                                         [\Core\Model\ASD\USER_MOBILE_REQUEST_TYPE => 0,  \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $keyCode, \Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()]))
                                                 {
                                                     $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
@@ -703,14 +703,14 @@ class Bin extends AjaxHandler{
                                             }
                                         }
                                         else {
-                                            if (NoSQL::getInstance()->mobileInsert([
+                                            if (NoSQL::instance()->mobileInsert([
                                                         \Core\Model\ASD\USER_UID=> $this->user->info['id'],
                                                         \Core\Model\ASD\USER_MOBILE_NUMBER=> $number,
                                                         \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>$keyCode,
                                                         \Core\Model\ASD\USER_MOBILE_FLAG=>1,
                                                         \Core\Model\ASD\USER_MOBILE_REQUEST_TYPE=>0
                                                         ])) {
-                                                $mrs = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number);
+                                                $mrs = NoSQL::instance()->mobileFetch($this->user->info['id'], $number);
                                                 if ($mrs) {
                                                     $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
                                                 } 
@@ -1760,12 +1760,13 @@ class Bin extends AjaxHandler{
                         $this->response('regions', $regions);
                         $this->response('ip', IPQuality::fetchJson(false));
                         $aid=\filter_input(\INPUT_GET, 'aid', \FILTER_SANITIZE_NUMBER_INT);
+                        
                         if ($aid>0) {
                             $ad=$this->user()->getPendingAds($aid);
                             
                             if(\is_array($ad) && \count($ad)===1){
                                 $cnt= $ad[0]['CONTENT'];
-                                if (\is_string($cnt)) {                                    
+                                if (\is_string($cnt)) {                               
                                     $cnt=\json_decode($cnt, true);
                                 }
                                 
@@ -1773,6 +1774,8 @@ class Bin extends AjaxHandler{
                                 $cnt['se']=$ad[0]['SECTION_ID'];
                                 $cnt['pu']=$ad[0]['PURPOSE_ID'];
                                 $cnt['state']=$ad[0]['STATE'];
+                                $cnt['lat']=$ad[0]['LATITUDE'];
+                                $cnt['lon']=$ad[0]['LONGITUDE'];
                                 $this->response('ad', $cnt);
                             }                                                   
                         }
@@ -2436,7 +2439,7 @@ class Bin extends AjaxHandler{
                 $this->router()->logger()->info('_JPOST[o]', $_ad);
                 
                 $ad = new Core\Model\Ad();
-                $content = new \Utils\Content();
+                $content = new Core\Model\Content();
                 $content->setID($_ad['id']??0)->setUID($_ad['user']??0)->setState($_ad['state']??0)
                         ->setSectionID($_ad['se']??0)->setPurposeID($_ad['pu']??0)->setApp($_ad['app']??'', $_ad['app_v']??'')
                         ->setVersion($_ad['version']??Core\Model\Content::VERSION_NUMBER)
@@ -2474,16 +2477,20 @@ class Bin extends AjaxHandler{
                 }
                 
                 $content->setBudget($_ad['budget']??0)->setUserLocation();
-                
+                $content->setCountryId($this->router()->countryId)->setCityId($this->router()->cityId);
                 
                 
                 $ad->setDataSet($content)->check();
                 
                 $this->router()->logger()->info('New', $content->getData());
-                $this->router()->logger()->info('Page Roots', \Utils\Dictionary::instance()->pageRoots());
                 $this->router()->logger()->info('Version 3', $content->getAsVersion(3));
                 
-               
+                if ($content->save(0)) {
+                    $ad->getAdFromAdUserTableForEditing($content->getID());
+                }
+                else {
+                    
+                }
                 
                 $this->error(self::ERR_SYS_MAINTENANCE);
                 
@@ -3553,7 +3560,7 @@ class Bin extends AjaxHandler{
                     $content = \json_decode($record[0]['CONTENT'],true);                                
                     if (isset($content['attrs']) && isset($content['attrs']['phones'])) {
                         $len=$content['attrs']['phones']['n']??0;
-                        NoSQL::getInstance()->mobileVerfiedRelatedNumber($mobile_number, $numbers);
+                        NoSQL::instance()->mobileVerfiedRelatedNumber($mobile_number, $numbers);
                 
                         for ($i=0; $i<$len; $i++) {
                             $to=$content['attrs']['phones']['n'][$i];
@@ -3562,7 +3569,7 @@ class Bin extends AjaxHandler{
                                 if ($type==1) {                                                                                                                                
                                     //error_log("rtp {$to}");
                                     $bins=['RTP'=>1];                                        
-                                    if (MobileValidation::getInstance()->sendEdigearRTPRequest($to, $record[0]['WEB_USER_ID'], $mobile_number, $bins)) {
+                                    if (MobileValidation::instance()->sendEdigearRTPRequest($to, $record[0]['WEB_USER_ID'], $mobile_number, $bins)) {
                                         $user_lang = $content['hl']??'en';
                                         if ($rtp==2) {//rejected and pending                                                  
                                             if ($user_lang==='ar') {
@@ -3921,7 +3928,7 @@ class Bin extends AjaxHandler{
                                 $objFort->setLanguage($lang);
                                 $objFort->setCommand('PURCHASE');
                                 
-                                if (($token= NoSQL::getInstance()->getUserPayfortToken($this->user->info['id']))!=FALSE)
+                                if (($token= NoSQL::instance()->getUserPayfortToken($this->user->info['id']))!=FALSE)
                                 {
                                     $objFort->token_name = $token;
                                     //$objFort->setTokenName($token);                                    
@@ -5014,7 +5021,7 @@ class Bin extends AjaxHandler{
                 }
                 else {
                     if ($msg) {
-                        $options = NoSQL::getInstance()->getOptions($id);
+                        $options = NoSQL::instance()->getOptions($id);
                         if ($options) {
                             if (!isset($options['block']))$options['block']=array();
                                 $options['block'][]=$msg;
@@ -5260,7 +5267,7 @@ class Bin extends AjaxHandler{
                 $send_email=false;
                 if (!$this->user->info['id']) {
                     if ($email && $this->isEmail($email) ) {
-                        $_ret = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);
+                        $_ret = Core\Model\NoSQL::instance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);
                         if($_ret!==NoSQL::OK && $_ret !== NoSQL::ERR_RECORD_NOT_FOUND) {
                             $this->fail("103");
                         }
@@ -5319,7 +5326,7 @@ class Bin extends AjaxHandler{
                 {
                     if ($email && $this->isEmail($email) )
                     {
-                        $_ret = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);
+                        $_ret = Core\Model\NoSQL::instance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);
                         if($_ret!==NoSQL::OK && $_ret!==NoSQL::ERR_RECORD_NOT_FOUND)
                         {
                             $this->fail("103");

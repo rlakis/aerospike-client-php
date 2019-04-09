@@ -630,7 +630,7 @@ class User {
                 $this->pending['post']['se']=$ad['SECTION_ID'];
                 $this->pending['post']['pu']=$ad['PURPOSE_ID'];
                 $this->pending['post']['state']=$ad['STATE'];
-                $this->pending['post']['ro']=$content['ro'];
+                //$this->pending['post']['ro']=$content['ro'];
             }
         }
         $this->update();

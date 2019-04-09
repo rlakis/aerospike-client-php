@@ -1,8 +1,9 @@
 <?php 
 if (!isset($argc)) {tideways_xhprof_enable();}
 
-include_once __DIR__ . '/deps/autoload.php';
 include_once __DIR__ . '/config/cfg.php';
+include_once __DIR__ . '/deps/autoload.php';
+
 
 Config::instance()->incModelFile('Router')->incModelFile('Db')->incLibFile('MCSessionHandler')->incLibFile('Logger');
 
@@ -21,7 +22,7 @@ if (isset($_GET['provider']) && isset($_GET['connect'])) {
 
 
 if (php_sapi_name()!='cli') {
-    MCSessionHandler::getInstance();
+    MCSessionHandler::instance();
     //require_once( $config['dir'].'/core/model/User.php');
     //$user = new User(new DB($config), $config, null, 0);
     //$user->sysAuthById(717151);

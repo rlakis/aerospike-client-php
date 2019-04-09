@@ -1,8 +1,6 @@
-namespace Utils;
+namespace Mourjan;
 
-class Dictionary {
-	private static inst;
-
+class Dictionary extends Singleton {
 	protected countries { get };
 	protected cities { get };
 	protected roots { get };
@@ -11,21 +9,9 @@ class Dictionary {
 	
 	protected pageRoots { get };
 
-
-	private function __construct() {
-	}
-
-
 	public static function instance() -> <Dictionary> {
-		if Dictionary::inst !== null {
-			return Dictionary::inst;
-		}
-
-		//var i = new Dictionary();
-		let Dictionary::inst = new Dictionary();
-		return Dictionary::inst;
+		return static::getInstance();
 	}
-
 
 	public function setCountries(array kCountries) -> void {
 		let this->countries = kCountries;
@@ -62,9 +48,30 @@ class Dictionary {
 	}
 
 
+	public function isCountryExists(int kCountryId) -> bool {
+		return isset(this->countries[kCountryId]);
+	}
+
+
+	public function isCityExists(int kCityId) -> bool {
+		return isset(this->cities[kCityId]);
+	}
+
+
 	public function isSectionExists(int kSectionId) -> bool {
 		return isset(this->sections[kSectionId]);
 	}
+
+
+	public function getCity(int kCityId) -> array {
+		return this->isCityExists(kCityId) ? this->cities[kCityId] : [];
+	}
+
+
+	public function getCityCountryId(int kCityId) -> int {
+		return this->isCityExists(kCityId) ? intval(this->cities[kCityId][4]) : 0;
+	}
+
 
 	public function getSection(int kSectionId) -> array {
 		return this->isSectionExists(kSectionId) ? this->sections[kSectionId] : [];

@@ -4,8 +4,8 @@ ini_set('display_errors', get_cfg_var('mourjan.server_id')=='99'?1:0);
 
 include_once dirname(__DIR__) . '/core/model/Singleton.php';
 
-class Config extends Singleton {
-    public $config;
+class Config extends \Singleton {
+    protected $config;
         
     public $serverId;
     public $host;
@@ -16,16 +16,22 @@ class Config extends Singleton {
     public $cssURL;
     public $imgURL;
     public $assetsURL;
-    public $jQueryURL;
+    //public $jQueryURL;
     public $adImgURL;
     public $imgLibURL;
     public $modules;
+    
+    protected $layoutDir;
+    protected $modelDir;
+    protected $libDir;
+            
     
     public static function instance() : Config {
         return static::getInstance();
     }
     
-    public function setConfig(array $params) {
+    
+    public function init(array $params) {
         $this->config = $params;
         
         $this->serverId = $this->config['server_id'];
@@ -38,18 +44,21 @@ class Config extends Singleton {
         $this->imgURL = $this->config['url_img'];
         $this->modules = $this->config['modules'];
         $this->assetsURL = $this->config['url_resources'];
-        $this->jQueryURL = $this->config['url_jquery'];
+        //$this->jQueryURL = $this->config['url_jquery'];
         $this->adImgURL = $this->config['url_ad_img'];
         $this->imgLibURL = $this->config['url_image_lib'];
         
-        $this->adImgURL = "https://c6.mourjan.com";
+        $this->adImgURL = 'https://c6.mourjan.com';
         //error_log($this->host);
+        
+        $this->libDir = $this->baseDir . '/core/lib/';
+        $this->modelDir = $this->baseDir . "/core/model/";
+        $this->layoutDir = $this->baseDir . "/core/layout/";
     }
     
     
     public function setValue(string $key, $value) : void {
-        $this->config[$key] = $value;
-        
+        $this->config[$key] = $value;    
     }
     
     
@@ -61,11 +70,6 @@ class Config extends Singleton {
     }
     
     
-    public function baseDir() : string {
-        return $this->config['dir'];
-    }
-    
-    
     public function enabledUsers() : bool {
         return ($this->config['enabled_users']);
     }
@@ -73,6 +77,11 @@ class Config extends Singleton {
     
     public function enabledAds() : bool {
         return ($this->config['enabled_ads']);
+    }
+    
+    
+    public function enableAds() : void {
+        $this->config['enabled_ads']=1;
     }
     
     
@@ -87,26 +96,19 @@ class Config extends Singleton {
     
     
     public function incModelFile(string $file) : Config {
-        if (!isset($this->config['model-dir'])) {
-            $this->config['model-dir'] = $this->config['dir'] . '/core/model/';
-        }
-        include_once $this->config['model-dir'] . $file . '.php';
+        include_once $this->modelDir . $file . '.php';
         return $this;
     }
+    
     
     public function incLibFile(string $file) : Config {
-        if (!isset($this->config['lib-dir'])) {
-            $this->config['lib-dir'] = $this->config['dir'] . '/core/lib/';
-        }
-        include_once $this->config['lib-dir'] . $file . '.php';
+        include_once $this->libDir . $file . '.php';
         return $this;
     }
     
+    
     public function incLayoutFile(string $file) : Config {
-        if (!isset($this->config['layout-dir'])) {
-            $this->config['layout-dir'] = $this->config['dir'] . '/core/layout/';
-        }
-        include_once $this->config['layout-dir'] . $file . '.php';
+        include_once $this->layoutDir . $file . '.php';
         return $this;
     }
 }
@@ -434,9 +436,8 @@ $config['url_base']         = $config['host'];
 $config['url_bin']          = $config['url_base'].'/bin';
 $config['url_upload']       = $config['url_bin'].'/uploadLogo.php';
 
-Config::instance()->setConfig($config);
+Config::instance()->init($config);
 include_once dirname(__DIR__) . '/core/model/Db.php';
-
 $globalSettings = \Core\Model\DB::getCacheStorage($config)->get("global-settings");
 if ($globalSettings!==FALSE) {
     foreach ($globalSettings as $key => $value) {
@@ -448,8 +449,8 @@ $config['dir_css']              = '/var/www/mourjan';
 $config['url_resources']        = 'https://h1.mourjan.com';
 $config['url_js']               = 'https://h1.mourjan.com/web/js/1.0.0';
 $config['url_css']              = 'https://h1.mourjan.com/web/css/5.4.3';
-$config['url_jquery']           = 'https://h1.mourjan.com/web/jquery/3.1.0/js/';
-$config['url_jquery_mobile']    = 'https://h1.mourjan.com/web/jquery/4.0.0/js/';
+//$config['url_jquery']           = 'https://h1.mourjan.com/web/jquery/3.1.0/js/';
+//$config['url_jquery_mobile']    = 'https://h1.mourjan.com/web/jquery/4.0.0/js/';
 $config['url_css_mobile']       = 'https://h1.mourjan.com/web/css/1.0.2';
 $config['url_js_mobile']        = 'https://h1.mourjan.com/web/js/2.0.0';
 $config['url_image_lib']        = 'https://h1.mourjan.com/web/lix/2.0.0';
@@ -460,9 +461,11 @@ $config['server_id'] = get_cfg_var('mourjan.server_id');
 $config['active_maintenance']=0;
 
 
-Config::instance()->setConfig($config);
+Config::instance()->init($config);
 
 
+
+/*
 function layout_file(string $file_name) {
     global $config;
     include_once $config['dir'] . '/core/layout/' . $file_name;
@@ -480,3 +483,4 @@ function libFile(string $file_name) {
     }
     include_once $config['lib-dir'] . $file_name;
 }
+*/

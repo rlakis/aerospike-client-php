@@ -1,7 +1,7 @@
 <?php
 namespace Core\Model;
 
-\Config::getInstance()->incLibFile('MCCache')->incLibFile('SphinxQL')->incModelFile('NoSQL');
+\Config::instance()->incLibFile('MCCache')->incLibFile('SphinxQL')->incModelFile('NoSQL');
 
 use Core\Lib\MCCache;
 use Core\Lib\SphinxQL;
@@ -26,7 +26,7 @@ class DB {
     
     private $version=0;
     
-    public function __construct($readonly=TRUE) {
+    public function __construct(bool $readonly=TRUE) {
         $this->slaveOfRedis = (get_cfg_var('mourjan.server_id')!='1');
         self::$dbUri = 'firebird:dbname='.\Config::instance()->get('db_host').':'.\Config::instance()->get('db_name').';charset=UTF8';
         self::$WaitTimeout = 10;
@@ -57,9 +57,7 @@ class DB {
 
 
     public static function getCacheStorage() : MCCache {
-        if (!isset(DB::$Cache)) {
-            DB::$Cache = new MCCache();
-        }
+        if (!isset(DB::$Cache)) { DB::$Cache = new MCCache(); }
         return self::$Cache;
     }
 
@@ -99,16 +97,14 @@ class DB {
     
     
     public function inTransaction() : bool {
-        if (DB::$Instance===NULL) {
-            return FALSE;
-        }
+        if (DB::$Instance===NULL) { return FALSE; }
         
         return DB::$Instance->inTransaction();
     }
     
     
     public function commit(bool $restartTransaction=FALSE) : bool {
-        if($this->inTransaction()) {
+        if ($this->inTransaction()) {
             try {
                 DB::$Instance->commit();
                 if ($restartTransaction===TRUE) {
@@ -124,8 +120,8 @@ class DB {
     }
     
     
-    public function rollback(bool $restartTransaction=FALSE) {
-        if($this->inTransaction()) {
+    public function rollback(bool $restartTransaction=FALSE) : bool {
+        if ($this->inTransaction()) {
             try {
                 DB::$Instance->rollBack();
                 if ($restartTransaction==TRUE) {
@@ -216,7 +212,7 @@ class DB {
     }
     
     
-    public static function getTransactionIsolationMessage() {
+    public static function getTransactionIsolationMessage() : string {
     	return 'FB Transaction mode [Isolation: ' . self::$IsolationLevel .', Read only: ' . (self::$Readonly ? 'YES' : 'NO') . ', Wait timeout: ' . self::$WaitTimeout . ' seconds]' . PHP_EOL;
     }
     
@@ -365,7 +361,6 @@ class DB {
                     $stmt->execute();
 
                 if (($row = $stmt->fetch(\PDO::FETCH_NUM)) !== false) {
-                    //$count = count($row);
                     do {
                         //for ($i=0; $i < $count; $i++)
                         //    if(is_numeric($row[$i])) $row[$i] = $row[$i] + 0;
@@ -395,7 +390,7 @@ class DB {
     }
     
     
-    function prepare($stmt, $q) {
+    function prepare($stmt, $q) : \PDOStatement {
         if (!$stmt || !$this->inTransaction()){
             $this->checkCorrectWriteMode($q);
             $stmt = $this->getInstance()->prepare($q);
@@ -404,7 +399,7 @@ class DB {
     }
     
     
-    function prepareQuery($q) {
+    function prepareQuery($q) : \PDOStatement {
         $this->checkCorrectWriteMode($q);
         return $this->getInstance()->prepare($q);
     }
@@ -542,9 +537,7 @@ class DB {
 
     /* New data block */
     function getCountriesDictionary($force=FALSE) {
-        if(!$this->slaveOfRedis) {
-            $force = true;
-        }
+        if (!$this->slaveOfRedis) { $force = true; }
         
         $countries = $this->queryCacheResultSimpleArray('countries-dictionary',
                     'select ID, NAME_AR, NAME_EN, lower(trim(id_2)) URI, ' .
@@ -554,12 +547,15 @@ class DB {
                     'from country where blocked=0',
                     null, 0, 86400, $force);
 
-        if (!empty($countries) && !is_array($countries[key($countries)][6])) {
+        if (!empty($countries) && !\is_array($countries[\key($countries)][6])) {
+            
             foreach ($countries as $country_id => $country) {
-                $cities = explode(",", $country[6]);
-                if (count($cities)>1) {
+                $cities = \explode(',', $country[6]);
+                $len = \count($cities);
+                if ($len>1) {
                     $countries[$country_id][6]=$cities;
-                } else {
+                }
+                else {
                     $countries[$country_id][6]=[];
                 }
             }
@@ -571,10 +567,7 @@ class DB {
     
     
     function getCitiesDictionary($force=FALSE) {
-        if (!$this->slaveOfRedis) {
-            $force = true;
-        }
-        //                     'select ID, NAME_AR, NAME_EN, URI, COUNTRY_ID, LATITUDE, LONGITUDE, locked, UNIXTIME from city where blocked=0',
+        if (!$this->slaveOfRedis) { $force = true; }
 
         return $this->queryCacheResultSimpleArray('cities-dictionary',
                 'select f_city.ID, lg.NAME NAME_AR, f_city.NAME NAME_EN, URI, COUNTRY_ID, LATITUDE, LONGITUDE, 1 locked, UNIXTIME 
@@ -584,7 +577,7 @@ class DB {
                 null, 0, 86400, $force);        
     }
     
-    
+    /*
     function getPublications($force=FALSE) {
         if(!$this->slaveOfRedis) {
             $force = true;
@@ -594,12 +587,11 @@ class DB {
                     from publication where blocked=0 order by BRAND_EN',
                     null, 0, 86400, $force);    
     }
-    
+    */
     
     function getPurposes($force=FALSE) {
-        if (!$this->slaveOfRedis){
-            $force = true;
-        }
+        if (!$this->slaveOfRedis) { $force = true; }
+        
         return $this->queryCacheResultSimpleArray('purposes',
                     'select ID, NAME_AR, NAME_EN, URI, UNIXTIME from purpose where blocked=0',
                     null, 0, 86400, $force);
@@ -607,9 +599,7 @@ class DB {
     
     
     function getRoots($force=FALSE) {
-        if(!$this->slaveOfRedis){
-            $force = true;
-        }
+        if (!$this->slaveOfRedis) { $force = true; }
         return $this->queryCacheResultSimpleArray('roots',
                     'select ID, NAME_AR, NAME_EN, URI, DIFFER_SECTION_ID, BLOCKED, UNIXTIME from root order by 1',
                     null, 0, 86400,  $force);
@@ -969,8 +959,7 @@ class DB {
         
         if ($resource instanceof \mysqli_result) {                
             while ($row = $resource->fetch_array()) {             
-                $result[$row[0]]=['name'=>$purposes[$row[0]][$f], 'counter'=>$row[1], 'unixtime'=>$row[2]];
-                
+                $result[$row[0]]=['name'=>$purposes[$row[0]][$f], 'counter'=>$row[1], 'unixtime'=>$row[2]];                
             }
             $resource->free_result();                
         }

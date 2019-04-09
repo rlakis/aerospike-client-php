@@ -25,7 +25,7 @@ class Site {
         
     function __construct() {
         global $argc;        
-        $this->router = Router::getInstance();
+        $this->router = Router::instance();
         if ($this->router->language=='en') {
             $this->lnIndex=1;
         }
@@ -476,7 +476,7 @@ class Site {
         
                                 
                 if($__compareAID) {                    
-                    libFile('MCSaveHandler.php');
+                    $this->router()->config()->incLibFile('MCSaveHandler');
                     $handler = new MCSaveHandler($this->router()->cfg);
                     $this->searchResults = $handler->searchByAdId($__compareAID);
                 }

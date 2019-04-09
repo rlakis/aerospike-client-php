@@ -1,7 +1,6 @@
 <?php
 
-model_file('NoSQL.php');
-libFile('Jabber/JabberClient.php');
+\Config::instance()->incModelFile('NoSQL')->incLibFile('Jabber/JabberClient');
 
 use Firebase\JWT\JWT;
 use lib\Jabber\JabberClient;
@@ -75,14 +74,14 @@ class MCUser extends MCJsonMapper {
 
         if ($source_data!==FALSE) {
             if (is_numeric($source_data)) {
-                $this->parseArray(NoSQL::getInstance()->fetchUser($source_data));
+                $this->parseArray(NoSQL::instance()->fetchUser($source_data));
             }         
             else if (is_string($source_data) && $source_data) {
                 if ($source_data[0]=='{') {
                     $this->set($source_data);
                 }
                 else {                    
-                    if (NoSQL::getInstance()->fetchUserByUUID($source_data, $user_data)==NoSQL::OK) {
+                    if (NoSQL::instance()->fetchUserByUUID($source_data, $user_data)==NoSQL::OK) {
                         $this->parseArray($user_data);
                     }
                 }
@@ -100,7 +99,7 @@ class MCUser extends MCJsonMapper {
 
     public static function getByUUID(string $uuid) : MCUser {
         $result = new MCUser();
-        if (NoSQL::getInstance()->fetchUserByUUID($uuid, $bins)==NoSQL::OK) {            
+        if (NoSQL::instance()->fetchUserByUUID($uuid, $bins)==NoSQL::OK) {            
             $result->parseArray($bins);
             if (!($result->opts instanceof MCUserOptions)) {
                 $result->opts = new MCUserOptions();
@@ -354,7 +353,7 @@ class MCUser extends MCJsonMapper {
     
     public function getMobile(bool $refresh=false) : MCMobile {
         if ($this->mobile->getNumber()<=0 || $refresh) {
-            if ($_mobiles = NoSQL::getInstance()->mobileFetchByUID( $this->getID() )) {                
+            if ($_mobiles = NoSQL::instance()->mobileFetchByUID( $this->getID() )) {                
                 $this->mobile = new MCMobile( $_mobiles[0] );
             }
         }
@@ -377,7 +376,7 @@ class MCUser extends MCJsonMapper {
     public function getDevices() : array {
         if ($this->devices===FALSE) {
             $this->devices = [];
-            $_records = NoSQL::getInstance()->getUserDevices($this->getID());
+            $_records = NoSQL::instance()->getUserDevices($this->getID());
             foreach ($_records as $record) {
                 $this->devices[]=new MCDevice($record);
             }
@@ -421,20 +420,20 @@ class MCUser extends MCJsonMapper {
     
     public function createToken() {
         if ($this->genDistributedXMPPassword()) {
-            NoSQL::getInstance()->setJsonWebToken($this->getID(), $this->jwt);
+            NoSQL::instance()->setJsonWebToken($this->getID(), $this->jwt);
             $jabber = new JabberClient(['server'=>'https://dv.mourjan.com:5280/api']);
             if ($this->xmpp) {
                 $jabber->changePassword((string)$this->getID(), strval($this->jwt['token']));
             } 
             else {            
                 if ($jabber->checkAccount( (string) $this->getID()) ) {
-                    NoSQL::getInstance()->setEnabledXMPP($this->getID());
+                    NoSQL::instance()->setEnabledXMPP($this->getID());
                     $jabber->changePassword((string)$this->getID(), strval($this->jwt['token']));
                 }
                 else {
                     try {
                         $jabber->createUser((string)$this->getID(), $this->jwt['token']);
-                        NoSQL::getInstance()->setEnabledXMPP($this->getID());
+                        NoSQL::instance()->setEnabledXMPP($this->getID());
                     } 
                     catch (Exception $e) {}
                 }
@@ -449,7 +448,7 @@ class MCUser extends MCJsonMapper {
         if ($jabber->checkAccount( (string) $this->getID()) ) {
             $jabber->kickUser((string) $this->getID());
         }
-        NoSQL::getInstance()->unsetJsonWebTocken($this->getID());            
+        NoSQL::instance()->unsetJsonWebTocken($this->getID());            
     }
     
     
@@ -676,7 +675,7 @@ class MCMobile extends MCJsonMapper {
     
     public function setSecret(string $password) : bool {
         if ($this->ats) {            
-            return NoSQL::getInstance()->mobileUpdate($this->user->getID(), $this->number, [ASD\USER_MOBILE_SECRET => $password]);
+            return NoSQL::instance()->mobileUpdate($this->user->getID(), $this->number, [ASD\USER_MOBILE_SECRET => $password]);
         }
         return FALSE;
     }

@@ -1,4 +1,6 @@
-namespace Utils;
+namespace Mourjan;
+
+//use \Mourjan\Dictionary;
 
 class Content {
     const VERSION_NUMBER        	= 3;    
@@ -134,6 +136,8 @@ class Content {
                 ],
             	Content::QUALIFIED:			false
     	];
+    	let this->countryId = 0;
+    	let this->cityId = 0;
     }
 
 
@@ -197,7 +201,7 @@ class Content {
     
     public function setSectionID(int id) -> <Content> {
 
-    	let this->content[Content::ROOT_ID] = \Utils\Dictionary::instance()->getSectionRootId( id );
+    	let this->content[Content::ROOT_ID] = Dictionary::instance()->getSectionRootId( id );
 
         if (this->content[Content::ROOT_ID]>0) {
             let this->content[Content::SECTION_ID]=id;
@@ -408,6 +412,7 @@ class Content {
 
 
 	public function getAsVersion(int version) -> array {
+		this->prepare();
         switch (version) {
             case 2: return this->getAsVersion2();
             case 3: return this->getAsVersion3();
@@ -475,12 +480,27 @@ class Content {
     }
 
 
+    public function prepare() -> void {
+    	if (! Dictionary::instance()->isCountryExists(this->countryId)) {
+    		let this->countryId = 0;
+    		if ( ! empty(this->content[self::REGIONS]) ) {
+    			let this->cityId = this->content[self::REGIONS][0];
+    			let this->countryId = Dictionary::instance()->getCityCountryId(this->cityId);
+    		}
+    	}
+    }
+
 
     public function save(int state=0, <\PDO> pdo) -> void {
-    	//var_dump(db);
-    	var q;
+    	var q, st;
+    	this->prepare();
+    	
+    	if (count( this->content[self::REGIONS] ) > 0 ) {
+    		error_log( var_export(Dictionary::instance()->cities[ this->content[self::REGIONS][0] ], true) );
+    	}
+
     	if (this->getID()>0) {
-            let q = "UPDATE ad_user SET /* Utils/Content *\ ";
+            let q = "UPDATE ad_user SET /* Utils/Content */ ";
             let q.= "content=?, purpose_id=?, section_id=?, rtl=?, country_id=?, city_id=?, latitude=?, longitude=?, state=?, media=? ";
             let q.= "where id=? returning state";
         }
@@ -488,16 +508,17 @@ class Content {
             let q = "INSERT INTO ad_user (content, purpose_id, section_id, rtl, country_id, city_id, latitude, longitude, state, media, web_user_id) ";
             let q.= "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) returning ID";
         }
-        echo q, "\n";
-        var st=pdo->prepare(q);
+        error_log( $q );
+        let st=pdo->prepare(q);
         //var_dump(st);
-       
+
+       	
         st->bindValue(1, \json_encode(this->getAsVersion3()), \PDO::PARAM_STR);
         st->bindValue(2, this->getPurposeID(), \PDO::PARAM_INT);
         st->bindValue(3, this->getSectionID(), \PDO::PARAM_INT);
         st->bindValue(4, this->getNativeRTL(), \PDO::PARAM_INT);
-        //$st->bindValue(5, $this->pending['post']['cn']);
-        //$st->bindValue(6, $this->pending['post']['c']);
+        st->bindValue(5, this->countryId, \PDO::PARAM_INT);
+        st->bindValue(6, this->cityId, \PDO::PARAM_INT);
         st->bindValue(7, this->content[self::LATITUDE]);
         st->bindValue(8, this->content[self::LONGITUDE]);
         st->bindValue(9, this->content[self::STATE], \PDO::PARAM_INT);        

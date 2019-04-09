@@ -99,7 +99,7 @@ class Ad {
     }
     
     
-    public function setDataSet(\Utils\Content $object) : Ad {
+    public function setDataSet(Content $object) : Ad {
         $this->dataset = $object;
         if ($this->dataset->getID()>0 && $this->id()===0) {
             $this->data[Classifieds::ID]=$this->dataset->getID();
@@ -272,7 +272,7 @@ class Ad {
     
     
     public function url() : string {
-        return sprintf($this->data[Classifieds::URI_FORMAT], (Router::getInstance()->language=='ar' ? '' : Router::getInstance()->language.'/'), $this->id());    
+        return sprintf($this->data[Classifieds::URI_FORMAT], (Router::instance()->language=='ar' ? '' : Router::instance()->language.'/'), $this->id());    
     }
     
     
@@ -396,7 +396,7 @@ class Ad {
     
     
     function formattedSinceDate(array $lang) : string {
-        $isArabicInterface = Router::getInstance()->isArabic();
+        $isArabicInterface = Router::instance()->isArabic();
         $stamp='';
         $seconds=\time()-$this->data[Classifieds::UNIXTIME];
         if ($seconds<0) {
@@ -440,7 +440,7 @@ class Ad {
     
     
     private function formatPlural(int $number, string $fieldName, array $lang) : string {
-        $isArabicInterface = Router::getInstance()->isArabic();
+        $isArabicInterface = Router::instance()->isArabic();
         $str='';
         if ($number==1) {
             if ($isArabicInterface) {
@@ -501,7 +501,41 @@ class Ad {
         }
         
         return $result;
-    }   
+    }
+    
+    
+    public function getAdFromAdUserTableForEditing(int $id) : void {
+        $db = Router::instance()->database();
+        $ad = $db->get("SELECT CONTENT, PURPOSE_ID, SECTION_ID, RTL, STATE, COUNTRY_ID, CITY_ID, LATITUDE, LONGITUDE, "
+                . "WEB_USER_ID, MEDIA FROM AD_USER WHERE id=?", [$id]);
+        if (\is_array($ad) && \count($ad)===1) {
+            error_log( var_export( $ad, true) );
+            $this->dataset = new Content();
+            $this->dataset
+                    ->setID($ad[0]['ID'])
+                    ->setState($ad[0]['STATE'])
+                    ->setSectionID($ad[0]['SECTION_ID'])
+                    ->setPurposeID($ad[0]['PURPOSE_ID'])
+                    ->setCountryId($ad[0]['COUNTRY_ID'])
+                    ->setCityId($ad[0]['CITY_ID'])
+                    ->setUID($ad[0]['WEB_USER_ID'])
+                    ->setCoordinate($ad[0]['LATITUDE'], $ad[0]['LONGITUDE']);
+            $ext = \json_decode($ad[0]['CONTENT'], true);
+            $this->dataset
+                    ->setPictures($ext[Content::PICTURES]??[])
+                    ->setBudget($ext[Content::BUDGET]??0)
+                    ->setUserAgent($ext[Content::USER_AGENT]??'')
+                    ;
+            
+            $ext_version = $ext[Content::VERSION]??2;
+            if ($ext_version===3) {
+                $this->dataset->setApp(\substr($ext[Content::APP_NAME], 0, 1), \substr($ext[Content::APP_NAME], 2));                
+            }
+            else {
+                $this->dataset->setApp($ext[Content::APP_NAME]??'unk', $ext[Content::APP_VERSION]??'');
+            }
+        }
+    }
 }
 
 
@@ -580,6 +614,9 @@ class Content {
     
     private $content;
     private $profile;
+    private $countryId;
+    private $cityId;
+    
     
     public function __construct() {
         $this->content = [
@@ -667,6 +704,18 @@ class Content {
     }
     
     
+    public function setCountryId(int $kCountryId) : Content {
+        $this->countryId = $kCountryId;
+        return $this;
+    }
+    
+    
+    public function setCityId(int $kCityId) : Content {
+        $this->cityId = $kCityId;
+        return $this;
+    }
+    
+    
     public function getSectionID() : int {
         return $this->content[self::SECTION_ID];
     }
@@ -697,6 +746,9 @@ class Content {
     
     
     public function setApp(string $name, string $version) : Content {
+        if (\strlen($name)===1) {
+            $name = ($name==='w'?'web':($name==='a'?'android':($name==='i'?'ios':'unk')));
+        }
         $this->content[self::APP_NAME]=$name;
         $this->content[self::APP_VERSION]=$version;
         return $this;
@@ -869,8 +921,26 @@ class Content {
     }
     
     
+    public function prepare() : void {        
+    	if (!Router::instance()->countryExists($this->countryId)) {
+            $this->countryId = 0;
+            $this->cityId = 0;
+            if ( ! empty($this->content[self::REGIONS]) ) {
+                $this->cityId = $this->content[self::REGIONS][0];
+                $this->countryId = Router::instance()->getCountryId($this->cityId);
+            }
+    	}
+        //$c=Router::instance()->countries[2];
+        //unset($c['purposes']);
+        //error_log(json_encode( $c ));
+        if ($this->countryId>0 && $this->cityId===0) {
+            
+        }
+    }
+    
     
     public function save(int $state=0, int $version=3) : bool {
+        $this->prepare();
         $db = Router::instance()->database();
         if ($this->getID()>0) {
             $q = 'UPDATE ad_user set /* ' . __CLASS__ . '.' . __FUNCTION__ . ' */ ';
@@ -882,19 +952,19 @@ class Content {
             $q.= 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) returning ID';
         }
         $st=$db->prepareQuery($q);
-        $st->bindValue(1, \json_encode($adContent), \PDO::PARAM_STR);
+        $st->bindValue(1, \json_encode($this->getAsVersion(3)), \PDO::PARAM_STR);
         $st->bindValue(2, $this->getPurposeID(), \PDO::PARAM_INT);
         $st->bindValue(3, $this->getSectionID(), \PDO::PARAM_INT);
         $st->bindValue(4, $this->getNativeRTL(), \PDO::PARAM_INT);
-        //$st->bindValue(5, $this->pending['post']['cn']);
-        //$st->bindValue(6, $this->pending['post']['c']);
+        $st->bindValue(5, $this->countryId, \PDO::PARAM_INT);
+        $st->bindValue(6, $this->cityId, \PDO::PARAM_INT);
         $st->bindValue(7, $this->content[self::LATITUDE]);
         $st->bindValue(8, $this->content[self::LONGITUDE]);
-        $st->bindValue(9, $this->content[self::STATE], PDO::PARAM_INT);        
-        $st->bindValue(10, (\count($this->content[self::PICTURES])>0?1:0), PDO::PARAM_INT);
-        $st->bindValue(11, $this->getID()>0 ? $this->getID() : $this->getUID(), PDO::PARAM_INT);
+        $st->bindValue(9, $this->content[self::STATE], \PDO::PARAM_INT);        
+        $st->bindValue(10, (\count($this->content[self::PICTURES])>0?1:0), \PDO::PARAM_INT);
+        $st->bindValue(11, $this->getID()>0 ? $this->getID() : $this->getUID(), \PDO::PARAM_INT);
         if ($st->execute()) {
-            if (($result = $st->fetch(PDO::FETCH_ASSOC))!==FALSE) {
+            if (($result = $st->fetch(\PDO::FETCH_ASSOC))!==FALSE) {
                 if ($this->getID()>0) {
                     $this->setState($result['STATE']);
                 }
@@ -925,19 +995,19 @@ class Content {
     
     private function getAsVersion3() : array {
         $rs=[
-            self::CONTACT_INFO => $this->content[self::CONTACT_INFO],            
-            self::USER_LEVEL => $this->content[self::USER_LEVEL],
+            self::CONTACT_INFO  => $this->content[self::CONTACT_INFO],            
+            self::USER_LEVEL    => $this->content[self::USER_LEVEL],
             self::USER_LOCATION => $this->content[self::USER_LOCATION],
-            self::USER_AGENT => $this->content[self::USER_AGENT],
-            self::UI_LANGUAGE => $this->content[self::UI_LANGUAGE],
-            self::IP_ADDRESS => $this->getIpAddress(),
-            self::IP_SCORE => $this->content[self::IP_SCORE],
-            self::QUALIFIED => $this->content[self::QUALIFIED]?1:0,
-            self::BUDGET => $this->content[self::BUDGET],
-            self::NATIVE_TEXT => $this->content[self::NATIVE_TEXT],
+            self::USER_AGENT    => $this->content[self::USER_AGENT],
+            self::UI_LANGUAGE   => $this->content[self::UI_LANGUAGE],
+            self::IP_ADDRESS    => $this->getIpAddress(),
+            self::IP_SCORE      => $this->content[self::IP_SCORE],
+            self::QUALIFIED     => $this->content[self::QUALIFIED]?1:0,
+            self::BUDGET        => $this->content[self::BUDGET],
+            self::NATIVE_TEXT   => $this->content[self::NATIVE_TEXT],
             
-            self::APP_NAME => $this->content[self::APP_NAME][0].'-'.$this->content[self::APP_VERSION],
-            self::VERSION => 3,
+            self::APP_NAME      => $this->content[self::APP_NAME][0].'-'.$this->content[self::APP_VERSION],
+            self::VERSION       => 3,
             
         ];
         unset($rs[self::CONTACT_INFO][self::CONTACT_INFO_BLACKBERRY]);

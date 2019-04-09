@@ -3,8 +3,7 @@
 namespace Core\Lib;
 use MCUser;
 
-libFile('MCUser.php');
-libFile('IPQuality.php');
+\Config::instance()->incLibFile('MCUser')->incLibFile('IPQuality');
 
 class Event {
     const PURCHASE  = 'purchase';

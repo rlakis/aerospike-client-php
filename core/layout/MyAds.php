@@ -913,7 +913,8 @@ class MyAds extends Page {
                 
                 // new look
                 echo "\n",'<article id=', $ad['ID'], ' class="', $adClass, '" data-status=', $ad['STATE'], ' data-fetched=0';
-                if ($this->user()->level()==9) { echo ' data-ro=', $content['ro'], ' data-se=', $content['se'], ' data-pu='.$content['pu']; }
+                
+                if ($this->user()->level()==9) { echo ' data-ro=', $this->router()->getRootId($ad['SECTION_ID']), ' data-se=', $ad['SECTION_ID'], ' data-pu='.$ad['PURPOSE_ID']; }
                 if (isset($content['hl']) && in_array($content['hl'], ['en','ar'])) { echo ' data-hl="',$content['hl'], '"'; }
                 echo '>';
                 echo '<header>';//, $ad['STATE']==2?' class=approved>':'>';

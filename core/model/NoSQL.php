@@ -74,9 +74,7 @@ class NoSQL extends \Singleton {
     const ROLE_VIOLATION                = \Aerospike::ERR_ROLE_VIOLATION;
     const ROLE_ALREADY_EXISTS           = \Aerospike::ERR_ROLE_ALREADY_EXISTS;
     const ERR_GEO_INVALID_GEOJSON       = \Aerospike::ERR_GEO_INVALID_GEOJSON;
-
-    
-    private static $instance = null;
+        
     private $cluster;
     private $configuration = ["hosts" => [["addr"=>"138.201.28.229", "port"=>3000], ["addr"=>"88.99.164.79", "port"=>3000]]];
     private $options = [
@@ -99,6 +97,11 @@ class NoSQL extends \Singleton {
     }
 
 
+    public static function instance() : NoSQL {
+        return static::getInstance();
+    }
+    
+    
     /*
     public static function getInstance() : NoSQL {
         if (!self::$instance) {
@@ -227,8 +230,8 @@ class NoSQL extends \Singleton {
     
     
     public function close() {
-        if (self::$instance && self::$instance->cluster->isConnected()) {
-            self::$instance->cluster->close();
+        if ($this->cluster->isConnected()) {
+            $this->cluster->close();
         }
     }
     

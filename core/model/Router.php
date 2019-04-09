@@ -759,7 +759,7 @@ class Router extends \Singleton {
     }
     
         
-    function cache($force=false) {
+    function cache($force=false) : void {
         if (empty($this->language)) {
             $this->language = 'en';
         }
@@ -786,32 +786,22 @@ class Router extends \Singleton {
             $result = $this->db->getCache()->getMulti(['roots', 'sections', 'purposes', 'cities-dictionary', 'last', $countries_label, $roots_label]); 
             if (isset($result['cities-dictionary'])) {
                 $this->cities = $result['cities-dictionary'];
-                \Utils\Dictionary::instance()->setCities($result['cities-dictionary']);
             }
-            //if (isset($result['publications'])) $this->publications = $result['publications'];
             if (isset($result['roots'])) {
                 $this->roots = $result['roots'];
-                \Utils\Dictionary::instance()->setRoots($result['cities-dictionary']);
             }
             if (isset($result['sections'])) { 
                 $this->sections = $result['sections'];
-                \Utils\Dictionary::instance()->setSections($result['sections']);
             }
             if (isset($result['purposes'])) {
                 $this->purposes = $result['purposes'];
-                \Utils\Dictionary::instance()->setPurposes($result['purposes']);
-            }
-            
-            
-            
+            }                                   
             if (isset($result[$countries_label])) {
                 $this->countries = $result[$countries_label];
-                \Utils\Dictionary::instance()->setCountries($result[$countries_label]);
             }
             
             if (isset($result[$roots_label])) {
                 $this->pageRoots = $result[$roots_label];
-                \Utils\Dictionary::instance()->setPageRoots($result[$roots_label]);
             }
             
             if (isset($result['last'])) $this->last_modified = $result['last'][1][2]; 
@@ -828,18 +818,13 @@ class Router extends \Singleton {
         if ($this->countries===NULL || empty($this->countries)) {
             $this->countries = $this->db->getCountriesData($this->language);
         }
-                
-        //if ($this->publications===NULL || empty($this->publications)) {
-        //    $this->publications = $this->db->getPublications($force);
-        //}
-        
+                        
         if ($this->roots===NULL) {
             $this->roots = $this->db->getRoots($force);
         }
 
         if ($this->sections===NULL){            
             $this->sections = $this->db->getSections($force);
-            \Utils\Dictionary::instance()->setSections($this->sections);
         }
 
         if ($this->purposes===NULL) {
@@ -1102,6 +1087,20 @@ class Router extends \Singleton {
         return $result;        
     }
 
+    
+    public function countryExists(int $country_id) : bool {
+        return isset($this->countries[$country_id]);
+    }
+    
+    
+    public function getRootId(int $section_id) : int {
+        return \intval($this->sections[$section_id][4]);
+    }
+    
+    
+    public function getCountryId(int $city_id) : int {
+        return \intval($this->cities[$city_id][4]);
+    }
     
     function close() : void {
         if ($this->db) { $this->db->close(); }

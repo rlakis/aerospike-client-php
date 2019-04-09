@@ -72,13 +72,13 @@ class Page extends Site {
             $this->router()->config()->setValue('url_css_mobile', $cdn.$this->router()->config()->get('url_css_mobile'));
         }
         
-        if (strpos($this->router()->config()->jQueryURL, 'http')===false) {
-            $this->router()->config()->jQueryURL = $cdn.$this->router()->config()->jQueryURL;
-        }
+        //if (strpos($this->router()->config()->jQueryURL, 'http')===false) {
+        //    $this->router()->config()->jQueryURL = $cdn.$this->router()->config()->jQueryURL;
+        //}
         
-        if (strpos($this->router()->config()->get('url_jquery_mobile'), 'http') ===false) {
-            $this->router()->config()->setValue('url_jquery_mobile', $cdn.$this->router()->config()->get('url_jquery_mobile'));
-        }
+        //if (strpos($this->router()->config()->get('url_jquery_mobile'), 'http') ===false) {
+        //    $this->router()->config()->setValue('url_jquery_mobile', $cdn.$this->router()->config()->get('url_jquery_mobile'));
+        //}
         
         if (strpos($this->router()->config()->imgLibURL, 'http')===false) {
             $this->router()->config()->imgLibURL = $cdn.$this->router()->config()->imgLibURL;
