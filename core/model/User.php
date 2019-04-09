@@ -401,15 +401,15 @@ class User {
     
     
     function updateUserLinkedMobile($uid, $number) {
-        if (($mobile = \Core\Model\NoSQL::getInstance()->mobileFetch($uid, $number))!==FALSE) {
+        if (($mobile = \Core\Model\NoSQL::instance()->mobileFetch($uid, $number))!==FALSE) {
             if (isset($mobile[Core\Model\ASD\SET_RECORD_ID])) {
-                if (Core\Model\NoSQL::getInstance()->mobileActivation($uid, $number, $mobile[Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE]))
+                if (Core\Model\NoSQL::instance()->mobileActivation($uid, $number, $mobile[Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE]))
                 {
                     $this->db->get('update web_users_linked_mobile set activation_timestamp=current_timestamp where uid=? and mobile=?', [$uid, $number]);
                 }
             }
             else {
-                if ($mobile[Core\Model\ASD\SET_RECORD_ID] = Core\Model\NoSQL::getInstance()->
+                if ($mobile[Core\Model\ASD\SET_RECORD_ID] = Core\Model\NoSQL::instance()->
                         mobileInsert([
                                     \Core\Model\ASD\USER_UID=>$uid,
                                     \Core\Model\ASD\USER_MOBILE_NUMBER=>$number,
@@ -429,8 +429,8 @@ class User {
         $original = $pass;
         $pass = md5($this->md5_prefix.$pass);
         $passOk=0;
-        $bins = \Core\Model\NoSQL::getInstance()->fetchUser($userId);
-        if (!empty($bins) && \Core\Model\NoSQL::getInstance()->setPassword($userId, $pass)) {
+        $bins = \Core\Model\NoSQL::instance()->fetchUser($userId);
+        if (!empty($bins) && \Core\Model\NoSQL::instance()->setPassword($userId, $pass)) {
             $opt = $bins[Core\Model\ASD\USER_OPTIONS] ?? [];
             if(isset($opt['validating'])) unset($opt['validating']);
             if(isset($opt['resetting'])) unset($opt['resetting']);
@@ -452,7 +452,7 @@ class User {
                 \Core\Model\ASD\USER_PROFILE_URL=>'https://www.mourjan.com/'
                 ];
         
-        if (NoSQL::getInstance()->addProfile($bins)==NoSQL::OK) {
+        if (NoSQL::instance()->addProfile($bins)==NoSQL::OK) {
             return $bins;
         }
         
@@ -467,7 +467,7 @@ class User {
                 \Core\Model\ASD\USER_PROFILE_URL=>'https://www.mourjan.com/'
                 ];
 
-        if (NoSQL::getInstance()->addProfile($bins)==NoSQL::OK) {
+        if (NoSQL::instance()->addProfile($bins)==NoSQL::OK) {
             return $bins;
         }
 
@@ -492,8 +492,8 @@ class User {
         $userId = $this->pending['user_id'];
         $pass = md5($this->md5_prefix.$pass);
         $passOk=0;
-        $bins = \Core\Model\NoSQL::getInstance()->fetchUser($userId);
-        if (!empty($bins) && \Core\Model\NoSQL::getInstance()->setPassword($userId, $pass)) {
+        $bins = \Core\Model\NoSQL::instance()->fetchUser($userId);
+        if (!empty($bins) && \Core\Model\NoSQL::instance()->setPassword($userId, $pass)) {
             $opt = $bins[Core\Model\ASD\USER_OPTIONS];
             if(isset($opt['validating'])) unset($opt['validating']);
             if(isset($opt['resetting'])) unset($opt['resetting']);
@@ -560,7 +560,7 @@ class User {
         }
         
         $info = false;
-        $user = \Core\Model\NoSQL::getInstance()->fetchUser($id);
+        $user = \Core\Model\NoSQL::instance()->fetchUser($id);
         if (isset($user[\Core\Model\ASD\USER_PROFILE_ID]) && isset($user[\Core\Model\ASD\USER_LEVEL]) && in_array($user[\Core\Model\ASD\USER_LEVEL], [1,2,3,9]))
         {
             $options=$user[Core\Model\ASD\USER_OPTIONS];
@@ -1529,7 +1529,7 @@ class User {
                                         }
                                     }
                                     else { 
-                                        $options = NoSQL::getInstance()->getOptions($uId);// $this->getOptions($uId);
+                                        $options = NoSQL::instance()->getOptions($uId);// $this->getOptions($uId);
                                         if ($options!==false) {
                                             if ( (!isset($options['cut']) || json_encode($options['cut']) !=  json_encode($content['cut'])) ||
                                               (!isset($options['cui']) || json_encode($options['cui']) !=  json_encode($content['cui']))  ){
@@ -1563,7 +1563,7 @@ class User {
                                         $updateOptions=true;
                                     }
                                     else {                            
-                                        $options = NoSQL::getInstance()->getOptions($uId);//$this->getOptions($uId);
+                                        $options = NoSQL::instance()->getOptions($uId);//$this->getOptions($uId);
                                         if ($options!==false) {
                                             if (!isset($options['contact'])) {
                                                 $options['contact']=array();
@@ -1666,22 +1666,22 @@ class User {
     function unblock($uids, $numbers){
         $stmt = $this->db->prepareQuery('delete from bl_phone where telephone = ?');
         foreach($numbers as $number => $bool){
-            Core\Model\NoSQL::getInstance()->removeNumberFromBlacklist($number);            
+            Core\Model\NoSQL::instance()->removeNumberFromBlacklist($number);            
             $stmt->execute([$number]);
         }
         
         foreach ($uids as $uid){
-            NoSQL::getInstance()->setUserLevel($uid, 0);
+            NoSQL::instance()->setUserLevel($uid, 0);
         }
     }
     
     
     function block(int $uid, int $number, string $msg) : int {
         $pass=0;
-        if (Core\Model\NoSQL::getInstance()->blacklistInsert($number, $msg, $uid)) {
-            if (NoSQL::getInstance()->mobileGetLinkedUIDs($number, $linked)== NoSQL::OK) {
+        if (Core\Model\NoSQL::instance()->blacklistInsert($number, $msg, $uid)) {
+            if (NoSQL::instance()->mobileGetLinkedUIDs($number, $linked)== NoSQL::OK) {
                 foreach ($linked as $bins) {
-                    NoSQL::getInstance()->setUserLevel($bins[\Core\Model\ASD\USER_UID], 5);
+                    NoSQL::instance()->setUserLevel($bins[\Core\Model\ASD\USER_UID], 5);
                 }
                         
                 $q = 'update or insert into bl_phone (telephone, subject, web_user_id) values (?, ?, ?) matching(telephone) returning id';
@@ -1703,7 +1703,7 @@ class User {
             $pass=MCSessionHandler::setSuspendMobile($uid, $newModel, $hours*3600, false, $reason);
         }
         else {
-            $options = NoSQL::getInstance()->getOptions($uid);
+            $options = NoSQL::instance()->getOptions($uid);
             if ($options) {                
                 $options['suspend']=time()+($hours*3600);
                 $pass=$this->updateOptions($uid,$options);
@@ -1883,7 +1883,7 @@ class User {
     function setLevel(int $id, int $level) : bool {
         $succeed=false;
         if ($id>0 && $level>=0) {
-            if (\Core\Model\NoSQL::getInstance()->setUserLevel($id, $level)) {
+            if (\Core\Model\NoSQL::instance()->setUserLevel($id, $level)) {
                 $succeed=true;
             }
         }
@@ -1894,7 +1894,7 @@ class User {
     function setType($id, $type) {
         $succeed=false;
         if($id && is_numeric($type)) {
-            return \Core\Model\NoSQL::getInstance()->setUserPublisherStatus($id, $type); 
+            return \Core\Model\NoSQL::instance()->setUserPublisherStatus($id, $type); 
         }
         return $succeed;
     }
@@ -1968,7 +1968,7 @@ class User {
     
     
     function reloadData($id) {
-        $bins= \Core\Model\NoSQL::getInstance()->fetchUser($id);
+        $bins= \Core\Model\NoSQL::instance()->fetchUser($id);
         if (!empty($bins)) {
             $this->setUserParams($bins, TRUE);
             $this->update();
@@ -1985,8 +1985,8 @@ class User {
     
     
     function authenticateById($id, $key) {
-        Core\Model\NoSQL::getInstance()->updateProfileVisitTime([\Core\Model\ASD\USER_UID=>$id]);
-        $bins = Core\Model\NoSQL::getInstance()->fetchUser($id);
+        Core\Model\NoSQL::instance()->updateProfileVisitTime([\Core\Model\ASD\USER_UID=>$id]);
+        $bins = Core\Model\NoSQL::instance()->fetchUser($id);
         if (isset($bins[\Core\Model\ASD\USER_PROFILE_ID]) && isset($bins[Core\Model\ASD\USER_PROVIDER_ID])) {
             if (md5($bins[Core\Model\ASD\USER_PROVIDER_ID])==$key) {
                 $this->setUserParams($bins, TRUE);
@@ -2000,14 +2000,14 @@ class User {
         if($this->session_id=='') {
             $this->session_id = session_id();
         }
-        $bins = Core\Model\NoSQL::getInstance()->fetchUser($id);
+        $bins = Core\Model\NoSQL::instance()->fetchUser($id);
         if (isset($bins[\Core\Model\ASD\USER_PROFILE_ID])) {
             $pv = $bins[Core\Model\ASD\USER_LAST_VISITED] ?? 0;
             $this->setUserParams($bins, TRUE);
             $this->update();
 
             if ((time()-$pv)>1800) {
-                Core\Model\NoSQL::getInstance()->updateProfileVisitTime([\Core\Model\ASD\USER_UID=>$id]);
+                Core\Model\NoSQL::instance()->updateProfileVisitTime([\Core\Model\ASD\USER_UID=>$id]);
             }
             return 1;
         }
@@ -2020,7 +2020,7 @@ class User {
         
         $bins = FALSE;
         if (preg_match('/@/',$identifier) || preg_match('/^\+/', $identifier)) {
-            $status=Core\Model\NoSQL::getInstance()->fetchUserByProviderId($identifier, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $bins);
+            $status=Core\Model\NoSQL::instance()->fetchUserByProviderId($identifier, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $bins);
             if($status === NoSQL::ERR_RECORD_NOT_FOUND){
                 return -1;
             }
@@ -2071,8 +2071,8 @@ class User {
     function authenticateByEmail($email, $pass) {
         $_status = $this->authenticateUserAccount($email, $pass);
         if ($_status>0) {
-            Core\Model\NoSQL::getInstance()->updateProfileVisitTime([\Core\Model\ASD\USER_PROVIDER_ID=>$email, \Core\Model\ASD\USER_PROVIDER=>\Core\Model\ASD\USER_PROVIDER_MOURJAN]);
-            $_ret = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $bins);
+            Core\Model\NoSQL::instance()->updateProfileVisitTime([\Core\Model\ASD\USER_PROVIDER_ID=>$email, \Core\Model\ASD\USER_PROVIDER=>\Core\Model\ASD\USER_PROVIDER_MOURJAN]);
+            $_ret = Core\Model\NoSQL::instance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $bins);
             if ($_ret==NoSQL::OK) {        
                 $this->setUserParams($bins, TRUE);
                 if (isset($this->pending['fav'])) {
@@ -2115,7 +2115,7 @@ class User {
                 \Core\Model\ASD\USER_OPTIONS=> is_array($opts) ? $opts : json_decode($opts, TRUE),            
                 ];
        
-        return (NoSQL::getInstance()->modProfile([\Core\Model\ASD\USER_UID=>$id], $bins)==NoSQL::OK);
+        return (NoSQL::instance()->modProfile([\Core\Model\ASD\USER_UID=>$id], $bins)==NoSQL::OK);
     }
     
      
@@ -2136,14 +2136,14 @@ class User {
             $fullName=trim(($info->firstName ? $info->firstName : '').' '.($info->lastName ? $info->lastName : ''));
             $dispName=(!is_null($info->displayName) ? $info->displayName : '');
             $infoStr=(!is_null($info->profileURL) ? $info->profileURL : '');
-            $status = NoSQL::getInstance()->getProfileRecord([\Core\Model\ASD\USER_PROVIDER_ID=>$identifier, \Core\Model\ASD\USER_PROVIDER=>$provider], $profile);
+            $status = NoSQL::instance()->getProfileRecord([\Core\Model\ASD\USER_PROVIDER_ID=>$identifier, \Core\Model\ASD\USER_PROVIDER=>$provider], $profile);
         }
         
         try {
             if($newUid==0) {
                 if ($status==NoSQL::OK) {
                     // user aleady exists
-                    if (($ret=NoSQL::getInstance()->modProfile(
+                    if (($ret=NoSQL::instance()->modProfile(
                                     [\Core\Model\ASD\USER_PROVIDER_ID=>$identifier, \Core\Model\ASD\USER_PROVIDER=>$provider],
                                     [\Core\Model\ASD\USER_PROVIDER_ID => $identifier,
                                      \Core\Model\ASD\USER_EMAIL => $email,
@@ -2152,7 +2152,7 @@ class User {
                                      \Core\Model\ASD\USER_DISPLAY_NAME => $dispName,
                                      \Core\Model\ASD\USER_PROFILE_URL => $infoStr], 
                                     TRUE))==NoSQL::OK) {
-                        $ret = NoSQL::getInstance()->getProfileRecord([\Core\Model\ASD\USER_PROVIDER_ID=>$identifier, \Core\Model\ASD\USER_PROVIDER=>$provider], $bins);
+                        $ret = NoSQL::instance()->getProfileRecord([\Core\Model\ASD\USER_PROVIDER_ID=>$identifier, \Core\Model\ASD\USER_PROVIDER=>$provider], $bins);
                     }
                 }
                 else if ($status==NoSQL::ERR_RECORD_NOT_FOUND) {
@@ -2164,7 +2164,7 @@ class User {
                             \Core\Model\ASD\USER_DISPLAY_NAME => $dispName,
                             \Core\Model\ASD\USER_PROFILE_URL => $infoStr];
                     
-                    $ret = NoSQL::getInstance()->addProfile($bins);                                  
+                    $ret = NoSQL::instance()->addProfile($bins);                                  
                 } 
                 else {
                     $ret = $status;
@@ -2178,10 +2178,10 @@ class User {
                 }                                         
             }
             else {
-                $ret = NoSQL::getInstance()->getProfileRecord([\Core\Model\ASD\USER_UID=>$newUid], $bins);
+                $ret = NoSQL::instance()->getProfileRecord([\Core\Model\ASD\USER_UID=>$newUid], $bins);
                 if ($ret==NoSQL::OK) {                    
                     $newUserId = $bins[\Core\Model\ASD\USER_PROFILE_ID];                
-                    NoSQL::getInstance()->updateProfileVisitTime([\Core\Model\ASD\USER_UID=>$newUserId]);
+                    NoSQL::instance()->updateProfileVisitTime([\Core\Model\ASD\USER_UID=>$newUserId]);
                 } 
                 else {
                      error_log(__FUNCTION__ ." User Record Not Found");
@@ -2190,17 +2190,17 @@ class User {
                      
             
             if ($newUserId) {                
-                if (!NoSQL::getInstance()->deviceSetUID($uuid, $newUserId, $uid)) {
+                if (!NoSQL::instance()->deviceSetUID($uuid, $newUserId, $uid)) {
                     if ($newUid==393142 || $uuid=='773FDB13-965C-4A5D-B7F7-83B7852FA567') {
                         NoSQL::Log('Falied');
                     }
                 }
                         
-                if (NoSQL::getInstance()->deviceUpdate($uuid, [\Core\Model\ASD\USER_UID=>$newUserId])) {                    
+                if (NoSQL::instance()->deviceUpdate($uuid, [\Core\Model\ASD\USER_UID=>$newUserId])) {                    
                     $mcUser = new MCUser($uid);
                     if($mcUser->isMobileVerified()) {
                         $mobile = $mcUser->getMobile(true);                                
-                        \Core\Model\NoSQL::getInstance()->mobileCopyRecord($uid, $mobile->getNumber(), $newUserId);
+                        \Core\Model\NoSQL::instance()->mobileCopyRecord($uid, $mobile->getNumber(), $newUserId);
                     }
                     
                     if ($mcUser->getProvider()=='mourjan-android' || $forceDataMerge) {
@@ -2358,18 +2358,18 @@ class User {
                 \Core\Model\ASD\USER_DISPLAY_NAME => $dispName,
                 \Core\Model\ASD\USER_PROFILE_URL => $infoStr];
         
-        $status = NoSQL::getInstance()->getProfileRecord([\Core\Model\ASD\USER_PROVIDER_ID=>$identifier, \Core\Model\ASD\USER_PROVIDER=>$provider], $profile);
+        $status = NoSQL::instance()->getProfileRecord([\Core\Model\ASD\USER_PROVIDER_ID=>$identifier, \Core\Model\ASD\USER_PROVIDER=>$provider], $profile);
         switch ($status) {
             case NoSQL::OK: {
-                $ret = NoSQL::getInstance()->modProfile([\Core\Model\ASD\USER_PROVIDER_ID=>$identifier, \Core\Model\ASD\USER_PROVIDER=>$provider], $bins, TRUE); 
+                $ret = NoSQL::instance()->modProfile([\Core\Model\ASD\USER_PROVIDER_ID=>$identifier, \Core\Model\ASD\USER_PROVIDER=>$provider], $bins, TRUE); 
                 if ($ret==NoSQL::OK) {
-                    $ret = NoSQL::getInstance()->getProfileRecord([\Core\Model\ASD\USER_PROVIDER_ID=>$identifier, \Core\Model\ASD\USER_PROVIDER=>$provider], $bins);
+                    $ret = NoSQL::instance()->getProfileRecord([\Core\Model\ASD\USER_PROVIDER_ID=>$identifier, \Core\Model\ASD\USER_PROVIDER=>$provider], $bins);
                 }
             } break;
             
             case NoSQL::ERR_RECORD_NOT_FOUND: {
                 $this->pending['social_new']=1;                                                  
-                $ret = NoSQL::getInstance()->addProfile($bins);    
+                $ret = NoSQL::instance()->addProfile($bins);    
             } break;
 
             default:
@@ -2396,8 +2396,8 @@ class User {
             }
             
             $ul = $this->info['options']['lang'] ?? '';
-            if ($ul!=Core\Model\Router::getInstance()->language) {
-                $this->info['options']['lang'] = Core\Model\Router::getInstance()->language;
+            if ($ul!=Core\Model\Router::instance()->language) {
+                $this->info['options']['lang'] = Core\Model\Router::instance()->language;
                 $updateOptions=true;
             }            
             
@@ -2444,7 +2444,7 @@ class User {
         
         $succeed=false;
         $bins = [\Core\Model\ASD\USER_PROVIDER_EMAIL=>$email, Core\Model\ASD\USER_OPTIONS=>$this->info['options']];
-        $status = NoSQL::getInstance()->modProfile([\Core\Model\ASD\USER_UID=>$this->info['id']], $bins);
+        $status = NoSQL::instance()->modProfile([\Core\Model\ASD\USER_UID=>$this->info['id']], $bins);
         if ($status==NoSQL::OK) {
             $succeed=true;
             if($this->info['level']==6) {
@@ -2508,7 +2508,7 @@ class User {
             $id= $this->info['id'];
         }
         
-        if (\Core\Model\NoSQL::getInstance()->setUserBin($id, Core\Model\ASD\USER_OPTIONS, json_decode($options, TRUE))) {
+        if (\Core\Model\NoSQL::instance()->setUserBin($id, Core\Model\ASD\USER_OPTIONS, json_decode($options, TRUE))) {
             $succeed = TRUE;            
         }
                 
