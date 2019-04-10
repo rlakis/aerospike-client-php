@@ -2487,10 +2487,14 @@ class Bin extends AjaxHandler{
                 
                 if ($content->save(0)) {
                     $ad->getAdFromAdUserTableForEditing($content->getID());
+                    $this->resp['result']=$ad->getDataSet()->getData();                    
+                    $this->success();
                 }
                 else {
-                    
+                    $this->error(self::ERR_SYS_FAILURE, ['message'=>'??']);
                 }
+                
+                if (1) { return; }
                 
                 $this->error(self::ERR_SYS_MAINTENANCE);
                 
@@ -3569,7 +3573,7 @@ class Bin extends AjaxHandler{
                                 if ($type==1) {                                                                                                                                
                                     //error_log("rtp {$to}");
                                     $bins=['RTP'=>1];                                        
-                                    if (MobileValidation::instance()->sendEdigearRTPRequest($to, $record[0]['WEB_USER_ID'], $mobile_number, $bins)) {
+                                    if (MobileValidation::getInstance()->sendEdigearRTPRequest($to, $record[0]['WEB_USER_ID'], $mobile_number, $bins)) {
                                         $user_lang = $content['hl']??'en';
                                         if ($rtp==2) {//rejected and pending                                                  
                                             if ($user_lang==='ar') {

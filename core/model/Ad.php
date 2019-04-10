@@ -117,6 +117,9 @@ class Ad {
         return $this;
     }
     
+    public function getDataSet() : Content {
+        return $this->dataset;
+    }
     /*
     public function setText(string $value) : Ad {
         $this->text=\trim($value);
@@ -509,10 +512,10 @@ class Ad {
         $ad = $db->get("SELECT CONTENT, PURPOSE_ID, SECTION_ID, RTL, STATE, COUNTRY_ID, CITY_ID, LATITUDE, LONGITUDE, "
                 . "WEB_USER_ID, MEDIA FROM AD_USER WHERE id=?", [$id]);
         if (\is_array($ad) && \count($ad)===1) {
-            error_log( var_export( $ad, true) );
+            //error_log( var_export( $ad, true) );
             $this->dataset = new Content();
             $this->dataset
-                    ->setID($ad[0]['ID'])
+                    ->setID($id)
                     ->setState($ad[0]['STATE'])
                     ->setSectionID($ad[0]['SECTION_ID'])
                     ->setPurposeID($ad[0]['PURPOSE_ID'])
@@ -525,11 +528,19 @@ class Ad {
                     ->setPictures($ext[Content::PICTURES]??[])
                     ->setBudget($ext[Content::BUDGET]??0)
                     ->setUserAgent($ext[Content::USER_AGENT]??'')
+                    ->setContactInfo($ext[Content::CONTACT_INFO])
+                    ->setRegions($ext[Content::REGIONS]??[])
+                    ->setUserLanguage($ext[Content::UI_LANGUAGE]??'en')
+                    ->setLocation($ext[Content::LOCATION]??'')
+                    ->setNativeText($ext[Content::NATIVE_TEXT])
+                    ->setForeignText($ext[Content::FOREIGN_TEXT])
+                    ->setQualified(($ext[Content::QUALIFIED]))           
                     ;
             
+                    
             $ext_version = $ext[Content::VERSION]??2;
             if ($ext_version===3) {
-                $this->dataset->setApp(\substr($ext[Content::APP_NAME], 0, 1), \substr($ext[Content::APP_NAME], 2));                
+                $this->dataset->setApp(\substr($ext[Content::APP_NAME], 0, 1), \substr($ext[Content::APP_NAME], 2));
             }
             else {
                 $this->dataset->setApp($ext[Content::APP_NAME]??'unk', $ext[Content::APP_VERSION]??'');
@@ -612,7 +623,7 @@ class Content {
     const QUALIFIED             = 'qualified';
     const VERSION               = 'version';
     
-    private $content;
+    protected $content;
     private $profile;
     private $countryId;
     private $cityId;
@@ -795,6 +806,12 @@ class Content {
     }
     
     
+    public function setContactInfo(array $cui) : Content {
+        $this->content[Content::CONTACT_INFO] = $cui;
+        return $this;
+    }
+
+
     public function addPhone(int $country_callkey, string $country_iso_code, string $raw_number, int $number_type, string $international_number) : Content {
         $this->content[self::CONTACT_INFO][self::CONTACT_INFO_PHONE][]=[
             self::CONTACT_INFO_PHONE_COUNTRY_CODE   => $country_callkey,
@@ -879,6 +896,11 @@ class Content {
         return $this;
     }
     
+    public function setRegions(array $regions) : Content {
+        $this->content[self::REGIONS]= \array_values($regions);
+        return $this;
+    }
+
     
     public function setCoordinate(float $lat, float $lng) : Content {
         $this->content[self::LATITUDE]=$lat;
