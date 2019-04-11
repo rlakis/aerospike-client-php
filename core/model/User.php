@@ -212,19 +212,19 @@ class User {
                     }
                 }
                 
-                $device = new \Detection\MobileDetect();
-                if ($device->isMobile()) {
-                    if ( $device->isiOS() ) {
-                        if(preg_replace('/_.*/','',$device->version('iPhone')) > 7) {
-                            $this->params['mobile_ios_app_bottom_banner']=1;
-                        }
-                    }
-                    
-                    if ( $device->isAndroidOS() ) {
-                        $this->params['mobile_android_app_bottom_banner']=1;
-                    }
-                }
-                else {
+//                $device = new \Detection\MobileDetect();
+//                if ($device->isMobile()) {
+//                    if ( $device->isiOS() ) {
+//                        if(preg_replace('/_.*/','',$device->version('iPhone')) > 7) {
+//                            $this->params['mobile_ios_app_bottom_banner']=1;
+//                        }
+//                    }
+//                    
+//                    if ( $device->isAndroidOS() ) {
+//                        $this->params['mobile_android_app_bottom_banner']=1;
+//                    }
+//                }
+//                else {
                 
                     $browser = new Browser();
                     $bname = $browser->getName();
@@ -268,7 +268,7 @@ class User {
                             $this->params['browser_link']='https://www.google.com/intl/en/chrome/browser/?brand=CHMO#eula';
                         }
                     }
-                }
+                //}
             }
 
             $this->update();
@@ -1437,7 +1437,7 @@ class User {
         //$this->pending['post']['title']='test';
         
         $ad_is_saved=FALSE;
-        
+        error_log (__FUNCTION__ . get_called_class());
         try {
             Config::instance()->incLibFile('IPQuality')->incLibFile('MCSaveHandler');
             if ($userId) {                
@@ -1455,13 +1455,13 @@ class User {
                 if ($normalized) {
                     $content = $normalized;
                     
-                    if ($content['se']!=$this->pending['post']['se']) {
-                        $this->pending['post']['se']=$content['se'];
-                    }
+                    //if ($content['se']!=$this->pending['post']['se']) {
+                    //    $this->pending['post']['se']=$content['se'];
+                    //}
                     
-                    if ($content['pu']=$this->pending['post']['pu']) {
-                        $this->pending['post']['pu']=$content['pu'];
-                    }
+                    //if ($content['pu']=$this->pending['post']['pu']) {
+                    //    $this->pending['post']['pu']=$content['pu'];
+                    //}
                 }                
                                                 
                 $this->pending['post']['content']=json_encode($content);
@@ -1997,7 +1997,7 @@ class User {
     
     
     function sysAuthById($id) {
-        if($this->session_id=='') {
+        if ($this->session_id==='') {
             $this->session_id = session_id();
         }
         $bins = Core\Model\NoSQL::instance()->fetchUser($id);
@@ -2660,8 +2660,8 @@ class User {
     }
     
 
-    function loadFavorites($forceSetting=false) {
-        $forceSetting=TRUE;
+    function loadFavorites(bool $forceSetting=false) : void {
+        //$forceSetting=TRUE;
         $label='favs_'.$this->info['id'];
         $foo = $this->db->getCache()->get($label);
         if ($forceSetting || ($foo===FALSE)) {
@@ -2864,7 +2864,7 @@ class User {
             if ($this->data->getID()==$this->info['id']) {
                 $this->info['level'] = $this->data->getLevel();
                 $this->info['verified'] = $this->data->isMobileVerified();
-                $this->data->getOptions()->setSuspensionTime($this->data->getMobile(TRUE)->getSuspendSeconds());
+                $this->data->getOptions()->setSuspensionTime($this->data->getMobile()->getSuspendSeconds());
                 $this->data->createToken();
                 $this->update();
             }

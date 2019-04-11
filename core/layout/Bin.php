@@ -231,35 +231,42 @@ class Bin extends AjaxHandler{
                 $se = $this->post('s');
                 $pu = $this->post('p');
                     
+                error_log("pu ". $pu);
                 if ($se) { $ro = $this->router()->sections[$se][4]; }
                 if ($ro==4) { $pu = 5; }
                     
                 $text = $this->_JPOST['t']??'';
-                $textIdx = $this->post('dx');
+                $textIdx = \intval($this->post('dx'));
                 $textRtl = $this->post('rtl');
                                                            
                 $this->router()->db->setWriteMode();  
-                    
-                $ad=$this->user->getPendingAds($id);
-                if (empty($ad)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                
+                
+                
+                $ad = new Core\Model\Ad();
+                $ad->getAdFromAdUserTableForEditing($id);
+                if ($ad->id()===0) { $this->error(self::ERR_DATA_INVALID_PARAM); }
 
                 $textOnly=false;
                 $imgAdmin = $this->get('img', 'boolean');
                 $imgIdx = $this->getGetInt('ix', -1);
                 $pixPath = $this->getGetString('pix');
                     
-                $ad=$ad[0];
-                $content=\json_decode($ad['CONTENT'], true);
-                        
+                //$ad=$ad[0];
+                //$content=\json_decode($ad['CONTENT'], true);
+                $content = $ad->dataset()->getOldContent();
                 if ($imgAdmin) {
                     $newImgs = [];
                     $i=0;
                     $imageToRemove = '';
                     if ($pixPath) {
                         $imageToRemove = $pixPath;
-                        foreach($content['pics'] as $img => $dim) {
-                             if ($img!==$pixPath) { $newImgs[$img]=$dim; }                                 
-                         }
+                        foreach ($ad->dataset()->getPictures() as $pp => $dim) {
+                            if ($pp!==$pixPath) { $newImgs[$pp]=$dim; }
+                        }
+                        //foreach($content['pics'] as $img => $dim) {
+                        //     if ($img!==$pixPath) { $newImgs[$img]=$dim; }                                 
+                        // }
                     }                                                        
                             
                     if ($imageToRemove) {
@@ -268,80 +275,88 @@ class Bin extends AjaxHandler{
                             $this->router()->db->queryResultArray('delete from ad_media where ad_id=? and media_id=?',[$id, $media[0]['ID']], true);
                         }
                     }
-                            
+                           
+                    $ad->dataset()->setPictures($newImgs);
                     $content['pics']=$newImgs;
                             
                     $images='';
-                    if (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])) {
-                        $pass=0;
-                        foreach($content['pics'] as $img => $dim){
-                            if ($pass===0) { $content['pic_def']=$img; }
-                            if ($images) { $images.="||"; }
-                                $images.='<img width="118" src="'.$this->router()->config()->adImgURL.'/repos/s/'.$img.'" />';
-                                $pass=1;
-                        }
+                    foreach ($ad->dataset()->getPictures() as $pp => $dim) {
+                        if ($images) { $images.="||"; }
+                        $images.='<img width="118" src="'.$this->router()->config()->adImgURL.'/repos/s/'.$pp.'" />';                        
                     }
-                    else {
-                        unset($content['pic_def']);
-                        $content['extra']['p']=2;
-                    }
+                    
+                    //if (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])) {
+                    //    $pass=0;
+                    //    foreach($content['pics'] as $img => $dim){
+                    //        if ($pass===0) { $content['pic_def']=$img; }
+                    //        if ($images) { $images.="||"; }
+                    //            $images.='<img width="118" src="'.$this->router()->config()->adImgURL.'/repos/s/'.$img.'" />';
+                    //            $pass=1;
+                    //    }
+                    //}
+                    //else {
+                    //    unset($content['pic_def']);
+                    //    $content['extra']['p']=2;
+                    //}
 
                     if ($images) { $images.="||"; }
-                    $images.='<img class="ir" src="'.$this->router()->config()->imgURL.'/90/' . $ad['SECTION_ID'] . $this->router()->_png .'" />';                            
+                    $images.='<img class=ir src="'.$this->router()->config()->imgURL.'/90/' . $ad->sectionId() . $this->router()->_png .'" />';
+                    
                 }
-                        
-                if ($ro) { $content['ro']=$ro; }
+                
+                $version=$ad->dataset()->getVerion();
+                if ($version<3 && $ro) { $content['ro']=$ro; }
                         
                 if ($se) {
-                    $content['se']=$se;
-                    $ad['SECTION_ID']=$se;
+                    $ad->setSectionID($se);
+                    if ($version<3) { $content['se']=$se; }
                 }
                         
-                if ($pu) {                            
-                    $content['pu']=$pu;
-                    $ad['PURPOSE_ID']=$pu;
+                if ($pu) {
+                    $ad->setPurposeID($pu);
+                    if ($version<3) { $content['pu']=$pu; }
                 }
                         
                 if ($textIdx) {
-                    $text=trim($text);
-                    if ($text) {
-                        $text.=\json_decode('"\u200b"').' '.$this->user->parseUserAdTime($content['cui'], $content['cut'], $textRtl);
+                    $text = \trim($text);
+                    if (!empty($text)) {
+                        $text .= \json_decode('"\u200b"') . ' ' . $this->user->parseUserAdTime($content['cui'], $content['cut']??[], $textRtl);
                     }
-                    $textOnly=true;
-                    if ($textIdx==1) {
-                        $content['other']=$text;
-                        $content['rtl']=$textRtl;
+                    $textOnly = true;
+                    if ($textIdx===1) {
+                        $content['other'] = $text;
+                        $content['rtl'] = $textRtl;
                     }
                     else {
-                        $content['altother']=$text;
-                        $content['altRtl']=$textRtl;
+                        $content['altother'] = $text;
+                        $content['altRtl'] = $textRtl;
                     }
                 }
                         
-                if (empty($content['other']) && $content['altother']){
-                    $content['other']=$content['altother'];
-                    $content['rtl']=$content['altRtl'];
-                    $content['altother']='';
-                    $content['altRtl']=0;
-                    $textIdx=1;
-                }
+                //if (empty($content['other']) && $content['altother']){
+                //    $content['other']=$content['altother'];
+                //    $content['rtl']=$content['altRtl'];
+                //    $content['altother']='';
+                //    $content['altRtl']=0;
+                //    $textIdx=1;
+                //}
                                                 
                 // fix here
                 Config::instance()->incLibFile('MCSaveHandler');
                 $normalizer = new MCSaveHandler();    
-                $normalized = $normalizer->getFromContentObject($content, false);
+                $normalized = $normalizer->getFromContentObject( $content, false);
                 if ($normalized) { $content=$normalized; }
-                $text = $content['other'];
-                $rtl = $content['rtl'];
+                $text = $content['other']??'';
+                $rtl = $content['rtl']??0;
                 $text2 = isset($content['altother']) ? $content['altother'] : '';
                 $rtl2 = isset($content['altRtl']) ? $content['altRtl'] : '';                        
-                if ($text2=='') { $content['extra']['t']=2; }
-                $root= $content['ro'];
-                $section=$content['se'];
-                $purpose=$content['pu'];
+                //if ($text2=='') { $content['extra']['t']=2; }
+                //$root = $content['ro'];
+                //$section = $content['se'];
+                //$purpose = $content['pu'];
             
-                $content = \json_encode($content);                                            
-                if ($this->router()->db->queryResultArray('update ad_user set content=?, section_id=?, purpose_id=? where id=?', [$content, $section, $purpose, $id])) {
+                //$content = \json_encode($content);                                            
+                if ($this->router()->db->queryResultArray('update ad_user set content=?, section_id=?, purpose_id=? where id=?', [\json_encode($content), $ad->sectionId(), $ad->purposeId(), $id])) {
                     if ($imgAdmin) {
                         $redisAction = 'editorialImg'; 
                         $this->response('sic', $images);
@@ -357,11 +372,11 @@ class Bin extends AjaxHandler{
                         $this->response('index', $textIdx);
                     }
                     else {                                
-                        $label = $this->getAdSection($ad, $root);
+                        $label = $this->getAdSection($ad, $ad->rootId());
                         $this->response('label', $label);
-                        $this->response('ro', $root);
-                        $this->response('se', $section);
-                        $this->response('pu', $purpose);
+                        $this->response('ro', $ad->rootId());
+                        $this->response('se', $ad->sectionId());
+                        $this->response('pu', $ad->purposeId());
                         $redisAction = 'editorialUpdate';
                     }
                     $this->response('id', $id);
@@ -1762,6 +1777,12 @@ class Bin extends AjaxHandler{
                         $aid=\filter_input(\INPUT_GET, 'aid', \FILTER_SANITIZE_NUMBER_INT);
                         
                         if ($aid>0) {
+                            $ad = new Core\Model\Ad();
+                            $ad->getAdFromAdUserTableForEditing($aid);
+                            if ($ad->id()>0) {
+                                $this->response('ad', $ad->dataset()->getForEditor());
+                            }
+                            /*
                             $ad=$this->user()->getPendingAds($aid);
                             
                             if(\is_array($ad) && \count($ad)===1){
@@ -1777,7 +1798,7 @@ class Bin extends AjaxHandler{
                                 $cnt['lat']=$ad[0]['LATITUDE'];
                                 $cnt['lon']=$ad[0]['LONGITUDE'];
                                 $this->response('ad', $cnt);
-                            }                                                   
+                            }   */                                                
                         }
                     }
                     
@@ -2441,9 +2462,12 @@ class Bin extends AjaxHandler{
                 $ad = new Core\Model\Ad();
                 $content = new Core\Model\Content();
                 $content->setID($_ad['id']??0)->setUID($_ad['user']??0)->setState($_ad['state']??0)
-                        ->setSectionID($_ad['se']??0)->setPurposeID($_ad['pu']??0)->setApp($_ad['app']??'', $_ad['app_v']??'')
+                        ->setSectionID($_ad['se']??0)
+                        ->setPurposeID($_ad['pu']??0)
+                        ->setApp($_ad['app']??'', $_ad['app_v']??'')
                         ->setVersion($_ad['version']??Core\Model\Content::VERSION_NUMBER)
-                        ->setIpAddress($_ad['ip']??IPQuality::getClientIP())->setIpScore($_ad['ipfs']??0);
+                        ->setIpAddress($_ad['ip']??IPQuality::getClientIP())
+                        ->setIpScore($_ad['ipfs']??0);
                 
                 if (isset($_ad['cui']) && \is_array($_ad['cui'])) {                    
                     if (isset($_ad['cui']['p']) && \is_array($_ad['cui']['p'])) {
@@ -2453,20 +2477,29 @@ class Bin extends AjaxHandler{
                     }
                 }
                 
-                $content->setEmail($_ad['cui']['e']??'')->setUserLanguage($_ad['hl']??'ar')
-                        ->setNativeText($_ad['other']??'')->setForeignText($_ad['altother']??'')
-                        ->setPictures($_ad['pics']??[])->addRegions($_ad['pubTo']??[])
-                        ->setCoordinate($_ad['lat']??0, $_ad['lon']??0)->setLocation($_ad['loc']??'');
+                $content->setEmail($_ad['cui']['e']??'')
+                        ->setUserLanguage($_ad['hl']??'ar')
+                        ->setNativeText($_ad['other']??'')
+                        ->setForeignText($_ad['altother']??'')
+                        ->setPictures($_ad['pics']??[])
+                        ->setRegions($_ad['pubTo']??[])
+                        ->setCoordinate($_ad['lat']??0, $_ad['lon']??0)
+                        ->setLocation($_ad['loc']??'');
      
                 if ($content->getID()>0) {
-                    $old=$this->user()->getPendingAds($content->getID());
-                    $content->setUID($old['user']??0);                    
-                                        
-                    if (\is_array($old) && \count($old)===1) {
-                        $previous=\json_decode($old[0]['CONTENT'], true);
-                        $content->setUserAgent($previous['agent']??'')->setIpAddress($previous['ip']??'')
-                                ->setIpScore($previous['ipfs']??0)->setQualified($previous['qualified']??false);
-                        //$this->router()->logger()->info('old', $previous);
+                    $oad = new Core\Model\Ad();
+                    $oad->getAdFromAdUserTableForEditing($content->getID());
+                    if ($oad->id()>0) {
+                        $content->setUID($oad->uid());
+                        if ($content->getUID()!==$this->user()->id()) {
+                            $content->setUserAgent($oad->dataset()->getUserAgent())
+                                    ->setUserLanguage($oad->dataset()->getUserLanguage())
+                                    ->setIpAddress($oad->dataset()->getIpAddress())
+                                    ->setIpScore($oad->dataset()->getIpScore())
+                                    ->setQualified($oad->dataset()->isQualified())
+                                    ;
+                            
+                        }
                     }
                 }
                                 
@@ -2487,7 +2520,7 @@ class Bin extends AjaxHandler{
                 
                 if ($content->save(0)) {
                     $ad->getAdFromAdUserTableForEditing($content->getID());
-                    $this->resp['result']=$ad->getDataSet()->getData();                    
+                    $this->resp['result']=$ad->dataset()->getForEditor();                    
                     $this->success();
                 }
                 else {
@@ -5542,36 +5575,38 @@ class Bin extends AjaxHandler{
     }
     
     
-    function getAdSection($ad, $rootId=0) : string {
+    function getAdSection(Core\Model\Ad $ad, int $rootId=0) : string {
         $section='';
-        switch($ad['PURPOSE_ID']){
+        switch($ad->purposeId()){
             case 1:
             case 2:
             case 999:
             case 8:
-                $section=$this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex].' '.$this->router()->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex];
+                $section=$this->router()->sections[$ad->sectionId()][$this->fieldNameIndex].' '.$this->router()->purposes[$ad->purposeId()][$this->fieldNameIndex];
                 break;
             case 6:
             case 7:
-                $section=$this->router()->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].' '.$this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
+                $section=$this->router()->purposes[$ad->purposeId()][$this->fieldNameIndex].' '.$this->router()->sections[$ad->sectionId()][$this->fieldNameIndex];
                 break;
             case 3:
             case 4:
             case 5:
-                if (preg_match('/'.$this->router()->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].'/', $this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex])) {
-                    $section=$this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
+                if (preg_match('/'.$this->router()->purposes[$ad->purposeId()][$this->fieldNameIndex].'/', $this->router()->sections[$ad->sectionId()][$this->fieldNameIndex])) {
+                    $section=$this->router()->sections[$ad->sectionId()][$this->fieldNameIndex];
                 }
                 else {
                     $in=' ';
-                    if ($this->router()->language=='en')$in=' '.$this->lang['in'].' ';
-                    $section=$this->router()->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].$in.$this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
+                    if ($this->router()->language==='en') { $in=' '.$this->lang['in'].' '; }
+                    $section=$this->router()->purposes[$ad->purposeId()][$this->fieldNameIndex].$in.$this->router()->sections[$ad->sectionId()][$this->fieldNameIndex];
                 }
                 break;
         }
            
-        $adContent = json_decode($ad['CONTENT'], true);
-        $countries = $this->router()->database()->getCountriesDictionary(); // $this->urlRouter->countries;
-        if (isset($adContent['pubTo'])) {
+        //$adContent = json_decode($ad['CONTENT'], true);
+        $countries = $this->router()->database()->getCountriesDictionary();
+        $regions = $ad->dataset()->getRegions();
+        
+        if ( !empty($regions)) {
             $fieldIndex=2;
             $comma=',';
             if ($this->router()->isArabic()) {
@@ -5582,16 +5617,17 @@ class Bin extends AjaxHandler{
             $cities = $this->router()->cities;
 
             $content='';
-            foreach ($adContent['pubTo'] as $city => $value) {                    
+            //foreach ($adContent['pubTo'] as $city => $value) {
+            foreach ($regions as $city) {                
                 if (isset($cities[$city]) && isset($cities[$city][4])) {
                     $country_id=$cities[$city][4];                        
                     if (!isset($countriesArray[$cities[$city][4]])){                            
                         $ccs = $countries[$country_id][6];
                         if ($ccs && count($ccs)>0) {
-                            $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],array());
+                            $countriesArray[$country_id] = [$countries[$country_id][$fieldIndex], [] ];
                         }
                         else {
-                            $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],false);
+                            $countriesArray[$country_id] = [$countries[$country_id][$fieldIndex], false];
                         }
                     }
                     if ($countriesArray[$country_id][1]!==false) $countriesArray[$country_id][1][]=$cities[$city][$fieldIndex];
@@ -5610,11 +5646,11 @@ class Bin extends AjaxHandler{
                 $section=$section.' '.$this->lang['in'].' '.$content;
             }
         }
-        elseif (isset ($countries[$ad['COUNTRY_ID']])) {
-            $countryId=$ad['COUNTRY_ID']; 
-            $countryCities=$countries[$countryId][6];
-            if (count($countryCities)>0 && isset($this->router()->cities[$ad['CITY_ID']])) {
-                $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
+        elseif (isset ($countries[$ad->countryId()])) {
+            $countryId = $ad->countryId(); 
+            $countryCities = $countries[$countryId][6];
+            if (\count($countryCities)>0 && isset($this->router()->cities[$ad->cityId()])) {
+                $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad->cityId()][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
             }
             else {
                 $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$this->fieldNameIndex];
@@ -5626,7 +5662,8 @@ class Bin extends AjaxHandler{
                 $section='<b class="ah">'.$section.'</b>';
             }
             else {
-                $section='<span>'.$section.' - <b>' . $this->formatSinceDate(strtotime($ad['DATE_ADDED'])) . '</b></span>';
+                //$section='<span>'.$section.' - <b>' . $this->formatSinceDate(strtotime($ad['DATE_ADDED'])) . '</b></span>';
+                $section='<span>' . $section . ' - <b>' . $this->formatSinceDate($ad->getDateAdded()) . '</b></span>';
             }
         }
         return $section;

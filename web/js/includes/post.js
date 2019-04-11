@@ -260,7 +260,7 @@ var UI={
     init:function(){
         let _=this;
         
-        console.log(_.adForm.dataset);
+        //console.log(_.adForm.dataset);
         console.log('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''));
         
         fetch('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''), _options('GET'))
@@ -753,7 +753,7 @@ var UI={
 };
 
 
-class Photo{
+class Photo {
     constructor(elem) {
         let _=this;
         _.e=elem;
@@ -791,14 +791,13 @@ class Photo{
             _.e.classList.remove('icn-camera');
             _.image.setAttribute('id','picture');  
             _.image.onload=function(){
-                console.log('_.image.onload');
                 _.natWidth=_.image.naturalWidth;_.natHeight=_.image.naturalHeight;_.rotation=0;
                 Ad.pictures[_.index]=_; 
                 _.transform(_.image);
             };
         }
-        
-        _.image.src=result; 
+        _.image.src=result;
+        return _;
     }
     
     upload(result){
@@ -809,10 +808,9 @@ class Photo{
             function(img){
                 var type = img.type;
                 var data;
-                if(HAS_WEBP){
-                    type = 'image/webp';
-                }
+                if(HAS_WEBP){ type='image/webp'; }
                 var data = img.toDataURL(type);
+                console.log("image mime type", type);
                 _.uploadData(data, type);
             },
             opt
@@ -822,9 +820,6 @@ class Photo{
     uploadData(data, type){
         let _=this;        
         _.image=_.e.query('img');
-        
-        let rg=new RegExp('.*/');
-        let t=type.replace(rg,'');
                                     
         let onprogressHandler=function(ev){
             _.p.value= Math.floor(ev.loaded/ev.total*100);
@@ -860,20 +855,25 @@ class Photo{
                     _.path = ev.target.responseText;
                     console.log('Success!', _);
                 }
-                //var status = document.getElementById('upload-status');
-                //status.innerHTML += '<' + 'br>Success!';
-                //var result = document.getElementById('result');
-                //result.innerHTML = '<p>The server saw it as:</p><pre>' + evt.target.responseText + '</pre>';
-            }else{
+            }
+            else{
                 onErrorHandler();
             }
         };
+        
+        let rg=new RegExp('.*/');
+        let ext=type.replace(rg,'');
         
         let form = new FormData();
         const UUID=UI.guid();
         form.append('UPLOAD_IDENTIFIER', UUID);
         form.append('pic', data);
         form.append('type', type);
+        form.append('sid', UI.sessionID);
+        form.append('aid', Ad.id);
+        form.append('ext', ext);
+        
+        console.log(type, UI.sessionID, Ad.id, ext);
                                     
         let xhr = new XMLHttpRequest();
         xhr.upload.addEventListener('loadstart', onloadstartHandler, false);
@@ -881,7 +881,8 @@ class Photo{
         xhr.upload.addEventListener('load', onloadHandler, false);
         xhr.upload.addEventListener('error', onErrorHandler, false);
         xhr.addEventListener('readystatechange', onreadystatechangeHandler, false);
-        xhr.open('POST', '/upload/?t='+t+'&s='+UI.sessionID, true);
+        xhr.open('POST', '/upload/', true);
+        //xhr.open('POST', '/upload/?t='+t+'&s='+UI.sessionID, true);
         xhr.send(form);  
     }
     
@@ -1092,20 +1093,20 @@ var Ad={
         _.state=ad.state;
                         
         _.content.id=_.id;
-        _.content.hl=(UI.ar?'ar':'en');
+        
+        //_.content.hl=(UI.ar?'ar':'en');
+        _.content.hl=((ad.hl)?ad.hl:(UI.ar?'ar':'en'));
         //_.content.hl=cnt.hl;
         _.content.lat=ad.lat;
         _.content.lon=ad.lon;
         _.content.loc=ad.loc;
         UI.addressChanged();
         
-        UI.photos.forEach(function(p){
-            p.clear();
-        });
+        UI.photos.forEach(function(p){ p.clear(); });
         if(ad.pics){
             UI.pixIndex=0;
             for(var i in ad.pics){
-                UI.photos[UI.pixIndex++].setImage($$.dataset.repo+'/repos/m/'+i);
+                UI.photos[UI.pixIndex++].setImage($$.dataset.repo+'/repos/m/'+i).path=i;
             }
         }
         
@@ -1164,6 +1165,7 @@ var Ad={
         }
         console.log('Ad', this);   
     },
+    
     
     setClassification:function(ro, se, pu){
         this.setRootId(ro);
@@ -1227,7 +1229,7 @@ var Ad={
     
     save:function(){
         let _=this;
-        //console.log('window.event', window.event.target.dataset);
+        console.log('window.event', window.event.target.dataset);
         
         if(!(_.rootId)) {
             window.alert(UI.ar ? 'فئة الاعلان غير محددة' : 'Please choose listing section?');
@@ -1245,9 +1247,7 @@ var Ad={
             budget:0, 
             version:2, 
             app:'web', app_v:UI.version,
-            extra:{t:0, v:0, p: 0, m: 0},
-            cut:{b:24, t:0, a: 6},
-            cui:{p:[], e:'', s:'', t:'', b:''},
+            cui:{p:[], e:''},
             ro:_.rootId,
             pu:_.purposeId,
             se:_.sectionId,
@@ -1326,12 +1326,15 @@ var Ad={
         fetch('/ajax-adsave/', _options('POST', data))
             .then(res => res.json())
             .then(response => {
-                //console.log('Success:', response);
+                console.log('Success:', response);
+                if (response.success===1) {
+                    console.log(response.result);
+                }
                 if (response.RP===1) {
                     if (typeof response.DATA.ad==='object') {
                         console.log("RP", response.DATA.ad);
                         _.parse(response.DATA.ad);
-                    }                    
+                    }
                 }
             })
             .catch(error => {

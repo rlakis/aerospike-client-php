@@ -1,6 +1,8 @@
 <?php
 namespace Core\Model;
 
+\Config::instance()->incModelFile('Ad')->incModelFile('Content');
+
 include_once 'Singleton.php';
 
 class Router extends \Singleton {
@@ -31,7 +33,6 @@ class Router extends \Singleton {
     
     var $countries=NULL;
     var $cities=NULL;
-    //var $publications=NULL;
     var $roots=NULL;
     var $sections=NULL;
     var $purposes=NULL;
@@ -64,6 +65,7 @@ class Router extends \Singleton {
     private $canonical = false;
     private $explodedRequestURI;
     
+    private $user;
     private $logger;
     
     
@@ -518,9 +520,20 @@ class Router extends \Singleton {
     }
     
     
+    public function user() : \User {
+        return $this->user;
+    }
+    
+    
+    public function setUser(\User $kUser) : void {
+        $this->user = $kUser;
+    }
+    
+    
     public function logger() : \Core\Lib\Logger {
         return $this->logger;
     }
+    
     
     public function setLogger(\Core\Lib\Logger $klogger) : void {
         $this->logger = $klogger;  

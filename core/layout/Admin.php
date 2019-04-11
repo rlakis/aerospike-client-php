@@ -46,26 +46,26 @@ class Admin extends Page {
                     unset($_GET['p']);
                     unset($_GET['reason']);
 
-                    \Core\Model\NoSQL::getInstance()->blacklistInsert($parameter, $reason);
+                    \Core\Model\NoSQL::instance()->blacklistInsert($parameter, $reason);
                     break;
                 
                 case 'unlist':
-                    \Core\Model\NoSQL::getInstance()->removeNumberFromBlacklist($parameter);
+                    \Core\Model\NoSQL::instance()->removeNumberFromBlacklist($parameter);
                     $_GET['t'] = $_GET['p'];
                     unset($_GET['p']);
                     break;
                 
                 case 'unblock':
                     $unblockNumbers = [];
-                    $userdata = [$this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($parameter))];
+                    $userdata = [$this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUser($parameter))];
 
                     if (isset($userdata[0]['mobiles'])) {
                         $accounts = [];
                         foreach ($userdata[0]['mobiles'] as $number) {
                             $uids = [];
-                            if (\Core\Model\NoSQL::getInstance()->mobileGetLinkedUIDs($number['number'] + 0, $uids) == Core\Model\NoSQL::OK) {
+                            if (\Core\Model\NoSQL::instance()->mobileGetLinkedUIDs($number['number'] + 0, $uids) == Core\Model\NoSQL::OK) {
                                 foreach ($uids as $bins) {
-                                    $accounts[] = $this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
+                                    $accounts[] = $this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
                                 }
                             }
                         }
@@ -117,7 +117,7 @@ class Admin extends Page {
             $uuid = '';
             if (!$isEmail && preg_match('/[^0-9]/', $parameter)) {
                 $record = [];
-                $status = [$this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUserByUUID($parameter, $record))];
+                $status = [$this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUserByUUID($parameter, $record))];
 
                 if (count($record)) {
                     $this->uid = $record['id'];
@@ -147,7 +147,7 @@ class Admin extends Page {
             }
 
 
-            $this->userdata = [$this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($this->uid))];
+            $this->userdata = [$this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUser($this->uid))];
 
             if ($uuid) { $this->uid = $uuid; }
             if ($isEmail) { $this->uid = $email; }
@@ -156,7 +156,7 @@ class Admin extends Page {
             $parameter = filter_input(INPUT_GET, 't', FILTER_SANITIZE_NUMBER_INT, ['options' => ['default' => 0]]);
             if ($parameter) {
                 $this->userdata = [];
-                if (\Core\Model\NoSQL::getInstance()->mobileGetLinkedUIDs($parameter, $uids) == Core\Model\NoSQL::OK) {
+                if (\Core\Model\NoSQL::instance()->mobileGetLinkedUIDs($parameter, $uids) == Core\Model\NoSQL::OK) {
                     if (count($uids)) {
 
                         $selected = 0;
@@ -167,7 +167,7 @@ class Admin extends Page {
 
                         $users = [];
                         foreach ($uids as $bins) {
-                            $data = $this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
+                            $data = $this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
 
                             if ($data && is_array($data)) {
                                 $users[] = $data;
@@ -196,10 +196,10 @@ class Admin extends Page {
                     Config::instance()->incLibFile('MCSaveHandler');
                     $handler = new MCSaveHandler();
                     $this->userdata = $handler->checkFromDatabase($this->aid);
-                    //$uids = \Core\Model\NoSQL::getInstance()->mobileGetLinkedUIDs($parameter);
+                    //$uids = \Core\Model\NoSQL::instance()->mobileGetLinkedUIDs($parameter);
                     //foreach ($uids as $bins) 
                     {
-                        //$this->userdata[] = $this->parseUserBins(\Core\Model\NoSQL::getInstance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
+                        //$this->userdata[] = $this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
                     }
                 }
             }
@@ -242,8 +242,8 @@ class Admin extends Page {
             }
 
             unset($bins['mobile']);
-            $_mobiles = \Core\Model\NoSQL::getInstance()->mobileFetchByUID($bins[\Core\Model\ASD\USER_PROFILE_ID]);
-            $_devices = \Core\Model\NoSQL::getInstance()->getUserDevices($bins[\Core\Model\ASD\USER_PROFILE_ID]);
+            $_mobiles = \Core\Model\NoSQL::instance()->mobileFetchByUID($bins[\Core\Model\ASD\USER_PROFILE_ID]);
+            $_devices = \Core\Model\NoSQL::instance()->getUserDevices($bins[\Core\Model\ASD\USER_PROFILE_ID]);
             for ($i=0; $i<count($_devices); $i++) {
                 $_device=$_devices[$i];
                 if (isset($_device['app_prefs'])) {
@@ -1491,11 +1491,11 @@ $.ajax({
             if (isset($_GET['t']) && $_GET['t']) {
                 echo '<br />';
                 if (!($this->userdata && count($this->userdata))) {
-                    if (Core\Model\NoSQL::getInstance()->isBlacklistedContacts([$_GET['t']])) {
+                    if (Core\Model\NoSQL::instance()->isBlacklistedContacts([$_GET['t']])) {
                         ?><div style="margin:5px;padding:10px;direction:ltr;overflow:hidden;display:block"><?php
                         ?><p>This number is blacklisted for the following reason:</p><br /><?php
                         ?><p style="text-align:center;color:red;font-size:16px;font-weight:bold"><?php
-                        echo Core\Model\NoSQL::getInstance()->getBlackListedReason($_GET['t']);
+                        echo Core\Model\NoSQL::instance()->getBlackListedReason($_GET['t']);
                         ?></p><?php
                         ?></div><div style="background-color:darkkhaki;margin:5px;padding:10px;direction:ltr;overflow:hidden;display:block"><?php
                         ?><h4 style="float:left">Would you like to remove number from blacklist?</h4><?php

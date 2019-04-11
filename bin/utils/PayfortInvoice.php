@@ -22,25 +22,20 @@ $rs = $db->get("select t.ID, t.CURRENCY_ID, t.AMOUNT, cast(t.DATED as date) date
             ");
 
 
-foreach ($rs as $d) 
-{
+foreach ($rs as $d) {
     
     $data = json_decode($d['DATA']);
     print_r($data);
     
-    if (!isset($data->customer_name))
-    {
+    if (!isset($data->customer_name)) {
         $data->customer_name = $data->customer_email;
     }
-    
-    
-    if (empty($d['TRANSACTION_ID']) || !isset($data->fort_id))
-    {
+        
+    if (empty($d['TRANSACTION_ID']) || !isset($data->fort_id)) {
         continue;
     }
     
-    if ($db->get("select 1 from t_invoice where TRANSACTION_ID=? and PAYMENT_GATEWAY='PAYFORT'", [$data->fort_id]))
-    {
+    if ($db->get("select 1 from t_invoice where TRANSACTION_ID=? and PAYMENT_GATEWAY='PAYFORT'", [$data->fort_id])) {
         continue;
     }
     
@@ -49,49 +44,38 @@ foreach ($rs as $d)
     $vat = 0.0;
     $customer_phone = 0;
     $customer_country = 'XX';    
-    if ($d['PHONE'])
-    {
+    if ($d['PHONE']) {
         $customer_phone = $d['PHONE'];
-        if (preg_match("/^961/", "$customer_phone"))
-        {
+        if (preg_match("/^961/", "$customer_phone")) {
             $customer_country = 'LB'; 
             $vat=10.0;
             $sales = $sales/1.1;
         }
-        else if (preg_match("/^962/", "$customer_phone"))
-        {
+        else if (preg_match("/^962/", "$customer_phone")) {
             $customer_country = 'JO';            
         }
-        else if (preg_match("/^963/", "$customer_phone"))
-        {
+        else if (preg_match("/^963/", "$customer_phone")) {
             $customer_country = 'SY';            
         }
-        else if (preg_match("/^965/", "$customer_phone"))
-        {
+        else if (preg_match("/^965/", "$customer_phone")) {
             $customer_country = 'KW';            
         }
-        else if (preg_match("/^966/", "$customer_phone"))
-        {
+        else if (preg_match("/^966/", "$customer_phone")) {
             $customer_country = 'SA';            
         }
-        else if (preg_match("/^967/", "$customer_phone"))
-        {
+        else if (preg_match("/^967/", "$customer_phone")) {
             $customer_country = 'YE';            
         }
-        else if (preg_match("/^971/", "$customer_phone"))
-        {
+        else if (preg_match("/^971/", "$customer_phone")) {
             $customer_country = 'AE';            
         }
-        else if (preg_match("/^973/", "$customer_phone"))
-        {
+        else if (preg_match("/^973/", "$customer_phone")) {
             $customer_country = 'BH';            
         }
-        else if (preg_match("/^20/", "$customer_phone"))
-        {
+        else if (preg_match("/^20/", "$customer_phone")) {
             $customer_country = 'EG';            
         }
-        else if (preg_match("/^974/", "$customer_phone"))
-        {
+        else if (preg_match("/^974/", "$customer_phone")) {
             $customer_country = 'QA';            
         }
 

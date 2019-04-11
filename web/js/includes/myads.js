@@ -591,15 +591,16 @@ var d = {
                 d.roots[rId].sindex.forEach(function (sid) {                    
                     let li = createElem('li', (sid.toString()===a.dataset.se ? 'cur' : ''), d.roots[rId]['sections'][sid]);
                     li.dataset.id = sid;
+                    li.dataset.ro = rId;
                     li.onclick = function (e) {
-                        e.target.classList.add('cur');
-                        let p=e.target.article();
+                        let t=e.target;
+                        t.classList.add('cur');
+                        let p=t.article();
                         let pu=p.dataset.pu;
-                        if (!d.roots[rId].purposes[pu]) {
-                            pu = d.roots[rId].purposes[Object.keys(d.roots[rId]['purposes'])[0]];
+                        if (!d.roots[t.dataset.ro].purposes[pu]) {
+                            pu = Object.keys(d.roots[t.dataset.ro].purposes)[0];
                         }
-                        console.log('ad id', p.id);
-                        d.updateAd(e.target, p.id, rId, e.target.dataset.id, pu);
+                        d.updateAd(t, p.id, rId, e.target.dataset.id, pu);
                     };
                     ul.append(li);
                 });
@@ -610,6 +611,7 @@ var d = {
                     li.dataset.id = i;
                     li.onclick = function (e) {
                         let p=e.target.article();
+                        
                         d.updateAd(e.target, p.id, rId, p.dataset.se, e.target.dataset.id);
                     };
                     aUL.append(li);
@@ -899,7 +901,7 @@ socket.on('admins', function (data) {
         console.log('on<admins>: Active Admins:' + active_admins);
     }
 
-    if (typeof data.b==='object') {
+    if (d.editors && typeof data.b==='object') {
         for (let uid in data.b) {
             if (data.b[uid]===0) { continue; }
             let ad=d.items[data.b[uid]];

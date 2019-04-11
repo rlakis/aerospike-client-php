@@ -26,7 +26,7 @@ class Site {
     function __construct() {
         global $argc;        
         $this->router = Router::instance();
-        if ($this->router->language=='en') {
+        if ($this->router->language==='en') {
             $this->lnIndex=1;
         }
         if (isset($argc)) { return; }
@@ -34,6 +34,7 @@ class Site {
         $this->initSphinx();
         
         $this->user=new User($this);
+        $this->router()->setUser($this->user);
         if (!isset($this->user->params['list_lang'])) {
             $this->langSortingMode = -1;
         }
@@ -44,8 +45,7 @@ class Site {
     }
 
     
-    public function __destruct() {
-    }
+    public function __destruct() {}
     
     
     public function router() : Router { return $this->router; }
@@ -734,7 +734,7 @@ class Site {
     }
     
     
-    function getAdSection($ad) : string {
+    function getAdSection(Core\Model\Ad $ad) : string {
         $section = '';
         $fieldNameIndex=1+$this->lnIndex;
         if (!empty($this->router->sections)) {

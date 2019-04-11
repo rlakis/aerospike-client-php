@@ -1301,7 +1301,7 @@ class MyAds extends Page {
             
             if($this->user->info['level']==9 && $mcUser && $mcUser->isBlocked()) {
                 $msg = 'User is Blocked';
-                $reason = preg_replace(['/\</','/\>/'],['&#60;','&#62;'], Core\Model\NoSQL::getInstance()->getBlackListedReason($mcUser->getMobileNumber()));
+                $reason = preg_replace(['/\</','/\>/'],['&#60;','&#62;'], Core\Model\NoSQL::instance()->getBlackListedReason($mcUser->getMobileNumber()));
                 if ($reason) {
                     $msg = $msg.'<br />'.$reason;
                 }
@@ -1355,7 +1355,7 @@ class MyAds extends Page {
             $type = 0;
             if (isset($_GET['u']) && is_numeric($_GET['u']) && $_GET['u']) {
                 $userId = $_GET['u'];
-                $type = \Core\Model\NoSQL::getInstance()->getUserPublisherStatus($userId); 
+                $type = \Core\Model\NoSQL::instance()->getUserPublisherStatus($userId); 
             }
             $user = new MCUser($userId);
             if ($user->isSuspended()) {

@@ -28,7 +28,7 @@ $payFort->setLanguage($language);
 
 $db = new DB($config);
 
-if (php_sapi_name()=='cli') {
+if (php_sapi_name()==='cli') {
     if ($argc==2) {
         print_r($argv);
         $res = $db->get("select id, data from t_payfort where id=?", [$argv[1]], TRUE);
@@ -62,9 +62,7 @@ $payment = $payFort->processResponse();
 
 $success = true;
 $internalError = false;
-if (isset($payment['error_msg'])) {
-    $success = false;
-}
+if (isset($payment['error_msg'])) { $success = false; }
 
 $orderId = 0;
 $userId = 0;
@@ -73,14 +71,13 @@ $sourceId = 0;
 if (isset($payment['merchant_reference'])) {
     $orderId = preg_split('/-/', $payment['merchant_reference']);
     //var_dump($orderId);
-    if($orderId && (count($orderId)==2||count($orderId)==3) && is_numeric($orderId[0]) && is_numeric($orderId[1])) {
+    if ($orderId && (count($orderId)==2||count($orderId)==3) && is_numeric($orderId[0]) && is_numeric($orderId[1])) {
         if (isset($orderId[2])) {
             $sourceId=(int)$orderId[2];
         }
     
         $userId = (int)$orderId[0];
-        $orderId = (int)$orderId[1];   
-        
+        $orderId = (int)$orderId[1];
     }
     else {
         $orderId=0;
@@ -94,7 +91,7 @@ if($orderId) {
         $res = $db->get("update t_order set state=?, msg=?, flag=? where id=? and uid=? and state=0 returning id",
                     [2, $payment['fort_id'], $sourceId, $orderId, $userId], TRUE);
         if (isset($payment['token_name'])) {
-            Core\Model\NoSQL::getInstance()->setUserBin($userId, \Core\Model\ASD\USER_PAYFORT_TOKEN, $payment['token_name']);
+            Core\Model\NoSQL::instance()->setUserBin($userId, \Core\Model\ASD\USER_PAYFORT_TOKEN, $payment['token_name']);
         }
     }
     else {
@@ -112,6 +109,3 @@ if (isset($_POST) && count($_POST)>0) {
     $fort_id = isset($payment) && isset($payment['fort_id']) ? $payment['fort_id'] : '';
     $db->queryResultArray("INSERT INTO T_PAYFORT (DATA, FORT_ID) VALUES (?, ?)", [json_encode($_POST), $fort_id], TRUE);
 }
-
-
-?>
