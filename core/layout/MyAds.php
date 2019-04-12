@@ -1,5 +1,9 @@
 <?php
-\Config::instance()->incLayoutFile('Page');
+\Config::instance()->incLayoutFile('Page')->incModelFile('AdList');
+
+use Core\Model\Ad;
+use Core\Model\Content;
+use Core\Model\AdList;
 
 class MyAds extends Page {
     
@@ -412,36 +416,36 @@ class MyAds extends Page {
     }
 
     
-    function getAdSection($ad, int $rootId=0, &$isMultiCountry=false) : string {
+    function getAdSection(Ad $ad, int $rootId=0, &$isMultiCountry=false) : string {
         $section='';
-        switch($ad['PURPOSE_ID']) {
+        switch($ad->purposeId()) {
             case 1:
             case 2:
             case 999:
             case 8:
-                $section=$this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex].' '.$this->router()->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex];
+                $section=$this->router()->sections[$ad->sectionId()][$this->fieldNameIndex].' '.$this->router()->purposes[$ad->purposeId()][$this->fieldNameIndex];
                 break;
             case 6:
             case 7:
-                $section=$this->router()->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].' '.$this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
+                $section=$this->router()->purposes[$ad->purposeId()][$this->fieldNameIndex].' '.$this->router()->sections[$ad->sectionId()][$this->fieldNameIndex];
                 break;
             case 3:
             case 4:
             case 5:
-                if(preg_match('/'.$this->router()->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].'/', $this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex])){
-                    $section=$this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
+                if(preg_match('/'.$this->router()->purposes[$ad->purposeId()][$this->fieldNameIndex].'/', $this->router()->sections[$ad->sectionId()][$this->fieldNameIndex])){
+                    $section=$this->router()->sections[$ad->sectionId()][$this->fieldNameIndex];
                 }
                 else {
                     $in=' ';
-                    if ($this->router()->language=='en')$in=' '.$this->lang['in'].' ';
-                    $section=$this->router()->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].$in.$this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
+                    if ($this->router()->language==='en') { $in=' '.$this->lang['in'].' '; }
+                    $section=$this->router()->purposes[$ad->purposeId()][$this->fieldNameIndex].$in.$this->router()->sections[$ad->sectionId()][$this->fieldNameIndex];
                 }
                 break;
         }
            
-       $adContent = json_decode($ad['CONTENT'], true);
+       //$adContent = json_decode($ad['CONTENT'], true);
        $countries = $this->router()->db->getCountriesDictionary(); // $this->router()->countries;
-       if (isset($adContent['pubTo'])) {
+       //if (isset($adContent['pubTo'])) {
             $fieldIndex=2;
             $comma=',';
             if ($this->router()->isArabic()){
@@ -452,7 +456,7 @@ class MyAds extends Page {
             $cities = $this->router()->cities;
                 
             $content='';
-            foreach ($adContent['pubTo'] as $city => $value) {                    
+            foreach ($ad->dataset()->getRegions() as $city) {                    
                 if (isset($cities[$city]) && isset($cities[$city][4])) {
                     $country_id=$cities[$city][4];
                         
@@ -483,24 +487,24 @@ class MyAds extends Page {
             if ($content) {
                 $section=$section.' '.$this->lang['in'].' '.$content;
             }
-        }
-        elseif(isset ($countries[$ad['COUNTRY_ID']])) {
-            $countryId=$ad['COUNTRY_ID']; 
-            $countryCities=$countries[$countryId][6];
-            if (count($countryCities)>0 && isset($this->router()->cities[$ad['CITY_ID']])) {
-                $section=$section.' '.$this->lang['in'].' '.$this->router()->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
-            }
-            else {
-                $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$this->fieldNameIndex];
-            }
-        }
+        //}
+        //elseif(isset ($countries[$ad['COUNTRY_ID']])) {
+        //    $countryId=$ad['COUNTRY_ID']; 
+        //    $countryCities=$countries[$countryId][6];
+        //    if (count($countryCities)>0 && isset($this->router()->cities[$ad['CITY_ID']])) {
+        //        $section=$section.' '.$this->lang['in'].' '.$this->router()->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
+        //    }
+        //    else {
+        //        $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$this->fieldNameIndex];
+        //    }
+        //}
 
         if ($section) {
             //if ($this->isMobile) {
             //    $section='<b class="ah">'.$section.'</b>';
             //}
             //else {
-            $section='<span>'.$section.' - <b>'.$this->formatSinceDate(strtotime($ad['LAST_UPDATE'])).'</b></span>';
+            $section = '<span>' . $section . ' - <b>' . $this->formatSinceDate($ad->getDateModified()) . '</b></span>';
             //}
         }
         return $section;
@@ -512,25 +516,30 @@ class MyAds extends Page {
     }
     
     
-    function pendingAds($state=0) {
+    function pendingAds(int $state=0) : void {
         $isAdmin = false;
         $isAdminOwner = false;
-        $isSuperAdmin = $this->user->isSuperUser();
-        $current_time = time();
+        $isSuperAdmin = $this->user()->isSuperUser();
+        //$current_time = time();
         
         if ($this->user()->level()===9) {
             $isAdmin = true;
             $mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
         }
         
-        $filters = $this->user()->getAdminFilters();
+        //$filters = $this->user()->getAdminFilters();
         $sub = filter_input(INPUT_GET, 'sub', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);  
 
-        $ads = $this->user()->getPendingAds(0, $state, true);
-        $count= !empty($ads) ? count($ads) : 0; 
-        $allCounts = $count>0 ? $this->user()->getPendingAdsCount($state) : 0;
-        $this->user()->update();
+        //$ads = $this->user()->getPendingAds(0, $state, true);                
+        //$count= !empty($ads) ? count($ads) : 0; 
+        //$allCounts = $count>0 ? $this->user()->getPendingAdsCount($state) : 0;
+        //$this->user()->update();
         
+        
+        $ads = new AdList();
+        $ads->setState($state)->fetchFromAdUser();
+        $count = $ads->count();
+        $dbCount = $ads->dbCount();
         
         echo '<div class=row><div class=col-12><div class=card>';
         $this->renderBalanceBar();
@@ -538,9 +547,9 @@ class MyAds extends Page {
         echo '<a href="', $this->router()->getLanguagePath('/post/'), '" class="btn half"><span class="j pub"></span>', $this->lang['button_ad_post_m'], '</a>';
         echo '<a id=active href="', $this->router()->getLanguagePath('/myads/'), '" class="btn active', $sub==''?' current':'', '"><span class="pj ads1"></span>', $this->lang['ads_active'], '</a>';
 
-        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=pending', $this->lang['home_pending'], $sub=='pending', $allCounts);
-        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=drafts', $this->lang['home_drafts'], $sub=='drafts', $allCounts);
-        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=archive', $this->lang['home_archive'], $sub=='archive', $allCounts);
+        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=pending', $this->lang['home_pending'], $sub=='pending', $dbCount);
+        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=drafts', $this->lang['home_drafts'], $sub=='drafts', $dbCount);
+        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=archive', $this->lang['home_archive'], $sub=='archive', $dbCount);
             
         echo '<a id=favorite href="', $this->router()->getLanguagePath('/favorites/'), '?u=', $this->user->info['idKey'], '" class="btn half favorite', $sub=='favorite'?' current':'', '"><span class="j fva"></span>', $this->lang['myFavorites'], '</a>';
         echo '<a href="', $this->router()->getLanguagePath('/statement/'), '" class="btn half balance"><span class="pj coin"></span>', $this->lang['myBalance'], '</a>';
@@ -552,26 +561,17 @@ class MyAds extends Page {
         echo '</div></div></div></div></div>',"\n";
         
         
-        if ($count) {            
-            $currentOffset = $this->get('o', 'uint');
-            $hasNext=false;
-            $recNum=25;
+        if ($count>0) {            
+            $hasPrevious = ($ads->offset()>0);
+            $hasNext = (($ads->offset()*$ads->limit())<$ads->dbCount());
             
-            $hasPrevious = (is_numeric($currentOffset) && $currentOffset);
-            
-            if ($count==26) {
-                $hasNext=true;
-                $count=25;
-            }
-            
-            //$allCounts = $this->user()->getPendingAdsCount($state);            
             $renderAssignedAdsOnly = false;
         
             ?><p class="ph phb"><?php
             
             switch ($state) {
                 case 8:
-                    ?><?= $this->lang['ads_deleted'].($allCounts ? ' ('.$allCounts.')':'').' '.$this->renderUserTypeSelector() ?></p><div class="fl"><p class="phc"><?php
+                    ?><?= $this->lang['ads_deleted'].($dbCount ? ' ('.$dbCount.')':'').' '.$this->renderUserTypeSelector() ?></p><div class=fl><p class=phc><?php
                     break;
                 
                 case 7:                    
@@ -579,7 +579,7 @@ class MyAds extends Page {
                     if (isset($this->userBalance['balance'])) {
                         $this->userBalance = $this->userBalance['balance'];
                     }
-                    ?><?= $this->lang['ads_active'].($allCounts ? ' ('.$allCounts.')':'').' '.$this->renderUserTypeSelector() ?></p><div class="fl"><p class="phc"><?= $this->lang['ads_active_desc'] ?><?php
+                    ?><?= $this->lang['ads_active'].($dbCount ? ' ('.$dbCount.')':'').' '.$this->renderUserTypeSelector() ?></p><div class=fl><p class=phc><?= $this->lang['ads_active_desc'] ?><?php
                     break;
                     
                 case 1:
@@ -592,14 +592,12 @@ class MyAds extends Page {
                     break;
             }
             ?></p><?php
-            $isAdminProfiling = (boolean)($this->get('a') && $this->user->info['level']==9);
-            if ($isAdminProfiling) {
-                $renderAssignedAdsOnly = false;
-            }           
+            $isAdminProfiling = (boolean)($this->get('a') && $this->user()->level()===9);
+            if ($isAdminProfiling) { $renderAssignedAdsOnly = false; }           
             
             if ($state==7) {
                 if ($this->router()->config()->get('enabled_charts') && !$isAdminProfiling) {                    
-                    ?><div class="stin <?= $this->router()->language ?>"></div><?php                    
+                    echo '<div class="stin ', $this->router()->language, '"></div>';
                     $this->renderEditorsBox($state);
                     ?></div><?php
                     ?><div class="phld"><?php
@@ -616,25 +614,22 @@ class MyAds extends Page {
             }
 
             echo '<div class=row><div class="col-12 myadls">';            
-            $idx=0;
-            $linkLang = $this->router()->language=='ar' ? '':$this->router()->language.'/';
+            $linkLang = $this->router()->language==='ar' ? '' : $this->router()->language.'/';
             
-            $displayIdx = 0;
-            for ($i=0; $i<$count; $i++) {
+            $ads->rewind();
+            while ($ads->valid()) {
+                $cad = $ads->current();
                 $phoneValidErr=false;
                 $link='';
-                $altlink='';
-                $ad=$ads[$i];
+                $altlink='';                
                 $liClass='';
                 $textClass='en';
                     
-                if ($isAdmin) {
-                    $isAdminOwner = ($ad['WEB_USER_ID']==$this->user()->id() ? true : false );
-                }
+                if ($isAdmin) { $isAdminOwner = ($cad->uid()===$this->user()->id() ? true : false ); }
                 
                 $assignedAdmin = '';
                 if ($isAdmin && $renderAssignedAdsOnly && !$isAdminOwner) {
-                    $assignedAdmin = $this->assignAdToAdmin($ad['ID'], $this->user()->id());
+                    $assignedAdmin = $this->assignAdToAdmin($cad->id(), $this->user()->id());
                     if (!$isSuperAdmin && $assignedAdmin && $assignedAdmin!=$this->user()->id()) {
                         continue;
                     }
@@ -645,32 +640,19 @@ class MyAds extends Page {
                     else {
                         $assignedAdmin = '';
                     }
-                    $displayIdx++;
                 }
                 
-                if ($ad['RTL']) { $textClass='ar'; }
+                if ($cad->rtl()) { $textClass='ar'; }
 
-                $content=\json_decode($ad['CONTENT'], true);  
-                                        
-                $isFeatured = isset($ad['FEATURED_DATE_ENDED']) && $ad['FEATURED_DATE_ENDED'] ? ($current_time < $ad['FEATURED_DATE_ENDED']) : false;
-                $isFeatureBooked = isset($ad['BO_DATE_ENDED']) && $ad['BO_DATE_ENDED'] ? ($current_time < $ad['BO_DATE_ENDED']) : false;
+                $isFeatured = $cad->isFeatured(); // isset($ad['FEATURED_DATE_ENDED']) && $ad['FEATURED_DATE_ENDED'] ? ($current_time < $ad['FEATURED_DATE_ENDED']) : false;
+                $isFeatureBooked = $cad->isBookedFeature(); //isset($ad['BO_DATE_ENDED']) && $ad['BO_DATE_ENDED'] ? ($current_time < $ad['BO_DATE_ENDED']) : false;
                     
-                if (!$isFeatureBooked && ($ad['STATE']==4 || (isset($content['budget']) && $content['budget']>0) )) {
+                if (!$isFeatureBooked && ($ads->current()->state()===4 || ($cad->dataset()->getBudget()>0) )) {
                     $isFeatureBooked = true;
                 }
                                                  
-                if (!isset($content['ro'])) { $content['ro']=0; }
-                if ($ad['SECTION_ID']>0) {
-                    $content['ro']=$this->router()->sections[$ad['SECTION_ID']][4];
-                    $content['se']=$ad['SECTION_ID'];
-                }
-                    
-
-                $altText='';
-                $text = (isset($content['text']) && \trim($content['text'])) ? $content['text'] : ($content['other']??'');                
-                if (isset($content['extra']['t']) && $content['extra']['t']!=2 && isset($content['altother']) && $content['altother']) {
-                    $altText=$content['altother'];
-                }
+                $altText = $cad->dataset()->getForeignText();
+                $text =  $cad->dataset()->getNativeText();
                     
                 $pic=false;
                 $picCount='';
@@ -680,20 +662,16 @@ class MyAds extends Page {
                 
                 if ($isAdmin) {
                     $images='';
-                    if (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])) {
-                        foreach($content['pics'] as $img => $dim){
-                            if ($images) { $images.="||"; }
-                            $images.='<img width=\"118\" src=\"'.$this->router()->config()->adImgURL.'/repos/s/' . $img . '\" />';
-                            $thumbs.='<span class=ig data-w='.$dim[0].' data-h='.$dim[1].'><img class=lazy data-path="'.$img.'" /></span>';
-                            $hasAdminImgs = 1;
-                        }
+                    foreach ($cad->dataset()->getPictures() as $img => $dim) {
+                        if ($images) { $images.='||'; }
+                        $images.='<img width=118 src=\"'.$this->router()->config()->adImgURL.'/repos/s/' . $img . '\" />';
+                        $thumbs.='<span class=ig data-w='.$dim[0].' data-h='.$dim[1].'><img class=lazy data-path="'.$img.'" /></span>';
+                        $hasAdminImgs = 1;
                     }
                     
-                    if ($images) { $images.="||"; }
-                    $images.='<img class=\"ir\" src=\"'.$this->router()->config()->imgURL.'/90/' . $ad['SECTION_ID'] . $this->router()->_png .'\" />';
-                    $pic = '<img class=ir src="'.$this->router()->config()->imgURL.'/90/'.$ad['SECTION_ID'].$this->router()->_png.'" />';
-                    
-                    $this->globalScript.='sic[' . $ad['ID'] . ']="'.$images.'";';                    
+                    if ($images) { $images.='||'; }
+                    $images.='<img class=ir src=\"'.$this->router()->config()->imgURL.'/90/' . $cad->sectionId() . $this->router()->_png .'\" />';
+                    $pic = '<img class=ir src="'.$this->router()->config()->imgURL.'/90/'.$cad->sectionId().$this->router()->_png.'" />';                    
                 }
                 else {
                     if (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])>0) {
@@ -709,10 +687,10 @@ class MyAds extends Page {
                 }
                 
                 if ($this->user()->isLoggedIn(9)) {
-                    $onlySuper = (isset($ad['SUPER_ADMIN']) && ($ad['SUPER_ADMIN']) ? $ad['SUPER_ADMIN']+0 : 0);
+                    $onlySuper = $cad->getSuperAdmin()>0?$cad->getSuperAdmin():0;
                     if ($onlySuper) {
-                        if ($onlySuper && $onlySuper < 1000) {                        
-                            switch($onlySuper) {
+                        if ($onlySuper>0 && $onlySuper<1000) {                                              
+                            switch($cad->getSuperAdmin()) {
                                 case 998:
                                     $onlySuper = "email contains + sign";
                                     break;
@@ -735,7 +713,6 @@ class MyAds extends Page {
                                     $onlySuper = "not specified";
                                     break;
                             }
-
                         }
                         else {
                             if (isset($this->editors[$onlySuper])) {
@@ -745,14 +722,14 @@ class MyAds extends Page {
                                 $onlySuper = "requested by user #".$onlySuper."#";
                             }
                         }
-                    }                    
-                                                                
-                    $mcUser = new MCUser((int)$ad['WEB_USER_ID']);
-                    $userMobile = $mcUser->getMobile(TRUE)->getNumber();                    
+                    }                          
+                    $userMobile = $cad->profile()->getMobile(TRUE)->getNumber();                    
                     $needNumberDisplayFix=(!\preg_match('/span class=?pn/u', $text));
-                    
-                    if (isset($content['cui']['p']) && \is_array($content['cui']['p'])) {
-                        foreach ($content['cui']['p'] as $p) { 
+
+                    //error_log(var_export($cad->dataset()->getContactInfo(), true).PHP_EOL);
+                    $cui = $cad->dataset()->getContactInfo();
+                    if (isset($cui['p']) && \is_array($cui['p'])) {
+                        foreach ($cui['p'] as $p) { 
                             $isUserMobile = false;
                             try {
                                 $num = $mobileValidator->parse($p['v'],$p['i']);
@@ -819,62 +796,54 @@ class MyAds extends Page {
                             }
                         }
                     }
-                        
-                    $name=$ad['WEB_USER_ID'].'#'.($ad['FULL_NAME']?$ad['FULL_NAME']:$ad['DISPLAY_NAME']);
-                    $style='';
-                    if ($ad['LVL']==4) $style=' style="color:orange"';
-                    elseif ($ad['LVL']==5) $style=' style="color:red"';
                     
-                    $profileLabel =  isset($ad['PROVIDER']) ? $ad['PROVIDER']:'profile';
+                        
+                    $name=$cad->uid() . '#' . ($cad->profile()->getFullName() ? $cad->profile()->getFullName() : $cad->profile()->getDisplayName());
+                    $style='';
+                    if ($cad->profile()->getLevel()===4) {
+                        $style=' style="color:orange"';
+                    }
+                    elseif ($cad->profile()->getLevel()===5) {
+                        $style=' style="color:red"';
+                    }
+                    
+                    $profileLabel = $cad->profile()->getProvider() ? $cad->profile()->getProvider() : 'profile';
                     if ($userMobile) {
-                        $unum = $mobileValidator->parse('+'.$userMobile,'LB');
+                        $unum = $mobileValidator->parse('+'.$userMobile, 'LB');
                         $XX = $mobileValidator->getRegionCodeForNumber($unum);
                         $profileLabel = '+'.$userMobile;
                         if ($XX) { $profileLabel = '('.$XX. ')' . $profileLabel; }
                     }
                     
                     $title='<div class=user><a target=_similar href="'.
-                            ($isSuperAdmin ? $this->router()->getLanguagePath('/admin/').'?p='.$ad['WEB_USER_ID'] : $ad['PROFILE_URL']).
+                            ($isSuperAdmin ? $this->router()->getLanguagePath('/admin/').'?p=' . $cad->uid() : $cad->profile()->getProfileURL()).
                             '">'.$profileLabel.'</a><a target=_similar'.$style.' href="'.
-                            $this->router()->getLanguagePath('/myads/').'?u='.$ad['WEB_USER_ID'].'">'.$name.'</a>';
-                    if (isset($content['userLOC'])) {
-                        $geo = preg_replace('/[0-9\.]|(?:^|\s|,)[a-zA-Z]{1,3}\s/','',$content['userLOC']);
-                        $geo = preg_replace('/,/', '' , $geo);
-                        $title.='<span class=inf>'.$geo.'</span>';
-                    }
-                    else {
-                        $title.='<span class="inf err">No Geo</span>';
-                    }
+                            $this->router()->getLanguagePath('/myads/').'?u='.$cad->uid().'">'.$name.'</a>';
                     
-                    if ($state==1 && $ad['DATE_ADDED']==$ad['LAST_UPDATE']) {
+                    $geo = preg_replace('/,/', '' , preg_replace('/[0-9\.]|(?:^|\s|,)[a-zA-Z]{1,3}\s/', '', $cad->dataset()->getUserLocation()));
+                    $title.='<span class=inf>' . $geo . '</span>';
+                    
+                    if ($state===1 && $cad->getDateAdded()===$cad->getDateModified()) {
                         $title.='<span class=inf><span class="rj ren"></span></span>';
                     }
                     
                     $title.=($phoneValidErr!==false ? ($phoneValidErr==0 ? '<span class=inf>T<i class="icn m icn-done"></i></span>' : '<span class=inf>T<i class="icn m icn-fail"></i></span>'):'' );
-                    $class= '';
+                   
                     
-                    if($isFeatured) {
+                    $ss = $cad->dataset()->getAppShortName();
+                    if ($cad->dataset()->getIpScore()>=50) {
+                        $ss.='/'.$cad->dataset()->getIpScore();
+                    }
+                   
+                    $class= '';                    
+                    if ($isFeatured) {
                         $class = ' style="color:green"';
                     }
                     else if($isFeatureBooked) {
                         $class = ' style="color:blue"';
                     }
                     
-                    $ss = 'W';
-                    if (isset($content['app'])) {
-                        if ($content['app']=='ios') {
-                            $ss = 'I';
-                        }
-                        else if ($content['app']=='android') {
-                            $ss = 'A';
-                        }
-                    }
-                    
-                    if (isset($content['ipfs']) && $content['ipfs']>=50) {
-                        $ss.="/{$content['ipfs']}";
-                    }
-                   
-                    $title.='<b'.$class.'>#'.$ad['ID'].'#' . $ss. '</b>';
+                    $title.='<b'.$class.'>#'.$cad->id().'#' . $ss. '</b>';
                     $title.='</div>';
                 
                 } // here
@@ -897,36 +866,36 @@ class MyAds extends Page {
                                 
                 $adClass='card myad';
                 
-                if ($isFeatured||$isFeatureBooked) {
-                    $adClass.=' feature';
-                }
+                if ($isFeatured||$isFeatureBooked) { $adClass.=' feature'; }
                 
-                if ($ad['STATE']==1||$ad['STATE']==4) {
-                    $adClass.=' pending';
+                switch ($cad->state()) {
+                    case 1:
+                    case 4:
+                        $adClass.=' pending';
+                        break;
+                    case 2:
+                        $adClass.=' approved';
+                        break;
                 }
-                elseif ($ad['STATE']==2) {
-                    $adClass.=' approved';
-                }
-                if ($onlySuper) {
-                    $adClass.=' alert';
-                }
+                               
+                if ($onlySuper) { $adClass.=' alert'; }
                 
                 // new look
-                echo "\n",'<article id=', $ad['ID'], ' class="', $adClass, '" data-status=', $ad['STATE'], ' data-fetched=0';
+                echo "\n",'<article id=', $cad->id(), ' class="', $adClass, '" data-status=', $cad->state(), ' data-fetched=0';
                 
-                if ($this->user()->level()==9) { echo ' data-ro=', $this->router()->getRootId($ad['SECTION_ID']), ' data-se=', $ad['SECTION_ID'], ' data-pu='.$ad['PURPOSE_ID']; }
-                if (isset($content['hl']) && in_array($content['hl'], ['en','ar'])) { echo ' data-hl="',$content['hl'], '"'; }
+                if ($isAdmin) { echo ' data-ro=', $cad->rootId(), ' data-se=', $cad->sectionId(), ' data-pu='.$cad->purposeId(); }
+                echo ' data-hl="', $cad->dataset()->getUserLanguage(), '"'; 
                 echo '>';
-                echo '<header>';//, $ad['STATE']==2?' class=approved>':'>';
-                switch ($ad['STATE']) {
+                echo '<header>';
+                switch ($cad->state()) {
                     case 1:
                     case 4:
                         echo '<div><div class=tooltip><i class="icn m icon-state"></i>';
                         if ($onlySuper) {
-                            echo '<span class=tooltiptext onmouseover="d.ipCheck(this)">', $onlySuper, '</span>';
+                            echo '<span class=tooltiptext onmouseover=d.ipCheck(this)>', $onlySuper, '</span>';
                         }
                         elseif ($this->user()->level()===9) {
-                            echo '<span class=tooltiptext onmouseover="d.ipCheck(this)">...</span>';
+                            echo '<span class=tooltiptext onmouseover=d.ipCheck(this)>...</span>';
                         }
                         echo '</div>';
                         echo '<span class=msg>', $this->lang['pendingMsg'],'</span></div>';
@@ -939,7 +908,7 @@ class MyAds extends Page {
                         break;
                     
                     case 3:
-                        echo '<div class="nb nbr"><span class="fail"></span>',$this->lang['rejectedMsg'],(isset($content['msg']) && $content['msg']? ': '.$content['msg']:''),($assignedAdmin ? $assignedAdmin:'') ,'</div>';
+                        echo '<div class="nb nbr"><span class="fail"></span>', $this->lang['rejectedMsg'], ($cad->dataset()->getMessage() ? ': ' . $cad->dataset()->getMessage() : ''),($assignedAdmin ? $assignedAdmin:'') ,'</div>';
                         break;
                     
                     default:
@@ -948,16 +917,13 @@ class MyAds extends Page {
                 
                 echo '</header>';
                 
-                if ($this->user()->level()===9) { echo $title; }
+                if ($isAdmin) { echo $title; }
                 
-                $userLang = '';
-                if (isset($content['hl']) && in_array($content['hl'], ['en','ar'])) {
-                    $userLang = $content['hl'];
-                }
+                $userLang = $cad->dataset()->getUserLanguage();             
                 
                 if ($hasAdminImgs) { echo '<p class=pimgs>', $thumbs, '</p>'; }
                 
-                echo '<section class="card-content ', $ad['RTL']?'ar"':'en"';
+                echo '<section class="card-content ', $cad->rtl()?'ar"':'en"';
                 echo $link?' onclick="wo('.$link.')"' : '';
                 if ($isAdmin) { echo ' onmouseup="d.textSelected(this);"'; }
                 if ($isAdmin) { echo ' oncontextmenu="d.lookup(this);return false;"'; }
@@ -976,20 +942,19 @@ class MyAds extends Page {
                     echo '</section>';
                 }
 
-                if (isset($content['extra']['m']) && $content['extra']['m']!=2 && ($content['lat']||$content['lon']) && isset($content['loc'])) {
-                    echo '<hr>';
-                    ?><div class='oc ocl'><span class="i loc"></span><?= $content['loc'] ?></div><?php
+                if (($cad->latitude()>0||$cad->longitude()>0) && $cad->dataset()->getLocation()/* isset($content['extra']['m']) && $content['extra']['m']!=2 && ($content['lat']||$content['lon']) && isset($content['loc'])*/) {
+                    echo '<hr><div class="oc ocl"><span class="i loc"></span>', $cad->dataset()->getLocation(), '</div>';
                 }
                 
                 echo '<div class=note';
-                if (!$isAdminProfiling && $this->user()->level()==9 && in_array($state,[1,2,3])) { echo ' onclick="d.quick(this)"'; }
+                if (!$isAdminProfiling && $isAdmin && \in_array($state, [1,2,3])) { echo ' onclick="d.quick(this)"'; }
                 $isMultiCountry = false;
-                echo '>', $this->getAdSection($ad, $content['ro'], $isMultiCountry), '</div>';
+                echo '>', $this->getAdSection($cad, $cad->rootId(), $isMultiCountry), '</div>';
                 //if ($state>6) {
                 //    echo '<a class=com href="'.$link.'#disqus_thread" data-disqus-identifier="'.$ad['ID'].'" rel="nofollow"></a>';
                 //}
 
-                $isSuspended = $this->user->getProfile() ? $this->user->getProfile()->isSuspended() : FALSE;
+                $isSuspended = $cad->profile() ? $cad->profile()->isSuspended() : false;//$this->user->getProfile() ? $this->user->getProfile()->isSuspended() : FALSE;
                 if (!$this->user->getProfile()) {
                     error_log("this->user->data is null for user: ".$this->user->info['id'] . ' at line '.__LINE__);
                 }
@@ -1001,7 +966,7 @@ class MyAds extends Page {
                     if (!$isSystemAd) {
                         if(!$isSuspended) {
                             ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$ad['ID'] : '') ?>" method=post><?php
-                            ?><input type=hidden name=ad value="<?= $ad['ID'] ?>" /><?php
+                            ?><input type=hidden name=ad value="<?= $cad->id() ?>" /><?php
                             ?><button onclick="d.edit(this)"><span class="rj edi"></span><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></button><?php
                             ?></form><?php
                         }
@@ -1063,7 +1028,7 @@ class MyAds extends Page {
                 
                
                 if ($this->user()->level()===9) {
-                    if ($ad['STATE']==2 && (!$isSystemAd || $isSuperAdmin)) {
+                    if ($cad->state()===2 && (!$isSystemAd || $isSuperAdmin)) {
                         ?><input type="button" class="lnk" onclick="rejF(this,<?= $ad['WEB_USER_ID'] ?>)" value="<?= $this->lang['reject'] ?>" /><?php
                         
                         if ($isSuperAdmin) {
@@ -1078,27 +1043,29 @@ class MyAds extends Page {
                     }
                     else {
                         if ($state>0 && $state<7) {
+                            $rank = $cad->profile()->getRank();
                             if (!$isSystemAd || $isSuperAdmin) {         
                                 ?><button onclick="d.approve(this)"><?= $this->lang['approve'] ?></button><?php
                                 if ($isSuperAdmin) {
                                     ?><button onclick="d.rtp(this)">RTP</button><?php                                    
                                 }
-                                ?><button onclick="d.reject(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['reject'] ?></button><?php 
+                                ?><button onclick="d.reject(this,<?= $cad->uid() ?>)"><?= $this->lang['reject'] ?></button><?php 
                             }
                             if (!$isSuperAdmin && !$onlySuper && !$isSystemAd) {
                                 ?><span class="lnk" onclick="help(this)"><?= $this->lang['ask_help'] ?></span><?php
                             }                            
-                            if ($isSuperAdmin && $ad['USER_RANK'] < 2) {
-                                ?><button onclick="d.ban(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['block'] ?></button><?php 
+                            if ($isSuperAdmin && $rank<2) {
+                                ?><button onclick="d.ban(this,<?= $cad->uid() ?>)"><?= $this->lang['block'] ?></button><?php 
                             }
-                            if (!$isSystemAd && $ad['USER_RANK']<3) {
-                                ?><button onclick="d.suspend(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['suspend'] ?></button><?php
+                            if (!$isSystemAd && $rank<3) {
+                                ?><button onclick="d.suspend(this,<?= $cad->uid() ?>)"><?= $this->lang['suspend'] ?></button><?php
                             }
-                            if ($isSuperAdmin && $filters['uid']==0) {
-                                ?><button onclick="d.userads(this,<?= $ad['WEB_USER_ID'] ?>)"><?= $this->lang['user_type_option_1'] ?></button><?php
+                            if ($isSuperAdmin && $ads->userId()===0) {
+                                ?><button onclick="d.userads(this,<?= $cad->uid() ?>)"><?= $this->lang['user_type_option_1'] ?></button><?php
                             }
                             
-                            $contactInfo=$this->getContactInfo($content);                          
+                            
+                            $contactInfo=$this->getContactInfo($cad->dataset()->getData());
                             if ($isSuperAdmin) {
                                 ?><button onclick=d.similar(this)><?= $this->lang['similar'] ?></button><?php
                             }
@@ -1111,7 +1078,8 @@ class MyAds extends Page {
                                
                 echo '</footer>';
                 echo '</article>';                           
-                $idx++;
+                //$idx++;
+                $ads->next();
             }
             echo "\n";
             
@@ -1174,9 +1142,9 @@ class MyAds extends Page {
                 ?></div><?php
             }    
             
-            if($hasNext || $hasPrevious){
-                ?><div class="pgn"><div class="card"><?php 
-                echo ($currentOffset+1).' '.$this->lang['of'].' '.ceil($allCounts/$recNum);
+            if ($hasNext||$hasPrevious) {
+                ?><div class=pgn><div class=card><?php 
+                echo ($ads->offset()+1).' '.$this->lang['of'].' '.ceil($dbCount/$ads->limit());
                 $appendOp = '?';
                 $link = $this->router()->uri.($this->router()->isArabic()?'':$this->router()->language.'/');
                 
@@ -1213,29 +1181,29 @@ class MyAds extends Page {
                     $appendOp='&';
                 }
                 
-                if($filters['uid']){
-                    $link.=$appendOp.'fuid='.$filters['uid'];
+                if ($ads->userId()>0){
+                    $link.=$appendOp.'fuid='.$ads->userId();
                     $appendOp='&';
                 }                
-                if($filters['root']){
-                    $link.=$appendOp.'fro='.$filters['root'];
+                if ($ads->rootId()>0){
+                    $link.=$appendOp.'fro='.$ads->rootId();
                     $appendOp='&';
                 }                
-                if($filters['purpose']){
-                    $link.=$appendOp.'fpu='.$filters['purpose'];
+                if ($ads->purposeId()>0){
+                    $link.=$appendOp.'fpu='.$ads->purposeId();
                     $appendOp='&';
                 }               
-                if($filters['lang']){
-                    $link.=$appendOp.'fhl='.$filters['lang'];
+                if ($ads->languageFilter()>0){
+                    $link.=$appendOp.'fhl='.$ads->languageFilter();
                     $appendOp='&';
                 }
                 
-                if($hasPrevious){
-                    $offset = $currentOffset - 1;
+                if ($hasPrevious){
+                    $offset = $ads->offset() - 1;
                     ?><a class=float-left href='<?= $link.($offset ? $appendOp.'o='.$offset : '') ?>'><?= $this->lang['prev_25'] ?></a><?php
                 }
                 if($hasNext){
-                    ?><a class=float-right href='<?= $link.$appendOp.'o='.($currentOffset + 1)  ?>'><?= $this->lang['next_25'] ?></a><?php
+                    ?><a class=float-right href='<?= $link.$appendOp.'o='.($ads->offset() + 1)  ?>'><?= $this->lang['next_25'] ?></a><?php
                 }
                 ?></div></div><?php
             }
@@ -1315,8 +1283,11 @@ class MyAds extends Page {
     }
     
     
-    function getContactInfo($content) {
+    function getContactInfo(array $content) : string {
         $contactInfo='';
+        //foreach ($content->get as $value) {
+            
+        //}
         if (isset($content['cui'])) {
             if (isset($content['cui']['p'])) { 
                 $phone=$content['cui']['p'];

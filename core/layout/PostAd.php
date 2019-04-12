@@ -5,10 +5,8 @@ class PostAd extends Page {
     public $globalScript='';
     public $inlineScript='';
 
-    //private $adContent = null;
     private $unit='';
     private $presetTitle=false;
-    //protected $id=0;
     private $advanced=false;
     private $pageGlobal='';
     private $pageInline='';
@@ -26,14 +24,7 @@ class PostAd extends Page {
         
         $this->checkBlockedAccount();
         $this->checkSuspendedAccount();
-        
-        //$tmp = $this->get('ad');
-        //error_log(var_export($_POST, true));
-        //if ($tmp==='new') {
-        //    unset($this->user->pending['post']);
-        //    $this->user->update();
-        //}
-        
+                
         //syslog(LOG_INFO, json_encode($this->user->info));        
         $this->router()->config()->setValue('enabled_sharing', 0);
         $this->router()->config()->disableAds();               
@@ -59,39 +50,8 @@ class PostAd extends Page {
             }
             else {
                 $id=\filter_input(\INPUT_POST, 'ad' , FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
-                if ($id>0) {
-                    
-                    $this->ad->getAdFromAdUserTableForEditing($id);
-                    
-                    //$this->ad=$this->user->loadAdToSession($_REQUEST['ad']);
-                    
-                    /*
-                    $this->id=$this->user->pending['post']['id'];
-                    $this->countryId=$this->user->pending['post']['cn'];
-                    $this->cityId=$this->user->pending['post']['c'];
-                    $this->sectionId=$this->user->pending['post']['se'];
-                    $this->purposeId=$this->user->pending['post']['pu'];
-                    $this->rootId=$this->user->pending['post']['ro'];
-                    $this->adContent=json_decode($this->user->pending['post']['content'],true);
-                    */
-                    
-                    /*
-                     //$this->pending['post']['id']=$ad['ID'];
-                //$this->pending['post']['user']=$ad['WEB_USER_ID'];
-                $this->pending['post']['content']=$ad['CONTENT'];
-                //$this->pending['post']['title']=$ad['TITLE'];
-                $this->pending['post']['rtl']=$ad['RTL'];
-                $this->pending['post']['lon']=$ad['LONGITUDE'];
-                $this->pending['post']['lat']=$ad['LATITUDE'];
-                $this->pending['post']['cn']=$ad['COUNTRY_ID'];
-                $this->pending['post']['c']=$ad['CITY_ID'];
-                $this->pending['post']['se']=$ad['SECTION_ID'];
-                $this->pending['post']['pu']=$ad['PURPOSE_ID'];
-                $this->pending['post']['state']=$ad['STATE'];*/
-                
-                    //if ($this->user->info['id']==$this->user->pending['post']['user']) {
-                    //    $this->user->saveAd(0, $this->user->info['id']);
-                    //}
+                if ($id>0) {                    
+                    $this->ad->getAdFromAdUserTableForEditing($id);                    
                 }
 
                 if (isset($_REQUEST['adr']) && is_numeric($_REQUEST['adr'])) {
@@ -111,17 +71,6 @@ class PostAd extends Page {
                         $this->user->update();
                     }
                 }
-
-                //if (!isset ($this->user->pending['post'])){
-                //    $this->user->loadAdToSession(0);
-                //}
-
-                //$this->adContent=json_decode($this->user->pending['post']['content'],true);
-                //$this->rootId=isset($this->adContent['ro']) ? (int)$this->adContent['ro'] : 0;
-                //$this->purposeId=(int)$this->user->pending['post']['pu'];
-                //$this->sectionId=(int)$this->user->pending['post']['se'];
-                //$this->countryId=(int)$this->user->pending['post']['cn'];
-                //$this->cityId=(int)$this->user->pending['post']['c'];
             }
 
             $this->userBalance = $this->user()->getStatement(0, 0, true);
@@ -170,10 +119,6 @@ class PostAd extends Page {
             if (!isset($this->adContent['cui']['p']) || (isset($this->adContent['cui']['p']) && !is_array($this->adContent['cui']['p']))) {
                 $this->adContent['cui']['p']=array();
             }
-            //if (!isset($this->adContent['cui']['e'])) { $this->adContent['cui']['e']=''; }
-            //if (!isset($this->adContent['cui']['b'])) { $this->adContent['cui']['b']=''; }
-            //if (!isset($this->adContent['cui']['s'])) { $this->adContent['cui']['s']=''; }
-            //if (!isset($this->adContent['cui']['t'])) { $this->adContent['cui']['t']=''; }
             $hasContactNumbers = (count($this->adContent['cui']['p']));
             $hasContact = ($this->adContent['cui']['e'] || $this->adContent['cui']['s'] || $this->adContent['cui']['t'] || $this->adContent['cui']['b'] || $hasContactNumbers);
             
@@ -225,11 +170,6 @@ class PostAd extends Page {
                     if (!is_numeric($key)) { unset($this->adContent['pubTo'][$key]); }
                 }
             }
-            
-            //$hasPics=0;
-            //if (isset ($this->adContent['pics'])) $hasPics=count($this->adContent['pics']);
-            //if($hasPics)$uPics=1;
-            //elseif($uPics!=2) $uPics=0;
             
             $budget = (isset($this->adContent['budget']) && is_numeric($this->adContent['budget']) ? $this->adContent['budget'] : 0);
             
@@ -812,10 +752,7 @@ class PostAd extends Page {
                     };
                     ';
             }
-            
-            
-            
-        
+                                            
     }
         
     

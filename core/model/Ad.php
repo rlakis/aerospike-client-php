@@ -6,8 +6,12 @@ class Ad {
     private $text;              // ad text without contacts
     private $translation;       // ad text alter language without contacts
     private $profile;           // MCUser instance
+    private $list;
     private $numberValidator = null;
-    private $dataset;
+    private $dataset;    
+    private $dateModified;
+    private $superAdmin;
+    
     
     function __construct(array $data=[]) {
         $this->data = $data;
@@ -29,6 +33,13 @@ class Ad {
     public static function create() : Ad {
         return new Ad();
     }
+    
+    
+    public function setParent(AdList $list) : Ad {
+        $this->list = $list;
+        return $this;
+    }
+    
     
     
     public function data() : array {
@@ -191,7 +202,7 @@ class Ad {
         return $this->data[Classifieds::EMAILS];
     }
     
-    
+   
     public function epoch() : int {
         return $this->data[Classifieds::UNIXTIME] ?? 0;
     }
@@ -210,6 +221,11 @@ class Ad {
     public function setUID(int $uid) : Ad {
         $this->data[Classifieds::USER_ID]=($uid>0)?$uid:0;
         return $this;
+    }
+
+    
+    public function state() : float {
+        return ($this->dataset!==null) ? $this->dataset()->getState() : 7;
     }
     
     
@@ -372,6 +388,16 @@ class Ad {
     public function isFeatured() : bool {
         return isset($this->data[Classifieds::FEATURE_ENDING_DATE]) && ($this->data[Classifieds::FEATURE_ENDING_DATE] >= time());
     }
+
+
+    public function isBookedFeature() : bool {
+        return isset($this->data[Classifieds::BO_ENDING_DATE]) && ($this->data[Classifieds::BO_ENDING_DATE] >= time());
+    }
+    
+    
+    public function getSuperAdmin() : int {
+        return $this->superAdmin;
+    }
     
     
     public function setRTL() : Ad {
@@ -397,9 +423,35 @@ class Ad {
     }
     
     
+    public function getDateModified() : int {
+        return $this->dateModified ?? $this->getDateAdded();
+    }
+    
+    
+    public function setDateModified(int $epoch) : Ad {
+        $this->dateModified=$epoch;
+        return $this;
+    }
+    
+    
     public function profile() : \MCUser {
+        if ($this->list!==null) {
+            $profile = $this->list->getCachedProfile($this->uid());
+            if ($profile!==null) {
+                $this->profile = $profile;
+            }
+            else {
+                $this->profile = new \MCUser($this->uid());
+                $this->list->cacheProfile($this->profile);
+            }
+        }
+                    
         if ($this->profile===null) {
+            if ($this->dataset!==null) {
+                return $this->dataset()->getProfile();
+            }
             $this->profile = new \MCUser($this->uid());
+            $this->list->cacheProfile($this->profile);
         }
         return $this->profile;
     }
@@ -527,6 +579,71 @@ class Ad {
     }
     
     
+    public function parseDbRow($row) : void {
+        $this->setID($row['ID'])
+            ->setSectionId($row['SECTION_ID'])
+            ->setPurposeId($row['PURPOSE_ID'])
+            ->setUID($row['WEB_USER_ID'])
+            ->setDateAdded($row['DATE_ADDED'])
+            ;
+        
+        $this->data[Classifieds::COUNTRY_ID] = $row['COUNTRY_ID'];
+
+        $this->dataset = new Content($this);        
+        $this->dataset->setID($row['ID'])
+                ->setState($row['STATE'])
+                ->setSectionID($row['SECTION_ID'])
+                ->setPurposeID($row['PURPOSE_ID'])
+                ->setCountryId($row['COUNTRY_ID'])
+                ->setCityId($row['CITY_ID'])
+                ->setUID($row['WEB_USER_ID'])
+                ->setCoordinate($row['LATITUDE'], $row['LONGITUDE']);
+            
+        $ext = \json_decode($row['CONTENT'], true);
+        $ext_version = $ext[Content::VERSION]??2;
+        if ($ext_version===3) {
+            $this->dataset->setApp(\substr($ext[Content::APP_NAME], 0, 1), \substr($ext[Content::APP_NAME], 2));
+        }
+        else {
+            $this->dataset->setApp($ext[Content::APP_NAME]??'unk', $ext[Content::APP_VERSION]??'');
+        }
+           
+        if ( !empty($row['PICTURES']) ) {
+            $pics = \json_decode('{' . $row['PICTURES'] . '}', true);
+            $this->dataset->setPictures($pics);
+        }
+        
+       
+        $this->dataset->setOld($ext)
+                ->setBudget($ext[Content::BUDGET]??0)
+                ->setUserAgent($ext[Content::USER_AGENT]??'')
+                ->setContactInfo($ext[Content::CONTACT_INFO]??[])
+                ->setRegions($ext[Content::REGIONS]??[])
+                ->setUserLanguage($ext[Content::UI_LANGUAGE]??'en')
+                ->setUserLevel($ext[Content::USER_LEVEL]??0)
+                ->setLocation($ext[Content::LOCATION]??'')
+                ->setNativeText($ext[Content::NATIVE_TEXT]??'')
+                ->setForeignText($ext[Content::FOREIGN_TEXT]??'')
+                ->setQualified(($ext[Content::QUALIFIED]??false))
+                ->setIpAddress($ext[Content::IP_ADDRESS]??'')
+                ->setIpScore($ext[Content::IP_SCORE]??0)
+                ->setUserLocation($ext[Content::USER_LOCATION]??'')
+                ->setMessage($ext[Content::MESSAGE]??'')                
+                ; 
+        
+        $this->data[Classifieds::CONTENT] = $this->dataset()->getNativeText();
+        $this->data[Classifieds::ALT_CONTENT] = $this->dataset()->getForeignText();
+        if ($this->dataset()->getNativeRTL()===1) {
+            $this->setRTL();
+        }
+        else {
+            $this->setLTR();
+        }
+        
+        $this->superAdmin=$row['SUPER_ADMIN']??0;
+    }
+    
+    
     public function getAdFromAdUserTableForEditing(int $id) : void {
         $db = Router::instance()->database();
         $ad = $db->get(
@@ -536,9 +653,11 @@ class Ad {
                 'DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', AD_USER.DATE_ADDED) DATE_ADDED, '.
                 '(select list(\'"\'||MEDIA.FILENAME||\'":\'||\'[\'||MEDIA.WIDTH||\',\'||MEDIA.HEIGHT||\']\') PICTURES ' .
                 'from AD_MEDIA left join MEDIA on MEDIA.ID=AD_MEDIA.MEDIA_ID where AD_MEDIA.AD_ID=AD_USER.ID) ' .
-                'FROM AD_USER  WHERE AD_USER.id=?', [$id]);
+                'FROM AD_USER WHERE AD_USER.id=?', [$id]);
         
-        if (\is_array($ad) && \count($ad)===1) {            
+        if (\is_array($ad) && \count($ad)===1) {
+            $this->parseDbRow($ad[0]);
+            /*
             $this->setID($ad[0]['ID'])
                     ->setSectionId($ad[0]['SECTION_ID'])
                     ->setPurposeId($ad[0]['PURPOSE_ID'])
@@ -584,15 +703,12 @@ class Ad {
                     ->setNativeText($ext[Content::NATIVE_TEXT]??'')
                     ->setForeignText($ext[Content::FOREIGN_TEXT]??'')
                     ->setQualified(($ext[Content::QUALIFIED]??false))           
-                    ;                                
-            
+                    ;
+            */
             
             $user = Router::instance()->user();
             if ($user!==null && $user->id()>0) {
-                if ($user->id()!==$this->dataset->getUID()) {
-                    $this->dataset->setUserLevel($ext[Content::USER_LEVEL]??0);
-                }
-                else {
+                if ($user->id()===$this->dataset->getUID()) {
                     $this->dataset->setUserLevel($user->level());
                 }
             }

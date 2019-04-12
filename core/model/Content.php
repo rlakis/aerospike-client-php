@@ -71,6 +71,7 @@ class Content {
     const UID                   = 'user';
     const USER_LEVEL            = 'userLvl';
     const USER_LOCATION         = 'userLOC';
+    const MESSAGE               = 'msg';
     const QUALIFIED             = 'qualified';
     const VERSION               = 'version';
     
@@ -116,6 +117,7 @@ class Content {
             self::LOCATION_ENGLISH  => '',
             self::USER_LEVEL        => 0,
             self::USER_LOCATION     => '',
+            self::MESSAGE           => '',
             self::ATTRIBUTES        => [
                                     self::ATTR_NATIVE => '',
                                     self::ATTR_FOREIGN => '',
@@ -168,11 +170,27 @@ class Content {
     }
     
     
+    public function getState() : int {
+        return $this->content[self::STATE];
+    }
+    
+    
     public function setState(int $state) : Content {
-        $this->content[self::STATE]=$state;
+        $this->content[self::STATE]=$state;       
         return $this;
     }
     
+    
+    public function getMessage() : string {
+        return $this->content[self::MESSAGE];
+    }
+    
+    
+    public function setMessage(string $message) : Content {
+        $this->content[self::MESSAGE] = $message;
+        return $this;
+    }        
+   
     
     public function getCountryId() : int {
         return $this->countryId;
@@ -230,6 +248,13 @@ class Content {
     }
     
     
+    public function getAppShortName() : string {
+        if (\strlen($this->content[self::APP_NAME])>=0) {
+            return \strtoupper(\substr($this->content[self::APP_NAME], 0, 1));
+        }
+        return 'W';
+    }
+    
     public function setApp(string $name, string $version) : Content {
         if (\strlen($name)===1) {
             $name = ($name==='w'?'web':($name==='a'?'android':($name==='i'?'ios':'unk')));
@@ -264,6 +289,11 @@ class Content {
     }
     
     
+    public function getBudget() : int {
+        return $this->content[self::BUDGET];
+    }
+    
+    
     public function setBudget(int $budget) : Content {
         if ($this->getProfile()->getBalance()<=0) {
             $budget=0;
@@ -292,6 +322,11 @@ class Content {
     public function setIpScore(float $score) : Content {
         $this->content[self::IP_SCORE]=$score;
         return $this;
+    }
+    
+    
+    public function getContactInfo() : array {
+        return $this->content[Content::CONTACT_INFO];
     }
     
     
@@ -336,16 +371,27 @@ class Content {
     }
         
     
-    public function setUserLocation() : Content {
-        $this->content[self::USER_LOCATION] = \IPQuality::ipLocation($this->getIpAddress());
+    public function getUserLocation() : string {
+        return $this->content[self::USER_LOCATION];
+    }
+    
+    
+    public function setUserLocation(string $location='') : Content {
+        if ($location) {
+            $this->content[self::USER_LOCATION] = $location;
+        }
+        else {
+            $this->content[self::USER_LOCATION] = \IPQuality::ipLocation($this->getIpAddress());
+        }
         return $this;
     }
+    
     
     private function rtl(string $text) : int {
         if ( !empty($text) ) {
             $success = \preg_match_all('/\p{Arabic}/u', $text);
             $spaces = \preg_match_all('/\s/u', $text);
-            if ($success/(\mb_strlen($text)-$spaces)>=0.5) {
+            if ($success/(\mb_strlen($text)-$spaces)>=0.3) {
                 return 1;
             }
         }
@@ -353,9 +399,15 @@ class Content {
     }
     
     
+    public function getNativeText() : string {
+        return $this->content[self::NATIVE_TEXT];
+    }
+    
+    
     public function setNativeText(string $text) : Content {
         $this->content[self::NATIVE_TEXT] = \trim($text);
         $this->content[self::NATIVE_RTL] = $this->rtl($this->content[self::NATIVE_TEXT]);
+        
         return $this;
     }
     
@@ -365,8 +417,13 @@ class Content {
     }
     
     
+    public function getForeignText() : string {
+        return $this->content[self::FOREIGN_TEXT];
+    }
+    
+    
     public function setForeignText(string $text) : Content {
-        $this->content[self::FOREIGN_TEXT]= \trim($text);
+        $this->content[self::FOREIGN_TEXT] = \trim($text);
         $this->content[self::FOREIGN_RTL] = $this->rtl($this->content[self::FOREIGN_TEXT]);
         return $this;
     }
@@ -423,6 +480,16 @@ class Content {
     
     public function getLongitude() : float {
         return $this->content[self::LONGITUDE] ?? 0;
+    }
+    
+    
+    public function getLocation() : string {
+        if ($this->content[self::LOCATION]) {
+            return $this->content[self::LOCATION];
+        }
+        else {
+            return $this->content[self::LOCATION_ARABIC]??$this->content[self::LOCATION_ENGLISH];
+        }
     }
     
     
@@ -484,9 +551,6 @@ class Content {
                 $this->countryId = Router::instance()->getCountryId($this->cityId);
             }
     	}
-        //$c=Router::instance()->countries[2];
-        //unset($c['purposes']);
-        //error_log(json_encode( $c ));
         if ($this->countryId>0 && $this->cityId===0) {
             
         }
@@ -516,7 +580,7 @@ class Content {
             if ($ms->execute()) {
                 
                 if ($ms->fetch()===FALSE) {
-                    error_log(PHP_EOL. $picfile . ' not found!!');
+                    //error_log(PHP_EOL. $picfile . ' not found!!');
                     unset($this->content[self::PICTURES][$picfile]);
                 }
             }            
@@ -544,13 +608,13 @@ class Content {
             }
             unset($st);
             
-            error_log(PHP_EOL . ' ad id '.$this->getID());
+            //error_log(PHP_EOL . ' ad id '.$this->getID());
             $images = $db->get('select AD_MEDIA.ID, AD_MEDIA.MEDIA_ID, MEDIA.FILENAME from ad_media left join media on media.ID=AD_MEDIA.MEDIA_ID where ad_id=?', [$this->getID()]);
             
             $to_delete_images=[];
             $no_change_images=[];
             foreach ($images as $image) {
-                error_log(PHP_EOL . 'Image ' . var_export($image, true));
+                //error_log(PHP_EOL . 'Image ' . var_export($image, true));
                 if ( !isset($this->content[self::PICTURES][$image['FILENAME']])) {
                     $to_delete_images[] = $image['ID'];
                 }
@@ -565,15 +629,15 @@ class Content {
                 foreach ($mfiles as $file) {
                     if (\in_array($file, $no_change_images)) { continue; }
                     
-                    error_log($file);
+                    //error_log($file);
                     $ms->bindValue(1, $file, \PDO::PARAM_STR);
                     if ($ms->execute()) {
-                        error_log(PHP_EOL . $file . ' selected');
+                        //error_log(PHP_EOL . $file . ' selected');
                         if (($rs = $ms->fetch(\PDO::FETCH_ASSOC))!==FALSE) {                            
                             $is->bindValue(1, $this->getID(), \PDO::PARAM_INT);
                             $is->bindValue(2, $rs['ID'], \PDO::PARAM_INT);
                             if ($is->execute()) {
-                                error_log(PHP_EOL .$file . ' inserted');
+                                //error_log(PHP_EOL .$file . ' inserted');
                             }
                             else {
                                 error_log(PHP_EOL .$file . ' failed');
@@ -584,7 +648,7 @@ class Content {
             }
             
             if ( !empty($to_delete_images)) {
-                error_log(var_export($to_delete_images, true));
+                //error_log(var_export($to_delete_images, true));
                 
                 $dm = $db->prepareQuery('delete from ad_media where id=?');
                 foreach ($to_delete_images as $id) {

@@ -638,7 +638,12 @@ class User {
     }
     
     
-    function getPendingAds($id=0, $state=0, $pagination=0, $commit=false) {
+    function getPendingAds(int $id=0, int $state=0, int $pagination=0, bool $commit=false) {        
+        if (!$this->isLoggedIn()) {
+            \error_log( __CLASS__ .'.' . __FUNCTION__ . ': not a valid user id ' . $this->id());
+            return false;            
+        }
+        
         $res=false;
         $aid=\filter_input(\INPUT_GET, 'a', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
         
@@ -653,11 +658,10 @@ class User {
                 $pagination_str = 'first '.($recNum+1);
             }
         }        
-        
-        if ($this->id()>0) {
-            if ($id) {
-                if ($this->level()===9) {
-                    $res=$this->db->get(
+                
+        if ($id) {
+            if ($this->level()===9) {
+                $res=$this->db->get(
                         'select a.*, u.full_name, u.lvl, u.provider, u.email, u.DISPLAY_NAME,
                         u.user_name,u.user_email,u.profile_url, u.user_rank, 
                         obj.raw_other, obj.raw_alt_other, 
@@ -669,9 +673,9 @@ class User {
                         left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 
                         left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
                         where a.id=?', [$id], $commit);
-                }
-                else {
-                    $res=$this->db->get(
+            }
+            else {
+                $res=$this->db->get(
                         'select a.*, obj.raw_other, obj.raw_alt_other, 
                          IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
                          IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended 
@@ -681,41 +685,41 @@ class User {
                          left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
                          where a.web_user_id=? and a.id=?',
                         [$this->info['id'], $id], $commit);
-                }
             }
-            else {                
-                if ($this->level()===9) {                    
-                    if ($aid) {
-                        if ($state>6) {
-                            $res=$this->db->get(
+        }
+        else {                
+            if ($this->level()===9) {
+                if ($aid) {
+                    if ($state>6) {
+                        $res=$this->db->get(
                                 'select '.$pagination_str.' a.*, u.full_name, u.lvl, u.DISPLAY_NAME, u.profile_url, u.user_rank,u.provider 
                                 from ad_user a
                                 left join web_users u on u.id=a.web_user_id
                                 where a.admin_id=? and a.state=? 
                                 ORDER BY a.LAST_UPDATE desc', 
                                 [$aid, $state], $commit);
-                        }
-                        elseif ($state) {
-                            $res=$this->db->get(
+                    }
+                    elseif ($state) {
+                        $res=$this->db->get(
                                 'select '.$pagination_str.' a.*, u.full_name, u.lvl, u.DISPLAY_NAME, u.profile_url, u.user_rank, u.provider 
                                 from ad_user a 
                                 left join web_users u on u.id=a.web_user_id 
                                 where a.state=3 and a.admin_id='.$aid.' order by a.state asc,a.LAST_UPDATE desc');
-                        }
-                        else {
-                            $res=$this->db->get(
+                    }
+                    else {
+                        $res=$this->db->get(
                                 'select '.$pagination_str.' a.*,u.full_name,u.lvl,u.DISPLAY_NAME,u.profile_url, u.user_rank,u.provider  
                                 from ad_user a left join web_users u on u.id=a.web_user_id where a.admin_id=? and a.state=? order by a.LAST_UPDATE desc',
                                 [$aid, $state], $commit);
-                        }
-                        
-                    }
-                    else {
-                        $uid=$this->info['id'];
-                        if (isset ($_GET['u']) && is_numeric($_GET['u'])) $uid=(int)$_GET['u'];
+                    }                        
+                }
+                else {
+                    // list
+                    $uid=$this->info['id'];                    
+                    if (isset ($_GET['u']) && is_numeric($_GET['u'])) $uid=(int)$_GET['u'];
 
-                        if ($state>6) {
-                            $res=$this->db->get(
+                    if ($state>6) {
+                        $res=$this->db->get(
                                 'select '.$pagination_str.' a.*, u.full_name, u.lvl, 
                                 u.DISPLAY_NAME, u.profile_url, u.user_rank, 
                                 IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
@@ -727,11 +731,11 @@ class User {
                                 where a.web_user_id=? and a.state=? 
                                 ORDER BY bo_date_ended desc, a.LAST_UPDATE desc', 
                                 [$uid, $state], $commit);
-                        }
-                        elseif ($state) {
-                            $adLevel= $this->isSuperUser() ? $adLevel=100000000 : 0;
-                            $filters = $this->getAdminFilters();
-                            $q = 'select '.$pagination_str
+                    }
+                    elseif ($state) {
+                        $adLevel= $this->isSuperUser() ? $adLevel=100000000 : 0;
+                        $filters = $this->getAdminFilters();
+                        $q = 'select '.$pagination_str
                                 .' a.ID, a.CONTENT, a.DATE_ADDED, a.PURPOSE_ID, a.SECTION_ID, a.RTL, a.STATE, a.LAST_UPDATE, a.COUNTRY_ID, '
                                 .'a.CITY_ID, a.LATITUDE, a.LONGITUDE, a.WEB_USER_ID, /*a.ACTIVE_COUNTRY_ID, a.ACTIVE_CITY_ID, a.MEDIA, */ a.ADMIN_ID, /*a.ADMIN_STAMP, */ a.DOC_ID, '
                                 .'ao.super_admin, u.full_name, u.lvl, u.DISPLAY_NAME, u.profile_url, '
@@ -745,58 +749,59 @@ class User {
                                 .'left join t_ad_bo bo on bo.ad_id=a.id and bo.blocked=0 '
                                 .'left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date ';
                             
-                            if($filters['root']) {
-                                $q .= 'left join section s on a.section_id=s.id ';
-                            }
+                        if ($filters['root']) {
+                            $q .= 'left join section s on a.section_id=s.id ';
+                        }
                             
-                            $q .= 'where ';
+                        $q .= 'where ';
                                     
-                            if (preg_match("/https.*\.mourjan\.com\/admin\/?\?p=\d+/", $_SERVER['HTTP_REFERER'] ?? 'DIRECT_ACCESS')) {
-                                $q.=" (a.state between 1 and 4) and a.web_user_id={$uid} ";
-                            }
-                            else {
-                                if($filters['uid']) {
-                                    $q.= '( (a.state in (1,2,4)) and a.web_user_id='.$filters['uid'].' ) ';
-                                }
-                                else {
-                                    $q.= '( (a.state in (1,2,4)) or (a.state=3 and a.web_user_id='.$uid.') ) ';
-                                }
-                            }
-                            $q .= ' and (ao.super_admin is null or ao.super_admin<='.$adLevel.') ';
-                            if ($filters['purpose']) {
-                                $q.='and a.purpose_id='.$filters['purpose'].' ';
-                            }
-                            
-                            if ($filters['lang']==1) { 
-                                $q.='and (a.rtl in (1,2)) ';
-                            }
-                            
-                            if ($filters['lang']==2) {
-                                $q.='and (a.rtl in (0,2)) ';
-                            }
-                            
-                            if ($filters['root']) {
-                                $q.='and s.root_id = '.$filters['root'].' ';
-                            }
-                            
-                            $q.= 'order by primo desc,a.state asc, bo_date_ended desc, ao.super_admin desc, ppn, a.LAST_UPDATE desc';
-                            $res=$this->db->get($q, null, $commit);
+                        if (preg_match("/https.*\.mourjan\.com\/admin\/?\?p=\d+/", $_SERVER['HTTP_REFERER'] ?? 'DIRECT_ACCESS')) {
+                            $q.=" (a.state between 1 and 4) and a.web_user_id={$uid} ";
                         }
                         else {
-                            $res=$this->db->get(
-                                    'select '.$pagination_str.' a.*, u.full_name, u.lvl, u.DISPLAY_NAME, u.profile_url, u.user_rank 
-                                    from ad_user a 
-                                    left join web_users u on u.id=a.web_user_id 
-                                    where a.web_user_id=? and a.state=? 
-                                    order by a.LAST_UPDATE desc',
-                                    array($uid, $state), $commit);
+                            if ($filters['uid']) {
+                                $q.= '( (a.state in (1,2,4)) and a.web_user_id='.$filters['uid'].' ) ';
+                            }
+                            else {
+                                $q.= '( (a.state in (1,2,4)) or (a.state=3 and a.web_user_id='.$uid.') ) ';
+                            }
+                        }
+                        $q .= ' and (ao.super_admin is null or ao.super_admin<='.$adLevel.') ';
+                        if ($filters['purpose']) {
+                            $q.='and a.purpose_id='.$filters['purpose'].' ';
+                        }
+                            
+                        if ($filters['lang']==1) { 
+                            $q.='and (a.rtl in (1,2)) ';
+                        }
+                            
+                        if ($filters['lang']==2) {
+                            $q.='and (a.rtl in (0,2)) ';
+                        }
+                            
+                        if ($filters['root']) {
+                            $q.='and s.root_id = '.$filters['root'].' ';
+                        }
+                            
+                        $q.= 'order by primo desc,a.state asc, bo_date_ended desc, ao.super_admin desc, ppn, a.LAST_UPDATE desc';
+                        $res=$this->db->get($q, null, $commit);
+                    }
+                    else { 
+                        // draft ads
+                        $res=$this->db->get(
+                                'select '.$pagination_str.' a.*, u.full_name, u.lvl, u.DISPLAY_NAME, u.profile_url, u.user_rank 
+                                from ad_user a 
+                                left join web_users u on u.id=a.web_user_id 
+                                where a.web_user_id=? and a.state=? 
+                                order by a.LAST_UPDATE desc',
+                                array($uid, $state), $commit);
                         }                        
                     }
-                }
-                else {
-                    if ($state>6) {
-                        // 7: Active, 8: Deleted, 9:Archived
-                        $res=$this->db->get(
+            }
+            else {
+                if ($state>6) { 
+                    // 7: Active, 8: Deleted, 9:Archived
+                    $res=$this->db->get(
                             'select '.$pagination_str.' a.*,  
                              IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
                              IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended 
@@ -806,10 +811,10 @@ class User {
                              where a.web_user_id=? and a.state=? 
                              ORDER BY bo_date_ended desc, a.LAST_UPDATE desc
                              ', [$this->info['id'], $state], $commit);
-                    }
-                    elseif ($state) {
-                        // 1: Pending to apprive, 2: approved not published, 3: rejected
-                        $res=$this->db->get(
+                }
+                elseif ($state) {
+                    // 1: Pending to apprive, 2: approved not published, 3: rejected
+                    $res=$this->db->get(
                             'select '.$pagination_str.' a.*,
                             IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', featured.ended_date)) featured_date_ended, 
                             IIF(bo.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', bo.end_date)) bo_date_ended  '
@@ -818,18 +823,15 @@ class User {
                             left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date '
                             . 'where a.web_user_id=? and a.state in (1,2,3,4) order by a.LAST_UPDATE desc',
                             array($this->info['id']), $commit);
-                    }
-                    else {
-                        // Draft
-                        $res=$this->db->get('select '.$pagination_str.' * from ad_user where web_user_id=? and state=? order by LAST_UPDATE desc',
-                                            [$this->info['id'], $state], $commit);
-                    }
+                }
+                else {
+                    // Draft
+                    $res=$this->db->get('select '.$pagination_str.' * from ad_user where web_user_id=? and state=? order by LAST_UPDATE desc',
+                                        [$this->info['id'], $state], $commit);
                 }
             }
         }
-        else {
-            \error_log( __CLASS__ .'.' . __FUNCTION__ . ': not a valid user id ' . $this->id());
-        }
+        
         return $res;
     }
     
