@@ -76,10 +76,20 @@ class AdList implements \Iterator {
         
         $f = 'FROM AD_USER ';
         $f.= 'LEFT JOIN WEB_USERS on WEB_USERS.ID=AD_USER.WEB_USER_ID ';
-        $w = '';
+
+        $w = 'where ';
         
         if ($this->state>6) {
+            $q.= ', ';
+            $q.= 'IIF(T_AD_FEATURED.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', T_AD_FEATURED.ended_date)) featured_date_ended, ';
+            $q.= 'IIF(T_AD_BO.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', T_AD_BO.end_date)) bo_date_ended, WEB_USERS.provider ';
             
+            $f.= 'LEFT JOIN T_AD_BO on T_AD_BO.AD_ID=AD_USER.ID and T_AD_BO.BLOCKED=0 ';
+            $f.= 'LEFT JOIN T_AD_FEATURED on T_AD_FEATURED.AD_ID=AD_USER.ID and current_timestamp between T_AD_FEATURED.added_date and T_AD_FEATURED.ended_date ';
+
+            $w.= "AD_USER.web_user_id={$this->uid} and AD_USER.state={$this->state} ";
+            $o = 'ORDER BY bo_date_ended desc, AD_USER.LAST_UPDATE desc';
+
         }
         elseif ($this->state>0) {
             $user = Router::instance()->user();
@@ -91,11 +101,7 @@ class AdList implements \Iterator {
             $q.= 'iif(AD_USER.state=4, 1, 0) primo, ';
             $q.= 'IIF(T_AD_FEATURED.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', T_AD_FEATURED.ended_date)) featured_date_ended, ';
             $q.= 'IIF(T_AD_BO.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', T_AD_BO.end_date)) bo_date_ended, WEB_USERS.provider ';
-            
-            
-            $f = 'FROM AD_USER ';
-            $f.= 'LEFT JOIN WEB_USERS on WEB_USERS.ID=AD_USER.WEB_USER_ID ';
-            
+                        
             $f.= 'LEFT JOIN AD_OBJECT on AD_OBJECT.ID=AD_USER.ID ';
             $f.= 'LEFT JOIN T_AD_BO on T_AD_BO.AD_ID=AD_USER.ID and T_AD_BO.BLOCKED=0 ';
             $f.= 'LEFT JOIN T_AD_FEATURED on T_AD_FEATURED.AD_ID=AD_USER.ID and current_timestamp between T_AD_FEATURED.added_date and T_AD_FEATURED.ended_date ';
@@ -103,7 +109,7 @@ class AdList implements \Iterator {
                 $f.= 'left join section on AD_USER.section_id=section.id ';
             }
             
-            $w = 'where ';                                    
+                                            
             if (preg_match("/https.*\.mourjan\.com\/admin\/?\?p=\d+/", $_SERVER['HTTP_REFERER'] ?? 'DIRECT_ACCESS')) {
                 $w.=" (AD_USER.state between 1 and 4) and AD_USER.web_user_id={$this->uid} ";
             }
@@ -136,14 +142,14 @@ class AdList implements \Iterator {
         }
         else {
             // draft ads
-            $w.= "WHERE AD_USER.WEB_USER_ID={$this->uid} and AD_USER.STATE={$this->state} ";
+            $w.= "AD_USER.WEB_USER_ID={$this->uid} and AD_USER.STATE={$this->state} ";
             $o = 'ORDER BY AD_USER.LAST_UPDATE desc';
         }
 
         $l = ' rows ' . (($this->offset===0)?1:($this->offset*$this->limit)+1) . ' to ' . (($this->offset*$this->limit)+$this->limit);
-        $st = $db->prepareQuery($q.$f.$w.$o.$l);
+        $st = $db->prepareQuery($q.$f.$w.$o.$l, [\PDO::ATTR_CURSOR=>\PDO::CURSOR_FWDONLY, \PDO::ATTR_PREFETCH=>25]);
         if ($st->execute()) {
-            while (($rs=$st->fetch())!==false) {
+            while (($rs=$st->fetch(\PDO::FETCH_ASSOC))!==false) {
                 $ad = new Ad();
                 $ad->setParent($this)->parseDbRow($rs);
                 

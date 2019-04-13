@@ -687,7 +687,7 @@ class User {
                         [$this->info['id'], $id], $commit);
             }
         }
-        else {                
+        else {             
             if ($this->level()===9) {
                 if ($aid) {
                     if ($state>6) {

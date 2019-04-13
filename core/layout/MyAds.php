@@ -212,8 +212,9 @@ class MyAds extends Page {
                 return;
             }
 
-            $sub= filter_input(INPUT_GET, 'sub', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-            if ($sub=='deleted' && $this->user()->level()!=9) { $sub = ''; }
+            $sub = \filter_input(\INPUT_GET, 'sub', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+            if ($sub==='deleted' && $this->user()->level()!=9) { $sub = ''; }
+            
             switch($sub) {
                 case '':
                     $this->pendingAds(7);
@@ -511,8 +512,8 @@ class MyAds extends Page {
     }
     
     
-    private function accountButton($href, $text, $active, $count) : void {
-        echo '<a href="', $href, '" class="btn', $active?' current">':'">', $text, $active?' ('.$count.')':'', '</a>';
+    private function accountButton(string $href, string $text, bool $active, int $count) : void {
+        echo '<a href="', $href, '" class="btn', $active ? ' current">' : '">', $text, $active ? ' ('.$count.')' : '', '</a>';
     }
     
     
@@ -545,11 +546,11 @@ class MyAds extends Page {
         $this->renderBalanceBar();
         echo '<div class=account>';
         echo '<a href="', $this->router()->getLanguagePath('/post/'), '" class="btn half"><span class="j pub"></span>', $this->lang['button_ad_post_m'], '</a>';
-        echo '<a id=active href="', $this->router()->getLanguagePath('/myads/'), '" class="btn active', $sub==''?' current':'', '"><span class="pj ads1"></span>', $this->lang['ads_active'], '</a>';
+        echo '<a id=active href="', $this->router()->getLanguagePath('/myads/'), '" class="btn active', $sub===''?' current':'', '"><span class="pj ads1"></span>', $this->lang['ads_active'], '</a>';
 
-        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=pending', $this->lang['home_pending'], $sub=='pending', $dbCount);
-        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=drafts', $this->lang['home_drafts'], $sub=='drafts', $dbCount);
-        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=archive', $this->lang['home_archive'], $sub=='archive', $dbCount);
+        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=pending', $this->lang['home_pending'], $sub==='pending', $dbCount);
+        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=drafts', $this->lang['home_drafts'], $sub==='drafts', $dbCount);
+        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=archive', $this->lang['home_archive'], $sub==='archive', $dbCount);
             
         echo '<a id=favorite href="', $this->router()->getLanguagePath('/favorites/'), '?u=', $this->user->info['idKey'], '" class="btn half favorite', $sub=='favorite'?' current':'', '"><span class="j fva"></span>', $this->lang['myFavorites'], '</a>';
         echo '<a href="', $this->router()->getLanguagePath('/statement/'), '" class="btn half balance"><span class="pj coin"></span>', $this->lang['myBalance'], '</a>';
@@ -850,18 +851,19 @@ class MyAds extends Page {
                     
 
                 if ($state==7) {
+                    // after long idle time, refresh passed here
                     $liClass.='atv';
-                    $link=($ad['RTL']?'/':'/en/').$ad['ID'].'/';
-                    if($altText) $altlink='/en/'.$ad['ID'].'/';                        
+                    $link=($cad->rtl()?'/':'/en/').$cad->id().'/';
+                    if($altText) $altlink='/en/'.$cad->id().'/';                        
                         
                     if ($isFeatured || $isFeatureBooked) {
                         $liClass.= ' vp';
                     }
                 }
                 
-                if($state>6) {
-                    $ad['CITY_ID']=$ad['ACTIVE_CITY_ID'];
-                    $ad['COUNTRY_ID']=$ad['ACTIVE_COUNTRY_ID'];
+                if ($state>6) {
+                    //$ad['CITY_ID']=$ad['ACTIVE_CITY_ID'];
+                    //$ad['COUNTRY_ID']=$ad['ACTIVE_COUNTRY_ID'];
                 }
                                 
                 $adClass='card myad';

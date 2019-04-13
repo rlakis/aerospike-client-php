@@ -145,6 +145,7 @@ class DB {
                         \PDO::ATTR_EMULATE_PREPARES=>FALSE,
                         \PDO::ATTR_STRINGIFY_FETCHES=>FALSE,
                         \PDO::ATTR_TIMEOUT=>5,
+                        \PDO::ATTR_PREFETCH=>25,
                         \PDO::ATTR_ERRMODE=>\PDO::ERRMODE_EXCEPTION,
 
                         \PDO::FB_ATTR_COMMIT_RETAINING=>FALSE,
@@ -399,9 +400,14 @@ class DB {
     }
     
     
-    function prepareQuery($q) : \PDOStatement {
+    function prepareQuery($q, ?array $attrs=null) : \PDOStatement {
         $this->checkCorrectWriteMode($q);
-        return $this->getInstance()->prepare($q);
+        if ($attrs!==null) {
+            return $this->getInstance()->prepare($q, $attrs);
+        }
+        else {
+            return $this->getInstance()->prepare($q);
+        }
     }
     
     
