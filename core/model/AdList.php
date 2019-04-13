@@ -1,7 +1,7 @@
 <?php
 namespace Core\Model;
 
-class AdList implements \Iterator {
+class AdList extends \SplDoublyLinkedList {    
     private $state;
     private $uid;
     private $alterUID;
@@ -10,20 +10,18 @@ class AdList implements \Iterator {
     private $purposeId;
     private $lang;
     
-    private $data;
-    private $offset; 
+    private $page;
     private $limit;
     private $countAll;
 
-    private $cache;
+    private $profiles;
 
     public function __construct() {
-        $this->offset = 0;
+        $this->page = 0;
         $this->limit = 25;
         $this->state = 0;
         $this->countAll = 0;
-        $this->data = [];
-        $this->cache = ['profiles'=>[]];
+        $this->profiles = [];
         $this->alterUID = \intval(\filter_input(\INPUT_GET, 'u',    \FILTER_SANITIZE_NUMBER_INT, ['$option'=>['default'=>0]]));
         $this->rootId   = \intval(\filter_input(\INPUT_GET, 'fro',  \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
         $this->purposeId= \intval(\filter_input(\INPUT_GET, 'fpu',  \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
@@ -49,18 +47,23 @@ class AdList implements \Iterator {
 
 
     public function cacheProfile(\MCUser $profile) {
-        $this->cache['profiles'][$profile->id]=$profile;
+        $this->profiles[$profile->id]=$profile;
     }
     
     
-    public function getCachedProfile(int $uid) : ?\MCUser {        
-        return $this->cache['profiles'][$uid] ?? null;
+    public function getCachedProfile(int $uid) : ?\MCUser {
+        if (isset($this->profiles[$uid])) {
+            return $this->profiles[$uid];
+        }
+        $profile = new \MCUser($uid);
+        $this->cacheProfile($profile);
+        return $profile;
     }
     
     
     public function fetchFromAdUser() : void {
         $this->data = [];
-        $this->offset = \intval( \filter_input(\INPUT_GET, 'o', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]) );
+        $this->page = \intval( \filter_input(\INPUT_GET, 'o', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]) );
        
         $db = Router::instance()->database();
         $q = 'SELECT AD_USER.ID, AD_USER.CONTENT, AD_USER.PURPOSE_ID, AD_USER.SECTION_ID, ';
@@ -146,36 +149,24 @@ class AdList implements \Iterator {
             $o = 'ORDER BY AD_USER.LAST_UPDATE desc';
         }
 
-        $l = ' rows ' . (($this->offset===0)?1:($this->offset*$this->limit)+1) . ' to ' . (($this->offset*$this->limit)+$this->limit);
-        $st = $db->prepareQuery($q.$f.$w.$o.$l, [\PDO::ATTR_CURSOR=>\PDO::CURSOR_FWDONLY, \PDO::ATTR_PREFETCH=>25]);
+        $l = ' rows ' . (($this->page===0)?1:($this->page*$this->limit)+1) . ' to ' . (($this->page*$this->limit)+$this->limit);
+        $st = $db->prepareQuery($q.$f.$w.$o.$l, [\PDO::ATTR_CURSOR=>\PDO::CURSOR_FWDONLY]);
         if ($st->execute()) {
             while (($rs=$st->fetch(\PDO::FETCH_ASSOC))!==false) {
                 $ad = new Ad();
                 $ad->setParent($this)->parseDbRow($rs);
-                
-                $this->data[] = $ad;
+                $this->push($ad);
             }
         }
         $st->closeCursor();
         
         
-        if ($this->state===0) {
-            $this->countAll = $this->count();
+        $ct = $db->prepareQuery('select count(AD_USER.ID) '.$f.$w);
+        if ($ct->execute()) {
+            $row=$ct->fetch(\PDO::FETCH_NUM);
+            $this->countAll=$row[0];
         }
-        else {
-            $st = $db->prepareQuery('select count(AD_USER.ID) '.$f.$w);
-            if ($st->execute()) {
-                $row=$st->fetch(\PDO::FETCH_NUM);
-                $this->countAll=$row[0];
-            }
-            $st->closeCursor();
-        }
-        unset($st);
-    }
-    
-    
-    public function count() : int {
-        return \count($this->data);
+        $ct->closeCursor();
     }
     
     
@@ -184,8 +175,8 @@ class AdList implements \Iterator {
     }
     
     
-    public function offset() : int {
-        return $this->offset;
+    public function page() : int {
+        return $this->page;
     }
     
     
@@ -216,10 +207,11 @@ class AdList implements \Iterator {
     
     
     public function current() : Ad {
-        return current($this->data);
+        return parent::current();
+        //return current($this->data);
     }
 
-    
+    /*
     public function key(): \scalar {
         return \key($this->data);
     }
@@ -238,5 +230,5 @@ class AdList implements \Iterator {
     public function valid(): bool {
         return key($this->data) !== null;
     }
-
+    */
 }

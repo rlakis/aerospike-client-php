@@ -447,10 +447,10 @@ class Page extends Site {
     }
 
     
-    function checkBlockedAccount($level=0) {
-        if ($this->user->info['id']) {
-            if((!$level || ($level && $level==5)) && $this->user->info['level']==5) {
-                $this->user->redirectTo('/blocked/'.($this->router()->language=='ar'?'':$this->router()->language.'/'));
+    function checkBlockedAccount(int $level=0) : void {
+        if ($this->user()->isLoggedIn()) {
+            if ((!$level || ($level && $level==5)) && $this->user()->level()==5) {
+                $this->user->redirectTo('/blocked/'.($this->router()->isArabic()?'':$this->router()->language.'/'));
             }
             elseif((!$level || ($level && $level==6)) && $this->user->info['level']==6) {
                 $this->user->redirectTo('/suspended/'.($this->router()->language=='ar'?'':$this->router()->language.'/'));

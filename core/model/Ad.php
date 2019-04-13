@@ -2,11 +2,12 @@
 namespace Core\Model;
 
 class Ad {
+    private $list;
+    
     private $data;              // raw classified array
     private $text;              // ad text without contacts
     private $translation;       // ad text alter language without contacts
-    private $profile;           // MCUser instance
-    private $list;
+    private $profile;           // MCUser instance    
     private $numberValidator = null;
     private $dataset;    
     private $dateModified;
@@ -435,15 +436,19 @@ class Ad {
     
     
     public function profile() : \MCUser {
+        if ($this->profile!==null) {
+            return $this->profile;
+        }
+        
         if ($this->list!==null) {
-            $profile = $this->list->getCachedProfile($this->uid());
-            if ($profile!==null) {
-                $this->profile = $profile;
-            }
-            else {
-                $this->profile = new \MCUser($this->uid());
-                $this->list->cacheProfile($this->profile);
-            }
+            $this->profile = $this->list->getCachedProfile($this->uid());
+            //if ($profile!==null) {
+            //    $this->profile = $profile;
+            //}
+            //else {
+            //    $this->profile = new \MCUser($this->uid());
+            //    $this->list->cacheProfile($this->profile);
+            //}
         }
                     
         if ($this->profile===null) {

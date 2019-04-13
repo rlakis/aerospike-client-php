@@ -7,6 +7,7 @@ use Core\Model\AdList;
 
 class MyAds extends Page {
     
+    private $adList;
     var $subSection='',$userBalance=0, $redis = null, $admins_online=[];
     
     var $editors = [
@@ -27,12 +28,15 @@ class MyAds extends Page {
     
     function __construct() {
         parent::__construct();       
-        
         if ($this->router()->config()->isMaintenanceMode()) {
             $this->user->redirectTo($this->router()->getLanguagePath('/maintenance/'));
         }
-
+         
         $this->checkBlockedAccount();
+        
+        $this->adList = new AdList();
+        $this->adList->cacheProfile($this->user()->data);
+        
         $this->forceNoIndex=true;
         $this->router()->config()->disableAds();
         $this->title=$this->lang['myAds'];
@@ -44,7 +48,7 @@ class MyAds extends Page {
         
         $sub = filter_input(INPUT_GET, 'sub', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
                 
-        if ($sub=='deleted' && $this->user()->level()!=9) { $sub = ''; }
+        if ($sub==='deleted' && $this->user()->level()!=9) { $sub = ''; }
 
         $this->globalScript.='var SOUND="beep.mp3",';
 
@@ -55,7 +59,7 @@ class MyAds extends Page {
             $this->globalScript.='MUTE=0';
         }
             
-        $this->globalScript.=';';
+        //$this->globalScript.=';';
             
         if ($this->user()->isLoggedIn(9)) {                                
                                          
@@ -88,19 +92,18 @@ class MyAds extends Page {
             }
         }
             
-        $this->set_ad(array('zone_0'=>array('/1006833/PublicRelation', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->router()->config()->serverId)));
+        $this->set_ad(['zone_0'=>['/1006833/PublicRelation', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->router()->config()->serverId]]);
                             
         
-        if ($this->user()->isLoggedIn(9) && ($sub=='pending')) {
+        if ($this->user()->isLoggedIn(9) && ($sub==='pending')) {
             $this->redis = $redis = new Redis();
             $redis->connect("p1.mourjan.com", 6379, 1, NULL, 100);
             $redis->select(5);
             
             if (!$this->user->isSuperUser()) {
-                $redis->setex('ADMIN-'.$this->user->info['id'], 300, $this->user->info['id']);
+                $redis->setex('ADMIN-'.$this->user()->id(), 300, $this->user()->id());
             }
-            $this->admins_online = $redis->keys('ADMIN-*');
-            
+            $this->admins_online = $redis->keys('ADMIN-*');            
             //error_log(json_encode($this->admins_online));
         }
         
@@ -150,13 +153,13 @@ class MyAds extends Page {
     }
     
     
-    function getAssignedAdmin($ad_id){
+    function getAssignedAdmin(int $ad_id) : int {
         $admin = 0;
         if ($this->redis) {
             $redis = $this->redis;
             $ad = $redis->mGet(array('AD-'.$ad_id));
             if ($ad[0] !== false) {                
-                $admin = substr($ad[0],6)+0;
+                $admin = \intval(\substr($ad[0],6));
             }
         }
         return $admin;
@@ -521,26 +524,18 @@ class MyAds extends Page {
         $isAdmin = false;
         $isAdminOwner = false;
         $isSuperAdmin = $this->user()->isSuperUser();
-        //$current_time = time();
         
         if ($this->user()->level()===9) {
             $isAdmin = true;
             $mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
         }
         
-        //$filters = $this->user()->getAdminFilters();
         $sub = filter_input(INPUT_GET, 'sub', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);  
-
-        //$ads = $this->user()->getPendingAds(0, $state, true);                
-        //$count= !empty($ads) ? count($ads) : 0; 
-        //$allCounts = $count>0 ? $this->user()->getPendingAdsCount($state) : 0;
-        //$this->user()->update();
-        
-        
-        $ads = new AdList();
-        $ads->setState($state)->fetchFromAdUser();
-        $count = $ads->count();
-        $dbCount = $ads->dbCount();
+        //$ads = new AdList();
+        //$ads->cacheProfile($this->user()->data);        
+        $this->adList->setState($state)->fetchFromAdUser();
+        $count = $this->adList->count();
+        $dbCount = $this->adList->dbCount();
         
         echo '<div class=row><div class=col-12><div class=card>';
         $this->renderBalanceBar();
@@ -563,8 +558,8 @@ class MyAds extends Page {
         
         
         if ($count>0) {            
-            $hasPrevious = ($ads->offset()>0);
-            $hasNext = (($ads->offset()*$ads->limit())<$ads->dbCount());
+            $hasPrevious = ($this->adList->page()>0);
+            $hasNext = (($this->adList->page()*$this->adList->limit())<$this->adList->dbCount());
             
             $renderAssignedAdsOnly = false;
         
@@ -596,7 +591,7 @@ class MyAds extends Page {
             $isAdminProfiling = (boolean)($this->get('a') && $this->user()->level()===9);
             if ($isAdminProfiling) { $renderAssignedAdsOnly = false; }           
             
-            if ($state==7) {
+            if ($state===7) {
                 if ($this->router()->config()->get('enabled_charts') && !$isAdminProfiling) {                    
                     echo '<div class="stin ', $this->router()->language, '"></div>';
                     $this->renderEditorsBox($state);
@@ -617,9 +612,9 @@ class MyAds extends Page {
             echo '<div class=row><div class="col-12 myadls">';            
             $linkLang = $this->router()->language==='ar' ? '' : $this->router()->language.'/';
             
-            $ads->rewind();
-            while ($ads->valid()) {
-                $cad = $ads->current();
+            $this->adList->rewind();
+            while ($this->adList->valid()) {
+                $cad = $this->adList->current();
                 $phoneValidErr=false;
                 $link='';
                 $altlink='';                
@@ -648,7 +643,7 @@ class MyAds extends Page {
                 $isFeatured = $cad->isFeatured(); // isset($ad['FEATURED_DATE_ENDED']) && $ad['FEATURED_DATE_ENDED'] ? ($current_time < $ad['FEATURED_DATE_ENDED']) : false;
                 $isFeatureBooked = $cad->isBookedFeature(); //isset($ad['BO_DATE_ENDED']) && $ad['BO_DATE_ENDED'] ? ($current_time < $ad['BO_DATE_ENDED']) : false;
                     
-                if (!$isFeatureBooked && ($ads->current()->state()===4 || ($cad->dataset()->getBudget()>0) )) {
+                if (!$isFeatureBooked && ($cad->state()===4 || ($cad->dataset()->getBudget()>0) )) {
                     $isFeatureBooked = true;
                 }
                                                  
@@ -1062,7 +1057,7 @@ class MyAds extends Page {
                             if (!$isSystemAd && $rank<3) {
                                 ?><button onclick="d.suspend(this,<?= $cad->uid() ?>)"><?= $this->lang['suspend'] ?></button><?php
                             }
-                            if ($isSuperAdmin && $ads->userId()===0) {
+                            if ($isSuperAdmin && $this->adList->userId()===0) {
                                 ?><button onclick="d.userads(this,<?= $cad->uid() ?>)"><?= $this->lang['user_type_option_1'] ?></button><?php
                             }
                             
@@ -1079,9 +1074,8 @@ class MyAds extends Page {
                 }     
                                
                 echo '</footer>';
-                echo '</article>';                           
-                //$idx++;
-                $ads->next();
+                echo '</article>';
+                $this->adList->next();
             }
             echo "\n";
             
@@ -1146,7 +1140,7 @@ class MyAds extends Page {
             
             if ($hasNext||$hasPrevious) {
                 ?><div class=pgn><div class=card><?php 
-                echo ($ads->offset()+1).' '.$this->lang['of'].' '.ceil($dbCount/$ads->limit());
+                echo ($this->adList->page()+1).' '.$this->lang['of'].' '.ceil($dbCount/$this->adList->limit());
                 $appendOp = '?';
                 $link = $this->router()->uri.($this->router()->isArabic()?'':$this->router()->language.'/');
                 
@@ -1183,34 +1177,34 @@ class MyAds extends Page {
                     $appendOp='&';
                 }
                 
-                if ($ads->userId()>0){
-                    $link.=$appendOp.'fuid='.$ads->userId();
+                if ($this->adList->userId()>0) {
+                    $link.=$appendOp.'fuid='.$this->adList->userId();
                     $appendOp='&';
                 }                
-                if ($ads->rootId()>0){
-                    $link.=$appendOp.'fro='.$ads->rootId();
+                if ($this->adList->rootId()>0) {
+                    $link.=$appendOp.'fro='.$this->adList->ootId();
                     $appendOp='&';
                 }                
-                if ($ads->purposeId()>0){
-                    $link.=$appendOp.'fpu='.$ads->purposeId();
+                if ($this->adList->purposeId()>0) {
+                    $link.=$appendOp.'fpu='.$this->adList->purposeId();
                     $appendOp='&';
                 }               
-                if ($ads->languageFilter()>0){
-                    $link.=$appendOp.'fhl='.$ads->languageFilter();
+                if ($this->adList->languageFilter()>0) {
+                    $link.=$appendOp.'fhl='.$this->adList->languageFilter();
                     $appendOp='&';
                 }
                 
-                if ($hasPrevious){
-                    $offset = $ads->offset() - 1;
+                if ($hasPrevious) {
+                    $offset = $this->adList->page() - 1;
                     ?><a class=float-left href='<?= $link.($offset ? $appendOp.'o='.$offset : '') ?>'><?= $this->lang['prev_25'] ?></a><?php
                 }
-                if($hasNext){
-                    ?><a class=float-right href='<?= $link.$appendOp.'o='.($ads->offset() + 1)  ?>'><?= $this->lang['next_25'] ?></a><?php
+                if($hasNext) {
+                    ?><a class=float-right href='<?= $link.$appendOp.'o='.($this->adList->page() + 1)  ?>'><?= $this->lang['next_25'] ?></a><?php
                 }
                 ?></div></div><?php
             }
             
-            if ($this->user()->level()==9 && $state<7) {
+            if ($isAdmin && $state<7) {
                 ?><div id=rejForm class=inline><select id=rejS></select><?php
                 echo '<textarea id=rejT onkeydown="dirElem(this)"></textarea>';
                 echo '<input type=button class="btn ok" value="', $this->lang['reject'], '" />';
@@ -1243,25 +1237,25 @@ class MyAds extends Page {
             $mcUser = null;
             switch ($state){
                 case 9:
-                    $msg=  $this->lang['no_archive'];
+                    $msg = $this->lang['no_archive'];
                     $this->user->info['archive_ads']=$count;
                     echo $this->lang['ads_archive'].($count ? ' ('.$count.')':'').' '.$this->renderUserTypeSelector($mcUser);
                     break;
                 case 7:
-                    $msg=  $this->lang['no_active'];
+                    $msg = $this->lang['no_active'];
                     $this->user->info['active_ads']=$count;
                     echo $this->lang['ads_active'].($count ? ' ('.$count.')':'').' '.$this->renderUserTypeSelector($mcUser);
                     break;
                 case 1:
                 case 2:
                 case 3:
-                    $msg=  $this->lang['no_pending'];
+                    $msg = $this->lang['no_pending'];
                     $this->user->info['pending_ads']=$count;
                     echo $this->lang['ads_pending'].($count ? ' ('.$count.')':'');
                     break;
                 case 0:
                 default:
-                    $msg=  $this->lang['no_drafts'];
+                    $msg = $this->lang['no_drafts'];
                     $this->user->info['draft_ads']=$count;
                     echo $this->lang['ads_drafts'].($count ? ' ('.$count.')':'').' '.$this->renderUserTypeSelector($mcUser);
                     break;
@@ -1269,7 +1263,7 @@ class MyAds extends Page {
             ?></p><?php            
             $this->renderEditorsBox($state, true);
             
-            if($this->user->info['level']==9 && $mcUser && $mcUser->isBlocked()) {
+            if ($isAdmin && $mcUser && $mcUser->isBlocked()) {
                 $msg = 'User is Blocked';
                 $reason = preg_replace(['/\</','/\>/'],['&#60;','&#62;'], Core\Model\NoSQL::instance()->getBlackListedReason($mcUser->getMobileNumber()));
                 if ($reason) {
@@ -1287,9 +1281,6 @@ class MyAds extends Page {
     
     function getContactInfo(array $content) : string {
         $contactInfo='';
-        //foreach ($content->get as $value) {
-            
-        //}
         if (isset($content['cui'])) {
             if (isset($content['cui']['p'])) { 
                 $phone=$content['cui']['p'];
