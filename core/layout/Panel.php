@@ -3,8 +3,8 @@
 
 class Panel extends Page {
 
-    function __construct(Core\Model\Router $router) {
-        parent::__construct($router);
+    function __construct() {
+        parent::__construct();
         if ($this->router()->config()->get('active_maintenance')) {
             $this->user->redirectTo($this->router()->getLanguagePath('/maintenance/'));
         }

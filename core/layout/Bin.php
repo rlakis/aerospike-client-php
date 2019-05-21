@@ -3596,7 +3596,7 @@ class Bin extends AjaxHandler{
                     $mobile_number = $adUser->getMobileNumber();
                     $content = \json_decode($record[0]['CONTENT'],true);                                
                     if (isset($content['attrs']) && isset($content['attrs']['phones'])) {
-                        $len=$content['attrs']['phones']['n']??0;
+                        $len= isset($content['attrs']['phones']['n'])?\count($content['attrs']['phones']['n']):0;
                         NoSQL::instance()->mobileVerfiedRelatedNumber($mobile_number, $numbers);
                 
                         for ($i=0; $i<$len; $i++) {
@@ -3845,17 +3845,20 @@ class Bin extends AjaxHandler{
                 break;
                 
             case 'ajax-ahold':
-                if ($this->user->info['id'] && isset ($_POST['i'])) {
+                if ($this->user()->isLoggedIn() && isset ($_POST['i'])) {
                     $id=$_POST['i'];
-                    if (is_numeric($id)){
+                    if (is_numeric($id)) {
                         if ($this->user->holdAd($id)) {
                             $this->process();
                             $this->logAdmin($id, 9);
-                        }else {
+                        }
+                        else {
                             $this->fail('103');
                         }
-                    }else $this->fail('102');
-                }else $this->fail('101');
+                    }
+                    else $this->fail('102');
+                }
+                else $this->fail('101');
                 break;
                 
             case 'ajax-arenew':

@@ -9,8 +9,8 @@ class Admin extends Page {
     private $userdata = 0;
     private $multipleAccounts = [];
 
-    function __construct(\Core\Model\Router $router) {
-        parent::__construct($router);
+    function __construct() {
+        parent::__construct();
         $this->uid = 0;
         $this->sub = $_GET['sub'] ?? '';
         $this->mobile_param = $_GET['t'] ?? '';
@@ -37,7 +37,7 @@ class Admin extends Page {
         $action = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_STRING);
 
         if ($action) {
-            $redirectWenDone = true;
+            $redirectWhenDone = true;
 
             switch ($action) {
                 case 'blacklist':
@@ -87,18 +87,15 @@ class Admin extends Page {
                     break;
             }
 
-            if ($redirectWenDone) {
+            if ($redirectWhenDone) {
                 $url = "";
                 unset($_GET['action']);
 
                 foreach ($_GET as $key => $value) {
-                    if ($url) {
-                        $url .= '&';
-                    }
+                    if ($url) { $url .= '&'; }
                     $url .= $key . '=' . $value;
                 }
-                if ($url)
-                    $url = '?' . $url;
+                if ($url) { $url = '?' . $url; }
 
                 header('Location: ' . $url);
             }
@@ -147,6 +144,10 @@ class Admin extends Page {
             }
 
 
+            // get Profile by id
+            //\Core\Model\NoSQL::instance()->getProfile($user, $record);
+            //$this->user()->getProfile();
+            
             $this->userdata = [$this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUser($this->uid))];
 
             if ($uuid) { $this->uid = $uuid; }
@@ -225,6 +226,7 @@ class Admin extends Page {
         $this->inlineJS('admin.js');
     }
 
+    
     private function parseUserBins($bins) {
         if ($bins && count($bins)) {
             $release = intval(filter_input(INPUT_GET, 'a', FILTER_SANITIZE_NUMBER_INT));
@@ -252,7 +254,7 @@ class Admin extends Page {
                 
             }
 
-            for ($i = 0; $i < count($_mobiles); $i++) {
+            for ($i = 0; $i < \count($_mobiles); $i++) {
                 unset($_mobiles[$i][\Core\Model\ASD\USER_UID]);
                 $_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_REQUESTED] = $this->unixTimestampToDateTime($_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_REQUESTED]);
                 if (isset($_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED]) && $_mobiles[$i][Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED] > 0) {
@@ -287,6 +289,28 @@ class Admin extends Page {
                         $bins['suspended_reason'] = $_mobiles[$i]['suspended']['reason'];
                     }
                 }
+                
+                
+                $where = \Aerospike::predicateEquals("reference", $_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER]);
+                $rtpRequests=[];
+                $status = \Core\Model\NoSQL::instance()->getConnection()->query(
+                        Core\Model\ASD\NS_EDIGEAR, 
+                        "rtp", 
+                        $where, 
+                        function ($_record) use (&$rtpRequests) {
+                            if ($_record['bins']['app_id']===1) {
+                                $rtpRequests['key']=$_record['key']['key'];
+                                $rtpRequests['uid']=$_record['bins']['uuid'];
+                                $rtpRequests['number']=$_record['bins']['number'];
+                                $rtpRequests['date']=date('r', $_record['bins']['date_added']);
+                                if (isset($_record['bins']['verified_date'])) {
+                                   $rtpRequests['verified_on']= $_record['bins']['verified_date'];
+                                }
+                            }
+                            
+                        }, ['number', 'date_added', 'uuid', 'app_id', 'verified_date']
+                );
+                $_mobiles[$i]['rtp']=$rtpRequests;     
             }
 
             for ($i = 0; $i < count($_devices); $i++) {
@@ -301,13 +325,10 @@ class Admin extends Page {
             $bins['mobiles'] = $_mobiles;
             $bins['devices'] = $_devices;
 
-            if (isset($bins['password'])) {
-                unset($bins['password']);
-            }
-            if (isset($bins['jwt'])) {
-                unset($bins['jwt']);
-            }
-        } else {
+            if (isset($bins['password'])) { unset($bins['password']); }
+            if (isset($bins['jwt'])) { unset($bins['jwt']); }
+        } 
+        else {
             $bins = '';
         }
         return $bins;

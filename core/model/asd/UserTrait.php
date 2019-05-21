@@ -272,14 +272,8 @@ trait UserTrait {
     public function getProfileBasicRecord(int $uid, &$record, $bins=[]) : int {
         $where = \Aerospike::predicateEquals(USER_PROFILE_ID, $uid);
         $status = $this->getConnection()->query(NS_USER, TS_PROFILE, $where, function ($_record) use (&$record) {$record=$_record;}, $bins);
-        if ($status!==\Aerospike::OK) {
-            \Core\Model\NoSQL::Log(['UID'=>$uid, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
-        }// else if (version_compare(phpversion("aerospike"), '7.2.0') >= 0) {
-            //error_log(var_export($record, TRUE));
-        //}
-        if (empty($record)) {
-            error_log(__FUNCTION__." {$uid} not queried!");
-        }
+        if ($status!==\Aerospike::OK) { \Core\Model\NoSQL::Log(['UID'=>$uid, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]); }
+        if (empty($record)) { error_log(__FUNCTION__." {$uid} not queried!"); }
         return $status;
     }
     

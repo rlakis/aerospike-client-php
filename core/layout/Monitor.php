@@ -11,8 +11,8 @@ class Monitor extends Page {
     private $aid = 0;
     private $userdata = 0;
     
-    function __construct(\Core\Model\Router $router) {
-        parent::__construct($router);
+    function __construct() {
+        parent::__construct();
         $this->uid = 0;
         $this->sub = $_GET['sub'] ?? '';
         $this->hasLeadingPane=false;

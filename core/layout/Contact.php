@@ -3,8 +3,8 @@ require_once 'Page.php';
 
 class Contact extends Page{
 
-    function __construct($router){
-        parent::__construct($router);
+    function __construct(){
+        parent::__construct();
         $this->hasLeadingPane=true;
         $this->urlRouter->cfg['enabled_ads']=false;
         if ($this->isMobile) {

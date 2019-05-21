@@ -4,8 +4,8 @@ include_once ($config['dir']."/core/lib/paypalfunctions.php");
 
 class Checkout extends Page{
 
-    function __construct($router){
-        parent::__construct($router);
+    function __construct(){
+        parent::__construct();
         if($this->urlRouter->cfg['active_maintenance']){
             $this->user->redirectTo('/maintenance/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
         }

@@ -3,9 +3,9 @@
 
 class Doc extends Page{
 
-    function __construct(\Core\Model\Router $router) {
+    function __construct() {
         header('Vary: User-Agent');
-        parent::__construct($router); 
+        parent::__construct(); 
         if ($this->router()->module=='buy' || $this->router()->module=='buyu') {
             if ($this->router()->config()->get('active_maintenance')) {
                 $this->user()->redirectTo($this->router()->getLanguagePath('/maintenance/'));
