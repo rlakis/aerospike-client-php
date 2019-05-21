@@ -40,7 +40,8 @@ if (!isset($argc)) {
     if (!$stop && array_key_exists($router->module, $config['modules'])) {
         $mod_class = $config['modules'][$router->module][0];
         include_once $config['dir'].($router->module=='cache'?'/core/gen/':'/core/layout/').$mod_class.'.php';        
-        $object = new $mod_class( $router );    
+        $object = new $mod_class();    
+        
     }     
     else {
         include_once Prefs::$dir.'/core/layout/NotFound.php';
