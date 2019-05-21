@@ -328,7 +328,7 @@ class Router extends \Singleton {
                     if ($this->id>1000) {
                         $this->module='detail';
                         $ad_url = $this->getAdURI($this->id);
-                        if ($ad_url!==$this->config->host.$this->uri.$this->getLanguagePath().$this->id.'/') {
+                        if ($ad_url!==$this->getLanguagePath($this->config->host.$this->uri).$this->id.'/') {
                             if ($ad_url!=$this->config->baseURL) {
                                 $_SESSION['_u']['params'] = $_session_params;
                                 $this->redirect($ad_url, 301);
