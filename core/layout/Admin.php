@@ -299,13 +299,16 @@ class Admin extends Page {
                         $where, 
                         function ($_record) use (&$rtpRequests) {
                             if ($_record['bins']['app_id']===1) {
-                                $rtpRequests['key']=$_record['key']['key'];
-                                $rtpRequests['uid']=$_record['bins']['uuid'];
-                                $rtpRequests['number']=$_record['bins']['number'];
-                                $rtpRequests['date']=date('r', $_record['bins']['date_added']);
+                                $rtp=[];
+                                
+                                $rtp['key']=$_record['key']['key'];
+                                $rtp['uid']=$_record['bins']['uuid'];
+                                $rtp['number']=$_record['bins']['number'];
+                                $rtp['date']=date('r', $_record['bins']['date_added']/1000);
                                 if (isset($_record['bins']['verified_date'])) {
-                                   $rtpRequests['verified_on']= $_record['bins']['verified_date'];
+                                   $rtp['verified_on']= $_record['bins']['verified_date'];
                                 }
+                                $rtpRequests[]=$rtp;
                             }
                             
                         }, ['number', 'date_added', 'uuid', 'app_id', 'verified_date']

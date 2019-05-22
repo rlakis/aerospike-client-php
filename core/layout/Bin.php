@@ -205,6 +205,7 @@ class Bin extends AjaxHandler{
                 $this->user->update();
                 $this->process();
                 break;
+                    
             
             case 'changepu':
                 $this->authorize(true, 9);
@@ -1803,6 +1804,15 @@ class Bin extends AjaxHandler{
                     }
                     
                     $this->success();
+                }
+                
+                if ($this->getGetInt('adsense')===1) {
+                    //Core\Model\Router::instance()-> 
+                    \Config::instance()->incLibFile('GoogleAdSense');
+                    $mcAdSense = new MCAdSense;
+                    $res=$mcAdSense->setAdClientId("313743502213-delb6cit3u4jrjvrsb4dsihpsoak2emm.apps.googleusercontent.com")
+                            ->setAccountId("pub-2427907534283641")->earnings();
+                    $this->success($res);
                 }
                 $this->error(self::ERR_DATA_INVALID_PARAM);
                 /*
