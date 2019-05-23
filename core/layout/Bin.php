@@ -1809,9 +1809,13 @@ class Bin extends AjaxHandler{
                 if ($this->getGetInt('adsense')===1) {
                     //Core\Model\Router::instance()-> 
                     \Config::instance()->incLibFile('GoogleAdSense');
+                    $cStartDate = \filter_input(\INPUT_GET, 'cfd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'today']]);
+                    $cEndDate = \filter_input(\INPUT_GET, 'ctd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'today']]);
+                    $pStartDate = \filter_input(\INPUT_GET, 'pfd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'today-1d']]);
+                    $pEndDate = \filter_input(\INPUT_GET, 'ptd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'today-1d']]);
                     $mcAdSense = new MCAdSense;
                     $res=$mcAdSense->setAdClientId("313743502213-delb6cit3u4jrjvrsb4dsihpsoak2emm.apps.googleusercontent.com")
-                            ->setAccountId("pub-2427907534283641")->earnings();
+                            ->setAccountId("pub-2427907534283641")->earnings($cStartDate, $cEndDate, $pStartDate, $pEndDate);
                     $this->success($res);
                 }
                 $this->error(self::ERR_DATA_INVALID_PARAM);
