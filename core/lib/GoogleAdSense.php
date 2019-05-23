@@ -1,15 +1,11 @@
 <?php
 require_once __DIR__ . '/../../deps/autoload.php';
 
-// Max results per page.
-define('MAX_LIST_PAGE_SIZE', 50, false);
-define('MAX_REPORT_PAGE_SIZE', 50, false);
-
 // Configure token storage on disk.
 // If you want to store refresh tokens in a local disk file, set this to true.
-define('STORE_ON_DISK', false, false);
-define('TOKEN_FILENAME', 'tokens.dat', true);
-putenv('GOOGLE_APPLICATION_CREDENTIALS=/opt/client_secrets.json');
+define('STORE_ON_DISK', true, false);
+define('TOKEN_FILENAME', 'tokens.dat', false);
+//putenv('GOOGLE_APPLICATION_CREDENTIALS=/opt/client_secrets.json');
 
 class MCAdSense {
     private $client;
@@ -79,34 +75,31 @@ class MCAdSense {
     }
     
     
-    public function earnings() :array {
+    public function earnings(string $startDate='today', string $endDate='today', string $pStartDate='today-1d', string $pEndDate='today-1d') :array {
         $result=[];  
-        $startDate = '2019-05-22';
-        $endDate = '2019-05-22';
-        
+       
         $optParams = [
             'metric' => [
                 'PAGE_VIEWS', 'AD_REQUESTS', 'AD_REQUESTS_COVERAGE', 'CLICKS',
-                'AD_REQUESTS_CTR', 'COST_PER_CLICK', 'AD_REQUESTS_RPM', 'EARNINGS']/*,
+                'AD_REQUESTS_CTR', 'COST_PER_CLICK', 'AD_REQUESTS_RPM', 'EARNINGS'],
             'dimension' => 'COUNTRY_NAME',
-            'sort' => '-EARNINGS'*/
+            'sort' => '-EARNINGS',
+            'currency' => 'USD',
+            'maxResults' => 20,
+            'useTimezoneReporting' => true
             ];
-        
-        // Run report.
         
         $report = $this->service->accounts_reports->generate($this->accountId, $startDate, $endDate, $optParams);
         if (isset($report) && isset($report['rows'])) {
-            
-            //var_dump($report['headers']);
-            //var_dump($report['totals']);
-            for ($i=0;$i<\count($report['totals']); $i++) {
-               $result[$report['headers'][$i]['name']]=$report['totals'][$i]; 
-            }
-            //$result['totals']=$report['totals'];
-            //print_r($result);
+            $result['headers']=$report['headers'];
+            $result['current']=$report['totals'];
         } 
-        else {
-            //print "No rows returned.\n";
+      
+        
+        $report = $this->service->accounts_reports->generate($this->accountId, $pStartDate, $pEndDate, $optParams);
+        if (isset($report) && isset($report['rows'])) {
+            if (!isset($result['headers'])) { $result['headers']=$report['headers']; }
+            $result['previous']=$report['totals'];
         }
         return $result;      
     }
