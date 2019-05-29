@@ -6,8 +6,8 @@ use Core\Model\Classifieds;
 
 class Detail extends Search {
 
-    function __construct(Core\Model\Router $router) {
-        parent::__construct($router);
+    function __construct() {
+        parent::__construct();
     }
 
     
