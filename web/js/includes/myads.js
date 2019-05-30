@@ -476,9 +476,12 @@ var d = {
     normalize: function(e){
         console.log(e.tagName,  e.innerText);
         let data = {dx: e.dataset.foreign ? 2 : 1, rtl: e.classList.contains('ar') ? 1 : 0, t: e.innerText};
-        if(e.tagName==='SECTION' && data.t.length>30){
-            this.updateAd(e, e.article().id, 0, 0, 0, data);
+        if(e.tagName==='SECTION'){
+            if(data.dx===2||(data.dx===1&&data.t.length>30)){this.updateAd(e, e.article().id, 0, 0, 0, data);}
         }
+        //if(e.tagName==='SECTION' && data.t.length>30){
+        //    this.updateAd(e, e.article().id, 0, 0, 0, data);
+        //}
         else console.log('data not suitable', data);
     },
 
