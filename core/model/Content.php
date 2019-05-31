@@ -81,9 +81,11 @@ class Content {
     private $countryId;
     private $cityId;
     private $old;
+    private $originalVersion;
     
     
-    public function __construct() {
+    public function __construct(?Ad $ad=null) {
+        if ($ad) { $this->ad=$ad; }
         $this->content = [
             self::ID                => 0,
             self::UID               => 0,
@@ -400,7 +402,16 @@ class Content {
     
     
     public function getNativeText() : string {
-        return $this->content[self::NATIVE_TEXT];
+        error_log(PHP_EOL."Version {$this->getVerion()} was {$this->originalVersion}");
+        if (preg_match("/\x{200b}/u", $this->content[self::NATIVE_TEXT])) {
+           return $this->content[self::NATIVE_TEXT]; 
+        }
+       
+        
+        
+        $t = $this->content[self::NATIVE_TEXT] . '\u{200b} / ';
+        
+        return $t;
     }
     
     
@@ -522,6 +533,7 @@ class Content {
     
     public function setOld(array $kContent) : Content {
         $this->old = $kContent;
+        $this->originalVersion=$this->old[Content::VERSION]??2;
         return $this;
     }
     
@@ -724,7 +736,7 @@ class Content {
         }
 
         if ($this->content[self::STATE]>0) {
-            $rs[self::ATTRIBUTES] = $this->content[self::ATTRIBUTES];
+            $rs[self::ATTRIBUTES] = $this->content[self::ATTRIBUTES]??[];
         }
         
         return $rs;
