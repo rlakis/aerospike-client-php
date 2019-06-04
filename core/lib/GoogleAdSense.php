@@ -82,7 +82,7 @@ class MCAdSense {
             'metric' => [
                 'PAGE_VIEWS', 'AD_REQUESTS', 'AD_REQUESTS_COVERAGE', 'CLICKS',
                 'AD_REQUESTS_CTR', 'COST_PER_CLICK', 'AD_REQUESTS_RPM', 'EARNINGS'],
-            'dimension' => 'COUNTRY_NAME',
+            'dimension' => 'PRODUCT_CODE',
             'sort' => '-EARNINGS',
             'currency' => 'USD',
             'maxResults' => 20,
@@ -93,6 +93,7 @@ class MCAdSense {
         if (isset($report) && isset($report['rows'])) {
             $result['headers']=$report['headers'];
             $result['current']=$report['totals'];
+            $result['currows']=$report['rows'];
         } 
       
         
@@ -100,6 +101,7 @@ class MCAdSense {
         if (isset($report) && isset($report['rows'])) {
             if (!isset($result['headers'])) { $result['headers']=$report['headers']; }
             $result['previous']=$report['totals'];
+            $result['prevrows']=$report['rows'];
         }
         return $result;      
     }
