@@ -1235,11 +1235,12 @@ var Ad={
             window.alert(UI.ar ? 'فئة الاعلان غير محددة' : 'Please choose listing section?');
             return;
         }
-        
+        let status=parseInt(window.event.target.dataset.state);
+        console.log("Status", status);
         let ad={
             hl:(UI.ar?'ar':'en'),
             id:_.id, 
-            state:parseInt(window.event.target.dataset), 
+            state:parseInt(window.event.target.dataset.state), 
             user:0, 
             lat:_.content.lat, 
             lon:_.content.lon, 
