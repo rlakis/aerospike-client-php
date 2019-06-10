@@ -792,10 +792,11 @@ class MobileApi {
     
     function sphinxTotalsQL() {
         if ($this->countryId==0) return;
-        $apiMemVersion = $this->db->getCache()->incrBy('api-mem-version', 0);
-
+        //$apiMemVersion = $this->db->getCache()->incrBy('api-mem-version', 0);
+        $apiMemVersion = $this->db->getCache()->get('api-mem-version');
+        error_log($apiMemVersion);
         if (!is_numeric($apiMemVersion)) {
-            $this->db->getCache()->incr('api-mem-version');
+            //$this->db->getCache()->incr('api-mem-version');
             $apiMemVersion=1;
         }
         $this->result['version'] = $apiMemVersion+0;
