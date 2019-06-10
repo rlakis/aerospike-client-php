@@ -5,12 +5,14 @@ class MCCache extends \Redis {
     private $buffer;
     private $writeBuffering;
     
+    private $master;
     
     function __construct() {
         parent::__construct();
         $this->buffer = [];
         $this->writeBuffering = TRUE;
         $memstore = \Config::instance()->get('memstore');
+        
         if ($memstore['tcp']) {
             $success = $this->connect($memstore['host'], $memstore['port'], 1, NULL, 100);
         } 
@@ -30,13 +32,11 @@ class MCCache extends \Redis {
     
     function __destruct() {
         if ($this->writeBuffering && !empty($this->buffer)) {
-            parent::ping();
-            parent::mSet($this->buffer);
+            $this->master()->ping();
+            $this->master()->mSet($this->buffer);
         }
         
-        if ($this->isConnected()) {
-            parent::close();
-        }
+        if ($this->isConnected()) { parent::close(); }
 
         parent::__destruct();
     }
@@ -69,7 +69,7 @@ class MCCache extends \Redis {
     
     
     function touch($key, $ttl) {
-        parent::expire($key, $ttl);
+        $this->master()->expire($key, $ttl);
     }
 
 
@@ -79,9 +79,33 @@ class MCCache extends \Redis {
             return TRUE;
         } 
         else {
-            return parent::set($key, $value);
+            return $this->master()->set($key, $value);
         }
     }
 
         
+    private function master() : \Redis {
+        if (\Config::instance()->serverId==1) {
+            return parent;
+        }
+        
+        if (!($this->master instanceof \Redis)) {
+            $this->master = new \Redis();
+        }
+        
+        if (!$this->master->isConnected()) {
+            $success = $this->master->connect('p1.mourjan.com', 6379, 1, NULL, 100);
+            if (!$success) {
+                \error_log('Could not connect to redis p1.mourjan.com/6379');
+            }
+            else {
+                $memstore = \Config::instance()->get('memstore');
+                $this->master->setOption(\Redis::OPT_SERIALIZER, $memstore['serializer']);
+                $this->master->setOption(\Redis::OPT_PREFIX, $memstore['prefix']);
+                $this->master->select($memstore['db']);
+            }
+        }
+        return $this->master;
+    }
+    
 }
