@@ -43,10 +43,10 @@ class Content {
     const CONTACT_INFO_SKIPE                = 's'; // deprecated
     const CONTACT_INFO_TWITTER              = 't'; // deprecated
     
-    const CONTACT_TIME          = 'cut'; // deprecated
-    const CONTACT_TIME_AFTER    = 'a'; // deprecated
-    const CONTACT_TIME_BEFORE   = 'b'; // deprecated
-    const CONTACT_TIME_HOUR     = 't'; // deprecated
+    //const CONTACT_TIME          = 'cut'; // deprecated
+    //const CONTACT_TIME_AFTER    = 'a'; // deprecated
+    //const CONTACT_TIME_BEFORE   = 'b'; // deprecated
+    //const CONTACT_TIME_HOUR     = 't'; // deprecated
     
     const UI_CONTROL            = 'extra'; // deprecated
     const UI_CONTROL_MAP        = 'm'; // deprecated
@@ -101,7 +101,7 @@ class Content {
             self::IP_SCORE          => 0,                                    
             self::BUDGET            => 0,
             self::CONTACT_INFO      => [self::CONTACT_INFO_PHONE=>[], self::CONTACT_INFO_EMAIL=>'', self::CONTACT_INFO_BLACKBERRY=>'', self::CONTACT_INFO_SKIPE=>'', self::CONTACT_INFO_TWITTER=>''],
-            self::CONTACT_TIME      => [self::CONTACT_TIME_BEFORE=>6, self::CONTACT_TIME_AFTER=>24, self::CONTACT_TIME_HOUR=>0],
+            //self::CONTACT_TIME      => [self::CONTACT_TIME_BEFORE=>6, self::CONTACT_TIME_AFTER=>24, self::CONTACT_TIME_HOUR=>0],
             self::UI_CONTROL        => [self::UI_CONTROL_MAP=>2, self::UI_CONTROL_PICTURES=>2, self::UI_CONTROL_TRANSLATION=>2, self::UI_CONTROL_VIDEO=>2],
             self::UI_LANGUAGE       => 'ar',
             self::NATIVE_TEXT       => '',
@@ -401,17 +401,62 @@ class Content {
     }
     
     
+    static function getPhoneDescription(int $type, bool $arabic) : string {
+        switch ($type) {
+            case 1:
+                return $arabic ? "موبايل: " : "Mobile: ";
+            case 3:
+                return $arabic ? "موبايل + واتساب: " : "Mobile & Whatsapp: ";
+            case 4:
+                return $arabic ? "موبايل + فايبر + واتساب: " : "Mobile, Viber & Whatsapp: ";
+            case 5:
+                return $arabic ? "واتساب فقط: " : "Whatsapp only: ";
+            case 7:
+                return $arabic ? "هاتف: " : "Phone: ";
+        }
+        return '';
+    }
+    
+    
     public function getNativeText() : string {
-        error_log(PHP_EOL."Version {$this->getVerion()} was {$this->originalVersion}");
-        if (preg_match("/\x{200b}/u", $this->content[self::NATIVE_TEXT])) {
+        //error_log(PHP_EOL."Version {$this->getVerion()} was {$this->originalVersion}");
+        if (empty($this->content[self::NATIVE_TEXT]) || preg_match("/\x{200b}/u", $this->content[self::NATIVE_TEXT])) {
            return $this->content[self::NATIVE_TEXT]; 
         }
        
+        $adtext = $this->content[self::NATIVE_TEXT];
+        if (isset($this->content[self::CONTACT_INFO])) {
+            $pt=[];
+            $contacts="\u{0020}\u{200b}/\u{0020}";
+            if (isset($this->content[self::CONTACT_INFO][self::CONTACT_INFO_PHONE]) && $this->content[self::CONTACT_INFO][self::CONTACT_INFO_PHONE]) {
+                foreach ($this->content[self::CONTACT_INFO][self::CONTACT_INFO_PHONE] as $p) {
+                    if (!isset($pt[$p['t']])) { $pt[$p['t']]=[]; }
+                    $pt[$p['t']][]=$p['v'];
+                }
+            }
+            $j=0;
+            foreach ($pt as $t => $v) {
+                if ($j>0) { $contacts.=' - '; }
+                $contacts .= static::getPhoneDescription($t, $this->ad->rtl());
+                for ($i=0; $i<\count($v); $i++) {
+                    if ($i==0) {
+                        $contacts.="<span class=\"pn\">".$v[$i]."</span>";
+                    }
+                    else {
+                        $contacts.=($this->ad->rtl()?" او ":" or ")."<span class=\"pn\">".$v[$i]."</span>";
+                    }
+                }
+                $j++;
+            }
+            if (isset($this->content[self::CONTACT_INFO][self::CONTACT_INFO_EMAIL]) && $this->content[self::CONTACT_INFO][self::CONTACT_INFO_EMAIL]) {
+                if ($j>0) { $contacts.=' - '; }
+                $contacts.=($this->ad->rtl()?"البريد الالكتروني: ":"Email: ").$this->content[self::CONTACT_INFO][self::CONTACT_INFO_EMAIL];
+            }
+            
+            $adtext.=$contacts;
+        }
         
-        
-        $t = $this->content[self::NATIVE_TEXT] . '\u{200b} / ';
-        
-        return $t;
+        return $adtext;
     }
     
     
@@ -429,7 +474,43 @@ class Content {
     
     
     public function getForeignText() : string {
-        return $this->content[self::FOREIGN_TEXT];
+        if (empty($this->content[self::FOREIGN_TEXT])||preg_match("/\x{200b}/u", $this->content[self::FOREIGN_TEXT])) {
+            return $this->content[self::FOREIGN_TEXT];
+        }
+        
+        $adtext = $this->content[self::FOREIGN_TEXT];
+        if (isset($this->content[self::CONTACT_INFO])) {
+            $pt=[];
+            $contacts="\u{0020}\u{200b}/\u{0020}";
+            if (isset($this->content[self::CONTACT_INFO][self::CONTACT_INFO_PHONE]) && $this->content[self::CONTACT_INFO][self::CONTACT_INFO_PHONE]) {
+                foreach ($this->content[self::CONTACT_INFO][self::CONTACT_INFO_PHONE] as $p) {
+                    if (!isset($pt[$p['t']])) { $pt[$p['t']]=[]; }
+                    $pt[$p['t']][]=$p['v'];
+                }
+            }
+            $j=0;
+            foreach ($pt as $t => $v) {
+                if ($j>0) { $contacts.=' - '; }
+                $contacts .= static::getPhoneDescription($t, $this->content[self::FOREIGN_RTL]);
+                for ($i=0; $i<\count($v); $i++) {
+                    if ($i==0) {
+                        $contacts.="<span class=\"pn\">".$v[$i]."</span>";
+                    }
+                    else {
+                        $contacts.=($this->content[self::FOREIGN_RTL]?" او ":" or ")."<span class=\"pn\">".$v[$i]."</span>";
+                    }
+                }
+                $j++;
+            }
+            if (isset($this->content[self::CONTACT_INFO][self::CONTACT_INFO_EMAIL]) && $this->content[self::CONTACT_INFO][self::CONTACT_INFO_EMAIL]) {
+                if ($j>0) { $contacts.=' - '; }
+                $contacts.=($this->content[self::FOREIGN_RTL]?"البريد الالكتروني: ":"Email: ").$this->content[self::CONTACT_INFO][self::CONTACT_INFO_EMAIL];
+            }
+            
+            $adtext.=$contacts;
+        }
+        
+        return $adtext;
     }
     
     

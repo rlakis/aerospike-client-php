@@ -3075,6 +3075,7 @@ class User {
         $t='';
         $v=$d?' / ':' / ';
         if ($l) {
+            /*
             if ($cut['t']) {
                 switch($cut['t']) {
                     case 1:
@@ -3092,7 +3093,8 @@ class User {
                     default:
                         break;
                 }
-            }
+            }*/
+            
             $s='';
             $g='';
             $k=0;
