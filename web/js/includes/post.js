@@ -680,7 +680,7 @@ var UI={
         let t=p.query('select');
         console.log(t);
         let phone={c:0, i:'', r:0, t:parseInt(t.value), v:e.value};     
-       return phone;        
+        return phone;
     },
     
     getEmail:function(){
@@ -1270,6 +1270,7 @@ var Ad={
             }
         });
 
+        ad.cui.p=[];
         for (let i in UI.numbers) {
             if (!UI.numbers[i].valid()) {
                window.alert('[ '+UI.numbers[i].tel.value+ ' ] '+UI.numbers[i].error);
@@ -1280,15 +1281,6 @@ var Ad={
                 ad.cui.p.push(UI.numbers[i].getPostData());            
             }            
         }
-        
-//        if (!UI.numbers[2].valid()) {
-//           window.alert('[ '+UI.numbers[2].tel.value+ ' ] '+UI.numbers[2].error);
-//           UI.numbers[2].tel.focus;
-//        }
-//        else {
-//            ad.cui.p.push(UI.numbers[2].getPostData());
-//        }
-//        
         
         if(_.natural) _.natural=_.natural.trim();
         if(_.foreign) _.foreign=_.foreign.trim();
@@ -1336,6 +1328,9 @@ var Ad={
                         console.log("RP", response.DATA.ad);
                         _.parse(response.DATA.ad);
                     }
+                }
+                if(status===1){
+                    history.go(-1);
                 }
             })
             .catch(error => {
@@ -1763,6 +1758,7 @@ class ContactNumber{
         _.error='';
         let num=_.tel.value.replace(/\s/g, '');
         //console.log('num', num);
+        
         if(num && num.length>3){
             try {
                 _.phoneNumber=new libphonenumber.parsePhoneNumberFromString(num, 'LB');
@@ -1803,6 +1799,9 @@ class ContactNumber{
         }
         else if(num.length>0){
             _.error='Phone number is too short';
+        }
+        else {
+            _.phoneNumber=null;
         }
         
         //console.log('num', num, _.error);
