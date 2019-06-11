@@ -195,7 +195,8 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .ad:hover .abuse {display: block}
 
 /*.ad:hover{-moz-box-shadow:0 3px 3px #333;-o-box-shadow:0 3px 3px #333;-webkit-box-shadow:0 3px 3px #333;box-shadow: 0 3px 3px #333}*/
-.adslot{text-align: center; width: inherit; max-height: 750px !important;}
+.adslot{text-align: center; /*min-width:0px; max-width:360px; width: 100%;*/ width: auto; height: auto; max-height: 750px !important;}
+
 
 #results{flex-flow:column;width:100%}
 .ls,.home{display:inherit;justify-content:space-around;flex-flow:row wrap;align-content:flex-start}

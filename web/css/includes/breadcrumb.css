@@ -43,8 +43,8 @@ body[dir="rtl"] .brd a:hover:after{border-right-color:#ff9100!important}
 
 .pgn > li > a, .pgn > li > span{border:0;border-top-color:currentcolor;border-right-color:currentcolor;border-bottom-color:currentcolor;border-left-color:currentcolor;border-radius:42px !important;
     transition:all .3s;margin:0 3px;min-width:42px;height:42px;line-height:42px;position:relative;
-    float:left;color:white;text-decoration:none;background-color:var(--linkC);border:1px solid var(--linkC);text-align:center;}
-
+    float:left;color:white;text-decoration:none;background-color:var(--linkC);text-align:center;}
+.pgn > li > span{border:1px solid var(--linkC);}
 .reorder{order: 0}
 .prps {display: inherit;padding:0 8px;}
 .prps ul {display: inherit;justify-content: space-between; flex: 1 auto; padding: 0 8px;align-items: center;margin-block-start:0;margin-block-end:0;flex-wrap: wrap; background-color: white; border-radius:6px}
