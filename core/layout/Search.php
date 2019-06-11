@@ -1118,12 +1118,13 @@ class Search extends Page {
     
     private function adSlot() : void {
         if ($this->router()->config()->enabledAds()) {
-            echo '<div class="ad adslot"><div class="card card-product">';?>
-<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            //<div class="card card-product">
+            echo '<div class="ad adslot">';?>
+<ins class="adsbygoogle" style="display:block;min-width:250px; max-width:360px; width:100%; height: 360px;" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="auto" data-full-width-responsive="true"></ins>
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script><?php
-            echo '</div></div>', "\n";
+            echo '</div>', "\n";//</div>
         }
     }
     

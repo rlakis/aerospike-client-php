@@ -2290,7 +2290,8 @@ class Page extends Site {
                         
                         $result.='">';
                         //$result.='<';// $this->lang['previous'];
-                        $result.='<i class="icn icnsmall icn-angle-left"></i>';
+                        //$result.='<i class="icn icnsmall icn-angle-left"></i>';
+                        $result.="<b style=\"margin-left:-9px;\">\u{3008}</b>";
                         $result.='</a>';
                         $result.='</li>';
                         $isFirst=false;
@@ -2326,7 +2327,8 @@ class Page extends Site {
                         $page_no=$currentPage+1;
                         $result.=sprintf ($link, "{$page_no}/{$uri_query}");
                         $result.='">';
-                        $result.='<i class="icn icnsmall icn-angle-right"></i>';
+                        //$result.='<i class="icn icnsmall icn-angle-right"></i>';
+                        $result.="<b style=\"margin-left:9px;\">&#x3009;</b>";
                         //$result.='>'; //$this->lang['next'];
                         $result.='</a></li>';
                         $result.= '</ul>';
