@@ -13,7 +13,7 @@ use Hybridauth\Storage\Session;
 use Core\Model\Router;
 
 function redirectTo($user) : void {    
-    $router = Router::getInstance();
+    $router = Router::instance();
     $router->language = $user->params['slang'];
     $router->cache();
     $url = $router->getURL($user->params['country'], $user->params['city']);  
@@ -30,7 +30,7 @@ function redirectToUrl($url) {
 }
 
 
-MCSessionHandler::getInstance();
+MCSessionHandler::instance();
 
 $storage = new Session();
 $isAndroid = $storage->get('android');
