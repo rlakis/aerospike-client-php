@@ -25,12 +25,17 @@ class Search extends Page {
         
         if (isset($_GET['rt'])) { $this->isRT = 1; }
         
-        if ($this->userFavorites && !$this->user->info['id']) {
-            $this->router()->config()->disableAds();
-        } 
-        elseif ($this->router()->watchId && !$this->user->info['id']) {
+        if (!$this->user()->isLoggedIn()) {
+            if ($this->userFavorites || $this->router()->watchId) {
+                $this->router()->config()->disableAds();
+            }
+        }
+        else if ($this->user()->isLoggedIn(9)) {
             $this->router()->config()->disableAds();
         }
+        
+            
+       
         /*     
         if (!$this->isMobile && !$this->router()->userId && !$this->userFavorites && !$this->router()->watchId) {
             $this->hasLeadingPane=true;
@@ -40,7 +45,7 @@ class Search extends Page {
         }              
         */
         if ($this->isMobile && ($this->router()->watchId || $this->userFavorites)) {
-            $this->router()->config()->setValue('enabled_ads', 0);
+            $this->router()->config()->disableAds();
         }
                 
         $this->stat = array();
@@ -1119,12 +1124,13 @@ class Search extends Page {
     private function adSlot() : void {
         if ($this->router()->config()->enabledAds()) {
             //<div class="card card-product">
-            echo '<div class="ad adslot">';?>
-<ins class="adsbygoogle" style="display:block;min-width:250px; max-width:360px; width:100%; height: 360px;" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            //echo '<div class="adslot">';
+            ?>
+<ins class="adsbygoogle" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="auto" data-full-width-responsive="true"></ins>
 <script>
 (adsbygoogle = window.adsbygoogle || []).push({});
 </script><?php
-            echo '</div>', "\n";//</div>
+            //echo '</div>', "\n";//</div>
         }
     }
     

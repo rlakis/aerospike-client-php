@@ -274,13 +274,13 @@ class PostAd extends Page {
             
             echo '<div class=col-12><div class=card>';
             ?><ul class=buttons>
-                <li><button name="submit" type="submit" id="ad-submit" class="btn blue" onclick="return UI.submit(this)" data-submit="...Sending">Submit</button></li>
+                <!--<li><button name="submit" type="submit" id="ad-submit" class="btn blue" onclick="return UI.submit(this)" data-submit="...Sending">Submit</button></li>-->
                 <li><button onclick=Ad.save() class="btn blue" data-state=0>Save</button></li>
                 <li><button onclick=Ad.save() class="btn blue" data-state=1>Publish</button><span><?= $this->lang['ad_review'] ?></span></li><?php
                 if($this->user()->level()===9){
                     ?><li class=approve><button onclick=Ad.save() class="btn blue" data-state=2><?= $this->lang['approve'] ?></button></li><?php
                 }
-                ?><li><button class="btn">Cancel</button></li>
+                ?><li><button class=btn onclick="javascript:history.back();">Cancel</button></li>
             </ul><?php
             //echo '</div>';
             echo '</div></div>';
