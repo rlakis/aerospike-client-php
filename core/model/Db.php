@@ -653,8 +653,7 @@ class DB {
         }
         
         if ($resource instanceof \mysqli_result) { 
-            while ($row = $resource->fetch_array()) 
-            {
+            while ($row = $resource->fetch_array()) {
                 $purposes = $this->getPurpusesData($row[0], 0, 0, 0, $lang);
                 $result[$row[0]]=['name'=>$countries[$row[0]][$f], 'counter'=>$row[1], 'unixtime'=>$row[2], 
                                   'uri'=>$countries[$row[0]][3], 'currency'=>$countries[$row[0]][4], 'code'=>$countries[$row[0]][5],
@@ -808,23 +807,23 @@ class DB {
         if ($result!==FALSE) { return $result; }
                 
         $result=array();
-        if ($this->slaveOfRedis) {
-            return $result;
-        }
+        if ($this->slaveOfRedis) { return $result; }
 
         $q = "select groupby(), purpose_name_{$lang}, sum(counter), max(unixtime) from section_counts ";
         $and='where';
         if ($sectionId) {
             $q.="{$and} section_id={$sectionId} ";
             $and='and';
-        } elseif($rootId) {
+        } 
+        elseif($rootId) {
             $q.="{$and} root_id={$rootId} ";
             $and='and';
         }
         if ($cityId) {
             $q.="{$and} city_id={$cityId} ";
             $and='and';
-        } elseif ($countryId) {
+        } 
+        elseif ($countryId) {
             $q.="{$and} country_id={$countryId} and city_id=0 ";
         }
         $q.="group by purpose_id order by purpose_name_{$lang} asc limit 1000";
