@@ -18,7 +18,7 @@ h1, .h1 {font-size:3.8em;line-height:1.15em;}
 h2, .h2 {font-size:2.6em;}
 h3, .h3 {font-size:1.825em;line-height:1.4em;margin:20px 0 10px;}
 h4, .h4 {font-size:1.3em;line-height:1.4em;}
-h5, .h5 {font-size:1.25em;line-height:1.4em;margin-bottom:15px;}
+h5, .h5 {line-height:1.4em;margin-bottom:15px;}
 h6, .h6 {font-size:1em;text-transform:uppercase;font-weight:500;}
 label {display:inline-block;max-width:100%;margin-bottom:5px;font-weight:700;}
 
@@ -195,8 +195,8 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .ad:hover .abuse {display: block}
 
 /*.ad:hover{-moz-box-shadow:0 3px 3px #333;-o-box-shadow:0 3px 3px #333;-webkit-box-shadow:0 3px 3px #333;box-shadow: 0 3px 3px #333}*/
-.adslot{text-align: center; /*min-width:0px; max-width:360px; width: 100%;*/ width: auto; height: auto; max-height: 750px !important;}
-
+.adslot{text-align: center; /*min-width:0px; max-width:360px; width: 100%;*/ width: auto; height: auto; min-width: 300px; max-height: 750px !important;padding-bottom: 24px;}
+.adsbygoogle{display:block;height:320px;min-width:250px;max-width:360px;width:100%; margin:auto;max-height: 750px !important;}
 
 #results{flex-flow:column;width:100%}
 .ls,.home{display:inherit;justify-content:space-around;flex-flow:row wrap;align-content:flex-start}
