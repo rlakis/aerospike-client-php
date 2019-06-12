@@ -1329,7 +1329,7 @@ var Ad={
                         _.parse(response.DATA.ad);
                     }
                 }
-                if(status===1){
+                if(status===1||status===2){
                     history.go(-1);
                 }
             })
