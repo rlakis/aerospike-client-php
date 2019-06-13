@@ -58,30 +58,8 @@ class MyAds extends Page {
         else {
             $this->globalScript.='MUTE=0';
         }
-            
-        //$this->globalScript.=';';
-            
-        if ($this->user()->isLoggedIn(9)) {                                
-                                         
-            $this->globalScript.='
-                    var setUT=function(e,id){
-                        if(e.value>0){
-                            $.ajax({
-                                url:"/ajax-user-type/",
-                                type:"GET",
-                                data:{
-                                    u:id,
-                                    t:e.value
-                                },
-                                success:function(rp){
-                                    if(!rp.RP){ 
-                                        e.value=0;
-                                    }
-                                }
-                            });
-                        }
-                    };
-                ';
+                        
+        if ($this->user()->isLoggedIn(9)) {
                 
             if ($sub==='') {
                 $this->globalScript.='
@@ -594,14 +572,14 @@ class MyAds extends Page {
             if ($state===7) {
                 if ($this->router()->config()->get('enabled_charts') && !$isAdminProfiling) {                    
                     echo '<div class="stin ', $this->router()->language, '"></div>';
-                    $this->renderEditorsBox($state);
+                    //$this->renderEditorsBox($state);
                     ?></div><?php
                     ?><div class="phld"><?php
                         ?><div id="statDv" class="load"></div><?php
                     ?></div><?php
                 } 
                 else {
-                    $this->renderEditorsBox($state);
+                    //$this->renderEditorsBox($state);
                     ?></div><?php
                 }
             } 
@@ -1261,7 +1239,7 @@ class MyAds extends Page {
                     break;
             }
             ?></p><?php            
-            $this->renderEditorsBox($state, true);
+            //$this->renderEditorsBox($state, true);
             
             if ($isAdmin && $mcUser && $mcUser->isBlocked()) {
                 $msg = 'User is Blocked';
@@ -1271,9 +1249,7 @@ class MyAds extends Page {
                 }
             }
             
-            ?><div class="htf db"><?= $msg ?><br /><br /><?php
-            ?><input onclick="document.location='<?= $this->router()->getLanguagePath('/post/') ?>'" class=bt type=button value="<?= $this->lang['create_ad'] ?>" /><?php
-            ?></div><?php
+            ?><div class="htf db"><?= $msg ?><br /><br /></div><?php
         }
         $this->inlineJS('util.js')->inlineJS('myads.js');
     }
@@ -1373,7 +1349,7 @@ class MyAds extends Page {
                 }
                 echo '<span class="fl"><span class="wait"></span>'.$hours.'</span>';
             }
-            echo '<span class="fl">'.$this->lang['user_type_label'].': <select onchange="setUT(this,'.$userId.')"><option value="0">'.$this->lang['user_type_option_0'].'</option><option value="1"'.($type == 1 ? ' selected':'').'>'.$this->lang['user_type_option_1'].'</option><option value="2"'.($type == 2 ? ' selected':'').'>'.$this->lang['user_type_option_2'].'</option></select></span>';            
+            //echo '<span class="fl">'.$this->lang['user_type_label'].': <select onchange="setUT(this,'.$userId.')"><option value="0">'.$this->lang['user_type_option_0'].'</option><option value="1"'.($type == 1 ? ' selected':'').'>'.$this->lang['user_type_option_1'].'</option><option value="2"'.($type == 2 ? ' selected':'').'>'.$this->lang['user_type_option_2'].'</option></select></span>';            
         }
     }
     
