@@ -44,7 +44,7 @@ class DB {
         self::$LocalitiesVersion = $versions['locality-counts-version'];
         self::$TagsVersion = $versions['tag-counts-version'];
         
-        \error_log(\json_encode($versions));
+        //\error_log(\json_encode($versions));
         
         //self::$SectionsVersion = $this->version;
         //self::$LocalitiesVersion = $this->version;
@@ -346,44 +346,40 @@ class DB {
     }
     
     
-    function stmtCacheResultSimpleArray($label, $stmt, $params=null, $key=0, $lifetime=86400, $forceSetting=false) {
-        $records=array();
-        $foo = self::$Cache->get($label);
+    function stmtCacheResultSimpleArray(string $label, \PDOStatement $stmt, ?array $params=null, int $key=0, int $expire=2592000, bool $cacheIgnore=false) {
+        //$records=array();
+        //$foo = self::$Cache->get($label);
                         
-        if ($forceSetting || $foo===FALSE) { 
-            
-            try {
-                
-                if ($params)
-                    $stmt->execute($params);
-                else
-                    $stmt->execute();
+        if ($cacheIgnore || ($foo=self::$Cache->get($label)===false)) { 
+            $records=[];
+            try {      
+                //if ($params) { $stmt->execute($params);
+                //else
+                $stmt->execute($params);
 
-                if (($row = $stmt->fetch(\PDO::FETCH_NUM)) !== false) {
+                if (($row=$stmt->fetch(\PDO::FETCH_NUM)) !== false) {
                     do {
-                        //for ($i=0; $i < $count; $i++)
-                        //    if(is_numeric($row[$i])) $row[$i] = $row[$i] + 0;
-                        if ($key>=0)
+                        if ($key>=0) {
                             $records[$row[$key]]=$row;
+                        }
                         else {
                             $records=$row;
                             break;
                         }
-                    }
-                    while($row = $stmt->fetch(\PDO::FETCH_NUM));
+                    } while($row=$stmt->fetch(\PDO::FETCH_NUM));
                 }
+               
+                self::$Cache->setEx($label, empty($records)?3600:$expire, $records);
             }
             catch (Exception $ex) {
-                error_log($ex->getMessage() . PHP_EOL . $stmt->queryString . PHP_EOL . var_export($params, TRUE));
+                \error_log($ex->getMessage() . PHP_EOL . $stmt->queryString . PHP_EOL . var_export($params, TRUE));
                 self::$Instance->rollBack();
                 return false;
             }
-      
-            self::$Cache->set($label, $records);
-                
             return $records;
         } 
         else {
+            \error_log(\json_encode($foo));
             return $foo;
         }              
     }

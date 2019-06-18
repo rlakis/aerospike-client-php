@@ -6,10 +6,11 @@ class Contact extends Page{
     function __construct(){
         parent::__construct();
         $this->hasLeadingPane=true;
-        $this->urlRouter->cfg['enabled_ads']=false;
-        if ($this->isMobile) {
-            $this->inlineCss.='label{display:block;margin:0}input,textarea{width:95%;margin-bottom:15px}#nb{display:none}';
-        }
+        $this->router()->config()->disableAds();
+        //$this->urlRouter->cfg['enabled_ads']=false;
+        //if ($this->isMobile) {
+        //    $this->inlineCss.='label{display:block;margin:0}input,textarea{width:95%;margin-bottom:15px}#nb{display:none}';
+        //}
         //$this->set_ad(array("Leaderboard"=>array("/1006833/Leaderboard", 728, 90, "div-gpt-ad-1319709425426-0")));
         $this->load_lang(array("contact"));
         $this->title=$this->lang['title'];
@@ -87,7 +88,7 @@ class Contact extends Page{
             ?><li><label><?= $this->lang['email'] ?>:</label><input onkeydown="idir(this)" onchange="idir(this,1)" type="text" id="email" value="<?= $email ?>" placeholder="<?= $this->lang['hint_email'] ?>" <?= $email ? "disabled='disabled'":"" ?> /></li><?php
             ?><li><label class="ta"><?= $this->lang['message'] ?>:</label><textarea onkeydown="idir(this)" onchange="idir(this,1)" rows="10" id="msg"><?= $message ?></textarea></li><?php
         ?><li class="ctr"><input class="bt" type="submit" value="<?= $this->lang['send'] ?>" /></li><?php
-        ?></ul></form><span class="omail <?= $this->urlRouter->siteLanguage ?>"></span><span class="nb"></span></div><?php
+        ?></ul></form><span class="omail <?= $this->router()->language ?>"></span><span class="nb"></span></div><?php
         $this->inlineScript.='
             window["pla"]=function(e){
                 e.prev().append("<span class=\'fia\'></span>");

@@ -1110,7 +1110,7 @@ class Search extends Page {
         
         $max = $this->num+2;
         if ($this->searchResults['body']['total_found']>$max && count($ad_keys)<$max && isset($this->searchResults['zone0'])) {
-            error_log(var_export($this->searchResults['zone0'], true));
+            //error_log(var_export($this->searchResults['zone0'], true));
             $count=count($this->searchResults['zone0']['matches']);
             $fc=count($ad_keys);
             for ($i=0; $i<$count && $fc+$i<$max; $i++) {
@@ -1348,13 +1348,13 @@ class Search extends Page {
                 $this->renderLocalityLinks(), 
                 $this->renderSideRoots(),
                 '</div>';
-            echo '<div class="ls col-10" ';
+            echo '<div class="row col-10"><div id=cards class="ls col-12" ';
             if ($this->router()->module!='detail') { echo 'itemprop="mainContentOfPage" '; }
             echo 'itemscope itemtype="https://schema.org/ItemList">';
             echo '<meta itemprop="name" content="', $this->subTitle, '" />';
                 
             $this->renderDResults($keywords);
-            echo '</div></div>',"\n";                
+            echo '</div></div></div>',"\n";                
           
             echo $this->mt_pagination();
                                 

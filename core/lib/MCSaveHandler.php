@@ -477,8 +477,12 @@ class MCSaveHandler {
         $rs = $db->queryResultArray("select * from ad_user where id=?", [$reference])[0];
         $db->close();        
 
-        $obj = json_decode($rs['CONTENT']);
-        $words = explode(' ', $obj->attrs->ar);
+        $obj = \json_decode($rs['CONTENT'], false);
+        $obj->pu=$rs['PURPOSE_ID'];
+        $obj->se=$rs['SECTION_ID'];
+        $obj->rtl=$rs['RTL'];
+        
+        $words = \explode(' ', $obj->attrs->ar);
         
         $q = "select id, attrs, locality_id, IF(featured_date_ended>=NOW(),1,0) featured, section_id, purpose_id";
         $sbPhones = "";
@@ -500,6 +504,9 @@ class MCSaveHandler {
                 $q.=", attrs.locality.id={$obj->attrs->locality->id} gfilter";
             }
             else {
+                error_log($rs['ID']);
+                error_log(\var_export($obj->attrs, true));
+                
                 $obj->attrs->locality = new stdClass();
                 $obj->attrs->locality->id=-1;
             }
@@ -572,9 +579,9 @@ class MCSaveHandler {
             $desc = "";
             $scores[ $res['matches'][$i]['id'] ] = 0;
             
-            $attrs = json_decode($res['matches'][$i]['attrs']);
+            $attrs = \json_decode($res['matches'][$i]['attrs']);
             
-            if (isset($attrs->locality) && $attrs->locality->id==$obj->attrs->locality->id) {
+            if (isset($attrs->locality) && isset($obj->attrs->locality) && $attrs->locality->id==$obj->attrs->locality->id) {
                 $desc.="G: 100% ";
                 $scores[ $res['matches'][$i]['id'] ] += 1;
             }

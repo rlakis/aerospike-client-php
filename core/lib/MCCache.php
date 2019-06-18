@@ -84,6 +84,15 @@ class MCCache extends \Redis {
     }
 
         
+    function setEx($key, $expire, $value) : bool {
+        if ($expire<=0) {
+            return $this->master()->set($key, $value);
+        }
+        
+        return $this->master()->setEx($key, $expire, $value);
+    }
+
+    
     private function master() : \Redis {
         if (\Config::instance()->serverId==1) {
             return parent;
