@@ -11,6 +11,25 @@ window.addEventListener(orientationEvent, function() {
         adScreen._card.className='card col-'+(adScreen._modal.clientWidth<1200)?'8':'6';
     }
 });
+$.addEventListener("DOMContentLoaded", function () {
+    let c=$$.query('div#cards');
+    if(c){
+        let a=c.querySelectorAll('div.ad:last-child');
+        if(a){
+            let n=$$.query('ul.pgn');
+            if(n){
+                let r=n.closest('div.row');
+                if(r.offsetTop-a[0].offsetTop-a[0].offsetHeight>r.offsetHeight){
+                    let p=c.closest('div.row');
+                    p.style.setProperty('flex-flow', 'column');
+                    p.appendChild(r);
+                }
+            }
+        }
+        
+    }
+});
+
 class AdScreen {
     constructor(ad){        
         wrapperTop=0;
