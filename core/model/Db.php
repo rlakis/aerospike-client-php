@@ -40,13 +40,11 @@ class DB {
         self::$LocalitiesVersion=FALSE;
 
         $versions=self::$Cache->getMulti(['section-counts-version', 'locality-counts-version', 'tag-counts-version']);
-
-        //$this->version = self::$Cache->incrBy('api-mem-version', 0);
-        //error_log($this->version);
-        
         self::$SectionsVersion = $versions['section-counts-version'];
         self::$LocalitiesVersion = $versions['locality-counts-version'];
         self::$TagsVersion = $versions['tag-counts-version'];
+        
+        \error_log(\json_encode($versions));
         
         //self::$SectionsVersion = $this->version;
         //self::$LocalitiesVersion = $this->version;
@@ -793,6 +791,9 @@ class DB {
                 $result[$df] = $tdf;
             }
             self::$Cache->set($label, $result);
+        }
+        else {
+            \error_log(__FUNCTION__.' empty query result from sphinx!');
         }
 
         return $result;

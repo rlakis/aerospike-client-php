@@ -307,7 +307,7 @@ var setOrder=function(e)
         echo '<div class="row home">';
         $sections = [];
         foreach ($this->router()->pageRoots as $id=>$root) {
-            $count = $root['counter'];
+            //$count = $root['counter'];
             $link = $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $id);
             $sections[$id] = $this->router()->database()->getSectionsData($this->router()->countryId, $this->router()->cityId, $id, $this->router()->language, true);
         }
