@@ -232,7 +232,7 @@ class Bin extends AjaxHandler{
                 $se = $this->post('s');
                 $pu = $this->post('p');
                     
-                error_log("pu ". $pu);
+                //error_log("pu ". $pu);
                 if ($se) { $ro = $this->router()->sections[$se][4]; }
                 if ($ro==4) { $pu = 5; }
                     
@@ -271,9 +271,12 @@ class Bin extends AjaxHandler{
                     }                                                        
                             
                     if ($imageToRemove) {
-                        $media = $this->router()->db->queryResultArray('select * from media where filename=?', [$imageToRemove], true);
-                        if ($media && count($media)) {
-                            $this->router()->db->queryResultArray('delete from ad_media where ad_id=? and media_id=?',[$id, $media[0]['ID']], true);
+                        $media = $this->router()->db->queryResultArray('select * from media where filename=?', [$imageToRemove], false);
+                        if ($media && \count($media)) {
+                            foreach ($media as $m) {
+                                $this->router()->db->queryResultArray('delete from ad_media where ad_id=? and media_id=?',[$id, $m['ID']], true);
+                            }
+                            
                         }
                     }
                            

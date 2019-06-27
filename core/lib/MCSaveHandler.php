@@ -440,6 +440,8 @@ class MCSaveHandler {
         else if (isset($res['error']) && $res['error']==1) {
             error_log($res['except']);
         }
+        // fix return here
+        
         
         $buffer = json_encode($command);
         $len = pack('N', strlen($buffer));
@@ -504,8 +506,8 @@ class MCSaveHandler {
                 $q.=", attrs.locality.id={$obj->attrs->locality->id} gfilter";
             }
             else {
-                error_log($rs['ID']);
-                error_log(\var_export($obj->attrs, true));
+                //error_log($rs['ID']);
+                //error_log(\var_export($obj->attrs, true));
                 
                 $obj->attrs->locality = new stdClass();
                 $obj->attrs->locality->id=-1;
@@ -726,8 +728,8 @@ class MCSaveHandler {
 
 
 if (php_sapi_name()=='cli' && get_cfg_var('mourjan.server_id')=='99') {
-    $saveHandler = new MCSaveHandler();
-    $saveHandler->getFromDatabase($argv[1]);
+    //$saveHandler = new MCSaveHandler();
+    //$saveHandler->getFromDatabase($argv[1]);
     //$saveHandler->searchByAdId($argv[1]);
     //$saveHandler->testRealEstate(9);
 }

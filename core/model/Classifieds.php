@@ -60,6 +60,8 @@ class Classifieds {
     const PUBLISHER_TYPE        = 45;
     const PRICE                 = 46;
     
+    const RERA                  = 47;
+    
     const DONE                  = 99;
 
     private $stmt_get_ad = null;
@@ -240,6 +242,8 @@ class Classifieds {
             //    $ad[Classifieds::USER_LEVEL] = $decoder['userLvl'];
             //}
             
+            if (isset($decoder['rera'])) { $ad[Classifieds::RERA] = $decoder['rera']; }
+            
            
             $ad[Classifieds::PRICE]=(isset($decoder['attrs']['price']) && $decoder['attrs']['price']>0)?$decoder['attrs']['price']:0;
         
@@ -260,9 +264,7 @@ class Classifieds {
             $this->normalizeContacts($ad);
 
             $res = $this->db->getCache()->setEx($id, 180*86400, $ad);
-            if ($res===false) {
-            	error_log("Classifieds->getById: Cound not set ad {$id} to redis cache");
-            }
+            if ($res===false) { \error_log("Classifieds->getById: Cound not set ad {$id} to redis cache"); }
         }
         return $ad;
     }
