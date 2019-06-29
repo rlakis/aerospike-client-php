@@ -1301,7 +1301,7 @@ class MyAds extends Page {
             if ($user->isSuspended()) {
                 $time = MCSessionHandler::checkSuspendedMobile($user->getMobileNumber());
                 $hours=0;
-                $lang=$this->router()->siteLanguage;
+                $lang=$this->router()->language;
                 if ($time) {
                     $hours = $time / 3600;
                     if (ceil($hours)>1) {

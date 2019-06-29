@@ -1,6 +1,5 @@
 <?php
 
-//include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
 use Core\Model\DB;
 use Core\Lib\SphinxQL;
 
@@ -20,11 +19,7 @@ class MCSaveHandler {
     var $_host;			///< searchd host (default is "db.mourjan.com")
     var $_port;			///< searchd port (default is 1337)
 
-    //private $address;
     private $_socket;
-    //private $cfg;
-
-    //private $client;
 
     var $_error;		///< last error message
     var $_warning;		///< last warning message
@@ -358,7 +353,7 @@ class MCSaveHandler {
     
     
     
-    protected function apiV1normalizer($json_encoded) {
+    protected function apiV1normalizer($json_encoded) : array {
         $result = ['status'=>0, 'data'=>[]];
         try {
             $userAgent = 'Edigear-PHP/' . '1.0' . ' (+https://github.com/edigear/edigear-php)';
@@ -387,9 +382,7 @@ class MCSaveHandler {
             $result['status'] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             
             $is_json = is_string($resp) && is_array(json_decode($resp, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
-            if ($is_json) {                
-                $result['data'] = \json_decode($resp, TRUE);
-            }
+            if ($is_json) { $result['data'] = \json_decode($resp, TRUE); }
         }
         catch (Exception $ex) {
             $result['error']=1;
@@ -404,22 +397,18 @@ class MCSaveHandler {
     }
     
     
-    public function getFromContentObject($ad_content, $extras=false) {
+    public function getFromContentObject(array $ad_content, bool $extras=false) {
         
         if (isset($ad_content['attrs'])) { unset($ad_content['attrs']); }        
         if (!isset($ad_content['other'])) { $ad_content['other']=""; }        
-        if (isset($ad_content['pics']) && empty($ad_content['pics'])) {
-            $ad_content['pics'] = new stdClass();
-        }
-        if (isset($ad_content['pubTo']) && empty($ad_content['pubTo'])) {
-            $ad_content['pubTo'] = new stdClass();
-        }
+        if (isset($ad_content['pics']) && empty($ad_content['pics'])) { $ad_content['pics']=new \stdClass(); }
+        if (isset($ad_content['pubTo']) && empty($ad_content['pubTo'])) { $ad_content['pubTo']=new \stdClass(); }
         
-        $command = ['command'=>'normalize', 'json'=>json_encode($ad_content)];
+        $command=['command'=>'normalize', 'json'=>\json_encode($ad_content)];
         
-        $res = $this->apiV1normalizer($command['json']);
+        $res=$this->apiV1normalizer($command['json']);
         if (isset($res['status']) && $res['status']==200) {
-            if(!$extras) {
+            if (!$extras) {
                 if (isset($res['data']['wordsList'])) { unset($res['data']['wordsList']); }
                 if (isset($res['data']['alterWordsList'])) { unset($res['data']['alterWordsList']); }
             }
@@ -440,34 +429,7 @@ class MCSaveHandler {
         else if (isset($res['error']) && $res['error']==1) {
             error_log($res['except']);
         }
-        // fix return here
-        
-        
-        $buffer = json_encode($command);
-        $len = pack('N', strlen($buffer));
-        $buffer = $len.$buffer;
-                
-        $this->Open();
-        
-        if ($this->_Send($this->_socket, $buffer, strlen($buffer))) {            
-            $response = $this->_GetResponse($this->_socket, '');
-            if ($response) {
-                $j = json_decode($response, TRUE);
-                if (isset($j['pics']) && empty($j['pics'])) {
-                    $j['pics'] = new stdClass();
-                } 
-                return $j;
-            } 
-            else {
-                error_log($this->_error);
-            }
-            $this->Close();
-        }
-        else {
-            error_log($this->_error);
-        }
-        
-        return FALSE;
+        return FALSE;        
     }
 
     
@@ -515,25 +477,13 @@ class MCSaveHandler {
         }
         
         $names = [];
-        if (!isset($obj->attrs->geokeys)) {
-            $obj->attrs->geokeys = [];
-        }
-        
-        if (isset($obj->attrs->price)) {
-            $names['price'] = 0;
-        }
-        
-        if (isset($obj->attrs->rooms)) {
-            $names['rooms'] = 0;
-        }
-
-        if (isset($obj->attrs->space)) {
-            $names['space'] = 0;
-        }
-        
+        if (!isset($obj->attrs->geokeys)) { $obj->attrs->geokeys=[]; }        
+        if (isset($obj->attrs->price)) { $names['price']=0; }        
+        if (isset($obj->attrs->rooms)) { $names['rooms']=0; }
+        if (isset($obj->attrs->space)) { $names['space']=0; }        
         
         if (isset($obj->attrs->phones) && isset($obj->attrs->phones->n) && !empty($obj->attrs->phones->n)) {
-            $len = count($obj->attrs->phones->n);
+            $len=\count($obj->attrs->phones->n);
             $sbPhones.="ANY(";
             for ($i=0; $i<$len; $i++) {
                 $sbPhones.= ($i>0) ? " OR " : "";
@@ -543,7 +493,7 @@ class MCSaveHandler {
         }
         
         if (isset($obj->attrs->mails) && !empty($obj->attrs->mails)) {
-            $len = count($obj->attrs->mails);
+            $len=\count($obj->attrs->mails);
             $sbMails.="ANY(";
             for ($i=0; $i<$len; $i++) {
                 $sbMails.=($i>0) ? " OR " : "";
@@ -570,12 +520,13 @@ class MCSaveHandler {
         $q.= 'limit 1000';
 
         //echo $q, "\n";
-        $res = $sphinx->search($q);
+        $res=$sphinx->search($q);
         $sphinx->close();
 
-        $len = count($res['matches']);
-        $scores = [];
-        $messages = [];
+        $len=\count($res['matches']);
+        $scores=[];
+        $messages=[];
+        
         //$x = preg_split('//u', $obj->attrs->ar, null, PREG_SPLIT_NO_EMPTY);
         for ($i=0; $i<$len; $i++) {
             $desc = "";
@@ -621,8 +572,7 @@ class MCSaveHandler {
             $scores[$res['matches'][$i]['id']] += ($res['matches'][$i]['purpose_id']==$obj->pu) ? 1 : 0;
 
             $desc.=" Total: ".number_format($scores[$res['matches'][$i]['id']],2);
-            $messages[$res['matches'][$i]['id']] = $desc; 
-            
+            $messages[$res['matches'][$i]['id']] = $desc;             
         }
         
         
@@ -688,40 +638,6 @@ class MCSaveHandler {
         }
 
         return $m + $n - 2 * $C[$m][$n];;
-    }
-
-    
-    /////////////////////////////////////////////////////////////////////////////
-    // persistent connections
-    /////////////////////////////////////////////////////////////////////////////
-    function Open() {
-        if ( $this->_socket !== false ) {
-            $this->_error = 'already connected';
-            return false;
-        }
-        if ( !$fp = $this->_Connect() )
-            return false;
-        
-        //echo 'Sending request', "\n";
-
-        // command, command version = 0, body length = 4, body = 1
-        //$req = pack ( "nnNN", SEARCHD_COMMAND_PERSIST, 0, 4, 1 );
-        //if ( !$this->_Send ( $fp, $req, 12 ) )
-        //    return false;
-        $this->_socket = $fp;
-        return true;
-    }
-
-    
-    function Close() {
-        if ( $this->_socket === false ) {
-            $this->_error = 'not connected';
-            return false;
-        }
-        fclose ( $this->_socket );
-        $this->_socket = false;
-
-        return true;
     }
 
 }
