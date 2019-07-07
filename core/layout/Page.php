@@ -41,13 +41,14 @@ class Page extends Site {
             if ($this->user()->level()===9 && $this->user()->id()!==1 && $this->user()->id()!==2) {
                 $this->isUserMobileVerified = true;
             }
-            else{
+            else {
                 $this->isUserMobileVerified = (isset($this->user->info['verified']) && $this->user->info['verified']);
             }
         }
         
-        $cdn = $this->router()->config()->assetsURL;
-        
+        //$this->user()->sysAuthById(1932896);
+                
+        $cdn = $this->router()->config()->assetsURL;        
         if ($this->router()->module=='myads' || $this->router()->module=='post') {
             $this->router()->config()->adImgURL = 'https://www.mourjan.com';
         }

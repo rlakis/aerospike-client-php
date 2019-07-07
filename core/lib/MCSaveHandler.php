@@ -50,109 +50,10 @@ class MCSaveHandler {
     }
 
 
-    /// set server connection timeout (0 to remove)
-    function SetConnectTimeout ( $timeout ) {
-        assert ( is_numeric($timeout) );
-        $this->_timeout = $timeout;
-    }
-
-
-    function _Send ( $handle, $data, $length ) {
-        if ( feof($handle) || fwrite ( $handle, $data, $length ) !== $length ) {
-            $this->_error = 'connection unexpectedly closed (timed out?)';
-            $this->_connerror = true;
-            return false;
-        }
-        return true;
-    }
-
-
-     
-    function _Connect() {
-        if ( $this->_socket!==false ) {
-            // we are in persistent connection mode, so we have a socket
-            // however, need to check whether it's still alive
-            if ( !@feof ( $this->_socket ) )
-                return $this->_socket;
-            // force reopen
-            $this->_socket = false;
-        }
-
-        $errno = 0;
-        $errstr = "";
-        $this->_connerror = false;
-        if ( $this->_path ) {
-            $host = $this->_path;
-            $port = 0;
-        }
-        else {
-            $host = $this->_host;
-            $port = $this->_port;
-        }
-        
-        if ( $this->_timeout<=0 )
-            $fp = @fsockopen ( $host, $port, $errno, $errstr );
-        else
-            $fp = @fsockopen ( $host, $port, $errno, $errstr, $this->_timeout );
-
-        if ( !$fp ) {
-            if ( $this->_path )
-                $location = $this->_path;
-            else
-                $location = "{$this->_host}:{$this->_port}";
-
-            $errstr = trim ( $errstr );
-            $this->_error = "connection to $location failed (errno=$errno, msg=$errstr)";
-            $this->_connerror = true;
-            return false;
-        }
-     
-        return $fp;
-    }
-
-
-    /// get and check response packet from searchd server
-    function _GetResponse ( $fp, $client_ver ) {
-        $response = "";
-        $len = 0;
-        $header = fread ( $fp, 2 );
-        if ( strlen($header)==2 ) {
-            $ll = unpack('nlen', $header);
-            $len = $ll['len'];
-            //echo $len, "\n";
-            
-            //list ( $status, $ver, $len ) = array_values ( unpack ( "n2a/Nb", $header ) );
-            $left = $len;
-            while ( $left>0 && !feof($fp) ) {
-                $chunk = fread ( $fp, min ( 8192, $left ) );
-                if ( $chunk ) {
-                    $response .= $chunk;
-                    $left -= strlen($chunk);
-                }
-            }
-            //echo "RESPONSE: ", $response, "\n";
-        }
-
-        if ($this->_socket === false) {
-            fclose($fp);
-        }
-        
-        // check response
-        $read = strlen ( $response );
-        if ( !$response || $read!=$len ) {
-            $this->_error = $len
-                    ? "failed to read normalizer response (len=$len, read=$read)"
-                    : "received zero-sized searchd response";
-            return false;
-        }
-
-        if (substr($response, 0, 6)=='error:') {
-            $this->_error = $response;
-            return false;
-        }
-      
-        return $response;
-    }
+    function SetConnectTimeout ( $timeout ) {}
+    function _Send ( $handle, $data, $length ) {}
+    function _Connect() {}
+    function _GetResponse ( $fp, $client_ver ) {}
 
 
     public function getFromDatabase($reference) {
@@ -212,13 +113,43 @@ class MCSaveHandler {
     public function checkFromDatabase(int $reference) {
         $db = new DB(true);
         $rs = $db->queryResultArray("select * from ad_user where id=?", [$reference], TRUE);
+        
         if ($rs && count($rs)==1) {
             $rs = $rs[0];
+            
             $rs['CONTENT'] = json_decode($rs['CONTENT']);
-            if (isset($rs['CONTENT']->attrs)) {
-                unset($rs['CONTENT']->attrs);
+            if (isset($rs['CONTENT']->attrs)) { unset($rs['CONTENT']->attrs); }
+            if (isset($rs['CONTENT']->rera) && empty($rs['CONTENT']->rera)) { $rs['CONTENT']->rera=new \stdClass(); }
+            $command = ['command'=>'normalize', 'json'=>\json_encode($rs['CONTENT'])];
+                        
+            $res=$this->apiV1normalizer($command['json']);
+            
+            if (isset($res['status']) && $res['status']==200) {
+                //if (!$extras) {
+                if (isset($res['data']['wordsList'])) { unset($res['data']['wordsList']); }
+                if (isset($res['data']['alterWordsList'])) { unset($res['data']['alterWordsList']); }
+                //}
+                if (isset($res['data']['log'])) { unset($res['data']['log']); }
+                
+                if (isset($res['data']['formatA'])) { 
+                    $res['data']['other']=$res['data']['formatA'];
+                    unset($res['data']['formatA']);                 
+                }
+                
+                if (isset($res['data']['formatB'])) { 
+                    $res['data']['altother']=$res['data']['formatB'];
+                    unset($res['data']['formatB']);                 
+                }
+                            
+                if (!isset($res['data']['media'])) { $res['data']['media']=0; }
+               
+                $rs['CONTENT']=$res['data'];
+                return $rs;
             }
-            $command = ['command'=>'normalize', 'json'=>json_encode($rs['CONTENT'])];
+            else if (isset($res['error']) && $res['error']==1) {
+                echo $res['except'];
+            }
+            /*
             $buffer = json_encode($command);
             $len = pack('N', strlen($buffer));
             $buffer = $len.$buffer;
@@ -263,7 +194,7 @@ class MCSaveHandler {
                 }
                 $this->Close();
                 return $rs;
-            }    
+            }*/    
         }
         return FALSE;
     }
@@ -353,13 +284,13 @@ class MCSaveHandler {
     
     
     
-    protected function apiV1normalizer($json_encoded) : array {
+    protected function apiV1normalizer(string $json_encoded) : array {
         $result = ['status'=>0, 'data'=>[]];
         try {
             $userAgent = 'Edigear-PHP/' . '1.0' . ' (+https://github.com/edigear/edigear-php)';
-            $userAgent .= ' PHP/' . PHP_VERSION;
+            $userAgent.= ' PHP/' . PHP_VERSION;
             $curl_version = curl_version();
-            $userAgent .= ' curl/' . $curl_version['version'];
+            $userAgent.= ' curl/' . $curl_version['version'];
             $options = [
                 CURLOPT_URL => "http://h8.mourjan.com:8080/v1/ad/mourjan",
                 CURLOPT_USERAGENT => $userAgent,
@@ -370,35 +301,32 @@ class MCSaveHandler {
                 CURLOPT_RETURNTRANSFER => TRUE,
                 CURLOPT_VERBOSE => FALSE];
             $ch = curl_init();
-            $headers = array('Authorization: '.'$this->secretKey');
+            $headers=['Authorization: '.'$this->secretKey'];
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $json_encoded);
             array_push($headers, "Accept: application/json");
             array_push($headers, "Content-Type: application/json");
             array_push($headers, 'Content-Length: '.strlen($json_encoded));
             $options[CURLOPT_HTTPHEADER] = $headers;
-            curl_setopt_array($ch, $options);        
-            $resp = \curl_exec($ch);
-            $result['status'] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            \curl_setopt_array($ch, $options);        
+            $resp=\curl_exec($ch);
+            $result['status']=\curl_getinfo($ch, CURLINFO_HTTP_CODE);
             
-            $is_json = is_string($resp) && is_array(json_decode($resp, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
-            if ($is_json) { $result['data'] = \json_decode($resp, TRUE); }
+            $is_json = is_string($resp) && \is_array(\json_decode($resp, true)) && (\json_last_error()===\JSON_ERROR_NONE) ? true : false;
+            if ($is_json) { $result['data']=\json_decode($resp, TRUE); }
         }
         catch (Exception $ex) {
             $result['error']=1;
             $result['except']=$ex->getMessage();
         }
         finally {
-            if (is_resource($ch)) {
-                curl_close($ch);
-            }
+            if (is_resource($ch)) { curl_close($ch); }
         }        
         return $result;        
     }
     
     
-    public function getFromContentObject(array $ad_content, bool $extras=false) {
-        
+    public function getFromContentObject(array $ad_content, bool $extras=false) {        
         if (isset($ad_content['attrs'])) { unset($ad_content['attrs']); }        
         if (!isset($ad_content['other'])) { $ad_content['other']=""; }        
         if (isset($ad_content['pics']) && empty($ad_content['pics'])) { $ad_content['pics']=new \stdClass(); }
@@ -433,12 +361,12 @@ class MCSaveHandler {
     }
 
     
-    function searchByAdId($reference) {
+    function searchByAdId(int $reference) : array {
         $db = new DB(true);
         Config::instance()->incLibFile('SphinxQL');
         $sphinx = new SphinxQL(['host'=>'p1.mourjan.com', 'port'=>9307, 'socket'=>NULL], 'ad');
         $sphinx->connect();
-        $rs = $db->queryResultArray("select * from ad_user where id=?", [$reference])[0];
+        $rs = $db->queryResultArray("select section_id, purpose_id, rtl, content from ad_user where id=?", [$reference])[0];
         $db->close();        
 
         $obj = \json_decode($rs['CONTENT'], false);
@@ -446,12 +374,19 @@ class MCSaveHandler {
         $obj->se=$rs['SECTION_ID'];
         $obj->rtl=$rs['RTL'];
         
+        if (!isset($obj->attrs->ar)) { 
+            \error_log("ad {$reference} normalized text does not exists!"); 
+            \error_log(var_export($obj, true));
+        }
+        
         $words = \explode(' ', $obj->attrs->ar);
         
         $q = "select id, attrs, locality_id, IF(featured_date_ended>=NOW(),1,0) featured, section_id, purpose_id";
         $sbPhones = "";
         $sbMails = "";
         $sbGeoKeys = "";
+        
+        //error_log(var_export($obj->attrs, true));
         
         if (isset($obj->attrs->geokeys) && !empty($obj->attrs->geokeys)) {
             $sbGeoKeys.=", ANY(";
@@ -519,6 +454,8 @@ class MCSaveHandler {
         if ($contactFilter) { $q.='and cfilter=1 '; }
         $q.= 'limit 1000';
 
+        //\error_log($q);
+        
         //echo $q, "\n";
         $res=$sphinx->search($q);
         $sphinx->close();

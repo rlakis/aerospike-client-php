@@ -18,7 +18,7 @@ class PostAd extends Page {
     function __construct() {
         parent::__construct();
         
-        if($this->router()->config()->isMaintenanceMode()) {
+        if ($this->router()->config()->isMaintenanceMode()) {
             $this->user()->redirectTo($this->router()->getLanguagePath('/maintenance/'));
         }
         
@@ -43,6 +43,7 @@ class PostAd extends Page {
         //$this->isUserMobileVerified=false;
         $this->ad = new Core\Model\Ad();
         $this->hasLeadingPane = $this->user()->id() && !$this->isUserMobileVerified;
+        
         if ($this->user()->isLoggedIn()) {
             if (!$this->isUserMobileVerified) {
                 $this->title=$this->lang['verify_mobile'];
@@ -50,7 +51,7 @@ class PostAd extends Page {
             }
             else {
                 $id=\filter_input(\INPUT_POST, 'ad' , FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
-                if ($id>0) {                    
+                if ($id>0) {        
                     $this->ad->getAdFromAdUserTableForEditing($id);                    
                 }
 
@@ -390,7 +391,7 @@ class PostAd extends Page {
             //ad location                         
             
             ?><ul class="ls cls nsh po<?= (!$seqHide ? '':' hid') ?>"><?php                  
-                if($budget && $this->userBalance && $this->user->pending['post']['user'] == $this->user->info['id']){
+                if ($budget && $this->userBalance && $this->ad()->uid()===$this->user()->id()) {
                     $with = '';
                     if($this->router()->isArabic()){
                         if($budget == 1){
@@ -411,8 +412,8 @@ class PostAd extends Page {
                     }
                     ?><li class="pid"><b class="ah ctr"><span onclick="savAd(1)" class="button bt btw gold"><?= $this->lang['publish_ad_premium'].' '.$this->lang['with'].$with ?></span><br /><br /></b></li><?php
                 }
-                if($this->userBalance && $this->user->pending['post']['user'] == $this->user->info['id']){
-                    //$this->globalScript.='uqss="'.$this->urlRouter->cfg['url_jquery_ui'].'";';
+                
+                if ($this->userBalance && $this->ad()->uid()===$this->user()->id()) {
                     ?><li class="pid"><b class="ah ctr"><span onclick="savAdP()" class="button bt btw gold"><?= $this->lang['publish_ad_premium'] ?></span></b></li><?php
                 }
             ?></ul><?php 
@@ -425,7 +426,8 @@ class PostAd extends Page {
                     ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
                 ?></div><?php
             }
-            if($this->userBalance && ($this->user->info['level']!=9 || ($this->user->pending['post']['user'] == $this->user->info['id']) )){
+            
+            if ($this->userBalance && ($this->user()->level()!=9 || ($this->ad()->uid()===$this->user()->id()) )){
                 ?><div id="make_premium" class="dialog premium"><?php
                         ?><div class="dialog-title"><?= $this->lang['balance'].': '.$this->userBalance ?> <span class='mc24'></span></div><?php
                         ?><div class="dialog-hint"><?= $this->lang['premium_hint'] ?></div><?php 

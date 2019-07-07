@@ -231,10 +231,13 @@ class MyAds extends Page {
         'لقد تم نشر الإعلان في القسم الأنسب ونرجو عدم التكرار',
         'لقد تخطيت الحد الاقصى لنشر اعلانات طلب العمل',
         'group=البلد',
+        ' لا يمكن نشر هذا الاعلان سوى في صفحة المدينة الذي يتواجد فيه العقار',
         'يرجى النشر ضمن قسم العقارات الدولية',
         'لا يمكن نشر هذا الاعلان سوى في البلد الذي تتواجد فيه مكاتبكم وخدماتكم',
+        'لا يمكن نشر هذا الاعلان في دولة وانت متواجد في دولة أخرى او قد يتم ايقاف حسابك',
         'لا يمكن نشر هذا الإعلان سوى في البلد حيث يتواجد فيه العقار، السيارة أو السلعة',
         'group=سياسة الموقع',
+        'يرجى اضافة المعلومات الخاصة بمؤسسة التنظيم العقاري ريرا',
         'لا يمكن نشر اعلانات مماثلة دون ادراج رقم الموبايل المستخدم لتفعيل حسابك مع مرجان (فقط) ضمن وسائل التواصل',
         'اعلانات زواج المسيار والمتعة مخالفة لسياسة الموقع ولا يمكن نشرها',
         'لا يمكن نشر إعلانات مماثلة طبقاً لسياسة الموقع',
@@ -268,10 +271,12 @@ class MyAds extends Page {
         'this ad has already been published in a more suitable section',
         'you have reached the maximum number of ads that can be posted under LOOKING FOR A JOB',
         'group=Inapplicable Country',
+        'This ad can on be published in the suitable city section',
         'please choose \"international real estate\" section to publish your ad',
         'this ad can only be published in countries where your offices and services are located',
         'this ad cannot be published in countries other than the country of origin (cars, real estate, goods)',
-        'group=Website Policy',        
+        'group=Website Policy',      
+        'please add missing details concerning RERA',
         'cannot publish similar ads unless you add ONLY the mobile number (used to activate your mourjan account) to the contact information',
         'Temporary marriages (Mesyar, Muta\') ads are against the website policy and caanot be published',
         'This type of ads is against the website policy and cannot be published',
@@ -622,7 +627,7 @@ class MyAds extends Page {
                 $isFeatureBooked = $cad->isBookedFeature(); //isset($ad['BO_DATE_ENDED']) && $ad['BO_DATE_ENDED'] ? ($current_time < $ad['BO_DATE_ENDED']) : false;
                     
                 if (!$isFeatureBooked && ($cad->state()===4 || ($cad->dataset()->getBudget()>0) )) {
-                    $isFeatureBooked = true;
+                    $isFeatureBooked=true;
                 }
                                                  
                 $altText = $cad->dataset()->getForeignText();
@@ -632,7 +637,8 @@ class MyAds extends Page {
                 $picCount='';
                 
                 $thumbs='';
-                $hasAdminImgs = 0;
+                $hasAdminImgs=0;
+                $onlySuper=0;
                 
                 if ($isAdmin) {
                     $images='';
@@ -647,17 +653,17 @@ class MyAds extends Page {
                     $images.='<img class=ir src=\"'.$this->router()->config()->imgURL.'/90/' . $cad->sectionId() . $this->router()->_png .'\" />';
                     $pic = '<img class=ir src="'.$this->router()->config()->imgURL.'/90/'.$cad->sectionId().$this->router()->_png.'" />';                    
                 }
-                else {
-                    if (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])>0) {
-                        $picCount=count($content['pics']);
-                        $pic = isset($content['pic_def']) ? $content['pic_def'] : array_keys($content['pics'])[0];
-                        $this->globalScript.='sic[' . $ad['ID'] . ']="<img width=\"120\" src=\"'.$this->router()->cfg['url_ad_img'].'/repos/s/' . $pic . '\" /><span class=\"cnt\">'.$picCount.'<span class=\"i sp\"></span></span>";';
-                        $pic = '<span class=ig></span>';
-                    } 
-                    else {
-                        $this->globalScript.='sic[' . $ad['ID'] . ']="<img class=\"ir\" src=\"'.$this->router()->cfg['url_img'].'/90/' . $ad['SECTION_ID'] .$this->router()->_png. '\" />";';
-                        $pic = '<span class=ig><img class=ir src="'.$this->router()->config()->imgURL.'/90/'. $ad['SECTION_ID'] .$this->router()->_png .'"</span>';
-                    }
+                else {                    
+                    //if (!empty($cad->dataset()->getPictures()) /*isset($content['pics']) && is_array($content['pics']) && count($content['pics'])>0*/) {
+                    //    $picCount=count($content['pics']);
+                    //    $pic = isset($content['pic_def']) ? $content['pic_def'] : array_keys($content['pics'])[0];
+                    //    $this->globalScript.='sic[' . $ad['ID'] . ']="<img width=\"120\" src=\"'.$this->router()->cfg['url_ad_img'].'/repos/s/' . $pic . '\" /><span class=\"cnt\">'.$picCount.'<span class=\"i sp\"></span></span>";';
+                    //    $pic = '<span class=ig></span>';
+                    //} 
+                    //else {
+                    //    $this->globalScript.='sic[' . $ad['ID'] . ']="<img class=\"ir\" src=\"'.$this->router()->config()->imgURL.'/90/' . $cad->sectionId() .$this->router()->_png. '\" />";';
+                        $pic = '<span class=ig><img class=ir src="'.$this->router()->config()->imgURL.'/90/'. $cad->sectionId() .$this->router()->_png .'"</span>';
+                    //}
                 }
                 
                 if ($this->user()->isLoggedIn(9)) {
@@ -924,7 +930,13 @@ class MyAds extends Page {
                 echo '<div class=note';
                 if (!$isAdminProfiling && $isAdmin && \in_array($state, [1,2,3])) { echo ' onclick="d.quick(this)"'; }
                 $isMultiCountry = false;
-                echo '>', $this->getAdSection($cad, $cad->rootId(), $isMultiCountry), '</div>';
+                echo '>', $this->getAdSection($cad, $cad->rootId(), $isMultiCountry);
+                
+                if ($cad->rootId()===1 && \in_array($cad->purposeId(), [1,2,8]) && $cad->countryId()===2) {
+                    echo '<span>ORN: ', $cad->dataset()->getORN(), ', BRN: ', $cad->dataset()->getBRN(), ', Permit: ', $cad->dataset()->getPermit(), '</span>';
+                }
+                
+                echo '</div>';
                 //if ($state>6) {
                 //    echo '<a class=com href="'.$link.'#disqus_thread" data-disqus-identifier="'.$ad['ID'].'" rel="nofollow"></a>';
                 //}

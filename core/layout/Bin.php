@@ -2474,7 +2474,7 @@ class Bin extends AjaxHandler{
                 $_ad = \is_array($this->_JPOST['o']) ? $this->_JPOST['o'] : \json_decode($this->_JPOST['o'], true);
                 if (!\is_array($_ad)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
                              
-                $this->router()->logger()->info('_JPOST[o]', $_ad);
+                //$this->router()->logger()->info('_JPOST[o]', $_ad);                              
                 
                 $ad = new Core\Model\Ad();
                 $content = new Core\Model\Content();
@@ -2486,7 +2486,7 @@ class Bin extends AjaxHandler{
                         ->setIpAddress($_ad['ip']??IPQuality::getClientIP())
                         ->setIpScore($_ad['ipfs']??0);
                 
-                if (isset($_ad['cui']) && \is_array($_ad['cui'])) {                    
+                if (isset($_ad['cui']) && \is_array($_ad['cui'])) {                 
                     if (isset($_ad['cui']['p']) && \is_array($_ad['cui']['p'])) {
                         foreach ($_ad['cui']['p'] as $phone) {
                             $content->addPhone($phone['c']??0, $phone['i']??'', $phone['r']??'', $phone['t']??0, $phone['v']??'');
@@ -2529,10 +2529,18 @@ class Bin extends AjaxHandler{
                 $content->setBudget($_ad['budget']??0)->setUserLocation();
                 $content->setCountryId($this->router()->countryId)->setCityId($this->router()->cityId);
                 
+                Config::instance()->incLibFile('MCSaveHandler');
+                $normalizer = new MCSaveHandler();    
+                $normalized = $normalizer->getFromContentObject($_ad, false);
+                
+                if ($normalized!==false) {
+                    $content->setAttributes($normalized['attrs']);
+                    $this->router()->logger()->info('attributes', $normalized['attrs']);
+                }
                 
                 $ad->setDataSet($content)->check();
                 
-                $this->router()->logger()->info('New', $content->getData());
+                //$this->router()->logger()->info('New', $content->getData());
                 $this->router()->logger()->info('Version 3', $content->getAsVersion(3));
                 
                 if ($content->save(0)) {

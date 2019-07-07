@@ -75,6 +75,8 @@ class Content {
     const QUALIFIED             = 'qualified';
     const VERSION               = 'version';
     
+    const RERA                  = 'rera'; 
+    
     protected $content;
     private $ad;
     private $profile;
@@ -355,6 +357,17 @@ class Content {
         return $this;
     }
     
+
+    public function getAttributes() : array {
+        return $this->content[Content::ATTRIBUTES];
+    }
+
+    
+    public function setAttributes(array $attrs) : Content {
+        $this->content[Content::ATTRIBUTES]=$attrs;
+        return $this;
+    }
+    
     
     public function getUserLanguage() : string {
         return $this->content[self::UI_LANGUAGE];
@@ -388,6 +401,48 @@ class Content {
         return $this;
     }
     
+    
+    public function setRERA(array $rera_record) : Content {        
+        $this->content[self::RERA]=$rera_record;
+        return $this;
+    }
+
+    
+    public function setORN(int $office_number) : Content {
+        if (!isset($this->content[self::RERA])) { $this->content[self::RERA]=[]; }
+        $this->content[self::RERA]['orn']=$office_number;
+        return $this;
+    }
+    
+    
+    public function getORN() : int {
+        return $this->content[self::RERA]['orn'] ?? 0;
+    }
+    
+    
+    public function setBRN(int $broker_number) : Content {
+        if (!isset($this->content[self::RERA])) { $this->content[self::RERA]=[]; }
+        $this->content[self::RERA]['brn']=$broker_number;
+        return $this;
+    }
+
+
+    public function getBRN() : int {
+        return $this->content[self::RERA]['brn'] ?? 0;
+    }
+    
+    
+    public function setPermit(strig $permit_number) : Content {
+        if (!isset($this->content[self::RERA])) { $this->content[self::RERA]=[]; }
+        $this->content[self::RERA]['permit']=$permit_number;
+        return $this;
+    }
+    
+    
+    public function getPermit() : string {
+        return $this->content[self::RERA]['permit'] ?? '';
+    }
+
     
     private function rtl(string $text) : int {
         if ( !empty($text) ) {
@@ -785,7 +840,6 @@ class Content {
             
             self::APP_NAME      => $this->content[self::APP_NAME][0].'-'.$this->content[self::APP_VERSION],
             self::VERSION       => 3,
-            
         ];
         unset($rs[self::CONTACT_INFO][self::CONTACT_INFO_BLACKBERRY]);
         unset($rs[self::CONTACT_INFO][self::CONTACT_INFO_TWITTER]);

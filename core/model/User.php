@@ -1998,9 +1998,9 @@ class User {
     }
     
     
-    function sysAuthById($id) {
+    function sysAuthById(int $id) : bool {
         if ($this->session_id==='') {
-            $this->session_id = session_id();
+            $this->session_id=session_id();
         }
         $bins = Core\Model\NoSQL::instance()->fetchUser($id);
         if (isset($bins[\Core\Model\ASD\USER_PROFILE_ID])) {

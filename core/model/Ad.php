@@ -1,6 +1,8 @@
 <?php
 namespace Core\Model;
 
+use JsonException;
+
 class Ad {
     private $list;
     
@@ -254,6 +256,7 @@ class Ad {
         return $this->data[Classifieds::LOCATION] ?? '';
     }
 
+   
     
     private function formatPhoneNumber($number, $userISO='') : string {                
         $key='P.'.$userISO.$number;
@@ -604,8 +607,18 @@ class Ad {
                 ->setUID($row['WEB_USER_ID'])
                 ->setCoordinate($row['LATITUDE'], $row['LONGITUDE']);
             
-        $ext = \json_decode($row['CONTENT'], true);
-        $ext_version = $ext[Content::VERSION]??2;
+
+        if ($row['CONTENT'] && $row['CONTENT'][0]==='"') {
+            $row['CONTENT']=trim(stripcslashes($row['CONTENT']), '"');            
+        }
+        
+        $ext=\json_decode($row['CONTENT'], true);
+        if (\json_last_error()) {
+            \error_log(\var_export($ext, true));
+        }
+        
+            
+        $ext_version=$ext[Content::VERSION]??2;
         if ($ext_version===3) {
             $this->dataset->setApp(\substr($ext[Content::APP_NAME], 0, 1), \substr($ext[Content::APP_NAME], 2));
         }
@@ -614,12 +627,17 @@ class Ad {
         }
            
         if ( !empty($row['PICTURES']) ) {
-            $pics = \json_decode('{' . $row['PICTURES'] . '}', true);
+            $pics=\json_decode('{' . $row['PICTURES'] . '}', true);
             $this->dataset->setPictures($pics);
         }
         
+        //if ($row['ID']==12920484) {
+        //    if (is_string($ext)) {
+        //        \error_log(\var_export($ext, true));
+        //    }
+        //}
        
-        $this->dataset->setOld($ext)
+        $this->dataset->setOld(\is_array($ext)?$ext:[])
                 ->setBudget($ext[Content::BUDGET]??0)
                 ->setUserAgent($ext[Content::USER_AGENT]??'')
                 ->setContactInfo($ext[Content::CONTACT_INFO]??[])
@@ -633,7 +651,8 @@ class Ad {
                 ->setIpAddress($ext[Content::IP_ADDRESS]??'')
                 ->setIpScore($ext[Content::IP_SCORE]??0)
                 ->setUserLocation($ext[Content::USER_LOCATION]??'')
-                ->setMessage($ext[Content::MESSAGE]??'')                
+                ->setMessage($ext[Content::MESSAGE]??'') 
+                ->setRERA($ext[Content::RERA]??[])
                 ; 
         
         $this->data[Classifieds::CONTENT] = $this->dataset()->getNativeText();
