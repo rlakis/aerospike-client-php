@@ -56,14 +56,14 @@ class Admin extends Page {
                     break;
                 
                 case 'unblock':
-                    $unblockNumbers = [];
-                    $userdata = [$this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUser($parameter))];
+                    //$unblockNumbers = [];
+                    $userdata=[$this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUser($parameter))];
 
                     if (isset($userdata[0]['mobiles'])) {
-                        $accounts = [];
+                        $accounts=[];
                         foreach ($userdata[0]['mobiles'] as $number) {
-                            $uids = [];
-                            if (\Core\Model\NoSQL::instance()->mobileGetLinkedUIDs($number['number'] + 0, $uids) == Core\Model\NoSQL::OK) {
+                            $uids=[];
+                            if (\Core\Model\NoSQL::instance()->mobileGetLinkedUIDs(intval($number['number']), $uids) == Core\Model\NoSQL::OK) {
                                 foreach ($uids as $bins) {
                                     $accounts[] = $this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
                                 }
@@ -71,21 +71,22 @@ class Admin extends Page {
                         }
 
                         $uids = [$userdata[0]['id']];
-                        $numbers = [];
+                        $numbers=[];
                         foreach ($accounts as $account) {
-                            $uids[] = $account['id'];
+                            $uids[]=$account['id'];
 
                             foreach ($account['mobiles'] as $number) {
                                 $numbers[$number['number']] = $number['id'];
                             }
                         }
-                        $this->user->unblock($uids, $numbers);
+                        $this->user()->unblock($uids, $numbers);
                     }
                     break;
                     
                 default:
                     break;
             }
+            
 
             if ($redirectWhenDone) {
                 $url = "";
@@ -206,9 +207,7 @@ class Admin extends Page {
             }
         }
         
-        if (!empty($this->userdata)) {
-            
-            
+        if (\is_array($this->userdata) && \count($this->userdata)>0) {            
             $rs=$this->router()->database()->queryResultArray(
                     'select b.BRN, a.NAME_AR as agent_name_ar, a.NAME_EN as agent_name_en, o.NAME_AR as co_name_ar, 
                     o.NAME_EN as co_name_en, a.TELEPHONE, a.MOBILE, o.EMIRATE, o.orn,
@@ -218,8 +217,8 @@ class Admin extends Page {
                     left join CACHE_ORN_AE o on o.ID=a.CACHE_ORN_ID
                     where b.uid=?  
                     and b.valid=1
-                    order by b.ID desc', [$this->userdata[0]['id']]);
-            if(!empty($rs)) {
+                    order by b.ID desc', [$this->userdata[0]['id']]);            
+            if (!empty($rs)) {
                  //\error_log(var_export($rs, true));
                  $this->userdata[0]['rera']=$rs[0];
             }
@@ -1387,19 +1386,16 @@ $.ajax({
         ?><div class="col-12"><?php
         ?><div class="card admin"><?php
         ?><ul class=ts><?php
-        ?><form method=get><?php
-        
         ?><li><?php
-        ?><div class="lm"><label>UID/UUID/EMAIL:</label><input name="p" type="text" value="<?= $this->uid ? $this->uid : '' ?>" /><?php
+        ?><form method=get><?php
+        ?><div><label>UID/UUID/EMAIL:</label><input name="p" type="text" value="<?= $this->uid ? $this->uid : '' ?>" /><?php
         ?><input type=submit class=btn value="<?= $this->lang['review'] ?>" /><?php
         ?></div><?php
-        
         ?></form><?php
         ?></li><?php
         
+        $lang = $this->router()->isArabic() ? '' : $this->router()->language . '/';
         if (isset($_GET['p']) && count($this->multipleAccounts)) {
-            $lang = $this->router()->isArabic() ? '' : $this->router()->language . '/';
-
             $selected = $this->get('selected', 'uint') ? $this->get('selected', 'uint') : $this->multipleAccounts[0];
             ?><ul class="ts multi"><?php
             foreach ($this->multipleAccounts as $acc) {
@@ -1415,7 +1411,7 @@ $.ajax({
         
         ?><li><?php        
         ?><form method=get><?php
-        ?><div class="lm"><label><?= $this->lang['labelP0'] ?>:</label><input name="t" type=tel value="<?= $this->mobile_param ?>" /><?php
+        ?><div><label><?= $this->lang['labelP0'] ?>:</label><input name="t" type=tel value="<?= $this->mobile_param ?>" /><?php
         ?><input type=submit class=btn value="<?= $this->lang['review'] ?>" /><?php
         ?></div><?php
         ?></form><?php
@@ -1424,7 +1420,6 @@ $.ajax({
         
         if (isset($_GET['t']) && count($this->multipleAccounts)) {
             $usersHTML=[];
-            $lang = $this->router()->isArabic() ? '' : $this->router()->language . '/';
             $parameter = filter_input(INPUT_GET, 't', FILTER_SANITIZE_NUMBER_INT, ['options' => ['default' => 0]]);
             $selected = $this->get('selected', 'uint') ? $this->get('selected', 'uint') : $this->multipleAccounts[0];
             $usersHTML[]='<ul class="ts multi">';
@@ -1440,17 +1435,17 @@ $.ajax({
         
         ?><li><?php        
         ?><form method=get><?php
-        ?><div class="lm"><label>AID:</label><input name="r" type="ad" value="<?= $this->aid ? $this->aid : '' ?>" /><?php
+        ?><div><label>AID:</label><input name="r" type="ad" value="<?= $this->aid ? $this->aid : '' ?>" /><?php
         ?><input type=submit class=btn value="<?= $this->lang['review'] ?>" /><?php
         ?></div><?php
         ?></form><?php
         ?></li><?php
         ?></ul><?php
 
-        if ($this->userdata && count($this->userdata) && (($this->aid == 0 && $this->userdata[0]) || ($this->aid))) {
+        if ($this->userdata && count($this->userdata) && (($this->aid== 0 && $this->userdata[0]) || ($this->aid))) {
             if ($this->aid==0) {
                 foreach ($this->userdata as $record) {
-                    $this->parseUserRecordData($record);
+                    $this->parseUserRecordData($record, $lang);
                     echo '<br/>';
                 }
             } 
@@ -1588,49 +1583,43 @@ $.ajax({
             }
         }
         ?></ul><?php
-        if(isset($usersHTML)){
-            echo implode('', $usersHTML);
-        }
+        if (isset($usersHTML)) { echo implode('', $usersHTML); }
         echo '</div>';
         ?></div></div></div><?php
         echo '<div id=userDIV dir=ltr></div>';
     }
 
-    function parseUserRecordData($record) {
-        if (is_array($record) && count($record)) {
-            echo '<ul class=tbs>';
-            echo '<li><a class=btn href="/myads/?sub=drafts&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Drafts</a></li>';
-            echo '<li><a class=btn href="/myads/?sub=pending&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Pending</a></li>';
-            echo '<li><a class=btn href="/myads/?u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Active</a></li>';
-            echo '<li><a class=btn href="/myads/?sub=archive&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Archived</a></li>';
-            echo '<li><a class=btn href="/myads/?sub=deleted&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Deleted</a></li>';
-            echo '<li><a class=btn href="/statement/?u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Balance</a></li>';
-            if (isset($record['suspended']) && $record['suspended'] == 'YES') {
-                echo '<li><a class=btn href="/admin/?p=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '&a=-1">Release</a></li>';
-            }
-            if ($record[\Core\Model\ASD\USER_LEVEL]==5) {
-                echo '<li><a class=btn style="border-left:1px solid #CCC" href="?p=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '&action=unblock">Unblock</a></li>';
-            } else {
-                echo '<li><a class=btn onclick="block(' . $record[\Core\Model\ASD\SET_RECORD_ID] . ',this)" href="javascript:void(0);">Block</a></li>';
-                if (!(isset($record['suspended']) && $record['suspended']=='YES')) {
-                    echo '<li><a class=btn onclick="suspend(' . $record[\Core\Model\ASD\SET_RECORD_ID] . ',this)" href="javascript:void(0);">Suspend</a></li>';
-                }
-            }
-            echo '</ul>';
-            
-            //echo json_encode($record, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
-            ?><div id="susp_dialog" class="dialog"><?php
-            ?><div class="dialog-box ctr"><select id="suspT" style="direction:ltr;width:200px"><option value="1">1 hour</option><option value="6">6 hours</option><option value="12">12 hours</option><option value="18">18 hours</option><option value="24">24 hours</option><option value="30">30 hours</option><option value="36">36 hours</option><option value="42">42 hours</option><option value="48">48 hours</option><option value="54">54 hours</option><option value="60">60 hours</option><option value="66">66 hours</option><option value="72">72 hours</option></select><?php
-            ?><br /><br /><textarea style="height:100px" onkeydown="idir(this)" onchange="idir(this, 1)" id="suspM" placeholder="<?= $this->lang['reason_suspension'] ?>"></textarea><?php
-            ?></div><?php
-            ?><div class="dialog-action"><?php
-            ?><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['suspend'] ?>" /><?php
-            ?></div><?php
-            ?></div><?php
-            
-            
-            ?><script>var userRaw='<?= json_encode($record, JSON_FORCE_OBJECT) ?>';</script><?php
+    
+    function parseUserRecordData(array $record, string $lang) : void {
+        echo '<ul class=tbs>';
+        echo '<li><a class=btn href="/myads/', $lang, '?sub=drafts&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Drafts</a></li>';
+        echo '<li><a class=btn href="/myads/', $lang, '?sub=pending&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Pending</a></li>';
+        echo '<li><a class=btn href="/myads/', $lang, '?u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Active</a></li>';
+        echo '<li><a class=btn href="/myads/', $lang, '?sub=archive&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Archived</a></li>';
+        echo '<li><a class=btn href="/myads/', $lang, '?sub=deleted&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Deleted</a></li>';
+        echo '<li><a class=btn href="/statement/', $lang, '?u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Balance</a></li>';
+        if (isset($record['suspended']) && $record['suspended']==='YES') {
+            echo '<li><a class=btn href="/admin/', $lang, '?p=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '&a=-1">Release</a></li>';
         }
+        if ($record[\Core\Model\ASD\USER_LEVEL]==5) {
+            echo '<li><a class=btn style="border-left:1px solid #CCC" href="?p=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '&action=unblock">Unblock</a></li>';
+        } 
+        else {
+            echo '<li><a class=btn onclick="block(' . $record[\Core\Model\ASD\SET_RECORD_ID] . ',this)" href="javascript:void(0);">Block</a></li>';
+            if (!(isset($record['suspended']) && $record['suspended']=='YES')) {
+                echo '<li><a class=btn onclick="suspend(' . $record[\Core\Model\ASD\SET_RECORD_ID] . ',this)" href="javascript:void(0);">Suspend</a></li>';
+            }
+        }
+        echo '</ul>';
+            
+        ?><div id="susp_dialog" class="dialog"><?php
+        ?><div class="dialog-box ctr"><select id="suspT" style="direction:ltr;width:200px"><option value="1">1 hour</option><option value="6">6 hours</option><option value="12">12 hours</option><option value="18">18 hours</option><option value="24">24 hours</option><option value="30">30 hours</option><option value="36">36 hours</option><option value="42">42 hours</option><option value="48">48 hours</option><option value="54">54 hours</option><option value="60">60 hours</option><option value="66">66 hours</option><option value="72">72 hours</option></select><?php
+        ?><br /><br /><textarea style="height:100px" onkeydown="idir(this)" onchange="idir(this, 1)" id="suspM" placeholder="<?= $this->lang['reason_suspension'] ?>"></textarea><?php
+        ?></div><?php
+        ?><div class="dialog-action"><?php
+        ?><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['suspend'] ?>" /><?php
+        ?></div></div><?php
+            
+        ?><script>var userRaw='<?= json_encode($record, JSON_FORCE_OBJECT) ?>';</script><?php
     }
 }

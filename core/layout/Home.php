@@ -333,15 +333,15 @@ var setOrder=function(e)
 
         echo '<div class=col-4><div class="card test"><div class=card-content>';
         echo '<ul>';
-        echo '<li><i class="icn s icn-82"></i><span>', $this->lang['postFree'], '</span></li>';
+        echo '<li><a href="', $this->router()->getLanguagePath('/post/'), '"><i class="icn s icn-82"></i><span>', $this->lang['postFree'], '</span></a></li>';
         if ($this->user()->id()) {
-            $balance_label='My balance is '.$this->user()->getBalance() . ' coins';
-            echo '<li><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></li>';
+            $balance_label= $this->lang['myBalance']. ' is '.$this->user()->getBalance() . ' coins';
+            echo '<li><a href="', $this->router()->getLanguagePath('/statement/'), '"><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></a></li>';
         }
-        echo '<li><i class="icn s icn-88"></i><span>', $this->lang['contactUs'], '</span></li>';
+        echo '<li><a href="', $this->router()->getLanguagePath('/contact/'), '"><i class="icn s icn-88"></i><span>', $this->lang['contactUs'], '</span></a></li>';
         echo '<li><a href="', $this->router()->getLanguagePath('/about/'), '"><i class="icn s icn-83"></i><span>', $this->lang['aboutUs'], '</span></a></li>';
-        echo '<li><i class="icn s icn-85"></i><span>', $this->lang['termsConditions'], '</span></li>';
-        echo '<li><i class="icn s icn-81"></i><span>', $this->lang['privacyPolicy'], '</span></li>';
+        echo '<li><a href="', $this->router()->getLanguagePath('/terms/'), '"><i class="icn s icn-85"></i><span>', $this->lang['termsConditions'], '</span></a></li>';
+        echo '<li><a href="', $this->router()->getLanguagePath('/privacy/'), '"><i class="icn s icn-81"></i><span>', $this->lang['privacyPolicy'], '</span></a></li>';
         echo '</ul></div></div>', "\n"; // card
         echo '</div>'; // col-4
         

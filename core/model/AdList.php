@@ -150,10 +150,16 @@ class AdList extends \SplDoublyLinkedList {
         }
 
         $l = ' rows ' . (($this->page===0)?1:($this->page*$this->limit)+1) . ' to ' . (($this->page*$this->limit)+$this->limit);
+        
+        $fixes=[];
         $st = $db->prepareQuery($q.$f.$w.$o.$l, [\PDO::ATTR_CURSOR=>\PDO::CURSOR_FWDONLY]);
         if ($st->execute()) {
             while (($rs=$st->fetch(\PDO::FETCH_ASSOC))!==false) {
                 $ad = new Ad();
+                if ($rs['CONTENT'] && $rs['CONTENT'][0]==='"') {
+                    $rs['CONTENT']=\trim(\stripcslashes($rs['CONTENT']), '"');
+                    $fixes[$rs['ID']]=$rs['CONTENT'];                   
+                }
                 $ad->setParent($this)->parseDbRow($rs);
                 $this->push($ad);
             }
@@ -167,6 +173,11 @@ class AdList extends \SplDoublyLinkedList {
             $this->countAll=$row[0];
         }
         $ct->closeCursor();
+        
+        foreach ($fixes as $id => $content) {
+            $db->queryResultArray('update ad_user set content=? where id=?', [$content, $id]);
+        }
+        $db->commit();
     }
     
     

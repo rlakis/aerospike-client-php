@@ -27,12 +27,19 @@ class DB {
     private $version=0;
     
     public function __construct(bool $readonly=TRUE) {
-        $this->slaveOfRedis = (get_cfg_var('mourjan.server_id')!='1');
-        self::$dbUri = 'firebird:dbname='.\Config::instance()->get('db_host').':'.\Config::instance()->get('db_name').';charset=UTF8';
-        self::$WaitTimeout = 10;
+        $this->slaveOfRedis=(get_cfg_var('mourjan.server_id')!='1');
+        self::$dbUri='firebird:dbname='.\Config::instance()->get('db_host').':'.\Config::instance()->get('db_name').';charset=UTF8';
         
-        $this->setTransactionIsolation($readonly);
-
+        DB::$Readonly=$readonly;
+        if ($readonly) {
+            DB::$IsolationLevel=\PDO::FB_TRANS_CONCURRENCY;
+            DB::$WaitTimeout=0;
+        }
+        else {
+            DB::$IsolationLevel=\PDO::FB_TRANS_COMMITTED;
+            DB::$WaitTimeout=10; 
+        }
+        
         self::getCacheStorage();
         
         self::$SectionsVersion=FALSE;
@@ -50,7 +57,7 @@ class DB {
         //self::$LocalitiesVersion = $this->version;
         //self::$TagsVersion = $this->version;
         
-        $this->ql = new SphinxQL(\Config::instance()->get('sphinxql'), \Config::instance()->get('search_index'));    
+        $this->ql=new SphinxQL(\Config::instance()->get('sphinxql'), \Config::instance()->get('search_index'));    
     }
 
 
@@ -62,9 +69,7 @@ class DB {
 
     public function __destruct() {
         $this->close();
-        if ($this->ql!=null) {
-            $this->ql->close();
-        }
+        if ($this->ql!=null) { $this->ql->close(); }
     }
 
     
@@ -73,11 +78,28 @@ class DB {
     }
     
     
-    public function setWriteMode($on=TRUE) {
-        $this->setTransactionIsolation(!$on);
+    public function setWriteMode(bool $on=TRUE) : void {
+        $this->setReadOnly(!$on);
     }
     
         
+    private function setReadOnly(bool $readonly) : void {
+        if ($readonly!==DB::$Readonly) {
+            $this->commit();
+            DB::$Readonly=$readonly;
+            if ($readonly) {
+                DB::$IsolationLevel=\PDO::FB_TRANS_CONCURRENCY;
+                DB::$WaitTimeout=0;
+            }
+            else {
+                DB::$IsolationLevel=\PDO::FB_TRANS_COMMITTED;
+                DB::$WaitTimeout=10; 
+            }
+        }
+    }
+    
+
+    /*
     private function setTransactionIsolation($read) : void {
         if ($read != DB::$Readonly) { $this->commit(); }        
         
@@ -92,6 +114,7 @@ class DB {
             DB::$WaitTimeout=10;       
         }
     }
+    */
     
     
     public function inTransaction() : bool {
@@ -242,7 +265,7 @@ class DB {
 
     function checkCorrectWriteMode($query) : void {
         if (\preg_match('/^(insert|update|delete|execute)/i', \trim($query))) {
-            $this->setTransactionIsolation(false);
+            $this->setReadOnly(false);
         }
     }
 

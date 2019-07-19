@@ -166,6 +166,11 @@ class Ad {
     }
     
     
+    public function documentId() : int {
+        return $this->data['DOC_ID']??0;
+    }
+    
+    
     public function rtl() : bool {        
         return $this->data[Classifieds::RTL]==1;
     }
@@ -608,9 +613,9 @@ class Ad {
                 ->setCoordinate($row['LATITUDE'], $row['LONGITUDE']);
             
 
-        if ($row['CONTENT'] && $row['CONTENT'][0]==='"') {
-            $row['CONTENT']=trim(stripcslashes($row['CONTENT']), '"');            
-        }
+        //if ($row['CONTENT'] && $row['CONTENT'][0]==='"') {
+        //    $row['CONTENT']=trim(stripcslashes($row['CONTENT']), '"');
+        //}
         
         $ext=\json_decode($row['CONTENT'], true);
         if (\json_last_error()) {

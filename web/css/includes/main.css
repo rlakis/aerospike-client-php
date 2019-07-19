@@ -166,8 +166,9 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .card .icn{flex:0 0 auto;}
 .card.test span{flex:1;padding:0 8px;border-bottom:1px solid #eeeeee;}
 .card.test li:last-child span{border:0}
+.card.test a>span{font-size: 1em;font-weight: normal}
 
-.card dl{columns:1;margin-top:0;display:inherit;flex-flow:column}
+.card dl{columns:1;margin-top:0;display:inherit;flex-flow:column;width: 100%}
 .card dt{display:flex;align-items:center;cursor:pointer;-webkit-column-break-before:always;page-break-before:always;break-inside:avoid;}
 .card dd{cursor:pointer;-webkit-margin-start:28px;margin-inline-start:28px;}
 .card dt>span,dt>a>span{flex:1;padding:0 8px;}

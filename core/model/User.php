@@ -1666,13 +1666,14 @@ class User {
     
     
     function unblock($uids, $numbers){
-        $stmt = $this->db->prepareQuery('delete from bl_phone where telephone = ?');
+        $stmt = $this->db->prepareQuery('delete from bl_phone where telephone=?');
         foreach($numbers as $number => $bool){
             Core\Model\NoSQL::instance()->removeNumberFromBlacklist($number);            
             $stmt->execute([$number]);
+            \error_log($number.'  =  '.$bool);
         }
         
-        foreach ($uids as $uid){
+        foreach ($uids as $uid) {
             NoSQL::instance()->setUserLevel($uid, 0);
         }
     }

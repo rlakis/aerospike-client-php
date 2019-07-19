@@ -27,7 +27,10 @@ class MyAds extends Page {
 
     
     function __construct() {
-        parent::__construct();       
+        parent::__construct();    
+        if (!$this->user()->isLoggedIn()) {
+            $this->user()->redirectTo($this->router()->getLanguagePath('/signin/'));
+        }
         if ($this->router()->config()->isMaintenanceMode()) {
             $this->user->redirectTo($this->router()->getLanguagePath('/maintenance/'));
         }
@@ -604,7 +607,7 @@ class MyAds extends Page {
                 $liClass='';
                 $textClass='en';
                     
-                if ($isAdmin) { $isAdminOwner = ($cad->uid()===$this->user()->id() ? true : false ); }
+                if ($isAdmin) { $isAdminOwner=($cad->uid()===$this->user()->id()?true:false); }
                 
                 $assignedAdmin = '';
                 if ($isAdmin && $renderAssignedAdsOnly && !$isAdminOwner) {
@@ -634,7 +637,7 @@ class MyAds extends Page {
                 $text =  $cad->dataset()->getNativeText();
                     
                 $pic=false;
-                $picCount='';
+                //$picCount='';
                 
                 $thumbs='';
                 $hasAdminImgs=0;
@@ -817,33 +820,31 @@ class MyAds extends Page {
                    
                     $class= '';                    
                     if ($isFeatured) {
-                        $class = ' style="color:green"';
+                        $class=' style="color:green"';
                     }
                     else if($isFeatureBooked) {
-                        $class = ' style="color:blue"';
+                        $class=' style="color:blue"';
                     }
                     
-                    $title.='<b'.$class.'>#'.$cad->id().'#' . $ss. '</b>';
+                    $title.='<b'.$class.'>#'.$cad->id().'#'.$ss.'</b>';
                     $title.='</div>';
                 
                 } // here
                     
 
-                if ($state==7) {
+                if ($state===7) {
                     // after long idle time, refresh passed here
                     $liClass.='atv';
                     $link=($cad->rtl()?'/':'/en/').$cad->id().'/';
                     if($altText) $altlink='/en/'.$cad->id().'/';                        
                         
-                    if ($isFeatured || $isFeatureBooked) {
-                        $liClass.= ' vp';
-                    }
+                    if ($isFeatured || $isFeatureBooked) { $liClass.=' vp'; }
                 }
                 
-                if ($state>6) {
+                //if ($state>6) {
                     //$ad['CITY_ID']=$ad['ACTIVE_CITY_ID'];
                     //$ad['COUNTRY_ID']=$ad['ACTIVE_COUNTRY_ID'];
-                }
+                //}
                                 
                 $adClass='card myad';
                 
@@ -923,13 +924,13 @@ class MyAds extends Page {
                     echo '</section>';
                 }
 
-                if (($cad->latitude()>0||$cad->longitude()>0) && $cad->dataset()->getLocation()/* isset($content['extra']['m']) && $content['extra']['m']!=2 && ($content['lat']||$content['lon']) && isset($content['loc'])*/) {
+                if (($cad->latitude()>0||$cad->longitude()>0) && $cad->dataset()->getLocation()) {
                     echo '<hr><div class="oc ocl"><span class="i loc"></span>', $cad->dataset()->getLocation(), '</div>';
                 }
                 
                 echo '<div class=note';
                 if (!$isAdminProfiling && $isAdmin && \in_array($state, [1,2,3])) { echo ' onclick="d.quick(this)"'; }
-                $isMultiCountry = false;
+                $isMultiCountry=false;
                 echo '>', $this->getAdSection($cad, $cad->rootId(), $isMultiCountry);
                 
                 if ($cad->rootId()===1 && \in_array($cad->purposeId(), [1,2,8]) && $cad->countryId()===2) {
@@ -943,10 +944,10 @@ class MyAds extends Page {
 
                 $isSuspended = $cad->profile() ? $cad->profile()->isSuspended() : false;//$this->user->getProfile() ? $this->user->getProfile()->isSuspended() : FALSE;
                 if (!$this->user->getProfile()) {
-                    error_log("this->user->data is null for user: ".$this->user->info['id'] . ' at line '.__LINE__);
+                    \error_log("this->user->data is null for user: ".$this->user->info['id'] . ' at line '.__LINE__);
                 }
                 
-                $isSystemAd = (isset($ad['DOC_ID']) && $ad['DOC_ID']) ? true : false;
+                $isSystemAd=($cad->documentId()>0);
 
                 echo '<footer>';                
                 if ($state<7) {                                        
@@ -963,10 +964,10 @@ class MyAds extends Page {
                         }
                     }
                 }
-                elseif ($state==7) {
+                elseif ($state===7) {
                     $ad_hold=0;
-                    if (isset($this->user->params['hold']) && $this->user->params['hold']==$ad['ID']) {
-                        if ($this->user->holdAd($ad['ID'])) {
+                    if (isset($this->user->params['hold']) && $this->user->params['hold']==$cad->id()) {
+                        if ($this->user->holdAd($cad->id())) {
                             $ad_hold=1;
                             ?><b class=anb><span class="done"></span><?= $this->lang['retired'] ?></b><?php
                         }
@@ -980,12 +981,12 @@ class MyAds extends Page {
                             ?><span class="lnk" onclick="cancelPremium(this)"><span class="mc24"></span><?= $this->lang['stop_premium_bt'] ?></span><?php                                    
                         }                        
                         if (!$isSystemAd && (!$isAdmin || ($isAdmin && !$isFeatured && !$isFeatureBooked) || ($isAdmin && $isAdminOwner))) {
-                            ?><span class="lnk" onclick="ahld(this)"><span class="rj hod"></span><?= $this->lang['hold'] ?></span><?php                                    
+                            ?><button onclick="d.unpublish(this)"><?= $this->lang['hold'] ?></button><?php                                    
                         }
                         if (!$isSystemAd) {
                             ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$ad['ID'] : '') ?>" method="post"><?php
-                            ?><input type="hidden" name="adr" value="<?= $ad['ID'] ?>" /><?php
-                            ?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $this->lang['edit_ad'] ?></span><?php
+                            ?><input type="hidden" name="adr" value="<?= $cad->id() ?>" /><?php
+                            ?><button onclick="d.edit(this)"><?= $this->lang['edit_ad'] ?></button><?php
                             ?></form><?php 
                         }
                         if ($this->router()->config()->get('enabled_ad_stats') && !$isAdminProfiling) {
@@ -993,7 +994,7 @@ class MyAds extends Page {
                         }
                     }                            
                 }
-                elseif ($state==9) {
+                elseif ($state===9) {
                     if (!$isSystemAd) {
                         if (!$isSuspended) {
                             ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$ad['ID'] : '') ?>" method="post"><?php
@@ -1069,7 +1070,7 @@ class MyAds extends Page {
             }
             echo "\n";
             
-            if ($state==7) {
+            if ($state===7) {
                 if($this->userBalance){
                     ?><div id="make_premium" class="dialog premium"><?php
                             ?><div class="dialog-title"><?= $this->lang['balance'].': '.$this->userBalance ?> <span class='mc24'></span></div><?php
@@ -1225,7 +1226,7 @@ class MyAds extends Page {
             ?><p class="ph phb db"><?php
             $msg='';
             $mcUser = null;
-            switch ($state){
+            switch ($state) {
                 case 9:
                     $msg = $this->lang['no_archive'];
                     $this->user->info['archive_ads']=$count;

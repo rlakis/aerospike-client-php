@@ -1,10 +1,6 @@
 var Ed, HAS_WEBP=hasWebP();
-$.addEventListener("DOMContentLoaded", function(e) {
-    UI.init();
-});
-$.onkeydown=function(e){
-    if(e.key==='Escape'){UI.close();}
-};
+$.addEventListener("DOMContentLoaded",function(e){UI.init();});
+$.onkeydown=function(e){if(e.key==='Escape'){UI.close();}};
 
 String.prototype.howArabic = function () {
     var result, match, str = this;
@@ -269,11 +265,10 @@ var UI={
             if(response.success===1){
                 Ad.init();
                 let rs=response.result;
-                _.region=rs.regions;                
-                _.dic=rs.roots;
+                _.region=rs.regions;_.dic=rs.roots;_.ip=rs.ip;
                 Prefs.init(rs.prefs);
-                _.ip=rs.ip;
-                console.log('UI.region', _.region);
+                
+                console.log('UI.region', _.region, "\r", _.ip);
                 for(i in _.dic){
                     _.dic[i].menu=[];
                     let m=_.dic[i].menu;
@@ -358,9 +353,7 @@ var UI={
                     }
                 };
                 
-                if (rs.ad){
-                    Ad.parse(rs.ad);
-                }
+                if(rs.ad){Ad.parse(rs.ad);}
             }
         })
         .catch(error => { 
@@ -522,27 +515,32 @@ var UI={
     },
     
     chooseSection:function(){
-        let _=this, dialog, card, ref='sec-'+_.rootId;
-        let r=_.dic[_.rootId];
+        let _=this, dialog, card, ref='sec-'+_.rootId, r=_.dic[_.rootId];
         if(!r){return;}
         _.close();
         if(!_.dialogs[ref]){
+            console.log('chooseSection', Ad.purposeId, _.purposeId);
+            let tail=[];
             dialog=_.createDialog(ref, false, true);
             card=dialog.query('div.card');                      
             let ul=createElem('ul');
             ul.style.setProperty('height', window.innerHeight+'px');   
             for(var i in r.sindex){
-                if(r.sections[r.sindex[i]]){
-                    let li=createElem('li', '', r.sections[r.sindex[i]]);
+                let se=r.sindex[i];
+                if(!Prefs.isBlockedSection(se) && r.sections[se]){
+                    if(!Prefs.canPostToCountry(Prefs.carrierCountryId, se, _.purposeId)&&!Prefs.canPostToCountry(Prefs.activationCountryId, se, _.purposeId))continue;
+                    if(Prefs.getMovedSection(se))continue;
+                    let li=createElem('li', '', r.sections[se]);
                     li.dataset.se=r.sindex[i];
                     li.onclick=function(e){
                         Ad.setClassification(_.rootId, e.target.dataset.se, _.purposeId);
                         _.close();
                         Ad.log();
                     };
-                    ul.append(li);
+                    if(Prefs.isTailSection(se)){tail.push(li)}else{ul.append(li);}
                 }
             }
+            tail.forEach(function(li){ul.append(li)});
             card.append(ul);
         }
         else {
@@ -566,6 +564,7 @@ var UI={
     
     
     chooseRegions:function(){
+        if(!(Ad.sectionId>0)){return;}
         let _=this, dialog, card; _.close();
         if(!_.dialogs.regions){
             dialog=_.createDialog('regions',true,false);
@@ -583,8 +582,9 @@ var UI={
                     e.closest('ul').query('ul').childNodes.forEach(function(ct){if(wasOn){ct.classList.remove('on');}else{ct.classList.add('on');}});
                 }
             };
-            const keys = Object.keys(_.region);
-            for (const key of keys) {
+            //const keys = Object.keys(_.region);
+            //for (const key of keys) {
+            Prefs.getAllowedCountriesForUserSource().forEach(function(key){
                 let li=createElem('li', '', '<i class="icn icnsmall icn-'+_.region[key].c+'"></i><span>'+_.region[key][_.ar?'ar':'en']+'</span>', 1);
                 li.dataset.countryId=key;
                 const ckeys=Object.keys( _.region[key].cc );
@@ -617,7 +617,7 @@ var UI={
                     cli.append(cul);
                     p.append(ul);
                 }
-            }
+            });
             
             let toolbar=createElem('div', 'card-footer');
             toolbar.style.cssText='position:absolute;bottom:0px;width:calc(100% - 52px);';
@@ -1185,6 +1185,7 @@ var Ad={
     },
     
     setSectionId:function(se){
+        console.log('setSectionId', Prefs.getRootPrefs(se));
         if(this.sectionId!==se){
             this.sectionId=parseInt(se);
             $$.query('#ad-class').query('a.se').innerHTML=this.getSectionName();
@@ -1496,6 +1497,7 @@ var Prefs={
                     for (let j in secDict[kAllow]) {
                         if(secDict[kAllow][j][kConstraintKey]){
                             let filter=new Filter(secDict[kAllow][j][kConstraintKey]);
+                            //console.log(j, filter);
                             sectionRules[kAllow].push(filter);
                         }
                     }
@@ -1503,6 +1505,7 @@ var Prefs={
                     for (let j in secDict[kDeny]) {
                         if(secDict[kDeny][j][kConstraintKey]){
                             let filter=new Filter(secDict[kDeny][j][kConstraintKey]);
+                            //console.log(j, filter);
                             sectionRules[kDeny].push(filter);
                         }
                     }
@@ -1512,11 +1515,16 @@ var Prefs={
             }
         }
         let rs=UI.adForm.dataset;
+        //console.log('UI.adForm.dataset', rs);
         if(rs.actCountry.length===2){_.activationCountryCode=rs.actCountry;}        
         if(rs.ipCountry.length===2 && rs.ipCountry===rs.curCountry && rs.tor==='0' && rs.vpn==='0' && rs.proxy==='0'){_.carrierCountryCode=rs.ipCountry;}
         if(_.activationCountryCode===null&&($$.dataset.level==='90'||$$.dataset.level==='9')){_.activationCountryCode=rs.ipCountry;}
         
-        console.log(_);
+        for(let i in UI.region){
+            if(UI.region[i].c.toUpperCase()===_.carrierCountryCode){_.carrierCountryId=parseInt(i);}
+            if(UI.region[i].c.toUpperCase()===_.activationCountryCode){_.activationCountryId=parseInt(i);}
+        }
+        console.log('Prefs', _);
     },
     
     
@@ -1528,13 +1536,19 @@ var Prefs={
     },
     
     isBlockedSection:function(se){
+        //console.log('isBlockedSection', se);
         let rootPrefs=this.getRootPrefs(se);
         if(rootPrefs && rootPrefs[kSections][se]){
+            //console.log('rootPrefs[kSections][se]', rootPrefs[kSections][se]);
             for(let i in rootPrefs[kSections][se]){
+                //console.log('i', i);
                 let filter=rootPrefs[kSections][se][i];
-                if(filter.isBlocked()){
-                    if(filter.purposes.length===0||filter.hasPurpose(Ad.purposeId)){
-                        return true;
+                if(filter instanceof Filter){
+                    console.log('filter', filter);
+                    if(filter.isBlocked()){
+                        if(filter.purposes.length===0||filter.hasPurpose(Ad.purposeId)){
+                            return true;
+                        }
                     }
                 }
             }
@@ -1580,9 +1594,7 @@ var Prefs={
     },
 
     getAllowedCountriesForUserSource:function(){
-        let _=this;
-        let rootSource = RegionType.Country;
-        let sectionSource = RegionType.Country;
+        let _=this, rootSource=RegionType.Country, sectionSource=RegionType.Country;
         let result=[];
         let level=_.getPublishLevel();
         if(level===PublishLevel.Intl){
@@ -1590,13 +1602,9 @@ var Prefs={
             return result;
         }
         
-        if(_.countries.indexOf(_.carrierCountryId)!==-1){
-            result.push(_.carrierCountryId);
-        }
+        if(_.countries.indexOf(_.carrierCountryId)!==-1){result.push(_.carrierCountryId);}
         
-        if(_.countries.indexOf(_.activationCountryId)!==-1 && result.indexOf(_.activationCountryId)===-1){
-            result.push(_.activationCountryId);
-        }
+        if(_.countries.indexOf(_.activationCountryId)!==-1 && result.indexOf(_.activationCountryId)===-1){result.push(_.activationCountryId);}
         
         if(Ad.sectionId>0 && Ad.purposeId>0){
             let rootPrefs=this.getRootPrefs(Ad.sectionId);
@@ -1677,8 +1685,11 @@ var Prefs={
     },
 
     canPostToCountry:function(cn, se, pu){
+        if(cn<1)return false;
+        pu=parseInt(pu,10);
         let rootPrefs=this.getRootPrefs(se);
         if(rootPrefs){
+            console.log(cn,se,pu);
             let rootSource=RegionType.Country;
             for (let i in rootPrefs[kAllow]) {
                 let filter=rootPrefs[kAllow][i];

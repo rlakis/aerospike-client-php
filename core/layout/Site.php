@@ -79,28 +79,6 @@ class Site {
         return false;
     }
 
-//    
-//    function BuildExcerpts($text, $length = 0, $separator = '...') {
-//        if ($length) {
-//            $str_len = mb_strlen($text, 'UTF-8');
-//            if ($str_len > $length) {                
-//                $text = trim(preg_replace('/\x{200B}.*/u', '', $text));
-//                $text = trim(preg_replace('/[\-+=<>\\&:;,.]$/', '', $text));
-//                
-//                $str_len = mb_strlen($text, 'UTF-8');
-//                if ($str_len > $length) {
-//                    $text = mb_substr($text, 0, $length, 'UTF-8');
-//                    $lastSpace = strrpos($text, ' ');
-//                    $text   = substr($text, 0, $lastSpace);
-//                    $text = trim(preg_replace('/[\-+=<>\\&:;,.]$/', '', $text));
-//                }
-//                
-//                $text = trim($text).$separator;
-//            }
-//        }
-//        return $text;
-//    }
-//    
     
     function findFlashUrl($entry) {
         foreach ($entry->mediaGroup->content as $content) {
@@ -606,45 +584,46 @@ class Site {
     }
 
     
-    function zammad($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0) : int {
+    function zammad(string $toName, string $toEmail, string $fromName, string $fromEmail, string $subject, string $message, string $sender_account='', int $reference=0) : int {
         $client = new Client([
             'url'           => 'http://ws.mourjan.com', // URL to your Zammad installation
-            'username'      => 'admin@berysoft.com',  // Username to use for authentication
-            'password'      => 'GQ71BUT2',           // Password to use for authentication
-            'debug'         => false,                // Enables debug output
+            'username'      => 'admin@berysoft.com',    // Username to use for authentication
+            'password'      => 'GQ71BUT2',              // Password to use for authentication
+            'debug'         => false,                   // Enables debug output
         ]);      
         
-        $users = $client->resource( ResourceType::USER )->search($fromEmail);
-        if ( !is_array($users) ) {
+        $users = $client->resource( ResourceType::USER )->search($fromEmail);        
+        
+        if ( !\is_array($users) ) {
             if ( $users->hasError() ) {
-                error_log( $users->getError() );                
+                \error_log(__FUNCTION__.'('.__LINE__.') '. $users->getError() );                
             }
             return 0;
         }
-        else {
-            if ($users) {
-                $user = $users[0];
-            }
-            else {
-                $name = trim($fromName);
-                $last_name = (strpos($name, ' ') === false) ? '' : preg_replace('#.*\s([\w-]*)$#', '$1', $name);
-                $first_name = trim( preg_replace('#'.$last_name.'#', '', $name ) );
-                $user_data = [
-                    'login' => $fromEmail,
-                    'email' => $fromEmail,
-                    'firstname' => $first_name,
-                    'lastname' => $last_name                
-                ];
                 
-                $user = $client->resource( ResourceType::USER );
-                $user->setValues($user_data);
-                $user->save();
-                if ( $user->hasError() ) {
-                    error_log( $user->getError() );
-                    return 0;
-                }                        
-            }
-        }        
+        if ($users) {
+            $user = $users[0];
+        }
+        else {
+            $name = \trim($fromName);
+            $last_name = (strpos($name, ' ') === false) ? '' : preg_replace('#.*\s([\w-]*)$#', '$1', $name);
+            $first_name = trim( preg_replace('#'.$last_name.'#', '', $name ) );
+            $user_data = [
+                'login' => $fromEmail,
+                'email' => $fromEmail,
+                'firstname' => $first_name,
+                'lastname' => $last_name                
+            ];
+                
+            $user = $client->resource( ResourceType::USER );
+            $user->setValues($user_data);
+            $user->save();
+            if ( $user->hasError() ) {
+                \error_log(__FUNCTION__.'('.__LINE__.') '. $user->getError() );
+                return 0;
+            }                        
+        }
+               
         
         $ticket_data = [
             'group_id'      => 1,
@@ -673,16 +652,16 @@ class Site {
         $ticket->save();
         
         if ( $ticket->hasError() ) {
-            error_log( $ticket->getError() );
+            \error_log(__FUNCTION__.'('.__LINE__.') '. $ticket->getError() );
             return 0;
         }                
-                
+             
         return 1;                
     }
 
       
     function sendMail($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account='', $reference=0, $helpTopic=1) {
-        $res = $this->zammad($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account);
+        $res = $this->zammad($toName, $toEmail[0], $fromName, $fromEmail, $subject, $message, $sender_account);
         //error_log("res {$res}");
         /*
         //return $this->faveo($toName, $toEmail, $fromName, $fromEmail, $subject, $message, $sender_account, $reference, $helpTopic);

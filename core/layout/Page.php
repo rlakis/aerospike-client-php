@@ -793,36 +793,36 @@ class Page extends Site {
 
     // wanted by robert
     function renderSideSite() : void {
-        $countryId = $this->user->params['country'] ?? 0;
-        $cityId = $this->user->params['city'] ?? 0;
+        $countryId=$this->user->params['country']??0;
+        $cityId=$this->user->params['city']??0;
 
-        $lang=$this->router()->language=='ar'?'':$this->router()->language.'/';
+        $lang=$this->router()->language==='ar'?'':$this->router()->language.'/';
         echo '<div class=title><h5>', $this->lang['mourjan'], '</h5></div>';
         
         echo '<ul class=sm>';
-        echo '<li><a href=\'', $this->router()->getURL($countryId,$cityId), '\'>', $this->lang['homepage'], '</a></li>';
+        echo '<li><a href=\'', $this->router()->getURL($countryId, $cityId), '\'>', $this->lang['homepage'], '</a></li>';
 
-        if ($this->router()->module=='about')
+        if ($this->router()->module==='about')
             echo '<li class=on><b>', $this->lang['aboutUs'], '</b></li>';
         else
             echo '<li><a href=\'/about/', $lang, '\'>', $this->lang['aboutUs'], '</a></li>';
-        if ($this->router()->module=='contact')
+        if ($this->router()->module==='contact')
             echo '<li class=on><b>', $this->lang['contactUs'], '</b></li>';
         else
             echo '<li><a href=\'/contact/', $lang, '\'>', $this->lang['contactUs'], '</a></li>';
-        if ($this->router()->module=='gold')
+        if ($this->router()->module==='gold')
             echo '<li class=on><b>', $this->lang['gold_title'], '</b></li>';
         else
             echo '<li><a href=\'/gold/', $lang, '\'>', $this->lang['gold_title'], '</a></li>';
-        if ($this->router()->module=='privacy')
+        if ($this->router()->module==='privacy')
             echo '<li class=on><b>', $this->lang['privacyPolicy'], '</b></li>';
         else
             echo '<li><a href=\'/privacy/', $lang, '\'>', $this->lang['privacyPolicy'], '</a></li>';
-        if ($this->router()->module=='terms')
+        if ($this->router()->module==='terms')
             echo '<li class=on><b>', $this->lang['termsConditions'], '</b></li>';
         else
             echo '<li><a href=\'/terms/', $lang, '\'>', $this->lang['termsConditions'], '</a></li>';
-        echo "</ul>";      
+        echo "</ul>";
     }
 
 
@@ -2404,7 +2404,7 @@ class Page extends Site {
         }
         ?><meta name="msapplication-config" content="<?= $this->router()->config()->host ?>/browserconfig.xml" /><?php 
         if($this->user->info['id']==0 && in_array($this->router()->module,['home','signin','favorites','account','myads','post','statement','watchlist','signup','password','buy','buyu'])){
-            ?><script async="true" defer="true" src='https://www.google.com/recaptcha/api.js<?= $this->router()->language=='ar'?'?hl=ar':'' ?>'></script><?php
+            ?><script async="true" defer="true" src='https://www.google.com/recaptcha/api.js<?= $this->router()->isArabic()?'?hl=ar':'' ?>'></script><?php
         }
         
         
@@ -4598,6 +4598,9 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             case 'signin':
                 $this->css('doc');          
                 break;
+            case 'contact':
+                $this->css('doc'); 
+                break;
             
             case 'myads':
                 $this->css('myads');          
@@ -4815,11 +4818,11 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 break;
                 
             default:
-                if ($this->router()->module=='notfound') {
+                if ($this->router()->module==='notfound') {
                     echo '<meta name="robots" content="noindex, nofollow" />';
                 } 
-                elseif($this->router()->module=='privacy'||$this->router()->module=='terms'||$this->router()->module=='about'||$this->router()->module=='advertise') {
-                    if ($this->router()->language=='en') {
+                elseif ($this->router()->module==='privacy'||$this->router()->module==='terms'||$this->router()->module==='about'||$this->router()->module==='advertise') {
+                    if ($this->router()->language==='en') {
                         echo '<meta name="robots" content="noodp, noydir, index, follow" />';
                     }
                     else {

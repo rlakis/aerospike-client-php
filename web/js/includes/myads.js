@@ -1,4 +1,4 @@
-var ALT = false, MULTI = false, socket;
+var ALT=false, MULTI=false, socket;
 Element.prototype.article=function(){ let i=this; return i.closest('article'); };
 
 $.addEventListener("DOMContentLoaded", function () {
@@ -253,6 +253,27 @@ var d = {
         form.submit();
     },
     
+    unpublish: function(e) {
+        if(confirm("Hold this ad?")){
+            console.log(e.article().id);
+            fetch('/ajax-report/',{method:'POST',mode:'same-origin',credentials:'same-origin',
+                     body:JSON.stringify({id:parseInt(e.article().id)}),
+                     headers:{'Accept':'application/json','Content-Type':'application/json'}})
+            .then(res=>res.json())
+            .then(response => {
+                console.log('Success:', response);
+                if(response.success===1){
+                    e.parentElement.parentElement.style.backgroundColor='lightgray';
+                }
+                else {
+                    window.alert(response.error);
+                }
+            })
+            .catch(error => { 
+                console.log('Error:', error); 
+            });
+        }
+    },
     
     approve: function (e, rtpFlag) {        
         if(!this.isSafe(e.article().id))return;

@@ -6,22 +6,22 @@ class Doc extends Page{
     function __construct() {
         header('Vary: User-Agent');
         parent::__construct(); 
-        if ($this->router()->module=='buy' || $this->router()->module=='buyu') {
+        if ($this->router()->module==='buy' || $this->router()->module==='buyu') {
             if ($this->router()->config()->get('active_maintenance')) {
                 $this->user()->redirectTo($this->router()->getLanguagePath('/maintenance/'));
             }
             $this->checkBlockedAccount();            
         }
                            
-        if ($this->router()->module=='publication-prices') {
-            if ($this->router()->isArabic()) { 
-                $this->inlineCss.='.doc ul{list-style:none;margin:0 !important;overflow:hidden}.doc li{float:right;padding:5px;border-left:1px solid #CCC;border-bottom:1px solid #CCC}.doc li.h{font-weight:bold;background-color:#143D55 !important;color:#fff;font-size:13px;border-left:1px solid #fff}.h.v4{border-left:1px solid #CCC !important}li.v1,li.v2,li.v3,li.v4{border-top:1px solid #ccc;background-color:#143D55;color:#FFF}li.h.v1,li.h.v2,li.h.v3,li.h.v4{border-bottom:0}li.v1{width:247px;border-right:1px solid #ccc}li.v2{width:89px;text-align:center}li.v3{width:109px;text-align:center}li.v4{width:259px}ul a{color:#FFF}li.v10,li.v11,li.v12,li.v13,li.v14,li.v15,li.v16{text-align:center;width:85px;font-size:11.5px !important}li.h.v10,li.h.v11,li.h.v12,li.h.v13,li.h.v14,li.h.v15,li.h.v16{background-color:#3087B4 !important;border-top:0}li.v10{margin-right:50px;width:197px;text-align:right;border-right:1px solid #CCC}li.v11{width:70px}li.v12{width:74px}li.v15{width:121px}li.v15,li.v14{direction:ltr}li.h.v15,li.h.v14{direction:rtl}.h.v15{border-left:1px solid #CCC !important}li.br{width:100%;clear:both;border:0;height:25px;}li.v20{margin-right:50px;width:687px;border-right:1px solid #CCC;text-align:center;border-bottom:1px solid #369}.bv{background-color:#F8F8F8}';
-            }
-            else {
-                $this->inlineCss.='.doc ul{list-style:none;margin:0 !important;overflow:hidden}.doc li{float:left;padding:5px;border-right:1px solid #CCC;border-bottom:1px solid #CCC}.doc li.h{font-weight:bold;background-color:#143D55 !important;color:#fff;font-size:11px;border-right:1px solid #fff}.h.v4{border-right:1px solid #CCC !important}li.v1,li.v2,li.v3,li.v4{border-top:1px solid #ccc;background-color:#143D55;color:#FFF}li.h.v1,li.h.v2,li.h.v3,li.h.v4{border-bottom:0}li.v1{width:247px;border-left:1px solid #ccc}li.v2{width:89px;text-align:center}li.v3{width:109px;text-align:center}li.v4{width:259px}ul a{color:#FFF}li.v10,li.v11,li.v12,li.v13,li.v14,li.v15,li.v16{text-align:center;width:85px;font-size:11px !important}li.h.v10,li.h.v11,li.h.v12,li.h.v13,li.h.v14,li.h.v15,li.h.v16{background-color:#3087B4 !important;border-top:0}li.v10{margin-left:50px;width:197px;text-align:left;border-left:1px solid #CCC}li.v11{width:70px}li.v12{width:84px}li.v14{width:75px}li.v15{width:121px}.h.v15{border-right:1px solid #CCC !important}li.br{width:100%;clear:both;border:0;height:25px;}li.v20{margin-left:50px;width:687px;border-left:1px solid #CCC;text-align:center;border-bottom:1px solid #369}.bv{background-color:#F8F8F8}'; 
-            }
-        }
-
+        //if ($this->router()->module=='publication-prices') {
+        //    if ($this->router()->isArabic()) { 
+        //        $this->inlineCss.='.doc ul{list-style:none;margin:0 !important;overflow:hidden}.doc li{float:right;padding:5px;border-left:1px solid #CCC;border-bottom:1px solid #CCC}.doc li.h{font-weight:bold;background-color:#143D55 !important;color:#fff;font-size:13px;border-left:1px solid #fff}.h.v4{border-left:1px solid #CCC !important}li.v1,li.v2,li.v3,li.v4{border-top:1px solid #ccc;background-color:#143D55;color:#FFF}li.h.v1,li.h.v2,li.h.v3,li.h.v4{border-bottom:0}li.v1{width:247px;border-right:1px solid #ccc}li.v2{width:89px;text-align:center}li.v3{width:109px;text-align:center}li.v4{width:259px}ul a{color:#FFF}li.v10,li.v11,li.v12,li.v13,li.v14,li.v15,li.v16{text-align:center;width:85px;font-size:11.5px !important}li.h.v10,li.h.v11,li.h.v12,li.h.v13,li.h.v14,li.h.v15,li.h.v16{background-color:#3087B4 !important;border-top:0}li.v10{margin-right:50px;width:197px;text-align:right;border-right:1px solid #CCC}li.v11{width:70px}li.v12{width:74px}li.v15{width:121px}li.v15,li.v14{direction:ltr}li.h.v15,li.h.v14{direction:rtl}.h.v15{border-left:1px solid #CCC !important}li.br{width:100%;clear:both;border:0;height:25px;}li.v20{margin-right:50px;width:687px;border-right:1px solid #CCC;text-align:center;border-bottom:1px solid #369}.bv{background-color:#F8F8F8}';
+        //    }
+        //    else {
+        //        $this->inlineCss.='.doc ul{list-style:none;margin:0 !important;overflow:hidden}.doc li{float:left;padding:5px;border-right:1px solid #CCC;border-bottom:1px solid #CCC}.doc li.h{font-weight:bold;background-color:#143D55 !important;color:#fff;font-size:11px;border-right:1px solid #fff}.h.v4{border-right:1px solid #CCC !important}li.v1,li.v2,li.v3,li.v4{border-top:1px solid #ccc;background-color:#143D55;color:#FFF}li.h.v1,li.h.v2,li.h.v3,li.h.v4{border-bottom:0}li.v1{width:247px;border-left:1px solid #ccc}li.v2{width:89px;text-align:center}li.v3{width:109px;text-align:center}li.v4{width:259px}ul a{color:#FFF}li.v10,li.v11,li.v12,li.v13,li.v14,li.v15,li.v16{text-align:center;width:85px;font-size:11px !important}li.h.v10,li.h.v11,li.h.v12,li.h.v13,li.h.v14,li.h.v15,li.h.v16{background-color:#3087B4 !important;border-top:0}li.v10{margin-left:50px;width:197px;text-align:left;border-left:1px solid #CCC}li.v11{width:70px}li.v12{width:84px}li.v14{width:75px}li.v15{width:121px}.h.v15{border-right:1px solid #CCC !important}li.br{width:100%;clear:both;border:0;height:25px;}li.v20{margin-left:50px;width:687px;border-left:1px solid #CCC;text-align:center;border-bottom:1px solid #369}.bv{background-color:#F8F8F8}'; 
+        //    }
+        //}
+/*
         if ($this->router()->module=='premium') {
             $this->inlineCss.='
                 .uln{
@@ -51,10 +51,10 @@ class Doc extends Page{
                     .bt:hover{text-decoration:none!important}
                     .ar{line-height:25px}
                         ';
-            }
+        }
 
-            if ($this->router()->module=='buy' || $this->router()->module=='buyu'){
-                $this->inlineCss.='
+        if ($this->router()->module=='buy' || $this->router()->module=='buyu'){
+            $this->inlineCss.='
                     .prices{margin:0!important;list-style:disc inside!important;padding:0 40px;}
                     .prices ul{display:inline-block;line-height:1em;margin:0!important}
                     .prices ul li{float:left;width:100px;list-style:none}
@@ -77,27 +77,25 @@ class Doc extends Page{
                     .tt{text-align:right!important}
                     .ar .tt{text-align:left!important}
                 ';    
-            }            
+        }            
 
-           
-                                      
-        
-        if ($this->router()->module=='iguide') { $this->forceNoIndex = true; }
+                 */                              
+        if ($this->router()->module==='iguide') { $this->forceNoIndex=true; }
         
         $this->hasLeadingPane=true;
         $this->router()->config()->disableAds();        
         $this->router()->config()->setValue('enabled_sharing', 0);
 
-        if ($this->router()->module=='about') {
+        if ($this->router()->module==='about') {
             $this->lang['title']        = 'About Mourjan.com';
             $this->lang['description']  = 'Mourjan.com is an online classifieds search engine that helps you search and browse ads listed in major classifieds newspapers, websites and user submitted free ads';
         }
-        elseif ($this->router()->module=='publication-prices') {
-            $this->load_lang(array('pricing'));
-            $this->title=$this->lang['header'];
-            $this->lang['description']=  $this->lang['desc'];
-        }
-        elseif($this->router()->module=='advertise'){ 
+        //elseif ($this->router()->module=='publication-prices') {
+        //    $this->load_lang(array('pricing'));
+        //    $this->title=$this->lang['header'];
+        //    $this->lang['description']=  $this->lang['desc'];
+        //}
+        elseif($this->router()->module==='advertise'){ 
             if ($this->router()->isArabic()) {
                 $this->title='أعلن مع مرجان';
                 $this->lang['description']='قم بتسويق شركتك، منتجاتك أو خدماتك بأسلوب متميز مستفيداً من أكثر من 3.5 مليون انطباع وأكثر من 250،000 زائر فريد شهريا على موقع مرجان';
@@ -107,16 +105,16 @@ class Doc extends Page{
                 $this->lang['description']=  'Market your online business with style and benefit from over 3.5 million impressions and over 250,000 unique visitors per month';
             }
         }
-        elseif ($this->router()->module=='gold') {
+        elseif ($this->router()->module==='gold') {
             $this->title=$this->lang['gold_title'];
             $this->lang['description']= $this->lang['gold_desc'];
         }
-        elseif ($this->router()->module=='buy' || $this->router()->module == 'buyu') {
+        elseif ($this->router()->module==='buy' || $this->router()->module==='buyu') {
             $this->forceNoIndex=true;
         }
         
-        if (($this->router()->module=='buy' || $this->router()->module=='buyu') && $this->user->info['id']==0) {
-            $this->hasLeadingPane = false;
+        if (($this->router()->module==='buy' || $this->router()->module==='buyu') && !$this->user()->isLoggedIn()) {
+            $this->hasLeadingPane=false;
         }
         
         $this->render();
@@ -194,7 +192,7 @@ class Doc extends Page{
 
     
     function side_pane(){
-        if( ($this->router()->module!='buy' && $this->router()->module!='buyu') || (($this->router()->module=='buyu' || $this->router()->module=='buy') && $this->user->info['id'])) {            
+        if (($this->router()->module!=='buy' && $this->router()->module!=='buyu') || (($this->router()->module==='buyu' || $this->router()->module==='buy') && $this->user()->isLoggedIn())) {
             $this->renderSideSite();
         }
         //$this->renderSideUserPanel();
@@ -224,6 +222,7 @@ class Doc extends Page{
             else return $num.' '.$lang[$pubPeriod][1];
         }
     }
+    
     
     function mainMobile() {
         $this->main_pane();
@@ -299,12 +298,12 @@ class Doc extends Page{
                 break;
                 
             case 'buy':
-                if($this->user->info['id']==0){ 
+                if (!$this->user()->isLoggedIn()) { 
                     echo '<div>';
-                    if(!$this->isMobile)
-                        $this->renderLoginPage();
-                }else{
-                    if($this->isMobile){                        
+                    if (!$this->isMobile) { $this->renderLoginPage(); }
+                }
+                else {
+                    if ($this->isMobile) {                        
                         $uid = $this->user->info['id'];
                         $data = $this->user->getStatement($uid, 0, false, null, $this->urlRouter->siteLanguage);
                         $hasError = 0;
@@ -318,9 +317,10 @@ class Doc extends Page{
                             echo $subHeader.' ';
                         ?></p><?php 
                     }
-                    if ($this->urlRouter->siteLanguage=='ar') {
+                    if ($this->router()->language==='ar') {
                         echo '<div class="doc ar">';
-                    }else{
+                    }
+                    else {
                         echo '<div class="doc en">';
                     }
                     //if(isset($this->user->pending['PAYPAL_OK'])){
@@ -546,71 +546,7 @@ class Doc extends Page{
                     <li class="v10">Mobile</li><li class="v11">300px</li><li class="v12">50px</li><li class="v13">4$</li><li class="v14">5$</li><li class="v15">3.2$/cpm</li><li class="v16">2.8$/cpm</li><li class="v17">2.4$/cpm</li>
                     <li class="vd"><a href="<?= $this->urlRouter->cfg['url_css'].'/ad/pic/small_square_ad'.$this->urlRouter->_png ?>"><img src="<?= $this->urlRouter->cfg['url_css'].'/ad/thumb/small_square_ad'.$this->urlRouter->_png ?>" alt="small square ad thumb" /></a><p></p></li>
                 <?php */ break;
-            case 'publication-prices':
-                echo '<div class="doc '.$this->urlRouter->siteLanguage.'">';
-                if ($this->urlRouter->siteLanguage=='ar'){
-                    $pubLangs=array('عربي','إنجليزي','عربي/إنجليزي');
-                    $pubPeriods=array('اسبوعي','مرتين في اسبوع','يومي','شهري');
-                    $pubPublishPeriod=array(
-                        array('اسبوع','اسبوعين','اسابيع','اسبوع'),
-                        array('اسبوع','اسبوعين','اسابيع','اسبوع'),
-                        array('يوم', 'يومين','ايام','يوم'),
-                        array('شهر', 'شهرين','اشهر','شهر'));
-                }else {
-                    $pubLangs=array('Arabic','English','Arabic/English');
-                    $pubPeriods=array('Weekly','Bi-Weekly','Daily','Monthly');
-                    $pubPublishPeriod=array(
-                        array('week','weeks'),
-                        array('week','weeks'),
-                        array('day', 'days'),
-                        array('month', 'months'));
-                }
-                $publications = $this->urlRouter->db->queryCacheResultSimpleArray(
-                'publications_pricelist_'.$this->urlRouter->siteLanguage, 
-                'SELECT r.ID,p1.name_'.$this->urlRouter->siteLanguage.' as pname,
-                    p1.BRAND_'.$this->urlRouter->siteLanguage.' as bname, p1.WEBSITE, p1.URL,
-                    p1.country_id, p1.city_id, p1.language, p1.period,style.NAME_'.$this->urlRouter->siteLanguage.' as sname,
-                    r.PUBLICATION_ID master_publication_id, s.PUBLICATION_ID, r.STYLE_ID, p.CURRENCY_ID, r.PRICE, r.BUNDLE_WORD_COUNT,
-                    r.GRACE_WORD_COUNT, r.WORD_CHARGE, r.MAX_WORD_COUNT, p.name_'.$this->urlRouter->siteLanguage.' as ssname,s.insertions 
-                  FROM STYLE_PRICELIST r
-                  left join STYLE on style.ID=r.STYLE_ID
-                  left join STYLE_SCHEDULE s on s.PRICELIST_ID=r.ID
-                  left join publication p on p.ID=s.PUBLICATION_ID
-                  left join publication p1 on p1.id=r.publication_id 
-                  where r.BLOCKED=0 and p.name_'.$this->urlRouter->siteLanguage.' is not null order by p1.name_'.$this->urlRouter->siteLanguage.', style.name_'.$this->urlRouter->siteLanguage,
-                null, 0, $this->urlRouter->cfg['ttl_long']);
-                
-                ?><h1><?= $this->lang['header'] ?></h1>
-                <p><?= $this->lang['desc'] ?></p><br />
-                <ul>
-                    <li class="h v1"><?= $this->lang['label_pub'] ?></li><li class="h v2"><?= $this->lang['label_lang'] ?></li><li class="h v3"><?= $this->lang['label_period'] ?></li><li class="h v4"><?= $this->lang['label_loc'] ?></li>
-                    <?php
-                    $pubId=0;
-                    $styleId=0;
-                    $alt=1;
-                    $altClass='';
-                    foreach ($publications as $pub){
-                        if ($pubId!=$pub[10]) {
-                            if ($pubId) echo '<li class="br"></li>';
-                            $styleId=0;
-                            $pubId=$pub[10];
-                            $alt=1;
-                            ?><li class="v1"><a href="<?= $pub[4] ?>"><span class="cn c<?= $pub[5] ?>"></span><?= $pub[1] ?></a></li><li class="v2"><?= $pubLangs[$pub[7]] ?></li><li class="v3"><?= $pubPeriods[$pub[8]] ?></li><li class="v4"><?= $this->urlRouter->cities[$pub[6]][$this->fieldNameIndex].',  '.$this->urlRouter->countries[$pub[5]][$this->fieldNameIndex] ?></li><?php 
-                            ?><li class="h v10"><?= $this->lang['label_style'] ?></li><li class="h v11"><?= $this->lang['label_words'] ?></li><li class="h v12"><?= $this->lang['label_grace_words'] ?></li><li class="h v13"><?= $this->lang['label_max_words'] ?></li><li class="h v14"><?= $this->lang['label_price'] ?></li><li class="h v15"><?= $this->lang['label_plus_word'] ?></li><?php
-                            
-                            
-                        }
-                        if ($pubId==$pub[10] && $styleId!=$pub[0]) {
-                            $alt=++$alt%2;
-                            if ($alt) $altClass=' bv';
-                            else $altClass='';
-                            ?><li class="v10<?= $altClass ?>"><?= $pub[9] ?></li><li class="v11<?= $altClass ?>"><?= $this->formatWord($pub[15]) ?></li><li class="v12<?= $altClass ?>"><?= $this->formatWord($pub[16]) ?></li><li class="v13<?= $altClass ?>"><?= $this->formatWord($pub[18]) ?></li><li class="v14<?= $altClass ?>"><?= $pub[14].' '. $pub[13]  ?></li><li class="v15<?= $altClass ?>"><?= ($pub[17]?$pub[17].' '.$pub[13]:'-') ?></li><?php
-                            $styleId=$pub[0];
-                        }
-                        ?><li class="v20<?= $altClass ?>"><?= $this->lang['published'].' '.$this->formatPubPeriod($pub[20],$pub[8],$pubPublishPeriod).' '.$this->lang['in'].' '.$pub[19] ?></li><?php
-                    }
-                    ?></ul><br /><?php 
-                break;
+          
                 
             case 'about':
                 $this->renderAbout();               
@@ -857,27 +793,47 @@ class Doc extends Page{
     
     
     private function renderAbout() : void {
+        $this->router()->isArabic();
         echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
-        echo '<h2 class="card-title">About Mourjan.com</h2>';
-?><div class="col-12" style="display:block">  
-    <p>In July 2010, <span itemscope itemtype="https://schema.org/LocalBusiness">Mourjan.com</span> was founded.</p>
+        echo '<h2 class=card-title>', /*About Mourjan.com**/ $this->title, '</h2>';
+        echo '<div class=col-12 style="display:block">';  
+        if ($this->router()->isArabic()) {
+            ?><p>لقد تم إنشاء&nbsp;<span itemscope itemtype="https://schema.org/LocalBusiness">موقع مرجان</span> في عام ٢٠١٠م .</p>
+        <p>مع أكثر من ١٥ عامًا من الخبرة في مجال الإعلانات المبوبة وحلول تكنولوجيا المعلومات ، كنا نحن فريق العمل  وراء موقع مرجان ( Mourjan.com  ) - نبحث عن مشروع جديد يتماشى مع التطور السريع  في شبكة الويب العالمية.</p>
+        <p> وعلى الرغم من أن الإعلانات المبوبة على الإنترنت لم تكن شيئًا جديدًا، ومع وجود العديد من مواقع الإعلانات المبوبة، فقد أدركنا أنه لتحقيق النجاح، كان علينا تقديم شيء جديد. لذلك، بدأنا العمل على موقع مرجان باهتمام وكان هدفنا الرئيسي يتمثل في عمل موقع ويب سريع الأداء من خلال محرك بحث عربي يوفر تجربة ممتعة للمستخدمين الذين يبحثون عن شقة للإيجار أو شراء سيارة.</p>
+        <p>في منتصف عام ٢٠١٢م، كان موقع مرجان ( Mourjan.com  ) يخطو بخطى سريعة أسرع من أي وقت مضى، واستجابة لآراء وتعليقات المستخدمين، مكّن الموقع مستخدميه من نشر إعلانات على الإنترنت مجانًا في بلدانهم المختارة مع تبني دائمًا أحدث التقنيات والاتجاهات في تطوير الموقع و وضع مصلحة المستخدمين نصب أعيننا في المقام اﻷول.</p>
+        <p>حاليا، ما زلنا نعمل على تحسين موقع مرجان وتقديم خدمات جديدة وسنستمر على هذا طوال الوقت. كما نعمل على إضافة بعض الخدمات التي نرى أنها مفيدة وغيرها من الخدمات التي قد تطلب منا ببساط من خلال آراء وتعليقات مستخدمين موقع مرجان اﻷعزاء ﻷنهم هم سبب نجاحنا وتقدمنا على مدار هذه اﻷعوام.</p>        
+    <?php
+            
+        } 
+        else {
+    ?><p>In July 2010, <span itemscope itemtype="https://schema.org/LocalBusiness">Mourjan.com</span> was founded.</p>
     <p>With over 15 years of experience in the field of classifieds and IT solutions, we - the team behind Mourjan.com - were looking for a new venture and specifically in the fast evolving World Wide Web.</p>
     <p>While online classifieds was not something new and with many top of mind classifieds websites, we knew that in order to succeed we had to deliver something new. Therefore, we started working on Mourjan.com with a main concern of achieving a fast performing website with an Arabic oriented search engine which would deliver a pleasant experience for users who are seeking an apartment to rent or a car to buy.</p>
     <p>In mid-2012, mourjan.com was faster than ever and in response to the overwhelming users’ feedbacks, the site enabled its users with free online ad posting in their countries of choice while always adopting the latest techniques and trends in website development and having users’ best interest at heart.</p>
-    <p>Currently, we are still working on improving mourjan.com and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="<?= $this->router()->getLanguagePath('/contact/') ?>">Let us know your opinion</a>.</p>
-</div>
-<div class=col-12 itemscope itemtype="https://schema.org/LocalBusiness">
+    <p>Currently, we are still working on improving mourjan.com and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="<?= $this->router()->getLanguagePath('/contact/') ?>">Let us know your opinion</a>.</p><?php
+        }
+        echo '</div>';
+        $streetAddress=$this->router()->isArabic()?'سنتر دكوانة 1044، الطابق الرابع، السلاف العريض':'4th Floor, Dekwaneh 1044 bldg, New Slav Street';
+        $addressLocality=$this->router()->isArabic()?'الدكوانة، المتن':'Dekwaneh';
+        $comma=$this->router()->isArabic()?'، ':', ';
+        $addressCountry=$this->router()->isArabic()?'لبنان':'Lebanon';
+        $egypt=$this->router()->isArabic()?'مصر':'Egypt';
+        $openingHours=$this->router()->isArabic()?'دوام العمل':'Office hours';
+        $days=$this->router()->isArabic()?'الإثنين الى الجمعة':'Monday to Friday';
+        $hours=$this->router()->isArabic()?'7:00 ص إلى 3:00 م GMT':'7:00AM to 3:00PM GMT';
+?><div class=col-12 itemscope itemtype="https://schema.org/LocalBusiness">
     <div itemprop="address" itemscope itemtype="https://schema.org/PostalAddress" class="card-footer">
         <div class="addr float-left"><img itemprop="image" width="130" height="90" src="<?= $this->router()->config()->cssURL ?>/i/logo<?= $this->router()->_jpg ?>" alt="Berysoft logo" /></div>
         <div class="addr float-left" style="padding-inline-end:20px;border-right:1px #CCC solid; -webkit-padding-end:20px"><b itemprop="name">mourjan.com</b><br>
-            <span itemprop="streetAddress">4th Floor, Dekwaneh 1044 bldg, New Slav Street</span><br><span itemprop="addressLocality">Dekwaneh</span>, <span itemprop="addressCountry">Lebanon</span>
+            <span itemprop="streetAddress"><?= $streetAddress ?></span><br><span itemprop="addressLocality"><?= $addressLocality ?></span><?= $comma ?><span itemprop="addressCountry"><?= $addressCountry ?></span>
         </div>
         <div class="addr float-left" style="margin: 0 8px;padding-inline-end:20px;border-right:1px #CCC solid; -webkit-padding-end:20px">
-            <label>Phone&nbsp;/&nbsp;Lebanon:&nbsp;</label><span itemprop="telephone">+961 70 424 018</span><br>
-            <label>Phone&nbsp;/&nbsp;Egypt:&nbsp;</label>&nbsp;&nbsp;&nbsp;<span itemprop="telephone">+20 109 136 5353</span>
+            <label><?=$this->lang['labelP1'] ?>&nbsp;/&nbsp;<?=$addressCountry?>:&nbsp;</label><span itemprop="telephone">+961 70 424 018</span><br>
+            <label><?=$this->lang['labelP1'] ?>&nbsp;/&nbsp;<?=$egypt?>:&nbsp;</label>&nbsp;&nbsp;&nbsp;<span itemprop="telephone">+20 109 136 5353</span>
         </div>
         <div class="addr float-left" style="margin: 0 8px;">
-        <label>Office hours:</label><br><span class="ctr" itemprop="openingHours">Monday to Friday<br />7:00AM to 3:00PM GMT</span>
+        <label><?=$openingHours?>:</label><br><span class="ctr" itemprop="openingHours"><?=$days?><br /><?=$hours?></span>
         </div>
     </div>
 </div></div></div><?php 

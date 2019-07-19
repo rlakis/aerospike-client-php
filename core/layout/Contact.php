@@ -1,13 +1,13 @@
 <?php
 require_once 'Page.php';
 
-class Contact extends Page{
+class Contact extends Page {
 
-    function __construct(){
+    function __construct() {
         parent::__construct();
         $this->hasLeadingPane=true;
         $this->router()->config()->disableAds();
-        //$this->urlRouter->cfg['enabled_ads']=false;
+        $this->router()->config()->setValue('enabled_sharing', 0);
         //if ($this->isMobile) {
         //    $this->inlineCss.='label{display:block;margin:0}input,textarea{width:95%;margin-bottom:15px}#nb{display:none}';
         //}
@@ -17,6 +17,7 @@ class Contact extends Page{
         $this->description=$this->lang['description'];
         $this->render();
     }
+    
     
     function mainMobile(){
         $name="";
@@ -60,35 +61,86 @@ class Contact extends Page{
     }
    
 
-    function side_pane(){
+    function side_pane() {      
         $this->renderSideSite();
         //$this->renderSideUserPanel();
         //$this->renderSideLike();
     }
 
+    
     function main_pane(){
+        echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
+        //$this->renderSideSite();
         //$this->contactHeader();
         $this->contactForm();
+        echo '</div></div></div>';
     }
 
-    function contactForm(){
-        $name="";
-        $email="";
-        $message = '';
-        if(isset($_GET['payfort']) && is_numeric($_GET['payfort'])){
-            $message = $this->lang['payfort_fail_msg'].'#'.$_GET['payfort'].'#';
+    
+    function contactForm() {
+        $name=''; $email=''; $message='';
+        if (isset($_GET['payfort']) && is_numeric($_GET['payfort'])) {
+            $message=$this->lang['payfort_fail_msg'].'#'.$_GET['payfort'].'#';
         }
         
-        if ($this->user->info['id']) {
+        if ($this->user()->isLoggedIn()) {
             $name=$this->user->info['name'];
             if (isset ($this->user->info['email']) && strpos($this->user->info['email'], "@")!==false) $email=$this->user->info['email'];
         }
-        ?><p class="ph phm"><?= $this->lang['header'] ?></p><div class="form rc"><form onsubmit="vf(this);return false;"><ul><?php
-            ?><li><label><?= $this->lang['name'] ?>:</label><input onkeydown="idir(this)" onchange="idir(this,1)" type="text" id="name" value="<?= $name ?>" placeholder="<?= $this->lang['hint_name'] ?>" <?= $name ? "disabled='disabled'":"" ?> /></li><?php
-            ?><li><label><?= $this->lang['email'] ?>:</label><input onkeydown="idir(this)" onchange="idir(this,1)" type="text" id="email" value="<?= $email ?>" placeholder="<?= $this->lang['hint_email'] ?>" <?= $email ? "disabled='disabled'":"" ?> /></li><?php
-            ?><li><label class="ta"><?= $this->lang['message'] ?>:</label><textarea onkeydown="idir(this)" onchange="idir(this,1)" rows="10" id="msg"><?= $message ?></textarea></li><?php
-        ?><li class="ctr"><input class="bt" type="submit" value="<?= $this->lang['send'] ?>" /></li><?php
-        ?></ul></form><span class="omail <?= $this->router()->language ?>"></span><span class="nb"></span></div><?php
+        
+        ?><p class="ph phm"><?= $this->lang['header'] ?></p><div class="card-content"><form onsubmit="vf(this);return false;"><?php
+        ?><div class=row>
+            <div class=group>
+            <input type=text required onkeydown="dirElem(this)" onchange="dirElem(this)" type=text id=name value="<?= $name ?>" <?= $name ? "readonly":"" ?> /><?php
+            if (!$this->user()->isLoggedIn()) {
+                echo '<label>', $this->lang['hint_name'], '</label>';
+            }
+            ?><span class=highlight></span>
+            <span class=bar></span>
+        </div></div><?php
+            
+        ?><div class=row><div class=group>
+            <input type=email required onkeydown="dirElem(this)" onchange="dirElem(this)" onkeyup="this.setAttribute('value', this.value);" id=email value="<?= $email ?>" <?= $email ? "disabled='disabled'":"" ?> /><?php
+            if (!$this->user()->isLoggedIn()) {
+                echo '<label>', $this->lang['hint_email'], '</label>';
+            }
+            ?><span class=highlight></span>
+            <span class=bar></span>
+        </div></div><?php
+        
+        ?><div class=row><div class=group>
+            <textarea required onkeydown="dirElem(this)" onchange="dirElem(this,1)" rows=10 id=msg><?= $message ?></textarea>
+            <label><?= $this->lang['message'] ?></label>
+            <span class=highlight></span>
+            <span class=bar></span>
+        </div></div><?php
+        ?><button class=btn type=submit style="float: right;background-color:#5bc236;color:white;"><?= $this->lang['send'] ?></button><?php
+        ?></form><span class="omail <?= $this->router()->language ?>"></span><span class="nb"></span></div><?php
+        ?><script>dirElem=function(e){if(e.target){e=e.target;}var v=e.value;e.className=(!v)?'':((v.match(/[\u0621-\u064a\u0750-\u077f]/))?'ar':'en');};
+        vf=function(e){
+            let data={name:e.querySelector('#name').value, email:e.querySelector('#email').value, msg:e.querySelector('#msg').value, lang:'<?=$this->router()->language?>'};
+            console.log(data);
+            if(data.name.length<3){alert('name is too short!');return false;}
+            if(data.msg.length<10){alert('message is too short!');return false;}            
+            
+            let opt={method:'POST',mode:'same-origin',credentials:'same-origin',headers:{'Accept':'application/json','Content-Type':'application/json'}};
+            opt['body']=JSON.stringify(data);
+            fetch('/ajax-contact/', opt).then(res => res.json()).then(response => {
+                console.log('Success:', response);
+                if (response.success===1) {
+                    alert(response.result);
+                    history.go(-1);
+                }
+                else {
+                    alert(response.error);
+                }
+            })
+            .catch(error => {
+                console.log('Error:', error);
+            });
+        };
+        </script><?php
+        
         $this->inlineScript.='
             window["pla"]=function(e){
                 e.prev().append("<span class=\'fia\'></span>");
@@ -186,7 +238,8 @@ class Contact extends Page{
             ';
     }
 
-    function contactHeader(){
+    
+    function contactHeader() {
         $countryId=0;
         $cityId=0;
         $countryName=$this->countryName;
@@ -194,10 +247,10 @@ class Contact extends Page{
             $countryId=$this->user->params["country"];
             $countryName=$this->urlRouter->countries[$this->user->params["country"]][$this->fieldNameIndex];
         }
+        
         ?><div class='sum rc'><div class="brd"><?php
         echo "<a href='{$this->urlRouter->getURL($countryId)}'>{$countryName}</a> <span>{$this->lang['sep']}</span> ";
         ?><h1><?= $this->lang['title'] ?></h1></div><?= $this->lang['header'] ?></div><?php
     }
     
 }
-?>

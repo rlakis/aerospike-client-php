@@ -50,7 +50,7 @@ class AjaxHandler extends Site {
     }
 
     function fail($msg='illegal access failure'){
-	$this->msg=$msg;
+        $this->msg=$msg;
         $this->rp=0;
         $this->process();
         exit(0);
@@ -64,6 +64,7 @@ class Bin extends AjaxHandler{
     const ERR_USER_UNAUTHORIZED = 102;
     const ERR_DATA_INVALID_PARAM= 200;
     const ERR_DATA_INVALID_META = 201;
+    const ERR_DATA_INVALID_EMAIL= 202;
     const ERR_SYS_MAINTENANCE   = 400;
     const ERR_SYS_FAILURE       = 401;
     const ERR_SYS_UNKNOWN       = 402;
@@ -77,6 +78,7 @@ class Bin extends AjaxHandler{
         self::ERR_USER_UNAUTHORIZED => ['en'=>'Unauthorized action', 'ar'=>'حساب غير مصرح لتنفيذ الطلب!'],
         self::ERR_DATA_INVALID_PARAM=> ['en'=>'', 'ar'=>''],
         self::ERR_DATA_INVALID_META => ['en'=>'', 'ar'=>''],
+        self::ERR_DATA_INVALID_EMAIL=> ['en'=>'Not a valid email address.', 'ar'=>'البريد الالكتروني غير صحيح'],
         self::ERR_SYS_MAINTENANCE   => ['en'=>'Sorry! System is in maintenance, try again later...', 'ar'=>'نأسف لعدم تلبيتكم الآن! النظام قيد الصيانة.'],
         self::ERR_SYS_FAILURE       => ['en'=>'Sorry! System is failed to execute your request', 'ar'=>'عملية غير ناجحة!'],
         self::ERR_SYS_UNKNOWN       => ['en'=>'', 'ar'=>''],
@@ -93,6 +95,7 @@ class Bin extends AjaxHandler{
         $this->actionSwitch();        
     }
 
+    
     private function output() : void {
         \header("Content-Type: application/json");
         echo \json_encode($this->resp);
@@ -4396,6 +4399,7 @@ class Bin extends AjaxHandler{
                                     $this->fail($this->lang['wrongInfo']);
                                 }
                                 break;
+                                
                             case 'contact':
                                 if (isset($fields['c']) && isset($fields['m']) && isset($fields['n']) && is_numeric($fields['n'])){
                                     if (!isset($this->user->info['options']))
@@ -4742,8 +4746,7 @@ class Bin extends AjaxHandler{
                 break;
 
             case 'ajax-support':
-                if ($this->user->info['id'])
-                {
+                if ($this->user->info['id']) {
                     $lang=$this->post('lang');
                     $this->load_lang(array('post'),$lang);
                     $name=$this->user->info['name'];
@@ -4786,16 +4789,24 @@ class Bin extends AjaxHandler{
                 }else $this->fail('101');
                 break;
 
-            case 'ajax-contact':
-                $lang = $this->post('lang');
-                $this->load_lang(array('contact'),$lang);
+            case 'contact':                
+                if (!isset($this->_JPOST['lang'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }  
+                if (!isset($this->_JPOST['name'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }  
+                if (!isset($this->_JPOST['email'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }  
+                if (!isset($this->_JPOST['msg'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }  
+                
+                $lang=$this->_JPOST['lang'];
+                $this->router()->language=$lang;
+                $name=\filter_var($this->_JPOST['name'], FILTER_SANITIZE_STRING);
+                $email=\filter_var($this->_JPOST['email'], FILTER_VALIDATE_EMAIL);
+                if (!$email) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
+                //$email=\filter_var($this->_JPOST['email'], \FILTER_SANITIZE_EMAIL);
+                $feed=\filter_var($this->_JPOST['msg'], \FILTER_SANITIZE_STRING);
+                $this->load_lang(array('contact'), $lang);
                 $subject = 'User Feedback';
-                $name = $this->post('name', 'filter');
-                $email = $this->post('email', 'filter');
-                $feed = $this->post('msg', 'filter');
                 			           
-                $geo = $this->urlRouter->getIpLocation();
-                $mobile= (isset($this->user->params['mobile'])) ? $mobile=$this->user->params['mobile'] : 0;
+                $geo = $this->router()->getIpLocation();
+                $mobile = (isset($this->user->params['mobile'])) ? $mobile=$this->user->params['mobile'] : 0;
                 $geostr = "";
                 if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en'])) {
                     $geostr.= $geo['country']['names']['en'];
@@ -4809,19 +4820,19 @@ class Bin extends AjaxHandler{
                 }
 
                 $msg = "<style>table{border-collapse:collapse;border-spacing:2px;border-color:gray;} th,td{border: 1px solid #cecfd5;padding: 10px 15px;}</style><table><tr>";
-                if ($this->user->info['id']) {
-                    $msg.="<td><b>Name</b></td><td><a href='https://www.mourjan.com/myads/?u={$this->user->info['id']}' target=_blank>{$name}</a></td>";
+                if ($this->user()->isLoggedIn()) {
+                    $msg.="<td><b>Name</b></td><td><a href='https://www.mourjan.com/myads/?u={$this->user()->id()}' target=_blank>{$name}</a></td>";
                 }
                 else {
                     $msg.="<td><b>Name</b></td><td>{$name}</td>";
                 }
                 $msg.="<td><b>Location</b></td><td>{$geostr}</td>";
                 if (isset($this->user->params['country']) && $this->user->params['country']>0) {
-                    if (isset($this->urlRouter->countries[$this->user->params['country']])) {
-                        $msg.="<td><b>Target</b></td><td>{$this->urlRouter->countries[$this->user->params['country']]['uri']}";
+                    if (isset($this->router()->countries[$this->user->params['country']])) {
+                        $msg.="<td><b>Target</b></td><td>{$this->router()->countries[$this->user->params['country']]['uri']}";
                         if (isset($this->user->params['city']) && $this->user->params['city']>0) {
-                            if (isset($this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']])) {
-                                $msg.=" - {$this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']]['uri']}";
+                            if (isset($this->router()->countries[$this->user->params['country']]['cities'][$this->user->params['city']])) {
+                                $msg.=" - {$this->router()->countries[$this->user->params['country']]['cities'][$this->user->params['city']]['uri']}";
                             }
                             else {
                                 $msg.=" - {$this->user->params['city']}";
@@ -4842,28 +4853,14 @@ class Bin extends AjaxHandler{
                 $msg.="<td><b>Email:</b></td><td colspan='3'>".$email."</td></tr>";
                 $msg.="<tr><td colspan='6'>{$feed}</td></tr>";
                 $msg.="</table>";
-/*
-                $msg="<table>
-                    <tr><td><b>ID</b>:</td><td>{$this->user->info['id']}</td></tr>
-                    <tr><td><b>Name</b>:</td><td>{$name}</td></tr>
-                    <tr><td><b>Email</b>:</td><td>{$email}</td></tr>
-                    <tr><td><b>Location</b>:</td><td>{$geostr}</td></tr>
-                    <tr><td><b>Selected Country</b>:</td><td>".(isset ($this->user->params['country']) ? $this->user->params['country'] : "0")."</td></tr>
-                    <tr><td><b>Agent Language</b>:</td><td>".$_SERVER['HTTP_ACCEPT_LANGUAGE']."</td></tr>
-                    <tr><td><b>Is Mobile</b>:</td><td>".($mobile ? 'Yes': 'No')."</td></tr>
-                    <tr><td><b>User Agent</b>:</td><td>".$_SERVER['HTTP_USER_AGENT']."</td></tr>
-                    <tr><td colspan='2'>{$feed}</td></tr>
-                    </table>";
-*/
-                $res=$this->sendMail("Mourjan Support", $this->urlRouter->cfg['admin_email'], $name, $email, $subject, $msg, $this->urlRouter->cfg['smtp_contact']);
-                if (!$res)
-                {
-                    $this->fail($this->lang['errSys']);
+
+                $res=$this->sendMail("Mourjan Support", Config::instance()->get('admin_email'), $name, $email, $subject, $msg, Config::instance()->get('smtp_contact'));
+                if ($res) {
+                    $this->resp['result']=$this->lang['msgOk'];                    
+                    $this->success();     
                 }
-                else
-                {
-                    $this->msg=$this->lang['msgOk'];
-                    $this->process();
+                else {                                                  
+                    $this->error(self::ERR_SYS_FAILURE, ['en'=>$this->lang['errSys'],'ar'=>$this->lang['errSys']]);
                 }
                 break;
 
