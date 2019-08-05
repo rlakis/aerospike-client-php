@@ -65,6 +65,8 @@ class Bin extends AjaxHandler{
     const ERR_DATA_INVALID_PARAM= 200;
     const ERR_DATA_INVALID_META = 201;
     const ERR_DATA_INVALID_EMAIL= 202;
+    const ERR_DATA_USED_EMAIL   = 203;
+    const ERR_LIMIT_EXCEEDED    = 299;
     const ERR_SYS_MAINTENANCE   = 400;
     const ERR_SYS_FAILURE       = 401;
     const ERR_SYS_UNKNOWN       = 402;
@@ -79,6 +81,8 @@ class Bin extends AjaxHandler{
         self::ERR_DATA_INVALID_PARAM=> ['en'=>'', 'ar'=>''],
         self::ERR_DATA_INVALID_META => ['en'=>'', 'ar'=>''],
         self::ERR_DATA_INVALID_EMAIL=> ['en'=>'Not a valid email address.', 'ar'=>'البريد الالكتروني غير صحيح'],
+        self::ERR_DATA_USED_EMAIL   => ['en'=>'Email address already in use!', 'ar'=>'البريد الالكترروني تم استعماله مسبقا!'],
+        self::ERR_LIMIT_EXCEEDED    => ['en'=>'Request limit exceeded', 'ar'=>'تم تجاوز حد الطلب'],
         self::ERR_SYS_MAINTENANCE   => ['en'=>'Sorry! System is in maintenance, try again later...', 'ar'=>'نأسف لعدم تلبيتكم الآن! النظام قيد الصيانة.'],
         self::ERR_SYS_FAILURE       => ['en'=>'Sorry! System is failed to execute your request', 'ar'=>'عملية غير ناجحة!'],
         self::ERR_SYS_UNKNOWN       => ['en'=>'', 'ar'=>''],
@@ -114,6 +118,13 @@ class Bin extends AjaxHandler{
             $this->resp['error'].=' ';
             $this->resp['error'].=$details[$this->router()->language];
         }
+        
+        $trace=\debug_backtrace();
+        if (\is_array($trace) && \count($trace)>1) {
+            $this->resp['error'].=' (';
+            $this->resp['error'].=$trace[0]['line'];
+            $this->resp['error'].=')';
+        }
         $this->output();
     }
     
@@ -127,8 +138,9 @@ class Bin extends AjaxHandler{
     }
     
     
-    private function response(string $name, $value) : void {
+    private function response(string $name, $value) : Bin {
         $this->resp['result'][\strtolower(\trim($name))]=$value;
+        return $this;
     }
     
     
@@ -212,14 +224,20 @@ class Bin extends AjaxHandler{
             
             case 'changepu':
                 $this->authorize(true, 9);
-                if (is_array($this->_JPOST)) {
+                if (\is_array($this->_JPOST)) {
                     foreach ($this->_JPOST as $key => $value) {
                         $_POST[$key]=$value;
                     }
                 }
                     
-                if(isset($_GET['fraud']) && is_numeric($_GET['fraud'])){
-                    $content = \json_decode(file_get_contents('http://h8.mourjan.com:8080/v1/fraud/ad/'.$_GET['fraud']), true);
+                if (isset($_GET['fraud']) && \is_numeric($_GET['fraud'])){
+                    $content = \json_decode(\file_get_contents('http://h8.mourjan.com:8080/v1/fraud/ad/'.$_GET['fraud']), true);                    
+                    if ($content['success']===false) {
+                        $content['message'].=' - failed!';
+                        Config::instance()->incLibFile('IPQuality');
+                        $content=IPQuality::getIPStatus($content['host']);
+                        \error_log(var_export($content, true));
+                    }
                     $this->success($content);
                 }
                     
@@ -236,18 +254,16 @@ class Bin extends AjaxHandler{
                 $pu = $this->post('p');
                     
                 //error_log("pu ". $pu);
-                if ($se) { $ro = $this->router()->sections[$se][4]; }
-                if ($ro==4) { $pu = 5; }
+                if ($se) { $ro=$this->router()->sections[$se][4]; }
+                if ($ro==4) { $pu=5; }
                     
                 $text = $this->_JPOST['t']??'';
                 $textIdx = \intval($this->post('dx'));
                 $textRtl = $this->post('rtl');
                                                            
                 $this->router()->db->setWriteMode();  
-                
-                
-                
-                $ad = new Core\Model\Ad();
+                                                
+                $ad=new Core\Model\Ad();
                 $ad->getAdFromAdUserTableForEditing($id);
                 if ($ad->id()===0) { $this->error(self::ERR_DATA_INVALID_PARAM); }
 
@@ -5297,197 +5313,184 @@ class Bin extends AjaxHandler{
                       }
                 }else $this->fail('101');
                 break;
-            case 'ajax-password':
-                $pass=$this->post('v');
-                error_log("PASSWORD: <{$pass}>".(isset($this->user->pending['password_new']) ? ' | NEW':'').(isset($this->user->pending['password_reset']) ? ' | RESET':'').PHP_EOL, 3, "/var/log/mourjan/password.log");
-                    
-                $lang='ar';
-                $tLang=$this->post('lang');
-                if($tLang=='ar'||$tLang=='en')$lang=$tLang;
-                if($pass && isset($this->user->pending['user_id']) && (isset($this->user->pending['password_new']) || isset($this->user->pending['password_reset'])))
-                {
-                    if($this->user->updatePassword($pass)){
-                        $this->process();
-                    }else{
-                        $this->fail('102');
-                    }
-                } else {
-                    error_log(var_export($_SERVER,true).PHP_EOL, 3, "/var/log/mourjan/password.log");
-                    //error_log("PASSWORD SERVER LOG: ".var_export($_SERVER,true).PHP_EOL);
-                    $this->fail('101');
+                
+            case 'password':
+                if ($this->router()->config()->isMaintenanceMode()) { $this->error(self::ERR_SYS_MAINTENANCE); }
+                $pass=\trim($this->_JPOST['v']??'');
+                $lang=$this->_JPOST['l']??'ar';
+                if (!\in_array($lang, ['ar', 'en'])) { $lang='ar'; };
+                
+                if (0) {
+                    $this->response('password', $pass);
+                    if (isset($this->user->pending['password_new'])) { $this->response('new', true); }
+                    if (isset($this->user->pending['password_reset'])) { $this->response('reset', true); }
                 }
+                
+                //\error_log("PASSWORD: <{$pass}>".(isset($this->user->pending['password_new']) ? ' | NEW':'').(isset($this->user->pending['password_reset']) ? ' | RESET':'').PHP_EOL, 3, "/var/log/mourjan/password.log");
+                    
+                if (empty($pass)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                if (!isset($this->user->pending['password_new']) && !isset($this->user->pending['password_reset'])) { $this->error(self::ERR_USER_UNAUTHORIZED); }
+                if (!isset($this->user->pending['user_id'])) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
+                
+                $redirect='/'.(isset($this->user()->pending['password_new']) ? 'welcome':'password').'/'.($lang==='ar'?'':$lang.'/');
+                if ($this->user()->updatePassword($pass)) {
+                    $ok=$lang==='ar'?'تهانينا! تم تغيير كلمة السر بنجاح.':'Congratulations! Your password has been changed successfully.';
+                    $this->response('ok', $ok)->response('redirect', $redirect)->success();
+                }
+                else {
+                    $this->error(self::ERR_SYS_FAILURE);                    
+                }                               
                 break;
                 
-            case 'ajax-preset':
-                $email= trim(strtolower(filter_var($this->_JPOST['v']??'', FILTER_SANITIZE_EMAIL)));
-                error_log($email);
-                $user_id = 0;
-                $lang='ar';
-                $tLang=$this->_JPOST['lang']??'ar';
-                if($tLang=='ar'||$tLang=='en')$lang=$tLang;
-                $date = date('Ymd');
-                $send_email=false;
-                if (!$this->user->info['id']) {
-                    if ($email && $this->isEmail($email) ) {
-                        $_ret = Core\Model\NoSQL::instance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);
-                        if($_ret!==NoSQL::OK && $_ret !== NoSQL::ERR_RECORD_NOT_FOUND) {
-                            $this->fail("103");
-                        }
-                        else {
-                            if(!empty($user)) {
-                                $user_id = $user[\Core\Model\ASD\USER_PROFILE_ID]; //$user['ID'];
-                                $opt = $user[Core\Model\ASD\USER_OPTIONS]; //json_decode($user['OPTS'], true);
-                                if (isset($opt['validating'])) {
-                                    $this->fail('106');
-                                }
-                                elseif (!isset($opt['resetting']) || (isset($opt['resetting']) && !isset($opt['resetting'][$date]))) {
-                                    $send_email=true;
-                                    if(isset($opt['lang']))$lang=$opt['lang'];
-                                }
+            case 'preset':
+                if ($this->router()->config()->isMaintenanceMode()) { $this->error(self::ERR_SYS_MAINTENANCE); }
+                $email=\trim(\strtolower(\filter_var($this->_JPOST['v']??'', FILTER_SANITIZE_EMAIL)));                
+                $lang=$this->_JPOST['l']??'ar';
+                if (!\in_array($lang, ['ar', 'en'])) { $lang='ar'; };
+                Core\Model\Router::instance()->language=$lang;
+                if (empty($email)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                if ($this->user()->isLoggedIn()) { $this->error(self::ERR_USER_UNAUTHORIZED); }
+                Config::instance()->incLibFile('IPQuality');
+                $status=IPQuality::getEMailStatus($email);
+                //\error_log(var_export($status, true));
+                if ($status['valid']!==1) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
+                if ($status['disposable']===1) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
+                if ($status['honeypot']===1) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
+                
+                $date=date('Ymd');
+                $shouldSendMail=false;                                
+                $_ret=Core\Model\NoSQL::instance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);
+                if ($_ret!==NoSQL::OK && $_ret!==NoSQL::ERR_RECORD_NOT_FOUND) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
+                if (empty($user)) { $this->error(self::ERR_USER_UNAUTHORIZED); }
+                
+                $user_id=$user[\Core\Model\ASD\USER_PROFILE_ID]; //$user['ID'];
+                $opt=$user[Core\Model\ASD\USER_OPTIONS]; //json_decode($user['OPTS'], true);
+                if (isset($opt['validating'])) { $this->error(self::ERR_USER_UNAUTHORIZED); }
+                
+                if (!isset($opt['resetting']) || (isset($opt['resetting']) && !isset($opt['resetting'][$date]))) {
+                    $shouldSendMail=true;
+                    if (isset($opt['lang'])) { $lang=$opt['lang']; }
+                }
+                               
+                if (!$shouldSendMail) { $this->response('mail', 'sent')->error(self::ERR_SYS_FAILURE); }
+
+                $this->load_lang(array('main'));
+                
+                require_once $this->dir.'/bin/utils/MourjanMail.php';
+                $mailer=new MourjanMail($lang);
+                $verifyLink='';
+                $sessionKey=md5($this->sid.$user_id.time());
+                                                                        
+                $sKey=$this->user()->encodeRequest('reset_password', [$user_id]);
+                $verifyLink=$this->host.'/a/'.($lang=='ar'?'':$lang.'/').'?k='.$sKey.'&key='.urlencode($sessionKey);
+                //error_log($verifyLink);
+                if ($mailer->sendResetPass($email, $verifyLink)) {
+                    if (!isset($opt['resetting'])) { $opt['resetting']=[]; }
+                    $opt['resetting'][$date]=1;
+                    $opt['resetKey']=$sessionKey;
+                    $this->user()->updateOptions($user_id, $opt);
+                    
+                    $this->response('ok', str_replace('{email}', $email, $this->lang['sent_preset']))->success();
+                }
                                 
-                                if (!$send_email) {
-                                    $this->fail('105');
+                $this->error(self::ERR_SYS_FAILURE, ['en'=>'Could not send email verification.', 'ar'=>'لا يمكن ارسال رسالة التحقق في الوقت الحالي.']);
+                break;
+                
+            case 'register':
+                if ($this->router()->config()->isMaintenanceMode()) { $this->error(self::ERR_SYS_MAINTENANCE); }
+                $email=\trim(\strtolower(\filter_var($this->_JPOST['v']??'', \FILTER_SANITIZE_EMAIL)));
+                $user_id=0;
+                $lang=$this->_JPOST['l']??'ar';
+                if (!\in_array($lang, ['ar', 'en'])) { $lang='ar'; };
+                Core\Model\Router::instance()->language=$lang;
+                if (!$this->user()->isLoggedIn()) {
+                    if (empty($email)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                    Config::instance()->incLibFile('IPQuality');
+                    $status=IPQuality::getEMailStatus($email);
+                    //\error_log(var_export($status, true));
+                    if ($status['valid']!==1) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
+                    if ($status['disposable']===1) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
+                    if ($status['honeypot']===1) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
+                                        
+                    $date=date('Ymd');
+                    $_ret=Core\Model\NoSQL::instance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);                        
+                    if ($_ret!==NoSQL::OK && $_ret!==NoSQL::ERR_RECORD_NOT_FOUND) {
+                        $this->response('user', 'failed')->error(self::ERR_SYS_FAILURE);
+                    }
+                    else {
+                        $shouldSendMail=false;
+                        $user_exists=false;
+                        if ($_ret==NoSQL::OK) {
+                            if ($user[Core\Model\ASD\USER_PASSWORD]) {
+                                $user_exists=true;
+                            }
+                            else {
+                                $user_id=$user[\Core\Model\ASD\USER_PROFILE_ID]; //['ID'];
+                                $opt=$user[\Core\Model\ASD\USER_OPTIONS];//json_decode($user['OPTS'], true);
+                                if (isset($opt['lang'])) { $lang=$opt['lang']; }
+                                $this->response('options', $opt);
+                                if (isset($opt['validating'])) {
+                                    if (!isset($opt['validating'][$date]) || (isset($opt['validating'][$date]) && $opt['validating'][$date]<3)) {
+                                        $shouldSendMail=true;
+                                    }
+                                    else { $this->error(self::ERR_LIMIT_EXCEEDED); }
+                                }
+                                else {                                    
+                                    $shouldSendMail=true;
+                                }                                  
+                            }
+                        }
+                        else { //create new record
+                            $shouldSendMail=true;
+                        }
+                            
+                        if ($user_exists) { $this->response('user', 'exists')->error(self::ERR_DATA_USED_EMAIL); }                            
+                        if (!$shouldSendMail) { $this->response('mail', 'sent')->error(self::ERR_SYS_FAILURE); }
+                        
+                        if (!$user_id) {
+                            $user=$this->user()->createNewByEmail($email);
+                            if ($user && !empty($user)) {
+                                $user_id=$user[\Core\Model\ASD\USER_PROFILE_ID];
+                                $opt=$user[\Core\Model\ASD\USER_OPTIONS];
+                            }
+                        }
+                         
+                        if ($user_id) {
+                            require_once $this->dir.'/bin/utils/MourjanMail.php';
+                            $mailer=new MourjanMail($lang);
+
+                            $verifyLink='';
+
+                            $sessionKey=md5($this->sid.$user_id.time());
+                            if (isset($opt['accountKey'])) { $sessionKey=$opt['accountKey']; }
+                            $sKey=$this->user()->encodeRequest('reset_password', [$user_id]);
+                            $verifyLink=$this->host.'/a/'.($lang==='ar'?'':$lang.'/').'?k='.$sKey.'&key='.urlencode($sessionKey);
+
+                            if ($mailer->sendNewAccount($email, $verifyLink)) {
+                                if (!isset($opt['validating'])) { $opt['validating']=[]; }
+                                if (isset($opt['validating'][$date]) && is_numeric($opt['validating'][$date])) {
+                                    $opt['validating'][$date]++;
                                 }
                                 else {
-                                    require_once $this->dir.'/bin/utils/MourjanMail.php';
-                                    $mailer=new MourjanMail($lang);
-                                    $verifyLink='';
-                                    $sessionKey=md5($this->sid.$user_id.time());
-                                                                        
-                                    $sKey=$this->user()->encodeRequest('reset_password', [$user_id]);
-                                    $verifyLink=$this->host.'/a/'.($lang=='ar'?'':$lang.'/').'?k='.$sKey.'&key='.urlencode($sessionKey);
-                                    //error_log($verifyLink);
-                                    if ($mailer->sendResetPass($email, $verifyLink)) {
-                                        if(!isset($opt['resetting'])) $opt['resetting'] = array();
-                                        $opt['resetting'][$date]=1;
-                                        $opt['resetKey']=$sessionKey;
-                                        $this->user->updateOptions($user_id,$opt);
-                                        $this->process();
-                                    }
-                                    else {
-                                        $this->fail('107');
-                                    }
+                                    $opt['validating'][$date]=0;
                                 }
+                                $opt['accountKey']=$sessionKey;
+                                $this->user()->updateOptions($user_id, $opt);
+                                $this->load_lang(array('main'));
+                                $this->response('ok', str_replace('{email}', $email, $this->lang['created_account']))->success();
                             }
-                            else { $this->fail('104'); }
+                            else {
+                                $this->error(self::ERR_SYS_FAILURE, ['en'=>'Could not send email verification.', 'ar'=>'لا يمكن ارسال رسالة التحقق في الوقت الحالي.']);
+                            }
                         }
-                    }
-                    else { $this->fail('102'); }
+                        else {
+                            $this->error(self::ERR_SYS_FAILURE, ['en'=>'Creating user failed!','ar'=>'فشل انشاء مستخدم جديد!']);
+                        }                            
+                    }                    
                 }
-                else { $this->fail('101'); }
-                break;
-                
-            case 'ajax-register':
-                $email=trim(strtolower(filter_var($this->post('v'), FILTER_SANITIZE_EMAIL)));
-                $user_id = 0;
-                $lang='ar';
-                $tLang=$this->post('lang');
-                if($tLang=='ar'||$tLang=='en')$lang=$tLang;
-                $date = date('Ymd');
-                if (!$this->user->info['id'])
-                {
-                    if ($email && $this->isEmail($email) )
-                    {
-                        $_ret = Core\Model\NoSQL::instance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);
-                        if($_ret!==NoSQL::OK && $_ret!==NoSQL::ERR_RECORD_NOT_FOUND)
-                        {
-                            $this->fail("103");
-                        }
-                        else  
-                        {
-                            $send_email= false;
-                            $user_exists = false;
-                            if($_ret==NoSQL::OK)
-                            {
-                                if($user[Core\Model\ASD\USER_PASSWORD])
-                                {
-                                    $user_exists=true;
-                                }
-                                else
-                                {
-                                    $user_id = $user[\Core\Model\ASD\USER_PROFILE_ID]; //['ID'];
-                                    $opt = $user[\Core\Model\ASD\USER_OPTIONS];//json_decode($user['OPTS'], true);
-                                    if(isset($opt['validating']))
-                                    {
-                                        if(!isset($opt['validating'][$date]) || (isset($opt['validating'][$date]) && $opt['validating'][$date]<2))
-                                        {
-                                            $send_email=true;
-                                            if(isset($opt['lang']))$lang=$opt['lang'];
-                                        }
-                                    }
-                                    else
-                                    {
-                                        $send_email=true;
-                                        if(isset($opt['lang']))$lang=$opt['lang'];
-                                    }                                    
-                                }
-                            }
-                            else
-                            {  
-                                //create new record
-                                $send_email=true;
-                            }
-                            
-                            if($user_exists)
-                            {
-                                $this->fail('103');
-                            }
-                            elseif(!$send_email)
-                            {
-                                $this->fail('104');
-                            }
-                            else
-                            {                                
-                                if(!$user_id)
-                                {
-                                    $user = $this->user->createNewByEmail($email);
-                                    if($user && !empty($user))
-                                    {
-                                        $user_id = $user[\Core\Model\ASD\USER_PROFILE_ID];
-                                        $opt = $user[\Core\Model\ASD\USER_OPTIONS];
-                                    }
-                                }
-                                if($user_id)
-                                {
-                                    require_once $this->dir.'/bin/utils/MourjanMail.php';
-                                    $mailer=new MourjanMail($this->urlRouter->cfg, $lang);
-
-                                    $verifyLink='';
-
-                                    $sessionKey=md5($this->sid.$user_id.time());
-                                    if(isset($opt['accountKey']))
-                                    {
-                                        $sessionKey=$opt['accountKey'];
-                                    }
-                                    $sKey=$this->user->encodeRequest('reset_password',array($user_id));
-                                    $verifyLink=$this->host.'/a/'.($lang=='ar'?'':$lang.'/').'?k='.$sKey.'&key='.urlencode($sessionKey);
-
-                                    if ($mailer->sendNewAccount($email,$verifyLink)){
-                                        if(!isset($opt['validating'])) $opt['validating'] = array();
-                                        if(isset($opt['validating'][$date]) && is_numeric($opt['validating'][$date])){
-                                            $opt['validating'][$date]++;
-                                        }else{
-                                            $opt['validating'][$date]=1;
-                                        }
-                                        $opt['accountKey']=$sessionKey;
-                                        $this->user->updateOptions($user_id,$opt);
-                                        $this->process();
-                                    }
-                                    else
-                                    {
-                                        $this->fail('105');
-                                    }
-                                }
-                                else
-                                {
-                                    $this->fail('106');
-                                }
-                            }
-                        }
-                    }
-                    else $this->fail("102");
+                else {                    
+                    $this->error(self::ERR_USER_UNAUTHORIZED);
                 }
-                else $this->fail('101');
                 break;
                 
             case 'ajax-js-error':
