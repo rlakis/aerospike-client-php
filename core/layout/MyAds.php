@@ -8,12 +8,12 @@ use Core\Model\AdList;
 class MyAds extends Page {
     
     private $adList;
-    var $subSection='',$userBalance=0, $redis = null, $admins_online=[];
+    var $subSection='', $userBalance=0, $redis=null, $admins_online=[];
     
     var $editors = [
         1 => 'Bassel', 43905 => 'Bassel',
         2 => 'Robert', 69905 => 'Robert',
-        2100 => 'Nooralex',
+        2100 => 'Nooralex', 123391 => 'Moe',
         477618 => 'Samir',
         38813 => 'Editor 1',
         44835 => 'Editor 2',
@@ -99,10 +99,11 @@ class MyAds extends Page {
 
     
     function assignAdToAdmin($ad_id, $admin_id) {
-        $admin_id = 0;
-        if ($this->redis && count($this->admins_online)) {
-            $redis = $this->redis;
-            $ad = $redis->mGet(array('AD-'.$ad_id));
+        $admin_id=0;
+        if ($this->redis && \count($this->admins_online)) {
+            //\error_log(json_encode($this->admins_online));
+            $redis=$this->redis;
+            $ad=$redis->mGet(array('AD-'.$ad_id));
             if ($ad[0]===false) {
                 
                 $lastIndex = $redis->mGet(array('LAST_IDX'));
@@ -126,9 +127,9 @@ class MyAds extends Page {
                 $redis->setex('LAST_IDX', 86400, $lastIndex);                
             }
             else {
-                $admin_id = $ad[0];
+                $admin_id=$ad[0];
             }
-            $admin_id = substr($admin_id,6)+0;
+            $admin_id=substr($admin_id,6)+0;
         }
         return $admin_id;
     }
@@ -389,15 +390,16 @@ class MyAds extends Page {
                 ?><span class="hvn50okt2 d2d9s5pl1g n2u2hbyqsn"><?= $isSuperUser ? '<a href="'. $link .'69905">Robert</a>' : 'Robert' ?></span><?php
                 ?><span class="f3iw09ojp5 a1zvo4t2vk"><?= $isSuperUser ? '<a href="'. $link .'1">Bassel</a>' : 'Bassel' ?></span><?php
                 ?><span class="a1zvo4t4b8"><?= $isSuperUser ? '<a href="'. $link .'2100">Nooralex</a>':'Nooralex' ?></span><?php
+                ?><span class="f3iw09r6wn"><?= $isSuperUser ? '<a href="'. $link .'2100">Moe</a>':'Moe' ?></span><?php
                 ?><span class="n2u2hc8xil"><?= $isSuperUser ? '<a href="'. $link .'477618">Samir</a>':'Samir'?></span><?php
-                ?><span class="x1arwhzqsl"><?= $isSuperUser ? '<a href="'. $link .'38813">Editor 1</a>':'Editor 1'?></span><?php
-                ?><span class="d2d9s5p1p2"><?= $isSuperUser ? '<a href="'. $link .'44835">Editor 2</a>':'Editor 2'?></span><?php
-                ?><span class="b2ixe8tahr"><?= $isSuperUser ? '<a href="'. $link .'53456">Editor 3</a>':'Editor 3'?></span><?php
-                ?><span class="hvn50s5hk"><?= $isSuperUser ? '<a href="'. $link .'166772">Editor 4</a>':'Editor 4'?></span><?php
-                ?><span class="j1nz09nf5t"><?= $isSuperUser ? '<a href="'. $link .'516064">Editor 5</a>':'Editor 5'?></span><?php
-                ?><span class="x1arwii533"><?= $isSuperUser ? '<a href="'. $link .'897143">Editor 6</a>':'Editor 6'?></span><?php
-                ?><span class="hvn517t2q"><?= $isSuperUser ? '<a href="'. $link .'897182">Editor 7</a>':'Editor 7'?></span><?php
-                ?><span class="hvn51amkw"><?= $isSuperUser ? '<a href="'. $link .'1028732">Editor 8</a>':'Editor 8'?></span><?php
+                ?><span class="x1arwhzqsl"><?= $isSuperUser ? '<a href="'. $link .'38813">Editor 1</a>':'Editor1'?></span><?php
+                ?><span class="d2d9s5p1p2"><?= $isSuperUser ? '<a href="'. $link .'44835">Editor 2</a>':'Editor2'?></span><?php
+                ?><span class="b2ixe8tahr"><?= $isSuperUser ? '<a href="'. $link .'53456">Editor 3</a>':'Editor3'?></span><?php
+                ?><span class="hvn50s5hk"><?= $isSuperUser ? '<a href="'. $link .'166772">Editor 4</a>':'Editor4'?></span><?php
+                ?><span class="j1nz09nf5t"><?= $isSuperUser ? '<a href="'. $link .'516064">Editor 5</a>':'Editor5'?></span><?php
+                ?><span class="x1arwii533"><?= $isSuperUser ? '<a href="'. $link .'897143">Editor 6</a>':'Editor6'?></span><?php
+                ?><span class="hvn517t2q"><?= $isSuperUser ? '<a href="'. $link .'897182">Editor 7</a>':'Editor7'?></span><?php
+                ?><span class="hvn51amkw"><?= $isSuperUser ? '<a href="'. $link .'1028732">Editor 8</a>':'Editor8'?></span><?php
                 echo '</div>';                               
             }
             
@@ -865,7 +867,7 @@ class MyAds extends Page {
                 // new look
                 echo "\n",'<article id=', $cad->id(), ' class="', $adClass, '" data-status=', $cad->state(), ' data-fetched=0';
                 
-                if ($isAdmin) { echo ' data-ro=', $cad->rootId(), ' data-se=', $cad->sectionId(), ' data-pu='.$cad->purposeId(); }
+                if ($isAdmin) { echo ' data-ro=', $cad->rootId(), ' data-se=', $cad->sectionId(), ' data-pu='.$cad->purposeId(), ' data-uid='.$cad->uid(); }
                 echo ' data-hl="', $cad->dataset()->getUserLanguage(), '"'; 
                 echo '>';
                 echo '<header>';

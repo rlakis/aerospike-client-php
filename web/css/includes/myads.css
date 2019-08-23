@@ -41,7 +41,7 @@
 .myad section.ar > img {float:right;margin:0 0 5px 10px;border:0}
 .myad section.en > img {float:left;margin:0 10px 5px 0;border:0}
 
-.myad .pn.png{color:darkgreen}
+.myad .pn.png{color:darkgreen;font-weight:bolder}
 
 .myadls .inline{width:100%;padding:4px;font-size:1.2rem;text-align:center;display:none}
 .myadls .inline > textarea{width:100%;height:100px;line-height: 1.5em; font-size: 1em}

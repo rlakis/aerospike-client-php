@@ -149,7 +149,7 @@ class Admin extends Page {
             //\Core\Model\NoSQL::instance()->getProfile($user, $record);
             //$this->user()->getProfile();
             
-            $this->userdata = [$this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUser($this->uid))];
+            $this->userdata=[$this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUser($this->uid))];
 
             if ($uuid) { $this->uid = $uuid; }
             if ($isEmail) { $this->uid = $email; }
@@ -157,7 +157,7 @@ class Admin extends Page {
         else {
             $parameter = filter_input(INPUT_GET, 't', FILTER_SANITIZE_NUMBER_INT, ['options' => ['default' => 0]]);
             if ($parameter) {
-                $this->userdata = [];
+                $this->userdata=[];
                 if (\Core\Model\NoSQL::instance()->mobileGetLinkedUIDs($parameter, $uids) == Core\Model\NoSQL::OK) {
                     if (count($uids)) {
 
@@ -194,10 +194,10 @@ class Admin extends Page {
                 }
             } else {
                 if ($this->aid) {
-                    $this->userdata = [];
+                    $this->userdata=[];
                     Config::instance()->incLibFile('MCSaveHandler');
                     $handler = new MCSaveHandler();
-                    $this->userdata = $handler->checkFromDatabase($this->aid);
+                    $this->userdata=$handler->checkFromDatabase($this->aid);
                     //$uids = \Core\Model\NoSQL::instance()->mobileGetLinkedUIDs($parameter);
                     //foreach ($uids as $bins) 
                     {
@@ -207,7 +207,7 @@ class Admin extends Page {
             }
         }
         
-        if (\is_array($this->userdata) && \count($this->userdata)>0) {            
+        if (\is_array($this->userdata) && \count($this->userdata)>0 && isset($this->userdata[0]['id'])) {
             $rs=$this->router()->database()->queryResultArray(
                     'select b.BRN, a.NAME_AR as agent_name_ar, a.NAME_EN as agent_name_en, o.NAME_AR as co_name_ar, 
                     o.NAME_EN as co_name_en, a.TELEPHONE, a.MOBILE, o.EMIRATE, o.orn,
@@ -224,9 +224,9 @@ class Admin extends Page {
             }
         }
 
-        if ($release === -1) {
+        if ($release===-1) {
             unset($_GET['a']);
-            $url = '';
+            $url='';
 
             foreach ($_GET as $key => $value) {
                 if ($url) {
@@ -370,6 +370,7 @@ class Admin extends Page {
         //$this->renderSideUserPanel();
     }
 
+    
     function renderSideAdmin() {
         $sub = $this->sub;
         $lang = $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage . '/';
@@ -403,16 +404,19 @@ class Admin extends Page {
         echo '</ul>';
     }
 
+    
     function unixTimestampToDateTime(int $ts): string {
         $date = new DateTime();
         $date->setTimestamp($ts);
         return $date->format("Y-m-d H:i:s T");
     }
 
+    
     function mainMobile() {
         
     }
 
+    
     function main_pane() {
 
         switch ($this->sub) {
@@ -1442,7 +1446,7 @@ $.ajax({
         ?></li><?php
         ?></ul><?php
 
-        if ($this->userdata && count($this->userdata) && (($this->aid== 0 && $this->userdata[0]) || ($this->aid))) {
+        if ($this->userdata && count($this->userdata) && (($this->aid==0 && $this->userdata[0]) || ($this->aid))) {
             if ($this->aid==0) {
                 foreach ($this->userdata as $record) {
                     $this->parseUserRecordData($record, $lang);
@@ -1450,18 +1454,20 @@ $.ajax({
                 }
             } 
             else {
-                
-                $str = preg_replace_callback('/\\\\u([0-9a-fA-F]{4})/', 
+                $str=\preg_replace_callback('/\\\\u([0-9a-fA-F]{4})/', 
                             function ($match) {
-                                return mb_convert_encoding(pack('H*', $match[1]), 'UTF-8', 'UTF-16BE');
+                                return \mb_convert_encoding(pack('H*', $match[1]), 'UTF-8', 'UTF-16BE');
                             }, 
-                            json_encode($this->userdata, JSON_FORCE_OBJECT));
-
-                $this->userdata = json_decode(str_replace('class=\"pn\"', 'class=pn', $str));
-                if (isset($this->userdata->TITLE)) { unset($this->userdata->TITLE); }
-                ?><script>
-                    var userRaw='<?= json_encode($this->userdata) ?>';
-                </script><?php
+                            \json_encode($this->userdata, JSON_FORCE_OBJECT));
+                $str=\strip_tags(\addcslashes($str, "'"));
+                //$this->userdata=\json_decode(str_replace('class=\"pn\"', 'class=pn', $str));
+                //$this->userdata=\json_decode(\addcslashes(\strip_tags($str), "'"));
+                //if (isset($this->userdata->TITLE)) { unset($this->userdata->TITLE); }
+                //\error_log(__LINE__);
+                //\error_log(\json_encode($this->userdata));
+            
+                echo "\n<script>var userRaw='", $str, "';</script>\n";
+              
                 //echo json_encode($this->userdata, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
             }
 
@@ -1587,6 +1593,25 @@ $.ajax({
         echo '</div>';
         ?></div></div></div><?php
         echo '<div id=userDIV dir=ltr></div>';
+        
+        ?><div class=body><div class="popup-container okcancel animated bounceInUp"><div class=popup></div>
+        <!--<a class="signup" href="">Sign Up</a>-->
+        <a href="" class=xbtn>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg></a>
+<form action="">
+  <h2>Login</h2>
+  <input type="text" placeholder="Email" >
+  <input type="password" placeholder="Password">
+</form>
+  <button class="facebook"><svg viewBox="0 0 512 512"><path d="M211.9 197.4h-36.7v59.9h36.7V433.1h70.5V256.5h49.2l5.2-59.1h-54.4c0 0 0-22.1 0-33.7 0-13.9 2.8-19.5 16.3-19.5 10.9 0 38.2 0 38.2 0V82.9c0 0-40.2 0-48.8 0 -52.5 0-76.1 23.1-76.1 67.3C211.9 188.8 211.9 197.4 211.9 197.4z"/></svg></button>
+  <button class="twitter"><svg viewBox="0 0 512 512"><path d="M419.6 168.6c-11.7 5.2-24.2 8.7-37.4 10.2 13.4-8.1 23.8-20.8 28.6-36 -12.6 7.5-26.5 12.9-41.3 15.8 -11.9-12.6-28.8-20.6-47.5-20.6 -42 0-72.9 39.2-63.4 79.9 -54.1-2.7-102.1-28.6-134.2-68 -17 29.2-8.8 67.5 20.1 86.9 -10.7-0.3-20.7-3.3-29.5-8.1 -0.7 30.2 20.9 58.4 52.2 64.6 -9.2 2.5-19.2 3.1-29.4 1.1 8.3 25.9 32.3 44.7 60.8 45.2 -27.4 21.4-61.8 31-96.4 27 28.8 18.5 63 29.2 99.8 29.2 120.8 0 189.1-102.1 185-193.6C399.9 193.1 410.9 181.7 419.6 168.6z"/></svg></button>
+  <button class="button button-with-icon">
+      <i class="icn icnsmall icn-bars"></i>Cancel
+  </button>
+</div></div>        
+        <?php
     }
 
     

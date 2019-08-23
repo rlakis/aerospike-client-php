@@ -13,14 +13,6 @@ class Doc extends Page{
             $this->checkBlockedAccount();            
         }
                            
-        //if ($this->router()->module=='publication-prices') {
-        //    if ($this->router()->isArabic()) { 
-        //        $this->inlineCss.='.doc ul{list-style:none;margin:0 !important;overflow:hidden}.doc li{float:right;padding:5px;border-left:1px solid #CCC;border-bottom:1px solid #CCC}.doc li.h{font-weight:bold;background-color:#143D55 !important;color:#fff;font-size:13px;border-left:1px solid #fff}.h.v4{border-left:1px solid #CCC !important}li.v1,li.v2,li.v3,li.v4{border-top:1px solid #ccc;background-color:#143D55;color:#FFF}li.h.v1,li.h.v2,li.h.v3,li.h.v4{border-bottom:0}li.v1{width:247px;border-right:1px solid #ccc}li.v2{width:89px;text-align:center}li.v3{width:109px;text-align:center}li.v4{width:259px}ul a{color:#FFF}li.v10,li.v11,li.v12,li.v13,li.v14,li.v15,li.v16{text-align:center;width:85px;font-size:11.5px !important}li.h.v10,li.h.v11,li.h.v12,li.h.v13,li.h.v14,li.h.v15,li.h.v16{background-color:#3087B4 !important;border-top:0}li.v10{margin-right:50px;width:197px;text-align:right;border-right:1px solid #CCC}li.v11{width:70px}li.v12{width:74px}li.v15{width:121px}li.v15,li.v14{direction:ltr}li.h.v15,li.h.v14{direction:rtl}.h.v15{border-left:1px solid #CCC !important}li.br{width:100%;clear:both;border:0;height:25px;}li.v20{margin-right:50px;width:687px;border-right:1px solid #CCC;text-align:center;border-bottom:1px solid #369}.bv{background-color:#F8F8F8}';
-        //    }
-        //    else {
-        //        $this->inlineCss.='.doc ul{list-style:none;margin:0 !important;overflow:hidden}.doc li{float:left;padding:5px;border-right:1px solid #CCC;border-bottom:1px solid #CCC}.doc li.h{font-weight:bold;background-color:#143D55 !important;color:#fff;font-size:11px;border-right:1px solid #fff}.h.v4{border-right:1px solid #CCC !important}li.v1,li.v2,li.v3,li.v4{border-top:1px solid #ccc;background-color:#143D55;color:#FFF}li.h.v1,li.h.v2,li.h.v3,li.h.v4{border-bottom:0}li.v1{width:247px;border-left:1px solid #ccc}li.v2{width:89px;text-align:center}li.v3{width:109px;text-align:center}li.v4{width:259px}ul a{color:#FFF}li.v10,li.v11,li.v12,li.v13,li.v14,li.v15,li.v16{text-align:center;width:85px;font-size:11px !important}li.h.v10,li.h.v11,li.h.v12,li.h.v13,li.h.v14,li.h.v15,li.h.v16{background-color:#3087B4 !important;border-top:0}li.v10{margin-left:50px;width:197px;text-align:left;border-left:1px solid #CCC}li.v11{width:70px}li.v12{width:84px}li.v14{width:75px}li.v15{width:121px}.h.v15{border-right:1px solid #CCC !important}li.br{width:100%;clear:both;border:0;height:25px;}li.v20{margin-left:50px;width:687px;border-left:1px solid #CCC;text-align:center;border-bottom:1px solid #369}.bv{background-color:#F8F8F8}'; 
-        //    }
-        //}
 /*
         if ($this->router()->module=='premium') {
             $this->inlineCss.='
@@ -825,10 +817,10 @@ class Doc extends Page{
 ?><div class=col-12 itemscope itemtype="https://schema.org/LocalBusiness">
     <div itemprop="address" itemscope itemtype="https://schema.org/PostalAddress" class="card-footer">
         <div class="addr float-left"><img itemprop="image" width="130" height="90" src="<?= $this->router()->config()->cssURL ?>/i/logo<?= $this->router()->_jpg ?>" alt="Berysoft logo" /></div>
-        <div class="addr float-left" style="padding-inline-end:20px;border-right:1px #CCC solid; -webkit-padding-end:20px"><b itemprop="name">mourjan.com</b><br>
+        <div class="addr float-left xr-border" style="padding-inline-end:20px;-webkit-padding-end:20px"><b itemprop="name">mourjan.com</b><br>
             <span itemprop="streetAddress"><?= $streetAddress ?></span><br><span itemprop="addressLocality"><?= $addressLocality ?></span><?= $comma ?><span itemprop="addressCountry"><?= $addressCountry ?></span>
         </div>
-        <div class="addr float-left" style="margin: 0 8px;padding-inline-end:20px;border-right:1px #CCC solid; -webkit-padding-end:20px">
+        <div class="addr float-left xr-border" style="margin: 0 8px;padding-inline-end:20px;-webkit-padding-end:20px">
             <label><?=$this->lang['labelP1'] ?>&nbsp;/&nbsp;<?=$addressCountry?>:&nbsp;</label><span itemprop="telephone">+961 70 424 018</span><br>
             <label><?=$this->lang['labelP1'] ?>&nbsp;/&nbsp;<?=$egypt?>:&nbsp;</label>&nbsp;&nbsp;&nbsp;<span itemprop="telephone">+20 109 136 5353</span>
         </div>

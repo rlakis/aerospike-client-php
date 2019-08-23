@@ -157,11 +157,11 @@ trait UserTrait {
                     $bins=$record['bins'];                    
                     
                     try {
-                        
-                        include_once \Prefs::$dir . '/config/cfg.php';
-                        include_once \Prefs::$dir . '/core/model/Db.php';
-                        global $config;
-                        $DB = new \Core\Model\DB($config);
+                        \Config::instance()->incModelFile('DB');
+                        //include_once \Prefs::$dir . '/config/cfg.php';
+                        //include_once \Prefs::$dir . '/core/model/Db.php';
+                        //global $config;
+                        $DB=new \Core\Model\DB(false);
 
                         $db_q = "UPDATE OR INSERT INTO WEB_USERS " .
                             "(ID, IDENTIFIER, EMAIL, PROVIDER, FULL_NAME, DISPLAY_NAME, " .
@@ -190,7 +190,7 @@ trait UserTrait {
                         unset($stmt);                                            
                     } 
                     catch (Exception $ex) {
-                        error_log($ex->getMessage());
+                        \error_log($ex->getMessage());
                     }                                        
                 }
             }

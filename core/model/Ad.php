@@ -736,10 +736,16 @@ class Ad {
             */
             
             $user = Router::instance()->user();
-            if ($user!==null && $user->id()>0) {
+            if ($user!==null && $user->id()>0) {                
                 if ($user->id()===$this->dataset->getUID()) {
                     $this->dataset->setUserLevel($user->level());
                 }
+                else {
+                    \Config::instance()->incLibFile('MCUser');
+                    $u=new \MCUser($this->dataset->getUID());
+                    $this->dataset->setUserActivatedMobileNumber($u->getMobileNumber());                    
+                }
+                
             }
         }
     }

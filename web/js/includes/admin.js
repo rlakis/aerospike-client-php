@@ -1,5 +1,6 @@
+let $=document;
 if(typeof userRaw==='string'){
-    var wrapper = document.getElementById("userDIV");
+    var wrapper = $.getElementById("userDIV");
     try {
         var data = JSON.parse(userRaw); 
         console.log(data);
@@ -15,3 +16,14 @@ if(typeof userRaw==='string'){
         console.log(e);
     }
 }
+
+
+suspend=function(u,e){
+    console.log(u, e);
+};
+
+block=function(u,e){
+    let modal=$.querySelector('div.body');    
+    modal.classList.add('flex');
+    console.log(modal.querySelector('style'));
+};

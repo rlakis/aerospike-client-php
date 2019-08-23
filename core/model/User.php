@@ -87,40 +87,41 @@ class User {
     }
     
     
-    function decodeRequest($key) {
-        $params=array('request'=>'', 'params'=>array());
-        $charToInt=array('a'=>0,'f'=>1,'h'=>2,'x'=>3,'j'=>4,'d'=>5,'b'=>6,'o'=>7,'n'=>8,'k'=>9);
+    function decodeRequest(string $key) {
+        $params=['request'=>'', 'params'=>[]];
+        $charToInt=['a'=>0,'f'=>1,'h'=>2,'x'=>3,'j'=>4,'d'=>5,'b'=>6,'o'=>7,'n'=>8,'k'=>9];
         $matches=null;
-        preg_match('/^([0-9]*)/', $key, $matches);
-        if($matches && count($matches)) {
-            $paramsLen = $matches[1];
-            $key = substr($key, strlen($paramsLen)+1);
-            $paramsLen = (int)$paramsLen;
+        \preg_match('/^([0-9]*)/', $key, $matches);
+        if($matches && \count($matches)) {
+            $paramsLen=$matches[1];
+            $key=\substr($key, \strlen($paramsLen)+1);
+            $paramsLen=(int)$paramsLen;
             
-            for ($k=0;$k<$paramsLen;$k++) { 
+            for ($k=0; $k<$paramsLen; $k++) { 
                 $matches=null;
-                preg_match('/^([0-9]*)/',$key,$matches);
+                \preg_match('/^([0-9]*)/',$key, $matches);
                 
-                if ($matches && count($matches)) {
-                    $idLen = $matches[1];
-                    $key = substr($key, strlen($idLen));
+                if ($matches && \count($matches)) {
+                    $idLen=$matches[1];
+                    $key=\substr($key, \strlen($idLen));
 
-                    $idLen = (int)$idLen;
-                    $idx = $key[0];
+                    $idLen=(int)$idLen;
+                    $idx=$key[0];
                     
                     if (isset($charToInt[$idx])) {
-                        $idx = $charToInt[$idx];
-                        $key = substr($key, 1);
+                        $idx=$charToInt[$idx];
+                        $key=\substr($key, 1);
                         $rId='';
                         for ($i=$idLen-1;$i>=0;$i--) {
                             $x=$this->encryptIdx[$idx][$i];
                             $rId=$key[$x].$rId;
-                            if ($x) {
-                                $key = substr($key, 0, $x).substr($key, $x+1);
-                            }
-                            else { 
-                                $key = substr($key, 1);
-                            }
+                            $key=$x?\substr($key, 0, $x).\substr($key, $x+1):\substr($key, 1);
+//                            if ($x) {
+//                                $key = substr($key, 0, $x).substr($key, $x+1);
+//                            }
+//                            else { 
+//                                $key = substr($key, 1);
+//                            }
                         }
                         $params['params'][]=$this->decodeId($rId);
                     }
@@ -144,8 +145,8 @@ class User {
             return false;
         }
         
-        if (count($params['params'])) {
-            $params['params']=array_reverse($params['params']);
+        if (\count($params['params'])) {
+            $params['params']=\array_reverse($params['params']);
         }
         return $params;
     }
@@ -320,8 +321,8 @@ class User {
     }
     
     
-    function isSuperUser() {
-        return in_array($this->info['id'], [1, 2, 2100, 69905]);
+    function isSuperUser() : bool {
+        return \in_array($this->info['id'], [1, 2, 2100, 69905, 123391]);
     }
     
     
@@ -486,33 +487,32 @@ class User {
     }
 
 
-    function updatePassword($pass) {
+    function updatePassword(string $pass) : bool {
         $this->db->setWriteMode();
-        $original = $pass;
-        $userId = $this->pending['user_id'];
-        $pass = md5($this->md5_prefix.$pass);
+        $original=$pass;
+        $userId=$this->pending['user_id'];
+        $hash=\md5($this->md5_prefix.$pass);
         $passOk=0;
-        $bins = \Core\Model\NoSQL::instance()->fetchUser($userId);
-        if (!empty($bins) && \Core\Model\NoSQL::instance()->setPassword($userId, $pass)) {
-            $opt = $bins[Core\Model\ASD\USER_OPTIONS];
-            if(isset($opt['validating'])) unset($opt['validating']);
-            if(isset($opt['resetting'])) unset($opt['resetting']);
-            if(isset($opt['accountKey'])) unset($opt['accountKey']);
-            if(isset($opt['resetKey'])) unset($opt['resetKey']);
-            if(is_null($opt) || count($opt)==0) $opt=array();
+        $bins=\Core\Model\NoSQL::instance()->fetchUser($userId);
+        if (!empty($bins) && \Core\Model\NoSQL::instance()->setPassword($userId, $hash)) {
+            $opt=$bins[Core\Model\ASD\USER_OPTIONS];
+            if (isset($opt['validating'])) { unset($opt['validating']); }
+            if (isset($opt['resetting'])) { unset($opt['resetting']); }
+            if (isset($opt['accountKey'])) { unset($opt['accountKey']); }
+            if (isset($opt['resetKey'])) { unset($opt['resetKey']); }
+            if (\is_null($opt) || \count($opt)==0) $opt=[];
             $this->updateOptions($bins[\Core\Model\ASD\USER_PROFILE_ID], $opt);
             
-            if(isset($this->pending['user_id']))unset($this->pending['user_id']);
-            if($this->sysAuthById($bins[\Core\Model\ASD\USER_PROFILE_ID])) {
+            if (isset($this->pending['user_id'])) { unset($this->pending['user_id']); }
+            if ($this->sysAuthById($bins[\Core\Model\ASD\USER_PROFILE_ID])) {
                 $passOk=1;
             }
             else {
-                $passOk=0;
-                error_log('password reset sysauth failure | >'.$userId .':'.$original.'< >'.$pass.'<'."\n", 3, "/var/log/mourjan/password.log");
+                \error_log('password reset sysauth failure | >'.$userId .':'.$original.'< >'.$hash.'<'."\n", 3, "/var/log/mourjan/password.log");
             }
         }
         else {
-            error_log('password reset failed > on query | >'.$userId .':'.$original.'< >'.$pass.'<'."\n", 3, "/var/log/mourjan/password.log");
+            \error_log('password reset failed > on query | >'.$userId .':'.$original.'< >'.$hash.'<'."\n", 3, "/var/log/mourjan/password.log");
         }
         
         return $passOk;
@@ -2000,9 +2000,7 @@ class User {
     
     
     function sysAuthById(int $id) : bool {
-        if ($this->session_id==='') {
-            $this->session_id=session_id();
-        }
+        if ($this->session_id==='') { $this->session_id=session_id(); }
         $bins = Core\Model\NoSQL::instance()->fetchUser($id);
         if (isset($bins[\Core\Model\ASD\USER_PROFILE_ID])) {
             $pv = $bins[Core\Model\ASD\USER_LAST_VISITED] ?? 0;
@@ -2498,21 +2496,14 @@ class User {
     }
     
 
-    function updateOptions($id=0, $options=null) {
+    function updateOptions(int $id=0, $options=null) : bool {
         $succeed=false;
-        if (!is_null($options) && is_array($options)) {
-            $options = json_encode($options);
-        } 
-        else {
-            $options = json_encode($this->info['options']);
-        }
+        $opt=\json_encode((!\is_null($options) && \is_array($options))?$options:$this->info['options']);        
         
-        if (!$id) {
-            $id= $this->info['id'];
-        }
+        if ($id===0) { $id=$this->id(); }
         
-        if (\Core\Model\NoSQL::instance()->setUserBin($id, Core\Model\ASD\USER_OPTIONS, json_decode($options, TRUE))) {
-            $succeed = TRUE;            
+        if ($id>0 && \Core\Model\NoSQL::instance()->setUserBin($id, Core\Model\ASD\USER_OPTIONS, \json_decode($opt, TRUE))) {
+            $succeed=TRUE;
         }
                 
         return $succeed;

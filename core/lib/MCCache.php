@@ -93,6 +93,11 @@ class MCCache extends \Redis {
     }
 
     
+    function delete($key, ...$other_keys) : int {
+        return $this->master()->delete($key);
+    }
+    
+    
     private function master() : \Redis {
         if (\Config::instance()->serverId==1) {
             return parent;

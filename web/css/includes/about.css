@@ -1,8 +1,17 @@
 
-
 .card-doc .col-9{display: block;}
 .card-doc .col-3{display: block;padding-inline-start:40px;}
-.card-doc .addr{height: 92px;}
+.card-doc .addr{height: 94px;}
+
+@media only screen and (max-width: 769px) {
+    .card-doc .card-footer{flex-direction: row}
+}
+
+@media only screen and (max-width: 600px) {
+    .card-doc .card-footer{flex-direction: column}
+    .xr-border{border-right:0;}
+}
+
 /*
 span.ctr{display:block}
 .card-doc ul {display: inline-block};

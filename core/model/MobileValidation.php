@@ -153,8 +153,17 @@ class MobileValidation {
         
     
     public function getNumberCountryCode(int $number) : int {
-        $num = \libphonenumber\PhoneNumberUtil::getInstance()->parse("+{$number}", 'LB');
+        $num = \libphonenumber\PhoneNumberUtil::getInstance()->parse("+{$number}", '');
         return $num->getCountryCode();
+    }
+    
+    
+    public function getNumberRegionCode(int $number) : string {
+        $num = \libphonenumber\PhoneNumberUtil::getInstance()->parse("+{$number}", '');
+        return \libphonenumber\PhoneNumberUtil::getInstance()->getRegionCodeForNumber($num);
+        //$geoCoder = \libphonenumber\geocoding\PhoneNumberOfflineGeocoder::getInstance();
+        //$geoCoder->getDescriptionForNumber($number, $locale)
+        //return $num->getCountryCodeSource();
     }
     
     

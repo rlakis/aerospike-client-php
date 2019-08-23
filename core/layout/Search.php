@@ -1155,13 +1155,16 @@ class Search extends Page {
                     $ad=$ad[0];
                     $content=json_decode($ad['CONTENT'], true);
                     $clang = $content['rtl'] ? 'ar' : 'en';
-                    ?><div style="height:auto;background-image:none;background-color:#FFF;width:320px;position:fixed;top:0;left:0;z-index:100000;border:4px solid #000"><?php
+                    ?><div class=compare id="<?= $ad['ID'] ?>" style="height:auto;background-image:none;background-color:#FFF;width:320px;position:fixed;top:0;left:0;z-index:100000;border:4px solid #000"><?php
                     ?><p class="<?= $clang ?>" style="height:auto;padding:4px;line-height: 1.5em;"><?= $content['other'] ?></p><?php 
                     if (isset($content['altother']) && $content['altother']!='') {
                         $clang = $content['altRtl'] ? 'ar' : 'en';
                         ?><p class="<?= $clang ?>" style="height:auto;margin-top:5px;border-top:1px solid #999;padding:5px;"><?= $content['altother'] ?></p><?php 
                     }
                     ?><div class=tbs style="margin-top:5px;padding:0 5px;border-top:1px solid #ccc;line-height:30px;height:30px;background-color:#bdc9dc;overflow:hidden;color:#333;"><?= $this->getAdCmpSection($ad) ?></div><?php
+                    $count=$this->searchResults['body']['total_found'];
+                    
+                    ?><div style="margin:5px"><?= $this->formatPlural($count, 'ad');?></div><?php
                     ?></div><?php
                 }
             }
@@ -1994,7 +1997,7 @@ class Search extends Page {
             
     
     function summarizeSearch(bool $forceRebuild=false) : string {
-        $count = $this->searchResults['body']['total_found'];
+        $count=$this->searchResults['body']['total_found'];
         $adLang='';
         if (!$this->router()->isArabic()) { $adLang=$this->router()->language.'/'; }
         if ($this->router()->watchId) {

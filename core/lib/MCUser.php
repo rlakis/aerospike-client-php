@@ -684,15 +684,16 @@ class MCMobile extends MCJsonMapper {
     public function getSuspendSeconds() : int {
         $ttl = 0;
         if ($this->number) {
-            $redis = new \Redis();            
-            if ($redis->connect('138.201.28.229', 6379, 2, NULL, 20)) {
+            $redis=new \Redis;            
+            if ($redis->connect('138.201.28.229', 6379, 2, NULL, 50)) {
                 $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
                 $redis->setOption(\Redis::OPT_PREFIX, 'mm_');
                 $redis->setOption(\Redis::OPT_READ_TIMEOUT, 10);
             
                 $ttl = $redis->ttl($this->number); 
-                if($ttl<0) { $ttl=0; }
+                if($ttl<0) { $ttl=0; }                
             }
+            $redis->close();
         }
         return $ttl;
     }

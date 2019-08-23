@@ -1,4 +1,17 @@
 var ALT=false, MULTI=false, socket;
+const channel = new BroadcastChannel('admin');
+channel.onmessage = function(e) {
+    const message=e.data;
+    console.log(message, d.currentId);
+    if (message.hasOwnProperty('articleId') && d.isSafe(message.articleId)) {
+        let cad=byId(d.currentId);
+        d.reject(cad, d.ad.dataset.uid);
+        let rta=cad.querySelector('textarea#rejT');
+        rta.focus();
+        rta.value=message.rejectURL;
+    }
+};
+
 Element.prototype.article=function(){ let i=this; return i.closest('article'); };
 
 $.addEventListener("DOMContentLoaded", function () {
@@ -277,8 +290,8 @@ var d = {
     
     approve: function (e, rtpFlag) {        
         if(!this.isSafe(e.article().id))return;
-        var data = {i: parseInt(this.currentId)};
-        if (typeof rtpFlag!=='undefined') { data['rtp'] = rtpFlag; }
+        var data={i: parseInt(this.currentId)};
+        if (typeof rtpFlag!=='undefined') { data['rtp']=rtpFlag; }
         this.ad.mask(true);
         fetch('/ajax-approve/', _options('POST', data))
                 .then(res => res.json())
@@ -288,7 +301,8 @@ var d = {
                         this.ad.approved().removeMask();
                     }
                     else {
-                        console.log(response.error);
+                        console.log(response.error);                        
+                        d.items[e.article().id].mask().maskText(response.error);
                     }
                 })
                 .catch(error => {
@@ -374,7 +388,7 @@ var d = {
                             //ad.approved();
                         }
                         else {
-                            window.alert(response.error);
+                            d.items[article.id].mask().maskText(response.error);
                         }
                     })
                     .catch(error => {

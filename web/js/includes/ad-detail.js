@@ -1,8 +1,9 @@
-var wrapperTop=0;
+var wrapperTop=0,CTRL=false;
 
 const preventEventProp = (e) => { e.preventDefault(); e.stopPropagation(); return false; };
 const preventEventPropagation = (e) => {e.stopPropagation()};
 const preventModalTouch = (e) => { e.preventDefault(); e.stopPropagation(); return false; };
+
 var supportsOrientationChange = "onorientationchange" in window, orientationEvent = supportsOrientationChange ? "orientationchange" : "resize";
 window.addEventListener(orientationEvent, function() {
     if (adScreen){
@@ -11,6 +12,9 @@ window.addEventListener(orientationEvent, function() {
         adScreen._card.className='card col-'+(adScreen._modal.clientWidth<1200)?'8':'6';
     }
 });
+
+$.onkeydown = function (e) { CTRL=e.ctrlKey; }
+$.onkeyup = function() { CTRL=false; }
 $.addEventListener("DOMContentLoaded", function () {
     let c=$$.query('div#cards');
     if(c){
@@ -31,8 +35,8 @@ $.addEventListener("DOMContentLoaded", function () {
 });
 
 class AdScreen {
-    constructor(ad){        
-        wrapperTop=0;
+    constructor(ad){    
+        wrapperTop=0;        
         this.pixIndex=0;
         this.fullWidth=(window.innerWidth<=768);
         this.cui=JSON.parse(ad.dataset.cui);
@@ -41,19 +45,22 @@ class AdScreen {
         this.pics=[];
         if (ad.dataset.pics){this.pics = ad.dataset.pics.split(','); }
 
-        this._modal=this.newTag('div', 'modal'); this._modal.setAttribute('id', 'adScreen');
-        this._card=this.newTag('div', 'card col-6');
+        this._modal=this.newTag('div', 'modal'); 
+        this._modal.setAttribute('id', 'adScreen');
+        this._modal.dataset.id=ad.query('div.card-product').id;
+        this._card=this.newTag('div', (window.matchMedia('(max-width: 1200px)').matches)?'card col-8':'card col-6' /*'card col-6'*/);
+        
         if (this.pics.length===0||this.fullWidth) {
-            this._top = this.newTag('div', 'top'); 
+            this._top=this.newTag('div', 'top'); 
             this._card.appendChild(this._top);
         }
-        this._media = this.newTag('div', 'card-image');
-        this._body = this.newTag('div', 'card-content');
-        this._footer = this.newTag('div', 'card-footer');
-        this._close = this.newTag('span', 'close');
-        this._close.onclick = this.close;
+        this._media=this.newTag('div', 'card-image');
+        this._body=this.newTag('div', 'card-content');
+        this._footer=this.newTag('div', 'card-footer');
+        this._close=this.newTag('span', 'close');
+        this._close.onclick=this.close;
         if (this._top) {
-            this._close.className = 'close nopix';
+            this._close.className='close nopix';
             this._top.appendChild(this._close);
         }
         else {
@@ -69,7 +76,8 @@ class AdScreen {
         this._card.appendChild(this._footer);
         this._modal.appendChild(this._card);
         this._body.appendChild(ad.querySelectorAll('.adc')[0].cloneNode(true));
-        this._ad_slot = this.newTag('ins', 'adsbygoogle');
+        
+        this._ad_slot=this.newTag('ins', 'adsbygoogle');
         this._ad_slot.setAttribute('data-ad-client', 'ca-pub-2427907534283641');
         this._ad_slot.setAttribute('data-ad-slot', '7030570808');
         this._ad_slot.setAttribute('data-ad-format', 'auto');
@@ -79,17 +87,27 @@ class AdScreen {
             this.host=src.substring(0, src.indexOf('/repos/'));
         }
 
-        var ul = ad.querySelectorAll('.card-footer>ul');
+        var ul=ad.querySelectorAll('.card-footer>ul');
         if (ul.length){ this._links=ul[0].cloneNode(true); }
 
         if (ad.querySelectorAll('.cbox.cbl').length){
-            this._since = ad.querySelectorAll('.cbox.cbl')[0].textContent;
+            this._since=ad.querySelectorAll('.cbox.cbl')[0].textContent;
         }
 
         if (ad.querySelectorAll('.cbox.cbr').length){
-            this._pubType = ad.querySelectorAll('.cbox.cbr')[0].textContent;
+            this._pubType=ad.querySelectorAll('.cbox.cbr')[0].textContent;
         }
         
+        this._card.onclick=function(e) {
+            if(CTRL && e.target.classList.contains('card-description')){
+                let cmp=$.querySelector('div.compare');
+                if (cmp && cmp.id>0) {
+                    const channel=new BroadcastChannel('admin');
+                    channel.postMessage({articleId:cmp.id, rejectURL:'https://www.mourjan.com/'+e.target.closest('div#adScreen').dataset.id});
+                    channel.close();
+                }
+            }
+        }
         
     }
 
@@ -173,33 +191,33 @@ class AdScreen {
         this._close.innerHTML='&times;';
         this._footer.style.setProperty("text-align", "center");
         if (this.pics.length) {
-            var img = new Image();
-            img.src = this.host + '/repos/d/' + this.pics[0];
+            var img=new Image();
+            img.src=this.host + '/repos/d/' + this.pics[0];
             this._media.appendChild(img);
-            img.onload = function () {
+            img.onload=function () {
                 console.log('size: '+img.naturalWidth+'x'+img.naturalHeight);
                 console.log(img);
             }
         }
         else {
-            this._media.className = 'card-media';
+            this._media.className='card-media';
             this._media.style.setProperty('top', '8px');
             this._media.appendChild(this._ad_slot);
         }
 
-        var ch = this.newTag('div', 'contact');
+        var ch=this.newTag('div', 'contact');
         if (this.cui.p) {
             for (var i in this.cui.p) {
                 var btn;
                 if (this.cui.p[i].t===5) {
-                    btn = this.btn(this.cui.p[i].v, 'https://api.whatsapp.com/send?phone='+this.cui.p[i].n, 'whatsapp', '_blank');
+                    btn=this.btn(this.cui.p[i].v, 'https://api.whatsapp.com/send?phone='+this.cui.p[i].n, 'whatsapp', '_blank');
                 }
                 else {
-                    btn = this.btn(this.cui.p[i].v, 'tel:' + this.cui.p[i].v.replace(/\s/g, ''), 'phone');
+                    btn=this.btn(this.cui.p[i].v, 'tel:' + this.cui.p[i].v.replace(/\s/g, ''), 'phone');
                 }
                 ch.appendChild(btn);
                 if (this.cui.p[i].t===3) {
-                    btn = this.btn(this.cui.p[i].v, 'https://api.whatsapp.com/send?phone=' + this.cui.p[i].n, 'whatsapp', '_blank');
+                    btn=this.btn(this.cui.p[i].v, 'https://api.whatsapp.com/send?phone=' + this.cui.p[i].n, 'whatsapp', '_blank');
                     ch.appendChild(btn);
                 }
             }
@@ -212,14 +230,14 @@ class AdScreen {
             ch.appendChild(btn);
         }
         this._body.appendChild(ch);
-        var dv = this.newTag('div',null,'display:block;font-size:1.0rem;padding:20px 0;');
-        var btn = this.inlineBtn(rtl?'شارك الاصدقاء':'Share', '#3b5998'); dv.appendChild(btn);
-        var btn = this.inlineBtn(rtl?'تبليغ':'Report', 'red'); dv.appendChild(btn);
+        var dv=this.newTag('div',null,'display:block;font-size:1.0rem;padding:20px 0;');
+        var btn=this.inlineBtn(rtl?'شارك الاصدقاء':'Share', '#3b5998'); dv.appendChild(btn);
+        var btn=this.inlineBtn(rtl?'تبليغ':'Report', 'red'); dv.appendChild(btn);
         this._footer.appendChild(dv);
         
         if(this.pics.length){
             if(!this.premuim){
-                var adH = this.newTag('div', 'card-media');
+                var adH=this.newTag('div', 'card-media');
                 adH.style.setProperty('margin', '24px 0');
                 adH.appendChild(this._ad_slot);
                 adH.appendChild(this.newTag('br'));
@@ -237,41 +255,33 @@ class AdScreen {
         }
 
         if(this._links){this._footer.appendChild(this._links);}
-        var dv = this.newTag('div', null, 'display:flex;justify-content:space-between;font-size:0.9rem;padding:20px 0;');
+        var dv=this.newTag('div', null, 'display:flex;justify-content:space-between;font-size:0.9rem;padding:20px 0;');
         if(this._since){
-            var st = this.newTag('span'); st.textContent = this._since;
+            var st=this.newTag('span'); st.textContent = this._since;
             dv.appendChild(st);
         }
         if (this._pubType){
-            var pt = this.newTag('span'); pt.textContent = this._pubType;
+            var pt=this.newTag('span'); pt.textContent = this._pubType;
             dv.appendChild(pt);
         }
         this._footer.appendChild(dv);
         
         this.stopBodyScrolling(true);
         $.body.appendChild(this._modal);
-        this._modal.style.display = "flex";
-        if(this._modal.clientWidth<1200){this._card.className='card col-8';}
-        //if(this._modal.clientWidth<=1024){this._card.className='card col-12';}
-
-        if(this._card.offsetWidth+30>this._modal.clientWidth){
-            this._modal.style.display = "block";
-        }
-        else if (this._card.offsetHeight+16>this._modal.clientHeight) {
-            this._card.style.setProperty('margin-top', (this._card.offsetHeight + 48 - this._modal.clientHeight) + 'px');
-        }
-        if (!this.premuim) {
-            this._ad_slot.style.cssText='display:inline-block;width:'+this._media.offsetWidth+'px;';
+        this._modal.style.display='block';
+        
+        if (!this.premuim && window.adsbygoogle) {            
+            this._ad_slot.style.cssText='display:inline-block;height:auto;width:'+this._media.offsetWidth+'px;';
             (adsbygoogle = window.adsbygoogle || []).push({});
-        }
+        }       
     }
 
     close(){
-        adScreen._modal.style.display = 'none';
+        adScreen._modal.style.display='none';
         adScreen._modal.remove();
-        adScreen._modal = null;
+        adScreen._modal=null;
         adScreen.stopBodyScrolling(false);
-        adScreen = null;
+        adScreen=null;
     }
 }
 
@@ -321,7 +331,8 @@ function sorting(o){
 }
 
 
-window.onclick=function(e){if(adScreen&&e.target===byId('adScreen'))adScreen.close();};
+window.onclick=function(e){if(adScreen&&e.target===byId('adScreen')){adScreen.close();}};
+
 
 window.onpopstate=function(event){
     console.log($.body.dataset.detail);
@@ -334,3 +345,17 @@ window.onpopstate=function(event){
         window.history.back();
     }
 };
+
+const ibars=byId('ibars');
+if(ibars){
+    ibars.onclick=function(e){
+        let side=$$.query('div.side'), cards=$$.query('div#cards');
+        let v=(side.style.width===''||side.style.width==='0px');
+        let mw=(window.matchMedia('(max-width: 500px)').matches)?'100%':'50%';
+        side.style.minWidth=v?mw:'';
+        side.style.width=v?'auto':'0px';
+        side.style.opacity=v?1:0;
+        cards.style.display=v?'none':'flex';
+        e.stopPropagation();
+    };
+}

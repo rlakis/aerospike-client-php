@@ -51,8 +51,8 @@ class PostAd extends Page {
             }
             else {
                 $id=\filter_input(\INPUT_POST, 'ad' , FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
-                if ($id>0) {        
-                    $this->ad->getAdFromAdUserTableForEditing($id);                    
+                if ($id>0) {
+                    $this->ad->getAdFromAdUserTableForEditing($id);              
                 }
 
                 if (isset($_REQUEST['adr']) && is_numeric($_REQUEST['adr'])) {

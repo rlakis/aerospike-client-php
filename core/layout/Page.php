@@ -120,7 +120,7 @@ class Page extends Site {
             if ($this->user->info['id']) {
                 $this->pageUserId = $this->user->info['id'];
             }
-            elseif($tmp = $this->get('u')){
+            elseif($tmp==$this->get('u')){
                 $this->pageUserId = $this->user->decodeId($tmp);
             }
         }
@@ -147,7 +147,7 @@ class Page extends Site {
             //$this->set_require('css', array('mob'));
             $this->isMobileAd=true;
             $this->isMobile=true;
-            $this->appendLang= $this->router()->getLanguagePath();                    
+            $this->appendLang=$this->router()->getLanguagePath();                    
         }
         else {   
             $width = 0;
@@ -375,9 +375,7 @@ class Page extends Site {
             }
         }
         
-        if (!$this->isMobile) {
-            $this->router()->cfg['enabled_sharing']=false;
-        }
+        if (!$this->isMobile) { $this->router()->cfg['enabled_sharing']=false; }
         
         
         $this->user()->update();                
@@ -543,7 +541,7 @@ class Page extends Site {
           
             echo '<div class=group style="margin:0"><a class=btn href="', $this->router()->getLanguagePath('/signup/'), '">', $this->lang['create_account'], '<i class="icn icn-sign-up"></i></a></div>';
         ?>
-            <p><a class=lnk href="<?= $this->router()->getLanguagePath('/password/') ?>"><?= $this->lang['forgot_pass'] ?></a></p>
+        <p><a class=lnk href="<?= $this->router()->getLanguagePath('/password/') ?>"><?= $this->lang['forgot_pass'] ?></a></p>
         </div><?php                
         ?></form></div><?php
         
@@ -1398,7 +1396,14 @@ class Page extends Site {
     </nav>
 </header>
 <div class=row><div class=col-12><div class=search>
-    <form onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">
+    <form onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">                
+        <?php
+        $module=$this->router()->module;
+        if (\in_array($module, ['search', 'contact', 'about', 'terms', 'privacy'])) {
+            ?><button class="mibtn mcolor"><i id=ibars class="icn icnsmall icn-bars invert"></i></button><?php
+        }
+        
+        ?>        
         <input id="q" name="q" class=searchTerm type=search placeholder="<?=$this->lang['search_what']; ?>">
         <button class=searchButton type="submit"><i class="icn icnsmall icn-search invert"></i></button>
     </form>
@@ -2405,9 +2410,7 @@ class Page extends Site {
         ?><meta name="msapplication-config" content="<?= $this->router()->config()->host ?>/browserconfig.xml" /><?php 
         if($this->user->info['id']==0 && in_array($this->router()->module,['home','signin','favorites','account','myads','post','statement','watchlist','signup','password','buy','buyu'])){
             ?><script async="true" defer="true" src='https://www.google.com/recaptcha/api.js<?= $this->router()->isArabic()?'?hl=ar':'' ?>'></script><?php
-        }
-        
-        
+        }                
     }
 
     
@@ -2424,7 +2427,7 @@ class Page extends Site {
         }
         echo '</div>';
         echo '</footer>',"\n";
-        
+       
         
         if (1) { return; }
         
@@ -2829,7 +2832,7 @@ class Page extends Site {
                 $slot++;
                 echo "var slot{$slot}=googletag.defineSlot('{$ad[0]}',[{$ad[1]},{$ad[2]}],'{$ad[3]}').addService(googletag.pubads());";
             }
-            echo "googletag.pubads().collapseEmptyDivs();";
+            //echo "googletag.pubads().collapseEmptyDivs();";
             
             if ($this->router()->countryId) {
                 echo "googletag.pubads().setTargeting('country_id','{$this->router()->countryId}');";
@@ -4598,8 +4601,14 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             case 'signin':
                 $this->css('doc');          
                 break;
+            
             case 'contact':
                 $this->css('doc'); 
+                break;
+            
+            case 'signup':
+            case 'password':
+                $this->css('doc');
                 break;
             
             case 'myads':
@@ -4611,7 +4620,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 break;
             
             case 'admin':
-                $this->css('admin');  
+                $this->css('admin')->css('popup');  
                 break;
             
             case 'statement':
@@ -4838,7 +4847,11 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 
         ?><link rel="icon" href="<?= $this->router()->config()->imgURL ?>/favicon.ico" type="image/x-icon" /><?php 
         $this->set_analytics_header();
-               
+        
+        //echo PHP_EOL;
+        //$this->inlineJS('util.js');
+        //echo PHP_EOL, PHP_EOL;
+        
         echo '</head>', "\n";
         flush();
         echo '<body dir="', $this->router()->isArabic() ? 'rtl':'ltr', '" class="',$this->router()->isArabic() ? 'rtl':'ltr','" data-ads='.($this->router()->config()->enabledAds()?1:0),' ', $this->pageItemScope;
@@ -5412,8 +5425,8 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         $this->top();
         $this->body();
         $this->footer();
-        echo '</div></body></html>';
-        
+        echo '</div></body>';        
+        echo '</html>';
         if (1) { return; }
         /*--------------------------- Old Code ---------------------------*/
         

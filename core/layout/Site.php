@@ -135,15 +135,15 @@ class Site {
     }
     
 
-    function load_lang($langArray, $langStr='') : void {
-        if ($langStr=='') { $langStr=$this->router()->language; }
-        if ($this->router->extendedLanguage)$langStr=$this->router->extendedLanguage;
+    function load_lang(array $langArray, string $langStr='') : void {
+        if ($langStr==='') { $langStr=$this->router()->language; }
+        if ($this->router->extendedLanguage) { $langStr=$this->router->extendedLanguage; }
         foreach ($langArray as $langFile) {
             include_once "{$this->router()->config()->baseDir}/core/lang/{$langFile}.php";
-            $this->lang=array_merge($this->lang, $lang);
-            if ($langStr!='en') {
+            $this->lang=\array_merge($this->lang, $lang);
+            if ($langStr!=='en') {
                 include_once "{$this->router()->config()->baseDir}/core/lang/{$langStr}/{$langFile}.php";
-                $this->lang=array_merge($this->lang, $lang);
+                $this->lang=\array_merge($this->lang, $lang);
             }
         }
     }

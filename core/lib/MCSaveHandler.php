@@ -364,12 +364,12 @@ class MCSaveHandler {
     function searchByAdId(int $reference) : array {
         $db = new DB(true);
         Config::instance()->incLibFile('SphinxQL');
-        $sphinx = new SphinxQL(['host'=>'p1.mourjan.com', 'port'=>9307, 'socket'=>NULL], 'ad');
+        $sphinx=new SphinxQL(['host'=>'p1.mourjan.com', 'port'=>8307, 'socket'=>NULL], 'ad');
         $sphinx->connect();
-        $rs = $db->queryResultArray("select section_id, purpose_id, rtl, content from ad_user where id=?", [$reference])[0];
+        $rs=$db->queryResultArray("select section_id, purpose_id, rtl, content from ad_user where id=?", [$reference])[0];
         $db->close();        
 
-        $obj = \json_decode($rs['CONTENT'], false);
+        $obj=\json_decode($rs['CONTENT'], false);
         $obj->pu=$rs['PURPOSE_ID'];
         $obj->se=$rs['SECTION_ID'];
         $obj->rtl=$rs['RTL'];
@@ -379,14 +379,14 @@ class MCSaveHandler {
             \error_log(var_export($obj, true));
         }
         
-        $words = \explode(' ', $obj->attrs->ar);
+        $words=\explode(' ', $obj->attrs->ar);
         
-        $q = "select id, attrs, locality_id, IF(featured_date_ended>=NOW(),1,0) featured, section_id, purpose_id";
-        $sbPhones = "";
-        $sbMails = "";
-        $sbGeoKeys = "";
+        $q="select id, attrs, locality_id, IF(featured_date_ended>=NOW(),1,0) featured, section_id, purpose_id";
+        $sbPhones="";
+        $sbMails="";
+        $sbGeoKeys="";
         
-        //error_log(var_export($obj->attrs, true));
+        //error_log($reference.PHP_EOL.var_export($obj->attrs, true));
         
         if (isset($obj->attrs->geokeys) && !empty($obj->attrs->geokeys)) {
             $sbGeoKeys.=", ANY(";
@@ -580,9 +580,10 @@ class MCSaveHandler {
 }
 
 
-if (php_sapi_name()=='cli' && get_cfg_var('mourjan.server_id')=='99') {
+if (php_sapi_name()==='cli' && get_cfg_var('mourjan.server_id')=='99') {
     //$saveHandler = new MCSaveHandler();
     //$saveHandler->getFromDatabase($argv[1]);
     //$saveHandler->searchByAdId($argv[1]);
     //$saveHandler->testRealEstate(9);
 }
+

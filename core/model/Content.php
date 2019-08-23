@@ -63,19 +63,21 @@ class Content {
     const LOCATION              = 'loc';
     const LOCATION_ARABIC       = 'loc_ar';
     const LOCATION_ENGLISH      = 'loc_en';
-    const MEDIA                 = 'media'; // deprecated
-    const PICTURE_INDEX         = 'pix_idx';   
-    const DEFAULT_PICTURE       = 'pix_def';    // deprecated
-    const PICTURES              = 'pics';
-    const REGIONS               = 'pubTo';
-    const UID                   = 'user';
-    const USER_LEVEL            = 'userLvl';
-    const USER_LOCATION         = 'userLOC';
-    const MESSAGE               = 'msg';
-    const QUALIFIED             = 'qualified';
-    const VERSION               = 'version';
+    const MEDIA                     = 'media'; // deprecated
+    const PICTURE_INDEX             = 'pix_idx';   
+    const DEFAULT_PICTURE           = 'pix_def';    // deprecated
+    const PICTURES                  = 'pics';
+    const REGIONS                   = 'pubTo';
+    const UID                       = 'user';
+    const USER_LEVEL                = 'userLvl';
+    const USER_LOCATION             = 'userLOC';
+    const MESSAGE                   = 'msg';
+    const QUALIFIED                 = 'qualified';
+    const VERSION                   = 'version';
     
-    const RERA                  = 'rera'; 
+    const USER_MOBILE_NUMBER        = 'umn';
+    const USER_MOBILE_COUNTRY       = 'umc';
+    const RERA                      = 'rera'; 
     
     protected $content;
     private $ad;
@@ -385,6 +387,14 @@ class Content {
         return $this;
     }
         
+
+    public function setUserActivatedMobileNumber(int $mobile_number) : Content {
+        $this->content[self::USER_MOBILE_NUMBER]=$mobile_number;
+        \Config::instance()->incModelFile('MobileValidation');
+        $this->content[self::USER_MOBILE_COUNTRY]=MobileValidation::getInstance()->getNumberRegionCode($mobile_number);
+        return $this;
+    }
+
     
     public function getUserLocation() : string {
         return $this->content[self::USER_LOCATION];
@@ -917,6 +927,10 @@ class Content {
             self::VERSION           => $this->content[self::VERSION]                
         ];
         
+        if (isset($this->content[self::USER_MOBILE_COUNTRY])) {
+            //$rs[self::USER_MOBILE_NUMBER]=$this->content[self::USER_MOBILE_NUMBER];            
+            $rs[self::USER_MOBILE_COUNTRY]=$this->content[self::USER_MOBILE_COUNTRY];            
+        }
         return $rs;
     }
 

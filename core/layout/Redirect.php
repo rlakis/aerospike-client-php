@@ -1,29 +1,28 @@
 <?php
 
 require_once 'deps/autoload.php';
-require_once 'Site.php';
-require_once $config['dir'] . '/core/model/NoSQL.php';
+Config::instance()->incLayoutFile('Site')->incModelFile('NoSQL');
 
 use Core\Model\NoSQL;
-
 
 class Redirect extends Site {
 
     function __construct() {
         parent::__construct();
         
-        $userLogin = $this->post('u');
+        $userLogin=$this->post('u');
         if ($userLogin && $this->isEmail($userLogin)) {
-            $ref = $this->post('r');
-            if (isset($_SERVER['HTTP_REFERER']) &&
-                    preg_match('/^(?:http|https)\:\/\/(?:www\.|dv\.|h1\.|)mourjan\.com/', $_SERVER['HTTP_REFERER']) &&
-                    $ref &&
-                    preg_match('/\/home\/|\/signin\/|\/favorites\/|\/account\/\|\/myads\/|\/post\/|\/watchlist\/|\/buy\/|\/buyu\/|\/statement\//', $ref)) {
+            $ref=$this->post('r');
+            
+            $http_referer=\filter_input(INPUT_SERVER, 'HTTP_REFERER');
+            if ($http_referer && $ref &&
+                \preg_match('/^(?:https)\:\/\/(?:www\.|dv\.|h1\.|)mourjan\.com/', $http_referer) &&
+                \preg_match('/\/home\/|\/signin\/|\/favorites\/|\/account\/\|\/myads\/|\/post\/|\/watchlist\/|\/buy\/|\/buyu\/|\/statement\//', $ref)) {
 
-                $userPass = $this->post('p');
-                $keepme_in = $this->post('o', 'boolean');
+                $userPass=$this->post('p');
+                $keepme_in=$this->post('o', 'boolean');
                 
-                if ($userPass && strlen($userPass) >= 6) {
+                if ($userPass && strlen($userPass)>=6) {
                     $pass = false;
                     //if (isset($_POST['g-recaptcha-response'])) {
                         //$cred = DB::getCacheStorage()->get('recaptcha');
@@ -73,13 +72,15 @@ class Redirect extends Site {
             }
         }
 
-        $addLang = ($this->router()->isArabic() ? '' : $this->router()->language . '/');
-        $key = $this->get('k');
-        $uri = $this->router()->getLanguagePath('/invalid/');
-        if ($key && strlen($key) > 32) {
-            $cmd = $this->user->decodeRequest($key);
-            $userId = 0;
-            if ($cmd && count($cmd)) {
+        $addLang=($this->router()->isArabic() ? '' : $this->router()->language . '/');
+        $key=$this->getGetString('k');
+        $uri=$this->router()->getLanguagePath('/invalid/');
+        if ($key && strlen($key)>32) {
+            $cmd=$this->user()->decodeRequest($key);
+            \error_log(__CLASS__.'.'.__FUNCTION__.': '. \json_encode($cmd));
+            
+            $userId=0;
+            if ($cmd && \count($cmd)) {
                 switch ($cmd['request']) {
                     case 'ad_renew':
                         $userId = $cmd['params'][0];
@@ -173,10 +174,11 @@ class Redirect extends Site {
                             $this->user->sysAuthById($userId);
                         }
                         break;
+                        
                     case 'reset_password':
-                        $userId = $cmd['params'][0];
+                        $userId=$cmd['params'][0];
                         if (is_numeric($userId) && $userId && !$this->user()->isLoggedIn()) {
-                            $userOptions = NoSQL::getInstance()->getOptions($userId);
+                            $userOptions = NoSQL::instance()->getOptions($userId);
                             if ($userOptions) {
                                 if (is_array($userOptions)) {
                                     if (isset($userOptions['accountKey'])) {
@@ -209,7 +211,7 @@ class Redirect extends Site {
                         break;
                         
                     case 'email_verify':
-                        $userId = $cmd['params'][0];
+                        $userId=$cmd['params'][0];
                         if (is_numeric($userId) && $userId) {
                             if ($this->user->info['id'] == $userId) {
                                 if (isset($this->user->info['options']['emailKey'])) {
@@ -261,6 +263,7 @@ class Redirect extends Site {
                 }
             }
         }
+        
         $this->router()->redirect($uri);
     }
 

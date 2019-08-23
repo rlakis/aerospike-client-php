@@ -273,7 +273,7 @@ $config=array(
     'search_index'          => 'ad',
     'search_results_max'    => 1000,
 
-    'sphinxql'		   => ['host'=>'p1.mourjan.com', 'port'=>9307, 'socket'=>'/var/run/mourjanQL'],
+    'sphinxql'		   => ['host'=>'p1.mourjan.com', 'port'=>8307, 'socket'=>'/var/run/manticore.sock'],
     
     //resourses parameters
     'host'                  => 'https://h1.mourjan.com',

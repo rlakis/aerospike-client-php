@@ -2,6 +2,7 @@
 
 use Core\Model\DB;
 use PHPMailer\PHPMailer\PHPMailer;
+\error_log(get_cfg_var('mourjan.path'));
 require_once get_cfg_var('mourjan.path') . '/deps/autoload.php';
 
 class MourjanMail extends PHPMailer {
@@ -395,32 +396,32 @@ class MourjanMail extends PHPMailer {
             ;
 
 
-    function __construct($lang='en', $debug=false) {
+    function __construct(string $lang='en', bool $debug=false) {
         parent::__construct(true);
-        
+        $this->debug        = false;        
+        $this->mLanguage    = $lang;
         $this->dir          = Config::instance()->baseDir;
         $this->notifiers    = Config::instance()->get('notifier_mail');
         
-        $this->SMTPDebug    = 2;
-        $this->IsSMTP();
-        
-        $this->debug        = false;
-        $this->SMTPAuth     = true;
-        $this->SMTPSecure   = 'tls';
-        $this->Host         = Config::instance()->get('smtp_server');
-        $this->Port         = 587;// Config::instance()->get('smtp_port');
+        $this->SMTPDebug    = 0;
+        $this->IsSMTP();                
+        $this->SMTPAuth     = false;
+        //$this->SMTPSecure   = 'tls';
+        $this->Host         = 'p1.mourjan.com'; //Config::instance()->get('smtp_server');
+        $this->Port         = 25;//587;// Config::instance()->get('smtp_port');
         $this->Username     = Config::instance()->get('smtp_user');
         $this->Password     = Config::instance()->get('smtp_pass');
         $this->CharSet      = 'UTF-8';
         $this->SetFrom(Config::instance()->get('smtp_user'), 'Mourjan.com');
-        $this->mLanguage=$lang;
-        Config::instance()->incModelFile('Db')->incModelFile('User');
-        $this->db = new DB();
-        $this->db->setWriteMode(true);
-        $this->user = new User(null, 0);
-        $this->templatePath = $this->dir.'/bin/utils/include';
         
-        error_log($this->Host.':'.$this->Port.' -> '.$this->Username.' / '.$this->Password);
+        Config::instance()->incModelFile('Db')->incModelFile('User');
+        $this->db=new DB(false);
+        //$this->db->setWriteMode(true);
+        $this->user=new User(null, 0);
+        
+        $this->templatePath=$this->dir.'/bin/utils/include';
+        $this->Debugoutput=function($str, $level) { \error_log( "debug level $level; message: $str"); };
+        //error_log($this->Host.':'.$this->Port.' -> '.$this->Username.' / '.$this->Password);
     }
 
     
@@ -561,49 +562,37 @@ class MourjanMail extends PHPMailer {
         else return $this->Send();
     }
     
-    function sendNewAccount($userEmail,$verifyLink){
-        global $config;
-        $imgUrlLink=$config['url_resources'].$config['url_img'];
+    
+    function sendNewAccount(string $userEmail, string $verifyLink) : bool {
+        $imgUrlLink=Config::instance()->get('url_img');
         $this->doClearAll();
-        $this->Username = 'account@mourjan.com';
-        $this->SetFrom('account@mourjan.com', 'Mourjan.com');
+        $this->Username='account@mourjan.com';
+        $this->SetFrom('account@mourjan.com', 'Mourjan.com Account Manager');
         $this->Subject='Welcome to Mourjan';
         $this->AddAddress($userEmail,'');
-        $params=array(
-            'useremail' =>  $userEmail,
-            'verifyLink'=>  $verifyLink,
-            'img_url'   =>  $imgUrlLink
-        );        
-        $genParams=array(
-            'img_url'   =>  $imgUrlLink,
-            'title'     =>  ($this->mLanguage == 'ar' ? 'تفعيل الحساب' :'Account Activation')
-        );
-        $this->MsgTemplate('account-verification',$params,$genParams,'',1);
-        if($this->debug) return 1;
-        else return $this->Send();
+        $params=['useremail' => $userEmail, 'verifyLink'=> $verifyLink, 'img_url' =>  $imgUrlLink];
+        $genParams=['img_url' =>  $imgUrlLink, 'title' => ($this->mLanguage==='ar' ? 'تفعيل الحساب' : 'Account Activation')];        
+        $this->MsgTemplate('account-verification', $params, $genParams, '', 1);
+        return $this->debug ? 1 : $this->Send();
     }
     
-    function sendResetPass($userEmail, $verifyLink) {
+    
+    function sendResetPass(string $userEmail, string $verifyLink) : bool {
         $config=Config::instance();
-        $imgUrlLink= $config->get('url_resources').$config->imgURL;
+        //$imgUrlLink=$config->get('url_resources').$config->imgURL;
+        $imgUrlLink=Config::instance()->get('url_img');
         $this->doClearAll();
         $this->Username = 'account@mourjan.com';
-        $this->SetFrom('account@mourjan.com', 'Mourjan.com');
+        $this->SetFrom('account@mourjan.com', 'Mourjan.com Account Manager');
         $this->Subject='Password Reset Request';
         $this->AddAddress($userEmail,'');
-        $params=array(
-            'useremail' =>  $userEmail,
-            'verifyLink'=>  $verifyLink,
-            'img_url'   =>  $imgUrlLink
-        );        
-        $genParams=array(
-            'img_url'   =>  $imgUrlLink,
-            'title'     =>  ($this->mLanguage == 'ar' ? 'إعادة تعيين كلمة السر' :'Password Reset')
-        );
+        $params=['useremail' => $userEmail, 'verifyLink'=> $verifyLink, 'img_url' => $imgUrlLink];        
+        $genParams=['img_url' => $imgUrlLink, 'title' => ($this->mLanguage==='ar' ? 'إعادة تعيين كلمة السر' :'Password Reset')];
         $this->MsgTemplate('password-reset', $params, $genParams, '', 1);
         error_log($userEmail.PHP_EOL.$verifyLink);
         return ($this->debug) ? 1 : $this->Send();
     }
+    
     
     function sendPageEmailValidation($userEmail,$verifyLink,$userName=''){
         $this->doClearAll();
@@ -1112,10 +1101,11 @@ class MourjanMail extends PHPMailer {
         return $sname;
     }
     
-    function Send() {
-        error_log('sending mail');
-        if ($this->Username=='account@mourjan.com') {  
-            $sent = parent::Send();
+    
+    function Send() : bool {
+        \error_log(__FUNCTION__.'('.__LINE__.') sending mail');
+        if ($this->Username==='account@mourjan.com') {  
+            $sent=parent::Send();
             error_log("is sent {$sent}");
             return $sent;
         }
@@ -1163,8 +1153,9 @@ class MourjanMail extends PHPMailer {
                         echo "\n------------------------------------------------------\n";
                     }
                     return 0;
-                }else{
-                    $this->Username     = $this->notifiers[$this->notifierMailIndex];
+                }
+                else{
+                    $this->Username=$this->notifiers[$this->notifierMailIndex];
                     $this->SetFrom($this->Username, 'Mourjan.com');
                     $this->Send();
                 }

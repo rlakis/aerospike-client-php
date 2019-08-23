@@ -257,7 +257,7 @@ var UI={
         let _=this;
         
         //console.log(_.adForm.dataset);
-        console.log('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''));
+        //console.log('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''));
         
         fetch('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''), _options('GET'))
         .then(res=>res.json())
@@ -266,9 +266,10 @@ var UI={
                 Ad.init();
                 let rs=response.result;
                 _.region=rs.regions;_.dic=rs.roots;_.ip=rs.ip;
+                if(rs.ad && rs.ad.hasOwnProperty('umc')){_.adForm.dataset.actCountry=rs.ad.umc;};
                 Prefs.init(rs.prefs);
-                
-                console.log('UI.region', _.region, "\r", _.ip);
+                //console.log('UMC', rs.ad.umc);
+                //console.log('UI.region', _.region, "\r", _.ip);
                 for(i in _.dic){
                     _.dic[i].menu=[];
                     let m=_.dic[i].menu;
@@ -339,9 +340,7 @@ var UI={
                         console.log(Ad);
                     };
                 });
-                $$.queryAll('input[type=tel]').forEach(function(tel){                    
-                    _.numbers[tel.dataset.no] = new ContactNumber(tel);
-                });
+                $$.queryAll('input[type=tel]').forEach(function(t){_.numbers[t.dataset.no]=new ContactNumber(t);});
                 
                 let mail=$$.query('input[type=email]');
                 mail.onchange=function(){
@@ -454,8 +453,8 @@ var UI={
     showDialog:function(dialog, photo){
         $$.classList.add('modal-open');
         $$.append(dialog);  
-        dialog.style.display = "flex";
-        dialog.dataset.views = parseInt(dialog.dataset.views)+1;
+        dialog.style.display="flex";
+        dialog.dataset.views=parseInt(dialog.dataset.views)+1;
         dialog.style.setProperty('max-height', window.innerHeight+'px');
         let card=dialog.query('div.card');
         let fw=(dialog.dataset.fullWidth==='true');
@@ -570,16 +569,31 @@ var UI={
             dialog=_.createDialog('regions',true,false);
             card=dialog.query('div.card');
             let blocks={cn:createElem('ul'), sa:createElem('ul'), ae:createElem('ul'), kj:createElem('ul'), ot:createElem('ul')};
-            let ct1=createElem('div'); ct1.style.cssText='display:inline-flex;width:100%;align-items: flex-start;';
+            let ct1=createElem('div'); ct1.style.cssText='display:inline-flex;width:100%;align-items:flex-start;';
             card.append(ct1);
             ct1.append(blocks.cn, blocks.ae, blocks.sa, blocks.kj, blocks.ot);
-            
+                        
             let onf=function(e,all){
-                let c=e.classList;
-                let wasOn=c.contains('on');
-                if(wasOn)c.remove('on');else c.add('on');
-                if(all===true){
-                    e.closest('ul').query('ul').childNodes.forEach(function(ct){if(wasOn){ct.classList.remove('on');}else{ct.classList.add('on');}});
+                console.log('Publish Level', Prefs.getPublishLevel(), 'regions', _.dialogs.regions);
+                let c=e.classList, wasOn=c.contains('on');
+                switch(Prefs.getPublishLevel()){
+                    case PublishLevel.Single:
+                        if(all===true){return;}
+                        console.log('li', dialog.queryAll('li.on'), 'e', e);
+                        dialog.queryAll('li.on').forEach(function(r){r.classList.remove('on')});
+                        if(wasOn)c.remove('on');else c.add('on');
+                        //e.closest('ul').query('ul').childNodes.forEach(function(ct){if(ct!==c)ct.classList.remove('on');});
+                        break;
+                    case PublishLevel.Country:
+                        if(wasOn)c.remove('on');else c.add('on');
+                        if(all===true){e.closest('ul').query('ul').childNodes.forEach(function(ct){if(wasOn){ct.classList.remove('on');}else{ct.classList.add('on');}});}
+                        break;
+                    default:                        
+                        if(wasOn)c.remove('on');else c.add('on');
+                        if(all===true){
+                            e.closest('ul').query('ul').childNodes.forEach(function(ct){if(wasOn){ct.classList.remove('on');}else{ct.classList.add('on');}});
+                        }
+                        break;                            
                 }
             };
             //const keys = Object.keys(_.region);
@@ -587,14 +601,15 @@ var UI={
             Prefs.getAllowedCountriesForUserSource().forEach(function(key){
                 let li=createElem('li', '', '<i class="icn icnsmall icn-'+_.region[key].c+'"></i><span>'+_.region[key][_.ar?'ar':'en']+'</span>', 1);
                 li.dataset.countryId=key;
-                const ckeys=Object.keys( _.region[key].cc );
+                console.log('country', key);
+                const ckeys=Object.keys(_.region[key].cc);
                 if(ckeys.length===1){
                     li.dataset.cityId=ckeys[0];
-                    li.onclick=function(){ onf(this); };
+                    li.onclick=function(){onf(this);};
                     blocks.cn.append(li);
                 }
                 else {
-                    li.onclick=function(){ onf(this, true); };
+                    li.onclick=function(){onf(this,true);};
                     let ul=createElem('ul'); ul.append(li); 
                     let cul=createElem('ul');cul.id='cn'+key;
                     for(const cityId of ckeys){                        
@@ -1064,8 +1079,8 @@ var Ad={
     address:null,
     pictures:{},
     regions:[],
-    phone1:null,
-    phone2:null,
+    //phone1:null,
+    //phone2:null,
     email:null,
     userLocation:null,
     location:null,   
@@ -1094,7 +1109,6 @@ var Ad={
                         
         _.content.id=_.id;
         
-        //_.content.hl=(UI.ar?'ar':'en');
         _.content.hl=((ad.hl)?ad.hl:(UI.ar?'ar':'en'));
         //_.content.hl=cnt.hl;
         _.content.lat=ad.lat;
@@ -1111,7 +1125,7 @@ var Ad={
         }
         
 
-        let re = /\u200b/;
+        let re=/\u200b/;
         let parts;
         if(typeof ad.other==='string'){
             parts = ad.other.split(re);
@@ -1157,7 +1171,7 @@ var Ad={
                 });
             }
         }
-        console.log(typeof ad.pubTo);
+        //console.log(typeof ad.pubTo);
         if(typeof ad.pubTo==='object'){
             _.regions=Object.values(ad.pubTo);
             console.log(UI.getCountryByCityId(_.regions[0]));
@@ -1444,22 +1458,21 @@ var Prefs={
             else {
                 let rootId = dict.id;
                 rules[rootId]={[kAllow]:[], [kDeny]:[], [kSections]:{}, [kTail]:[], [kPublishLevel]:{}};
-                for(let level in dict[kPublishLevel]){
+                
+                for(let level in dict[kPublishLevel]){                    
                     if (dict[kPublishLevel][level]){
                         for(let pu in dict[kPublishLevel][level]){
                             rules[rootId][kPublishLevel][dict[kPublishLevel][level][pu]]=parseInt(level);
                         }
                     }
                     else {
-                        conosle.log('invalid publish level');
+                        console.log('invalid publish level');
                     }
                 }
                 
                 //rules[rootId][kPublishLevel]=dict[kPublishLevel];
                 
-                for (let i in dict[kTail]) {
-                    rules[rootId][kTail].push(dict[kTail][i]);
-                }
+                for(let i in dict[kTail]){rules[rootId][kTail].push(dict[kTail][i]);}
                 
                 for (let i in dict[kAllow]){
                     if(dict[kAllow][i][kConstraintKey]){
@@ -1483,10 +1496,10 @@ var Prefs={
                     index[secId]=rootId;
                     
                     let sectionRules={[kAllow]:[], [kDeny]:[], [kPublishLevel]:{}};
-                    for (let j in secDict[kPublishLevel]) {                        
+                    for (let j in secDict[kPublishLevel]) {
                         if(secDict[kPublishLevel][j]){
                             for (let k in secDict[kPublishLevel][j]) {
-                                sectionRules[kPublishLevel][secDict[kPublishLevel][j][k]]=secDict[kPublishLevel][j];
+                                sectionRules[kPublishLevel][secDict[kPublishLevel][j][k]]=parseInt(j);
                             }
                         }
                         else {
@@ -1515,7 +1528,7 @@ var Prefs={
             }
         }
         let rs=UI.adForm.dataset;
-        //console.log('UI.adForm.dataset', rs);
+        
         if(rs.actCountry.length===2){_.activationCountryCode=rs.actCountry;}        
         if(rs.ipCountry.length===2 && rs.ipCountry===rs.curCountry && rs.tor==='0' && rs.vpn==='0' && rs.proxy==='0'){_.carrierCountryCode=rs.ipCountry;}
         if(_.activationCountryCode===null&&($$.dataset.level==='90'||$$.dataset.level==='9')){_.activationCountryCode=rs.ipCountry;}
@@ -1524,6 +1537,7 @@ var Prefs={
             if(UI.region[i].c.toUpperCase()===_.carrierCountryCode){_.carrierCountryId=parseInt(i);}
             if(UI.region[i].c.toUpperCase()===_.activationCountryCode){_.activationCountryId=parseInt(i);}
         }
+        //console.log('UI.adForm.dataset', rs, _.activationCountryCode, _.activationCountryId);
         console.log('Prefs', _);
     },
     
@@ -1579,15 +1593,15 @@ var Prefs={
     
     getRootTail:function(ro){
         return this.chains[kRule][ro][kTail];
-        return [];
     },
     
     getPublishLevel:function(){
         if(Ad.sectionId>0 && Ad.purposeId>0){
             let rootPrefs=this.getRootPrefs(Ad.sectionId);
             if(rootPrefs){
-                let res = parseInt(rootPrefs[kSections][Ad.sectionId][kPublishLevel][Ad.purposeId]);
-                if(res>0){ return res; }
+                //console.log('getPublishLevel', rootPrefs[kSections][Ad.sectionId][kPublishLevel], 'se', Ad.sectionId, 'pu', Ad.purposeId);
+                let res=parseInt(rootPrefs[kSections][Ad.sectionId][kPublishLevel][Ad.purposeId]);
+                if(res>0){return res;}
             }
         }
         return PublishLevel.Intl;
@@ -1595,30 +1609,25 @@ var Prefs={
 
     getAllowedCountriesForUserSource:function(){
         let _=this, rootSource=RegionType.Country, sectionSource=RegionType.Country;
-        let result=[];
-        let level=_.getPublishLevel();
-        if(level===PublishLevel.Intl){
-            result=[..._.countries];
-            return result;
-        }
+        let result=[], level=_.getPublishLevel();
+        if(level===PublishLevel.Intl){return[..._.countries];}
         
         if(_.countries.indexOf(_.carrierCountryId)!==-1){result.push(_.carrierCountryId);}
-        
         if(_.countries.indexOf(_.activationCountryId)!==-1 && result.indexOf(_.activationCountryId)===-1){result.push(_.activationCountryId);}
         
         if(Ad.sectionId>0 && Ad.purposeId>0){
-            let rootPrefs=this.getRootPrefs(Ad.sectionId);
-            if(rootPrefs){
+            let rPrefs=this.getRootPrefs(Ad.sectionId);
+            if(rPrefs){
                 _.countries.forEach(function(cn){
-                    rootSource=RegionType.Country;
-                    for (let i in rootPrefs[kAllow]) {
-                        let filter=rootPrefs[kAllow][i];
-                        if(filter.hasPurpose(Ad.purposeId)||filter.hasCountry(cn)){
-                            rootSource=filter.source;
+                    rootSource=RegionType.Country;                    
+                    for (let i in rPrefs[kAllow]) {
+                        let f=rPrefs[kAllow][i];
+                        if(f.hasPurpose(Ad.purposeId)||f.hasCountry(cn)){
+                            rootSource=f.source;
                         }
                     }
                     
-                    let allow=rootPrefs[kSections][Ad.sectionId][kAllow];
+                    let allow=rPrefs[kSections][Ad.sectionId][kAllow];
                     sectionSource=rootSource;
                     for (let i in allow) {
                         let filter=allow[i];
@@ -1628,15 +1637,14 @@ var Prefs={
                     }
                     
                     if (sectionSource===RegionType.Any||sectionSource===RegionType.MultiCountry) {
-                        if(result.indexOf(cn)===-1){
-                            result.push(cn);
-                        }
+                        console.log('RegionType', sectionSource, cn);
+                        if(result.indexOf(cn)===-1){result.push(cn);}
                     }
                     else {
+                        if(_.carrierCountryId===cn){console.log('carrier', cn, _.carrierCountryId)}
+                        if(_.activationCountryId===cn){console.log('activation', cn, _.activationCountryId)}
                         if(_.carrierCountryId===cn||_.activationCountryId===cn){
-                            if(result.indexOf(cn)===-1){
-                                result.push(cn);
-                            }
+                            if(result.indexOf(cn)===-1){result.push(cn);}
                         }
                     }
                     
@@ -1645,7 +1653,7 @@ var Prefs={
         }
         else {
             result=[..._.countries];
-        }    
+        }
         return result;
     },
     
@@ -1768,12 +1776,12 @@ class ContactNumber{
         let _=this;
         _.error='';
         let num=_.tel.value.replace(/\s/g, '');
-        //console.log('num', num);
+        console.log('num', num);
         
         if(num && num.length>3){
             try {
-                _.phoneNumber=new libphonenumber.parsePhoneNumberFromString(num, 'LB');
-                //console.log(typeof _.phoneNumber);
+                _.phoneNumber=new libphonenumber.parsePhoneNumberFromString(num, Prefs.activationCountryCode);
+                console.log(typeof _.phoneNumber);
                 if(_.phoneNumber && _.phoneNumber.hasOwnProperty('metadata')){
                     console.log('phoneNumber', _.phoneNumber); 
                     
@@ -1835,7 +1843,7 @@ class ContactNumber{
     
     
     empty(){
-        return (this.phoneNumber===null || typeof this.phoneNumber!=='object');
+        return (this.phoneNumber===null||typeof this.phoneNumber!=='object');
     }
     
     
