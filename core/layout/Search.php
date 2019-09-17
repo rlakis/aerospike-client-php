@@ -1152,6 +1152,7 @@ class Search extends Page {
                 $aid = $cmp>0 ? $cmp : $aid;
                 $ad = $this->user()->getPendingAds($aid);
                 if (!empty($ad)) {
+                    
                     $ad=$ad[0];
                     $content=json_decode($ad['CONTENT'], true);
                     $clang = $content['rtl'] ? 'ar' : 'en';
@@ -1165,6 +1166,20 @@ class Search extends Page {
                     $count=$this->searchResults['body']['total_found'];
                     
                     ?><div style="margin:5px"><?= $this->formatPlural($count, 'ad');?></div><?php
+                    
+                    $strip = $_GET['strip'] ?? 0;
+                    $link = $_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'];
+                    //background-image:none;padding-bottom:10px;background:transparent;border:0;box-shadow: none;box-shadow:none;width:300px;position:fixed;top:160px;left:20px;z-index:100000;
+                    ?><div style="height:auto;text-align:center;margin-bottom: 8px;"><?php
+                    if($strip){
+                        $link = trim(preg_replace('/&strip=1/', '', $link));
+                        ?><a href="<?= $link ?>" class="bt"><?= $this->lang['show_premium'] ?></a><?php
+                    }else{
+                        $link .= '&strip=1';
+                        ?><a href="<?= $link ?>" class="bt"><?= $this->lang['hide_premium'] ?></a><?php
+                    }
+                    ?></div><?php
+                    
                     ?></div><?php
                 }
             }

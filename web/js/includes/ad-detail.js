@@ -12,7 +12,12 @@ window.addEventListener(orientationEvent, function() {
         adScreen._card.className='card col-'+(adScreen._modal.clientWidth<1200)?'8':'6';
     }
 });
-
+/*
+document.addEventListener('contextmenu', function(e){preventEventProp(e);
+if(CTRL && e.target.classList.contains('card-description')){
+                console.log('click with console');    
+});
+*/
 $.onkeydown = function (e) { CTRL=e.ctrlKey; }
 $.onkeyup = function() { CTRL=false; }
 $.addEventListener("DOMContentLoaded", function () {
@@ -98,8 +103,23 @@ class AdScreen {
             this._pubType=ad.querySelectorAll('.cbox.cbr')[0].textContent;
         }
         
-        this._card.onclick=function(e) {
+        
+        this._card.onclick=function(e) {            
+            console.log('click ', CTRL);
             if(CTRL && e.target.classList.contains('card-description')){
+                console.log('click with console');
+                let cmp=$.querySelector('div.compare');
+                if (cmp && cmp.id>0) {
+                    const channel=new BroadcastChannel('admin');
+                    channel.postMessage({articleId:cmp.id, rejectURL:'https://www.mourjan.com/'+e.target.closest('div#adScreen').dataset.id});
+                    channel.close();
+                }
+            }
+        }
+        this._card.oncontextmenu=function(e) {
+            preventEventProp(e);
+            if(CTRL && e.target.classList.contains('card-description')){
+                console.log('click with console');
                 let cmp=$.querySelector('div.compare');
                 if (cmp && cmp.id>0) {
                     const channel=new BroadcastChannel('admin');

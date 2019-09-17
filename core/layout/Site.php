@@ -403,7 +403,7 @@ class Site {
             else {
                 $__compareID = $this->router()->getPositiveVariable('cmp', INPUT_GET);
                 $__compareAID = $this->router()->getPositiveVariable('aid', INPUT_GET);
-                
+                $__stripPremium = $this->router()->getPositiveVariable('strip', INPUT_GET);
                 $this->router()->database()->index()
                         ->region($this->router()->countryId, $this->router()->cityId)
                         ->id($__compareID, TRUE)
@@ -414,6 +414,10 @@ class Site {
                         ->locality($this->localityId)
                         ->tag($this->extendedId)
                         ;
+                if ($__stripPremium==1){
+                    error_log('passed');
+                    $this->router()->database()->index()->featured(false);
+                }
                                 
                 if ($this->publisherTypeSorting && in_array($rootId,[1,2,3]) && 
                     ($rootId!=3 || ($rootId==3 && $this->router->purposeId==3)) && 
@@ -447,7 +451,7 @@ class Site {
                         ->setLimits($offset, $this->num)
                         ->addQuery('body', $q);
                                 
-                if($this->router->module=='search' && !$this->userFavorites && !$this->router->watchId && !$this->router->userId) {
+                if($this->router->module=='search' && !$this->userFavorites && !$this->router->watchId && !$this->router->userId && $__compareID===0 && $__compareAID===0) {
                     $this->getFeaturedAds();
                     $this->getMediaAds();
                 }                
@@ -456,7 +460,7 @@ class Site {
                 if($__compareAID) {                    
                     $this->router()->config()->incLibFile('MCSaveHandler');
                     $handler = new MCSaveHandler($this->router()->cfg);
-                    $this->searchResults = $handler->searchByAdId($__compareAID);
+                    $this->searchResults = $handler->searchByAdId($__compareAID, $__stripPremium);
                 }
                 else {
                     $this->searchResults = $this->router()->database()->index()->executeBatchNew();   
