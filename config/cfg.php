@@ -440,6 +440,7 @@ Config::instance()->init($config);
 include_once dirname(__DIR__) . '/core/model/Db.php';
 $globalSettings = \Core\Model\DB::getCacheStorage($config)->get("global-settings");
 if ($globalSettings!==FALSE) {
+    //$globalSettings['db_host']='fb.mourjan.com';
     foreach ($globalSettings as $key => $value) {
         $config[$key] = $value;        
     }

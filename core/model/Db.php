@@ -145,7 +145,7 @@ class DB {
         if ($this->inTransaction()) {
             try {
                 DB::$Instance->rollBack();
-                if ($restartTransaction==TRUE) {
+                if ($restartTransaction===TRUE) {
                     DB::$Instance->beginTransaction();           
                 }
                 return TRUE;

@@ -49,7 +49,7 @@ class MCCache extends \Redis {
     
     public function getMulti($keys) {
         $ret = [];
-        $values = $this->getMultiple($keys);
+        $values = $this->mGet($keys);
         $len = count($keys);
         for ($i=0; $i<$len; $i++) {
             if ($values[$i] !== FALSE) {
