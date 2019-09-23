@@ -773,7 +773,8 @@ $lang=array(
     
     'all_pubs'      =>  'All Publications',
     'other_sources'         =>  'Other Sources',
-    'countries_regions' => 'Countries & regions'
+    'countries_regions' => 'Countries & regions',
     
-    
+    'show_premium'  => 'Show Premium',
+    'hide_premium'  => 'Hide Premium',
 );

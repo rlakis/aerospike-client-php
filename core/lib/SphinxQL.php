@@ -280,8 +280,8 @@ class SphinxQL {
     }
     
     
-    public function featured() : SphinxQL {
-        $this->filters[static::FEATURED_TTL]='>='.time();
+    public function featured(bool $exclusive=true) : SphinxQL {
+        $this->filters[static::FEATURED_TTL]=($exclusive?'>=':'<').time();
         return $this;
     }
     

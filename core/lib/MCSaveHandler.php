@@ -361,7 +361,7 @@ class MCSaveHandler {
     }
 
     
-    function searchByAdId(int $reference) : array {
+    function searchByAdId(int $reference, int $stripPremuim=0) : array {
         $db = new DB(true);
         Config::instance()->incLibFile('SphinxQL');
         $sphinx=new SphinxQL(['host'=>'p1.mourjan.com', 'port'=>8307, 'socket'=>NULL], 'ad');
@@ -452,6 +452,7 @@ class MCSaveHandler {
         }
         $q.=" FROM ad WHERE id!={$reference} and hold=0 ";
         if ($contactFilter) { $q.='and cfilter=1 '; }
+        if ($stripPremuim===1) { $q.='and featured=0 '; }
         $q.= 'limit 1000';
 
         //\error_log($q);
