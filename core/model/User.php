@@ -1697,7 +1697,7 @@ class User {
     }
     
     
-    function suspend(int $uid, int $hours, int $newModel=0, int $reason=0) : bool {
+    function suspend(int $uid, int $hours, int $newModel=0, string $reason='') : bool {
         $pass=false;
         if ($newModel) {
             if(\substr($newModel, 0, 1)==='+') {

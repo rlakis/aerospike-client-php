@@ -46,7 +46,7 @@ class MCSessionHandler extends Singleton implements \SessionHandlerInterface {
     }
 
     
-    public static function setSuspendMobile($uid, $number, $secondsToSuspend, $clearLog=false, $reason = 0) : bool {   
+    public static function setSuspendMobile($uid, $number, $secondsToSuspend, $clearLog=false, string $reason='') : bool {   
         $pass = false;
         $redis = new Redis();
         if ($redis->connect('138.201.28.229', 6379, 2, NULL, 20)) {

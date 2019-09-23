@@ -579,18 +579,17 @@ class MyAds extends Page {
             $isAdminProfiling = (boolean)($this->get('a') && $this->user()->level()===9);
             if ($isAdminProfiling) { $renderAssignedAdsOnly = false; }           
             
-            if ($state===7) {
-                if ($this->router()->config()->get('enabled_charts') && !$isAdminProfiling) {                    
-                    echo '<div class="stin ', $this->router()->language, '"></div>';
+            if ($state===7) {                
+                if ($this->router()->config()->get('enabled_charts') && !$isAdminProfiling) {  
+                    echo 'shjdhsjkdhkjfkjw';
+                    //echo '<div class="stin ', $this->router()->language, '"></div>';
                     //$this->renderEditorsBox($state);
-                    ?></div><?php
-                    ?><div class="phld"><?php
-                        ?><div id="statDv" class="load"></div><?php
-                    ?></div><?php
+                    //></div><?php
+                    ?><div class="phld"><div id="statDv" class="load"></div></div><?php
                 } 
                 else {
                     //$this->renderEditorsBox($state);
-                    ?></div><?php
+                    //</div><?php
                 }
             } 
             else {

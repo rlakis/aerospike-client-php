@@ -241,7 +241,7 @@ class Admin extends Page {
         }
 
         $this->render();
-        $this->inlineJS('admin.js');
+        $this->inlineJS('util.js')->inlineJS('admin.js');
     }
 
     
