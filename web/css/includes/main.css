@@ -281,9 +281,9 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 }
 
 .modal .card{
-    display:block;min-height:60%;position:relative;float:none !important;margin:48px 0 32px;
+    display:block;min-height:60%;position:relative;float:none !important;margin:48px auto 32px;
     overflow: visible;
-    transform: translate(50%, 0%);
+    /*transform: translate(50%, 0%);*/
 }
 
 .modal .card .card-image {
