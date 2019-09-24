@@ -633,7 +633,14 @@ var UI={
                     p.append(ul);
                 }
             });
-            
+            let c=0;
+            for (var k in blocks){
+                if(blocks[k].childNodes.length===0){
+                    blocks[k].remove();
+                }else c++;                
+            };
+            c*=3;if(c>12)c=12;            
+            card.className='card col-'+c;
             let toolbar=createElem('div', 'card-footer');
             toolbar.style.cssText='position:absolute;bottom:0px;width:calc(100% - 52px);';
             card.append(toolbar);
