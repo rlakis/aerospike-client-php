@@ -1675,6 +1675,11 @@ class User {
         
         foreach ($uids as $uid) {
             NoSQL::instance()->setUserLevel($uid, 0);
+            $mcUser = new MCUser($uid);
+            $num=$mcUser->getMobileNumber();
+            if ($num) {          
+                NoSQL::instance()->mobileUpdate($uid, $num, [Core\Model\ASD\USER_DEVICE_UNINSTALLED=>0]);            
+            }
         }
     }
     
