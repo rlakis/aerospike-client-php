@@ -24,7 +24,7 @@ label {display:inline-block;max-width:100%;margin-bottom:5px;font-weight:700;}
 
 li,dd,dt{line-height:48px;}
 :root{
-    --mourjanC:rgba(10,61,98,1);--midnight:rgba(44,62,80,1);--premium:#f2d352;
+    --mourjanC:rgba(10,122,255,1);--midnight:rgba(44,62,80,1);--premium:#f2d352;
     --color-1:steelblue;--color-2:firebrick;--color-3:limegreen;
     --color-4:darkorchid;--color-99:orange;
     --linkC:#007bff;}
@@ -140,7 +140,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .navbar>li{float:left;}
 .navbar .navbar-nav>li>a{color:inherit;padding-top:15px;padding-bottom:15px;font-weight:500;font-size:12px;text-transform:uppercase;border-radius:3px;}
 
-.ilogo{height:90px;width:112px;display:inline-block;background-image: url("/web/css/1.0/assets/LogoV2.svg"); background-position: center; background-repeat: no-repeat; background-size: cover;filter:drop-shadow(8px 8px 5px rgba(0,0,0,0.9))}
+.ilogo{height:90px;width:112px;display:inline-block;background-image: url("/web/css/1.0/assets/LogoV3.svg"); background-position: center; background-repeat: no-repeat; background-size: cover;/*filter:drop-shadow(8px 8px 5px rgba(0,0,0,0.9))*/}
 .card{display:inline-block;width:100%;margin:25px 0;box-shadow:0 1px 4px 0 rgba(0, 0, 0, 0.14);border-radius:6px;color:rgba(0,0,0, 0.87);background:#fff;}
 .card-header{display:inline-block;position:absolute;height:68px;margin:-20px 15px 0 15px;padding:15px;box-shadow:0 4px 20px 0px rgba(0, 0, 0, 0.14), 0 7px 10px -5px rgba(255, 152, 0, 0.4);border-radius:inherit;}
 .card .card-header{z-index:3;}
@@ -459,9 +459,9 @@ body[dir="rtl"] .modal .card{transform: translate(-50%, 0%);}
         min-height: 160px;
     }
     .ilogo{
-        width: 200px;
-        height: 160px;
-        margin: 0 16px;
+        width: 300px;
+        height: 105px;
+        margin: 27px 32px 0 32px;
     }
 
     .nav .navright {
