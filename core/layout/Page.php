@@ -1394,8 +1394,9 @@ class Page extends Site {
             </ul>
         </div>
     </nav>
-</header>
-<div class=row><div class=col-12><div class=search>
+</header><main>
+
+    <section class=row><div class=col-12><div class=search>
     <form onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">                
         <?php
         $module=$this->router()->module;
@@ -1407,7 +1408,7 @@ class Page extends Site {
         <input id="q" name="q" class=searchTerm type=search placeholder="<?=$this->lang['search_what']; ?>">
         <button class=searchButton type="submit"><i class="icn icnsmall icn-search invert"></i></button>
     </form>
-</div></div></div><?php
+            </div></div></section><?php
         echo $this->filter_purpose();
     }
     
@@ -2416,7 +2417,7 @@ class Page extends Site {
     
     function footer() : void {
         $year = date('Y');
-        echo '<footer>';
+        echo '</main><footer>';
         ?><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a><?php
         ?><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a><?php
         echo '<div class=col-12>© 2010-', $year, ' Mourjan.com Classifieds<br/>All Rights Reserved.';

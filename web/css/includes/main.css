@@ -22,6 +22,7 @@ h5, .h5 {line-height:1.4em;margin-bottom:15px;}
 h6, .h6 {font-size:1em;text-transform:uppercase;font-weight:500;}
 label {display:inline-block;max-width:100%;margin-bottom:5px;font-weight:700;}
 
+main{width: 100%}
 li,dd,dt{line-height:48px;}
 :root{
     --mourjanC:rgba(10,122,255,1);--midnight:rgba(44,62,80,1);--premium:#f2d352;
@@ -30,7 +31,7 @@ li,dd,dt{line-height:48px;}
     --linkC:#007bff;}
 
 .wrapper{display:flex;flex-flow:row wrap;}
-.wrapper>*{flex:1 100%;}
+.wrapper>*{flex:1 100%;flex-flow: column;}
 
 .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12{display:inherit;width:100%;padding:4px 0;float:left}
 body[dir="rtl"] [class*="col-"] { float: right; }
@@ -140,7 +141,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .navbar>li{float:left;}
 .navbar .navbar-nav>li>a{color:inherit;padding-top:15px;padding-bottom:15px;font-weight:500;font-size:12px;text-transform:uppercase;border-radius:3px;}
 
-.ilogo{height:90px;width:112px;display:inline-block;background-image: url("/web/css/1.0/assets/LogoV3.svg"); background-position: center; background-repeat: no-repeat; background-size: cover;/*filter:drop-shadow(8px 8px 5px rgba(0,0,0,0.9))*/}
+.ilogo{height:90px;width:112px;display:inline-block;background-image: url("/web/css/1.0/assets/LogoV5e.svg"); background-position: center; background-repeat: no-repeat; background-size: cover;/*filter:drop-shadow(8px 8px 5px rgba(0,0,0,0.9))*/}
 .card{display:inline-block;width:100%;margin:25px 0;box-shadow:0 1px 4px 0 rgba(0, 0, 0, 0.14);border-radius:6px;color:rgba(0,0,0, 0.87);background:#fff;}
 .card-header{display:inline-block;position:absolute;height:68px;margin:-20px 15px 0 15px;padding:15px;box-shadow:0 4px 20px 0px rgba(0, 0, 0, 0.14), 0 7px 10px -5px rgba(255, 152, 0, 0.4);border-radius:inherit;}
 .card .card-header{z-index:3;}
@@ -227,7 +228,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .card .cbox.cbl {bottom:5px;left:8px}
 .card .cbox.footer{height:2em;width:100%;position:absolute;bottom:0;display:block;background-color:#333;opacity:0.6;}
 
-.search{display:inherit;width:100%;border:2px solid lightgray;border-radius:5px;}
+.search{display:inline-flex;width:100%;border:2px solid lightgray;border-radius:5px;}
 .search form{width:100%;display:inherit;justify-content:space-between;align-self:flex-start;flex-direction:row}
 .searchTerm{width:100%;border:none;padding:5px;height:36px !important;outline:none;color:var(--midnight);font-size:1.0em;-webkit-appearance:none;}
 .searchTerm:focus{color:var(--mourjanC);}
@@ -458,22 +459,26 @@ body[dir="rtl"] .modal .card{transform: translate(-50%, 0%);}
     header {
         min-height: 160px;
     }
+    main{display:inherit;margin: 8px 52px}
     .ilogo{
-        width: 300px;
-        height: 105px;
-        margin: 27px 32px 0 32px;
+        width: 360px;
+        height: 80px;
+        margin-top: 40px;
     }
 
     .nav .navright {
         width: calc(100% - 210px);
     }
+    body[dir="ltr"] .ilogo{background-image: url("/web/css/1.0/assets/LogoV5e.svg"); margin-left: 60px;}
+    body[dir="rtl"] .ilogo{background-image: url("/web/css/1.0/assets/LogoV5a.svg"); margin-right:  60px;}
+   
 }
 
 
 .adv{}
 
-@media only screen and (min-width:1920px) {
-    body { margin: 0px auto; width: 1920px; display: block;}
+@media only screen and (min-width:1680px) {
+    body { margin: 0px auto; width: 1680px; display: block;}
     .adv {height: 600px;}
 }
 
