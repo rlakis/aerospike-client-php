@@ -477,8 +477,8 @@ body[dir="rtl"] .modal .card{transform: translate(-50%, 0%);}
 
 .adv{}
 
-@media only screen and (min-width:1680px) {
-    body { margin: 0px auto; width: 1680px; display: block;}
+@media only screen and (min-width:1920px) {
+    body { margin: 0px auto; width: 1920px; display: block;}
     .adv {height: 600px;}
 }
 

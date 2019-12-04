@@ -5,16 +5,16 @@ const CN_EMIRATES                   = 2;
 const CN_BAHRAIN                    = 3;
 const CN_SAUDI_ARABIA               = 4;
 const CN_EGYPT                      = 5;
-const SN_SYRIA                      = 6;
+//const SN_SYRIA                      = 6;
 const CN_KUWAIT                     = 7;
 const CN_JORDAN                     = 8;
 const CN_QATAR                      = 9;
-const CN_SUDAN                      = 10;
+//const CN_SUDAN                      = 10;
 const CN_TUNISIA                    = 11;
 const CN_YEMEN                      = 12;
 const CN_ALGERIA                    = 15;
 const CN_IRAQ                       = 106;
-const CN_LIBYA                      = 122;
+//const CN_LIBYA                      = 122;
 const CN_MOROCCO                    = 145;
 const CN_OMAN                       = 161;
 
@@ -41,8 +41,8 @@ const CT_EG_CAIRO                   = 10;
 const CT_EG_ALEXANDRIA              = 11;
 const CT_EG_UPPER                   = 22;
 const CT_EG_DELTA                   = 23;
-const CT_SY_DAMASCUS                = 13;
-const CT_SY_ALEPPO                  = 21;
+//const CT_SY_DAMASCUS                = 13;
+//const CT_SY_ALEPPO                  = 21;
 const CT_KW_KUWAIT                  = 15;
 const CT_KW_TENTH_REGION            = 24;
 const CT_KW_JAHRA                   = 25;
@@ -55,11 +55,11 @@ const CT_IQ_BASRA                   = 180;
 const CT_IQ_BAGHDAD                 = 1239;
 const CT_OM_MUSCAT                  = 761;
 const CT_MA_CASABLANCA              = 1026;
-const CT_SD_KHARTOUM                = 1200;
+//const CT_SD_KHARTOUM                = 1200;
 const CT_YE_SANAA                   = 1224;
 const CT_TN_TUNIS                   = 1210;
 const CT_DZ_ALGIERS                 = 1226;
-const CT_LY_TRIPOLI                 = 1230;
+//const CT_LY_TRIPOLI                 = 1230;
 
 const R_PROPERTIES                  = 1;
 const R_AUTOMOTIVES                 = 2;
@@ -349,8 +349,8 @@ class MCPostPreferences implements \JsonSerializable {
     
     
     public function setup() {  
-        $this->countries = [CN_LEBANON, CN_EMIRATES, CN_BAHRAIN, CN_SAUDI_ARABIA, CN_EGYPT, SN_SYRIA, CN_KUWAIT, 
-            CN_JORDAN, CN_QATAR, CN_SUDAN, CN_TUNISIA, CN_YEMEN, CN_ALGERIA, CN_IRAQ, CN_LIBYA, CN_MOROCCO, CN_OMAN];
+        $this->countries = [CN_LEBANON, CN_EMIRATES, CN_BAHRAIN, CN_SAUDI_ARABIA, CN_EGYPT, /*SN_SYRIA,*/ CN_KUWAIT, 
+            CN_JORDAN, CN_QATAR, /*CN_SUDAN,*/ CN_TUNISIA, CN_YEMEN, CN_ALGERIA, CN_IRAQ, /*CN_LIBYA,*/ CN_MOROCCO, CN_OMAN];
         
         $this->properties = MCPreference::newInstance(R_PROPERTIES)->publishLevel(MCPublishLevel::City, [P_FOR_SALE, P_RENTAL, P_ASK_RENT, P_ASK_BUY, P_TRADE_IN]);
         

@@ -599,9 +599,10 @@ var UI={
             //const keys = Object.keys(_.region);
             //for (const key of keys) {
             Prefs.getAllowedCountriesForUserSource().forEach(function(key){
+                console.log('country', key);
                 let li=createElem('li', '', '<i class="icn icnsmall icn-'+_.region[key].c+'"></i><span>'+_.region[key][_.ar?'ar':'en']+'</span>', 1);
                 li.dataset.countryId=key;
-                console.log('country', key);
+                
                 const ckeys=Object.keys(_.region[key].cc);
                 if(ckeys.length===1){
                     li.dataset.cityId=ckeys[0];
