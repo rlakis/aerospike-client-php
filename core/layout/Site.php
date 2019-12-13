@@ -10,15 +10,16 @@ use ZammadAPIClient\Client;
 use ZammadAPIClient\ResourceType;
 
 class Site {
-    public $user;
+    public User $user;
     var $lang=array(),$xss_hash='',$watchInfo=false; 
     var $userFavorites,$pageUserId=0;
-    var $num=10;
+    public int $num=10;
     var $isMobile=false;
     var $isMobileAd=false;
     var $lnIndex=0;
     var $channelId=0;
-    private $router;
+    public Router $router;
+    public Classifieds $classifieds;
     var $sortingMode = 0;
     var $langSortingMode = 0;
     var $publisherTypeSorting = 0;
@@ -34,7 +35,7 @@ class Site {
         $this->initSphinx();
         
         $this->user=new User($this);
-        $this->router()->setUser($this->user);
+        $this->router->setUser($this->user);
         if (!isset($this->user->params['list_lang'])) {
             $this->langSortingMode = -1;
         }
@@ -48,7 +49,7 @@ class Site {
     public function __destruct() {}
     
     
-    public function router() : Router { return $this->router; }
+    //public function router() : Router { return $this->router; }
     
     public function user() : User { return $this->user; }
     
@@ -136,13 +137,13 @@ class Site {
     
 
     function load_lang(array $langArray, string $langStr='') : void {
-        if ($langStr==='') { $langStr=$this->router()->language; }
+        if ($langStr==='') { $langStr=$this->router->language; }
         if ($this->router->extendedLanguage) { $langStr=$this->router->extendedLanguage; }
         foreach ($langArray as $langFile) {
-            include_once "{$this->router()->config()->baseDir}/core/lang/{$langFile}.php";
+            include_once "{$this->router->config->baseDir}/core/lang/{$langFile}.php";
             $this->lang=\array_merge($this->lang, $lang);
             if ($langStr!=='en') {
-                include_once "{$this->router()->config()->baseDir}/core/lang/{$langStr}/{$langFile}.php";
+                include_once "{$this->router->config->baseDir}/core/lang/{$langStr}/{$langFile}.php";
                 $this->lang=\array_merge($this->lang, $lang);
             }
         }
@@ -335,28 +336,28 @@ class Site {
     
     
     function execute(bool $forceInit=false) {
-        $offset = ($this->router()->params['start'] ? ($this->router()->params['start']-1) : 0) * $this->num;
+        $offset = ($this->router->params['start'] ? ($this->router->params['start']-1) : 0) * $this->num;
         $this->initSphinx($forceInit);
         
         
         $rootId=$this->router->rootId;
-        $q=preg_replace('/@/', '\@', $this->router->params['q']);
+        $q=\preg_replace('/@/', '\@', $this->router->params['q']);
         
-        if ($this->router()->watchId) {
+        if ($this->router->watchId) {
             $this->searchResults=false;
             if (!$this->watchInfo || !count($this->watchInfo)) {
                 return;
             }
-            $results=array();
+            $results=[];
             
-            $this->runQueries ($this->watchInfo, $results);
+            $this->runQueries($this->watchInfo, $results);
                         
-            $matches = array('total_found'=>0,'matches'=>array(),'sub_total'=>array());
-            if ($results && count($results)) { 
+            $matches = ['total_found'=>0, 'matches'=>[], 'sub_total'=>[]];
+            if ($results && \count($results)) { 
                 if ($this->num>1) {
                     foreach ($results as $result) {
                         if (isset($result['matches'])) {
-                            $count=count($result['matches']);
+                            $count=\count($result['matches']);
                             $matches['total_found']+=$count;
     
                             foreach ($result['matches'] as $id => $values) {
@@ -364,13 +365,13 @@ class Site {
                             }
                         }
                     }
-                    krsort($matches['matches'], SORT_NUMERIC);
-                    $matches['matches']=array_slice($matches['matches'], $offset, $this->num, TRUE);
+                    \krsort($matches['matches'], \SORT_NUMERIC);
+                    $matches['matches']=\array_slice($matches['matches'], $offset, $this->num, TRUE);
                 }
                 else {
                     foreach ($results as $result) {
                         if (isset($result['matches'])) {
-                            $count=count($result['matches']);
+                            $count=\count($result['matches']);
                             $matches['total_found']+=$count;
                             foreach ($result['matches'] as $id => $values) {
                                 if (!isset($matches['sub_total'][$values['info_id']])) {
@@ -383,8 +384,8 @@ class Site {
                 }
             }
 
-            if (!strstr($_SERVER["SCRIPT_FILENAME"], 'cronWatchMailer')) {
-                $matches['matches']=  array_keys($matches['matches']);
+            if (!\strstr($_SERVER["SCRIPT_FILENAME"], 'cronWatchMailer')) {
+                $matches['matches']=\array_keys($matches['matches']);
             } 
             $this->searchResults['body']=$matches;
 
@@ -392,37 +393,37 @@ class Site {
         else {
             if (($this->user->info['id'] || $this->pageUserId) && $this->userFavorites) {
                 $id = $this->user->info['id'] ? $this->user->info['id'] : $this->pageUserId;                
-                $this->router()->database()->index()
+                $this->router->db->index()
                         ->setSelect('id')
                         ->starred($id)
                         ->setSortBy('date_added desc')
                         ->setLimits($offset, $this->num)
                         ->addQuery('body', '');
-                $this->searchResults = $this->router()->database()->index()->executeBatch();
+                $this->searchResults = $this->router->db->index()->executeBatch();
             } 
             else {
-                $__compareID = $this->router()->getPositiveVariable('cmp', INPUT_GET);
-                $__compareAID = $this->router()->getPositiveVariable('aid', INPUT_GET);
-                $__stripPremium = $this->router()->getPositiveVariable('strip', INPUT_GET);
-                $this->router()->database()->index()
-                        ->region($this->router()->countryId, $this->router()->cityId)
+                $__compareID = $this->router->getPositiveVariable('cmp', INPUT_GET);
+                $__compareAID = $this->router->getPositiveVariable('aid', INPUT_GET);
+                $__stripPremium = $this->router->getPositiveVariable('strip', INPUT_GET);
+                $this->router->db->index()
+                        ->region($this->router->countryId, $this->router->cityId)
                         ->id($__compareID, TRUE)
-                        ->uid($this->router()->userId)                        
+                        ->uid($this->router->userId)                        
                         ->root($rootId)
-                        ->section($this->router()->sectionId)
+                        ->section($this->router->sectionId)
                         ->pupose($this->router->purposeId)
                         ->locality($this->localityId)
                         ->tag($this->extendedId)
                         ;
                 if ($__stripPremium==1){
                     error_log('passed');
-                    $this->router()->database()->index()->featured(false);
+                    $this->router->db->index()->featured(false);
                 }
                                 
                 if ($this->publisherTypeSorting && in_array($rootId,[1,2,3]) && 
                     ($rootId!=3 || ($rootId==3 && $this->router->purposeId==3)) && 
                     ($rootId!=2 || ($rootId==2 && $this->router->purposeId==1)) ) {
-                    $this->router()->database()->index()->publisherType($this->publisherTypeSorting == 1 ? 1 : 3);
+                    $this->router->db->index()->publisherType($this->publisherTypeSorting == 1 ? 1 : 3);
                 }
                 
                 switch ($this->langSortingMode) {
@@ -445,7 +446,7 @@ class Site {
                     $fields = "id, if(date_added>{$last_visited}, 1, 0) newad, date_added, {$lng}";                    
                 } 
                 
-                $this->router()->database()->index()
+                $this->router->db->index()
                         ->setSelect($fields)
                         ->setSortBy($this->sortingMode ? 'lngmask asc, media desc, date_added desc' : 'lngmask asc, date_added desc')
                         ->setLimits($offset, $this->num)
@@ -458,12 +459,12 @@ class Site {
         
                                 
                 if($__compareAID) {                    
-                    $this->router()->config()->incLibFile('MCSaveHandler');
-                    $handler = new MCSaveHandler($this->router()->cfg);
+                    $this->router->config->incLibFile('MCSaveHandler');
+                    $handler = new MCSaveHandler($this->router->cfg);
                     $this->searchResults = $handler->searchByAdId($__compareAID, $__stripPremium);
                 }
                 else {
-                    $this->searchResults = $this->router()->database()->index()->executeBatchNew();   
+                    $this->searchResults = $this->router->db->index()->executeBatchNew();   
                 }                
             }       
         }
@@ -474,11 +475,11 @@ class Site {
        
     
     function getMediaAds() { 
-        $this->router()->database()->index()->resetFilters()
-                ->region($this->router()->countryId, $this->router()->cityId)
+        $this->router->db->index()->resetFilters()
+                ->region($this->router->countryId, $this->router->cityId)
                 ->media()
                 ->setFilter(Core\Lib\SphinxQL::SECTION, [834,1079,1314,1112,617,513,293,298,343,350,515,539,108,84,85,114,214,116,123,125,135,144,279])
-                ->rtl($this->router()->isArabic() ? [1,2] : [0,2])
+                ->rtl($this->router->isArabic() ? [1,2] : [0,2])
                 ->setSelect('id')
                 ->setSortBy('rand()')
                 ->setLimits(0, 4)
@@ -499,15 +500,15 @@ class Site {
                 $publisher_type = $this->publisherTypeSorting == 1 ? 1 : 3;
             }
             
-            $this->router()->database()->index()->resetFilters()
+            $this->router->db->index()->resetFilters()
                     ->featured()
-                    ->region($this->router()->countryId, $this->router()->cityId)
-                    ->root($this->router()->rootId)
-                    ->section($this->router()->sectionId)
-                    ->pupose($this->router()->purposeId)
+                    ->region($this->router->countryId, $this->router->cityId)
+                    ->root($this->router->rootId)
+                    ->section($this->router->sectionId)
+                    ->pupose($this->router->purposeId)
                     ->locality($this->localityId)
                     ->tag($this->extendedId)
-                    ->rtl($this->router()->isArabic() ? [1,2] : [0,2])
+                    ->rtl($this->router->isArabic() ? [1,2] : [0,2])
                     ->publisherType($publisher_type)
                     ->setSelect("id")
                     ->setSortBy("rand()")
@@ -517,11 +518,11 @@ class Site {
         
         // 2 - get side column paid ads related
         if (true) {
-            $this->router()->database()->index()->resetFilters()
-                ->region($this->router()->countryId, $this->router()->cityId)
+            $this->router->db->index()->resetFilters()
+                ->region($this->router->countryId, $this->router->cityId)
                 ->featured()
-                ->root($this->router()->rootId)
-                ->section($this->router()->sectionId)  
+                ->root($this->router->rootId)
+                ->section($this->router->sectionId)  
                 ->setSelect("id")
                 ->setSortBy("rand()")
                 ->setLimits(0, 4)
@@ -531,7 +532,7 @@ class Site {
         // 1 - get top column featured ads related to query
         if ($this->router->module=='search') {
             $publisher_type=0;
-            if ($this->publisherTypeSorting && in_array($this->router()->rootId,[1,2,3])) {
+            if ($this->publisherTypeSorting && in_array($this->router->rootId,[1,2,3])) {
                 $publisher_type = $this->publisherTypeSorting == 1 ? 1 : 3;
             }
             
@@ -549,11 +550,11 @@ class Site {
                     break;
             }
             
-            $this->router()->database()->index()->resetFilters()
-                ->region($this->router()->countryId, $this->router()->cityId)                
-                ->root($this->router()->rootId)
-                ->section($this->router()->sectionId)
-                ->pupose($this->router()->purposeId)
+            $this->router->db->index()->resetFilters()
+                ->region($this->router->countryId, $this->router->cityId)                
+                ->root($this->router->rootId)
+                ->section($this->router->sectionId)
+                ->pupose($this->router->purposeId)
                 ->locality($this->localityId)
                 ->tag($this->extendedId)
                 ->rtl($rtlFilter)
@@ -567,10 +568,10 @@ class Site {
                                                 
             //if(isset($this->user()->params['feature']) && count($this->user()->params['feature']))
             //{
-            //    $this->router()->database()->index()->setFilterCondition('id', 'not in', $this->user()->params['feature']);
+            //    $this->router->db->index()->setFilterCondition('id', 'not in', $this->user()->params['feature']);
             //}
             
-            //$this->router()->database()->index()
+            //$this->router->db->index()
             //        ->rtl($rtlFilter)
             //        ->SetSelect('id, (impressions + ((IF(now()-date_added<3600,20,impressions)/(now()-date_added))*(date_ended-now()))) as forecast')
             //        ->setSortBy('forecast asc')
@@ -736,7 +737,7 @@ class Site {
                     $section = $this->router->purposes[$ad['pu']][$fieldNameIndex] . ' ' . $section;
                     break;
                 case 3:
-                    if ($this->router()->isArabic()) {
+                    if ($this->router->isArabic()) {
                         $in = ' ';
                         $section = 'وظائف ' . $section;
                     }
@@ -746,7 +747,7 @@ class Site {
                     break;
                 case 4:
                     $in = ' ';
-                    if (!$this->router()->isArabic()) {
+                    if (!$this->router->isArabic()) {
                         $in.= $this->lang['in'] . ' ';
                     }
                     $section = $this->router->purposes[$ad['pu']][$fieldNameIndex] . $in . $section;

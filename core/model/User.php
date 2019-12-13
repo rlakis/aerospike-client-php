@@ -152,12 +152,12 @@ class User {
     }
     
     
-    function __construct($site , $init=1) {
-        $this->db = \Core\Model\Router::instance()->database();
+    function __construct(?Site $site , $init=1) {
+        $this->db = \Core\Model\Router::instance()->db;
         $this->config = \Config::instance();
         $this->reset();
         if ($site) {
-            $_SESSION['_u']['params']['slang'] = $site->router()->language;
+            $_SESSION['_u']['params']['slang'] = $site->router->language;
         }
         if ($init) {
             $this->site=$site;
@@ -201,7 +201,7 @@ class User {
             $this->authenticate();
             $this->setCookieData();
             
-            if (!isset($this->params['visit']) || $site->router()->module=='oauth') {
+            if (!isset($this->params['visit']) || $site->router->module=='oauth') {
                 $this->getCookieData();
                 
                 if (!$this->info['id'] && isset($_COOKIE['__uvme']) && $_COOKIE['__uvme']) {
@@ -2797,8 +2797,8 @@ class User {
 
     function setCookieData() : void {
         //error_log(__CLASS__.'.'.__FUNCTION__. ' '.$this->config->get('site_domain'));
-        if ($this->config->modules[$this->site->router()->module][0]==='Bin') { return; }
-        $info=['lv'=>time(), 'ap'=>($this->site->router()->isApp?1:0)];       
+        if ($this->config->modules[$this->site->router->module][0]==='Bin') { return; }
+        $info=['lv'=>time(), 'ap'=>($this->site->router->isApp?1:0)];       
         
         if (isset($this->params['lang']) && $this->params['lang']) {
             $info['lg']=$this->params['lang'];

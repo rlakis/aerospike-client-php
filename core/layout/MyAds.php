@@ -7,10 +7,11 @@ use Core\Model\AdList;
 
 class MyAds extends Page {
     
-    private $adList;
-    var $subSection='', $userBalance=0, $redis=null, $admins_online=[];
+    private AdList $adList;
+    private array $admins_online=[];
+    var $subSection='', $userBalance=0, $redis=null;
     
-    var $editors = [
+    private array $editors = [
         1 => 'Bassel', 43905 => 'Bassel',
         2 => 'Robert', 69905 => 'Robert',
         2100 => 'Nooralex', 123391 => 'Moe',
@@ -29,10 +30,10 @@ class MyAds extends Page {
     function __construct() {
         parent::__construct();    
         if (!$this->user()->isLoggedIn()) {
-            $this->user()->redirectTo($this->router()->getLanguagePath('/signin/'));
+            $this->user()->redirectTo($this->router->getLanguagePath('/signin/'));
         }
-        if ($this->router()->config()->isMaintenanceMode()) {
-            $this->user->redirectTo($this->router()->getLanguagePath('/maintenance/'));
+        if ($this->router->config->isMaintenanceMode()) {
+            $this->user->redirectTo($this->router->getLanguagePath('/maintenance/'));
         }
          
         $this->checkBlockedAccount();
@@ -41,7 +42,7 @@ class MyAds extends Page {
         $this->adList->cacheProfile($this->user()->data);
         
         $this->forceNoIndex=true;
-        $this->router()->config()->disableAds();
+        $this->router->config->disableAds();
         $this->title=$this->lang['myAds'];
         
         if (isset ($this->user->pending['post'])) {
@@ -73,7 +74,7 @@ class MyAds extends Page {
             }
         }
             
-        $this->set_ad(['zone_0'=>['/1006833/PublicRelation', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->router()->config()->serverId]]);
+        $this->set_ad(['zone_0'=>['/1006833/PublicRelation', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->router->config->serverId]]);
                             
         
         if ($this->user()->isLoggedIn(9) && ($sub==='pending')) {
@@ -157,7 +158,7 @@ class MyAds extends Page {
     function summerizeAds($count){
         $formatted=number_format($count);
         $bread= "";
-        if ($this->router()->siteLanguage=="ar") {
+        if ($this->router->siteLanguage=="ar") {
             if ($count>10) {
                 $bread.= $formatted." ".$this->lang['ads'];
             }
@@ -175,7 +176,7 @@ class MyAds extends Page {
             $bread.= $this->formatPlural($count, "ad");
         }
         $bread.=" ";
-        if ($this->router()->siteLanguage=='ar') {
+        if ($this->router->siteLanguage=='ar') {
             $bread.='ضمن ';
         }
         else {
@@ -192,7 +193,7 @@ class MyAds extends Page {
     
     function main_pane() : void {
         if ($this->user()->isLoggedIn()) {
-            if (!$this->router()->config()->get('enabled_post') && $this->topMenuIE) {
+            if (!$this->router->config->get('enabled_post') && $this->topMenuIE) {
                 $this->renderDisabledPage();
                 return;
             }
@@ -348,11 +349,11 @@ class MyAds extends Page {
             }
             
             if ($state==1) {
-                $baseUrl = $this->router()->getLanguagePath('/myads/');
+                $baseUrl = $this->router->getLanguagePath('/myads/');
                 echo '<div class=col-12>';
                 echo '<form action="', $baseUrl, '" method=GET class=account><input type=hidden name=sub value=pending />';
                 if ($filters['uid']) {
-                    echo '<input type=hidden name=fuid value="', $filters['uid'], ' />', $this->router()->isArabic()?'مستخدم':'user', ': <b>', $filters['uid'], '</b>';                    
+                    echo '<input type=hidden name=fuid value="', $filters['uid'], ' />', $this->router->isArabic()?'مستخدم':'user', ': <b>', $filters['uid'], '</b>';                    
                 }
                 
                 echo '<select name=fhl onchange="this.form.submit()">';
@@ -363,7 +364,7 @@ class MyAds extends Page {
 
                 echo '<select name=fro onchange="this.form.submit()">';
                 echo '<option value=0', $filters['root']==0 ? ' selected':'', '>', $this->lang['opt_all_sections'], '</option>';
-                foreach ($this->router()->pageRoots as $id=>$root) {
+                foreach ($this->router->pageRoots as $id=>$root) {
                     echo '<option value=', $id, $filters['root']==$id ? ' selected':'', '>', $root['name'], '</option>';
                 }
                 echo '</select>';
@@ -371,7 +372,7 @@ class MyAds extends Page {
                 if ($filters['root']==3){
                     echo '<select name=fpu onchange="this.form.submit()">';
                     echo '<option value=0', $filters['purpose']==0?' selected':'', '>', $this->lang['opt_all_sections'], '</option>';
-                    foreach ($this->router()->pageRoots[3]['purposes'] as $id=>$purpose) {
+                    foreach ($this->router->pageRoots[3]['purposes'] as $id=>$purpose) {
                         echo '<option value=', $id, $filters['purpose']==$id?' selected>':'>', $purpose['name'], '</option>';
                     }
                     echo '</select>';
@@ -415,37 +416,37 @@ class MyAds extends Page {
             case 2:
             case 999:
             case 8:
-                $section=$this->router()->sections[$ad->sectionId()][$this->fieldNameIndex].' '.$this->router()->purposes[$ad->purposeId()][$this->fieldNameIndex];
+                $section=$this->router->sections[$ad->sectionId()][$this->fieldNameIndex].' '.$this->router->purposes[$ad->purposeId()][$this->fieldNameIndex];
                 break;
             case 6:
             case 7:
-                $section=$this->router()->purposes[$ad->purposeId()][$this->fieldNameIndex].' '.$this->router()->sections[$ad->sectionId()][$this->fieldNameIndex];
+                $section=$this->router->purposes[$ad->purposeId()][$this->fieldNameIndex].' '.$this->router->sections[$ad->sectionId()][$this->fieldNameIndex];
                 break;
             case 3:
             case 4:
             case 5:
-                if(preg_match('/'.$this->router()->purposes[$ad->purposeId()][$this->fieldNameIndex].'/', $this->router()->sections[$ad->sectionId()][$this->fieldNameIndex])){
-                    $section=$this->router()->sections[$ad->sectionId()][$this->fieldNameIndex];
+                if(preg_match('/'.$this->router->purposes[$ad->purposeId()][$this->fieldNameIndex].'/', $this->router->sections[$ad->sectionId()][$this->fieldNameIndex])){
+                    $section=$this->router->sections[$ad->sectionId()][$this->fieldNameIndex];
                 }
                 else {
                     $in=' ';
-                    if ($this->router()->language==='en') { $in=' '.$this->lang['in'].' '; }
-                    $section=$this->router()->purposes[$ad->purposeId()][$this->fieldNameIndex].$in.$this->router()->sections[$ad->sectionId()][$this->fieldNameIndex];
+                    if ($this->router->language==='en') { $in=' '.$this->lang['in'].' '; }
+                    $section=$this->router->purposes[$ad->purposeId()][$this->fieldNameIndex].$in.$this->router->sections[$ad->sectionId()][$this->fieldNameIndex];
                 }
                 break;
         }
            
        //$adContent = json_decode($ad['CONTENT'], true);
-       $countries = $this->router()->db->getCountriesDictionary(); // $this->router()->countries;
+       $countries = $this->router->db->getCountriesDictionary(); // $this->router->countries;
        //if (isset($adContent['pubTo'])) {
             $fieldIndex=2;
             $comma=',';
-            if ($this->router()->isArabic()){
+            if ($this->router->isArabic()){
                 $fieldIndex=1;
                 $comma='،';
             }
             $countriesArray=array();
-            $cities = $this->router()->cities;
+            $cities = $this->router->cities;
                 
             $content='';
             foreach ($ad->dataset()->getRegions() as $city) {                    
@@ -483,8 +484,8 @@ class MyAds extends Page {
         //elseif(isset ($countries[$ad['COUNTRY_ID']])) {
         //    $countryId=$ad['COUNTRY_ID']; 
         //    $countryCities=$countries[$countryId][6];
-        //    if (count($countryCities)>0 && isset($this->router()->cities[$ad['CITY_ID']])) {
-        //        $section=$section.' '.$this->lang['in'].' '.$this->router()->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
+        //    if (count($countryCities)>0 && isset($this->router->cities[$ad['CITY_ID']])) {
+        //        $section=$section.' '.$this->lang['in'].' '.$this->router->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
         //    }
         //    else {
         //        $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$this->fieldNameIndex];
@@ -528,16 +529,16 @@ class MyAds extends Page {
         echo '<div class=row><div class=col-12><div class=card>';
         $this->renderBalanceBar();
         echo '<div class=account>';
-        echo '<a href="', $this->router()->getLanguagePath('/post/'), '" class="btn half"><span class="j pub"></span>', $this->lang['button_ad_post_m'], '</a>';
-        echo '<a id=active href="', $this->router()->getLanguagePath('/myads/'), '" class="btn active', $sub===''?' current':'', '"><span class="pj ads1"></span>', $this->lang['ads_active'], '</a>';
+        echo '<a href="', $this->router->getLanguagePath('/post/'), '" class="btn half"><span class="j pub"></span>', $this->lang['button_ad_post_m'], '</a>';
+        echo '<a id=active href="', $this->router->getLanguagePath('/myads/'), '" class="btn active', $sub===''?' current':'', '"><span class="pj ads1"></span>', $this->lang['ads_active'], '</a>';
 
-        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=pending', $this->lang['home_pending'], $sub==='pending', $dbCount);
-        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=drafts', $this->lang['home_drafts'], $sub==='drafts', $dbCount);
-        $this->accountButton($this->router()->getLanguagePath('/myads/').'?sub=archive', $this->lang['home_archive'], $sub==='archive', $dbCount);
+        $this->accountButton($this->router->getLanguagePath('/myads/').'?sub=pending', $this->lang['home_pending'], $sub==='pending', $dbCount);
+        $this->accountButton($this->router->getLanguagePath('/myads/').'?sub=drafts', $this->lang['home_drafts'], $sub==='drafts', $dbCount);
+        $this->accountButton($this->router->getLanguagePath('/myads/').'?sub=archive', $this->lang['home_archive'], $sub==='archive', $dbCount);
             
-        echo '<a id=favorite href="', $this->router()->getLanguagePath('/favorites/'), '?u=', $this->user->info['idKey'], '" class="btn half favorite', $sub=='favorite'?' current':'', '"><span class="j fva"></span>', $this->lang['myFavorites'], '</a>';
-        echo '<a href="', $this->router()->getLanguagePath('/statement/'), '" class="btn half balance"><span class="pj coin"></span>', $this->lang['myBalance'], '</a>';
-        echo '<a href="', $this->router()->getLanguagePath('/account/'), '" class="btn full settings"><span class="j sti"></span>', $this->lang['myAccount'], '</a>';
+        echo '<a id=favorite href="', $this->router->getLanguagePath('/favorites/'), '?u=', $this->user->info['idKey'], '" class="btn half favorite', $sub=='favorite'?' current':'', '"><span class="j fva"></span>', $this->lang['myFavorites'], '</a>';
+        echo '<a href="', $this->router->getLanguagePath('/statement/'), '" class="btn half balance"><span class="pj coin"></span>', $this->lang['myBalance'], '</a>';
+        echo '<a href="', $this->router->getLanguagePath('/account/'), '" class="btn full settings"><span class="j sti"></span>', $this->lang['myAccount'], '</a>';
         echo '</div>';
                    
         echo '<div class=card-footer><div class=account>';
@@ -580,9 +581,9 @@ class MyAds extends Page {
             if ($isAdminProfiling) { $renderAssignedAdsOnly = false; }           
             
             if ($state===7) {                
-                if ($this->router()->config()->get('enabled_charts') && !$isAdminProfiling) {  
+                if ($this->router->config->get('enabled_charts') && !$isAdminProfiling) {  
                     echo 'shjdhsjkdhkjfkjw';
-                    //echo '<div class="stin ', $this->router()->language, '"></div>';
+                    //echo '<div class="stin ', $this->router->language, '"></div>';
                     //$this->renderEditorsBox($state);
                     //></div><?php
                     ?><div class="phld"><div id="statDv" class="load"></div></div><?php
@@ -597,7 +598,7 @@ class MyAds extends Page {
             }
 
             echo '<div class=row><div class="col-12 myadls">';            
-            $linkLang = $this->router()->language==='ar' ? '' : $this->router()->language.'/';
+            $linkLang = $this->router->language==='ar' ? '' : $this->router->language.'/';
             
             $this->adList->rewind();
             while ($this->adList->valid()) {
@@ -648,25 +649,25 @@ class MyAds extends Page {
                     $images='';
                     foreach ($cad->dataset()->getPictures() as $img => $dim) {
                         if ($images) { $images.='||'; }
-                        $images.='<img width=118 src=\"'.$this->router()->config()->adImgURL.'/repos/s/' . $img . '\" />';
+                        $images.='<img width=118 src=\"'.$this->router->config->adImgURL.'/repos/s/' . $img . '\" />';
                         $thumbs.='<span class=ig data-w='.$dim[0].' data-h='.$dim[1].'><img class=lazy data-path="'.$img.'" /></span>';
                         $hasAdminImgs = 1;
                     }
                     
                     if ($images) { $images.='||'; }
-                    $images.='<img class=ir src=\"'.$this->router()->config()->imgURL.'/90/' . $cad->sectionId() . $this->router()->_png .'\" />';
-                    $pic = '<img class=ir src="'.$this->router()->config()->imgURL.'/90/'.$cad->sectionId().$this->router()->_png.'" />';                    
+                    $images.='<img class=ir src=\"'.$this->router->config->imgURL.'/90/' . $cad->sectionId() . $this->router->_png .'\" />';
+                    $pic = '<img class=ir src="'.$this->router->config->imgURL.'/90/'.$cad->sectionId().$this->router->_png.'" />';                    
                 }
                 else {                    
                     //if (!empty($cad->dataset()->getPictures()) /*isset($content['pics']) && is_array($content['pics']) && count($content['pics'])>0*/) {
                     //    $picCount=count($content['pics']);
                     //    $pic = isset($content['pic_def']) ? $content['pic_def'] : array_keys($content['pics'])[0];
-                    //    $this->globalScript.='sic[' . $ad['ID'] . ']="<img width=\"120\" src=\"'.$this->router()->cfg['url_ad_img'].'/repos/s/' . $pic . '\" /><span class=\"cnt\">'.$picCount.'<span class=\"i sp\"></span></span>";';
+                    //    $this->globalScript.='sic[' . $ad['ID'] . ']="<img width=\"120\" src=\"'.$this->router->cfg['url_ad_img'].'/repos/s/' . $pic . '\" /><span class=\"cnt\">'.$picCount.'<span class=\"i sp\"></span></span>";';
                     //    $pic = '<span class=ig></span>';
                     //} 
                     //else {
-                    //    $this->globalScript.='sic[' . $ad['ID'] . ']="<img class=\"ir\" src=\"'.$this->router()->config()->imgURL.'/90/' . $cad->sectionId() .$this->router()->_png. '\" />";';
-                        $pic = '<span class=ig><img class=ir src="'.$this->router()->config()->imgURL.'/90/'. $cad->sectionId() .$this->router()->_png .'"</span>';
+                    //    $this->globalScript.='sic[' . $ad['ID'] . ']="<img class=\"ir\" src=\"'.$this->router->config->imgURL.'/90/' . $cad->sectionId() .$this->router->_png. '\" />";';
+                        $pic = '<span class=ig><img class=ir src="'.$this->router->config->imgURL.'/90/'. $cad->sectionId() .$this->router->_png .'"</span>';
                     //}
                 }
                 
@@ -800,9 +801,9 @@ class MyAds extends Page {
                     }
                     
                     $title='<div class=user><a target=_similar href="'.
-                            ($isSuperAdmin ? $this->router()->getLanguagePath('/admin/').'?p=' . $cad->uid() : $cad->profile()->getProfileURL()).
+                            ($isSuperAdmin ? $this->router->getLanguagePath('/admin/').'?p=' . $cad->uid() : $cad->profile()->getProfileURL()).
                             '">'.$profileLabel.'</a><a target=_similar'.$style.' href="'.
-                            $this->router()->getLanguagePath('/myads/').'?u='.$cad->uid().'">'.$name.'</a>';
+                            $this->router->getLanguagePath('/myads/').'?u='.$cad->uid().'">'.$name.'</a>';
                     
                     $geo = preg_replace('/,/', '' , preg_replace('/[0-9\.]|(?:^|\s|,)[a-zA-Z]{1,3}\s/', '', $cad->dataset()->getUserLocation()));
                     $title.='<span class=inf>' . $geo . '</span>';
@@ -990,7 +991,7 @@ class MyAds extends Page {
                             ?><button onclick="d.edit(this)"><?= $this->lang['edit_ad'] ?></button><?php
                             ?></form><?php 
                         }
-                        if ($this->router()->config()->get('enabled_ad_stats') && !$isAdminProfiling) {
+                        if ($this->router->config->get('enabled_ad_stats') && !$isAdminProfiling) {
                             ?><span class="stad load"></span><?php
                         }
                     }                            
@@ -1010,7 +1011,7 @@ class MyAds extends Page {
                     if (!$isSystemAd && (!$isAdmin || ($isAdmin && $isAdminOwner))) {
                         ?><span class="lnk" onclick="adel(this,1)"><span class="rj del"></span><?= $this->lang['delete'] ?></span><?php 
                     }
-                    if ($this->router()->config()->get('enabled_ad_stats') && !$isAdminProfiling) {
+                    if ($this->router->config->get('enabled_ad_stats') && !$isAdminProfiling) {
                         ?><span class="stad load"></span><?php
                     }
                 }
@@ -1021,12 +1022,12 @@ class MyAds extends Page {
                         ?><input type="button" class="lnk" onclick="rejF(this,<?= $ad['WEB_USER_ID'] ?>)" value="<?= $this->lang['reject'] ?>" /><?php
                         
                         if ($isSuperAdmin) {
-                            ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->router()->isArabic()?'':'/en' ?>/?aid=<?= $ad['ID'] ?>&q="><?= $this->lang['similar'] ?></a><?php
+                            ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->router->isArabic()?'':'/en' ?>/?aid=<?= $ad['ID'] ?>&q="><?= $this->lang['similar'] ?></a><?php
                         }
                         $contactInfo=$this->getContactInfo($content);
                         if (!$isSystemAd || $isSuperAdmin) {
                             if ($contactInfo) {                        
-                                ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->router()->isArabic()?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
+                                ?><a target="blank" class="lnk" onclick="openW(this.href);return false" href="<?= $this->router->isArabic()?'':'/en' ?>/?cmp=<?= $ad['ID'] ?>&q=<?= $contactInfo ?>"><?= $this->lang['lookup'] ?></a><?php
                             }
                         }
                     }
@@ -1134,7 +1135,7 @@ class MyAds extends Page {
                 ?><div class=pgn><div class=card><?php 
                 echo ($this->adList->page()+1).' '.$this->lang['of'].' '.ceil($dbCount/$this->adList->limit());
                 $appendOp = '?';
-                $link = $this->router()->uri.($this->router()->isArabic()?'':$this->router()->language.'/');
+                $link = $this->router->uri.($this->router->isArabic()?'':$this->router->language.'/');
                 
                 
                 $sub=filter_input(INPUT_GET, 'sub', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
@@ -1315,7 +1316,7 @@ class MyAds extends Page {
             if ($user->isSuspended()) {
                 $time = MCSessionHandler::checkSuspendedMobile($user->getMobileNumber());
                 $hours=0;
-                $lang=$this->router()->language;
+                $lang=$this->router->language;
                 if ($time) {
                     $hours = $time / 3600;
                     if (ceil($hours)>1) {

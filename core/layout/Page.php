@@ -7,7 +7,7 @@ class Page extends Site {
     const SearchEngineLegitimateEntries = 21;
     
     protected $action='';
-    protected $requires=array('js'=>array(),'css'=>array());
+    protected array $requires=['js'=>[], 'css'=>[]];
     protected $title='', $description='';
     public $isUserMobileVerified = false;
     var $stat;
@@ -32,7 +32,7 @@ class Page extends Site {
     var $pageItemScope='itemscope itemtype="https://schema.org/WebPage"';
     
     
-    private $included = [];
+    private array $included = [];
     
     function __construct() {
         parent::__construct(); 
@@ -48,49 +48,41 @@ class Page extends Site {
         
         //$this->user()->sysAuthById(1932896);
                 
-        $cdn = $this->router()->config()->assetsURL;        
-        if ($this->router()->module=='myads' || $this->router()->module=='post') {
-            $this->router()->config()->adImgURL = 'https://www.mourjan.com';
+        $cdn = $this->router->config->assetsURL;        
+        if ($this->router->module=='myads' || $this->router->module=='post') {
+            $this->router->config->adImgURL = 'https://www.mourjan.com';
         }
         
-        if (strpos($this->router()->config()->imgURL, 'http')===false) {            
-            $this->router()->config()->imgURL = $cdn.$this->router()->config()->imgURL;
+        if (strpos($this->router->config->imgURL, 'http')===false) {            
+            $this->router->config->imgURL = $cdn.$this->router->config->imgURL;
         }
         
-        if (strpos($this->router()->config()->jsURL, 'http')===false) {
-            $this->router()->config()->jsURL = $cdn.$this->router()->config()->jsURL;
+        if (strpos($this->router->config->jsURL, 'http')===false) {
+            $this->router->config->jsURL = $cdn.$this->router->config->jsURL;
         }
         
-        if (strpos($this->router()->config()->get('url_js_mobile'), 'http')===false) {
-            $this->router()->config()->setValue('url_js_mobile', $cdn.$this->router()->config()->get('url_js_mobile'));
+        if (strpos($this->router->config->get('url_js_mobile'), 'http')===false) {
+            $this->router->config->setValue('url_js_mobile', $cdn.$this->router->config->get('url_js_mobile'));
         }
         
-        if (strpos($this->router()->config()->cssURL, 'http')===false) {
-            $this->router()->config()->cssURL = $cdn.$this->router()->config()->cssURL;
+        if (strpos($this->router->config->cssURL, 'http')===false) {
+            $this->router->config->cssURL = $cdn.$this->router->config->cssURL;
         }
         
-        if (strpos($this->router()->config()->get('url_css_mobile'), 'http')===false) {
-            $this->router()->config()->setValue('url_css_mobile', $cdn.$this->router()->config()->get('url_css_mobile'));
+        if (strpos($this->router->config->get('url_css_mobile'), 'http')===false) {
+            $this->router->config->setValue('url_css_mobile', $cdn.$this->router->config->get('url_css_mobile'));
         }
         
-        //if (strpos($this->router()->config()->jQueryURL, 'http')===false) {
-        //    $this->router()->config()->jQueryURL = $cdn.$this->router()->config()->jQueryURL;
-        //}
-        
-        //if (strpos($this->router()->config()->get('url_jquery_mobile'), 'http') ===false) {
-        //    $this->router()->config()->setValue('url_jquery_mobile', $cdn.$this->router()->config()->get('url_jquery_mobile'));
-        //}
-        
-        if (strpos($this->router()->config()->imgLibURL, 'http')===false) {
-            $this->router()->config()->imgLibURL = $cdn.$this->router()->config()->imgLibURL;
+        if (strpos($this->router->config->imgLibURL, 'http')===false) {
+            $this->router->config->imgLibURL = $cdn.$this->router->config->imgLibURL;
         }
         
-        if (strpos($this->router()->config()->get('url_highcharts'), 'http')===false) {
-            $this->router()->config()->setValue('url_highcharts', $cdn.$this->router()->config()->get('url_highcharts'));
+        if (strpos($this->router->config->get('url_highcharts'), 'http')===false) {
+            $this->router->config->setValue('url_highcharts', $cdn.$this->router->config->get('url_highcharts'));
         }        
         
-        if (!$this->router()->config()->enabledUsers()) {
-            if ($this->router()->isArabic()) {
+        if (!$this->router->config->enabledUsers()) {
+            if ($this->router->isArabic()) {
                 $this->setNotification('مرجان يواجه بعض المشاكل التقنية والتي يتم معالجتها حالياً. شكراً لتحليكم بالصبر.');
             }
             else {
@@ -99,24 +91,24 @@ class Page extends Site {
         }
         
         if(isset($this->user->params['hasCanvas']) && $this->user->params['hasCanvas']==0){
-            $this->router()->cfg['enabled_charts']=0;
+            $this->router->cfg['enabled_charts']=0;
         }
         
         
-        if ($this->router()->isMobile) {
+        if ($this->router->isMobile) {
             $this->includeCssByCountry();
-            if($this->router()->module=='signin'){
+            if($this->router->module=='signin'){
                 $this->inlineCss.='.g-recaptcha{display:inline-block;min-height:78px}li.recap{text-align:center}';
             }
         }        
 
-        if (!in_array($this->router()->countryId, $this->router()->config()->get('iso_countries'))) {
-            $this->router()->countryId=0;
-            $this->router()->cityId=0;
-            if ($this->router()->module!='index') { $this->forceNoIndex=1; }
+        if (!in_array($this->router->countryId, $this->router->config->get('iso_countries'))) {
+            $this->router->countryId=0;
+            $this->router->cityId=0;
+            if ($this->router->module!='index') { $this->forceNoIndex=1; }
         }
         
-        if ($this->router()->module=='watchlist'||$this->router()->module=='favorites'){
+        if ($this->router->module=='watchlist'||$this->router->module=='favorites'){
             if ($this->user->info['id']) {
                 $this->pageUserId = $this->user->info['id'];
             }
@@ -125,29 +117,29 @@ class Page extends Site {
             }
         }
         
-        if ($this->router()->siteTranslate) {
-            if (in_array($this->router()->siteTranslate, array('ar','en'))) {
-                $this->router()->language=$this->router()->siteTranslate;
+        if ($this->router->siteTranslate) {
+            if (in_array($this->router->siteTranslate, array('ar','en'))) {
+                $this->router->language=$this->router->siteTranslate;
             }
         }
         
-        if ($this->router()->module!='post' && isset($this->user->pending['post'])) {
+        if ($this->router->module!='post' && isset($this->user->pending['post'])) {
             unset($this->user->pending['post']);
         }
 
-        $this->load_lang(array('main'));
-        $this->title = $this->router()->pageTitle[$this->router()->language];
+        $this->load_lang(['main']);
+        $this->title = $this->router->pageTitle[$this->router->language];
         if (!$this->title) $this->title = $this->lang['title_full'];        
         
         $this->fieldNameIndex=1+$this->lnIndex;
 
         $this->checkUserData();
-        if ($this->router()->isMobile)  {
+        if ($this->router->isMobile)  {
             $this->set_require('css', array('main'));
             //$this->set_require('css', array('mob'));
             $this->isMobileAd=true;
             $this->isMobile=true;
-            $this->appendLang=$this->router()->getLanguagePath();                    
+            $this->appendLang=$this->router->getLanguagePath();                    
         }
         else {   
             $width = 0;
@@ -155,20 +147,20 @@ class Page extends Site {
                 $width = $this->user->params['screen'][0];
             }
             
-            if ($this->router()->module!='myads' && $this->router()->module!='post'){                 
+            if ($this->router->module!='myads' && $this->router->module!='post'){                 
                 if ($width >= 1250) {
                     $this->inlineCss.='@media all and (max-width:1249px){.w970{display:none}}';
-                    $this->set_ad(array('zone_0'=>array('/1006833/Leaderboard-970', 970, 90, 'div-gpt-ad-1497965856593-0-'.$this->router()->config()->serverId)));
+                    $this->set_ad(array('zone_0'=>array('/1006833/Leaderboard-970', 970, 90, 'div-gpt-ad-1497965856593-0-'.$this->router->config->serverId)));
                 }
                 else {
-                    $this->set_ad(array('zone_0'=>array('/1006833/Leaderboard', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->router()->config()->serverId)));
+                    $this->set_ad(array('zone_0'=>array('/1006833/Leaderboard', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->router->config->serverId)));
                 }
             }
 
             $this->set_require('css', array('gen'));
         }
                
-        if ($this->user->info['id'] && $this->router()->module!='account' && $this->user->info['app-user']==0){
+        if ($this->user->info['id'] && $this->router->module!='account' && $this->user->info['app-user']==0){
             if (!$this->user->info['email']) {
                 if ((isset($this->user->info['options']['email']) && isset($this->user->info['options']['emailKey']) )) {
                     $this->setNotification(preg_replace('/{email}/', $this->user->info['options']['email'], $this->lang['validateEmail']));                    
@@ -178,7 +170,7 @@ class Page extends Site {
             }
         }
         
-        if($this->router()->userId && $this->router()->userId == $this->user->info['id']  && $this->router()->module!='detail'){
+        if($this->router->userId && $this->router->userId==$this->user->info['id']  && $this->router->module!='detail'){
             $this->setNotification($this->lang['specialNB']);
         }
         else {
@@ -190,24 +182,24 @@ class Page extends Site {
             }
         }
 
-        if ($this->router()->watchId || $this->router()->userId || ($this->router()->module!='index' && $this->router()->module!='detail' && $this->router()->module!='search')){
+        if ($this->router->watchId || $this->router->userId || ($this->router->module!='index' && $this->router->module!='detail' && $this->router->module!='search')){
             if (isset($this->user->params['country']) && $this->user->params['country']) {
-                $this->router()->countryId=$this->user->params['country'];
+                $this->router->countryId=$this->user->params['country'];
             }
             if (isset($this->user->params['city']) && $this->user->params['city']) {
-                $this->router()->cityId=$this->user->params['city'];
+                $this->router->cityId=$this->user->params['city'];
             }
         }
 
-        if ($this->router()->module=='favorites') {
+        if ($this->router->module=='favorites') {
             $this->userFavorites=true;
             $this->lang['description']=$this->lang['home_description'];
-            $this->router()->module='search';
+            $this->router->module='search';
         }
         
-        if ($this->router()->module=='watchlist') {
-            $this->router()->module='search';
-            $this->router()->watchId=$this->pageUserId ? $this->pageUserId : -1;
+        if ($this->router->module=='watchlist') {
+            $this->router->module='search';
+            $this->router->watchId=$this->pageUserId ? $this->pageUserId : -1;
         }
 
         if (!$this->isMobile) {
@@ -215,32 +207,32 @@ class Page extends Site {
             if (array_key_exists('HTTP_USER_AGENT', $_SERVER) && preg_match('/(MSIE 6|MSIE 7)/', $_SERVER['HTTP_USER_AGENT'], $match)) {
                 $version=((int)substr($match[0], -1));
                 if ($version<7) {
-                    $this->router()->cfg['enabled_disqus']=false;
+                    $this->router->cfg['enabled_disqus']=false;
                 }
             }
         }        
 
-        if ($this->router()->module=='detail') {
-            $this->detailAd = $this->classifieds->getById($this->router()->id);
+        if ($this->router->module==='detail') {
+            $this->detailAd = $this->classifieds->getById($this->router->id);
             if (!empty ($this->detailAd)) {
                 if (!empty($this->detailAd[Classifieds::ALT_CONTENT])) {
-                    if ($this->router()->language=="en" && $this->detailAd[Classifieds::RTL]) {
+                    if ($this->router->language=="en" && $this->detailAd[Classifieds::RTL]) {
                         $this->detailAd[Classifieds::TITLE] = $this->detailAd[Classifieds::ALT_TITLE];
                         $this->detailAd[Classifieds::CONTENT] = $this->detailAd[Classifieds::ALT_CONTENT];
                         $this->detailAd[Classifieds::RTL] = 0;
                         $this->appendLocation=false;
-                    } elseif ($this->router()->language=="ar" && $this->detailAd[Classifieds::RTL]==0) {
+                    } elseif ($this->router->language=="ar" && $this->detailAd[Classifieds::RTL]==0) {
                         $this->detailAd[Classifieds::TITLE] = $this->detailAd[Classifieds::ALT_TITLE];
                         $this->detailAd[Classifieds::CONTENT] = $this->detailAd[Classifieds::ALT_CONTENT];
                         $this->detailAd[Classifieds::RTL] = 1;          
                         $this->appendLocation=false;
                     }
                 }
-                $this->router()->cityId=$this->detailAd[Classifieds::CITY_ID];
-                $this->router()->countryId=$this->detailAd[Classifieds::COUNTRY_ID];
-                $this->router()->rootId=$this->detailAd[Classifieds::ROOT_ID];
-                $this->router()->sectionId=$this->detailAd[Classifieds::SECTION_ID];
-                $this->router()->purposeId=$this->detailAd[Classifieds::PURPOSE_ID];
+                $this->router->cityId=$this->detailAd[Classifieds::CITY_ID];
+                $this->router->countryId=$this->detailAd[Classifieds::COUNTRY_ID];
+                $this->router->rootId=$this->detailAd[Classifieds::ROOT_ID];
+                $this->router->sectionId=$this->detailAd[Classifieds::SECTION_ID];
+                $this->router->purposeId=$this->detailAd[Classifieds::PURPOSE_ID];
                 $this->lang['description']=preg_replace('/"/', '', $this->detailAd[Classifieds::CONTENT]);
                 if ($this->detailAd[Classifieds::HELD]!=0) $this->detailAdExpired=true;
             }
@@ -248,19 +240,19 @@ class Page extends Site {
                 $this->detailAdExpired=true;
             }
 
-            if (isset($this->user->params['search']['cn']) && $this->router()->internal_referer && !isset($_GET['ref'])) {
-                if(isset($this->user->params['search']['uId']))$this->router()->userId=$this->user->params['search']['uId'];
-                if(isset($this->user->params['search']['wId']))$this->router()->watchId=$this->user->params['search']['wId'];
-                $this->router()->countryId=$this->user->params['search']['cn'];
-                $this->router()->cityId=$this->user->params['search']['c'];
-                $this->router()->rootId=$this->user->params['search']['ro'];
-                $this->router()->sectionId=$this->user->params['search']['se'];
-                $this->router()->purposeId=$this->user->params['search']['pu'];
-                $this->router()->params['q']=$this->user->params['search']['q'];
+            if (isset($this->user->params['search']['cn']) && $this->router->internal_referer && !isset($_GET['ref'])) {
+                if(isset($this->user->params['search']['uId']))$this->router->userId=$this->user->params['search']['uId'];
+                if(isset($this->user->params['search']['wId']))$this->router->watchId=$this->user->params['search']['wId'];
+                $this->router->countryId=$this->user->params['search']['cn'];
+                $this->router->cityId=$this->user->params['search']['c'];
+                $this->router->rootId=$this->user->params['search']['ro'];
+                $this->router->sectionId=$this->user->params['search']['se'];
+                $this->router->purposeId=$this->user->params['search']['pu'];
+                $this->router->params['q']=$this->user->params['search']['q'];
                 if (array_key_exists('exId', $this->user->params['search']))
-                    $this->router()->params['tag_id']=$this->user->params['search']['exId'];
+                    $this->router->params['tag_id']=$this->user->params['search']['exId'];
                 if (array_key_exists('locId', $this->user->params['search']))
-                $this->router()->params['loc_id']=$this->user->params['search']['locId'];
+                $this->router->params['loc_id']=$this->user->params['search']['locId'];
                 if (isset ($_GET['p'])){
                     $p=$_GET['p'];
                     if ($p=='prev'){
@@ -274,23 +266,23 @@ class Page extends Site {
                         else $this->user->params['search']['start']=2;
                     }
                 }
-                $this->router()->params['start']=$this->user->params['search']['start'];
+                $this->router->params['start']=$this->user->params['search']['start'];
 
             }
-            $this->router()->cacheExtension();
+            $this->router->cacheExtension();
         } 
-        elseif ($this->router()->module!='search') {
-            $last_query_time=  isset($this->user->params['search']['time']) ? $this->user->params['search']['time'] : 0;
+        elseif ($this->router->module!=='search') {
+            $last_query_time=isset($this->user->params['search']['time']) ? $this->user->params['search']['time'] : 0;
             unset ($this->user->params['search']);
-            $this->user->params['search']=array('time'=>$last_query_time);
+            $this->user->params['search']=['time'=>$last_query_time];
         }
         
-        if ($this->router()->module=='search') {
-            if(isset($this->user->params['last_root']) && $this->user->params['last_root'] != $this->router()->rootId){
+        if ($this->router->module==='search') {
+            if(isset($this->user->params['last_root']) && $this->user->params['last_root'] != $this->router->rootId){
                 $this->user->params['list_publisher'] = 0;
                 $this->publisherTypeSorting = 0;
             }
-            $this->user->params['last_root'] = $this->router()->rootId;
+            $this->user->params['last_root'] = $this->router->rootId;
             $this->user->update();
             
             if($this->publisherTypeSorting){
@@ -298,43 +290,44 @@ class Page extends Site {
             }
         }
 
-        if ($this->router()->countryId) {
-            $this->countryName=$this->router()->countries[$this->router()->countryId]['name']; 
-            if (count($this->router()->countries[$this->router()->countryId]['cities'])>0) {
+        if ($this->router->countryId) {
+            $this->countryName=$this->router->countries[$this->router->countryId]['name']; 
+            if (\count($this->router->countries[$this->router->countryId]['cities'])>0) {
                 $this->hasCities=true;
-                if ($this->router()->cityId && isset($this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId])){
-                    $this->cityName = $this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId]['name'];
-                    //$this->cityName=$this->router()->cities[$this->router()->cityId][$this->fieldNameIndex];
-                }else{
-                    $this->router()->cityId=0;
+                if ($this->router->cityId && isset($this->router->countries[$this->router->countryId]['cities'][$this->router->cityId])){
+                    $this->cityName = $this->router->countries[$this->router->countryId]['cities'][$this->router->cityId]['name'];
+                    //$this->cityName=$this->router->cities[$this->router->cityId][$this->fieldNameIndex];
+                }
+                else {
+                    $this->router->cityId=0;
                 }
             }
             else {
-                $this->router()->cityId=0;
+                $this->router->cityId=0;
             }
-            if ($this->router()->cityId) {
-                $this->countryCounter=$this->router()->isArabic() ? number_format($this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId]['counter']) :$this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId]['counter'];
+            if ($this->router->cityId) {
+                $this->countryCounter=$this->router->isArabic() ? number_format($this->router->countries[$this->router->countryId]['cities'][$this->router->cityId]['counter']) :$this->router->countries[$this->router->countryId]['cities'][$this->router->cityId]['counter'];
             }
             else {
-                $this->countryCounter=$this->router()->isArabic() ? number_format($this->router()->countries[$this->router()->countryId]['counter']) :$this->router()->countries[$this->router()->countryId]['counter'];
+                $this->countryCounter=$this->router->isArabic() ? number_format($this->router->countries[$this->router->countryId]['counter']) :$this->router->countries[$this->router->countryId]['counter'];
             }
         }
         else {
-            if (!$this->isMobile) {
+            if (!$this->router->isMobile) {
                 $this->countryName=$this->lang['opt_all_countries'];
                 $counts=0;
-                foreach ($this->router()->countries as $country) {
+                foreach ($this->router->countries as $country) {
                     $counts+=$country['counter'];
                 }
-                $this->countryCounter = $this->router()->isArabic() ? number_format($counts) : $counts;
+                $this->countryCounter = $this->router->isArabic() ? number_format($counts) : $counts;
             }
         }
-        $this->user->params['country']=$this->router()->countryId;
-        if ($this->hasCities) $this->user->params['city']=$this->router()->cityId;
+        $this->user->params['country']=$this->router->countryId;
+        if ($this->hasCities) $this->user->params['city']=$this->router->cityId;
         else $this->user->params['city']=0;
 
         if ($this->countryCounter) {
-            if ($this->router()->isArabic()) {
+            if ($this->router->isArabic()) {
                 $this->countryCounter.=' '.$this->lang['ads'];
             }
             else {
@@ -342,50 +335,50 @@ class Page extends Site {
             }
         }
         $lang='en';
-        if ($this->router()->siteTranslate) {
-            if ($this->router()->siteTranslate=='ar') $lang='ar';
+        if ($this->router->siteTranslate) {
+            if ($this->router->siteTranslate=='ar') $lang='ar';
         }
         else {
-            $lang=$this->router()->language;
+            $lang=$this->router->language;
         }
         if(!$this->isMobile) {
-            $cntLink='<b>'.($this->router()->cityId ? $this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId]['name'] : ($this->router()->countryId ? $this->router()->countries[$this->router()->countryId]['name']:'') ).'</b><span class="cf c'.($this->router()->countryId).'"></span><b>'.$this->countryCounter.'</b>';
+            $cntLink='<b>'.($this->router->cityId ? $this->router->countries[$this->router->countryId]['cities'][$this->router->cityId]['name'] : ($this->router->countryId ? $this->router->countries[$this->router->countryId]['name']:'') ).'</b><span class="cf c'.($this->router->countryId).'"></span><b>'.$this->countryCounter.'</b>';
             $this->countryCounter=$cntLink;
         }
         
-        $this->includeHash=($this->router()->countryId?$this->router()->countries[$this->router()->countryId]['uri']:'zz').'-'.$lang.'-'.($this->router()->countryId?$this->router()->cityId:'0').'-';
-        if ($this->router()->params['start'] && $this->router()->params['start']>100){
-            $this->router()->params['start']=0;
+        $this->includeHash=($this->router->countryId?$this->router->countries[$this->router->countryId]['uri']:'zz').'-'.$lang.'-'.($this->router->countryId?$this->router->cityId:'0').'-';
+        if ($this->router->params['start'] && $this->router->params['start']>100) {
+            $this->router->params['start']=0;
             $this->forceNoIndex=true;
         }
-        if ($this->router()->params['q']){
-            $this->router()->params['q'] = preg_replace('/\//','',$this->router()->params['q']);
-            $this->router()->params['q'] = trim(preg_replace('/\s+/',' ',$this->router()->params['q']));
+        if ($this->router->params['q']) {
+            $this->router->params['q'] = \preg_replace('/\//','', $this->router->params['q']);
+            $this->router->params['q'] = \trim(\preg_replace('/\s+/',' ', $this->router->params['q']));
         }
 
         if (in_array($this->user->info['id'],array(1,2,2100,38813,44835,53456))) {
-            $this->router()->cfg['enabled_sharing']=false;
-            $this->router()->config()->disableAds();
+            $this->router->cfg['enabled_sharing']=false;
+            $this->router->config->disableAds();
         }
         
-        if ($this->router()->params['q']) {
-            $query = trim($this->router()->params['q']);
-            if($query == 'مساج'){
-                $this->router()->config()->disableAds();
+        if ($this->router->params['q']) {
+            $query = \trim($this->router->params['q']);
+            if($query === 'مساج'){
+                $this->router->config->disableAds();
             }
         }
         
-        if (!$this->isMobile) { $this->router()->cfg['enabled_sharing']=false; }
+        if (!$this->router->isMobile) { $this->router->cfg['enabled_sharing']=false; }
         
         
-        $this->user()->update();                
+        $this->user->update();
     }
     
     
     function renderBalanceBar() {        
         if ($this->user()->id()) {            
             echo '<div id=balance class=balc>',       
-                    '<a style="display:inherit;background-color:var(--premium);width:80%;padding:12px;margin:-20px auto 20px auto;border-bottom-left-radius:0;border-bottom-right-radius:0;" class=btn href="', $this->router()->getLanguagePath('/gold/'), '#how-to">', 
+                    '<a style="display:inherit;background-color:var(--premium);width:80%;padding:12px;margin:-20px auto 20px auto;border-bottom-left-radius:0;border-bottom-right-radius:0;" class=btn href="', $this->router->getLanguagePath('/gold/'), '#how-to">', 
                     '<span style="padding-bottom:16px;font-size:3em;text-transform:none;text-decoration-line:underline;text-decoration-color:white;text-decoration-style: wavy;">Current balance is ', $this->user()->getBalance(),' coins</span><br><b>',
                     $this->lang['buy_gold_bt'], '</b></a></div>';
         }
@@ -394,12 +387,12 @@ class Page extends Site {
     
     function renderLoginBox() {
         $lang='';
-        if($this->router()->language=='en')$lang='en/';
+        if($this->router->language=='en')$lang='en/';
         if($this->user->info['id']){  
-            ?><div class='lgb <?= $this->router()->module != 'premium' ? $this->router()->module : '' ?>'><?php
+            ?><div class='lgb <?= $this->router->module != 'premium' ? $this->router->module : '' ?>'><?php
                 ?><ul class="hoz"><?php
                     ?><li><a href="?logout=<?= $this->user->info['provider'] ?>"><span class="j out"></span><?= $this->lang['signout'] ?></a></li><?php
-                    if ($this->router()->module=='home') {
+                    if ($this->router->module=='home') {
                         ?><li class="on"><span class="j home"></span></li><?php
                     }else{
                         ?><li><a href="/home/<?= $lang ?>"><span class="j home"></span><?= $this->lang['myPanel'] ?></a></li><?php
@@ -409,26 +402,26 @@ class Page extends Site {
                     }else{
                         ?><li><a href="/favorites/<?= $lang ?>?u=<?= $this->user->info['idKey'] ?>"><span class="j fva"></span><?= $this->lang['myFavorites'] ?></a></li><?php
                     }
-                    if ($this->router()->watchId) {
+                    if ($this->router->watchId) {
                         ?><li class="on"><span class="j eye"></span></li><?php
                     }else{
                         ?><li><a href="/watchlist/<?= $lang ?>?u=<?= $this->user->info['idKey'] ?>"><span class="j eye"></span><?= $this->lang['myList'] ?></a></li><?php
                     }
-                    if ($this->router()->module=='myads') {
+                    if ($this->router->module=='myads') {
                         ?><li class="on"><span class="j ads"></span></li><?php
                     }else{
                         ?><li><a href="/myads/<?= $lang ?>"><span class="j ads"></span><?= $this->lang['myAds'] ?></a></li><?php
                     }
-                    if ($this->router()->module=='post') {
+                    if ($this->router->module=='post') {
                         ?><li class="on"><span class="j pub"></span></li><?php
                     }else{
                         ?><li><a href="/post/<?= $lang ?>"><span class="j pub"></span><?= $this->lang['button_ad_post_m'] ?></a></li><?php
                     }
                 ?></ul><?php
             ?></div><?php
-        }elseif( (!$this->userFavorites && !$this->router()->watchId && !in_array ($this->router()->module,array('myads','account','post','profile','signin','password'))) 
+        }elseif( (!$this->userFavorites && !$this->router->watchId && !in_array ($this->router->module,array('myads','account','post','profile','signin','password'))) 
                 || ($this->pageUserId)){
-            ?><div class='lgb <?= $this->router()->module ?>'><?php
+            ?><div class='lgb <?= $this->router->module ?>'><?php
                 ?><a class='h' href="/signin/<?= $lang ?>" onclick="tglLG(this)"><span class='i sn'></span><?= $this->lang['signin'] ?></a><?php
                 /* ?><div class='h' onclick="tglLG(this)"><span class='i sn'></span><?= $this->lang['signin'] ?></div><?php
                     ?><ul class="drp"><?php
@@ -449,10 +442,10 @@ class Page extends Site {
     function checkBlockedAccount(int $level=0) : void {
         if ($this->user()->isLoggedIn()) {
             if ((!$level || ($level && $level==5)) && $this->user()->level()==5) {
-                $this->user->redirectTo('/blocked/'.($this->router()->isArabic()?'':$this->router()->language.'/'));
+                $this->user->redirectTo('/blocked/'.($this->router->isArabic()?'':$this->router->language.'/'));
             }
             elseif((!$level || ($level && $level==6)) && $this->user->info['level']==6) {
-                $this->user->redirectTo('/suspended/'.($this->router()->language=='ar'?'':$this->router()->language.'/'));
+                $this->user->redirectTo('/suspended/'.($this->router->language=='ar'?'':$this->router->language.'/'));
             }
         }
     }
@@ -461,7 +454,7 @@ class Page extends Site {
     function checkSuspendedAccount() {
         $isSuspended = $this->user->getProfile() ? $this->user->getProfile()->isSuspended() : FALSE;
         if ($isSuspended) { 
-            $this->user->redirectTo('/held/'.($this->router()->language=='ar'?'':$this->router()->language.'/'));
+            $this->user->redirectTo('/held/'.($this->router->language=='ar'?'':$this->router->language.'/'));
         }
     }
 
@@ -485,7 +478,7 @@ class Page extends Site {
         $keepme_in = (isset($this->user->params['keepme_in']) && $this->user->params['keepme_in']==0)?0:1;
         
         if (isset($this->user->pending['login_attempt'])) {
-            if ($this->router()->isArabic()) {
+            if ($this->router->isArabic()) {
                 ?><style type="text/css">.lgs .br{margin-top:20px}</style><?php
             }
             else {
@@ -493,8 +486,8 @@ class Page extends Site {
             }
         }
         
-        $qrfile = \dirname( $this->router()->config()->get('dir')).'/tmp/qr/'.\session_id().'.png';
-        QRcode::png('mourjan:login:'.\session_id().\str_pad($this->router()->config()->serverId, 4, '0', \STR_PAD_LEFT) . \str_pad(time(),16, '0', \STR_PAD_LEFT), $qrfile, QR_ECLEVEL_L, 5);
+        $qrfile = \dirname( $this->router->config->get('dir')).'/tmp/qr/'.\session_id().'.png';
+        QRcode::png('mourjan:login:'.\session_id().\str_pad($this->router->config->serverId, 4, '0', \STR_PAD_LEFT) . \str_pad(time(),16, '0', \STR_PAD_LEFT), $qrfile, QR_ECLEVEL_L, 5);
 
         $sh = '0';
         $mu = filter_input(INPUT_COOKIE, 'mourjan_user', FILTER_DEFAULT);
@@ -506,10 +499,10 @@ class Page extends Site {
         }
 
         $redis = new Redis();
-        $redis->connect($this->router()->config()->get('rs-host'), $this->router()->config()->get('rs-port'), 1, NULL, 100); 
+        $redis->connect($this->router->config->get('rs-host'), $this->router->config->get('rs-port'), 1, NULL, 100); 
         $redis->setOption(Redis::OPT_PREFIX, 'SESS:');
         $redis->select(1);
-        $redis->setex(session_id(), 300, $this->router()->config()->serverId.':'.$sh);
+        $redis->setex(session_id(), 300, $this->router->config->serverId.':'.$sh);
         $redis->close();
 
         $data = file_get_contents($qrfile);
@@ -518,13 +511,13 @@ class Page extends Site {
         
         ?><div class="card card-doc"><?php
         ?><div class=title><h5><?= $this->lang['signin_mourjan'] ?></h5></div><?php
-        ?><form method="post" action="<?= $this->router()->getLanguagePath('/a/') ?>" onsubmit="lgi(this);return false;"><?php 
+        ?><form method="post" action="<?= $this->router->getLanguagePath('/a/') ?>" onsubmit="lgi(this);return false;"><?php 
         ?><div class="card-content"><?php
         ?>
             <br><div class=group><input class="en" name="u" type=email required><span class=highlight></span><span class=bar></span><label><?= $this->lang['email'] ?></label></div>
             <div class=group><input name="p" type=password required><span class=highlight></span><span class=bar></span><label><?= $this->lang['password'] ?></label></div>
             <label class=chkbox style="padding-bottom:8px"><input name=o type=checkbox <?= $keepme_in ? 'checked':'' ?>><span><?= $this->lang['keepme_in'] ?></span></label>
-            <div class="g-recaptcha" data-sitekey="<?= $this->router()->config()->get('recap-key') ?>"></div>
+            <div class="g-recaptcha" data-sitekey="<?= $this->router->config->get('recap-key') ?>"></div>
             
             <?php           
             if (isset($this->user->pending['login_attempt'])) {
@@ -533,15 +526,15 @@ class Page extends Site {
             elseif (isset($this->user->pending['login_attempt_captcha'])) {
                 ?><p class=nl><span><span class=fail></span><?= $this->lang['login_error_captcha'] ?></span></p><?php                    
             }
-            $uri = $this->router()->uri;
-            if (preg_match('/signin/',$this->router()->uri)) {
-                $uri = $this->router()->getLanguagePath('/home/');
+            $uri = $this->router->uri;
+            if (preg_match('/signin/',$this->router->uri)) {
+                $uri = $this->router->getLanguagePath('/home/');
             }
             ?><div class=group style="margin:0"><input name=r type=hidden value="<?= $uri ?>" /><i class="icn icn-sign-in"></i><input type="submit" class=btn value="<?= $this->lang['signin'] ?>" /></div><?php            
           
-            echo '<div class=group style="margin:0"><a class=btn href="', $this->router()->getLanguagePath('/signup/'), '">', $this->lang['create_account'], '<i class="icn icn-sign-up"></i></a></div>';
+            echo '<div class=group style="margin:0"><a class=btn href="', $this->router->getLanguagePath('/signup/'), '">', $this->lang['create_account'], '<i class="icn icn-sign-up"></i></a></div>';
         ?>
-        <p><a class=lnk href="<?= $this->router()->getLanguagePath('/password/') ?>"><?= $this->lang['forgot_pass'] ?></a></p>
+        <p><a class=lnk href="<?= $this->router->getLanguagePath('/password/') ?>"><?= $this->lang['forgot_pass'] ?></a></p>
         </div><?php                
         ?></form></div><?php
         
@@ -601,7 +594,7 @@ class Page extends Site {
     
     function includeCssByCountry()
     {
-        if(!$this->router()->countryId && $this->router()->module=='index')
+        if(!$this->router->countryId && $this->router->module=='index')
         {
             
             $this->inlineCss.='                
@@ -617,7 +610,7 @@ class Page extends Site {
                 }
             ';
             
-            if($this->router()->language=='ar'){
+            if($this->router->language=='ar'){
                 $this->inlineCss.='
                     .sls a {
                         padding-right: 46px !important
@@ -705,14 +698,14 @@ class Page extends Site {
     function prepare_css(){
         $addOn='';
         $mobileDir='';
-        $source=$this->router()->config()->cssURL;
+        $source=$this->router->config->cssURL;
         $sourceFile = '/home/www/css/5.4.2';
-        $sourceFile = $this->router()->config()->cssDir.substr($source,strlen($this->router()->config()->assetsURL));
+        $sourceFile = $this->router->config->cssDir.substr($source,strlen($this->router->config->assetsURL));
         if ($this->isMobile) {
             $addOn.='_m';
-            $source=$this->router()->cfg['url_css_mobile'];
+            $source=$this->router->cfg['url_css_mobile'];
             $sourceFile = '/home/www/css/5.2.8g';
-            $sourceFile = $this->router()->cfg['dir_css'].substr($source,strlen($this->router()->cfg['url_resources']));
+            $sourceFile = $this->router->cfg['dir_css'].substr($source,strlen($this->router->cfg['url_resources']));
             if($this->isMobileCssLegacy){
                 $this->requires['css'][]='mms';
             }
@@ -720,17 +713,17 @@ class Page extends Site {
         else {
             $this->requires['css'][]='imgs';
         }
-        if ($this->router()->siteTranslate) {
-            if ($this->router()->siteTranslate=='ar') $addOn.='_ar';
+        if ($this->router->siteTranslate) {
+            if ($this->router->siteTranslate=='ar') $addOn.='_ar';
         }
-        elseif ($this->router()->language=='ar') $addOn.='_ar'; 
+        elseif ($this->router->language=='ar') $addOn.='_ar'; 
         $fAddon=$addOn;
         $csFile = '';
         $toRequire = [];
         foreach ($this->requires['css'] as $css) {
             if (substr($css, 0, 7)=='s_root_' || $css=='ie6' || $css=='ie7' || $css=='imgs' || $css=='mms' || $css == 'home' || $css == 'select2') $addOn='';
             else $addOn=$fAddon;
-            if( ($css == 'mms' ||$css=='imgs' ) && $this->router()->isAcceptWebP){
+            if( ($css == 'mms' ||$css=='imgs' ) && $this->router->isAcceptWebP){
                 $addOn = '_wbp';
             }
             $toRequire[] = $source . '/' . $css . $addOn . '.css';
@@ -761,15 +754,15 @@ class Page extends Site {
         }
        
         if (!$this->isMobile) {
-            if ($this->router()->isArabic()) {
-                ?><!--[if IE 7]><link rel="stylesheet" type="text/css" href="<?= $this->router()->config()->cssDir ?>/ie7_ar.css"><![endif]--><?php
-                ?><!--[if IE 8]><link rel="stylesheet" type="text/css" href="<?= $this->router()->config()->cssDir ?>/ie8_ar.css"><![endif]--><?php
-                ?><!--[if IE 9]><link rel="stylesheet" type="text/css" href="<?= $this->router()->config()->cssDir ?>/ie9_ar.css"><![endif]--><?php
+            if ($this->router->isArabic()) {
+                ?><!--[if IE 7]><link rel="stylesheet" type="text/css" href="<?= $this->router->config->cssDir ?>/ie7_ar.css"><![endif]--><?php
+                ?><!--[if IE 8]><link rel="stylesheet" type="text/css" href="<?= $this->router->config->cssDir ?>/ie8_ar.css"><![endif]--><?php
+                ?><!--[if IE 9]><link rel="stylesheet" type="text/css" href="<?= $this->router->config->cssDir ?>/ie9_ar.css"><![endif]--><?php
             }
             else {
-                ?><!--[if IE 7]><link rel="stylesheet" type="text/css" href="<?= $this->router()->config()->cssDir ?>/ie7.css"><![endif]--><?php
-                ?><!--[if IE 8]><link rel="stylesheet" type="text/css" href="<?= $this->router()->config()->cssDir ?>/ie8.css"><![endif]--><?php
-                ?><!--[if IE 9]><link rel="stylesheet" type="text/css" href="<?= $this->router()->config()->cssDir ?>/ie9.css"><![endif]--><?php
+                ?><!--[if IE 7]><link rel="stylesheet" type="text/css" href="<?= $this->router->config->cssDir ?>/ie7.css"><![endif]--><?php
+                ?><!--[if IE 8]><link rel="stylesheet" type="text/css" href="<?= $this->router->config->cssDir ?>/ie8.css"><![endif]--><?php
+                ?><!--[if IE 9]><link rel="stylesheet" type="text/css" href="<?= $this->router->config->cssDir ?>/ie9.css"><![endif]--><?php
             }
         }
     }
@@ -794,29 +787,29 @@ class Page extends Site {
         $countryId=$this->user->params['country']??0;
         $cityId=$this->user->params['city']??0;
 
-        $lang=$this->router()->language==='ar'?'':$this->router()->language.'/';
+        $lang=$this->router->language==='ar'?'':$this->router->language.'/';
         echo '<div class=title><h5>', $this->lang['mourjan'], '</h5></div>';
         
         echo '<ul class=sm>';
-        echo '<li><a href=\'', $this->router()->getURL($countryId, $cityId), '\'>', $this->lang['homepage'], '</a></li>';
+        echo '<li><a href=\'', $this->router->getURL($countryId, $cityId), '\'>', $this->lang['homepage'], '</a></li>';
 
-        if ($this->router()->module==='about')
+        if ($this->router->module==='about')
             echo '<li class=on><b>', $this->lang['aboutUs'], '</b></li>';
         else
             echo '<li><a href=\'/about/', $lang, '\'>', $this->lang['aboutUs'], '</a></li>';
-        if ($this->router()->module==='contact')
+        if ($this->router->module==='contact')
             echo '<li class=on><b>', $this->lang['contactUs'], '</b></li>';
         else
             echo '<li><a href=\'/contact/', $lang, '\'>', $this->lang['contactUs'], '</a></li>';
-        if ($this->router()->module==='gold')
+        if ($this->router->module==='gold')
             echo '<li class=on><b>', $this->lang['gold_title'], '</b></li>';
         else
             echo '<li><a href=\'/gold/', $lang, '\'>', $this->lang['gold_title'], '</a></li>';
-        if ($this->router()->module==='privacy')
+        if ($this->router->module==='privacy')
             echo '<li class=on><b>', $this->lang['privacyPolicy'], '</b></li>';
         else
             echo '<li><a href=\'/privacy/', $lang, '\'>', $this->lang['privacyPolicy'], '</a></li>';
-        if ($this->router()->module==='terms')
+        if ($this->router->module==='terms')
             echo '<li class=on><b>', $this->lang['termsConditions'], '</b></li>';
         else
             echo '<li><a href=\'/terms/', $lang, '\'>', $this->lang['termsConditions'], '</a></li>';
@@ -834,12 +827,12 @@ class Page extends Site {
             if ($this->user->params['city']) {
                 $cityId=$this->user->params['city'];
             }
-            $lang=$this->router()->language=='ar'?'':$this->router()->language.'/';
+            $lang=$this->router->language=='ar'?'':$this->router->language.'/';
             ?><h4><?= $this->user->info['name'] ?></h4><?php
             echo "<ul class='sm'>";
             $renderedFirst=false;
 
-            if ($this->router()->watchId) {
+            if ($this->router->watchId) {
                 echo "<li class='on'><b><span class='eye on'></span>{$this->lang['myList']}</b></li>";
                 $renderedFirst=true;
             }
@@ -856,26 +849,26 @@ class Page extends Site {
                 echo "<li><a href='/favorites/".$lang."'><span class='fav on'></span>{$this->lang['myFavorites']}</a></li>";
                 $renderedFirst=true;
             }
-            if ($this->router()->module=='account'){
+            if ($this->router->module=='account'){
                 echo "<li class='on'><b><span class='usr'></span>{$this->lang['myAccount']}".( (!$this->user->info['email'] || !$this->user->info['name']) ? ' <span class="anb us"></span>':'' )."</b></li>";
             }else {
                 echo "<li><a href='/account/".$lang."'><span class='usr'></span>{$this->lang['myAccount']}</a></li>";
                 $renderedFirst=true;
             }
             echo '</ul><h4>'.$this->lang['myAds'].'</h4><ul class="sm">';
-            if ($this->router()->cfg['enabled_post']) {
+            if ($this->router->cfg['enabled_post']) {
                 $renderedFirst=true;
                 $sub='';
                 if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
                 //echo '<li class="cty"><ul>';
                 echo '<li><a href="/post/'.$lang.'?clear=true">'.$this->lang['create_ad'].'</a></li>';
-                if ($this->router()->module=="myads" && $sub=='') echo '<li><b>'.$this->lang['ads_active'].'</b></li>';
+                if ($this->router->module=="myads" && $sub=='') echo '<li><b>'.$this->lang['ads_active'].'</b></li>';
                 else echo '<li><a href="/myads/'.$lang.'">'.$this->lang['ads_active'].'</a></li>';
-                if ($this->router()->module=="myads" && $sub=='pending') echo '<li><b>'.$this->lang['ads_pending'].'</b></li>';
+                if ($this->router->module=="myads" && $sub=='pending') echo '<li><b>'.$this->lang['ads_pending'].'</b></li>';
                 else echo '<li><a href="/myads/'.$lang.'?sub=pending">'.$this->lang['ads_pending'].'</a></li>';
-                if ($this->router()->module=="myads" && $sub=='drafts') echo '<li><b>'.$this->lang['ads_drafts'].'</b></li>';
+                if ($this->router->module=="myads" && $sub=='drafts') echo '<li><b>'.$this->lang['ads_drafts'].'</b></li>';
                 else echo '<li><a href="/myads/'.$lang.'?sub=drafts">'.$this->lang['ads_drafts'].'</a></li>';
-                if ($this->router()->module=="myads" && $sub=='archive') echo '<li><b>'.$this->lang['ads_archive'].'</b></li>';
+                if ($this->router->module=="myads" && $sub=='archive') echo '<li><b>'.$this->lang['ads_archive'].'</b></li>';
                 else echo '<li><a href="/myads/'.$lang.'?sub=archive">'.$this->lang['ads_archive'].'</a></li>';
             }
             echo '</ul>';
@@ -885,9 +878,9 @@ class Page extends Site {
     
     function renderSideRoots() {
         if (!$this->userFavorites) {
-            $cityId=$this->router()->cityId;
-            $countryId=$this->router()->countryId;
-            switch ($this->router()->module) {
+            $cityId=$this->router->cityId;
+            $countryId=$this->router->countryId;
+            switch ($this->router->module) {
                 case 'detail':
                 case 'search':
                     break;
@@ -898,14 +891,14 @@ class Page extends Site {
             }
             $hasQuery=false;
             $q='';
-            if ($this->router()->params['q']) {
+            if ($this->router->params['q']) {
                 $hasQuery=true;
-                $q='?q='.urlencode($this->router()->params['q']);
+                $q='?q='.urlencode($this->router->params['q']);
             }
             echo '<div class="title"><h5>', $this->lang['specify_category'], '</h5></div>', '<ul>';
             $i=0;
-            foreach ($this->router()->pageRoots as $rid=>$root) {
-                $selected = ($this->router()->rootId==$rid);
+            foreach ($this->router->pageRoots as $rid=>$root) {
+                $selected = ($this->router->rootId==$rid);
                 $purposeId = 0;
                 if ($rid==3) {
                     $purposeId=3;
@@ -916,9 +909,9 @@ class Page extends Site {
                     }
                 }
                 echo '<li '.($selected ? 'class="on big"':'class="big"').'>', 
-                        $this->renderListLink('<i class="icn icn-'.$rid.'"></i>'.$root['name'], $this->router()->getURL($countryId, $cityId, $rid, 0, $purposeId).$q, $selected),
+                        $this->renderListLink('<i class="icn icn-'.$rid.'"></i>'.$root['name'], $this->router->getURL($countryId, $cityId, $rid, 0, $purposeId).$q, $selected),
                         '</li>';
-                if ($this->router()->rootId==$rid) {
+                if ($this->router->rootId==$rid) {
                     echo '<li class="sub">';
                     $this->renderSubSections();
                     echo '</li>';
@@ -931,57 +924,57 @@ class Page extends Site {
     
     
     function renderSideCountries() {
-        if($this->userFavorites || ($this->router()->module!='index' && $this->router()->countryId && !$this->hasCities)) return;
+        if($this->userFavorites || ($this->router->module!='index' && $this->router->countryId && !$this->hasCities)) return;
         
         $hasQuery=false;
         $q='';
-        if ($this->router()->params['q']) {
+        if ($this->router->params['q']) {
             $hasQuery=true;
-            $q='?q='.urlencode($this->router()->params['q']);
+            $q='?q='.urlencode($this->router->params['q']);
         }
-        if($this->router()->countryId && $this->hasCities){
+        if($this->router->countryId && $this->hasCities){
             ?><h4><?= $this->lang['specify_city'] ?></h4><?php
         }else {
             ?><h4><?= $this->lang['specify_location'] ?></h4><?php
         }
         echo '<ul class=\'list\'>';
-        if ($this->router()->module=='index' || !$this->router()->countryId){
+        if ($this->router->module=='index' || !$this->router->countryId){
         echo '<li class=\'f\'>', 
             $this->renderListLink(
                 '<span class=\'cn c0\'></span>'.$this->lang['opt_all_countries'], 
-                $this->router()->getURL(0, 0, 
-                                $this->router()->rootId, 
-                                $this->router()->sectionId,
-                                $this->router()->purposeId, true, true).$q, 
-                $this->router()->countryId==0),
+                $this->router->getURL(0, 0, 
+                                $this->router->rootId, 
+                                $this->router->sectionId,
+                                $this->router->purposeId, true, true).$q, 
+                $this->router->countryId==0),
             '</li>';
         }
-        foreach ($this->router()->countries as $country) {
+        foreach ($this->router->countries as $country) {
             if (isset($country[0])) {
-            if ($this->router()->module=='index' || !$this->router()->countryId || $this->router()->countryId == $country[0]){
-            $selected = ($this->router()->countryId == $country[0] && !($this->hasCities && $this->router()->cityId)) ? true : false;
+            if ($this->router->module=='index' || !$this->router->countryId || $this->router->countryId == $country[0]){
+            $selected = ($this->router->countryId == $country[0] && !($this->hasCities && $this->router->cityId)) ? true : false;
             echo '<li>',
                 $this->renderListLink(
                     "<span class='cn c{$country[0]}'></span>".$country[$this->fieldNameIndex], 
-                    $this->router()->getURL($country[0], 0, 
-                            $this->router()->rootId,
-                            $this->router()->sectionId,
-                            $this->router()->purposeId, true, true).$q, 
+                    $this->router->getURL($country[0], 0, 
+                            $this->router->rootId,
+                            $this->router->sectionId,
+                            $this->router->purposeId, true, true).$q, 
                     $selected), 
                 '</li>';
             }
-            if ($this->router()->countryId == $country[0] && $this->hasCities) {
+            if ($this->router->countryId == $country[0] && $this->hasCities) {
                 echo "<li class='cty'><ul>";
-                foreach ($this->router()->countryCities as $id=>$value) {
-                    if (array_key_exists($id, $this->router()->cities) && ((int)$this->router()->cities[$id][4])>0) {
-                        $selected = $this->router()->cityId == $this->router()->cities[$id][0] ? true : false;
+                foreach ($this->router->countryCities as $id=>$value) {
+                    if (array_key_exists($id, $this->router->cities) && ((int)$this->router->cities[$id][4])>0) {
+                        $selected = $this->router->cityId == $this->router->cities[$id][0] ? true : false;
                         echo '<li',($selected?' class=\'on\'>':'>'),
                             $this->renderListLink(
-                                $this->router()->cities[$id][$this->fieldNameIndex], 
-                                $this->router()->getURL($country[0], $this->router()->cities[$id][0], 
-                                        $this->router()->rootId,
-                                        $this->router()->sectionId,
-                                        $this->router()->purposeId, true, true).$q, 
+                                $this->router->cities[$id][$this->fieldNameIndex], 
+                                $this->router->getURL($country[0], $this->router->cities[$id][0], 
+                                        $this->router->rootId,
+                                        $this->router->sectionId,
+                                        $this->router->purposeId, true, true).$q, 
                                 $selected), 
                             '</li>';
                     }
@@ -1024,29 +1017,29 @@ class Page extends Site {
             return $this->pageUri;
         }
         
-        $this->field_name='NAME_'.strtoupper($this->router()->language);
+        $this->field_name='NAME_'.strtoupper($this->router->language);
         
         $uri='/';
         if ($this->extendedId){
-            if (isset($this->router()->countries[$this->router()->countryId])) {
-                $uri='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
-                if (isset($this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId])) {
-                    $uri.=$this->router()->cities[$this->router()->cityId][3].'/';
+            if (isset($this->router->countries[$this->router->countryId])) {
+                $uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
+                if (isset($this->router->countries[$this->router->countryId]['cities'][$this->router->cityId])) {
+                    $uri.=$this->router->cities[$this->router->cityId][3].'/';
                 }
             }
-            $uri.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
-            if ($this->router()->purposeId)$uri.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-            $uri.=($this->router()->language!='ar'?$this->router()->language.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3:2) :1).'/';
+            $uri.=$this->router->sections[$this->router->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
+            if ($this->router->purposeId)$uri.=$this->router->purposes[$this->router->purposeId][3].'/';
+            $uri.=($this->router->language!='ar'?$this->router->language.'/':'').'q-'.$this->extendedId.'-'.($this->router->countryId ? ($this->hasCities && $this->router->cityId ? 3:2) :1).'/';
         }elseif($this->localityId){
-            if (isset($this->router()->countries[$this->router()->countryId])) {
-                $uri='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
+            if (isset($this->router->countries[$this->router->countryId])) {
+                $uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
             }
             $uri.=$this->localities[$this->localityId]['uri'].'/';
-            $uri.=$this->router()->sections[$this->router()->sectionId][3].'/';
-            if ($this->router()->purposeId)$uri.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-            $uri.=($this->router()->language!='ar'?$this->router()->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId ? 3:2).'/';
+            $uri.=$this->router->sections[$this->router->sectionId][3].'/';
+            if ($this->router->purposeId)$uri.=$this->router->purposes[$this->router->purposeId][3].'/';
+            $uri.=($this->router->language!='ar'?$this->router->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router->cityId ? 3:2).'/';
         }else {
-            $uri=$this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId);
+            $uri=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId);
         }
         $this->pageUri = $uri;
         return $uri;
@@ -1055,14 +1048,14 @@ class Page extends Site {
     
     function search_bar(){
         
-        $q=$this->router()->params['q'];
+        $q=$this->router->params['q'];
         $uri = $this->getPageUri();
                 
         ?><div class="srch w"><?php
         ?><form onsubmit="if(document.getElementById('q').value)return true;return false" action="<?= $uri ?>" method="get"><?php 
             ?><div class='q'><?php 
                 ?><input id="q" name='q' value="<?= htmlspecialchars($q,ENT_QUOTES) ?>" type='text' placeholder='<?= $this->lang['search_what'] ?>' /><?php 
-                if ($this->router()->params['q']) {
+                if ($this->router->params['q']) {
                     echo "<a class='qx' href='",$uri,"'></a>";
                 }
             ?></div><?php 
@@ -1072,7 +1065,7 @@ class Page extends Site {
 
 
 
-        if($this->router()->module=='myads' && $this->user->info['id'] && $this->user->info['level']==9) {            
+        if($this->router->module=='myads' && $this->user->info['id'] && $this->user->info['level']==9) {            
             ?><span class="sndTgl<?= isset($this->user->params['mute'])&&$this->user->params['mute']?' off':'' ?>" onclick="tglSound(this)"></span><?php            
         }
 
@@ -1090,7 +1083,7 @@ class Page extends Site {
             if(!$sname) $sname = $rname;
             
             if($purposeId){
-                $pname=$this->router()->purposes[$purposeId][$this->fieldNameIndex];
+                $pname=$this->router->purposes[$purposeId][$this->fieldNameIndex];
                 switch($purposeId){
                     case 1://for sale
                     case 2://for rent
@@ -1098,7 +1091,7 @@ class Page extends Site {
                         $sname = $sname ? $sname.' '.$pname : $sname;
                         break;
                     case 999://various
-                        if($this->router()->language=='ar'){                    
+                        if($this->router->language=='ar'){                    
                             $sname = ($sname == 'متفرقات' ? $sname : ($sname=='' ? 'إعلانات متفرقة' : $sname.' متفرقة'));
                         }else{
                             $sname = ( (strpos($sname,'Misc.')===false || $sname == 'Miscellaneous') ? $sname : ($sname=='' ? 'Misc. Ads' : 'Misc. '.$sname));
@@ -1106,14 +1099,14 @@ class Page extends Site {
                         break;
                     case 6://to rent
                     case 7://to buy
-                        if($this->router()->language=='ar'){                    
+                        if($this->router->language=='ar'){                    
                             $sname = $sname ? $pname.' '.$sname : $pname;
                         }else{
                             $sname = $sname ? 'Looking '.$pname.' '.$sname : 'Looking '.$pname;
                         }
                         break;
                     case 3://vacancies
-                        if($this->router()->language=='ar'){                    
+                        if($this->router->language=='ar'){                    
                             $sname = $sname ? $pname.' '.$sname : $pname;
                         }else{
                             $sname = $sname ? $sname.' '.$pname : $pname;
@@ -1121,11 +1114,11 @@ class Page extends Site {
                         break;
                     case 4://seeking work
                         $in='';
-                        if ($this->router()->language=="en")$in=" {$this->lang['in']}";
+                        if ($this->router->language=="en")$in=" {$this->lang['in']}";
                         $sname= $sname ? $pname.$in.' '.$sname : $pname;
                         break;
                     case 5://services
-                        if($this->router()->language=='ar'){                    
+                        if($this->router->language=='ar'){                    
                             $sname = $sname ? ( strpos($sname,$pname)===false ? $pname .' '.$sname : $sname) : $pname;
                         }else{
                             $sname = $sname ? ( strpos($sname,$pname)===false ? $sname.' '.$pname : $sname) : $pname;
@@ -1135,7 +1128,7 @@ class Page extends Site {
             }else{
                 if($sname=='متفرقات')$sname = $rname .' متفرقة';
                 if($rootId==4 && $sname){
-                    if($this->router()->language=='ar'){                    
+                    if($this->router->language=='ar'){                    
                         $sname = $sname ? ( strpos($sname,'خدمات')===false ? 'خدمات '.$sname : $sname) : 'خدمات';
                     }else{
                         $sname = $sname ? ( strpos($sname,$pname)===false ? $sname.' Services' : $sname) : 'Services';
@@ -1148,82 +1141,82 @@ class Page extends Site {
     
     
     function filter_purpose(){
-        if ($this->router()->isPriceList) return '';
+        if ($this->router->isPriceList) return '';
         $str='';
         
-        if (($this->router()->module=='search') && ($this->router()->rootId || $this->router()->sectionId) && !$this->userFavorites && !$this->router()->watchId) {
-            if ($this->router()->rootId!=4 && count($this->router()->purposes)>0 && count($this->router()->pagePurposes)) {
+        if (($this->router->module=='search') && ($this->router->rootId || $this->router->sectionId) && !$this->userFavorites && !$this->router->watchId) {
+            if ($this->router->rootId!=4 && count($this->router->purposes)>0 && count($this->router->pagePurposes)) {
                 $i=0;            
                 $hasQuery=false;
                 $q="";
-                if ($this->router()->params['q']) {
+                if ($this->router->params['q']) {
                     $hasQuery=true;
-                    $q='?q='.urlencode($this->router()->params['q']);
+                    $q='?q='.urlencode($this->router->params['q']);
                 }
 
                 if ($hasQuery) {
                     if ($this->extendedId || $this->localityId) {
                         $append_uri='';
                         $extended_uri='';
-                        if ($this->extendedId && isset($this->router()->countries[$this->router()->countryId])) {
-                            $append_uri='/'.($this->router()->language!='ar'?$this->router()->language.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId?($this->hasCities && $this->router()->cityId?3:2):1);
-                            $extended_uri='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
-                            if ($this->hasCities && $this->router()->cityId && $this->router()->cities[$this->router()->cityId]) {
-                                $extended_uri.=$this->router()->cities[$this->router()->cityId][3].'/';
+                        if ($this->extendedId && isset($this->router->countries[$this->router->countryId])) {
+                            $append_uri='/'.($this->router->language!='ar'?$this->router->language.'/':'').'q-'.$this->extendedId.'-'.($this->router->countryId?($this->hasCities && $this->router->cityId?3:2):1);
+                            $extended_uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
+                            if ($this->hasCities && $this->router->cityId && $this->router->cities[$this->router->cityId]) {
+                                $extended_uri.=$this->router->cities[$this->router->cityId][3].'/';
                             }
-                            $extended_uri.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';                        
+                            $extended_uri.=$this->router->sections[$this->router->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';                        
                         }
-                        elseif ($this->localityId && isset($this->router()->countries[$this->router()->countryId])) {
-                            $append_uri='/'.($this->router()->language!='ar'?$this->router()->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId?3:2);
-                            $extended_uri='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';                        
+                        elseif ($this->localityId && isset($this->router->countries[$this->router->countryId])) {
+                            $append_uri='/'.($this->router->language!='ar'?$this->router->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router->cityId?3:2);
+                            $extended_uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';                        
                             $extended_uri.=$this->localities[$this->localityId]['uri'].'/';
-                            $extended_uri.=$this->router()->sections[$this->router()->sectionId][3].'/';
+                            $extended_uri.=$this->router->sections[$this->router->sectionId][3].'/';
                         }
                         
-                        foreach ($this->router()->pagePurposes as $pid=>$purpose) {
+                        foreach ($this->router->pagePurposes as $pid=>$purpose) {
                             if ((int)$purpose['counter']>0) {
                                 $isNew=false;
-                                $selected=($this->router()->purposeId==$pid);
+                                $selected=($this->router->purposeId==$pid);
                                 $str.= "<li>".
-                                $this->renderListLink($purpose['name'], $extended_uri.$this->router()->purposes[$pid][3].$append_uri.'/'.$q, $selected)."</li>";                            
+                                $this->renderListLink($purpose['name'], $extended_uri.$this->router->purposes[$pid][3].$append_uri.'/'.$q, $selected)."</li>";                            
                                 $i++;
                             }
                         }
                     }
                     else {
-                        foreach ($this->router()->pagePurposes as $pid=>$purpose) {
+                        foreach ($this->router->pagePurposes as $pid=>$purpose) {
                             if ((int)$pid>0) {
-                                $pname = $this->extendedId?$this->extended[$this->extendedId]['name']:($this->router()->sectionId?$this->router()->sections[$this->router()->sectionId][$this->fieldNameIndex]:($this->router()->rootId?$this->router()->roots[$this->router()->rootId][$this->fieldNameIndex]:''));                            
+                                $pname = $this->extendedId?$this->extended[$this->extendedId]['name']:($this->router->sectionId?$this->router->sections[$this->router->sectionId][$this->fieldNameIndex]:($this->router->rootId?$this->router->roots[$this->router->rootId][$this->fieldNameIndex]:''));                            
                                 switch ($pid) {
                                     case 1:
                                     case 2:
                                     case 8:
                                     case 999:
-                                        $pname = $pname.' '. $purpose['name']; //$this->router()->purposes[$pid][$this->fieldNameIndex];
+                                        $pname = $pname.' '. $purpose['name']; //$this->router->purposes[$pid][$this->fieldNameIndex];
                                         break;
                                     case 6:
                                     case 7:
-                                        $pname = $purpose['name'] . ' ' . $pname;// $this->router()->purposes[$purpose[0]][$this->fieldNameIndex].' '.$pname;
+                                        $pname = $purpose['name'] . ' ' . $pname;// $this->router->purposes[$purpose[0]][$this->fieldNameIndex].' '.$pname;
                                         break;
                                     case 3:
                                     case 4:
                                     case 5:
                                         $in="";
-                                        if ($this->router()->language=="en") { $in=" {$this->lang['in']}"; }                                        
-                                        $pname=($this->router()->sectionId) ? $purpose['name'].$in." ".$pname : $purpose['name'];
+                                        if ($this->router->language=="en") { $in=" {$this->lang['in']}"; }                                        
+                                        $pname=($this->router->sectionId) ? $purpose['name'].$in." ".$pname : $purpose['name'];
                                         break;
                                 }
-                                $selected=($this->router()->purposeId==$pid);
-                                $str.= "<li>".$this->renderListLink($pname, $this->router()->getURL($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,
-                                                                    $this->router()->sectionId,$pid).$q, $selected)."</li>";
+                                $selected=($this->router->purposeId==$pid);
+                                $str.= "<li>".$this->renderListLink($pname, $this->router->getURL($this->router->countryId,$this->router->cityId,$this->router->rootId,
+                                                                    $this->router->sectionId,$pid).$q, $selected)."</li>";
                                 $i++;
                             }
                         }
                         
-                        if (isset($this->router()->sections[$this->router()->sectionId][5]) && $this->router()->sections[$this->router()->sectionId][5]) {
-                            $secId = $this->router()->sections[$this->router()->sectionId][5];
-                            $str.= "<li>".$this->renderListLink($this->router()->sections[$secId][$this->fieldNameIndex], $this->router()->getURL($this->router()->countryId,$this->router()->cityId,$this->router()->sections[$secId][4],
-                                                                $secId,$this->router()->sections[$this->router()->sectionId][9]).$q, false)."</li>";
+                        if (isset($this->router->sections[$this->router->sectionId][5]) && $this->router->sections[$this->router->sectionId][5]) {
+                            $secId = $this->router->sections[$this->router->sectionId][5];
+                            $str.= "<li>".$this->renderListLink($this->router->sections[$secId][$this->fieldNameIndex], $this->router->getURL($this->router->countryId,$this->router->cityId,$this->router->sections[$secId][4],
+                                                                $secId,$this->router->sections[$this->router->sectionId][9]).$q, false)."</li>";
                             $i++;
                         }
                     }
@@ -1232,49 +1225,49 @@ class Page extends Site {
                     $append_uri='';
                     $extended_uri='';
                     if ($this->extendedId) {
-                        $append_uri='/'.($this->router()->language!='ar'?$this->router()->language.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId?3:2):1);
-                        if ($this->router()->countryId) {
-                            $extended_uri='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
-                            if ($this->hasCities && $this->router()->cityId) {
-                                $extended_uri.=$this->router()->cities[$this->router()->cityId][3].'/';
+                        $append_uri='/'.($this->router->language!='ar'?$this->router->language.'/':'').'q-'.$this->extendedId.'-'.($this->router->countryId ? ($this->hasCities && $this->router->cityId?3:2):1);
+                        if ($this->router->countryId) {
+                            $extended_uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
+                            if ($this->hasCities && $this->router->cityId) {
+                                $extended_uri.=$this->router->cities[$this->router->cityId][3].'/';
                             }
                         }
                         else {
                             $extended_uri .= '/';
                         }
-                        $extended_uri.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
+                        $extended_uri.=$this->router->sections[$this->router->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
                     }
                     elseif ($this->localityId) {
-                        $append_uri='/'.($this->router()->language!='ar'?$this->router()->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId?3:2);
-                        $extended_uri='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
+                        $append_uri='/'.($this->router->language!='ar'?$this->router->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router->cityId?3:2);
+                        $extended_uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
                         $extended_uri.=$this->localities[$this->localityId]['uri'].'/';
-                        $extended_uri.=$this->router()->sections[$this->router()->sectionId][3].'/';
+                        $extended_uri.=$this->router->sections[$this->router->sectionId][3].'/';
                     }
 
                     $base_name = ($this->extendedId && isset($this->extended[$this->extendedId]))?$this->extended[$this->extendedId]['name']:
-                        (($this->router()->sectionId && isset($this->router()->pageSections[$this->router()->sectionId]))?$this->router()->pageSections[$this->router()->sectionId]['name']:
-                        (($this->router()->rootId && isset($this->router()->pageRoots[$this->router()->rootId]))?$this->router()->pageRoots[$this->router()->rootId]['name']:''));
-                    foreach ($this->router()->pagePurposes as $pid=>$purpose) {
+                        (($this->router->sectionId && isset($this->router->pageSections[$this->router->sectionId]))?$this->router->pageSections[$this->router->sectionId]['name']:
+                        (($this->router->rootId && isset($this->router->pageRoots[$this->router->rootId]))?$this->router->pageRoots[$this->router->rootId]['name']:''));
+                    foreach ($this->router->pagePurposes as $pid=>$purpose) {
                         $pname = $base_name;
                         switch($pid){
                             case 1:
                             case 2:
                             case 8:
                             case 999:
-                                $pname = $pname.' '.$purpose['name'];// $this->router()->purposes[$purpose[0]][$this->fieldNameIndex];
+                                $pname = $pname.' '.$purpose['name'];// $this->router->purposes[$purpose[0]][$this->fieldNameIndex];
                                 break;
                             
                             case 6:
                             case 7:
-                                $pname = $purpose['name'].' '.$pname;// $this->router()->purposes[$purpose[0]][$this->fieldNameIndex].' '.$pname;
+                                $pname = $purpose['name'].' '.$pname;// $this->router->purposes[$purpose[0]][$this->fieldNameIndex].' '.$pname;
                                 break;
                             
                             case 3:
                             case 4:
                             case 5:
                                 $in="";
-                                if ($this->router()->language=="en")$in=" {$this->lang['in']}";
-                                if ($this->router()->sectionId) {
+                                if ($this->router->language=="en")$in=" {$this->lang['in']}";
+                                if ($this->router->sectionId) {
                                     $pname=$purpose['name'].$in." ".$pname;
                                 }else {
                                     $pname=$purpose['name'];
@@ -1282,25 +1275,25 @@ class Page extends Site {
                                 break;
                         }
                         $isNew=false;
-                        $selected=($this->router()->purposeId==$pid /*$purpose[0]*/);
+                        $selected=($this->router->purposeId==$pid /*$purpose[0]*/);
                         if ($this->extendedId || $this->localityId) {
                             $str.= "<li>".
-                            $this->renderListLink($pname, $extended_uri.$this->router()->purposes[$pid][3].$append_uri.'/', $selected)."</li>";
+                            $this->renderListLink($pname, $extended_uri.$this->router->purposes[$pid][3].$append_uri.'/', $selected)."</li>";
                         } 
                         else {
                             if (!$selected && $this->checkNewUserContent($purpose['unixtime'])) { $isNew=true; }
                             $str.= "<li".($isNew?" class='nl'":"").">".
                             $this->renderListLink('<span>'.$purpose['counter'].'&nbsp;</span>'. $pname,
-                                                $this->router()->getURL($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,
-                                                $this->router()->sectionId, $pid), $selected)."</li>";
+                                                $this->router->getURL($this->router->countryId,$this->router->cityId,$this->router->rootId,
+                                                $this->router->sectionId, $pid), $selected)."</li>";
                         }
                         $i++;
                     }
                     
-                    if (isset($this->router()->sections[$this->router()->sectionId][5]) && $this->router()->sections[$this->router()->sectionId][5]) {
-                        $secId = $this->router()->sections[$this->router()->sectionId][5];
-                        $str.= "<li>".$this->renderListLink($this->router()->sections[$secId][$this->fieldNameIndex], $this->router()->getURL($this->router()->countryId,$this->router()->cityId,$this->router()->sections[$secId][4],
-                                                            $secId,$this->router()->sections[$this->router()->sectionId][9]), false)."</li>";
+                    if (isset($this->router->sections[$this->router->sectionId][5]) && $this->router->sections[$this->router->sectionId][5]) {
+                        $secId = $this->router->sections[$this->router->sectionId][5];
+                        $str.= "<li>".$this->renderListLink($this->router->sections[$secId][$this->fieldNameIndex], $this->router->getURL($this->router->countryId,$this->router->cityId,$this->router->sections[$secId][4],
+                                                            $secId,$this->router->sections[$this->router->sectionId][9]), false)."</li>";
                         $i++;
                     }
                 }
@@ -1318,43 +1311,43 @@ class Page extends Site {
     
 
     function top() : void {
-        $cityId=$this->router()->cityId;
-        if ($this->router()->cityId) {
-            if ($this->router()->countryId==0) {
+        $cityId=$this->router->cityId;
+        if ($this->router->cityId) {
+            if ($this->router->countryId==0) {
                 $cityId = 0;
             }
-            elseif (empty($this->router()->countries[$this->router()->countryId]['cities'])) {
+            elseif (empty($this->router->countries[$this->router->countryId]['cities'])) {
                 $cityId = 0;
             }
         }
         
         $url='';
-        switch ($this->router()->module) {
+        switch ($this->router->module) {
             case 'detail':
                 if (!empty($this->detailAd)) {
-                    $url = sprintf($this->detailAd[Classifieds::URI_FORMAT], $this->router()->isArabic()?'en/':'', $this->detailAd[Classifieds::ID]);
+                    $url = sprintf($this->detailAd[Classifieds::URI_FORMAT], $this->router->isArabic()?'en/':'', $this->detailAd[Classifieds::ID]);
                     break;
                 }
             case 'search':
             case 'index':
-                if ($this->router()->userId) { $url='/'.($this->partnerInfo['uri']).'/'; }
-                elseif ($this->router()->watchId) { $url='/watchlist/'; }
+                if ($this->router->userId) { $url='/'.($this->partnerInfo['uri']).'/'; }
+                elseif ($this->router->watchId) { $url='/watchlist/'; }
                 elseif ($this->userFavorites) { $url='/favorites/'; }
                 else {
-                    $url=$this->router()->getURL($this->router()->countryId, $cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId, false);
+                    $url=$this->router->getURL($this->router->countryId, $cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId, false);
                 }
 
-                if ($this->router()->isArabic()) { $url.='en/'; }
-                if ($this->router()->params['start']) { $url.=$this->router()->params['start'].'/'; }
+                if ($this->router->isArabic()) { $url.='en/'; }
+                if ($this->router->params['start']) { $url.=$this->router->params['start'].'/'; }
                 if ($this->pageUserId) {
                     $url.='?u='.$this->user->encodeId($this->pageUserId);
                 }
-                elseif ($this->router()->isDynamic) {
+                elseif ($this->router->isDynamic) {
                     $url.='?';
                     $params='';
                     $append=false;
-                    if ($this->router()->params['q']) {
-                        $params.='q='.urlencode($this->router()->params['q']);
+                    if ($this->router->params['q']) {
+                        $params.='q='.urlencode($this->router->params['q']);
                         $append=true;
                     }
                     $url.=$params;
@@ -1362,15 +1355,15 @@ class Page extends Site {
                 break;                
             case 'myads':
                 $url='/myads/';
-                if ($this->router()->isArabic()) { $url.='en/'; }
+                if ($this->router->isArabic()) { $url.='en/'; }
                 $sub=$this->get('sub');
                 if (in_array($sub, ['pending','archive','drafts'])) {
                     $url.='?sub='.$sub;
                 }
                 break;
             default:
-                $url='/'.$this->router()->module.'/';
-                if ($this->router()->isArabic()) { $url.='en/'; }
+                $url='/'.$this->router->module.'/';
+                if ($this->router->isArabic()) { $url.='en/'; }
                 break;
         }
         
@@ -1378,19 +1371,19 @@ class Page extends Site {
 <header>
     <nav class="navbar">
         <div class="float-left">
-            <a href="<?= $this->router()->getURL($this->router()->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>" style="padding: 0;"><i class=ilogo></i></a>            
+            <a href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>" style="padding: 0;"><i class=ilogo></i></a>            
         </div>        
         <div class="float-right">
             <ul class="nav float-right"><?php
-                if ($this->router()->countryId && isset($this->router()->countries[$this->router()->countryId])) {
-                    echo '<li><a href="#"><i class="icn icnsmall icn-', $this->router()->countries[$this->router()->countryId]['uri'], '"></i></a></li>';
+                if ($this->router->countryId && isset($this->router->countries[$this->router->countryId])) {
+                    echo '<li><a href="#"><i class="icn icnsmall icn-', $this->router->countries[$this->router->countryId]['uri'], '"></i></a></li>';
                 }
                 else {
                     echo '<li><a href="#"><i class="icn icnsmall icn-globe invert"></i></a></li>';
                 }?>
                 <li><a href="<?= $url ?>"><i class="icn icnsmall icn-lang invert"></i></a></li>
                 <li><a href="#"><i class="icn icnsmall icn-bell invert"></i></a></li>
-                <li><a href="<?= $this->router()->getLanguagePath($this->user()->id() ? '/home/' : '/signin/') ?>"><i class="icn icnsmall icn-user invert"></i></a></li>
+                <li><a href="<?= $this->router->getLanguagePath($this->user()->id() ? '/home/' : '/signin/') ?>"><i class="icn icnsmall icn-user invert"></i></a></li>
             </ul>
         </div>
     </nav>
@@ -1399,7 +1392,7 @@ class Page extends Site {
     <section class=row><div class=col-12><div class=search>
     <form onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">                
         <?php
-        $module=$this->router()->module;
+        $module=$this->router->module;
         if (\in_array($module, ['search', 'contact', 'about', 'terms', 'privacy'])) {
             ?><button class="mibtn mcolor"><i id=ibars class="icn icnsmall icn-bars invert"></i></button><?php
         }
@@ -1417,22 +1410,22 @@ class Page extends Site {
     
     function top_old() {
         $url='';
-        $cityId=$this->router()->cityId;
+        $cityId=$this->router->cityId;
         if ($cityId) {
-            if ($this->router()->countryId==0) {
+            if ($this->router->countryId==0) {
                 $cityId=0;            
             } 
             else {
-                if (count($this->router()->countries[$this->router()->countryId]['cities'])==0) {
+                if (count($this->router->countries[$this->router->countryId]['cities'])==0) {
                     $city_id=0;
                 }
             }
         }
                
-        switch ($this->router()->module){
+        switch ($this->router->module){
             case 'detail':
                 if (!empty($this->detailAd)){
-                    if ($this->router()->language=='ar') {
+                    if ($this->router->language=='ar') {
                         $url = sprintf($this->detailAd[Classifieds::URI_FORMAT], 'en/', $this->detailAd[Classifieds::ID]);
                     } 
                     else {
@@ -1442,22 +1435,22 @@ class Page extends Site {
                 }
             case 'search':
             case 'index':
-                if($this->router()->userId) $url='/'.($this->partnerInfo['uri']).'/';
-                elseif($this->router()->watchId) $url='/watchlist/';
+                if($this->router->userId) $url='/'.($this->partnerInfo['uri']).'/';
+                elseif($this->router->watchId) $url='/watchlist/';
                 elseif ($this->userFavorites) $url='/favorites/';
-                else $url=$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId,false);
+                else $url=$this->router->getURL($this->router->countryId,$cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId,false);
 
-                if ($this->router()->language=='ar') $url.='en/';
-                if ($this->router()->params['start']) $url.=$this->router()->params['start'].'/';
+                if ($this->router->language=='ar') $url.='en/';
+                if ($this->router->params['start']) $url.=$this->router->params['start'].'/';
                 if($this->pageUserId){
                     $url.='?u='.$this->user->encodeId($this->pageUserId);
                 }
-                elseif ($this->router()->isDynamic) {
+                elseif ($this->router->isDynamic) {
                     $url.='?';
                     $params='';
                     $append=false;
-                    if ($this->router()->params['q']) {
-                        $params.='q='.urlencode($this->router()->params['q']);
+                    if ($this->router->params['q']) {
+                        $params.='q='.urlencode($this->router->params['q']);
                         $append=true;
                     }
                     $url.=$params;
@@ -1465,33 +1458,33 @@ class Page extends Site {
                 break;                
             case 'myads':
                 $url='/myads/';
-                if ($this->router()->language=='ar') $url.='en/';
+                if ($this->router->language=='ar') $url.='en/';
                 $sub=$this->get('sub');
                 if(in_array($sub,array('pending','archive','drafts'))){
                     $url.='?sub='.$sub;
                 }
                 break;
             default:
-                $url='/'.$this->router()->module.'/';
-                if ($this->router()->language=='ar') $url.='en/';
+                $url='/'.$this->router->module.'/';
+                if ($this->router->language=='ar') $url.='en/';
                 break;
         }
         
         $adLang='';
-        if (!$this->router()->isArabic()) {
-            $adLang=$this->router()->language.'/';
+        if (!$this->router->isArabic()) {
+            $adLang=$this->router->language.'/';
         }
         ?><div class='top'><?php
             ?><h1><?= $this->title ?></h1><?php  
             ?><div class="tob"><?php 
-                if($this->router()->module!='index'){
-                    ?><a class="lg" title="<?= $this->lang['mourjan'] ?>" href="<?= $this->router()->getURL($this->router()->countryId,$cityId) ?>"><?php
+                if($this->router->module!='index'){
+                    ?><a class="lg" title="<?= $this->lang['mourjan'] ?>" href="<?= $this->router->getURL($this->router->countryId,$cityId) ?>"><?php
                     ?><span class="i h"></span><?php
-                    ?><img width="100px" height="30px" src="<?= $this->router()->cfg['url_img']?>/msl<?= $this->router()->_png ?>" alt="<?= $this->lang['mourjan'] ?>" /><?php
+                    ?><img width="100px" height="30px" src="<?= $this->router->cfg['url_img']?>/msl<?= $this->router->_png ?>" alt="<?= $this->lang['mourjan'] ?>" /><?php
                     ?></a><?php
                 }
-                if (!$this->router()->userId){
-                    if ($this->router()->language=='ar') {
+                if (!$this->router->userId){
+                    if ($this->router->language=='ar') {
                         ?><a class="gl" href="<?= $url ?>">English</a><?php
                         ?><span class="gr">عربي</span><?php
                     } 
@@ -1501,17 +1494,17 @@ class Page extends Site {
                     }
                 }
             ?></div><?php
-            if($this->user->info['id'] && $this->user->isSuperUser() && $this->router()->module!='admin'){
-                ?><a class="pb" style="right:<?= $this->router()->language == 'ar' ? '97px' : '165px' ?>" href="/monitor/<?= $adLang ?>">monitor</a><?php
+            if($this->user->info['id'] && $this->user->isSuperUser() && $this->router->module!='admin'){
+                ?><a class="pb" style="right:<?= $this->router->language == 'ar' ? '97px' : '165px' ?>" href="/monitor/<?= $adLang ?>">monitor</a><?php
                 ?><a class="pb" style="border-radius:0" href="/admin/<?= $adLang ?>"><span class="i p"></span><?= $this->lang['administration'] ?></a><?php
             }
             else{
-                if (!$this->router()->userId && $this->router()->module!='post'){ 
+                if (!$this->router->userId && $this->router->module!='post'){ 
                     ?><a class="pb" href="/post/<?= $adLang ?>"><span class="i p"></span><?= $this->lang['postFree'] ?></a><?php
                 }
             }
-            if ($this->router()->userId){
-                if ($this->router()->language=='ar') {
+            if ($this->router->userId){
+                if ($this->router->language=='ar') {
                     ?><a class="gl" href="<?= $url ?>">English</a><?php
                     ?><span class="gr">عربي</span><?php
                 } 
@@ -1522,9 +1515,9 @@ class Page extends Site {
             }
 
             ?></div><?php  
-            if(!$this->router()->userId && $this->router()->config()->enabledAds()){
+            if(!$this->router->userId && $this->router->config->enabledAds()){
                 ?><div class="w tpb"><?php 
-                ?><a class="lg" href="<?= $this->router()->getURL($this->router()->countryId,$cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><img height="90" width="130" src="<?= $this->router()->config()->cssURL ?>/i/logo<?= $this->router()->_jpg ?>" alt="<?= $this->lang['mourjan'] ?>" /></a><?php 
+                ?><a class="lg" href="<?= $this->router->getURL($this->router->countryId,$cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><img height="90" width="130" src="<?= $this->router->config->cssURL ?>/i/logo<?= $this->router->_jpg ?>" alt="<?= $this->lang['mourjan'] ?>" /></a><?php 
                     echo $this->fill_ad('zone_0', 'ad_t');
                 ?></div><?php
             }
@@ -1543,24 +1536,24 @@ class Page extends Site {
             if ($this->userFavorites) {
                 $this->lang['hint_login']=$this->lang['hint_login_favorites'];
                 $this->requireLogin=true;
-            }elseif($this->router()->watchId) {
+            }elseif($this->router->watchId) {
                 $this->lang['hint_login']=$this->lang['hint_login_watch'];
                 $this->requireLogin=true;
-            }else if($this->router()->module=='myads' || $this->router()->module=='post' || $this->router()->module=='account' || $this->router()->module=='home'){
+            }else if($this->router->module=='myads' || $this->router->module=='post' || $this->router->module=='account' || $this->router->module=='home'){
                 $this->requireLogin=true;
             }
         }
         //$backButton="<div class='bt btBack rc'><div><div></div></div></div>";
         $backButton='<span class="bt-back"></span>';
         $hasBack=false;
-        $cityId=$this->router()->cityId;
+        $cityId=$this->router->cityId;
         if ($cityId) {
-            if (empty($this->router()->countries[$this->router()->countryId]['cities'])) {
+            if (empty($this->router->countries[$this->router->countryId]['cities'])) {
                 $cityId=0;
             }
         }
         $headTitle='Mourjan.com';
-        switch ($this->router()->module) {
+        switch ($this->router->module) {
             case 'buy':
             case 'buyu':            
             case 'statement':            
@@ -1571,71 +1564,71 @@ class Page extends Site {
                 break;
             case "detail":
                 $tmpUrl='';
-                if (isset($this->router()->params['tag_id']) && $this->router()->params['tag_id']){
-                    $tmpUrl = $this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);
-                }elseif(isset($this->router()->params['loc_id']) && $this->router()->params['loc_id']){
-                    if (isset($this->localities[$this->router()->params['loc_id']]) && $this->localities[$this->router()->params['loc_id']]['parent_geo_id']){
-                        $tmpId=$this->router()->params['loc_id'];
-                        $tmpUrl = '/'.$this->router()->countries[$this->router()->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->router()->sections[$this->router()->sectionId][3].'/'.($this->router()->purposeId ? $this->router()->purposes[$this->router()->purposeId][3].'/' : '').($this->router()->language!='ar' ? $this->router()->language.'/':'').'c-'.$tmpId.'-2/';
+                if (isset($this->router->params['tag_id']) && $this->router->params['tag_id']){
+                    $tmpUrl = $this->router->getURL($this->router->countryId,$cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId);
+                }elseif(isset($this->router->params['loc_id']) && $this->router->params['loc_id']){
+                    if (isset($this->localities[$this->router->params['loc_id']]) && $this->localities[$this->router->params['loc_id']]['parent_geo_id']){
+                        $tmpId=$this->router->params['loc_id'];
+                        $tmpUrl = '/'.$this->router->countries[$this->router->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->router->sections[$this->router->sectionId][3].'/'.($this->router->purposeId ? $this->router->purposes[$this->router->purposeId][3].'/' : '').($this->router->language!='ar' ? $this->router->language.'/':'').'c-'.$tmpId.'-2/';
                     }else {
-                        $tmpUrl = $this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);
+                        $tmpUrl = $this->router->getURL($this->router->countryId,$cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId);
                     }
                 }else {
-                    $tmpUrl = $this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);
+                    $tmpUrl = $this->router->getURL($this->router->countryId,$cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId);
                 }
-                if ($this->router()->params['start']>1){
-                    $tmpUrl.=$this->router()->params['start'].'/';
+                if ($this->router->params['start']>1){
+                    $tmpUrl.=$this->router->params['start'].'/';
                 }
-                if ($this->router()->params['q']){
-                    $tmpUrl.='?q='.urlencode($this->router()->params['q']);
+                if ($this->router->params['q']){
+                    $tmpUrl.='?q='.urlencode($this->router->params['q']);
                 }
                 $backButton = '<a class="back" href="'.$tmpUrl.'"></a>';
                 $hasBack=true;
                 break;
             case "search":
-                if ($this->router()->sectionId) {
+                if ($this->router->sectionId) {
                     if ($this->extendedId){
-                        $backButton = '<a class="back" href="'.$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId).'"></a>';
+                        $backButton = '<a class="back" href="'.$this->router->getURL($this->router->countryId,$cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId).'"></a>';
                     }elseif($this->localityId){
                         $this->localityId = $this->localityId+0;
 
                         if (isset($this->localities[$this->localityId]) && isset($this->localities[$this->localities[$this->localityId]['parent_geo_id']+0])){
                             $tmpId=$this->localities[$this->localityId]['parent_geo_id']+0;
-                            $backButton = '<a class="back" href="/'.$this->router()->countries[$this->router()->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->router()->sections[$this->router()->sectionId][3].'/'.($this->router()->purposeId ? $this->router()->purposes[$this->router()->purposeId][3].'/' : '').($this->router()->language!='ar' ? $this->router()->language.'/':'').'c-'.$tmpId.'-2/"></a>';
+                            $backButton = '<a class="back" href="/'.$this->router->countries[$this->router->countryId]['uri'].'/'.$this->localities[$tmpId]['uri'].'/'.$this->router->sections[$this->router->sectionId][3].'/'.($this->router->purposeId ? $this->router->purposes[$this->router->purposeId][3].'/' : '').($this->router->language!='ar' ? $this->router->language.'/':'').'c-'.$tmpId.'-2/"></a>';
                         }else {
-                            $backButton = '<a class="back" href="'.$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId).'"></a>';
+                            $backButton = '<a class="back" href="'.$this->router->getURL($this->router->countryId,$cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId).'"></a>';
                         }
                     }else {
-                        $backButton = '<a class="back" href="'.$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId).'"></a>';
+                        $backButton = '<a class="back" href="'.$this->router->getURL($this->router->countryId,$cityId,$this->router->rootId).'"></a>';
                     }
                     $hasBack=true;
-                }elseif ($this->router()->rootId || $this->router()->watchId || $this->userFavorites) {
-                    $backButton = '<a class="back" href="'.$this->router()->getURL($this->router()->countryId,$cityId).'"></a>';
+                }elseif ($this->router->rootId || $this->router->watchId || $this->userFavorites) {
+                    $backButton = '<a class="back" href="'.$this->router->getURL($this->router->countryId,$cityId).'"></a>';
                     $hasBack=true;
                 }
                 break;
             case "index":
             case "search":
-                if ($this->router()->sectionId) {
-                    $backButton = '<a class="back" href="'.$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId).'"></a>';
+                if ($this->router->sectionId) {
+                    $backButton = '<a class="back" href="'.$this->router->getURL($this->router->countryId,$cityId,$this->router->rootId).'"></a>';
                     $hasBack=true;
-                }elseif ($this->router()->rootId || $this->router()->watchId || $this->userFavorites) {
-                    $backButton = '<a class="back" href="'.$this->router()->getURL($this->router()->countryId,$cityId).'"></a>';
+                }elseif ($this->router->rootId || $this->router->watchId || $this->userFavorites) {
+                    $backButton = '<a class="back" href="'.$this->router->getURL($this->router->countryId,$cityId).'"></a>';
                     $hasBack=true;
                 }
                 break;
             default:
-                $backButton = '<a class="back" href="'.$this->router()->getURL($this->router()->countryId,$cityId).'"></a>';
+                $backButton = '<a class="back" href="'.$this->router->getURL($this->router->countryId,$cityId).'"></a>';
                 $hasBack=true;
                 break;
         }
-        switch ($this->router()->module) {
+        switch ($this->router->module) {
             case 'index':
-                if ($this->router()->rootId) {
-                    $headTitle=$this->router()->roots[$this->router()->rootId][$this->fieldNameIndex];
-                }elseif($this->router()->cityId){
+                if ($this->router->rootId) {
+                    $headTitle=$this->router->roots[$this->router->rootId][$this->fieldNameIndex];
+                }elseif($this->router->cityId){
                     $headTitle=$this->lang['mourjan'].' '.$this->cityName;
-                }elseif($this->router()->countryId){
+                }elseif($this->router->countryId){
                     $headTitle=$this->lang['mourjan'].' '.$this->countryName;
                 }
                 break;
@@ -1653,36 +1646,36 @@ class Page extends Site {
                 break;
         }
         
-        if (!$this->router()->isApp) {
+        if (!$this->router->isApp) {
             $url='';
-            switch ($this->router()->module){
+            switch ($this->router->module){
                 case 'detail':
                     if (!empty($this->detailAd)){
-                        if ($this->router()->language=='ar') {
-                            //$url = $this->router()->cfg['url_base'].sprintf($this->detailAd[Classifieds::URI_FORMAT], 'en/', $this->detailAd[Classifieds::ID]);
+                        if ($this->router->language=='ar') {
+                            //$url = $this->router->cfg['url_base'].sprintf($this->detailAd[Classifieds::URI_FORMAT], 'en/', $this->detailAd[Classifieds::ID]);
                             $url = sprintf($this->detailAd[Classifieds::URI_FORMAT], 'en/', $this->detailAd[Classifieds::ID]);
                         } else {
-                            //$url = $this->router()->cfg['url_base'].sprintf($this->detailAd[Classifieds::URI_FORMAT], '', $this->detailAd[Classifieds::ID]);
+                            //$url = $this->router->cfg['url_base'].sprintf($this->detailAd[Classifieds::URI_FORMAT], '', $this->detailAd[Classifieds::ID]);
                             $url = sprintf($this->detailAd[Classifieds::URI_FORMAT], '', $this->detailAd[Classifieds::ID]);
                         }
                         break;
                     }
             case 'search':
-                //if($this->router()->userId) $url='/'.($this->partnerInfo['uri']).'/';
-                if($this->router()->watchId) $url='/watchlist/';
+                //if($this->router->userId) $url='/'.($this->partnerInfo['uri']).'/';
+                if($this->router->watchId) $url='/watchlist/';
                 elseif ($this->userFavorites) $url='/favorites/';
-                else $url=$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId,false);
+                else $url=$this->router->getURL($this->router->countryId,$cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId,false);
 
-                if ($this->router()->language=='ar') $url.='en/';
-                if ($this->router()->params['start']) $url.=$this->router()->params['start'].'/';
+                if ($this->router->language=='ar') $url.='en/';
+                if ($this->router->params['start']) $url.=$this->router->params['start'].'/';
                 if($this->pageUserId){
                     $url.='?u='.$this->user->encodeId($this->pageUserId);
-                }elseif ($this->router()->isDynamic) {
+                }elseif ($this->router->isDynamic) {
                     $url.='?';
                     $params='';
                     $append=false;
-                    if ($this->router()->params['q']) {
-                        $params.='q='.urlencode($this->router()->params['q']);
+                    if ($this->router->params['q']) {
+                        $params.='q='.urlencode($this->router->params['q']);
                         $append=true;
                     }
                     $url.=$params;
@@ -1690,36 +1683,36 @@ class Page extends Site {
                 break;
             case 'myads':
                 $url='/myads/';
-                if ($this->router()->language=='ar') $url.='en/';
+                if ($this->router->language=='ar') $url.='en/';
                 $sub=$this->get('sub');
                 if(in_array($sub,array('pending','archive','drafts'))){
                     $url.='?sub='.$sub;
                 }
                 break;
             case 'index':
-                $url=$this->router()->getURL($this->router()->countryId,$cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId,false);
-                if ($this->router()->language=='ar') $url.='en/';
-                if ($this->router()->params['start']) $url.="{$this->router()->params['start']}/";
-                if ($this->router()->isDynamic) {
+                $url=$this->router->getURL($this->router->countryId,$cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId,false);
+                if ($this->router->language=='ar') $url.='en/';
+                if ($this->router->params['start']) $url.="{$this->router->params['start']}/";
+                if ($this->router->isDynamic) {
                     $url.='?';
                     $params='';
                     $append=false;
-                    if ($this->router()->params['q']) {
-                        $params.='q='.urlencode($this->router()->params['q']);
+                    if ($this->router->params['q']) {
+                        $params.='q='.urlencode($this->router->params['q']);
                         $append=true;
                     }
                     $url.=$params;
                 }
                 break;
             default:
-                $url='/'.$this->router()->module.'/';
-                if ($this->router()->language=='ar') $url.='en/';
+                $url='/'.$this->router->module.'/';
+                if ($this->router->language=='ar') $url.='en/';
                 break;
         }
         $this->switchLangUrl = $url;
         $searchButton = '';
-        if ($this->router()->countryId) {
-            if (0 && $this->router()->params['q']) {
+        if ($this->router->countryId) {
+            if (0 && $this->router->params['q']) {
                 $searchButton = '<div onclick="ose(this)" class="button srch on"><span class="k"></span></div>';
             }else {
                 $searchButton = '<div onclick="ose(this)" class="button srch"><span class="k"></span></div>';
@@ -1729,9 +1722,9 @@ class Page extends Site {
         ?><span onclick="side(this)" class="k home"></span><?php
         if ($hasBack) { echo $backButton; }
         echo $searchButton;
-        /* if ($this->router()->module!='index' || ($this->router()->module=='index' && $this->router()->rootId)) {
-            ?><a class="bt fl nsh" href="<?= $this->router()->getURL($this->router()->countryId,$this->router()->cityId) ?>"><span class="bt-home"></span></a>
-            <?php } */ ?><h1 id="title" class="<?= ($this->detailAd && !$this->detailAdExpired) ? ($this->detailAd[Classifieds::RTL]==0 ? 'e':'a'):($this->router()->language=='en'?'e':'a') ?>"><?php
+        /* if ($this->router->module!='index' || ($this->router->module=='index' && $this->router->rootId)) {
+            ?><a class="bt fl nsh" href="<?= $this->router->getURL($this->router->countryId,$this->router->cityId) ?>"><span class="bt-home"></span></a>
+            <?php } */ ?><h1 id="title" class="<?= ($this->detailAd && !$this->detailAdExpired) ? ($this->detailAd[Classifieds::RTL]==0 ? 'e':'a'):($this->router->language=='en'?'e':'a') ?>"><?php
         echo $headTitle;
         ?></h1></div><?php   
         
@@ -1740,7 +1733,7 @@ class Page extends Site {
         $loginErr = (isset($_GET['login']) && $_GET['login']=='error') ? 1:0;
         $loginECode = ($loginErr && isset($_GET['code']) && $_GET['code']) ? 1:0;
         $lang='';
-        if (!$this->router()->isArabic()) $lang=$this->router()->language.'/';
+        if (!$this->router->isArabic()) $lang=$this->router->language.'/';
         
         /*
         if ($this->user->info['id']) {
@@ -1754,10 +1747,10 @@ class Page extends Site {
             $menuIdx++;
         }
         
-        if ( ($this->router()->module!='index') || ($this->router()->module=='index' && ($this->router()->sectionId || $this->router()->rootId) ) ) {
-            $menu .= "<li><a href='{$this->router()->getURL($this->user->params['country'],$this->user->params['city'])}'><span class='k home'></span></a></li>";
+        if ( ($this->router->module!='index') || ($this->router->module=='index' && ($this->router->sectionId || $this->router->rootId) ) ) {
+            $menu .= "<li><a href='{$this->router->getURL($this->user->params['country'],$this->user->params['city'])}'><span class='k home'></span></a></li>";
             $menuIdx++;
-        }elseif($this->router()->countryId) {
+        }elseif($this->router->countryId) {
             //$menu .= "<li><span class='k home on'></span></li>";
             $menu .= "<li><span class='ps'><span class='k home on'></span></span></li>";
             $menuIdx++;
@@ -1765,13 +1758,13 @@ class Page extends Site {
         
         if ($this->user->info['id']) {
             
-            if ($this->router()->module=="search" && $this->router()->watchId) {
+            if ($this->router->module=="search" && $this->router->watchId) {
                 $menu .= "<li><span class='ps'><span class='k eye on'></span></span></li>";
             }else {
                 $menu .= "<li><a href='/watchlist/{$lang}'><span class='k eye'></span></a></li>";
             }
             $menuIdx++;
-            if ($this->router()->module=="search" && $this->userFavorites) {
+            if ($this->router->module=="search" && $this->userFavorites) {
                 $menu .= "<li><span class='ps'><span class='k fav on'></span></span></li>";
             }else {
                 $menu .= "<li><a href='/favorites/{$lang}'><span class='k fav'></span></a></li>";
@@ -1780,7 +1773,7 @@ class Page extends Site {
         }
         
         
-        if ($this->router()->language=='ar') {
+        if ($this->router->language=='ar') {
             $menu .= "<li><a href='{$url}'>English</a></li>";
             $menuIdx++;
         } else {
@@ -1790,26 +1783,26 @@ class Page extends Site {
         ?><div><?php */
         }
         
-        if (0 && $this->router()->countryId) {
+        if (0 && $this->router->countryId) {
             $uri='';
             if ($this->extendedId){
-                $uri='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
-                if (isset($this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId])) {
-                    $uri.=$this->router()->cities[$this->router()->cityId][3].'/';
+                $uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
+                if (isset($this->router->countries[$this->router->countryId]['cities'][$this->router->cityId])) {
+                    $uri.=$this->router->cities[$this->router->cityId][3].'/';
                 }
-                $uri.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
-                if ($this->router()->purposeId)$uri.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                $uri.=($this->router()->language!='ar'?$this->router()->language.'/':'').'q-'.$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3:2) :1).'/';
+                $uri.=$this->router->sections[$this->router->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
+                if ($this->router->purposeId)$uri.=$this->router->purposes[$this->router->purposeId][3].'/';
+                $uri.=($this->router->language!='ar'?$this->router->language.'/':'').'q-'.$this->extendedId.'-'.($this->router->countryId ? ($this->hasCities && $this->router->cityId ? 3:2) :1).'/';
             }elseif($this->localityId){
-                $uri='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
+                $uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
                 $uri.=$this->localities[$this->localityId]['uri'].'/';
-                $uri.=$this->router()->sections[$this->router()->sectionId][3].'/';
-                if ($this->router()->purposeId)$uri.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                $uri.=($this->router()->language!='ar'?$this->router()->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router()->cityId ? 3:2).'/';
+                $uri.=$this->router->sections[$this->router->sectionId][3].'/';
+                if ($this->router->purposeId)$uri.=$this->router->purposes[$this->router->purposeId][3].'/';
+                $uri.=($this->router->language!='ar'?$this->router->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router->cityId ? 3:2).'/';
             }else {
-                $uri=$this->router()->getURL($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);
+                $uri=$this->router->getURL($this->router->countryId,$this->router->cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId);
             }
-        ?><div class="sef<?= $this->router()->params['q'] ? ' on':'' ?>"><?php
+        ?><div class="sef<?= $this->router->params['q'] ? ' on':'' ?>"><?php
             ?><form action="<?= $uri ?>" method="get"><?php
                     ?><div class="dq"><?php
                     ?><input id="q" name="q" onkeyup="idir(this)" onfocus="this.select()" value="<?= htmlspecialchars($q,ENT_QUOTES) ?>" type='text' placeholder='<?= $this->lang['search_what'] ?>' /><?php
@@ -1822,12 +1815,12 @@ class Page extends Site {
         }
         
         /* Start not isApp */
-        //error_log("isApp: {$this->router()->isApp}", 0 );
-        if (0 && !$this->router()->isApp) {
+        //error_log("isApp: {$this->router->isApp}", 0 );
+        if (0 && !$this->router->isApp) {
         ?><ul class="menu f<?= $menuIdx ?>"><?= $menu ?></ul><?php
         ?></div><?php
         if ($this->requireLogin){
-            if($this->router()->module=='account' && isset($this->user->pending['email_validation']) && $this->user->pending['email_validation']==2){
+            if($this->router->module=='account' && isset($this->user->pending['email_validation']) && $this->user->pending['email_validation']==2){
                 $this->lang['hint_login']=$this->lang['login_email_verify'];
             }
                 
@@ -1835,22 +1828,22 @@ class Page extends Site {
         }
         ?><div id="sif" class='si<?= ($loginErr || $this->requireLogin ? ' blk':'') ?>'><?php 
         if($this->user->info['id']) {
-            if($this->router()->module != 'index' || ($this->router()->module == 'index' && $this->router()->rootId) || ($this->router()->module == 'index' && !$this->router()->countryId)) {
+            if($this->router->module != 'index' || ($this->router->module == 'index' && $this->router->rootId) || ($this->router->module == 'index' && !$this->router->countryId)) {
             
             ?><ul class="ls us br"><?php 
-            if($this->router()->module != 'post') {
+            if($this->router->module != 'post') {
                    ?><li><a href="/post/<?= $lang ?>"><span class="ic apb"></span><?= $this->lang['button_ad_post_m'] ?><span class="to"></span></a></li><?php 
             }else{
                 ?><li class="on"><b><span class="ic apb"></span><?= $this->lang['button_ad_post_m'] ?></b></li><?php 
             }
             ?></ul><?php
             ?><ul class="ls us br"><?php 
-            if($this->router()->module != 'search' || !$this->userFavorites) {
+            if($this->router->module != 'search' || !$this->userFavorites) {
                    ?><li><a href="/favorites/<?= $lang ?>"><span class="ic k fav on"></span><?= $this->lang['myFavorites'] ?><span class="to"></span></a></li><?php 
             }else{
                 ?><li class="on"><b><span class="ic k fav on"></span><?= $this->lang['myFavorites'] ?></b></li><?php 
             }
-            /*if($this->router()->module != 'search' || !$this->router()->watchId) {
+            /*if($this->router->module != 'search' || !$this->router->watchId) {
                    ?><li><a href="/watchlist/<?= $lang ?>"><span class="ic k eye on"></span><?= $this->lang['myList'] ?><span class="to"></span></a></li><?php 
             }else{
                 ?><li class="on"><b><span class="ic k eye on"></span><?= $this->lang['myList'] ?></b></li><?php 
@@ -1859,22 +1852,22 @@ class Page extends Site {
             ?><ul class="ls us br"><?php
                 ?><li class="h"><b><?= $this->lang['myAds'] ?></b></li><?php
             $sub=(isset($_GET['sub']) && $_GET['sub'] ? $_GET['sub']:'');
-            if($this->router()->module != 'myads' || ($this->router()->module == 'myads' && $sub!='') ) {
+            if($this->router->module != 'myads' || ($this->router->module == 'myads' && $sub!='') ) {
                     ?><li><a href="/myads/<?= $lang ?>"><span class="ic aon"></span><?= $this->lang['ads_active'] ?><span class="to"></span></a></li><?php
             }else{
                 ?><li class="on"><b><span class="ic aon"></span><?= $this->lang['ads_active'] ?></b></li><?php
             }
-            if($this->router()->module != 'myads'  || ($this->router()->module == 'myads' &&  $sub!='pending') ) {
+            if($this->router->module != 'myads'  || ($this->router->module == 'myads' &&  $sub!='pending') ) {
                     ?><li><a href="/myads/<?= $lang ?>?sub=pending"><span class="ic apd"></span><?= $this->lang['ads_pending'] ?><span class="to"></span></a></li><?php
             }else{
                 ?><li class="on"><b><span class="ic apd"></span><?= $this->lang['ads_pending'] ?></b></li><?php
             }
-            if($this->router()->module != 'myads'  || ($this->router()->module == 'myads' &&  $sub!='drafts'))  {
+            if($this->router->module != 'myads'  || ($this->router->module == 'myads' &&  $sub!='drafts'))  {
                 ?><li><a href="/myads/<?= $lang ?>?sub=drafts"><span class="ic aedi"></span><?= $this->lang['ads_drafts'] ?><span class="to"></span></a></li><?php
             }else{
                 ?><li class="on"><b><span class="ic aedi"></span><?= $this->lang['ads_drafts'] ?></b></li><?php
             }
-            if($this->router()->module != 'myads'  || ($this->router()->module == 'myads' &&  $sub!='archive'))  {
+            if($this->router->module != 'myads'  || ($this->router->module == 'myads' &&  $sub!='archive'))  {
                 ?><li><a href="/myads/<?= $lang ?>?sub=archive"><span class="ic afd"></span><?= $this->lang['ads_archive'] ?><span class="to"></span></a></li><?php
             }else{
                 ?><li class="on"><b><span class="ic afd"></span><?= $this->lang['ads_archive'] ?></b></li><?php
@@ -1882,7 +1875,7 @@ class Page extends Site {
             ?></ul><?php
             
             ?><ul class="ls us br"><?php 
-                if($this->router()->module != 'account') {
+                if($this->router->module != 'account') {
                     ?><li><a href="/account/<?= $lang ?>"><?= $this->lang['myAccount'] ?><span class="et"></span></a></li><?php            
                 }else{
                     ?><li class="on"><b><?= $this->lang['myAccount'] ?></b></li><?php
@@ -1899,13 +1892,13 @@ class Page extends Site {
     }
     /* end not isApp */
         /* ?></div><?php */
-        if (!$this->router()->isApp) {
+        if (!$this->router->isApp) {
             if($this->user->info['id']==0 && $this->requireLogin){
                 ?><div class="si blk"><h2 class="ctr"><?= $this->lang['signin_m'] ?></h2><?php
                 ?><ul><?php
                 ?><li><a class="bt mj" href="/signin/<?= $lang ?>">Mourjan</a></li><?php
                 ?><li><a class="bt fb" href="?provider=facebook">Facebook</a></li><?php
-                ?><li><a class="goobt" href="?provider=google"><img src="<?= $this->router()->cfg['url_img']?>/google-login-m<?= $this->router()->_png ?>" /></a></li><?php
+                ?><li><a class="goobt" href="?provider=google"><img src="<?= $this->router->cfg['url_img']?>/google-login-m<?= $this->router->_png ?>" /></a></li><?php
                 ?><li><a class="bt tw" href="?provider=twitter">Twitter</a></li><?php
                 ?><li><a class="bt ya" href="?provider=yahoo">Yahoo</a></li><?php
                 ?><li><a class="bt lk" href="?provider=linkedin">LinkedIn</a></li><?php
@@ -1917,58 +1910,58 @@ class Page extends Site {
         }
       
        $isNotSearch = preg_match('/\/(?:watchlist|favorites)\//iu', $_SERVER['REQUEST_URI']);
-        if (!$this->router()->isApp && $this->router()->module=='search' && !$isNotSearch && $this->router()->rootId!=4 /*&& ($this->router()->rootId || $this->router()->sectionId)*/ && count($this->router()->purposes)>1 && !($this->router()->purposeId && count($this->router()->pagePurposes)==1)) {
+        if (!$this->router->isApp && $this->router->module=='search' && !$isNotSearch && $this->router->rootId!=4 /*&& ($this->router->rootId || $this->router->sectionId)*/ && count($this->router->purposes)>1 && !($this->router->purposeId && count($this->router->pagePurposes)==1)) {
             $q = '';
             $i = 0;
             $hasQuery = false;
-            if ($this->router()->params['q']) {
+            if ($this->router->params['q']) {
                 $hasQuery = true;
-                $q = '?q=' . urlencode($this->router()->params['q']);
+                $q = '?q=' . urlencode($this->router->params['q']);
             }
             
             echo "<div id='menu' class='menu'>";
             
             if ($hasQuery) {
-                foreach ($this->router()->pagePurposes as $pid=>$purpose) {
-                    if ($this->router()->purposeId == $pid) {
+                foreach ($this->router->pagePurposes as $pid=>$purpose) {
+                    if ($this->router->purposeId == $pid) {
                         echo '<b>', $purpose['name'], '</b>';
                         //echo '<li><span class="bt">', $purpose['name'], '</span></li>';
                     } else {
-                        //echo '<li><a class="bt" href="' . $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $pid) . $q . '">', $purpose['name'], '</a></li>';
-                        echo '<a  href="'.$this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $pid) . $q . '">', $purpose['name'],'</a>';
+                        //echo '<li><a class="bt" href="' . $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $pid) . $q . '">', $purpose['name'], '</a></li>';
+                        echo '<a  href="'.$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $pid) . $q . '">', $purpose['name'],'</a>';
                     }                    
                 }
             }else {
                 $append_uri = '';
                 $extended_uri = '';
                 if ($this->extendedId) {
-                    $append_uri = '/' . ($this->router()->language != 'ar' ? $this->router()->language . '/' : '') . 'q-' . $this->extendedId . '-' . ($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3 : 2) : 1);
-                    $extended_uri = '/' . $this->router()->countries[$this->router()->countryId]['uri'] . '/';
-                    if ($this->hasCities && $this->router()->cityId) {
-                        $extended_uri.=$this->router()->cities[$this->router()->cityId][3] . '/';
+                    $append_uri = '/' . ($this->router->language != 'ar' ? $this->router->language . '/' : '') . 'q-' . $this->extendedId . '-' . ($this->router->countryId ? ($this->hasCities && $this->router->cityId ? 3 : 2) : 1);
+                    $extended_uri = '/' . $this->router->countries[$this->router->countryId]['uri'] . '/';
+                    if ($this->hasCities && $this->router->cityId) {
+                        $extended_uri.=$this->router->cities[$this->router->cityId][3] . '/';
                     }
-                    $extended_uri.=$this->router()->sections[$this->router()->sectionId][3] . '-' . $this->extended[$this->extendedId]['uri'] . '/';
+                    $extended_uri.=$this->router->sections[$this->router->sectionId][3] . '-' . $this->extended[$this->extendedId]['uri'] . '/';
                 } elseif ($this->localityId) {
-                    $append_uri = '/' . ($this->router()->language != 'ar' ? $this->router()->language . '/' : '') . 'c-' . $this->localityId . '-' . ($this->hasCities && $this->router()->cityId ? 3 : 2);
-                    $extended_uri = '/' . $this->router()->countries[$this->router()->countryId]['uri'] . '/';
+                    $append_uri = '/' . ($this->router->language != 'ar' ? $this->router->language . '/' : '') . 'c-' . $this->localityId . '-' . ($this->hasCities && $this->router->cityId ? 3 : 2);
+                    $extended_uri = '/' . $this->router->countries[$this->router->countryId]['uri'] . '/';
                     $extended_uri.=$this->localities[$this->localityId]['uri'] . '/';
-                    $extended_uri.=$this->router()->sections[$this->router()->sectionId][3] . '/';
+                    $extended_uri.=$this->router->sections[$this->router->sectionId][3] . '/';
                 }
                 
-                foreach ($this->router()->pagePurposes as $pid=>$purpose) {
-                    $selected = ($this->router()->purposeId == $pid);
+                foreach ($this->router->pagePurposes as $pid=>$purpose) {
+                    $selected = ($this->router->purposeId == $pid);
                     
                     if ($this->extendedId || $this->localityId) {
                         if ($selected) {
                             echo '<b>', $purpose['name'], ' <span>('.$purpose['counter'].')</span></b>';
                         } else {
-                            echo '<a href="'. $extended_uri . $this->router()->purposes[$pid][3] . $append_uri . '/' . '">', $purpose['name'], ' <span>('.$purpose['counter'].')</span></a>';
+                            echo '<a href="'. $extended_uri . $this->router->purposes[$pid][3] . $append_uri . '/' . '">', $purpose['name'], ' <span>('.$purpose['counter'].')</span></a>';
                         }                        
                     } else {
                         if ($selected) {
                             echo '<b>', $purpose['name'], ' <span>('.$purpose['counter'].')</span></b>';
                         } else {
-                            echo '<a href="' . $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $pid) . $q . '">', $purpose['name'], ' <span>('.$purpose['counter'].')</span></a>';
+                            echo '<a href="' . $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $pid) . $q . '">', $purpose['name'], ' <span>('.$purpose['counter'].')</span></a>';
                         }
                     }
                     $i++;
@@ -1980,65 +1973,65 @@ class Page extends Site {
 
     function paginationMobile(){      
         $qtotal_found = $this->searchResults['body']['total_found'];
-        $appendLang=($this->router()->language=='ar'?'/':'/'.$this->router()->language.'/');
+        $appendLang=($this->router->language=='ar'?'/':'/'.$this->router->language.'/');
         if (!$this->paginationString) {
             
             if ($qtotal_found>0) {
                 $pages = ceil($qtotal_found/$this->num);
-                $tmp=ceil($this->router()->cfg['search_results_max']/$this->num);
+                $tmp=ceil($this->router->cfg['search_results_max']/$this->num);
                 if ($pages>$tmp) $pages=(int)$tmp;
                 if ($pages>1) {
                     
                     if ($this->userFavorites) $link='/favorites'.$appendLang.'%s';
-                    elseif ($this->router()->watchId)
+                    elseif ($this->router->watchId)
                         $link='/watchlist'.$appendLang.'%s';  
                     elseif ($this->extendedId) {
                         $idx=1;
                         $link='/';
-                        if ($this->router()->countryId) {
+                        if ($this->router->countryId) {
                             $idx=2;
-                            $link='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
+                            $link='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
                         }
-                        if (isset($this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId])) {
-                            $link.=$this->router()->cities[$this->router()->cityId][3].'/';
+                        if (isset($this->router->countries[$this->router->countryId]['cities'][$this->router->cityId])) {
+                            $link.=$this->router->cities[$this->router->cityId][3].'/';
                             $idx=3;
                         }
-                        $link.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
-                        if ($this->router()->purposeId)
-                            $link.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                        if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
+                        $link.=$this->router->sections[$this->router->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
+                        if ($this->router->purposeId)
+                            $link.=$this->router->purposes[$this->router->purposeId][3].'/';
+                        if ($this->router->language!='ar')$link.=$this->router->language.'/';
                             $link.='q-'.$this->extendedId.'-'.$idx.'/%s';
                     }elseif ($this->localityId) {
                         $idx=2;
-                        $link='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
-                        /*if ($this->hasCities && $this->router()->cityId) {
-                            $link.=$this->router()->cities[$this->router()->cityId][3].'/';
+                        $link='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
+                        /*if ($this->hasCities && $this->router->cityId) {
+                            $link.=$this->router->cities[$this->router->cityId][3].'/';
                             $idx=3;
                         }*/
                         $link.=$this->localities[$this->localityId]['uri'].'/';
-                        if ($this->router()->sectionId) 
-                            $link.=$this->router()->sections[$this->router()->sectionId][3].'/';
+                        if ($this->router->sectionId) 
+                            $link.=$this->router->sections[$this->router->sectionId][3].'/';
                         else 
-                            $link.=$this->router()->pageRoots[$this->router()->rootId]['uri'].'/';
-                        if ($this->router()->purposeId)
-                            $link.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                        if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
+                            $link.=$this->router->pageRoots[$this->router->rootId]['uri'].'/';
+                        if ($this->router->purposeId)
+                            $link.=$this->router->purposes[$this->router->purposeId][3].'/';
+                        if ($this->router->language!='ar')$link.=$this->router->language.'/';
                             $link.='c-'.$this->localityId.'-'.$idx.'/%s';
                         }else 
-                            $link=$this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId).'%s';
+                            $link=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId).'%s';
                     $uri_query='';
                     $linkAppend='?';
                     if($this->pageUserId){
                         $uri_query=$linkAppend.'u='.$this->user->encodeId($this->pageUserId);
                         $linkAppend='&';
                     }
-                    if ($this->router()->params['q']) {
-                        $uri_query=$linkAppend.'q='.urlencode($this->router()->params['q']);
+                    if ($this->router->params['q']) {
+                        $uri_query=$linkAppend.'q='.urlencode($this->router->params['q']);
                         $linkAppend='&';
                     }
 
                     $result='';
-                    $currentPage=($this->router()->params['start']?$this->router()->params['start']:1);
+                    $currentPage=($this->router->params['start']?$this->router->params['start']:1);
                     
                     $result.= '<div class="nav sh">';
                     $result.="<span class='num'>{$currentPage} {$this->lang['of']} {$pages}</span>";
@@ -2056,7 +2049,7 @@ class Page extends Site {
                         //$result.=$first.$last;
                     }
                     if ($currentPage<$pages) {
-                        $offset=$this->router()->params['start']+1;
+                        $offset=$this->router->params['start']+1;
                         if ($offset==1) $offset++;
                         $first='<a class="n" href="';
                         $first.=sprintf ($link, "{$offset}/{$uri_query}");
@@ -2082,12 +2075,12 @@ class Page extends Site {
     
     function pagination($link=null) : string {
         if (!$this->paginationString||$link) {
-            $appendLang=$this->router()->getLanguagePath();
+            $appendLang=$this->router->getLanguagePath();
             $result='';
-            if ($this->router()->userId) {
+            if ($this->router->userId) {
                 $link='/'.$this->partnerInfo['uri'].$appendLang.'%s';                
             }
-            elseif ($this->router()->watchId) {
+            elseif ($this->router->watchId) {
                 $link='/watchlist'.$appendLang.'%s';                
             }
             elseif ($this->userFavorites) {
@@ -2096,35 +2089,35 @@ class Page extends Site {
             elseif ($this->extendedId) {
                 $idx=1;
                 $link='/';
-                if ($this->router()->countryId) {
+                if ($this->router->countryId) {
                     $idx=2;
-                    $link='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
+                    $link='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
                 }
-                if (isset($this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId])) {
-                    $link.=$this->router()->cities[$this->router()->cityId][3].'/';
+                if (isset($this->router->countries[$this->router->countryId]['cities'][$this->router->cityId])) {
+                    $link.=$this->router->cities[$this->router->cityId][3].'/';
                     $idx=3;
                 }
-                $link.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
-                if ($this->router()->purposeId)
-                $link.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
+                $link.=$this->router->sections[$this->router->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
+                if ($this->router->purposeId)
+                $link.=$this->router->purposes[$this->router->purposeId][3].'/';
+                if ($this->router->language!='ar')$link.=$this->router->language.'/';
                 $link.='q-'.$this->extendedId.'-'.$idx.'/%s';
             }
             elseif ($this->localityId) {
                 $idx=2;
-                $link='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
+                $link='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
                 $link.=$this->localities[$this->localityId]['uri'].'/';
-                if ($this->router()->sectionId) 
-                    $link.=$this->router()->sections[$this->router()->sectionId][3].'/';
+                if ($this->router->sectionId) 
+                    $link.=$this->router->sections[$this->router->sectionId][3].'/';
                 else 
-                    $link.=$this->router()->pageRoots[$this->router()->rootId]['uri'].'/';
-                if ($this->router()->purposeId)
-                    $link.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
+                    $link.=$this->router->pageRoots[$this->router->rootId]['uri'].'/';
+                if ($this->router->purposeId)
+                    $link.=$this->router->purposes[$this->router->purposeId][3].'/';
+                if ($this->router->language!='ar')$link.=$this->router->language.'/';
                 $link.='c-'.$this->localityId.'-'.$idx.'/%s';
             }
             else {
-                $link=$this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId).'%s';                
+                $link=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId).'%s';                
             }
 
             $uri_query='';
@@ -2134,18 +2127,18 @@ class Page extends Site {
                 $linkAppend='&';
             }
             
-            if ($this->router()->params['q']) {
-                $uri_query=$linkAppend.'q='.urlencode($this->router()->params['q']);
+            if ($this->router->params['q']) {
+                $uri_query=$linkAppend.'q='.urlencode($this->router->params['q']);
                 $linkAppend='&';
             }
             
             $qtotal_found = $this->searchResults['body']['total_found'];
             if ($qtotal_found>0) {
                 $pages = ceil($qtotal_found/$this->num);
-                $tmp=$this->router()->config()->get('search_results_max')/$this->num;
+                $tmp=$this->router->config->get('search_results_max')/$this->num;
                 if ($pages>$tmp) { $pages=$tmp; }
                 if ($pages>1) {    
-                    $currentPage = ($this->router()->params['start']?$this->router()->params['start']:1);
+                    $currentPage = ($this->router->params['start']?$this->router->params['start']:1);
                     $isFirst=true;
                     if ($currentPage>1) {
                         $result.='<li class="prev"><a target="_self" href="';
@@ -2190,7 +2183,7 @@ class Page extends Site {
                     
                     if ($currentPage<$pages) {
                         $result.='<li class="next">';
-                        $offset=$this->router()->params['start']+$this->num;
+                        $offset=$this->router->params['start']+$this->num;
                         $result.='<a target="_self" href="';                        
                         $page_no=$currentPage+1;
                         $result.=sprintf ($link, "{$page_no}/{$uri_query}");
@@ -2215,12 +2208,12 @@ class Page extends Site {
     
     function mt_pagination($link=null) : string {
         //if (!$this->paginationString||$link) {
-            $appendLang=$this->router()->getLanguagePath();
+            $appendLang=$this->router->getLanguagePath();
             $result='';
-            if ($this->router()->userId) {
+            if ($this->router->userId) {
                 $link='/'.$this->partnerInfo['uri'].$appendLang.'%s';                
             }
-            elseif ($this->router()->watchId) {
+            elseif ($this->router->watchId) {
                 $link='/watchlist'.$appendLang.'%s';                
             }
             elseif ($this->userFavorites) {
@@ -2229,35 +2222,35 @@ class Page extends Site {
             elseif ($this->extendedId) {
                 $idx=1;
                 $link='/';
-                if ($this->router()->countryId) {
+                if ($this->router->countryId) {
                     $idx=2;
-                    $link='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
+                    $link='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
                 }
-                if (isset($this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId])) {
-                    $link.=$this->router()->cities[$this->router()->cityId][3].'/';
+                if (isset($this->router->countries[$this->router->countryId]['cities'][$this->router->cityId])) {
+                    $link.=$this->router->cities[$this->router->cityId][3].'/';
                     $idx=3;
                 }
-                $link.=$this->router()->sections[$this->router()->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
-                if ($this->router()->purposeId)
-                $link.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
+                $link.=$this->router->sections[$this->router->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
+                if ($this->router->purposeId)
+                $link.=$this->router->purposes[$this->router->purposeId][3].'/';
+                if ($this->router->language!='ar')$link.=$this->router->language.'/';
                 $link.='q-'.$this->extendedId.'-'.$idx.'/%s';
             }
             elseif ($this->localityId) {
                 $idx=2;
-                $link='/'.$this->router()->countries[$this->router()->countryId]['uri'].'/';
+                $link='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
                 $link.=$this->localities[$this->localityId]['uri'].'/';
-                if ($this->router()->sectionId) 
-                    $link.=$this->router()->sections[$this->router()->sectionId][3].'/';
+                if ($this->router->sectionId) 
+                    $link.=$this->router->sections[$this->router->sectionId][3].'/';
                 else 
-                    $link.=$this->router()->pageRoots[$this->router()->rootId]['uri'].'/';
-                if ($this->router()->purposeId)
-                    $link.=$this->router()->purposes[$this->router()->purposeId][3].'/';
-                if ($this->router()->language!='ar')$link.=$this->router()->language.'/';
+                    $link.=$this->router->pageRoots[$this->router->rootId]['uri'].'/';
+                if ($this->router->purposeId)
+                    $link.=$this->router->purposes[$this->router->purposeId][3].'/';
+                if ($this->router->language!='ar')$link.=$this->router->language.'/';
                 $link.='c-'.$this->localityId.'-'.$idx.'/%s';
             }
             else {
-                $link=$this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId).'%s';                
+                $link=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId).'%s';                
             }
 
             $uri_query='';
@@ -2267,8 +2260,8 @@ class Page extends Site {
                 $linkAppend='&';
             }
             
-            if ($this->router()->params['q']) {
-                $uri_query=$linkAppend.'q='.urlencode($this->router()->params['q']);
+            if ($this->router->params['q']) {
+                $uri_query=$linkAppend.'q='.urlencode($this->router->params['q']);
                 $linkAppend='&';
             }
             //$this->num = 12;
@@ -2277,12 +2270,12 @@ class Page extends Site {
             if ($qtotal_found>0) {
                 $pages = ceil($qtotal_found/$this->num);
                 
-                $tmp=$this->router()->config()->get('search_results_max')/$this->num;
+                $tmp=$this->router->config->get('search_results_max')/$this->num;
                 
                 if ($pages>$tmp) { $pages=$tmp; }
                 
                 if ($pages>1) {    
-                    $currentPage = ($this->router()->params['start']?$this->router()->params['start']:1);
+                    $currentPage = ($this->router->params['start']?$this->router->params['start']:1);
                     $isFirst=true;
                     if ($currentPage>1) {
                         $result.='<li><a target="_self" href="';
@@ -2329,7 +2322,7 @@ class Page extends Site {
                     
                     if ($currentPage<$pages) {
                         $result.='<li>';
-                        $offset=$this->router()->params['start']+$this->num;
+                        $offset=$this->router->params['start']+$this->num;
                         $result.='<a target="_self" href="';                        
                         $page_no=$currentPage+1;
                         $result.=sprintf ($link, "{$page_no}/{$uri_query}");
@@ -2372,45 +2365,45 @@ class Page extends Site {
         if ($this->lang['description']) {             
             ?><meta name="description" content="<?= preg_replace("/<.*?>/", "", $this->lang['description']) ?>" /><?php 
         } 
-        if ($this->router()->config()->get('enabled_sharing') && $this->router()->module!="detail") {
-            $sharingUrl=$this->router()->config()->baseURL.'/';
-            if ($this->router()->userId){
+        if ($this->router->config->get('enabled_sharing') && $this->router->module!="detail") {
+            $sharingUrl=$this->router->config->baseURL.'/';
+            if ($this->router->userId){
                 $sharingUrl.=$this->partnerInfo['uri'].'/';
             }
             if ($this->extendedId || $this->localityId){
                 $sharingUrl.=$this->extended_uri ? substr($this->extended_uri, 1, strlen($this->extended_uri)) : '';
             }
-            elseif($this->router()->module=='index' || ($this->router()->module=='search' && !($this->router()->watchId || $this->userFavorites))){
-                $sharingUrl.=$this->router()->uri ? substr($this->router()->uri, 1, strlen($this->router()->uri)) : '';
+            elseif($this->router->module=='index' || ($this->router->module=='search' && !($this->router->watchId || $this->userFavorites))){
+                $sharingUrl.=$this->router->uri ? substr($this->router->uri, 1, strlen($this->router->uri)) : '';
             }
-            if ($this->router()->language!='ar') {
-                $sharingUrl.=$this->router()->language.'/';
+            if ($this->router->language!='ar') {
+                $sharingUrl.=$this->router->language.'/';
             }
-            if ($this->router()->module=='search'){
-                if ($this->router()->params['start']) {
-                    $sharingUrl.=$this->router()->params['start'].'/';
+            if ($this->router->module=='search'){
+                if ($this->router->params['start']) {
+                    $sharingUrl.=$this->router->params['start'].'/';
                 }
-                if ($this->router()->params['q']) {
-                    $sharingUrl.='?q='.urlencode($this->router()->params['q']);
+                if ($this->router->params['q']) {
+                    $sharingUrl.='?q='.urlencode($this->router->params['q']);
                 }
             }
-            $pageThumb=$this->router()->config()->imgURL.'/mourjan-icon'.$this->router()->_png;
-            if($this->router()->sectionId && isset($this->router()->sections[$this->router()->sectionId])){
-                $pageThumb=$this->router()->config()->imgURL.'/200/'.$this->router()->sectionId.$this->router()->_png;
+            $pageThumb=$this->router->config->imgURL.'/mourjan-icon'.$this->router->_png;
+            if($this->router->sectionId && isset($this->router->sections[$this->router->sectionId])){
+                $pageThumb=$this->router->config->imgURL.'/200/'.$this->router->sectionId.$this->router->_png;
             }
-            elseif ($this->router()->rootId && isset($this->router()->pageRoots[$this->router()->rootId])){
-                $pageThumb=$this->router()->config()->imgURL.'/'.$this->router()->rootId.$this->router()->_png;
+            elseif ($this->router->rootId && isset($this->router->pageRoots[$this->router->rootId])){
+                $pageThumb=$this->router->config->imgURL.'/'.$this->router->rootId.$this->router->_png;
             }
             
-            ?><meta property="og:title" content="<?= ($this->router()->watchId || $this->userFavorites) ? $this->lang['title_full']:$this->title ?>" /><meta property="og:description" content="<?= $this->lang['description'] ?>" /><meta property="og:type" content="website" /><?php
+            ?><meta property="og:title" content="<?= ($this->router->watchId || $this->userFavorites) ? $this->lang['title_full']:$this->title ?>" /><meta property="og:description" content="<?= $this->lang['description'] ?>" /><meta property="og:type" content="website" /><?php
             ?><meta property="og:url" content="<?= $sharingUrl ?>" /><?php 
             ?><meta property="og:image" content="<?= $pageThumb ?>" /><?php 
             ?><meta property="og:site_name" content="Mourjan.com" /><?php 
             ?><meta property="fb:app_id" content="184370954908428"/><?php
         }
-        ?><meta name="msapplication-config" content="<?= $this->router()->config()->host ?>/browserconfig.xml" /><?php 
-        if($this->user->info['id']==0 && in_array($this->router()->module,['home','signin','favorites','account','myads','post','statement','watchlist','signup','password','buy','buyu'])){
-            ?><script async="true" defer="true" src='https://www.google.com/recaptcha/api.js<?= $this->router()->isArabic()?'?hl=ar':'' ?>'></script><?php
+        ?><meta name="msapplication-config" content="<?= $this->router->config->host ?>/browserconfig.xml" /><?php 
+        if($this->user->info['id']==0 && in_array($this->router->module,['home','signin','favorites','account','myads','post','statement','watchlist','signup','password','buy','buyu'])){
+            ?><script async="true" defer="true" src='https://www.google.com/recaptcha/api.js<?= $this->router->isArabic()?'?hl=ar':'' ?>'></script><?php
         }                
     }
 
@@ -2434,16 +2427,16 @@ class Page extends Site {
         
         
         $adLang='';
-        if ($this->router()->language!="ar") $adLang=$this->router()->language.'/';
-        if ($this->router()->module=='about') $this->router()->cfg['enabled_sharing']=true;
-        if ((!$this->user->info['id'] ||  ($this->user->info['id'] && $this->user->info['level']!=9)) && $this->router()->module=='search' && !$this->userFavorites && !$this->router()->watchId && !$this->router()->userId) {
+        if ($this->router->language!="ar") $adLang=$this->router->language.'/';
+        if ($this->router->module=='about') $this->router->cfg['enabled_sharing']=true;
+        if ((!$this->user->info['id'] ||  ($this->user->info['id'] && $this->user->info['level']!=9)) && $this->router->module=='search' && !$this->userFavorites && !$this->router->watchId && !$this->router->userId) {
             $this->globalScript.='var upem=1;';
             if (isset($this->searchResults['media']) && $this->searchResults['media']['total_found']>0) {
                 if ($this->searchResults['media']['total_found']>2) {
                     $k=0;
                     $images_widths = array();
                     $j=4;
-                    $ad_cache = $this->router()->db->getCache()->getMulti($this->searchResults['media']['matches']);
+                    $ad_cache = $this->router->db->getCache()->getMulti($this->searchResults['media']['matches']);
                     $ad_count = count($this->searchResults['media']['matches']);
                     if($j > $ad_count) $j = $ad_count;
                     if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp'] = array(); }
@@ -2467,11 +2460,11 @@ class Page extends Site {
                             }
                         }
                         if (!empty($ad[Classifieds::ALT_CONTENT])) {
-                            if ($this->router()->language == "en" && $ad[Classifieds::RTL]) {
+                            if ($this->router->language == "en" && $ad[Classifieds::RTL]) {
                                 $ad[Classifieds::TITLE] = $ad[Classifieds::ALT_TITLE];
                                 $ad[Classifieds::CONTENT] = $ad[Classifieds::ALT_CONTENT];
                                 $ad[Classifieds::RTL] = 0;
-                            } elseif ($this->router()->language == "ar" && $ad[Classifieds::RTL] == 0) {
+                            } elseif ($this->router->language == "ar" && $ad[Classifieds::RTL] == 0) {
                                 $ad[Classifieds::TITLE] = $ad[Classifieds::ALT_TITLE];
                                 $ad[Classifieds::CONTENT] = $ad[Classifieds::ALT_CONTENT];
                                 $ad[Classifieds::RTL] = 1;
@@ -2483,7 +2476,7 @@ class Page extends Site {
                         if ($isNewToUser) {
                             $newSpan.="<span class='nw'></span>";
                         }
-                        $_link = sprintf($ad[Classifieds::URI_FORMAT], ($this->router()->language == 'ar' ? '' : $this->router()->language . '/'), $ad[Classifieds::ID]).'?ref=mediabox';
+                        $_link = sprintf($ad[Classifieds::URI_FORMAT], ($this->router->language == 'ar' ? '' : $this->router->language . '/'), $ad[Classifieds::ID]).'?ref=mediabox';
                         
                         if (isset($ad[Classifieds::VIDEO]) && $ad[Classifieds::VIDEO]){
                             $images_widths[$k]=array(400,300);
@@ -2513,10 +2506,10 @@ class Page extends Site {
                                 if(isset($oPics[$i][0]) && $oPics[$i][1]){
                                     $images_widths[$k]=array($oPics[$i][0],$oPics[$i][1]);
                                     $pic = $oPics[$i][2];
-                                    if($this->router()->isAcceptWebP){
+                                    if($this->router->isAcceptWebP){
                                         $pic = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pic);
                                     }
-                                    $this->globalScript.='sic["e' . $ad[Classifieds::ID] . '"]="<img class=\"ik'.$k.'\" src=\"' . $this->router()->cfg['url_ad_img'] . '/repos/m/' . $pic . '\" />";';
+                                    $this->globalScript.='sic["e' . $ad[Classifieds::ID] . '"]="<img class=\"ik'.$k.'\" src=\"' . $this->router->cfg['url_ad_img'] . '/repos/m/' . $pic . '\" />";';
                                 }
                             }
                         }
@@ -2574,7 +2567,7 @@ class Page extends Site {
                         $i++;
                     }
                     ?></style><?php
-                    ?><br /><div class="adLnk"><a href="/post/<?= $this->router()->language=='ar'?'':'en/' ?>" class="bt"><?= $this->lang['addAd'] ?></a></div><?php
+                    ?><br /><div class="adLnk"><a href="/post/<?= $this->router->language=='ar'?'':'en/' ?>" class="bt"><?= $this->lang['addAd'] ?></a></div><?php
                 }
             }
             
@@ -2583,21 +2576,21 @@ class Page extends Site {
             $this->globalScript.='var upem=0;';
         }
         
-        if ( ($this->router()->module=='index' || $this->router()->module=='about' || ($this->router()->module=='search' && isset($this->searchResults['body']['total_found']) && $this->searchResults['body']['total_found']) ) && !$this->userFavorites && !$this->router()->watchId && !$this->router()->userId && $this->router()->cfg['enabled_sharing']){
-            ?><div class="sha sh <?= $this->router()->language ?> rc w"><?php
+        if ( ($this->router->module=='index' || $this->router->module=='about' || ($this->router->module=='search' && isset($this->searchResults['body']['total_found']) && $this->searchResults['body']['total_found']) ) && !$this->userFavorites && !$this->router->watchId && !$this->router->userId && $this->router->cfg['enabled_sharing']){
+            ?><div class="sha sh <?= $this->router->language ?> rc w"><?php
                 ?><div class="fr"><?php 
-                    ?><label><?= $this->router()->module=='search' ? $this->lang['shareUsSearch']:$this->lang['shareUs'] ?></label><?php 
+                    ?><label><?= $this->router->module=='search' ? $this->lang['shareUsSearch']:$this->lang['shareUs'] ?></label><?php 
                      ?><span class='st_facebook_hcount'></span><span class='st_twitter_hcount'></span><span class='st_googleplus_hcount'></span><span class='st_linkedin_hcount'></span><span class='st_email_hcount'></span><span class='st_sharethis_hcount'></span><?php 
                 ?></div><?php
                 ?><div class="fl"><?php
                     ?><label><?= $this->lang['followUs'] ?></label><a href="https://www.facebook.com/pages/Mourjan/318337638191015" target="_blank"><span class="fb-link"></span></a><a href="https://twitter.com/MourjanWeb" target="blank"><span class="tw-link"></span></a><a href="https://plus.google.com/104043262417362495551" rel="publisher" target="blank"><span class="gp-link"></span></a><?php
                 ?></div><?php
             ?></div><?php 
-        }elseif($this->router()->module!='signin'){
+        }elseif($this->router->module!='signin'){
             ?><br /><?php
         }
         
-        if ($this->router()->userId) {
+        if ($this->router->userId) {
             $year = date('Y');
             ?><div class="ftr"><div class="cr">© 2010-<?= $year ?> Mourjan.com Classifieds Aggregator - All Rights Reserved.<?php        
             if (!isset($this->user->info['level']) || $this->user->info['level']!=9){
@@ -2609,56 +2602,56 @@ class Page extends Site {
             ?><div class="ftr"><div class="w"><?php
             ?><div class="q0 q1 fl"><?php
             ?><b class="h"><?= $this->lang['mourjan'] ?></b><?php
-            if ($this->router()->config()->get('enabled_post') && $this->router()->module!='post') {
+            if ($this->router->config->get('enabled_post') && $this->router->module!='post') {
                 if ($this->user->info['id']){
                     echo '<a class="nt" href="/post/'.$adLang.'">'.$this->lang['button_ad_post'].'</a>';
                 }else {
                     echo '<a class="login nt" href="/post/'.$adLang.'" rel="nofollow">'.$this->lang['button_ad_post'].'</a>';
                 }
             }
-            if ($this->router()->module!='about') {
+            if ($this->router->module!='about') {
                 ?><a href="/about/<?= $adLang ?>"><?= $this->lang['aboutUs'] ?></a><?php
             }else {
                 ?><b><?= $this->lang['aboutUs'] ?></b><?php
             }
-            if ($this->router()->module!='contact') {
+            if ($this->router->module!='contact') {
                 ?><a href="/contact/<?= $adLang ?>"><?= $this->lang['contactUs'] ?></a><?php
             }else {
                 ?><b><?= $this->lang['contactUs'] ?></b><?php
             }
-            if ($this->router()->module!='gold') {
+            if ($this->router->module!='gold') {
                 ?><a href="/gold/<?= $adLang ?>"><?= $this->lang['gold_title'] ?></a><?php
             }else {
                 ?><b><?= $this->lang['gold_title'] ?></b><?php
             }
-            if ($this->router()->module!='privacy') {
+            if ($this->router->module!='privacy') {
                 ?><a href="/privacy/<?= $adLang ?>"><?= $this->lang['privacyPolicy'] ?></a><?php
             }else {
                 ?><b><?= $this->lang['privacyPolicy'] ?></b><?php
             }
-            if ($this->router()->module!='terms') {
+            if ($this->router->module!='terms') {
                 ?><a itemprop="publishingPrinciples" href="/terms/<?= $adLang ?>"><?= $this->lang['termsConditions'] ?></a><?php
             }else {
                 ?><b><?= $this->lang['termsConditions'] ?></b><?php
             }
             
-            ?><form action="<?= $this->router()->getURL($this->router()->countryId,$this->router()->cityId) ?>" method="post"><input type="hidden" name="mobile" value="1" /><a href='#' onclick="this.parentNode.submit();"><?= $this->lang['mobile'] ?></a></form><?php
+            ?><form action="<?= $this->router->getURL($this->router->countryId,$this->router->cityId) ?>" method="post"><input type="hidden" name="mobile" value="1" /><a href='#' onclick="this.parentNode.submit();"><?= $this->lang['mobile'] ?></a></form><?php
        
             ?></div><?php 
             
             ?><div class="q1"><?php
-            ?><b class="h"><?= $this->lang['pclassifieds_'.$this->router()->language] ?></b><?php
+            ?><b class="h"><?= $this->lang['pclassifieds_'.$this->router->language] ?></b><?php
             $cityId=$this->user->params['city'];
             $countryId=$this->user->params['country'];
             $currentRoot='';
-            foreach ($this->router()->pageRoots as $rid=>$root) {
-                if($rid==$this->router()->rootId)$currentRoot=($this->router()->language=='ar' ? 'أقسام ال'.$root['name'] : $root['name'].'\''.($rid==1 ? 's':'').' Sections');
+            foreach ($this->router->pageRoots as $rid=>$root) {
+                if($rid==$this->router->rootId)$currentRoot=($this->router->language=='ar' ? 'أقسام ال'.$root['name'] : $root['name'].'\''.($rid==1 ? 's':'').' Sections');
                 $purposeId=0;
-                ?><a href="<?= $this->router()->getURL($countryId,$cityId,$rid,0,$purposeId) ?>"><span class='i i<?= $rid ?>'></span><?= ($this->router()->language=='ar' ? 'إعلانات ال'.$root['name'] : $root['name']) ?></a><?php
+                ?><a href="<?= $this->router->getURL($countryId,$cityId,$rid,0,$purposeId) ?>"><span class='i i<?= $rid ?>'></span><?= ($this->router->language=='ar' ? 'إعلانات ال'.$root['name'] : $root['name']) ?></a><?php
             }
             ?></div><?php
             
-            if($this->router()->module=='search' || $this->router()->module=='detail'){
+            if($this->router->module=='search' || $this->router->module=='detail'){
                 ?><div class="qw"><?php
                     ?><div><?php
                     ?><h4><?= $this->lang['safety_tip'] ?></h4><?php 
@@ -2684,7 +2677,7 @@ class Page extends Site {
             
                 ?><div class="q2"><?php
                 ?><b class="h"><?= $this->lang['countries'] ?></b><?php                
-                if($this->router()->language=='en'){                
+                if($this->router->language=='en'){                
                     $index_1=6;
                     $index_2=13;
                 } else {
@@ -2693,14 +2686,14 @@ class Page extends Site {
                 }
            
                 $countryIDX=0;
-                foreach ($this->router()->countries as $country_id => $country) {
+                foreach ($this->router->countries as $country_id => $country) {
                     $countryIDX++;
                     if($countryIDX==$index_1 || $countryIDX==$index_2){
                         ?></div><div class="q2 qp"><?php
                     }
-                    ?><a href="<?= $this->router()->getURL($country_id, 0) ?>"><span class="cf c<?= $country_id ?>"></span><?= $country['name'] ?></a><?php
+                    ?><a href="<?= $this->router->getURL($country_id, 0) ?>"><span class="cf c<?= $country_id ?>"></span><?= $country['name'] ?></a><?php
                     foreach ($country['cities'] as $city_id=>$city) {
-                        echo '<a class="ct" href="'. $this->router()->getURL($country_id, $city_id) .'">'.$city['name'].'</a>';                            
+                        echo '<a class="ct" href="'. $this->router->getURL($country_id, $city_id) .'">'.$city['name'].'</a>';                            
                     }
                     
                 }
@@ -2752,7 +2745,7 @@ class Page extends Site {
     
     function side_app_banner() {
         ?><div class="aps"><?php
-        ?><h3><?= ($this->router()->language == 'en' ? 'Download <span class="og">mourjan</span> App':'تحميل تطبيق <span class="og">مرجان</span>' ) ?></h3><?php
+        ?><h3><?= ($this->router->language == 'en' ? 'Download <span class="og">mourjan</span> App':'تحميل تطبيق <span class="og">مرجان</span>' ) ?></h3><?php
         ?><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class="ios"></span></a><?php
         ?><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class="android"></span></a><?php
         ?></div><?php
@@ -2778,15 +2771,15 @@ class Page extends Site {
             $colSpread='colw';
         }
         ?><div class="<?= $colSpread ?>"><?php   
-        if(($this->router()->module == 'buy'||$this->router()->module=='buyu') && $this->user->info['id']){
+        if(($this->router->module == 'buy'||$this->router->module=='buyu') && $this->user->info['id']){
             $this->renderBalanceBar();
         }  
-        if ($this->router()->userId) 
+        if ($this->router->userId) 
             $this->partnerHeader(); 
-        /*if ($this->router()->module=='index') {
+        /*if ($this->router->module=='index') {
             echo $this->fill_ad("zone_2", "adc");
         }*/
-        /*elseif ($this->router()->module=='detail' && !$this->detailAdExpired){
+        /*elseif ($this->router->module=='detail' && !$this->detailAdExpired){
             echo $this->fill_ad("zone_8",'ad_det');
             echo $this->fill_ad("zone_9",'ad_det adx');
         }*/
@@ -2820,12 +2813,12 @@ class Page extends Site {
         }
         
         if (preg_match('/Firefox\/27\.0/ui', $_SERVER['HTTP_USER_AGENT'])) {
-            $this->router()->config()->disableAds();
+            $this->router->config->disableAds();
         }
         if (0) {
         ?><script async src="https://www.googletagmanager.com/gtag/js?id=UA-435731-13"></script><?php
         ?><script type='text/javascript'><?php
-        if ($this->router()->config()->enabledAds() && count($this->googleAds)) {
+        if ($this->router->config->enabledAds() && count($this->googleAds)) {
             ?>var googletag=googletag||{};googletag.cmd=googletag.cmd||[];(function(){var gads=document.createElement('script');gads.async=true;gads.type='text/javascript';var useSSL='https:'==document.location.protocol;gads.src=(useSSL?'https:':'http:')+'//www.googletagservices.com/tag/js/gpt.js';var node=document.getElementsByTagName('script')[0];node.parentNode.insertBefore(gads, node);})();googletag.cmd.push(function(){<?php
             
             $slot=0;
@@ -2835,20 +2828,20 @@ class Page extends Site {
             }
             //echo "googletag.pubads().collapseEmptyDivs();";
             
-            if ($this->router()->countryId) {
-                echo "googletag.pubads().setTargeting('country_id','{$this->router()->countryId}');";
+            if ($this->router->countryId) {
+                echo "googletag.pubads().setTargeting('country_id','{$this->router->countryId}');";
             }
             
-            if ($this->router()->rootId) {
-                echo "googletag.pubads().setTargeting('root_id','{$this->router()->rootId}');";
+            if ($this->router->rootId) {
+                echo "googletag.pubads().setTargeting('root_id','{$this->router->rootId}');";
             }
             
-            if ($this->router()->sectionId) {
-                echo "googletag.pubads().setTargeting('section_id','{$this->router()->sectionId}');";
+            if ($this->router->sectionId) {
+                echo "googletag.pubads().setTargeting('section_id','{$this->router->sectionId}');";
             }
             
-            if ($this->router()->purposeId) {
-                echo "googletag.pubads().setTargeting('purpose_id','{$this->router()->purposeId}');";
+            if ($this->router->purposeId) {
+                echo "googletag.pubads().setTargeting('purpose_id','{$this->router->purposeId}');";
             }
             else {
                 echo "googletag.pubads().setTargeting('purpose_id','999');";                
@@ -2857,18 +2850,18 @@ class Page extends Site {
             ?>googletag.pubads().enableSingleRequest();googletag.enableServices()});<?php
         }
         
-        $module = $this->router()->module;
+        $module = $this->router->module;
         if ($module=='search') {
-            if  ($this->router()->userId) {
-                $module = 'user_page_'.$this->router()->userId;
+            if  ($this->router->userId) {
+                $module = 'user_page_'.$this->router->userId;
             }
             elseif ($this->userFavorites) {
                 $module = 'favorites';
             }
-            elseif ($this->router()->watchId) {
+            elseif ($this->router->watchId) {
                 $module = 'watchlist';
             }
-            elseif($this->router()->isPriceList) {
+            elseif($this->router->isPriceList) {
                 $module = 'pricelist';
             }
         }
@@ -2882,17 +2875,17 @@ class Page extends Site {
             ?>});<?php
             ?>gtag('event', 'dimension_event', {<?php
                 ?>'module': "<?php echo $module ?>",<?php
-                ?>'root': "<?php echo $this->router()->rootId?$this->router()->roots[$this->router()->rootId][2]:'AnyRoot';?>",<?php
-                ?>'section': "<?php echo ($this->router()->sectionId && isset($this->router()->sections[$this->router()->sectionId]))?$this->router()->sections[$this->router()->sectionId][2]:'AnySection'; ?>",<?php
-                ?>'country': "<?php echo ($this->router()->countryId && isset($this->router()->countries[$this->router()->countryId]))?$this->router()->countries[$this->router()->countryId]['uri']:'Global';?>",<?php
-                ?>'city': "<?php echo ($this->router()->cityId && isset($this->router()->cities[$this->router()->cityId]))?$this->router()->cities[$this->router()->cityId][3]:(($this->router()->countryId && isset($this->router()->countries[$this->router()->countryId]))?$this->router()->countries[$this->router()->countryId]['uri'].'all cities':'Global');?>"<?php
+                ?>'root': "<?php echo $this->router->rootId?$this->router->roots[$this->router->rootId][2]:'AnyRoot';?>",<?php
+                ?>'section': "<?php echo ($this->router->sectionId && isset($this->router->sections[$this->router->sectionId]))?$this->router->sections[$this->router->sectionId][2]:'AnySection'; ?>",<?php
+                ?>'country': "<?php echo ($this->router->countryId && isset($this->router->countries[$this->router->countryId]))?$this->router->countries[$this->router->countryId]['uri']:'Global';?>",<?php
+                ?>'city': "<?php echo ($this->router->cityId && isset($this->router->cities[$this->router->cityId]))?$this->router->cities[$this->router->cityId][3]:(($this->router->countryId && isset($this->router->countries[$this->router->countryId]))?$this->router->countries[$this->router->countryId]['uri'].'all cities':'Global');?>"<?php
             ?>});<?php
         ?></script><?php
            
         }
         
         
-        if ($this->router()->config()->get('enabled_ads') && in_array($this->router()->module,['search','detail'])) {
+        if ($this->router->config->get('enabled_ads') && in_array($this->router->module,['search','detail'])) {
             ?><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php
         } 
         
@@ -2905,9 +2898,9 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     
       
     function renderMobileLinks(){
-        if (!$this->router()->countryId || $this->router()->rootId) return;
-        $lang=$this->router()->language=='ar'?'':$this->router()->language.'/';
-        if ($this->router()->rootId) return;
+        if (!$this->router->countryId || $this->router->rootId) return;
+        $lang=$this->router->language=='ar'?'':$this->router->language.'/';
+        if ($this->router->rootId) return;
         ?><ul class="ls br"><?php
          ?><li><a href="/about/<?= $lang ?>"><span class="ic r102"></span><?= $this->lang['aboutUs'] ?><span class="to"></span></a></li><? 
          ?><li><a href="/contact/<?= $lang ?>"><span class="ic r100"></span><?= $this->lang['contactUs'] ?><span class="to"></span></a></li><? 
@@ -2915,10 +2908,10 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         ?></ul><?php
         ?><ul class="ls br"><?php
 
-        //var_dump($this->router()->isApp);
+        //var_dump($this->router->isApp);
 
-        if (!$this->router()->isApp) {
-            ?><li onclick="this.childNodes[0].submit()"><form action="<?= $this->router()->getURL($this->router()->countryId,$this->router()->cityId) ?>" method="post"><input type="hidden" name="mobile" value="0" /><span class="ilnk"><span class="ic r101"></span><?= $this->lang['full_site'] ?></span><span class="to"></span></form></li><?php
+        if (!$this->router->isApp) {
+            ?><li onclick="this.childNodes[0].submit()"><form action="<?= $this->router->getURL($this->router->countryId,$this->router->cityId) ?>" method="post"><input type="hidden" name="mobile" value="0" /><span class="ilnk"><span class="ic r101"></span><?= $this->lang['full_site'] ?></span><span class="to"></span></form></li><?php
 
         }
         ?></ul><?php  
@@ -2947,8 +2940,8 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         
         
         ?><script type="text/javascript"><?php
-        if ($this->renderAdSense && $this->router()->config()->enabledAds() 
-                && in_array($this->router()->module,['search','detail']) 
+        if ($this->renderAdSense && $this->router->config->enabledAds() 
+                && in_array($this->router->module,['search','detail']) 
                 /*&& (!isset($this->user->params['screen'][0]) || $this->user->params['screen'][0]<745)*/){
             /* ?>(adsbygoogle = window.adsbygoogle || []).push({google_ad_client: "ca-pub-2427907534283641",enable_page_level_ads: true,vignettes: {google_ad_channel: 'mourjan-vignette'},overlays: {google_ad_channel: 'mourjan-overlay'}});<?php */
             for($i=0; $i < $this->renderAdSense;$i++){
@@ -2959,7 +2952,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         ?>var head = document.getElementsByTagName("head")[0] || document.documentElement;<?php
         /* ?>function loadCss(fn,cb){var s=document.getElementsByTagName("link"),l=s.length-1,p=0,e;for(i=l;i>=0;i--){if(s[i].rel=='stylesheet'){e=s[i];break;}}if(typeof e==='undefined'){p=1;e=head.firstChild}var l=document.createElement('link');l.rel='stylesheet';l.type="text/css";l.media='all';l.href=fn;e.parentNode.insertBefore(l,e.nextSibling)}<?php */
         ?>function addEvent(e, en, fn){if (e.addEventListener)e.addEventListener(en, fn, false);else if(e.attachEvent)e.attachEvent('on' + en, fn)}<?php
-        if($this->router()->isApp)
+        if($this->router->isApp)
         {
             ?>addEvent(document,'DOMContentLoaded',function(){parent.postMessage('DOMContentLoaded','*')});<?php
             //if(typeof window.onbeforeunload !== 'undefined'){
@@ -3000,14 +2993,14 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         
         
         
-        ?>var SCLD,lang='<?= $this->router()->language ?>',<?php
-        ?>hasQ=<?= $this->router()->params['q'] ? 1:0 ?>,canSh=<?= $this->router()->cfg['enabled_sharing']?1:0 ?>,<?php
+        ?>var SCLD,lang='<?= $this->router->language ?>',<?php
+        ?>hasQ=<?= $this->router->params['q'] ? 1:0 ?>,canSh=<?= $this->router->cfg['enabled_sharing']?1:0 ?>,<?php
         ?>sic=[],<?php
-        ?>isApp=<?= $this->router()->isApp ? "'".$this->router()->isApp."'":0 ?>,<?php
+        ?>isApp=<?= $this->router->isApp ? "'".$this->router->isApp."'":0 ?>,<?php
         ?>uid=<?= $this->user->info['id'] ?>,<?php
-        ?>mod='<?= $this->router()->module ?>',<?php
-        ?>jsLog=<?= $this->router()->cfg['enabled_js_log'] ?>,<?php 
-        ?>uimg='<?= $this->router()->cfg['url_ad_img'] ?>',<?php 
+        ?>mod='<?= $this->router->module ?>',<?php
+        ?>jsLog=<?= $this->router->cfg['enabled_js_log'] ?>,<?php 
+        ?>uimg='<?= $this->router->cfg['url_ad_img'] ?>',<?php 
         if(isset($this->user->params['hasCanvas'])){            
             ?>hasCvs=<?= $this->user->params['hasCanvas'] ?>,<?php 
         }else{
@@ -3017,35 +3010,35 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         if($this->user->info['id']){
             ?>UIDK='<?= $this->user->info['idKey'] ?>',<?php 
         }
-        if($this->user->info['id'] && $this->router()->module=='post'){
-            ?>UP_URL='<?= $this->router()->cfg['url_uploader'] ?>',<?php 
+        if($this->user->info['id'] && $this->router->module=='post'){
+            ?>UP_URL='<?= $this->router->cfg['url_uploader'] ?>',<?php 
             ?>USID='<?= session_id() ?>',<?php 
-            ?>uixf='<?= $this->router()->cfg['url_image_lib'] ?>/load-image.all.min.js',<?php 
+            ?>uixf='<?= $this->router->cfg['url_image_lib'] ?>/load-image.all.min.js',<?php 
         }
-        if ($this->stat && !$this->router()->isBot()){
-            $this->stat['page']=($this->router()->params['start']) ? $this->router()->params['start'] : 1;
+        if ($this->stat && !$this->router->isBot()){
+            $this->stat['page']=($this->router->params['start']) ? $this->router->params['start'] : 1;
             $this->stat['num']=$this->num;
             ?>stat='<?= isset($this->stat) ? json_encode($this->stat):'' ?>',<?php
             $page=array(
-                'cn'=>$this->router()->countryId,
-                'c'=>$this->router()->cityId,
-                'se'=>$this->router()->sectionId,
-                'pu'=>$this->router()->purposeId,
+                'cn'=>$this->router->countryId,
+                'c'=>$this->router->cityId,
+                'se'=>$this->router->sectionId,
+                'pu'=>$this->router->purposeId,
             );
             ?>page='<?= json_encode($page) ?>',<?php
         }else {
             ?>stat=0,<?php
         }
-        if($this->user->info['id'] && $this->router()->module=='myads'){
-            if ($this->router()->cfg['enabled_charts'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) {
-                ?>uhc='<?= $this->router()->cfg['url_highcharts'] ?>',<?php 
+        if($this->user->info['id'] && $this->router->module=='myads'){
+            if ($this->router->cfg['enabled_charts'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) {
+                ?>uhc='<?= $this->router->cfg['url_highcharts'] ?>',<?php 
                 if($this->user->info['level']==9){
                     ?>uuid=<?= (isset($_GET['u']) && is_numeric($_GET['u'])) ? (int)$_GET['u'] : 0 ?>,<?php
                 }
             }else{
                 ?>uhc=0,<?php 
             }
-            if ($this->router()->cfg['enabled_ad_stats'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) {
+            if ($this->router->cfg['enabled_ad_stats'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) {
                 ?>ustats=1,<?php
             }else{
                 ?>ustats=0,<?php
@@ -3056,41 +3049,41 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 ?>PEND=0,<?php
             }
         }
-        if ($this->router()->module == 'search' && !$this->userFavorites && !$this->router()->watchId) {
-            $key = $this->router()->countryId . '-' . $this->router()->cityId . '-' . $this->router()->sectionId . '-' . $this->extendedId . '-' . $this->localityId . '-' . $this->router()->purposeId . '-' . crc32($this->router()->params['q']);
+        if ($this->router->module == 'search' && !$this->userFavorites && !$this->router->watchId) {
+            $key = $this->router->countryId . '-' . $this->router->cityId . '-' . $this->router->sectionId . '-' . $this->extendedId . '-' . $this->localityId . '-' . $this->router->purposeId . '-' . crc32($this->router->params['q']);
             if ( (!$this->user->info['id'] || ($this->user->info['id'] && !isset($this->user->info['options']['watch'][$key])) ) 
-                    && ( ($this->router()->countryId && $this->router()->sectionId && $this->router()->purposeId) 
-                    || ($this->router()->params['q'] && $this->searchResults['body']['total_found'] < 100) ) ) {
-                ?>_cn=<?= $this->router()->countryId ?>,<?php
-                ?>_c=<?= $this->router()->cityId ?>,<?php
-                ?>_se=<?= $this->router()->sectionId ?>,<?php
-                ?>_pu=<?= $this->router()->purposeId ?>,<?php
+                    && ( ($this->router->countryId && $this->router->sectionId && $this->router->purposeId) 
+                    || ($this->router->params['q'] && $this->searchResults['body']['total_found'] < 100) ) ) {
+                ?>_cn=<?= $this->router->countryId ?>,<?php
+                ?>_c=<?= $this->router->cityId ?>,<?php
+                ?>_se=<?= $this->router->sectionId ?>,<?php
+                ?>_pu=<?= $this->router->purposeId ?>,<?php
                 ?>_ext=<?= $this->extendedId ?>,<?php
                 ?>_loc=<?= $this->localityId ?>,<?php
-                ?>_ttl='<span class="<?= $this->router()->language ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
-                ?>_q='<?= $this->router()->params['q'] ? addcslashes($this->router()->params['q'], "'") :'' ?>',<?php
+                ?>_ttl='<span class="<?= $this->router->language ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
+                ?>_q='<?= $this->router->params['q'] ? addcslashes($this->router->params['q'], "'") :'' ?>',<?php
             }
         }
         ?>hrs=<?= isset($this->searchResults['body']['total_found']) && $this->searchResults['body']['total_found']>0 ? 1:0 ?>,<?php
-        ?>hd='<?= ($this->detailAd && !$this->detailAdExpired) ? ($this->detailAd[Classifieds::RTL]==0 ? 'e':'a'):($this->router()->language=='en'?'e':'a') ?>',<?php 
-        ?>ucss='<?= $this->router()->cfg['url_css_mobile'] ?>',<?php
+        ?>hd='<?= ($this->detailAd && !$this->detailAdExpired) ? ($this->detailAd[Classifieds::RTL]==0 ? 'e':'a'):($this->router->language=='en'?'e':'a') ?>',<?php 
+        ?>ucss='<?= $this->router->cfg['url_css_mobile'] ?>',<?php
         
-        if ($this->router()->module=='search' || $this->router()->module=='detail' || $this->router()->module=='myads'){
+        if ($this->router->module=='search' || $this->router->module=='detail' || $this->router->module=='myads'){
         /* ?>xCancel='<?= $this->lang['cancel'] ?>',<?php */
         ?>xAOK='<?= $this->lang['abuseReported'] ?>',<?php
         ?>xF='<?= $this->lang['sys_error'] ?>',<?php
         ?>since='<?= $this->lang['since'] ?>',<?php
         ?>ago='<?= $this->lang['ago'] ?>',<?php
         }
-        if ($this->router()->module=='account'){
+        if ($this->router->module=='account'){
             ?>xSaving='<?= $this->lang['savingProgress'] ?>',<?php
         }
         ?>_wsp=<?= (isset($this->user->params['screen'][0]) && $this->user->params['screen'][0]) ? 0 : 1  ?>,<?php
-        ?>ro=<?= $this->router()->rootId ?>,<?php
-        ?>cn=<?= $this->router()->countryId ?>,<?php
-        ?>c=<?= $this->router()->cityId ?>,<?php
-        ?>se=<?= $this->router()->sectionId ?>,<?php
-        ?>pu=<?= $this->router()->purposeId ?>;<?php
+        ?>ro=<?= $this->router->rootId ?>,<?php
+        ?>cn=<?= $this->router->countryId ?>,<?php
+        ?>c=<?= $this->router->cityId ?>,<?php
+        ?>se=<?= $this->router->sectionId ?>,<?php
+        ?>pu=<?= $this->router->purposeId ?>;<?php
         echo $this->globalScript;        
         echo $this->inlineScript;       
         ?>function inlineQS(){<?= $this->inlineQueryScript; ?>}<?php
@@ -3099,36 +3092,36 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         
         
         /*
-        switch($this->router()->module){
+        switch($this->router->module){
             case 'myads':
                 if($this->user->info['id']) {
                     ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                        ?>'<?= $this->router()->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                        ?>'<?= $this->router()->cfg['url_js_mobile'] ?>/m_ads.js'<?php
+                        ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                        ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_ads.js'<?php
                     ?>]);<?php
                 }else{
                     ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                        ?>'<?= $this->router()->cfg['url_jquery_mobile'] ?>/zepto.min.js'<?php
+                        ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js'<?php
                     ?>]);<?php
                 }
                 break;
             case 'post':
                 if($this->user->info['id']) {
                     ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                        ?>'<?= $this->router()->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                        ?>'<?= $this->router()->cfg['url_js_mobile'] ?>/m_post.js'<?php
+                        ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                        ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_post.js'<?php
                     ?>]);<?php
                 }else{
                     ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                        ?>'<?= $this->router()->cfg['url_jquery_mobile'] ?>/zepto.min.js'<?php
+                        ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js'<?php
                     ?>]);<?php
                 }
                 break;
             case 'detail':
             case 'search':                
                 ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                    ?>'<?= $this->router()->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                    ?>'<?= $this->router()->cfg['url_js_mobile'] ?>/m_srh.js'<?php
+                    ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                    ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_srh.js'<?php
                 ?>]);<?php
                 break;
             case 'account':
@@ -3139,7 +3132,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                         ?>s.type='text/javascript';<?php
                         ?>s.async=true;<?php
                         ?>s.defer=true;<?php
-                        ?>s.src='<?= $this->router()->cfg['url_jquery_mobile'] ?>/zepto.min.js';<?php
+                        ?>s.src='<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js';<?php
                         ?>var x=document.getElementsByTagName('script')[0];<?php
                         ?>x.parentNode.insertBefore(s,x);<?php
                     ?>})();<?php 
@@ -3155,46 +3148,46 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                     ?>s.type='text/javascript';<?php
                     ?>s.async=true;<?php
                     ?>s.defer=true;<?php
-                    ?>s.src='<?= $this->router()->cfg['url_jquery_mobile'] ?>/zepto.min.js';<?php
+                    ?>s.src='<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js';<?php
                     ?>var x=document.getElementsByTagName('script')[0];<?php
                     ?>x.parentNode.insertBefore(s,x);<?php
                 ?>})();<?php 
                 break;
         }*/
         ?></script><?php
-        $renderMobileVerifyPage = $this->router()->module=='password' || ($this->router()->module=='post' && $this->user->info['id'] && !$this->isUserMobileVerified);
+        $renderMobileVerifyPage = $this->router->module=='password' || ($this->router->module=='post' && $this->user->info['id'] && !$this->isUserMobileVerified);
         if(!$renderMobileVerifyPage){
-            ?><script type="text/javascript" onload="inlineQS()" defer="true" src="<?= $this->router()->cfg['url_jquery_mobile'] ?>zepto.min.js"></script><?php
+            ?><script type="text/javascript" onload="inlineQS()" defer="true" src="<?= $this->router->cfg['url_jquery_mobile'] ?>zepto.min.js"></script><?php
         }
-        switch($this->router()->module){
+        switch($this->router->module){
             case 'myads':
                 if($this->user->info['id']) {
-                    ?><script type="text/javascript" defer="true" src="<?= $this->router()->cfg['url_js_mobile'] ?>/m_ads.js"></script><?php
+                    ?><script type="text/javascript" defer="true" src="<?= $this->router->cfg['url_js_mobile'] ?>/m_ads.js"></script><?php
                 }
                 break;
             case 'post':
                 if($this->user->info['id'] && $this->isUserMobileVerified) {
-                    ?><script type="text/javascript" defer="true" src="<?= $this->router()->cfg['url_js_mobile'] ?>/m_post.js"></script><?php
+                    ?><script type="text/javascript" defer="true" src="<?= $this->router->cfg['url_js_mobile'] ?>/m_post.js"></script><?php
                 }elseif($renderMobileVerifyPage){
-                    ?><script defer="true" type="text/javascript" onload="inlineQS()" src="<?= $this->router()->cfg['url_jquery_mobile'] ?>jquery.mob.min.js"></script><?php
-                    ?><script defer="true" type="text/javascript" onload="$('#code').select2({language:'<?= $this->router()->language ?>',dir:'<?= $this->router()->language=='ar'?'rtl':'ltr' ?>'})" src="<?= $this->router()->cfg['url_jquery'] ?>select2.min.js"></script><?php
+                    ?><script defer="true" type="text/javascript" onload="inlineQS()" src="<?= $this->router->cfg['url_jquery_mobile'] ?>jquery.mob.min.js"></script><?php
+                    ?><script defer="true" type="text/javascript" onload="$('#code').select2({language:'<?= $this->router->language ?>',dir:'<?= $this->router->language=='ar'?'rtl':'ltr' ?>'})" src="<?= $this->router->cfg['url_jquery'] ?>select2.min.js"></script><?php
                 }
                 break;
             case 'detail':
             case 'search':
-                ?><script type="text/javascript" defer="true" src="<?= $this->router()->cfg['url_js_mobile'] ?>/m_srh.js"></script><?php
+                ?><script type="text/javascript" defer="true" src="<?= $this->router->cfg['url_js_mobile'] ?>/m_srh.js"></script><?php
                 break;
             case 'account':
                 if($this->user->info['id']) {
-                ?><script type="text/javascript" defer="true" src="<?= $this->router()->cfg['url_js_mobile'] ?>/m_acc.js"></script><?php
+                ?><script type="text/javascript" defer="true" src="<?= $this->router->cfg['url_js_mobile'] ?>/m_acc.js"></script><?php
                 }
                 break;
             case 'contact':
-                ?><script type="text/javascript" defer="true" src="<?= $this->router()->cfg['url_js_mobile'] ?>/m_cnt.js"></script><?php
+                ?><script type="text/javascript" defer="true" src="<?= $this->router->cfg['url_js_mobile'] ?>/m_cnt.js"></script><?php
                 break;
             case 'password':
-                ?><script defer="true" type="text/javascript" onload="inlineQS()" src="<?= $this->router()->cfg['url_jquery_mobile'] ?>jquery.mob.min.js"></script><?php
-                ?><script type="text/javascript" defer="true" src="<?= $this->router()->cfg['url_js_mobile'] ?>/m_pwd.js"></script><?php
+                ?><script defer="true" type="text/javascript" onload="inlineQS()" src="<?= $this->router->cfg['url_jquery_mobile'] ?>jquery.mob.min.js"></script><?php
+                ?><script type="text/javascript" defer="true" src="<?= $this->router->cfg['url_js_mobile'] ?>/m_pwd.js"></script><?php
                 break;
 
             case 'index':
@@ -3222,7 +3215,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             $this->inlineScript=preg_replace("/;;/", ';', $this->inlineScript);
         }
         
-        if ($this->router()->module=='index' && !$this->router()->rootId && $this->router()->countryId) 
+        if ($this->router->module=='index' && !$this->router->rootId && $this->router->countryId) 
         { 
             ?><div id="fb-root"></div><?php
         }
@@ -3231,7 +3224,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         //has Query Parameter
         ?>var head=document.getElementsByTagName("head")[0]||document.documentElement;<?php
         
-        if($this->router()->isApp)
+        if($this->router->isApp)
         {
             ?>function addEvent(d,e,c){if(d.addEventListener){d.addEventListener(e,c,false);}else if(d.attachEvent){d.attachEvent(e,c);}};<?php
             ?>addEvent(document,'DOMContentLoaded',function(){parent.postMessage('DOMContentLoaded','*');});
@@ -3239,14 +3232,14 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         }
                 
         
-        ?>var SCLD,lang='<?= $this->router()->language ?>',<?php
-        ?>hasQ=<?= $this->router()->params['q'] ? 1:0 ?>,canSh=<?= $this->router()->cfg['enabled_sharing']?1:0 ?>,<?php
+        ?>var SCLD,lang='<?= $this->router->language ?>',<?php
+        ?>hasQ=<?= $this->router->params['q'] ? 1:0 ?>,canSh=<?= $this->router->cfg['enabled_sharing']?1:0 ?>,<?php
         ?>sic=[],<?php
-        ?>isApp=<?= $this->router()->isApp ? "'".$this->router()->isApp."'":0 ?>,<?php
+        ?>isApp=<?= $this->router->isApp ? "'".$this->router->isApp."'":0 ?>,<?php
         ?>uid=<?= $this->user->info['id'] ?>,<?php
-        ?>mod='<?= $this->router()->module ?>',<?php
-        ?>jsLog=<?= $this->router()->cfg['enabled_js_log'] ?>,<?php 
-        ?>uimg='<?= $this->router()->cfg['url_ad_img'] ?>',<?php 
+        ?>mod='<?= $this->router->module ?>',<?php
+        ?>jsLog=<?= $this->router->cfg['enabled_js_log'] ?>,<?php 
+        ?>uimg='<?= $this->router->cfg['url_ad_img'] ?>',<?php 
         
         if(isset($this->user->params['hasCanvas']))
         {
@@ -3261,34 +3254,34 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             ?>UIDK='<?= $this->user->info['idKey'] ?>',<?php 
         }
         
-        if($this->user->info['id'] && $this->router()->module=='post')
+        if($this->user->info['id'] && $this->router->module=='post')
         {
-            ?>UP_URL='<?= $this->router()->cfg['url_uploader'] ?>',<?php 
+            ?>UP_URL='<?= $this->router->cfg['url_uploader'] ?>',<?php 
             ?>USID='<?= session_id() ?>',<?php 
-            ?>uixf='<?= $this->router()->cfg['url_image_lib'] ?>/load-image.all.min.js',<?php 
+            ?>uixf='<?= $this->router->cfg['url_image_lib'] ?>/load-image.all.min.js',<?php 
         }
         
         if ($this->stat)
         {
-            $this->stat['page']=($this->router()->params['start']) ? $this->router()->params['start'] : 1;
+            $this->stat['page']=($this->router->params['start']) ? $this->router->params['start'] : 1;
             $this->stat['num']=$this->num;
             ?>stat='<?= isset($this->stat) ? json_encode($this->stat):'' ?>',<?php
             $page=array(
-                'cn'=>$this->router()->countryId,
-                'c'=>$this->router()->cityId,
-                'se'=>$this->router()->sectionId,
-                'pu'=>$this->router()->purposeId,
+                'cn'=>$this->router->countryId,
+                'c'=>$this->router->cityId,
+                'se'=>$this->router->sectionId,
+                'pu'=>$this->router->purposeId,
             );
             ?>page='<?= json_encode($page) ?>',<?php
         } else {
             ?>stat=0,<?php
         }
         
-        if($this->user->info['id'] && $this->router()->module=='myads')
+        if($this->user->info['id'] && $this->router->module=='myads')
         {
-            if ($this->router()->cfg['enabled_charts'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) 
+            if ($this->router->cfg['enabled_charts'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) 
             {
-                ?>uhc='<?= $this->router()->cfg['url_highcharts'] ?>',<?php 
+                ?>uhc='<?= $this->router->cfg['url_highcharts'] ?>',<?php 
                 if($this->user->info['level']==9){
                     ?>uuid=<?= (isset($_GET['u']) && is_numeric($_GET['u'])) ? (int)$_GET['u'] : 0 ?>,<?php
                 }
@@ -3298,7 +3291,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 ?>uhc=0,<?php 
             }
             
-            if ($this->router()->cfg['enabled_ad_stats'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) {
+            if ($this->router->cfg['enabled_ad_stats'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) {
                 ?>ustats=1,<?php
             }else{
                 ?>ustats=0,<?php
@@ -3311,29 +3304,29 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             }
         }
         
-        if ($this->router()->module == 'search' && !$this->userFavorites && !$this->router()->watchId) 
+        if ($this->router->module == 'search' && !$this->userFavorites && !$this->router->watchId) 
         {
-            $key = $this->router()->countryId . '-' . $this->router()->cityId . '-' . $this->router()->sectionId . '-' . $this->extendedId . '-' . $this->localityId . '-' . $this->router()->purposeId . '-' . crc32($this->router()->params['q']);
+            $key = $this->router->countryId . '-' . $this->router->cityId . '-' . $this->router->sectionId . '-' . $this->extendedId . '-' . $this->localityId . '-' . $this->router->purposeId . '-' . crc32($this->router->params['q']);
             if ( (!$this->user->info['id'] || ($this->user->info['id'] && !isset($this->user->info['options']['watch'][$key])) ) 
-                    && ( ($this->router()->countryId && $this->router()->sectionId && $this->router()->purposeId) 
-                    || ($this->router()->params['q'] && $this->searchResults['body']['total_found'] < 100) ) ) 
+                    && ( ($this->router->countryId && $this->router->sectionId && $this->router->purposeId) 
+                    || ($this->router->params['q'] && $this->searchResults['body']['total_found'] < 100) ) ) 
             {
-                ?>_cn=<?= $this->router()->countryId ?>,<?php
-                ?>_c=<?= $this->router()->cityId ?>,<?php
-                ?>_se=<?= $this->router()->sectionId ?>,<?php
-                ?>_pu=<?= $this->router()->purposeId ?>,<?php
+                ?>_cn=<?= $this->router->countryId ?>,<?php
+                ?>_c=<?= $this->router->cityId ?>,<?php
+                ?>_se=<?= $this->router->sectionId ?>,<?php
+                ?>_pu=<?= $this->router->purposeId ?>,<?php
                 ?>_ext=<?= $this->extendedId ?>,<?php
                 ?>_loc=<?= $this->localityId ?>,<?php
-                ?>_ttl='<span class="<?= $this->router()->language ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
-                ?>_q='<?= $this->router()->params['q'] ? addcslashes($this->router()->params['q'], "'") :'' ?>',<?php
+                ?>_ttl='<span class="<?= $this->router->language ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
+                ?>_q='<?= $this->router->params['q'] ? addcslashes($this->router->params['q'], "'") :'' ?>',<?php
             }
         }
         
         ?>hrs=<?= isset($this->searchResults['body']['total_found']) && $this->searchResults['body']['total_found']>0 ? 1:0 ?>,<?php
-        ?>hd='<?= ($this->detailAd && !$this->detailAdExpired) ? ($this->detailAd[Classifieds::RTL]==0 ? 'e':'a'):($this->router()->language=='en'?'e':'a') ?>',<?php 
-        ?>ucss='<?= $this->router()->cfg['url_css_mobile'] ?>',<?php
+        ?>hd='<?= ($this->detailAd && !$this->detailAdExpired) ? ($this->detailAd[Classifieds::RTL]==0 ? 'e':'a'):($this->router->language=='en'?'e':'a') ?>',<?php 
+        ?>ucss='<?= $this->router->cfg['url_css_mobile'] ?>',<?php
         
-        if ($this->router()->module=='search' || $this->router()->module=='detail' || $this->router()->module=='myads')
+        if ($this->router->module=='search' || $this->router->module=='detail' || $this->router->module=='myads')
         {
             /* ?>xCancel='<?= $this->lang['cancel'] ?>',<?php */
             ?>xAOK='<?= $this->lang['abuseReported'] ?>',<?php
@@ -3342,121 +3335,121 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             ?>ago='<?= $this->lang['ago'] ?>',<?php
         }
         
-        if ($this->router()->module=='account'){
+        if ($this->router->module=='account'){
             ?>xSaving='<?= $this->lang['savingProgress'] ?>',<?php
         }
         
-        ?>ro=<?= $this->router()->rootId ?>,<?php
-        ?>cn=<?= $this->router()->countryId ?>,<?php
-        ?>c=<?= $this->router()->cityId ?>,<?php
-        ?>se=<?= $this->router()->sectionId ?>,<?php
-        ?>pu=<?= $this->router()->purposeId ?>;<?php
+        ?>ro=<?= $this->router->rootId ?>,<?php
+        ?>cn=<?= $this->router->countryId ?>,<?php
+        ?>c=<?= $this->router->cityId ?>,<?php
+        ?>se=<?= $this->router->sectionId ?>,<?php
+        ?>pu=<?= $this->router->purposeId ?>;<?php
         
         echo $this->globalScript;
         ?>
         head.addEventListener("load",function(event){if(event.target.nodeName==="SCRIPT"){
             if(event.target.getAttribute("src").includes("jquery.min.js")||event.target.getAttribute("src").includes("zepto.min.js")){
                 var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;<?php
-                if ($this->router()->cfg['site_production']) 
+                if ($this->router->cfg['site_production']) 
                 {
-                    switch($this->router()->module)
+                    switch($this->router->module)
                     {
                         case 'myads':
                             if ($this->user->info['id']) {
-                                ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_fullads.js';document.body.appendChild(sh);<?php 
+                                ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_fullads.js';document.body.appendChild(sh);<?php 
                             }else{
-                                ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
                             }
                             break;
                             
                         case 'post':
                             if ($this->user->info['id'] && $this->isUserMobileVerified) {
-                                ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_fullpost.js';document.body.appendChild(sh);<?php 
+                                ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_fullpost.js';document.body.appendChild(sh);<?php 
                             }else{
-                                ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
                             }
                             break;
                             
                         case 'detail':
                         case 'search':
-                            ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_search.js';document.body.appendChild(sh);<?php 
+                            ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_search.js';document.body.appendChild(sh);<?php 
                             break;
                         
                         case 'account':
                             if ($this->user->info['id']) {
-                                ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_account.js';document.body.appendChild(sh);<?php 
+                                ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_account.js';document.body.appendChild(sh);<?php 
                             }else{
-                                ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
                             }
                             break;
                             
                         case 'contact':
-                            ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_contact.js';document.body.appendChild(sh);<?php 
+                            ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_contact.js';document.body.appendChild(sh);<?php 
                             break;
                         
                         case 'password':
-                            ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_password.js';document.body.appendChild(sh);<?php 
+                            ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_password.js';document.body.appendChild(sh);<?php 
                             break;
                         
                         case 'index':
                         default:
-                            ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                            ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
                             break;
                     }
                 } 
                 else 
                 {
-                    switch($this->router()->module)
+                    switch($this->router->module)
                     {
                         case 'myads':
                             if ($this->user->info['id']) {
-                                ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_ads.js';document.body.appendChild(sh);<?php 
+                                ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_ads.js';document.body.appendChild(sh);<?php 
                             }else{
-                                ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
                             }
                             break;
                             
                         case 'detail':
                         case 'search':
-                            ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                            ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_srh.js';document.body.appendChild(sh);<?php 
+                            ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                            ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_srh.js';document.body.appendChild(sh);<?php 
                             break;
 
                         case 'post':
                             if ($this->user->info['id'] && $this->isUserMobileVerified) {
-                                ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_post.js';document.body.appendChild(sh);<?php 
+                                ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_post.js';document.body.appendChild(sh);<?php 
                             }else{
-                                ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
                             }
                             break;
                             
                         case 'account':
                             if ($this->user->info['id']) {
-                                ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_acc.js';document.body.appendChild(sh);<?php 
+                                ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_acc.js';document.body.appendChild(sh);<?php 
                             }else{
-                                ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)<?php 
+                                ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh)<?php 
                             }
                             break;
                             
                         case 'contact':
-                            ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                            ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_cnt.js';document.body.appendChild(sh);<?php 
+                            ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                            ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_cnt.js';document.body.appendChild(sh);<?php 
                             break;
                         
                         case 'password':
                             if ($this->include_password_js) 
                             {
-                                ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
-                                ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_pwd.js';document.body.appendChild(sh);<?php 
+                                ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php 
+                                ?>var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_pwd.js';document.body.appendChild(sh);<?php 
                                 break;
                             }
                             
                         case 'index':
                         default:
-                            ?>sh.src='<?= $this->router()->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php  
+                            ?>sh.src='<?= $this->router->cfg['url_js_mobile'] ?>/m_gen.js';document.body.appendChild(sh);<?php  
                             break;
                     }                    
                 }                
@@ -3498,14 +3491,14 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         
         echo '<div id="fb-root"></div>';
         
-        if (isset($this->user->params['include_JSON']) && $this->router()->module=='post')
+        if (isset($this->user->params['include_JSON']) && $this->router->module=='post')
         {
-            ?><script type="text/javascript" src="<?= $this->router()->cfg['url_jquery'] ?>json2.js"></script><?php
+            ?><script type="text/javascript" src="<?= $this->router->cfg['url_jquery'] ?>json2.js"></script><?php
         }         
 
         ?><script type="text/javascript">
             var head = document.getElementsByTagName("head")[0] || document.documentElement;            
-            var ucss='<?= $this->router()->cfg['url_css'] ?>',uimg='<?= $this->router()->cfg['url_ad_img'] ?>',<?php
+            var ucss='<?= $this->router->cfg['url_css'] ?>',uimg='<?= $this->router->cfg['url_ad_img'] ?>',<?php
             
             if(isset($this->user->params['hasCanvas']))
             {            
@@ -3517,11 +3510,11 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 ?>hasCvs=!!(tmp.getContext && tmp.getContext('2d')),<?php
             }
             
-            if($this->user->info['id'] && $this->router()->module=='myads')
+            if($this->user->info['id'] && $this->router->module=='myads')
             {
-                if ($this->router()->cfg['enabled_charts'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) 
+                if ($this->router->cfg['enabled_charts'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) 
                 {
-                    ?>uhc='<?= $this->router()->cfg['url_highcharts'] ?>',<?php 
+                    ?>uhc='<?= $this->router->cfg['url_highcharts'] ?>',<?php 
                     if($this->user->info['level']==9)
                     {
                         ?>uuid=<?= (isset($_GET['u']) && is_numeric($_GET['u'])) ? (int)$_GET['u'] : 0 ?>,<?php
@@ -3532,7 +3525,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                     ?>uhc=0,<?php 
                 }
                 
-                if ($this->router()->cfg['enabled_ad_stats'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) 
+                if ($this->router->cfg['enabled_ad_stats'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) 
                 {
                     ?>ustats=1,<?php
                 }else{
@@ -3550,16 +3543,16 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 }
             }
             
-            if($this->router()->module=='search')
+            if($this->router->module=='search')
             {
-                if($this->userFavorites || $this->router()->watchId)
+                if($this->userFavorites || $this->router->watchId)
                 {
                     ?>ubs='',<?php
                 }else{
-                    $tmp=$this->router()->language;
-                    $this->router()->language='ar';
-                    ?>ubs='<?= $this->router()->getURL($this->router()->countryId,$this->router()->cityId) ?>',<?php                 
-                    $this->router()->language=$tmp;
+                    $tmp=$this->router->language;
+                    $this->router->language='ar';
+                    ?>ubs='<?= $this->router->getURL($this->router->countryId,$this->router->cityId) ?>',<?php                 
+                    $this->router->language=$tmp;
                 }
             }
             
@@ -3574,28 +3567,28 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             ?>',<?php             
             }
             
-            ?>PID=<?= $this->router()->userId ? 1:0 ?>,<?php 
+            ?>PID=<?= $this->router->userId ? 1:0 ?>,<?php 
             ?>ULV=<?= isset($this->user->info['level']) ? $this->user->info['level'] : 0 ?>,<?php 
-            ?>ujs='<?= $this->router()->cfg['url_js'] ?>',<?php 
+            ?>ujs='<?= $this->router->cfg['url_js'] ?>',<?php 
             
-            if($this->user->info['id'] && $this->router()->module=='post')
+            if($this->user->info['id'] && $this->router->module=='post')
             {
-                ?>UP_URL='<?= $this->router()->cfg['url_uploader'] ?>',<?php 
+                ?>UP_URL='<?= $this->router->cfg['url_uploader'] ?>',<?php 
                 ?>USID='<?= session_id() ?>',<?php 
-                ?>uixf='<?= $this->router()->cfg['url_image_lib'] ?>/load-image.all.min.js',<?php 
+                ?>uixf='<?= $this->router->cfg['url_image_lib'] ?>/load-image.all.min.js',<?php 
             }
             
-            ?>lang='<?= $this->router()->language ?>',<?php
-            ?>share=<?= $this->router()->cfg['enabled_sharing'] ? 1:0 ?>,<?php
-            ?>hads=<?= $this->router()->config()->enabledAds() ? 1:0 ?>,<?php
+            ?>lang='<?= $this->router->language ?>',<?php
+            ?>share=<?= $this->router->cfg['enabled_sharing'] ? 1:0 ?>,<?php
+            ?>hads=<?= $this->router->config->enabledAds() ? 1:0 ?>,<?php
             ?>SCLD=0,<?php //script loading var
             ?>ITC=0,<?php //is touch flag 
-            ?>jsLog=<?= $this->router()->cfg['enabled_js_log'] ?>,<?php 
-            ?>MOD="<?= $this->router()->module ?>",<?php
+            ?>jsLog=<?= $this->router->cfg['enabled_js_log'] ?>,<?php 
+            ?>MOD="<?= $this->router->module ?>",<?php
             ?>STO=(typeof(Storage)==="undefined"?0:1),<?php
             ?>WSO=(typeof(WebSocket)==="undefined"?0:1),<?php
             
-            if($this->router()->module=='detail' && !$this->detailAdExpired && ( ($this->detailAd[Classifieds::LATITUDE]  || $this->detailAd[Classifieds::LONGITUDE]) && is_numeric($this->detailAd[Classifieds::LATITUDE]) && is_numeric($this->detailAd[Classifieds::LONGITUDE]) )  ) 
+            if($this->router->module=='detail' && !$this->detailAdExpired && ( ($this->detailAd[Classifieds::LATITUDE]  || $this->detailAd[Classifieds::LONGITUDE]) && is_numeric($this->detailAd[Classifieds::LATITUDE]) && is_numeric($this->detailAd[Classifieds::LONGITUDE]) )  ) 
             {
                 ?>hasMap=1,LAT=<?= $this->detailAd[Classifieds::LATITUDE] ?>,LON=<?= $this->detailAd[Classifieds::LONGITUDE] ?>,<?php
                 ?>DTTL="<?= htmlspecialchars($this->title, ENT_QUOTES) ?>",<?php
@@ -3605,14 +3598,14 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             ?>tmr,tmu,tmd,func,fupc,mul,menu,mp,<?php
             
             if ($this->stat) {
-                $this->stat['page']=($this->router()->params['start']) ? $this->router()->params['start'] : 1;
+                $this->stat['page']=($this->router->params['start']) ? $this->router->params['start'] : 1;
                 $this->stat['num']=$this->num;
                 ?>stat='<?= isset($this->stat) ? json_encode($this->stat):'' ?>',<?php
                 $page=array(
-                    'cn'=>$this->router()->countryId,
-                    'c'=>$this->router()->cityId,
-                    'se'=>$this->router()->sectionId,
-                    'pu'=>$this->router()->purposeId,
+                    'cn'=>$this->router->countryId,
+                    'c'=>$this->router->cityId,
+                    'se'=>$this->router->sectionId,
+                    'pu'=>$this->router->purposeId,
                 );
                 ?>page='<?= json_encode($page) ?>',<?php
             }
@@ -3621,88 +3614,88 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 ?>stat=0,<?php
             }
             
-            if ($this->router()->module == 'search' && !$this->userFavorites && !$this->router()->watchId) 
+            if ($this->router->module == 'search' && !$this->userFavorites && !$this->router->watchId) 
             {
-                $key = $this->router()->countryId . '-' . $this->router()->cityId . '-' . $this->router()->sectionId . '-' . $this->extendedId . '-' . $this->localityId . '-' . $this->router()->purposeId . '-' . crc32($this->router()->params['q']);
+                $key = $this->router->countryId . '-' . $this->router->cityId . '-' . $this->router->sectionId . '-' . $this->extendedId . '-' . $this->localityId . '-' . $this->router->purposeId . '-' . crc32($this->router->params['q']);
                 if ( (!$this->user->info['id'] || ($this->user->info['id'] && !isset($this->user->info['options']['watch'][$key])) ) 
-                        && ( ($this->router()->countryId && $this->router()->sectionId && $this->router()->purposeId) 
-                        || ($this->router()->params['q'] && $this->searchResults['body']['total_found'] < 100) ) ) 
+                        && ( ($this->router->countryId && $this->router->sectionId && $this->router->purposeId) 
+                        || ($this->router->params['q'] && $this->searchResults['body']['total_found'] < 100) ) ) 
                 {
-                    ?>_cn=<?= $this->router()->countryId ?>,<?php
-                    ?>_c=<?= $this->router()->cityId ?>,<?php
-                    ?>_se=<?= $this->router()->sectionId ?>,<?php
-                    ?>_pu=<?= $this->router()->purposeId ?>,<?php
+                    ?>_cn=<?= $this->router->countryId ?>,<?php
+                    ?>_c=<?= $this->router->cityId ?>,<?php
+                    ?>_se=<?= $this->router->sectionId ?>,<?php
+                    ?>_pu=<?= $this->router->purposeId ?>,<?php
                     ?>_ext=<?= $this->extendedId ?>,<?php
                     ?>_loc=<?= $this->localityId ?>,<?php
-                    ?>_ttl='<span class="<?= $this->router()->language ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
-                    ?>_q='<?= $this->router()->params['q'] ? addcslashes($this->router()->params['q'], "'") :'' ?>',<?php
+                    ?>_ttl='<span class="<?= $this->router->language ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
+                    ?>_q='<?= $this->router->params['q'] ? addcslashes($this->router->params['q'], "'") :'' ?>',<?php
                 }
             }
             
             ?>ICH='<?= $this->includeHash ?>',<?php
-            ?>LSM='<?= $this->router()->last_modified ?>';<?php
+            ?>LSM='<?= $this->router->last_modified ?>';<?php
             echo $this->globalScript;
             ?>            
             head.addEventListener("load",function(event){if(event.target.nodeName==="SCRIPT"){
                 if (event.target.getAttribute("src").includes("jquery.min.js")||event.target.getAttribute("src").includes("zepto.min.js")){
                     var sh=document.createElement('script');sh.type='text/javascript';sh.async=true;
                     <?php
-                    switch($this->router()->module)
+                    switch($this->router->module)
                     {
                         case 'signin':
-                            ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/signin.js';head.insertBefore(sh,head.firstChild);<?php 
+                            ?>sh.src='<?= $this->router->cfg['url_js'] ?>/signin.js';head.insertBefore(sh,head.firstChild);<?php 
                             break;
                             
                         case 'detail':
                         case 'search':
-                            ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/search.js';head.insertBefore(sh,head.firstChild);<?php 
+                            ?>sh.src='<?= $this->router->cfg['url_js'] ?>/search.js';head.insertBefore(sh,head.firstChild);<?php 
                             break;
                             
                         case 'myads':
                             if($this->user->info['id']){
                                 if($this->user->info['level']==9){     
-                                    if($this->router()->cfg['site_production']){
+                                    if($this->router->cfg['site_production']){
                                         ?>sh.src='https://h5.mourjan.com/js/3.5.1/myadsad.js';<?php
                                     }else{
-                                        ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/myadsad.js';<?php 
+                                        ?>sh.src='<?= $this->router->cfg['url_js'] ?>/myadsad.js';<?php 
                                     }
                                 }else{
-                                    ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/myads.js';<?php                                            
+                                    ?>sh.src='<?= $this->router->cfg['url_js'] ?>/myads.js';<?php                                            
                                 }
                             }else{
-                                ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/gen.js';<?php
+                                ?>sh.src='<?= $this->router->cfg['url_js'] ?>/gen.js';<?php
                             }
                             ?>head.insertBefore(sh,head.firstChild);<?php 
                             break;
                 
                         case 'account':
                             if($this->user->info['id']) {
-                                ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/account.js';<?php                                            
+                                ?>sh.src='<?= $this->router->cfg['url_js'] ?>/account.js';<?php                                            
                             }else{
-                                ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/gen.js';<?php
+                                ?>sh.src='<?= $this->router->cfg['url_js'] ?>/gen.js';<?php
                             }
                             ?>head.insertBefore(sh,head.firstChild);<?php 
                             break;
             
                         case 'post':
                             if($this->user->info['id'] && $this->isUserMobileVerified) {
-                                ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/post.js';<?php                                            
+                                ?>sh.src='<?= $this->router->cfg['url_js'] ?>/post.js';<?php                                            
                             }
                             else {
-                                ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/gen.js';<?php
+                                ?>sh.src='<?= $this->router->cfg['url_js'] ?>/gen.js';<?php
                             }
                             ?>head.insertBefore(sh,head.firstChild);<?php 
                             break;
                             
                         case 'password':
                             if($this->include_password_js) {
-                                ?>sh.src='<?= $this->router()->cfg['url_js'] ?>/pwd.js';head.insertBefore(sh,head.firstChild);<?php 
+                                ?>sh.src='<?= $this->router->cfg['url_js'] ?>/pwd.js';head.insertBefore(sh,head.firstChild);<?php 
                             }
                             break;
                                 
                         case 'index':
                         default:
-                            ?>(function(){sh.src='<?= $this->router()->cfg['url_js'] ?>/gen.js';<?php 
+                            ?>(function(){sh.src='<?= $this->router->cfg['url_js'] ?>/gen.js';<?php 
                             echo "\n",$this->inlineQueryScript;
                             ?>head.insertBefore(sh,head.firstChild)})();<?php
                             break;
@@ -3715,7 +3708,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 ?>var s=document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po,s);<?php
                 /*
                 ?>var xm=document.createElement('script'); po.type='text/javascript'; xm.async=true;<?php
-                ?>xm.src='<?=$this->router()->cfg['url_js']?>/strophe.js';<?php
+                ?>xm.src='<?=$this->router->cfg['url_js']?>/strophe.js';<?php
                 ?>var sx=document.getElementsByTagName('script')[0]; sx.parentNode.insertBefore(xm,sx);<?php
                 */
             ?>})();<?php
@@ -3726,40 +3719,40 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     
     function prepare_js() {
         $requires = [];        
-        if ($this->router()->isMobile) {               
-            $renderMobileVerifyPage = $this->router()->module=='password' || ($this->router()->module=='post' && $this->user->info['id'] && !$this->isUserMobileVerified);
+        if ($this->router->isMobile) {               
+            $renderMobileVerifyPage = $this->router->module=='password' || ($this->router->module=='post' && $this->user->info['id'] && !$this->isUserMobileVerified);
             if (!$renderMobileVerifyPage) {
-                $requires[] = $this->router()->config()->get('url_jquery_mobile') . 'zepto.min.js';
+                $requires[] = $this->router->config->get('url_jquery_mobile') . 'zepto.min.js';
             }
-            switch($this->router()->module){
+            switch($this->router->module){
                 case 'myads':
                     if($this->user->info['id']) {
-                        $requires[] = $this->router()->cfg['url_js_mobile'] . '/m_ads.js';
+                        $requires[] = $this->router->cfg['url_js_mobile'] . '/m_ads.js';
                     }
                     break;
                 case 'post':
                     if($this->user->info['id'] && $this->isUserMobileVerified) {
-                        $requires[] = $this->router()->cfg['url_js_mobile'] . '/m_post.js';
+                        $requires[] = $this->router->cfg['url_js_mobile'] . '/m_post.js';
                     }elseif($renderMobileVerifyPage){
-                        $requires[] = $this->router()->cfg['url_jquery_mobile'] . '/jquery.mob.min.js';
-                        $requires[] = $this->router()->cfg['url_jquery'] . '/select2.min.js';
+                        $requires[] = $this->router->cfg['url_jquery_mobile'] . '/jquery.mob.min.js';
+                        $requires[] = $this->router->cfg['url_jquery'] . '/select2.min.js';
                     }
                     break;
                 case 'detail':
                 case 'search':
-                    $requires[] = $this->router()->cfg['url_js_mobile'] . '/m_srh.js';
+                    $requires[] = $this->router->cfg['url_js_mobile'] . '/m_srh.js';
                     break;
                 case 'account':
                     if($this->user->info['id']) {
-                    $requires[] = $this->router()->cfg['url_js_mobile'] . '/m_acc.js';
+                    $requires[] = $this->router->cfg['url_js_mobile'] . '/m_acc.js';
                     }
                     break;
                 case 'contact':
-                    $requires[] = $this->router()->cfg['url_js_mobile'] . '/m_cnt.js';
+                    $requires[] = $this->router->cfg['url_js_mobile'] . '/m_cnt.js';
                     break;
                 case 'password':
-                    $requires[] = $this->router()->cfg['url_jquery_mobile'] . '/jquery.mob.min.js';
-                    $requires[] = $this->router()->cfg['url_js_mobile'] . '/m_pwd.js';
+                    $requires[] = $this->router->cfg['url_jquery_mobile'] . '/jquery.mob.min.js';
+                    $requires[] = $this->router->cfg['url_js_mobile'] . '/m_pwd.js';
                     break;
 
                 case 'index':
@@ -3768,46 +3761,46 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             }            
         }
         else {       
-            switch ($this->router()->module) {
+            switch ($this->router->module) {
                 case 'signin':
-                    $requires[] = $this->router()->cfg['url_jquery'] . 'socket.io-1.4.5.js';
-                    $requires[] =  $this->router()->cfg['url_js'] . '/signin.js';
+                    $requires[] = $this->router->cfg['url_jquery'] . 'socket.io-1.4.5.js';
+                    $requires[] =  $this->router->cfg['url_js'] . '/signin.js';
                     break;
                 case 'detail':
                 case 'search':
-                    $requires[] = $this->router()->cfg['url_js'] . '/search.js';
+                    $requires[] = $this->router->cfg['url_js'] . '/search.js';
                     break;
                 case 'myads':
                     if($this->user->info['id']){
-                        $requires[] = $this->router()->cfg['url_jquery'] . 'socket.io-1.4.5.js';
+                        $requires[] = $this->router->cfg['url_jquery'] . 'socket.io-1.4.5.js';
                         if($this->user->info['level']==9){     
-                            if($this->router()->cfg['site_production']){
+                            if($this->router->cfg['site_production']){
                                 $requires[] = 'https://h5.mourjan.com/js/3.5.1/myadsad.js';
                             }
                             else{
-                                $requires[] = $this->router()->cfg['url_js'] . '/myadsad.js';
+                                $requires[] = $this->router->cfg['url_js'] . '/myadsad.js';
                             }
                         }
                         else{
-                            $requires[] = $this->router()->cfg['url_js'] . '/myads.js';                                          
+                            $requires[] = $this->router->cfg['url_js'] . '/myads.js';                                          
                         }
                     }
                     break;
                 case 'account':
                     if($this->user->info['id']){
-                        $requires[] = $this->router()->cfg['url_js'] . '/account.js';
+                        $requires[] = $this->router->cfg['url_js'] . '/account.js';
                     }
                     break;
                 case 'post':
                     if($this->user->info['id'] && $this->isUserMobileVerified){                    
-                        $requires[] = $this->router()->cfg['url_js'] . '/post.js';
+                        $requires[] = $this->router->cfg['url_js'] . '/post.js';
                     }elseif($this->user->info['id']){
-                        $requires[] = $this->router()->cfg['url_jquery'] . 'select2.min.js';
+                        $requires[] = $this->router->cfg['url_jquery'] . 'select2.min.js';
                     }
                     break;
                 case 'password':
                     if($this->include_password_js){
-                        $requires[] = $this->router()->cfg['url_js'] . '/pwd.js';
+                        $requires[] = $this->router->cfg['url_js'] . '/pwd.js';
                     }
                     break;
                 case 'index':                
@@ -3842,18 +3835,18 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         }
         
         ?><div id="fb-root"></div><?php 
-        if(isset($this->user->params['include_JSON']) && $this->router()->module=='post'){
-            ?><script type="text/javascript" async="true" defer="true" src="<?= $this->router()->cfg['url_jquery'] ?>json2.js"></script><?php
+        if(isset($this->user->params['include_JSON']) && $this->router->module=='post'){
+            ?><script type="text/javascript" async="true" defer="true" src="<?= $this->router->cfg['url_jquery'] ?>json2.js"></script><?php
         }         
         /*
-        if($this->router()->module=='buy' && $this->user->info['id']){
+        if($this->router->module=='buy' && $this->user->info['id']){
             ?><script src='https://www.paypalobjects.com/js/external/dg.js' type='text/javascript'></script><?php
         }
          * 
         */
         ?><script type="text/javascript"><?php 
         /*
-            if($this->router()->module=='buy' && $this->user->info['id']){
+            if($this->router->module=='buy' && $this->user->info['id']){
                 ?>var dg = new PAYPAL.apps.DGFlow({trigger: ['sub0','sub1','sub2','sub3'],expType: 'instant'});<?php
             }
          * 
@@ -3861,24 +3854,24 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             ?>var head = document.getElementsByTagName("head")[0] || document.documentElement;<?php
             ?>function addEvent(e, en, fn){if (e.addEventListener)e.addEventListener(en, fn, false);else if(e.attachEvent)e.attachEvent('on' + en, fn)}<?php
         
-            ?>var ucss='<?= $this->router()->config()->cssURL ?>',<?php 
-            ?>uimg='<?= $this->router()->config()->adImgURL ?>',<?php 
+            ?>var ucss='<?= $this->router->config->cssURL ?>',<?php 
+            ?>uimg='<?= $this->router->config->adImgURL ?>',<?php 
             if(isset($this->user->params['hasCanvas'])){            
                 ?>hasCvs=<?= $this->user->params['hasCanvas'] ?>,<?php 
             }else{
                 ?>tmp=document.createElement('canvas'),<?php
                 ?>hasCvs=!!(tmp.getContext && tmp.getContext('2d')),<?php
             }
-            if($this->user->info['id'] && $this->router()->module=='myads'){
-                if ( $this->router()->cfg['enabled_charts'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) {
-                    ?>uhc='<?= $this->router()->cfg['url_highcharts'] ?>',<?php 
+            if($this->user->info['id'] && $this->router->module=='myads'){
+                if ( $this->router->cfg['enabled_charts'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) {
+                    ?>uhc='<?= $this->router->cfg['url_highcharts'] ?>',<?php 
                     if($this->user->info['level']==9){
                         ?>uuid=<?= (isset($_GET['u']) && is_numeric($_GET['u'])) ? (int)$_GET['u'] : 0 ?>,<?php
                     }
                 }else{
                     ?>uhc=0,<?php 
                 }
-                if ($this->router()->cfg['enabled_ad_stats'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) {
+                if ($this->router->cfg['enabled_ad_stats'] && (!isset($_GET['sub']) || (isset($_GET['sub']) && $_GET['sub']=='archive') )) {
                     ?>ustats=1,<?php
                 }else{
                     ?>ustats=0,<?php
@@ -3892,14 +3885,14 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                     ?>SU=<?= $this->user->isSuperUser()?1:0 ?>,<?php
                 }
             }
-            if($this->router()->module=='search'){
-                if($this->userFavorites || $this->router()->watchId){
+            if($this->router->module=='search'){
+                if($this->userFavorites || $this->router->watchId){
                     ?>ubs='',<?php
                 }else{
-                    $tmp=$this->router()->language;
-                    $this->router()->language='ar';
-                    ?>ubs='<?= $this->router()->getURL($this->router()->countryId,$this->router()->cityId) ?>',<?php                 
-                    $this->router()->language=$tmp;
+                    $tmp=$this->router->language;
+                    $this->router->language='ar';
+                    ?>ubs='<?= $this->router->getURL($this->router->countryId,$this->router->cityId) ?>',<?php                 
+                    $this->router->language=$tmp;
                 }
             }
             ?>AID=<?= (isset($this->detailAd[Classifieds::ID]) && !$this->detailAdExpired ? $this->detailAd[Classifieds::ID] : 0) ?>,<?php 
@@ -3909,79 +3902,79 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 ?>JWT='<?= $this->user->data ? $this->user->data->getToken():'' ?>',<?php
                 ?>SSID='<?= md5($this->user->info['idKey'].'nodejs.mourjan') 
             ?>',<?php }
-            ?>PID=<?= $this->router()->userId ? 1:0 ?>,<?php 
+            ?>PID=<?= $this->router->userId ? 1:0 ?>,<?php 
             ?>ULV=<?= isset($this->user->info['level']) ? $this->user->info['level'] : 0 ?>,<?php 
-            ?>ujs='<?= $this->router()->config()->jsURL ?>',<?php 
+            ?>ujs='<?= $this->router->config->jsURL ?>',<?php 
             
-            if($this->user->info['id'] && $this->router()->module=='post'){
-                ?>UP_URL='<?= $this->router()->cfg['url_uploader'] ?>',<?php 
+            if($this->user->info['id'] && $this->router->module=='post'){
+                ?>UP_URL='<?= $this->router->cfg['url_uploader'] ?>',<?php 
                 ?>USID='<?= session_id() ?>',<?php 
-                ?>uixf='<?= $this->router()->cfg['url_image_lib'] ?>/load-image.all.min.js',<?php 
+                ?>uixf='<?= $this->router->cfg['url_image_lib'] ?>/load-image.all.min.js',<?php 
             }
             
-            ?>lang='<?= $this->router()->language ?>',<?php
-            ?>share=<?= $this->router()->config()->get('enabled_sharing') ? 1:0 ?>,<?php
-            ?>hads=<?= $this->router()->config()->enabledAds() ? 1:0 ?>,<?php
+            ?>lang='<?= $this->router->language ?>',<?php
+            ?>share=<?= $this->router->config->get('enabled_sharing') ? 1:0 ?>,<?php
+            ?>hads=<?= $this->router->config->enabledAds() ? 1:0 ?>,<?php
             ?>SCLD=0,<?php //script loading var
             ?>ITC=0,<?php //is touch flag 
-            ?>jsLog=<?= $this->router()->config()->get('enabled_js_log') ?>,<?php 
-            ?>MOD="<?= $this->router()->module ?>",<?php
+            ?>jsLog=<?= $this->router->config->get('enabled_js_log') ?>,<?php 
+            ?>MOD="<?= $this->router->module ?>",<?php
             ?>STO=(typeof(Storage)==="undefined"?0:1),<?php
             ?>WSO=(typeof(WebSocket)==="undefined"?0:1),<?php
-            if($this->router()->module=='detail' && !$this->detailAdExpired && ( ($this->detailAd[Classifieds::LATITUDE]  || $this->detailAd[Classifieds::LONGITUDE]) && is_numeric($this->detailAd[Classifieds::LATITUDE]) && is_numeric($this->detailAd[Classifieds::LONGITUDE]) )  ) {
+            if($this->router->module=='detail' && !$this->detailAdExpired && ( ($this->detailAd[Classifieds::LATITUDE]  || $this->detailAd[Classifieds::LONGITUDE]) && is_numeric($this->detailAd[Classifieds::LATITUDE]) && is_numeric($this->detailAd[Classifieds::LONGITUDE]) )  ) {
                 ?>hasMap=1,LAT=<?= $this->detailAd[Classifieds::LATITUDE] ?>,LON=<?= $this->detailAd[Classifieds::LONGITUDE] ?>,<?php
                 ?>DTTL="<?= htmlspecialchars($this->title, ENT_QUOTES) ?>",<?php
             }
             //menu slider vars
             ?>tmr,tmu,tmd,func,fupc,mul,menu,mp,<?php
-            //if ($this->router()->cfg['enabled_disqus'] && $this->router()->module=='detail' && !$this->detailAdExpired && $this->detailAd[Classifieds::PUBLICATION_ID]==1) {
+            //if ($this->router->cfg['enabled_disqus'] && $this->router->module=='detail' && !$this->detailAdExpired && $this->detailAd[Classifieds::PUBLICATION_ID]==1) {
             //    disqus_shortname = 'mourjan',disqus_config=function(){this.language = 'en'},disqus_identifier = '<?= $this->detailAd[Classifieds::ID]',
-            //}elseif ($this->router()->cfg['enabled_disqus'] && $this->router()->module=='myads'){
+            //}elseif ($this->router->cfg['enabled_disqus'] && $this->router->module=='myads'){
             //    disqus_shortname = 'mourjan',disqus_config=function(){this.language = 'en'},
             //}
-            if ($this->stat && $this->router()->isBot()){
-                $this->stat['page']=($this->router()->params['start']) ? $this->router()->params['start'] : 1;
+            if ($this->stat && $this->router->isBot()){
+                $this->stat['page']=($this->router->params['start']) ? $this->router->params['start'] : 1;
                 $this->stat['num']=$this->num;
                 ?>stat='<?= isset($this->stat) ? json_encode($this->stat):'' ?>',<?php
                 $page=array(
-                    'cn'=>$this->router()->countryId,
-                    'c'=>$this->router()->cityId,
-                    'se'=>$this->router()->sectionId,
-                    'pu'=>$this->router()->purposeId,
+                    'cn'=>$this->router->countryId,
+                    'c'=>$this->router->cityId,
+                    'se'=>$this->router->sectionId,
+                    'pu'=>$this->router->purposeId,
                 );
                 ?>page='<?= json_encode($page) ?>',<?php
             }else {
                 ?>stat=0,<?php
             }
-            if ($this->router()->module == 'search' && !$this->userFavorites && !$this->router()->watchId) {
-                $key = $this->router()->countryId . '-' . $this->router()->cityId . '-' . $this->router()->sectionId . '-' . $this->extendedId . '-' . $this->localityId . '-' . $this->router()->purposeId . '-' . crc32($this->router()->params['q']);
+            if ($this->router->module == 'search' && !$this->userFavorites && !$this->router->watchId) {
+                $key = $this->router->countryId . '-' . $this->router->cityId . '-' . $this->router->sectionId . '-' . $this->extendedId . '-' . $this->localityId . '-' . $this->router->purposeId . '-' . crc32($this->router->params['q']);
                 if ( (!$this->user->info['id'] || ($this->user->info['id'] && !isset($this->user->info['options']['watch'][$key])) ) 
-                        && ( ($this->router()->countryId && $this->router()->sectionId && $this->router()->purposeId) 
-                        || ($this->router()->params['q'] && $this->searchResults['body']['total_found'] < 100) ) ) {
-                    ?>_cn=<?= $this->router()->countryId ?>,<?php
-                    ?>_c=<?= $this->router()->cityId ?>,<?php
-                    ?>_se=<?= $this->router()->sectionId ?>,<?php
-                    ?>_pu=<?= $this->router()->purposeId ?>,<?php
+                        && ( ($this->router->countryId && $this->router->sectionId && $this->router->purposeId) 
+                        || ($this->router->params['q'] && $this->searchResults['body']['total_found'] < 100) ) ) {
+                    ?>_cn=<?= $this->router->countryId ?>,<?php
+                    ?>_c=<?= $this->router->cityId ?>,<?php
+                    ?>_se=<?= $this->router->sectionId ?>,<?php
+                    ?>_pu=<?= $this->router->purposeId ?>,<?php
                     ?>_ext=<?= $this->extendedId ?>,<?php
                     ?>_loc=<?= $this->localityId ?>,<?php
-                    ?>_ttl='<span class="<?= $this->router()->language ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
-                    ?>_q='<?= $this->router()->params['q'] ? addcslashes($this->router()->params['q'], "'") :'' ?>',<?php
+                    ?>_ttl='<span class="<?= $this->router->language ?>"><?= addcslashes(preg_replace('/\s-\s(?:page|صفحة)\s[0-9]*$/','',$this->title), "'") ?></span>',<?php
+                    ?>_q='<?= $this->router->params['q'] ? addcslashes($this->router->params['q'], "'") :'' ?>',<?php
                 }
             }
             ?>_wsp=<?= (isset($this->user->params['screen'][0]) && $this->user->params['screen'][0]) ? 0 : 1  ?>,<?php
             ?>ICH='<?= $this->includeHash ?>',<?php
-            ?>LSM='<?= $this->router()->last_modified ?>';<?php
-            if(0 && in_array($this->router()->module,['index','search','detail'])){ ?>loadCss(ucss+"/gen<?= $this->router()->language=='ar'?'_ar':'' ?>.css");<?php }
+            ?>LSM='<?= $this->router->last_modified ?>';<?php
+            if(0 && in_array($this->router->module,['index','search','detail'])){ ?>loadCss(ucss+"/gen<?= $this->router->language=='ar'?'_ar':'' ?>.css");<?php }
             echo $this->globalScript;
             
                 
                 /*
-                switch($this->router()->module){
+                switch($this->router->module){
                 case 'myads':
                     if($this->user->info['id']) {
                         ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                            ?>'<?= $this->router()->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                            ?>'<?= $this->router()->cfg['url_js_mobile'] ?>/m_ads.js'<?php
+                            ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                            ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_ads.js'<?php
                         ?>])<?php
                     }else{
 
@@ -3990,8 +3983,8 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 case 'post':
                     if($this->user->info['id']) {
                         ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                            ?>'<?= $this->router()->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                            ?>'<?= $this->router()->cfg['url_js_mobile'] ?>/m_post.js'<?php
+                            ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                            ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_post.js'<?php
                         ?>])<?php
                     }else{
 
@@ -4000,15 +3993,15 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 case 'detail':
                 case 'search':                
                     ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                        ?>'<?= $this->router()->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                        ?>'<?= $this->router()->cfg['url_js_mobile'] ?>/m_srh.js'<?php
+                        ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                        ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_srh.js'<?php
                     ?>]);<?php
                     break;
                 case 'account':
                     if($this->user->info['id']) {
                         ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                            ?>'<?= $this->router()->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                            ?>'<?= $this->router()->cfg['url_js_mobile'] ?>/m_acc.js'<?php
+                            ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                            ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_acc.js'<?php
                         ?>]);<?php
                     }else{
 
@@ -4016,27 +4009,27 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                     break;
                 case 'contact':
                         ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                            ?>'<?= $this->router()->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                            ?>'<?= $this->router()->cfg['url_js_mobile'] ?>/m_cnt.js'<?php
+                            ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                            ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_cnt.js'<?php
                         ?>]);<?php
                     break;
                 case 'password':
                         ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                            ?>'<?= $this->router()->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                            ?>'<?= $this->router()->cfg['url_js_mobile'] ?>/m_pwd.js'<?php
+                            ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
+                            ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_pwd.js'<?php
                         ?>]);<?php
                     break;
 
                 case 'index':
                 default:
                     ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                        ?>'<?= $this->router()->cfg['url_jquery'] ?>/jquery.min.js'<?php
+                        ?>'<?= $this->router->cfg['url_jquery'] ?>/jquery.min.js'<?php
                     ?>]);<?php
 
                     break;
             }*/
         
-                if($this->router()->cfg['enabled_sharing'] && in_array($this->router()->module,['index','search','detail'])){ 
+                if($this->router->cfg['enabled_sharing'] && in_array($this->router->module,['index','search','detail'])){ 
                     ?>addEvent(window,'load',function(){<?php
                         ?>var po = document.createElement('script');<?php
                         ?>po.type = 'text/javascript';<?php 
@@ -4051,46 +4044,46 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         /*?>(function(){var ga=document.createElement('script');ga.type='text/javascript';ga.async=true;ga.src=('https:'==document.location.protocol?'https://':'http://')+'stats.g.doubleclick.net/dc.js';var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(ga,s);})();<?php*/
                 ?>function inlineQS(){<?= $this->inlineQueryScript; ?>}<?php
         ?></script><?php
-        ?><script type="text/javascript" onload="inlineQS()" defer="true" src="<?= $this->router()->config()->jQueryURL ?>jquery.min.js"></script><?php
-        switch($this->router()->module){
+        ?><script type="text/javascript" onload="inlineQS()" defer="true" src="<?= $this->router->config->jQueryURL ?>jquery.min.js"></script><?php
+        switch($this->router->module){
             case 'signin':
-                ?><script type="text/javascript" src="<?= $this->router()->cfg['url_jquery'] ?>socket.io-1.4.5.js"></script><?php
-                ?><script type="text/javascript" src="<?= $this->router()->cfg['url_js'] ?>/signin.js"></script><?php
+                ?><script type="text/javascript" src="<?= $this->router->cfg['url_jquery'] ?>socket.io-1.4.5.js"></script><?php
+                ?><script type="text/javascript" src="<?= $this->router->cfg['url_js'] ?>/signin.js"></script><?php
                 break;
             case 'detail':
             case 'search':
-                ?><script type="text/javascript" defer="true" src="<?= $this->router()->cfg['url_js'] ?>/search.js"></script><?php
-                /*?><script type="text/javascript" defer="true" src="<?= $this->router()->cfg['url_js'] ?>/strophe.js"></script><?php*/
+                ?><script type="text/javascript" defer="true" src="<?= $this->router->cfg['url_js'] ?>/search.js"></script><?php
+                /*?><script type="text/javascript" defer="true" src="<?= $this->router->cfg['url_js'] ?>/strophe.js"></script><?php*/
                 break;
             case 'myads':
                 if($this->user->info['id']){
-                    ?><script type="text/javascript" defer="true" src="<?= $this->router()->cfg['url_jquery'] ?>socket.io-1.4.5.js"></script><?php
+                    ?><script type="text/javascript" defer="true" src="<?= $this->router->cfg['url_jquery'] ?>socket.io-1.4.5.js"></script><?php
                     if($this->user->info['level']==9){     
-                        if($this->router()->cfg['site_production']){
+                        if($this->router->cfg['site_production']){
                             ?><script type="text/javascript" defer="true" src="https://h5.mourjan.com/js/3.5.1/myadsad.js"></script><?php
                         }else{
-                            ?><script type="text/javascript" defer="true" src="<?= $this->router()->cfg['url_js'] ?>/myadsad.js"></script><?php
+                            ?><script type="text/javascript" defer="true" src="<?= $this->router->cfg['url_js'] ?>/myadsad.js"></script><?php
                         }
                     }else{
-                        ?><script type="text/javascript" defer="true" src="<?= $this->router()->cfg['url_js'] ?>/myads.js"></script><?php                                          
+                        ?><script type="text/javascript" defer="true" src="<?= $this->router->cfg['url_js'] ?>/myads.js"></script><?php                                          
                     }
                 }
                 break;
             case 'account':
                 if($this->user->info['id']){
-                    ?><script type="text/javascript" defer="true" src="<?= $this->router()->cfg['url_js'] ?>/account.js"></script><?php
+                    ?><script type="text/javascript" defer="true" src="<?= $this->router->cfg['url_js'] ?>/account.js"></script><?php
                 }
                 break;
             case 'post':
                 if($this->user->info['id'] && $this->isUserMobileVerified){                    
-                    ?><script type="text/javascript" defer="true" src="<?= $this->router()->cfg['url_js'] ?>/post.js"></script><?php
+                    ?><script type="text/javascript" defer="true" src="<?= $this->router->cfg['url_js'] ?>/post.js"></script><?php
                 }elseif($this->user->info['id']){
-                    ?><script type="text/javascript" onload="$('#code').select2({language:'<?= $this->router()->language ?>',dir:'<?= $this->router()->language=='ar'?'rtl':'ltr' ?>'})" defer="true" src="<?= $this->router()->cfg['url_jquery'] ?>select2.min.js"></script><?php
+                    ?><script type="text/javascript" onload="$('#code').select2({language:'<?= $this->router->language ?>',dir:'<?= $this->router->language=='ar'?'rtl':'ltr' ?>'})" defer="true" src="<?= $this->router->cfg['url_jquery'] ?>select2.min.js"></script><?php
                 }
                 break;
             case 'password':
                 if($this->include_password_js){
-                    ?><script type="text/javascript" defer="true" src="<?= $this->router()->cfg['url_js'] ?>/pwd.js"></script><?php
+                    ?><script type="text/javascript" defer="true" src="<?= $this->router->cfg['url_js'] ?>/pwd.js"></script><?php
                 }
                 break;
             case 'index':                
@@ -4115,7 +4108,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     
     function fill_ad($name, $className='ad') {
         $str='';
-        if ($this->router()->config()->enabledAds() && isset ($this->googleAds[$name])) {
+        if ($this->router->config->enabledAds() && isset ($this->googleAds[$name])) {
             if ($className!='ad') $className='ad '.$className;
             
             $ad = $this->googleAds[$name];
@@ -4150,19 +4143,19 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
 
     
     protected function render() {
-        if ($this->router()->isAMP && $this->router()->module=='search') {
+        if ($this->router->isAMP && $this->router->module=='search') {
             
             ?><!doctype html><?php
-            ?><html amp lang="<?= $this->router()->language ?>"><?php
+            ?><html amp lang="<?= $this->router->language ?>"><?php
                 $this->_headerAMP();
                 $this->_bodyAMP();
             ?></html><?php
             /*echo '<!doctype html>', PHP_EOL;
-            echo '<html amp lang="', $this->router()->language, '" dir="', $this->router()->isArabic() ? 'rtl' : 'ltr', '">', PHP_EOL, '<head>';
+            echo '<html amp lang="', $this->router->language, '" dir="', $this->router->isArabic() ? 'rtl' : 'ltr', '">', PHP_EOL, '<head>';
             echo '<meta charset="utf-8">', PHP_EOL,'<script async src="https://cdn.ampproject.org/v0.js"></script>', PHP_EOL;
             echo '<link rel="shortcut icon" href="https://www.mourjan.com/img/1.0.3/favicon.ico">', PHP_EOL;
             echo '<title>', $this->title, '</title>', PHP_EOL;
-            echo '<link rel="canonical" href="https://www.mourjan.com', $this->router()->uri, '">', PHP_EOL;
+            echo '<link rel="canonical" href="https://www.mourjan.com', $this->router->uri, '">', PHP_EOL;
             echo '<meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">', PHP_EOL;
             echo '<script type="application/ld+json">', PHP_EOL,
                 '{', PHP_EOL,
@@ -4202,9 +4195,9 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
 
     function _headerAMP(){
         ?><head><?php
-            ?><meta lang="<?= $this->router()->language ?>"><?php
+            ?><meta lang="<?= $this->router->language ?>"><?php
             ?><meta charset="utf-8"><?php
-            ?><link rel="canonical" href="https://www.mourjan.com<?= $this->router()->uri ?>"><?php
+            ?><link rel="canonical" href="https://www.mourjan.com<?= $this->router->uri ?>"><?php
             ?><meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1"><?php
             ?><style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript><?php
             ?><script async src="https://cdn.ampproject.org/v0.js"></script><?php
@@ -4242,9 +4235,9 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     
     
     function sidebarAMP(){        
-        $lang=$this->router()->language=='ar'?'':$this->router()->language.'/';
+        $lang=$this->router->language=='ar'?'':$this->router->language.'/';
         
-        ?><amp-sidebar id="sidebar" layout="nodisplay" side="<?= $this->router()->language == 'ar' ? 'right':'left' ?>"><?php
+        ?><amp-sidebar id="sidebar" layout="nodisplay" side="<?= $this->router->language == 'ar' ? 'right':'left' ?>"><?php
             
         ?><ul><?php            
                         
@@ -4257,35 +4250,35 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             ?></li><?php
             
             $headTitle = $this->lang['mourjan'];
-            if($this->router()->cityId){
+            if($this->router->cityId){
                 $headTitle=$this->lang['mourjan'].' '.$this->cityName;
-            }elseif($this->router()->countryId){
+            }elseif($this->router->countryId){
                 $headTitle=$this->lang['mourjan'].' '.$this->countryName;
             }
-            if($this->router()->module=='index' && !$this->router()->rootId && $this->router()->countryId){
+            if($this->router->module=='index' && !$this->router->rootId && $this->router->countryId){
                 ?><li class="on"><b><span class="k home"></span><?= $headTitle ?></b></li><?php
             }else{
-                ?><li><a href="<?= $this->router()->getURL($this->router()->countryId, $this->router()->cityId); ?>"><span class="k home"></span><?= $headTitle ?></a></li><?php
+                ?><li><a href="<?= $this->router->getURL($this->router->countryId, $this->router->cityId); ?>"><span class="k home"></span><?= $headTitle ?></a></li><?php
             }
             if($this->user->info['id']){                
-                if($this->router()->module=='post'){    
+                if($this->router->module=='post'){    
                     ?><li class="on"><b><span class="ic apb"></span><?= $this->lang['button_ad_post'] ?></b></li><?php
                 }else{
                     ?><li><a href="/post/<?= $lang ?>?clear=true"><span class="ic apb"></span><?= $this->lang['button_ad_post'] ?></a></li><?php
                 }     
                 ?><li class="sep"></li><?php   
-                if($this->router()->module != 'search' || !$this->userFavorites) {
+                if($this->router->module != 'search' || !$this->userFavorites) {
                    ?><li><a href="/favorites/<?= $lang ?>"><span class="ic k fav on"></span><?= $this->lang['myFavorites'] ?></a></li><?php 
                 }else{
                     ?><li class="on"><b><span class="ic k fav on"></span><?= $this->lang['myFavorites'] ?></b></li><?php 
                 }
-                /*if($this->router()->module != 'search' || !$this->router()->watchId) {
+                /*if($this->router->module != 'search' || !$this->router->watchId) {
                        ?><li><a href="/watchlist/<?= $lang ?>"><span class="ic k eye on"></span><?= $this->lang['myList'] ?></a></li><?php 
                 }else{
                     ?><li class="on"><b><span class="ic k eye on"></span><?= $this->lang['myList'] ?></b></li><?php 
                 }*/
                 ?><li class="sep"></li><?php
-                if($this->router()->module != 'balance') {
+                if($this->router->module != 'balance') {
                     ?><li><a href="/statement/<?= $lang ?>"><span class="mc24"></span><?= $this->lang['myBalance'] ?><span class="n"></span></a></li><?php 
                 }else{
                     ?><li class="on"><b><span class="mc24"></span><?= $this->lang['myBalance'] ?></b></li><?php 
@@ -4293,29 +4286,29 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 ?><li class="sep"></li><?php
                 
                 $sub=(isset($_GET['sub']) && $_GET['sub'] ? $_GET['sub']:'');
-                if($this->router()->module != 'myads' || ($this->router()->module == 'myads' && $sub!='') ) {
+                if($this->router->module != 'myads' || ($this->router->module == 'myads' && $sub!='') ) {
                         ?><li><a href="/myads/<?= $lang ?>"><span class="ic aon"></span><?= $this->lang['ads_active'] ?></a></li><?php
                 }else{
                     ?><li class="on"><b><span class="ic aon"></span><?= $this->lang['ads_active'] ?></b></li><?php
                 }
-                if($this->router()->module != 'myads'  || ($this->router()->module == 'myads' &&  $sub!='pending') ) {
+                if($this->router->module != 'myads'  || ($this->router->module == 'myads' &&  $sub!='pending') ) {
                         ?><li><a href="/myads/<?= $lang ?>?sub=pending"><span class="ic apd"></span><?= $this->lang['ads_pending'] ?></a></li><?php
                 }else{
                     ?><li class="on"><b><span class="ic apd"></span><?= $this->lang['ads_pending'] ?></b></li><?php
                 }
-                if($this->router()->module != 'myads'  || ($this->router()->module == 'myads' &&  $sub!='drafts'))  {
+                if($this->router->module != 'myads'  || ($this->router->module == 'myads' &&  $sub!='drafts'))  {
                     ?><li><a href="/myads/<?= $lang ?>?sub=drafts"><span class="ic aedi"></span><?= $this->lang['ads_drafts'] ?></a></li><?php
                 }else{
                     ?><li class="on"><b><span class="ic aedi"></span><?= $this->lang['ads_drafts'] ?></b></li><?php
                 }
-                if($this->router()->module != 'myads'  || ($this->router()->module == 'myads' &&  $sub!='archive'))  {
+                if($this->router->module != 'myads'  || ($this->router->module == 'myads' &&  $sub!='archive'))  {
                     ?><li><a href="/myads/<?= $lang ?>?sub=archive"><span class="ic afd"></span><?= $this->lang['ads_archive'] ?></a></li><?php
                 }else{
                     ?><li class="on"><b><span class="ic afd"></span><?= $this->lang['ads_archive'] ?></b></li><?php
                 }
             
             }else{
-                if($this->router()->module=='post'){    
+                if($this->router->module=='post'){    
                     ?><li class="on"><b><span class="ic apb"></span><?= $this->lang['button_ad_post'] ?></b></li><?php
                 }else{
                     ?><li><a href="/post/<?= $lang ?>?clear=true"><span class="ic apb"></span><?= $this->lang['button_ad_post'] ?></a></li><?php
@@ -4324,7 +4317,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             ?><li class="sep"></li><?php            
             
             if($this->user->info['id']==0){
-                if($this->router()->module=='home'){
+                if($this->router->module=='home'){
                     ?><li class="on"><b><span class="k log"></span><?= $this->lang['signin'] ?></b></li><?php 
                 }else{
                     ?><li><a href="/home/<?= $lang ?>"><span class="k log"></span><?= $this->lang['signin'] ?></a></li><?php
@@ -4335,22 +4328,22 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             /*if($this->user->info['id']){
                 ?><li class="sep"></li><?php
             }*/
-            $countryId = $this->router()->countryId;
-            $cityId = $this->router()->cityId; 
+            $countryId = $this->router->countryId;
+            $cityId = $this->router->cityId; 
             if (isset($this->user->params['country']) && $this->user->params['country'])
-                $countryId=$this->router()->countryId=$this->user->params['country'];
+                $countryId=$this->router->countryId=$this->user->params['country'];
             if (isset($this->user->params['city']) && $this->user->params['city'])
-                $cityId=$this->router()->cityId=$this->user->params['city'];
-            $this->router()->pageRoots = $this->router()->db->getRootsData($countryId, $cityId, $this->router()->language);
+                $cityId=$this->router->cityId=$this->user->params['city'];
+            $this->router->pageRoots = $this->router->db->getRootsData($countryId, $cityId, $this->router->language);
             //roots
             $i=0;
-            foreach ($this->router()->pageRoots as $key=>$root) {
+            foreach ($this->router->pageRoots as $key=>$root) {
                 $count=$this->checkNewUserContent($root['unixtime']) ? '<b>'.$root['counter'].'</b>' : $root['counter'];
-                if($this->router()->module=='index' && $this->router()->rootId==$key){
+                if($this->router->module=='index' && $this->router->rootId==$key){
                     echo '<li class="on"><b><span class="ic r',$key,'"></span>',
                     $root['name'], ($countryId ? '<span class="n">'. $count. '</span>':'') ,'</b></li>';
                 }else{
-                $_link = $this->router()->getURL($countryId, $cityId, $key);        
+                $_link = $this->router->getURL($countryId, $cityId, $key);        
                 echo '<li><a href="', $_link, '"><span class="ic r',$key,'"></span>',
                     $root['name'], ($countryId ? '<span class="n">'. $count. '</span>':'') ,'</a></li>';
                 }
@@ -4358,14 +4351,14 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             }            
             
             ?><li class="sep"></li><?php
-            if($this->router()->module=='index' && $this->router()->countryId==0){
-                echo '<li class="on"><b><span class="cf c', $this->router()->countryId, '"></span>',
-                $this->countryCounter, ' ',$this->lang['in'],' ',($this->router()->cityId?$this->cityName:$this->countryName),
+            if($this->router->module=='index' && $this->router->countryId==0){
+                echo '<li class="on"><b><span class="cf c', $this->router->countryId, '"></span>',
+                $this->countryCounter, ' ',$this->lang['in'],' ',($this->router->cityId?$this->cityName:$this->countryName),
                 '<span class="et"></span></b></li>';
             }else{
             //country change
-            echo '<li><a href="/', $this->appendLang ,'"><span class="cf c', $this->router()->countryId, '"></span>',
-                $this->countryCounter, ' ',$this->lang['in'],' ',($this->router()->cityId?$this->cityName:$this->countryName),
+            echo '<li><a href="/', $this->appendLang ,'"><span class="cf c', $this->router->countryId, '"></span>',
+                $this->countryCounter, ' ',$this->lang['in'],' ',($this->router->cityId?$this->cityName:$this->countryName),
                 '<span class="et"></span></a></li>';
             }
             
@@ -4373,7 +4366,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             ?><li class="sep"></li><?php
             
             //contact us
-            if($this->router()->module == 'contact') {
+            if($this->router->module == 'contact') {
                 ?><li class="on"><b><span class="ic r100"></span><?= $this->lang['contactUs'] ?></b></li><?php 
             }else{
                 ?><li><a href="/contact/<?= $lang ?>"><span class="ic r100"></span><?= $this->lang['contactUs'] ?></a></li><?php 
@@ -4381,7 +4374,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             
             ?><li class="sep"></li><?php 
             if($this->user->info['id']){                
-                if($this->router()->module != 'account') {
+                if($this->router->module != 'account') {
                     ?><li><a href="/account/<?= $lang ?>"><span class="et etr"></span><?= $this->lang['myAccount'] ?></a></li><?php            
                 }else{
                     ?><li class="on"><b><?= $this->lang['myAccount'] ?></b></li><?php
@@ -4397,7 +4390,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     protected function ampBody()
     {
         echo '<header>', $this->title, '</header>', PHP_EOL;
-        $store = new Classifieds($this->router()->database());
+        $store = new Classifieds($this->router->db);
         echo '<ul>', PHP_EOL;
         foreach ($this->searchResults['body']['matches'] as $id) 
         {
@@ -4407,7 +4400,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             echo '<li>', PHP_EOL;
             if ($ad[Classifieds::PICTURES])
             {               
-                echo '<amp-img src="', $this->router()->cfg['url_ad_img'], '/repos/d/',  $ad[Classifieds::PICTURES][0], '" alt="" height="122" width="122"></amp-img>';
+                echo '<amp-img src="', $this->router->cfg['url_ad_img'], '/repos/d/',  $ad[Classifieds::PICTURES][0], '" alt="" height="122" width="122"></amp-img>';
                 
             }
             echo '</li>', PHP_EOL;
@@ -4421,40 +4414,40 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         $keywords='';
         $keywords.=  $this->lang['mourjan'].',';
         $keywords.=  $this->lang['pclassifieds'].',';
-        if ($this->router()->language=='ar') {
+        if ($this->router->language=='ar') {
             $keywords.='نشر إعلان,إعلان,';
         }
         else {
             $keywords.='ad,post ad,';
         }
-        if ($this->router()->cityId) {
-            $keywords.= $this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId]['name'];// $this->router()->cities[$this->router()->cityId][$this->fieldNameIndex].',';
-            $keywords.= $this->router()->countries[$this->router()->countryId]['name'].',';
+        if ($this->router->cityId) {
+            $keywords.= $this->router->countries[$this->router->countryId]['cities'][$this->router->cityId]['name'];// $this->router->cities[$this->router->cityId][$this->fieldNameIndex].',';
+            $keywords.= $this->router->countries[$this->router->countryId]['name'].',';
         }
-        elseif($this->router()->countryId) {
-            $keywords.= $this->router()->countries[$this->router()->countryId]['name'].',';
+        elseif($this->router->countryId) {
+            $keywords.= $this->router->countries[$this->router->countryId]['name'].',';
         }
-        if ($this->router()->module=='index') {
-            foreach ($this->router()->pageRoots as $rid=>$root) {
+        if ($this->router->module=='index') {
+            foreach ($this->router->pageRoots as $rid=>$root) {
                 $keywords.= $root['name'].',';
             }
-            foreach ($this->router()->purposes as $ro) {
+            foreach ($this->router->purposes as $ro) {
                 if($ro[0]!=999 && $ro[0]!=5)
                 $keywords.= $ro[$this->fieldNameIndex].',';
             }
             $keywords=substr($keywords,0,-1);
             ?><meta name="keywords" content="<?= $keywords ?>"><?php
         }
-        elseif($this->router()->module=='search' && !$this->userFavorites && !$this->router()->watchId && !$this->router()->userId) {
-            if($this->router()->rootId){
-                $keywords.= $this->router()->roots[$this->router()->rootId][$this->fieldNameIndex].',';
+        elseif($this->router->module=='search' && !$this->userFavorites && !$this->router->watchId && !$this->router->userId) {
+            if($this->router->rootId){
+                $keywords.= $this->router->roots[$this->router->rootId][$this->fieldNameIndex].',';
             }else{
-                foreach($this->router()->pageRoots as $ro){
-                    $keywords.= $this->router()->roots[$ro[0]][$this->fieldNameIndex].',';
+                foreach($this->router->pageRoots as $ro){
+                    $keywords.= $this->router->roots[$ro[0]][$this->fieldNameIndex].',';
                 }
             }
-            if($this->router()->sectionId){
-                $keywords.= $this->router()->sections[$this->router()->sectionId][$this->fieldNameIndex].',';
+            if($this->router->sectionId){
+                $keywords.= $this->router->sections[$this->router->sectionId][$this->fieldNameIndex].',';
                 if($this->extended){
                     if($this->extendedId){
                         $keywords.= $this->extended[$this->extendedId]['name'].',';
@@ -4479,11 +4472,11 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 }
             }
             
-            if ($this->router()->purposeId) {
-                $keywords.= $this->router()->purposes[$this->router()->purposeId][$this->fieldNameIndex].',';
+            if ($this->router->purposeId) {
+                $keywords.= $this->router->purposes[$this->router->purposeId][$this->fieldNameIndex].',';
             }
             else {                             
-                foreach ($this->router()->pagePurposes as $pId=>$purpose) {
+                foreach ($this->router->pagePurposes as $pId=>$purpose) {
                     if ($pId!=999 && $pId!=5) {
                         $keywords.= $purpose['name'].',';
                     }
@@ -4497,16 +4490,16 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     
     public function css(string $filename) : Page {
         if (!isset($this->included[$filename])) {
-            $cssfile=$this->router()->config()->baseDir.'/web/css/includes/'.$filename.'.css';
+            $cssfile=$this->router->config->baseDir.'/web/css/includes/'.$filename.'.css';
             if (\file_exists($cssfile)) {                
-                $mincss=$this->router()->config()->baseDir.'/web/css/includes/min/'.$filename.'.css';
+                $mincss=$this->router->config->baseDir.'/web/css/includes/min/'.$filename.'.css';
                 
                 if (!\file_exists($mincss) || (\file_exists($mincss) && (filemtime($cssfile)>filemtime($mincss)))) {
                     $cssContents = \file_get_contents($cssfile);
-                    file_put_contents($mincss, $this->router()->minifyCss($cssContents));
+                    file_put_contents($mincss, $this->router->minifyCss($cssContents));
                 }
                 include $mincss;
-                //include $this->router()->config()->baseDir.'/web/css/includes/'.$filename.'.css';
+                //include $this->router->config->baseDir.'/web/css/includes/'.$filename.'.css';
             }
             
             $this->included[$filename]=1;
@@ -4517,9 +4510,9 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     
     public function inlineJS(string $filename) : Page {
         if (!isset($this->included[$filename])) {
-            $jsfile=$this->router()->config()->baseDir.'/web/js/includes/'.$filename;
+            $jsfile=$this->router->config->baseDir.'/web/js/includes/'.$filename;
             if (\file_exists($jsfile)) {
-                $minjs=$this->router()->config()->baseDir.'/web/js/includes/min/'.$filename;
+                $minjs=$this->router->config->baseDir.'/web/js/includes/min/'.$filename;
                 if (!\file_exists($minjs) || (\file_exists($minjs) && (filemtime($jsfile)>filemtime($minjs)))) {
                     $minifiedCode = \JShrink\Minifier::minify(\file_get_contents($jsfile));
                     file_put_contents($minjs, $minifiedCode);
@@ -4527,7 +4520,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 }
                 echo '<script>';
                 include $minjs;
-                //include $this->router()->config()->baseDir.'/web/js/includes/'.$filename;
+                //include $this->router->config->baseDir.'/web/js/includes/'.$filename;
                 
                 echo '</script>';
             }
@@ -4537,33 +4530,33 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     }
     
     protected function _header() : void {
-        //error_log(__CLASS__ . '.' . __FUNCTION__ . '.' .$this->router()->module);
-        if ($this->router()->module==='myads') {
+        //error_log(__CLASS__ . '.' . __FUNCTION__ . '.' .$this->router->module);
+        if ($this->router->module==='myads') {
             \header("Link: </web/js/1.0/socket.io.js>; rel=preload; as=script;", false);
         }
-        else if ($this->router()->module==='admin') {
+        else if ($this->router->module==='admin') {
             \header("Link: </web/js/1.0/jsonTree.js>; rel=preload; as=script;", false);
         }        
-        else if ($this->router()->module==='post') {            
+        else if ($this->router->module==='post') {            
             \header("Link: </web/js/1.0/libphonenumber-min-1.7.10.js>; rel=preload; as=script;", false);
             \header("Link: </web/js/1.0/load-image-scale.js>; rel=preload; as=script;", false);
         }
         
         
         $country_code='';
-        if ($this->router()->countryId && \array_key_exists($this->router()->countryId, $this->router()->countries)) {
-            $country_code = '-'.$this->router()->countries[$this->router()->countryId]['uri'];
+        if ($this->router->countryId && \array_key_exists($this->router->countryId, $this->router->countries)) {
+            $country_code = '-'.$this->router->countries[$this->router->countryId]['uri'];
         }
         echo '<!doctype html>';
-        echo '<html lang="', $this->router()->language, $country_code,'" xmlns:og="http://ogp.me/ns#"';
+        echo '<html lang="', $this->router->language, $country_code,'" xmlns:og="http://ogp.me/ns#"';
         echo '><head><meta charset="utf-8">';
-        if ($this->router()->module==='myads') {
+        if ($this->router->module==='myads') {
             //echo '<script src=/web/js/1.0/socket.io.js async></script>';
         }
-        if ($this->router()->module==='admin') {
+        if ($this->router->module==='admin') {
             echo '<script async src=/web/js/1.0/jsonTree.js></script>';
         }
-        if ($this->router()->module==='post') {
+        if ($this->router->module==='post') {
             echo '<script async src=/web/js/1.0/libphonenumber-min-1.7.10.js></script>';
             echo '<script async src=/web/js/1.0/load-image-scale.js></script>';
         }
@@ -4571,7 +4564,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         
         $this->css('main');        
        
-        switch ($this->router()->module) {
+        switch ($this->router->module) {
             case 'home':
                 break;
             
@@ -4636,7 +4629,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         
         $this->header();
         echo '<title>', $this->title, '</title>';
-        $imgURL = $this->router()->config()->imgURL;
+        $imgURL = $this->router->config->imgURL;
         ?><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, maximum-scale=5.0, user-scalable=1" name="viewport">
         <link rel="apple-touch-icon" sizes="57x57" href="<?= "{$imgURL}/mourjan-icon-114.png" ?>" />
         <link rel="apple-touch-icon" sizes="114x114" href="<?= "{$imgURL}/mourjan-icon-114.png" ?>" />
@@ -4650,7 +4643,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             echo '<meta name="robots" content="noindex,nofollow,noarchive" />';
         }
         else {
-            switch ($this->router()->module) {
+            switch ($this->router->module) {
                 case 'detail':
                     echo '<meta name="robots" content="noindex" />';
                     break;
@@ -4662,24 +4655,24 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                     else {
                         if ($this->searchResults && 
                             !empty($this->searchResults['body']['matches']) && 
-                            !(isset($this->router()->params['tag_id']) && !$this->extendedId) && 
-                            (!(isset ($this->router()->params['loc_id']) && !$this->localityId) || ($this->localityId && \in_array($this->router()->countryId, [1,2,3,7,8,9]))) ) 
+                            !(isset($this->router->params['tag_id']) && !$this->extendedId) && 
+                            (!(isset ($this->router->params['loc_id']) && !$this->localityId) || ($this->localityId && \in_array($this->router->countryId, [1,2,3,7,8,9]))) ) 
                         {
                             $qTotal = $this->searchResults['body']['total_found'];
                             $__fpages=$qTotal/$this->num;
                             $qPages = ($__fpages<1) ? 0 : ceil($__fpages);
-                            $qTmp=\ceil($this->router()->config()->get('search_results_max')/$this->num);
+                            $qTmp=\ceil($this->router->config->get('search_results_max')/$this->num);
                             if ($qPages>$qTmp) $qPages=(int)$qTmp;
                         
                             if (\array_key_exists('q', $_GET)) {
                                 echo '<meta name="robots" content="noindex, follow" />';
-                                $currentUrl=$this->router()->getUrl($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);                                                        
+                                $currentUrl=$this->router->getUrl($this->router->countryId,$this->router->cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId);                                                        
                             
                                 /*
-                                if ($this->router()->params['start']<$qPages && !$this->isMobile) {
-                                    $next = $this->router()->params['start']==0 ? 2 : $this->router()->params['start']+1;
-                                    echo '<link rel="prerender" href="', $this->router()->config()->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
-                                    echo '<link rel="prefetch" href="', $this->router()->config()->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
+                                if ($this->router->params['start']<$qPages && !$this->isMobile) {
+                                    $next = $this->router->params['start']==0 ? 2 : $this->router->params['start']+1;
+                                    echo '<link rel="prerender" href="', $this->router->config->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router->params['q']), '" />';
+                                    echo '<link rel="prefetch" href="', $this->router->config->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router->params['q']), '" />';
                                 } 
                                  * 
                                  */                           
@@ -4691,24 +4684,24 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                                     $currentUrl=$this->extended_uri;
                                 } 
                                 else {
-                                    $currentUrl=$this->router()->getUrl($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);
+                                    $currentUrl=$this->router->getUrl($this->router->countryId,$this->router->cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId);
                                 }
                             
-                                if ($this->router()->params['start']>1) {
-                                    $startLink=$this->router()->params['start'].'/';
+                                if ($this->router->params['start']>1) {
+                                    $startLink=$this->router->params['start'].'/';
                                 }
                             
                                 $link = 'https://www.mourjan.com'.$currentUrl.$startLink;
                                 $canonical_link=$link;
                             
                                 // page is not qualified to be multi language indexable
-                                if ($qTotal<static::SearchEngineLegitimateEntries && !$this->router()->isArabic()) {
+                                if ($qTotal<static::SearchEngineLegitimateEntries && !$this->router->isArabic()) {
                                     if ($this->extendedId || $this->localityId) {
-                                        $canonicalCurrentUrl = preg_replace("/\/{$this->router()->language}\//", "/", $this->extended_uri);
+                                        $canonicalCurrentUrl = preg_replace("/\/{$this->router->language}\//", "/", $this->extended_uri);
                                     
                                         if ($this->localityId) {
-                                            $alter = $this->router()->database()->index()
-                                                    ->directQuery("select id, locality_id from locality_counts where city_id={$this->localities[$this->localityId]['city_id']} and section_id={$this->router()->sectionId} and lang='ar'");
+                                            $alter = $this->router->db->index()
+                                                    ->directQuery("select id, locality_id from locality_counts where city_id={$this->localities[$this->localityId]['city_id']} and section_id={$this->router->sectionId} and lang='ar'");
                                         
                                             if ($alter && count($alter)==1) {
                                                 foreach ($alter as $value) {
@@ -4718,8 +4711,8 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                                         }
                                     
                                         if ($this->extendedId) {
-                                            $alter = $this->router()->database()->index()
-                                                    ->directQuery("select id, section_tag_id from section_tag_counts where country_id={$this->router()->countryId} and section_id={$this->router()->sectionId} and lang='ar' and uri='{$this->extended[$this->extendedId]['uri']}'");
+                                            $alter = $this->router->db->index()
+                                                    ->directQuery("select id, section_tag_id from section_tag_counts where country_id={$this->router->countryId} and section_id={$this->router->sectionId} and lang='ar' and uri='{$this->extended[$this->extendedId]['uri']}'");
                                             if ($alter && count($alter)==1) {
                                                 foreach ($alter as $value) {
                                                     $canonicalCurrentUrl= preg_replace("/\/q\-{$this->extendedId}\-/", "/q-{$value[1]}-", $canonicalCurrentUrl);
@@ -4728,26 +4721,26 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                                         }                            
                                     } 
                                     else {
-                                        $canonicalCurrentUrl=$this->router()->getUrl($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId, FALSE);
+                                        $canonicalCurrentUrl=$this->router->getUrl($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId, FALSE);
                                     }
                                     $canonical_link = 'https://www.mourjan.com'.$canonicalCurrentUrl.$startLink;                                
                                 }
                                 // end of page is not qualified to be multi language indexable
                             
-                                if ($link==$this->router()->config()->host.$_SERVER['REQUEST_URI']) {
+                                if ($link==$this->router->config->host.$_SERVER['REQUEST_URI']) {
                                     echo '<meta name="robots" content="noodp, noydir, index, follow" />';
                                     
-                                    if($this->router()->countryId && $this->router()->sectionId && $this->router()->purposeId && $this->router()->params['start']<=1){
+                                    if($this->router->countryId && $this->router->sectionId && $this->router->purposeId && $this->router->params['start']<=1){
                                         echo '<link rel="alternate" href="android-app://com.mourjan.classifieds/mourjan/list/';
                                         echo '?';
-                                        echo "cn={$this->router()->countryId}&";
-                                        echo "c={$this->router()->cityId}&";
-                                        echo "ro={$this->router()->rootId}&";
-                                        echo "se={$this->router()->sectionId}&";
-                                        echo "pu={$this->router()->purposeId}&";
+                                        echo "cn={$this->router->countryId}&";
+                                        echo "c={$this->router->cityId}&";
+                                        echo "ro={$this->router->rootId}&";
+                                        echo "se={$this->router->sectionId}&";
+                                        echo "pu={$this->router->purposeId}&";
                                         echo "tx={$this->extendedId}&";
                                         echo "gx={$this->localityId}&";
-                                        echo "hl={$this->router()->language}";
+                                        echo "hl={$this->router->language}";
                                         echo '" />';
                                     }
                                 }
@@ -4757,21 +4750,21 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                                     
                                 echo '<link rel="canonical" href="',$canonical_link, '" />';
                             
-                                if ($this->router()->params['start']>1) {
-                                    $prev=$this->router()->params['start']-1;
-                                    echo "<link rel='prev' href='", $this->router()->config()->baseURL, $currentUrl;
+                                if ($this->router->params['start']>1) {
+                                    $prev=$this->router->params['start']-1;
+                                    echo "<link rel='prev' href='", $this->router->config->baseURL, $currentUrl;
                                     if ($prev>1) {
                                         echo $prev, '/';
                                     }
                                     echo "' />";
                                 }
                             
-                                if ($this->router()->params['start']<$qPages && !$this->isMobile) {
-                                    $next = $this->router()->params['start']+1;
+                                if ($this->router->params['start']<$qPages && !$this->isMobile) {
+                                    $next = $this->router->params['start']+1;
                                     if ($next==1) $next=2;
-                                    echo "<link rel='next' href='", $this->router()->config()->baseURL, $currentUrl, $next, "/' />";
-                                    //echo '<link rel="prerender" href="', $this->router()->config()->baseURL, $currentUrl, $next, '/" />';
-                                    //echo '<link rel="prefetch" href="', $this->router()->config()->baseURL, $currentUrl, $next, '/" />';
+                                    echo "<link rel='next' href='", $this->router->config->baseURL, $currentUrl, $next, "/' />";
+                                    //echo '<link rel="prerender" href="', $this->router->config->baseURL, $currentUrl, $next, '/" />';
+                                    //echo '<link rel="prefetch" href="', $this->router->config->baseURL, $currentUrl, $next, '/" />';
                                 }
                             }
                         }
@@ -4780,16 +4773,16 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                         }
                     }
 
-                    //if (!$this->router()->isMobile) {
-                    //    echo '<link href="', $this->router()->config()->baseURL, $this->router()->uri, $this->router()->getLanguagePath(), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
+                    //if (!$this->router->isMobile) {
+                    //    echo '<link href="', $this->router->config->baseURL, $this->router->uri, $this->router->getLanguagePath(), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
                     //}
 
                     break;
                 
                 case 'index':
-                    $currentUrl=$this->router()->getUrl($this->router()->countryId,$this->router()->cityId);
+                    $currentUrl=$this->router->getUrl($this->router->countryId,$this->router->cityId);
                     $link='https://www.mourjan.com'.$currentUrl;
-                    if ($link==$this->router()->config()->host.$_SERVER['REQUEST_URI']) { 
+                    if ($link==$this->router->config->host.$_SERVER['REQUEST_URI']) { 
                         $this->includeMetaKeywords();
                         echo '<meta name="robots" content="noodp, noydir, index, follow" />';
                     }
@@ -4800,15 +4793,15 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 
                     $__cn=null;
                     $__cc=null;
-                    if ($this->router()->countryId && isset($this->router()->countries[$this->router()->countryId])) {
-                        $__cn = $this->router()->countries[$this->router()->countryId]['uri'];
+                    if ($this->router->countryId && isset($this->router->countries[$this->router->countryId])) {
+                        $__cn = $this->router->countries[$this->router->countryId]['uri'];
                     }
                     $__name = $__cn ? 
                         (
-                         ($this->router()->isArabic() ? 'مرجان ' : 'Mourjan ').                        
-                         ($this->router()->isArabic() ? 
-                            $this->router()->countries[$this->router()->countryId]['name'] : 
-                            $this->router()->countries[$this->router()->countryId]['name']
+                         ($this->router->isArabic() ? 'مرجان ' : 'Mourjan ').                        
+                         ($this->router->isArabic() ? 
+                            $this->router->countries[$this->router->countryId]['name'] : 
+                            $this->router->countries[$this->router->countryId]['name']
                          )
                         ) : $this->title;   
                 
@@ -4817,10 +4810,10 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
  "@type": "WebSite",
  "name": "<?= $__name ?>",
  "alternateName": "mourjan",
- "url": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').$this->router()->getLanguagePath() ?>",
+ "url": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').$this->router->getLanguagePath() ?>",
  "potentialAction":
  {"@type": "SearchAction",
-  "target": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').$this->router()->getLanguagePath() ?>?q={search_term_string}",
+  "target": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').$this->router->getLanguagePath() ?>?q={search_term_string}",
   "query-input": "required name=search_term_string"
  }
 }
@@ -4828,11 +4821,11 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 break;
                 
             default:
-                if ($this->router()->module==='notfound') {
+                if ($this->router->module==='notfound') {
                     echo '<meta name="robots" content="noindex, nofollow" />';
                 } 
-                elseif ($this->router()->module==='privacy'||$this->router()->module==='terms'||$this->router()->module==='about'||$this->router()->module==='advertise') {
-                    if ($this->router()->language==='en') {
+                elseif ($this->router->module==='privacy'||$this->router->module==='terms'||$this->router->module==='about'||$this->router->module==='advertise') {
+                    if ($this->router->language==='en') {
                         echo '<meta name="robots" content="noodp, noydir, index, follow" />';
                     }
                     else {
@@ -4846,7 +4839,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             }
         }
                 
-        ?><link rel="icon" href="<?= $this->router()->config()->imgURL ?>/favicon.ico" type="image/x-icon" /><?php 
+        ?><link rel="icon" href="<?= $this->router->config->imgURL ?>/favicon.ico" type="image/x-icon" /><?php 
         $this->set_analytics_header();
         
         //echo PHP_EOL;
@@ -4855,17 +4848,17 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         
         echo '</head>', "\n";
         flush();
-        echo '<body dir="', $this->router()->isArabic() ? 'rtl':'ltr', '" class="',$this->router()->isArabic() ? 'rtl':'ltr','" data-ads='.($this->router()->config()->enabledAds()?1:0),' ', $this->pageItemScope;
+        echo '<body dir="', $this->router->isArabic() ? 'rtl':'ltr', '" class="',$this->router->isArabic() ? 'rtl':'ltr','" data-ads='.($this->router->config->enabledAds()?1:0),' ', $this->pageItemScope;
         if ($this->isAdminSearch) {
             echo ' oncontextmenu="return false;"';
         }
-        if ($this->router()->isAcceptWebP) {
+        if ($this->router->isAcceptWebP) {
             echo ' class="wbp"';
         }
         if ($this->user()->id()) {
             echo ' data-key="', $this->user->info['idKey'], '" data-level=', $this->user()->level()*($this->user()->isSuperUser()?10:1);
         }
-        echo ' data-repo="', $this->router()->config()->adImgURL, '">', '<meta itemprop="isFamilyFriendly" content="true" />', "\n"; 
+        echo ' data-repo="', $this->router->config->adImgURL, '">', '<meta itemprop="isFamilyFriendly" content="true" />', "\n"; 
 
         //error_log('key '.$this->user->info['idKey']. ' decoded ' . $this->user()->decodeId($this->user->info['idKey']) . ' uid '.$this->user()->id());
         if (1) {  return; }
@@ -4880,34 +4873,34 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             header("Link: <{$css}>; rel=preload; as=style;", false);
         }
         
-        if ($this->router()->isMobile) {     
-            header("Link: <{$this->router()->config()->get('url_css_mobile')}/i/main_m{$this->router()->_png}>; rel=preload; as=image;", false);
+        if ($this->router->isMobile) {     
+            header("Link: <{$this->router->config->get('url_css_mobile')}/i/main_m{$this->router->_png}>; rel=preload; as=image;", false);
             
-            switch($this->router()->module){
+            switch($this->router->module){
                 case 'search':
-                    if($this->router()->sectionId){
-                        header("Link: <{$this->router()->cfg['url_img']}/90/{$this->router()->sectionId}{$this->router()->_png}>; rel=preload; as=image;", false);
+                    if($this->router->sectionId){
+                        header("Link: <{$this->router->cfg['url_img']}/90/{$this->router->sectionId}{$this->router->_png}>; rel=preload; as=image;", false);
                     }
                     break;
                 case 'detail':
-                    header("Link: <{$this->router()->cfg['url_css_mobile']}/i/share{$this->router()->_png}>; rel=preload; as=image;", false);
+                    header("Link: <{$this->router->cfg['url_css_mobile']}/i/share{$this->router->_png}>; rel=preload; as=image;", false);
                     break;
                 case 'index':
-                    switch($this->router()->rootId){
+                    switch($this->router->rootId){
                         case 1:
-                            header("Link: <{$this->router()->cfg['url_css_mobile']}/i/realestate{$this->router()->_png}>; rel=preload; as=image;", false);
+                            header("Link: <{$this->router->cfg['url_css_mobile']}/i/realestate{$this->router->_png}>; rel=preload; as=image;", false);
                             break;
                         case 2:
-                            header("Link: <{$this->router()->cfg['url_css_mobile']}/i/cars{$this->router()->_png}>; rel=preload; as=image;", false);
+                            header("Link: <{$this->router->cfg['url_css_mobile']}/i/cars{$this->router->_png}>; rel=preload; as=image;", false);
                             break;
                         case 3:
-                            header("Link: <{$this->router()->cfg['url_css_mobile']}/i/jobs{$this->router()->_png}>; rel=preload; as=image;", false);
+                            header("Link: <{$this->router->cfg['url_css_mobile']}/i/jobs{$this->router->_png}>; rel=preload; as=image;", false);
                             break;
                         case 4:
-                            header("Link: <{$this->router()->cfg['url_css_mobile']}/i/service{$this->router()->_png}>; rel=preload; as=image;", false);
+                            header("Link: <{$this->router->cfg['url_css_mobile']}/i/service{$this->router->_png}>; rel=preload; as=image;", false);
                             break;
                         case 99:
-                            header("Link: <{$this->router()->cfg['url_css_mobile']}/i/misc{$this->router()->_png}>; rel=preload; as=image;", false);
+                            header("Link: <{$this->router->cfg['url_css_mobile']}/i/misc{$this->router->_png}>; rel=preload; as=image;", false);
                             break;
                         default:
                             break;
@@ -4923,34 +4916,34 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         } 
         else {
             //logos
-            header("Link: <{$this->router()->config()->cssURL}/i/logo{$this->router()->_jpg}>; rel=preload; as=image;", false);
-            header("Link: <{$this->router()->config()->cssURL}/i/gen{$this->router()->_png}>; rel=preload; as=image;", false);
-            header("Link: <{$this->router()->config()->cssURL}/i/f/all{$this->router()->_png}>; rel=preload; as=image;", false);
+            header("Link: <{$this->router->config->cssURL}/i/logo{$this->router->_jpg}>; rel=preload; as=image;", false);
+            header("Link: <{$this->router->config->cssURL}/i/gen{$this->router->_png}>; rel=preload; as=image;", false);
+            header("Link: <{$this->router->config->cssURL}/i/f/all{$this->router->_png}>; rel=preload; as=image;", false);
             if($this->user->info['id']) {
-                header("Link: <{$this->router()->cfg['url_css']}/i/geni{$this->router()->_png}>; rel=preload; as=image;", false);
+                header("Link: <{$this->router->cfg['url_css']}/i/geni{$this->router->_png}>; rel=preload; as=image;", false);
             }
             
-            switch ($this->router()->module) {
+            switch ($this->router->module) {
                 case 'search':
-                    if ($this->router()->sectionId) {
-                        header("Link: <{$this->router()->cfg['url_img']}/90/{$this->router()->sectionId}{$this->router()->_png}>; rel=preload; as=image;", false);
+                    if ($this->router->sectionId) {
+                        header("Link: <{$this->router->cfg['url_img']}/90/{$this->router->sectionId}{$this->router->_png}>; rel=preload; as=image;", false);
                     }
                 case 'detail':
-                    switch($this->router()->rootId){
+                    switch($this->router->rootId){
                         case 1:
-                            header("Link: <{$this->router()->cfg['url_css']}/i/realestate{$this->router()->_png}>; rel=preload; as=image;", false);
+                            header("Link: <{$this->router->cfg['url_css']}/i/realestate{$this->router->_png}>; rel=preload; as=image;", false);
                             break;
                         case 2:
-                            header("Link: <{$this->router()->cfg['url_css']}/i/cars{$this->router()->_png}>; rel=preload; as=image;", false);
+                            header("Link: <{$this->router->cfg['url_css']}/i/cars{$this->router->_png}>; rel=preload; as=image;", false);
                             break;
                         case 3:
-                            header("Link: <{$this->router()->cfg['url_css']}/i/jobs{$this->router()->_png}>; rel=preload; as=image;", false);
+                            header("Link: <{$this->router->cfg['url_css']}/i/jobs{$this->router->_png}>; rel=preload; as=image;", false);
                             break;
                         case 4:
-                            header("Link: <{$this->router()->cfg['url_css']}/i/service{$this->router()->_png}>; rel=preload; as=image;", false);
+                            header("Link: <{$this->router->cfg['url_css']}/i/service{$this->router->_png}>; rel=preload; as=image;", false);
                             break;
                         case 99:
-                            header("Link: <{$this->router()->cfg['url_css']}/i/misc{$this->router()->_png}>; rel=preload; as=image;", false);
+                            header("Link: <{$this->router->cfg['url_css']}/i/misc{$this->router->_png}>; rel=preload; as=image;", false);
                             break;
                         default:
                             break;
@@ -4958,28 +4951,28 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                     break;
                 
                 case 'index':
-                    header("Link: <{$this->router()->config()->cssURL}/i/realestate{$this->router()->_png}>; rel=preload; as=image;", false);
-                    header("Link: <{$this->router()->config()->cssURL}/i/jobs{$this->router()->_png}>; rel=preload; as=image;", false);
-                    header("Link: <{$this->router()->config()->cssURL}/i/service{$this->router()->_png}>; rel=preload; as=image;", false);
-                    header("Link: <{$this->router()->config()->cssURL}/i/cars{$this->router()->_png}>; rel=preload; as=image;", false);
-                    header("Link: <{$this->router()->config()->cssURL}/i/misc{$this->router()->_png}>; rel=preload; as=image;", false);
+                    header("Link: <{$this->router->config->cssURL}/i/realestate{$this->router->_png}>; rel=preload; as=image;", false);
+                    header("Link: <{$this->router->config->cssURL}/i/jobs{$this->router->_png}>; rel=preload; as=image;", false);
+                    header("Link: <{$this->router->config->cssURL}/i/service{$this->router->_png}>; rel=preload; as=image;", false);
+                    header("Link: <{$this->router->config->cssURL}/i/cars{$this->router->_png}>; rel=preload; as=image;", false);
+                    header("Link: <{$this->router->config->cssURL}/i/misc{$this->router->_png}>; rel=preload; as=image;", false);
                     
                     if (isset($this->user->params['screen'][0])) {
                         if ($this->user->params['screen'][0] > 1249) {
-                            header("Link: <{$this->router()->config()->cssURL}/i/wbl{$this->router()->_jpg}>; rel=preload; as=image;", false);
+                            header("Link: <{$this->router->config->cssURL}/i/wbl{$this->router->_jpg}>; rel=preload; as=image;", false);
                         }
                         else {
-                            header("Link: <{$this->router()->config()->cssURL}/i/bl{$this->router()->_jpg}>; rel=preload; as=image;", false);
+                            header("Link: <{$this->router->config->cssURL}/i/bl{$this->router->_jpg}>; rel=preload; as=image;", false);
                         }
                     }
                     break;
                     
                 default:
-                    header("Link: <{$this->router()->config()->imgURL}/msl{$this->router()->_png}>; rel=preload; as=image;", false);
+                    header("Link: <{$this->router->config->imgURL}/msl{$this->router->_png}>; rel=preload; as=image;", false);
                     break;
             }
             
-            header("Link: <{$this->router()->config()->jQueryURL}jquery.min.js>; rel=preload; as=script;", false);
+            header("Link: <{$this->router->config->jQueryURL}jquery.min.js>; rel=preload; as=script;", false);
             foreach($this->requires['js'] as $js){
                 header("Link: <{$js}>; rel=preload; as=script;", false);
             }
@@ -4987,13 +4980,13 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         echo '<!doctype html>';
         //if ($this->ampEnabled)
         //{
-        //    echo '<html amp lang="', $this->router()->language, '"><head>';
+        //    echo '<html amp lang="', $this->router->language, '"><head>';
         //    echo '<meta charset="utf-8"><script async src="https://cdn.ampproject.org/v0.js"></script>'; 
         //    echo '<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>';
         //}
         //else
         //{
-        echo '<html lang="', $this->router()->language, $country_code,'" xmlns:fb="http://ogp.me/ns/fb#" xmlns:og="http://ogp.me/ns#"';
+        echo '<html lang="', $this->router->language, $country_code,'" xmlns:fb="http://ogp.me/ns/fb#" xmlns:og="http://ogp.me/ns#"';
         if (isset($this->detailAd[Classifieds::VIDEO]) && $this->detailAd[Classifieds::VIDEO]) {
             echo ' xmlns:video="http://ogp.me/ns/video#"';
         }
@@ -5006,28 +4999,28 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         
         if ($this->isMobile) {            
             ?><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, maximum-scale=5.0, user-scalable=1" name="viewport"><?php
-            ?><link rel="apple-touch-icon" sizes="57x57" href="<?= $this->router()->cfg["url_img"]."/mourjan-icon-114.png" ?>" /><?php
-            ?><link rel="apple-touch-icon" sizes="114x114" href="<?= $this->router()->cfg["url_img"]."/mourjan-icon-114.png" ?>" /><?php
-            ?><link rel="apple-touch-icon" sizes="72x72" href="<?= $this->router()->cfg["url_img"]."/mourjan-icon-144.png" ?>" /><?php
-            ?><link rel="apple-touch-icon" sizes="144x144" href="<?= $this->router()->cfg["url_img"]."/mourjan-icon-144.png" ?>" /><?php
+            ?><link rel="apple-touch-icon" sizes="57x57" href="<?= $this->router->cfg["url_img"]."/mourjan-icon-114.png" ?>" /><?php
+            ?><link rel="apple-touch-icon" sizes="114x114" href="<?= $this->router->cfg["url_img"]."/mourjan-icon-114.png" ?>" /><?php
+            ?><link rel="apple-touch-icon" sizes="72x72" href="<?= $this->router->cfg["url_img"]."/mourjan-icon-144.png" ?>" /><?php
+            ?><link rel="apple-touch-icon" sizes="144x144" href="<?= $this->router->cfg["url_img"]."/mourjan-icon-144.png" ?>" /><?php
             
-            ?><link rel="apple-touch-startup-image" href="<?= $this->router()->cfg["url_img"]."/mourjan-splash.png"?>" /><?php
+            ?><link rel="apple-touch-startup-image" href="<?= $this->router->cfg["url_img"]."/mourjan-splash.png"?>" /><?php
             ?><meta name="format-detection" content="telephone=no"><?php
             ?><link rel="manifest" href="/manifest.json"><?php
         }
 
-        if ($country_code && isset($this->router()->cities)) {
-            echo '<meta http-equiv="content-language" content="', $this->router()->language, $country_code, '">';
+        if ($country_code && isset($this->router->cities)) {
+            echo '<meta http-equiv="content-language" content="', $this->router->language, $country_code, '">';
         } 
         else {
-            echo '<meta http-equiv="content-language" content="', $this->router()->language, $country_code,'" />';
+            echo '<meta http-equiv="content-language" content="', $this->router->language, $country_code,'" />';
         }
         
         if ($this->forceNoIndex) {
             echo '<meta name="robots" content="noindex,nofollow,noarchive" />';
         }
         else {
-            switch ($this->router()->module) {
+            switch ($this->router->module) {
                 case "detail":
                     echo '<meta name="robots" content="noindex" />';
                 break;
@@ -5039,23 +5032,23 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 else {
                     if ($this->searchResults && 
                         !empty($this->searchResults['body']['matches']) && 
-                        !(isset($this->router()->params['tag_id']) && !$this->extendedId) && 
-                        (!(isset ($this->router()->params['loc_id']) && !$this->localityId) || ($this->localityId && in_array($this->router()->countryId, [1,2,3,7,8,9]))) ) 
+                        !(isset($this->router->params['tag_id']) && !$this->extendedId) && 
+                        (!(isset ($this->router->params['loc_id']) && !$this->localityId) || ($this->localityId && in_array($this->router->countryId, [1,2,3,7,8,9]))) ) 
                     {
                         $qTotal = $this->searchResults['body']['total_found'];
                         $__fpages=$qTotal/$this->num;
                         $qPages = ($__fpages<1) ? 0 : ceil($__fpages);
-                        $qTmp=ceil($this->router()->cfg['search_results_max']/$this->num);
+                        $qTmp=ceil($this->router->cfg['search_results_max']/$this->num);
                         if ($qPages>$qTmp) $qPages=(int)$qTmp;
                         
                         if (array_key_exists('q', $_GET)) {
                             echo '<meta name="robots" content="noindex, follow" />';
-                            $currentUrl=$this->router()->getUrl($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);                                                        
+                            $currentUrl=$this->router->getUrl($this->router->countryId,$this->router->cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId);                                                        
                             
-                            if ($this->router()->params['start']<$qPages && !$this->isMobile) {
-                                $next = $this->router()->params['start']==0 ? 2 : $this->router()->params['start']+1;
-                                //echo '<link rel="prerender" href="', $this->router()->config()->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
-                                //echo '<link rel="prefetch" href="', $this->router()->config()->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router()->params['q']), '" />';
+                            if ($this->router->params['start']<$qPages && !$this->isMobile) {
+                                $next = $this->router->params['start']==0 ? 2 : $this->router->params['start']+1;
+                                //echo '<link rel="prerender" href="', $this->router->config->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router->params['q']), '" />';
+                                //echo '<link rel="prefetch" href="', $this->router->config->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router->params['q']), '" />';
                             }                            
                         }
                         else {
@@ -5067,24 +5060,24 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                                 $currentUrl=$this->extended_uri;
                             } 
                             else {
-                                $currentUrl=$this->router()->getUrl($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId);
+                                $currentUrl=$this->router->getUrl($this->router->countryId,$this->router->cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId);
                             }
                             
-                            if ($this->router()->params['start']>1) {
-                                $startLink=$this->router()->params['start'].'/';
+                            if ($this->router->params['start']>1) {
+                                $startLink=$this->router->params['start'].'/';
                             }
                             
                             $link = 'https://www.mourjan.com'.$currentUrl.$startLink;
                             $canonical_link=$link;
                             
                             // page is not qualified to be multi language indexable
-                            if ($qTotal<static::SearchEngineLegitimateEntries && !$this->router()->isArabic()) {
+                            if ($qTotal<static::SearchEngineLegitimateEntries && !$this->router->isArabic()) {
                                 if ($this->extendedId || $this->localityId) {
-                                    $canonicalCurrentUrl= preg_replace("/\/{$this->router()->language}\//", "/", $this->extended_uri);
+                                    $canonicalCurrentUrl= preg_replace("/\/{$this->router->language}\//", "/", $this->extended_uri);
                                     
                                     if ($this->localityId) {
-                                        $alter = $this->router()->database()->index()
-                                                ->directQuery("select id, locality_id from locality_counts where city_id={$this->localities[$this->localityId]['city_id']} and section_id={$this->router()->sectionId} and lang='ar'");
+                                        $alter = $this->router->db->index()
+                                                ->directQuery("select id, locality_id from locality_counts where city_id={$this->localities[$this->localityId]['city_id']} and section_id={$this->router->sectionId} and lang='ar'");
                                         
                                         if ($alter && count($alter)==1) {
                                             foreach ($alter as $value) {
@@ -5094,8 +5087,8 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                                     }
                                     
                                     if ($this->extendedId) {
-                                        $alter = $this->router()->database()->index()
-                                                ->directQuery("select id, section_tag_id from section_tag_counts where country_id={$this->router()->countryId} and section_id={$this->router()->sectionId} and lang='ar' and uri='{$this->extended[$this->extendedId]['uri']}'");
+                                        $alter = $this->router->db->index()
+                                                ->directQuery("select id, section_tag_id from section_tag_counts where country_id={$this->router->countryId} and section_id={$this->router->sectionId} and lang='ar' and uri='{$this->extended[$this->extendedId]['uri']}'");
                                         if ($alter && count($alter)==1) {
                                             foreach ($alter as $value) {
                                                 $canonicalCurrentUrl= preg_replace("/\/q\-{$this->extendedId}\-/", "/q-{$value[1]}-", $canonicalCurrentUrl);
@@ -5104,26 +5097,26 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                                     }                                    
                                 } 
                                 else {
-                                    $canonicalCurrentUrl=$this->router()->getUrl($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId, FALSE);
+                                    $canonicalCurrentUrl=$this->router->getUrl($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId, FALSE);
                                 }
                                 $canonical_link = 'https://www.mourjan.com'.$canonicalCurrentUrl.$startLink;                                
                             }
                             // end of page is not qualified to be multi language indexable
                             
-                            if ($link==$this->router()->config()->host.$_SERVER['REQUEST_URI']) {
+                            if ($link==$this->router->config->host.$_SERVER['REQUEST_URI']) {
                                 echo '<meta name="robots" content="noodp, noydir, index, follow" />';
                                     
-                                if($this->router()->countryId && $this->router()->sectionId && $this->router()->purposeId && $this->router()->params['start']<=1){
+                                if($this->router->countryId && $this->router->sectionId && $this->router->purposeId && $this->router->params['start']<=1){
                                     echo '<link rel="alternate" href="android-app://com.mourjan.classifieds/mourjan/list/';
                                     echo '?';
-                                    echo "cn={$this->router()->countryId}&";
-                                    echo "c={$this->router()->cityId}&";
-                                    echo "ro={$this->router()->rootId}&";
-                                    echo "se={$this->router()->sectionId}&";
-                                    echo "pu={$this->router()->purposeId}&";
+                                    echo "cn={$this->router->countryId}&";
+                                    echo "c={$this->router->cityId}&";
+                                    echo "ro={$this->router->rootId}&";
+                                    echo "se={$this->router->sectionId}&";
+                                    echo "pu={$this->router->purposeId}&";
                                     echo "tx={$this->extendedId}&";
                                     echo "gx={$this->localityId}&";
-                                    echo "hl={$this->router()->language}";
+                                    echo "hl={$this->router->language}";
                                     echo '" />';
                                 }
                             }
@@ -5134,21 +5127,21 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                             echo '<link rel="canonical" href="',$canonical_link, '" />';
                             
 
-                            if ($this->router()->params['start']>1) {
-                                $prev=$this->router()->params['start']-1;
-                                echo "<link rel='prev' href='", $this->router()->config()->baseURL, $currentUrl;
+                            if ($this->router->params['start']>1) {
+                                $prev=$this->router->params['start']-1;
+                                echo "<link rel='prev' href='", $this->router->config->baseURL, $currentUrl;
                                 if ($prev>1) {
                                     echo $prev, '/';
                                 }
                                 echo "' />";
                             }
                             
-                            if ($this->router()->params['start']<$qPages && !$this->isMobile) {
-                                $next = $this->router()->params['start']+1;
+                            if ($this->router->params['start']<$qPages && !$this->isMobile) {
+                                $next = $this->router->params['start']+1;
                                 if ($next==1) $next=2;
-                                echo "<link rel='next' href='", $this->router()->config()->baseURL, $currentUrl, $next, "/' />";
-                                //echo '<link rel="prerender" href="', $this->router()->config()->baseURL, $currentUrl, $next, '/" />';
-                                //echo '<link rel="prefetch" href="', $this->router()->config()->baseURL, $currentUrl, $next, '/" />';
+                                echo "<link rel='next' href='", $this->router->config->baseURL, $currentUrl, $next, "/' />";
+                                //echo '<link rel="prerender" href="', $this->router->config->baseURL, $currentUrl, $next, '/" />';
+                                //echo '<link rel="prefetch" href="', $this->router->config->baseURL, $currentUrl, $next, '/" />';
                             }
                         }
                     }
@@ -5157,16 +5150,16 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                     }
                 }
 
-                //if (!$this->router()->isMobile) {
-                //    echo '<link href="', $this->router()->config()->baseURL, $this->router()->uri, $this->router()->getLanguagePath(), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
+                //if (!$this->router->isMobile) {
+                //    echo '<link href="', $this->router->config->baseURL, $this->router->uri, $this->router->getLanguagePath(), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
                 //}
 
                 break;
                 
             case 'index':
-                $currentUrl=$this->router()->getUrl($this->router()->countryId,$this->router()->cityId);
+                $currentUrl=$this->router->getUrl($this->router->countryId,$this->router->cityId);
                 $link=  'https://www.mourjan.com'.$currentUrl;
-                if ($link == $this->router()->config()->host.$_SERVER['REQUEST_URI']) { 
+                if ($link == $this->router->config->host.$_SERVER['REQUEST_URI']) { 
                     $this->includeMetaKeywords();
                     echo '<meta name="robots" content="noodp, noydir, index, follow" />';
                 }
@@ -5177,16 +5170,16 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 
                 $__cn=null;
                 $__cc=null;
-                if ($this->router()->countryId && isset($this->router()->countries[$this->router()->countryId])) {
-                    $__cn = $this->router()->countries[$this->router()->countryId]['uri'];
+                if ($this->router->countryId && isset($this->router->countries[$this->router->countryId])) {
+                    $__cn = $this->router->countries[$this->router->countryId]['uri'];
                 }
                 $__name = $__cn ? 
                         (
-                         ($this->router()->language=='ar' ? 'مرجان ' : 'Mourjan ').
+                         ($this->router->language=='ar' ? 'مرجان ' : 'Mourjan ').
                         
-                         ($this->router()->language=='ar' ? 
-                            $this->router()->countries[$this->router()->countryId]['name'] : 
-                            $this->router()->countries[$this->router()->countryId]['name']
+                         ($this->router->language=='ar' ? 
+                            $this->router->countries[$this->router->countryId]['name'] : 
+                            $this->router->countries[$this->router->countryId]['name']
                          )
                         ) : 
                         $this->title;   
@@ -5196,10 +5189,10 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
  "@type": "WebSite",
  "name": "<?= $__name ?>",
  "alternateName": "mourjan",
- "url": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').$this->router()->getLanguagePath() ?>",
+ "url": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').$this->router->getLanguagePath() ?>",
  "potentialAction":
  {"@type": "SearchAction",
-  "target": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').$this->router()->getLanguagePath() ?>?q={search_term_string}",
+  "target": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').$this->router->getLanguagePath() ?>?q={search_term_string}",
   "query-input": "required name=search_term_string"
  }
 }
@@ -5209,11 +5202,11 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 break;
                 
             default:
-                if ($this->router()->module=='notfound') {
+                if ($this->router->module=='notfound') {
                     echo '<meta name="robots" content="noindex, nofollow" />';
                 } 
-                elseif($this->router()->module=='privacy' || $this->router()->module=='terms' || $this->router()->module=='about' || $this->router()->module=='advertise') {
-                    if ($this->router()->language=='en'){
+                elseif($this->router->module=='privacy' || $this->router->module=='terms' || $this->router->module=='about' || $this->router->module=='advertise') {
+                    if ($this->router->language=='en'){
                         echo '<meta name="robots" content="noodp, noydir, index, follow" />';
                     }
                     else {
@@ -5227,17 +5220,17 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         }
         }
 
-        ?><link rel="icon" href="<?= $this->router()->config()->imgURL ?>/favicon.ico" type="image/x-icon" /><?php 
+        ?><link rel="icon" href="<?= $this->router->config->imgURL ?>/favicon.ico" type="image/x-icon" /><?php 
             $this->set_analytics_header();
             
-        ?></head><?php flush() ?><body<?= $this->isAdminSearch ? ' oncontextmenu="return false;"':'' ?> class="<?= ($this->router()->isAcceptWebP ? 'wbp':'') ?>" <?= $this->pageItemScope ?>><meta itemprop="isFamilyFriendly" content="true" /><?php
+        ?></head><?php flush() ?><body<?= $this->isAdminSearch ? ' oncontextmenu="return false;"':'' ?> class="<?= ($this->router->isAcceptWebP ? 'wbp':'') ?>" <?= $this->pageItemScope ?>><meta itemprop="isFamilyFriendly" content="true" /><?php
     }
 
 
     
     function footerMobile(){
-        $lang=$this->router()->language=='ar'?'':$this->router()->language.'/';
-        if(!$this->router()->isApp){
+        $lang=$this->router->language=='ar'?'':$this->router->language.'/';
+        if(!$this->router->isApp){
             ?> <!--googleoff: index --> <?php
             ?><div id="side" class="side"><ul class="ls"><?php            
                         
@@ -5250,35 +5243,35 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             ?></li><?php
             
             $headTitle = $this->lang['mourjan'];
-            if($this->router()->cityId){
+            if($this->router->cityId){
                 $headTitle=$this->lang['mourjan'].' '.$this->cityName;
-            }elseif($this->router()->countryId){
+            }elseif($this->router->countryId){
                 $headTitle=$this->lang['mourjan'].' '.$this->countryName;
             }
-            if($this->router()->module=='index' && !$this->router()->rootId && $this->router()->countryId){
+            if($this->router->module=='index' && !$this->router->rootId && $this->router->countryId){
                 ?><li class="on"><b><span class="k home"></span><?= $headTitle ?></b></li><?php
             }else{
-                ?><li><a href="<?= $this->router()->getURL($this->router()->countryId, $this->router()->cityId); ?>"><span class="k home"></span><?= $headTitle ?></a></li><?php
+                ?><li><a href="<?= $this->router->getURL($this->router->countryId, $this->router->cityId); ?>"><span class="k home"></span><?= $headTitle ?></a></li><?php
             }
             if($this->user->info['id']){                
-                if($this->router()->module=='post'){    
+                if($this->router->module=='post'){    
                     ?><li class="on"><b><span class="ic apb"></span><?= $this->lang['button_ad_post'] ?></b></li><?php
                 }else{
                     ?><li><a href="/post/<?= $lang ?>?clear=true"><span class="ic apb"></span><?= $this->lang['button_ad_post'] ?></a></li><?php
                 }     
                 ?><li class="sep"></li><?php   
-                if($this->router()->module != 'search' || !$this->userFavorites) {
+                if($this->router->module != 'search' || !$this->userFavorites) {
                    ?><li><a href="/favorites/<?= $lang ?>"><span class="ic k fav on"></span><?= $this->lang['myFavorites'] ?></a></li><?php 
                 }else{
                     ?><li class="on"><b><span class="ic k fav on"></span><?= $this->lang['myFavorites'] ?></b></li><?php 
                 }
-                /*if($this->router()->module != 'search' || !$this->router()->watchId) {
+                /*if($this->router->module != 'search' || !$this->router->watchId) {
                        ?><li><a href="/watchlist/<?= $lang ?>"><span class="ic k eye on"></span><?= $this->lang['myList'] ?></a></li><?php 
                 }else{
                     ?><li class="on"><b><span class="ic k eye on"></span><?= $this->lang['myList'] ?></b></li><?php 
                 }*/
                 ?><li class="sep"></li><?php
-                if($this->router()->module != 'balance') {
+                if($this->router->module != 'balance') {
                     ?><li><a href="/statement/<?= $lang ?>"><span class="mc24"></span><?= $this->lang['myBalance'] ?><span class="n"></span></a></li><?php 
                 }else{
                     ?><li class="on"><b><span class="mc24"></span><?= $this->lang['myBalance'] ?></b></li><?php 
@@ -5286,29 +5279,29 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 ?><li class="sep"></li><?php
                 
                 $sub=(isset($_GET['sub']) && $_GET['sub'] ? $_GET['sub']:'');
-                if($this->router()->module != 'myads' || ($this->router()->module == 'myads' && $sub!='') ) {
+                if($this->router->module != 'myads' || ($this->router->module == 'myads' && $sub!='') ) {
                         ?><li><a href="/myads/<?= $lang ?>"><span class="ic aon"></span><?= $this->lang['ads_active'] ?></a></li><?php
                 }else{
                     ?><li class="on"><b><span class="ic aon"></span><?= $this->lang['ads_active'] ?></b></li><?php
                 }
-                if($this->router()->module != 'myads'  || ($this->router()->module == 'myads' &&  $sub!='pending') ) {
+                if($this->router->module != 'myads'  || ($this->router->module == 'myads' &&  $sub!='pending') ) {
                         ?><li><a href="/myads/<?= $lang ?>?sub=pending"><span class="ic apd"></span><?= $this->lang['ads_pending'] ?></a></li><?php
                 }else{
                     ?><li class="on"><b><span class="ic apd"></span><?= $this->lang['ads_pending'] ?></b></li><?php
                 }
-                if($this->router()->module != 'myads'  || ($this->router()->module == 'myads' &&  $sub!='drafts'))  {
+                if($this->router->module != 'myads'  || ($this->router->module == 'myads' &&  $sub!='drafts'))  {
                     ?><li><a href="/myads/<?= $lang ?>?sub=drafts"><span class="ic aedi"></span><?= $this->lang['ads_drafts'] ?></a></li><?php
                 }else{
                     ?><li class="on"><b><span class="ic aedi"></span><?= $this->lang['ads_drafts'] ?></b></li><?php
                 }
-                if($this->router()->module != 'myads'  || ($this->router()->module == 'myads' &&  $sub!='archive'))  {
+                if($this->router->module != 'myads'  || ($this->router->module == 'myads' &&  $sub!='archive'))  {
                     ?><li><a href="/myads/<?= $lang ?>?sub=archive"><span class="ic afd"></span><?= $this->lang['ads_archive'] ?></a></li><?php
                 }else{
                     ?><li class="on"><b><span class="ic afd"></span><?= $this->lang['ads_archive'] ?></b></li><?php
                 }
             
             }else{
-                if($this->router()->module=='post'){    
+                if($this->router->module=='post'){    
                     ?><li class="on"><b><span class="ic apb"></span><?= $this->lang['button_ad_post'] ?></b></li><?php
                 }else{
                     ?><li><a href="/post/<?= $lang ?>?clear=true"><span class="ic apb"></span><?= $this->lang['button_ad_post'] ?></a></li><?php
@@ -5317,7 +5310,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             ?><li class="sep"></li><?php            
             
             if($this->user->info['id']==0){
-                if($this->router()->module=='home'){
+                if($this->router->module=='home'){
                     ?><li class="on"><b><span class="k log"></span><?= $this->lang['signin'] ?></b></li><?php 
                 }else{
                     ?><li><a href="/home/<?= $lang ?>"><span class="k log"></span><?= $this->lang['signin'] ?></a></li><?php
@@ -5325,22 +5318,22 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 ?><li class="sep"></li><?php
             }
                       
-            $countryId = $this->router()->countryId;
-            $cityId = $this->router()->cityId; 
+            $countryId = $this->router->countryId;
+            $cityId = $this->router->cityId; 
             if (isset($this->user->params['country']) && $this->user->params['country'])
-                $countryId=$this->router()->countryId=$this->user->params['country'];
+                $countryId=$this->router->countryId=$this->user->params['country'];
             if (isset($this->user->params['city']) && $this->user->params['city'])
-                $cityId=$this->router()->cityId=$this->user->params['city'];
-            $this->router()->pageRoots = $this->router()->db->getRootsData($countryId, $cityId, $this->router()->language);
+                $cityId=$this->router->cityId=$this->user->params['city'];
+            $this->router->pageRoots = $this->router->db->getRootsData($countryId, $cityId, $this->router->language);
             //roots
             $i=0;
-            foreach ($this->router()->pageRoots as $key=>$root) {
+            foreach ($this->router->pageRoots as $key=>$root) {
                 $count=$this->checkNewUserContent($root['unixtime']) ? '<b>'.$root['counter'].'</b>' : $root['counter'];
-                if($this->router()->module=='index' && $this->router()->rootId==$key){
+                if($this->router->module=='index' && $this->router->rootId==$key){
                     echo '<li class="on"><b><span class="ic r',$key,'"></span>',
                     $root['name'], ($countryId ? '<span class="n">'. $count. '</span>':'') ,'</b></li>';
                 }else{
-                $_link = $this->router()->getURL($countryId, $cityId, $key);        
+                $_link = $this->router->getURL($countryId, $cityId, $key);        
                 echo '<li><a href="', $_link, '"><span class="ic r',$key,'"></span>',
                     $root['name'], ($countryId ? '<span class="n">'. $count. '</span>':'') ,'</a></li>';
                 }
@@ -5348,14 +5341,14 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             }            
             
             ?><li class="sep"></li><?php
-            if($this->router()->module=='index' && $this->router()->countryId==0){
-                echo '<li class="on"><b><span class="cf c', $this->router()->countryId, '"></span>',
-                $this->countryCounter, ' ',$this->lang['in'],' ',($this->router()->cityId?$this->cityName:$this->countryName),
+            if($this->router->module=='index' && $this->router->countryId==0){
+                echo '<li class="on"><b><span class="cf c', $this->router->countryId, '"></span>',
+                $this->countryCounter, ' ',$this->lang['in'],' ',($this->router->cityId?$this->cityName:$this->countryName),
                 '<span class="et"></span></b></li>';
             }else{
             //country change
-            echo '<li><a href="/', $this->appendLang ,'"><span class="cf c', $this->router()->countryId, '"></span>',
-                $this->countryCounter, ' ',$this->lang['in'],' ',($this->router()->cityId?$this->cityName:$this->countryName),
+            echo '<li><a href="/', $this->appendLang ,'"><span class="cf c', $this->router->countryId, '"></span>',
+                $this->countryCounter, ' ',$this->lang['in'],' ',($this->router->cityId?$this->cityName:$this->countryName),
                 '<span class="et"></span></a></li>';
             }
             
@@ -5363,7 +5356,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             ?><li class="sep"></li><?php
             
             //contact us
-            if($this->router()->module == 'contact') {
+            if($this->router->module == 'contact') {
                 ?><li class="on"><b><span class="ic r100"></span><?= $this->lang['contactUs'] ?></b></li><?php 
             }else{
                 ?><li><a href="/contact/<?= $lang ?>"><span class="ic r100"></span><?= $this->lang['contactUs'] ?></a></li><?php 
@@ -5371,7 +5364,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             
             ?><li class="sep"></li><?php 
             if($this->user->info['id']){                
-                if($this->router()->module != 'account') {
+                if($this->router->module != 'account') {
                     ?><li><a href="/account/<?= $lang ?>"><span class="et etr"></span><?= $this->lang['myAccount'] ?></a></li><?php            
                 }else{
                     ?><li class="on"><b><?= $this->lang['myAccount'] ?></b></li><?php
@@ -5381,7 +5374,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 
             ?></ul></div><?php
             ?> <!--googleon: index --> <?php
-            if( in_array($this->router()->module,['index','search','detail','contact']) &&  
+            if( in_array($this->router->module,['index','search','detail','contact']) &&  
                    (( (isset($this->user->params['mobile_ios_app_bottom_banner']) && $this->user->params['mobile_ios_app_bottom_banner']==1) ||
                   (isset($this->user->params['mobile_android_app_bottom_banner']) && $this->user->params['mobile_android_app_bottom_banner']==1) )))
             {
@@ -5406,7 +5399,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                     ?><li><div><?php
                         ?><h5><?= $this->lang['mourjan_app'] ?></h5><?php
                         ?><p><?= $this->lang['app_desc'] ?></p><?php
-                        ?><span class='rating <?= $this->router()->language ?>'>(7,562)</span><?php
+                        ?><span class='rating <?= $this->router->language ?>'>(7,562)</span><?php
                     ?></div></li><?php
                     ?><li><a type="button" href='https://play.google.com/store/apps/details?id=com.mourjan.classifieds' class="bt"><?= $this->lang['install'] ?></a></li><?php
                     ?></ul><br /><?php
@@ -5434,7 +5427,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         if ($this->isMobile) {
             $this->topMobile();
             $this->bodyMobile();
-            if (!$this->router()->isApp) {
+            if (!$this->router->isApp) {
                 $this->footerMobile();
             }
             $this->loadMobileJs_classic();
@@ -5442,8 +5435,8 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         else {
             //echo '<!--googleoff: snippet-->';
             $this->top();            
-            if (!$this->router()->userId) {
-                //include_once dirname( $this->router()->cfg['dir'] ) . '/tmp/gen/' . $this->includeHash.'0.php';  
+            if (!$this->router->userId) {
+                //include_once dirname( $this->router->cfg['dir'] ) . '/tmp/gen/' . $this->includeHash.'0.php';  
                 include_once dirname( '/home/www/mourjan' ) . '/tmp/gen/' . $this->includeHash.'0.php';  
                 $this->search_bar();
             }
@@ -5458,15 +5451,15 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     
     
     function partnerHeader(){
-        $rc=$this->router()->module=='detail'?'':' rct';
-        $isOwner=  ($this->router()->userId==$this->user->info['id'] && $this->router()->module!='detail' && !$this->pagePreview);
+        $rc=$this->router->module=='detail'?'':' rct';
+        $isOwner=  ($this->router->userId==$this->user->info['id'] && $this->router->module!='detail' && !$this->pagePreview);
         $isOwner=0;
         if($isOwner) {
             $this->inlineScript.='
                 var lj=document.createElement("script");
                 lj.type="text/javascript";
                 lj.async=true;
-                lj.src="'.$this->router()->cfg['url_jquery'].'jquery.colorbox.js";
+                lj.src="'.$this->router->cfg['url_jquery'].'jquery.colorbox.js";
                 lj.onload=lj.onreadystatechange=function(){
                     if(!dLj&&(!this.readyState||this.readyState=="loaded"||this.readyState=="complete")){
                         dLj=true;
@@ -5495,7 +5488,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 });
                 $("#picBS, #picLS").click(function(){
                     var e=$(this);
-                    if (cSize('.$this->router()->cfg['max_upload'].',e.prev())){
+                    if (cSize('.$this->router->cfg['max_upload'].',e.prev())){
                         var p =e.parent().prev();
                         p.html("'.$this->lang['upload_wait'].'");
                         p.addClass("loading");
@@ -5570,11 +5563,11 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 };
             ';
         }
-        $editPageLink='/page/'.($this->router()->language == 'ar' ? '':'en/');
+        $editPageLink='/page/'.($this->router->language == 'ar' ? '':'en/');
         ?><div class='w'><?php
             ?><div class="tbn"<?php
                 if (isset($this->partnerInfo['banner'][0])){
-                    ?>><img src="<?= $this->router()->cfg['url_ad_img'] ?>/usr/banner/<?= $this->partnerInfo['banner'][0] ?>" width="<?= $this->partnerInfo['banner'][1] ?>" height="<?= $this->partnerInfo['banner'][2] ?>" /><?php
+                    ?>><img src="<?= $this->router->cfg['url_ad_img'] ?>/usr/banner/<?= $this->partnerInfo['banner'][0] ?>" width="<?= $this->partnerInfo['banner'][1] ?>" height="<?= $this->partnerInfo['banner'][2] ?>" /><?php
                 }else {
                     ?> id="uTX"><?php
                 }

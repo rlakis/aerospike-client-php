@@ -9,7 +9,7 @@ class Home extends Page {
         \header('Vary: User-Agent');
         parent::__construct();
         $this->lang['description']=$this->lang['home_description'];
-        if ($this->router()->countryId) {
+        if ($this->router->countryId>0) {
             $this->lang['description'].=' '.$this->lang['in'].' '.$this->title;
         }
         else {
@@ -20,10 +20,10 @@ class Home extends Page {
         
     
     function mainMobile(){
-        if ($this->router()->rootId)
-            $this->router()->cacheExtension();
-        $isHome = !$this->router()->rootId && $this->router()->countryId;
-        $lang=$this->router()->language=='ar'?'':$this->router()->language.'/';
+        if ($this->router->rootId)
+            $this->router->cacheExtension();
+        $isHome = !$this->router->rootId && $this->router->countryId;
+        $lang=$this->router->language=='ar'?'':$this->router->language.'/';
         if($isHome && $this->user->info['id']) {
             ?><ul class="ls us"><?php 
                 ?><li><a href="/post/<?= $lang ?>"><span class="ic apb"></span><?= $this->lang['button_ad_post_m'] ?><span class="to"></span></a></li><?php 
@@ -60,7 +60,7 @@ class Home extends Page {
             ?></ul><?php
         }
         $this->renderMobileLinks();
-        if (0 && !$this->router()->rootId && $this->router()->countryId) {
+        if (0 && !$this->router->rootId && $this->router->countryId) {
             ?><div id='fb-box' class="fb-like-box" data-href="http://www.facebook.com/pages/Mourjan/318337638191015" data-show-faces="true" data-stream="false" data-border-color="#E7E9F0" data-header="true"></div><?php
         }
         
@@ -69,11 +69,11 @@ class Home extends Page {
     }
    
     function renderMobileCountry(){
-        if ($this->router()->rootId) return;
-        if ($this->router()->countryId){
+        if ($this->router->rootId) return;
+        if ($this->router->countryId){
             echo '<ul class="ls">';
-            echo '<li><a href="/', $this->appendLang ,'"><span class="flag-icon large c', $this->router()->countryId, '"></span>',
-                $this->countryCounter, ' ',$this->lang['in'],' ',($this->router()->cityId?$this->cityName:$this->countryName),
+            echo '<li><a href="/', $this->appendLang ,'"><span class="flag-icon large c', $this->router->countryId, '"></span>',
+                $this->countryCounter, ' ',$this->lang['in'],' ',($this->router->cityId?$this->cityName:$this->countryName),
                 '<span class="et"></span></a></li>';
             echo '</ul>';
         }else {
@@ -81,7 +81,7 @@ class Home extends Page {
             
             $userCountry = $this->user->params['user_country'] ?? 0;
             if($userCountry){
-                foreach ($this->router()->countries as $country_id => $country) {
+                foreach ($this->router->countries as $country_id => $country) {
                     if($userCountry == $country['uri']){
                         echo '<ul class="cls bbr">';
                         echo '<li><a href="/', $country['uri'], '/'.$this->appendLang.'"><span class="flag-icon large c'.$country_id.'"></span>', $country['name'], '<span class="to"></span></a>';
@@ -98,7 +98,7 @@ class Home extends Page {
                 }         
             }
             echo '<ul class="cls">';
-            foreach ($this->router()->countries as $country_id => $country) {
+            foreach ($this->router->countries as $country_id => $country) {
                 if(!$userCountry || $userCountry != $country['uri']){
                     echo '<li><a href="/', $country['uri'], '/'.$this->appendLang.'"><span class="flag-icon large c'.$country_id.'"></span>', $country['name'], '<span class="to"></span></a>';
                     if (!empty($country['cities'])) {
@@ -116,14 +116,14 @@ class Home extends Page {
     }
        
     function renderMobileRoots(){
-        if (!$this->router()->countryId || $this->router()->rootId) return;
+        if (!$this->router->countryId || $this->router->rootId) return;
         
             echo '<ul class="ls br">';
             $i=0;
 
-            foreach ($this->router()->pageRoots as $key=>$root) {
+            foreach ($this->router->pageRoots as $key=>$root) {
                 $count=$this->checkNewUserContent($root['unixtime']) ? '<b>'.$root['counter'].'</b>' : $root['counter'];
-                $_link = $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $key);
+                $_link = $this->router->getURL($this->router->countryId, $this->router->cityId, $key);
                         
                 echo '<li><a href="', $_link, '"><span class="ic r',$key,'"></span>',
                     $root['name'], '<span class="to"></span><span class="n">', $count, '</span></a></li>';
@@ -135,12 +135,12 @@ class Home extends Page {
     
     
     function renderMobileSections(){
-        if (!$this->router()->rootId) return;
+        if (!$this->router->rootId) return;
         echo "<ul class='ls oh'>";
         $i=0;
-        //$hasLogoSpan=$this->router()->rootId==2?true:false;
+        //$hasLogoSpan=$this->router->rootId==2?true:false;
         $cssPre='';
-        switch($this->router()->rootId){
+        switch($this->router->rootId){
                         case 1:
                             $cssPre='x x';
                             break;
@@ -157,19 +157,19 @@ class Home extends Page {
                             $cssPre='u u';
                             break;
         } 
-        foreach ($this->router()->pageSections as $key=>$section) {
-            $this->router()->pageSections[$key]['id']=$key;
+        foreach ($this->router->pageSections as $key=>$section) {
+            $this->router->pageSections[$key]['id']=$key;
         }
         if(isset($this->user->params['catsort']) && $this->user->params['catsort']){
-            usort($this->router()->pageSections, function($a, $b){
+            usort($this->router->pageSections, function($a, $b){
                 return $b['counter'] > $a['counter'];
             });
         }
-        foreach ($this->router()->pageSections as $section) {
+        foreach ($this->router->pageSections as $section) {
             $count=$this->checkNewUserContent($section['unixtime']) ? '<b>'.$section['counter'].'</b>' : $section['counter'];
             $purposeId = (count($section['purposes'])==1) ? array_keys($section['purposes'])[0] : 0;
             //$purposeId=(is_numeric($section[3]) ? (int)$section[3]:0);
-            $_link = $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $section['id'], $purposeId);
+            $_link = $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $section['id'], $purposeId);
             echo '<li'.(in_array($section['id'],[29,63,105,117]) ? ' class="ozer"':'').'><a href="', $_link, '">',
                     "<span class='{$cssPre}{$section['id']}'></span>",
                     $section['name'], '<span class="to"></span><span class="n">', $count, '</span></a></li>';
@@ -285,10 +285,10 @@ var setOrder=function(e)
     // deprecated
     function _main_pane(){        
         $adLang='';
-        if (!$this->router()->isArabic()) { $adLang=$this->router()->language.'/'; }
+        if (!$this->router->isArabic()) { $adLang=$this->router->language.'/'; }
         
         ?><div class="tv rcb"><div class="tx sh"><div class=tz><?= $this->lang['billboard'] ?><p class=ctr><?php
-        if (!$this->router()->siteTranslate) {
+        if (!$this->router->siteTranslate) {
             if ($this->user->info['id']){
                 echo '<a class=bt href="/post/'.$adLang.'" rel="nofollow">'.$this->lang['placeAd'].'</a>';
             }
@@ -306,21 +306,21 @@ var setOrder=function(e)
         echo '<!--googleoff: snippet-->';
         echo '<div class="row home">';
         $sections = [];
-        foreach ($this->router()->pageRoots as $id=>$root) {
+        foreach ($this->router->pageRoots as $id=>$root) {
             //$count = $root['counter'];
-            $link = $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $id);
-            $sections[$id] = $this->router()->database()->getSectionsData($this->router()->countryId, $this->router()->cityId, $id, $this->router()->language, true);
+            $link = $this->router->getURL($this->router->countryId, $this->router->cityId, $id);
+            $sections[$id] = $this->router->db->getSectionsData($this->router->countryId, $this->router->cityId, $id, $this->router->language, true);
         }
         foreach ($sections as $root_id => $items) {
             echo '<div class=col-4><div class=card>';
             echo '<div class=card-header style="background-color:var(--color-',$root_id,');"><i class="icn icn-', $root_id, '"></i></div>';
             echo '<div class=card-content>';
-            echo '<h4 class=card-title>', $this->router()->pageRoots[$root_id]['name'],'</h4>';
+            echo '<h4 class=card-title>', $this->router->pageRoots[$root_id]['name'],'</h4>';
             echo '<ul>';
             $i=0;
             foreach ($items as $section_id => $section) {
                 if ($section['counter']==0) { break; }
-                $link = $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $root_id, $section_id);
+                $link = $this->router->getURL($this->router->countryId, $this->router->cityId, $root_id, $section_id);
                 $cls = $this->checkNewUserContent($section['unixtime']) ? ' hot': '';
                 echo '<li><a href="', $link,'">', $section['name'], '<span class="float-right', $cls, '">', \number_format($section['counter'],0), '</span></a></li>';
                 $i++;
@@ -333,15 +333,15 @@ var setOrder=function(e)
 
         echo '<div class=col-4><div class="card test"><div class=card-content>';
         echo '<ul>';
-        echo '<li><a href="', $this->router()->getLanguagePath('/post/'), '"><i class="icn s icn-82"></i><span>', $this->lang['postFree'], '</span></a></li>';
+        echo '<li><a href="', $this->router->getLanguagePath('/post/'), '"><i class="icn s icn-82"></i><span>', $this->lang['postFree'], '</span></a></li>';
         if ($this->user()->id()) {
             $balance_label= $this->lang['myBalance']. ' is '.$this->user()->getBalance() . ' coins';
-            echo '<li><a href="', $this->router()->getLanguagePath('/statement/'), '"><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></a></li>';
+            echo '<li><a href="', $this->router->getLanguagePath('/statement/'), '"><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></a></li>';
         }
-        echo '<li><a href="', $this->router()->getLanguagePath('/contact/'), '"><i class="icn s icn-88"></i><span>', $this->lang['contactUs'], '</span></a></li>';
-        echo '<li><a href="', $this->router()->getLanguagePath('/about/'), '"><i class="icn s icn-83"></i><span>', $this->lang['aboutUs'], '</span></a></li>';
-        echo '<li><a href="', $this->router()->getLanguagePath('/terms/'), '"><i class="icn s icn-85"></i><span>', $this->lang['termsConditions'], '</span></a></li>';
-        echo '<li><a href="', $this->router()->getLanguagePath('/privacy/'), '"><i class="icn s icn-81"></i><span>', $this->lang['privacyPolicy'], '</span></a></li>';
+        echo '<li><a href="', $this->router->getLanguagePath('/contact/'), '"><i class="icn s icn-88"></i><span>', $this->lang['contactUs'], '</span></a></li>';
+        echo '<li><a href="', $this->router->getLanguagePath('/about/'), '"><i class="icn s icn-83"></i><span>', $this->lang['aboutUs'], '</span></a></li>';
+        echo '<li><a href="', $this->router->getLanguagePath('/terms/'), '"><i class="icn s icn-85"></i><span>', $this->lang['termsConditions'], '</span></a></li>';
+        echo '<li><a href="', $this->router->getLanguagePath('/privacy/'), '"><i class="icn s icn-81"></i><span>', $this->lang['privacyPolicy'], '</span></a></li>';
         echo '</ul></div></div>', "\n"; // card
         echo '</div>'; // col-4
         
@@ -354,20 +354,20 @@ var setOrder=function(e)
              'eg'=>null, 'ma'=>null, 'tn'=>null, 'dz'=>null];
         
          
-        foreach ($this->router()->countries as $id => $cn) {
+        foreach ($this->router->countries as $id => $cn) {
             
             if (!isset($cc[$cn['uri']])) { $cc['uri']=null; }
             
             if ($cn['uri'] && $cc[$cn['uri']]==null) {
-                $cc[$cn['uri']] = "<dt><a href={$this->router()->getURL($id)}><i class=\"icn s icn-{$cn['uri']}\"></i><span>{$cn['name']}</span></a></dt>\n";
+                $cc[$cn['uri']] = "<dt><a href={$this->router->getURL($id)}><i class=\"icn s icn-{$cn['uri']}\"></i><span>{$cn['name']}</span></a></dt>\n";
             }
             
             foreach ($cn['cities'] as $cid=>$city) {
-                $href = $this->router()->getURL($id, $cid);
+                $href = $this->router->getURL($id, $cid);
                 $cc[$cn['uri']].= "<dd><a href={$href}>{$city['name']}</a></dd>\n";
             }
         }
-        echo '<div class=card>', '<div class="card-header" style="background-color:navy;"><i class="icn icn-globe"></i></div>', '<div class=card-content><h4 class=card-title>', $this->lang['countries_regions'], '</h4>';
+        echo '<div class=card>', '<div class="card-header" style="background-color:navy;"><i class="icn icn-region"></i></div>', '<div class=card-content><h4 class=card-title>', $this->lang['countries_regions'], '</h4>';
         echo '<div class=col-4><dl class=dl>', $cc['ae'], $cc['bh'], $cc['qa'], $cc['kw'], '</dl></div>', "\n"; 
         echo '<div class=col-4><dl class=dl>', $cc['sa'], $cc['om'], $cc['ye'], $cc['iq'], '</dl></div>', "\n"; 
         echo '<div class=col-4><dl class=dl>', $cc['lb'], $cc['jo'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], '</dl></div>', "\n"; 
@@ -381,7 +381,7 @@ var setOrder=function(e)
     
     
     function main_pane_OLD() {
-    	$file= dirname( $this->router()->config()->baseDir ) . '/tmp/gen/index-' . $this->includeHash . '2.php';
+    	$file= dirname( $this->router->config()->baseDir ) . '/tmp/gen/index-' . $this->includeHash . '2.php';
     	$file= dirname( '/home/www/mourjan' ) . '/tmp/gen/index-' . $this->includeHash . '2.php';
         if (file_exists($file)) {
             echo '<!--googleoff: snippet-->';
@@ -390,4 +390,3 @@ var setOrder=function(e)
         }
     }
 }
-?>

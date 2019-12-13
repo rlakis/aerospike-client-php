@@ -8,65 +8,73 @@ include_once 'Singleton.php';
 class Router extends \Singleton {
     const POSITIVE_VALUE = ["options" => ["default" => 0, "min_range" => 0]];
     
-    var $db;
-    var $uri;
+    public DB $db;
+    public string $uri;
     
-    private $config;
-    public $cookie = null;
-    var $pageTitle = ['ar'=>'', 'en'=>''];
-    var $language = '';
-    var $extendedLanguage = '';
-    var $siteTranslate = '';
-    var $module = 'index';
-    var $userId = 0;
-    var $watchId=null;
-    var $basePartnerId=1016458799;
-    var $baseUserId=2016458799;
-    var $countryId = 0;
-    var $cityId = 0;
-    var $purposeId = 0;
-    var $rootId = 0;
-    var $sectionId = 0;
-    var $id=0;
+    public \Config $config;
+    public object $cookie;
+    public array $pageTitle=['ar'=>'', 'en'=>''];
+    public string $language='';
+    public string $extendedLanguage='';
+    public string $siteTranslate='';
+    public string $module='index';
+    public int $userId=0;
+    public ?int $watchId=null;
+    public int $basePartnerId=1016458799;
+    public int $baseUserId=2016458799;
     
-    var $params= ['start'=>0,'q'=>'','iq'=>'', 'id'=>FALSE, 'cn'=>FALSE, 'c'=>FALSE, 'ro'=>FALSE, 'se'=>FALSE, 'pu'=>FALSE, 'rss'=>FALSE];
+    public int $countryId=0;
+    public int $cityId=0;
+    public int $purposeId=0;
+    public int $rootId=0;
+    public int $sectionId=0;
     
-    var $countries=NULL;
-    var $cities=NULL;
-    var $roots=NULL;
-    var $sections=NULL;
-    var $purposes=NULL;
+    private int $id=0;
     
-    var $pageRoots=NULL;
-    var $pageSections=NULL;
-    var $pagePurposes=NULL;
-    var $naming=NULL;
+    public array $params=['start'=>0,'q'=>'','iq'=>'', 'id'=>FALSE, 'cn'=>FALSE, 'c'=>FALSE, 'ro'=>FALSE, 'se'=>FALSE, 'pu'=>FALSE, 'rss'=>FALSE];
+    
+    public ?array $countries=NULL;
+    public ?array $cities=NULL;
+    public ?array $roots=NULL;
+    public ?array $sections=NULL;
+    public ?array $purposes=NULL;
+    
+    public ?array $pageRoots=NULL;
+    public ?array $pageSections=NULL;
+    public ?array $pagePurposes=NULL;
+    public ?array $naming=NULL;
     
     
-    var $force_search = false;
-    var $isDynamic = false;
-    var $isMobile = false;
-    public $isAMP = 0;
-    public $isApp = 0;
-    public $client_ip;
-    var $host = 'www.mourjan.com';
-    var $referer = '';
-    var $session_key;
-    var $internal_referer = false;
-    var $http_status = 200;
-    var $last_modified = false;
-    var $count = 0;
-    var $isPriceList = 0;
-    var $isAcceptWebP = 0;
+    private bool $canonical=false;
+    public bool $force_search=false;
+    public bool $isDynamic=false;
+    public bool $isMobile=false;
+    public bool $internal_referer=false;
+    public bool $isAMP=false;
+    public bool $isApp=false;
+    public bool $isPriceList=false;
+    public bool $isAcceptWebP=false;
     
-    public $_png = '.png';
-    public $_jpg = '.jpg';
-    public $_jpeg = '.jpeg';
-    private $canonical = false;
-    private $explodedRequestURI;
     
-    private $user;
-    private $logger;
+    public string $client_ip;
+    public string $host='www.mourjan.com';
+    public string $referer='';
+    public string $session_key;
+    
+    
+    private int $http_status=200;
+    public int $last_modified=0;
+    public int $count=0;
+    
+    
+    public string $_png='.png';
+    public string $_jpg='.jpg';
+    public string $_jpeg='.jpeg';
+    
+    private array $explodedRequestURI;
+    
+    public \User $user;
+    private \Core\Lib\Logger $logger;
     
     
     public static function instance() : Router {
@@ -76,8 +84,8 @@ class Router extends \Singleton {
     
     protected function __construct() {
         global $argc;       
-        $this->config = \Config::instance();
-        $this->db = new DB();
+        $this->config=\Config::instance();
+        $this->db=new DB();
             
         if (isset($argc)) { return; }
 
@@ -94,12 +102,12 @@ class Router extends \Singleton {
         }
         
         $cmu=\filter_input(INPUT_COOKIE, 'mourjan_user', FILTER_DEFAULT, ['options'=>['default'=>'{}']]);
-        $this->cookie= \json_decode($cmu);
+        $this->cookie=\json_decode($cmu);
         
-        $this->session_key = \session_id();
+        $this->session_key=\session_id();
         $_session_params = $_SESSION['_u']['params'] ?? [];
                 
-        $this->isAcceptWebP = (isset($_SERVER['HTTP_ACCEPT']) && \strstr($_SERVER['HTTP_ACCEPT'], 'image/webp'));
+        $this->isAcceptWebP=(isset($_SERVER['HTTP_ACCEPT']) && \strstr($_SERVER['HTTP_ACCEPT'], 'image/webp'));
         if (isset($_SESSION['webp']) && $_SESSION['webp']) {
             $this->isAcceptWebP = 1;            
         } 
@@ -520,9 +528,9 @@ class Router extends \Singleton {
     }
     
     
-    public function user() : \User {
-        return $this->user;
-    }
+    //public function user() : \User {
+    //    return $this->user;
+    //}
     
     
     public function setUser(\User $kUser) : void {
@@ -582,11 +590,6 @@ class Router extends \Singleton {
         //error_log(json_encode($geo));
         //$this->isBehindProxy();
         return $geo;
-    }
-	
-    
-    public function config() : \Config {
-        return $this->config;
     }
 	
     
@@ -650,11 +653,6 @@ class Router extends \Singleton {
    
 
     function __destruct() {
-    }
-    
-    
-    public function database() : DB {
-        return $this->db;
     }
     
     
@@ -888,7 +886,7 @@ class Router extends \Singleton {
                     and naming.LANG='{$this->language}'
                     and (country_id={$this->countryId} or country_id=0)
                     order by naming.COUNTRY_ID desc",
-                    null, -1, $this->config()->get('ttl_long'), $force);
+                    null, -1, $this->config->get('ttl_long'), $force);
             }
                                 
         } 

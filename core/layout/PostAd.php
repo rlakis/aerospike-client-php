@@ -18,26 +18,26 @@ class PostAd extends Page {
     function __construct() {
         parent::__construct();
         
-        if ($this->router()->config()->isMaintenanceMode()) {
-            $this->user()->redirectTo($this->router()->getLanguagePath('/maintenance/'));
+        if ($this->router->config()->isMaintenanceMode()) {
+            $this->user()->redirectTo($this->router->getLanguagePath('/maintenance/'));
         }
         
         $this->checkBlockedAccount();
         $this->checkSuspendedAccount();
                 
         //syslog(LOG_INFO, json_encode($this->user->info));        
-        $this->router()->config()->setValue('enabled_sharing', 0);
-        $this->router()->config()->disableAds();               
+        $this->router->config()->setValue('enabled_sharing', 0);
+        $this->router->config()->disableAds();               
         
         $this->load_lang(array("post"));
         $this->set_require('css', array('post'));
         $this->title=$this->lang['title'];
 
         if ($this->user->params['country']) {
-            $this->router()->countryId=$this->user->params['country'];
+            $this->router->countryId=$this->user->params['country'];
         }
         if ($this->user->params['city']) {
-            $this->router()->cityId=$this->user->params['city'];
+            $this->router->cityId=$this->user->params['city'];
         }
         
         //$this->isUserMobileVerified=false;
@@ -105,8 +105,8 @@ class PostAd extends Page {
             $altPreview='';
             $maximumChars=400;
             $minimumChars=30;                                   
-            $adRTL=($this->router()->isArabic() ? 1 : 0);          
-            $altRTL=($this->router()->isArabic() ? 0 : 1);     
+            $adRTL=($this->router->isArabic() ? 1 : 0);          
+            $altRTL=($this->router->isArabic() ? 0 : 1);     
                         
             //load contact info
             if (!isset($this->adContent['cui']) || (isset($this->adContent['cui']) && !is_array($this->adContent['cui']))) {
@@ -179,7 +179,7 @@ class PostAd extends Page {
             if (isset($this->user->params['country']) && $this->user->params['country']) {
                 $cid=$this->user->params['country'];
                 $q='select c.code, c.id, c.name_ar, c.name_en, c.locked, trim(id_2) from country c';
-                $cc=$this->router()->database()->queryCacheResultSimpleArray('country_codes_req', $q, null, 1, $this->router()->config()->get('ttl_long'));
+                $cc=$this->router->db->queryCacheResultSimpleArray('country_codes_req', $q, null, 1, $this->router->config()->get('ttl_long'));
                 if (isset($cc[$cid])){
                     $setccv=1;
                     $this->globalScript.='var ccv={c:'.$cc[$cid][0].',n:'.($cc[$cid][4] ? $cc[$cid][1]:0).',en:"'.$cc[$cid][3].'",ar:"'.$cc[$cid][2].'",i:"'.$cc[$cid][5].'"};';
@@ -198,7 +198,7 @@ class PostAd extends Page {
                 }
             }                      
             
-            $current_country_code = isset($this->router()->countries[$this->router()->countryId]['uri']) ? \strtoupper($this->router()->countries[$this->router()->countryId]['uri']) : '';
+            $current_country_code = isset($this->router->countries[$this->router->countryId]['uri']) ? \strtoupper($this->router->countries[$this->router->countryId]['uri']) : '';
             
             $ip=IPQuality::fetchJson(false)['ipquality'];
             echo '<form id=adForm action="" onsubmit="window.event.preventDefault(); return false;" method=post data-id=', $this->ad()->id(), 
@@ -293,10 +293,10 @@ class PostAd extends Page {
                     left join city c on c.country_id=cn.id                    
                     where cn.blocked=0
                     and c.blocked=0                    
-                    order by cn.NAME_'.$this->router()->language.', c.name_'.$this->router()->language;
+                    order by cn.NAME_'.$this->router->language.', c.name_'.$this->router->language;
                 
-            $countries = $this->router()->database()->queryCacheResultSimpleArray(
-                    'mobile_countries_'.$this->router()->language, $q, NULL, 8, $this->router()->config()->get('ttl_long'));
+            $countries = $this->router->db->queryCacheResultSimpleArray(
+                    'mobile_countries_'.$this->router->language, $q, NULL, 8, $this->router->config()->get('ttl_long'));
 
             
             if (0 && $this->user()->level()===9 && ((isset($this->ad) && $this->ad) || (isset($this->adContent['ip']) || isset($this->adContent['userLOC']) || isset($this->adContent['agent'])) )) {
@@ -336,7 +336,7 @@ class PostAd extends Page {
                 $cityCount=0;
                 $country_index = 2;
                 $city_index = 6;
-                if ($this->router()->isArabic()) {
+                if ($this->router->isArabic()) {
                     $country_index = 1;
                     $city_index = 5;
                 }
@@ -381,7 +381,7 @@ class PostAd extends Page {
                     }
                 }
                 ?><li class=en><b>Selected Cities:</b></li><?php
-                ?><li class="<?= $this->router()->language ?>"><b class="ah"><?= ($cityList ? substr($cityList, 3) : '') ?></b></li><?php
+                ?><li class="<?= $this->router->language ?>"><b class="ah"><?= ($cityList ? substr($cityList, 3) : '') ?></b></li><?php
                 
                 ?></ul><?php
             
@@ -393,7 +393,7 @@ class PostAd extends Page {
             ?><ul class="ls cls nsh po<?= (!$seqHide ? '':' hid') ?>"><?php                  
                 if ($budget && $this->userBalance && $this->ad()->uid()===$this->user()->id()) {
                     $with = '';
-                    if($this->router()->isArabic()){
+                    if($this->router->isArabic()){
                         if($budget == 1){
                             $with = 'ذهبية واحدة';
                         }else if($budget == 2){
@@ -417,7 +417,7 @@ class PostAd extends Page {
                     ?><li class="pid"><b class="ah ctr"><span onclick="savAdP()" class="button bt btw gold"><?= $this->lang['publish_ad_premium'] ?></span></b></li><?php
                 }
             ?></ul><?php 
-            if($this->isMobile || $this->router()->isApp > '1.0.4'){                
+            if($this->isMobile || $this->router->isApp > '1.0.4'){                
                 ?><div id="loading_dialog" class="dialog loading"><?php
                     ?><div class="dialog-box"></div><?php 
                 ?></div><?php
@@ -768,7 +768,7 @@ class PostAd extends Page {
     
     function main_pane() {
         if ($this->user()->isLoggedIn()) {
-            if (!$this->router()->config()->get('enabled_post')) {
+            if (!$this->router->config()->get('enabled_post')) {
                 $this->renderDisabledPage();
                 return;
             }

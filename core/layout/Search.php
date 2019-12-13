@@ -6,12 +6,16 @@ use Core\Lib\SphinxQL;
 
 class Search extends Page {    
 
-    protected $id = 0;
-    protected $paginationString = '';
-    protected $adCount = 0;
-    protected $subTitle = '';
-    var $tmpRootId = 0, $tmpPurposeId = 0;
-    var $classifieds = null, $breadString = '', $crumbTitle = '', $crumbString = '', $adRef = '', $dynamicTitle = '',
+    protected int $id=0;
+    protected int $adCount=0;
+    protected string $subTitle='';
+    protected string $paginationString='';
+    
+    private int $tmpRootId=0;
+    private int $tmpPurposeId=0;
+    
+    /*var $classifieds = null,*/
+    public $breadString = '', $crumbTitle = '', $crumbString = '', $adRef = '', $dynamicTitle = '',
         $pageThumb = '', $partnerSection = '', $watchName = '', $formatNumbers=false, $mobileValidator=null, $phoneNumber=null;
     var $isRT = 0;
     
@@ -20,45 +24,45 @@ class Search extends Page {
         header('Vary: User-Agent');
         parent::__construct(); 
         
-        $this->tmpPurposeId = 0;
-        $this->tmpRootId = 0;
+        $this->tmpPurposeId=0;
+        $this->tmpRootId=0;
         
         if (isset($_GET['rt'])) { $this->isRT = 1; }
         
         if (!$this->user()->isLoggedIn()) {
-            if ($this->userFavorites || $this->router()->watchId) {
-                $this->router()->config()->disableAds();
+            if ($this->userFavorites || $this->router->watchId) {
+                $this->router->config->disableAds();
             }
         }
         else if ($this->user()->isLoggedIn(9)) {
-            $this->router()->config()->disableAds();
+            $this->router->config->disableAds();
         }
         
             
        
         /*     
-        if (!$this->isMobile && !$this->router()->userId && !$this->userFavorites && !$this->router()->watchId) {
+        if (!$this->isMobile && !$this->router->userId && !$this->userFavorites && !$this->router->watchId) {
             $this->hasLeadingPane=true;
             if ($this->user->info['id'] && $this->user->info['level']==9) {
                 $this->isAdminSearch=isset($_SERVER['HTTP_REFERER']) && preg_match('/\/myads\/\?sub=pending$/', $_SERVER['HTTP_REFERER']) ? 1 : 0;
             }                        
         }              
         */
-        if ($this->isMobile && ($this->router()->watchId || $this->userFavorites)) {
-            $this->router()->config()->disableAds();
+        if ($this->isMobile && ($this->router->watchId || $this->userFavorites)) {
+            $this->router->config->disableAds();
         }
                 
         $this->stat = array();
         if ($this->userFavorites) { $this->checkBlockedAccount(5); }
-        if ($this->router()->watchId) { $this->checkBlockedAccount(); }
+        if ($this->router->watchId) { $this->checkBlockedAccount(); }
         
         $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
         if (!isset($this->user->params['user_country'])) { $this->checkUserGeo(); }
 
         $isBot = preg_match('/googlebot/i',$_SERVER['HTTP_USER_AGENT']);
         if ($isBot) {
-            if ($this->router()->countryId) {
-                $this->formatNumbers=strtoupper($this->router()->countries[$this->router()->countryId]['uri']);
+            if ($this->router->countryId) {
+                $this->formatNumbers=strtoupper($this->router->countries[$this->router->countryId]['uri']);
             }
             elseif ($this->user->params['user_country']) {
                 $this->formatNumbers=strtoupper($this->user->params['user_country']);                    
@@ -67,15 +71,15 @@ class Search extends Page {
         else {
             if ($this->user->params['user_country']) {   
                 $this->formatNumbers=strtoupper($this->user->params['user_country']);
-            } elseif($this->router()->countryId) {
-                $this->formatNumbers=strtoupper($this->router()->countries[$this->router()->countryId]['uri']);
+            } elseif($this->router->countryId) {
+                $this->formatNumbers=strtoupper($this->router->countries[$this->router->countryId]['uri']);
             }
         }
         
         
-        if ($this->router()->watchId !== null) {
-            if ($this->router()->watchId > 0) {
-                $this->watchInfo = $this->user->getWatchInfo($this->router()->watchId);
+        if ($this->router->watchId !== null) {
+            if ($this->router->watchId > 0) {
+                $this->watchInfo = $this->user->getWatchInfo($this->router->watchId);
             }
             $this->title = $this->lang['myList'];
             $this->channelId=$this->get('channel');
@@ -95,47 +99,47 @@ class Search extends Page {
                 $this->inlineCss.='.brd .rss{margin:9px 10px}';
             }
         } 
-        elseif ($this->router()->userId) {
+        elseif ($this->router->userId) {
             if (isset($_GET['preview'])) { $this->pagePreview = true; }
             $this->title = '';
-            $this->router()->config()->disableAds();
-            $this->partnerInfo = $this->user->getPartnerInfo($this->router()->userId);
+            $this->router->config->disableAds();
+            $this->partnerInfo = $this->user->getPartnerInfo($this->router->userId);
             if (!is_array($this->partnerInfo)) {
-                $this->router()->userId = 0;
-                $this->user->redirectTo('/invalid/' . ($this->router()->language == 'ar' ? '' : $this->router()->language . '/'));
+                $this->router->userId = 0;
+                $this->user->redirectTo('/invalid/' . ($this->router->language == 'ar' ? '' : $this->router->language . '/'));
             }
             $this->set_require('css', 'profile');
             $descAr = isset($this->partnerInfo['descAr']) && $this->partnerInfo['descAr'] ? $this->partnerInfo['descAr'] : '';
             $descEn = isset($this->partnerInfo['descEn']) && $this->partnerInfo['descEn'] ? $this->partnerInfo['descEn'] : '';
 
-            if ($this->router()->sectionId) {
-                switch ($this->router()->purposeId) {
+            if ($this->router->sectionId) {
+                switch ($this->router->purposeId) {
                     case 1:
                     case 2:
                     case 8:
                     case 999:
-                        $this->partnerSection = $this->router()->sections[$this->router()->sectionId][$this->fieldNameIndex] . ' ' . $this->router()->purposes[$this->router()->purposeId][$this->fieldNameIndex];
+                        $this->partnerSection = $this->router->sections[$this->router->sectionId][$this->fieldNameIndex] . ' ' . $this->router->purposes[$this->router->purposeId][$this->fieldNameIndex];
                         break;
                     case 6:
                     case 7:
-                        $this->partnerSection = $this->router()->purposes[$this->router()->purposeId][$this->fieldNameIndex] . ' ' . $this->router()->sections[$this->router()->sectionId][$this->fieldNameIndex];
+                        $this->partnerSection = $this->router->purposes[$this->router->purposeId][$this->fieldNameIndex] . ' ' . $this->router->sections[$this->router->sectionId][$this->fieldNameIndex];
                         break;
                     case 3:
-                        if ($this->router()->language == 'ar') {
-                            $this->partnerSection = 'وظائف ' . $sectionName = $this->router()->sections[$this->router()->sectionId][$this->fieldNameIndex];
+                        if ($this->router->language == 'ar') {
+                            $this->partnerSection = 'وظائف ' . $sectionName = $this->router->sections[$this->router->sectionId][$this->fieldNameIndex];
                         } else {
-                            $this->partnerSection = $this->router()->sections[$this->router()->sectionId][$this->fieldNameIndex] . ' ' . $this->router()->purposes[$this->router()->purposeId][$this->fieldNameIndex];
+                            $this->partnerSection = $this->router->sections[$this->router->sectionId][$this->fieldNameIndex] . ' ' . $this->router->purposes[$this->router->purposeId][$this->fieldNameIndex];
                         }
                         break;
                     case 4:
                         $in = ' ';
-                        if ($this->router()->language == "en")
+                        if ($this->router->language == "en")
                             $in = ' ' . $this->lang['in'] . ' ';
-                        $this->partnerSection = $this->router()->purposes[$this->router()->purposeId][$this->fieldNameIndex] . $in . $this->router()->sections[$this->router()->sectionId][$this->fieldNameIndex];
+                        $this->partnerSection = $this->router->purposes[$this->router->purposeId][$this->fieldNameIndex] . $in . $this->router->sections[$this->router->sectionId][$this->fieldNameIndex];
                         break;
                     case 0;
                     case 5:
-                        $this->partnerSection = $this->router()->sections[$this->router()->sectionId][$this->fieldNameIndex];
+                        $this->partnerSection = $this->router->sections[$this->router->sectionId][$this->fieldNameIndex];
                         break;
                     default:
                         break;
@@ -143,7 +147,7 @@ class Search extends Page {
             }
             
             $this->forceNoIndex = true;
-            if ($this->router()->language == 'ar') {
+            if ($this->router->language == 'ar') {
                 if (isset($this->partnerInfo['t']['ar']) && $this->partnerInfo['t']['ar']) {
                     $this->partnerInfo['title'] = $this->partnerInfo['t']['ar'];
                     $this->forceNoIndex = false;
@@ -183,9 +187,9 @@ class Search extends Page {
 
            
             $this->title = $this->title ? ($this->partnerSection ? $this->partnerSection . ' - ' : '') . $this->title : $this->lang['partner_page_title'];
-            if (is_numeric($this->partnerInfo['uri']) || $this->router()->module == 'detail')
+            if (is_numeric($this->partnerInfo['uri']) || $this->router->module == 'detail')
                 $this->forceNoIndex = true;
-            if ($this->router()->userId == $this->user->info['id'] ||
+            if ($this->router->userId == $this->user->info['id'] ||
                     $this->lang['description'] ||
                     (isset($this->partnerInfo['a']['ar']) && $this->partnerInfo['a']['ar']) ||
                     (isset($this->partnerInfo['a']['en']) && $this->partnerInfo['a']['en']) ||
@@ -206,47 +210,47 @@ class Search extends Page {
         }
         else {            
             $this->globalScript.='var sic=[];';
-            $this->set_ad(array('zone_6' => array('/1006833/MeduimRectangle', 300, 250, 'div-gpt-ad-1344944824543-0-' . $this->router()->config()->serverId),
-                        'zone_10'=>array('/1006833/HalfPage', 300, 600, 'div-gpt-ad-1351783135410-0-'.$this->router()->config()->serverId),
-                        'zone_11'=>array('/1006833/HalfPage2', 300, 600, 'div-gpt-ad-1505307438459-0'.$this->router()->config()->serverId)                        
+            $this->set_ad(array('zone_6' => array('/1006833/MeduimRectangle', 300, 250, 'div-gpt-ad-1344944824543-0-' . $this->router->config->serverId),
+                        'zone_10'=>array('/1006833/HalfPage', 300, 600, 'div-gpt-ad-1351783135410-0-'.$this->router->config->serverId),
+                        'zone_11'=>array('/1006833/HalfPage2', 300, 600, 'div-gpt-ad-1505307438459-0'.$this->router->config->serverId)                        
                         ));
         }
-        if ($this->router()->sectionId==10) { $this->num = $this->num * 2; }
+        if ($this->router->sectionId==10) { $this->num = $this->num * 2; }
         */
        
-        if ($this->router()->rootId && isset($this->router()->roots[$this->router()->rootId]))
-            $this->rootName = $this->router()->roots[$this->router()->rootId][$this->fieldNameIndex];
+        if ($this->router->rootId && isset($this->router->roots[$this->router->rootId]))
+            $this->rootName = $this->router->roots[$this->router->rootId][$this->fieldNameIndex];
         else
-            $this->router()->rootId = 0;
+            $this->router->rootId = 0;
 
-        if ($this->router()->sectionId && isset($this->router()->sections[$this->router()->sectionId]))
-            $this->sectionName = $this->router()->sections[$this->router()->sectionId][$this->fieldNameIndex];
+        if ($this->router->sectionId && isset($this->router->sections[$this->router->sectionId]))
+            $this->sectionName = $this->router->sections[$this->router->sectionId][$this->fieldNameIndex];
         else
-            $this->router()->sectionId = 0;
-        if ($this->router()->purposeId && isset($this->router()->purposes[$this->router()->purposeId]))
-            $this->purposeName = $this->router()->purposes[$this->router()->purposeId][$this->fieldNameIndex];
+            $this->router->sectionId = 0;
+        if ($this->router->purposeId && isset($this->router->purposes[$this->router->purposeId]))
+            $this->purposeName = $this->router->purposes[$this->router->purposeId][$this->fieldNameIndex];
 
-        if (!$this->router()->userId && !$this->router()->watchId && !$this->userFavorites) {
-            if ($this->router()->rootId == 1 && $this->router()->sectionId &&
-                    ($this->router()->countryId == 1 ||
-                    $this->router()->countryId == 2 || 
-                    $this->router()->countryId == 3 || 
-                    $this->router()->countryId == 4 ||
-                    $this->router()->countryId == 7 ||
-                    $this->router()->countryId == 9)
+        if (!$this->router->userId && !$this->router->watchId && !$this->userFavorites) {
+            if ($this->router->rootId == 1 && $this->router->sectionId &&
+                    ($this->router->countryId == 1 ||
+                    $this->router->countryId == 2 || 
+                    $this->router->countryId == 3 || 
+                    $this->router->countryId == 4 ||
+                    $this->router->countryId == 7 ||
+                    $this->router->countryId == 9)
             ) {
-                $this->localities = $this->router()->db->getLocalitiesData($this->router()->countryId, $this->router()->sectionId, NULL, $this->router()->language);                
-                if ($this->router()->cityId) {
+                $this->localities = $this->router->db->getLocalitiesData($this->router->countryId, $this->router->sectionId, NULL, $this->router->language);                
+                if ($this->router->cityId) {
                     foreach ($this->localities as $loc) {
-                        if ($loc['city_id'] == $this->router()->cityId) {
+                        if ($loc['city_id'] == $this->router->cityId) {
                             $this->forceNoIndex = true;
                             break;
                         }
                     }
                 }
 
-                if (isset($this->router()->params['loc_id']))
-                    $this->localityId = $this->router()->params['loc_id']+0;
+                if (isset($this->router->params['loc_id']))
+                    $this->localityId = $this->router->params['loc_id']+0;
                 if (!($this->localities && $this->localityId && isset($this->localities[$this->localityId])))
                     $this->localityId = 0;
                 
@@ -266,32 +270,32 @@ class Search extends Page {
                 }
                 
             }
-            elseif ($this->router()->sectionId) {
-                $this->extended = $this->router()->db->getSectionTagsData($this->router()->countryId, $this->router()->cityId, $this->router()->sectionId, $this->router()->language);
+            elseif ($this->router->sectionId) {
+                $this->extended = $this->router->db->getSectionTagsData($this->router->countryId, $this->router->cityId, $this->router->sectionId, $this->router->language);
             }
         }
         
-        if ($this->router()->module == 'search' &&
-                (($this->router()->purposeId && !$this->router()->rootId && !$this->router()->sectionId) ||
-                ($this->router()->rootId == 99 && !$this->router()->sectionId))) {
+        if ($this->router->module == 'search' &&
+                (($this->router->purposeId && !$this->router->rootId && !$this->router->sectionId) ||
+                ($this->router->rootId == 99 && !$this->router->sectionId))) {
             $this->forceNoIndex = true;
         }
         
-        if (!$this->router()->userId && !$this->router()->watchId) {
+        if (!$this->router->userId && !$this->router->watchId) {
             $this->buildTitle();
         }
         
-        if(!$this->router()->isPriceList){
+        if(!$this->router->isPriceList){
             $this->num = 18;
             $this->execute(true);           
             if ($this->pageUserId && !$this->searchResults['body']['total_found']) {
-                $this->router()->config()->disableAds();
-                $this->router()->cfg['enabled_sharing']=0;
+                $this->router->config->disableAds();
+                $this->router->cfg['enabled_sharing']=0;
             }
         }
         
-        if (in_array($this->router()->sectionId, $this->router()->config()->get('restricted_section_ads'))) {
-            $this->router()->config()->disableAds();
+        if (in_array($this->router->sectionId, $this->router->config->get('restricted_section_ads'))) {
+            $this->router->config->disableAds();
         }
         
         if ($this->user->info['id'] && $this->user->info['level']==9) {
@@ -308,9 +312,9 @@ class Search extends Page {
     
     
     function renderSidePage() {
-        $isOwner = $this->router()->userId == $this->user->info['id'] && $this->router()->module != 'detail' && !$this->pagePreview;
+        $isOwner = $this->router->userId == $this->user->info['id'] && $this->router->module != 'detail' && !$this->pagePreview;
         $isOwner = 0;
-        $editLink = '/page/' . ($this->router()->language == 'ar' ? '' : 'en/');
+        $editLink = '/page/' . ($this->router->language == 'ar' ? '' : 'en/');
         $descAr = isset($this->partnerInfo['descAr']) && $this->partnerInfo['descAr'] ? $this->partnerInfo['descAr'] : '';
         $descEn = isset($this->partnerInfo['descEn']) && $this->partnerInfo['descEn'] ? $this->partnerInfo['descEn'] : '';
         $website = isset($this->partnerInfo['url']) && $this->partnerInfo['url'] ? $this->partnerInfo['url'] : '';
@@ -319,7 +323,7 @@ class Search extends Page {
         if ($descAr || $descEn || $isOwner) {
             /* ?><h4><?= $this->lang['aboutUs'] ?></h4><?php */
                 if ($descAr || $descEn) {
-                    ?><li <?= 'class="' . ($this->router()->language == 'ar' ? ($descAr ? 'ar"><p' . ($isOwner ? ' class="pb"' : '') . '>' . $descAr : 'en"><p' . ($isOwner ? ' class="pb"' : '') . '>' . $descEn) : ($descEn ? 'en"><p' . ($isOwner ? ' class="pb"' : '') . '>' . $descEn : 'ar"><p' . ($isOwner ? ' class="pb"' : '') . '>' . $descAr) ) . '</p>' . ($isOwner ? '<p class="pk ' . $this->router()->language . '"><a href="' . $editLink . '?edit=desc#desc"><span class="ek"></span>' . $this->lang['addPageDescE'] . '</a></p>' : '') ?></li><?php
+                    ?><li <?= 'class="' . ($this->router->language == 'ar' ? ($descAr ? 'ar"><p' . ($isOwner ? ' class="pb"' : '') . '>' . $descAr : 'en"><p' . ($isOwner ? ' class="pb"' : '') . '>' . $descEn) : ($descEn ? 'en"><p' . ($isOwner ? ' class="pb"' : '') . '>' . $descEn : 'ar"><p' . ($isOwner ? ' class="pb"' : '') . '>' . $descAr) ) . '</p>' . ($isOwner ? '<p class="pk ' . $this->router->language . '"><a href="' . $editLink . '?edit=desc#desc"><span class="ek"></span>' . $this->lang['addPageDescE'] . '</a></p>' : '') ?></li><?php
                 } elseif ($isOwner) {
                     ?><li><?= '<p class="pb">' . $this->lang['addPageDesc'] . '</p><p class="pk"><a href="' . $editLink . '?edit=desc#desc"><span class="ek"></span>' . $this->lang['addPageDescE'] . '</a></p>' ?></li><?php
                 }
@@ -364,20 +368,20 @@ class Search extends Page {
         $descAr = isset($this->partnerInfo['adrAr']) && $this->partnerInfo['adrAr'] ? $this->partnerInfo['adrAr'] : '';
         $descEn = isset($this->partnerInfo['adrEn']) && $this->partnerInfo['adrEn'] ? $this->partnerInfo['adrEn'] : '';
         $hasMap = ( (isset($this->partnerInfo['loc']['lat']) && $this->partnerInfo['loc']['lat']) ||
-                (isset($this->partnerInfo['loc']['lon']) && $this->partnerInfo['loc']['lon'])) && $this->router()->module != 'detail';
+                (isset($this->partnerInfo['loc']['lon']) && $this->partnerInfo['loc']['lon'])) && $this->router->module != 'detail';
         if ($descAr || $descEn || $isOwner || $hasMap) {
             ?><li class="h"><?= $this->lang['address'] ?></li><?php
                 if ($descAr || $descEn) {
                     if ($descAr || $descEn) {
-                        ?><li <?= 'class="f ' . ($this->router()->language == 'ar' ? ($descAr ? 'ar"><p' . ($isOwner ? ' class="pb"' : '') . '>' . $descAr : 'en"><p' . ($isOwner ? ' class="pb"' : '') . '>' . $descEn) : ($descEn ? 'en"><p' . ($isOwner ? ' class="pb"' : '') . '>' . $descEn : 'ar"><p' . ($isOwner ? ' class="pb"' : '') . '>' . $descAr) ) . '</p>'
-                        ?><?= $isOwner ? '<p class="pk ' . $this->router()->language . '"><a href="' . $editLink . '?edit=address#address"><span class="ek"></span>' . $this->lang['addPageAddrE'] . '</a></p>' : '' ?></li><?php
+                        ?><li <?= 'class="f ' . ($this->router->language == 'ar' ? ($descAr ? 'ar"><p' . ($isOwner ? ' class="pb"' : '') . '>' . $descAr : 'en"><p' . ($isOwner ? ' class="pb"' : '') . '>' . $descEn) : ($descEn ? 'en"><p' . ($isOwner ? ' class="pb"' : '') . '>' . $descEn : 'ar"><p' . ($isOwner ? ' class="pb"' : '') . '>' . $descAr) ) . '</p>'
+                        ?><?= $isOwner ? '<p class="pk ' . $this->router->language . '"><a href="' . $editLink . '?edit=address#address"><span class="ek"></span>' . $this->lang['addPageAddrE'] . '</a></p>' : '' ?></li><?php
                         }
                 } elseif ($isOwner) {
                     ?><li class="f"><?= '<p class="pb">' . $this->lang['addPageAddr'] . '</p><p class="pk"><a href="' . $editLink . '?edit=address#address"><span class="ek"></span>' . $this->lang['addPageAddrE'] . '</a></p>' ?></li><?php
             }
             if (0 && $hasMap) {
                 ?><div class="mpa" id="mapo"></div><?php
-                    $this->inlineScript.='var script = document.createElement("script");script.type = "text/javascript";script.src = "http://maps.googleapis.com/maps/api/js?key=AIzaSyBNSe6GcNXfaOM88_EybNH6Y6ItEE8t3EA&sensor=true&callback=initializeMap&language=' . $this->router()->language . '";document.body.appendChild(script);';
+                    $this->inlineScript.='var script = document.createElement("script");script.type = "text/javascript";script.src = "http://maps.googleapis.com/maps/api/js?key=AIzaSyBNSe6GcNXfaOM88_EybNH6Y6ItEE8t3EA&sensor=true&callback=initializeMap&language=' . $this->router->language . '";document.body.appendChild(script);';
                     $this->globalScript.='function initializeMap() {
                     geocoder=new google.maps.Geocoder();
                     infowindow=new google.maps.InfoWindow();
@@ -423,17 +427,17 @@ class Search extends Page {
 
         
     function side_pane() {
-        if ($this->router()->userId) {
+        if ($this->router->userId) {
             //$this->renderSidePage();
-        } elseif ($this->router()->watchId && !$this->user->info['id']) {
+        } elseif ($this->router->watchId && !$this->user->info['id']) {
             $this->renderSideSite();
         } else {
-            /*if ($this->router()->module == 'search' && !$this->userFavorites && !$this->router()->watchId) {
-                    if (($this->router()->countryId && $this->router()->sectionId && $this->router()->purposeId) || ($this->router()->params['q'] && $this->searchResults['total_found'] < 100)) {
+            /*if ($this->router->module == 'search' && !$this->userFavorites && !$this->router->watchId) {
+                    if (($this->router->countryId && $this->router->sectionId && $this->router->purposeId) || ($this->router->params['q'] && $this->searchResults['total_found'] < 100)) {
                         if ($this->user->info['id']) {
-                            $key = $this->router()->countryId . '-' . $this->router()->cityId . '-' . $this->router()->sectionId . '-' . $this->extendedId . '-' . $this->localityId . '-' . $this->router()->purposeId . '-' . crc32($this->router()->params['q']);
+                            $key = $this->router->countryId . '-' . $this->router->cityId . '-' . $this->router->sectionId . '-' . $this->extendedId . '-' . $this->localityId . '-' . $this->router->purposeId . '-' . crc32($this->router->params['q']);
                             if (isset($this->user->info['options']['watch'][$key])) {
-                                ?><div onclick="document.location = '/watchlist<?= ($this->router()->language == 'ar' ? '' : '/en') ?>/'" class="eck rck"><?= $this->lang['nowWatching'] . '<b>' . $this->title . '</b>' . $this->lang['goWatch'] ?></div><?php
+                                ?><div onclick="document.location = '/watchlist<?= ($this->router->language == 'ar' ? '' : '/en') ?>/'" class="eck rck"><?= $this->lang['nowWatching'] . '<b>' . $this->title . '</b>' . $this->lang['goWatch'] ?></div><?php
                             } else {
                                 ?><div onclick="ti()" class="eck"><?= $this->lang['watchLink'] . '<b>' . $this->title . '</b>' ?></div><?php
                             }
@@ -443,15 +447,15 @@ class Search extends Page {
                     }
                 }*/
                 //$this->renderSideUserPanel();
-                /*if ($this->router()->module != 'detail' && !$this->router()->watchId && $this->router()->params['start'] > 1)
+                /*if ($this->router->module != 'detail' && !$this->router->watchId && $this->router->params['start'] > 1)
                     echo $this->fill_ad('zone_3', 'ad_s ad_ts');
                 
                 */
                 
-                if ($this->router()->module != 'detail'){
+                if ($this->router->module != 'detail'){
                     $this->renderSearchSettings();
                 }
-                if (!$this->router()->watchId) {
+                if (!$this->router->watchId) {
                     ?> <!--googleoff: index --> <?php 
                     $this->renderExtendedLinks();
                     $this->renderLocalityLinks();
@@ -460,24 +464,24 @@ class Search extends Page {
                     //$this->renderSideCountries();
                 }
                 /*
-                if (!$this->router()->watchId && ($this->router()->module == 'detail' || $this->router()->params['start'] < 2))
+                if (!$this->router->watchId && ($this->router->module == 'detail' || $this->router->params['start'] < 2))
                     echo $this->fill_ad('zone_3', 'ad_s');
 */
-                /*if ($this->router()->module == 'search' && ($this->router()->countryId || $this->userFavorites || $this->router()->watchId))
+                /*if ($this->router->module == 'search' && ($this->router->countryId || $this->userFavorites || $this->router->watchId))
                     $this->renderSideLike();*/
             }
     }
 
         
     function main_pane() {
-        if ($this->router()->isPriceList) {
+        if ($this->router->isPriceList) {
             $this->priceResults();
         }
         elseif ($this->userFavorites && !$this->user->info['id'] && (!$this->pageUserId || ($this->pageUserId && !$this->searchResults['body']['total_found']))) {
             $this->lang['hint_login'] = $this->lang['hint_login_favorites'];
             $this->renderLoginPage();
         } 
-        elseif ($this->router()->watchId && !$this->user->info['id'] && (!$this->pageUserId || ($this->pageUserId && !$this->searchResults['body']['total_found']))) {
+        elseif ($this->router->watchId && !$this->user->info['id'] && (!$this->pageUserId || ($this->pageUserId && !$this->searchResults['body']['total_found']))) {
             $this->lang['hint_login'] = $this->lang['hint_login_watch'];
             $this->renderLoginPage();
         } 
@@ -501,22 +505,22 @@ class Search extends Page {
         
    
     function renderMobileSublist(){           
-        if ($this->router()->module=='search' && !$this->userFavorites && !$this->router()->watchId && !$this->router()->userId){
+        if ($this->router->module=='search' && !$this->userFavorites && !$this->router->watchId && !$this->router->userId){
 
             $hasResults = $this->searchResults['body']['total_found'] > 0 && isset($this->searchResults['body']['matches']) && !empty($this->searchResults['body']['matches']);
-            if (!$this->router()->purposeId && $hasResults)
+            if (!$this->router->purposeId && $hasResults)
                 $this->filterPurposesMobile();
 
-            if ($this->router()->rootId==1 && $this->router()->countryId && ($this->searchResults['body']['total_found']>20 || $this->localityId) && !empty($this->localities)) {
+            if ($this->router->rootId==1 && $this->router->countryId && ($this->searchResults['body']['total_found']>20 || $this->localityId) && !empty($this->localities)) {
                 if ($this->searchResults['body']['total_found']>5 || $this->localityId) {
                     $this->renderMobileLocalityLinks();
                 }
 
             }
-            else if ($this->router()->sectionId && ($this->searchResults['body']['total_found']>5 || $this->extendedId) && !empty($this->extended)) {
+            else if ($this->router->sectionId && ($this->searchResults['body']['total_found']>5 || $this->extendedId) && !empty($this->extended)) {
                 $prefix_uri = '/';
-                if ($this->router()->countryId) {
-                    $prefix_uri.=$this->router()->countries[$this->router()->countryId]['uri'] . '/';
+                if ($this->router->countryId) {
+                    $prefix_uri.=$this->router->countries[$this->router->countryId]['uri'] . '/';
                     $keyIndex = 2;
                 }
                 else {
@@ -528,15 +532,15 @@ class Search extends Page {
                 $prefix = '';
                 $suffix = '';
 
-               if (isset($this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId])) {
+               if (isset($this->router->countries[$this->router->countryId]['cities'][$this->router->cityId])) {
                     $keyIndex++;
-                    $prefix_uri.=$this->router()->cities[$this->router()->cityId][3] . '/';
+                    $prefix_uri.=$this->router->cities[$this->router->cityId][3] . '/';
                 }
 
                 $sectionName = $this->sectionName;
-                if ($this->router()->purposeId) {
-                    $suffix_uri.=$this->router()->purposes[$this->router()->purposeId][3] . '/';
-                    switch ($this->router()->purposeId) {
+                if ($this->router->purposeId) {
+                    $suffix_uri.=$this->router->purposes[$this->router->purposeId][3] . '/';
+                    switch ($this->router->purposeId) {
                         case 1:
                         case 2:
                             $suffix = ' ' . $this->purposeName;
@@ -552,24 +556,24 @@ class Search extends Page {
                             break;
                     }
                 }
-                if ($this->router()->language != 'ar') {
-                    $suffix_uri.=$this->router()->language . '/';
+                if ($this->router->language != 'ar') {
+                    $suffix_uri.=$this->router->language . '/';
                 }
                 
-                include_once $this->router()->cfg['dir'] . '/core/lib/SphinxQL.php';
+                include_once $this->router->cfg['dir'] . '/core/lib/SphinxQL.php';
  
-                $sphinx = new SphinxQL($this->router()->cfg['sphinxql'], $this->router()->cfg['search_index']);
-                if ($this->router()->purposeId) {                                        
-                    $q = "select groupby(), count(*) from {$this->router()->cfg['search_index']} where hold=0 and canonical_id=0 "
-                    . "and section_id={$this->router()->sectionId} "
-                    . "and purpose_id={$this->router()->purposeId} ";
-                    if ($this->router()->countryId) $q.="and country={$this->router()->countryId} ";
-                    if ($this->router()->cityId) $q.="and city={$this->router()->cityId} ";
+                $sphinx = new SphinxQL($this->router->cfg['sphinxql'], $this->router->cfg['search_index']);
+                if ($this->router->purposeId) {                                        
+                    $q = "select groupby(), count(*) from {$this->router->cfg['search_index']} where hold=0 and canonical_id=0 "
+                    . "and section_id={$this->router->sectionId} "
+                    . "and purpose_id={$this->router->purposeId} ";
+                    if ($this->router->countryId) $q.="and country={$this->router->countryId} ";
+                    if ($this->router->cityId) $q.="and city={$this->router->cityId} ";
                     $q.=" group by section_tag_id limit 1000";
                 }else{                    
-                    $q = "select groupby(), count(*), group_concat(purpose_id) from {$this->router()->cfg['search_index']} where hold=0 and canonical_id=0 and section_id={$this->router()->sectionId} ";
-                    if ($this->router()->countryId) $q.="and country={$this->router()->countryId} ";
-                    if ($this->router()->cityId) $q.="and city={$this->router()->cityId} ";
+                    $q = "select groupby(), count(*), group_concat(purpose_id) from {$this->router->cfg['search_index']} where hold=0 and canonical_id=0 and section_id={$this->router->sectionId} ";
+                    if ($this->router->countryId) $q.="and country={$this->router->countryId} ";
+                    if ($this->router->cityId) $q.="and city={$this->router->cityId} ";
                     $q.=" group by section_tag_id limit 1000";
                 }
                 $query = $sphinx->search($q);
@@ -578,8 +582,8 @@ class Search extends Page {
                     $query = $query['matches'];
                     $count__=0;
                     foreach ($query as $tag) {
-                        if ($this->router()->purposeId) {
-                            $pus=$this->router()->purposeId;
+                        if ($this->router->purposeId) {
+                            $pus=$this->router->purposeId;
                             $count__=1;
                         }
                         else {
@@ -600,10 +604,10 @@ class Search extends Page {
                     ?><h2 class="ctr"><?= $this->lang['suggestion'] ?></h2><?php
                     ?><ul class="ls"><?php 
                     if ($this->extendedId) { 
-                        ?><li class="bbr"><a href="<?= $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId) ?>"><?= $sectionName ?><span class="to"></span><span class="n"><?= $this->router()->pageSections[$this->router()->sectionId]['counter'] ?></span></a></li><?php 
+                        ?><li class="bbr"><a href="<?= $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId) ?>"><?= $sectionName ?><span class="to"></span><span class="n"><?= $this->router->pageSections[$this->router->sectionId]['counter'] ?></span></a></li><?php 
                     } 
                     else {
-                        ?><li class="on bbr"><b><?= $sectionName ?><span class="n"><?= $this->router()->pageSections[$this->router()->sectionId]['counter'] ?></span></b></li><?php
+                        ?><li class="on bbr"><b><?= $sectionName ?><span class="n"><?= $this->router->pageSections[$this->router->sectionId]['counter'] ?></span></b></li><?php
                     }
 
                     foreach ($this->extended as $sid=>$sub) {
@@ -617,7 +621,7 @@ class Search extends Page {
                             ?></b></li><?php
                         } else {
                             /* url error */
-                            ?><li><a href="<?= $prefix_uri . $this->router()->sections[$this->router()->sectionId][3] . '-' . $sub['uri'] . $suffix_uri . $append ?>"><?= $prefix . $sub['name'] . $suffix ?><span class="to"></span><?php
+                            ?><li><a href="<?= $prefix_uri . $this->router->sections[$this->router->sectionId][3] . '-' . $sub['uri'] . $suffix_uri . $append ?>"><?= $prefix . $sub['name'] . $suffix ?><span class="to"></span><?php
                             if(isset($tags[$sid])){
                                 ?><span class="n"><?= $tags[$sid][0] ?></span><?php
                             }
@@ -633,9 +637,9 @@ class Search extends Page {
         
     function renderBottomMen() {
         $lang = '';
-        if ($this->router()->language != 'ar')
-            $lang = $this->router()->language . '/';
-        ?><ul class="bwz bwz<?= $this->router()->language ?>"><?php
+        if ($this->router->language != 'ar')
+            $lang = $this->router->language . '/';
+        ?><ul class="bwz bwz<?= $this->router->language ?>"><?php
         ?><li onclick="document.location = '/post/<?= $lang ?>';" class="poa"><?= $this->lang['postFree'] ?></li><?php
         ?><li onclick="document.location = '/<?= $lang ?>';" class="boa"><?= $this->lang['browseAd'] ?></li><?php
         ?></ul><?php
@@ -883,7 +887,7 @@ class Search extends Page {
         }
 
         $ad_count = count($this->searchResults['zone2']['matches']);
-        $ad_cache = $this->router()->db->getCache()->getMulti($this->searchResults['zone2']['matches']);
+        $ad_cache = $this->router->db->getCache()->getMulti($this->searchResults['zone2']['matches']);
         if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp'] = []; }
         
         for ($ptr = 0; $ptr < $ad_count; $ptr++) {
@@ -893,13 +897,13 @@ class Search extends Page {
                 $this->replacePhonetNumbers($ad[Classifieds::CONTENT], $ad[Classifieds::COUNTRY_CODE], $ad[Classifieds::TELEPHONES][0], $ad[Classifieds::TELEPHONES][1], $ad[Classifieds::TELEPHONES][2],$ad[Classifieds::EMAILS]);
 
                 if (!empty($ad[Classifieds::ALT_CONTENT])) {
-                    if ($this->router()->language == "en" && $ad[Classifieds::RTL]) {
+                    if ($this->router->language == "en" && $ad[Classifieds::RTL]) {
                         $ad[Classifieds::TITLE] = $ad[Classifieds::ALT_TITLE];
                         $ad[Classifieds::CONTENT] = $ad[Classifieds::ALT_CONTENT];
                         $ad[Classifieds::RTL] = 0;
                         $this->appendLocation = false;
                     } 
-                    elseif ($this->router()->language == "ar" && $ad[Classifieds::RTL] == 0) {
+                    elseif ($this->router->language == "ar" && $ad[Classifieds::RTL] == 0) {
                         $ad[Classifieds::TITLE] = $ad[Classifieds::ALT_TITLE];
                         $ad[Classifieds::CONTENT] = $ad[Classifieds::ALT_CONTENT];
                         $ad[Classifieds::RTL] = 1;
@@ -962,17 +966,17 @@ class Search extends Page {
                         
                     $picCount=count($ad[Classifieds::PICTURES]);
                     $pic = $ad[Classifieds::PICTURES][0];
-                    if ($this->router()->isAcceptWebP) {
+                    if ($this->router->isAcceptWebP) {
                         $pic = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pic);
                     }
-                    $pic = '<img style="width:'.$width.'px;height:'.$height.'px" src="' . $this->router()->cfg['url_ad_img'] . '/repos/m/' . $pic . '" />';
+                    $pic = '<img style="width:'.$width.'px;height:'.$height.'px" src="' . $this->router->cfg['url_ad_img'] . '/repos/m/' . $pic . '" />';
                 } 
                 else {
-                    $pic = '<img class="d" src="' . $this->router()->cfg['url_img'] . '/90/' . $ad[Classifieds::SECTION_ID] . $this->router()->_png . '" />';
+                    $pic = '<img class="d" src="' . $this->router->cfg['url_img'] . '/90/' . $ad[Classifieds::SECTION_ID] . $this->router->_png . '" />';
                 }
                 $textClass = ($ad[Classifieds::RTL]) ? "ar" : "en";                
 
-                $_link = sprintf($ad[Classifieds::URI_FORMAT], ($this->router()->language == "ar" ? "" : "{$this->router()->language}/"), $ad[Classifieds::ID]).'?ref=mediaside';
+                $_link = sprintf($ad[Classifieds::URI_FORMAT], ($this->router->language == "ar" ? "" : "{$this->router->language}/"), $ad[Classifieds::ID]).'?ref=mediaside';
 
                 ?><div id="<?= $ad[Classifieds::ID] ?>" onclick="wo('<?= $_link ?>')" class="prem"><?php
                 if ($textPlacement==0) {         
@@ -1018,7 +1022,7 @@ class Search extends Page {
         }
                
         $ad_count = count($this->searchResults['zone2']['matches']);
-        $ad_cache = $this->router()->db->getCache()->getMulti($this->searchResults['zone2']['matches']);
+        $ad_cache = $this->router->db->getCache()->getMulti($this->searchResults['zone2']['matches']);
         if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp'] = array(); }
         
         for ($ptr=0; $ptr<$ad_count; $ptr++) {
@@ -1037,12 +1041,12 @@ class Search extends Page {
                 }
                 
                 if (!empty($ad[Classifieds::ALT_CONTENT])) {
-                    if (!$this->router()->isArabic() && $ad[Classifieds::RTL]) {
+                    if (!$this->router->isArabic() && $ad[Classifieds::RTL]) {
                         $ad[Classifieds::CONTENT] = $ad[Classifieds::ALT_CONTENT];
                         $ad[Classifieds::RTL] = 0;
                         $this->appendLocation = false;
                     } 
-                    elseif ($this->router()->isArabic() && $ad[Classifieds::RTL]==0) {
+                    elseif ($this->router->isArabic() && $ad[Classifieds::RTL]==0) {
                         $ad[Classifieds::CONTENT] = $ad[Classifieds::ALT_CONTENT];
                         $ad[Classifieds::RTL] = 1;
                         $this->appendLocation = false;
@@ -1056,28 +1060,28 @@ class Search extends Page {
                         $hasAnimation = 1;
                     }
                     $pic = $ad[Classifieds::PICTURES][$rand];
-                    if($this->router()->isAcceptWebP){
+                    if($this->router->isAcceptWebP){
                         $pic = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pic);
                     }
-                    $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img height=\"98\" src=\"'.$this->router()->config()->adImgURL.'/repos/d/' . $pic . '\" />";';
+                    $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img height=\"98\" src=\"'.$this->router->config->adImgURL.'/repos/d/' . $pic . '\" />";';
                     //$pic = '<span class="ig"></span>';
                     $pic = '<div class=card-image>'."\n".'<img src="'.
-                            $this->router()->config()->adImgURL.'/repos/m/' . $pic . '" />'. "\n".
+                            $this->router->config->adImgURL.'/repos/m/' . $pic . '" />'. "\n".
                             '<div class="ripple-container"></div>'. "\n" .'</div>'."\n";
                 } 
                 else {
-                    $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img height=\"90\" class=\"ir\" src=\"'.$this->router()->config()->imgURL.'/200/' . $ad[Classifieds::SECTION_ID] . $this->router()->_png . '\" />";';
+                    $this->globalScript.='sic[' . $ad[Classifieds::ID] . ']="<img height=\"90\" class=\"ir\" src=\"'.$this->router->config->imgURL.'/200/' . $ad[Classifieds::SECTION_ID] . $this->router->_png . '\" />";';
                     $pic = '<span class="ig igr"></span>';
                 }
                 $textClass = ($ad[Classifieds::RTL]) ? "ar" : "en";                
 
-                $_link = sprintf($ad[Classifieds::URI_FORMAT], ($this->router()->isArabic() ? '' : "{$this->router()->language}/"), $ad[Classifieds::ID]).'?ref=mediaside';
+                $_link = sprintf($ad[Classifieds::URI_FORMAT], ($this->router->isArabic() ? '' : "{$this->router->language}/"), $ad[Classifieds::ID]).'?ref=mediaside';
                 echo '<li onclick="wo(\'', $_link, '\')" id=sideFtr class="lsf">', "\n";
                 echo '<div id="sf', $ad[Classifieds::ID], '" class="card card-product drg"> <!--googleoff: index --> ',"\n";
                 echo $pic;
                 echo '<div class=card-content>', "\n";
                 echo '<div class="adc block-with-text card-description ', $textClass, '" ';
-                if ($this->router()->id!=$ad[Classifieds::ID]) {
+                if ($this->router->id!=$ad[Classifieds::ID]) {
                     echo ' onclick="wo(\'', $_link, '\')" ';
                 }
                 echo '>', "\n";
@@ -1085,7 +1089,7 @@ class Search extends Page {
                 //echo '<p class="ani ', $textClass, '">';                                       
                 
                 //echo $ad[Classifieds::CONTENT];
-                echo '<span class=crd><span class="vpdi ', $this->router()->language, '"></span>', $this->lang['premium_ad'], '</span></p>', "\n";
+                echo '<span class=crd><span class="vpdi ', $this->router->language, '"></span>', $this->lang['premium_ad'], '</span></p>', "\n";
                 echo '<!--googleon: index --> </div></li>', "\n";
                 
                 break;
@@ -1122,7 +1126,7 @@ class Search extends Page {
     
     
     private function adSlot() : void {
-        if ($this->router()->config()->enabledAds()) {
+        if ($this->router->config->enabledAds()) {
             //<div class="card card-product">
             //echo '<div class="adslot">';
             ?>
@@ -1141,7 +1145,7 @@ class Search extends Page {
         if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp'] = []; }        
         if (!isset($this->user->params['feature'])) { $this->user->params['feature']=[]; }
         $this->mergeResults($topFeatureCount, $ad_keys);
-        $ad_cache = $this->router()->database()->getCache()->getMulti($ad_keys);
+        $ad_cache = $this->router->db->getCache()->getMulti($ad_keys);
         $ad_count = count($ad_keys);
         $end_user=true;
         if ($ad_count) {
@@ -1206,11 +1210,11 @@ class Search extends Page {
             if ($ad->hasAltContent()) {
                 $langSortIdx = $this->langSortingMode > -1 ? $this->langSortingMode : 0;
                 
-                if (($langSortIdx==2||!$this->router()->isArabic()) && $ad->rtl()) {
+                if (($langSortIdx==2||!$this->router->isArabic()) && $ad->rtl()) {
                     $ad->reverseContent()->setLTR();
                     $this->appendLocation = false;
                 } 
-                elseif (($langSortIdx==1||$this->router()->isArabic()) && $ad->rtl()==0) {
+                elseif (($langSortIdx==1||$this->router->isArabic()) && $ad->rtl()==0) {
                     $ad->reverseContent()->setRTL();
                     $this->appendLocation = false;
                 }
@@ -1229,27 +1233,27 @@ class Search extends Page {
             $textClass = "en";
             $liClass = "";
             
-            if ($this->router()->module=='detail' && $this->router()->id==$ad->id()) {
+            if ($this->router->module=='detail' && $this->router->id==$ad->id()) {
                 $liClass.="on ";
             }
 
             if ($ad->rtl()) { $textClass = "ar"; }
             
-            if ($this->router()->siteTranslate) { $textClass = ''; }
+            if ($this->router->siteTranslate) { $textClass = ''; }
             
             $pix_count = $ad->picturesCount();
             if ($pix_count) {
                 $pic = '<div class=card-image><div class="cbox footer"></div>';
                 $pix = $ad->picturePath();
-                if ($this->router()->isAcceptWebP) { $pix = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pix); }                
-                $pic.= '<img src="'.$this->router()->config()->adImgURL.'/repos/m/'.$pix.'" />';                
+                if ($this->router->isAcceptWebP) { $pix = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pix); }                
+                $pic.= '<img src="'.$this->router->config->adImgURL.'/repos/m/'.$pix.'" />';                
                 if ($pix_count>1) {
                     $pic.='<div class="cbox ctr">'.$pix_count.'&nbsp;<span class="icn icnsmall icn-camera"></span></div>';                  
                 }
             }
             else {
                 $pic= '<div class="card-image seclogo"><div class="cbox footer"></div>';
-                $pic.='<img src="'.$this->router()->config()->imgURL.'/200/'.$ad->sectionId().$this->router()->_png.'" />';
+                $pic.='<img src="'.$this->router->config->imgURL.'/200/'.$ad->sectionId().$this->router->_png.'" />';
             }
             
             if ($isNewToUser) { $pic.='<div class="cbox ctl new">NEW</div>'; }
@@ -1274,7 +1278,7 @@ class Search extends Page {
                 }
             }
             
-            $pic.='<div class="cbox cbl">'.$ad->formattedSinceDate($this->lang, $this->router()->isArabic()).'</div></div>';            
+            $pic.='<div class="cbox cbl">'.$ad->formattedSinceDate($this->lang, $this->router->isArabic()).'</div></div>';            
             
             $favLink = '';
 
@@ -1327,7 +1331,7 @@ class Search extends Page {
         echo $this->summarizeSearch();
         $this->renderSideSections();
         $car = $this->extended[$this->extendedId][1];
-        $priceRange = $this->router()->db->getSectionPriceRange($this->router()->countryId,$this->extendedId,1);
+        $priceRange = $this->router->db->getSectionPriceRange($this->router->countryId,$this->extendedId,1);
         ?><p class="ph"><?= preg_replace('/{TAG}/',  '<b>'.$car.'</b>', $this->lang['price_note']).'<b>'.$this->countryName.'</b>' ?></p><?php
         ?><ul><?php
         foreach($priceRange as $yr => $pr){
@@ -1340,7 +1344,7 @@ class Search extends Page {
     
     function results() {       
         $keywords = '';
-        if (!$this->userFavorites && $this->router()->module!='detail') {
+        if (!$this->userFavorites && $this->router->module!='detail') {
             $this->updateUserSearchCriteria();
         }
                         
@@ -1349,7 +1353,7 @@ class Search extends Page {
         
         if ($hasResults) {
             echo $this->summarizeSearch();
-            if ($this->router()->userId) {
+            if ($this->router->userId) {
                 $this->renderSidePage();
             }
             else {
@@ -1357,7 +1361,7 @@ class Search extends Page {
                 //$this->renderSideSections();
             }
                 
-            if ($this->router()->module=='detail' && !$this->detailAdExpired) {
+            if ($this->router->module=='detail' && !$this->detailAdExpired) {
                 $this->displayDetail();
             }
             echo '<div class=row><div class="col-2 side">', 
@@ -1367,7 +1371,7 @@ class Search extends Page {
                 $this->renderSideRoots(),
                 '</div>';
             echo '<div class="row col-10"><div id=cards class="ls col-12" ';
-            if ($this->router()->module!='detail') { echo 'itemprop="mainContentOfPage" '; }
+            if ($this->router->module!='detail') { echo 'itemprop="mainContentOfPage" '; }
             echo 'itemscope itemtype="https://schema.org/ItemList">';
             echo '<meta itemprop="name" content="', $this->subTitle, '" />';
                 
@@ -1376,13 +1380,13 @@ class Search extends Page {
           
             echo $this->mt_pagination();
                                 
-            if (($this->router()->module=='search'||$this->router()->module=='detail') && !$this->userFavorites && !$this->router()->watchId && !$this->router()->userId) {
+            if (($this->router->module=='search'||$this->router->module=='detail') && !$this->userFavorites && !$this->router->watchId && !$this->router->userId) {
                 $followStr='';
-                if ($this->router()->sectionId) {
-                    $followUp = $this->router()->db->getSectionFollowUp($this->router()->countryId,$this->router()->cityId,$this->router()->sectionId,$this->router()->purposeId);      
+                if ($this->router->sectionId) {
+                    $followUp = $this->router->db->getSectionFollowUp($this->router->countryId,$this->router->cityId,$this->router->sectionId,$this->router->purposeId);      
                     $fup = array();
-                    if (isset($this->router()->sections[$this->router()->sectionId][6]) && $this->router()->sections[$this->router()->sectionId][6]) {
-                        $tmpSec = explode(',', $this->router()->sections[$this->router()->sectionId][6]);
+                    if (isset($this->router->sections[$this->router->sectionId][6]) && $this->router->sections[$this->router->sectionId][6]) {
+                        $tmpSec = explode(',', $this->router->sections[$this->router->sectionId][6]);
                         $fup = array();
                         foreach ($tmpSec as $sec) {
                             $fup[] = array($sec,0);
@@ -1395,10 +1399,10 @@ class Search extends Page {
                         $k=0;
                         foreach($followUp as $section){
                             if(!isset($procSec[$section[0]])){
-                                $uri=$this->router()->getURL($this->router()->countryId,$this->router()->cityId,0,$section[0],$section[1]);
-                                $sName=$this->router()->sections[$section[0]][$this->fieldNameIndex];
+                                $uri=$this->router->getURL($this->router->countryId,$this->router->cityId,0,$section[0],$section[1]);
+                                $sName=$this->router->sections[$section[0]][$this->fieldNameIndex];
                                 if($section[1]){
-                                    $pName=$this->router()->purposes[$section[1]][$this->fieldNameIndex];
+                                    $pName=$this->router->purposes[$section[1]][$this->fieldNameIndex];
                                     switch ($section[1]) {
                                         case 1:
                                         case 2:
@@ -1410,19 +1414,19 @@ class Search extends Page {
                                             $sName = $pName . ' ' . $sName;
                                             break;
                                         case 3:
-                                            if ($this->router()->language == "ar")
+                                            if ($this->router->language == "ar")
                                                 $sName = 'وظائف ' . $sName;
                                             else
                                                 $sName = $sName . ' jobs';
                                             break;
                                         case 4:
                                             $in = "";
-                                            if ($this->router()->language == "en")
+                                            if ($this->router->language == "en")
                                                 $in = " {$this->lang['in']}";
                                             $sName = $pName . $in . " " . $sName;
                                             break;
                                         case 5:
-                                            if ($this->router()->language == "ar"){                                               
+                                            if ($this->router->language == "ar"){                                               
                                                 $tmp='خدمات';
                                                 if(!preg_match('/'.$tmp.'/u',$sName)){
                                                     $sName = $tmp . ' ' . $sName;
@@ -1435,25 +1439,25 @@ class Search extends Page {
                                             }
                                             break;
                                         case 999:
-                                            $sName = $sName . ' ' . ($this->router()->language =='en' ? 'misc':'متفرقات');
+                                            $sName = $sName . ' ' . ($this->router->language =='en' ? 'misc':'متفرقات');
                                             break;
                                     }
                                 }
                                     
                                 $iTmp='';
-                                if ($this->router()->sections[$section[0]][4]==1) {
+                                if ($this->router->sections[$section[0]][4]==1) {
                                     $iTmp.='<span class="x x'.$section[0].'"></span>';
                                 }
-                                elseif ($this->router()->sections[$section[0]][4]==2) {
+                                elseif ($this->router->sections[$section[0]][4]==2) {
                                     $iTmp.='<span class="z z'.$section[0].'"></span>';
                                 }
-                                elseif ($this->router()->sections[$section[0]][4]==3) {
+                                elseif ($this->router->sections[$section[0]][4]==3) {
                                     $iTmp.='<span class="v v'.$section[0].'"></span>';
                                 }
-                                elseif ($this->router()->sections[$section[0]][4]==4) {
+                                elseif ($this->router->sections[$section[0]][4]==4) {
                                     $iTmp.='<span class="y y'.$section[0].'"></span>';
                                 }
-                                elseif($this->router()->sections[$section[0]][4]==99){
+                                elseif($this->router->sections[$section[0]][4]==99){
                                     $iTmp.='<span class="u u'.$section[0].'"></span>';
                                 }
                                 else {
@@ -1480,17 +1484,17 @@ class Search extends Page {
             }                
         }
         else {
-            if ($this->router()->watchId) {
+            if ($this->router->watchId) {
                 echo $this->summarizeSearch();
                 echo $this->renderSideSections();
             }
-            elseif ($this->router()->userId) {
-                    if ($this->router()->params['q'] || $this->router()->sectionId) {
+            elseif ($this->router->userId) {
+                    if ($this->router->params['q'] || $this->router->sectionId) {
                         echo $this->summarizeSearch();                    
                     }
                     $this->renderSideSections();
                     echo '<div class="no">';
-                    if ($this->router()->params['q']) {
+                    if ($this->router->params['q']) {
                         echo $this->lang['noPartnerQAds'];                    
                     }
                     else {
@@ -1505,30 +1509,30 @@ class Search extends Page {
                 if ($this->searchResults['body']['total_found']==0) {
                     echo $this->summarizeSearch();
                 }
-                $purposeId = $this->router()->purposeId;
-                $sectionId = $this->router()->sectionId;
-                $rootId = $this->router()->rootId;
-                $q = $this->router()->params['q'];
+                $purposeId = $this->router->purposeId;
+                $sectionId = $this->router->sectionId;
+                $rootId = $this->router->rootId;
+                $q = $this->router->params['q'];
                 $extendedId = $this->extendedId;
                 $localityId = $this->localityId;
 
                 $this->alternate_search($keywords);
                                                         
-                $this->router()->purposeId = $purposeId;
-                $this->router()->sectionId = $sectionId;
-                $this->router()->rootId = $rootId;
-                $this->router()->params['q'] = $q;
+                $this->router->purposeId = $purposeId;
+                $this->router->sectionId = $sectionId;
+                $this->router->rootId = $rootId;
+                $this->router->params['q'] = $q;
                 $this->extendedId=  $extendedId;
                 $this->localityId=$localityId;
             }
         }
         
         
-        if ($this->router()->watchId && $this->searchResults!==false) {
+        if ($this->router->watchId && $this->searchResults!==false) {
             $cSec = count($this->watchInfo);
             if ($cSec) {
-                $lang = $this->router()->language == 'ar' ? '' : 'en/';
-                $isOwner = $this->user->info['id'] == $this->router()->watchId;
+                $lang = $this->router->language == 'ar' ? '' : 'en/';
+                $isOwner = $this->user->info['id'] == $this->router->watchId;
                 $idKey = $this->user->encodeId($this->pageUserId);
                 ?><ul id="watchbox" class='seli h sh rct<?= $this->searchResults['body']['total_found']>10 ?' selip':'' ?>'><?php
                     ?><li><?php  
@@ -1548,11 +1552,11 @@ class Search extends Page {
                     foreach ($this->watchInfo as $info) {
                         $ext='';
                         if ($info['COUNTRY_ID']) {
-                            $uri = '/' . $this->router()->countries[$info['COUNTRY_ID']]['uri'] . '/';
+                            $uri = '/' . $this->router->countries[$info['COUNTRY_ID']]['uri'] . '/';
                             $idx=2;
                             if ($info['LOCALITY_ID']) {
                                 if (!isset($localitiesArray[$info['COUNTRY_ID'].'_'.$info['SECTION_ID']])) {
-                                    $localitiesArray[$info['COUNTRY_ID'].'_'.$info['SECTION_ID']] = $this->router()->db->getLocalitiesData($info['COUNTRY_ID'], $info['SECTION_ID'], NULL, $this->router()->language);
+                                    $localitiesArray[$info['COUNTRY_ID'].'_'.$info['SECTION_ID']] = $this->router->db->getLocalitiesData($info['COUNTRY_ID'], $info['SECTION_ID'], NULL, $this->router->language);
                                 }
                                 if (isset($localitiesArray[$info['COUNTRY_ID'].'_'.$info['SECTION_ID']][$info['LOCALITY_ID']])) {
                                     $uri.=$localitiesArray[$info['COUNTRY_ID'].'_'.$info['SECTION_ID']][$info['LOCALITY_ID']]['uri'] . '/';
@@ -1561,30 +1565,30 @@ class Search extends Page {
                             }
                             elseif ($info['CITY_ID']) {
                                 $idx=3;
-                                $uri.=$this->router()->cities[$info['CITY_ID']][3].'/';
+                                $uri.=$this->router->cities[$info['CITY_ID']][3].'/';
                             }
                             if ($info['SECTION_TAG_ID']) {
                                 if (!isset($extendedArray[$info['COUNTRY_ID'].'_'.$info['CITY_ID'].'_'.$info['SECTION_ID']])) {
-                                    $extendedArray[$info['COUNTRY_ID'].'_'.$info['CITY_ID'].'_'.$info['SECTION_ID']] = $this->router()->db->getSectionTagsData($info['COUNTRY_ID'], $info['CITY_ID'], $info['SECTION_ID'], $this->router()->language);
+                                    $extendedArray[$info['COUNTRY_ID'].'_'.$info['CITY_ID'].'_'.$info['SECTION_ID']] = $this->router->db->getSectionTagsData($info['COUNTRY_ID'], $info['CITY_ID'], $info['SECTION_ID'], $this->router->language);
                                 }
-                                $uri.=$this->router()->sections[$info['SECTION_ID']][3] . '-' . $extendedArray[$info['COUNTRY_ID'].'_'.$info['CITY_ID'].'_'.$info['SECTION_ID']][$info['SECTION_TAG_ID']]['uri'] . '/';
+                                $uri.=$this->router->sections[$info['SECTION_ID']][3] . '-' . $extendedArray[$info['COUNTRY_ID'].'_'.$info['CITY_ID'].'_'.$info['SECTION_ID']][$info['SECTION_TAG_ID']]['uri'] . '/';
                                 $ext = 'q-' . $info['SECTION_TAG_ID'] . '-' . $idx . '/';
                             }
                             elseif ($info['SECTION_ID']) {
-                                $uri.=$this->router()->sections[$info['SECTION_ID']][3] . '/';
+                                $uri.=$this->router->sections[$info['SECTION_ID']][3] . '/';
                             }
                             if ($info['PURPOSE_ID'])
-                                $uri.=$this->router()->purposes[$info['PURPOSE_ID']][3] . '/';
+                                $uri.=$this->router->purposes[$info['PURPOSE_ID']][3] . '/';
                         }
-                        $uri.=($this->router()->language == 'ar' ? '' : $this->router()->language . '/');
+                        $uri.=($this->router->language == 'ar' ? '' : $this->router->language . '/');
                         if ($ext) { $uri.=$ext; }
                         if ($info['QUERY_TERM']) {
                             $uri.='?q='.urlencode($info['QUERY_TERM']);
                         }
                                             
                         $iTmp='<span class="z z117"></span>';
-                        if ($info['SECTION_ID'] && isset($this->router()->sections[$info['SECTION_ID']])) {  
-                            $rootId=$this->router()->sections[$info['SECTION_ID']][4];
+                        if ($info['SECTION_ID'] && isset($this->router->sections[$info['SECTION_ID']])) {  
+                            $rootId=$this->router->sections[$info['SECTION_ID']][4];
                             if ($rootId==1) {
                                 $iTmp='<span class="x x'.$info['SECTION_ID'].'"></span>';
                             }
@@ -1648,50 +1652,50 @@ class Search extends Page {
     
     function alternate_search($keywords = "") {
         
-        if($this->router()->rootId){
-            $this->tmpRootId = $this->router()->rootId;
+        if($this->router->rootId){
+            $this->tmpRootId = $this->router->rootId;
         }
-        if($this->router()->purposeId){
-            $this->tmpPurposeId = $this->router()->purposeId;
+        if($this->router->purposeId){
+            $this->tmpPurposeId = $this->router->purposeId;
         }
         if ($this->searchResults['body']['total_found'] == 0) {
             if ($this->extendedId || $this->localityId) {
                 $this->extendedId = 0;
                 $this->localityId = 0;
-            } elseif ($this->router()->purposeId) {
-                $this->router()->purposeId = 0;
+            } elseif ($this->router->purposeId) {
+                $this->router->purposeId = 0;
                 $this->purposeName = "";
-            } elseif ($this->router()->sectionId) {
-                $this->router()->sectionId = 0;
+            } elseif ($this->router->sectionId) {
+                $this->router->sectionId = 0;
                 $this->sectionName = "";
-            } elseif ($this->router()->rootId) {
-                $this->router()->rootId = 0;
+            } elseif ($this->router->rootId) {
+                $this->router->rootId = 0;
                 $this->rootName = "";
             } else {
                 $this->renderSideSections(1);
                 $q = "";
-                if ($this->router()->params['q']) 
-                    $q = htmlspecialchars($this->router()->params['q'], ENT_QUOTES);
+                if ($this->router->params['q']) 
+                    $q = htmlspecialchars($this->router->params['q'], ENT_QUOTES);
                 ?><div class="row"><div class="col-12"><div class="card oops"><ul class="ph"><?php
                 ?><li class="title warn"><i class="icn icn-alert float-left"></i><?= $this->lang['no_result_pre'].' <b>'.$q.'</b> '.$this->lang['no_result_after'] ?></li><?php
                 ?><li class="hint"><?= $this->lang['search_help_1'] ?></li><?php    
                     if ($this->publisherTypeSorting && in_array($this->tmpRootId,[1,2,3])){
                             
                         $uri = $this->getPageUri().'?';
-                            if ($this->router()->params['q']) {
-                                $uri .= 'q=' . urlencode($this->router()->params['q']).'&';
+                            if ($this->router->params['q']) {
+                                $uri .= 'q=' . urlencode($this->router->params['q']).'&';
                             }  
                             $uri .= 'xd=0';
                             
                             switch($this->publisherTypeSorting){
                                 case 2: 
-                                    ?><li><?= ' <a href="'.$uri.'">'.($this->router()->language == 'ar' ? ($this->lang['npub_cancel_in'].' '.$this->lang['mpub_3_'.$this->tmpRootId]) : ($this->lang['remove'].' '.strtolower($this->lang['spub_3_'.$this->tmpRootId]).' '.$this->lang['filter'])); ?></a></li><?php
+                                    ?><li><?= ' <a href="'.$uri.'">'.($this->router->language == 'ar' ? ($this->lang['npub_cancel_in'].' '.$this->lang['mpub_3_'.$this->tmpRootId]) : ($this->lang['remove'].' '.strtolower($this->lang['spub_3_'.$this->tmpRootId]).' '.$this->lang['filter'])); ?></a></li><?php
                                     break;
                                 case 1:
                                     if($this->tmpRootId == 3){
-                                        ?><li><?= ' <a href="'.$uri.'">'.($this->router()->language == 'ar' ? ($this->lang['npub_cancel_in'].' '.$this->lang['mbpub_1']):($this->lang['remove'].' '.strtolower($this->lang['sbpub_1']).' '.$this->lang['filter'])); ?></a></li><?php
+                                        ?><li><?= ' <a href="'.$uri.'">'.($this->router->language == 'ar' ? ($this->lang['npub_cancel_in'].' '.$this->lang['mbpub_1']):($this->lang['remove'].' '.strtolower($this->lang['sbpub_1']).' '.$this->lang['filter'])); ?></a></li><?php
                                     }else{
-                                        ?><li><?= ' <a href="'.$uri.'">'.($this->router()->language == 'ar' ? ($this->lang['npub_cancel_in'].' '.$this->lang['mpub_1']):($this->lang['remove'].' '.strtolower($this->lang['spub_1']).' '.$this->lang['filter'])); ?></a></li><?php
+                                        ?><li><?= ' <a href="'.$uri.'">'.($this->router->language == 'ar' ? ($this->lang['npub_cancel_in'].' '.$this->lang['mpub_1']):($this->lang['remove'].' '.strtolower($this->lang['spub_1']).' '.$this->lang['filter'])); ?></a></li><?php
                                     }
                                     break;
                                 default:
@@ -1707,19 +1711,19 @@ class Search extends Page {
                 return false;
             }
         }
-        if (!$this->router()->params['q'] && !$this->extendedId && !$this->localityId && !$this->router()->purposeId && !$this->router()->sectionId && !$this->router()->rootId) {
+        if (!$this->router->params['q'] && !$this->extendedId && !$this->localityId && !$this->router->purposeId && !$this->router->sectionId && !$this->router->rootId) {
             ?><div class="nad"><p><br /><br /><?= $this->lang['noAdsAtAll'] ?></p></div><?php
             ?><span class='naf'></span><?php
             return false;
         }
-        $this->router()->params['start'] = 0;
+        $this->router->params['start'] = 0;
         $this->execute(true);
         if ($this->searchResults['body']['total_found']>0 && isset($this->searchResults['body']['matches']) && count($this->searchResults['body']['matches'])>0) {
             $this->updateUserSearchCriteria();
             $this->renderSideSections();
             echo $this->alternateSummery($this->searchResults['body']['total_found']);
                     
-            if($this->router()->module=='detail'){
+            if($this->router->module=='detail'){
                 if($this->detailAdExpired){} else { $this->displayDetail(); }
             }
             echo '<ul class="ls">';
@@ -1736,9 +1740,9 @@ class Search extends Page {
     function getAdSection($ad, bool $hasSchema=false, bool $isDetail=false) : string {
         $section = '';
         $hasLink = true;
-        if (!empty($this->router()->sections)) {
-            $extIDX = $this->router()->isArabic() ? Classifieds::EXTENTED_AR : Classifieds::EXTENTED_EN;
-            $locIDX = $this->router()->isArabic() ? Classifieds::LOCALITIES_AR : Classifieds::LOCALITIES_EN;
+        if (!empty($this->router->sections)) {
+            $extIDX = $this->router->isArabic() ? Classifieds::EXTENTED_AR : Classifieds::EXTENTED_EN;
+            $locIDX = $this->router->isArabic() ? Classifieds::LOCALITIES_AR : Classifieds::LOCALITIES_EN;
             $extID = (isset($ad[$extIDX]) && isset($this->extended[$ad[$extIDX]])) ? $ad[$extIDX] : $this->extendedId;
             $hasLoc = (isset($ad[$locIDX]) && (is_array($ad[$locIDX]) && count($ad[$locIDX])>0) && (is_array($this->localities) && count($this->localities)>0));
             $locID = 0;
@@ -1753,11 +1757,11 @@ class Search extends Page {
                 }
             }
     
-            if ($isDetail || (!($extID && !$this->extendedId) && (!$hasLoc || ($hasLoc && $locID == $this->localityId)) && $this->router()->purposeId && $this->router()->sectionId)) {
+            if ($isDetail || (!($extID && !$this->extendedId) && (!$hasLoc || ($hasLoc && $locID == $this->localityId)) && $this->router->purposeId && $this->router->sectionId)) {
                 $hasLink=false;
             }
 
-            $section = $this->router()->sections[$ad[Classifieds::SECTION_ID]][$this->fieldNameIndex];
+            $section = $this->router->sections[$ad[Classifieds::SECTION_ID]][$this->fieldNameIndex];
             if ($extID) { $section = $this->extended[$extID]['name']; }
             
             switch ($ad[Classifieds::PURPOSE_ID]) {
@@ -1766,23 +1770,23 @@ class Search extends Page {
                 case 8:
                 case 999:
                     if ($hasSchema) {
-                        $section = '<span itemprop="name">' . $section . '</span>&nbsp;' . $this->router()->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex];
+                        $section = '<span itemprop="name">' . $section . '</span>&nbsp;' . $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex];
                     }
                     else {
-                        $section = $section . ' ' . $this->router()->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex];
+                        $section = $section . ' ' . $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex];
                     }
                     break;
                 case 6:
                 case 7:
                     if ($hasSchema) {
-                        $section = $this->router()->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex] . ' <span itemprop="name">' . $section . '</span>';
+                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex] . ' <span itemprop="name">' . $section . '</span>';
                     }
                     else {
-                        $section = $this->router()->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex] . ' ' . $section;
+                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex] . ' ' . $section;
                     }
                     break;
                 case 3:
-                    if ($this->router()->isArabic()) {
+                    if ($this->router->isArabic()) {
                         $in = ' ';
                         if ($hasSchema)
                             $section = 'وظائف <span itemprop="name">' . $section . '</span>';
@@ -1791,19 +1795,19 @@ class Search extends Page {
                     }
                     else {
                         if ($hasSchema)
-                            $section = '<span itemprop="name">' . $section . '</span>&nbsp;' . $this->router()->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex];
+                            $section = '<span itemprop="name">' . $section . '</span>&nbsp;' . $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex];
                         else
-                            $section = $section . ' ' . $this->router()->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex];
+                            $section = $section . ' ' . $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex];
                     }
                     break;
                 case 4:
                     $in = ' ';
-                    if (!$this->router()->isArabic())
+                    if (!$this->router->isArabic())
                         $in = ' ' . $this->lang['in'] . ' ';
                     if ($hasSchema)
-                        $section = $this->router()->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex] . $in . '<span itemprop="name">' . $section . '</span>';
+                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex] . $in . '<span itemprop="name">' . $section . '</span>';
                     else
-                        $section = $this->router()->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex] . $in . $section;
+                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex] . $in . $section;
                     break;
                 case 5:
                     if ($hasSchema)
@@ -1828,11 +1832,11 @@ class Search extends Page {
                         if ($iter>2) {break;}
                         if ($hasLink) {
                             $idx = 2;
-                            $uri = '/' . $this->router()->countries[$ad[Classifieds::COUNTRY_ID]]['uri'] . '/';
+                            $uri = '/' . $this->router->countries[$ad[Classifieds::COUNTRY_ID]]['uri'] . '/';
                             $uri.=$this->localities[$id]['uri'] . '/';
-                            $uri.=$this->router()->sections[$ad[Classifieds::SECTION_ID]][3] . '/';
-                            $uri.=$this->router()->purposes[$ad[Classifieds::PURPOSE_ID]][3] . '/';
-                            $uri.=($this->router()->isArabic()?'':$this->router()->language . '/') . 'c-' . $id . '-' . $idx . '/';
+                            $uri.=$this->router->sections[$ad[Classifieds::SECTION_ID]][3] . '/';
+                            $uri.=$this->router->purposes[$ad[Classifieds::PURPOSE_ID]][3] . '/';
+                            $uri.=($this->router->isArabic()?'':$this->router->language . '/') . 'c-' . $id . '-' . $idx . '/';
                             $res.='<li><a href="' . $uri . '">' . $tempSection . '</a></li>';
                         }
                         else {
@@ -1844,43 +1848,43 @@ class Search extends Page {
                 $section = $res;
             } 
             else {
-                if ($this->router()->countryId && $ad[Classifieds::COUNTRY_ID] != $this->router()->countryId) {
-                    $ad[Classifieds::COUNTRY_ID] = $this->router()->countryId;
+                if ($this->router->countryId && $ad[Classifieds::COUNTRY_ID] != $this->router->countryId) {
+                    $ad[Classifieds::COUNTRY_ID] = $this->router->countryId;
                     $ad[Classifieds::CITY_ID] = 0;
                 }
 
-                if ($this->router()->cityId && $ad[Classifieds::CITY_ID] != $this->router()->cityId){
-                    $ad[Classifieds::CITY_ID] = $this->router()->cityId;
+                if ($this->router->cityId && $ad[Classifieds::CITY_ID] != $this->router->cityId){
+                    $ad[Classifieds::CITY_ID] = $this->router->cityId;
                 }
                 
-                if (isset($this->router()->countries[$ad[Classifieds::COUNTRY_ID]])) {
+                if (isset($this->router->countries[$ad[Classifieds::COUNTRY_ID]])) {
                     $countryId = $ad[Classifieds::COUNTRY_ID];
                     $cityId = 0;
-                    if (!empty($this->router()->countries[$countryId]['cities']) && $ad[Classifieds::CITY_ID] && isset($this->router()->countries[$countryId]['cities'][$ad[Classifieds::CITY_ID]])) {
+                    if (!empty($this->router->countries[$countryId]['cities']) && $ad[Classifieds::CITY_ID] && isset($this->router->countries[$countryId]['cities'][$ad[Classifieds::CITY_ID]])) {
                         $cityId = $ad[Classifieds::CITY_ID];
-                        $section = $section . ' ' . $this->lang['in'] . ' ' . $this->router()->countries[$countryId]['cities'][$cityId]['name'];
+                        $section = $section . ' ' . $this->lang['in'] . ' ' . $this->router->countries[$countryId]['cities'][$cityId]['name'];
 
-                        if (!mb_strstr($section, $this->router()->countries[$countryId]['name'], true, "utf-8")) {
-                            $section.=' ' . $this->router()->countries[$countryId]['name'];
+                        if (!mb_strstr($section, $this->router->countries[$countryId]['name'], true, "utf-8")) {
+                            $section.=' ' . $this->router->countries[$countryId]['name'];
                         }                                
                     } else {
-                        $section = $section . ' ' . $this->lang['in'] . ' ' . $this->router()->countries[$countryId]['name'];                    
+                        $section = $section . ' ' . $this->lang['in'] . ' ' . $this->router->countries[$countryId]['name'];                    
                     }
                     if ($hasLink) {
                         if ($extID) {
                             $idx = 2;
-                            $uri = '/' . $this->router()->countries[$ad[Classifieds::COUNTRY_ID]]['uri'] . '/';
+                            $uri = '/' . $this->router->countries[$ad[Classifieds::COUNTRY_ID]]['uri'] . '/';
                             if ($cityId) {
                                 $idx = 3;
-                                $uri.=$this->router()->countries[$ad[Classifieds::COUNTRY_ID]]['cities'][$cityId]['uri'] . '/';
+                                $uri.=$this->router->countries[$ad[Classifieds::COUNTRY_ID]]['cities'][$cityId]['uri'] . '/';
                             }
-                            $uri.=$this->router()->sections[$ad[Classifieds::SECTION_ID]][3] . '-' . $this->extended[$extID]['uri'] . '/';
-                            $uri.=$this->router()->purposes[$ad[Classifieds::PURPOSE_ID]][3] . '/';
-                            $uri.=($this->router()->language == 'ar' ? '' : $this->router()->language . '/') . 'q-' . $extID . '-' . $idx . '/';
+                            $uri.=$this->router->sections[$ad[Classifieds::SECTION_ID]][3] . '-' . $this->extended[$extID]['uri'] . '/';
+                            $uri.=$this->router->purposes[$ad[Classifieds::PURPOSE_ID]][3] . '/';
+                            $uri.=($this->router->language == 'ar' ? '' : $this->router->language . '/') . 'q-' . $extID . '-' . $idx . '/';
                             $section = '<li><a href="' . $uri . '">' . $section . '</a></li>';
                         }
                         else {
-                            $section = '<li><a href="' . $this->router()->getURL($countryId, $cityId, $ad[Classifieds::ROOT_ID], $ad[Classifieds::SECTION_ID], $ad[Classifieds::PURPOSE_ID]) . '">' . $section . '</a></li>';
+                            $section = '<li><a href="' . $this->router->getURL($countryId, $cityId, $ad[Classifieds::ROOT_ID], $ad[Classifieds::SECTION_ID], $ad[Classifieds::PURPOSE_ID]) . '">' . $section . '</a></li>';
                         }
                     }
                 }
@@ -1899,12 +1903,12 @@ class Search extends Page {
     function sectionSummeryMobile($forceRebuild = false) {
         if ($this->breadString && !$forceRebuild) { return $this->breadString; }
         $bread = "";
-        if ($this->router()->language == "ar") {
-            if ($this->router()->purposeId) {
+        if ($this->router->language == "ar") {
+            if ($this->router->purposeId) {
                 $bread.= " {$this->purposeName}";
             }
-            if ($this->router()->rootId) {
-                if ($this->router()->sectionId) {
+            if ($this->router->rootId) {
+                if ($this->router->sectionId) {
                     $bread .= " {$this->sectionName}";
                     $bread .= " {$this->lang['included']} {$this->rootName}";
                 } 
@@ -1912,9 +1916,9 @@ class Search extends Page {
                     $bread .= " {$this->rootName}";
                 }
             }
-            if ($this->router()->countryId || $this->router()->rootId) {
-                if ($this->router()->countryId) {
-                    if ($this->hasCities && $this->router()->cityId) {
+            if ($this->router->countryId || $this->router->rootId) {
+                if ($this->router->countryId) {
+                    if ($this->hasCities && $this->router->cityId) {
                         $bread.= " {$this->cityName}، ";
                     }
                     $bread.= " {$this->countryName} ";
@@ -1928,22 +1932,22 @@ class Search extends Page {
             }
         } 
         else {
-            if ($this->router()->rootId) {
-                if ($this->router()->sectionId) {
+            if ($this->router->rootId) {
+                if ($this->router->sectionId) {
                     $bread .= " {$this->sectionName}";
-                    if ($this->router()->purposeId)
+                    if ($this->router->purposeId)
                         $bread.= " {$this->purposeName}";
                     $bread .= " {$this->lang['included']} {$this->rootName}";
                 }
                 else {
                     $bread .= " {$this->rootName}";
-                    if ($this->router()->purposeId)
+                    if ($this->router->purposeId)
                         $bread.= " {$this->purposeName}";
                 }
             }
-            if ($this->router()->countryId || $this->router()->rootId) {
-                if ($this->router()->countryId) {
-                    if ($this->hasCities && $this->router()->cityId) {
+            if ($this->router->countryId || $this->router->rootId) {
+                if ($this->router->countryId) {
+                    if ($this->hasCities && $this->router->cityId) {
                         $bread.= " {$this->cityName}, ";
                     }
                     $bread.= " {$this->countryName} ";
@@ -1977,7 +1981,7 @@ class Search extends Page {
         }
         
         $result.='<span><b>';                        
-        if ($this->router()->isArabic()) {
+        if ($this->router->isArabic()) {
             if ($count>10) {
                 $result.= number_format($count) ." ".$this->lang['ads'];
             }
@@ -1996,7 +2000,7 @@ class Search extends Page {
         }        
         $result.= '</b> ';
                        
-        if ($this->router()->params['q']) {
+        if ($this->router->params['q']) {
             $result.=' '.$this->lang['for'].' '.$this->crumbTitle.($hasShare?'&nbsp;<span class="st_email"></span><span class="st_facebook"></span><span class="st_twitter"></span><span class="st_googleplus"></span><span class="st_linkedin"></span><span class="st_sharethis"></span>' : '');
         }
         elseif ($this->userFavorites) {
@@ -2014,9 +2018,9 @@ class Search extends Page {
     function summarizeSearch(bool $forceRebuild=false) : string {
         $count=$this->searchResults['body']['total_found'];
         $adLang='';
-        if (!$this->router()->isArabic()) { $adLang=$this->router()->language.'/'; }
-        if ($this->router()->watchId) {
-            $hasShare = $this->router()->cfg['enabled_sharing'] && $this->router()->module == 'search' && $count;
+        if (!$this->router->isArabic()) { $adLang=$this->router->language.'/'; }
+        if ($this->router->watchId) {
+            $hasShare = $this->router->cfg['enabled_sharing'] && $this->router->module == 'search' && $count;
             $formatted = number_format($count);
             $bread='';
             if ($this->channelId && $this->watchName) {
@@ -2035,7 +2039,7 @@ class Search extends Page {
                 $bread .= '</div>';
             }
             $bread.= "<p class='ph'>";
-            if ($this->router()->isArabic()) {
+            if ($this->router->isArabic()) {
                 if ($count > 10) {
                     $bread.= $formatted . " " . $this->lang['ads'];
                 } 
@@ -2077,16 +2081,16 @@ class Search extends Page {
                         $bread.='<span class="naf"></span>';
             }
         }
-        elseif ($this->router()->userId) {
-            $hasShare = $count && $this->router()->cfg['enabled_sharing'] && $this->router()->module=='search';
+        elseif ($this->router->userId) {
+            $hasShare = $count && $this->router->cfg['enabled_sharing'] && $this->router->module=='search';
             $formatted = number_format($count);
-            $q = $this->router()->params['q'];
-            $uri = '/' . $this->partnerInfo['uri'] . $this->router()->getURL(0, 0, 0, $this->router()->sectionId, $this->router()->purposeId);
+            $q = $this->router->params['q'];
+            $uri = '/' . $this->partnerInfo['uri'] . $this->router->getURL(0, 0, 0, $this->router->sectionId, $this->router->purposeId);
             $bread='<div class="srch w">';
             $bread.='<form onsubmit="if(document.getElementById(\'q\').value)return true;return false" action="'.$uri.'" method="get">';
             $bread.='<div class="q">'; 
             $bread.='<input id="q" name="q" value="'. htmlspecialchars($q,ENT_QUOTES).'" type="text" placeholder="'.$this->lang['search_what'].'" />';
-            if ($this->router()->params['q']) {
+            if ($this->router->params['q']) {
                 $bread.='<a class="qx" href="'.$uri.'"></a>';
             }
             $bread.='</div>';
@@ -2094,7 +2098,7 @@ class Search extends Page {
             $bread.='</form>';
             $bread.='</div>';
             $bread.= "<p class='ph'><b>";
-            if ($this->router()->isArabic()) {
+            if ($this->router->isArabic()) {
                 if ($count > 10) {
                     $bread.= $formatted . " " . $this->lang['ads'];
                 } 
@@ -2115,19 +2119,19 @@ class Search extends Page {
                 $bread.= $this->formatPlural($count, "ad");
             }
             $bread.= '</b> ';
-            if ($this->router()->params['q']) {
-                $bread.=$this->lang['for'] . ' ' . htmlspecialchars($this->router()->params['q'], ENT_QUOTES);
-                if ($this->partnerInfo['title'] || $this->router()->sectionId) {
+            if ($this->router->params['q']) {
+                $bread.=$this->lang['for'] . ' ' . htmlspecialchars($this->router->params['q'], ENT_QUOTES);
+                if ($this->partnerInfo['title'] || $this->router->sectionId) {
                     $bread.=' ' . $this->lang['in'] . ' ';
-                    if ($this->router()->isArabic()) {
+                    if ($this->router->isArabic()) {
                         $bread.=$this->lang['pclassifieds'] . ' ';
                     }                    
                 }
             }
             
-            if ($this->router()->sectionId) {
+            if ($this->router->sectionId) {
                 $bread.=$this->partnerSection;
-                if ($this->router()->params['q'] && !$this->router()->isArabic()) {
+                if ($this->router->params['q'] && !$this->router->isArabic()) {
                     $bread.=' ' . $this->lang['pclassifieds'];
                 }
                 if ($this->partnerInfo['title']) {
@@ -2151,8 +2155,8 @@ class Search extends Page {
                 $bread.='</div>';
                 $bread.='<div class="nad">';
                 $bread.='<p>' . $this->lang['addF0'] . '</p><br />';
-                $bread.='<img height="150" width="480" src="' . $this->router()->cfg['url_css_mobile'] . '/i/t/fav' . ($this->router()->language == 'ar' ? '' : 'e') . $this->router()->_jpg .'" /><br />';
-                $bread.='<a class="bt" href="' . $this->router()->getURL($this->router()->countryId, $this->router()->cityId) . '"><span class="i h"></span> ' . $this->lang['noFavBackLink'] . '</a>';                        
+                $bread.='<img height="150" width="480" src="' . $this->router->cfg['url_css_mobile'] . '/i/t/fav' . ($this->router->language == 'ar' ? '' : 'e') . $this->router->_jpg .'" /><br />';
+                $bread.='<a class="bt" href="' . $this->router->getURL($this->router->countryId, $this->router->cityId) . '"><span class="i h"></span> ' . $this->lang['noFavBackLink'] . '</a>';                        
                 $bread.='</div>';
                 return $bread;
             } 
@@ -2163,13 +2167,13 @@ class Search extends Page {
                     $bread=$this->getBreadCrumb($forceRebuild, $count);                     
                 }
                 
-                if (!$this->router()->isPriceList && ($this->router()->module!='detail' || ($this->router()->module=='detail' && $this->detailAdExpired))) {
+                if (!$this->router->isPriceList && ($this->router->module!='detail' || ($this->router->module=='detail' && $this->detailAdExpired))) {
                     if ($count) {
                         //$bread.='<div class="row col-12 target">';
                         
                         $hasEye=0;
-                        if ($this->router()->module=='search' && !$this->userFavorites && !$this->router()->watchId && !$forceRebuild) {
-                            if (($this->router()->countryId && $this->router()->sectionId && $this->router()->purposeId) || ($this->router()->params['q'] && $this->searchResults['body']['total_found']<100)) {
+                        if ($this->router->module=='search' && !$this->userFavorites && !$this->router->watchId && !$forceRebuild) {
+                            if (($this->router->countryId && $this->router->sectionId && $this->router->purposeId) || ($this->router->params['q'] && $this->searchResults['body']['total_found']<100)) {
                                 $hasEye=1;
                             }
                         }
@@ -2185,7 +2189,7 @@ class Search extends Page {
                         }
                         $bread.='<span><b>';
                        
-                        if ($this->router()->isArabic()) {
+                        if ($this->router->isArabic()) {
                             if ($count>10) {
                                 $bread.= $formatted." ".$this->lang['ads'];
                             }
@@ -2204,7 +2208,7 @@ class Search extends Page {
                        
                         $bread.= '</b> ';
                        
-                        if ($this->router()->params['q']) {
+                        if ($this->router->params['q']) {
                             $bread.=' '.$this->lang['for'].' '.$this->crumbTitle.($hasShare ? '&nbsp;<span class="st_email"></span><span class="st_facebook"></span><span class="st_twitter"></span><span class="st_googleplus"></span><span class="st_linkedin"></span><span class="st_sharethis"></span>' : '');
                         }
                         elseif ($this->userFavorites) {
@@ -2227,7 +2231,7 @@ class Search extends Page {
          
     function alternateSummery($count){
                 $bread= "<p class='ph pha'>";
-                if ($this->router()->params['q'])
+                if ($this->router->params['q'])
                     $bread.=$this->lang['no_listing_q'].' '.$this->lang['for'].' '.$this->crumbTitle;
                 else $bread.=$this->lang['no_listing'].' '.$this->crumbTitle;
                 $this->getBreadCrumb(1, $count);
@@ -2235,20 +2239,20 @@ class Search extends Page {
                 $bread.=$this->lang['might_interest'].' ';
                 $bread.='<b>';
                 $found='';
-                    if ($this->router()->language=="ar") {
+                    if ($this->router->language=="ar") {
                         $formatted = number_format($count);
-                        if (!$this->router()->params['q'])
+                        if (!$this->router->params['q'])
                             $found='وارد ضمن ';
                         if ($count>10) {
                                 $bread.= $formatted." ".$this->lang['ads'];
                             }elseif ($count>2){
-                                if (!$this->router()->params['q'])
+                                if (!$this->router->params['q'])
                                     $found='واردة ضمن ';
                                 $bread.= $formatted." ".$this->lang['3ad'];
                             }else if ($count==1){
                                 $bread.= $this->lang['ad'];
                             }else {
-                                if (!$this->router()->params['q'])
+                                if (!$this->router->params['q'])
                                     $found='وردا ضمن ';
                                 $bread.= $this->lang['2ad'];
                             }
@@ -2257,17 +2261,17 @@ class Search extends Page {
                             $bread.= $this->formatPlural($count, "ad");
                             $bread.= '</b> found in ';
                         }
-                        if ($this->router()->params['q'])
+                        if ($this->router->params['q'])
                           $bread.=' '.$this->lang['for'].' '.$this->crumbTitle;
                         else $bread.=' '.$this->crumbTitle;
                 $bread .= '</p>';
                 
-                if ($this->router()->module == 'search' && $this->publisherTypeSorting && in_array($this->tmpRootId,[1,2,3])){
+                if ($this->router->module == 'search' && $this->publisherTypeSorting && in_array($this->tmpRootId,[1,2,3])){
                             $bread .= "<!--googleoff: snippet--><div class='mnb phx rc'><p>";
                             
                             $uri = $this->getPageUri().'?';
-                            if ($this->router()->params['q']) {
-                                $uri .= 'q=' . urlencode($this->router()->params['q']).'&';
+                            if ($this->router->params['q']) {
+                                $uri .= 'q=' . urlencode($this->router->params['q']).'&';
                             }  
                             $uri .= 'xd=0';
                             
@@ -2299,16 +2303,16 @@ class Search extends Page {
         $time = time();
         if (!isset($this->user->params['search']) || (isset($this->user->params['search']['time']) && ($time-$this->user->params['search']['time']>3))) {
             $this->user->params['search'] = array(
-                'cn' => $this->router()->countryId,
-                'c' => $this->router()->cityId,
-                'ro' => $this->router()->rootId,
-                'se' => $this->router()->sectionId,
-                'pu' => $this->router()->purposeId,
-                'start' => $this->router()->params['start'],
-                'q' => $this->router()->params['q'],
+                'cn' => $this->router->countryId,
+                'c' => $this->router->cityId,
+                'ro' => $this->router->rootId,
+                'se' => $this->router->sectionId,
+                'pu' => $this->router->purposeId,
+                'start' => $this->router->params['start'],
+                'q' => $this->router->params['q'],
                 'exId' => $this->extendedId,
                 'locId' => $this->localityId,
-                'uId' => $this->router()->userId,
+                'uId' => $this->router->userId,
                 'time' => $time
             );
             $this->user->update();
@@ -2317,18 +2321,18 @@ class Search extends Page {
 
     
     function renderSubSections() {
-        if ($this->router()->rootId && count($this->router()->pageSections)>1) {
+        if ($this->router->rootId && count($this->router->pageSections)>1) {
             $hasQuery = false;
             $q = '';
-            if ($this->router()->params['q']) {
+            if ($this->router->params['q']) {
                 $hasQuery = true;
-                $q = '?q='.urlencode($this->router()->params['q']);
+                $q = '?q='.urlencode($this->router->params['q']);
             }
             echo "<ul>";
             $i = 0;
             
             $sectionClass='<span class="v';            
-            switch ($this->router()->rootId) {
+            switch ($this->router->rootId) {
                 case 1:
                     $sectionClass='<span class="x x';
                     break;
@@ -2347,51 +2351,51 @@ class Search extends Page {
             }
             
             if ($hasQuery) {
-                $pId = $this->router()->rootId==3 ? 3 : 0;                
+                $pId = $this->router->rootId==3 ? 3 : 0;                
                 
-                echo '<li>', $this->renderSubListLink($this->lang['opt_all_categories'], $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, 0, $pId) . $q, $this->router()->sectionId == 0,'ovh'), '</li>';
-                foreach ($this->router()->pageSections as $section_id=>$section) {
-                    $selected = ($this->router()->sectionId == $section_id ? true : false);
+                echo '<li>', $this->renderSubListLink($this->lang['opt_all_categories'], $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, 0, $pId) . $q, $this->router->sectionId == 0,'ovh'), '</li>';
+                foreach ($this->router->pageSections as $section_id=>$section) {
+                    $selected = ($this->router->sectionId == $section_id ? true : false);
                     if ($this->extendedId || $this->localityId)
                         $selected = false;
                     $purposeId = 0;
-                    if ($this->router()->rootId==3) {
+                    if ($this->router->rootId==3) {
                         $purposeId = 3;
                     }
                     elseif (count($section['purposes'])==1) {
                         $purposeId = array_keys($section['purposes'])[0];
                     }
-                    elseif ($this->router()->purposeId && isset ($section['purposes'][$this->router()->purposeId])) {
-                        $purposeId = $this->router()->purposeId;
+                    elseif ($this->router->purposeId && isset ($section['purposes'][$this->router->purposeId])) {
+                        $purposeId = $this->router->purposeId;
                     }                
-                    echo '<li>', $this->renderSubListLink($sectionClass.$section_id.'"></span>'.$section['name'], $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $section_id, $purposeId) . $q, $selected), '</li>';
+                    echo '<li>', $this->renderSubListLink($sectionClass.$section_id.'"></span>'.$section['name'], $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $section_id, $purposeId) . $q, $selected), '</li>';
                     $i++;
                 }              
             }
             else {                
-                $pId = $this->router()->rootId == 3 ? 3 : 0;
-                echo '<li>', $this->renderSubListLink($this->lang['opt_all_categories'], $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, 0, $pId).$q, $this->router()->sectionId==0, 'ovh'), '</li>';
+                $pId = $this->router->rootId == 3 ? 3 : 0;
+                echo '<li>', $this->renderSubListLink($this->lang['opt_all_categories'], $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, 0, $pId).$q, $this->router->sectionId==0, 'ovh'), '</li>';
                 
-                foreach ($this->router()->pageSections as $section_id=>$section) {
-                    $selected = $this->router()->sectionId==$section_id;
+                foreach ($this->router->pageSections as $section_id=>$section) {
+                    $selected = $this->router->sectionId==$section_id;
                     if ($this->extendedId||$this->localityId) {
                         $selected = false;
                     }
                     $purposeId = 0;
-                    if ($this->router()->rootId==3) {
+                    if ($this->router->rootId==3) {
                         $purposeId = 3;
                     }
                     elseif (count($section['purposes'])==1) {
                         $purposeId = array_keys($section['purposes'])[0];
                     }
-                    elseif ($this->router()->purposeId && isset($section['purposes'][$this->router()->purposeId])) {
-                        $purposeId = $this->router()->purposeId;
+                    elseif ($this->router->purposeId && isset($section['purposes'][$this->router->purposeId])) {
+                        $purposeId = $this->router->purposeId;
                         $section['counter'] = $section['purposes'][$purposeId]['counter'];
                     }
                     $isNew = (!$selected && $this->checkNewUserContent($section['unixtime']));
                     $iTmp=$sectionClass.$section_id.'"></span>';
                     echo '<li', ($isNew ? ' class="nl">' : '>'),
-                    $this->renderSubListLink($iTmp.$section['name'].'&nbsp;<span class=c>('.$section['counter'].')</span>', $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $section_id, $purposeId), $selected), '</li>';
+                    $this->renderSubListLink($iTmp.$section['name'].'&nbsp;<span class=c>('.$section['counter'].')</span>', $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $section_id, $purposeId), $selected), '</li>';
                     $i++;
                 }
             }
@@ -2401,29 +2405,29 @@ class Search extends Page {
         
     
     function renderMobileLocalityLinks(){
-        if ($this->router()->rootId == 1 && $this->router()->countryId && count($this->localities)) {
+        if ($this->router->rootId == 1 && $this->router->countryId && count($this->localities)) {
             $q = '';
-            if ($this->router()->params['q']) {
+            if ($this->router->params['q']) {
                 $hasQuery = true;
-                $q = '?q=' . urlencode($this->router()->params['q']);
+                $q = '?q=' . urlencode($this->router->params['q']);
             }
             $citiesList = '';
-            $prefix_uri = '/' . $this->router()->countries[$this->router()->countryId]['uri'] . '/';
+            $prefix_uri = '/' . $this->router->countries[$this->router->countryId]['uri'] . '/';
             $keyIndex = 2;
             $suffix_uri = '/';
             $prefix = '';
             $suffix = '';
-            if ($this->router()->sectionId) {
-                $suffix_uri.=$this->router()->sections[$this->router()->sectionId][3] . '/';
-                $prefix = $this->router()->sections[$this->router()->sectionId][$this->fieldNameIndex] . ' ';
+            if ($this->router->sectionId) {
+                $suffix_uri.=$this->router->sections[$this->router->sectionId][3] . '/';
+                $prefix = $this->router->sections[$this->router->sectionId][$this->fieldNameIndex] . ' ';
             } else {
-                $suffix_uri.=$this->router()->roots[$this->router()->rootId][3] . '/';
-                $prefix = $this->router()->roots[$this->router()->rootId][$this->fieldNameIndex] . ' ';
+                $suffix_uri.=$this->router->roots[$this->router->rootId][3] . '/';
+                $prefix = $this->router->roots[$this->router->rootId][$this->fieldNameIndex] . ' ';
             }
             $sectionName = $this->sectionName;
-            if ($this->router()->purposeId) {
-                $suffix_uri.=$this->router()->purposes[$this->router()->purposeId][3] . '/';
-                switch ($this->router()->purposeId) {
+            if ($this->router->purposeId) {
+                $suffix_uri.=$this->router->purposes[$this->router->purposeId][3] . '/';
+                switch ($this->router->purposeId) {
                     case 1:
                     case 2:
                     case 8:
@@ -2437,8 +2441,8 @@ class Search extends Page {
                         break;
                 }
             }
-            if ($this->router()->language != 'ar') {
-                $suffix_uri.=$this->router()->language . '/';
+            if ($this->router->language != 'ar') {
+                $suffix_uri.=$this->router->language . '/';
             }
             $prefix.=$this->lang['in'] . '.. ';
             $pass = false;
@@ -2534,13 +2538,13 @@ class Search extends Page {
                 ?> <!--googleoff: index --> <?php
                     ?><span onclick="subList(this)" class="rbt subit loc ic"></span><?php
                     ?><div id="sublist"><?php
-                    ?><h2 class="ctr"><?= $this->lang['suggestionLocation'] . ($this->localityId ? $this->localities[$this->localityId]['name'] . $this->lang['?'] : $this->router()->countries[$this->router()->countryId]['name'] . $this->lang['?']) ?></h2><?php
+                    ?><h2 class="ctr"><?= $this->lang['suggestionLocation'] . ($this->localityId ? $this->localities[$this->localityId]['name'] . $this->lang['?'] : $this->router->countries[$this->router->countryId]['name'] . $this->lang['?']) ?></h2><?php
                     
                 $hasExt=1;
                 if($locId && isset($this->localities[$locId])){                    
                     ?><ul class='ls'><?php
                     /*
-                    ?><li class="bbr"><a href="<?= $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId) ?>"><?= $this->lang['opt_all_areas'] ?><span class="to"></span><span class="n"><?= $this->router()->pageSections[$this->router()->sectionId]['counter'] ?></span></a></li><?php 
+                    ?><li class="bbr"><a href="<?= $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId) ?>"><?= $this->lang['opt_all_areas'] ?><span class="to"></span><span class="n"><?= $this->router->pageSections[$this->router->sectionId]['counter'] ?></span></a></li><?php 
                     */
                     $alocId = (int)$locId;
                     $parentIds=array();
@@ -2582,7 +2586,7 @@ class Search extends Page {
                                 ?><li class='sm<?= $i++ ?>'><a href='<?= $prefix_uri . $this->localities[$pid]['uri'] . $suffix_uri . $append ?>'><span class="w"></span><?= $this->localities[$pid]['name'] ?><span class='to'></span></a></li><?php
                             }
                         }else{
-                            ?><li class="bbr"><a href='<?= $this->router()->getURL($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId).$q ?>'><?= $this->cityName ? $this->cityName : $this->countryName ?><span class='to'></span></a></li><?php
+                            ?><li class="bbr"><a href='<?= $this->router->getURL($this->router->countryId,$this->router->cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId).$q ?>'><?= $this->cityName ? $this->cityName : $this->countryName ?><span class='to'></span></a></li><?php
                         }
                     }
                     
@@ -2600,8 +2604,8 @@ class Search extends Page {
                     $citiesList = preg_replace('/\<span class\=\"w\"\>\<\/span\>/','',$citiesList);
                     ?><ul class='ls'><?php 
                     ?><li class="on bbr"><b><?= $this->cityName ? $this->cityName : $this->countryName;
-                    if($this->router()->sectionId){
-                        ?><span class="n"><?= $this->router()->pageSections[$this->router()->sectionId]['counter'] ?></span><?php
+                    if($this->router->sectionId){
+                        ?><span class="n"><?= $this->router->pageSections[$this->router->sectionId]['counter'] ?></span><?php
                     }
                     ?></b></li><?php
                     echo $citiesList;
@@ -2616,29 +2620,29 @@ class Search extends Page {
     
     
     function renderLocalityLinks() {
-        if ($this->router()->rootId==1 && $this->router()->countryId && is_array($this->localities) && count($this->localities)) {
+        if ($this->router->rootId==1 && $this->router->countryId && is_array($this->localities) && count($this->localities)) {
             $q = '';
-            if ($this->router()->params['q']) {
+            if ($this->router->params['q']) {
                 $hasQuery = true;
-                $q = '?q=' . urlencode($this->router()->params['q']);
+                $q = '?q=' . urlencode($this->router->params['q']);
             }
             $citiesList = '';
-            $prefix_uri = '/' . $this->router()->countries[$this->router()->countryId]['uri'] . '/';
+            $prefix_uri = '/' . $this->router->countries[$this->router->countryId]['uri'] . '/';
             $keyIndex = 2;
             $suffix_uri = '/';
             $prefix = '';
             $suffix = '';
-            if ($this->router()->sectionId) {
-                $suffix_uri.=$this->router()->sections[$this->router()->sectionId][3] . '/';
-                $prefix = $this->router()->sections[$this->router()->sectionId][$this->fieldNameIndex] . ' ';
+            if ($this->router->sectionId) {
+                $suffix_uri.=$this->router->sections[$this->router->sectionId][3] . '/';
+                $prefix = $this->router->sections[$this->router->sectionId][$this->fieldNameIndex] . ' ';
             } else {
-                $suffix_uri.=$this->router()->roots[$this->router()->rootId][3] . '/';
-                $prefix = $this->router()->roots[$this->router()->rootId][$this->fieldNameIndex] . ' ';
+                $suffix_uri.=$this->router->roots[$this->router->rootId][3] . '/';
+                $prefix = $this->router->roots[$this->router->rootId][$this->fieldNameIndex] . ' ';
             }
             $sectionName = $this->sectionName;
-            if ($this->router()->purposeId) {
-                $suffix_uri.=$this->router()->purposes[$this->router()->purposeId][3] . '/';
-                switch ($this->router()->purposeId) {
+            if ($this->router->purposeId) {
+                $suffix_uri.=$this->router->purposes[$this->router->purposeId][3] . '/';
+                switch ($this->router->purposeId) {
                     case 1:
                     case 2:
                     case 8:
@@ -2652,8 +2656,8 @@ class Search extends Page {
                         break;
                 }
             }
-            if ($this->router()->language != 'ar') {
-                $suffix_uri.=$this->router()->language . '/';
+            if ($this->router->language != 'ar') {
+                $suffix_uri.=$this->router->language . '/';
             }
             $prefix.=$this->lang['in'] . '.. ';
             $pass = false;
@@ -2790,7 +2794,7 @@ class Search extends Page {
                                 ?><li class='sm<?= $i++ ?>'><a href='<?= $prefix_uri . $this->localities[$pid]['uri'] . $suffix_uri . $append ?>'><?= $this->localities[$pid]['name'] ?></a></li><?php
                             }
                         }else{
-                            ?><li><a href='<?= $this->router()->getURL($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId).$q ?>'><?= $this->cityName ? $this->cityName : $this->countryName ?></a></li><?php
+                            ?><li><a href='<?= $this->router->getURL($this->router->countryId,$this->router->cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId).$q ?>'><?= $this->cityName ? $this->cityName : $this->countryName ?></a></li><?php
                         }
                     }
                     
@@ -2815,8 +2819,8 @@ class Search extends Page {
     
     function renderSearchSettings() {
         $q = $this->getPageUri().'?';
-        if ($this->router()->params['q']) {
-            $q .= 'q=' . urlencode($this->router()->params['q']).'&';
+        if ($this->router->params['q']) {
+            $q .= 'q=' . urlencode($this->router->params['q']).'&';
         }
         $ql = $q;
         $pl = $q;
@@ -2840,11 +2844,11 @@ class Search extends Page {
         echo '<span class="select-highlight"></span>', '<span class="select-bar"></span>', '<label class="select-label">', $this->lang['lg_sorting'],'</label>';
         echo '</div>';
         
-        if (in_array($this->router()->rootId,[1,2,3])) {
+        if (in_array($this->router->rootId,[1,2,3])) {
             echo '<div class=select style="margin:8px 0"><select class="select-text" onchange="sorting(this)">';
             echo '<option value="', $pl, '0"', ($this->publisherTypeSorting==0)?' selected':'', '>', $this->lang['spub_0'], '</option>';
-            echo '<option value="', $pl, '1"', ($this->publisherTypeSorting==1)?' selected':'', '>', $this->router()->rootId==3?$this->lang['sbpub_1']:$this->lang['spub_1'], '</option>';          
-            echo '<option value="', $pl, '2"', ($this->publisherTypeSorting==2)?' selected':'', '>', $this->lang['spub_3_'.$this->router()->rootId], '</option>';
+            echo '<option value="', $pl, '1"', ($this->publisherTypeSorting==1)?' selected':'', '>', $this->router->rootId==3?$this->lang['sbpub_1']:$this->lang['spub_1'], '</option>';          
+            echo '<option value="', $pl, '2"', ($this->publisherTypeSorting==2)?' selected':'', '>', $this->lang['spub_3_'.$this->router->rootId], '</option>';
             echo '</select>';
             echo '<span class="select-highlight"></span>', '<span class="select-bar"></span>' /*, '<label class="select-label">', $this->lang['lg_sorting'],'</label>'*/;
             echo '</div>';          
@@ -2854,10 +2858,10 @@ class Search extends Page {
     
     
     function renderExtendedLinks() {
-        if ($this->router()->sectionId && is_array($this->extended) && count($this->extended)) {
+        if ($this->router->sectionId && is_array($this->extended) && count($this->extended)) {
             $prefix_uri = '/';
-            if ($this->router()->countryId) {
-                $prefix_uri.=$this->router()->countries[$this->router()->countryId]['uri'] . '/';
+            if ($this->router->countryId) {
+                $prefix_uri.=$this->router->countries[$this->router->countryId]['uri'] . '/';
                 $keyIndex = 2;
             }
             else {
@@ -2865,23 +2869,23 @@ class Search extends Page {
             }
 
             $q = '';
-            if ($this->router()->params['q']) {
+            if ($this->router->params['q']) {
                 $hasQuery = true;
-                $q = '?q=' . urlencode($this->router()->params['q']);
+                $q = '?q=' . urlencode($this->router->params['q']);
             }
 
             $suffix_uri = '/';
             $prefix = '';
             $suffix = '';
 
-            if (isset($this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId])) {
+            if (isset($this->router->countries[$this->router->countryId]['cities'][$this->router->cityId])) {
                 $keyIndex++;
-                $prefix_uri.=$this->router()->cities[$this->router()->cityId][3] . '/';
+                $prefix_uri.=$this->router->cities[$this->router->cityId][3] . '/';
             }
 
-            if ($this->router()->purposeId) {
-                $suffix_uri.=$this->router()->purposes[$this->router()->purposeId][3] . '/';
-                /*switch ($this->router()->purposeId) {
+            if ($this->router->purposeId) {
+                $suffix_uri.=$this->router->purposes[$this->router->purposeId][3] . '/';
+                /*switch ($this->router->purposeId) {
                     case 1:
                     case 2:
                         $suffix = ' ' . $this->purposeName;
@@ -2895,24 +2899,24 @@ class Search extends Page {
                         break;
                 }*/
             }
-            if ($this->router()->language != 'ar') {
-                $suffix_uri.=$this->router()->language . '/';
+            if ($this->router->language != 'ar') {
+                $suffix_uri.=$this->router->language . '/';
             }                            
             $hasExt=1;
             
             $iTmp='';
-            if($this->router()->rootId==1){
-                $iTmp.='<span class="x x'.$this->router()->sectionId.'"></span>';
-            }elseif($this->router()->rootId==2){
-                $iTmp.='<span class="z z'.$this->router()->sectionId.'"></span>';
-            }elseif($this->router()->rootId==3){
-                $iTmp.='<span class="v v'.$this->router()->sectionId.'"></span>';
-            }elseif($this->router()->rootId==4){
-                $iTmp.='<span class="y y'.$this->router()->sectionId.'"></span>';
-            }elseif($this->router()->rootId==99){
-                $iTmp.='<span class="u u'.$this->router()->sectionId.'"></span>';
+            if($this->router->rootId==1){
+                $iTmp.='<span class="x x'.$this->router->sectionId.'"></span>';
+            }elseif($this->router->rootId==2){
+                $iTmp.='<span class="z z'.$this->router->sectionId.'"></span>';
+            }elseif($this->router->rootId==3){
+                $iTmp.='<span class="v v'.$this->router->sectionId.'"></span>';
+            }elseif($this->router->rootId==4){
+                $iTmp.='<span class="y y'.$this->router->sectionId.'"></span>';
+            }elseif($this->router->rootId==99){
+                $iTmp.='<span class="u u'.$this->router->sectionId.'"></span>';
             }else {
-                $iTmp.='<span class="v'.$this->router()->sectionId.'"></span>';
+                $iTmp.='<span class="v'.$this->router->sectionId.'"></span>';
             }
             
             echo '<div class="title"><h5>', $iTmp, $this->sectionName, '</h5></div>', '<ul>';
@@ -2920,14 +2924,14 @@ class Search extends Page {
                     if($this->extendedId==0){
                         echo "<li class='f ov'>".$this->lang['opt_all_categories']."</li>";
                     }else{
-                        echo "<li class='f'>".$this->renderSubListLink($this->lang['opt_all_categories'], $this->router()->getURL($this->router()->countryId,$this->router()->cityId,$this->router()->rootId,$this->router()->sectionId,$this->router()->purposeId), 0)."</li>";
+                        echo "<li class='f'>".$this->renderSubListLink($this->lang['opt_all_categories'], $this->router->getURL($this->router->countryId,$this->router->cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId), 0)."</li>";
                     }
                         foreach ($this->extended as $eid=>$sub) {
                             $append = 'q-' . $eid . '-' . $keyIndex . '/'.$q;
                             if ($this->extendedId == $eid) {
                                 ?><li class="ov"><?= $prefix . $sub['name'] . $suffix ?></li><?php
                             } else {
-                                ?><li><a href="<?= $prefix_uri . $this->router()->sections[$this->router()->sectionId][3] . '-' . $sub['uri'] . $suffix_uri . $append ?>"><?= $prefix . $sub['name'] . $suffix ?></a></li><?php
+                                ?><li><a href="<?= $prefix_uri . $this->router->sections[$this->router->sectionId][3] . '-' . $sub['uri'] . $suffix_uri . $append ?>"><?= $prefix . $sub['name'] . $suffix ?></a></li><?php
                             }
                         }
                         ?></ul></li></ul><?php
@@ -2936,10 +2940,10 @@ class Search extends Page {
 
     
     function renderSideSections($noAds=false) {
-        $noAds = $this->router()->config()->enabledAds() ? $noAds : 0;
+        $noAds = $this->router->config->enabledAds() ? $noAds : 0;
         $countAds=0;
         if (isset($this->searchResults['body']['matches'])) { $countAds=count($this->searchResults['body']['matches']); }
-        if ($this->router()->module=='detail') {
+        if ($this->router->module=='detail') {
             if (!$this->detailAdExpired){
                 if ($this->detailAd[Classifieds::PUBLICATION_ID]==1) {
                     $countAds+=4;
@@ -2951,27 +2955,27 @@ class Search extends Page {
         }
         
         echo '<ul id="siAd" class="list">', "\n";            
-        if ($this->user->info['id'] && $this->user->info['level']==9 && !$this->router()->userId && $this->router()->module=='detail' && isset($this->detailAd[($this->router()->isArabic()?Classifieds::EXTENTED_AR:Classifieds::EXTENTED_EN)]) && !$this->detailAdExpired && $this->extended) {
-            $extId=$this->detailAd[( $this->router()->isArabic() ? Classifieds::EXTENTED_AR : Classifieds::EXTENTED_EN )];
+        if ($this->user->info['id'] && $this->user->info['level']==9 && !$this->router->userId && $this->router->module=='detail' && isset($this->detailAd[($this->router->isArabic()?Classifieds::EXTENTED_AR:Classifieds::EXTENTED_EN)]) && !$this->detailAdExpired && $this->extended) {
+            $extId=$this->detailAd[( $this->router->isArabic() ? Classifieds::EXTENTED_AR : Classifieds::EXTENTED_EN )];
             $detailYear = Classifieds::detectYear($this->detailAd[Classifieds::CONTENT]);
             if ($detailYear) {
                 $currency='$';
-                $priceRange = $this->router()->db->getSectionPriceRange($this->detailAd[Classifieds::COUNTRY_ID], $extId, 1);
+                $priceRange = $this->router->db->getSectionPriceRange($this->detailAd[Classifieds::COUNTRY_ID], $extId, 1);
                 //var_dump($priceRange);
                 if (isset($priceRange[$detailYear])) {                            
-                    $append_uri = ($this->router()->language != 'ar' ? $this->router()->language . '/' : '') . 'q-' . $extId . '-' . ($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3 : 2) : 1).'/price/';
-                    $extended_uri = '/' . $this->router()->countries[$this->router()->countryId]['uri'] . '/';
-                    if (isset($this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId])) {
-                        $extended_uri.=$this->router()->cities[$this->router()->cityId][3] . '/';
+                    $append_uri = ($this->router->language != 'ar' ? $this->router->language . '/' : '') . 'q-' . $extId . '-' . ($this->router->countryId ? ($this->hasCities && $this->router->cityId ? 3 : 2) : 1).'/price/';
+                    $extended_uri = '/' . $this->router->countries[$this->router->countryId]['uri'] . '/';
+                    if (isset($this->router->countries[$this->router->countryId]['cities'][$this->router->cityId])) {
+                        $extended_uri.=$this->router->cities[$this->router->cityId][3] . '/';
                     }
-                    $extended_uri.=$this->router()->sections[$this->router()->sectionId][3] . '-' . $this->extended[$extId]['uri'] . '/';
+                    $extended_uri.=$this->router->sections[$this->router->sectionId][3] . '-' . $this->extended[$extId]['uri'] . '/';
                             
-                    echo '<li><div class="prx ',  $this->router()->language,'">';
+                    echo '<li><div class="prx ',  $this->router->language,'">';
                     echo '<p>';
                     echo $this->lang['price_box_pre'],'<b>',$this->extended[$extId]['name'],'</b>',$this->lang['price_model'],'<b>',$detailYear,'</b>',$this->lang['price_box_suf'];
                     echo $priceRange[$detailYear][1],$currency,  $this->lang['and'] ,$priceRange[$detailYear][2],$currency;
                     echo '</p>';
-                    echo '<a href="',$extended_uri,$append_uri,'" class="bt">',  ($this->router()->language =='ar' ? $this->lang['price_more'].$this->extended[$extId][1] : $this->extended[$extId][1].$this->lang['price_more']),'</a>';
+                    echo '<a href="',$extended_uri,$append_uri,'" class="bt">',  ($this->router->language =='ar' ? $this->lang['price_more'].$this->extended[$extId][1] : $this->extended[$extId][1].$this->lang['price_more']),'</a>';
                     echo '<p class="nb">';
                     echo $this->lang['price_claimer'];
                     echo '</p>';
@@ -3001,13 +3005,13 @@ class Search extends Page {
                     break;
             }
         }
-        if ($this->router()->config()->enabledAds() && $countAds>=10) {
+        if ($this->router->config->enabledAds() && $countAds>=10) {
             ?><li><?php
             ?><ins class="adsbygoogle" class="ad600" data-ad-client="ca-pub-2427907534283641" data-ad-slot="9190558623"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script><?php
             ?></li><?php             
         }
         
-        if(0 && $this->router()->countryId==1){
+        if(0 && $this->router->countryId==1){
             ?><li><iframe class="adsawa" src="/web/gosawa.html"></iframe></li><?php
         }
                 
@@ -3021,35 +3025,35 @@ class Search extends Page {
     
     function getBreadCrumb(bool $forceSetting=false, int $count=0) : string {        
         if ($this->crumbString && !$forceSetting) { return $this->crumbString; }
-        if (!$forceSetting || $this->router()->module=='detail') {
-            if (isset($this->router()->params['tag_id']) && isset($this->extended[$this->router()->params['tag_id']])) {
-                $this->extendedId = $this->router()->params['tag_id'];
+        if (!$forceSetting || $this->router->module=='detail') {
+            if (isset($this->router->params['tag_id']) && isset($this->extended[$this->router->params['tag_id']])) {
+                $this->extendedId = $this->router->params['tag_id'];
             }
         }
         
         $isDynamic = false;
         $q = "";
         
-        if ($this->router()->params['q']) {
-            $q = htmlspecialchars($this->router()->params['q'], ENT_QUOTES);
+        if ($this->router->params['q']) {
+            $q = htmlspecialchars($this->router->params['q'], ENT_QUOTES);
         } 
-        elseif ($this->router()->force_search) {
+        elseif ($this->router->force_search) {
             $q = $this->lang['search_general'];
         }
         
         $tempTitle = '';
         $subPurpose = '';
-        if ($this->extendedId && $this->router()->sectionId) {
+        if ($this->extendedId && $this->router->sectionId) {
             
-            $append_uri = (!$this->router()->isArabic()?$this->router()->language.'/q-':'q-').$this->extendedId.'-'.($this->router()->countryId ? ($this->hasCities && $this->router()->cityId ? 3 : 2) : 1);
-            $extended_uri = ($this->router()->countryId) ? '/'.$this->router()->countries[$this->router()->countryId]['uri'].'/' : '/';
+            $append_uri = (!$this->router->isArabic()?$this->router->language.'/q-':'q-').$this->extendedId.'-'.($this->router->countryId ? ($this->hasCities && $this->router->cityId ? 3 : 2) : 1);
+            $extended_uri = ($this->router->countryId) ? '/'.$this->router->countries[$this->router->countryId]['uri'].'/' : '/';
             $this->title = $this->extended[$this->extendedId]['name'];
             
-            if ($this->router()->isPriceList) {
-                $this->title= ($this->router()->isArabic() ? $this->lang['price_more'].$this->title : $this->title.$this->lang['price_more']);
+            if ($this->router->isPriceList) {
+                $this->title= ($this->router->isArabic() ? $this->lang['price_more'].$this->title : $this->title.$this->lang['price_more']);
             }
-            elseif ($this->router()->purposeId) {
-                switch ($this->router()->purposeId) {
+            elseif ($this->router->purposeId) {
+                switch ($this->router->purposeId) {
                     case 1:
                     case 2:
                     case 8:
@@ -3068,31 +3072,31 @@ class Search extends Page {
             }
             
             $sub_title = $this->title;
-            if ($this->router()->countryId) { $this->title.=' '.$this->lang['in'].' '; }
+            if ($this->router->countryId) { $this->title.=' '.$this->lang['in'].' '; }
 
-            if (isset($this->router()->countries[$this->router()->countryId]['cities'][$this->router()->cityId])) {
-                $extended_uri.=$this->router()->cities[$this->router()->cityId][3] . '/';
-                $this->title.=$this->router()->cities[$this->router()->cityId][$this->fieldNameIndex] . ' ';
+            if (isset($this->router->countries[$this->router->countryId]['cities'][$this->router->cityId])) {
+                $extended_uri.=$this->router->cities[$this->router->cityId][3] . '/';
+                $this->title.=$this->router->cities[$this->router->cityId][$this->fieldNameIndex] . ' ';
             }
 
-            $extended_uri.=$this->router()->sections[$this->router()->sectionId][3] . '-' . $this->extended[$this->extendedId]['uri'] . '/';
-            if ($this->router()->purposeId) {
-                $extended_uri.=$this->router()->purposes[$this->router()->purposeId][3].'/';                
+            $extended_uri.=$this->router->sections[$this->router->sectionId][3] . '-' . $this->extended[$this->extendedId]['uri'] . '/';
+            if ($this->router->purposeId) {
+                $extended_uri.=$this->router->purposes[$this->router->purposeId][3].'/';                
             }
             $extended_uri.=$append_uri . '/';
             $this->extended_uri = $extended_uri;
-            if ($this->router()->countryId) {
-                $this->title.=$this->router()->countries[$this->router()->countryId]['name'];
+            if ($this->router->countryId) {
+                $this->title.=$this->router->countries[$this->router->countryId]['name'];
             }
         }
-        elseif ($this->localityId && $this->router()->sectionId) {
+        elseif ($this->localityId && $this->router->sectionId) {
             $prefix_parent_name = '';
             $suffix_parent_uri = '';
             $prefix_append_uri = '';
             $suffix_append_uri = '';
-            $prefix_append_uri = ($this->router()->language != 'ar' ? $this->router()->language . '/' : '') . 'c-';
+            $prefix_append_uri = ($this->router->language != 'ar' ? $this->router->language . '/' : '') . 'c-';
             $append_uri = $prefix_append_uri . $this->localityId . '-';
-            $extended_uri = '/' . $this->router()->countries[$this->router()->countryId]['uri'] . '/';
+            $extended_uri = '/' . $this->router->countries[$this->router->countryId]['uri'] . '/';
 
             $keyIndex = 2;
             $append_uri.=$keyIndex;
@@ -3102,21 +3106,21 @@ class Search extends Page {
             $extended_uri.=$this->localities[$this->localityId]['uri'] . '/';
             $this->title = $this->localities[$this->localityId]['name'];
             
-            if ($this->router()->sectionId) {
-                $extended_uri.=$this->router()->sections[$this->router()->sectionId][3] . '/';
-                $suffix_parent_uri = '/' . $this->router()->sections[$this->router()->sectionId][3] . '/';
-                $this->title = $this->router()->sections[$this->router()->sectionId][$this->fieldNameIndex];
+            if ($this->router->sectionId) {
+                $extended_uri.=$this->router->sections[$this->router->sectionId][3] . '/';
+                $suffix_parent_uri = '/' . $this->router->sections[$this->router->sectionId][3] . '/';
+                $this->title = $this->router->sections[$this->router->sectionId][$this->fieldNameIndex];
             } 
             else {
-                $extended_uri.=$this->router()->roots[$this->router()->rootId][3] . '/';
-                $suffix_parent_uri = '/' . $this->router()->roots[$this->router()->rootId][3] . '/';
-                $this->title = $this->router()->roots[$this->router()->rootId][$this->fieldNameIndex];
+                $extended_uri.=$this->router->roots[$this->router->rootId][3] . '/';
+                $suffix_parent_uri = '/' . $this->router->roots[$this->router->rootId][3] . '/';
+                $this->title = $this->router->roots[$this->router->rootId][$this->fieldNameIndex];
             }
             
-            if ($this->router()->purposeId) {
-                $extended_uri.=$this->router()->purposes[$this->router()->purposeId][3] . '/';
-                $suffix_parent_uri.=$this->router()->purposes[$this->router()->purposeId][3] . '/';
-                switch ($this->router()->purposeId) {
+            if ($this->router->purposeId) {
+                $extended_uri.=$this->router->purposes[$this->router->purposeId][3] . '/';
+                $suffix_parent_uri.=$this->router->purposes[$this->router->purposeId][3] . '/';
+                switch ($this->router->purposeId) {
                     case 1:
                     case 2:
                     case 8:
@@ -3142,19 +3146,19 @@ class Search extends Page {
             $this->extendedId=0;
             $this->localityId=0;
             if ($forceSetting) {
-                $uri = rtrim($this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId, false), '/');
+                $uri = rtrim($this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId, false), '/');
 
-                $url_codes = $this->router()->FetchUrl($uri);
+                $url_codes = $this->router->FetchUrl($uri);
                 if ($url_codes) {
-                    $this->router()->pageTitle['en'] = $url_codes[6];
-                    $this->router()->pageTitle['ar'] = $url_codes[7];
-                    $this->title = $this->router()->pageTitle[$this->router()->language];
+                    $this->router->pageTitle['en'] = $url_codes[6];
+                    $this->router->pageTitle['ar'] = $url_codes[7];
+                    $this->title = $this->router->pageTitle[$this->router->language];
                 }
             }
             $tempTitle = '';
-            if ($this->router()->pageTitle[$this->router()->language] == '' || $q || (!$this->router()->sectionId && !$this->router()->rootId)) {
-                if (!$q && !$this->router()->sectionId && !$this->router()->rootId) {
-                    $tempTitle = $this->router()->pageTitle[$this->router()->language];
+            if ($this->router->pageTitle[$this->router->language] == '' || $q || (!$this->router->sectionId && !$this->router->rootId)) {
+                if (!$q && !$this->router->sectionId && !$this->router->rootId) {
+                    $tempTitle = $this->router->pageTitle[$this->router->language];
                 }
                 $this->title = $this->getDynamicTitle($forceSetting);
                 $isDynamic = true;
@@ -3167,43 +3171,43 @@ class Search extends Page {
         }
         $bc = array();
 
-        $countryId = $this->router()->countryId;
+        $countryId = $this->router->countryId;
         $countryName = $this->countryName;
         if (!$countryId) { $countryName=$this->lang['mourjan']; }
         if ($this->userFavorites && $this->user->params["country"]) {
             $countryId = $this->user->params["country"];
-            $countryName = $this->router()->countries[$this->user->params["country"]]['name'];
+            $countryName = $this->router->countries[$this->user->params["country"]]['name'];
         }
         
-        $bc[] = "<div class='brd' itemprop='breadcrumb'><div><a href='" . $this->router()->getURL($countryId) . "'>{$countryName}</a>";
+        $bc[] = "<div class='brd' itemprop='breadcrumb'><div><a href='" . $this->router->getURL($countryId) . "'>{$countryName}</a>";
 
-        if ($this->hasCities && $this->router()->cityId) {
-            $bc[] = "<a href='" . $this->router()->getURL($this->router()->countryId, $this->router()->cityId) . "'>{$this->cityName}</a>";
+        if ($this->hasCities && $this->router->cityId) {
+            $bc[] = "<a href='" . $this->router->getURL($this->router->countryId, $this->router->cityId) . "'>{$this->cityName}</a>";
         }
 
         if ($this->userFavorites) {
             $bc[] = "<b>" . $this->lang['myFavorites'] . "</b>";
         } 
-        elseif($this->router()->watchId) {
+        elseif($this->router->watchId) {
             $bc[] = "<b>" . $this->lang['myList'] . "</b>";
         } 
         else {
-            if ($this->router()->rootId) {
+            if ($this->router->rootId) {
                 $purposeId = 0;
-                if (isset($this->router()->pageRoots[$this->router()->rootId]) && 
-                    is_array($this->router()->pageRoots[$this->router()->rootId]['purposes']) && 
-                    count($this->router()->pageRoots[$this->router()->rootId]['purposes'])==1 ) {
-                    $purposeId = array_keys($this->router()->pageRoots[$this->router()->rootId]['purposes'])[0];
+                if (isset($this->router->pageRoots[$this->router->rootId]) && 
+                    is_array($this->router->pageRoots[$this->router->rootId]['purposes']) && 
+                    count($this->router->pageRoots[$this->router->rootId]['purposes'])==1 ) {
+                    $purposeId = array_keys($this->router->pageRoots[$this->router->rootId]['purposes'])[0];
                 }
                 
-                if (($q || $this->router()->purposeId || $this->router()->sectionId) && !($this->router()->sectionId == 0 && $purposeId)) {
+                if (($q || $this->router->purposeId || $this->router->sectionId) && !($this->router->sectionId == 0 && $purposeId)) {
                     $bc[] = "<a href='" .
-                            $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, 0, $purposeId) .
+                            $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, 0, $purposeId) .
                             "'>{$this->rootName}</a>";
                 }
-                if ($this->router()->sectionId) {
-                    if (array_key_exists($this->router()->sectionId, $this->router()->pageSections)) {
-                        $purposeId = $this->router()->pageSections[$this->router()->sectionId]['purposes'];
+                if ($this->router->sectionId) {
+                    if (array_key_exists($this->router->sectionId, $this->router->pageSections)) {
+                        $purposeId = $this->router->pageSections[$this->router->sectionId]['purposes'];
                         if (is_numeric($purposeId))
                             $purposeId = (int) $purposeId;
                         else
@@ -3211,9 +3215,9 @@ class Search extends Page {
                     } else {
                         $purposeId = 0;
                     }
-                    if ($this->extendedId || $this->localityId || (($q || $this->router()->purposeId) && !$purposeId)) {
+                    if ($this->extendedId || $this->localityId || (($q || $this->router->purposeId) && !$purposeId)) {
                         $bc[] = "<a href='" .
-                                $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $purposeId) .
+                                $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $purposeId) .
                                 "'>{$this->sectionName}</a>";
                     }
                 }
@@ -3222,7 +3226,7 @@ class Search extends Page {
             if ($q) {
                 if ($subPurpose) {
                     $bc[] = "<a href='" .
-                            $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId) .
+                            $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId) .
                             "'>" . $subPurpose . "</a>";
                 }
                 if ($this->extendedId || $this->localityId) {
@@ -3251,10 +3255,10 @@ class Search extends Page {
                             "'>" . $sub_title . "</a>";
                 }
 
-                if ($forceSetting || $this->router()->module=="detail") {
+                if ($forceSetting || $this->router->module=="detail") {
                     $qStr = '';
-                    if ($this->router()->params['q']) {
-                        $qStr = '?q=' . urlencode($this->router()->params['q']);                        
+                    if ($this->router->params['q']) {
+                        $qStr = '?q=' . urlencode($this->router->params['q']);                        
                     }
                     if ($this->extendedId || $this->localityId) {
                         $bc[] = "<a href='" .
@@ -3262,18 +3266,18 @@ class Search extends Page {
                                 "'>" . $q . ' ' . $this->lang['in'] . ' ' . $sub_title . "</a>";
                     } else {
                         $bc[] = "<a href='" .
-                                $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId) . $qStr .
+                                $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId) . $qStr .
                                 "'>" . $q . ' ' . $this->lang['in'] . ' ' . $sub_title . "</a>";
                     }
                 } 
                 else {
                     $qStr = '';
-                    if ($this->router()->params['q']) {
-                        $qStr = '?q='.urlencode($this->router()->params['q']);
+                    if ($this->router->params['q']) {
+                        $qStr = '?q='.urlencode($this->router->params['q']);
                     }
-                    if ($this->router()->rootId || $this->router()->sectionId || $this->router()->purposeId) {
+                    if ($this->router->rootId || $this->router->sectionId || $this->router->purposeId) {
                         $bc[] = '<a class="icn icnsmall icn-rss" target="_blank" href="' .
-                                (($this->extendedId || $this->localityId) ? $extended_uri . $qStr : $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId) . $qStr ) .
+                                (($this->extendedId || $this->localityId) ? $extended_uri . $qStr : $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId) . $qStr ) .
                                 '&rss=1" id="rss-link">' . '</a><b itemprop="headline">' . ($isDynamic ? '' : $q . " " . $this->lang['in'] . " ") . $sub_title . '</b>';
                         if (!$isDynamic)
                             $this->title = $q . ' ' . $this->lang['in'] . ' ' . $this->title;
@@ -3288,10 +3292,10 @@ class Search extends Page {
             else {
                 if ($subPurpose && ($this->localityId || $this->extendedId)) {
                     $bc[] = "<a href='" .
-                            $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId) .
+                            $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId) .
                             "'>" . $subPurpose . "</a>";
                 }
-                if ($forceSetting || $this->router()->module == "detail" || $this->router()->isPriceList) {
+                if ($forceSetting || $this->router->module == "detail" || $this->router->isPriceList) {
                     if ($this->extendedId || $this->localityId) {
                         if ($this->localityId && isset($this->localities[$this->localityId])) {
                             $localityId = $this->localityId+0;
@@ -3310,7 +3314,7 @@ class Search extends Page {
                             }
                         }                     
                         
-                        if($this->router()->isPriceList){
+                        if($this->router->isPriceList){
                             $bc[] = "<a href='" .
                                 $extended_uri .
                                 "'>" . trim(preg_replace('/price|سعر/','',$sub_title)) . "</a>";
@@ -3324,7 +3328,7 @@ class Search extends Page {
                         }
                     } else {
                         $bc[] = "<a href='" .
-                                $this->router()->getURL($this->router()->countryId, $this->router()->cityId, $this->router()->rootId, $this->router()->sectionId, $this->router()->purposeId) .
+                                $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId) .
                                 "'>" . $sub_title . "</a>";
                     }
                 } else {
@@ -3372,43 +3376,43 @@ class Search extends Page {
         $location = "";
         $q = "";
         $appendLocation = false;
-        if ($this->router()->params['q']) {
-            $q = htmlspecialchars($this->router()->params['q'], ENT_QUOTES);
-        } elseif ($this->router()->force_search) {
+        if ($this->router->params['q']) {
+            $q = htmlspecialchars($this->router->params['q'], ENT_QUOTES);
+        } elseif ($this->router->force_search) {
             $q = $this->lang['search_general'];
         }
-        $countryId = $this->router()->countryId;
+        $countryId = $this->router->countryId;
         $countryName = $this->countryName;
         if ($this->userFavorites && $this->user->params["country"]) {
             $countryId = $this->user->params["country"];
-            $countryName = $this->router()->countries[$this->user->params["country"]]['name'];
+            $countryName = $this->router->countries[$this->user->params["country"]]['name'];
         }
         $location = $current = $this->countryName;
-        if ($this->hasCities && $this->router()->cityId) {
+        if ($this->hasCities && $this->router->cityId) {
             $last = $current;
             $current = $this->cityName;
             $location = $this->cityName . " " . $location;
         }
         if ($this->userFavorites) {
             $summery = $current = $this->lang['myFavorites'];
-        } elseif($this->router()->watchId) {
+        } elseif($this->router->watchId) {
             $summery = $current = $this->lang['myList'];
         } else {
-            $defPurpose = count($this->router()->purposes) > 1 ? false : true;
-            if ($this->router()->rootId) {
+            $defPurpose = count($this->router->purposes) > 1 ? false : true;
+            if ($this->router->rootId) {
                 $last = $current;
                 $summery = $current = $this->rootName;
 
-                if ($this->router()->sectionId) {
+                if ($this->router->sectionId) {
                     $last = $current;
                     $summery = $current = $this->sectionName;
                 }
                 $appendLocation = true;
             }
 
-            if ($this->router()->purposeId) {
-                if ($this->router()->rootId || $this->router()->sectionId) {
-                    switch ($this->router()->purposeId) {
+            if ($this->router->purposeId) {
+                if ($this->router->rootId || $this->router->sectionId) {
+                    switch ($this->router->purposeId) {
                         case 1:
                         case 2:
                         case 999:
@@ -3422,12 +3426,12 @@ class Search extends Page {
                             break;
                         case 3:
                             $in = "";
-                            if ($this->router()->language == "en")
+                            if ($this->router->language == "en")
                                 $in = " {$this->lang['in']}";
 
-                            if ($this->router()->sectionId) {
+                            if ($this->router->sectionId) {
                                 $last = $current;
-                                if ($this->router()->language == "ar")
+                                if ($this->router->language == "ar")
                                     $summery = $current = 'مطلوب ' . $current;
                                 else
                                     $summery = $current = $current . ' ' . $this->purposeName;
@@ -3441,9 +3445,9 @@ class Search extends Page {
 
                         case 5:
                             $in = "";
-                            if ($this->router()->language == "en")
+                            if ($this->router->language == "en")
                                 $in = " {$this->lang['in']}";
-                            if ($this->router()->sectionId) {
+                            if ($this->router->sectionId) {
                                 $last = $current;
                                 $summery = $current = $this->purposeName . $in . " " . $current;
                             } else {
@@ -3492,21 +3496,21 @@ class Search extends Page {
             case 2:
             case 999:
             case 8:
-                $section=$this->router()->sections[$ad[Classifieds::SECTION_ID]][$this->fieldNameIndex].' '.$this->router()->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex];
+                $section=$this->router->sections[$ad[Classifieds::SECTION_ID]][$this->fieldNameIndex].' '.$this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex];
                 break;
             case 6:
             case 7:
-                $section=$this->router()->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex].' '.$this->router()->sections[$ad[Classifieds::SECTION_ID]][$this->fieldNameIndex];
+                $section=$this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex].' '.$this->router->sections[$ad[Classifieds::SECTION_ID]][$this->fieldNameIndex];
                 break;
             case 3:
             case 4:
             case 5:
-                if(preg_match('/'.$this->router()->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex].'/', $this->router()->sections[$ad[Classifieds::SECTION_ID]][$this->fieldNameIndex])){
-                    $section=$this->router()->sections[$ad[Classifieds::SECTION_ID]][$this->fieldNameIndex];
+                if(preg_match('/'.$this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex].'/', $this->router->sections[$ad[Classifieds::SECTION_ID]][$this->fieldNameIndex])){
+                    $section=$this->router->sections[$ad[Classifieds::SECTION_ID]][$this->fieldNameIndex];
                 }else {
                     $in=' ';
-                    if ($this->router()->language=='en')$in=' '.$this->lang['in'].' ';
-                    $section=$this->router()->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex].$in.$this->router()->sections[$ad[Classifieds::SECTION_ID]][$this->fieldNameIndex];
+                    if ($this->router->language=='en')$in=' '.$this->lang['in'].' ';
+                    $section=$this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex].$in.$this->router->sections[$ad[Classifieds::SECTION_ID]][$this->fieldNameIndex];
                 }
                 break;
         }           
@@ -3516,7 +3520,7 @@ class Search extends Page {
     
     function buildTitle() {
         $title = '';
-        if ($this->router()->module == 'detail') {
+        if ($this->router->module == 'detail') {
             $title = $this->title;
             if ($this->detailAdExpired) {
                 if (empty($this->detailAd)) {
@@ -3524,42 +3528,42 @@ class Search extends Page {
                     $title = $this->title;
                 } 
                 else {
-                    $this->router()->cacheHeaders($this->detailAd[Classifieds::LAST_UPDATE]);
+                    $this->router->cacheHeaders($this->detailAd[Classifieds::LAST_UPDATE]);
                 }
             } 
             else {
-                $this->router()->cacheHeaders($this->detailAd[Classifieds::LAST_UPDATE]);
+                $this->router->cacheHeaders($this->detailAd[Classifieds::LAST_UPDATE]);
                 $title=$this->BuildExcerpts($this->detailAd[Classifieds::CONTENT],40,'');
             }
         } 
         else {
             $title = $this->title;
-            if ($this->localityId && !preg_match('/'.$this->router()->countries[$this->router()->countryId]['name'].'/',  $this->title)) {
-                $title.=' ' . $this->router()->countries[$this->router()->countryId]['name'];
+            if ($this->localityId && !preg_match('/'.$this->router->countries[$this->router->countryId]['name'].'/',  $this->title)) {
+                $title.=' ' . $this->router->countries[$this->router->countryId]['name'];
             }
-            if ($this->router()->params['start'] > 1) {
-                $title .= $this->lang['search_suffix'] . $this->router()->params['start'];
+            if ($this->router->params['start'] > 1) {
+                $title .= $this->lang['search_suffix'] . $this->router->params['start'];
             }
-            if (!$this->extendedId && !$this->localityId && $this->router()->naming != NULL && !empty($this->router()->naming[2])) {
-                if ($this->hasCities && $this->router()->cityId) {
+            if (!$this->extendedId && !$this->localityId && $this->router->naming != NULL && !empty($this->router->naming[2])) {
+                if ($this->hasCities && $this->router->cityId) {
                     $location = $this->lang['in'] . ' ' . $this->cityName . ' ' . $this->countryName;
                 }
                 else {
                     $location = $this->lang['in'] . ' ' . $this->countryName;
                 }                
                 
-                if (strpos($this->router()->naming[2], "%s")) {
-                    $this->lang['description'] = sprintf($this->router()->naming[2], $this->purposeName, $location);
+                if (strpos($this->router->naming[2], "%s")) {
+                    $this->lang['description'] = sprintf($this->router->naming[2], $this->purposeName, $location);
                 }
                 else {
-                    $this->lang['description'] = $this->router()->naming[2];
+                    $this->lang['description'] = $this->router->naming[2];
                     $patterns = array('/{p}/', '/{l}/', '/{d}/', '/\s+/');
-                    $replacements = array($this->purposeName, $location, $this->router()->count, ' ');
+                    $replacements = array($this->purposeName, $location, $this->router->count, ' ');
                     $this->lang['description'] = preg_replace($patterns, $replacements, $this->lang['description']);
                 }
                 
-                if ($this->router()->params['start'] > 1) {
-                    $this->lang['description'] .= $this->lang['search_suffix'] . $this->router()->params['start'];
+                if ($this->router->params['start'] > 1) {
+                    $this->lang['description'] .= $this->lang['search_suffix'] . $this->router->params['start'];
                 }
             }
             else {
@@ -3577,37 +3581,37 @@ class Search extends Page {
             case 2:
             case 999:
             case 8:
-                $section=$this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex].' '.$this->router()->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex];
+                $section=$this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex].' '.$this->router->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex];
                 break;
             case 6:
             case 7:
-                $section=$this->router()->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].' '.$this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
+                $section=$this->router->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].' '.$this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
                 break;
             case 3:
             case 4:
             case 5:
-                if (preg_match('/'.$this->router()->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].'/', $this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex])) {
-                    $section=$this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
+                if (preg_match('/'.$this->router->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].'/', $this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex])) {
+                    $section=$this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
                 }
                 else {
                     $in=' ';
-                    if ($this->router()->language=='en') { $in=' '.$this->lang['in'].' '; }
-                    $section=$this->router()->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].$in.$this->router()->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
+                    if ($this->router->language=='en') { $in=' '.$this->lang['in'].' '; }
+                    $section=$this->router->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].$in.$this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
                 }
                 break;
         }
            
        $adContent = json_decode($ad['CONTENT'], true);
-       $countries = $this->router()->db->getCountriesDictionary(); 
+       $countries = $this->router->db->getCountriesDictionary(); 
        if (isset($adContent['pubTo'])) {
             $fieldIndex=2;
             $comma=',';
-            if ($this->router()->language=='ar') {
+            if ($this->router->language=='ar') {
                 $fieldIndex=1;
                 $comma='،';
             }
             $countriesArray=array();
-            $cities = $this->router()->cities;
+            $cities = $this->router->cities;
    
             $content='';
             foreach ($adContent['pubTo'] as $city => $value) {                    
@@ -3645,8 +3649,8 @@ class Search extends Page {
         elseif(isset ($countries[$ad['COUNTRY_ID']])) {
             $countryId=$ad['COUNTRY_ID'];
             $countryCities=$countries[$countryId][6];
-            if (count($countryCities)>0 && isset($this->router()->cities[$ad['CITY_ID']])) {
-                $section=$section.' '.$this->lang['in'].' '.$this->router()->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
+            if (count($countryCities)>0 && isset($this->router->cities[$ad['CITY_ID']])) {
+                $section=$section.' '.$this->lang['in'].' '.$this->router->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
             }
             else {
                 $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$this->fieldNameIndex];

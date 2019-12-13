@@ -30,7 +30,7 @@ class AdList extends \SplDoublyLinkedList {
             $this->alterUID = \intval(\filter_input(\INPUT_GET, 'fuid', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
         }
         
-        $this->uid = ($this->alterUID>0) ? $this->alterUID : Router::instance()->user()->id();
+        $this->uid = ($this->alterUID>0) ? $this->alterUID : Router::instance()->user->id();
     }
     
     
@@ -65,7 +65,7 @@ class AdList extends \SplDoublyLinkedList {
         $this->data = [];
         $this->page = \intval( \filter_input(\INPUT_GET, 'o', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]) );
        
-        $db = Router::instance()->database();
+        $db = Router::instance()->db;
         $q = 'SELECT AD_USER.ID, AD_USER.CONTENT, AD_USER.PURPOSE_ID, AD_USER.SECTION_ID, ';
         $q.= 'AD_USER.RTL, AD_USER.STATE, AD_USER.COUNTRY_ID, AD_USER.CITY_ID, ';
         $q.= 'AD_USER.LATITUDE, AD_USER.LONGITUDE, AD_USER.WEB_USER_ID, ';
@@ -95,7 +95,7 @@ class AdList extends \SplDoublyLinkedList {
 
         }
         elseif ($this->state>0) {
-            $user = Router::instance()->user();
+            $user = Router::instance()->user;
             $adLevel= $user->isSuperUser() ? $adLevel=100000000 : 0;
             
             $q.= ', ';

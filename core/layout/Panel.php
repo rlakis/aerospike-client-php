@@ -5,11 +5,11 @@ class Panel extends Page {
 
     function __construct() {
         parent::__construct();
-        if ($this->router()->config()->get('active_maintenance')) {
-            $this->user->redirectTo($this->router()->getLanguagePath('/maintenance/'));
+        if ($this->router->config->get('active_maintenance')) {
+            $this->user->redirectTo($this->router->getLanguagePath('/maintenance/'));
         }
         $this->forceNoIndex=true;        
-        $this->router()->config()->disableAds();
+        $this->router->config->disableAds();
         
         $this->render();
     }
@@ -105,7 +105,7 @@ class Panel extends Page {
         ';
         
         if ($this->user()->id() && $this->user()->level()!=5) {
-                $this->globalScript .= 'function prini(){var t=$(\'<div id="prob" class="account '. $this->router()->language .'">         
+                $this->globalScript .= 'function prini(){var t=$(\'<div id="prob" class="account '. $this->router->language .'">         
                 <a href="javascript:void(0)" onclick="prop()" class="option full settings"><span class="j prop"></span> '. $this->lang['myPropspace'] .'</a>
                 </div><div id="prop_dialog" class="dialog dlg-fix"><div class="dialog-box"><div><input id="purl" onfocus="mprop(\\\'\\\')" class="prop" type="text" placeholder="http://xml.propspace.com/feed/xml.php" /></div><div class="msg inf err ctr"></div></div> 
                     <div class="dialog-action"><input type="button" class="cl" value="'. $this->lang['cancel'] .'" /><input type="button" value="'. $this->lang['connect'] .'" /></div> 
@@ -258,19 +258,19 @@ class Panel extends Page {
         
         if ($this->user()->id()) {
             echo '<div class="account">';
-            echo '<a href="', $this->router()->getLanguagePath('/post/'), '" class="btn half"><span class="j pub"></span>', $this->lang['button_ad_post_m'], '</a>';
-            echo '<a id=active href="', $this->router()->getLanguagePath('/myads/'), '" class="btn option quarter active"><span class="pj ads1"></span>', $this->lang['ads_active'], '</a>';
-            echo '<a id=pending href="', $this->router()->getLanguagePath('/myads/'), '?sub=pending" class="btn option quarter pending"><span class="pj ads2"></span>', $this->lang['home_pending'], '</a>';
-            echo '<a id=draft href="', $this->router()->getLanguagePath('/myads/'), '?sub=drafts" class="btn option draft"><span class="pj ads3"></span>', $this->lang['home_drafts'], '</a>';
-            echo '<a id=archive href="', $this->router()->getLanguagePath('/myads/'), '?sub=archive" class="btn option archive"><span class="pj ads4"></span>', $this->lang['home_archive'], '</a>';
-            echo '<a id=favorite href="', $this->router()->getLanguagePath('/favorites/'), '?u=', $this->user->info['idKey'], '" class="btn option half favorite"><span class="j fva"></span>', $this->lang['myFavorites'], '</a>';
-            echo '<a href="', $this->router()->getLanguagePath('/statement/'), '" class="btn half balance"><span class="pj coin"></span><span id=coins>', $this->lang['myBalance'], '</span></a>';
-            echo '<a href="', $this->router()->getLanguagePath('/account/'), '" class="btn option full settings"><span class="j sti"></span>', $this->lang['myAccount'], '</a>';
+            echo '<a href="', $this->router->getLanguagePath('/post/'), '" class="btn half"><span class="j pub"></span>', $this->lang['button_ad_post_m'], '</a>';
+            echo '<a id=active href="', $this->router->getLanguagePath('/myads/'), '" class="btn option quarter active"><span class="pj ads1"></span>', $this->lang['ads_active'], '</a>';
+            echo '<a id=pending href="', $this->router->getLanguagePath('/myads/'), '?sub=pending" class="btn option quarter pending"><span class="pj ads2"></span>', $this->lang['home_pending'], '</a>';
+            echo '<a id=draft href="', $this->router->getLanguagePath('/myads/'), '?sub=drafts" class="btn option draft"><span class="pj ads3"></span>', $this->lang['home_drafts'], '</a>';
+            echo '<a id=archive href="', $this->router->getLanguagePath('/myads/'), '?sub=archive" class="btn option archive"><span class="pj ads4"></span>', $this->lang['home_archive'], '</a>';
+            echo '<a id=favorite href="', $this->router->getLanguagePath('/favorites/'), '?u=', $this->user->info['idKey'], '" class="btn option half favorite"><span class="j fva"></span>', $this->lang['myFavorites'], '</a>';
+            echo '<a href="', $this->router->getLanguagePath('/statement/'), '" class="btn half balance"><span class="pj coin"></span><span id=coins>', $this->lang['myBalance'], '</span></a>';
+            echo '<a href="', $this->router->getLanguagePath('/account/'), '" class="btn option full settings"><span class="j sti"></span>', $this->lang['myAccount'], '</a>';
             echo '</div>';
             
 
             echo '<div class=card-footer>';
-            echo '<a href="', $this->router()->getLanguagePath('/gold/'), '"><span class="rj add"></span>', $this->lang['get_gold'], '</a>';
+            echo '<a href="', $this->router->getLanguagePath('/gold/'), '"><span class="rj add"></span>', $this->lang['get_gold'], '</a>';
             echo '<div class=float-right style="padding-bottom:12px"><a href="', '/web/lib/hybridauth/?logout=', $this->user()->provider(), '">Sign out</a></div>';
             echo '</div>';
            /* if($this->user->info['level']!=5){

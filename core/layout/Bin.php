@@ -10,16 +10,16 @@ use Core\Lib\SphinxQL;
 class AjaxHandler extends Site {
 
     var $rp=1;
-    var $msg='';
-    var $data=array();
+    private string $msg='';
+    private array $data=[];
     var $sid='';
     var $dir='';
     var $host='';
 
     function __construct() {
         parent::__construct();
-        $this->dir=$this->router()->config()->baseDir;
-        $this->host=$this->router()->config()->host;
+        $this->dir=$this->router->config->baseDir;
+        $this->host=$this->router->config->host;
         $this->sid=\session_id();
     }
 
@@ -121,13 +121,13 @@ class Bin extends AjaxHandler{
     private function error(int $code, array $details=[]) : void {
         $this->resp['success']=0;
         $this->resp['code']=$code;
-        if ($this->router()->language!=='ar' && $this->router()->language!=='en') {
-            $this->router()->language='en';
+        if ($this->router->language!=='ar' && $this->router->language!=='en') {
+            $this->router->language='en';
         }
-        $this->resp['error']= $this->errors[$code][$this->router()->language] ?? ('failed to get message! > '.$this->router()->language);
+        $this->resp['error']= $this->errors[$code][$this->router->language] ?? ('failed to get message! > '.$this->router->language);
         if (!empty($details)) {
             $this->resp['error'].=' ';
-            $this->resp['error'].=$details[$this->router()->language];
+            $this->resp['error'].=$details[$this->router->language];
         }
         
         $trace=\debug_backtrace();
@@ -157,7 +157,7 @@ class Bin extends AjaxHandler{
     
     private function authorize(bool $for_write=false, int $level=-1) : void {
         if ($for_write) {
-            if ($this->router()->config()->isMaintenanceMode()) {
+            if ($this->router->config->isMaintenanceMode()) {
                 $this->error(self::ERR_SYS_MAINTENANCE);
             }
         }
@@ -188,7 +188,7 @@ class Bin extends AjaxHandler{
     
     function logAdmin(int $adId, int $state, string $msg="") : void {
         if ($this->user()->isLoggedIn(9) && $adId) {
-            $this->router()->db->queryResultArray('insert into log_admin (ad_id, admin_id, state,msg) values (?, ?, ?, ?)', [$adId, $this->user()->id(), $state, $msg]);
+            $this->router->db->queryResultArray('insert into log_admin (ad_id, admin_id, state,msg) values (?, ?, ?, ?)', [$adId, $this->user()->id(), $state, $msg]);
         }
     }
 
@@ -220,9 +220,9 @@ class Bin extends AjaxHandler{
     
     function actionSwitch() : void {
         $err_file = '/var/log/mourjan/editor.log';
-        $action=\substr($this->router()->module, 5);
+        $action=\substr($this->router->module, 5);
         $this->resp['command']=$action;
-        //error_log(substr($this->router()->module, 5));
+        //error_log(substr($this->router->module, 5));
         switch ($action) {
             
             case 'ajax-sorting':
@@ -256,7 +256,7 @@ class Bin extends AjaxHandler{
                 if(!$lang){$lang=$this->_JPOST['hl']??'en';}
                 if (!in_array($lang, ['ar','en'])) { $lang = 'ar'; }
                 $this->fieldNameIndex=($lang==='en')?2:1;
-                $this->router()->language=$lang;
+                $this->router->language=$lang;
                 $this->load_lang(array('main'), $lang);
                     
                 $id = $this->getGetInt('i', 0);
@@ -265,14 +265,14 @@ class Bin extends AjaxHandler{
                 $pu = $this->post('p');
                     
                 //error_log("pu ". $pu);
-                if ($se) { $ro=$this->router()->sections[$se][4]; }
+                if ($se) { $ro=$this->router->sections[$se][4]; }
                 if ($ro==4) { $pu=5; }
                     
                 $text = $this->_JPOST['t']??'';
                 $textIdx = \intval($this->post('dx'));
                 $textRtl = $this->post('rtl');
                                                            
-                $this->router()->db->setWriteMode();  
+                $this->router->db->setWriteMode();  
                                                 
                 $ad=new Core\Model\Ad();
                 $ad->getAdFromAdUserTableForEditing($id);
@@ -301,10 +301,10 @@ class Bin extends AjaxHandler{
                     }                                                        
                             
                     if ($imageToRemove) {
-                        $media = $this->router()->db->queryResultArray('select * from media where filename=?', [$imageToRemove], false);
+                        $media = $this->router->db->queryResultArray('select * from media where filename=?', [$imageToRemove], false);
                         if ($media && \count($media)) {
                             foreach ($media as $m) {
-                                $this->router()->db->queryResultArray('delete from ad_media where ad_id=? and media_id=?',[$id, $m['ID']], true);
+                                $this->router->db->queryResultArray('delete from ad_media where ad_id=? and media_id=?',[$id, $m['ID']], true);
                             }
                             
                         }
@@ -316,7 +316,7 @@ class Bin extends AjaxHandler{
                     $images='';
                     foreach ($ad->dataset()->getPictures() as $pp => $dim) {
                         if ($images) { $images.="||"; }
-                        $images.='<img width="118" src="'.$this->router()->config()->adImgURL.'/repos/s/'.$pp.'" />';                        
+                        $images.='<img width="118" src="'.$this->router->config->adImgURL.'/repos/s/'.$pp.'" />';                        
                     }
                     
                     //if (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])) {
@@ -324,7 +324,7 @@ class Bin extends AjaxHandler{
                     //    foreach($content['pics'] as $img => $dim){
                     //        if ($pass===0) { $content['pic_def']=$img; }
                     //        if ($images) { $images.="||"; }
-                    //            $images.='<img width="118" src="'.$this->router()->config()->adImgURL.'/repos/s/'.$img.'" />';
+                    //            $images.='<img width="118" src="'.$this->router->config->adImgURL.'/repos/s/'.$img.'" />';
                     //            $pass=1;
                     //    }
                     //}
@@ -334,7 +334,7 @@ class Bin extends AjaxHandler{
                     //}
 
                     if ($images) { $images.="||"; }
-                    $images.='<img class=ir src="'.$this->router()->config()->imgURL.'/90/' . $ad->sectionId() . $this->router()->_png .'" />';
+                    $images.='<img class=ir src="'.$this->router->config->imgURL.'/90/' . $ad->sectionId() . $this->router->_png .'" />';
                     
                 }
                 
@@ -390,7 +390,7 @@ class Bin extends AjaxHandler{
                 //$purpose = $content['pu'];
             
                 //$content = \json_encode($content);                                            
-                if ($this->router()->db->queryResultArray('update ad_user set content=?, section_id=?, purpose_id=? where id=?', [\json_encode($content), $ad->sectionId(), $ad->purposeId(), $id])) {
+                if ($this->router->db->queryResultArray('update ad_user set content=?, section_id=?, purpose_id=? where id=?', [\json_encode($content), $ad->sectionId(), $ad->purposeId(), $id])) {
                     if ($imgAdmin) {
                         $redisAction = 'editorialImg'; 
                         $this->response('sic', $images);
@@ -1248,7 +1248,7 @@ class Bin extends AjaxHandler{
                 break;
                 
             case 'ajax-stat':
-                if ($this->urlRouter->cfg['server_id']<=0 || $this->urlRouter->cfg['server_id']>=99) {
+                if ($this->router->cfg['server_id']<=0 || $this->router->cfg['server_id']>=99) {
                     return;
                 }
                 
@@ -1257,14 +1257,14 @@ class Bin extends AjaxHandler{
                 }
                 
                 $req=NULL;  
-                $stat_servers = $this->urlRouter->db->getCache()->get("sphinx_servers");
+                $stat_servers = $this->router->db->getCache()->get("sphinx_servers");
               
                 if (isset($_POST['a']) && $_POST['a']) {
                     $final_req = $req = (is_array($_POST['a']) ? $_POST['a'] : json_decode($_POST['a'],true) );
                 }
             
                 if ($req) {
-                    $stat_server = $this->urlRouter->db->getCache()->get("stat_server");
+                    $stat_server = $this->router->db->getCache()->get("stat_server");
                     $redis = new Redis();
                     $ok = 1;
                     try {
@@ -1739,12 +1739,12 @@ class Bin extends AjaxHandler{
                     $path=\parse_url($referer, \PHP_URL_PATH);
                     if (\strlen($path)>5) { $path=\substr($path, 0, 6); }
                     $forPostAd = ($path==='/post/');
-                    $sections = $this->router()->sections;
+                    $sections = $this->router->sections;
                     \usort($sections, function(array $a, array $b) use ($nameIdx) {return ($a[$nameIdx]<=>$b[$nameIdx]);});
                     $result['n'] = $sections;
                     $len = \count($sections);
                     
-                    foreach ($this->router()->roots as $root) {
+                    foreach ($this->router->roots as $root) {
                         $result['r'][$root[0]]=['name'=>$root[$nameIdx], 'sections'=>[], 'purposes'=>[], 'sindex'=>[]];
                     }                                    
                     
@@ -1755,28 +1755,28 @@ class Bin extends AjaxHandler{
 
                     if ($forPostAd===false) {                        
                         $lnIndex = $lang=='ar' ? 4 : 3;
-                        foreach ($this->router()->config()->get('smart_section_fix') as $SID => $switches) { 
+                        foreach ($this->router->config->get('smart_section_fix') as $SID => $switches) { 
                              foreach ($switches as $switch){
                                 $result['qs'][$SID][]=[$switch[0], $switch[1] , $switch[2] , $switch[$lnIndex]];
                             }
                         }
                                
-                        foreach ($this->router()->config()->get('smart_root_fix') as $SID => $switches) {                        
+                        foreach ($this->router->config->get('smart_root_fix') as $SID => $switches) {                        
                             foreach ($switches as $switch) {
                                 $result['qr'][$SID][]=[$switch[0], $switch[1], $switch[2] , $switch[$lnIndex]];
                             }
                         }
                     }
                     
-                    foreach ($this->router()->pageRoots as $Rid => $root) {  
+                    foreach ($this->router->pageRoots as $Rid => $root) {  
                         foreach ($root['purposes'] as $Pid => $pu) {
                             if ($Rid!=999){
                                 if($Rid!=4){
-                                    $result['r'][$Rid]['purposes'][$Pid]=$this->router()->purposes[$Pid][$nameIdx] ?? $pu['name'];
+                                    $result['r'][$Rid]['purposes'][$Pid]=$this->router->purposes[$Pid][$nameIdx] ?? $pu['name'];
                                 }
                                 else {
                                     if ($Pid==5) {
-                                        $result['r'][$Rid]['purposes'][$Pid]=$this->router()->purposes[$Pid][$nameIdx] ?? $pu['name'];
+                                        $result['r'][$Rid]['purposes'][$Pid]=$this->router->purposes[$Pid][$nameIdx] ?? $pu['name'];
                                     }
                                 }
                             }
@@ -1797,12 +1797,12 @@ class Bin extends AjaxHandler{
                         //if ($dataVersion != $pref->getVersion()) {
                         $pref->setup();                        
                         $this->response('prefs', $pref);
-                        $cndic=$this->router()->database()->getCountriesDictionary();
+                        $cndic=$this->router->db->getCountriesDictionary();
                         $regions=[];
                         foreach ($cndic as $country_id => $country) {
                             $regions[$country_id]=['ar'=>$country[1], 'en'=>$country[2], 'cc'=>[], 'c'=>$country[3]];                            
                         }
-                        $ccdic=$this->router()->database()->getCitiesDictionary();
+                        $ccdic=$this->router->db->getCitiesDictionary();
                         foreach ($ccdic as $city_id => $city) {
                             $regions[$city[4]]['cc'][$city_id]=['ar'=>$city[1], 'en'=>$city[2], 'lat'=>$city[5]+0, 'lng'=>$city[6]+0];
                         }
@@ -2504,7 +2504,7 @@ class Bin extends AjaxHandler{
                 $_ad = \is_array($this->_JPOST['o']) ? $this->_JPOST['o'] : \json_decode($this->_JPOST['o'], true);
                 if (!\is_array($_ad)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
                              
-                //$this->router()->logger()->info('_JPOST[o]', $_ad);                              
+                //$this->router->logger()->info('_JPOST[o]', $_ad);                              
                 
                 $ad = new Core\Model\Ad();
                 $content = new Core\Model\Content();
@@ -2557,7 +2557,7 @@ class Bin extends AjaxHandler{
                 }
                 
                 $content->setBudget($_ad['budget']??0)->setUserLocation();
-                $content->setCountryId($this->router()->countryId)->setCityId($this->router()->cityId);
+                $content->setCountryId($this->router->countryId)->setCityId($this->router->cityId);
                 
                 Config::instance()->incLibFile('MCSaveHandler');
                 $normalizer = new MCSaveHandler();    
@@ -2565,13 +2565,13 @@ class Bin extends AjaxHandler{
                 
                 if ($normalized!==false) {
                     $content->setAttributes($normalized['attrs']);
-                    $this->router()->logger()->info('attributes', $normalized['attrs']);
+                    $this->router->logger()->info('attributes', $normalized['attrs']);
                 }
                 
                 $ad->setDataSet($content)->check();
                 
-                //$this->router()->logger()->info('New', $content->getData());
-                $this->router()->logger()->info('Version 3', $content->getAsVersion(3));
+                //$this->router->logger()->info('New', $content->getData());
+                $this->router->logger()->info('Version 3', $content->getAsVersion(3));
                 
                 if ($content->save(0)) {
                     $ad->getAdFromAdUserTableForEditing($content->getID());
@@ -2590,12 +2590,12 @@ class Bin extends AjaxHandler{
                 if (!isset($ad['user']) || !$ad['user']) { $ad['user']=$this->user()->id(); }
                 if ($this->user()->level()!==9 || $this->user()->id()==$ad['user']) { $ad['userLvl']=$this->user()->level(); }
                 if (!isset($ad['pubTo'])) { $ad['pubTo']=[]; }
-                if ($ad['id']==0 && preg_match('/^undefined/', $ad['other'])) { $this->router()->logToFile($err_file, '>>>>>>>>>>UNDEFINED<<<<<<<<<<<<'); }                
+                if ($ad['id']==0 && preg_match('/^undefined/', $ad['other'])) { $this->router->logToFile($err_file, '>>>>>>>>>>UNDEFINED<<<<<<<<<<<<'); }                
                 if ($ad['se']>0 && $ad['pu']==0) { $ad['pu']=5; }    
                 if (!isset($ad['mobile'])) $ad['mobile']=0;
                 $ad['user'] = \intval($ad['user']);
                 $regions = \array_values($ad['pubTo']);
-                //error_log('regions '.\var_export($regions, true).PHP_EOL. \var_export($this->router()->cities, true));
+                //error_log('regions '.\var_export($regions, true).PHP_EOL. \var_export($this->router->cities, true));
                 $ad['regsions']=[];
                 $cityId = 0;
                 $countryId = 0;
@@ -2604,18 +2604,18 @@ class Bin extends AjaxHandler{
                 foreach ($regions as $publishingTo) {
                     if (!\is_numeric($publishingTo)) { continue; }
                     $ad['regions'][]=\intval($publishingTo);
-                    if ($publishingTo>0 && isset($this->router()->cities[$publishingTo][4])) {
-                        if ($cityId===0) { $cityId = \intval($this->router()->cities[$publishingTo][4]); }
-                        if (!$isMultiCountry && $currentCid>0 && $currentCid!=$this->router()->cities[$publishingTo][4]) {
+                    if ($publishingTo>0 && isset($this->router->cities[$publishingTo][4])) {
+                        if ($cityId===0) { $cityId = \intval($this->router->cities[$publishingTo][4]); }
+                        if (!$isMultiCountry && $currentCid>0 && $currentCid!=$this->router->cities[$publishingTo][4]) {
                             $isMultiCountry = true;
                         }
-                        $currentCid = $this->router()->cities[$publishingTo][4];
+                        $currentCid = $this->router->cities[$publishingTo][4];
                     }                
                 }
-                if ($cityId>0) { $countryId=\intval($this->router()->cities[$cityId][4]); }
+                if ($cityId>0) { $countryId=\intval($this->router->cities[$cityId][4]); }
                 if ($ad['user']===$this->user()->id()) {
                     $ipQuality=IPQuality::fetch($ad['mobile']===1);
-                    $this->router()->logToFile($err_file, \json_encode($ipQuality, JSON_PRETTY_PRINT));
+                    $this->router->logToFile($err_file, \json_encode($ipQuality, JSON_PRETTY_PRINT));
                     $ad['agent']=\filter_input(\INPUT_SERVER, 'HTTP_USER_AGENT', \FILTER_SANITIZE_STRING);
                     $ad['userLOC']=''; //parse $ipQuality
                     $ad['profile']=$adUser=$this->user()->getProfile();
@@ -2720,7 +2720,7 @@ class Bin extends AjaxHandler{
                     }
                 }
                     
-                if ($cityId) { $countryId=$this->router()->cities[$cityId][4]; }
+                if ($cityId) { $countryId=$this->router->cities[$cityId][4]; }
                  * 
                  */
                 
@@ -2739,7 +2739,7 @@ class Bin extends AjaxHandler{
                     $ip=IPQuality::getClientIP();
                     $ad['agent']=$_SERVER['HTTP_USER_AGENT'];
                         $ad['ip']=$ip;   
-                        $geo = $this->router()->getIpLocation($ip);
+                        $geo = $this->router->getIpLocation($ip);
                         $XX='';
                             
                         if ($geo && isset($geo['country'])) {
@@ -2825,7 +2825,7 @@ class Bin extends AjaxHandler{
                 if (isset($ad['loc']) && $ad['loc']) { $ad['sloc']=$ad['loc']; }
                                                 
                 if ($publish===1) {  
-                    $sections = $this->router()->database()->getSections();
+                    $sections = $this->router->db->getSections();
                     if (isset($sections[$sectionId]) && $sections[$sectionId][5] && $sections[$sectionId][8]==$purposeId) {
                         $ad['ro']=$sections[$sections[$sectionId][5]][4];
                         $ad['se']=$sections[$sectionId][5];
@@ -2991,7 +2991,7 @@ class Bin extends AjaxHandler{
                                     
                         //check is local number
                         if ($requireReview && $countryId && !$isMultiCountry && trim($ad['cui']['e'])==='') {
-                            $countryCode = '+'.$this->router()->countries[$countryId]['code'];
+                            $countryCode = '+'.$this->router->countries[$countryId]['code'];
                             $differentCodes = false;
                             foreach ($numbers as $number) {
                                 if (\substr($number['v'], 0, \strlen($countryCode)) != $countryCode) {
@@ -3020,7 +3020,7 @@ class Bin extends AjaxHandler{
                         
                 $isSCAM = 0;                        
                 if ($publish===1 && isset($ad['cui']['e']) && \strlen($ad['cui']['e'])>0) {
-                    $blockedEmailPatterns = \addcslashes(\implode('|', $this->router()->config()->get('restricted_email_domains')),'.');
+                    $blockedEmailPatterns = \addcslashes(\implode('|', $this->router->config->get('restricted_email_domains')),'.');
                     $isSCAM = \preg_match('/'.$blockedEmailPatterns.'/ui', $ad['cui']['e']);
                 }
                         
@@ -3147,12 +3147,12 @@ class Bin extends AjaxHandler{
                     }
 
                     if ($ad['rtl']) {
-                        $this->router()->language='ar';
+                        $this->router->language='ar';
                         $this->lnIndex=0;
                     }
                     else {
                         $this->lnIndex=1;
-                        $this->router()->language='en';
+                        $this->router->language='en';
                     }
                     $this->load_lang(array('main'));                        
                 }                               
@@ -3644,7 +3644,7 @@ class Bin extends AjaxHandler{
                 if (!(\is_int($id) && $id>0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
                                                                                    
                 if ($rtp>0) {
-                    $record = $this->router()->db->queryResultArray("select web_user_id, content from ad_user where id={$id}");
+                    $record = $this->router->db->queryResultArray("select web_user_id, content from ad_user where id={$id}");
                     $adUser = new MCUser($record[0]['WEB_USER_ID']);
                     if (!$adUser->isMobileVerified()) { $this->error(self::ERR_SYS_UNKNOWN); }
                     
@@ -3995,7 +3995,7 @@ class Bin extends AjaxHandler{
                                     $product['MCU'],
                                     $product['USD_PRICE'],
                                     $this->urlRouter->cfg['server_id'],
-                                    $this->router()->isMobile ? 1 : 0
+                                    $this->router->isMobile ? 1 : 0
                                 ], true);
                             
                             if(isset($order[0]['ID']) && $order[0]['ID'])
@@ -4823,7 +4823,7 @@ class Bin extends AjaxHandler{
                 if (!isset($this->_JPOST['msg'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }  
                 
                 $lang=$this->_JPOST['lang'];
-                $this->router()->language=$lang;
+                $this->router->language=$lang;
                 $name=\filter_var($this->_JPOST['name'], FILTER_SANITIZE_STRING);
                 $email=\filter_var($this->_JPOST['email'], FILTER_VALIDATE_EMAIL);
                 if (!$email) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
@@ -4832,7 +4832,7 @@ class Bin extends AjaxHandler{
                 $this->load_lang(array('contact'), $lang);
                 $subject = 'User Feedback';
                 			           
-                $geo = $this->router()->getIpLocation();
+                $geo = $this->router->getIpLocation();
                 $mobile = (isset($this->user->params['mobile'])) ? $mobile=$this->user->params['mobile'] : 0;
                 $geostr = "";
                 if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en'])) {
@@ -4855,11 +4855,11 @@ class Bin extends AjaxHandler{
                 }
                 $msg.="<td><b>Location</b></td><td>{$geostr}</td>";
                 if (isset($this->user->params['country']) && $this->user->params['country']>0) {
-                    if (isset($this->router()->countries[$this->user->params['country']])) {
-                        $msg.="<td><b>Target</b></td><td>{$this->router()->countries[$this->user->params['country']]['uri']}";
+                    if (isset($this->router->countries[$this->user->params['country']])) {
+                        $msg.="<td><b>Target</b></td><td>{$this->router->countries[$this->user->params['country']]['uri']}";
                         if (isset($this->user->params['city']) && $this->user->params['city']>0) {
-                            if (isset($this->router()->countries[$this->user->params['country']]['cities'][$this->user->params['city']])) {
-                                $msg.=" - {$this->router()->countries[$this->user->params['country']]['cities'][$this->user->params['city']]['uri']}";
+                            if (isset($this->router->countries[$this->user->params['country']]['cities'][$this->user->params['city']])) {
+                                $msg.=" - {$this->router->countries[$this->user->params['country']]['cities'][$this->user->params['city']]['uri']}";
                             }
                             else {
                                 $msg.=" - {$this->user->params['city']}";
@@ -4981,7 +4981,7 @@ class Bin extends AjaxHandler{
                 if ($id<=0) { $this->error(self::ERR_DATA_INVALID_PARAM); }
                                                 
                 if ($this->user()->level()===9) {                    
-                    if ($this->router()->database()->queryResultArray("EXECUTE PROCEDURE SP\$HOLD_AD({$id})")===TRUE) {
+                    if ($this->router->db->queryResultArray("EXECUTE PROCEDURE SP\$HOLD_AD({$id})")===TRUE) {
                         $this->logAdmin($id, 9);
                         $this->success();
                     }
@@ -5020,7 +5020,7 @@ class Bin extends AjaxHandler{
                         break;
                 }
                     
-                $geo = $this->router()->getIpLocation();
+                $geo = $this->router->getIpLocation();
                 
                 $geostr = '';
                 if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en'])) {
@@ -5326,7 +5326,7 @@ class Bin extends AjaxHandler{
                 break;
                 
             case 'password':
-                if ($this->router()->config()->isMaintenanceMode()) { $this->error(self::ERR_SYS_MAINTENANCE); }
+                if ($this->router->config->isMaintenanceMode()) { $this->error(self::ERR_SYS_MAINTENANCE); }
                 $pass=\trim($this->_JPOST['v']??'');
                 $lang=$this->_JPOST['l']??'ar';
                 if (!\in_array($lang, ['ar', 'en'])) { $lang='ar'; };
@@ -5354,7 +5354,7 @@ class Bin extends AjaxHandler{
                 break;
                 
             case 'preset':
-                if ($this->router()->config()->isMaintenanceMode()) { $this->error(self::ERR_SYS_MAINTENANCE); }
+                if ($this->router->config->isMaintenanceMode()) { $this->error(self::ERR_SYS_MAINTENANCE); }
                 $email=\trim(\strtolower(\filter_var($this->_JPOST['v']??'', FILTER_SANITIZE_EMAIL)));                
                 $lang=$this->_JPOST['l']??'ar';
                 if (!\in_array($lang, ['ar', 'en'])) { $lang='ar'; };
@@ -5408,7 +5408,7 @@ class Bin extends AjaxHandler{
                 break;
                 
             case 'register':
-                if ($this->router()->config()->isMaintenanceMode()) { $this->error(self::ERR_SYS_MAINTENANCE); }
+                if ($this->router->config->isMaintenanceMode()) { $this->error(self::ERR_SYS_MAINTENANCE); }
                 $email=\trim(\strtolower(\filter_var($this->_JPOST['v']??'', \FILTER_SANITIZE_EMAIL)));
                 $user_id=0;
                 $lang=$this->_JPOST['l']??'ar';
@@ -5621,39 +5621,39 @@ class Bin extends AjaxHandler{
             case 2:
             case 999:
             case 8:
-                $section=$this->router()->sections[$ad->sectionId()][$this->fieldNameIndex].' '.$this->router()->purposes[$ad->purposeId()][$this->fieldNameIndex];
+                $section=$this->router->sections[$ad->sectionId()][$this->fieldNameIndex].' '.$this->router->purposes[$ad->purposeId()][$this->fieldNameIndex];
                 break;
             case 6:
             case 7:
-                $section=$this->router()->purposes[$ad->purposeId()][$this->fieldNameIndex].' '.$this->router()->sections[$ad->sectionId()][$this->fieldNameIndex];
+                $section=$this->router->purposes[$ad->purposeId()][$this->fieldNameIndex].' '.$this->router->sections[$ad->sectionId()][$this->fieldNameIndex];
                 break;
             case 3:
             case 4:
             case 5:
-                if (preg_match('/'.$this->router()->purposes[$ad->purposeId()][$this->fieldNameIndex].'/', $this->router()->sections[$ad->sectionId()][$this->fieldNameIndex])) {
-                    $section=$this->router()->sections[$ad->sectionId()][$this->fieldNameIndex];
+                if (preg_match('/'.$this->router->purposes[$ad->purposeId()][$this->fieldNameIndex].'/', $this->router->sections[$ad->sectionId()][$this->fieldNameIndex])) {
+                    $section=$this->router->sections[$ad->sectionId()][$this->fieldNameIndex];
                 }
                 else {
                     $in=' ';
-                    if ($this->router()->language==='en') { $in=' '.$this->lang['in'].' '; }
-                    $section=$this->router()->purposes[$ad->purposeId()][$this->fieldNameIndex].$in.$this->router()->sections[$ad->sectionId()][$this->fieldNameIndex];
+                    if ($this->router->language==='en') { $in=' '.$this->lang['in'].' '; }
+                    $section=$this->router->purposes[$ad->purposeId()][$this->fieldNameIndex].$in.$this->router->sections[$ad->sectionId()][$this->fieldNameIndex];
                 }
                 break;
         }
            
         //$adContent = json_decode($ad['CONTENT'], true);
-        $countries = $this->router()->database()->getCountriesDictionary();
+        $countries = $this->router->db->getCountriesDictionary();
         $regions = $ad->dataset()->getRegions();
         
         if ( !empty($regions)) {
             $fieldIndex=2;
             $comma=',';
-            if ($this->router()->isArabic()) {
+            if ($this->router->isArabic()) {
                 $fieldIndex=1;
                 $comma='،';
             }
             $countriesArray=array();
-            $cities = $this->router()->cities;
+            $cities = $this->router->cities;
 
             $content='';
             //foreach ($adContent['pubTo'] as $city => $value) {
@@ -5688,7 +5688,7 @@ class Bin extends AjaxHandler{
         elseif (isset ($countries[$ad->countryId()])) {
             $countryId = $ad->countryId(); 
             $countryCities = $countries[$countryId][6];
-            if (\count($countryCities)>0 && isset($this->router()->cities[$ad->cityId()])) {
+            if (\count($countryCities)>0 && isset($this->router->cities[$ad->cityId()])) {
                 $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad->cityId()][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
             }
             else {

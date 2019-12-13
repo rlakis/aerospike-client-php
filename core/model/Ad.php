@@ -674,7 +674,7 @@ class Ad {
     
     
     public function getAdFromAdUserTableForEditing(int $id) : void {
-        $db = Router::instance()->database();
+        $db = Router::instance()->db;
         $ad = $db->get(
                 'SELECT AD_USER.ID, AD_USER.CONTENT, AD_USER.PURPOSE_ID, AD_USER.SECTION_ID, ' .
                 'AD_USER.RTL, AD_USER.STATE, AD_USER.COUNTRY_ID, AD_USER.CITY_ID, ' .
@@ -735,7 +735,7 @@ class Ad {
                     ;
             */
             
-            $user = Router::instance()->user();
+            $user = Router::instance()->user;
             if ($user!==null && $user->id()>0) {                
                 if ($user->id()===$this->dataset->getUID()) {
                     $this->dataset->setUserLevel($user->level());
