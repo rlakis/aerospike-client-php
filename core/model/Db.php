@@ -313,7 +313,7 @@ class DB {
             if ($runtime<5 && preg_match('/913 deadlock/', $pdoException->getMessage())) {
                 self::$Instance->rollBack();
                 usleep(200);
-                error_log('RETRY: '. $runtime+1 .' | CODE: '.$pdoException->getCode(). ' | '.$pdoException->getMessage().PHP_EOL.$query.PHP_EOL.var_export($params, TRUE));
+                error_log('RETRY: '. ($runtime+1) .' | CODE: '.$pdoException->getCode(). ' | '.$pdoException->getMessage().PHP_EOL.$query.PHP_EOL.var_export($params, TRUE));
                 $this->getInstance();
                 return $this->queryResultArray($query, $params, $commit, $fetch_mode, $runtime+1);                
             } 
