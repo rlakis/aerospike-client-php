@@ -1858,7 +1858,7 @@ class User {
                         $adapter->logout();
                     }
                     $this->logout();
-                    $this->redirectTo($this->site->router()->getURL($this->params['country'],$this->params['city']));
+                    $this->redirectTo($this->site->router->getURL($this->params['country'],$this->params['city']));
                 }
                 elseif (isset( $_GET["connected_with"] ) && $_GET["connected_with"]!='mourjan' && $hybridauth->isConnectedWith( $_GET["connected_with"] ) ) {
                     $provider = $_GET["connected_with"];
@@ -1872,7 +1872,7 @@ class User {
             $id=$this->site->get('identifier', 'uint');
             $key=$this->site->get('cks');
             if ($id && $key)  {
-                $id=$id-$this->site->router()->baseUserId;
+                $id=$id-$this->site->router->baseUserId;
                 if ($id>0) {
                     $this->authenticateById($id, $key);
                 }
@@ -1882,7 +1882,7 @@ class User {
 
     
     function redirectTo($url) {
-        $this->site->router()->close();
+        $this->site->router->close();
         header('Location: '.$url);
         exit(0);
     }
@@ -1940,7 +1940,7 @@ class User {
             }
             
             if ($this->site) {
-                $mobile = $this->site->router()->isMobile;
+                $mobile = $this->site->router->isMobile;
             }
             else {
                 $device = new \Detection\MobileDetect();
@@ -1971,7 +1971,7 @@ class User {
         else {
             $this->info['options']=json_decode($result[0]['OPTS'],true);
         }
-        Audit::signIn()->user($this->getProfile())->platform($this->site->router()->isMobile?Core\Lib\Platform::MOBILE:Core\Lib\Platform::DESKTOP)->ok()->end();
+        Audit::signIn()->user($this->getProfile())->platform($this->site->router->isMobile?Core\Lib\Platform::MOBILE:Core\Lib\Platform::DESKTOP)->ok()->end();
     }
     
     
@@ -2678,15 +2678,15 @@ class User {
         $site=$this->site;
         $showFavorites=$site->userFavorites;
         $num=$site->num;
-        $start=$site->router()->params['start'];
+        $start=$site->router->params['start'];
         $site->userFavorites=1;
         $site->user->info['id']=$this->info['id'];
         $site->num=1000;
-        $site->router()->params['start']=0;
+        $site->router->params['start']=0;
         $site->execute();
         //$ids=array();
         $this->info['favCount']=$site->searchResults['body']['total_found'];
-        $site->router()->params['start']=$start;
+        $site->router->params['start']=$start;
         $site->num=$num;
         $site->userFavorites=$showFavorites;
         return $site->searchResults['body']['matches'];
