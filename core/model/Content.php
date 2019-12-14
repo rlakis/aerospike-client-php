@@ -79,13 +79,13 @@ class Content {
     const USER_MOBILE_COUNTRY       = 'umc';
     const RERA                      = 'rera'; 
     
-    protected $content;
-    private $ad;
-    private $profile;
-    private $countryId;
-    private $cityId;
-    private $old;
-    private $originalVersion;
+    protected array $content;
+    private ?Ad $ad;
+    private ?\MCUser $profile;
+    private int $countryId;
+    private int $cityId;
+    private array $old;
+    private int $originalVersion;
     
     
     public function __construct(?Ad $ad=null) {
@@ -717,7 +717,7 @@ class Content {
     
     public function save(int $state=0, int $version=3) : bool {
         $this->prepare();
-        $db = Router::instance()->database();
+        $db = Router::instance()->db;
         if ($this->getID()>0) {
             $q = 'UPDATE ad_user set /* ' . __CLASS__ . '.' . __FUNCTION__ . ' */ ';
             $q.= 'content=?, purpose_id=?, section_id=?, rtl=?, country_id=?, city_id=?, latitude=?, longitude=?, state=?, media=? ';
@@ -847,7 +847,7 @@ class Content {
             self::QUALIFIED     => $this->content[self::QUALIFIED]?1:0,
             self::BUDGET        => $this->content[self::BUDGET],
             self::NATIVE_TEXT   => $this->content[self::NATIVE_TEXT],
-            
+            self::NATIVE_RTL    => $this->content[self::NATIVE_RTL],
             self::APP_NAME      => $this->content[self::APP_NAME][0].'-'.$this->content[self::APP_VERSION],
             self::VERSION       => 3,
         ];

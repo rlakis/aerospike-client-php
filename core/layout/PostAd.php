@@ -18,7 +18,7 @@ class PostAd extends Page {
     function __construct() {
         parent::__construct();
         
-        if ($this->router->config()->isMaintenanceMode()) {
+        if ($this->router->config->isMaintenanceMode()) {
             $this->user()->redirectTo($this->router->getLanguagePath('/maintenance/'));
         }
         
@@ -26,8 +26,8 @@ class PostAd extends Page {
         $this->checkSuspendedAccount();
                 
         //syslog(LOG_INFO, json_encode($this->user->info));        
-        $this->router->config()->setValue('enabled_sharing', 0);
-        $this->router->config()->disableAds();               
+        $this->router->config->setValue('enabled_sharing', 0);
+        $this->router->config->disableAds();               
         
         $this->load_lang(array("post"));
         $this->set_require('css', array('post'));
@@ -179,7 +179,7 @@ class PostAd extends Page {
             if (isset($this->user->params['country']) && $this->user->params['country']) {
                 $cid=$this->user->params['country'];
                 $q='select c.code, c.id, c.name_ar, c.name_en, c.locked, trim(id_2) from country c';
-                $cc=$this->router->db->queryCacheResultSimpleArray('country_codes_req', $q, null, 1, $this->router->config()->get('ttl_long'));
+                $cc=$this->router->db->queryCacheResultSimpleArray('country_codes_req', $q, null, 1, $this->router->config->get('ttl_long'));
                 if (isset($cc[$cid])){
                     $setccv=1;
                     $this->globalScript.='var ccv={c:'.$cc[$cid][0].',n:'.($cc[$cid][4] ? $cc[$cid][1]:0).',en:"'.$cc[$cid][3].'",ar:"'.$cc[$cid][2].'",i:"'.$cc[$cid][5].'"};';
@@ -296,7 +296,7 @@ class PostAd extends Page {
                     order by cn.NAME_'.$this->router->language.', c.name_'.$this->router->language;
                 
             $countries = $this->router->db->queryCacheResultSimpleArray(
-                    'mobile_countries_'.$this->router->language, $q, NULL, 8, $this->router->config()->get('ttl_long'));
+                    'mobile_countries_'.$this->router->language, $q, NULL, 8, $this->router->config->get('ttl_long'));
 
             
             if (0 && $this->user()->level()===9 && ((isset($this->ad) && $this->ad) || (isset($this->adContent['ip']) || isset($this->adContent['userLOC']) || isset($this->adContent['agent'])) )) {
@@ -768,7 +768,7 @@ class PostAd extends Page {
     
     function main_pane() {
         if ($this->user()->isLoggedIn()) {
-            if (!$this->router->config()->get('enabled_post')) {
+            if (!$this->router->config->get('enabled_post')) {
                 $this->renderDisabledPage();
                 return;
             }

@@ -19,7 +19,7 @@ class Admin extends Page {
         $this->hasLeadingPane = true;
 
         if ($this->isMobile || !$this->user->isSuperUser()) {
-            $this->user->redirectTo($this->router()->getLanguagePath('/notfound/'));
+            $this->user->redirectTo($this->router->getLanguagePath('/notfound/'));
         }
 
         $this->load_lang(array("account"));      
@@ -29,8 +29,8 @@ class Admin extends Page {
         $this->title = $this->lang['title'];
         $this->description = $this->lang['description'];
         $this->forceNoIndex = true;
-        $this->router()->config()->setValue('enabled_sharing', 0);
-        $this->router()->config()->disableAds();
+        $this->router->config->setValue('enabled_sharing', 0);
+        $this->router->config->disableAds();
 
 
         $parameter = filter_input(INPUT_GET, 'p', FILTER_SANITIZE_STRING);
@@ -208,7 +208,7 @@ class Admin extends Page {
         }
         
         if (\is_array($this->userdata) && \count($this->userdata)>0 && isset($this->userdata[0]['id'])) {
-            $rs=$this->router()->database()->queryResultArray(
+            $rs=$this->router->db->queryResultArray(
                     'select b.BRN, a.NAME_AR as agent_name_ar, a.NAME_EN as agent_name_en, o.NAME_AR as co_name_ar, 
                     o.NAME_EN as co_name_en, a.TELEPHONE, a.MOBILE, o.EMIRATE, o.orn,
                     b.EXPIRY_DATE broker_expiry_date,  o.EXPIRY_DATE office_expiry_date
@@ -1398,7 +1398,7 @@ $.ajax({
         ?></form><?php
         ?></li><?php
         
-        $lang = $this->router()->isArabic() ? '' : $this->router()->language . '/';
+        $lang = $this->router->isArabic() ? '' : $this->router->language . '/';
         if (isset($_GET['p']) && count($this->multipleAccounts)) {
             $selected = $this->get('selected', 'uint') ? $this->get('selected', 'uint') : $this->multipleAccounts[0];
             ?><ul class="ts multi"><?php

@@ -10,8 +10,8 @@ class Balance extends Page{
 
     function __construct(){
         parent::__construct();
-        if ($this->router()->config()->get('active_maintenance')) {
-            $this->user()->redirectTo($this->router()->getLanguagePath('/maintenance/'));
+        if ($this->router->config->get('active_maintenance')) {
+            $this->user()->redirectTo($this->router->getLanguagePath('/maintenance/'));
         }
         
         $title = $this->lang['myBalance'];
@@ -24,7 +24,7 @@ class Balance extends Page{
         $this->forceNoIndex=true;
         $this->title=$title;
         $this->requireLogin = true;
-        $this->router()->config()->disableAds();
+        $this->router->config->disableAds();
                 
         if($this->isMobile){
             $this->inlineCss.='.ph{background-color:#FFF;padding:15px 10px;border-bottom:1px solid #afafaf}.ph a{float:left}'
@@ -102,12 +102,12 @@ class Balance extends Page{
     
     function main_pane() {
         if ($this->user()->id()) {
-            if (!$this->router()->config()->get('enabled_post') && $this->topMenuIE) {
+            if (!$this->router->config->get('enabled_post') && $this->topMenuIE) {
                 $this->renderDisabledPage();
                 return;
             }
 
-            switch ($this->router()->module) {
+            switch ($this->router->module) {
                 case 'statement':
                     $this->showStatement();
                     break;
@@ -290,10 +290,10 @@ class Balance extends Page{
     
     
     function showStatement() : void { 
-        $lang = $this->router()->language;
+        $lang = $this->router->language;
         $uid = 0;
         if (isset($_GET['u']) && is_numeric($_GET['u'])) { $uid = $_GET['u']; }
-        $data = $this->user()->getStatement($uid, 0, false, null, $this->router()->language);
+        $data = $this->user()->getStatement($uid, 0, false, null, $this->router->language);
         $hasError = 0;
         if ($data && $data['balance']!==null) {
             $subHeader = $this->lang['current_balance'].'&nbsp;'.$data['balance'].' '.'<span class="icn icnsmall icn-coin"></span>&nbsp;'.$this->lang['gold'];
@@ -382,7 +382,7 @@ class Balance extends Page{
                     
                     if ($data['recs'][$i][$fieldDebit]>0) {
                         if ($data['recs'][$i][$fieldId] && $data['recs'][$i][$fieldDesc]=='NA' || $data['recs'][$i][$fieldDesc]=='') {  
-                            echo '<li class="xt0 '.($this->router()->language ? 'ar':'en' ).'">';                              
+                            echo '<li class="xt0 '.($this->router->language ? 'ar':'en' ).'">';                              
                             echo $this->lang['unavailable_balance_detail'];
                         }
                         else {

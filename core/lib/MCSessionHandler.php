@@ -6,11 +6,11 @@ class MCSessionHandler extends Singleton implements \SessionHandlerInterface {
     const FULL_CACHE = 1;
     const AEROSPIKE_STORAGE = 1;
 
-    private $savePath;
-    private $storage;
-    private $ttl;
-    private $shared;
-    private $version;
+    private string $savePath;
+    private object $storage;
+    private int $ttl;
+    private bool $shared;
+    private string $version;
     
     public static function instance() : MCSessionHandler {
         return static::getInstance();
@@ -48,7 +48,7 @@ class MCSessionHandler extends Singleton implements \SessionHandlerInterface {
     
     public static function setSuspendMobile($uid, $number, $secondsToSuspend, $clearLog=false, string $reason='') : bool {   
         $pass = false;
-        $redis = new Redis();
+        $redis = new \Redis();
         if ($redis->connect('138.201.28.229', 6379, 2, NULL, 20)) {
             $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_NONE);
             $redis->setOption(Redis::OPT_PREFIX, 'mm_');
@@ -58,7 +58,7 @@ class MCSessionHandler extends Singleton implements \SessionHandlerInterface {
             if ($pass) {               
                 if ($clearLog) {
                     $redis->setOption(Redis::OPT_PREFIX, 'ua_');
-                    $redis->delete($number);                    
+                    $redis->unlink($number);                    
                 }
                 
                 $redisPublisher = new Redis();                
@@ -319,7 +319,7 @@ class MCSessionHandler extends Singleton implements \SessionHandlerInterface {
                 return ($status == \Aerospike::OK);
             }
             else {
-                $this->storage->delete($id);
+                $this->storage->del($id);
             }
         }
         
