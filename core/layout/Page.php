@@ -988,14 +988,20 @@ class Page extends Site {
     }
 
     
-    function renderListLink($label, $link, $selected=false, $className=''){
-        $class='link'.($className?' '.$className:'');
+    function renderListLink(string $label, string $link, bool $selected=false, string $className='') : string {
+        //$class='link'.($className?' '.$className:'');
         $result='';
         if ($selected) {
-            if ($this->isMobile) $result = $label;
-            else $result = '<b>'.$label.'</b>';
+            if ($this->isMobile) {
+                $result = $label;
+            }
+            else {
+                $result = '<b>'.$label.'</b>';
+            }
         }
-        else $result = "<a href='{$link}'>{$label}</a>";
+        else {
+            $result = "<a href='{$link}'>{$label}</a>";
+        }
         return $result;
     }
     
@@ -1140,7 +1146,7 @@ class Page extends Site {
     }
     
     
-    function filter_purpose(){
+    function filter_purpose() : string {
         if ($this->router->isPriceList) return '';
         $str='';
         
@@ -1310,6 +1316,162 @@ class Page extends Site {
     }
     
 
+    function filterPurposesArray() : array {
+        $result=[];
+        if ($this->router->isPriceList) {  return $result;  }
+        
+        if (($this->router->module==='search') && ($this->router->rootId || $this->router->sectionId) && !$this->userFavorites && !$this->router->watchId) {
+            if ($this->router->rootId!==4 && \count($this->router->purposes)>0 && \count($this->router->pagePurposes)>0) {
+                $hasQuery=false;
+                $q='';
+                if ($this->router->params['q']) {
+                    $hasQuery=true;
+                    $q='?q='.urlencode($this->router->params['q']);
+                }
+
+                if ($hasQuery) {
+                    if ($this->extendedId>0 || $this->localityId>0) {
+                        $append_uri='';
+                        $extended_uri='';
+                        if ($this->extendedId && isset($this->router->countries[$this->router->countryId])) {
+                            $append_uri='/'.($this->router->language!=='ar'?$this->router->language.'/':'').'q-'.$this->extendedId.'-'.($this->router->countryId?($this->hasCities && $this->router->cityId?3:2):1);
+                            $extended_uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
+                            if ($this->hasCities && $this->router->cityId && $this->router->cities[$this->router->cityId]) {
+                                $extended_uri.=$this->router->cities[$this->router->cityId][3].'/';
+                            }
+                            $extended_uri.=$this->router->sections[$this->router->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';                        
+                        }
+                        elseif ($this->localityId && isset($this->router->countries[$this->router->countryId])) {
+                            $append_uri='/'.($this->router->language!=='ar'?$this->router->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router->cityId?3:2);
+                            $extended_uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';                        
+                            $extended_uri.=$this->localities[$this->localityId]['uri'].'/';
+                            $extended_uri.=$this->router->sections[$this->router->sectionId][3].'/';
+                        }
+                        
+                        foreach ($this->router->pagePurposes as $pid=>$purpose) {
+                            if ((int)$purpose['counter']>0) {
+                                $isNew=false;
+                                $selected=($this->router->purposeId==$pid);
+                                $result[]='<li>'.$this->renderListLink($purpose['name'], $extended_uri.$this->router->purposes[$pid][3].$append_uri.'/'.$q, $selected).'</li>';                            
+                            }
+                        }
+                    }
+                    else {
+                        foreach ($this->router->pagePurposes as $pid=>$purpose) {
+                            if ((int)$pid>0) {
+                                $pname=$this->extendedId>0?$this->extended[$this->extendedId]['name']:($this->router->sectionId?$this->router->sections[$this->router->sectionId][$this->fieldNameIndex]:($this->router->rootId?$this->router->roots[$this->router->rootId][$this->fieldNameIndex]:''));                            
+                                switch ($pid) {
+                                    case 1:
+                                    case 2:
+                                    case 8:
+                                    case 999:
+                                        $pname = $pname.' '. $purpose['name']; //$this->router->purposes[$pid][$this->fieldNameIndex];
+                                        break;
+                                    case 6:
+                                    case 7:
+                                        $pname = $purpose['name'] . ' ' . $pname;// $this->router->purposes[$purpose[0]][$this->fieldNameIndex].' '.$pname;
+                                        break;
+                                    case 3:
+                                    case 4:
+                                    case 5:
+                                        $in="";
+                                        if ($this->router->language==='en') { $in=" {$this->lang['in']}"; }                                        
+                                        $pname=($this->router->sectionId>0) ? $purpose['name'].$in.' '.$pname : $purpose['name'];
+                                        break;
+                                }
+                                $selected=($this->router->purposeId==$pid);
+                                $result[]='<li>'.$this->renderListLink($pname, $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId,
+                                                                    $this->router->sectionId, $pid).$q, $selected).'</li>';
+                            }
+                        }
+                        
+                        if (isset($this->router->sections[$this->router->sectionId][5]) && $this->router->sections[$this->router->sectionId][5]) {
+                            $secId = $this->router->sections[$this->router->sectionId][5];
+                            $result[]='<li>'.$this->renderListLink($this->router->sections[$secId][$this->fieldNameIndex], $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$secId][4],
+                                                                $secId, $this->router->sections[$this->router->sectionId][9]).$q, false).'</li>';
+                        }
+                    }
+                }
+                else {
+                    $append_uri='';
+                    $extended_uri='';
+                    if ($this->extendedId>0) {
+                        $append_uri='/'.($this->router->language!=='ar'?$this->router->language.'/':'').'q-'.$this->extendedId.'-'.($this->router->countryId ? ($this->hasCities && $this->router->cityId?3:2):1);
+                        if ($this->router->countryId) {
+                            $extended_uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
+                            if ($this->hasCities && $this->router->cityId) {
+                                $extended_uri.=$this->router->cities[$this->router->cityId][3].'/';
+                            }
+                        }
+                        else {
+                            $extended_uri.='/';
+                        }
+                        $extended_uri.=$this->router->sections[$this->router->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
+                    }
+                    elseif ($this->localityId>0) {
+                        $append_uri='/'.($this->router->language!=='ar'?$this->router->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router->cityId?3:2);
+                        $extended_uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
+                        $extended_uri.=$this->localities[$this->localityId]['uri'].'/';
+                        $extended_uri.=$this->router->sections[$this->router->sectionId][3].'/';
+                    }
+
+                    $base_name = ($this->extendedId>0 && isset($this->extended[$this->extendedId]))?$this->extended[$this->extendedId]['name']:
+                        (($this->router->sectionId && isset($this->router->pageSections[$this->router->sectionId]))?$this->router->pageSections[$this->router->sectionId]['name']:
+                        (($this->router->rootId && isset($this->router->pageRoots[$this->router->rootId]))?$this->router->pageRoots[$this->router->rootId]['name']:''));
+                    foreach ($this->router->pagePurposes as $pid=>$purpose) {
+                        $pname = $base_name;
+                        switch($pid){
+                            case 1:
+                            case 2:
+                            case 8:
+                            case 999:
+                                $pname = $pname.' '.$purpose['name'];// $this->router->purposes[$purpose[0]][$this->fieldNameIndex];
+                                break;
+                            
+                            case 6:
+                            case 7:
+                                $pname = $purpose['name'].' '.$pname;// $this->router->purposes[$purpose[0]][$this->fieldNameIndex].' '.$pname;
+                                break;
+                            
+                            case 3:
+                            case 4:
+                            case 5:
+                                $in="";
+                                if ($this->router->language==='en') {  $in=" {$this->lang['in']}";  }
+                                if ($this->router->sectionId) {
+                                    $pname=$purpose['name'].$in.' '.$pname;
+                                }
+                                else {
+                                    $pname=$purpose['name'];
+                                }
+                                break;
+                        }
+                        $isNew=false;
+                        $selected=($this->router->purposeId==$pid /*$purpose[0]*/);
+                        if ($this->extendedId>0 || $this->localityId>0) {
+                            $result[]='<li>'.$this->renderListLink($pname, $extended_uri.$this->router->purposes[$pid][3].$append_uri.'/', $selected).'</li>';
+                        } 
+                        else {
+                            if (!$selected && $this->checkNewUserContent($purpose['unixtime'])) { $isNew=true; }
+                            $result[]='<li'.($isNew?" class='nl'":"").'>'.
+                                    $this->renderListLink('<span>'.\number_format($purpose['counter']).'&nbsp;</span>'. $pname,
+                                                $this->router->getURL($this->router->countryId,$this->router->cityId,$this->router->rootId,
+                                                $this->router->sectionId, $pid), $selected).'</li>';
+                        }
+                    }
+                    
+                    if (isset($this->router->sections[$this->router->sectionId][5]) && $this->router->sections[$this->router->sectionId][5]) {
+                        $secId=$this->router->sections[$this->router->sectionId][5];
+                        $result[]='<li>'.$this->renderListLink($this->router->sections[$secId][$this->fieldNameIndex], $this->router->getURL($this->router->countryId,$this->router->cityId,$this->router->sections[$secId][4],
+                                                            $secId, $this->router->sections[$this->router->sectionId][9]), false).'</li>';
+                    }
+                }
+            }        
+        }
+        return $result;
+    }
+    
+    
     function top() : void {
         $cityId=$this->router->cityId;
         if ($this->router->cityId) {
@@ -1402,7 +1564,7 @@ class Page extends Site {
         <button class=searchButton type="submit"><i class="icn icnsmall icn-search invert"></i></button>
     </form>
             </div></div></section><?php
-        echo $this->filter_purpose();
+        //echo $this->filter_purpose();
     }
     
     

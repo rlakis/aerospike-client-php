@@ -322,8 +322,8 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .side .title {
     display: inherit;
     align-items: center;
-    height: 60px;
-    background-color: mediumorchid;
+    height: 3em;
+    background-color: #1c415e;
     color: white;
     padding: 0;
     border-radius:0;    

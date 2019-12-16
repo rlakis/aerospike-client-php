@@ -248,7 +248,8 @@ class MyAds extends Page {
         'لا يمكن نشر إعلانات مماثلة طبقاً لسياسة الموقع',
         'اعلانات المتاجرة بالتأشيرات والإقامات مجرمة قانونيا',
         'مضمون هذا الاعلان يتعارض مع مضمون اعلاناتك المنشورة وهذا تحذير قبل ايقاف حسابك بسبب الاحتيال',
-        'يحظر نشر هذا الاعلان ما دمت تتصل بالانترنت بواسطة بروكسي'
+        'يحظر نشر هذا الاعلان ما دمت تتصل بالانترنت بواسطة بروكسي',
+        'الاعلان مرسل من نطاق انترنت مصنف احتيالي من قبل الوكالات الامنية المختصة'
     ],
     'en':[
         'specify the reason...',
@@ -287,7 +288,8 @@ class MyAds extends Page {
         'This type of ads is against the website policy and cannot be published',
         'Selling Visas and work permits is against the law',
         'This ad contradicts with the sense of your other published ads, and this is a warning before blocking your account for fraud',
-        'The user behind proxy ad posting is prohibited'
+        'The user behind proxy ad posting is prohibited',
+        'Posting ad from fraudulent connection is not accepted'
     ]
 };</script><?php
                     }

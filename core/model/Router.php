@@ -5,7 +5,7 @@ namespace Core\Model;
 
 include_once 'Singleton.php';
 
-class Router extends \Singleton {
+class Router extends \Core\Model\Singleton {
     const POSITIVE_VALUE = ["options" => ["default" => 0, "min_range" => 0]];
     
     public DB $db;

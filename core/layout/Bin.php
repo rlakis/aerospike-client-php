@@ -10,8 +10,8 @@ use Core\Lib\SphinxQL;
 class AjaxHandler extends Site {
 
     var $rp=1;
-    private string $msg='';
-    private array $data=[];
+    public string $msg='';
+    public array $data=[];
     var $sid='';
     var $dir='';
     var $host='';

@@ -3,6 +3,7 @@ namespace Core\Model;
 
 $dir = get_cfg_var('mourjan.path');
 require_once $dir.'/deps/autoload.php';
+require_once __DIR__.'/../../config/cfg.php';
 \Config::instance()->incModelFile('NoSQL');
 
 use \Core\Model\NoSQL;
@@ -462,10 +463,10 @@ trait EdigearTrait {
     }
 
     
-    public function setTextMessage($to, string $text) : bool {
+    public function setTextMessage(int $to, string $text, string $sender="mourjan") : bool {
         $req = Berysoft\Edigear::createTextRequest($this->getEdigearPlatform())                
-                ->setPhoneNumber(intval($to))
-                ->setSender("mourjan")
+                ->setPhoneNumber($to)
+                ->setSender($sender)
                 ->setMessage($text);
         $res = $this->getEdigearClient()->getInstance()->send($req);
         return $res['status']==200;
@@ -611,10 +612,12 @@ trait CheckMobiTrait {
 
 
 if (php_sapi_name()=='cli') {
+    
     //echo MobileValidation::getInstance()->tt(), "\n";
     //NoSQL::getInstance()->tkey();
     //var_dump( MobileValidation::getInstance(MobileValidation::NEXMO)->setUID(2)->setPin(1234)->fastCallText(442039061160, 447520619658) );
     //echo MobileValidation::getInstance()->setUID(2)->setPin(1234)->verifyNexmoCallPin("CON-8403beab-327c-4945-abb2-45e3b4627b08", 4077), "\n";
     
     //MobileValidation::getInstance(MobileValidation::EDIGEAR)->setTextMessage(9613287168, "lab lanfi eiuweyr iuweyriu ewriue");
+    //MobileValidation::getInstance(MobileValidation::EDIGEAR)->setTextMessage(966504403618, "6787 is your vouvherek confirmation code"/*, "VOUCHEREK"*/);
 }

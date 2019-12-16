@@ -2817,18 +2817,26 @@ class Search extends Page {
     }
     
     
-    function renderSearchSettings() {
+    function renderSearchSettings() : void {
         $q = $this->getPageUri().'?';
         if ($this->router->params['q']) {
-            $q .= 'q=' . urlencode($this->router->params['q']).'&';
+            $q .= 'q='.\urlencode($this->router->params['q']).'&';
         }
         $ql = $q;
         $pl = $q;
         $q .= 'sort=';
         $ql .= 'hr=';
         $pl .= 'xd=';
-        echo '<div class="title"><h5>', $this->lang['search_settings'], '</h5></div>';
         
+        echo '<div class=title><h5>', $this->lang['search_settings'], '</h5></div>';
+        $purposes=$this->filterPurposesArray();
+        if (\count($purposes)>1) {
+            echo '<ul>';
+            foreach ($purposes as $purpose) {
+                echo $purpose;
+            }
+            echo '</ul>', '<hr>';
+        }
         echo '<div class=select><select class="select-text" onchange="sorting(this)">';
         echo '<option value="', $q, '0"', ($this->sortingMode==0)?' selected':'', '>', $this->lang['sorting_0'], '</option>';
         echo '<option value="', $q, '1"', ($this->sortingMode==1)?' selected':'', '>', $this->lang['sorting_1'], '</option>';
@@ -2844,7 +2852,7 @@ class Search extends Page {
         echo '<span class="select-highlight"></span>', '<span class="select-bar"></span>', '<label class="select-label">', $this->lang['lg_sorting'],'</label>';
         echo '</div>';
         
-        if (in_array($this->router->rootId,[1,2,3])) {
+        if (\in_array($this->router->rootId, [1,2,3])) {
             echo '<div class=select style="margin:8px 0"><select class="select-text" onchange="sorting(this)">';
             echo '<option value="', $pl, '0"', ($this->publisherTypeSorting==0)?' selected':'', '>', $this->lang['spub_0'], '</option>';
             echo '<option value="', $pl, '1"', ($this->publisherTypeSorting==1)?' selected':'', '>', $this->router->rootId==3?$this->lang['sbpub_1']:$this->lang['spub_1'], '</option>';          

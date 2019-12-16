@@ -8,7 +8,7 @@ require_once 'asd/DeviceTrait.php';
 require_once 'asd/BlackListTrait.php';
 require_once 'asd/CallTrait.php';
 
-class NoSQL extends \Singleton {
+class NoSQL extends Singleton {
     use \Core\Model\ASD\UserTrait;    
     use \Core\Model\ASD\MobileTrait;  
     use \Core\Model\ASD\DeviceTrait;

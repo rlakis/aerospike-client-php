@@ -1,7 +1,7 @@
 <?php
 include_once dirname(__DIR__) . '/model/Singleton.php';
 
-class MCSessionHandler extends Singleton implements \SessionHandlerInterface {
+class MCSessionHandler extends \Core\Model\Singleton implements \SessionHandlerInterface {
     const SESSION_PREFIX = 'ms_';
     const FULL_CACHE = 1;
     const AEROSPIKE_STORAGE = 1;

@@ -12,7 +12,7 @@ $lang=array(
     'followUs'      =>  'Follow us',
     'reason_suspension'      =>  'specify a reason if needed',
     'administration'      =>  'Administration',
-    'search_settings'      =>  'search settings',
+    'search_settings'      =>  'Search Settings',
     'sorting'              =>  'Sort by',
     'sorting_0'              =>  'Newest First',
     'sorting_1'              =>  'Pictures First',
@@ -268,7 +268,7 @@ $lang=array(
 
     "all_cities"        =>  "All Cities",
     "opt_all_countries"     =>  "All Countries",
-    "opt_all_categories"     =>  "All Categories",
+    "opt_all_categories"     =>  "All Sections",
     "opt_all_purposes"     =>  "All Purposes",
     "opt_all_types"     =>  "All Types",
     "opt_all_sections"     =>  "All Types",
@@ -319,7 +319,7 @@ $lang=array(
 
     "specify_location"      =>  "specify location",
     "specify_city"      =>  "specify city",
-    "specify_category"      =>  "specify category",
+    "specify_category"      =>  "Specify Section",
     "specify_type"      =>  "specify type",
 
     "no_result_pre" =>      "your search for",
