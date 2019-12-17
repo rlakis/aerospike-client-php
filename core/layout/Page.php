@@ -378,8 +378,8 @@ class Page extends Site {
     function renderBalanceBar() {        
         if ($this->user()->id()) {            
             echo '<div id=balance class=balc>',       
-                    '<a style="display:inherit;background-color:var(--premium);width:80%;padding:12px;margin:-20px auto 20px auto;border-bottom-left-radius:0;border-bottom-right-radius:0;" class=btn href="', $this->router->getLanguagePath('/gold/'), '#how-to">', 
-                    '<span style="padding-bottom:16px;font-size:3em;text-transform:none;text-decoration-line:underline;text-decoration-color:white;text-decoration-style: wavy;">Current balance is ', $this->user()->getBalance(),' coins</span><br><b>',
+                    '<a style="display:inherit;background-color:var(--premium);width:80%;padding:8px;margin:-20px auto 20px auto;border-bottom-left-radius:0;border-bottom-right-radius:0;" class=btn href="', $this->router->getLanguagePath('/gold/'), '#how-to">', 
+                    '<span style="font-size:2em;text-transform:none;">Current balance is ', $this->user()->getBalance(),' coins</span><br><b>',
                     $this->lang['buy_gold_bt'], '</b></a></div>';
         }
     }
@@ -876,7 +876,7 @@ class Page extends Site {
     }
 
     
-    function renderSideRoots() {
+    function renderSideRoots() : void {
         if (!$this->userFavorites) {
             $cityId=$this->router->cityId;
             $countryId=$this->router->countryId;
@@ -908,8 +908,9 @@ class Page extends Site {
                         $purposeId = array_keys($root['purposes'])[0];
                     }
                 }
-                echo '<li '.($selected ? 'class="on big"':'class="big"').'>', 
-                        $this->renderListLink('<i class="icn icn-'.$rid.'"></i>'.$root['name'], $this->router->getURL($countryId, $cityId, $rid, 0, $purposeId).$q, $selected),
+                //echo '<li ', ($selected?'class="on big"':'class="big"'), '>',
+                echo '<li>',
+                        $this->renderListLink('<i class="icn icn-'.$rid.' fill-'.$rid.'"></i>'.$root['name'], $this->router->getURL($countryId, $cityId, $rid, 0, $purposeId).$q, $selected),
                         '</li>';
                 if ($this->router->rootId==$rid) {
                     echo '<li class="sub">';
@@ -4724,7 +4725,12 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         }
         echo "<style>\n";
         
-        $this->css('main');        
+        //if ($this->router->module==='index') {
+        //    $this->css('uhome'); 
+        //}
+        //else {
+            $this->css('main');        
+        //}
        
         switch ($this->router->module) {
             case 'home':

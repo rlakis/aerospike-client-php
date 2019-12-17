@@ -1370,15 +1370,15 @@ class Search extends Page {
                 $this->renderLocalityLinks(), 
                 $this->renderSideRoots(),
                 '</div>';
-            echo '<div class="row col-10"><div id=cards class="ls col-12" ';
+            echo '<div class="row col-10 ff-cols"><div id=cards class="ls col-12" ';
             if ($this->router->module!='detail') { echo 'itemprop="mainContentOfPage" '; }
             echo 'itemscope itemtype="https://schema.org/ItemList">';
             echo '<meta itemprop="name" content="', $this->subTitle, '" />';
                 
             $this->renderDResults($keywords);
-            echo '</div></div></div>',"\n";                
+            echo '</div>', $this->mt_pagination(), '</div></div>';                
           
-            echo $this->mt_pagination();
+            //echo $this->mt_pagination();
                                 
             if (($this->router->module=='search'||$this->router->module=='detail') && !$this->userFavorites && !$this->router->watchId && !$this->router->userId) {
                 $followStr='';

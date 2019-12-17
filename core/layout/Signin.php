@@ -8,12 +8,12 @@ class Signin extends Page {
     function __construct() {
         parent::__construct();
         if ($this->user()->id()) {
-            $this->user()->redirectTo( $this->router()->getURL($this->router()->countryId, $this->router()->cityId) );
+            $this->user()->redirectTo( $this->router()->getURL($this->router->countryId, $this->router->cityId) );
         }
                 
         $this->forceNoIndex=true;
         $this->title=$this->lang['title_sign_in'];
-        $this->router()->config()->disableAds();       
+        $this->router->config->disableAds();       
         $this->render();
     }
 

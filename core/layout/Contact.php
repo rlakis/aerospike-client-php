@@ -6,12 +6,8 @@ class Contact extends Page {
     function __construct() {
         parent::__construct();
         $this->hasLeadingPane=true;
-        $this->router()->config()->disableAds();
-        $this->router()->config()->setValue('enabled_sharing', 0);
-        //if ($this->isMobile) {
-        //    $this->inlineCss.='label{display:block;margin:0}input,textarea{width:95%;margin-bottom:15px}#nb{display:none}';
-        //}
-        //$this->set_ad(array("Leaderboard"=>array("/1006833/Leaderboard", 728, 90, "div-gpt-ad-1319709425426-0")));
+        $this->router->config->disableAds();
+        $this->router->config->setValue('enabled_sharing', 0);
         $this->load_lang(array("contact"));
         $this->title=$this->lang['title'];
         $this->description=$this->lang['description'];

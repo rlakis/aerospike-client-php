@@ -6,15 +6,15 @@ class Doc extends Page{
     function __construct() {
         header('Vary: User-Agent');
         parent::__construct(); 
-        if ($this->router()->module==='buy' || $this->router()->module==='buyu') {
-            if ($this->router()->config()->get('active_maintenance')) {
-                $this->user()->redirectTo($this->router()->getLanguagePath('/maintenance/'));
+        if ($this->router->module==='buy' || $this->router->module==='buyu') {
+            if ($this->router->config->get('active_maintenance')) {
+                $this->user()->redirectTo($this->router->getLanguagePath('/maintenance/'));
             }
             $this->checkBlockedAccount();            
         }
                            
 /*
-        if ($this->router()->module=='premium') {
+        if ($this->router->module=='premium') {
             $this->inlineCss.='
                 .uln{
                         list-style-type: none!important;  
@@ -45,7 +45,7 @@ class Doc extends Page{
                         ';
         }
 
-        if ($this->router()->module=='buy' || $this->router()->module=='buyu'){
+        if ($this->router->module=='buy' || $this->router->module=='buyu'){
             $this->inlineCss.='
                     .prices{margin:0!important;list-style:disc inside!important;padding:0 40px;}
                     .prices ul{display:inline-block;line-height:1em;margin:0!important}
@@ -72,23 +72,23 @@ class Doc extends Page{
         }            
 
                  */                              
-        if ($this->router()->module==='iguide') { $this->forceNoIndex=true; }
+        if ($this->router->module==='iguide') { $this->forceNoIndex=true; }
         
         $this->hasLeadingPane=true;
-        $this->router()->config()->disableAds();        
-        $this->router()->config()->setValue('enabled_sharing', 0);
+        $this->router->config->disableAds();        
+        $this->router->config->setValue('enabled_sharing', 0);
 
-        if ($this->router()->module==='about') {
+        if ($this->router->module==='about') {
             $this->lang['title']        = 'About Mourjan.com';
             $this->lang['description']  = 'Mourjan.com is an online classifieds search engine that helps you search and browse ads listed in major classifieds newspapers, websites and user submitted free ads';
         }
-        //elseif ($this->router()->module=='publication-prices') {
+        //elseif ($this->router->module=='publication-prices') {
         //    $this->load_lang(array('pricing'));
         //    $this->title=$this->lang['header'];
         //    $this->lang['description']=  $this->lang['desc'];
         //}
-        elseif($this->router()->module==='advertise'){ 
-            if ($this->router()->isArabic()) {
+        elseif($this->router->module==='advertise'){ 
+            if ($this->router->isArabic()) {
                 $this->title='أعلن مع مرجان';
                 $this->lang['description']='قم بتسويق شركتك، منتجاتك أو خدماتك بأسلوب متميز مستفيداً من أكثر من 3.5 مليون انطباع وأكثر من 250،000 زائر فريد شهريا على موقع مرجان';
             }
@@ -97,15 +97,15 @@ class Doc extends Page{
                 $this->lang['description']=  'Market your online business with style and benefit from over 3.5 million impressions and over 250,000 unique visitors per month';
             }
         }
-        elseif ($this->router()->module==='gold') {
+        elseif ($this->router->module==='gold') {
             $this->title=$this->lang['gold_title'];
             $this->lang['description']= $this->lang['gold_desc'];
         }
-        elseif ($this->router()->module==='buy' || $this->router()->module==='buyu') {
+        elseif ($this->router->module==='buy' || $this->router->module==='buyu') {
             $this->forceNoIndex=true;
         }
         
-        if (($this->router()->module==='buy' || $this->router()->module==='buyu') && !$this->user()->isLoggedIn()) {
+        if (($this->router->module==='buy' || $this->router->module==='buyu') && !$this->user()->isLoggedIn()) {
             $this->hasLeadingPane=false;
         }
         
@@ -114,8 +114,8 @@ class Doc extends Page{
     
     
     function header() {        
-        if ($this->router()->module=='advertise') {
-            if ($this->router()->isArabic()) {
+        if ($this->router->module==='advertise') {
+            if ($this->router->isArabic()) {
                 ?><style type="text/css">
                     .doc ul{list-style:none;margin:0 !important;overflow:hidden}
                     .doc li{float:right;padding:5px;border-left:1px solid #CCC;border-bottom:1px solid #CCC}
@@ -184,7 +184,7 @@ class Doc extends Page{
 
     
     function side_pane(){
-        if (($this->router()->module!=='buy' && $this->router()->module!=='buyu') || (($this->router()->module==='buyu' || $this->router()->module==='buy') && $this->user()->isLoggedIn())) {
+        if (($this->router->module!=='buy' && $this->router->module!=='buyu') || (($this->router->module==='buyu' || $this->router->module==='buy') && $this->user()->isLoggedIn())) {
             $this->renderSideSite();
         }
         //$this->renderSideUserPanel();
@@ -283,8 +283,8 @@ class Doc extends Page{
     
     function main_pane() {
         $adLang='';
-        if (!$this->router()->isArabic()) { $adLang=$this->router()->language.'/'; }
-        switch ($this->router()->module) {
+        if (!$this->router->isArabic()) { $adLang=$this->router->language.'/'; }
+        switch ($this->router->module) {
             case 'buyu':
                 $this->renderBuyU();                
                 break;
@@ -309,7 +309,7 @@ class Doc extends Page{
                             echo $subHeader.' ';
                         ?></p><?php 
                     }
-                    if ($this->router()->language==='ar') {
+                    if ($this->router->language==='ar') {
                         echo '<div class="doc ar">';
                     }
                     else {
@@ -369,20 +369,20 @@ class Doc extends Page{
                 
             case 'iguide':
                 echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
-                $imgPath = $this->router()->config()->imgURL.'/presentation2/';
+                $imgPath = $this->router->config->imgURL.'/presentation2/';
                 $this->lang['guide_apple'] = preg_replace(
                 ['/{IMG0}/','/{IMG01}/','/{IMG1}/','/{IMG2}/','/{IMG3}/','/{IMG4}/','/{IMG5}/','/{IMG6}/','/{IMG7}/','/{IMG8}/'], 
                 [
-                    '<img class="seic" width=24 height=24 src="'.$imgPath.'settings-icon'.$this->router()->_jpg.'" />',
-                    '<img class="seic" width=24 height=24 src="'.$imgPath.'home-icon'.$this->router()->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-home'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-settings'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-account'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-activate'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-activated'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-balance'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-buy'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'iguide-coins'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
+                    '<img class="seic" width=24 height=24 src="'.$imgPath.'settings-icon'.$this->router->_jpg.'" />',
+                    '<img class="seic" width=24 height=24 src="'.$imgPath.'home-icon'.$this->router->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-home'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-settings'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-account'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-activate'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-activated'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-balance'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-buy'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'iguide-coins'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" />',
                 ], 
                 $this->lang['guide_apple']);
                 echo '<p>', $this->lang['guide_apple_skip'], '</p>';
@@ -393,19 +393,19 @@ class Doc extends Page{
             case 'guide':
                 echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
                 
-                $imgPath = $this->router()->config()->imgURL.'/presentation2/';
+                $imgPath = $this->router->config->imgURL.'/presentation2/';
                                 
                 $this->lang['guide_droid'] = preg_replace(
                 ['/{IMG0}/','/{IMG1}/','/{IMG2}/','/{IMG3}/','/{IMG4}/','/{IMG5}/','/{IMG6}/','/{IMG7}/'], 
                 [
-                    '<img class="seic" width=24 height=24 src="'.$imgPath.'settings-icon'.$this->router()->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-lang'.$this->router()->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-country'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-home'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-settings'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-connect'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-connected'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
-                    '<img width=180 height=348 src="'.$imgPath.'guide-purchase'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" />',
+                    '<img class="seic" width=24 height=24 src="'.$imgPath.'settings-icon'.$this->router->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-lang'.$this->router->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-country'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-home'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-settings'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-connect'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-connected'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" />',
+                    '<img width=180 height=348 src="'.$imgPath.'guide-purchase'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" />',
                 ], 
                 $this->lang['guide_droid']);
                 echo '<p>', $this->lang['guide_droid_skip'], '</p>';
@@ -563,7 +563,7 @@ class Doc extends Page{
         echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
         echo '<h2 class="card-title">',$this->lang['gold_subtitle'], '</h2>';
                 
-        $imgPath = $this->router()->config()->imgURL.'/presentation2/';
+        $imgPath = $this->router->config->imgURL.'/presentation2/';
                 
         echo '<div class="col-12 block">';
         echo '<p>', $this->lang['gold_p2'], '</p>';
@@ -585,16 +585,16 @@ class Doc extends Page{
         echo '<p>', $this->lang['gold_p2_5_0'], '</p>';
         echo "<p>{$this->lang['gold_p2_5']}</p>";
         echo "<p>".$this->lang['gold_p2_6'.($this->isMobile ? '_m':'')]."</p>";
-        ?><div class="btH"><a href="<?= $this->router()->getLanguagePath('/buy') ?>"><img width="228" height="44" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png" alt="Buy now with PayPal" /></a></div><br /><?php 
-        ?><div class="btH"><a href="<?= $this->router()->getLanguagePath('/buy') ?>"><img width="319" height="110" src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg" alt="Buy now with PayPal" /></a></div><br /><?php 
+        ?><div class="btH"><a href="<?= $this->router->getLanguagePath('/buy') ?>"><img width="228" height="44" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png" alt="Buy now with PayPal" /></a></div><br /><?php 
+        ?><div class="btH"><a href="<?= $this->router->getLanguagePath('/buy') ?>"><img width="319" height="110" src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg" alt="Buy now with PayPal" /></a></div><br /><?php 
 
         echo '<p>', $this->lang['gold_p2_4'], '</p>';
         echo '<ul class="alinks"><li><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class="android"></span></a></li><li><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class="ios"></span></a></li></ul>';
         echo '<br><h4>', $this->lang['buy_gold_0'], '</h4>';
         echo "<p>{$this->lang['buy_gold_1']}</p>";
-        echo '<ul class="alinks"><li><a href="'. $this->router()->getLanguagePath('/guide/') .'">', 
-            '<img width=119 height=230 src="'.$imgPath.'guide'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" /></a></li>', 
-            '<li><a href="/iguide/'.($this->router()->isArabic()?'':$this->router()->language.'/' ).'"><img width=119 height=230 src="'.$imgPath.'iguide'.($this->router()->isArabic()?'-ar':'').$this->router()->_jpg.'" /></a></li></ul>';
+        echo '<ul class="alinks"><li><a href="'. $this->router->getLanguagePath('/guide/') .'">', 
+            '<img width=119 height=230 src="'.$imgPath.'guide'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" /></a></li>', 
+            '<li><a href="/iguide/'.($this->router->isArabic()?'':$this->router->language.'/' ).'"><img width=119 height=230 src="'.$imgPath.'iguide'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" /></a></li></ul>';
                 
         echo '</div></div></div>';
     }
@@ -604,21 +604,21 @@ class Doc extends Page{
         echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
         echo '<h2 class="card-title">',$this->lang['gold_p1_title'], '</h2>';
         echo '<div class="col-12 block"><div><p>';
-        $imgPath = $this->router()->config()->imgURL.'/presentation2/';
+        $imgPath = $this->router->config->imgURL.'/presentation2/';
         $this->lang['gold_p1_desc'] = preg_replace(
                         ['/{IMG1}/','/{IMG2}/','/{IMG3}/','/{IMG4}/','/{IMG5}/','/{IMG6}/'], 
                         [
-                            '<img width=200 height=150 src="'.$imgPath.'desktop-premium'.$this->router()->_jpg.'" />',
-                            '<img width=74 height=150 src="'.$imgPath.'mobile-site-premium'.$this->router()->_jpg.'" />',
-                            '<img width=74 height=150 src="'.$imgPath.'app-premium'.$this->router()->_jpg.'" />',
-                            '<img width=300 height=228 src="'.$imgPath.'desktop-side-premium'.($this->router()->isArabic()?'-ar':'').$this->router()->_png.'" />',
-                            '<img width=300 height=228 src="'.$imgPath.'desktop-side-hover-premium'.($this->router()->isArabic()?'-ar':'').$this->router()->_png.'" />',
-                            '<img width=74 height=150 src="'.$imgPath.'mobile-bottom-premium'.$this->router()->_jpg.'" />'
+                            '<img width=200 height=150 src="'.$imgPath.'desktop-premium'.$this->router->_jpg.'" />',
+                            '<img width=74 height=150 src="'.$imgPath.'mobile-site-premium'.$this->router->_jpg.'" />',
+                            '<img width=74 height=150 src="'.$imgPath.'app-premium'.$this->router->_jpg.'" />',
+                            '<img width=300 height=228 src="'.$imgPath.'desktop-side-premium'.($this->router->isArabic()?'-ar':'').$this->router->_png.'" />',
+                            '<img width=300 height=228 src="'.$imgPath.'desktop-side-hover-premium'.($this->router->isArabic()?'-ar':'').$this->router->_png.'" />',
+                            '<img width=74 height=150 src="'.$imgPath.'mobile-bottom-premium'.$this->router->_jpg.'" />'
                         ], 
                         $this->lang['gold_p1_desc']);
                         
         echo '<div class=uld>', $this->lang['gold_p1_desc'], '</div></li></div>';                    
-        echo '<div class=btH><a class=bt href="', $this->router()->getLanguagePath('/gold/'), '">', $this->lang['back_to_gold'], '</a></div>';
+        echo '<div class=btH><a class=bt href="', $this->router->getLanguagePath('/gold/'), '">', $this->lang['back_to_gold'], '</a></div>';
         echo '</div></div></div>';        
     }
     
@@ -674,7 +674,7 @@ class Doc extends Page{
 
                 if ($orderId) {
                     if ($success) {
-                        $res = $this->router()->db->queryResultArray(
+                        $res = $this->router->db->queryResultArray(
                                     "update t_order set state=?, msg=?,flag=? where id=? and uid=? and state=0 returning id",
                                     [2, $payment['fort_id'],$flag_id, $orderId, $this->user->info['id']], TRUE);
 
@@ -697,7 +697,7 @@ class Doc extends Page{
                         }
                         echo "<div class='mnb rc'><p><span class='fail'></span> {$this->lang['paypal_failure']} {$payment['error_msg']}</p></div>";
 
-                        $res = $this->router()->db->queryResultArray(
+                        $res = $this->router->db->queryResultArray(
                                     "update t_order set state=?, msg=?, flag=? where id=? and uid=? and state=0 returning id",
                                     [$state, $payment['error_msg'], $flag_id, $orderId, $this->user->info['id']], TRUE);
 
@@ -706,7 +706,7 @@ class Doc extends Page{
                 }
             }                    
                 
-            $products = $this->router()->db->queryCacheResultSimpleArray("products_payfort",
+            $products = $this->router->db->queryCacheResultSimpleArray("products_payfort",
                                     "select product_id, name_ar, name_en, usd_price, mcu, id  
                                     from product 
                                     where iphone=0 
@@ -785,11 +785,11 @@ class Doc extends Page{
     
     
     private function renderAbout() : void {
-        $this->router()->isArabic();
+        $this->router->isArabic();
         echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
         echo '<h2 class=card-title>', /*About Mourjan.com**/ $this->title, '</h2>';
         echo '<div class=col-12 style="display:block">';  
-        if ($this->router()->isArabic()) {
+        if ($this->router->isArabic()) {
             ?><p>لقد تم إنشاء&nbsp;<span itemscope itemtype="https://schema.org/LocalBusiness">موقع مرجان</span> في عام ٢٠١٠م .</p>
         <p>مع أكثر من ١٥ عامًا من الخبرة في مجال الإعلانات المبوبة وحلول تكنولوجيا المعلومات ، كنا نحن فريق العمل  وراء موقع مرجان ( Mourjan.com  ) - نبحث عن مشروع جديد يتماشى مع التطور السريع  في شبكة الويب العالمية.</p>
         <p> وعلى الرغم من أن الإعلانات المبوبة على الإنترنت لم تكن شيئًا جديدًا، ومع وجود العديد من مواقع الإعلانات المبوبة، فقد أدركنا أنه لتحقيق النجاح، كان علينا تقديم شيء جديد. لذلك، بدأنا العمل على موقع مرجان باهتمام وكان هدفنا الرئيسي يتمثل في عمل موقع ويب سريع الأداء من خلال محرك بحث عربي يوفر تجربة ممتعة للمستخدمين الذين يبحثون عن شقة للإيجار أو شراء سيارة.</p>
@@ -803,20 +803,20 @@ class Doc extends Page{
     <p>With over 15 years of experience in the field of classifieds and IT solutions, we - the team behind Mourjan.com - were looking for a new venture and specifically in the fast evolving World Wide Web.</p>
     <p>While online classifieds was not something new and with many top of mind classifieds websites, we knew that in order to succeed we had to deliver something new. Therefore, we started working on Mourjan.com with a main concern of achieving a fast performing website with an Arabic oriented search engine which would deliver a pleasant experience for users who are seeking an apartment to rent or a car to buy.</p>
     <p>In mid-2012, mourjan.com was faster than ever and in response to the overwhelming users’ feedbacks, the site enabled its users with free online ad posting in their countries of choice while always adopting the latest techniques and trends in website development and having users’ best interest at heart.</p>
-    <p>Currently, we are still working on improving mourjan.com and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="<?= $this->router()->getLanguagePath('/contact/') ?>">Let us know your opinion</a>.</p><?php
+    <p>Currently, we are still working on improving mourjan.com and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="<?= $this->router->getLanguagePath('/contact/') ?>">Let us know your opinion</a>.</p><?php
         }
         echo '</div>';
-        $streetAddress=$this->router()->isArabic()?'سنتر دكوانة 1044، الطابق الرابع، السلاف العريض':'4th Floor, Dekwaneh 1044 bldg, New Slav Street';
-        $addressLocality=$this->router()->isArabic()?'الدكوانة، المتن':'Dekwaneh';
-        $comma=$this->router()->isArabic()?'، ':', ';
-        $addressCountry=$this->router()->isArabic()?'لبنان':'Lebanon';
-        $egypt=$this->router()->isArabic()?'مصر':'Egypt';
-        $openingHours=$this->router()->isArabic()?'دوام العمل':'Office hours';
-        $days=$this->router()->isArabic()?'الإثنين الى الجمعة':'Monday to Friday';
-        $hours=$this->router()->isArabic()?'7:00 ص إلى 3:00 م GMT':'7:00AM to 3:00PM GMT';
+        $streetAddress=$this->router->isArabic()?'سنتر دكوانة 1044، الطابق الرابع، السلاف العريض':'4th Floor, Dekwaneh 1044 bldg, New Slav Street';
+        $addressLocality=$this->router->isArabic()?'الدكوانة، المتن':'Dekwaneh';
+        $comma=$this->router->isArabic()?'، ':', ';
+        $addressCountry=$this->router->isArabic()?'لبنان':'Lebanon';
+        $egypt=$this->router->isArabic()?'مصر':'Egypt';
+        $openingHours=$this->router->isArabic()?'دوام العمل':'Office hours';
+        $days=$this->router->isArabic()?'الإثنين الى الجمعة':'Monday to Friday';
+        $hours=$this->router->isArabic()?'7:00 ص إلى 3:00 م GMT':'7:00AM to 3:00PM GMT';
 ?><div class=col-12 itemscope itemtype="https://schema.org/LocalBusiness">
     <div itemprop="address" itemscope itemtype="https://schema.org/PostalAddress" class="card-footer">
-        <div class="addr float-left"><img itemprop="image" width="130" height="90" src="<?= $this->router()->config()->cssURL ?>/i/logo<?= $this->router()->_jpg ?>" alt="Berysoft logo" /></div>
+        <div class="addr float-left"><img itemprop="image" width="130" height="90" src="<?= $this->router->config->cssURL ?>/i/logo<?= $this->router->_jpg ?>" alt="Berysoft logo" /></div>
         <div class="addr float-left xr-border" style="padding-inline-end:20px;-webkit-padding-end:20px"><b itemprop="name">mourjan.com</b><br>
             <span itemprop="streetAddress"><?= $streetAddress ?></span><br><span itemprop="addressLocality"><?= $addressLocality ?></span><?= $comma ?><span itemprop="addressCountry"><?= $addressCountry ?></span>
         </div>

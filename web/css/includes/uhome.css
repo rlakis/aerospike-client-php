@@ -1,0 +1,115 @@
+html *{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;-ms-touch-action:manipulation;touch-action:manipulation;}
+*{box-sizing:border-box;}
+html{height:100%;}
+body{font-family:-apple-system,"system";font-style:normal;font-size:1em;background-color:whitesmoke;margin:0;background-color:#fafafa;}
+a{color:#007bff;text-decoration:none;}
+.float-left{margin-right:auto;float:left;}
+.float-right{margin-left:auto;float:right;}
+h4{font-size:1.3em;line-height:1.4em;}
+main{width:100%;}
+li,dd,dt{line-height:48px;}
+:root{--mourjanC:rgba(10,122,255,1);--midnight:rgba(44,62,80,1);--premium:#f2d352;--color-1:#fd8a6f;--color-2:#ff5f67;--color-3:#2ad392;--color-4:#00c1c1;--color-99:#5a9dff;--linkC:#007bff;}
+.wrapper{display:flex;flex-flow:row wrap;}
+.wrapper>*{flex:1 100%;flex-flow:column;}
+.col-4,.col-12{display:inherit;width:100%;padding:4px 0;float:left;}
+.hot{color:red!important;}
+.row{display:inherit;margin-right:0;margin-left:0;}
+.row::before{display:table-column;content:" ";}
+.row::after{content:"";clear:both;display:table;}
+header{display:inherit;background-color:var(--mourjanC);color:#ffffff;padding:0;text-align:center;min-height:90px;}
+.navbar{display:inherit;flex:1 auto;}
+footer{padding-top:44px;direction:ltr;text-align:center;order:999;}
+ul{list-style-type:none;list-style-position:inside;}
+.invert{background-color:transparent!important;filter:invert(100%);}
+.icn{position:relative;display:inline-block;width:32px;height:32px;margin:0 3px;}
+.icn:before,.ilogo:before{content:"\00a0";}
+.icn.s{width:20px;height:21px!important;margin:0;background-size:contain!important;mask-size:contain!important;}
+.icnsmall{width:20px;height:21px!important;margin:0;background-size:contain!important;}
+.icn-1{background:url(https://h1.mourjan.com/web/css/1.0/fa/solid/landmark.svg) no-repeat center;}
+.icn-2{background:url(https://h1.mourjan.com/web/css/1.0/fa/solid/car.svg) no-repeat center;}
+.icn-3{background:url(https://h1.mourjan.com/web/css/1.0/fa/solid/business-time.svg) no-repeat center;}
+.icn-4{background:url(https://h1.mourjan.com/web/css/1.0/fa/solid/handshake.svg) no-repeat center;}
+.icn-99{background:url(https://h1.mourjan.com/web/css/1.0/fa/solid/drum.svg) no-repeat center;}
+.icn-81{background:transparent url(https://h1.mourjan.com/web/css/1.0/fa/solid/badge-check.svg) no-repeat center;filter:invert(38%) sepia(75%) saturate(614%) hue-rotate(73deg) brightness(93%) contrast(86%);}
+.icn-82{background:transparent url(https://h1.mourjan.com/web/css/1.0/fa/solid/keyboard.svg) no-repeat center;filter:invert(75%) sepia(88%) saturate(342%) hue-rotate(111deg) brightness(91%) contrast(91%);}
+.icn-83{background:transparent url(https://h1.mourjan.com/web/css/1.0/fa/solid/info.svg) no-repeat center;max-height:32px;filter:invert(78%) sepia(49%) saturate(362%) hue-rotate(105deg) brightness(86%) contrast(90%);}
+.icn-84{background-color:gold;mask:url(https://h1.mourjan.com/web/css/1.0/fa/solid/coins.svg) no-repeat 50% 50% / cover;-webkit-mask:url(https://h1.mourjan.com/web/css/1.0/fa/solid/coins.svg) no-repeat 50% 50% / cover;}
+.icn-85{background:transparent url(https://h1.mourjan.com/web/css/1.0/fa/solid/signature.svg) no-repeat 50% 50%;filter:invert(36%) sepia(75%) saturate(3020%) hue-rotate(216deg) brightness(92%) contrast(90%);}
+.icn-88{background:transparent url(https://h1.mourjan.com/web/css/1.0/fa/solid/paper-plane.svg) no-repeat center;filter:invert(70%) sepia(36%) saturate(5143%) hue-rotate(294deg) brightness(100%) contrast(103%);}
+.icn-search{background:url(https://h1.mourjan.com/web/css/1.0/fa/duotone/search.svg) no-repeat center;}
+.icn-bell{background:url(https://h1.mourjan.com/web/css/1.0/fa/solid/bell.svg) no-repeat center;}
+.icn-user{background:url(https://h1.mourjan.com/web/css/1.0/fa/duotone/user.svg) no-repeat center;}
+.icn-lang{background:url(https://h1.mourjan.com/web/css/1.0/fa/regular/arabic.svg) no-repeat center;}
+.icn-region{background:url(https://h1.mourjan.com/web/css/1.0/fa/regular/location.svg) no-repeat center;}
+.icn-ae{background:url(https://h1.mourjan.com/web/css/flags/ae.svg) center no-repeat;}
+.icn-sa{background:url(https://h1.mourjan.com/web/css/flags/sa.svg) center no-repeat;}
+.icn-kw{background:url(https://h1.mourjan.com/web/css/flags/kw.svg) center no-repeat;}
+.icn-bh{background:url(https://h1.mourjan.com/web/css/flags/bh.svg) center no-repeat;height:20px;}
+.icn-om{background:url(https://h1.mourjan.com/web/css/flags/om.svg) center no-repeat;}
+.icn-qa{background:url(https://h1.mourjan.com/web/css/flags/qa.svg) center no-repeat;}
+.icn-iq{background:url(https://h1.mourjan.com/web/css/flags/iq.svg) center no-repeat;}
+.icn-ye{background:url(https://h1.mourjan.com/web/css/flags/ye.svg) center no-repeat;}
+.icn-lb{background:url(https://h1.mourjan.com/web/css/flags/lb.svg) center no-repeat;}
+.icn-jo{background:url(https://h1.mourjan.com/web/css/flags/jo.svg) center no-repeat;}
+.icn-eg{background:url(https://h1.mourjan.com/web/css/flags/eg.svg) center no-repeat;}
+.icn-ma{background:url(https://h1.mourjan.com/web/css/flags/ma.svg) center no-repeat;}
+.icn-tn{background:url(https://h1.mourjan.com/web/css/flags/tn.svg) center no-repeat;}
+.icn-dz{background:url(https://h1.mourjan.com/web/css/flags/dz.svg) center no-repeat;}
+.card dt > a > .icn{box-shadow:0 4px 20px 0 rgba(0,0,0,0.14),0 7px 10px -5px rgba(255,152,0,0.4);max-height:15px;}
+.nav{padding-left:0;margin-bottom:0;list-style:none;display:inherit;justify-content:flex-end!important;}
+.nav>li{position:relative;display:block;float:left;padding:0 12px;}
+.nav>li .icnsmall{padding:0 18px;margin-top:-20px;}
+.navbar{border-color:inherit;color:inherit;padding:0;margin:0;height:40px;font-size:14px;line-height:1.428571429;}
+.navbar:before{display:table;content:" ";}
+.navbar{border-top:none;box-shadow:none;margin:0;}
+.ilogo{margin:9px 18px;height:72px;width:72px;display:inline-block;background-image:url(https://h1.mourjan.com/web/css/1.0/assets/LogoV5.svg);background-position:center;background-repeat:no-repeat;background-size:cover;}
+.card{display:inline-block;width:100%;margin:25px 0;box-shadow:0 1px 4px 0 rgba(0,0,0,0.14);border-radius:6px;color:rgba(0,0,0,0.87);background:#fff;}
+.card-header{display:inline-block;position:absolute;height:62px;margin:-20px 14px 0 14px;padding:12px;box-shadow:0 4px 20px 0 rgba(0,0,0,0.14),0 7px 10px -5px rgba(255,152,0,0.4);border-radius:inherit;}
+.card .card-header{z-index:3;}
+.card .card-content{display:inline-block;width:100%;padding:15px 20px;position:relative;}
+.card-content .card-title{padding-bottom:24px;}
+.card .card-title{margin:0 68px;font-weight:300;}
+.card-header [class*="icn-"]{background-color:transparent;filter:invert(100%) drop-shadow(4px 4px 2px rgba(0,0,0,0.2));}
+.card ul{display:flex;padding:0;margin-top:0;margin-bottom:0;flex-flow:column;}
+.card li{display:inherit;flex:1 auto;border-bottom:1px solid #eeeeee;}
+.card li:last-child{border:0;}
+.card li:hover,dd:hover,dt:hover{background-color:rgba(200,200,200,0.2);color:var(--mourjanC);}
+.card li>a,dd>a{display:inherit;color:var(--midnightC);flex:1 auto;align-items:center;}
+.card dt>a{display:inherit;flex:1 auto;align-items:center;color:var(--midnight);}
+.card a>span{font-size:small;font-weight:bolder;}
+.card.test li{border-bottom:0;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+.card .icn{flex:0 0 auto;}
+.card.test span{flex:1;padding:0 8px;border-bottom:1px solid #eeeeee;}
+.card.test li:last-child span{border:0;}
+.card.test a>span{font-size:1em;font-weight:normal;}
+.card dl{columns:1;margin-top:0;display:inherit;flex-flow:column;width:100%;}
+.card dt{display:flex;align-items:center;cursor:pointer;-webkit-column-break-before:always;page-break-before:always;break-inside:avoid;}
+.card dd{cursor:pointer;-webkit-margin-start:28px;margin-inline-start:28px;}
+dt>a>span{flex:1;padding:0 8px;}
+.card [class*="col-"]{display:flex;padding-top:0;padding-left:0;}
+.home{display:flex;justify-content:space-around;flex-flow:row wrap;align-content:flex-start;}
+.search{display:inline-flex;width:100%;border:2px solid lightgray;border-radius:5px;}
+.search form{width:100%;display:inherit;justify-content:space-between;align-self:flex-start;flex-direction:row;}
+.searchTerm{width:100%;border:none;padding:5px;height:36px!important;outline:none;color:var(--midnight);font-size:1.0em;-webkit-appearance:none;}
+.searchTerm:focus{color:var(--mourjanC);}
+.searchButton{width:40px;height:36px;border:1px solid lightgray;border-radius:5px;background:var(--mourjanC);cursor:pointer;padding-top:0;}
+@media screen and (max-width:768px){
+.nav>li{padding:0 8px;}
+}
+@media only screen and (min-width:769px){
+.col-4{width:33.33%;}
+.col-12{width:100%;}
+[class*="col-"]{display:inherit;padding:8px;}
+header{min-height:160px;}
+main{display:inherit;margin:8px 52px;}
+.ilogo{width:360px;height:80px;margin-top:40px;}
+body[dir="ltr"] .ilogo{background-image:url(https://h1.mourjan.com/web/css/1.0/assets/LogoV5e.svg);margin-left:60px;}
+}
+@media only screen and (min-width:1920px){
+body{margin:0 auto;width:1920px;display:block;}
+}
+.mios,.mandroid{background:url(https://h1.mourjan.com/web/css/1.0/assets/appsm.jpg) no-repeat center;height:60px;width:200px;display:inline-block;}
+.mios{background-position:0 -3px;}
+.mandroid{background-position:0 -66px;}
+/*! CSS Used fontfaces */
+@font-face{font-family:system;font-style:normal;font-weight:300;src:local(".SFNSText-Light"),local(".HelveticaNeueDeskInterface-Light"),local(".LucidaGrandeUI"),local("Ubuntu Light"),local("Segoe UI Light"),local("Roboto-Light"),local("DroidSans"),local("Tahoma");}

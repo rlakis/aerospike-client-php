@@ -929,7 +929,12 @@ class MyAds extends Page {
                 }
 
                 if (($cad->latitude()>0||$cad->longitude()>0) && $cad->dataset()->getLocation()) {
-                    echo '<hr><div class="oc ocl"><span class="i loc"></span>', $cad->dataset()->getLocation(), '</div>';
+                    echo '<hr><div class="oc ocl"';
+                    if ($isAdmin) { echo ' onmouseup="d.textSelected(this);"'; }
+                    if ($isAdmin) { echo ' oncontextmenu="d.lookup(this);return false;"'; }
+                    echo '><span class="i loc"></span>', $cad->dataset()->getLocation();
+                    
+                    echo '</div>';
                 }
                 
                 echo '<div class=note';
