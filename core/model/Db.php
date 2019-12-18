@@ -428,9 +428,8 @@ class DB {
     }
     
     
-    function queryCacheResultSimpleArray($label, $query, $params=null, $key=0, $lifetime=86400, $forceSetting=false, $forceIfEmpty=false) {
-        $records=array();        
-
+    function queryCacheResultSimpleArray(string $label, string $query, ?array $params=null, int $key=0, int $lifetime=86400, bool $forceSetting=false, bool $forceIfEmpty=false) : array {
+        $records=[];
         $foo = self::$Cache->get($label);
         
         if ($forceSetting || ($foo===FALSE) || ($forceIfEmpty && empty($foo))) {
@@ -439,58 +438,55 @@ class DB {
             $this->checkCorrectWriteMode($query);
             $stmt = $this->getInstance()->prepare($query);
             
-            try{
+            try {
                 if ($params)
                     $stmt->execute($params);
                 else
                     $stmt->execute();
 
                 if(($row = $stmt->fetch(\PDO::FETCH_NUM)) !== false) {
-                    //$count = count($row);
-                    $simpleArray=is_null($key) ? true : false;
+                    $simpleArray=\is_null($key) ? true : false;
                     
                     do {
-                        //error_log(var_export($row, TRUE));
-                        //for ($i=0; $i < $count; $i++)
-                        //    if(is_numeric($row[$i])) $row[$i] = $row[$i]+0;
-
-                        if($simpleArray){
+                        if ($simpleArray) {
                             $records[]=$row;
-                        }else {
-                            if ($key>=0)
+                        }
+                        else {
+                            if ($key>=0) {
                                 $records[$row[$key]]=$row;
+                            }
                             else {
                                 $records=$row;
                                 break;
                             }
                         }
                     }
-                    while($row = $stmt->fetch(\PDO::FETCH_NUM));
-                    
+                    while ($row = $stmt->fetch(\PDO::FETCH_NUM));
                 }
             }
             catch (Exception $ex) {
-                error_log($ex->getMessage() . PHP_EOL . $query . PHP_EOL . var_export($params, TRUE));
+                \error_log($ex->getMessage() . PHP_EOL . $query . PHP_EOL . \var_export($params, TRUE));
                 self::$Instance->rollBack();
-                return false;
+                return [];
             }
             self::$Cache->set($label, $records);
             return $records;
-        } else {
+        } 
+        else {
             return $foo;
         }        
     }
     
     
-    function getSectionFollowUp($countryId,$cityId=0,$sectionId,$purposeId=0,$force=0){
+    function getSectionFollowUp(int $countryId, int $cityId=0, int $sectionId, int $purposeId=0, bool $force=0){
         return $this->queryCacheResultSimpleArray(
             "follow_{$countryId}_{$cityId}_{$sectionId}_{$purposeId}", 
             "select to_section_id,to_purpose_id from section_follow s where 
-                s.section_id = {$sectionId} and 
-                s.country_id = {$countryId} and 
-                s.city_id = {$cityId} and 
-                s.purpose_id = {$purposeId} and 
-                s.counter > 20 
+                s.section_id={$sectionId} and 
+                s.country_id={$countryId} and 
+                s.city_id={$cityId} and 
+                s.purpose_id={$purposeId} and 
+                s.counter>20 
                 order by counter desc", null, 0, 86400, $force);
     }
     

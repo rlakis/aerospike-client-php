@@ -21,7 +21,7 @@ h4, .h4 {font-size:1.3em;line-height:1.4em;}
 h5, .h5 {line-height:1.4em;margin-bottom:15px;}
 h6, .h6 {font-size:1em;text-transform:uppercase;font-weight:500;}
 label {display:inline-block;max-width:100%;margin-bottom:5px;font-weight:700;}
-
+small{line-height: 100%}
 main{width: 100%}
 li,dd,dt{line-height:48px;}
 :root{

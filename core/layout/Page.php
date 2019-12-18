@@ -1455,7 +1455,7 @@ class Page extends Site {
                         else {
                             if (!$selected && $this->checkNewUserContent($purpose['unixtime'])) { $isNew=true; }
                             $result[]='<li'.($isNew?" class='nl'":"").'>'.
-                                    $this->renderListLink('<span>'.\number_format($purpose['counter']).'&nbsp;</span>'. $pname,
+                                    $this->renderListLink($pname.'<small>&nbsp;('.\number_format($purpose['counter']).')</small>',
                                                 $this->router->getURL($this->router->countryId,$this->router->cityId,$this->router->rootId,
                                                 $this->router->sectionId, $pid), $selected).'</li>';
                         }

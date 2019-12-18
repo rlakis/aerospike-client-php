@@ -1342,9 +1342,9 @@ class Search extends Page {
     }
 
     
-    function results() {       
+    function results() : void {       
         $keywords = '';
-        if (!$this->userFavorites && $this->router->module!='detail') {
+        if (!$this->userFavorites && $this->router->module!=='detail') {
             $this->updateUserSearchCriteria();
         }
                         
@@ -1378,23 +1378,21 @@ class Search extends Page {
             $this->renderDResults($keywords);
             echo '</div>', $this->mt_pagination(), '</div></div>';                
           
-            //echo $this->mt_pagination();
                                 
-            if (($this->router->module=='search'||$this->router->module=='detail') && !$this->userFavorites && !$this->router->watchId && !$this->router->userId) {
+            if (($this->router->module==='search'||$this->router->module==='detail') && !$this->userFavorites && !$this->router->watchId && !$this->router->userId) {
                 $followStr='';
-                if ($this->router->sectionId) {
-                    $followUp = $this->router->db->getSectionFollowUp($this->router->countryId,$this->router->cityId,$this->router->sectionId,$this->router->purposeId);      
-                    $fup = array();
+                if ($this->router->sectionId>0) {
+                    $followUp=$this->router->db->getSectionFollowUp($this->router->countryId, $this->router->cityId, $this->router->sectionId, $this->router->purposeId);      
+                    $fup=[];
                     if (isset($this->router->sections[$this->router->sectionId][6]) && $this->router->sections[$this->router->sectionId][6]) {
-                        $tmpSec = explode(',', $this->router->sections[$this->router->sectionId][6]);
-                        $fup = array();
+                        $tmpSec=explode(',', $this->router->sections[$this->router->sectionId][6]);
                         foreach ($tmpSec as $sec) {
-                            $fup[] = array($sec,0);
+                            $fup[]=[$sec, 0];
                         }
                     }
                         
-                    $followUp = ($followUp) ? array_merge($fup, $followUp) : $fup;                        
-                    if ($followUp && count($followUp)) {
+                    $followUp = ($followUp) ? \array_merge($fup, $followUp) : $fup;                        
+                    if ($followUp && \count($followUp)) {
                         $procSec=array();
                         $k=0;
                         foreach($followUp as $section){
@@ -1478,7 +1476,7 @@ class Search extends Page {
                 $hasExt=0;
                   
                 if ($followStr) {
-                    $followStr='<div class=row><div class=col-12><div class="card card-menu">'.$followStr.'</div></div>';
+                    $followStr='<div class=row style="padding-top:24px;"><div class=col-12><div class="card card-menu">'.$followStr.'</div></div>';
                     echo ' <!--googleoff: index --> ', $followStr, ' <!--googleon: index --> ';
                 }
             }                
@@ -2229,74 +2227,84 @@ class Search extends Page {
     }
 
          
-    function alternateSummery($count){
-                $bread= "<p class='ph pha'>";
-                if ($this->router->params['q'])
-                    $bread.=$this->lang['no_listing_q'].' '.$this->lang['for'].' '.$this->crumbTitle;
-                else $bread.=$this->lang['no_listing'].' '.$this->crumbTitle;
-                $this->getBreadCrumb(1, $count);
-                $bread.='<br />';
-                $bread.=$this->lang['might_interest'].' ';
-                $bread.='<b>';
-                $found='';
-                    if ($this->router->language=="ar") {
-                        $formatted = number_format($count);
-                        if (!$this->router->params['q'])
-                            $found='وارد ضمن ';
-                        if ($count>10) {
-                                $bread.= $formatted." ".$this->lang['ads'];
-                            }elseif ($count>2){
-                                if (!$this->router->params['q'])
-                                    $found='واردة ضمن ';
-                                $bread.= $formatted." ".$this->lang['3ad'];
-                            }else if ($count==1){
-                                $bread.= $this->lang['ad'];
-                            }else {
-                                if (!$this->router->params['q'])
-                                    $found='وردا ضمن ';
-                                $bread.= $this->lang['2ad'];
-                            }
-                            $bread.= '</b> '.$found;
-                        }else {
-                            $bread.= $this->formatPlural($count, "ad");
-                            $bread.= '</b> found in ';
-                        }
-                        if ($this->router->params['q'])
-                          $bread.=' '.$this->lang['for'].' '.$this->crumbTitle;
-                        else $bread.=' '.$this->crumbTitle;
-                $bread .= '</p>';
-                
-                if ($this->router->module == 'search' && $this->publisherTypeSorting && in_array($this->tmpRootId,[1,2,3])){
-                            $bread .= "<!--googleoff: snippet--><div class='mnb phx rc'><p>";
-                            
-                            $uri = $this->getPageUri().'?';
-                            if ($this->router->params['q']) {
-                                $uri .= 'q=' . urlencode($this->router->params['q']).'&';
-                            }  
-                            $uri .= 'xd=0';
-                            
-                            switch($this->publisherTypeSorting){
-                                case 2: 
-                                    $bread .= $this->lang['npub_3_'.$this->tmpRootId];
-                                    $bread .= ' <a href="'.$uri.'">'.$this->lang['npub_cancel'].'</a>';
-                                    break;
-                                case 1:
-                                    if($this->tmpRootId == 3){
-                                        $bread .= $this->lang['nbpub_1'];
-                                        $bread .= ' <a href="'.$uri.'">'.$this->lang['npub_cancel'].'</a>';
-                                    }else{
-                                        $bread .= $this->lang['npub_1'];
-                                        $bread .= ' <a href="'.$uri.'">'.$this->lang['npub_cancel'].'</a>';                                        
-                                    }
-                                    break;
-                                default:
-                                    break;
-                            }
-                            $bread .= "</p></div><!--googleon: snippet-->";
-                        }
-                
-                return $bread;
+    function alternateSummery(int $count) : string {
+        $bread="<div class=row><div class=col-12><div class=card><div class=card-content>";
+        if ($this->router->params['q']) {
+            $bread.=$this->lang['no_listing_q'].' '.$this->lang['for'].' '.$this->crumbTitle;
+        }
+        else {
+            $bread.=$this->lang['no_listing'].' '.$this->crumbTitle;
+        }
+        
+        $this->getBreadCrumb(1, $count);
+        $bread.='<br />';
+        $bread.=$this->lang['might_interest'].' ';
+        $bread.='<b>';
+        $found='';
+        if ($this->router->isArabic()) {
+            $formatted = number_format($count);
+            if (!$this->router->params['q']) {  $found='وارد ضمن ';  }
+            if ($count>10) {
+                $bread.=$formatted." ".$this->lang['ads'];
             }
+            elseif ($count>2) {
+                if (!$this->router->params['q']) {  $found='واردة ضمن ';  }
+                $bread.=$formatted." ".$this->lang['3ad'];
+            }else if ($count===1) {
+                $bread.=$this->lang['ad'];
+            }
+            else {
+                if (!$this->router->params['q']) {  $found='وردا ضمن ';  }
+                $bread.=$this->lang['2ad'];
+            }
+            $bread.= '</b> '.$found;
+        }
+        else {
+            $bread.= $this->formatPlural($count, 'ad');
+            $bread.= '</b> found in ';
+        }
+         
+        if ($this->router->params['q']) {
+            $bread.=' '.$this->lang['for'].' '.$this->crumbTitle;
+        }
+        else {
+            $bread.=' '.$this->crumbTitle;
+        }
+        $bread .= '</div></div></div></div>';
+             
+        // need revision with Bassel
+        if ($this->router->module==='search' && $this->publisherTypeSorting && \in_array($this->tmpRootId, [1,2,3])) {
+            $bread.="<!--googleoff: snippet--><div class='mnb phx rc'><p>";
+                            
+            $uri=$this->getPageUri().'?';
+            if ($this->router->params['q']) {
+                $uri .= 'q='.\urlencode($this->router->params['q']).'&';
+            }  
+            $uri .= 'xd=0';
+                            
+            switch ($this->publisherTypeSorting) {
+                case 2: 
+                    $bread.= $this->lang['npub_3_'.$this->tmpRootId];
+                    $bread.= ' <a href="'.$uri.'">'.$this->lang['npub_cancel'].'</a>';
+                    break;
+                case 1:
+                    if ($this->tmpRootId==3) {
+                        $bread.= $this->lang['nbpub_1'];
+                        $bread.= ' <a href="'.$uri.'">'.$this->lang['npub_cancel'].'</a>';
+                    }
+                    else {
+                        $bread.= $this->lang['npub_1'];
+                        $bread.= ' <a href="'.$uri.'">'.$this->lang['npub_cancel'].'</a>';                                        
+                    }
+                    break;
+                default:
+                    break;
+            }
+            $bread.= "</p></div><!--googleon: snippet-->";
+        }
+                
+        return $bread;
+    }
 
             
     function updateUserSearchCriteria() {
@@ -2829,14 +2837,7 @@ class Search extends Page {
         $pl .= 'xd=';
         
         echo '<div class=title><h5>', $this->lang['search_settings'], '</h5></div>';
-        $purposes=$this->filterPurposesArray();
-        if (\count($purposes)>1) {
-            echo '<ul>';
-            foreach ($purposes as $purpose) {
-                echo $purpose;
-            }
-            echo '</ul>', '<hr>';
-        }
+        
         echo '<div class=select><select class="select-text" onchange="sorting(this)">';
         echo '<option value="', $q, '0"', ($this->sortingMode==0)?' selected':'', '>', $this->lang['sorting_0'], '</option>';
         echo '<option value="', $q, '1"', ($this->sortingMode==1)?' selected':'', '>', $this->lang['sorting_1'], '</option>';
@@ -2860,7 +2861,15 @@ class Search extends Page {
             echo '</select>';
             echo '<span class="select-highlight"></span>', '<span class="select-bar"></span>' /*, '<label class="select-label">', $this->lang['lg_sorting'],'</label>'*/;
             echo '</div>';          
-        }         
+        }
+        $purposes=$this->filterPurposesArray();
+        if (\count($purposes)>1) {
+            echo '<ul>';
+            foreach ($purposes as $purpose) {
+                echo $purpose;
+            }
+            echo '</ul>';
+        }
     }
     
     
