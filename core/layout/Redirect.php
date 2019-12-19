@@ -34,7 +34,7 @@ class Redirect extends Site {
                                 $this->user->params['keepme_in'] = $keepme_in ? 1 : 0;
                                 if ($keepme_in) {
                                     $sKey = $this->user->encodeRequest('keepme_in', array($this->user->info['id']));
-                                    setcookie('__uvme', $sKey, time() + 1814400, '/', $this->router()->config()->get('site_domain'));
+                                    setcookie('__uvme', $sKey, time() + 1814400, '/', $this->router->config->get('site_domain'));
                                 }
                             } else {
                                 $this->user->pending['login_attempt'] = true;
@@ -46,8 +46,8 @@ class Redirect extends Site {
                     //    $this->user->pending['login_attempt_captcha'] = true;
                     //}
 
-                    if (!$this->router()->isArabic() && !preg_match('/\/' . $this->router()->language . '\//', $ref)) {
-                        $ref.=$this->router()->language . '/';
+                    if (!$this->router->isArabic() && !\preg_match('/\/' . $this->router->language . '\//', $ref)) {
+                        $ref.=$this->router->language . '/';
                     }
 
                     if ($pass && isset($this->user->pending['redirect_login'])) {
@@ -60,21 +60,21 @@ class Redirect extends Site {
                                     $ref.=$this->user->info['options']['HS']['lang'] . '/';
                                 }
                             } else {
-                                if (!$this->router()->isArabic() && !preg_match('/\/' . $this->router()->language . '\//', $ref)) {
-                                    $ref.=$this->router()->language . '/';
+                                if (!$this->router->isArabic() && !preg_match('/\/' . $this->router->language . '\//', $ref)) {
+                                    $ref.=$this->router->language . '/';
                                 }
                             }
                         }
                     }
                     $this->user->update();
-                    $this->router()->redirect($ref);
+                    $this->router->redirect($ref);
                 }
             }
         }
 
-        $addLang=($this->router()->isArabic() ? '' : $this->router()->language . '/');
+        $addLang=($this->router->isArabic() ? '' : $this->router->language . '/');
         $key=$this->getGetString('k');
-        $uri=$this->router()->getLanguagePath('/invalid/');
+        $uri=$this->router->getLanguagePath('/invalid/');
         if ($key && strlen($key)>32) {
             $cmd=$this->user()->decodeRequest($key);
             \error_log(__CLASS__.'.'.__FUNCTION__.': '. \json_encode($cmd));
@@ -264,7 +264,7 @@ class Redirect extends Site {
             }
         }
         
-        $this->router()->redirect($uri);
+        $this->router->redirect($uri);
     }
 
 }
