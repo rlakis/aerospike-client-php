@@ -1,5 +1,5 @@
 if(typeof userRaw==='string'){
-    var wrapper = $.getElementById("userDIV");
+    var wrapper=$.getElementById("userDIV");
     try {
         var data = JSON.parse(userRaw); 
         console.log(data);

@@ -1,3 +1,4 @@
+canvas{max-width: 1024px;margin-left: auto; margin-right: auto;display: block}
 .myadls{display:flex;flex-flow: column;align-items: center;background-color: #fafafa;}
 .myadls article{max-width: 1024px}
 .myad {position:relative;width:100%;box-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);}

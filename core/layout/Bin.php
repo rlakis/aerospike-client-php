@@ -24,13 +24,21 @@ class AjaxHandler extends Site {
     }
 
     function setData($res, $label=''){
-        if ($label) $this->data[$label]=$res;
-        else $this->data[]=$res;
+        if ($label) {
+            $this->data[$label]=$res;
+        }
+        else {
+            $this->data[]=$res;
+        }
     }
 
     function mergeData($res, $label){
-        if (isset ($this->data[$label])) $this->data[$label]=array_merge($this->data[$label], $res);
-        else $this->data[$label]=$res;
+        if (isset($this->data[$label])) {
+            $this->data[$label]=\array_merge($this->data[$label], $res);
+        }
+        else {
+            $this->data[$label]=$res;
+        }
     }
 
     function process(){
@@ -58,7 +66,7 @@ class AjaxHandler extends Site {
 }
 
 
-class Bin extends AjaxHandler{
+class Bin extends AjaxHandler {
     const ERR_USER_BLOCKED      = 100;
     const ERR_USER_SUSPENDED    = 101;
     const ERR_USER_UNAUTHORIZED = 102;
@@ -71,10 +79,10 @@ class Bin extends AjaxHandler{
     const ERR_SYS_FAILURE       = 401;
     const ERR_SYS_UNKNOWN       = 402;
     
-    private $_JPOST = [];
-    private $resp = ['command'=>'', 'success'=>0, 'code'=>0, 'error'=>'', 'warning'=>'', 'result'=>[]];
+    private array $_JPOST = [];
+    private array $resp = ['command'=>'', 'success'=>0, 'code'=>0, 'error'=>'', 'warning'=>'', 'result'=>[]];
     
-    private $errors = [
+    private array $errors = [
         self::ERR_USER_BLOCKED      => ['en'=>'Blocked user! this account is not active anymore.', 'ar'=>'هذا الحساب مقفل ولا يمكن استعماله في مرجان!'],
         self::ERR_USER_SUSPENDED    => ['en'=>'Suspended user! this account is suspended.', 'ar'=>'هذا الحساب معلق!'],
         self::ERR_USER_UNAUTHORIZED => ['en'=>'Unauthorized action', 'ar'=>'حساب غير مصرح لتنفيذ الطلب!'],
@@ -209,7 +217,7 @@ class Bin extends AjaxHandler{
 
     
     private function getPostedJson() : array {
-        $contentType = filter_input(INPUT_SERVER, 'CONTENT_TYPE', FILTER_SANITIZE_STRING);
+        $contentType = \filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
         if ($contentType==='application/json') {
             $content = trim(file_get_contents("php://input"));
             return json_decode($content, true);
@@ -1418,40 +1426,41 @@ class Bin extends AjaxHandler{
                 }
                 break;
                 
-            case 'ajax-ga':
-                $uid=$this->post('u', 'uint');
-                $archive = $this->post('x', 'boolean');
-                $adStats = $this->post('ads', 'boolean');
-                if($adStats && $this->user->info['level']==9){
-                    $pubId = $this->post('pub', 'int');
-                    $secId = $this->post('sec', 'int');
-                    $countryId = $this->post('cn', 'int');
-                    $cityId = $this->post('c', 'int');
-                    $span = $this->post('span','int');
+            case 'ga':
+                $this->authorize(true);
+                $uid=\intval($this->_JPOST['u']??0);                
+                $archive=$this->post('x', 'boolean');
+                $adStats=$this->post('ads', 'boolean');
+                if ($adStats && $this->user->isLoggedIn(9)) {
+                    $pubId=$this->post('pub', 'int');
+                    $secId=$this->post('sec', 'int');
+                    $countryId=$this->post('cn', 'int');
+                    $cityId=$this->post('c', 'int');
+                    $span=$this->post('span','int');
                     $data=[];
                     $dt=0;
                     $q='select cast(x.dated as date) as d, sum(x.counter) as c
                         from ad_pub_stat x 
-                        where dated >= current_date'.($span>0 ? ' -'.$span : '');
+                        where dated>=current_date'.($span>0?'-'.$span:'');
                     
                     if ($countryId) { $q.=' and country_id ='.$countryId; }
                     if ($cityId) { $q.=' and city_id ='.$cityId; }
                     if ($secId) { $q.=' and section_id ='.$secId; }
                     $q.=' group by 1';
-                    $res=$this->urlRouter->db->queryResultArray($q);
-                    if ($res && count($res)) {
-                        $i=0;
-                        $curDt=0;
-                        $prevDt=0;
-                        foreach($res as $rec){
-                            $curDt=strtotime($rec['D']);
-                            if($i==0)$dt=$curDt;
-                            else{
+                    $res=$this->router->db->queryResultArray($q);
+                    if ($res && \count($res)) {
+                        $i=$curDt=$prevDt=0;
+                        foreach ($res as $rec) {
+                            $curDt=\strtotime($rec['D']);
+                            if ($i===0) {  
+                                $dt=$curDt;                                  
+                            }
+                            else {
                                 $ddif = $curDt-$prevDt;
-                                if($ddif>86400){
+                                if ($ddif>86400) {
                                     $span = $ddif / 86400;
-                                    for($k=0;$k<$span-1;$k++){
-                                        $data[]=0;   
+                                    for ($k=0; $k<$span-1; $k++){
+                                        $data[]=0;
                                         $i++;
                                     }
                                 }
@@ -1461,53 +1470,45 @@ class Bin extends AjaxHandler{
                             $i++;
                         }
                     }
-                    $this->setData($data,'c');
-                    $this->setData($dt*1000,'d');
-                    $this->process();
-                    
+                    $this->response('c', $data);
+                    $this->response('d', $dt*1000);
+                    $this->success();                    
                 }
-                elseif ($this->user->info['id'] && ($this->user->info['id']==$uid || $this->user->info['level']==9)) {
+                elseif ($this->user->isLoggedIn() && ($this->user->id()===$uid || $this->user->level()===9)) {
                     
                     $aid = $this->post('a', 'uint');
                     
                     $showInteractions = 0;
-                    if($this->user->info['level']==9 || in_array($this->user->info['id'],$this->urlRouter->cfg['enabled_interactions']) ){
+                    if($this->user->level()===9 || \in_array($this->user->id(), $this->router->config->get('enabled_interactions'))) {
                         $showInteractions = 1;
                     }
-                    $stat_server = $this->urlRouter->db->getCache()->get("stat_server");
+                    $stat_server = $this->router->db->getCache()->get("stat_server");
                     $redis = new Redis();
                     
                     $redis->connect($stat_server['host'], $stat_server['port'], 1, NULL, 100); // 1 sec timeout, 100ms delay between reconnection attempts.
                     $redis->setOption(Redis::OPT_PREFIX, $stat_server['prefix']);
                     $redis->select($stat_server['index']);
                     
-                    if($aid){
-                        $count=0;
-                        $q='select cast(r.ts as date) as d,count(*) as c
-                        from xref x
-                        left join reqs r on x.ad_id = r.ad_id
-                        where x.ad_id = ? and r.ad_id is not null  
-                        group by 1';
-                        //$res=$db->queryResultArray($q,array($aid));
+                    if ($aid) {
+                        $count=0;                     
                         
                         $res = $redis->hGetAll('AI'.$aid);
-                        ksort($res, SORT_STRING);
+                        \ksort($res, \SORT_STRING);
                     
-                        $data = array();
-                        $cdata = array();
-                        $dt=0;
-                        if($res && count($res)){
-                            $i=0;
-                            $curDt=0;
-                            $prevDt=0;
-                            foreach($res as $date=>$hits){
-                                $curDt=strtotime($date);
-                                if($i==0)$dt=$curDt;
-                                else{
-                                    $ddif = $curDt-$prevDt;
-                                    if($ddif>86400){
-                                        $span = $ddif / 86400;
-                                        for($k=0;$k<$span-1;$k++){
+                        $data = $cdata = [];
+                        $dt = 0;
+                        if ($res && \count($res)) {
+                            $i = $curDt = $prevDt = 0;
+                            foreach ($res as $date=>$hits) {
+                                $curDt=\strtotime($date);
+                                if ($i===0) {
+                                    $dt=$curDt;
+                                }
+                                else {
+                                    $ddif=$curDt-$prevDt;
+                                    if ($ddif>86400) {
+                                        $span=$ddif/86400;
+                                        for ($k=0; $k<$span-1; $k++) {
                                             $data[]=0;   
                                             $i++;
                                         }
@@ -1518,55 +1519,54 @@ class Bin extends AjaxHandler{
                                 $count+=(int)$hits;
                                 $i++;
                             }
-                            if($showInteractions){
+                            
+                            if ($showInteractions) {
+                                /*
                                 $q='select cast(r.ts as date) as d,count(*) as c
                                 from xref x
                                 left join clks r on x.ad_id = r.ad_id
                                 where x.ad_id = ? and r.ad_id is not null  
                                 group by 1';
-                                //$rc=$db->queryResultArray($q,array($aid));
+                                $rc=$db->queryResultArray($q,array($aid));*/
                                 $rc = $redis->hGetAll('AC'.$aid);
-                                ksort($rc, SORT_STRING);
-                                if($rc && count($res)){
-                                    $j=0;
-                                    $curDt=0;
-                                    $prevDt=$dt-86400;
-                                    foreach($rc as $date=>$clks){
-                                        $curDt=strtotime($date);
+                                \ksort($rc, SORT_STRING);
+                                if ($rc && \count($res)) {
+                                    $j = $curDt = 0;
+                                    $prevDt = $dt-86400;
+                                    foreach ($rc as $date=>$clks) {
+                                        $curDt = \strtotime($date);
                                         $ddif = $curDt-$prevDt;
-                                        if($ddif>86400){
-                                            $span = $ddif / 86400;
-                                            for($k=0;$k<$span-1;$k++){
-                                                $cdata[]=0;   
+                                        if ($ddif>86400) {
+                                            $span = $ddif/86400;
+                                            for ($k=0; $k<$span-1; $k++) {
+                                                $cdata[] = 0;   
                                                 $j++;
                                             }
                                         }
-                                        //echo '<br>';
-                                        $prevDt=$curDt;
-                                        $cdata[]=(int)$clks;
+                                        $prevDt = $curDt;
+                                        $cdata[] = (int)$clks;
                                         $j++;
                                     }
-                                    if($j<$i){
-                                        for($k=$j;$k<$i;$k++){
-                                            $cdata[]=0;   
-                                        }
+                                    if ($j<$i) {
+                                        for ($k=$j; $k<$i; $k++) {  $cdata[]=0;  }
                                     }
-                                }else{
-                                    foreach($data as $imp){
-                                        $cdata[]=0;
-                                    }
+                                }
+                                else{
+                                    foreach ($data as $imp) {  $cdata[]=0;  }
                                 }
                             }
                         }
-                        $this->setData($data,'c');
-                        if(count($cdata))$this->setData($cdata,'k');
-                        $this->setData($count,'t');
-                        $this->setData($dt*1000,'d');
+                        
+                        $this->response('c', $data);
+                        if (\count($cdata)) {  $this->response('k', $cdata);  }
+                        $this->response('t', $count);
+                        $this->response('d', $dt*1000);
                     }
                     else {
                         $total = 0;
                         $summary = [];
                         if (!$archive) {
+                            /*
                             $q='select cast(r.ts as date) as d,
                             count(*) as c
 
@@ -1577,105 +1577,97 @@ class Bin extends AjaxHandler{
                             and r.ts > dateadd(-1 month to current_date)
 
                             group by 1';
-                            //$res=$db->queryResultArray($q,array($uid));
-                            $sdate = time()-2592000; // 30 days
-              
-                            $ads = $redis->sGetMembers('U'.$uid);
+                            $res=$db->queryResultArray($q,array($uid));*/
+                            
+                            $sdate = \time()-2592000; // 30 days              
+                            $ads = $redis->sMembers('U'.$uid);
                             $res = [];
                             
-                            foreach ($ads as $id) {                            
+                            foreach ($ads as $id) {
                                 $impressions = $redis->hGetAll('AI'.$id);
                                 foreach ($impressions as $date => $value) {
                                     if (isset($summary[$id])) {
                                         $summary[$id]+=$value+0;
-                                    } else {
+                                    } 
+                                    else {
                                         $summary[$id]=$value+0;
                                     }
-                                    if (strtotime($date)<$sdate) continue;
+                                    if (\strtotime($date)<$sdate) {  continue;  }
                                     
                                     if (isset($res[$date])) {
                                         $res[$date]+=$value+0;
-                                    } else {
+                                    } 
+                                    else {
                                         $res[$date]=$value+0;
                                     }
-                                }                                
+                                }
                             }
-                            ksort($res, SORT_STRING);
-                            if (count($res)>30) {
+                            \ksort($res, \SORT_STRING);
+                            if (\count($res)>30) {
                                 $nres=[];
-                                $res=array_slice($res, -30);
+                                $res=\array_slice($res, -30);
                             }
                           
                             
-                            $data = array();
-                            $cdata = array();
+                            $data = $cdata = [];
                             $dt=0;
-                            if($res && count($res)){
-                                $i=0;
-                                $curDt=0;
-                                $prevDt=0;
-                                foreach($res as $date=>$hits){
-                                    $curDt=strtotime($date);
-                                    if($i==0)$dt=$curDt;
-                                    else{
+                            if ($res && \count($res)) {
+                                $i = $curDt = $prevDt = 0;
+                                foreach ($res as $date=>$hits) {
+                                    $curDt=\strtotime($date);
+                                    if ($i===0) {
+                                        $dt=$curDt;
+                                    }
+                                    else {
                                         $ddif = $curDt-$prevDt;
-                                        if($ddif>=86400){
-                                            $span = (int)$ddif / 86400;
-                                            for($k=0;$k<$span-1;$k++){
-                                                $data[]=0;  
+                                        if ($ddif>=86400) {
+                                            $span = (int)$ddif/86400;
+                                            for ($k=0; $k<$span-1; $k++) {
+                                                $data[]=0;
                                                 $i++;
                                             }
                                         }
                                     }
                                     $prevDt=$curDt;
-                                    $data[]=(int)$hits;  
-                                    $total += (int)$hits;
+                                    $data[]=(int)$hits;
+                                    $total+=(int)$hits;
                                     $i++;
                                 }
                               
-                                if($showInteractions){
-                                
-                                    $q='select cast(r.ts as date) as d,
+                                if ($showInteractions) {                                
+                                    /*$q='select cast(r.ts as date) as d,
                                     count(*) as c
-
                                     from xref x
                                     left join clks r on x.ad_id = r.ad_id
-
                                     where x.web_user_id = ? and r.ad_id is not null
                                     and r.ts > dateadd(-1 month to current_date)
-
                                     group by 1';
-                                    //$rc=$db->queryResultArray($q,array($uid));
+                                    $rc=$db->queryResultArray($q,array($uid));*/
                                     $rc = [];
                                     foreach ($ads as $id) {                            
                                         $clicks = $redis->hGetAll('AC'.$id);
                                         foreach ($clicks as $date => $value) {
                                             if (isset($rc[$date])) {
                                                 $rc[$date]+=$value+0;
-                                            } else {
+                                            } 
+                                            else {
                                                 $rc[$date]=$value+0;
                                             }
-                                        }                                
+                                        }
                                     }
-                                    ksort($rc, SORT_STRING);
-                                    //error_log(var_export($rc, TRUE));
-                                    //$dt=0;
-                                    if($rc && count($rc)){
-                                        $j=0;
-                                        $curDt=0;
+                                    \ksort($rc, \SORT_STRING);
+                                    if ($rc && \count($rc)) {
+                                        $j = $curDt = 0;
                                         $prevDt=$dt-86400;
-                                        foreach($rc as $date=>$clicks){
-                                            $curDt=strtotime($date);
-                                            if($curDt<$dt) continue;
+                                        foreach ($rc as $date=>$clicks) {
+                                            $curDt=\strtotime($date);
+                                            if ($curDt<$dt) {  continue;  }
                                             $ddif = $curDt-$prevDt;
                                             
-                                            //echo (int)$ddif / 86400,"\n";
-                                            if($ddif>=86400){
-                                                $span = (int)$ddif / 86400;
-                                                //echo $span,"\n";
-                                                for($k=0;$k<$span-1;$k++){
+                                            if ($ddif>=86400) {
+                                                $span = (int)$ddif/86400;
+                                                for ($k=0; $k<$span-1; $k++) {
                                                     $cdata[]=0;
-                                                    //echo $j,"\n";   
                                                     $j++;
                                                 }
                                             }
@@ -1683,50 +1675,31 @@ class Bin extends AjaxHandler{
                                             $cdata[]=(int)$clicks;
                                             $j++;
                                         }
-                                        if($j<$i){
-                                            for($k=$j;$k<$i;$k++){
-                                                $cdata[]=0;   
-                                            }
+                                        if ($j<$i) {
+                                            for ($k=$j; $k<$i; $k++) { $cdata[]=0; }
                                         }
-                                    }else{
-                                        foreach($data as $imp){
-                                            $cdata[]=0;
-                                        }
+                                    }
+                                    else {
+                                        foreach ($data as $imp) { $cdata[]=0; }
                                     }
                                 }
                             }
-                            $this->setData($data,'c');
-                            if(count($cdata))$this->setData($cdata,'k');
-                            $this->setData($dt*1000,'d');
+                            $this->response('c', $data);
+                            if (\count($cdata)) {  $this->response('k', $cdata);  }
+                            $this->response('d', $dt*1000);
                         }
-
-                        $q='select x.ad_id,count(*) as c
-                        from xref x
-                        left join reqs r on x.ad_id = r.ad_id
-                        where x.hold='.($archive ? 1 : 0).'  
-                        and x.web_user_id = ?  and r.ad_id is not null 
-                        group by 1';
-                        //$res=$db->queryResultArray($q,array($uid));
-                        if($summary && count($summary)){
-                            //$count=0;
-                            //$data = array();
-                            //foreach($res as $r){
-                                //$count+=(int)$r['C'];
-                            //    $data[$r['AD_ID']]=(int)$r['C'];
-                            //}
-                            $this->setData($summary,'a');                            
-                            //$this->setData($count,'t');
-                        }else{
-                            $this->setData(0,'a');
-                            //$this->setData(0,'t');
-                        }
-                        $this->setData($total,'t');
+                        
+                        $this->response('a', ($summary && \count($summary))?$summary:0)->response('t', $total);
                     }
-                    $this->process();
                     
                     $redis->close();
-                }else $this->fail('101');
+                    $this->success();
+                }
+                else {
+                    $this->error(ERR_INVALID_REQUEST_PARAMS);
+                }
                 break;
+                
                 
             case 'menu':
                 $lang = $this->getGetString('sections');

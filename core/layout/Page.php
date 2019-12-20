@@ -1546,7 +1546,7 @@ class Page extends Site {
                 }?>
                 <li><a href="<?= $url ?>"><i class="icn icnsmall icn-lang invert"></i></a></li>
                 <li><a href="#"><i class="icn icnsmall icn-bell invert"></i></a></li>
-                <li><a href="<?= $this->router->getLanguagePath($this->user()->id() ? '/home/' : '/signin/') ?>"><i class="icn icnsmall icn-user invert"></i></a></li>
+                <li><a href="<?= $this->router->getLanguagePath($this->user->isLoggedIn() ? '/myads/' : '/signin/') ?>"><i class="icn icnsmall icn-user invert"></i></a></li>
             </ul>
         </div>
     </nav>
@@ -2513,7 +2513,7 @@ class Page extends Site {
     /*                           abstract functions                     */
     /********************************************************************/
 
-    function header() {
+    function header() : void {
         ?><link rel='preconnect' href='https//c6.mourjan.com' /><?php    
         ?><link rel='preconnect' href='https://www.googletagmanager.com' /><?php
         ?><link rel='preconnect' href='https://pagead2.googlesyndication.com' /><?php
@@ -2526,28 +2526,28 @@ class Page extends Site {
             $this->lang['description']=$this->lang['home_description'].$this->lang['home_description_all'];
         }
         if ($this->lang['description']) {             
-            ?><meta name="description" content="<?= preg_replace("/<.*?>/", "", $this->lang['description']) ?>" /><?php 
+            ?><meta name="description" content="<?= \preg_replace("/<.*?>/", "", $this->lang['description']) ?>" /><?php 
         } 
-        if ($this->router->config->get('enabled_sharing') && $this->router->module!="detail") {
+        if ($this->router->config->get('enabled_sharing') && $this->router->module!=="detail") {
             $sharingUrl=$this->router->config->baseURL.'/';
             if ($this->router->userId){
                 $sharingUrl.=$this->partnerInfo['uri'].'/';
             }
             if ($this->extendedId || $this->localityId){
-                $sharingUrl.=$this->extended_uri ? substr($this->extended_uri, 1, strlen($this->extended_uri)) : '';
+                $sharingUrl.=$this->extended_uri ? \substr($this->extended_uri, 1, \strlen($this->extended_uri)) : '';
             }
-            elseif($this->router->module=='index' || ($this->router->module=='search' && !($this->router->watchId || $this->userFavorites))){
-                $sharingUrl.=$this->router->uri ? substr($this->router->uri, 1, strlen($this->router->uri)) : '';
+            elseif($this->router->module==='index' || ($this->router->module==='search' && !($this->router->watchId || $this->userFavorites))){
+                $sharingUrl.=$this->router->uri ? \substr($this->router->uri, 1, \strlen($this->router->uri)) : '';
             }
-            if ($this->router->language!='ar') {
+            if ($this->router->language!=='ar') {
                 $sharingUrl.=$this->router->language.'/';
             }
-            if ($this->router->module=='search'){
+            if ($this->router->module==='search'){
                 if ($this->router->params['start']) {
                     $sharingUrl.=$this->router->params['start'].'/';
                 }
                 if ($this->router->params['q']) {
-                    $sharingUrl.='?q='.urlencode($this->router->params['q']);
+                    $sharingUrl.='?q='.\urlencode($this->router->params['q']);
                 }
             }
             $pageThumb=$this->router->config->imgURL.'/mourjan-icon'.$this->router->_png;
@@ -2564,8 +2564,9 @@ class Page extends Site {
             ?><meta property="og:site_name" content="Mourjan.com" /><?php 
             ?><meta property="fb:app_id" content="184370954908428"/><?php
         }
+        
         ?><meta name="msapplication-config" content="<?= $this->router->config->host ?>/browserconfig.xml" /><?php 
-        if($this->user->info['id']==0 && in_array($this->router->module,['home','signin','favorites','account','myads','post','statement','watchlist','signup','password','buy','buyu'])){
+        if($this->user->info['id']==0 && \in_array($this->router->module,['home','signin','favorites','account','myads','post','statement','watchlist','signup','password','buy','buyu'])) {
             ?><script async="true" defer="true" src='https://www.google.com/recaptcha/api.js<?= $this->router->isArabic()?'?hl=ar':'' ?>'></script><?php
         }                
     }
@@ -2577,7 +2578,7 @@ class Page extends Site {
         ?><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a><?php
         ?><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a><?php
         echo '<div class=col-12>© 2010-', $year, ' Mourjan.com Classifieds<br/>All Rights Reserved.';
-        if ($this->user()->level()!=9) {
+        if ($this->user()->level()!==9) {
             ?><br /><br />
             <a href="https://sectigo.com/trust-seal" style="font-family:arial;font-size:10px;color:#212121;text-decoration:none;"><img src="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png" srcset="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png, https://sectigo.com/images/seals/sectigo_trust_seal_lg_2x.png 2x" width="140" height="54" alt="Protected by Sectigo SSL" /></a><div style="font-family: arial;font-weight:bold;font-size:15px;color:#86BEE0;"><a href="https://sectigo.com" style="color:#86BEE0;text-decoration:none;">SSL Certificate</a></div>
             <?php
@@ -4715,9 +4716,11 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         echo '><head><meta charset="utf-8">';
         if ($this->router->module==='myads') {
             //echo '<script src=/web/js/1.0/socket.io.js async></script>';
+            echo '<script async src=/web/js/1.0/chart-2.9.3/Chart.min.js></script>';
         }
         if ($this->router->module==='admin') {
             echo '<script async src=/web/js/1.0/jsonTree.js></script>';
+            
         }
         if ($this->router->module==='post') {
             echo '<script async src=/web/js/1.0/libphonenumber-min-1.7.10.js></script>';
@@ -4865,15 +4868,15 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                                 // page is not qualified to be multi language indexable
                                 if ($qTotal<static::SearchEngineLegitimateEntries && !$this->router->isArabic()) {
                                     if ($this->extendedId || $this->localityId) {
-                                        $canonicalCurrentUrl = preg_replace("/\/{$this->router->language}\//", "/", $this->extended_uri);
+                                        $canonicalCurrentUrl=\preg_replace("/\/{$this->router->language}\//", "/", $this->extended_uri);
                                     
                                         if ($this->localityId) {
                                             $alter = $this->router->db->index()
                                                     ->directQuery("select id, locality_id from locality_counts where city_id={$this->localities[$this->localityId]['city_id']} and section_id={$this->router->sectionId} and lang='ar'");
                                         
-                                            if ($alter && count($alter)==1) {
+                                            if ($alter && \count($alter)==1) {
                                                 foreach ($alter as $value) {
-                                                    $canonicalCurrentUrl= preg_replace("/\/c\-{$this->localityId}\-/", "/c-{$value[1]}-", $canonicalCurrentUrl);
+                                                    $canonicalCurrentUrl=\preg_replace("/\/c\-{$this->localityId}\-/", "/c-{$value[1]}-", $canonicalCurrentUrl);
                                                 }
                                             }
                                         }
@@ -4881,9 +4884,9 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                                         if ($this->extendedId) {
                                             $alter = $this->router->db->index()
                                                     ->directQuery("select id, section_tag_id from section_tag_counts where country_id={$this->router->countryId} and section_id={$this->router->sectionId} and lang='ar' and uri='{$this->extended[$this->extendedId]['uri']}'");
-                                            if ($alter && count($alter)==1) {
+                                            if ($alter && \count($alter)==1) {
                                                 foreach ($alter as $value) {
-                                                    $canonicalCurrentUrl= preg_replace("/\/q\-{$this->extendedId}\-/", "/q-{$value[1]}-", $canonicalCurrentUrl);
+                                                    $canonicalCurrentUrl=\preg_replace("/\/q\-{$this->extendedId}\-/", "/q-{$value[1]}-", $canonicalCurrentUrl);
                                                 }
                                             }                                
                                         }                            
@@ -4950,7 +4953,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 case 'index':
                     $currentUrl=$this->router->getUrl($this->router->countryId,$this->router->cityId);
                     $link='https://www.mourjan.com'.$currentUrl;
-                    if ($link==$this->router->config->host.$_SERVER['REQUEST_URI']) { 
+                    if ($link===$this->router->config->host.$_SERVER['REQUEST_URI']) { 
                         $this->includeMetaKeywords();
                         echo '<meta name="robots" content="noodp, noydir, index, follow" />';
                     }
@@ -5016,7 +5019,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         
         echo '</head>', "\n";
         flush();
-        echo '<body dir="', $this->router->isArabic() ? 'rtl':'ltr', '" class="',$this->router->isArabic() ? 'rtl':'ltr','" data-ads='.($this->router->config->enabledAds()?1:0),' ', $this->pageItemScope;
+        echo '<body dir="', $this->router->isArabic()?'rtl':'ltr', '" class="',$this->router->isArabic()?'rtl':'ltr','" data-ads='.($this->router->config->enabledAds()?1:0),' ', $this->pageItemScope;
         if ($this->isAdminSearch) {
             echo ' oncontextmenu="return false;"';
         }

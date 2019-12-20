@@ -360,7 +360,7 @@ class Admin extends Page {
     }
 
     
-    function header() {
+    function header() : void {
         echo '<link href="/web/css/1.0/jsonTree.css" rel="stylesheet" /> ';
     }
     

@@ -3,7 +3,8 @@ require_once 'Page.php';
 
 class Account extends Page{
     
-    var $action='',$liOpen='';
+    //private string $action='';
+    private string $liOpen='';
 
     function __construct(){
         parent::__construct();
@@ -34,18 +35,18 @@ form{height:auto!important;padding:0!important}
         else {
             $this->set_require('css', 'account');
             $this->inlineCss.='.acc{width:660px;padding-left:0;padding-right:0;clear:none;display:inline-block}
-                    .merge{float:'.($this->router()->language=='ar'?'left':'right').';text-align:center;padding-top:10px;}
+                    .merge{float:'.($this->router->language==='ar'?'left':'right').';text-align:center;padding-top:10px;}
                     .bt.scan{margin:15px 0 20px}
                     ';
-            if (!$this->user->info['id']) {
+            if (!$this->user->isLoggedIn()) {
                 $this->inlineCss.='.ph{width:650px}.acc{height:auto}';
             }
         }
         $this->title=$this->lang['title'];
         $this->description=$this->lang['description'];
         $this->forceNoIndex=true;
-        $this->urlRouter->cfg['enabled_sharing']=0;
-        $this->urlRouter->cfg['enabled_ads']=0;
+        $this->router->config->setValue('enabled_sharing', 0);
+        $this->router->config->disableAds();
         $this->render();
     }
    
@@ -210,7 +211,7 @@ form{height:auto!important;padding:0!important}
 */
 
     function main_pane() {
-        if ($this->user()->id()) {
+        if ($this->user->isLoggedIn()) {
             $this->generalList();
         }
         else {
@@ -232,7 +233,7 @@ form{height:auto!important;padding:0!important}
     
     
     function generalList(){
-        $language=$this->router()->language;
+        $language=$this->router->language;
         if (isset($this->user->info['options']['lang'])) { $language=$this->user->info['options']['lang']; }
         
         
@@ -242,7 +243,7 @@ form{height:auto!important;padding:0!important}
                 $this->liOpen='notifications';
                 break;
             case 'email':
-                if($this->user->info['provider']!='mourjan')
+                if($this->user->info['provider']!=='mourjan')
                     $this->liOpen='email';
                 break;
             /*
@@ -385,21 +386,21 @@ form{height:auto!important;padding:0!important}
             }
         ?></ul><?php 
         ?></form><?php
-        include_once $this->router()->config()->get('dir').'/core/lib/phpqrcode.php';
-        $qrfile = $this->router()->config()->get('dir').'/web/qr/m-'.session_id().'.png';
-        QRcode::png('mourjan:merge:'.session_id().str_pad($this->router()->config()->serverId, 4, '0', STR_PAD_LEFT).str_pad(time(), 16, '0', STR_PAD_LEFT), $qrfile, QR_ECLEVEL_L, 5);
-        $redis = new Redis();
-        $redis->connect($this->router()->config()->get('rs-host'), $this->router()->config()->get('rs-port'), 1, NULL, 100); 
+        include_once $this->router->config->get('dir').'/core/lib/phpqrcode.php';
+        $qrfile = $this->router->config->get('dir').'/web/qr/m-'.session_id().'.png';
+        QRcode::png('mourjan:merge:'.session_id().str_pad($this->router->config->serverId, 4, '0', STR_PAD_LEFT).str_pad(time(), 16, '0', STR_PAD_LEFT), $qrfile, QR_ECLEVEL_L, 5);
+        $redis = new Redis;
+        $redis->connect($this->router->config->get('rs-host'), $this->router->config->get('rs-port'), 1, NULL, 100); 
         $redis->setOption(Redis::OPT_PREFIX, 'SESS:');
         $redis->select(1);
-        $redis->setex('m-'.session_id(), 300, $this->router()->config()->serverId.':1:'.$this->user->info['id']);
+        $redis->setex('m-'.session_id(), 300, $this->router->config->serverId.':1:'.$this->user->info['id']);
         $redis->close();
             //error_log(var_export($this->user->info, TRUE));
         
         ?></div><?php 
         
         echo "<div class=merge>";
-        echo "<img width=185 height=185 src='{$this->router()->config()->host}/web/qr/m-".session_id().".png'></img>";
+        echo "<img width=185 height=185 src='{$this->router->config->host}/web/qr/m-".session_id().".png'></img>";
         echo '<br /><span class="bt scan"><span class="apple"></span><span class="apple up"></span> '.$this->lang['hint_merge_Account'].' <span class="apple up"></span><span class="apple"></span></span>';                    
         echo '</div>';
         $this->globalScript.='var curForm="'.$this->liOpen.'";';

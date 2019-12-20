@@ -3,7 +3,7 @@ Config::instance()->incLayoutFile('Page');
 
 define ('MOURJAN_KEY', 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAo//5OB8WpXTlsD5TEA5S+JK/I4xuYNOCGpGen07GKUpNdHcIVxSejoKiTmszUjsRgR1NC5H6Xu+5YMxfsPzQWwqyGMaQbvdLYOW2xQ5gnK4HEqp1ZP74HkNrnBCpyaGEuap4XcHu+37xNxZNRZpTgtr34dPcMIsN2GGANMNTy5aWlAPsl1BTYkDOCMu2f+Tyq2eqIkOvlHS09717JwNrx6NyI+CI7y8AAuLLZOp8usXWA/Lx3H6COts9IXMXE/+eNiFkaGsaolxzvO/aBg9w/0iYWGTinInOyHqwjcxazmoNJxxYbS/iTAlcPMrXzjn3UUepcq2WZ/+HWI0bzf4mVQIDAQAB');
 
-class Balance extends Page{
+class Balance extends Page {
     
     private $statementMode = false;
     private $downloadLinkPath = '/web/invoice.php';
@@ -11,7 +11,7 @@ class Balance extends Page{
     function __construct(){
         parent::__construct();
         if ($this->router->config->get('active_maintenance')) {
-            $this->user()->redirectTo($this->router->getLanguagePath('/maintenance/'));
+            $this->user->redirectTo($this->router->getLanguagePath('/maintenance/'));
         }
         
         $title = $this->lang['myBalance'];

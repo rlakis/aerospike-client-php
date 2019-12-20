@@ -11,6 +11,15 @@ channel.onmessage = function(e) {
         rta.value=message.rejectURL;
     }
 };
+window.chartColors = {
+    red: 'rgb(255, 99, 132)',
+    orange: 'rgb(255, 159, 64)',
+    yellow: 'rgb(255, 205, 86)',
+    green: 'rgb(75, 192, 192)',
+    blue: 'rgb(54, 162, 235)',
+    purple: 'rgb(153, 102, 255)',
+    grey: 'rgb(201, 203, 207)'
+};
 
 Element.prototype.article=function(){ let i=this; return i.closest('article'); };
 
@@ -98,6 +107,15 @@ $.addEventListener("DOMContentLoaded", function () {
     script.src="/web/js/1.0/socket.io.js";           
     $$.append(script);
     script.onload=function(){ reqSIO(); }
+    
+    location.search.substr(1).split("&").forEach(function(part) {
+        var item=part.split("=");
+        d.queryParams[item[0]]=decodeURIComponent(item[1]);
+    });
+    console.log(d.queryParams);
+    if (d.queryParams.u) {
+        d.userStatistics(+d.queryParams.u);
+    }
 });
 
 $.onkeydown = function (e) {
@@ -132,11 +150,12 @@ var d = {
     su: $$.dataset.level==='90',
     level: $$.dataset.level==='90' ? 9 : parseInt($$.dataset.level),
     items:{},
+    queryParams:{},
     nodes: $$.queryAll("article"),
     editors: byId('editors'),
     ar: $$.dir === 'rtl',
     count: (typeof $$.queryAll("article")==='object') ? $$.queryAll("article").length : 0,
-    isAdmin: function () { return this.level >= 9; },
+    isAdmin: function () { return this.level>=9; },
     setId: function (kId) {
         let _=this;
         if(_.ad)_.ad.unselect();
@@ -468,6 +487,85 @@ var d = {
         inline.show();
     },
 
+    userStatistics: function(uid) {
+        fetch('/ajax-ga/', _options('POST', {u: uid, x: 0}))
+                .then(res => res.json())
+                .then(response => {                   
+                    if (response.success===1) {                        
+                        let monthNames=["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                        let ctx=document.getElementById('canvas').getContext('2d');
+                                                
+                        response.result.d/=1000;
+                        let point=new Date(0);
+                        point.setUTCSeconds(response.result.d);                        
+                        
+                        let dates=[];
+                        response.result.c.forEach(function(){                            
+                            dates.push(point.getUTCDate()+" "+monthNames[point.getMonth()]);
+                            point.setDate(point.getDate()+1);
+                        });
+                        
+                        let config={
+                            type: 'line',
+                            data: {
+                                labels:dates,
+                                datasets:[{
+                                        label: 'Impressions',
+                                        backgroundColor: window.chartColors.red,
+                                        borderColor: window.chartColors.red,
+                                        data: response.result.c,                                       
+                                        fill: false,                                
+                                    }, {
+                                        label: 'Interactions',
+                                        fill: false,
+                                        backgroundColor: window.chartColors.blue,
+                                        borderColor: window.chartColors.blue,
+                                        data: response.result.k,
+                                    }
+                                ],
+                            },
+                            options: {
+                                responsive:true,
+                                title: {
+                                    display:true,
+                                    position:'top',
+                                    text:response.result.t+' overall impressions'
+                                },
+                                tooltips: {
+                                    mode: 'index',
+                                    intersect: false,
+                                },
+                                hover: {
+                                    mode: 'nearest',
+                                    intersect: true
+                                },
+                                scales: {
+                                    xAxes: [{
+                                        display: true,
+                                        scaleLabel: {
+                                            display: true,
+                                            labelString: 'Day'
+                                        }
+                                    }],
+                                    yAxes: [{
+                                        display: true,
+                                        scaleLabel: {
+                                            display: true,
+                                            labelString: 'Value'
+                                        }
+                                    }]
+                                }
+                            }                            
+                        };
+                        
+                        window.statictics = new Chart(ctx, config);
+                    }                
+                })
+                .catch(error => {
+                    console.log('Error:', error);
+                });
+    },
+    
     slideView: function (img) {
         let i=0, n=0;
         let p=img.parentElement;

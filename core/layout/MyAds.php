@@ -583,12 +583,11 @@ class MyAds extends Page {
             if ($isAdminProfiling) { $renderAssignedAdsOnly = false; }           
             
             if ($state===7) {                
-                if ($this->router->config->get('enabled_charts') && !$isAdminProfiling) {  
-                    echo 'shjdhsjkdhkjfkjw';
+                if ($this->router->config->get('enabled_charts') && !$isAdminProfiling) {
                     //echo '<div class="stin ', $this->router->language, '"></div>';
                     //$this->renderEditorsBox($state);
                     //></div><?php
-                    ?><div class="phld"><div id="statDv" class="load"></div></div><?php
+                    ?><div class=row><canvas id=canvas class="col-12"></canvas></div><?php
                 } 
                 else {
                     //$this->renderEditorsBox($state);

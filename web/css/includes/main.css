@@ -38,7 +38,7 @@ li,dd,dt{line-height:48px;}
 .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12{display:inherit;width:100%;padding:4px 0;float:left}
 body[dir="rtl"] [class*="col-"] { float: right; }
 .hot{color:red !important;}
-.row{display:inherit; margin-right:0;margin-left:0;}
+.row{display:flex; margin-right:0;margin-left:0;}
 .row::before{display:table-column;content: " ";}
 .row::after{content:"";clear:both;display:table;}
 
