@@ -102,7 +102,9 @@ class Bin extends AjaxHandler {
         $contentType = \filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
         if ($contentType==='application/json') {
             $content = \trim(\file_get_contents("php://input"));
-            $this->_JPOST = \json_decode($content, true);
+            if ($content) {
+                $this->_JPOST = \json_decode($content, true);
+            }
         }
 
         // set default language if matched
