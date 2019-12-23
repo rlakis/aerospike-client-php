@@ -565,8 +565,9 @@ class MyAds extends Page {
             $isAdminProfiling = (boolean)($this->get('a') && $this->user()->level()===9);
             if ($isAdminProfiling) { $renderAssignedAdsOnly = false; }           
             
-            if ($state===7) {                
+            if ($state===7) {
                 if ($this->router->config->get('enabled_charts') && !$isAdminProfiling) {
+                    ?><button id="refreshChart"><a href="#" onclick="d.userStatistics(<?= $_GET['u'] ?>);"><i class="icn icn-sync"></i></a></button><?php
                     ?><div class=row><canvas id=canvas class="col-12"></canvas></div><?php
                 }                
             } 
@@ -970,7 +971,7 @@ class MyAds extends Page {
                             ?></form><?php 
                         }
                         if ($this->router->config->get('enabled_ad_stats') && !$isAdminProfiling) {
-                            ?><button class="stad load"></button><?php
+                            ?><button class=stad></button><?php
                         }
                     }                            
                 }

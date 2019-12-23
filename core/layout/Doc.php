@@ -113,7 +113,7 @@ class Doc extends Page{
     }
     
     
-    function header() {        
+    function header() : void {        
         if ($this->router->module==='advertise') {
             if ($this->router->isArabic()) {
                 ?><style type="text/css">

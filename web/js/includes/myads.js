@@ -494,7 +494,8 @@ var d = {
                     console.log(response);
                     if (response.success===1) {                        
                         let monthNames=["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                        let ctx=document.getElementById('canvas').getContext('2d');
+                        let canvas=document.getElementById('canvas');
+                        let ctx=canvas.getContext('2d');
                                                 
                         response.result.d/=1000;
                         let point=new Date(0);
@@ -530,7 +531,7 @@ var d = {
                                 title: {
                                     display:true,
                                     position:'top',
-                                    text:response.result.t+' overall impressions'
+                                    text:response.result.t.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")+' overall impressions'
                                 },
                                 tooltips: {
                                     mode: 'index',
@@ -558,7 +559,15 @@ var d = {
                                 }
                             }                            
                         };
-                        if (dates.length>0){window.statictics=new Chart(ctx, config);}
+                        if (dates.length>0){
+                            window.statictics=new Chart(ctx, config);
+                            let rbt=document.getElementById('refreshChart');
+                            if(rbt){
+                                rbt.style.display='inline';
+                                rbt.style.top=(canvas.offsetTop+8)+"px";
+                                rbt.style.left=(canvas.offsetLeft+canvas.offsetWidth-68)+"px";
+                            }
+                        }
                         if (response.result.a) {
                             for (k in response.result.a) {
                                 let ad=d.items[k];
@@ -1010,7 +1019,10 @@ class Ad {
     }
     
     hits(v) {
-        this.node.query('button.stad').innerHTML=v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");;
+        let stat=this.node.query('button.stad');
+        if (stat) {
+            this.node.query('button.stad').innerHTML=v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")+'&nbsp;<i class="icn i16 icn-chart-line"></i>';
+        }
     }
     
     opacity(v) {

@@ -52,11 +52,11 @@ opcache_compile_file('/var/www/mourjan/core/model/User.php');
 opcache_compile_file('/var/www/mourjan/core/model/Router.php');
 
 if (0) {
-opcache_compile_file('/var/www/mourjan/core/layout/Site.php');
-opcache_compile_file('/var/www/mourjan/core/layout/Page.php');
-opcache_compile_file('/var/www/mourjan/core/layout/Home.php');
-opcache_compile_file('/var/www/mourjan/core/layout/Search.php');
-opcache_compile_file('/var/www/mourjan/core/layout/Bin.php');
+    opcache_compile_file('/var/www/mourjan/core/layout/Site.php');
+    opcache_compile_file('/var/www/mourjan/core/layout/Page.php');
+    opcache_compile_file('/var/www/mourjan/core/layout/Home.php');
+    opcache_compile_file('/var/www/mourjan/core/layout/Search.php');
+    opcache_compile_file('/var/www/mourjan/core/layout/Bin.php');
 }
 
 opcache_compile_file('/var/www/mourjan/core/lang/main.php');
