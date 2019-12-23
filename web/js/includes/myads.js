@@ -490,7 +490,8 @@ var d = {
     userStatistics: function(uid) {
         fetch('/ajax-ga/', _options('POST', {u: uid, x: 0}))
                 .then(res => res.json())
-                .then(response => {                   
+                .then(response => {
+                    console.log(response);
                     if (response.success===1) {                        
                         let monthNames=["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
                         let ctx=document.getElementById('canvas').getContext('2d');
@@ -557,8 +558,15 @@ var d = {
                                 }
                             }                            
                         };
-                        
-                        window.statictics = new Chart(ctx, config);
+                        if (dates.length>0){window.statictics=new Chart(ctx, config);}
+                        if (response.result.a) {
+                            for (k in response.result.a) {
+                                let ad=d.items[k];
+                                if (ad) {                                
+                                    ad.hits(response.result.a[k]);
+                                }                                
+                            }                            
+                        }
                     }                
                 })
                 .catch(error => {
@@ -1000,6 +1008,11 @@ class Ad {
         }
         return this;
     }
+    
+    hits(v) {
+        this.node.query('button.stad').innerHTML=v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");;
+    }
+    
     opacity(v) {
         this._m.style.opacity = v;
         return this;

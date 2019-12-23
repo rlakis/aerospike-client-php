@@ -970,7 +970,7 @@ class MyAds extends Page {
                             ?></form><?php 
                         }
                         if ($this->router->config->get('enabled_ad_stats') && !$isAdminProfiling) {
-                            ?><span class="stad load"></span><?php
+                            ?><button class="stad load"></button><?php
                         }
                     }                            
                 }
@@ -1246,6 +1246,11 @@ class MyAds extends Page {
             }
             
             ?><div class="htf db"><?= $msg ?><br /><br /></div><?php
+            if ($state===7) {                
+                if ($this->router->config->get('enabled_charts')) {
+                    ?><div class=row><canvas id=canvas class="col-12"></canvas></div><?php
+                }                
+            } 
         }
         $this->inlineJS('util.js')->inlineJS('myads.js');
     }

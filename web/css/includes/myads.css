@@ -50,7 +50,7 @@ canvas{max-width: 1024px;margin-left: auto; margin-right: auto;display: block}
 
 .myad input[type=button], .myad button {color: #007bff; cursor: pointer; font-size: 16px; 
              border-color: var(--mcLightColor) var(--mcDarkColor) var(--mcDarkColor) var(--mcLightColor); 
-             border-width: thin; border-radius: 4px; outline: none}
+             border-width: thin; border-radius: 4px; outline: none; min-width: 60px}
 .inline input[type=button]{color:white}
 .myad .btn{margin:4px 8px;color:white}
 .myad .btn.ok{background-color:#007bff}
