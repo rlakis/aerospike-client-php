@@ -11,10 +11,11 @@ use ZammadAPIClient\ResourceType;
 
 class Site {
     public User $user;
-    var $lang=array(),$xss_hash='',$watchInfo=false; 
+    public array $lang=[];
+    var $xss_hash='',$watchInfo=false; 
     var $userFavorites,$pageUserId=0;
     public int $num=10;
-    var $isMobile=false;
+    //var $isMobile=false;
     var $isMobileAd=false;
     var $lnIndex=0;
     var $channelId=0;
@@ -198,16 +199,16 @@ class Site {
 
     
     function handleCacheActions() {
-        if ($this->router->module=="search") {
-            $this->user->params['search'] = array(
-                'cn' =>   $this->router->countryId,
-                'c' =>   $this->router->cityId,
-                'ro' =>   $this->router->rootId,
-                'se' =>   $this->router->sectionId,
-                'pu' =>   $this->router->purposeId,
-                'start'     =>  $this->router->params['start'],
-                'q'     =>  $this->router->params['q']
-            );
+        if ($this->router->module==='search') {
+            $this->user->params['search'] = [
+                'cn'=> $this->router->countryId,
+                'c'=> $this->router->cityId,
+                'ro'=> $this->router->rootId,
+                'se'=> $this->router->sectionId,
+                'pu'=> $this->router->purposeId,
+                'start'=> $this->router->params['start'],
+                'q'=> $this->router->params['q']
+            ];
             $this->user->update();
         }
     }

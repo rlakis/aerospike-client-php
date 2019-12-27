@@ -202,7 +202,7 @@ class Page extends Site {
             $this->router->watchId=$this->pageUserId ? $this->pageUserId : -1;
         }
 
-        if (!$this->isMobile) {
+        if (!$this->router->isMobile) {
             $match=null;
             if (array_key_exists('HTTP_USER_AGENT', $_SERVER) && preg_match('/(MSIE 6|MSIE 7)/', $_SERVER['HTTP_USER_AGENT'], $match)) {
                 $version=((int)substr($match[0], -1));
@@ -341,7 +341,7 @@ class Page extends Site {
         else {
             $lang=$this->router->language;
         }
-        if(!$this->isMobile) {
+        if(!$this->router->isMobile) {
             $cntLink='<b>'.($this->router->cityId ? $this->router->countries[$this->router->countryId]['cities'][$this->router->cityId]['name'] : ($this->router->countryId ? $this->router->countries[$this->router->countryId]['name']:'') ).'</b><span class="cf c'.($this->router->countryId).'"></span><b>'.$this->countryCounter.'</b>';
             $this->countryCounter=$cntLink;
         }
@@ -1531,12 +1531,32 @@ class Page extends Site {
         }
         
         ?>
-<header>
-    <nav class="navbar">
-        <div class="float-left">
-            <a href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>" style="padding: 0;"><i class=ilogo></i></a>            
-        </div>        
-        <div class="float-right">
+        <div class="row top-header"><div class="viewable full-height ff-cols">
+            <ul><?php
+                if ($this->router->countryId && isset($this->router->countries[$this->router->countryId])) {
+                    echo '<li><a href="#">', $this->router->countries[$this->router->countryId]['name'],'<i class="icn icnsmall icn-', $this->router->countries[$this->router->countryId]['uri'], '"></i></a></li>';
+                }
+                else {
+                    echo '<li><a href="#"><i class="icn icnsmall icn-globe invert"></i></a></li>';
+                }?>
+                <li>&vert;</li>
+                <li><a href="#">&zwnj;<i class="icn i20 icn-play-store icolor"></i></a></li>
+                <li><a href="#">&zwnj;<i class="icn i20 icn-apple icolor"></i></a></li>
+                <li>&vert;</li>
+                <li><a href="<?= $this->router->getLanguagePath($this->user->isLoggedIn() ? '/myads/' : '/signin/') ?>"><?php 
+                echo $this->user->isLoggedIn()?$this->lang['myAccount']:'Login/Register';?><i class="icn icn-user i20 icolor"></i></a></li>
+                <li>&vert;</li>
+                <li><a href="<?= $url ?>"><?= ($this->router->isArabic()?'English':'العربية') ?><i class="icn i20 icn-language icolor"></i></a></li>
+            </ul>
+            </div></div>
+        
+        <header><div class="viewable ff-rows full-height">
+    
+        
+            <a class=half-height href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i></a>            
+        
+        <!--
+        <div class=float-right>
             <ul class="nav float-right"><?php
                 if ($this->router->countryId && isset($this->router->countries[$this->router->countryId])) {
                     echo '<li><a href="#"><i class="icn icnsmall icn-', $this->router->countries[$this->router->countryId]['uri'], '"></i></a></li>';
@@ -1548,11 +1568,11 @@ class Page extends Site {
                 <li><a href="#"><i class="icn icnsmall icn-bell invert"></i></a></li>
                 <li><a href="<?= $this->router->getLanguagePath($this->user->isLoggedIn() ? '/myads/' : '/signin/') ?>"><i class="icn icnsmall icn-user invert"></i></a></li>
             </ul>
-        </div>
-    </nav>
-</header><main>
+        </div>-->
+    
+                </div></header>
 
-    <section class=row><div class=col-12><div class=search>
+    <section class=search-box><div class=viewable><div class=search>
     <form onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">                
         <?php
         $module=$this->router->module;
@@ -1561,10 +1581,10 @@ class Page extends Site {
         }
         
         ?>        
-        <input id="q" name="q" class=searchTerm type=search placeholder="<?=$this->lang['search_what']; ?>">
-        <button class=searchButton type="submit"><i class="icn icnsmall icn-search invert"></i></button>
+        <input id=q name=q class=searchTerm type=search placeholder="<?=$this->lang['search_what']; ?>">
+        <button class=searchButton type=submit><i class="icn icnsmall icn-search invert"></i></button>
     </form>
-            </div></div></section><?php
+            </div></div></section><main><?php
         //echo $this->filter_purpose();
     }
     
@@ -2574,16 +2594,17 @@ class Page extends Site {
     
     function footer() : void {
         $year = date('Y');
-        echo '</main><footer>';
-        ?><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a><?php
-        ?><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a><?php
-        echo '<div class=col-12>© 2010-', $year, ' Mourjan.com Classifieds<br/>All Rights Reserved.';
+        echo '</main><footer class="row "><div class="viewable ff-cols">';
+        
+        ?><div class="col-12 ha-center"><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a><?php
+        ?><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a></div><?php
+        echo '<div class="col-12 ha-center">© 2010-', $year, ' Mourjan.com Classifieds<br/>All Rights Reserved.';
         if ($this->user()->level()!==9) {
             ?><br /><br />
             <a href="https://sectigo.com/trust-seal" style="font-family:arial;font-size:10px;color:#212121;text-decoration:none;"><img src="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png" srcset="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png, https://sectigo.com/images/seals/sectigo_trust_seal_lg_2x.png 2x" width="140" height="54" alt="Protected by Sectigo SSL" /></a><div style="font-family: arial;font-weight:bold;font-size:15px;color:#86BEE0;"><a href="https://sectigo.com" style="color:#86BEE0;text-decoration:none;">SSL Certificate</a></div>
             <?php
         }
-        echo '</div>';
+        echo '</div></div>';
         echo '</footer>',"\n";
        
         
@@ -4930,7 +4951,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                                     echo "' />";
                                 }
                             
-                                if ($this->router->params['start']<$qPages && !$this->isMobile) {
+                                if ($this->router->params['start']<$qPages && !$this->router->isMobile) {
                                     $next = $this->router->params['start']+1;
                                     if ($next==1) $next=2;
                                     echo "<link rel='next' href='", $this->router->config->baseURL, $currentUrl, $next, "/' />";

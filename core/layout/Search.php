@@ -48,7 +48,7 @@ class Search extends Page {
             }                        
         }              
         */
-        if ($this->isMobile && ($this->router->watchId || $this->userFavorites)) {
+        if ($this->router->isMobile && ($this->router->watchId || $this->userFavorites)) {
             $this->router->config->disableAds();
         }
                 
