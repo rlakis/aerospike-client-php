@@ -17,7 +17,7 @@ class Site {
     public int $num=10;
     //var $isMobile=false;
     var $isMobileAd=false;
-    var $lnIndex=0;
+    public int $lnIndex=0;
     var $channelId=0;
     public Router $router;
     public Classifieds $classifieds;
@@ -412,7 +412,7 @@ class Site {
                         ->uid($this->router->userId)                        
                         ->root($rootId)
                         ->section($this->router->sectionId)
-                        ->pupose($this->router->purposeId)
+                        ->purpose($this->router->purposeId)
                         ->locality($this->localityId)
                         ->tag($this->extendedId)
                         ;
@@ -506,7 +506,7 @@ class Site {
                     ->region($this->router->countryId, $this->router->cityId)
                     ->root($this->router->rootId)
                     ->section($this->router->sectionId)
-                    ->pupose($this->router->purposeId)
+                    ->purpose($this->router->purposeId)
                     ->locality($this->localityId)
                     ->tag($this->extendedId)
                     ->rtl($this->router->isArabic() ? [1,2] : [0,2])
@@ -555,7 +555,7 @@ class Site {
                 ->region($this->router->countryId, $this->router->cityId)                
                 ->root($this->router->rootId)
                 ->section($this->router->sectionId)
-                ->pupose($this->router->purposeId)
+                ->purpose($this->router->purposeId)
                 ->locality($this->localityId)
                 ->tag($this->extendedId)
                 ->rtl($rtlFilter)

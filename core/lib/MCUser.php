@@ -8,7 +8,7 @@ use Core\Model\NoSQL;
 use Core\Model\ASD;
         
 class MCJsonMapper {
-    protected $metadata = [];
+    protected array $metadata = [];
     
     protected function mapper(MCJsonMapper $object, stdClass $source) {
         foreach ($source as $property => $value) {
@@ -37,16 +37,16 @@ class MCJsonMapper {
 
 
 class MCUser extends MCJsonMapper {   
-    public $id = 0;
-    public $pid;                  // Provider identifier
-    protected $email;
+    public int $id = 0;
+    public string $pid;                  // Provider identifier
+    protected string $email;
     protected $prvdr;             // Provider
     protected $fn;                // Full name
     protected $dn;                // Display name
     protected $pu;                // Provider profile URL
     protected $rd;                // registration date
     protected $lvts;              // Last visit timestamp
-    protected $lvl;               // User level --> 0: normal, 4: warned, 5: blocked, 6: publisher, 9: administrator
+    protected int $lvl;               // User level --> 0: normal, 4: warned, 5: blocked, 6: publisher, 9: administrator
     protected $name;              // User name
     protected $um;                // User mail
     protected $up;                // User Password
@@ -54,18 +54,18 @@ class MCUser extends MCJsonMapper {
     protected $pvts;              // Previous visit timestamp
     protected $ps;                // Publisher status;
     protected $lrts;              // last ad renew timestamp
-    protected $balance;
+    protected float $balance;
     
-    protected $opts;              // MCUserOptions    
-    protected $mobile;            // MCMobile
-    protected $dependants = [];   // Related user ids
+    protected MCUserOptions $opts;              // MCUserOptions    
+    protected MCMobile $mobile;            // MCMobile
+    protected array $dependants = [];   // Related user ids
     protected $devices = false;   // MCDevice ArrayList;
     protected $prps;              // MCPropSpace
     protected $xmpp = 0;
      
     private $jwt = ['token'=>false, 'secret'=>false]; //, 'claim'=>[]];
     
-    public $device = null; // used to deal with current logged in device
+    public ?MCDevice $device = null; // used to deal with current logged in device
     
     function __construct($source_data=false) {
         $this->metadata = ['devices'=>'MCDevice'];
@@ -73,10 +73,10 @@ class MCUser extends MCJsonMapper {
         $this->mobile = new MCMobile();
 
         if ($source_data!==FALSE) {
-            if (is_numeric($source_data)) {
+            if (\is_numeric($source_data)) {
                 $this->parseArray(NoSQL::instance()->fetchUser($source_data));
             }         
-            else if (is_string($source_data) && $source_data) {
+            else if (\is_string($source_data) && $source_data) {
                 if ($source_data[0]=='{') {
                     $this->set($source_data);
                 }
@@ -86,14 +86,14 @@ class MCUser extends MCJsonMapper {
                     }
                 }
             }
-            else if (is_array($source_data) && isset($source_data[ASD\USER_PROFILE_ID]) && isset($source_data[ASD\USER_PROVIDER_ID])) {
+            else if (\is_array($source_data) && isset($source_data[ASD\USER_PROFILE_ID]) && isset($source_data[ASD\USER_PROVIDER_ID])) {
                 $this->parseArray($source_data);
             }
         
             if (!($this->opts instanceof MCUserOptions)) {
                 $this->opts = new MCUserOptions();
             }
-        }        
+        }
     }
     
 
@@ -561,15 +561,15 @@ class MCUserOptions extends MCJsonMapper {
 class MCMobile extends MCJsonMapper {
     protected $user;
     
-    protected $number;
-    protected $code;
-    protected $rts;       // Validation request timestamp;
-    protected $ats;       // Activation timestamp
-    protected $dlvrd;
-    protected $sc;       // SMS sent count
-    protected $flag;     // 2: ios    
-    protected $secret;  // ios users only
-    protected $type;
+    protected int $number=0;
+    protected int $code;
+    protected int $rts;       // Validation request timestamp;
+    protected int $ats;       // Activation timestamp
+    protected bool $dlvrd;
+    protected int $sc;       // SMS sent count
+    protected int $flag=0;     // 2: ios    
+    protected string $secret;  // ios users only
+    protected int $type;
 
     
     function __construct($as_array=null) {
@@ -578,7 +578,7 @@ class MCMobile extends MCJsonMapper {
             $this->code = $as_array[ASD\USER_MOBILE_ACTIVATION_CODE] ?? 0;
             $this->rts = $as_array[ASD\USER_MOBILE_DATE_REQUESTED] ?? 0;
             $this->ats = $as_array[ASD\USER_MOBILE_DATE_ACTIVATED] ?? 0;
-            $this->dlvrd = $as_array[ASD\USER_MOBILE_CODE_DELIVERED] ?? 0;
+            $this->dlvrd = $as_array[ASD\USER_MOBILE_CODE_DELIVERED] ?? false;
             $this->sc = $as_array[ASD\USER_MOBILE_SENT_SMS_COUNT] ?? 0;
             $this->flag = $as_array[ASD\USER_MOBILE_FLAG] ?? 0;
             $this->secret = $as_array[ASD\USER_MOBILE_SECRET] ?? '';
@@ -701,10 +701,10 @@ class MCMobile extends MCJsonMapper {
 
 
 class MCDevice extends MCJsonMapper {
-    protected $uuid;
-    protected $model;
-    protected $name;
-    protected $sn;        // System name
+    protected string $uuid;
+    protected string $model;
+    protected string $name;
+    protected string $sn;        // System name
     protected $sv;        // System version
     protected $lvts;      // Last vist timestamp
     protected $tk;        // Push notification token

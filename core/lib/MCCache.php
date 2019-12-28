@@ -2,8 +2,8 @@
 namespace Core\Lib;
 
 class MCCache extends \Redis {
-    private $buffer;
-    private $writeBuffering;
+    private array $buffer;
+    private bool $writeBuffering;
     
     private $master;
     
@@ -21,7 +21,7 @@ class MCCache extends \Redis {
         }
 
         if (!$success) {
-            error_log("Could not connect to redis ". (($memstore['tcp']) ? $memstore['host']."/".$memstore['port'] : "unix socket " . $memstore['socket']));
+            \error_log("Could not connect to redis ". (($memstore['tcp']) ? $memstore['host']."/".$memstore['port'] : "unix socket " . $memstore['socket']));
         }
             
         $this->setOption(\Redis::OPT_SERIALIZER, $memstore['serializer']);
@@ -42,7 +42,7 @@ class MCCache extends \Redis {
     }
 
     
-    public function setWriteBuffering($mode=TRUE) {
+    public function setWriteBuffering(bool $mode=TRUE) : void {
         $this->writeBuffering = $mode;        
     }
 
@@ -50,7 +50,7 @@ class MCCache extends \Redis {
     public function getMulti($keys) {
         $ret = [];
         $values = $this->mGet($keys);
-        $len = count($keys);
+        $len = \count($keys);
         for ($i=0; $i<$len; $i++) {
             if ($values[$i] !== FALSE) {
                 $ret[$keys[$i]] = $values[$i];
@@ -99,7 +99,7 @@ class MCCache extends \Redis {
     
     
     private function master() : \Redis {
-        if (\Config::instance()->serverId==1) {
+        if (\Config::instance()->serverId===1) {
             return parent;
         }
         

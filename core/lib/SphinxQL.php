@@ -21,29 +21,28 @@ class SphinxQL {
     const PUBLISHER_TYPE    = 'publisher_type';
     const FEATURED_TTL      = 'featured_date_ended';
     
-    private $indexName;
-    private $server;
+    private string $indexName;
+    private array $server;
     
-    //public $connection = null;
-    private $_sphinx = null;
-    private $clause = '*';
-    private $sortby = '';
+    private ?\mysqli $_sphinx = null;
+    private string $clause = '*';
+    private string $sortby = '';
     
-    private $offset = 0;
-    private $limit = 10;
-    private $max_matches = 2000;
-    private $filters = [];
-    private $groupby = [];
-    private $facets = [];
-    public $metaData = null;
-    public $_query;
-    public $_batch = [];
+    private int $offset = 0;
+    private int $limit = 10;
+    private int $max_matches = 2000;
+    private array $filters = [];
+    private array $groupby = [];
+    private array $facets = [];
+    public ?array $metaData = null;
+    public string $_query;
+    public array $_batch = [];
     
     /**
      * An array of escaped characters for escapeMatch()
      * @var array
      */
-    protected $escape_full_chars = [
+    protected array $escape_full_chars = [
         '\\' => '\\\\',
         '(' => '\(',
         ')' => '\)',
@@ -65,7 +64,7 @@ class SphinxQL {
      * An array of escaped characters for fullEscapeMatch()
      * @var array
      */
-    protected $escape_half_chars = [
+    protected array $escape_half_chars = [
         '\\' => '\\\\',
         '(' => '\(',
         ')' => '\)',
@@ -82,15 +81,15 @@ class SphinxQL {
     ];
 
 
-    function __construct($host, $index, $port=0) {
-        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+    function __construct(array $host, string $index) {
+        \mysqli_report(\MYSQLI_REPORT_ERROR | \MYSQLI_REPORT_STRICT);
         $this->indexName = $index;
-        if (is_array($host)) {
+        //if (\is_array($host)) {
             $this->server = $host;    
-        } 
-        else {
-            $this->server = ($port==0) ? $host : "mysql:host={$host};port={$port};";
-        }
+        //} 
+        //else {
+        //    $this->server = ($port==0) ? $host : "mysql:host={$host};port={$port};";
+        //}
         $this->connect();
     }
     
@@ -108,7 +107,7 @@ class SphinxQL {
     }
     
     
-    function connect() {
+    function connect() : void {
         if ($this->_sphinx==NULL) {
             $this->_sphinx = new \mysqli($this->server['host'], '', '', '', $this->server['port'], $this->server['socket']);
             if ($this->_sphinx->connect_error) {
@@ -116,7 +115,7 @@ class SphinxQL {
                 die('Connect Error ' . $this->server['host'] .' (' . $this->_sphinx->connect_errno . ') ' . $this->_sphinx->connect_error);
             }
             else {
-                $this->_sphinx->options(MYSQLI_OPT_INT_AND_FLOAT_NATIVE, true);
+                $this->_sphinx->options(\MYSQLI_OPT_INT_AND_FLOAT_NATIVE, true);
             }
         }
     }
@@ -140,13 +139,14 @@ class SphinxQL {
     /**
      * Closes and unset the connection to the Sphinx server.
      */
-    public function close() {        
-        $this->_sphinx->close();
+    public function close() : bool {        
+        $result=$this->_sphinx->close();
         $this->_sphinx = null;
+        return $result;
     }
 
 
-    function setSelect($clause='*') : SphinxQL {
+    function setSelect(string $clause='*') : SphinxQL {
         $this->clause = $clause;
         return $this;
     }
@@ -159,7 +159,7 @@ class SphinxQL {
      * @return \MySQLi MySQLi connection
      * @throws Exception If no connection has been established or open
      */
-    public function getConnection() {
+    public function getConnection() : ?\mysqli {
         if ($this->_sphinx !== null) {
             return $this->_sphinx;
         }
@@ -177,7 +177,7 @@ class SphinxQL {
     
     
     public function uid(int $value, bool $exclude=false) : SphinxQL {
-        if ($value) {
+        if ($value>0) {
             $this->intFilter(static::UID, $value, $exclude);
             unset($this->filters[static::COUNTRY]);
             unset($this->filters[static::CITY]);
@@ -223,7 +223,7 @@ class SphinxQL {
     }
 
     
-    public function pupose(int $value, bool $exclude=false) : SphinxQL {
+    public function purpose(int $value, bool $exclude=false) : SphinxQL {
         if ($value) {
             $this->intFilter(static::PURPOSE, $value, $exclude);
         }
@@ -309,31 +309,31 @@ class SphinxQL {
     }
 
 
-    private function intFilter(string $attribute, $value, bool $exclude) {
+    private function intFilter(string $attribute, $value, bool $exclude) : void {
         $this->filters[$attribute] = $exclude ? "!={$value}" : "={$value}";       
     }
 
     
-    private function boolFilter(string $attribute, $value, bool $exclude) {
+    private function boolFilter(string $attribute, $value, bool $exclude) : void {
         $bool_value = $value>0?1:0;
         $this->filters[$attribute] = $exclude ? "!={$bool_value}" : "={$bool_value}";       
     }
 
     
-    private function arrayFilter(string $attribute, array $value, bool $exclude) {
+    private function arrayFilter(string $attribute, array $value, bool $exclude) : void {
         $this->filters[$attribute] = ($exclude ? " not in (" : " in (") . implode(',', $value) . ')';        
     }
     
     
     
-    function setFilter($attribute, $values, $exclude=FALSE) : SphinxQL {
+    function setFilter(string $attribute, $values, bool $exclude=FALSE) : SphinxQL {
         assert(is_string($attribute));
         $condition="";
         
         if ($exclude) {
-            if (is_array($values)) {
-                if (count($values)>1) {
-                    $condition = " not in (". implode(",", $values) . ")";
+            if (\is_array($values)) {
+                if (\count($values)>1) {
+                    $condition = " not in (". \implode(",", $values) . ")";
                 } 
                 else {
                     $condition = "!={$values[0]}";
@@ -344,9 +344,9 @@ class SphinxQL {
             }            
         }
         else {
-            if (is_array($values)) {
-                if (count($values)>1) {
-                    $condition = " in (". implode(",", $values) .")";                    
+            if (\is_array($values)) {
+                if (\count($values)>1) {
+                    $condition = " in (". \implode(",", $values) .")";                    
                 } 
                 else {
                     $condition = "={$values[0]}";
@@ -362,7 +362,7 @@ class SphinxQL {
     }
     
     
-    function setFilterRange($attribute, $min, $max, $exclude=FALSE) {
+    function setFilterRange(string $attribute, $min, $max, bool $exclude=FALSE) : void {
         assert(is_string($attribute));
         assert(is_numeric($min));
         assert(is_numeric($max));
@@ -376,7 +376,7 @@ class SphinxQL {
     }
     
     
-    function setFilterCondition($attribute, $condition, $value) : SphinxQL {
+    function setFilterCondition(string $attribute, string $condition, $value) : SphinxQL {
         if (is_array($value)) {
             $this->filters[$attribute]=" {$condition} (".implode(",", $value).")";
         }
@@ -387,10 +387,10 @@ class SphinxQL {
     }
     
     
-    function resetFilters($resetGroupBy=TRUE) : SphinxQL {
-        $this->filters = array();
-        $this->groupby = array();
-        $this->facets = array();
+    function resetFilters(bool $resetGroupBy=true) : SphinxQL {
+        $this->filters = [];
+        $this->groupby = [];
+        $this->facets = [];
         return $this;
     }
     
@@ -403,40 +403,39 @@ class SphinxQL {
     }
     
     
-    function clearFacets() {
-        $this->facets = array();
+    function clearFacets() : void {
+        $this->facets = [];
     }
     
     
-    function setFacet($facet, $clearALL=FALSE) {
+    function setFacet(string $facet, bool $clearALL=FALSE) : void {
         if ($clearALL) {
-            $this->facets = array();
+            $this->facets = [];
         }
-        $facet = strtolower($facet);
+        $facet = \strtolower($facet);
         $this->facets[$facet]="facet {$facet} limit 10000";       
     }
     
     
-    function addDirectQuery($name, $q, $assoc=FALSE) {
+    function addDirectQuery(string $name, string $q, bool $assoc=FALSE) : void {
         $this->_batch[$name] = [$q, $assoc];
     }
     
     
-    function addQuery($name, $keywords='', $assoc=FALSE) {
+    function addQuery(string $name, string $keywords='', bool $assoc=FALSE) : void {
         $this->build($keywords);
         $this->_batch[$name] = [$this->_query, $assoc, 0];
-
-        $this->_query="";
+        $this->_query='';
     }
     
     
-    function execute($queryQL) {
+    function execute(string $queryQL) : bool {
         return ($this->_sphinx->multi_query($queryQL."; SHOW META LIKE 'total%';"));
     }
 
 
-    function directQuery($queryQL, $fetchMode=MYSQLI_NUM) {
-        $records = array();
+    function directQuery(string $queryQL, int $fetchMode=\MYSQLI_NUM) : array {
+        $records = [];
         try {
             if ($this->_sphinx->multi_query($queryQL)) {
                 do {
@@ -456,7 +455,7 @@ class SphinxQL {
                 } while ($this->_sphinx->next_result());
             }
             
-            if (count($records)==1) {
+            if (\count($records)===1) {
                 $records = $records[0];
             }
         } 
@@ -468,7 +467,7 @@ class SphinxQL {
     }
     
     
-    function search($queryQL, $fetchMode=MYSQLI_ASSOC) {
+    function search(string $queryQL, int $fetchMode=\MYSQLI_ASSOC) : array {
         if (empty($queryQL)) {
             $this->build();
             $queryQL = $this->_query;            
@@ -497,12 +496,12 @@ class SphinxQL {
                             'result'=>$result]);
             }
             
-            if (count($result['matches'])==1) {
+            if (\count($result['matches'])===1) {
                 $result['matches']=$result['matches'][0];
             }            
             
         } 
-        catch (Exception $ex) {
+        catch (\Exception $ex) {
             $this->Log(['Exception'=>$ex, 'query'=>$queryQL]);
         } 
         finally {
@@ -512,7 +511,7 @@ class SphinxQL {
     }
     
     
-    function query($keywords="", $fetchMode=MYSQLI_ASSOC) {        
+    function query(string $keywords="", int $fetchMode=MYSQLI_ASSOC) {        
         $this->build($keywords);
         return $this->search($this->_query, $fetchMode);
     }
@@ -658,7 +657,7 @@ class SphinxQL {
     }
     
     
-    function getAds($keywords="") {
+    function getAds(string $keywords='') {
         $this->build($keywords);
         $result = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'matches'=>[], 'sql'=>$this->_query];
 
@@ -700,27 +699,27 @@ class SphinxQL {
     }
     
     
-    function setSortBy ($sortby) : SphinxQL {
+    function setSortBy(string $sortby) : SphinxQL {
         assert(is_string($sortby));
         $this->sortby = $sortby;
         return $this;
     }
     
     
-    public function getLastError() {
+    public function getLastError() : string {
         return (isset($this->metaData['error'])) ? $this->metaData['error'] : '';
     }
     
     
-    function getLastWarning() {
+    function getLastWarning() : string {
         return (isset($this->metaData['warning'])) ? $this->metaData['warning'] : '';
     }
     
     
-    function status() {
-        $result = array();
+    function status() : array {
+        $result = [];
         if ($rs = $this->_sphinx->query('SHOW STATUS')) {
-            while ($value = $rs->fetch_array(MYSQLI_NUM)) {
+            while ($value = $rs->fetch_array(\MYSQLI_NUM)) {
                 $result[$value[0]] = $value[1];
             }
             $rs->close();
@@ -730,8 +729,8 @@ class SphinxQL {
     
     
     
-    function rotate(string $partition='x', string $index_name='') {
-        $result = array();
+    function rotate(string $partition='x', string $index_name='') : array {
+        $result =[];
         $cmd = NULL;
         switch ($index_name) {
             case 'ad0':
@@ -844,8 +843,8 @@ class SphinxQL {
     }
 
 
-    public function build(string $keywords="") {
-        if ($this->indexName=='classifier') {
+    public function build(string $keywords='') : void {
+        if ($this->indexName==='classifier') {
             $this->_query = "select {$this->clause} from {$this->indexName} where hold=0 ";
         } 
         else {
@@ -856,9 +855,9 @@ class SphinxQL {
             $this->_query.="and {$key}{$value} ";
         }
         
-        $keywords = trim($keywords);
+        $keywords = \trim($keywords);
         if ($keywords) {
-            if ($keywords[0]=='-') {
+            if ($keywords[0]==='-') {
                 $keywords = 'qwerty '.$keywords;
             }
 
@@ -866,8 +865,8 @@ class SphinxQL {
             $this->_query.="and match('{$keywords}') ";
         }
         
-        if (count($this->groupby)>0) {
-            $this->_query.="group by " . implode(',', $this->groupby) . ' ';
+        if (!empty($this->groupby)) {
+            $this->_query.="group by " . \implode(',', $this->groupby) . ' ';
         }
         
         if ($this->sortby) {
@@ -879,13 +878,13 @@ class SphinxQL {
             $this->_query.="OPTION max_matches={$this->max_matches} "; 
         }
 
-        if (count($this->facets)>0) {
-            $this->_query.=implode(' ', array_values( $this->facets ));
+        if (!empty($this->facets)) {
+            $this->_query.=\implode(' ', \array_values( $this->facets ));
         }
     }
     
     
-    public function fetchMetaData(&$resultQuery=NULL) : void {
+    public function fetchMetaData(?array &$resultQuery=NULL) : void {
         if (($rs = $this->_sphinx->query('SHOW META LIKE \'total%\''))!==FALSE) {
             $res = $rs->fetch_all();
             foreach ($res as $rec) {

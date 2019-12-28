@@ -4,10 +4,10 @@ Config::instance()->incLayoutFile('Page');
 class Admin extends Page {
 
     var $action = '', $liOpen = '';
-    private $uid = 0;
-    private $aid = 0;
+    private int $uid;
+    private int $aid = 0;
     private $userdata = 0;
-    private $multipleAccounts = [];
+    private array $multipleAccounts = [];
 
     function __construct() {
         parent::__construct();
@@ -18,7 +18,7 @@ class Admin extends Page {
 
         $this->hasLeadingPane = true;
 
-        if ($this->isMobile || !$this->user->isSuperUser()) {
+        if ($this->router->isMobile || !$this->user->isSuperUser()) {
             $this->user->redirectTo($this->router->getLanguagePath('/notfound/'));
         }
 

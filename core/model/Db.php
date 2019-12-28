@@ -478,7 +478,7 @@ class DB {
     }
     
     
-    function getSectionFollowUp(int $countryId, int $cityId=0, int $sectionId, int $purposeId=0, bool $force=0){
+    function getSectionFollowUp(int $countryId, int $cityId=0, int $sectionId, int $purposeId=0, bool $force=false){
         return $this->queryCacheResultSimpleArray(
             "follow_{$countryId}_{$cityId}_{$sectionId}_{$purposeId}", 
             "select to_section_id,to_purpose_id from section_follow s where 
