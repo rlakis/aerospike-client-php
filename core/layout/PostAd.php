@@ -11,9 +11,8 @@ class PostAd extends Page {
     private $pageGlobal='';
     private $pageInline='';
     private $ad=null;
-    //private $loadColorBox=false;
     private $sectionCrumb='';
-    private $userBalance=0;
+    private int $userBalance=0;
         
     function __construct() {
         parent::__construct();
@@ -74,9 +73,9 @@ class PostAd extends Page {
                 }
             }
 
-            $this->userBalance = $this->user()->getStatement(0, 0, true);
-            if (isset($this->userBalance['balance'])) {
-                $this->userBalance = $this->userBalance['balance'];
+            $stmt = $this->user()->getStatement(0, 0, true);
+            if (isset($stmt['balance'])) {
+                $this->userBalance = $stmt['balance'];
             }
         }
 
@@ -417,7 +416,7 @@ class PostAd extends Page {
                     ?><li class="pid"><b class="ah ctr"><span onclick="savAdP()" class="button bt btw gold"><?= $this->lang['publish_ad_premium'] ?></span></b></li><?php
                 }
             ?></ul><?php 
-            if($this->isMobile || $this->router->isApp > '1.0.4'){                
+            if($this->router->isMobile || $this->router->isApp > '1.0.4'){                
                 ?><div id="loading_dialog" class="dialog loading"><?php
                     ?><div class="dialog-box"></div><?php 
                 ?></div><?php
@@ -462,7 +461,7 @@ class PostAd extends Page {
                         $q,
                         null, null, $this->urlRouter->cfg['ttl_long']);
                     //var_dump($cc);
-                if($this->isMobile){
+                if($this->router->isMobile){
                     ?><div class="phwrap"><?php
                 }
                 ?><br /><?php
@@ -534,7 +533,7 @@ class PostAd extends Page {
                     ?><br /><p class="ph ctr"><?= $this->lang['mobile_wait'] ?></p><br /><?php 
                     ?><img src="<?= $this->urlRouter->cfg['url_css'] ?>/i/mobile-loading.gif" height="200" width="158" /><?php
                 ?></div><?php
-                if($this->isMobile){
+                if($this->router->isMobile){
                     ?></div><?php
                 }
                 $this->globalScript.='

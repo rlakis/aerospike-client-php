@@ -510,7 +510,7 @@ class MyAds extends Page {
         $count = $this->adList->count();
         $dbCount = $this->adList->dbCount();
         
-        echo '<div class=row><div class=col-12><div class=card>';
+        echo '<div class="row viewable"><div class=col-12><div class=card>';
         $this->renderBalanceBar();
         
         echo '<div class=account>';        

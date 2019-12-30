@@ -26,7 +26,7 @@ class Balance extends Page {
         $this->requireLogin = true;
         $this->router->config->disableAds();
                 
-        if($this->isMobile){
+        if($this->router->isMobile){
             $this->inlineCss.='.ph{background-color:#FFF;padding:15px 10px;border-bottom:1px solid #afafaf}.ph a{float:left}'
                     . '.htf.db{background-color:#FFF;text-align:center;padding:20px 10px;}'
                     . '.stmt li{border:0!important}
@@ -192,7 +192,7 @@ class Balance extends Page {
                                 $alt = 0;
                             }
                         }
-                        if($this->isMobile){
+                        if($this->router->isMobile){
                             
                             $hasDownload = false;
                             if($data['recs'][$i][$fieldCredit] > 0 
