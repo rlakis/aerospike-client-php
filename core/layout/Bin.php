@@ -5672,7 +5672,7 @@ class Bin extends AjaxHandler {
         }
         
         if($section) {
-            if ($this->isMobile) {
+            if ($this->router->isMobile) {
                 $section='<b class="ah">'.$section.'</b>';
             }
             else {

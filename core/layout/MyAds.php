@@ -931,15 +931,20 @@ class MyAds extends Page {
                 $isSystemAd=($cad->documentId()>0);
 
                 echo '<footer>';                
-                if ($state<7) {                                        
-                    if (!$isSystemAd) {
+                if ($state<7) {                    
+                    if ($isSuperAdmin) {
+                        ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$ad['ID'] : '') ?>" method=post><?php
+                        ?><input type=hidden name=ad value="<?= $cad->id() ?>" /><?php
+                        ?><button onclick="d.edit(this)"><span class="rj edi"></span><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></button><?php
+                        ?></form><?php
+                    }
+                    else if (!$isSystemAd) {
                         if(!$isSuspended) {
                             ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$ad['ID'] : '') ?>" method=post><?php
                             ?><input type=hidden name=ad value="<?= $cad->id() ?>" /><?php
                             ?><button onclick="d.edit(this)"><span class="rj edi"></span><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></button><?php
                             ?></form><?php
-                        }
-                    
+                        }                    
                         if (!$isAdmin || ($isAdmin && $isAdminOwner)) {
                             ?><a onclick="adel(this)" href='javascript:void(0)'><span class="rj del"></span><?= $this->lang['delete'] ?></a><?php
                         }

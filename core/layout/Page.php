@@ -1540,8 +1540,8 @@ class Page extends Site {
                     echo '<li><a href="#"><i class="icn icnsmall icn-globe invert"></i></a></li>';
                 }?>
                 <li>&vert;</li>
-                <li><a href="#">&zwnj;<i class="icn i20 icn-play-store icolor"></i></a></li>
-                <li><a href="#">&zwnj;<i class="icn i20 icn-apple icolor"></i></a></li>
+                <li><a href="#">&zwnj;<i class="icn i20 icn-play-store"></i></a></li>
+                <li><a href="#">&zwnj;<i class="icn i20 icn-apple"></i></a></li>
                 <li>&vert;</li>
                 <li><a href="<?= $this->router->getLanguagePath($this->user->isLoggedIn() ? '/myads/' : '/signin/') ?>"><?php 
                 echo $this->user->isLoggedIn()?$this->lang['myAccount']:'Login/Register';?><i class="icn icn-user i20 icolor"></i></a></li>
@@ -1573,6 +1573,19 @@ class Page extends Site {
                 </div></header>
 
     <section class=search-box><div class=viewable><div class=search>
+        <div><div><div>
+                    <select class="select-text">
+                        <optgroup label=Categories>
+                        <option value=0>All</option>
+                        <?php
+                        $i=$this->router->isArabic()?1:2;
+                        foreach ($this->router->roots as $root) {
+                            echo '<option value=',$root[0], '>', $root[$i], '</option>';
+                        }
+                        ?>  
+                        </optgroup>                        
+                    </select>            
+        </div></div></div>
     <form onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">                
         <?php
         $module=$this->router->module;

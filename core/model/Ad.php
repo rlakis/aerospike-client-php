@@ -6,17 +6,19 @@ use JsonException;
 class Ad {
     private $list;
     
-    private $data;              // raw classified array
-    private $text;              // ad text without contacts
-    private $translation;       // ad text alter language without contacts
-    private $profile;           // MCUser instance    
-    private $numberValidator = null;
-    private $dataset;    
+    private array $data;              // raw classified array
+    private string $text;              // ad text without contacts
+    private string $translation;       // ad text alter language without contacts
+    private ?\MCUser $profile;           // MCUser instance    
+    private $numberValidator;
+    private ?Content $dataset;    
     private $dateModified;
     private $superAdmin;
     
     
     function __construct(array $data=[]) {
+        $this->profile=null;
+        $this->dataset=null;
         $this->data = $data;
         if (!isset($this->data[Classifieds::ID])) { $this->data[Classifieds::ID] = 0; }
         if (!isset($this->data[Classifieds::RTL])) { $this->data[Classifieds::RTL] = 0; }
