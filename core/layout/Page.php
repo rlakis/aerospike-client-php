@@ -1573,19 +1573,21 @@ class Page extends Site {
                 </div></header>
 
     <section class=search-box><div class=viewable><div class=search>
-                <div><div class=facade onclick="dropdown(this);"><span>All Categories</span><i class="icn icn-angle-down i20"></i>
-                        <select>
-                        <optgroup label=Categories>
-                        <option value=0>All</option>
-                        <?php
-                        $i=$this->router->isArabic()?1:2;
-                        foreach ($this->router->roots as $root) {
-                            echo '<option value=',$root[0], '>', $root[$i], '</option>';
-                        }
-                        ?>  
-                        </optgroup>                        
-                    </select>       
-        </div></div>
+        <div class=select-wrapper onclick="dropdown(this);">
+            <div class=select-box>
+                <div class=select__trigger>
+                    <span>All Categories</span>
+                    <div class=arrow></div>
+                </div>
+                <div class=options><?php
+                    echo '<span class="option selected" data-value="0">All Categories</span>';
+                    $i=$this->router->isArabic()?1:2;
+                    foreach ($this->router->roots as $root) {
+                        echo '<span class=option data-value="',$root[0], '">', $root[$i], '</span>';
+                    }
+                ?></div>
+            </div>
+        </div>
     <form onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">                
         <?php
         $module=$this->router->module;
