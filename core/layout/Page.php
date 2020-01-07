@@ -1573,7 +1573,7 @@ class Page extends Site {
                 </div></header>
 
     <section class=search-box><div class=viewable><div class=search>
-        <div class=select-wrapper onclick="dropdown(this);">
+        <div class=select-wrapper>
             <div class=select-box>
                 <div class=select__trigger>
                     <span>All Categories</span>
