@@ -14,7 +14,7 @@
     --mColor02:rgba(242,242,242,1);
 }
 
-
+/*
 html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
      margin: 0;
      padding: 0;
@@ -23,6 +23,7 @@ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockq
      font: inherit;
      vertical-align: baseline;
 }
+*/
 html *{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;-ms-touch-action: manipulation;touch-action: manipulation}
 *, *:after, *:before {box-sizing: border-box;}
 
@@ -295,12 +296,10 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
      /*border-width:2px 0 2px 0;
      border-style:solid;border-color:#394a6d;*/}
 .select__trigger:hover{background-color:#dadada;cursor: pointer}
-.options{position:absolute;display:block;top:100%;left:-3px;right:0;border:1px solid #dadada;border-top:0;background:#fff;
-     transition:all 0.5s;opacity:0;visibility:hidden;pointer-events:none;z-index:10;width:fit-content}
-.select-box.open .options {opacity:1;visibility:visible;pointer-events:all;width:125%}
-.option {position: relative;display: block;padding: 0 16px 0;font-size:1.1em;font-weight:300;color: #3b3b3b;line-height: 2rem;
-     cursor: pointer;transition: all 0.5s;
-}
+.options{position:absolute;display:block;top:calc(100% + 1px);left:-2px;right:0;border:1px solid #dadada;border-top:0;background:#fff;
+     transition:all 0.5s;opacity:0;visibility:hidden;pointer-events:none;z-index:10;}
+.select-box.open .options {opacity:1;visibility:visible;pointer-events:all;width:fit-content}
+.option{position:relative;display:block;padding:0 16px 0;font-size:1.1em;font-weight:300;color:#3b3b3b;line-height:2rem;cursor:pointer;transition:all 0.5s;width:100%;}
 .option:hover {cursor: pointer;background-color: #b2b2b2;}
 .option.selected {color: #ffffff;background-color: #305c91;}
 
@@ -394,7 +393,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
     margin:8px 8px 0;
     box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.42), 0 4px 25px 0px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.2);
     padding:0 !important;
-    z-index: 10}
+    z-index: 9}
 .side>div{padding: 0 8px !important;}
 .side .title {
     display: inherit;

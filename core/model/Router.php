@@ -86,7 +86,6 @@ class Router extends \Core\Model\Singleton {
         global $argc;       
         $this->config=\Config::instance();
         $this->db=new DB();
-            
         if (isset($argc)) { return; }
 
         if (isset($_GET['shareapp'])) {
@@ -101,7 +100,7 @@ class Router extends \Core\Model\Singleton {
             }
         }
         
-        $cmu=\filter_input(INPUT_COOKIE, 'mourjan_user', FILTER_DEFAULT, ['options'=>['default'=>'{}']]);
+        $cmu=\filter_input(\INPUT_COOKIE, 'mourjan_user', \FILTER_DEFAULT, ['options'=>['default'=>'{}']]);
         $this->cookie=\json_decode($cmu);
         
         $this->session_key=\session_id();
@@ -121,14 +120,6 @@ class Router extends \Core\Model\Singleton {
             $this->_jpeg = ".webp";
         }
         
-        
-        //if(isset($_GET['app'])) {
-        //    $this->isApp = $_GET['app'];
-        //}
-        //elseif(isset($_session_params['app'])) {
-        //    $this->isApp = $_session_params['app'];
-        //}
-
         if (\array_key_exists('HTTP_HOST', $_SERVER)) {
             $this->host = $_SERVER['HTTP_HOST'];
         }
@@ -151,13 +142,7 @@ class Router extends \Core\Model\Singleton {
         $pos = \strpos($this->referer, $this->config->get('site_domain'));
         if (!($pos===FALSE)) {
             $this->internal_referer = ($pos>0 && $pos<13);
-        }
-        
-        //if ($this->isApp) {
-        //    $this->isMobile = TRUE;
-        //    $_session_params['mobile']=1;
-        //    $_session_params['app']=1;
-        //}
+        }      
       
         if (!isset($_session_params['mobile'])) {
             if (isset($this->cookie->m) && \in_array($this->cookie->m, [0,1])) {
@@ -193,7 +178,7 @@ class Router extends \Core\Model\Singleton {
             $this->isMobile = $_session_params['mobile'];
         }
         
-        $this->explodedRequestURI = \explode('/', \ltrim(\rtrim(\parse_url(\filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_URL), PHP_URL_PATH), '/'), '/'));
+        $this->explodedRequestURI = \explode('/', \ltrim(\rtrim(\parse_url(\filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_URL), \PHP_URL_PATH), '/'), '/'));
         $this->language = 'ar';
         
         $len = \count($this->explodedRequestURI);
@@ -306,6 +291,10 @@ class Router extends \Core\Model\Singleton {
                     case 'q':
                         $this->force_search=true;
                         break;
+                    case 'ro':
+                    case 'cn':
+                        $this->params[$node[0]]= \intval(\filter_input(\INPUT_GET, $node[0], \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
+                        break;
                     default:
                         $this->isDynamic = true;
                         break;
@@ -313,10 +302,13 @@ class Router extends \Core\Model\Singleton {
             }                        
         }
         
+        \error_log(\json_encode($this->params, JSON_PRETTY_PRINT));
+        
         if (isset($_GET['aid']) && isset($_GET['q'])) {
             $this->force_search=true;
         }
-            
+        
+        
         if ($this->params['start'] && !\array_key_exists('start', $_GET)) {
             $_GET['start']=$this->params['start'];
         }
@@ -415,7 +407,7 @@ class Router extends \Core\Model\Singleton {
                     $tmp=array();
                     foreach ($_args as $arg) { $tmp[]=$arg; }
                     $_args=$tmp;
-                    $this->uri=  \implode("/", $_args);
+                    $this->uri=\implode('/', $_args);
                 }
             }
         }    
@@ -425,7 +417,6 @@ class Router extends \Core\Model\Singleton {
             empty($_GET) && ($this->uri===''||$this->uri==='/') && 
             !$this->userId && !$this->watchId) {
             $this->countries = $this->db->getCountriesData($this->language);
-            error_log('internal');
             
             if (isset($_session_params['visit']) && isset($_session_params['user_country'])) { 
                 if (!$this->countryId && \strpos($this->config->baseURL, 'dv.mourjan.com')===false && \strpos($this->config->baseURL, 'h1.mourjan.com')===false) {  
@@ -526,12 +517,7 @@ class Router extends \Core\Model\Singleton {
         //error_log(__CLASS__.'.'.__FUNCTION__."\n".\json_encode($_session_params, JSON_PRETTY_PRINT));
         //error_log('cookie '. json_encode($this->cookie));
     }
-    
-    
-    //public function user() : \User {
-    //    return $this->user;
-    //}
-    
+        
     
     public function setUser(\User $kUser) : void {
         $this->user = $kUser;
@@ -1044,7 +1030,7 @@ class Router extends \Core\Model\Singleton {
     }
     
     
-    function encode($cn=0, $c=0, $ro=0, $se=0, $pu=0, $a=0) : string {
+    function encode(int $cn=0, int $c=0, int $ro=0, int $se=0, int $pu=0, int $a=0) : string {
         $result = $this->config->baseURL;
         if ($ro===4) { $pu=0; }
         $rs = $this->db->queryResultArray("select path||'/' PATH from uri where country_id={$cn} and city_id={$c} and root_id={$ro} and section_id={$se} and purpose_id={$pu} and lang='{$this->language}'");

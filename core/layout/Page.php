@@ -1573,22 +1573,43 @@ class Page extends Site {
                 </div></header>
 
     <section class=search-box><div class=viewable><div class=search>
+        <form onsubmit="if(document.getElementById('q').value)return true;return false;" action="<?= $this->router->getLanguagePath('/'.$this->router->countries[$this->router->countryId]['uri']) ?>"> 
         <div class=select-wrapper>
             <div class=select-box>
-                <div class=select__trigger>
-                    <span>All Categories</span>
+                <div class=select__trigger><?php 
+                    $i=$this->router->isArabic()?1:2;
+                    $selected=$this->router->params['ro']?$this->router->roots[$this->router->params['ro']][$i]:'All Categories';
+                    ?>
+                    <span><?=$selected?></span>
                     <div class=arrow></div>
                 </div>
                 <div class=options><?php
-                    echo '<span class="option selected" data-value="0">All Categories</span>';
-                    $i=$this->router->isArabic()?1:2;
+                    echo '<span class="option', (!$this->router->params['ro']?' selected"':'"'),' data-value="0">All Categories</span>';
+                    
                     foreach ($this->router->roots as $root) {
-                        echo '<span class=option data-value="',$root[0], '">', $root[$i], '</span>';
+                        echo '<span class="option', $this->router->params['ro']===$root[0]?' selected"':'"', ' data-value="', $root[0], '">', $root[$i], '</span>';
                     }
                 ?></div>
             </div>
         </div>
-    <form onsubmit="if(document.getElementById('q').value)return true;return false;" action="/">                
+                   
+        <?php
+        if ($this->user->isLoggedIn(9)) {
+            $selected=$this->router->params['cn']?$this->router->countries[$this->router->params['cn']]['name']:'All Countries';
+            ?>
+            <div class=select-wrapper><div class=select-box>
+                <div class=select__trigger><span><?= $selected?></span><div class=arrow></div></div>
+                <div class=options><?php
+                echo '<span class="option', (!$this->router->params['cn']?' selected" ':'" '), 'data-value="0">All Countries</span>';                
+                foreach ($this->router->countries as $cn=>$country) {
+                    echo '<span class="option', $this->router->params['cn']===$cn?' selected"':'"', ' data-value="',$cn, '">', $country['name'], '</span>';
+                }
+                ?></div>
+            </div></div>
+            <input id=cn name=cn type=hidden value="0">
+            <?php
+        }
+        ?>
         <?php
         $module=$this->router->module;
         if (\in_array($module, ['search', 'contact', 'about', 'terms', 'privacy'])) {
@@ -1597,9 +1618,10 @@ class Page extends Site {
         
         ?>        
         <input id=q name=q class=searchTerm type=search placeholder="<?=$this->lang['search_what']; ?>">
+        <input id=ro name=ro type=hidden value="0">
         <button class=searchButton type=submit><i class="icn icnsmall icn-search invert"></i></button>
     </form>
-            </div></div></section><main><?php
+    </div></div></section><main><?php
         //echo $this->filter_purpose();
     }
     
