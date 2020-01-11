@@ -760,24 +760,21 @@ class DB {
     }
     
     
-    function getSectionsData($countryId, $cityId, $rootId, $lang, bool $sortByCount=false) {
+    function getSectionsData(int $countryId, int $cityId, int $rootId, string $lang, bool $sortByCount=false) : array {
         $vv = ($this->slaveOfRedis) ? self::$SectionsVersion : self::$SectionsVersion+1;
         $label = $sortByCount ? "section-data-{$countryId}-{$cityId}-{$rootId}-{$lang}-c-{$vv}" : "section-data-{$countryId}-{$cityId}-{$rootId}-{$lang}-{$vv}";
-        $result = self::$Cache->get($label);
+        $rs = self::$Cache->get($label);
         
-        if ($result!==FALSE) {
-            return $result;
+        if ($rs!==FALSE) {
+            return $rs;
         }
-        else {        
-            $result=[];
-        }
-       
-        
+          
+        $result=[];              
         $q = "select groupby(), section_name_{$lang}, sum(counter) as count, max(unixtime) from section_counts where root_id={$rootId} ";
-        if ($cityId) {
+        if ($cityId>0) {
             $q.="and city_id={$cityId} ";
         } 
-        elseif ($countryId) {
+        elseif ($countryId>0) {
             $q.="and country_id={$countryId} and city_id=0 ";
         }
         

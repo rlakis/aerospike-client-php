@@ -44,10 +44,10 @@ h6, .h6 {font-size:1em;text-transform:uppercase;font-weight:500;}
 label {display:inline-block;max-width:100%;margin-bottom:5px;font-weight:700;}
 small{line-height: 100%}
 main{width: 100%}
-.top-header{height: 30px;flex-direction: column}
+.top-header{height: 2.5vh;flex-direction: column}
 .top-header ul{position:relative; padding:0; margin:0; flex-direction:row; flex-wrap:nowrap; justify-content:space-between; margin-left:-1px; align-self:flex-end}
 .top-header li{display:inline; line-height:30px; flex-grow:1;flex-basis:auto;padding: 0 0.33em;text-align: center;}
-.top-header a{display:inline-flex; align-items: center;color: #606060; font-size: 1.05em}
+.top-header a{display:inline-flex; align-items: center;color: #606060; font-size: 0.95em}
 .top-header i{margin-inline-start: 4px !important; }
 .top-header i.icolor{filter: invert(22%) sepia(10%) saturate(3293%) hue-rotate(165deg) brightness(92%) contrast(91%);}
 .viewable{display:inline-flex;width:100%;}
@@ -71,12 +71,12 @@ body[dir="rtl"] [class*="col-"] { float: right; }
 .va-center{align-items: center}
 .ha-center{justify-content: center}
 
-header{display:flex;background-color:var(--mcLightColor);color:#fff;padding:0;text-align:center;min-height:90px;}
+header{display:flex;background-color:var(--mcLightColor);color:#fff;padding:0;text-align:center;min-height:10vh;margin-bottom: 24px;}
 header>h1{-webkit-margin-before:0.1em;-webkit-margin-after:0.1em;font-size:1.8em;}
 header>a{display: flex}
 .navbar{display: inherit; flex:1 auto;}
 
-.search-box{display:inherit;background-color: var(--mColor02);margin-top: 24px; padding: 18px 0;}
+.search-box{display:inherit;background-color: var(--mColor02);}
 
 footer{padding-top:44px;direction:ltr;text-align:center; order:999;background-color: var(--mColor02);}
 ul{list-style-type:none;list-style-position:inside;}
@@ -108,6 +108,13 @@ li>i{margin:0 4px;max-width:32px;}
 .fill-3{filter: invert(76%) sepia(75%) saturate(447%) hue-rotate(91deg) brightness(85%) contrast(94%);}
 .fill-4{filter: invert(50%) sepia(27%) saturate(3597%) hue-rotate(145deg) brightness(101%) contrast(107%);}
 .fill-99{filter: invert(70%) sepia(39%) saturate(6621%) hue-rotate(194deg) brightness(102%) contrast(101%);}
+
+.icn.ro{width:72px;height:72px;margin:20px 0 4px 0}
+.icn.ro.i1{background:url(/web/css/1.0/assets/1.svg) no-repeat center}
+.icn.ro.i2{background:url(/web/css/1.0/assets/2.svg) no-repeat center;width:104px}
+.icn.ro.i3{background:url(/web/css/1.0/assets/3.svg) no-repeat center}
+.icn.ro.i4{background:url(/web/css/1.0/assets/4.svg) no-repeat center}
+.icn.ro.i99{background:url(/web/css/1.0/assets/99.svg) no-repeat center}
 
 .icn-81{
        background:transparent url(/web/css/1.0/fa/solid/badge-check.svg) no-repeat center;filter:invert(38%) sepia(75%) saturate(614%) hue-rotate(73deg) brightness(93%) contrast(86%)}
@@ -263,6 +270,11 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .ls .card .card-footer ul {width: 100%}
 .ls .card .card-footer li {line-height: 1.5em; border:0}
 
+.search-box .roots{display:flex;width:100%;border:0; background-color: var(--mColor02); justify-content: space-between;max-width: 1000px;margin: -8px 0 48px;}
+.search-box .roots .large{display:inherit;width:150px; height: 150px; border:2px solid lightgray; border-radius: 42px; align-items: center;flex-direction: column}
+.search-box .roots .large>span {font-weight: 600}
+.large .arrow{margin-top: 8px;margin-inline-start:6px;}
+
 .adc::first-line{font-weight:bold;}
 .block-with-text{overflow:hidden;position:relative;line-height:1.5em;height:4.5em;}
 .seclogo{background-color: var(--midnight); display: flex; align-items: center; justify-content: center;}
@@ -275,7 +287,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .card .cbox.cbl {bottom:5px;left:8px}
 .card .cbox.footer{height:2em;width:100%;position:absolute;bottom:0;display:block;background-color:#333;opacity:0.6;}
 
-.search{display:inline-flex;width:100%;border:2px solid lightgray;border-radius:5px;}
+.search{display:inline-flex;width:100%;border:2px solid lightgray;border-radius:5px;max-width: 1024px; margin: 32px 0;}
 .search form{width:100%;display:inherit;justify-content:space-between;align-self:flex-start;flex-direction:row}
 .searchTerm{width:100%;border:none;padding:5px;height:36px !important;outline:none;color:var(--midnight);font-size:1.0em;-webkit-appearance:none;}
 .searchTerm:focus{color:var(--mourjanC);}
@@ -537,7 +549,7 @@ body[dir="rtl"] .modal .card{transform: translate(-50%, 0%);}
     header {
         min-height: 115px;
     }
-    main{display:inherit;margin: 8px 52px}
+    main{display:inherit;/*margin: 8px 52px*/}
     .ilogo{
         width: 230px;
         height: 50px;       

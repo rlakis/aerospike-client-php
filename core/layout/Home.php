@@ -304,13 +304,29 @@ var setOrder=function(e)
 
     function main_pane() : void {
         echo '<!--googleoff: snippet-->';
-        echo '<div class="row viewable home">';
+        echo '<section class=search-box><div class="viewable ha-center">';
         $sections = [];
         foreach ($this->router->pageRoots as $id=>$root) {
             //$count = $root['counter'];
-            $link = $this->router->getURL($this->router->countryId, $this->router->cityId, $id);
+            //$link = $this->router->getURL($this->router->countryId, $this->router->cityId, $id);
             $sections[$id] = $this->router->db->getSectionsData($this->router->countryId, $this->router->cityId, $id, $this->router->language, true);
         }
+       
+        echo '<div class=roots>';
+        foreach ($sections as $root_id => $items) {
+            echo '<div class=large>';
+            echo '<div class=row><i class="icn ro i',$root_id,' fill-', $root_id,'"></i></div>';
+            echo '<span class=row>', $this->router->roots[$root_id][$this->fieldNameIndex], '</span>';
+            echo '<div class=arrow></div>';
+            echo '</div>';
+            
+        }
+        echo '</div>';
+        echo '</div>';
+        echo '</section>';
+        echo '<main>';
+        echo '<div class="row viewable home">';
+        
         foreach ($sections as $root_id => $items) {
             echo '<div class=col-4><div class=card>';
             echo '<div class=card-header style="background-color:var(--color-',$root_id,');"><i class="icn icn-', $root_id, '"></i></div>';

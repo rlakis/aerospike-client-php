@@ -1572,7 +1572,7 @@ class Page extends Site {
     
                 </div></header>
 
-    <section class=search-box><div class=viewable><div class=search>
+    <section class=search-box><div class="viewable ha-center"><div class=search>
         <form onsubmit="if(document.getElementById('q').value)return true;return false;" action="<?= $this->router->getLanguagePath('/'.$this->router->countries[$this->router->countryId]['uri']) ?>"> 
         <div class=select-wrapper>
             <div class=select-box>
@@ -1621,7 +1621,10 @@ class Page extends Site {
         <input id=ro name=ro type=hidden value="0">
         <button class=searchButton type=submit><i class="icn icnsmall icn-search invert"></i></button>
     </form>
-    </div></div></section><main><?php
+    </div></div></section><?php
+        if ($this->router->module!=='index') {
+            echo '<main>';
+        }
         //echo $this->filter_purpose();
     }
     
