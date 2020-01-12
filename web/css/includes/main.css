@@ -45,8 +45,8 @@ label {display:inline-block;max-width:100%;margin-bottom:5px;font-weight:700;}
 small{line-height: 100%}
 main{width: 100%}
 .top-header{height: 2.5vh;flex-direction: column}
-.top-header ul{position:relative; padding:0; margin:0; flex-direction:row; flex-wrap:nowrap; justify-content:space-between; margin-left:-1px; align-self:flex-end}
-.top-header li{display:inline; line-height:30px; flex-grow:1;flex-basis:auto;padding: 0 0.33em;text-align: center;}
+.top-header ul{display:inherit;position:relative; padding:0; margin:0; height: inherit; flex-direction:row; flex-wrap:nowrap; align-self:flex-end; align-items: center}
+.top-header li{display:inline; line-height:100%; flex-grow:1;flex-basis:auto;padding: 0 0.32em;text-align: center;}
 .top-header a{display:inline-flex; align-items: center;color: #606060; font-size: 0.95em}
 .top-header i{margin-inline-start: 4px !important; }
 .top-header i.icolor{filter: invert(22%) sepia(10%) saturate(3293%) hue-rotate(165deg) brightness(92%) contrast(91%);}
