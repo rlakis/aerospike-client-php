@@ -92,7 +92,6 @@ var MAP={
     },
     
     adLocation:function(){
-        console.log('two');
         let pos = {lat: Ad.content.lat, lng: Ad.content.lon};        
         //this.coder = new google.maps.Geocoder();
         //if(this.marker){this.marker.setMap(null);}
@@ -175,7 +174,6 @@ var MAP={
     
     setPosition:function(pos, zoom){
         this.setZoom((zoom?zoom:14));
-        console.log(pos);
         this.view.setCenter(pos);
         //this.marker.setMap(this.map);
         //let mpos = {lat: pos.lat(), lng: pos.lng()};
@@ -1450,7 +1448,7 @@ var Prefs={
     carrierCountryCode:null,
     carrierCountryId:0,
     
-    init:function(data){
+    init:function(data){        
         let _=this, rules={}, index={};
         _.countries=[];
         _.chains={[kRule]:rules, [kIndex]:index};

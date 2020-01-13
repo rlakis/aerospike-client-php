@@ -302,7 +302,7 @@ class Router extends \Core\Model\Singleton {
             }                        
         }
         
-        \error_log(\json_encode($this->params, JSON_PRETTY_PRINT));
+        //\error_log(\json_encode($this->params, JSON_PRETTY_PRINT));
         
         if (isset($_GET['aid']) && isset($_GET['q'])) {
             $this->force_search=true;
@@ -583,7 +583,7 @@ class Router extends \Core\Model\Singleton {
         $geo = $this->getIpLocation();
 			
         $_session_params = $_SESSION['_u']['params'];
-        error_log(__FUNCTION__ . ' ' . \json_encode($_session_params));
+        //error_log(__FUNCTION__ . ' ' . \json_encode($_session_params));
         
         if (!empty($geo) && isset($geo['country']['iso_code'])) {
             $country_code=\strtolower(\trim($geo['country']['iso_code']));
