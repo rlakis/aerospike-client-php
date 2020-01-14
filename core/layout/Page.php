@@ -993,7 +993,7 @@ class Page extends Site {
         //$class='link'.($className?' '.$className:'');
         $result='';
         if ($selected) {
-            if ($this->isMobile) {
+            if ($this->router->isMobile) {
                 $result = $label;
             }
             else {
