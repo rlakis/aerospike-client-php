@@ -9,16 +9,17 @@ class Ad {
     private array $data;              // raw classified array
     private string $text;              // ad text without contacts
     private string $translation;       // ad text alter language without contacts
-    private ?\MCUser $profile;           // MCUser instance    
-    private $numberValidator;
-    private ?Content $dataset;    
-    private $dateModified;
-    private $superAdmin;
+    private ?\Core\Lib\MCUser $profile;           // MCUser instance    
+    private \libphonenumber\PhoneNumberUtil $numberValidator;
+    private ?\Core\Model\Content $dataset;    
+    private int $dateModified;
+    private int $superAdmin;
     
     
     function __construct(array $data=[]) {
         $this->profile=null;
         $this->dataset=null;
+        $this->numberValidator= \libphonenumber\PhoneNumberUtil::getInstance();
         $this->data = $data;
         if (!isset($this->data[Classifieds::ID])) { $this->data[Classifieds::ID] = 0; }
         if (!isset($this->data[Classifieds::RTL])) { $this->data[Classifieds::RTL] = 0; }
@@ -268,11 +269,9 @@ class Ad {
     private function formatPhoneNumber($number, $userISO='') : string {                
         $key='P.'.$userISO.$number;
         $value = DB::getCache()->get($key);
-        if ($value) { 
-            return $value;             
-        }
+        if ($value) { return $value; }
         
-        if (!$this->numberValidator) { $this->numberValidator = \libphonenumber\PhoneNumberUtil::getInstance(); }
+        //if (!$this->numberValidator) { $this->numberValidator = \libphonenumber\PhoneNumberUtil::getInstance(); }
         $num = $this->numberValidator->parse($number, $userISO);
         $result = '';
         if ($this->numberValidator->getRegionCodeForNumber($num, $userISO)===$userISO) {
@@ -445,7 +444,7 @@ class Ad {
     }
     
     
-    public function profile() : \MCUser {
+    public function profile() : \Core\Lib\MCUser {
         if ($this->profile!==null) {
             return $this->profile;
         }
@@ -465,7 +464,7 @@ class Ad {
             if ($this->dataset!==null) {
                 return $this->dataset()->getProfile();
             }
-            $this->profile = new \MCUser($this->uid());
+            $this->profile = new \Core\Lib\MCUser($this->uid());
             $this->list->cacheProfile($this->profile);
         }
         return $this->profile;
@@ -744,7 +743,7 @@ class Ad {
                 }
                 else {
                     \Config::instance()->incLibFile('MCUser');
-                    $u=new \MCUser($this->dataset->getUID());
+                    $u=new \Core\Lib\MCUser($this->dataset->getUID());
                     $this->dataset->setUserActivatedMobileNumber($u->getMobileNumber());                    
                 }
                 

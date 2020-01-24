@@ -36,7 +36,8 @@ class Schema extends \Core\Model\Singleton {
                     'currency_id'   => [static::FIELD_TYPE=>static::TYPE_STRING,    static::FIELD_LENGTH=>3,    static::FIELD_DESC=> 'iso currency 3 letters code'],
                     'locked'        => [static::FIELD_TYPE=>static::TYPE_BOOLEAN,   static::FIELD_LENGTH=>1,    static::FIELD_DESC=> 'allow changes or not'],
                     'unixtime'      => [static::FIELD_TYPE=>static::TYPE_LONG,      static::FIELD_LENGTH=>8,    static::FIELD_DESC=> 'last update unixtime']
-                ]
+                ],
+                'pk'=>['id'],
             ],
             'city' => [
                 'ns'    => 'mourjan',

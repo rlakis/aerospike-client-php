@@ -5,6 +5,7 @@ Config::instance()->incLibFile('MCUser')->incLibFile('MCAudit')->incModelFile('N
 //use mourjan\Hybrid;
 use Core\Lib\SphinxQL;
 use Core\Lib\Audit;
+use Core\Lib\MCUser;
 use Core\Model\NoSQL;
 use Sinergi\BrowserDetector\Browser;
 
@@ -16,7 +17,7 @@ class User {
     var $params=array();
     var $pending=array();
     var $favorites=array();
-    var $data=null;
+    public ?\Core\Lib\MCUser $data=null;
 
     var $db=null, $config=null, $site=null;
     

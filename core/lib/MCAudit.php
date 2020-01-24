@@ -1,7 +1,7 @@
 <?php
 
 namespace Core\Lib;
-use MCUser;
+use Core\Lib\MCUser;
 
 \Config::instance()->incLibFile('MCUser')->incLibFile('IPQuality');
 
@@ -94,7 +94,7 @@ class Audit {
     }
     
     
-    public function user(\MCUser $user) {
+    public function user(MCUser $user) {
         $this->user = $user;
         return $this;
     }

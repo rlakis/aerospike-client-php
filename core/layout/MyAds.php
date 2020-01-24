@@ -4,6 +4,7 @@
 use Core\Model\Ad;
 use Core\Model\Content;
 use Core\Model\AdList;
+use Core\Lib\MCUser;
 
 class MyAds extends Page {
     

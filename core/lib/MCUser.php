@@ -1,5 +1,7 @@
 <?php
 
+namespace Core\Lib;
+
 \Config::instance()->incModelFile('NoSQL')->incLibFile('Jabber/JabberClient');
 
 use Firebase\JWT\JWT;

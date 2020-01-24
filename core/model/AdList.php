@@ -46,16 +46,16 @@ class AdList extends \SplDoublyLinkedList {
     }
 
 
-    public function cacheProfile(\MCUser $profile) {
+    public function cacheProfile(\Core\Lib\MCUser $profile) {
         $this->profiles[$profile->id]=$profile;
     }
     
     
-    public function getCachedProfile(int $uid) : ?\MCUser {
+    public function getCachedProfile(int $uid) : ?\Core\Lib\MCUser {
         if (isset($this->profiles[$uid])) {
             return $this->profiles[$uid];
         }
-        $profile = new \MCUser($uid);
+        $profile = new \Core\Lib\MCUser($uid);
         $this->cacheProfile($profile);
         return $profile;
     }

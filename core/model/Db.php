@@ -22,7 +22,9 @@ class DB {
     public static $LocalitiesVersion;
     
     private $slaveOfRedis;
-    public $ql;
+    public SphinxQL $ql;
+    
+    public \RdKafka\Producer $kafkaProducer;
     
     private $version=0;
     
@@ -57,7 +59,13 @@ class DB {
         //self::$LocalitiesVersion = $this->version;
         //self::$TagsVersion = $this->version;
         
-        $this->ql=new SphinxQL(\Config::instance()->get('sphinxql'), \Config::instance()->get('search_index'));    
+        $this->ql=new SphinxQL(\Config::instance()->get('sphinxql'), \Config::instance()->get('search_index')); 
+        
+        $conf = new \RdKafka\Conf();
+        $conf->set('log_level', LOG_DEBUG);
+        $conf->set('debug', 'all');
+        $this->kafkaProducer = new \RdKafka\Producer($conf);
+        $this->kafkaProducer->addBrokers("a1.mourjan.com:9092,www.edigear.com:9092");
     }
 
 

@@ -80,8 +80,8 @@ class Content {
     const RERA                      = 'rera'; 
     
     protected array $content;
-    private ?Ad $ad;
-    private ?\MCUser $profile;
+    private ?\Core\Model\Ad $ad;
+    private ?\Core\Lib\MCUser $profile;
     private int $countryId;
     private int $cityId;
     private array $old;
@@ -168,9 +168,9 @@ class Content {
     }
     
     
-    public function getProfile() : \MCUser {
+    public function getProfile() : \Core\Lib\MCUser {
         if ($this->profile===null) {
-            $this->profile = new \MCUser($this->getUID());
+            $this->profile = new \Core\Lib\MCUser($this->getUID());
         }
         return $this->profile;
     }

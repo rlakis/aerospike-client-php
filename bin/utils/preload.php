@@ -25,12 +25,12 @@ opcache_compile_file('/var/www/mourjan/index.php');
 opcache_compile_file('/var/www/mourjan/config/cfg.php');
 
 opcache_compile_file('/var/www/mourjan/core/model/Singleton.php');
-opcache_compile_file('/var/www/mourjan/core/model/NoSQL.php');
-opcache_compile_file('/var/www/mourjan/core/model/asd/UserTrait.php');
-opcache_compile_file('/var/www/mourjan/core/model/asd/MobileTrait.php');
-opcache_compile_file('/var/www/mourjan/core/model/asd/DeviceTrait.php');
-opcache_compile_file('/var/www/mourjan/core/model/asd/BlackListTrait.php');
-opcache_compile_file('/var/www/mourjan/core/model/asd/CallTrait.php');
+#opcache_compile_file('/var/www/mourjan/core/model/NoSQL.php');
+#opcache_compile_file('/var/www/mourjan/core/model/asd/UserTrait.php');
+#opcache_compile_file('/var/www/mourjan/core/model/asd/MobileTrait.php');
+#opcache_compile_file('/var/www/mourjan/core/model/asd/DeviceTrait.php');
+#opcache_compile_file('/var/www/mourjan/core/model/asd/BlackListTrait.php');
+#opcache_compile_file('/var/www/mourjan/core/model/asd/CallTrait.php');
 
 opcache_compile_file('/var/www/mourjan/core/lib/logger/LoggerInterface.php');
 opcache_compile_file('/var/www/mourjan/core/lib/logger/AbstractLogger.php');
@@ -39,17 +39,17 @@ opcache_compile_file('/var/www/mourjan/core/lib/Logger.php');
 
 
 opcache_compile_file('/var/www/mourjan/core/lib/MCUser.php');
-opcache_compile_file('/var/www/mourjan/core/lib/MCSessionHandler.php');
-opcache_compile_file('/var/www/mourjan/core/lib/SphinxQL.php');
-opcache_compile_file('/var/www/mourjan/core/lib/MCCache.php');
+#opcache_compile_file('/var/www/mourjan/core/lib/MCSessionHandler.php');
+#opcache_compile_file('/var/www/mourjan/core/lib/SphinxQL.php');
+//opcache_compile_file('/var/www/mourjan/core/lib/MCCache.php');
 
 opcache_compile_file('/var/www/mourjan/core/model/Content.php');
 opcache_compile_file('/var/www/mourjan/core/model/Ad.php');
 opcache_compile_file('/var/www/mourjan/core/model/AdList.php');
-opcache_compile_file('/var/www/mourjan/core/model/Classifieds.php');
-opcache_compile_file('/var/www/mourjan/core/model/Db.php');
-opcache_compile_file('/var/www/mourjan/core/model/User.php');
 if (0) {
+    opcache_compile_file('/var/www/mourjan/core/model/Db.php');
+    opcache_compile_file('/var/www/mourjan/core/model/User.php');
+    opcache_compile_file('/var/www/mourjan/core/model/Classifieds.php');
     opcache_compile_file('/var/www/mourjan/core/model/Router.php');
     opcache_compile_file('/var/www/mourjan/core/layout/Site.php');
     opcache_compile_file('/var/www/mourjan/core/layout/Page.php');
