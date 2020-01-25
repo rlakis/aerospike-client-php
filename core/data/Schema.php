@@ -42,7 +42,7 @@ class Schema extends \Core\Model\Singleton {
             'country' => [
                 'ns'    => 'mourjan',
                 'bins'  => [
-                    GENERIC_ID              => [static::TYPE_INTEGER,   4,  1,  0, $this->positiveInt($v),   'country id'],
+                    GENERIC_ID              => [static::TYPE_INTEGER,   4,  1,  0,   'country id'],
                     GENERIC_NAME_AR         => [static::TYPE_STRING,    50, 1,  '',     'arabic name'],
                     GENERIC_NAME_EN         => [static::TYPE_STRING,    50, 1,  '',     'english name'],
                     COUNTRY_ALPHA_ID        => [static::TYPE_STRING,    2,  1,  0,   'iso 2 letters code'],                         
