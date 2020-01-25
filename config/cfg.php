@@ -21,10 +21,10 @@ class Config extends \Core\Model\Singleton {
     public $imgLibURL;
     public $modules;
     
-    protected $layoutDir;
-    protected $modelDir;
-    protected $libDir;
-            
+    protected string $layoutDir;
+    protected string $modelDir;
+    protected string $libDir;
+    protected string $dataTablesDir;
     
     public static function instance() : Config {
         return static::getInstance();
@@ -54,6 +54,7 @@ class Config extends \Core\Model\Singleton {
         $this->libDir = $this->baseDir . '/core/lib/';
         $this->modelDir = $this->baseDir . "/core/model/";
         $this->layoutDir = $this->baseDir . "/core/layout/";
+        $this->dataTablesDir = $this->baseDir . '/core/data/tables/';
     }
     
     
@@ -97,6 +98,12 @@ class Config extends \Core\Model\Singleton {
     
     public function incModelFile(string $file) : Config {
         include_once $this->modelDir . $file . '.php';
+        return $this;
+    }
+    
+    
+    public function incDataTableFile(string $file) : Config {
+        include_once $this->dataTablesDir . $file . '.php';
         return $this;
     }
     

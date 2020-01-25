@@ -1,5 +1,7 @@
 <?php
 
+include_once dirname(__DIR__).'/Schema.php';
+
 class TableImpl {
     protected string $ns;
     protected string $set;

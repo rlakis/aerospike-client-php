@@ -13,7 +13,7 @@ const USER_DEVICE_BAN_TRANSACTIONS  = 'ban_tran';
 
 trait DeviceTrait {
     abstract public function getConnection() : \Aerospike;
-    abstract public function genId(string $generator, &$sequence) : int;
+    abstract public function genId(string $generator, int &$sequence) : int;
     abstract public function getBins($pk, array $bins);
     abstract public function getRecord(array $pk, &$record, array $bins=[]);
     abstract public function setBins($pk, array $bins);
@@ -142,7 +142,7 @@ trait DeviceTrait {
     public function getUserDevices(int $uid, bool $any=FALSE) : array {
         $matches = [];
         $where = \Aerospike::predicateEquals(USER_UID, $uid);
-        $this->getConnection()->query(NS_USER, TS_DEVICE, $where,  
+        $this->getConnection()->query(\Core\Model\NoSQL::NS_USER, TS_DEVICE, $where,  
                 function ($record) use (&$matches, $any) {
                     if ($any==FALSE) {
                         $deleted = $record['bins'][USER_DEVICE_UNINSTALLED] ?? 0;

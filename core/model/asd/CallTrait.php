@@ -11,7 +11,7 @@ const TS_VALIDATION_REQUEST = 'requests';
 trait CallTrait
 {
     abstract public function getConnection() : \Aerospike;
-    abstract public function genId(string $generator, &$sequence) : int;
+    abstract public function genId(string $generator, int &$sequence) : int;
     abstract public function getBins($pk, array $bins);
     abstract public function setBins($pk, array $bins);
     abstract public function exists($pk) : int;

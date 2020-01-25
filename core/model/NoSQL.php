@@ -2,11 +2,17 @@
 namespace Core\Model;
 
 include_once 'Singleton.php';
-require_once 'asd/UserTrait.php';
-require_once 'asd/MobileTrait.php';
-require_once 'asd/DeviceTrait.php';
-require_once 'asd/BlackListTrait.php';
-require_once 'asd/CallTrait.php';
+include_once dirname(__DIR__) .'/data/Schema.php';
+include_once 'asd/UserTrait.php';
+include_once 'asd/MobileTrait.php';
+include_once 'asd/DeviceTrait.php';
+include_once 'asd/BlackListTrait.php';
+include_once 'asd/CallTrait.php';
+
+include_once 'asd/CountryTrait.php';
+
+
+
 
 class NoSQL extends Singleton {
     use \Core\Model\ASD\UserTrait;    
@@ -14,6 +20,8 @@ class NoSQL extends Singleton {
     use \Core\Model\ASD\DeviceTrait;
     use \Core\Model\ASD\BlackListTrait;
     use \Core\Model\ASD\CallTrait;
+    const NS_USER               = 'users';
+    const NS_EDIGEAR            = 'edigear';
     
     const ERR_INVALID_HOST              = \Aerospike::ERR_INVALID_HOST;
     const ERR_PARAM                     = \Aerospike::ERR_PARAM;
@@ -75,20 +83,18 @@ class NoSQL extends Singleton {
     const ROLE_ALREADY_EXISTS           = \Aerospike::ERR_ROLE_ALREADY_EXISTS;
     const ERR_GEO_INVALID_GEOJSON       = \Aerospike::ERR_GEO_INVALID_GEOJSON;
         
-    private $cluster;
-    private $configuration = ["hosts" => [["addr"=>"138.201.28.229", "port"=>3000], ["addr"=>"88.99.164.79", "port"=>3000]]];
-    private $options = [
-                \Aerospike::OPT_POLICY_KEY => \Aerospike::POLICY_KEY_SEND, 
-                \Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE, 
+    private \Aerospike $cluster;
+    private array $configuration = ["hosts" => [["addr"=>"88.198.67.89", "port"=>3000], ["addr"=>"138.201.28.229", "port"=>3000], ["addr"=>"88.99.164.79", "port"=>3000]]];
+    private array $options = [
+                \Aerospike::OPT_POLICY_KEY      => \Aerospike::POLICY_KEY_SEND, 
+                \Aerospike::OPT_POLICY_EXISTS   => \Aerospike::POLICY_EXISTS_IGNORE, 
+                \Aerospike::OPT_MAX_RETRIES     => 2
                 ];
     
+    protected \Core\Data\Schema $schema;
     protected function __construct() {
-        if (version_compare(phpversion("aerospike"), '7.2.0') >= 0) { 
-            $this->options[\Aerospike::OPT_MAX_RETRIES]=2;
-            $this->options[\Aerospike::OPT_POLICY_EXISTS]=\Aerospike::POLICY_EXISTS_IGNORE;
-            unset($this->options[\Aerospike::OPT_POLICY_RETRY]);
-        }
         $this->cluster = new \Aerospike($this->configuration, TRUE, $this->options);
+        $this->schema = \Core\Data\Schema::instance();
     }
 
 
@@ -125,13 +131,13 @@ class NoSQL extends Singleton {
     }
     
     
-    public function genId(string $generator, &$sequence) : int {
+    public function genId(string $generator, int &$sequence) : int {
         $sequence = 0;
         $record = [];
-        $key = $this->getConnection()->initKey(ASD\NS_USER, "generators", $generator);
+        $key = $this->getConnection()->initKey(NoSQL::NS_USER, "generators", $generator);
         $operations = [
-            ["op" => \Aerospike::OPERATOR_INCR, "bin" => "sequence", "val" => 1],
-            ["op" => \Aerospike::OPERATOR_READ, "bin" => "sequence"],
+            ['op' => \Aerospike::OPERATOR_INCR, 'bin' => 'sequence', 'val' => 1],
+            ['op' => \Aerospike::OPERATOR_READ, 'bin' => 'sequence'],
         ];
         
         $status = $this->getConnection()->operate($key, $operations, $record);
@@ -235,6 +241,16 @@ class NoSQL extends Singleton {
         }
     }
     
+    
+    protected function beforeInsert(string $table, array &$bins, array &$errors) : bool {
+        $errors=[];
+        return empty($errors);
+    }
+    
+    
+    protected function beforeUpdate() {
+        
+    }
     
     public static function Log($message) {
         $dbt = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 0);

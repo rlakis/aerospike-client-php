@@ -316,7 +316,7 @@ class Admin extends Page {
                 $where = \Aerospike::predicateEquals("reference", $_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER]);
                 $rtpRequests=[];
                 $status = \Core\Model\NoSQL::instance()->getConnection()->query(
-                        Core\Model\ASD\NS_EDIGEAR, 
+                        Core\Model\NoSQL::NS_EDIGEAR, 
                         "rtp", 
                         $where, 
                         function ($_record) use (&$rtpRequests) {

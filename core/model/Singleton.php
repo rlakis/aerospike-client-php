@@ -1,5 +1,6 @@
 <?php
 namespace Core\Model;
+
 abstract class Singleton {
     private static $instances = [];
     

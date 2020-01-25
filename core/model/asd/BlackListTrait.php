@@ -8,14 +8,14 @@ const BLACK_LIST_REASON     = 'reason';
 
 trait BlackListTrait {
     abstract public function getConnection() : \Aerospike;
-    abstract public function genId(string $generator, &$sequence) : int;
+    abstract public function genId(string $generator, int &$sequence) : int;
     abstract public function getBins($pk, array $bins);
     abstract public function getRecord(array $pk, &$record, array $bins=[]);
     abstract public function setBins($pk, array $bins);
     abstract public function exists($pk) : int;
     
     private function asKey(string $contact) {
-        return $this->getConnection()->initKey(NS_USER, TS_BLACKLIST, $contact);
+        return $this->getConnection()->initKey(\Core\Model\NoSQL::NS_USER, TS_BLACKLIST, $contact);
     }    
     
     

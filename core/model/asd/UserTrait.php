@@ -3,9 +3,6 @@
 namespace Core\Model\ASD;
 
 
-const NS_USER               = 'users';
-const NS_EDIGEAR            = 'edigear';
-const TS_USER               = 'profiles';
 const TS_PROFILE            = 'profile';
 
 const SET_RECORD_ID         = 'id';
@@ -90,7 +87,7 @@ const USER_PROVIDER_IPHONE          = 'mourjan-iphone';
 trait UserTrait {
 
     abstract public function getConnection() : \Aerospike;
-    abstract public function genId(string $generator, &$sequence) : int;
+    abstract public function genId(string $generator, int &$sequence) : int;
     abstract public function getBins($pk, array $bins);
     abstract public function setBins($pk, array $bins);
     abstract public function exists($pk) : int;
@@ -117,13 +114,9 @@ trait UserTrait {
 
         $now = time();
         $options = [\Aerospike::OPT_POLICY_KEY => \Aerospike::POLICY_KEY_DIGEST,
-                    \Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE,
+                    \Aerospike::OPT_MAX_RETRIES => 1,
                     \Aerospike::OPT_POLICY_EXISTS => \Aerospike::POLICY_EXISTS_CREATE];
-        
-        if (version_compare(phpversion("aerospike"), '7.2.0') >= 0) {
-            unset($options[\Aerospike::OPT_POLICY_RETRY]);
-            $options[\Aerospike::OPT_MAX_RETRIES]=1;            
-        }
+                
         
         $status=$this->genId('profile_id', $uid);
         if ($status==\Aerospike::OK) {        
@@ -271,7 +264,7 @@ trait UserTrait {
     
     public function getProfileBasicRecord(int $uid, &$record, $bins=[]) : int {
         $where = \Aerospike::predicateEquals(USER_PROFILE_ID, $uid);
-        $status = $this->getConnection()->query(NS_USER, TS_PROFILE, $where, function ($_record) use (&$record) {$record=$_record;}, $bins);
+        $status = $this->getConnection()->query(\Core\Model\NoSQL::NS_USER, TS_PROFILE, $where, function ($_record) use (&$record) {$record=$_record;}, $bins);
         if ($status!==\Aerospike::OK) { \Core\Model\NoSQL::Log(['UID'=>$uid, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]); }
         if (empty($record)) { error_log(__FUNCTION__." {$uid} not queried!"); }
         return $status;

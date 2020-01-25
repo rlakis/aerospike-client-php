@@ -7,7 +7,7 @@ const TS_MOBILE = 'mobiles';
 
 trait MobileTrait {
     abstract public function getConnection() : \Aerospike;
-    abstract public function genId(string $generator, &$sequence) : int;
+    abstract public function genId(string $generator, int &$sequence) : int;
     abstract public function getBins($pk, array $bins);
     abstract public function setBins($pk, array $bins);
     abstract public function exists($pk) : int;
@@ -32,7 +32,7 @@ trait MobileTrait {
         $matches=[];
         $keys=[];
         $where = \Aerospike::predicateEquals(USER_UID, $uid);
-        $status = $this->getConnection()->query(NS_USER, TS_MOBILE, $where,
+        $status = $this->getConnection()->query(\Core\Model\NoSQL::NS_USER, TS_MOBILE, $where,
                 function ($record) use (&$matches, &$keys, $order_by_req) {
                     if (!isset($record['bins'][$order_by_req ? USER_MOBILE_DATE_REQUESTED : USER_MOBILE_DATE_ACTIVATED]))
                     {

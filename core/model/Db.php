@@ -62,10 +62,10 @@ class DB {
         $this->ql=new SphinxQL(\Config::instance()->get('sphinxql'), \Config::instance()->get('search_index')); 
         
         $conf = new \RdKafka\Conf();
-        $conf->set('log_level', LOG_DEBUG);
-        $conf->set('debug', 'all');
-        $this->kafkaProducer = new \RdKafka\Producer($conf);
-        $this->kafkaProducer->addBrokers("a1.mourjan.com:9092,www.edigear.com:9092");
+        $conf->set('log_level', LOG_ERR);
+        $conf->set('debug', 'generic');
+        //$this->kafkaProducer = new \RdKafka\Producer($conf);
+        //$this->kafkaProducer->addBrokers("a1.mourjan.com:9092,www.edigear.com:9092");
     }
 
 
