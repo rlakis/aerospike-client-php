@@ -2,6 +2,11 @@
 namespace Core\Data;
 
 include_once dirname(__DIR__) . '/model/Singleton.php';
+include_once 'BinField.php';
+include_once 'TableMetadata.php';
+
+const NS_MOURJAN            = 'mourjan';
+const TS_COUNTRY            = 'country';
 
 const GENERIC_ID            = 'id';
 const GENERIC_NAME_AR       = 'name_ar';
@@ -30,6 +35,7 @@ class Schema extends \Core\Model\Singleton {
     
     protected array $tables;
     
+    public TableMetadata $countryMeta;
     
     public static function instance() : Schema {
         return static::getInstance();
@@ -38,27 +44,54 @@ class Schema extends \Core\Model\Singleton {
     
     protected function __construct() {
         parent::__construct();
+        $this->countryMeta=TableMetadata::create(NS_MOURJAN, TS_COUNTRY)->setPrimaryKey([GENERIC_ID])->setUniqueKey([COUNTRY_ALPHA_ID])
+                ->addField(BinField::create(GENERIC_ID)->setDescription('Country id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(1))
+                ->addField(BinField::create(GENERIC_NAME_AR)->setDescription('Arabic name')->setDataType(static::TYPE_STRING)->setLength(50)->setRequired(true))
+                ->addField(BinField::create(GENERIC_NAME_EN)->setDescription('English name')->setDataType(static::TYPE_STRING)->setLength(50)->setRequired(true))
+                ->addField(BinField::create(COUNTRY_ALPHA_ID)->setDescription('iso 2 letters code')->setDataType(static::TYPE_STRING)->setLength(2)->setMinStringLength(2)->setRequired(true)->setToUpperCase(true))
+                ->addField(BinField::create(GENERIC_LATITUDE)->setDescription('geo latitude')->setDataType(static::TYPE_DOUBLE)->setRequired(true))
+                ->addField(BinField::create(GENERIC_LONGITUDE)->setDescription('geo latitude')->setDataType(static::TYPE_DOUBLE)->setRequired(true))
+                ->addField(BinField::create(GENERIC_CURRENCY)->setDescription('iso currency 3 letters code')->setDataType(static::TYPE_STRING)->setLength(3)->setMinStringLength(3)->setRequired(true)->setToUpperCase(true))
+                ->addField(BinField::create(COUNTRY_CODE)->setDescription('Country iso digits code')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(1))
+                ->addField(BinField::create(GENERIC_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(1))
+                ->addField(BinField::create(GENERIC_READONLY)->setDescription('allow changes or not')->setDataType(static::TYPE_BOOLEAN)->setRequired(true))
+                ->addField(BinField::create(GENERIC_LUT)->setDescription('last update unixtime')->setDataType(static::TYPE_LONG)->setRequired(true));
+        
+        
+        
         $this->tables = [
             'country' => [
                 'ns'    => 'mourjan',
                 'bins'  => [
-                    GENERIC_ID              => [static::TYPE_INTEGER,   4,  1,  0,   'country id'],
-                    GENERIC_NAME_AR         => [static::TYPE_STRING,    50, 1,  '',     'arabic name'],
-                    GENERIC_NAME_EN         => [static::TYPE_STRING,    50, 1,  '',     'english name'],
-                    COUNTRY_ALPHA_ID        => [static::TYPE_STRING,    2,  1,  0,   'iso 2 letters code'],                         
-                    GENERIC_BLOCKED         => [static::TYPE_BOOLEAN,   1,  1,  1,      'not active for publishing and listing'],
-                    GENERIC_LATITUDE        => [static::TYPE_DOUBLE,    8,  1,  0,      'geo latitude'],
-                    GENERIC_LONGITUDE       => [static::TYPE_DOUBLE,    8,  1,  0,      'geo longitude'],
-                    COUNTRY_CODE            => [static::TYPE_INTEGER,   4,  1,  0,      'iso digits code'],
-                    GENERIC_CURRENCY        => [static::TYPE_STRING,    3,  1,  0,   'iso currency 3 letters code'],
-                    GENERIC_READONLY        => [static::TYPE_BOOLEAN,   1,  1,  0,      'allow changes or not'],
-                    GENERIC_LUT             => [static::TYPE_LONG,      8,  1,  0,      'last update unixtime']
+                    GENERIC_ID              => BinField::create(GENERIC_ID)->setDescription('Country id')->setDataType(static::TYPE_INTEGER)
+                                                ->setRequired(true)->setMinIntValue(1),
+                    GENERIC_NAME_AR         => BinField::create(GENERIC_NAME_AR)->setDescription('Arabic name')->setDataType(static::TYPE_STRING)
+                                                ->setLength(50)->setRequired(true),
+                    GENERIC_NAME_EN         => BinField::create(GENERIC_NAME_EN)->setDescription('English name')->setDataType(static::TYPE_STRING)
+                                                ->setLength(50)->setRequired(true),
+                    COUNTRY_ALPHA_ID        => BinField::create(COUNTRY_ALPHA_ID)->setDescription('iso 2 letters code')->setDataType(static::TYPE_STRING)
+                                                ->setLength(2)->setMinStringLength(2)->setRequired(true)->setToUpperCase(true),
+                    GENERIC_BLOCKED         => BinField::create(GENERIC_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)
+                                                ->setRequired(true)->setDefaultInt(1),
+                    GENERIC_LATITUDE        => BinField::create(GENERIC_LATITUDE)->setDescription('geo latitude')->setDataType(static::TYPE_DOUBLE)
+                                                ->setRequired(true),
+                    GENERIC_LONGITUDE       => BinField::create(GENERIC_LONGITUDE)->setDescription('geo latitude')->setDataType(static::TYPE_DOUBLE)
+                                                ->setRequired(true),
+                    COUNTRY_CODE            => BinField::create(COUNTRY_CODE)->setDescription('Country iso digits code')->setDataType(static::TYPE_INTEGER)
+                                                ->setRequired(true)->setMinIntValue(1),
+                    GENERIC_CURRENCY        => BinField::create(GENERIC_CURRENCY)->setDescription('iso currency 3 letters code')->setDataType(static::TYPE_STRING)
+                                                ->setLength(3)->setMinStringLength(3)->setRequired(true)->setToUpperCase(true),
+                    GENERIC_READONLY        => BinField::create(GENERIC_READONLY)->setDescription('allow changes or not')->setDataType(static::TYPE_BOOLEAN)
+                                                ->setRequired(true),
+                    GENERIC_LUT             => BinField::create(GENERIC_LUT)->setDescription('last update unixtime')->setDataType(static::TYPE_LONG)
+                                                ->setRequired(true)
                 ],
                 'pk'=>['id'],
                 'uk'=>['id_2'],
                 'autogen'=>'country_id',
                             
-                'prepare'=>function(array &$bins, array $errors) {            
+                'prepare'=>function(array &$bins, array $errors) {
+            
                     if ($this->validConstraints('country', $bins, $errors)) {
                         if (isset($bins[COUNTRY_ALPHA_ID])) {
                             $bins[COUNTRY_ALPHA_ID]=\strtoupper(\trim($bins[COUNTRY_ALPHA_ID]));
@@ -89,6 +122,11 @@ class Schema extends \Core\Model\Singleton {
     
     public function metadata() : array {
         return $this->tables;
+    }
+    
+    
+    public function fieldMetadata(string $table, string $name) : BinField {
+        return $this->tables[$table]['bins'][$name];
     }
     
     

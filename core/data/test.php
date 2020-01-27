@@ -13,4 +13,15 @@ $schema = \Core\Data\Schema::instance();
 $db=new \Core\Model\DB();
 $rs=$db->get('select * from country');
 //echo \json_encode($rs, JSON_PRETTY_PRINT);
-echo $schema->metadata()['country']['bins']['id_2']['before']('lb');
+foreach ($rs as $data) {    
+    $bins=[];
+    foreach ($data as $name=>$value) {
+        $bins[strtolower($name)]=$value;
+    }
+    if (!$schema->countryMeta->prepare($bins)) {
+        echo \json_encode ($bins), "\n", $schema->countryMeta->lastError, "\n";
+    }
+    else {
+        //echo \json_encode ($bins), "\n";
+    }
+}

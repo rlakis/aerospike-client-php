@@ -14,7 +14,7 @@ trait MobileTrait {
     
         
     public function initMobileKey($uid, $number) {
-        return $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
+        return $this->getConnection()->initKey(\Core\Model\NoSQL::NS_USER, TS_MOBILE, $uid.'-'.$number);
     }
     
 
@@ -63,7 +63,7 @@ trait MobileTrait {
     public function mobileFetchByRequestID(string $requestId) {
         $matches=[];
         $where = \Aerospike::predicateEquals(USER_MOBILE_REQUEST_ID, $requestId);
-        $status = $this->getConnection()->query(NS_USER, TS_MOBILE, $where,
+        $status = $this->getConnection()->query(\Core\Model\NoSQL::NS_USER, TS_MOBILE, $where,
                 function ($record) use (&$matches) {                   
                     $matches[] = $record['bins'];
                 });
@@ -81,7 +81,7 @@ trait MobileTrait {
         $matches=[];
         $keys=[];
         $where = \Aerospike::predicateEquals(USER_MOBILE_NUMBER, $number);
-        $status = $this->getConnection()->query(NS_USER, TS_MOBILE, $where, 
+        $status = $this->getConnection()->query(\Core\Model\NoSQL::NS_USER, TS_MOBILE, $where, 
                     function ($record) use (&$matches, &$keys) {
                         if (!isset($record['bins'][USER_MOBILE_DATE_ACTIVATED])) {
                             $record['bins'][USER_MOBILE_DATE_ACTIVATED]=0;
@@ -114,7 +114,7 @@ trait MobileTrait {
         
         $where = \Aerospike::predicateEquals($index_field_name, $value);
         
-        $this->getConnection()->query(NS_USER, TS_MOBILE, $where,  
+        $this->getConnection()->query(\Core\Model\NoSQL::NS_USER, TS_MOBILE, $where,  
                 function ($record) use (&$matches, &$out, $filter) {                    
                     $matched=TRUE;
                     if ($filter) {
@@ -154,7 +154,7 @@ trait MobileTrait {
         //$sort_by = [            'uid' => ['data'=>[], 'direction' => SORT_ASC, 'type' => SORT_NUMERIC]];
         $sort_keys = array_keys($sort_by);
         
-        $status = $this->getConnection()->scan(NS_USER, TS_MOBILE, function ($record) use (&$result, &$i, &$sort_by, $sort_keys) {
+        $status = $this->getConnection()->scan(\Core\Model\NoSQL::NS_USER, TS_MOBILE, function ($record) use (&$result, &$i, &$sort_by, $sort_keys) {
             
             foreach ($sort_keys as $field_name) {
                 $sort_by[$field_name]['data'][$i] = $record['bins'][$field_name];
@@ -269,7 +269,7 @@ trait MobileTrait {
             }            
         }
         else {
-            $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
+            $pk = $this->getConnection()->initKey(\Core\Model\NoSQL::NS_USER, TS_MOBILE, $uid.'-'.$number);
         }
         
         if ($this->exists($pk)) {
@@ -295,7 +295,7 @@ trait MobileTrait {
             $bins[USER_MOBILE_NUMBER]= intval($bins[USER_MOBILE_NUMBER]);
         }
         
-        $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $bins[USER_UID].'-'.$bins[USER_MOBILE_NUMBER]);
+        $pk = $this->getConnection()->initKey(\Core\Model\NoSQL::NS_USER, TS_MOBILE, $bins[USER_UID].'-'.$bins[USER_MOBILE_NUMBER]);
         
         if (!isset($bins[SET_RECORD_ID])) {
             $mobile_id=0;
@@ -327,7 +327,7 @@ trait MobileTrait {
     
     
     public function mobileCopyRecord(int $uid, int $number, int $toUID) : bool {
-        $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
+        $pk = $this->getConnection()->initKey(\Core\Model\NoSQL::NS_USER, TS_MOBILE, $uid.'-'.$number);
         if ($this->exists($pk)) {
             $record = $this->getBins($pk);
             if ($record) {
@@ -336,7 +336,7 @@ trait MobileTrait {
                 $record[SET_RECORD_ID] = $mobile_id;
                 $record[USER_UID] = $toUID;
                 
-                $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $toUID.'-'.$number);
+                $pk = $this->getConnection()->initKey(\Core\Model\NoSQL::NS_USER, TS_MOBILE, $toUID.'-'.$number);
                 return $this->setBins($pk, $record);
             }                
         }
@@ -383,7 +383,7 @@ trait MobileTrait {
 
 
     public function mobileIncrSMS(int $uid, int $number) : bool {
-        $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
+        $pk = $this->getConnection()->initKey(\Core\Model\NoSQL::NS_USER, TS_MOBILE, $uid.'-'.$number);
         if ($this->exists($pk)) {
             if ($this->getConnection()->increment($pk, USER_MOBILE_SENT_SMS_COUNT, 1, [\Aerospike::OPT_POLICY_KEY=>\Aerospike::POLICY_EXISTS_UPDATE])==\Aerospike::OK) {
                 return TRUE;
@@ -414,7 +414,7 @@ trait MobileTrait {
     public function mobileSetSecret(int $uid, string $secret) : bool {
         $success = FALSE;
         $where = \Aerospike::predicateEquals(USER_UID, $uid);
-        $this->getConnection()->query(NS_USER, TS_MOBILE, $where,  
+        $this->getConnection()->query(\Core\Model\NoSQL::NS_USER, TS_MOBILE, $where,  
                 function ($record) use (&$success, $secret) {
                     $success = $this->setBins($record['key'], [USER_MOBILE_SECRET => $secret]);                
                 }, [SET_RECORD_ID]);
@@ -423,7 +423,7 @@ trait MobileTrait {
     
     
     public function mobileUpdate(int $uid, int $number, array $bins) : bool {
-        $pk = $this->getConnection()->initKey(NS_USER, TS_MOBILE, $uid.'-'.$number);
+        $pk = $this->getConnection()->initKey(\Core\Model\NoSQL::NS_USER, TS_MOBILE, $uid.'-'.$number);
         return $this->setBins($pk, $bins);
     }
     
@@ -445,7 +445,7 @@ trait MobileTrait {
     public function mobileVerfiedRelatedNumber(int $number, &$record) : int {
         $time = time() - (1 * 8760 * 3600); // one year ago
         $where = \Aerospike::predicateEquals("reference", $number);
-        $status = $this->getConnection()->query(NS_EDIGEAR, "rtp", $where, 
+        $status = $this->getConnection()->query(\Core\Model\NoSQL::NS_EDIGEAR, "rtp", $where, 
                 function ($_record) use (&$record, &$time) {
                     //error_log(var_export($_record['bins'], true));
                     if (isset($_record['bins']['verified_date']) && $_record['bins']['verified_date']>=$time) {

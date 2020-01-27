@@ -2596,7 +2596,7 @@ class Bin extends AjaxHandler {
                     $ad['profile']=$adUser=$this->user()->getProfile();
                 }
                 else {
-                    $ad['profile']=new MCUser($ad['user']);
+                    $ad['profile']=new \Core\Lib\MCUser($ad['user']);
                 }
                 
                 $error_path = "/var/log/mourjan/editor.log";
@@ -3620,7 +3620,7 @@ class Bin extends AjaxHandler {
                                                                                    
                 if ($rtp>0) {
                     $record = $this->router->db->queryResultArray("select web_user_id, content from ad_user where id={$id}");
-                    $adUser = new MCUser($record[0]['WEB_USER_ID']);
+                    $adUser = new \Core\Lib\MCUser($record[0]['WEB_USER_ID']);
                     if (!$adUser->isMobileVerified()) { $this->error(self::ERR_SYS_UNKNOWN); }
                     
                     $mobile_number = $adUser->getMobileNumber();
@@ -3907,7 +3907,7 @@ class Bin extends AjaxHandler {
                             
                                 //$userData = MCSessionHandler::getUser($this->user->info['id']);
                                 //$mcUser = new MCUser($userData);
-                                $mcUser = new MCUser($this->user->info['id']);
+                                $mcUser = new \Core\Lib\MCUser($this->user->info['id']);
                                 
                                 if($mcUser->isMobileVerified()){
                                     $status = $mcUser->isSuspended() ? 1:0;
@@ -5058,7 +5058,7 @@ class Bin extends AjaxHandler {
                 if (!(\is_int($hours) && $hours>0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
 
                 $reason = isset($this->_JPOST['m']) && $this->_JPOST['m'] ? $this->_JPOST['m'] : 0;
-                $mcUser = new MCUser($id);
+                $mcUser = new \Core\Lib\MCUser($id);
                 if ($mcUser->isMobileVerified()) {
                     $this->check($this->user()->suspend($id, $hours, $mcUser->getMobileNumber(), $reason)===true);
                 }
@@ -5079,7 +5079,7 @@ class Bin extends AjaxHandler {
                 }
                 $msg.=' date:'.date("d.m.y");
                 
-                $mcUser = new MCUser($id);
+                $mcUser = new \Core\Lib\MCUser($id);
                 if ($mcUser->isMobileVerified()) {
                     $this->check(($this->user()->block($id, $mcUser->getMobileNumber(), $msg)===1));
                 }
