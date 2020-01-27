@@ -10,6 +10,7 @@ class BinField {
     protected bool $required;
     protected bool $nullable;
     protected bool $toUpper;
+    protected bool $toLower;
     protected string $description;
     
     private int $defaultInt;
@@ -113,7 +114,7 @@ class BinField {
     }
 
     
-    public function setValidFloadRange(float $min, float $max) : BinField {
+    public function setValidFloatRange(float $min, float $max) : BinField {
         $this->minDoubleValue=$min;
         $this->maxDoubleValue=$max;
         return $this;
@@ -125,10 +126,18 @@ class BinField {
         return $this;
     }
     
+    
     public function setToUpperCase(bool $value) : BinField {
         $this->toUpper=$value;
         return $this;
     }
+    
+    
+    public function setToLowerCase(bool $value) : BinField {
+        $this->toLower=$value;
+        return $this;
+    }
+    
     
     public function setDescription(string $desc) : BinField {
         $this->description=$desc;
@@ -140,7 +149,43 @@ class BinField {
         return $this->name;
     }
 
+    
+    public function defaultIntValue() : int {
+        return $this->defaultInt;
+    }
+    
+    
+    public function defaultStrValue() : string {
+        return $this->defaultString;
+    }
+    
+    
+    public function defaultDoubleValue() : string {
+        return $this->defaultDouble;
+    }
+    
+    
+    public function isRequired() : bool {
+        return $this->required;
+    }
+    
+    
+    public function isNumeric() : bool {
+        return $this->dataType===Schema::TYPE_INTEGER||Schema::TYPE_LONG||Schema::TYPE_BOOLEAN||Schema::TYPE_DOUBLE;
+    }
 
+    
+    public function isDouble() : bool {
+        return $this->dataType===Schema::TYPE_DOUBLE;
+    }
+    
+    
+    public function isString() : bool {
+        return $this->dataType===Schema::TYPE_STRING;
+    }
+    
+    
+    
     public function prepare(&$value) : bool {
         $this->lastError='';
         switch ($this->dataType) {
@@ -209,7 +254,13 @@ class BinField {
                     $this->lastError='Not a valid string length, given ' . $len . ' min required ' . $this->minStringLength . ' for '.$this->name;
                     return false;                    
                 }
+                if ($len>$this->length) {
+                    $this->lastError='Not a valid string length, given ' . $len . ' max required ' . $this->length . ' for '.$this->name;
+                    return false;                    
+                }
+                
                 if ($this->toUpper) { $value=\strtoupper($value); }
+                if ($this->toLower) { $value= \strtolower($value); }
                 return true;                
         }
         $this->lastError='Undefined data type for bin '.$this->name;

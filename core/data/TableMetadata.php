@@ -47,6 +47,16 @@ class TableMetadata {
     }
     
     
+    public function namespace() : string {
+        return $this->ns;
+    }
+    
+    
+    public function name() : string {
+        return $this->name;
+    }
+    
+    
     public function prepare(array &$data) : bool {
         $this->lastError='';
         //var_dump($this->bins);
@@ -55,11 +65,45 @@ class TableMetadata {
                 $this->lastError=$k . ' field does not exists!';
                 return false;
             }
-            if (!$this->bins[$k]->prepare($data[$k])) {
+            //$value=$data[$k];
+            if (!$this->bins[$k]->prepare( $v )) {
                 $this->lastError=$this->bins[$k]->lastError;
                 return false;
             }
+            $data[$k]=$v;
         }
         return true;
     }
+    
+    
+    public function beforeInsert(array &$data) : bool {
+        $this->lastError='';
+        foreach ($this->bins as $field) {           
+            if ($field->isRequired() && !isset($data[$field->name()])) {
+                if ($field->isString()) {
+                    $data[$field->name()]=$field->defaultStrValue();
+                }
+                else if ($field->isNumeric()) {
+                    $data[$field->name()]=$field->isDouble()?$field->defaultDoubleValue():$field->defaultIntValue();                    
+                }
+                else {
+                    $this->lastError=$field->name() . ' data type is not defined!';
+                    return false;
+                }
+            }            
+        }
+        return true;
+    }
+    
+    /*
+    public function intPrimaryKey() : int {
+        
+    }
+    
+    
+    public function strPrimaryKey() : string {
+        
+    }
+     * 
+     */
 }

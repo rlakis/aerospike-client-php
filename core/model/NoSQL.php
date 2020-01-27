@@ -20,7 +20,11 @@ class NoSQL extends Singleton {
     use \Core\Model\ASD\DeviceTrait;
     use \Core\Model\ASD\BlackListTrait;
     use \Core\Model\ASD\CallTrait;
+    
+    use \Core\Model\ASD\CountryTrait;
+    
     const NS_USER               = 'users';
+    const NS_MOURJAN            = 'mourjan';
     const NS_EDIGEAR            = 'edigear';
     
     const ERR_INVALID_HOST              = \Aerospike::ERR_INVALID_HOST;
@@ -210,6 +214,28 @@ class NoSQL extends Singleton {
         return TRUE;
     }
     
+
+    public function write(array $pk, array $bins, int $ttl=0, array $options=[]) : int {        
+        if (isset($pk['digest']) && !empty($pk['digest']) && !isset($pk['pk'])) {
+            $pk = $this->getConnection()->initKey($pk['ns'], $pk['set'], $pk['digest'], true);          
+        }
+        if (!empty($options)) {
+            $status = $this->getConnection()->put($pk, $bins, $ttl, $options);
+        }
+        else if ($ttl>0) {
+            $status = $this->getConnection()->put($pk, $bins, $ttl);
+        }
+        else {
+            $status = $this->getConnection()->put($pk, $bins);
+        }
+        
+        if ($status !== \Aerospike::OK) {
+            $this->logError(__CLASS__ .'->'. __FUNCTION__, $pk, $bins);            
+        }
+        return $status;
+    }
+
+
     
     public function exists($pk) : int {
         $metadata = null;

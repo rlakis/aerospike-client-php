@@ -68,12 +68,8 @@ trait DeviceTrait {
         }
         
         $pk = $this->initDeviceKey($uuid);
-        $options = [\Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE,
+        $options = [\Aerospike::OPT_MAX_RETRIES => 1,
                     \Aerospike::OPT_POLICY_EXISTS => \Aerospike::POLICY_EXISTS_UPDATE];
-        if (version_compare(phpversion("aerospike"), '7.2.0') >= 0) { 
-            $options[\Aerospike::OPT_MAX_RETRIES]=1;
-            unset($options[\Aerospike::OPT_POLICY_RETRY]);
-        }
         $status = $this->getConnection()->put($pk, $bins, 0, $options);
         if ($status !== \Aerospike::OK) {
             \Core\Model\NoSQL::Log(['key'=>$pk['key'], 'bins'=>$bins, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
