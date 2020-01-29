@@ -72,7 +72,7 @@ class Schema extends \Core\Model\Singleton {
                 ->addField(BinField::create(static::GENERIC_ID)->setDescription('Country id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(1))
                 ->addField(BinField::create(static::GENERIC_NAME_AR)->setDescription('Arabic name')->setDataType(static::TYPE_STRING)->setLength(50)->setRequired(true))
                 ->addField(BinField::create(static::GENERIC_NAME_EN)->setDescription('English name')->setDataType(static::TYPE_STRING)->setLength(50)->setRequired(true))
-                ->addField(BinField::create(static::GENERIC_PATH)->setDescription('url path')->setDataType(static::TYPE_STRING)->setLength(24)->setMinStringLength(2)->setRequired(true)->setToLowerCase(true))
+                ->addField(BinField::create(static::GENERIC_PATH)->setDescription('url path')->setDataType(static::TYPE_STRING)->setLength(32)->setMinStringLength(0)->setRequired(true)->setToLowerCase(true))
                 ->addField(BinField::create(static::CITY_PARENT_ID)->setDescription('parent city id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(0))
                 ->addField(BinField::create(static::GENERIC_COUNTRY)->setDescription('Country id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(1))
                 ->addField(BinField::create(static::GENERIC_LATITUDE)->setDescription('geo latitude')->setDataType(static::TYPE_DOUBLE)->setRequired(true))

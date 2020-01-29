@@ -17,7 +17,7 @@ $schema = \Core\Data\Schema::instance();
 //echo \json_encode($schema->metadata(), JSON_PRETTY_PRINT);
 
 $db=new \Core\Model\DB();
-
+/*
 $rs=$db->get('select * from country');
 $i=0;
 foreach ($rs as $data) {    
@@ -33,9 +33,10 @@ foreach ($rs as $data) {
     }    
     $i++;
 }
+*/
+cities($db);
 
-
-function countries(\Core\Model\DB $db) {
+function countries(\Core\Model\DB $db) : void {
     global $schema;
     $rs=$db->get('select * from country');
     foreach ($rs as $data) {    
@@ -45,4 +46,22 @@ function countries(\Core\Model\DB $db) {
             die($schema->countryMeta->lastError);
         }
     }    
+}
+
+
+function cities(Core\Model\DB $db) : void {
+    global $schema;
+    $rs=$db->get("SELECT r.ID, n.NAME name_ar, r.NAME name_en, r.URI, r.PARENT_ID, r.COUNTRY_ID, r.LATITUDE, r.LONGITUDE, r.LOC_AR_ID, r.LOC_EN_ID, r.BLOCKED, r.UNIXTIME 
+                FROM F_CITY r
+                left join NLANG n on n.ID=r.ID  and n.LANG='ar'");
+    foreach ($rs as $data) {    
+        $bins=[];
+        foreach ($data as $name=>$value) { $bins[strtolower($name)]=$value; }
+        if (\Core\Model\NoSQL::instance()->addCity($bins)!==\Aerospike::OK) {
+            
+            die($schema->cityMeta->lastError);
+        }
+    } 
+    
+    
 }

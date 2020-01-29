@@ -10,8 +10,7 @@ include_once 'asd/BlackListTrait.php';
 include_once 'asd/CallTrait.php';
 
 include_once 'asd/CountryTrait.php';
-
-
+include_once 'asd/CityTrait.php';
 
 
 class NoSQL extends Singleton {
@@ -22,6 +21,7 @@ class NoSQL extends Singleton {
     use \Core\Model\ASD\CallTrait;
     
     use \Core\Model\ASD\CountryTrait;
+    use \Core\Model\ASD\CityTrait;
     
     const NS_USER               = 'users';
     const NS_MOURJAN            = 'mourjan';

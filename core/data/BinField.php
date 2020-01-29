@@ -33,6 +33,7 @@ class BinField {
         $this->nullable=false;
         $this->required=false;
         $this->toUpper=false;
+        $this->toLower=false;
         $this->defaultInt=0;
         $this->defaultDouble=0;
         $this->defaultString='';

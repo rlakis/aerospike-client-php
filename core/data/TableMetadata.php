@@ -25,6 +25,7 @@ class TableMetadata {
         $handle=new TableMetadata();
         $handle->ns=\trim($ns);
         $handle->name=\trim($name);
+        $handle->sequence=$handle->name.'_id';
         return $handle;
     }
            
@@ -47,6 +48,8 @@ class TableMetadata {
     }
     
     
+    
+    
     public function namespace() : string {
         return $this->ns;
     }
@@ -54,6 +57,11 @@ class TableMetadata {
     
     public function name() : string {
         return $this->name;
+    }
+    
+    
+    public function sequenceKey() : string {
+        return $this->sequence;
     }
     
     
