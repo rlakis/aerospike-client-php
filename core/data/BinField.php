@@ -11,6 +11,7 @@ class BinField {
     protected bool $nullable;
     protected bool $toUpper;
     protected bool $toLower;
+    protected bool $forKeyOnly;
     protected string $description;
     
     private int $defaultInt;
@@ -34,6 +35,7 @@ class BinField {
         $this->required=false;
         $this->toUpper=false;
         $this->toLower=false;
+        $this->forKeyOnly=false;
         $this->defaultInt=0;
         $this->defaultDouble=0;
         $this->defaultString='';
@@ -86,6 +88,12 @@ class BinField {
 
     public function setRequired(bool $value) : BinField {
         $this->required=$value;
+        return $this;
+    }
+
+
+    public function setHidden(bool $value) : BinField {
+        $this->forKeyOnly=$value;
         return $this;
     }
 
@@ -168,6 +176,11 @@ class BinField {
     
     public function isRequired() : bool {
         return $this->required;
+    }
+    
+    
+    public function isHidden() : bool {
+        return $this->forKeyOnly;
     }
     
     

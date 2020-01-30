@@ -49,8 +49,7 @@ trait CountryTrait {
                 $status=$this->genId('country_id', $id);
                 if ($status===\Aerospike::OK) {
                     $bins[\Core\Data\Schema::GENERIC_ID]=$id;
-                }
-                
+                }                
             }
             
             if ($id>0) {

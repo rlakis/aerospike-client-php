@@ -8,6 +8,10 @@ include_once 'TableMetadata.php';
 const NS_MOURJAN            = 'mourjan';
 const TS_COUNTRY            = 'country';
 const TS_CITY               = 'city';
+const TS_ROOT               = 'root';
+const TS_SECTION            = 'section';
+const TS_PURPOSE            = 'purpose';
+const TS_URL_PATH           = 'urlpath';
 
 
 class Schema extends \Core\Model\Singleton {
@@ -44,9 +48,22 @@ class Schema extends \Core\Model\Singleton {
     const CITY_AR_LOCALITY_ID   = 'loc_ar_id';
     const CITY_EN_LOCALITY_ID   = 'loc_en_id';
         
+    const ROOT_DIFFER_SECTION_ID= 'differ_section';
+    
+    const BIN_PATH              = 'path';
+    const BIN_ROOT_ID           = 'root_id';
+    const BIN_SECTION_ID        = 'section_id';
+    const BIN_PURPOSE_ID        = 'purpose_id';
+    const BIN_COUNTRY_ID        = 'country_id';
+    const BIN_CITY_ID           = 'city_id';
+    const BIN_MODULE            = 'module';
     
     public TableMetadata $countryMeta;
     public TableMetadata $cityMeta;
+    public TableMetadata $rootMeta;
+    public TableMetadata $sectionMeta;
+    public TableMetadata $purposeMeta;
+    public TableMetadata $urlPathMeta;
     
     public static function instance() : Schema {
         return static::getInstance();
@@ -80,8 +97,45 @@ class Schema extends \Core\Model\Singleton {
                 ->addField(BinField::create(static::CITY_AR_LOCALITY_ID)->setDescription('arabic locality id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(0))
                 ->addField(BinField::create(static::CITY_EN_LOCALITY_ID)->setDescription('english locality id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(0))
                 ->addField(BinField::create(static::GENERIC_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(1))
-                ->addField(BinField::create(static::GENERIC_LUT)->setDescription('last update unixtime')->setDataType(static::TYPE_LONG)->setRequired(true));    
+                ->addField(BinField::create(static::GENERIC_LUT)->setDescription('last update unixtime')->setDataType(static::TYPE_LONG)->setRequired(true));
         
+        $this->rootMeta=TableMetadata::create(NS_MOURJAN, TS_ROOT)->setPrimaryKey([static::GENERIC_ID])
+                ->addField(BinField::create(static::GENERIC_ID)->setDescription('root id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(1))
+                ->addField(BinField::create(static::GENERIC_NAME_AR)->setDescription('Arabic name')->setDataType(static::TYPE_STRING)->setLength(50)->setRequired(true))
+                ->addField(BinField::create(static::GENERIC_NAME_EN)->setDescription('English name')->setDataType(static::TYPE_STRING)->setLength(50)->setRequired(true))
+                ->addField(BinField::create(static::GENERIC_PATH)->setDescription('url path')->setDataType(static::TYPE_STRING)->setLength(32)->setMinStringLength(0)->setRequired(true)->setToLowerCase(true))
+                ->addField(BinField::create(static::ROOT_DIFFER_SECTION_ID)->setDescription('differ section id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(0))
+                ->addField(BinField::create(static::GENERIC_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(0))
+                ->addField(BinField::create(static::GENERIC_LUT)->setDescription('last update unixtime')->setDataType(static::TYPE_LONG)->setRequired(true));        
+
+        $this->sectionMeta=TableMetadata::create(NS_MOURJAN, TS_SECTION)->setPrimaryKey([static::GENERIC_ID])
+                ->addField(BinField::create(static::GENERIC_ID)->setDescription('Section id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(1))
+                ->addField(BinField::create(static::GENERIC_NAME_AR)->setDescription('Arabic name')->setDataType(static::TYPE_STRING)->setLength(50)->setRequired(true))
+                ->addField(BinField::create(static::GENERIC_NAME_EN)->setDescription('English name')->setDataType(static::TYPE_STRING)->setLength(50)->setRequired(true))
+                ->addField(BinField::create(static::GENERIC_PATH)->setDescription('url path')->setDataType(static::TYPE_STRING)->setLength(32)->setMinStringLength(0)->setRequired(true)->setToLowerCase(true))
+                ->addField(BinField::create(static::BIN_ROOT_ID)->setDescription('Root id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(1))
+                ->addField(BinField::create(static::GENERIC_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(0))
+                ->addField(BinField::create(static::GENERIC_LUT)->setDescription('last update unixtime')->setDataType(static::TYPE_LONG)->setRequired(true));        
+
+        $this->purposeMeta=TableMetadata::create(NS_MOURJAN, TS_PURPOSE)->setPrimaryKey([static::GENERIC_ID])
+                ->addField(BinField::create(static::GENERIC_ID)->setDescription('Purpose id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(1))
+                ->addField(BinField::create(static::GENERIC_NAME_AR)->setDescription('Arabic name')->setDataType(static::TYPE_STRING)->setLength(50)->setRequired(true))
+                ->addField(BinField::create(static::GENERIC_NAME_EN)->setDescription('English name')->setDataType(static::TYPE_STRING)->setLength(50)->setRequired(true))
+                ->addField(BinField::create(static::GENERIC_PATH)->setDescription('url path')->setDataType(static::TYPE_STRING)->setLength(32)->setMinStringLength(0)->setRequired(true)->setToLowerCase(true))
+                ->addField(BinField::create(static::GENERIC_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(0))
+                ->addField(BinField::create(static::GENERIC_LUT)->setDescription('last update unixtime')->setDataType(static::TYPE_LONG)->setRequired(true));        
+
+        $this->urlPathMeta=TableMetadata::create(NS_MOURJAN, TS_URL_PATH, false)->setPrimaryKey([static::BIN_PATH])
+                ->addField(BinField::create(static::BIN_PATH)->setDescription('url path')->setDataType(static::TYPE_STRING)->setLength(128)->setRequired(true)->setToLowerCase(true)->setHidden(true))
+                ->addField(BinField::create(static::BIN_COUNTRY_ID)->setDescription('Country id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(0))
+                ->addField(BinField::create(static::BIN_CITY_ID)->setDescription('City id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(0))
+                ->addField(BinField::create(static::BIN_ROOT_ID)->setDescription('Root id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(0))
+                ->addField(BinField::create(static::BIN_SECTION_ID)->setDescription('Section id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(0))
+                ->addField(BinField::create(static::BIN_PURPOSE_ID)->setDescription('Purpose id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(0))                
+                ->addField(BinField::create(static::BIN_MODULE)->setDescription('module name')->setDataType(static::TYPE_STRING)->setLength(24)->setRequired(true)->setToLowerCase(true))
+                ->addField(BinField::create(static::GENERIC_NAME_EN)->setDescription('English title')->setDataType(static::TYPE_STRING)->setLength(128)->setRequired(true))
+                ->addField(BinField::create(static::GENERIC_NAME_AR)->setDescription('Arabic title')->setDataType(static::TYPE_STRING)->setLength(128)->setRequired(true))                
+                ->addField(BinField::create(static::GENERIC_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(0));        
         
     }           
     

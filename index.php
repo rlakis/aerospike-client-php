@@ -10,11 +10,11 @@ Config::instance()->incModelFile('Router')->incModelFile('Db')->incLibFile('MCSe
 use Core\Model\Router;
 
 if (isset($_GET['provider']) && isset($_GET['connect'])) {
-    $connect = strtolower(filter_input(INPUT_GET, 'connect', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
-    $provider = strtolower(filter_input(INPUT_GET, 'provider', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
+    $connect = \strtolower(\filter_input(\INPUT_GET, 'connect', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
+    $provider = \strtolower(\filter_input(\INPUT_GET, 'provider', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
     
-    $uid = filter_input(INPUT_GET, 'uid', FILTER_VALIDATE_INT)+0;
-    $uuid = urldecode(filter_input(INPUT_GET, 'uuid', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
+    $uid = \filter_input(\INPUT_GET, 'uid', \FILTER_VALIDATE_INT)+0;
+    $uuid = \urldecode(\filter_input(\INPUT_GET, 'uuid', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
     
     header("Location: /web/lib/hybridauth/?connect={$connect}&provider={$provider}&uid={$uid}&uuid={$uuid}");
     exit(0);    
@@ -35,9 +35,9 @@ $router->setLogger(new \Core\Lib\Logger('/var/log/mourjan', \Psr\Log\LogLevel::D
 if (!isset($argc)) {
     $router->decode();
     $stop=false;
-    $provider = strtolower(filter_input(INPUT_GET, 'provider', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
+    $provider = \strtolower(filter_input(\INPUT_GET, 'provider', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
    
-    if (!$stop && array_key_exists($router->module, $config['modules'])) {
+    if (!$stop && \array_key_exists($router->module, $config['modules'])) {
         $mod_class = $config['modules'][$router->module][0];
         include_once $config['dir'].($router->module==='cache'?'/core/gen/':'/core/layout/').$mod_class.'.php';        
         $object = new $mod_class();    
@@ -51,11 +51,10 @@ if (!isset($argc)) {
     
     $router->close();
     
-    //if (1) return;
-    $contentType = filter_input(INPUT_SERVER, 'CONTENT_TYPE', FILTER_SANITIZE_STRING);
-    $requestURI = filter_input(INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_STRING);
+    $contentType = \filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
+    $requestURI = \filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_STRING);
     
-    if ($contentType!=='application/json'&&strpos($requestURI, 'ajax-')==false) {
+    if ($contentType!=='application/json' && \strpos($requestURI, 'ajax-')==false) {
         $data = tideways_xhprof_disable();
         $XHPROF_ROOT = realpath(dirname(__FILE__).'/web/xhprof');
         include_once $XHPROF_ROOT . "/lib/utils/xhprof_lib.php";

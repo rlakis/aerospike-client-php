@@ -888,9 +888,10 @@ class Router extends \Core\Model\Singleton {
     
     
     function FetchUrl($url=NULL) {
-        if ($url==NULL) {
-            $url = $this->uri;
-        }
+        if ($url==NULL) { $url = $this->uri; }
+        $pk=NoSQL::instance()->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_URL_PATH, $url);        
+        $result=NoSQL::instance()->getBins($pk);
+        /*
         $result=$this->db->queryCacheResultSimpleArray($url, "
                 SELECT r.COUNTRY_ID, r.CITY_ID, r.ROOT_ID, r.SECTION_ID, r.PURPOSE_ID, trim(r.MODULE),
                 iif(r.TITLE_EN>'', r.TITLE_EN, SUBSTRING(r.title from POSITION(ascii_char(9) , r.title) for 128)),
@@ -899,7 +900,7 @@ class Router extends \Core\Model\Singleton {
                 FROM URI r
                 where r.PATH=?
                 and r.BLOCKED=0
-                ", [$url], -1, 0, FALSE, TRUE);
+                ", [$url], -1, 0, FALSE, TRUE);*/
         return $result;
     }
     
@@ -924,20 +925,20 @@ class Router extends \Core\Model\Singleton {
         else {
             if ($this->uri) {
                 $url_codes = $this->FetchUrl($this->uri);
-                if ($url_codes) {
-                    $this->countryId = $url_codes[0];
-                    $this->cityId = $url_codes[1];
-                    $this->rootId = $url_codes[2];
-                    $this->sectionId = $url_codes[3];
-                    $this->purposeId = $url_codes[4];
-                    $this->module = $url_codes[5];
-                    $this->pageTitle['en'] = trim($url_codes[6]);
-                    $this->pageTitle['ar'] = trim($url_codes[7]);
-                    if (!$this->userId) {
-                        $this->userId = $url_codes[8];
-                    }
+                if (!empty($url_codes)) {
+                    $this->countryId = $url_codes['country_id'];// $url_codes[0];
+                    $this->cityId = $url_codes['city_id'];//$url_codes[1];
+                    $this->rootId = $url_codes['root_id'];//$url_codes[2];
+                    $this->sectionId = $url_codes['section_id'];//$url_codes[3];
+                    $this->purposeId = $url_codes['purpose_id'];//$url_codes[4];
+                    $this->module = $url_codes['module'];//$url_codes[5];
+                    $this->pageTitle['en'] = $url_codes['name_en'];//trim($url_codes[6]);
+                    $this->pageTitle['ar'] = $url_codes['name_ar'];//trim($url_codes[7]);
+                    //if (!$this->userId) {
+                    //    $this->userId = $url_codes[8];
+                    //}
                     
-                    if ($this->module=='cache' || ($this->module=='watchlist' && $this->params['rss'])) {
+                    if ($this->module==='cache' || ($this->module==='watchlist' && $this->params['rss'])) {
                         $this->force_search=false;
                     }
 
@@ -969,12 +970,12 @@ class Router extends \Core\Model\Singleton {
                     if (strstr($this->uri, '/facebook')) $this->module='facebook';
                     elseif (strstr($this->uri, '/cse')) $this->module='cse';                    
                     else {
-                        if ($this->module=='search' && $this->purposeId==0 && $this->rootId==0 && $this->sectionId==0 && empty($this->params['q']) && $this->params['start']>0) {
+                        if ($this->module==='search' && $this->purposeId===0 && $this->rootId===0 && $this->sectionId===0 && empty($this->params['q']) && $this->params['start']>0) {
                             header('HTTP/1.1 410 Gone');
                             $this->http_status=410;
                             $this->module = 'notfound';
                         }
-                        elseif ($this->module!='search') {
+                        elseif ($this->module!=='search') {
                             header('HTTP/1.1 404 Not Found');
                             $this->http_status=404;
                             $this->module = 'notfound';
@@ -990,7 +991,7 @@ class Router extends \Core\Model\Singleton {
         $this->cache();               
         
         if ($this->http_status==200 && $this->module!='detail' && !$this->force_search) {
-            if ($this->module=='search') {
+            if ($this->module==='search') {
                 if ($this->rootId && isset ($this->pageRoots[$this->rootId])) {
 		    $this->count = $this->pageRoots[$this->rootId]['counter'];
                     $this->last_modified = $this->pageRoots[$this->rootId]['unixtime'];
@@ -1077,7 +1078,7 @@ class Router extends \Core\Model\Singleton {
             $result.=$this->purposes[$pu][3].'/';
         }
         
-        if ($appendLanguage && $this->language!='ar') {
+        if ($appendLanguage && $this->language!=='ar') {
             $result.=$this->language.'/';
         }
             
@@ -1098,6 +1099,7 @@ class Router extends \Core\Model\Singleton {
     public function getCountryId(int $city_id) : int {
         return \intval($this->cities[$city_id][4]);
     }
+    
     
     function close() : void {
         if ($this->db) { $this->db->close(); }

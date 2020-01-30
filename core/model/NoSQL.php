@@ -153,6 +153,16 @@ class NoSQL extends Singleton {
     }
             
     
+    public function initLongKey(string $ns, string $set, int $id) : array {
+        return $this->getConnection()->initKey($ns, $set, $id);
+    }
+
+    
+    public function initStringKey(string $ns, string $set, string $id) : array {
+        return $this->getConnection()->initKey($ns, $set, $id);
+    }
+    
+    
     public function isReadError(int $status) : bool {
         return ($status!=NoSQL::OK && $status!=NoSQL::ERR_RECORD_NOT_FOUND);
     }

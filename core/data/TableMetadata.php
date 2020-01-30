@@ -21,11 +21,11 @@ class TableMetadata {
         $this->sequence='';
     }
     
-    public static function create(string $ns, string $name) : TableMetadata {
+    public static function create(string $ns, string $name, bool $autogen=true) : TableMetadata {
         $handle=new TableMetadata();
         $handle->ns=\trim($ns);
-        $handle->name=\trim($name);
-        $handle->sequence=$handle->name.'_id';
+        $handle->name=\trim($name);        
+        $handle->sequence=$autogen?($handle->name.'_id'):'';
         return $handle;
     }
            
@@ -48,6 +48,16 @@ class TableMetadata {
     }
     
     
+    public function binField(string $name) : BinField {
+        return $this->bins[$name];
+    }
+    
+    
+    public function setSequence(string $generator) : TableMetadata {
+        $this->sequence==$generator;
+        return $this;
+    }
+    
     
     
     public function namespace() : string {
@@ -57,6 +67,11 @@ class TableMetadata {
     
     public function name() : string {
         return $this->name;
+    }
+    
+    
+    public function primaryKeyBinNames() : array {
+        return $this->pk;
     }
     
     
