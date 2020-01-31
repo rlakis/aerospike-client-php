@@ -21,7 +21,7 @@ class DB {
     public static $TagsVersion;
     public static $LocalitiesVersion;
     
-    private $slaveOfRedis;
+    private bool $slaveOfRedis;
     public SphinxQL $ql;
     
     public \RdKafka\Producer $kafkaProducer;
@@ -29,7 +29,7 @@ class DB {
     private $version=0;
     
     public function __construct(bool $readonly=TRUE) {
-        $this->slaveOfRedis=(get_cfg_var('mourjan.server_id')!='1');
+        $this->slaveOfRedis=(\get_cfg_var('mourjan.server_id')!=='1');
         self::$dbUri='firebird:dbname='.\Config::instance()->get('db_host').':'.\Config::instance()->get('db_name').';charset=UTF8';
         
         DB::$Readonly=$readonly;
@@ -563,7 +563,12 @@ class DB {
     }
 
     /* New data block */
-    function getCountriesDictionary($force=FALSE) {
+    function asCountriesDictionary() : array {
+        
+    }
+    
+    
+    function getCountriesDictionary(bool $force=false) {
         if (!$this->slaveOfRedis) { $force = true; }
         
         $countries = $this->queryCacheResultSimpleArray('countries-dictionary',

@@ -13,6 +13,7 @@ const TS_SECTION            = 'section';
 const TS_PURPOSE            = 'purpose';
 const TS_URL_PATH           = 'urlpath';
 
+const TS_COUNTRIES          = 'countries';
 
 class Schema extends \Core\Model\Singleton {
     const TYPE_INTEGER      = 0;
@@ -31,7 +32,6 @@ class Schema extends \Core\Model\Singleton {
     const GENERIC_ID            = 'id';
     const GENERIC_NAME_AR       = 'name_ar';
     const GENERIC_NAME_EN       = 'name_en';
-    const GENERIC_BLOCKED       = 'blocked';
     const GENERIC_READONLY      = 'locked';
     const GENERIC_LATITUDE      = 'latitude';
     const GENERIC_LONGITUDE     = 'longitude';
@@ -43,6 +43,7 @@ class Schema extends \Core\Model\Singleton {
     
     const COUNTRY_ALPHA_ID      = 'id_2';
     const COUNTRY_CODE          = 'code';
+    const COUNTRY_CITIES        = 'cities';
     
     const CITY_PARENT_ID        = 'parent_id';
     const CITY_AR_LOCALITY_ID   = 'loc_ar_id';
@@ -50,6 +51,7 @@ class Schema extends \Core\Model\Singleton {
         
     const ROOT_DIFFER_SECTION_ID= 'differ_section';
     
+    const BIN_ID                = 'id';
     const BIN_PATH              = 'path';
     const BIN_ROOT_ID           = 'root_id';
     const BIN_SECTION_ID        = 'section_id';
@@ -57,6 +59,7 @@ class Schema extends \Core\Model\Singleton {
     const BIN_COUNTRY_ID        = 'country_id';
     const BIN_CITY_ID           = 'city_id';
     const BIN_MODULE            = 'module';
+    const BIN_BLOCKED           = 'blocked';
     
     public TableMetadata $countryMeta;
     public TableMetadata $cityMeta;
@@ -72,8 +75,8 @@ class Schema extends \Core\Model\Singleton {
     
     protected function __construct() {
         parent::__construct();
-        $this->countryMeta=TableMetadata::create(NS_MOURJAN, TS_COUNTRY)->setPrimaryKey([static::GENERIC_ID])->setUniqueKey([static::COUNTRY_ALPHA_ID])
-                ->addField(BinField::create(static::GENERIC_ID)->setDescription('Country id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(1))
+        $this->countryMeta=TableMetadata::create(NS_MOURJAN, TS_COUNTRY)->setPrimaryKey([static::BIN_ID])->setUniqueKey([static::COUNTRY_ALPHA_ID])
+                ->addField(BinField::create(static::BIN_ID)->setDescription('Country id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(1))
                 ->addField(BinField::create(static::GENERIC_NAME_AR)->setDescription('Arabic name')->setDataType(static::TYPE_STRING)->setLength(50)->setRequired(true))
                 ->addField(BinField::create(static::GENERIC_NAME_EN)->setDescription('English name')->setDataType(static::TYPE_STRING)->setLength(50)->setRequired(true))
                 ->addField(BinField::create(static::COUNTRY_ALPHA_ID)->setDescription('iso 2 letters code')->setDataType(static::TYPE_STRING)->setLength(2)->setMinStringLength(2)->setRequired(true)->setToUpperCase(true))
@@ -81,7 +84,7 @@ class Schema extends \Core\Model\Singleton {
                 ->addField(BinField::create(static::GENERIC_LONGITUDE)->setDescription('geo latitude')->setDataType(static::TYPE_DOUBLE)->setRequired(true))
                 ->addField(BinField::create(static::GENERIC_CURRENCY)->setDescription('iso currency 3 letters code')->setDataType(static::TYPE_STRING)->setLength(3)->setMinStringLength(3)->setRequired(true)->setToUpperCase(true))
                 ->addField(BinField::create(static::COUNTRY_CODE)->setDescription('Country iso digits code')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(1))
-                ->addField(BinField::create(static::GENERIC_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(1))
+                ->addField(BinField::create(static::BIN_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(1))
                 ->addField(BinField::create(static::GENERIC_READONLY)->setDescription('allow changes or not')->setDataType(static::TYPE_BOOLEAN)->setRequired(true))
                 ->addField(BinField::create(static::GENERIC_LUT)->setDescription('last update unixtime')->setDataType(static::TYPE_LONG)->setRequired(true));    
 
@@ -96,7 +99,7 @@ class Schema extends \Core\Model\Singleton {
                 ->addField(BinField::create(static::GENERIC_LONGITUDE)->setDescription('geo latitude')->setDataType(static::TYPE_DOUBLE)->setRequired(true))
                 ->addField(BinField::create(static::CITY_AR_LOCALITY_ID)->setDescription('arabic locality id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(0))
                 ->addField(BinField::create(static::CITY_EN_LOCALITY_ID)->setDescription('english locality id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(0))
-                ->addField(BinField::create(static::GENERIC_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(1))
+                ->addField(BinField::create(static::BIN_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(1))
                 ->addField(BinField::create(static::GENERIC_LUT)->setDescription('last update unixtime')->setDataType(static::TYPE_LONG)->setRequired(true));
         
         $this->rootMeta=TableMetadata::create(NS_MOURJAN, TS_ROOT)->setPrimaryKey([static::GENERIC_ID])
@@ -105,7 +108,7 @@ class Schema extends \Core\Model\Singleton {
                 ->addField(BinField::create(static::GENERIC_NAME_EN)->setDescription('English name')->setDataType(static::TYPE_STRING)->setLength(50)->setRequired(true))
                 ->addField(BinField::create(static::GENERIC_PATH)->setDescription('url path')->setDataType(static::TYPE_STRING)->setLength(32)->setMinStringLength(0)->setRequired(true)->setToLowerCase(true))
                 ->addField(BinField::create(static::ROOT_DIFFER_SECTION_ID)->setDescription('differ section id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(0))
-                ->addField(BinField::create(static::GENERIC_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(0))
+                ->addField(BinField::create(static::BIN_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(0))
                 ->addField(BinField::create(static::GENERIC_LUT)->setDescription('last update unixtime')->setDataType(static::TYPE_LONG)->setRequired(true));        
 
         $this->sectionMeta=TableMetadata::create(NS_MOURJAN, TS_SECTION)->setPrimaryKey([static::GENERIC_ID])
@@ -114,7 +117,7 @@ class Schema extends \Core\Model\Singleton {
                 ->addField(BinField::create(static::GENERIC_NAME_EN)->setDescription('English name')->setDataType(static::TYPE_STRING)->setLength(50)->setRequired(true))
                 ->addField(BinField::create(static::GENERIC_PATH)->setDescription('url path')->setDataType(static::TYPE_STRING)->setLength(32)->setMinStringLength(0)->setRequired(true)->setToLowerCase(true))
                 ->addField(BinField::create(static::BIN_ROOT_ID)->setDescription('Root id')->setDataType(static::TYPE_INTEGER)->setRequired(true)->setMinIntValue(1))
-                ->addField(BinField::create(static::GENERIC_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(0))
+                ->addField(BinField::create(static::BIN_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(0))
                 ->addField(BinField::create(static::GENERIC_LUT)->setDescription('last update unixtime')->setDataType(static::TYPE_LONG)->setRequired(true));        
 
         $this->purposeMeta=TableMetadata::create(NS_MOURJAN, TS_PURPOSE)->setPrimaryKey([static::GENERIC_ID])
@@ -122,7 +125,7 @@ class Schema extends \Core\Model\Singleton {
                 ->addField(BinField::create(static::GENERIC_NAME_AR)->setDescription('Arabic name')->setDataType(static::TYPE_STRING)->setLength(50)->setRequired(true))
                 ->addField(BinField::create(static::GENERIC_NAME_EN)->setDescription('English name')->setDataType(static::TYPE_STRING)->setLength(50)->setRequired(true))
                 ->addField(BinField::create(static::GENERIC_PATH)->setDescription('url path')->setDataType(static::TYPE_STRING)->setLength(32)->setMinStringLength(0)->setRequired(true)->setToLowerCase(true))
-                ->addField(BinField::create(static::GENERIC_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(0))
+                ->addField(BinField::create(static::BIN_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(0))
                 ->addField(BinField::create(static::GENERIC_LUT)->setDescription('last update unixtime')->setDataType(static::TYPE_LONG)->setRequired(true));        
 
         $this->urlPathMeta=TableMetadata::create(NS_MOURJAN, TS_URL_PATH, false)->setPrimaryKey([static::BIN_PATH])
@@ -135,7 +138,7 @@ class Schema extends \Core\Model\Singleton {
                 ->addField(BinField::create(static::BIN_MODULE)->setDescription('module name')->setDataType(static::TYPE_STRING)->setLength(24)->setRequired(true)->setToLowerCase(true))
                 ->addField(BinField::create(static::GENERIC_NAME_EN)->setDescription('English title')->setDataType(static::TYPE_STRING)->setLength(128)->setRequired(true))
                 ->addField(BinField::create(static::GENERIC_NAME_AR)->setDescription('Arabic title')->setDataType(static::TYPE_STRING)->setLength(128)->setRequired(true))                
-                ->addField(BinField::create(static::GENERIC_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(0));        
+                ->addField(BinField::create(static::BIN_BLOCKED)->setDescription('not active for publishing and listing')->setDataType(static::TYPE_BOOLEAN)->setRequired(true)->setDefaultInt(0));        
         
     }           
     

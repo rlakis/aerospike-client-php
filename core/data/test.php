@@ -25,7 +25,7 @@ foreach ($rs as $data) {
     $i++;
 }
 */
-urls($db);
+countriesDictionary($db);
 
 function countries(\Core\Model\DB $db) : void {
     global $schema;
@@ -114,4 +114,50 @@ function urls(Core\Model\DB $db) : void {
             die($table->lastError);
         }
     }     
+}
+
+
+function countriesDictionary(Core\Model\DB $db) : void {
+    global $schema;
+    $as=Core\Model\NoSQL::instance();
+    $rs=[];
+    $bins=[];
+    $status=$as->getConnection()->query(Core\Data\NS_MOURJAN, Core\Data\TS_COUNTRY, [], 
+            function($row) use(&$rs) {        
+                if ($row['bins'][\Core\Data\Schema::BIN_BLOCKED]===0) {
+                    unset($row['bins'][\Core\Data\Schema::BIN_BLOCKED]);
+                    $row['bins']['cities']=[];
+                    $rs[]=$row['bins'];
+                }        
+            }, $bins );
+    if ($status===\Aerospike::OK) {
+        for ($i=0; $i<\count($rs); $i++) {
+            $where=\Aerospike::predicateEquals(\Core\Data\Schema::BIN_COUNTRY_ID, $rs[$i][\Core\Data\Schema::BIN_ID]);
+            $status=$as->getConnection()->query(Core\Data\NS_MOURJAN, Core\Data\TS_CITY, $where, 
+                function($row) use(&$rs, $i) {
+                    if ($row['bins'][\Core\Data\Schema::BIN_BLOCKED]===0) {
+                        $rs[$i]['cities'][]=$row['bins'][\Core\Data\Schema::BIN_ID];
+                    }
+                }, [\Core\Data\Schema::BIN_ID, \Core\Data\Schema::BIN_BLOCKED]);
+        }        
+        //var_dump($rs);
+        
+        foreach ($rs as $bins) {
+            $pk=$as->initLongKey(Core\Data\NS_MOURJAN, Core\Data\TS_COUNTRY, $bins[\Core\Data\Schema::BIN_ID]);
+            $operations=[
+                /*['op'=>\Aerospike::OP_LIST_CLEAR, 'bin'=>'cities'],*/
+                ['op'=>\Aerospike::OP_LIST_INSERT_ITEMS, 'bin'=>'cities', 'val'=>$bins['cities']]
+            ];
+            $ret=[];
+            $status = $as->getConnection()->operate($pk, $operations, $ret);
+            echo $status, "\t", $as->getConnection()->error(), "\n";
+            //if ($as->insertRecord($table, $bins)!==\Aerospike::OK) {            
+            //   die($table->lastError);
+            //}
+        }
+    }
+    
+    
+
+    //$status = $this->getConnection()->query(\Core\Model\NoSQL::NS_USER, TS_PROFILE, $where, function ($_record) use (&$record) {$record=$_record;}, $bins);
 }
