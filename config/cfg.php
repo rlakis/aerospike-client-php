@@ -108,6 +108,12 @@ class Config extends \Core\Model\Singleton {
     }
     
     
+    public function incCoreFile(string $file) : Config {
+        include_once dirname($this->modelDir) . $file . '.php';
+        return $this;
+    }
+    
+    
     public function incLibFile(string $file) : Config {
         include_once $this->libDir . $file . '.php';
         return $this;

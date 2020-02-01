@@ -780,10 +780,35 @@ class Router extends \Core\Model\Singleton {
             $countries_label = "country-data-{$this->language}-".Db::$SectionsVersion;
             $roots_label = "root-data-{$this->countryId}-{$this->cityId}-{$this->language}-".Db::$SectionsVersion;
             
-            $result = $this->db->getCache()->getMulti(['roots', 'sections', 'purposes', 'cities-dictionary', 'last', $countries_label, $roots_label]); 
-            if (isset($result['cities-dictionary'])) {
-                $this->cities = $result['cities-dictionary'];
+            $as=NoSQL::instance();
+            $status=$as->getConnection()->getMany(
+                    [$as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'countries-dic'),
+                    $as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'cities-dic')], $records);
+            if ($status===\Aerospike::OK) {
+                //var_dump($records);
+                foreach ($records as $record) {
+                    switch ($record['key']['key']) {
+                        case 'countries-dic':
+                            //var_dump($record['bins']['data']);
+                            $this->db->countriesDictionary=$record['bins']['data'];
+                            break;
+                        case 'cities-dic':
+                            $this->db->citiesDictionary=$record['bins']['data'];
+                            $this->cities=$this->db->citiesDictionary;
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
             }
+            //\error_log($status."\n". \json_encode($cached));
+            
+            $result = $this->db->getCache()->getMulti(['roots', 'sections', 'purposes', /*'cities-dictionary',*/ 'last', $countries_label, $roots_label]); 
+            //if (isset($result['cities-dictionary'])) {
+                //$this->cities = $result['cities-dictionary'];
+            //    $this->cities = $this->db->asCitiesDictionary(); 
+            //}
             if (isset($result['roots'])) {
                 $this->roots = $result['roots'];
             }
@@ -829,7 +854,7 @@ class Router extends \Core\Model\Singleton {
         }
         
         if ($this->cities===NULL || empty($this->cities)) {
-            $this->cities = $this->db->getCitiesDictionary($force);
+            $this->cities = $this->db->asCitiesDictionary(); // getCitiesDictionary($force);
         }
                 
         if (!$this->countryId) {
@@ -1063,7 +1088,7 @@ class Router extends \Core\Model\Singleton {
                 }
             } 
             else {
-                $result.=$this->cities[$c][3].'/';
+                $result.=$this->cities[$c][\Core\Data\Schema::BIN_URI].'/';
             }
         }
        

@@ -1,8 +1,7 @@
 <?php
 namespace Core\Model;
 
-\Config::instance()->incLibFile('MCCache')->incLibFile('SphinxQL')->incModelFile('NoSQL');
-
+\Config::instance()->incLibFile('MCCache')->incLibFile('SphinxQL')->incModelFile('NoSQL')->incCoreFile('/data/Schema');
 use Core\Lib\MCCache;
 use Core\Lib\SphinxQL;
 use Core\Model\NoSQL;
@@ -21,6 +20,10 @@ class DB {
     public static $TagsVersion;
     public static $LocalitiesVersion;
     
+    
+    public array $countriesDictionary;
+    public array $citiesDictionary;
+    
     private bool $slaveOfRedis;
     public SphinxQL $ql;
     
@@ -30,6 +33,8 @@ class DB {
     
     public function __construct(bool $readonly=TRUE) {
         $this->slaveOfRedis=(\get_cfg_var('mourjan.server_id')!=='1');
+        $this->countriesDictionary=[];
+        $this->citiesDictionary=[];
         self::$dbUri='firebird:dbname='.\Config::instance()->get('db_host').':'.\Config::instance()->get('db_name').';charset=UTF8';
         
         DB::$Readonly=$readonly;
@@ -564,10 +569,42 @@ class DB {
 
     /* New data block */
     function asCountriesDictionary() : array {
+        if (empty($this->countriesDictionary)) {
+            $where=\Aerospike::predicateEquals(\Core\Data\Schema::BIN_BLOCKED, 0);
+            $status= NoSQL::instance()->getConnection()->query(\Core\Data\NS_MOURJAN, \Core\Data\TS_COUNTRY, $where,
+                function($row)  { 
+                    $this->countriesDictionary[$row['bins'][\Core\Data\Schema::BIN_ID]]=$row['bins'];                 
+            }, []);
+            if ($status!==\Aerospike::OK) { $this->countriesDictionary=[]; }
+            if (!empty($this->countriesDictionary)) {
+                $key=NoSQL::instance()->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'countries-dic');
+                NoSQL::instance()->setBins($key, ['data'=>$this->countriesDictionary]);
+            }
         
+        }
+        return $this->countriesDictionary;
     }
     
     
+    function asCitiesDictionary() : array {
+        if (empty($this->citiesDictionary)) {
+            $where=\Aerospike::predicateEquals(\Core\Data\Schema::BIN_BLOCKED, 0);
+            $status= NoSQL::instance()->getConnection()->query(\Core\Data\NS_MOURJAN, \Core\Data\TS_CITY, $where,
+                function($row)  { 
+                    $this->citiesDictionary[$row['bins'][\Core\Data\Schema::BIN_ID]]=$row['bins'];                 
+            }, []);
+            if ($status!==\Aerospike::OK) { $this->citiesDictionary=[]; }
+            if (!empty($this->citiesDictionary)) {
+                $key=NoSQL::instance()->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'cities-dic');
+                NoSQL::instance()->setBins($key, ['data'=>$this->citiesDictionary]);
+            }
+        
+        }
+        return $this->citiesDictionary;
+    }
+    
+    
+    // deprecated
     function getCountriesDictionary(bool $force=false) {
         if (!$this->slaveOfRedis) { $force = true; }
         
@@ -597,7 +634,7 @@ class DB {
         return $countries;
     }
     
-    
+    // deprecated
     function getCitiesDictionary($force=FALSE) {
         if (!$this->slaveOfRedis) { $force = true; }
 
@@ -609,21 +646,10 @@ class DB {
                 null, 0, 86400, $force);        
     }
     
-    /*
-    function getPublications($force=FALSE) {
-        if(!$this->slaveOfRedis) {
-            $force = true;
-        }
-        return $this->queryCacheResultSimpleArray('publications',
-                    'select ID, NAME_AR, NAME_EN, BRAND_AR, BRAND_EN, WEBSITE, URL, country_id, city_id, language, period, ad_price, currency_id   
-                    from publication where blocked=0 order by BRAND_EN',
-                    null, 0, 86400, $force);    
-    }
-    */
     
     function getPurposes($force=FALSE) {
         if (!$this->slaveOfRedis) { $force = true; }
-        
+  
         return $this->queryCacheResultSimpleArray('purposes',
                     'select ID, NAME_AR, NAME_EN, URI, UNIXTIME from purpose where blocked=0',
                     null, 0, 86400, $force);
@@ -659,7 +685,7 @@ class DB {
     }
 
         
-    function getCountriesData($lang) {
+    function getCountriesData(string $lang) : array {
         $vv = ($this->slaveOfRedis) ? self::$SectionsVersion : self::$SectionsVersion+1;
         
         $label = "country-data-{$lang}-{$vv}";        
@@ -671,8 +697,9 @@ class DB {
             $result=array();
         }
 
-        $countries = $this->getCountriesDictionary();
-        $f=($lang=='ar')?1:2;
+        $countries = $this->asCountriesDictionary();
+        //$f=($lang==='ar')?1:2;
+        $name='name_'.$lang;
         $resource = $this->ql->getConnection()->query("select groupby(), count(*), max(date_added) from ad group by country limit 1000");
         if ($this->ql->getConnection()->error) {
             throw new Exception('['.$this->ql->getConnection()->errno.'] '.$this->ql->getConnection()->error.' [ '.$label.']');
@@ -681,9 +708,10 @@ class DB {
         if ($resource instanceof \mysqli_result) { 
             while ($row = $resource->fetch_array()) {
                 $purposes = $this->getPurpusesData($row[0], 0, 0, 0, $lang);
-                $result[$row[0]]=['name'=>$countries[$row[0]][$f], 'counter'=>$row[1], 'unixtime'=>$row[2], 
-                                  'uri'=>$countries[$row[0]][3], 'currency'=>$countries[$row[0]][4], 'code'=>$countries[$row[0]][5],
-                                  'purposes'=>$purposes, 'cities'=> $this->getCitiesData($row[0], $lang)];
+                $result[$row[0]]=['name'=>$countries[$row[0]][$name], 'counter'=>$row[1], 'unixtime'=>$row[2], 
+                                'uri'=>$countries[$row[0]][\Core\Data\Schema::BIN_URI], 'currency'=>$countries[$row[0]][\Core\Data\Schema::BIN_CURRENCY], 
+                                'code'=>$countries[$row[0]][\Core\Data\Schema::COUNTRY_CODE],
+                                'purposes'=>$purposes, 'cities'=> $this->getCitiesData($row[0], $lang)];
             }
             $resource->free_result();                
         }
@@ -710,16 +738,17 @@ class DB {
             }
         }
         
-        $cities = $this->getCitiesDictionary();
-        $f=($lang=='ar')?1:2;
+        $cities = $this->asCitiesDictionary();
+        //$f=($lang=='ar')?1:2;
+        $name='name_'.$lang;
         
         $resource = $this->ql->getConnection()->query("select groupby(), sum(counter), max(unixtime) from section_counts where country_id={$countryId} and city_id>0 group by city_id limit 1000");        
         if ($resource instanceof \mysqli_result) {        
             while ($row = $resource->fetch_array()) {
                 $purposes = $this->getPurpusesData($countryId, $row[0], 0, 0, $lang);
-                $result[$row[0]]=['name'=>$cities[$row[0]][$f], 'counter'=>$row[1], 'unixtime'=>$row[2], 
-                                  'uri'=>$cities[$row[0]][3], 'latitude'=>$cities[$row[0]][5], 
-                                  'longitude'=>$cities[$row[0]][6], 'purposes'=>$purposes];                
+                $result[$row[0]]=['name'=>$cities[$row[0]][$name], 'counter'=>$row[1], 'unixtime'=>$row[2], 
+                                  'uri'=>$cities[$row[0]][\Core\Data\Schema::BIN_URI], 'latitude'=>$cities[$row[0]][\Core\Data\Schema::BIN_LATITUDE], 
+                                  'longitude'=>$cities[$row[0]][\Core\Data\Schema::BIN_LONGITUDE], 'purposes'=>$purposes];                
             }
             $resource->free_result();                
         }

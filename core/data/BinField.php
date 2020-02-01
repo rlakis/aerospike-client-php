@@ -199,6 +199,11 @@ class BinField {
     }
     
     
+    public function isSequentialList() : bool {
+        return $this->dataType===Schema::TYPE_LIST;
+    }
+    
+    
     
     public function prepare(&$value) : bool {
         $this->lastError='';
@@ -275,7 +280,18 @@ class BinField {
                 
                 if ($this->toUpper) { $value=\strtoupper($value); }
                 if ($this->toLower) { $value= \strtolower($value); }
-                return true;                
+                return true;
+                
+            case Schema::TYPE_LIST:
+                if (!is_array($value)) {
+                    $this->lastError='Not a valid list type value for '.$this->name;
+                    return false;
+                }
+                if (!empty($value) && \array_keys($value) !== \range(0, \count($value)-1)) {
+                    $this->lastError='Not a valid sequential list type value for '.$this->name;
+                    return false;
+                }
+                return true;
         }
         $this->lastError='Undefined data type for bin '.$this->name;
         return false;

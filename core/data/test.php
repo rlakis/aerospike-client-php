@@ -33,6 +33,7 @@ function countries(\Core\Model\DB $db) : void {
     foreach ($rs as $data) {    
         $bins=[];
         foreach ($data as $name=>$value) { $bins[strtolower($name)]=$value; }
+        $bins[$schema::COUNTRY_CITIES]=[];
         if (\Core\Model\NoSQL::instance()->addCountry($bins)!==\Aerospike::OK) {
             die($schema->countryMeta->lastError);
         }
@@ -126,7 +127,7 @@ function countriesDictionary(Core\Model\DB $db) : void {
             function($row) use(&$rs) {        
                 if ($row['bins'][\Core\Data\Schema::BIN_BLOCKED]===0) {
                     unset($row['bins'][\Core\Data\Schema::BIN_BLOCKED]);
-                    $row['bins']['cities']=[];
+                    $row['bins'][\Core\Data\Schema::COUNTRY_CITIES]=[];
                     $rs[]=$row['bins'];
                 }        
             }, $bins );
@@ -136,7 +137,7 @@ function countriesDictionary(Core\Model\DB $db) : void {
             $status=$as->getConnection()->query(Core\Data\NS_MOURJAN, Core\Data\TS_CITY, $where, 
                 function($row) use(&$rs, $i) {
                     if ($row['bins'][\Core\Data\Schema::BIN_BLOCKED]===0) {
-                        $rs[$i]['cities'][]=$row['bins'][\Core\Data\Schema::BIN_ID];
+                        $rs[$i][\Core\Data\Schema::COUNTRY_CITIES][]=$row['bins'][\Core\Data\Schema::BIN_ID];
                     }
                 }, [\Core\Data\Schema::BIN_ID, \Core\Data\Schema::BIN_BLOCKED]);
         }        
@@ -146,10 +147,10 @@ function countriesDictionary(Core\Model\DB $db) : void {
             $pk=$as->initLongKey(Core\Data\NS_MOURJAN, Core\Data\TS_COUNTRY, $bins[\Core\Data\Schema::BIN_ID]);
             $operations=[
                 /*['op'=>\Aerospike::OP_LIST_CLEAR, 'bin'=>'cities'],*/
-                ['op'=>\Aerospike::OP_LIST_INSERT_ITEMS, 'bin'=>'cities', 'val'=>$bins['cities']]
+                ['op'=>\Aerospike::OP_LIST_INSERT_ITEMS, 'bin'=>\Core\Data\Schema::COUNTRY_CITIES, 'val'=>$bins[\Core\Data\Schema::COUNTRY_CITIES]]
             ];
             $ret=[];
-            $status = $as->getConnection()->operate($pk, $operations, $ret);
+            $status = $as->setBins($pk, [\Core\Data\Schema::COUNTRY_CITIES=>$bins[\Core\Data\Schema::COUNTRY_CITIES]]);
             echo $status, "\t", $as->getConnection()->error(), "\n";
             //if ($as->insertRecord($table, $bins)!==\Aerospike::OK) {            
             //   die($table->lastError);

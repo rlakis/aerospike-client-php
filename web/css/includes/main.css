@@ -44,12 +44,12 @@ h6, .h6 {font-size:1em;text-transform:uppercase;font-weight:500;}
 label {display:inline-block;max-width:100%;margin-bottom:5px;font-weight:700;}
 small{line-height: 100%}
 main{width: 100%}
-.top-header{height: 2.5vh;flex-direction: column}
+.top-header{height: 40px;flex-direction: column; background-color: var(--mcDarkColor)}
 .top-header ul{display:inherit;position:relative; padding:0; margin:0; height: inherit; flex-direction:row; flex-wrap:nowrap; align-self:flex-end; align-items: center}
 .top-header li{display:inline; line-height:100%; flex-grow:1;flex-basis:auto;padding: 0 0.32em;text-align: center;}
-.top-header a{display:inline-flex; align-items: center;color: #606060; font-size: 0.95em}
+.top-header a{display:inline-flex; align-items: center;color: white; font-size: 0.95em}
 .top-header i{margin-inline-start: 4px !important; }
-.top-header i.icolor{filter: invert(22%) sepia(10%) saturate(3293%) hue-rotate(165deg) brightness(92%) contrast(91%);}
+.top-header i.icolor{filter: invert(100%) /*sepia(10%) saturate(3293%) hue-rotate(165deg) brightness(92%) contrast(91%);*/}
 .viewable{display:inline-flex;width:100%;}
 
 li,dd,dt{line-height:48px;}
@@ -547,7 +547,7 @@ body[dir="rtl"] .modal .card{transform: translate(-50%, 0%);}
         padding: 8px;
     }
     header {
-        min-height: 115px;
+        min-height: 120px;
     }
     main{display:inherit;/*margin: 8px 52px*/}
     .ilogo{

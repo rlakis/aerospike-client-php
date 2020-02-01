@@ -3618,12 +3618,13 @@ class Search extends Page {
                 break;
         }
            
-       $adContent = json_decode($ad['CONTENT'], true);
-       $countries = $this->router->db->getCountriesDictionary(); 
+        $adContent = json_decode($ad['CONTENT'], true);
+        $cndic=$this->router->db->asCountriesDictionary();       
+       
        if (isset($adContent['pubTo'])) {
             $fieldIndex=2;
             $comma=',';
-            if ($this->router->language=='ar') {
+            if ($this->router->language==='ar') {
                 $fieldIndex=1;
                 $comma='،';
             }
@@ -3635,12 +3636,13 @@ class Search extends Page {
                 if (isset($cities[$city]) && isset($cities[$city][4])) {
                     $country_id=$cities[$city][4];                        
                     if (!isset($countriesArray[$cities[$city][4]])) {                            
-                        $ccs = $countries[$country_id][6];
+                        $ccs = $cndic[$country_id][\Core\Data\Schema::COUNTRY_CITIES];
                         if ($ccs && count($ccs)>0) {
-                            $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],array());
+                            $countriesArray[$country_id]=[$cndic[$country_id]['name_'.$this->router->language],[]];
                         }
                         else {
-                            $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],false);
+                            $countriesArray[$country_id]=[$cndic[$country_id]['name_'.$this->router->language],false];
+                            //$countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],false);
                         }
                     }
                     if ($countriesArray[$country_id][1]!==false) {
@@ -3663,14 +3665,14 @@ class Search extends Page {
                 $section=$section.' '.$this->lang['in'].' '.$content;
             }
         }
-        elseif(isset ($countries[$ad['COUNTRY_ID']])) {
+        elseif (isset($cndic[$ad['COUNTRY_ID']])) {
             $countryId=$ad['COUNTRY_ID'];
-            $countryCities=$countries[$countryId][6];
+            $countryCities=$cndic[$country_id][\Core\Data\Schema::COUNTRY_CITIES];
             if (count($countryCities)>0 && isset($this->router->cities[$ad['CITY_ID']])) {
-                $section=$section.' '.$this->lang['in'].' '.$this->router->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
+                $section=$section.' '.$this->lang['in'].' '.$this->router->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$cndic[$countryId]['name_'.$this->router->language];
             }
             else {
-                $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$this->fieldNameIndex];
+                $section=$section.' '.$this->lang['in'].' '.$cndic[$countryId]['name_'.$this->router->language];
             }
         }
         return $section;

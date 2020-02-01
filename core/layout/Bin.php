@@ -1772,14 +1772,14 @@ class Bin extends AjaxHandler {
                         //if ($dataVersion != $pref->getVersion()) {
                         $pref->setup();                        
                         $this->response('prefs', $pref);
-                        $cndic=$this->router->db->getCountriesDictionary();
+                        $cndic=$this->router->db->asCountriesDictionary();
                         $regions=[];
                         foreach ($cndic as $country_id => $country) {
-                            $regions[$country_id]=['ar'=>$country[1], 'en'=>$country[2], 'cc'=>[], 'c'=>$country[3]];                            
+                            $regions[$country_id]=['ar'=>$country[\Core\Data\Schema::BIN_NAME_AR], 'en'=>$country[\Core\Data\Schema::BIN_NAME_EN], 'cc'=>[], 'c'=>$country[\Core\Data\Schema::BIN_URI]];                            
                         }
-                        $ccdic=$this->router->db->getCitiesDictionary();
+                        $ccdic=$this->router->db->asCitiesDictionary();
                         foreach ($ccdic as $city_id => $city) {
-                            $regions[$city[4]]['cc'][$city_id]=['ar'=>$city[1], 'en'=>$city[2], 'lat'=>$city[5]+0, 'lng'=>$city[6]+0];
+                            $regions[$city[4]]['cc'][$city_id]=['ar'=>$city[\Core\Data\Schema::BIN_NAME_AR], 'en'=>$city[\Core\Data\Schema::BIN_NAME_EN], 'lat'=>$city[\Core\Data\Schema::BIN_LATITUDE], 'lng'=>$city[\Core\Data\Schema::BIN_LONGITUDE]];
                         }
                         $this->response('regions', $regions);
                         $this->response('ip', IPQuality::fetchJson(false));
@@ -1790,24 +1790,7 @@ class Bin extends AjaxHandler {
                             $ad->getAdFromAdUserTableForEditing($aid);
                             if ($ad->id()>0) {
                                 $this->response('ad', $ad->dataset()->getForEditor());
-                            }
-                            /*
-                            $ad=$this->user()->getPendingAds($aid);
-                            
-                            if(\is_array($ad) && \count($ad)===1){
-                                $cnt= $ad[0]['CONTENT'];
-                                if (\is_string($cnt)) {                               
-                                    $cnt=\json_decode($cnt, true);
-                                }
-                                
-                                $cnt['id']=$ad[0]['ID'];
-                                $cnt['se']=$ad[0]['SECTION_ID'];
-                                $cnt['pu']=$ad[0]['PURPOSE_ID'];
-                                $cnt['state']=$ad[0]['STATE'];
-                                $cnt['lat']=$ad[0]['LATITUDE'];
-                                $cnt['lon']=$ad[0]['LONGITUDE'];
-                                $this->response('ad', $cnt);
-                            }   */                                                
+                            }                                                       
                         }
                     }
                     
@@ -5617,7 +5600,7 @@ class Bin extends AjaxHandler {
         }
            
         //$adContent = json_decode($ad['CONTENT'], true);
-        $countries = $this->router->db->getCountriesDictionary();
+        $countries = $this->router->db->asCountriesDictionary();
         $regions = $ad->dataset()->getRegions();
         
         if ( !empty($regions)) {
@@ -5636,12 +5619,12 @@ class Bin extends AjaxHandler {
                 if (isset($cities[$city]) && isset($cities[$city][4])) {
                     $country_id=$cities[$city][4];                        
                     if (!isset($countriesArray[$cities[$city][4]])){                            
-                        $ccs = $countries[$country_id][6];
-                        if ($ccs && count($ccs)>0) {
-                            $countriesArray[$country_id] = [$countries[$country_id][$fieldIndex], [] ];
+                        $ccs = $countries[$country_id][\Core\Data\Schema::COUNTRY_CITIES];
+                        if ($ccs && \count($ccs)>0) {
+                            $countriesArray[$country_id] = [$countries[$country_id]['name_'.$this->router->language], [] ];
                         }
                         else {
-                            $countriesArray[$country_id] = [$countries[$country_id][$fieldIndex], false];
+                            $countriesArray[$country_id] = [$countries[$country_id]['name_'.$this->router->language], false];
                         }
                     }
                     if ($countriesArray[$country_id][1]!==false) $countriesArray[$country_id][1][]=$cities[$city][$fieldIndex];
@@ -5662,12 +5645,12 @@ class Bin extends AjaxHandler {
         }
         elseif (isset ($countries[$ad->countryId()])) {
             $countryId = $ad->countryId(); 
-            $countryCities = $countries[$countryId][6];
+            $countryCities = $countries[$countryId][\Core\Data\Schema::COUNTRY_CITIES];
             if (\count($countryCities)>0 && isset($this->router->cities[$ad->cityId()])) {
-                $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad->cityId()][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
+                $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad->cityId()][$this->fieldNameIndex].' '.$countries[$countryId]['name_'.$this->router->language];
             }
             else {
-                $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$this->fieldNameIndex];
+                $section=$section.' '.$this->lang['in'].' '.$countries[$countryId]['name_'.$this->router->language];
             }
         }
         

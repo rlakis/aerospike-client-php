@@ -1533,15 +1533,12 @@ class Page extends Site {
         ?>
         <div class="row top-header"><div class="viewable full-height ff-cols">
             <ul><?php
-                if ($this->router->countryId && isset($this->router->countries[$this->router->countryId])) {
+                if ($this->router->countryId>0 && isset($this->router->countries[$this->router->countryId])) {
                     echo '<li><a href="#">', $this->router->countries[$this->router->countryId]['name'],'<i class="icn icnsmall icn-', $this->router->countries[$this->router->countryId]['uri'], '"></i></a></li>';
                 }
                 else {
                     echo '<li><a href="#"><i class="icn icnsmall icn-globe invert"></i></a></li>';
                 }?>
-                <li>&vert;</li>
-                <li><a href="#">&zwnj;<i class="icn i20 icn-play-store"></i></a></li>
-                <li><a href="#">&zwnj;<i class="icn i20 icn-apple"></i></a></li>
                 <li>&vert;</li>
                 <li><a href="<?= $this->router->getLanguagePath($this->user->isLoggedIn() ? '/myads/' : '/signin/') ?>"><?php 
                 echo $this->user->isLoggedIn()?$this->lang['myAccount']:'Login/Register';?><i class="icn icn-user i20 icolor"></i></a></li>
@@ -1573,7 +1570,7 @@ class Page extends Site {
                 </div></header>
 
     <section class=search-box><div class="viewable ha-center"><div class=search>
-        <form onsubmit="if(document.getElementById('q').value)return true;return false;" action="<?= $this->router->getLanguagePath('/'.$this->router->countries[$this->router->countryId]['uri']) ?>"> 
+        <form onsubmit="if(document.getElementById('q').value)return true;return false;" action="<?= $this->router->getLanguagePath('/'. $this->router->countryId>0?$this->router->countries[$this->router->countryId]['uri']:'' ) ?>"> 
         <div class=select-wrapper>
             <div class=select-box>
                 <div class=select__trigger><?php 

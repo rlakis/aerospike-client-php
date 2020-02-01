@@ -11,7 +11,7 @@ class MyAds extends Page {
     private AdList $adList;
     private array $admins_online=[];
     var $subSection='', $userBalance=0, $redis=null;
-    
+        
     private array $editors = [
         1 => 'Bassel', 43905 => 'Bassel',
         2 => 'Robert', 69905 => 'Robert',
@@ -439,14 +439,16 @@ class MyAds extends Page {
                 break;
         }
 
-       $countries = $this->router->db->getCountriesDictionary(); // $this->router->countries;
+        $cndic=$this->router->db->asCountriesDictionary();
+
         $fieldIndex=2;
         $comma=',';
         if ($this->router->isArabic()){
             $fieldIndex=1;
             $comma='،';
         }
-        $countriesArray=array();
+        
+        $countriesArray=[];
         $cities = $this->router->cities;
                 
         $content='';
@@ -455,12 +457,14 @@ class MyAds extends Page {
                 $country_id=$cities[$city][4];
                         
                 if (!isset($countriesArray[$cities[$city][4]])) { 
-                    $ccs = $countries[$country_id][6];
+                    $ccs=$cndic[$country_id][\Core\Data\Schema::COUNTRY_CITIES];
                     if ($ccs && \count($ccs)>0) {
-                        $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],array());
+                        //$countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],array());
+                        $countriesArray[$country_id]=[$cndic[$country_id]['name_'.$this->router->language],[]];
                     }
                     else {
-                        $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],false);
+                        //$countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],false);
+                        $countriesArray[$country_id]=[$cndic[$country_id]['name_'.$this->router->language], false];
                     }
                 }
                 if ($countriesArray[$country_id][1]!==false) $countriesArray[$country_id][1][]=$cities[$city][$fieldIndex];

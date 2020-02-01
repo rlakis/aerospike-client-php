@@ -109,6 +109,9 @@ class TableMetadata {
                 else if ($field->isNumeric()) {
                     $data[$field->name()]=$field->isDouble()?$field->defaultDoubleValue():$field->defaultIntValue();                    
                 }
+                else if ($field->isSequentialList()) {
+                    $data[$field->name()]=[];
+                }
                 else {
                     $this->lastError=$field->name() . ' data type is not defined!';
                     return false;
