@@ -305,18 +305,31 @@ var setOrder=function(e)
     function main_pane() : void {
         echo '<!--googleoff: snippet-->';
         echo '<section class=search-box><div class="viewable ha-center">';
-        $sections = [];
-        foreach ($this->router->pageRoots as $id=>$root) {
-            //$count = $root['counter'];
-            //$link = $this->router->getURL($this->router->countryId, $this->router->cityId, $id);
-            $sections[$id] = $this->router->db->getSectionsData($this->router->countryId, $this->router->cityId, $id, $this->router->language, true);
+        $sections=[];
+        $keys=[];
+        $kr=\array_keys($this->router->pageRoots);
+        foreach ($kr as $id) {
+            $label="section-dat-{$this->router->countryId}-{$this->router->cityId}-{$id}-{$this->router->language}-c";
+            $keys[$id]=$this->router->db->as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $label);
         }
-       
+               
+        $status=$this->router->db->as->getConnection()->getMany(\array_values($keys), $recs);
+        if ($status===\Aerospike::OK) {            
+            foreach ($recs as $sec) {
+                foreach ($kr as $id) {
+                    if ($keys[$id]['key']===$sec['key']['key']) {
+                        $sections[$id]=$sec['bins']['data'];
+                        break;
+                    }
+                }
+            }
+        }
+        
         echo '<div class=roots>';
         foreach ($sections as $root_id => $items) {
             echo '<div class=large>';
             echo '<div class=row><i class="icn ro i',$root_id,' fill-', $root_id,'"></i></div>';
-            echo '<span class=row>', $this->router->roots[$root_id][$this->fieldNameIndex], '</span>';
+            echo '<span class=row>', $this->router->roots[$root_id]['name_'.$this->router->language], '</span>';
             echo '<div class=arrow></div>';
             echo '</div>';
             

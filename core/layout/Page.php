@@ -4556,7 +4556,8 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 $countryId=$this->router->countryId=$this->user->params['country'];
             if (isset($this->user->params['city']) && $this->user->params['city'])
                 $cityId=$this->router->cityId=$this->user->params['city'];
-            $this->router->pageRoots = $this->router->db->getRootsData($countryId, $cityId, $this->router->language);
+            //$this->router->pageRoots = $this->router->db->getRootsData($countryId, $cityId, $this->router->language);
+            $this->router->pageRoots = $this->router->db->asRootsData($countryId, $cityId, $this->router->language);
             //roots
             $i=0;
             foreach ($this->router->pageRoots as $key=>$root) {
@@ -5555,7 +5556,8 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 $countryId=$this->router->countryId=$this->user->params['country'];
             if (isset($this->user->params['city']) && $this->user->params['city'])
                 $cityId=$this->router->cityId=$this->user->params['city'];
-            $this->router->pageRoots = $this->router->db->getRootsData($countryId, $cityId, $this->router->language);
+            //$this->router->pageRoots = $this->router->db->getRootsData($countryId, $cityId, $this->router->language);
+            $this->router->pageRoots = $this->router->db->asRootsData($countryId, $cityId, $this->router->language);
             //roots
             $i=0;
             foreach ($this->router->pageRoots as $key=>$root) {

@@ -1775,11 +1775,11 @@ class Bin extends AjaxHandler {
                         $cndic=$this->router->db->asCountriesDictionary();
                         $regions=[];
                         foreach ($cndic as $country_id => $country) {
-                            $regions[$country_id]=['ar'=>$country[\Core\Data\Schema::BIN_NAME_AR], 'en'=>$country[\Core\Data\Schema::BIN_NAME_EN], 'cc'=>[], 'c'=>$country[\Core\Data\Schema::BIN_URI]];                            
+                            $regions[$country_id]=['ar'=>$country[\Core\Data\Schema::BIN_NAME_AR], 'en'=>$country[\Core\Data\Schema::BIN_NAME_EN], 'cc'=>[], 'c'=>\strtolower($country[\Core\Data\Schema::COUNTRY_ALPHA_ID])];
                         }
                         $ccdic=$this->router->db->asCitiesDictionary();
                         foreach ($ccdic as $city_id => $city) {
-                            $regions[$city[4]]['cc'][$city_id]=['ar'=>$city[\Core\Data\Schema::BIN_NAME_AR], 'en'=>$city[\Core\Data\Schema::BIN_NAME_EN], 'lat'=>$city[\Core\Data\Schema::BIN_LATITUDE], 'lng'=>$city[\Core\Data\Schema::BIN_LONGITUDE]];
+                            $regions[$city[\Core\Data\Schema::BIN_COUNTRY_ID]]['cc'][$city_id]=['ar'=>$city[\Core\Data\Schema::BIN_NAME_AR], 'en'=>$city[\Core\Data\Schema::BIN_NAME_EN], 'lat'=>$city[\Core\Data\Schema::BIN_LATITUDE], 'lng'=>$city[\Core\Data\Schema::BIN_LONGITUDE]];
                         }
                         $this->response('regions', $regions);
                         $this->response('ip', IPQuality::fetchJson(false));
@@ -1798,7 +1798,6 @@ class Bin extends AjaxHandler {
                 }
                 
                 if ($this->getGetInt('adsense')===1) {
-                    //Core\Model\Router::instance()-> 
                     \Config::instance()->incLibFile('GoogleAdSense');
                     $cStartDate = \filter_input(\INPUT_GET, 'cfd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'today']]);
                     $cEndDate = \filter_input(\INPUT_GET, 'ctd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'today']]);

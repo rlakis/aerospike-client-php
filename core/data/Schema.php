@@ -34,9 +34,9 @@ class Schema extends \Core\Model\Singleton {
     const BIN_NAME_AR           = 'name_ar';
     const BIN_NAME_EN           = 'name_en';
     const GENERIC_READONLY      = 'locked';
-    const BIN_LATITUDE      = 'latitude';
-    const BIN_LONGITUDE     = 'longitude';
-    const BIN_CURRENCY      = 'currency_id';
+    const BIN_LATITUDE          = 'latitude';
+    const BIN_LONGITUDE         = 'longitude';
+    const BIN_CURRENCY          = 'currency_id';
     const GENERIC_COUNTRY       = 'country_id';
     const BIN_URI               = 'uri';
     

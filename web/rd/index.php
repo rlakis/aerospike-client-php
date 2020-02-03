@@ -78,7 +78,8 @@ $regions_label = $router->isArabic() ? "البلدان والمناطق" : "Coun
             $count = $root['counter'];
             $link = $router->getURL($router->countryId, $router->cityId, $id);
             //echo '<li><a href="', $link,'"><i class="icn icn-', $id, '"></i>', $root['name'], '<span class="float-right">', number_format($count, 0), '</span></a></li>';
-            $sections[$id] = $router->db->getSectionsData($router->countryId, $router->cityId, $id, $router->siteLanguage, true);
+            //$sections[$id] = $router->db->getSectionsData($router->countryId, $router->cityId, $id, $router->siteLanguage, true);
+            $sections[$id] = $router->db->asSectionsData($router->countryId, $router->cityId, $id, $router->siteLanguage, true);
         }
         
         $count = count($sections);

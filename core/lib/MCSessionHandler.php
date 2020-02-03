@@ -20,9 +20,9 @@ class MCSessionHandler extends \Core\Model\Singleton implements \SessionHandlerI
     protected function __construct() {        
         $this->version = phpversion("aerospike");
         $this->shared = true;
-        $this->ttl = intval(get_cfg_var("session.gc_maxlifetime"), 10);
-        session_set_save_handler($this, TRUE);
-        session_start();
+        $this->ttl = \intval(\get_cfg_var("session.gc_maxlifetime"), 10);
+        \session_set_save_handler($this, TRUE);
+        \session_start();
     }
 
     
@@ -125,7 +125,9 @@ class MCSessionHandler extends \Core\Model\Singleton implements \SessionHandlerI
     }
     
     
-    private function initAerospike() {
+    private function initAerospike() : bool {
+        $this->storage= \Core\Model\NoSQL::instance()->getConnection();
+        /*
         $configuration = ["hosts" => [["addr"=>"138.201.28.229", "port"=>3000], ["addr"=>"88.99.164.79", "port"=>3000]]];
         $options = [\Aerospike::OPT_READ_TIMEOUT => 1500,
                     \Aerospike::OPT_WRITE_TIMEOUT => 2000,
@@ -133,9 +135,9 @@ class MCSessionHandler extends \Core\Model\Singleton implements \SessionHandlerI
                     \Aerospike::OPT_POLICY_RETRY => \Aerospike::POLICY_RETRY_ONCE];
 
         $this->storage = new \Aerospike($configuration, TRUE, $options);
-
+        */
         if ($this->storage->isConnected()) {
-            return TRUE;
+            return true;
         } 
         else {
             error_log(__CLASS__ . '.' .__FUNCTION__.PHP_EOL."Failed to connect to the Aerospike server [" . $this->storage->errorno() . "]: " . $this->storage->error());
@@ -145,7 +147,7 @@ class MCSessionHandler extends \Core\Model\Singleton implements \SessionHandlerI
                 return TRUE;
             }
         }
-        return FALSE;
+        return false;
     }
 
 
@@ -181,12 +183,16 @@ class MCSessionHandler extends \Core\Model\Singleton implements \SessionHandlerI
     }
 
 
+    /*
     private function openMem() {
         return (self::AEROSPIKE_STORAGE) ? $this->initAerospike() : $this->initRedis();
     }
-
+    */
     
-    public function open($savePath, $sessionName) {         
+    public function open($savePath, $sessionName) : bool {  
+        return $this->initAerospike();
+        /*
+        
         $this->savePath = $savePath;
         if (MCSessionHandler::FULL_CACHE===0) {
             if (!is_dir($this->savePath)) {
@@ -209,14 +215,17 @@ class MCSessionHandler extends \Core\Model\Singleton implements \SessionHandlerI
         }
 
         return true;
+         * 
+         */
     }
 
     
     public function close() {
-    	if ($this->storage) {
-            $this->storage->close();
-            unset($this->storage);
-        }
+    	//if ($this->storage) {
+        //    $this->storage->close();
+            //unset($this->storage);
+            //\error_log('session close'.PHP_EOL);
+        //}
         return true;
     }
 

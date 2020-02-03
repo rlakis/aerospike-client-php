@@ -441,36 +441,32 @@ class MyAds extends Page {
 
         $cndic=$this->router->db->asCountriesDictionary();
 
-        $fieldIndex=2;
-        $comma=',';
-        if ($this->router->isArabic()){
-            $fieldIndex=1;
-            $comma='،';
-        }
-        
+        $comma=$this->router->isArabic()?'،':',';
+        $name='name_'.$this->router->language;
         $countriesArray=[];
         $cities = $this->router->cities;
                 
         $content='';
         foreach ($ad->dataset()->getRegions() as $city) {                    
-            if (isset($cities[$city]) && isset($cities[$city][4])) {
-                $country_id=$cities[$city][4];
+            if (isset($cities[$city]) && isset($cities[$city][\Core\Data\Schema::BIN_COUNTRY_ID])) {
+                $country_id=$cities[$city][\Core\Data\Schema::BIN_COUNTRY_ID];
                         
-                if (!isset($countriesArray[$cities[$city][4]])) { 
+                if (!isset($countriesArray[$cities[$city][\Core\Data\Schema::BIN_COUNTRY_ID]])) { 
                     $ccs=$cndic[$country_id][\Core\Data\Schema::COUNTRY_CITIES];
-                    if ($ccs && \count($ccs)>0) {
-                        //$countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],array());
-                        $countriesArray[$country_id]=[$cndic[$country_id]['name_'.$this->router->language],[]];
+                    if ($ccs && \count($ccs)>1) {
+                        $countriesArray[$country_id]=[$cndic[$country_id][$name], []];
                     }
                     else {
-                        //$countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],false);
-                        $countriesArray[$country_id]=[$cndic[$country_id]['name_'.$this->router->language], false];
+                        $countriesArray[$country_id]=[$cndic[$country_id][$name], false];
                     }
                 }
-                if ($countriesArray[$country_id][1]!==false) $countriesArray[$country_id][1][]=$cities[$city][$fieldIndex];
+                
+                if ($countriesArray[$country_id][1]!==false) {
+                    $countriesArray[$country_id][1][]=$cities[$city][$name];
+                }
             }
         }
-   
+        
         $i=0;
         foreach ($countriesArray as $key => $value) {
             if ($i) {

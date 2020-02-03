@@ -25,8 +25,9 @@ foreach ($rs as $data) {
     $i++;
 }
 */
-countriesDictionary($db);
-
+//countriesDictionary($db);
+asRoots();
+        
 function countries(\Core\Model\DB $db) : void {
     global $schema;
     $rs=$db->get('select * from country');
@@ -161,4 +162,24 @@ function countriesDictionary(Core\Model\DB $db) : void {
     
 
     //$status = $this->getConnection()->query(\Core\Model\NoSQL::NS_USER, TS_PROFILE, $where, function ($_record) use (&$record) {$record=$_record;}, $bins);
+}
+
+
+
+function asRoots() : void {
+    $as=Core\Model\NoSQL::instance();
+    $rs=[];
+    $status=$as->getConnection()->query(Core\Data\NS_MOURJAN, Core\Data\TS_ROOT, [], 
+            function($row) use(&$rs) {        
+                if ($row['bins'][\Core\Data\Schema::BIN_BLOCKED]===0) {
+                    unset($row['bins'][\Core\Data\Schema::BIN_BLOCKED]);
+                    $rs[$row['bins'][\Core\Data\Schema::BIN_ID]]=$row['bins'];
+                }        
+            });
+    if ($status===\Aerospike::OK) {
+        \asort($rs);
+        $pk=$as->initStringKey(Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'roots');
+        $as->setBins($pk, ['data'=>$rs]);
+    }
+    
 }

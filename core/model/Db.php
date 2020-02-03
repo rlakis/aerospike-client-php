@@ -26,12 +26,14 @@ class DB {
     
     private bool $slaveOfRedis;
     public SphinxQL $ql;
+    public NoSQL $as;
     
     public \RdKafka\Producer $kafkaProducer;
     
     private $version=0;
     
     public function __construct(bool $readonly=TRUE) {
+        $this->as=NoSQL::instance();
         $this->slaveOfRedis=(\get_cfg_var('mourjan.server_id')!=='1');
         $this->countriesDictionary=[];
         $this->citiesDictionary=[];
@@ -656,6 +658,12 @@ class DB {
     }
     
     
+    function asRoots() : array {
+        $pk=$this->as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'roots');
+        $status= $this->as->getBins($pk, $record);
+    }
+    
+    
     function getRoots($force=FALSE) {
         if (!$this->slaveOfRedis) { $force = true; }
         return $this->queryCacheResultSimpleArray('roots',
@@ -685,6 +693,11 @@ class DB {
     }
 
         
+    function asCountriesData(string $lang) : array {
+        $label = "country-data-{$lang}";     
+    }
+    
+    
     function getCountriesData(string $lang) : array {
         $vv = ($this->slaveOfRedis) ? self::$SectionsVersion : self::$SectionsVersion+1;
         
@@ -708,8 +721,8 @@ class DB {
         if ($resource instanceof \mysqli_result) { 
             while ($row = $resource->fetch_array()) {
                 $purposes = $this->getPurpusesData($row[0], 0, 0, 0, $lang);
-                $result[$row[0]]=['name'=>$countries[$row[0]][$name], 'counter'=>$row[1], 'unixtime'=>$row[2], 
-                                'uri'=>$countries[$row[0]][\Core\Data\Schema::BIN_URI], 'currency'=>$countries[$row[0]][\Core\Data\Schema::BIN_CURRENCY], 
+                $result[$row[0]]=['name'=>$countries[$row[0]][$name], 'counter'=>$row[1]+0, 'unixtime'=>$row[2]+0, 
+                                'uri'=>\strtolower($countries[$row[0]][\Core\Data\Schema::BIN_URI]), 'currency'=>$countries[$row[0]][\Core\Data\Schema::BIN_CURRENCY], 
                                 'code'=>$countries[$row[0]][\Core\Data\Schema::COUNTRY_CODE],
                                 'purposes'=>$purposes, 'cities'=> $this->getCitiesData($row[0], $lang)];
             }
@@ -761,6 +774,41 @@ class DB {
     }
     
     
+    function asRootsData(int $countryId, int $cityId, string $lang) : array {
+        $as=NoSQL::instance();
+        $label="root-dat-{$countryId}-{$cityId}-{$lang}";
+        $key=$as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $label);
+        $rs=$as->getBins($key, ['data']);
+        if (\is_array($rs) && !empty($rs)) { return $rs['data']; }
+        
+        $q = "select groupby(), root_name_{$lang}, sum(counter), max(unixtime) from section_counts ";
+        if ($cityId) {
+            $q.="where city_id={$cityId} ";
+        } 
+        elseif ($countryId) {
+            $q.="where country_id={$countryId} and city_id=0 ";
+        }
+        $q.='group by root_id order by root_id asc limit 1000';
+        
+        $resource = $this->ql->getConnection()->query($q);
+        if ($this->ql->getConnection()->error) {
+            throw new \Exception('['.$this->ql->getConnection()->errno.'] '.$this->ql->getConnection()->error.' [ '.$q.']');
+        }
+        
+        if ($resource instanceof \mysqli_result) {    
+            while ($row = $resource->fetch_array()) {
+                $purposes = $this->asPurpusesData($countryId, $cityId, $row[0], 0, $lang);
+                $result[$row[0]]=['name'=>$row[1], 'counter'=>$row[2]+0, 'unixtime'=>$row[3]+0, 'purposes'=>$purposes];                
+            }
+            $resource->free_result();                
+        }
+        
+        $as->setBins($key, ['data'=>$result]);
+        return $result;        
+    }
+    
+    
+    // deprecated
     function getRootsData($countryId, $cityId, $lang) {
         $vv = ($this->slaveOfRedis) ? self::$SectionsVersion : self::$SectionsVersion+1;
         $label = "root-data-{$countryId}-{$cityId}-{$lang}-{$vv}";
@@ -802,6 +850,83 @@ class DB {
     }
     
     
+    function asSectionsData(int $countryId, int $cityId, int $rootId, string $lang, bool $sortByCount=false) : array {
+        $label = $sortByCount ? "section-dat-{$countryId}-{$cityId}-{$rootId}-{$lang}-c" : "section-dat-{$countryId}-{$cityId}-{$rootId}-{$lang}";
+        $key = $this->as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $label);
+        $rs=$this->as->getBins($key, ['data']);
+        if (\is_array($rs) && !empty($rs)) { return $rs['data']; }
+        
+        $result=[];              
+        $q = "select groupby(), section_name_{$lang}, sum(counter) as count, max(unixtime) from section_counts where root_id={$rootId} ";
+        if ($cityId>0) {
+            $q.="and city_id={$cityId} ";
+        } 
+        elseif ($countryId>0) {
+            $q.="and country_id={$countryId} and city_id=0 ";
+        }
+        
+        $sort_field = $sortByCount ? "count desc" : "section_name_{$lang} asc";
+        $q.="group by section_id order by {$sort_field} limit 1000";
+        
+        $resource = $this->ql->getConnection()->query($q);
+        if ($this->ql->getConnection()->error) {
+            throw new \Exception('['.$this->ql->getConnection()->errno.'] '.$this->ql->getConnection()->error.' [ '.$q.']');
+        }
+        
+        $keys=['root'=>$this->as->initLongKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_ROOT, $rootId)];
+        if ($resource instanceof \mysqli_result) {     
+            while ($row = $resource->fetch_array()) {
+                $pl="purpose-dat-{$countryId}-{$cityId}-{$rootId}-{$row[0]}-{$lang}";
+                $keys[$pl]=$this->as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $pl);
+                $result[$row[0]]=['name'=>$row[1], 'counter'=>$row[2]+0, 'unixtime'=>$row[3]+0, 'purposes'=>null];                
+            }
+            $resource->free_result();                
+        }
+        
+        $status=$this->as->getConnection()->getMany(\array_values($keys), $pas);
+        if ($status===\Aerospike::OK) {            
+            foreach ($pas as $v) {
+                $vkey=$v['key'];
+                if ($vkey['set']==='root') {
+                    if (isset($result[$v['bins'][\Core\Data\Schema::ROOT_DIFFER_SECTION_ID]])) {
+                        $to_move=$result[$v['bins'][\Core\Data\Schema::ROOT_DIFFER_SECTION_ID]];
+                        unset($result[$v['bins'][\Core\Data\Schema::ROOT_DIFFER_SECTION_ID]]);
+                        $result[$v['bins'][\Core\Data\Schema::ROOT_DIFFER_SECTION_ID]]=$to_move;
+                    }
+                }
+                else {
+                    $keys[$vkey['key']]=$v['bins']['data'];   
+                }
+            }
+            unset($keys['root']);
+        }
+        foreach ($result as $k => $v) {
+            $pl="purpose-dat-{$countryId}-{$cityId}-{$rootId}-{$k}-{$lang}";
+            $result[$k]['purposes']=$keys[$pl];
+        }
+        
+        if (!empty($result)) {
+            /*
+            $roots = $this->getRoots();
+            $df = $roots[$rootId][4];
+            if (isset($result[$df])) {
+                $tdf = $result[$df];
+                unset($result[$df]);
+                $result[$df] = $tdf;
+            }*/
+            //self::$Cache->set($label, $result);
+            $this->as->setBins($key, ['data'=>$result]);
+        }
+        else {
+            \error_log(__FUNCTION__.' empty query result from sphinx!');
+        }
+
+        
+        return $result;
+    }
+    
+    
+    // deprecated
     function getSectionsData(int $countryId, int $cityId, int $rootId, string $lang, bool $sortByCount=false) : array {
         $vv = ($this->slaveOfRedis) ? self::$SectionsVersion : self::$SectionsVersion+1;
         $label = $sortByCount ? "section-data-{$countryId}-{$cityId}-{$rootId}-{$lang}-c-{$vv}" : "section-data-{$countryId}-{$cityId}-{$rootId}-{$lang}-{$vv}";
@@ -828,14 +953,29 @@ class DB {
             throw new \Exception('['.$this->ql->getConnection()->errno.'] '.$this->ql->getConnection()->error.' [ '.$q.']');
         }
         
-        if ($resource instanceof \mysqli_result) {           
+        $keys=[];
+        $as=NoSQL::instance();
+        if ($resource instanceof \mysqli_result) {     
             while ($row = $resource->fetch_array()) {
-                $purposes = $this->getPurpusesData($countryId, $cityId, $rootId, $row[0], $lang);
-                $result[$row[0]]=['name'=>$row[1], 'counter'=>$row[2], 'unixtime'=>$row[3], 'purposes'=>$purposes];                
+                $pl="purpose-dat-{$countryId}-{$cityId}-{$rootId}-{$row[0]}-{$lang}";
+                $keys[$pl]=$as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $pl);
+                //$purposes = $this->asPurpusesData($countryId, $cityId, $rootId, $row[0], $lang);
+                //var_dump($purposes);
+                //$result[$row[0]]=['name'=>$row[1], 'counter'=>$row[2], 'unixtime'=>$row[3], 'purposes'=>$purposes];                
+                $result[$row[0]]=['name'=>$row[1], 'counter'=>$row[2], 'unixtime'=>$row[3], 'purposes'=>null];                
             }
             $resource->free_result();                
         }
-
+        $as->getConnection()->getMany(\array_values($keys), $pas);
+        foreach ($pas as $v) {
+            $keys[$v['key']['key']]=$v['bins']['data'];            
+        }
+        
+        //var_dump($keys);
+        foreach ($result as $k => $v) {
+            $pl="purpose-dat-{$countryId}-{$cityId}-{$rootId}-{$k}-{$lang}";
+            $result[$k]['purposes']=$keys[$pl];
+        }
         if (!empty($result)) {
             $roots = $this->getRoots();
             $df = $roots[$rootId][4];
@@ -851,6 +991,15 @@ class DB {
         }
 
         return $result;
+    }
+    
+    
+    function asPurpusesData(int $countryId, int $cityId, int $rootId, int $sectionId, string $lang) : array {
+        $label = "purpose-dat-{$countryId}-{$cityId}-{$rootId}-{$sectionId}-{$lang}";
+        $as = NoSQL::instance();
+        $key = $as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $label);
+        $rs=$as->getBins($key, ['data']);        
+        return (\is_array($rs) && !empty($rs)) ? $rs['data'] : [];
     }
     
     

@@ -781,22 +781,24 @@ class Router extends \Core\Model\Singleton {
             $roots_label = "root-data-{$this->countryId}-{$this->cityId}-{$this->language}-".Db::$SectionsVersion;
             
             $as=NoSQL::instance();
-            $status=$as->getConnection()->getMany(
-                    [$as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'countries-dic'),
-                    $as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'cities-dic')], $records);
+            $status=$as->getConnection()->getMany([
+                    $as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'countries-dic'),
+                    $as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'cities-dic'),
+                    $as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'roots'),
+                    ], $records);
             if ($status===\Aerospike::OK) {
-                //var_dump($records);
                 foreach ($records as $record) {
                     switch ($record['key']['key']) {
                         case 'countries-dic':
-                            //var_dump($record['bins']['data']);
                             $this->db->countriesDictionary=$record['bins']['data'];
                             break;
                         case 'cities-dic':
                             $this->db->citiesDictionary=$record['bins']['data'];
                             $this->cities=$this->db->citiesDictionary;
                             break;
-
+                        case 'roots':
+                            $this->roots=$record['bins']['data'];
+                            break;
                         default:
                             break;
                     }
@@ -804,14 +806,14 @@ class Router extends \Core\Model\Singleton {
             }
             //\error_log($status."\n". \json_encode($cached));
             
-            $result = $this->db->getCache()->getMulti(['roots', 'sections', 'purposes', /*'cities-dictionary',*/ 'last', $countries_label, $roots_label]); 
+            $result = $this->db->getCache()->getMulti([/*'roots',*/ 'sections', 'purposes', /*'cities-dictionary',*/ 'last', $countries_label, $roots_label]); 
             //if (isset($result['cities-dictionary'])) {
                 //$this->cities = $result['cities-dictionary'];
             //    $this->cities = $this->db->asCitiesDictionary(); 
             //}
-            if (isset($result['roots'])) {
-                $this->roots = $result['roots'];
-            }
+            //if (isset($result['roots'])) {
+            //    $this->roots = $result['roots'];
+            //}
             if (isset($result['sections'])) { 
                 $this->sections = $result['sections'];
             }
@@ -860,17 +862,20 @@ class Router extends \Core\Model\Singleton {
         if (!$this->countryId) {
             $this->countryId=0;
             $this->cityId=0;
-            $this->pageRoots = $this->db->getRootsData($this->countryId, $this->cityId, $this->language);
+            //$this->pageRoots = $this->db->getRootsData($this->countryId, $this->cityId, $this->language);
+            $this->pageRoots = $this->db->asRootsData($this->countryId, $this->cityId, $this->language);
         } 
         else {
             if ($this->cityId && !isset($this->countries[$this->countryId]['cities'][$this->cityId])) {
                 $this->cityId=0;
-                $this->pageRoots = $this->db->getRootsData($this->countryId, $this->cityId, $this->language);
+                //$this->pageRoots = $this->db->getRootsData($this->countryId, $this->cityId, $this->language);
+                $this->pageRoots = $this->db->asRootsData($this->countryId, $this->cityId, $this->language);
             }
         }
         
         if ($this->pageRoots==NULL) {
-            $this->pageRoots = $this->db->getRootsData($this->countryId, $this->cityId, $this->language);
+            //$this->pageRoots = $this->db->getRootsData($this->countryId, $this->cityId, $this->language);
+            $this->pageRoots = $this->db->asRootsData($this->countryId, $this->cityId, $this->language);
         }
         
         if ($this->module=='search' || $this->module=='detail' || $this->module=='cache') {
@@ -881,7 +886,8 @@ class Router extends \Core\Model\Singleton {
     
     function cacheExtension($force=false) {       
         if ($this->rootId && $this->pageSections==NULL) {
-            $this->pageSections = $this->db->getSectionsData($this->countryId, $this->cityId, $this->rootId, $this->language);
+            //$this->pageSections = $this->db->getSectionsData($this->countryId, $this->cityId, $this->rootId, $this->language);
+            $this->pageSections = $this->db->asSectionsData($this->countryId, $this->cityId, $this->rootId, $this->language);
         }
             
         if ($this->sectionId && isset($this->pageSections[$this->sectionId])) {
@@ -906,7 +912,8 @@ class Router extends \Core\Model\Singleton {
                 $this->pagePurposes = $this->pageRoots[$this->rootId]['purposes'];
             }
             else {
-                $this->pagePurposes = $this->db->getPurpusesData($this->countryId, $this->cityId, $this->rootId, $this->sectionId, $this->language);
+                //$this->pagePurposes = $this->db->getPurpusesData($this->countryId, $this->cityId, $this->rootId, $this->sectionId, $this->language);
+                $this->pagePurposes = $this->db->asPurpusesData($this->countryId, $this->cityId, $this->rootId, $this->sectionId, $this->language);
             }
         }
     }
@@ -1122,7 +1129,7 @@ class Router extends \Core\Model\Singleton {
     
     
     public function getCountryId(int $city_id) : int {
-        return \intval($this->cities[$city_id][4]);
+        return \intval($this->cities[$city_id][\Core\Data\Schema::BIN_COUNTRY_ID]);
     }
     
     
