@@ -6,6 +6,7 @@ include_once 'BinField.php';
 include_once 'TableMetadata.php';
 
 const NS_MOURJAN            = 'mourjan';
+const NS_USER               = 'users';
 const TS_COUNTRY            = 'country';
 const TS_CITY               = 'city';
 const TS_ROOT               = 'root';

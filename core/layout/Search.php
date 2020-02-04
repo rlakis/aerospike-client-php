@@ -219,16 +219,16 @@ class Search extends Page {
         */
        
         if ($this->router->rootId && isset($this->router->roots[$this->router->rootId]))
-            $this->rootName = $this->router->roots[$this->router->rootId][$this->fieldNameIndex];
+            $this->rootName = $this->router->roots[$this->router->rootId][$this->name];
         else
             $this->router->rootId = 0;
 
         if ($this->router->sectionId && isset($this->router->sections[$this->router->sectionId]))
-            $this->sectionName = $this->router->sections[$this->router->sectionId][$this->fieldNameIndex];
+            $this->sectionName = $this->router->sections[$this->router->sectionId][$this->name];
         else
             $this->router->sectionId = 0;
         if ($this->router->purposeId && isset($this->router->purposes[$this->router->purposeId]))
-            $this->purposeName = $this->router->purposes[$this->router->purposeId][$this->fieldNameIndex];
+            $this->purposeName = $this->router->purposes[$this->router->purposeId][$this->name];
 
         if (!$this->router->userId && !$this->router->watchId && !$this->userFavorites) {
             if ($this->router->rootId == 1 && $this->router->sectionId &&
@@ -1398,9 +1398,9 @@ class Search extends Page {
                         foreach($followUp as $section){
                             if(!isset($procSec[$section[0]])){
                                 $uri=$this->router->getURL($this->router->countryId,$this->router->cityId,0,$section[0],$section[1]);
-                                $sName=$this->router->sections[$section[0]][$this->fieldNameIndex];
+                                $sName=$this->router->sections[$section[0]][$this->name];
                                 if($section[1]){
-                                    $pName=$this->router->purposes[$section[1]][$this->fieldNameIndex];
+                                    $pName=$this->router->purposes[$section[1]][$this->name];
                                     switch ($section[1]) {
                                         case 1:
                                         case 2:
@@ -1443,19 +1443,19 @@ class Search extends Page {
                                 }
                                     
                                 $iTmp='';
-                                if ($this->router->sections[$section[0]][4]==1) {
+                                if ($this->router->sections[$section[0]][\Core\Data\Schema::BIN_ROOT_ID]===1) {
                                     $iTmp.='<span class="x x'.$section[0].'"></span>';
                                 }
-                                elseif ($this->router->sections[$section[0]][4]==2) {
+                                elseif ($this->router->sections[$section[0]][\Core\Data\Schema::BIN_ROOT_ID]===2) {
                                     $iTmp.='<span class="z z'.$section[0].'"></span>';
                                 }
-                                elseif ($this->router->sections[$section[0]][4]==3) {
+                                elseif ($this->router->sections[$section[0]][\Core\Data\Schema::BIN_ROOT_ID]===3) {
                                     $iTmp.='<span class="v v'.$section[0].'"></span>';
                                 }
-                                elseif ($this->router->sections[$section[0]][4]==4) {
+                                elseif ($this->router->sections[$section[0]][\Core\Data\Schema::BIN_ROOT_ID]===4) {
                                     $iTmp.='<span class="y y'.$section[0].'"></span>';
                                 }
-                                elseif($this->router->sections[$section[0]][4]==99){
+                                elseif($this->router->sections[$section[0]][\Core\Data\Schema::BIN_ROOT_ID]===99){
                                     $iTmp.='<span class="u u'.$section[0].'"></span>';
                                 }
                                 else {
@@ -1736,8 +1736,7 @@ class Search extends Page {
 
             
     function getAdSection($ad, bool $hasSchema=false, bool $isDetail=false) : string {
-        $section = '';
-        $name='name_'.$this->router->language;
+        $section = '';        
         $hasLink = true;
         if (!empty($this->router->sections)) {
             $extIDX = $this->router->isArabic() ? Classifieds::EXTENTED_AR : Classifieds::EXTENTED_EN;
@@ -1760,7 +1759,7 @@ class Search extends Page {
                 $hasLink=false;
             }
 
-            $section = $this->router->sections[$ad[Classifieds::SECTION_ID]][$this->fieldNameIndex];
+            $section = $this->router->sections[$ad[Classifieds::SECTION_ID]][$this->name];
             if ($extID) { $section = $this->extended[$extID]['name']; }
             
             switch ($ad[Classifieds::PURPOSE_ID]) {
@@ -1769,19 +1768,19 @@ class Search extends Page {
                 case 8:
                 case 999:
                     if ($hasSchema) {
-                        $section = '<span itemprop="name">' . $section . '</span>&nbsp;' . $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$name];
+                        $section = '<span itemprop="name">' . $section . '</span>&nbsp;' . $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->name];
                     }
                     else {
-                        $section = $section . ' ' . $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$name];
+                        $section = $section . ' ' . $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->name];
                     }
                     break;
                 case 6:
                 case 7:
                     if ($hasSchema) {
-                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$name] . ' <span itemprop="name">' . $section . '</span>';
+                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->name] . ' <span itemprop="name">' . $section . '</span>';
                     }
                     else {
-                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$name] . ' ' . $section;
+                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->name] . ' ' . $section;
                     }
                     break;
                 case 3:
@@ -1804,9 +1803,9 @@ class Search extends Page {
                     if (!$this->router->isArabic())
                         $in = ' ' . $this->lang['in'] . ' ';
                     if ($hasSchema)
-                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$name] . $in . '<span itemprop="name">' . $section . '</span>';
+                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->name] . $in . '<span itemprop="name">' . $section . '</span>';
                     else
-                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$name] . $in . $section;
+                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->name] . $in . $section;
                     break;
                 case 5:
                     if ($hasSchema)
@@ -1833,7 +1832,7 @@ class Search extends Page {
                             $idx = 2;
                             $uri = '/' . $this->router->countries[$ad[Classifieds::COUNTRY_ID]][\Core\Data\Schema::BIN_URI] . '/';
                             $uri.=$this->localities[$id]['uri'] . '/';
-                            $uri.=$this->router->sections[$ad[Classifieds::SECTION_ID]][3] . '/';
+                            $uri.=$this->router->sections[$ad[Classifieds::SECTION_ID]][\Core\Data\Schema::BIN_URI] . '/';
                             $uri.=$this->router->purposes[$ad[Classifieds::PURPOSE_ID]][\Core\Data\Schema::BIN_URI] . '/';
                             $uri.=($this->router->isArabic()?'':$this->router->language . '/') . 'c-' . $id . '-' . $idx . '/';
                             $res.='<li><a href="' . $uri . '">' . $tempSection . '</a></li>';
@@ -1877,8 +1876,8 @@ class Search extends Page {
                                 $idx = 3;
                                 $uri.=$this->router->countries[$ad[Classifieds::COUNTRY_ID]]['cities'][$cityId]['uri'] . '/';
                             }
-                            $uri.=$this->router->sections[$ad[Classifieds::SECTION_ID]][3] . '-' . $this->extended[$extID]['uri'] . '/';
-                            $uri.=$this->router->purposes[$ad[Classifieds::PURPOSE_ID]][3] . '/';
+                            $uri.=$this->router->sections[$ad[Classifieds::SECTION_ID]][\Core\Data\Schema::BIN_URI] . '-' . $this->extended[$extID]['uri'] . '/';
+                            $uri.=$this->router->purposes[$ad[Classifieds::PURPOSE_ID]][\Core\Data\Schema::BIN_URI] . '/';
                             $uri.=($this->router->language == 'ar' ? '' : $this->router->language . '/') . 'q-' . $extID . '-' . $idx . '/';
                             $section = '<li><a href="' . $uri . '">' . $section . '</a></li>';
                         }
@@ -2642,15 +2641,16 @@ class Search extends Page {
             $prefix = '';
             $suffix = '';
             if ($this->router->sectionId) {
-                $suffix_uri.=$this->router->sections[$this->router->sectionId][3] . '/';
-                $prefix = $this->router->sections[$this->router->sectionId][$this->fieldNameIndex] . ' ';
-            } else {
-                $suffix_uri.=$this->router->roots[$this->router->rootId][3] . '/';
-                $prefix = $this->router->roots[$this->router->rootId][$this->fieldNameIndex] . ' ';
+                $suffix_uri.=$this->router->sections[$this->router->sectionId][\Core\Data\Schema::BIN_URI] . '/';
+                $prefix = $this->router->sections[$this->router->sectionId][$this->name] . ' ';
+            } 
+            else {
+                $suffix_uri.=$this->router->roots[$this->router->rootId][\Core\Data\Schema::BIN_URI] . '/';
+                $prefix = $this->router->roots[$this->router->rootId][$this->name] . ' ';
             }
             $sectionName = $this->sectionName;
             if ($this->router->purposeId) {
-                $suffix_uri.=$this->router->purposes[$this->router->purposeId][3] . '/';
+                $suffix_uri.=$this->router->purposes[$this->router->purposeId][\Core\Data\Schema::BIN_URI] . '/';
                 switch ($this->router->purposeId) {
                     case 1:
                     case 2:

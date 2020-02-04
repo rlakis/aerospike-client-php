@@ -248,8 +248,7 @@ trait UserTrait {
         if ($status==\Aerospike::OK) {
             $record = $record['bins'];
         }
-        else if ($status!==\Aerospike::ERR_RECORD_NOT_FOUND) {
-            
+        else if ($status!==\Aerospike::ERR_RECORD_NOT_FOUND) {            
             \Core\Model\NoSQL::Log(['Key'=>$pk['key'], 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);
         }
         
@@ -350,7 +349,7 @@ trait UserTrait {
             $uuid = strtolower(filter_var($uuid, FILTER_SANITIZE_EMAIL));
         }
         $uuid = trim($uuid);
-        return $this->getConnection()->initKey(NS_USER, TS_PROFILE, "{$uuid}-{$provider}");
+        return $this->getConnection()->initKey(\Core\Data\NS_USER, TS_PROFILE, "{$uuid}-{$provider}");
     }
     
         

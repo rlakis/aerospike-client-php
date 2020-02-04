@@ -6,6 +6,7 @@ use Core\Model\Classifieds;
 class Page extends Site {
     const SearchEngineLegitimateEntries = 21;
     
+    
     protected $action='';
     protected array $requires=['js'=>[], 'css'=>[]];
     protected $title='', $description='';
@@ -31,12 +32,13 @@ class Page extends Site {
         
     var $pageItemScope='itemscope itemtype="https://schema.org/WebPage"';
     
+    public string $name;
     
     private array $included = [];
     
     function __construct() {
         parent::__construct(); 
-        
+        $this->name='name_'.$this->router->language;
         if ($this->user()->id()) {
             if ($this->user()->level()===9 && $this->user()->id()!==1 && $this->user()->id()!==2) {
                 $this->isUserMobileVerified = true;
@@ -466,8 +468,7 @@ class Page extends Site {
     }
 
     
-    function renderLoginPage() : void {
-        \error_log(__FUNCTION__);
+    function renderLoginPage() : void {        
         \Config::instance()->incLibFile('phpqrcode');
         if (!isset($this->included['doc'])) {
             echo '<style>';
@@ -4663,14 +4664,14 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         }
         elseif($this->router->module=='search' && !$this->userFavorites && !$this->router->watchId && !$this->router->userId) {
             if($this->router->rootId){
-                $keywords.= $this->router->roots[$this->router->rootId][$this->fieldNameIndex].',';
+                $keywords.= $this->router->roots[$this->router->rootId][$this->name].',';
             }else{
                 foreach($this->router->pageRoots as $ro){
-                    $keywords.= $this->router->roots[$ro[0]][$this->fieldNameIndex].',';
+                    $keywords.= $this->router->roots[$ro[0]][$this->name].',';
                 }
             }
             if($this->router->sectionId){
-                $keywords.= $this->router->sections[$this->router->sectionId][$this->fieldNameIndex].',';
+                $keywords.= $this->router->sections[$this->router->sectionId][$this->name].',';
                 if($this->extended){
                     if($this->extendedId){
                         $keywords.= $this->extended[$this->extendedId]['name'].',';

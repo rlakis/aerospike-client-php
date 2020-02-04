@@ -1108,7 +1108,7 @@ class Router extends \Core\Model\Singleton {
         }
        
         if ($se && isset($this->sections[$se])) {
-            $result.=$this->sections[$se][3].'/';
+            $result.=$this->sections[$se][\Core\Data\Schema::BIN_URI].'/';
         }
         else if($ro) {
             $result.=$this->roots[$ro][\Core\Data\Schema::BIN_URI].'/';
