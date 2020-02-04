@@ -1,21 +1,21 @@
 <?php
 require_once 'Page.php';
 
-class NotFound extends Page{
+class NotFound extends Page {
 
     function __construct() {
         parent::__construct();
         $this->hasLeadingPane=true;
         $this->forceNoIndex=true;
-        if ($this->router()->module=='invalid') {
+        if ($this->router->module==='invalid') {
             $this->lang['title_404']=$this->lang['title_invalid'];
             $this->lang['desc_404']=$this->lang['desc_invalid'];
         }
-        elseif ($this->router()->module=='nonetwork') {
+        elseif ($this->router->module==='nonetwork') {
             $this->lang['title_404']=$this->lang['title_network'];
             $this->lang['desc_404']=$this->lang['desc_network'];
         }
-        elseif ($this->router()->module=='maintenance') {
+        elseif ($this->router->module==='maintenance') {
             $this->lang['title_404']=$this->lang['title_site_maintenance'];
             $this->lang['desc_404']=$this->lang['desc_site_maintenance'];
         }

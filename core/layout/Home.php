@@ -314,12 +314,16 @@ var setOrder=function(e)
         }
                
         $status=$this->router->db->as->getConnection()->getMany(\array_values($keys), $recs);
-        if ($status===\Aerospike::OK) {            
+        if ($status===\Aerospike::OK) {
             foreach ($recs as $sec) {
-                foreach ($kr as $id) {
-                    if ($keys[$id]['key']===$sec['key']['key']) {
+                \preg_match('/section-dat-\d+-\d+-(\d+)-.*/', $sec['key']['key'], $matches);
+                if (\is_array($matches) && \count($matches)===2) {
+                    $id=$matches[1]+0;                    
+                    if ($sec['bins']===null) {
+                        $this->router->db->asSectionsData($this->router->countryId, $this->router->cityId, $id, $this->router->language, true);
+                    }
+                    else {
                         $sections[$id]=$sec['bins']['data'];
-                        break;
                     }
                 }
             }

@@ -192,14 +192,11 @@ class NoSQL extends Singleton {
     }
     
     
-    public function get(array $key, array $record, array $bins=[]) : int {
+    public function get(array $key, array &$record, array $bins=[]) : int {
         if (isset($key['digest']) && !empty($key['digest']) && $key['key']==NULL) {
-            $key = $this->getConnection()->initKey($key['ns'], $key['set'], $key['digest'], true);          
+            $key=$this->getConnection()->initKey($key['ns'], $key['set'], $key['digest'], true);          
         }
-        $status = $this->getConnection()->get($key, $record, $bins);
-        if ($status===\Aerospike::OK) {
-            var_dump($record);
-        }
+        $status=$this->getConnection()->get($key, $record, $bins);
         return $status;
     }
     

@@ -1720,7 +1720,7 @@ class Bin extends AjaxHandler {
                     $len = \count($sections);
                     
                     foreach ($this->router->roots as $root) {
-                        $result['r'][$root[0]]=['name'=>$root[$nameIdx], 'sections'=>[], 'purposes'=>[], 'sindex'=>[]];
+                        $result['r'][$root[\Core\Data\Schema::BIN_ID]]=['name'=>$root['name_'.$this->router->language], 'sections'=>[], 'purposes'=>[], 'sindex'=>[]];
                     }                                    
                     
                     for ($i=0; $i<$len; $i++) {                  
@@ -5573,27 +5573,28 @@ class Bin extends AjaxHandler {
     
     function getAdSection(Core\Model\Ad $ad, int $rootId=0) : string {
         $section='';
+        $name='name_'.$this->router->language;
         switch($ad->purposeId()){
             case 1:
             case 2:
             case 999:
             case 8:
-                $section=$this->router->sections[$ad->sectionId()][$this->fieldNameIndex].' '.$this->router->purposes[$ad->purposeId()][$this->fieldNameIndex];
+                $section=$this->router->sections[$ad->sectionId()][$this->fieldNameIndex].' '.$this->router->purposes[$ad->purposeId()][$name];
                 break;
             case 6:
             case 7:
-                $section=$this->router->purposes[$ad->purposeId()][$this->fieldNameIndex].' '.$this->router->sections[$ad->sectionId()][$this->fieldNameIndex];
+                $section=$this->router->purposes[$ad->purposeId()][$name].' '.$this->router->sections[$ad->sectionId()][$this->fieldNameIndex];
                 break;
             case 3:
             case 4:
             case 5:
-                if (preg_match('/'.$this->router->purposes[$ad->purposeId()][$this->fieldNameIndex].'/', $this->router->sections[$ad->sectionId()][$this->fieldNameIndex])) {
+                if (preg_match('/'.$this->router->purposes[$ad->purposeId()][$name].'/', $this->router->sections[$ad->sectionId()][$this->fieldNameIndex])) {
                     $section=$this->router->sections[$ad->sectionId()][$this->fieldNameIndex];
                 }
                 else {
                     $in=' ';
                     if ($this->router->language==='en') { $in=' '.$this->lang['in'].' '; }
-                    $section=$this->router->purposes[$ad->purposeId()][$this->fieldNameIndex].$in.$this->router->sections[$ad->sectionId()][$this->fieldNameIndex];
+                    $section=$this->router->purposes[$ad->purposeId()][$name].$in.$this->router->sections[$ad->sectionId()][$this->fieldNameIndex];
                 }
                 break;
         }
@@ -5620,10 +5621,10 @@ class Bin extends AjaxHandler {
                     if (!isset($countriesArray[$cities[$city][4]])){                            
                         $ccs = $countries[$country_id][\Core\Data\Schema::COUNTRY_CITIES];
                         if ($ccs && \count($ccs)>0) {
-                            $countriesArray[$country_id] = [$countries[$country_id]['name_'.$this->router->language], [] ];
+                            $countriesArray[$country_id] = [$countries[$country_id][$name], [] ];
                         }
                         else {
-                            $countriesArray[$country_id] = [$countries[$country_id]['name_'.$this->router->language], false];
+                            $countriesArray[$country_id] = [$countries[$country_id][$name], false];
                         }
                     }
                     if ($countriesArray[$country_id][1]!==false) $countriesArray[$country_id][1][]=$cities[$city][$fieldIndex];
@@ -5646,10 +5647,10 @@ class Bin extends AjaxHandler {
             $countryId = $ad->countryId(); 
             $countryCities = $countries[$countryId][\Core\Data\Schema::COUNTRY_CITIES];
             if (\count($countryCities)>0 && isset($this->router->cities[$ad->cityId()])) {
-                $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad->cityId()][$this->fieldNameIndex].' '.$countries[$countryId]['name_'.$this->router->language];
+                $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad->cityId()][$this->fieldNameIndex].' '.$countries[$countryId][$name];
             }
             else {
-                $section=$section.' '.$this->lang['in'].' '.$countries[$countryId]['name_'.$this->router->language];
+                $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$name];
             }
         }
         

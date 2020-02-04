@@ -1737,6 +1737,7 @@ class Search extends Page {
             
     function getAdSection($ad, bool $hasSchema=false, bool $isDetail=false) : string {
         $section = '';
+        $name='name_'.$this->router->language;
         $hasLink = true;
         if (!empty($this->router->sections)) {
             $extIDX = $this->router->isArabic() ? Classifieds::EXTENTED_AR : Classifieds::EXTENTED_EN;
@@ -1768,19 +1769,19 @@ class Search extends Page {
                 case 8:
                 case 999:
                     if ($hasSchema) {
-                        $section = '<span itemprop="name">' . $section . '</span>&nbsp;' . $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex];
+                        $section = '<span itemprop="name">' . $section . '</span>&nbsp;' . $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$name];
                     }
                     else {
-                        $section = $section . ' ' . $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex];
+                        $section = $section . ' ' . $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$name];
                     }
                     break;
                 case 6:
                 case 7:
                     if ($hasSchema) {
-                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex] . ' <span itemprop="name">' . $section . '</span>';
+                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$name] . ' <span itemprop="name">' . $section . '</span>';
                     }
                     else {
-                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex] . ' ' . $section;
+                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$name] . ' ' . $section;
                     }
                     break;
                 case 3:
@@ -1803,9 +1804,9 @@ class Search extends Page {
                     if (!$this->router->isArabic())
                         $in = ' ' . $this->lang['in'] . ' ';
                     if ($hasSchema)
-                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex] . $in . '<span itemprop="name">' . $section . '</span>';
+                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$name] . $in . '<span itemprop="name">' . $section . '</span>';
                     else
-                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex] . $in . $section;
+                        $section = $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$name] . $in . $section;
                     break;
                 case 5:
                     if ($hasSchema)
@@ -1830,10 +1831,10 @@ class Search extends Page {
                         if ($iter>2) {break;}
                         if ($hasLink) {
                             $idx = 2;
-                            $uri = '/' . $this->router->countries[$ad[Classifieds::COUNTRY_ID]]['uri'] . '/';
+                            $uri = '/' . $this->router->countries[$ad[Classifieds::COUNTRY_ID]][\Core\Data\Schema::BIN_URI] . '/';
                             $uri.=$this->localities[$id]['uri'] . '/';
                             $uri.=$this->router->sections[$ad[Classifieds::SECTION_ID]][3] . '/';
-                            $uri.=$this->router->purposes[$ad[Classifieds::PURPOSE_ID]][3] . '/';
+                            $uri.=$this->router->purposes[$ad[Classifieds::PURPOSE_ID]][\Core\Data\Schema::BIN_URI] . '/';
                             $uri.=($this->router->isArabic()?'':$this->router->language . '/') . 'c-' . $id . '-' . $idx . '/';
                             $res.='<li><a href="' . $uri . '">' . $tempSection . '</a></li>';
                         }
@@ -3593,27 +3594,28 @@ class Search extends Page {
 
     function getAdCmpSection($ad, $rootId=0) {
         $section='';
+        $name='name_'.$this->router->language;
         switch($ad['PURPOSE_ID']){
             case 1:
             case 2:
             case 999:
             case 8:
-                $section=$this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex].' '.$this->router->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex];
+                $section=$this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex].' '.$this->router->purposes[$ad['PURPOSE_ID']][$name];
                 break;
             case 6:
             case 7:
-                $section=$this->router->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].' '.$this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
+                $section=$this->router->purposes[$ad['PURPOSE_ID']][$name].' '.$this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
                 break;
             case 3:
             case 4:
             case 5:
-                if (preg_match('/'.$this->router->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].'/', $this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex])) {
+                if (preg_match('/'.$this->router->purposes[$ad['PURPOSE_ID']][$name].'/', $this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex])) {
                     $section=$this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
                 }
                 else {
                     $in=' ';
                     if ($this->router->language=='en') { $in=' '.$this->lang['in'].' '; }
-                    $section=$this->router->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].$in.$this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
+                    $section=$this->router->purposes[$ad['PURPOSE_ID']][$name].$in.$this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
                 }
                 break;
         }
@@ -3638,10 +3640,10 @@ class Search extends Page {
                     if (!isset($countriesArray[$cities[$city][4]])) {                            
                         $ccs = $cndic[$country_id][\Core\Data\Schema::COUNTRY_CITIES];
                         if ($ccs && count($ccs)>0) {
-                            $countriesArray[$country_id]=[$cndic[$country_id]['name_'.$this->router->language],[]];
+                            $countriesArray[$country_id]=[$cndic[$country_id][$name],[]];
                         }
                         else {
-                            $countriesArray[$country_id]=[$cndic[$country_id]['name_'.$this->router->language],false];
+                            $countriesArray[$country_id]=[$cndic[$country_id][$name],false];
                             //$countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],false);
                         }
                     }
@@ -3669,10 +3671,10 @@ class Search extends Page {
             $countryId=$ad['COUNTRY_ID'];
             $countryCities=$cndic[$country_id][\Core\Data\Schema::COUNTRY_CITIES];
             if (count($countryCities)>0 && isset($this->router->cities[$ad['CITY_ID']])) {
-                $section=$section.' '.$this->lang['in'].' '.$this->router->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$cndic[$countryId]['name_'.$this->router->language];
+                $section=$section.' '.$this->lang['in'].' '.$this->router->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$cndic[$countryId][$name];
             }
             else {
-                $section=$section.' '.$this->lang['in'].' '.$cndic[$countryId]['name_'.$this->router->language];
+                $section=$section.' '.$this->lang['in'].' '.$cndic[$countryId][$name];
             }
         }
         return $section;

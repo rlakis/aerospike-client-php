@@ -83,7 +83,7 @@ class Ad {
         else {
             if (isset(Router::instance()->sections[$value])) {
                 $this->data[Classifieds::SECTION_ID]=$value;
-                $this->data[Classifieds::ROOT_ID]=\intval(Router::instance()->sections[$value][4]);
+                $this->data[Classifieds::ROOT_ID]=\intval(Router::instance()->sections[$value][\Core\Data\Schema::BIN_ROOT_ID]);
             }
             else {
                 $this->data[Classifieds::SECTION_ID]=0;

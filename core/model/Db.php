@@ -649,6 +649,16 @@ class DB {
     }
     
     
+    function asPurposes() : array {
+        $record=[];
+        $pk=$this->as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'purposes');
+        if ($this->as->get($pk, $record, ['data'])===\Aerospike::OK) {
+            return $record['bins']['data'];
+        }
+        return [];
+    }
+    
+    
     function getPurposes($force=FALSE) {
         if (!$this->slaveOfRedis) { $force = true; }
   
@@ -659,8 +669,12 @@ class DB {
     
     
     function asRoots() : array {
+        $record=[];
         $pk=$this->as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'roots');
-        $status= $this->as->getBins($pk, $record);
+        if ($this->as->getBins($pk, $record, ['data'])===\Aerospike::OK) {
+            return $record['bins']['data'];
+        }
+        return [];
     }
     
     
@@ -669,6 +683,16 @@ class DB {
         return $this->queryCacheResultSimpleArray('roots',
                     'select ID, NAME_AR, NAME_EN, URI, DIFFER_SECTION_ID, BLOCKED, UNIXTIME from root order by 1',
                     null, 0, 86400,  $force);
+    }
+    
+    
+    function asSections() : array {
+        $record=[];
+        $pk=$this->as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'sections');
+        if ($this->as->getBins($pk, $record, ['data'])===\Aerospike::OK) {
+            return $record['bins']['data'];
+        }
+        return [];
     }
     
     

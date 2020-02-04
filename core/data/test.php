@@ -26,7 +26,9 @@ foreach ($rs as $data) {
 }
 */
 //countriesDictionary($db);
-asRoots();
+//asRoots();
+//asPurposes();
+qlSections($db);
         
 function countries(\Core\Model\DB $db) : void {
     global $schema;
@@ -180,6 +182,59 @@ function asRoots() : void {
         \asort($rs);
         $pk=$as->initStringKey(Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'roots');
         $as->setBins($pk, ['data'=>$rs]);
-    }
-    
+    }    
 }
+
+
+function asPurposes() : void {
+    $as=Core\Model\NoSQL::instance();
+    $rs=[];
+    $status=$as->getConnection()->query(Core\Data\NS_MOURJAN, Core\Data\TS_PURPOSE, [], 
+            function($row) use(&$rs) {        
+                if ($row['bins'][\Core\Data\Schema::BIN_BLOCKED]===0) {
+                    unset($row['bins'][\Core\Data\Schema::BIN_BLOCKED]);
+                    $rs[$row['bins'][\Core\Data\Schema::BIN_ID]]=$row['bins'];
+                }        
+            });
+    if ($status===\Aerospike::OK) {
+        \asort($rs);
+        $pk=$as->initStringKey(Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'purposes');
+        $as->setBins($pk, ['data'=>$rs]);
+    }    
+}
+
+
+function qlSections(Core\Model\DB $db) : void {
+    $as=Core\Model\NoSQL::instance();
+    $records = $db->ql->directQuery(
+                    "select id, section_name_ar as name_ar, section_name_en as name_en, "
+                    . " section_uri as uri, root_id, "
+                    . " related_id, related, purposes, related_purpose_id, related_to_purpose_id "
+                    . "from section limit 100000");
+    $rs=[];
+    foreach ($records as $k=>$v) {
+        $ps=explode(',', $v[7]);
+        $p=[];
+        foreach ($ps as $pv) {
+            if (is_numeric($pv)) {
+                $p[]=$pv+0;
+            }
+        }
+        $rs[$k]=[
+            \Core\Data\Schema::BIN_ID=>$v[0], 
+            \Core\Data\Schema::BIN_NAME_AR=>$v[1], 
+            \Core\Data\Schema::BIN_NAME_EN=>$v[2], 
+            \Core\Data\Schema::BIN_URI=>$v[3], 
+            \Core\Data\Schema::BIN_ROOT_ID=>$v[4], 
+            'related_id'=>$v[5],
+            'related'=>$v[6], 
+            'purposes'=>$p, 
+            'related_purpose_id'=>$v[8], 
+            'related_to_purpose_id'=>$v[9] ];
+    }
+    $pk=$as->initStringKey(Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'sections');
+    $as->setBins($pk, ['data'=>$rs]);
+}
+
+
+

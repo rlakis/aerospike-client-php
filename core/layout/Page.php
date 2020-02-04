@@ -1584,7 +1584,7 @@ class Page extends Site {
                     echo '<span class="option', (!$this->router->params['ro']?' selected"':'"'),' data-value="0">All Categories</span>';
                     
                     foreach ($this->router->roots as $root) {
-                        echo '<span class="option', $this->router->params['ro']===$root[0]?' selected"':'"', ' data-value="', $root[0], '">', $root[$i], '</span>';
+                        echo '<span class="option', $this->router->params['ro']===$root[\Core\Data\Schema::BIN_ID]?' selected"':'"', ' data-value="', $root[\Core\Data\Schema::BIN_ID], '">', $root['name_'.$this->router->language], '</span>';
                     }
                 ?></div>
             </div>

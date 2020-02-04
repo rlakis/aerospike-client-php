@@ -785,6 +785,8 @@ class Router extends \Core\Model\Singleton {
                     $as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'countries-dic'),
                     $as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'cities-dic'),
                     $as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'roots'),
+                    $as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'purposes'),
+                    $as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'sections'),
                     ], $records);
             if ($status===\Aerospike::OK) {
                 foreach ($records as $record) {
@@ -799,6 +801,12 @@ class Router extends \Core\Model\Singleton {
                         case 'roots':
                             $this->roots=$record['bins']['data'];
                             break;
+                        case 'sections':
+                            $this->sections=$record['bins']['data'];
+                            break;
+                        case 'purposes':
+                            $this->purposes=$record['bins']['data'];
+                            break;
                         default:
                             break;
                     }
@@ -806,7 +814,7 @@ class Router extends \Core\Model\Singleton {
             }
             //\error_log($status."\n". \json_encode($cached));
             
-            $result = $this->db->getCache()->getMulti([/*'roots',*/ 'sections', 'purposes', /*'cities-dictionary',*/ 'last', $countries_label, $roots_label]); 
+            $result = $this->db->getCache()->getMulti([/*'roots', 'sections', 'purposes', 'cities-dictionary',*/ 'last', $countries_label, $roots_label]); 
             //if (isset($result['cities-dictionary'])) {
                 //$this->cities = $result['cities-dictionary'];
             //    $this->cities = $this->db->asCitiesDictionary(); 
@@ -817,9 +825,9 @@ class Router extends \Core\Model\Singleton {
             if (isset($result['sections'])) { 
                 $this->sections = $result['sections'];
             }
-            if (isset($result['purposes'])) {
+            /*if (isset($result['purposes'])) {
                 $this->purposes = $result['purposes'];
-            }                                   
+            }*/                                   
             if (isset($result[$countries_label])) {
                 $this->countries = $result[$countries_label];
             }
@@ -844,15 +852,15 @@ class Router extends \Core\Model\Singleton {
         }
                         
         if ($this->roots===NULL) {
-            $this->roots = $this->db->getRoots($force);
+            $this->roots = $this->db->asRoots();
         }
 
         if ($this->sections===NULL){            
-            $this->sections = $this->db->getSections($force);
+            $this->sections = $this->db->asSections();
         }
 
         if ($this->purposes===NULL) {
-            $this->purposes = $this->db->getPurposes($force);
+            $this->purposes = $this->db->asPurposes();
         }
         
         if ($this->cities===NULL || empty($this->cities)) {
@@ -878,7 +886,7 @@ class Router extends \Core\Model\Singleton {
             $this->pageRoots = $this->db->asRootsData($this->countryId, $this->cityId, $this->language);
         }
         
-        if ($this->module=='search' || $this->module=='detail' || $this->module=='cache') {
+        if ($this->module==='search' || $this->module==='detail' || $this->module==='cache') {
             $this->cacheExtension($force);
         }
     }
@@ -1103,11 +1111,11 @@ class Router extends \Core\Model\Singleton {
             $result.=$this->sections[$se][3].'/';
         }
         else if($ro) {
-            $result.=$this->roots[$ro][3].'/';
+            $result.=$this->roots[$ro][\Core\Data\Schema::BIN_URI].'/';
         }
         
         if ($ro!==4 && $pu && isset($this->purposes[$pu])) {
-            $result.=$this->purposes[$pu][3].'/';
+            $result.=$this->purposes[$pu][\Core\Data\Schema::BIN_URI].'/';
         }
         
         if ($appendLanguage && $this->language!=='ar') {

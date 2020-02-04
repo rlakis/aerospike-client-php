@@ -414,35 +414,35 @@ class MyAds extends Page {
     
     function getAdSection(Ad $ad, int $rootId=0, &$isMultiCountry=false) : string {
         $section='';
+        $name='name_'.$this->router->language;
         switch($ad->purposeId()) {
             case 1:
             case 2:
             case 999:
             case 8:
-                $section=$this->router->sections[$ad->sectionId()][$this->fieldNameIndex].' '.$this->router->purposes[$ad->purposeId()][$this->fieldNameIndex];
+                $section=$this->router->sections[$ad->sectionId()][$name].' '.$this->router->purposes[$ad->purposeId()][$name];
                 break;
             case 6:
             case 7:
-                $section=$this->router->purposes[$ad->purposeId()][$this->fieldNameIndex].' '.$this->router->sections[$ad->sectionId()][$this->fieldNameIndex];
+                $section=$this->router->purposes[$ad->purposeId()][$name].' '.$this->router->sections[$ad->sectionId()][$name];
                 break;
             case 3:
             case 4:
             case 5:
-                if(preg_match('/'.$this->router->purposes[$ad->purposeId()][$this->fieldNameIndex].'/', $this->router->sections[$ad->sectionId()][$this->fieldNameIndex])){
-                    $section=$this->router->sections[$ad->sectionId()][$this->fieldNameIndex];
+                if(preg_match('/'.$this->router->purposes[$ad->purposeId()][$name].'/', $this->router->sections[$ad->sectionId()][$name])){
+                    $section=$this->router->sections[$ad->sectionId()][$name];
                 }
                 else {
                     $in=' ';
                     if ($this->router->language==='en') { $in=' '.$this->lang['in'].' '; }
-                    $section=$this->router->purposes[$ad->purposeId()][$this->fieldNameIndex].$in.$this->router->sections[$ad->sectionId()][$this->fieldNameIndex];
+                    $section=$this->router->purposes[$ad->purposeId()][$name].$in.$this->router->sections[$ad->sectionId()][$name];
                 }
                 break;
         }
 
         $cndic=$this->router->db->asCountriesDictionary();
 
-        $comma=$this->router->isArabic()?'،':',';
-        $name='name_'.$this->router->language;
+        $comma=$this->router->isArabic()?'،':',';        
         $countriesArray=[];
         $cities = $this->router->cities;
                 

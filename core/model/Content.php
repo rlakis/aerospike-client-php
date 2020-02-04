@@ -233,7 +233,7 @@ class Content {
     public function setSectionID(int $id) : Content {
         if (isset(Router::instance()->sections[$id])) {
             $this->content[self::SECTION_ID]=$id;
-            $this->content[self::ROOT_ID]=\intval(Router::instance()->sections[$id][4]);
+            $this->content[self::ROOT_ID]=\intval(Router::instance()->sections[$id][\Core\Data\Schema::BIN_ROOT_ID]);
         }
         else {
             $this->content[self::SECTION_ID]=0;
