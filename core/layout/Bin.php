@@ -96,6 +96,7 @@ class Bin extends AjaxHandler {
         self::ERR_SYS_UNKNOWN       => ['en'=>'', 'ar'=>''],
     ];
     
+    private string $name;
     
     function __construct(){
         parent::__construct();
@@ -116,6 +117,8 @@ class Bin extends AjaxHandler {
                 if ($matches && $matches[2]==='en') { \Core\Model\Router::instance()->language=$matches[2]; }
             }
         }
+        
+        $this->name='name_'.$this->router->language;
         $this->actionSwitch();   
         
     }
@@ -275,7 +278,7 @@ class Bin extends AjaxHandler {
                 $pu = $this->post('p');
                     
                 //error_log("pu ". $pu);
-                if ($se) { $ro=$this->router->sections[$se][4]; }
+                if ($se) { $ro=$this->router->sections[$se][\Core\Data\Schema::BIN_ROOT_ID]; }
                 if ($ro==4) { $pu=5; }
                     
                 $text = $this->_JPOST['t']??'';
@@ -1707,7 +1710,7 @@ class Bin extends AjaxHandler {
                 $lang = $this->getGetString('sections');
                 if ($lang) {
                     $this->authorize();
-                    $nameIdx = ($lang=='ar'?1:2);
+                   
                     $result=['r'=>[],  'qs'=>[], 'qr'=>[]];
                                         
                     $referer = \filter_input(\INPUT_SERVER, 'HTTP_REFERER', \FILTER_SANITIZE_STRING);
@@ -1715,17 +1718,17 @@ class Bin extends AjaxHandler {
                     if (\strlen($path)>5) { $path=\substr($path, 0, 6); }
                     $forPostAd = ($path==='/post/');
                     $sections = $this->router->sections;
-                    \usort($sections, function(array $a, array $b) use ($nameIdx) {return ($a[$nameIdx]<=>$b[$nameIdx]);});
+                    \usort($sections, function(array $a, array $b) {return ($a[$this->name]<=>$b[$this->name]);});
                     $result['n'] = $sections;
-                    $len = \count($sections);
+                    $len = \count($sections);                                        
                     
                     foreach ($this->router->roots as $root) {
-                        $result['r'][$root[\Core\Data\Schema::BIN_ID]]=['name'=>$root['name_'.$this->router->language], 'sections'=>[], 'purposes'=>[], 'sindex'=>[]];
+                        $result['r'][$root[\Core\Data\Schema::BIN_ID]]=['name'=>$root[$this->name], 'sections'=>[], 'purposes'=>[], 'sindex'=>[]];
                     }                                    
-                    
+                                                            
                     for ($i=0; $i<$len; $i++) {                  
-                        $result['r'][$sections[$i][4]]['sections'][$sections[$i][0]] = $sections[$i][$nameIdx];                                                             
-                        $result['r'][$sections[$i][4]]['sindex'][] = $sections[$i][0];                                       
+                        $result['r'][$sections[$i][\Core\Data\Schema::BIN_ROOT_ID]]['sections'][$sections[$i][\Core\Data\Schema::BIN_ID]] = $sections[$i][$this->name];                                                             
+                        $result['r'][$sections[$i][\Core\Data\Schema::BIN_ROOT_ID]]['sindex'][] = $sections[$i][\Core\Data\Schema::BIN_ID];                                       
                     }
 
                     if ($forPostAd===false) {                        
@@ -1743,6 +1746,7 @@ class Bin extends AjaxHandler {
                         }
                     }
                     
+                    $nameIdx = ($lang=='ar'?1:2);
                     foreach ($this->router->pageRoots as $Rid => $root) {  
                         foreach ($root['purposes'] as $Pid => $pu) {
                             if ($Rid!=999){
@@ -5572,29 +5576,28 @@ class Bin extends AjaxHandler {
     
     
     function getAdSection(Core\Model\Ad $ad, int $rootId=0) : string {
-        $section='';
-        $name='name_'.$this->router->language;
+        $section='';        
         switch($ad->purposeId()){
             case 1:
             case 2:
             case 999:
             case 8:
-                $section=$this->router->sections[$ad->sectionId()][$this->fieldNameIndex].' '.$this->router->purposes[$ad->purposeId()][$name];
+                $section=$this->router->sections[$ad->sectionId()][$this->name].' '.$this->router->purposes[$ad->purposeId()][$this->name];
                 break;
             case 6:
             case 7:
-                $section=$this->router->purposes[$ad->purposeId()][$name].' '.$this->router->sections[$ad->sectionId()][$this->fieldNameIndex];
+                $section=$this->router->purposes[$ad->purposeId()][$this->name].' '.$this->router->sections[$ad->sectionId()][$this->name];
                 break;
             case 3:
             case 4:
             case 5:
-                if (preg_match('/'.$this->router->purposes[$ad->purposeId()][$name].'/', $this->router->sections[$ad->sectionId()][$this->fieldNameIndex])) {
-                    $section=$this->router->sections[$ad->sectionId()][$this->fieldNameIndex];
+                if (preg_match('/'.$this->router->purposes[$ad->purposeId()][$this->name].'/', $this->router->sections[$ad->sectionId()][$this->name])) {
+                    $section=$this->router->sections[$ad->sectionId()][$this->name];
                 }
                 else {
                     $in=' ';
                     if ($this->router->language==='en') { $in=' '.$this->lang['in'].' '; }
-                    $section=$this->router->purposes[$ad->purposeId()][$name].$in.$this->router->sections[$ad->sectionId()][$this->fieldNameIndex];
+                    $section=$this->router->purposes[$ad->purposeId()][$this->name].$in.$this->router->sections[$ad->sectionId()][$this->name];
                 }
                 break;
         }
@@ -5621,10 +5624,10 @@ class Bin extends AjaxHandler {
                     if (!isset($countriesArray[$cities[$city][4]])){                            
                         $ccs = $countries[$country_id][\Core\Data\Schema::COUNTRY_CITIES];
                         if ($ccs && \count($ccs)>0) {
-                            $countriesArray[$country_id] = [$countries[$country_id][$name], [] ];
+                            $countriesArray[$country_id] = [$countries[$country_id][$this->name], [] ];
                         }
                         else {
-                            $countriesArray[$country_id] = [$countries[$country_id][$name], false];
+                            $countriesArray[$country_id] = [$countries[$country_id][$this->name], false];
                         }
                     }
                     if ($countriesArray[$country_id][1]!==false) $countriesArray[$country_id][1][]=$cities[$city][$fieldIndex];
@@ -5647,10 +5650,10 @@ class Bin extends AjaxHandler {
             $countryId = $ad->countryId(); 
             $countryCities = $countries[$countryId][\Core\Data\Schema::COUNTRY_CITIES];
             if (\count($countryCities)>0 && isset($this->router->cities[$ad->cityId()])) {
-                $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad->cityId()][$this->fieldNameIndex].' '.$countries[$countryId][$name];
+                $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad->cityId()][$this->fieldNameIndex].' '.$countries[$countryId][$this->name];
             }
             else {
-                $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$name];
+                $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$this->name];
             }
         }
         
@@ -5659,7 +5662,6 @@ class Bin extends AjaxHandler {
                 $section='<b class="ah">'.$section.'</b>';
             }
             else {
-                //$section='<span>'.$section.' - <b>' . $this->formatSinceDate(strtotime($ad['DATE_ADDED'])) . '</b></span>';
                 $section='<span>' . $section . ' - <b>' . $this->formatSinceDate($ad->getDateAdded()) . '</b></span>';
             }
         }

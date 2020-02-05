@@ -1793,9 +1793,9 @@ class Search extends Page {
                     }
                     else {
                         if ($hasSchema)
-                            $section = '<span itemprop="name">' . $section . '</span>&nbsp;' . $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex];
+                            $section = '<span itemprop="name">' . $section . '</span>&nbsp;' . $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->name];
                         else
-                            $section = $section . ' ' . $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->fieldNameIndex];
+                            $section = $section . ' ' . $this->router->purposes[$ad[Classifieds::PURPOSE_ID]][$this->name];
                     }
                     break;
                 case 4:
@@ -3600,22 +3600,22 @@ class Search extends Page {
             case 2:
             case 999:
             case 8:
-                $section=$this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex].' '.$this->router->purposes[$ad['PURPOSE_ID']][$name];
+                $section=$this->router->sections[$ad['SECTION_ID']][$this->name].' '.$this->router->purposes[$ad['PURPOSE_ID']][$name];
                 break;
             case 6:
             case 7:
-                $section=$this->router->purposes[$ad['PURPOSE_ID']][$name].' '.$this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
+                $section=$this->router->purposes[$ad['PURPOSE_ID']][$name].' '.$this->router->sections[$ad['SECTION_ID']][$name];
                 break;
             case 3:
             case 4:
             case 5:
-                if (preg_match('/'.$this->router->purposes[$ad['PURPOSE_ID']][$name].'/', $this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex])) {
-                    $section=$this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
+                if (preg_match('/'.$this->router->purposes[$ad['PURPOSE_ID']][$name].'/', $this->router->sections[$ad['SECTION_ID']][$this->name])) {
+                    $section=$this->router->sections[$ad['SECTION_ID']][$this->name];
                 }
                 else {
                     $in=' ';
-                    if ($this->router->language=='en') { $in=' '.$this->lang['in'].' '; }
-                    $section=$this->router->purposes[$ad['PURPOSE_ID']][$name].$in.$this->router->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
+                    if ($this->router->language==='en') { $in=' '.$this->lang['in'].' '; }
+                    $section=$this->router->purposes[$ad['PURPOSE_ID']][$name].$in.$this->router->sections[$ad['SECTION_ID']][$this->name];
                 }
                 break;
         }

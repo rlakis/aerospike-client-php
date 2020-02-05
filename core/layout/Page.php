@@ -1535,7 +1535,14 @@ class Page extends Site {
         <div class="row top-header"><div class="viewable full-height ff-cols">
             <ul><?php
                 if ($this->router->countryId>0 && isset($this->router->countries[$this->router->countryId])) {
-                    echo '<li><a href="#">', $this->router->countries[$this->router->countryId]['name'],'<i class="icn icnsmall icn-', $this->router->countries[$this->router->countryId]['uri'], '"></i></a></li>';
+                    if ($this->router->cityId===0) {
+                        echo '<li><a href="#">', $this->router->countries[$this->router->countryId]['name'];
+                    }
+                    else {
+                        echo '<li><a href="#">', $this->router->cities[$this->router->cityId][$this->name];
+                        
+                    }
+                    echo '<i class="icn icnsmall icn-', $this->router->countries[$this->router->countryId]['uri'], ' iborder"></i></a></li>';
                 }
                 else {
                     echo '<li><a href="#"><i class="icn icnsmall icn-globe invert"></i></a></li>';
@@ -1548,27 +1555,11 @@ class Page extends Site {
             </ul>
             </div></div>
         
-        <header><div class="viewable ff-rows full-height">
-    
-        
-            <a class=half-height href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i></a>            
-        
-        <!--
-        <div class=float-right>
-            <ul class="nav float-right"><?php
-                if ($this->router->countryId && isset($this->router->countries[$this->router->countryId])) {
-                    echo '<li><a href="#"><i class="icn icnsmall icn-', $this->router->countries[$this->router->countryId]['uri'], '"></i></a></li>';
-                }
-                else {
-                    echo '<li><a href="#"><i class="icn icnsmall icn-globe invert"></i></a></li>';
-                }?>
-                <li><a href="<?= $url ?>"><i class="icn icnsmall icn-lang invert"></i></a></li>
-                <li><a href="#"><i class="icn icnsmall icn-bell invert"></i></a></li>
-                <li><a href="<?= $this->router->getLanguagePath($this->user->isLoggedIn() ? '/myads/' : '/signin/') ?>"><i class="icn icnsmall icn-user invert"></i></a></li>
-            </ul>
-        </div>-->
-    
-                </div></header>
+        <header><div class="viewable ff-rows full-height sp-between">    
+                <div><a class=half-height href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i></a>
+                    <span class="slogan">EVERYTHING YOU'VE BEEN LOOKING FOR</span></div>
+            <a class="btn" href='#'>PLACE YOUR AD FOR FREE</a>
+        </div></header>
 
     <section class=search-box><div class="viewable ha-center"><div class=search>
         <form onsubmit="if(document.getElementById('q').value)return true;return false;" action="<?= $this->router->getLanguagePath('/'. $this->router->countryId>0?$this->router->countries[$this->router->countryId]['uri']:'' ) ?>"> 
