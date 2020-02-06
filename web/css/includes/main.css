@@ -8,7 +8,8 @@
     --color-1:#fd8a6f;--color-2:#ff5f67;--color-3:#2ad392;
     --color-4:#00c1c1;--color-99:#5a9dff;
     --linkC:#007AFF;
-    --mcLightColor:rgba(0,122,255,1); --mcDarkColor:rgba(28,65,94,1); --mcOnColor:rgba(0,58,93,1);
+    --mcLightColor:rgba(0,122,255,1); --mcDarkColor:rgba(28,65,94,1); 
+    --mcOnColor:rgba(0,58,93,1);  
     --mColor00:rgba(135,135,135,1);
     --mColor01:rgba(179,179,179,1);
     --mColor02:rgba(28,65,94,.08);
@@ -71,8 +72,11 @@ body[dir="rtl"] [class*="col-"] { float: right; }
 .ff-cols{flex-flow:column}
 .ff-rows{flex-flow:row}
 .va-center{align-items: center}
+.va-start{align-items: flex-start}
 .ha-center{justify-content: center}
+.ha-start{justify-content: flex-start}
 .sp-between{justify-content: space-between}
+.invert{filter:invert(1)}
 
 header{display:flex;background-color:var(--mcLightColor);color:#F9F9F9;padding:0;text-align:center;margin-bottom: 24px;font-size: 0.9em; font-weight: 600 !important}
 /*header>h1{-webkit-margin-before:0.1em;-webkit-margin-after:0.1em;font-size:1.8em;}*/
@@ -80,11 +84,17 @@ header>a{display: flex;}
 header .slogan{margin-top: 56px;}
 header div{display: inherit}
 header .btn{background-color: #FF6167;border-radius: 10px;color:#F9F9F9;font-size: 0.9em;font-weight: 600}
+
 .navbar{display: inherit; flex:1 auto;}
 
 .search-box{display:inherit;background-color:#fff}
 
-footer{padding-top:44px;direction:ltr;text-align:center; order:999;background-color: var(--mcLightColor);}
+footer{padding-top:76px;direction:ltr;text-align:center; order:999;background-color: var(--mcLightColor);color:white}
+footer ul{color:white;display: flex;flex-flow: column;justify-content: flex-start;margin: 0; text-align: left; flex: 1 auto; padding: 0 16px;}
+footer li{display: inherit;flex: 1 auto; border-bottom: 1px solid rgba(0,255,255,0.7) }
+footer a{color:white}
+footer p{color:rgba(255,255,255,.75);display: inherit; text-align: left}
+
 ul{list-style-type:none;list-style-position:inside;}
 li>i{margin:0 4px;max-width:32px;}
 
@@ -201,7 +211,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .navbar>li{float:left;}
 .navbar .navbar-nav>li>a{color:inherit;padding-top:15px;padding-bottom:15px;font-weight:500;font-size:12px;text-transform:uppercase;border-radius:3px;}
 
-.ilogo{margin:9px 18px;height:72px;width:72px;display:inline-block;background-image: url("/web/css/1.0/assets/LogoV5.svg"); background-position: center; background-repeat: no-repeat; background-size: cover;/*filter:drop-shadow(8px 8px 5px rgba(0,0,0,0.9))*/}
+.ilogo{margin:9px 18px;height:72px;width:72px;display:inline-block;background-image: url("/web/css/1.0/assets/LogoV5.svg"); background-position: center; background-repeat: no-repeat; background-size: cover;}
 .card{display:inline-block;width:100%;margin:25px 0;box-shadow:0 1px 4px 0 rgba(0, 0, 0, 0.14);border-radius:6px;color:rgba(0,0,0, 0.87);background:#fff;}
 .card-header{display:inline-block;position:absolute;height:62px;margin:-20px 14px 0 14px;padding:12px;box-shadow:0 4px 20px 0px rgba(0, 0, 0, 0.14), 0 7px 10px -5px rgba(255, 152, 0, 0.4);border-radius:inherit;}
 .card .card-header{z-index:3;}
@@ -553,7 +563,7 @@ body[dir="rtl"] .modal .card{transform: translate(-50%, 0%);}
     header {
         min-height: 120px;
     }
-    main{display:inherit;background-color: #F7F7F7 /*margin: 8px 52px*/}
+    main{display:inherit;background-color:#F7F7F7}
     .ilogo{
         width: 230px;
         height: 50px;       
@@ -563,8 +573,8 @@ body[dir="rtl"] .modal .card{transform: translate(-50%, 0%);}
     .nav .navright {
         width: calc(100% - 210px);
     }
-    body[dir="ltr"] .ilogo{background-image: url("/web/css/1.0/assets/LogoV5e.svg");}
-    body[dir="rtl"] .ilogo{background-image: url("/web/css/1.0/assets/LogoV5a.svg"); margin-right:  60px;}
+    body[dir="ltr"] .ilogo{background-image:url("/web/css/1.0/assets/LogoV5e.svg");}
+    body[dir="rtl"] .ilogo{background-image:url("/web/css/1.0/assets/LogoV5a.svg"); margin-right:60px;}
    
 }
 
@@ -578,9 +588,10 @@ body[dir="rtl"] .modal .card{transform: translate(-50%, 0%);}
 }
 
 .mps{display:inline-block;padding:0;text-align:center;width:200px;margin-bottom:5px;}
-.mios, .mandroid{background:url(/web/css/1.0/assets/appsm.jpg) no-repeat center;height:60px;width:200px;display:inline-block;}
-.mios{background-position: 0px -3px;}
-.mandroid{background-position: 0px -66px;}
+.mios, .mandroid{height:56px;width:170px;display:inline-block;margin-bottom: 8px;}
+.mios{background:url(/web/css/1.0/assets/mcastore.svg) no-repeat center;}
+
+.mandroid{background:url(/web/css/1.0/assets/mcgplay.svg) no-repeat center;}
 
 
 

@@ -2623,14 +2623,40 @@ class Page extends Site {
     
     function footer() : void {
         $year = date('Y');
-        echo '</main><footer class="row "><div class="viewable ff-cols">';
+        echo '</main><footer class=row><div class="viewable ff-rows">';
+        echo '<div class="col-4 ff-cols">';
+        ?><img class="invert" src="/web/css/1.0/assets/mc-en.svg" width="156"/>
+        <p>24/7 Customer Service</p><p>+961-70-424-018</p>
+        <p>mourjan.com, 4th floor, Dekwaneh 1044 center</p>
+        <p>New Slav Street, Dekwaneh, Lebanon</p>
+            <?php
+            echo '<p class="ha-start">© 2010-', $year, ' Mourjan Classifieds<br/>All Rights Reserved.</p>';
+        echo '</div>';
         
-        ?><div class="col-12 ha-center"><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a><?php
-        ?><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a></div><?php
-        echo '<div class="col-12 ha-center">© 2010-', $year, ' Mourjan.com Classifieds<br/>All Rights Reserved.';
+        echo '<div class="col-4 va-start"><!--<div class="card "><div class=card-content>-->';
+        echo '<ul>';
+        //if ($this->user()->id()) {
+        //    $balance_label= $this->lang['myBalance']. ' is '.$this->user()->getBalance() . ' coins';
+        //    echo '<li><a href="', $this->router->getLanguagePath('/statement/'), '"><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></a></li>';
+        //}
+        echo '<li><a href="', $this->router->getLanguagePath('/about/'), '"><!--<i class="icn s icn-83"></i>--><span>', $this->lang['aboutUs'], '</span></a></li>';
+        echo '<li><a href="', $this->router->getLanguagePath('/contact/'), '"><!--<i class="icn s icn-88"></i>--><span>', $this->lang['contactUs'], '</span></a></li>';
+        echo '<li><a href="', $this->router->getLanguagePath('/contact/'), '"><span>', 'FAQs & Help Center', '</span></a></li>';
+        echo '<li><a href="', $this->router->getLanguagePath('/terms/'), '"><!--<i class="icn s icn-85"></i>--><span>', $this->lang['termsConditions'], '</span></a></li>';
+        echo '<li><a href="', $this->router->getLanguagePath('/privacy/'), '"><!--<i class="icn s icn-81"></i>--><span>', $this->lang['privacyPolicy'], '</span></a></li>';
+        echo '</ul><!--</div></div>-->', "\n"; // card
+        echo '</div>';
+        
+        ?><div class="col-4 ff-cols"><p>FIND EXECLUSIVE DEALS ON THE APP:</p><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a><?php
+        ?><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a><?php
+        ?><p>CONNECT @mourjan</p><?php
         if ($this->user()->level()!==9) {
-            ?><br /><br />
-            <a href="https://sectigo.com/trust-seal" style="font-family:arial;font-size:10px;color:#212121;text-decoration:none;"><img src="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png" srcset="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png, https://sectigo.com/images/seals/sectigo_trust_seal_lg_2x.png 2x" width="140" height="54" alt="Protected by Sectigo SSL" /></a><div style="font-family: arial;font-weight:bold;font-size:15px;color:#86BEE0;"><a href="https://sectigo.com" style="color:#86BEE0;text-decoration:none;">SSL Certificate</a></div>
+            ?><a href="https://sectigo.com/trust-seal" style="font-family:arial;font-size:10px;color:#212121;text-decoration:none;margin-top:8px">
+                <img src="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png" 
+                     srcset="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png, https://sectigo.com/images/seals/sectigo_trust_seal_lg_2x.png 2x" 
+                     width="140" height="54" alt="Protected by Sectigo SSL" /></a>
+            <div style="font-family: arial;font-weight:bold;font-size:15px;color:#86BEE0;">
+                <a href="https://sectigo.com" style="color:#86BEE0;text-decoration:none;">SSL Certificate</a></div>
             <?php
         }
         echo '</div></div>';
