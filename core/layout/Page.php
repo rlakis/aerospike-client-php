@@ -1558,7 +1558,7 @@ class Page extends Site {
         <header><div class="viewable ff-rows full-height sp-between">    
                 <div><a class=half-height href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i></a>
                     <span class="slogan">EVERYTHING YOU'VE BEEN LOOKING FOR</span></div>
-            <a class="btn" href='#'>PLACE YOUR AD FOR FREE</a>
+            <a class="btn post" href='#'>PLACE YOUR AD FOR FREE</a>
         </div></header>
 
     <section class=search-box><div class="viewable ha-center"><div class=search>
@@ -2623,14 +2623,41 @@ class Page extends Site {
     
     function footer() : void {
         $year = date('Y');
-        echo '</main><footer class=row><div class="viewable ff-rows">';
+        ?><div class="row ff-cols viewable">            
+            
+            <div class="col-12 mhbanner">                
+                <img style="position:relative;width:116px;top:-44px;filter:invert(36%) sepia(39%) saturate(7153%) hue-rotate(200deg) brightness(102%) contrast(106%);" src="/web/css/1.0/assets/emblem.svg" />
+                <div class="p1">                    
+                    <div><span class="um">SELL</span><span class="sm l1">YOUR CAR</span></div>
+                    <div><span class="um">FIND</span><span class="sm l2">A JOB</span></div>
+                    <div><span class="um">ADVERTISE</span><span class="sm l3">YOUR BUSINESS</span></div>
+                    <div><span class="um">BUY</span><span class="sm l4">A HOUSE</span></div>
+                    <div><span class="um">PROMOTE</span><span class="sm l5">YOUR SERVICES</span></div>
+                </div>
+                       
+            </div>
+            
+            
+            <div class="col-12 mfbanner"><span style="width:116px"></span><div>EVERYTHING YOU’VE BEEN LOOKING FOR.</div><a class="btn" href='#'>PLACE YOUR AD FOR FREE</a></div>
+</div>
+        <?php
+        ?><div class="row">
+            <div class="col-12" style="background-color:white;height: 90px;align-items: center;justify-content: center;line-height: 1.8em">
+                <img src="/web/css/1.0/assets/premium-en.svg" width="284"/>
+                <span style="height:43px;width:2px;background-color:var(--mColor03);margin: 0 24px"></span>
+                <div style="color: var(--mColor03);">
+                <span style="font-size:20pt;font-weight:bold">GO PREMIUM & GET SEEN BY MILLIONS OF USERS INSTANTLY!</span><br>
+                <span style="font-size:16pt;">One Mourjan gold is equal to one day of premium ad listing.&nbsp;&nbsp;<a href="#">Learn more</a></span>
+                </div>
+            </div>                
+        </div><?php
+        echo '</main>';
+        echo '<footer class=row><div class="viewable ff-rows">';
         echo '<div class="col-4 ff-cols">';
-        ?><img class="invert" src="/web/css/1.0/assets/mc-en.svg" width="156"/>
-        <p>24/7 Customer Service</p><p>+961-70-424-018</p>
-        <p>mourjan.com, 4th floor, Dekwaneh 1044 center</p>
-        <p>New Slav Street, Dekwaneh, Lebanon</p>
-            <?php
-            echo '<p class="ha-start">© 2010-', $year, ' Mourjan Classifieds<br/>All Rights Reserved.</p>';
+        ?><img class=invert src="/web/css/1.0/assets/mc-en.svg" width=160/>
+        <div class="apps bold" style="margin-inline-start:40px;">24/7 Customer Service<br/>+961-70-424-018</div>
+        <p style="margin-inline-start:40px;">mourjan.com, 4th floor, Dekwaneh 1044 center<br/>New Slav Street, Dekwaneh, Lebanon</p><?php
+        echo '<p class="ha-start" style="margin-inline-start:40px;">© 2010-', $year, ' Mourjan Classifieds<br/>All Rights Reserved.</p>';
         echo '</div>';
         
         echo '<div class="col-4 va-start"><!--<div class="card "><div class=card-content>-->';
@@ -2647,19 +2674,22 @@ class Page extends Site {
         echo '</ul><!--</div></div>-->', "\n"; // card
         echo '</div>';
         
-        ?><div class="col-4 ff-cols"><p>FIND EXECLUSIVE DEALS ON THE APP:</p><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a><?php
-        ?><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a><?php
-        ?><p>CONNECT @mourjan</p><?php
-        if ($this->user()->level()!==9) {
-            ?><a href="https://sectigo.com/trust-seal" style="font-family:arial;font-size:10px;color:#212121;text-decoration:none;margin-top:8px">
-                <img src="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png" 
-                     srcset="https://sectigo.com/images/seals/sectigo_trust_seal_lg.png, https://sectigo.com/images/seals/sectigo_trust_seal_lg_2x.png 2x" 
-                     width="140" height="54" alt="Protected by Sectigo SSL" /></a>
-            <div style="font-family: arial;font-weight:bold;font-size:15px;color:#86BEE0;">
-                <a href="https://sectigo.com" style="color:#86BEE0;text-decoration:none;">SSL Certificate</a></div>
-            <?php
-        }
-        echo '</div></div>';
+        ?><div class="col-4 ff-cols">
+            <ul>
+                <li class="bold">FIND EXCLUSIVE DEALS ON THE APP:</li>
+                <li>
+                    <div class=apps>
+                        <a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a>
+                        <a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a>
+                    </div>
+                </li>
+                <li class="bold" style="border-bottom:none">CONNECT @mourjan&nbsp;&nbsp;&nbsp;
+                    <img class="invert" src="/web/css/1.0/fa/brands/facebook.svg" style="margin: 0 6px; width:30px"/>
+                    <img class="invert" src="/web/css/1.0/fa/brands/twitter.svg" style="margin: 0 6px; width:30px"/>
+                    <img class="invert" src="/web/css/1.0/fa/brands/instagram.svg" style="margin: 0 6px; width:30px"/>
+                </li>
+            </ul><?php        
+
         echo '</footer>',"\n";
        
         

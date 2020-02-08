@@ -1719,6 +1719,8 @@ class Bin extends AjaxHandler {
                     $forPostAd = ($path==='/post/');
                     $sections = $this->router->sections;
                     \usort($sections, function(array $a, array $b) {return ($a[$this->name]<=>$b[$this->name]);});
+                    // todo: move differ section to last
+                    
                     $result['n'] = $sections;
                     $len = \count($sections);                                        
                     
@@ -1751,11 +1753,11 @@ class Bin extends AjaxHandler {
                         foreach ($root['purposes'] as $Pid => $pu) {
                             if ($Rid!=999){
                                 if($Rid!=4){
-                                    $result['r'][$Rid]['purposes'][$Pid]=$this->router->purposes[$Pid][$nameIdx] ?? $pu['name'];
+                                    $result['r'][$Rid]['purposes'][$Pid]=$this->router->purposes[$Pid][$this->name] ?? $pu['name'];
                                 }
                                 else {
                                     if ($Pid==5) {
-                                        $result['r'][$Rid]['purposes'][$Pid]=$this->router->purposes[$Pid][$nameIdx] ?? $pu['name'];
+                                        $result['r'][$Rid]['purposes'][$Pid]=$this->router->purposes[$Pid][$this->name] ?? $pu['name'];
                                     }
                                 }
                             }
@@ -5603,7 +5605,8 @@ class Bin extends AjaxHandler {
         }
            
         //$adContent = json_decode($ad['CONTENT'], true);
-        $countries = $this->router->db->asCountriesDictionary();
+        //$countries = $this->router->db->asCountriesDictionary();
+        $countries = $this->router->countries;
         $regions = $ad->dataset()->getRegions();
         
         if ( !empty($regions)) {
@@ -5619,9 +5622,9 @@ class Bin extends AjaxHandler {
             $content='';
             //foreach ($adContent['pubTo'] as $city => $value) {
             foreach ($regions as $city) {                
-                if (isset($cities[$city]) && isset($cities[$city][4])) {
-                    $country_id=$cities[$city][4];                        
-                    if (!isset($countriesArray[$cities[$city][4]])){                            
+                if (isset($cities[$city]) && isset($cities[$city][\Core\Data\Schema::BIN_COUNTRY_ID])) {
+                    $country_id=$cities[$city][\Core\Data\Schema::BIN_COUNTRY_ID];                        
+                    if (!isset($countriesArray[$cities[$city][\Core\Data\Schema::BIN_COUNTRY_ID]])){                            
                         $ccs = $countries[$country_id][\Core\Data\Schema::COUNTRY_CITIES];
                         if ($ccs && \count($ccs)>0) {
                             $countriesArray[$country_id] = [$countries[$country_id][$this->name], [] ];
@@ -5630,7 +5633,10 @@ class Bin extends AjaxHandler {
                             $countriesArray[$country_id] = [$countries[$country_id][$this->name], false];
                         }
                     }
-                    if ($countriesArray[$country_id][1]!==false) $countriesArray[$country_id][1][]=$cities[$city][$fieldIndex];
+                    
+                    if ($countriesArray[$country_id][1]!==false) {
+                        $countriesArray[$country_id][1][]=$cities[$city][$this->name];
+                    }
                 }
             }
 

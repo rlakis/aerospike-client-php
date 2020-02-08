@@ -2949,7 +2949,7 @@ class Search extends Page {
                             if ($this->extendedId == $eid) {
                                 ?><li class="ov"><?= $prefix . $sub['name'] . $suffix ?></li><?php
                             } else {
-                                ?><li><a href="<?= $prefix_uri . $this->router->sections[$this->router->sectionId][3] . '-' . $sub['uri'] . $suffix_uri . $append ?>"><?= $prefix . $sub['name'] . $suffix ?></a></li><?php
+                                ?><li><a href="<?= $prefix_uri . $this->router->sections[$this->router->sectionId][\Core\Data\Schema::BIN_URI] . '-' . $sub['uri'] . $suffix_uri . $append ?>"><?= $prefix . $sub['name'] . $suffix ?></a></li><?php
                             }
                         }
                         ?></ul></li></ul><?php

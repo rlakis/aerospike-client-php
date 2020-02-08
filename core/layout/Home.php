@@ -332,17 +332,20 @@ var setOrder=function(e)
         echo '<div class=roots>';
         foreach ($sections as $root_id => $items) {
             echo '<div class=large>';
-            echo '<div class=row><i class="icn ro i',$root_id,' fill-', $root_id,'"></i></div>';
-            echo '<span class=row>', $this->router->roots[$root_id]['name_'.$this->router->language], '</span>';
+            echo '<div class=row><i class="icn ro i',$root_id,'"></i></div>';
+            echo '<span class=row>', $this->router->roots[$root_id][$this->name], '</span>';
             echo '<div class=arrow></div>';
-            echo '</div>';
-            
+            echo '</div>';            
         }
-        echo '</div>';
-        echo '</div>';
+        echo '</div>';        
         echo '</section>';
+        
         echo '<main>';
         echo '<div class="row viewable home">';
+        
+        ?><div class="col-12"><h2>What other people are searching now...</h2><a href="#">View All</a></div><?php
+        ?><div class="col-12"><h2>Recommended for you</h2><a href="#">View All</a></div><?php
+        ?><div class="col-12"><h2>Latest uploads</h2><a href="#">View All</a></div><?php
         
         foreach ($sections as $root_id => $items) {
             echo '<div class=col-4><div class=card>';
@@ -380,6 +383,9 @@ var setOrder=function(e)
         
         echo '</div>', "\n";
         
+        
+        $this->mostPopular();
+        
         echo '<div class="row viewable">', '<div class=col-12>';
 
         $cc=['ae'=>null, 'sa'=>null, 'kw'=>null, 'bh'=>null, 'qa'=>null, 'om'=>null, 
@@ -392,7 +398,7 @@ var setOrder=function(e)
             if (!isset($cc[$cn['uri']])) { $cc['uri']=null; }
             
             if ($cn['uri'] && $cc[$cn['uri']]===null) {
-                $cc[$cn['uri']] = "<dt><a href={$this->router->getURL($id)}><i class=\"icn s icn-{$cn['uri']}\"></i><span>{$cn['name']}</span></a></dt>\n";
+                $cc[$cn['uri']] = "<dt><a href={$this->router->getURL($id)}><i class=\"icn icn-{$cn['uri']}\"></i><span>{$cn['name']}</span></a></dt>\n";
             }
             
             foreach ($cn['cities'] as $cid=>$city) {
@@ -400,17 +406,35 @@ var setOrder=function(e)
                 $cc[$cn['uri']].= "<dd><a href={$href}>{$city['name']}</a></dd>\n";
             }
         }
-        echo '<div class=card>', '<div class=card-header style="background-color:navy;"><i class="icn icn-region"></i></div>', '<div class=card-content><h4 class=card-title>', $this->lang['countries_regions'], '</h4>';
-        echo '<div class=col-4><dl class=dl>', $cc['ae'], $cc['bh'], $cc['qa'], $cc['kw'], '</dl></div>', "\n"; 
-        echo '<div class=col-4><dl class=dl>', $cc['sa'], $cc['om'], $cc['iq'], '</dl></div>', "\n"; 
-        echo '<div class=col-4><dl class=dl>', $cc['lb'], $cc['jo'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], '</dl></div>', "\n"; 
-        echo '</div>'; // card-content
+        //$this->lang['countries_regions']
+        echo '<div class=card>';
+        ?><header><i class="icn icn-region invert"></i></span><h4><span style="color: white;font-size: 36pt">mourjan</span> around The Middle East</h4></header><div class="bar"></div><?php
+        echo '<div class=card-content><div class=row>';
+        echo '<dl class="dl col-4">', $cc['ae'], $cc['bh'], $cc['qa'], $cc['kw'], '</dl>', "\n"; 
+        echo '<dl class="dl col-4">', $cc['sa'], $cc['om'], $cc['iq'], '</dl>', "\n"; 
+        echo '<dl class="dl col-4">', $cc['lb'], $cc['jo'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], '</dl>', "\n"; 
+        echo '</div></div>'; // card-content
 
         echo '</div>' /* card */, '</div>'; // col-8
         echo '</div>', "\n";
         echo '<!--googleon: snippet-->';
     }
     
+    
+    public function mostPopular() : void {
+        ?><div class="col-12 viewable"><div class="card"><h3>Most active sections</h3></div></div><?php
+        
+    }
+
+
+    public function recommendedForYou() : void {
+        
+    }
+
+
+    public function recentUploads() : void {
+        
+    }
     
     
     function main_pane_OLD() {
