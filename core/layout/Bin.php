@@ -5627,10 +5627,10 @@ class Bin extends AjaxHandler {
                     if (!isset($countriesArray[$cities[$city][\Core\Data\Schema::BIN_COUNTRY_ID]])){                            
                         $ccs = $countries[$country_id][\Core\Data\Schema::COUNTRY_CITIES];
                         if ($ccs && \count($ccs)>0) {
-                            $countriesArray[$country_id] = [$countries[$country_id][$this->name], [] ];
+                            $countriesArray[$country_id] = [$countries[$country_id]['name'], [] ];
                         }
                         else {
-                            $countriesArray[$country_id] = [$countries[$country_id][$this->name], false];
+                            $countriesArray[$country_id] = [$countries[$country_id]['name'], false];
                         }
                     }
                     

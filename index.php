@@ -21,7 +21,7 @@ if (isset($_GET['provider']) && isset($_GET['connect'])) {
 }
 
 
-if (php_sapi_name()!='cli') {
+if (php_sapi_name()!=='cli') {
     MCSessionHandler::instance();
     //require_once( $config['dir'].'/core/model/User.php');
     //$user = new User(new DB($config), $config, null, 0);
@@ -64,7 +64,7 @@ if (!isset($argc)) {
 
         // save the run under a namespace "xhprof_foo"
         $run_id = $xhprof_runs->save_run($data, "xhprof_mourjan");
-        echo '<p>&nbsp;&nbsp;<a target=_blank href="', "https://h1.mourjan.com/web/xhprof/html/index.php?run=$run_id&source=xhprof_mourjan", '">Page profiler</a></p><br/>';
+        echo '<p style="background-color:var(--mcLightColor);height:60px;display:flex;justify-content:center;margin:0">&nbsp;&nbsp;<a style="color:white;" target=_blank href="', "https://h1.mourjan.com/web/xhprof/html/index.php?run=$run_id&source=xhprof_mourjan", '">Page profiler</a></p>';
     }
     
 }
