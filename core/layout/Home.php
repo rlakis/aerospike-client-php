@@ -6,7 +6,8 @@ use Core\Model\Ad;
 
 class Home extends Page {
     
-    var $hasBottomBanner = false;
+    private bool $hasBottomBanner=false;
+    private array $cache=[];
 
     function __construct() {
         \header('Vary: User-Agent');
@@ -118,6 +119,7 @@ class Home extends Page {
         }
     }
        
+    /*
     function renderMobileRoots(){
         if (!$this->router->countryId || $this->router->rootId) return;
         
@@ -135,6 +137,7 @@ class Home extends Page {
             
             echo '</ul>';
     }
+    
     
     
     function renderMobileSections(){
@@ -276,7 +279,7 @@ var setOrder=function(e)
         ?> <!--googleon: index --> <?php
     }
 
-    
+    */
     function side_pane(){
         //$this->renderSideUserPanel();
         $this->renderSideCountries();
@@ -427,28 +430,23 @@ var setOrder=function(e)
         ?><div class="card-content"><?php
         $sections=[];
         $keys=[];
+        $kk=[];
         $kr=\array_keys($this->router->pageRoots);
         foreach ($kr as $id) {
             $label="section-dat-{$this->router->countryId}-{$this->router->cityId}-{$id}-{$this->router->language}-c";
             $keys[$id]=$this->router->db->as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $label);
+            $kk[$id]=$label;
         }
-               
-        $status=$this->router->db->as->getConnection()->getMany(\array_values($keys), $recs);
-        if ($status===\Aerospike::OK) {
-            foreach ($recs as $sec) {
-                \preg_match('/section-dat-\d+-\d+-(\d+)-.*/', $sec['key']['key'], $matches);
-                if (\is_array($matches) && \count($matches)===2) {
-                    $id=$matches[1]+0;                    
-                    if ($sec['bins']===null) {
-                        $this->router->db->asSectionsData($this->router->countryId, $this->router->cityId, $id, $this->router->language, true);
-                    }
-                    else {
-                        $sections[$id]=$sec['bins']['data'];
-                    }
+        
+        if ($this->router->db->as->getCacheMulti($kk, $sections)===\Aerospike::OK) {
+            foreach ($kr as $id) {
+                if (!isset($sections[$id])) {
+                    $this->router->db->asSectionsData($this->router->countryId, $this->router->cityId, $id, $this->router->language, true);
+                    $this->router->db->as->getCacheData("section-dat-{$this->router->countryId}-{$this->router->cityId}-{$id}-{$this->router->language}-c", $sections[$id]);
                 }
             }
         }
-        
+                  
         foreach ($sections as $root_id=>$items) {
             ?><div class=row><div class=col-12><?php
             ?><div class="col-3 va-center"><span style="display:inherit;width:60px;justify-content:center;margin-inline-end:8px"><i class="icn ro i<?=$root_id?>"></i></span><?php
@@ -472,9 +470,90 @@ var setOrder=function(e)
     }
 
 
-    public function searchingNow() : void {
-        ?><div class="row viewable"><div class=col-12><div class="card format2"><header class="plain"><h4>What other people are searching now...</h4><a href="#">View All</a></header><?php
-        ?></div></div></div><?php
+    private function cacheAddKey(string $key, array &$keys) : void {
+        if (!isset($this->cache[$key])) {
+            $keys[]=$key;
+        }
+    }
+    
+    
+    public function searchingNow() : void {                       
+        if ($this->router->countryId>0) {
+            /*
+            $keys=[];
+            $this->cacheAddKey('top-'.($this->router->cityId>0?'city-'.$this->router->cityId:$this->router->countryId), $keys);
+            
+            $kr=\array_keys($this->router->pageRoots);
+            foreach ($kr as $id) {
+                $label="section-dat-{$this->router->countryId}-{$this->router->cityId}-{$id}-{$this->router->language}-c";
+                $keys[$id]=$this->router->db->as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $label);
+            }
+               
+            $status=$this->router->db->as->getConnection()->getMany(\array_values($keys), $recs);
+            if ($status===\Aerospike::OK) {
+                foreach ($recs as $sec) {
+                    \preg_match('/section-dat-\d+-\d+-(\d+)-.*', $sec['key']['key'], $matches);
+                    if (\is_array($matches) && \count($matches)===2) {
+                        $id=$matches[1]+0;                    
+                        if ($sec['bins']===null) {
+                            $this->router->db->asSectionsData($this->router->countryId, $this->router->cityId, $id, $this->router->language, true);
+                        }
+                        else {
+                            $sections[$id]=$sec['bins']['data'];
+                        }
+                    }
+                }
+            }
+        
+        */
+            $label='top-'.($this->router->cityId>0?'city-'.$this->router->cityId:$this->router->countryId);
+            if ($this->router->db->as->getCacheData($label, $record)===\Aerospike::OK) {
+            $key=Core\Model\NoSQL::instance()->initStringKey(Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $label);
+                //if (Core\Model\NoSQL::instance()->getRecord($key, $record, ['data'])===\Aerospike::OK) {
+                ?><div class="row viewable"><div class=col-12><div class="card format2"><?php
+                ?><header class="plain"><h4>What other people are searching now...</h4><a href="#">View All</a></header><?php
+               
+                $q='select id,rand() as r from ad where hold=0 and canonical_id=0 and media=1 ';
+                if ($this->router->cityId>0) {
+                    $q.='and city_id='.$this->router->cityId;
+                }
+                else {
+                    $q.='and country_id='.$this->router->countryId;                    
+                }
+                $filter='';
+                $labels=[];
+                foreach ($record as $f) {
+                    if (!empty($filter)) { $filter.=' or '; }
+                    $filter.='(section_id='.$f['se'].' and purpose_id='.$f['pu'].')';
+                    $this->cacheAddKey("section-dat-{$this->router->countryId}-{$this->router->cityId}-{$this->router->sections[$f['se']]['root_id']}-{$this->router->language}-c", $labels);
+                }
+                if (!empty($filter)) {
+                    $q.=' and ('.$filter.')';
+                }
+                $q.=' order by r desc limit 5';
+                $this->router->db->as->getCacheMulti($labels, $records);
+                
+                /*
+                $rs=$this->router->db->ql->search($q);
+                if ($rs['total_found']>0) {
+                    echo '<div class=col-12>';
+                    foreach ($rs['matches'] as $row) {
+                        $this->adWidget($row['id']);
+                    }
+                    echo '</div>';
+                }
+                */
+                $i=0;
+                echo '<div class=col-12>';
+                foreach ($record as $f) {
+                    $this->sectionWidget($f['se'], $f['pu']);
+                    $i++;
+                    if ($i>2) { break; }
+                }
+                echo '</div>';
+                ?></div></div></div><?php
+            }
+        }
     }
     
     
@@ -514,6 +593,20 @@ var setOrder=function(e)
          }
          ?></div></div></div><?php
         
+    }
+    
+    
+    private function sectionWidget(int $section_id, int $purpose_id) : void {
+        $status=$this->router->db->as->getCacheData("section-dat-{$this->router->countryId}-{$this->router->cityId}-{$this->router->sections[$section_id]['root_id']}-{$this->router->language}-c", $root);                        
+        ?><div class=ad><div class=card><div class="card-image seclogo"><img src="<?=$this->router->config->imgURL.'/200/'.$section_id.$this->router->_png?>" /><?php
+        ?><div class="cbox cbl"><?=Ad::FormatSinceDate($root[$section_id]['unixtime'], $this->lang)?></div></div><?php
+        ?><div class=card-content><?php
+        if ($status===\Aerospike::OK) {
+            echo $root[$section_id]['counter'], ' ads';
+        }
+        ?></div><?php
+        ?><div class=card-footer><?=$this->sectionLabel($section_id, $purpose_id);?></div><?php
+        ?></div></div><?php
     }
     
     
@@ -594,7 +687,7 @@ var setOrder=function(e)
             }
         }
             
-        $pic.='<div class="cbox cbl">'.$ad->formattedSinceDate($this->lang, $this->router->isArabic()).'</div></div>';            
+        $pic.='<div class="cbox cbl">'.$ad->formattedSinceDate($this->lang).'</div></div>';            
             
         $favLink = '';
 
@@ -653,6 +746,46 @@ var setOrder=function(e)
     }
     
     
+    function sectionLabel(int $section_id, int $purpose_id) : string {
+        $section = $this->router->sections[$section_id][$this->name];
+        switch ($purpose_id) {
+            case 1:
+            case 2:
+            case 8:
+            case 999:
+                $section = $section . ' ' . $this->router->purposes[$purpose_id][$this->name];
+                break;
+            case 6:
+            case 7:
+                $section = $this->router->purposes[$purpose_id][$this->name] . ' ' . $section;
+                break;
+            case 3:
+                if ($this->router->isArabic()) {
+                    $in = ' ';
+                    $section = 'وظائف ' . $section;
+                }
+                else {
+                    $section = $section . ' ' . $this->router->purposes[$purpose_id][$this->name];
+                }
+                break;
+            case 4:
+                $in = ' ';
+                if (!$this->router->isArabic()) {  $in = ' ' . $this->lang['in'] . ' ';  }
+                $section = $this->router->purposes[$purpose_id][$this->name] . $in . $section;
+                break;
+            case 5:
+                break;
+        }
+        
+        if (isset($this->router->countries[$this->router->countryId])) {
+            $section = '<li><a href="' . 
+                    $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$section_id]['root_id'], $section_id, $purpose_id) . 
+                    '">' . $section . '</a></li>';
+        }
+        return (stristr($section,'<li>')) ? '<ul>'.$section.'</ul>' : $section;
+    }
+
+
     function getAdSection($ad, bool $hasSchema=false, bool $isDetail=false) : string {
         $section = '';        
         $hasLink = true;

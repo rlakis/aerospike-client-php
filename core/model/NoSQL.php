@@ -8,6 +8,7 @@ include_once 'asd/MobileTrait.php';
 include_once 'asd/DeviceTrait.php';
 include_once 'asd/BlackListTrait.php';
 include_once 'asd/CallTrait.php';
+include_once 'asd/CacheTrait.php';
 
 include_once 'asd/CountryTrait.php';
 include_once 'asd/CityTrait.php';
@@ -19,6 +20,8 @@ class NoSQL extends Singleton {
     use \Core\Model\ASD\DeviceTrait;
     use \Core\Model\ASD\BlackListTrait;
     use \Core\Model\ASD\CallTrait;
+    
+    use \Core\Model\ASD\CacheTrait;
     
     use \Core\Model\ASD\CountryTrait;
     use \Core\Model\ASD\CityTrait;
@@ -201,7 +204,7 @@ class NoSQL extends Singleton {
     }
     
     
-    public function getRecord(array $pk, &$record, array $bins=[]) : int {
+    public function getRecord(array $pk, ?array &$record, array $bins=[]) : int {        
         $status = $this->getConnection()->get($pk, $record, empty($bins) ? NULL : $bins);
 
         if ($status!=\Aerospike::OK && $status!=\Aerospike::ERR_RECORD_NOT_FOUND) {

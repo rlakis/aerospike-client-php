@@ -9,9 +9,9 @@ class Page extends Site {
     
     protected $action='';
     protected array $requires=['js'=>[], 'css'=>[]];
-    protected $title='', $description='';
-    public $isUserMobileVerified = false;
-    var $stat;
+    protected string $title='', $description='';
+    public bool $isUserMobileVerified = false;
+    public array $stat;
     var $pageUri = '';
     var $googleAds=array();
     var $fieldNameIndex;
@@ -2709,7 +2709,7 @@ class Page extends Site {
                     $ad_cache = $this->router->db->getCache()->getMulti($this->searchResults['media']['matches']);
                     $ad_count = count($this->searchResults['media']['matches']);
                     if($j > $ad_count) $j = $ad_count;
-                    if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp'] = array(); }
+                    if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp'] = []; }
                     ?><h4 class="peh w"><?= $this->lang['we_suggest'] ?></h4><?php
                     ?><ul class="pe pe<?= $j ?> w"><?php
                     
@@ -4744,7 +4744,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             }
             
             if ($this->router->purposeId) {
-                $keywords.= $this->router->purposes[$this->router->purposeId][$this->fieldNameIndex].',';
+                $keywords.= $this->router->purposes[$this->router->purposeId][$this->name].',';
             }
             else {                             
                 foreach ($this->router->pagePurposes as $pId=>$purpose) {

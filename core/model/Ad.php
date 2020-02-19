@@ -484,6 +484,47 @@ class Ad {
     }
     
     
+    public static function FormatSinceDate(int $epoch, array $lang) : string {
+        $isArabicInterface = Router::instance()->isArabic();
+        $stamp='';
+        $seconds=\time()-$epoch;
+        if ($seconds<0) {  return $stamp;  }
+        
+        $days = floor($seconds/86400);
+        $sinceText=$lang['since'].' ';
+        $agoText=' '.$lang['ago'];
+        if ($days>0) {
+            if ($isArabicInterface) {
+                $stamp=$sinceText.static::ToPlural($days, 'day', $lang);
+            }
+            else {
+                $stamp= static::ToPlural($days, 'day', $lang).$agoText;
+            }
+        }
+        else {            
+            $hours=\floor($seconds/3600);
+            if ($hours) {
+                if ($isArabicInterface) {
+                    $stamp=$sinceText.static::ToPlural($hours, 'hour', $lang);
+                }
+                else {
+                    $stamp=static::ToPlural($hours, 'hour', $lang).$agoText;
+                }
+            }
+            else {
+                $minutes=\max(1, \floor($seconds/60));
+                if ($isArabicInterface) {
+                    $stamp=$sinceText.static::ToPlural($minutes, 'minute', $lang);
+                }
+                else {
+                    $stamp= static::ToPlural($minutes, 'minute', $lang).$agoText;
+                }
+            }
+        }
+        return $stamp;        
+    }
+    
+    
     function formattedSinceDate(array $lang) : string {
         $isArabicInterface = Router::instance()->isArabic();
         $stamp='';
@@ -531,7 +572,7 @@ class Ad {
     private function formatPlural(int $number, string $fieldName, array $lang) : string {
         $isArabicInterface = Router::instance()->isArabic();
         $str='';
-        if ($number==1) {
+        if ($number===1) {
             if ($isArabicInterface) {
                 $str=$lang[$fieldName];
             }
@@ -539,7 +580,7 @@ class Ad {
                 $str='1 '.$lang[$fieldName];
             }
         }
-        elseif ($number==2) {
+        elseif ($number===2) {
             if ($isArabicInterface) {
                 $str=$lang['2'.$fieldName];
             }
@@ -555,6 +596,36 @@ class Ad {
         }
         return $str;
     }
+    
+    
+    public static function ToPlural(int $number, string $fieldName, array $lang) : string {
+        $isArabicInterface = Router::instance()->isArabic();
+        $str='';
+        if ($number===1) {
+            if ($isArabicInterface) {
+                $str=$lang[$fieldName];
+            }
+            else {
+                $str='1 '.$lang[$fieldName];
+            }
+        }
+        elseif ($number===2) {
+            if ($isArabicInterface) {
+                $str=$lang['2'.$fieldName];
+            }
+            else {
+                $str='2 '.$lang['2'.$fieldName];
+            }
+        }
+        elseif ($number>=3 && $number<11) {
+            $str=$number.' '.$lang['3'.$fieldName];
+        }
+        else {
+            $str=\number_format($number).' '.$lang[$fieldName.'s'];
+        }
+        return $str;
+    }
+    
     
     
     public function htmlDataAttributes($userISO='') : string {

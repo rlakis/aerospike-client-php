@@ -11,9 +11,7 @@ class MCAdSense {
     private $client;
     private $service;
     private $adClientId;
-    private $accountId;
-    
-    
+    private $accountId;        
     
     public function __construct() {
         // Set up authentication.

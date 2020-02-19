@@ -8,14 +8,13 @@ const TS_CALL = 'calls';
 const TS_VALIDATION_REQUEST = 'requests';
 
 
-trait CallTrait
-{
+trait CallTrait {
     abstract public function getConnection() : \Aerospike;
     abstract public function genId(string $generator, int &$sequence) : int;
     abstract public function getBins($pk, array $bins);
     abstract public function setBins($pk, array $bins);
     abstract public function exists($pk) : int;
-    abstract public function getRecord(array $pk, &$record, array $bins=[]);
+    abstract public function getRecord(array $pk, ?array &$record, array $bins=[]) : int;
     
     private function asCallKey(string $conversation_uuid)
     {

@@ -52,7 +52,7 @@ class Search extends Page {
             $this->router->config->disableAds();
         }
                 
-        $this->stat = array();
+        $this->stat = [];
         if ($this->userFavorites) { $this->checkBlockedAccount(5); }
         if ($this->router->watchId) { $this->checkBlockedAccount(); }
         
@@ -1023,7 +1023,7 @@ class Search extends Page {
                
         $ad_count = count($this->searchResults['zone2']['matches']);
         $ad_cache = $this->router->db->getCache()->getMulti($this->searchResults['zone2']['matches']);
-        if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp'] = array(); }
+        if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp'] = []; }
         
         for ($ptr=0; $ptr<$ad_count; $ptr++) {
             $id = $this->searchResults['zone2']['matches'][$ptr];
