@@ -1083,11 +1083,14 @@ class Router extends \Core\Model\Singleton {
     
     
     function getURL(int $cn=0, int $c=0, int $ro=0, int $se=0, int $pu=0, bool $appendLanguage=true) : string {
-        $result = '/';
+        $words=['/'];
+        //$result = '/';
 
         if ($cn) {
             if (isset($this->countries[$cn])) {
-                $result.=$this->countries[$cn]['uri'].'/';
+                //$result.=$this->countries[$cn]['uri'].'/';
+                $words[]=$this->countries[$cn]['uri'];
+                $words[]='/';
             }
             else {
                 $cn=0;
@@ -1096,33 +1099,56 @@ class Router extends \Core\Model\Singleton {
         }
 
         if ($c && isset($this->cities[$c])) {
+            
             if ($cn===0) {
-                $cn = $this->cities[$c][4];
+                $cn = $this->cities[$c][\Core\Data\Schema::BIN_COUNTRY_ID];
                 if (isset($this->countries[$cn])) {
-                    $result.=$this->countries[$cn]['uri'].'/'.$this->cities[$c][3].'/';
+                    //$result.=$this->countries[$cn]['uri'].'/'.$this->cities[$c][3].'/';
+                    
+                    $words[]=$this->countries[$cn][\Core\Data\Schema::BIN_URI];
+                    $words[]='/';
+                    $words[]=$this->cities[$c][\Core\Data\Schema::BIN_URI];
+                    $words[]='/';
                 }
             } 
             else {
-                $result.=$this->cities[$c][\Core\Data\Schema::BIN_URI].'/';
+                //$result.=$this->cities[$c][\Core\Data\Schema::BIN_URI].'/';
+                
+                $words[]=$this->cities[$c][\Core\Data\Schema::BIN_URI];
+                $words[]='/';
             }
         }
        
         if ($se && isset($this->sections[$se])) {
-            $result.=$this->sections[$se][\Core\Data\Schema::BIN_URI].'/';
+            //$result.=$this->sections[$se][\Core\Data\Schema::BIN_URI].'/';
+            
+            $words[]=$this->sections[$se][\Core\Data\Schema::BIN_URI];
+            $words[]='/';
         }
         else if($ro) {
-            $result.=$this->roots[$ro][\Core\Data\Schema::BIN_URI].'/';
+            //$result.=$this->roots[$ro][\Core\Data\Schema::BIN_URI].'/';
+            
+            $words[]=$this->roots[$ro][\Core\Data\Schema::BIN_URI];
+            $words[]='/';
         }
         
         if ($ro!==4 && $pu && isset($this->purposes[$pu])) {
-            $result.=$this->purposes[$pu][\Core\Data\Schema::BIN_URI].'/';
+            //$result.=$this->purposes[$pu][\Core\Data\Schema::BIN_URI].'/';
+            
+            $words[]=$this->purposes[$pu][\Core\Data\Schema::BIN_URI];
+            $words[]='/';
+            
         }
         
         if ($appendLanguage && $this->language!=='ar') {
-            $result.=$this->language.'/';
+            //$result.=$this->language.'/';
+            $words[]=$this->language;
+            $words[]='/';
+
         }
             
-        return $result;        
+        //return $result;        
+        return implode($words);
     }
 
     

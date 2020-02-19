@@ -429,40 +429,45 @@ var setOrder=function(e)
         ?><div class="row viewable"><div class=col-12><div class="card format1"><header class="plain"><h4>Most active sections</h4></header><?php
         ?><div class="card-content"><?php
         $sections=[];
-        $keys=[];
-        $kk=[];
+        $labels=[];
         $kr=\array_keys($this->router->pageRoots);
         foreach ($kr as $id) {
-            $label="section-dat-{$this->router->countryId}-{$this->router->cityId}-{$id}-{$this->router->language}-c";
-            $keys[$id]=$this->router->db->as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $label);
-            $kk[$id]=$label;
+            $labels[$id]="section-dat-{$this->router->countryId}-{$this->router->cityId}-{$id}-{$this->router->language}-c";
         }
         
-        if ($this->router->db->as->getCacheMulti($kk, $sections)===\Aerospike::OK) {
-            foreach ($kr as $id) {
-                if (!isset($sections[$id])) {
-                    $this->router->db->asSectionsData($this->router->countryId, $this->router->cityId, $id, $this->router->language, true);
-                    $this->router->db->as->getCacheData("section-dat-{$this->router->countryId}-{$this->router->cityId}-{$id}-{$this->router->language}-c", $sections[$id]);
+        
+        if ($this->router->db->as->getCacheMulti($labels, $sections)===\Aerospike::OK) {
+            //$this->router->logger()->info(\json_encode($records, JSON_PRETTY_PRINT));        
+            /*
+            if ($this->router->db->as->getCacheMulti($kk, $sections)===\Aerospike::OK) {
+                foreach ($kr as $id) {
+                    if (!isset($sections[$id])) {
+                        $this->router->db->asSectionsData($this->router->countryId, $this->router->cityId, $id, $this->router->language, true);
+                        $this->router->db->as->getCacheData("section-dat-{$this->router->countryId}-{$this->router->cityId}-{$id}-{$this->router->language}-c", $sections[$id]);
+                    }
                 }
             }
-        }
-                  
-        foreach ($sections as $root_id=>$items) {
-            ?><div class=row><div class=col-12><?php
-            ?><div class="col-3 va-center"><span style="display:inherit;width:60px;justify-content:center;margin-inline-end:8px"><i class="icn ro i<?=$root_id?>"></i></span><?php
-            ?><span style="color:var(--mcLightColor);font-size:14pt;font-weight:bold"><?=$this->router->roots[$root_id][$this->name]?></span></div><?php
-            $i=0;
-            ?><div class="col-9 va-center"><?php
-            foreach ($items as $section_id => $section) {
-                if ($section['counter']===0) { break; }
-                $link = $this->router->getURL($this->router->countryId, $this->router->cityId, $root_id, $section_id);
-                $cls = $this->checkNewUserContent($section['unixtime']) ? ' hot': '';
-                echo '<a class=btn href="', $link,'">', $section['name'], '<div>(<span class="', $cls, '"><b>', \number_format($section['counter'],0), '</b></span>)</div></a>';
-                $i++;
-                if ($i>=8) { break; }
+            */
+            foreach ($kr as $root_id) {
+                $items=$sections[$root_id];
+                // temporary sort
+                \uasort($items, function($a, $b){ return $b['counter'] <=> $a['counter']; });
+                //$this->router->logger()->info(\json_encode($items, JSON_PRETTY_PRINT));            
+                ?><div class=row><div class=col-12><?php
+                ?><div class="col-3 va-center"><span style="display:inherit;width:60px;justify-content:center;margin-inline-end:8px"><i class="icn ro i<?=$root_id?>"></i></span><?php
+                ?><span style="color:var(--mcLightColor);font-size:14pt;font-weight:bold"><?=$this->router->roots[$root_id][$this->name]?></span></div><?php
+                $i=0;
+                ?><div class="col-9 va-center"><?php
+                foreach ($items as $section_id => $section) {
+                    if ($section['counter']===0) { break; }
+                    $url = $this->router->getURL($this->router->countryId, $this->router->cityId, $root_id, $section_id);
+                    $cls = $this->checkNewUserContent($section['unixtime']) ? ' hot': '';
+                    echo '<a class=btn href="', $url,'">', $section['name'], '<div>(<span class="', $cls, '"><b>', \number_format($section['counter']), '</b></span>)</div></a>';
+                    $i++;
+                    if ($i>=8) { break; }
+                }
+                ?></div></div></div><?php
             }
-            ?></div></div></div><?php
-            
         }
         ?></div><?php
         ?></div></div></div><?php
@@ -503,13 +508,12 @@ var setOrder=function(e)
                         }
                     }
                 }
-            }
-        
-        */
+            }        
+            */
+            
             $label='top-'.($this->router->cityId>0?'city-'.$this->router->cityId:$this->router->countryId);
             if ($this->router->db->as->getCacheData($label, $record)===\Aerospike::OK) {
-            $key=Core\Model\NoSQL::instance()->initStringKey(Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $label);
-                //if (Core\Model\NoSQL::instance()->getRecord($key, $record, ['data'])===\Aerospike::OK) {
+                $key=Core\Model\NoSQL::instance()->initStringKey(Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $label);
                 ?><div class="row viewable"><div class=col-12><div class="card format2"><?php
                 ?><header class="plain"><h4>What other people are searching now...</h4><a href="#">View All</a></header><?php
                
@@ -525,7 +529,7 @@ var setOrder=function(e)
                 foreach ($record as $f) {
                     if (!empty($filter)) { $filter.=' or '; }
                     $filter.='(section_id='.$f['se'].' and purpose_id='.$f['pu'].')';
-                    $this->cacheAddKey("section-dat-{$this->router->countryId}-{$this->router->cityId}-{$this->router->sections[$f['se']]['root_id']}-{$this->router->language}-c", $labels);
+                    $this->cacheAddKey("section-dat-{$this->router->countryId}-{$this->router->cityId}-{$this->router->sections[$f['se']]['root_id']}-{$this->router->language}", $labels);
                 }
                 if (!empty($filter)) {
                     $q.=' and ('.$filter.')';
@@ -597,16 +601,18 @@ var setOrder=function(e)
     
     
     private function sectionWidget(int $section_id, int $purpose_id) : void {
-        $status=$this->router->db->as->getCacheData("section-dat-{$this->router->countryId}-{$this->router->cityId}-{$this->router->sections[$section_id]['root_id']}-{$this->router->language}-c", $root);                        
-        ?><div class=ad><div class=card><div class="card-image seclogo"><img src="<?=$this->router->config->imgURL.'/200/'.$section_id.$this->router->_png?>" /><?php
-        ?><div class="cbox cbl"><?=Ad::FormatSinceDate($root[$section_id]['unixtime'], $this->lang)?></div></div><?php
+        $status=$this->router->db->as->getCacheData("section-dat-{$this->router->countryId}-{$this->router->cityId}-{$this->router->sections[$section_id]['root_id']}-{$this->router->language}", $root);        
+        ?><div class=ad><?php
+        ?><a href="<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$section_id]['root_id'], $section_id, $purpose_id)?>"><div class=card><div class="card-image seclogo"><img src="<?=$this->router->config->imgURL.'/200/'.$section_id.$this->router->_png?>" /><?php
+        ?><div class="cbox cbl"><?=Ad::FormatSinceDate($root[$section_id]['purposes'][$purpose_id]['unixtime'], $this->lang)?></div><?php
+        ?><div class="cbox cbr"><?=\number_format($root[$section_id]['purposes'][$purpose_id]['counter']).' ads'?></div><?php
+        ?></div><?php
         ?><div class=card-content><?php
         if ($status===\Aerospike::OK) {
-            echo $root[$section_id]['counter'], ' ads';
+            echo $this->sectionLabel($section_id, $purpose_id);
         }
-        ?></div><?php
-        ?><div class=card-footer><?=$this->sectionLabel($section_id, $purpose_id);?></div><?php
-        ?></div></div><?php
+        ?></div><?php        
+        ?></a></div></div><?php
     }
     
     
@@ -777,12 +783,16 @@ var setOrder=function(e)
                 break;
         }
         
+        return $section;
+        /*
         if (isset($this->router->countries[$this->router->countryId])) {
             $section = '<li><a href="' . 
                     $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$section_id]['root_id'], $section_id, $purpose_id) . 
                     '">' . $section . '</a></li>';
         }
         return (stristr($section,'<li>')) ? '<ul>'.$section.'</ul>' : $section;
+         * 
+         */
     }
 
 
