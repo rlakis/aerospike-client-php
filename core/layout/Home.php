@@ -310,41 +310,30 @@ var setOrder=function(e)
 
     function main_pane() : void {
         echo '<!--googleoff: snippet-->';
-        echo '<section class=search-box><div class="viewable ha-center">';
-        $sections=[];
-        $keys=[];
+        ?><section class=search-box><div class="viewable va-center ff-cols"><?php
+        $labels=[];
         $kr=\array_keys($this->router->pageRoots);
         foreach ($kr as $id) {
-            $label="section-dat-{$this->router->countryId}-{$this->router->cityId}-{$id}-{$this->router->language}-c";
-            $keys[$id]=$this->router->db->as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $label);
-        }
-               
-        $status=$this->router->db->as->getConnection()->getMany(\array_values($keys), $recs);
-        if ($status===\Aerospike::OK) {
-            foreach ($recs as $sec) {
-                \preg_match('/section-dat-\d+-\d+-(\d+)-.*/', $sec['key']['key'], $matches);
-                if (\is_array($matches) && \count($matches)===2) {
-                    $id=$matches[1]+0;                    
-                    if ($sec['bins']===null) {
-                        $this->router->db->asSectionsData($this->router->countryId, $this->router->cityId, $id, $this->router->language, true);
-                    }
-                    else {
-                        $sections[$id]=$sec['bins']['data'];
-                    }
-                }
-            }
+            $labels[$id]="section-dat-{$this->router->countryId}-{$this->router->cityId}-{$id}-{$this->router->language}-c";
         }
         
-        echo '<div class=roots>';
-        foreach ($sections as $root_id => $items) {
-            echo '<div class=large>';
-            echo '<div class=row><i class="icn ro i',$root_id,'"></i></div>';
-            echo '<span class=row>', $this->router->roots[$root_id][$this->name], '</span>';
-            echo '<div class=arrow></div>';
-            echo '</div>';            
+        if ($this->router->db->as->getCacheMulti($labels, $recs)===\Aerospike::OK) {
+            ?><div class=roots><?php
+            foreach ($kr as $id) {
+                if (!isset($recs[$id])) { continue; }
+                $items=$recs[$id];
+                \uasort($items, function($a, $b){ return $b['counter'] <=> $a['counter']; });
+                if ($id===1) {
+                    $this->router->logger()->info(\json_encode($items, \JSON_PRETTY_PRINT));
+                }
+                ?><div class=large data-ro="<?=$id?>" data-sections='<?=\json_encode($items)?>' onclick="rootWidget(this);"><?php
+                ?><div class=row><i class="icn ro i<?=$id?>"></i></div><?php
+                ?><span class=row><?=$this->router->roots[$id][$this->name]?></span><?php
+                ?><div class=arrow></div></div><?php 
+            }
+            ?></div><div id="rs" class="lrs col-12"></div><?php
         }
-        echo '</div>';        
-        echo '</section>';
+        ?></section><?php
         
         echo '<main>';
         /*
@@ -422,6 +411,7 @@ var setOrder=function(e)
         echo '</div>' /* card */, '</div>'; // col-8
         echo '</div>', "\n";
         echo '<!--googleon: snippet-->';
+        $this->inlineJS('util.js')->inlineJS('home.js');
     }
     
     
@@ -484,6 +474,7 @@ var setOrder=function(e)
     
     public function searchingNow() : void {                       
         if ($this->router->countryId>0) {
+            //var_dump($this->rootWidget(1));
             /*
             $keys=[];
             $this->cacheAddKey('top-'.($this->router->cityId>0?'city-'.$this->router->cityId:$this->router->countryId), $keys);
@@ -552,7 +543,7 @@ var setOrder=function(e)
                 foreach ($record as $f) {
                     $this->sectionWidget($f['se'], $f['pu']);
                     $i++;
-                    if ($i>2) { break; }
+                    if ($i>3) { break; }
                 }
                 echo '</div>';
                 ?></div></div></div><?php
@@ -749,6 +740,13 @@ var setOrder=function(e)
         //echo '<div title="', $this->lang['reportAbuse'], '" class=abuse onclick="event.stopPropagation();report(this);"><i class="icn icn-ban"></i></div>';
         echo $favLink, '</div>', "\n", '</div>', "\n";
         echo '</div>', "\n";
+    }
+    
+    
+    function rootWidget(int $root_id) : void {
+        if ($this->router->db->as->getCacheData("section-dat-{$this->router->countryId}-{$this->router->cityId}-{$root_id}-{$this->router->language}-c", $record)===\Aerospike::OK) {
+            var_dump($record);
+        }
     }
     
     

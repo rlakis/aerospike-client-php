@@ -1,4 +1,4 @@
-var ALT=false, MULTI=false, socket;
+var ALT=false, MULTI=false, socket, $$=$.body;
 const channel = new BroadcastChannel('admin');
 channel.onmessage = function(e) {
     const message=e.data;
@@ -105,7 +105,7 @@ $.addEventListener("DOMContentLoaded", function () {
     
     var script=$.createElement('script');script.type="text/javascript";
     script.src="/web/js/1.0/socket.io.js";           
-    $$.append(script);
+    $.body.append(script);
     script.onload=function(){ reqSIO(); }
     
     location.search.substr(1).split("&").forEach(function(part) {
@@ -132,7 +132,7 @@ $.onkeyup = function () {
     MULTI = false;
 };
 
-$$.onclick = function (e) {
+$$.onclick = function (e) {    
     let editable=$$.queryAll("section[contenteditable=true]");
     if (editable&&editable.length> 0) {
         editable[0].setAttribute("contenteditable", false);        

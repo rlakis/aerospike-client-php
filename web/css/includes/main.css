@@ -264,7 +264,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .card.format2 header{padding:0;background-color:inherit;min-height: 70px; max-height:76px;}
 .card.format2 header h4{color: var(--mColor70);margin-left: 0}
 .card.format2 header a{white-space:nowrap;font-size:12pt;font-weight:bold}
-.card.format2 div.ad .card{border: 1px solid #AFAFAF}
+.card.format2 div.ad .card{border: 1px solid #AFAFAF;}
 /*.card.format2 .card-product{width:320px;height: 400px; overflow: hidden;}*/
 .card.format2 .col-12{display:flex;flex-flow:row wrap; justify-content:space-between;overflow:hidden;max-height:400px}
 
@@ -323,7 +323,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .ripple-container{position:absolute;top:0;left:0;z-index:1;width:100%;height:100%;overflow:hidden;border-radius:inherit;pointer-events:none;}
 .ar{direction:rtl;text-align:right}
 .en{direction:ltr;text-align:left}
-.ad{display:inherit;min-width:300px;max-width:360px;width:360px;margin:auto;}
+.ad{display:inherit;min-width:300px;max-width:360px;width:320px;margin:auto;}
 .ad.full{width:100%;max-width:768px;}
 /*.ad.full .card-image {max-width:768px;margin:-30px auto 0 !important}*/
 .ad .abuse{background-color:transparent;width:32px;height:32px;position:absolute;left:0;top:6px;display:none;cursor:pointer}
@@ -334,6 +334,26 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .adsbygoogle{display:block;height:320px;min-width:250px;max-width:360px;width:100%; margin:auto;max-height: 750px !important;}
 
 #results{flex-flow:column;width:100%}
+
+.lrs {max-width: 1000px}
+.lrs .card{margin-top:-24px; box-shadow: none}
+.lrs .card ul {flex-flow: row wrap; flex: 1 auto}
+.lrs .card li {width:40%; line-height: 40px; margin: 0 44px 0 0}
+.lrs .card .col-8 {border-right: 2px solid #eeeeee}
+.lrs .card .col-8 a>img {width: 30px;margin-inline-end:8px}
+.lrs .card .btn {background:var(--mcDarkColor);padding:12px 0;text-transform:capitalize;border-radius:4px;font-weight:bold;color:white;box-shadow:0 6px 0 0px var(--mcLightColor);
+     display:flex;align-items:flex-end;justify-content:center;align-self:flex-end;width:240px}
+.lrs .card .btn img{filter:invert(1);width:64px;margin:0 6px;}
+.lrs .card .col-4 .m0{display:inherit;height:1.6em;justify-content:center;color:var(--mColor50);align-items:center;letter-spacing:0px;font-weight:400;width:240px;}
+.lrs .card .col-4 .m1{margin-top:32px;letter-spacing:2px;}
+.lrs .card .col-4 .m2 {font-weight:600;}
+.lrs .card .col-4{align-items:flex-end;}
+.lrs .card .col-4 ul{margin-top:64px;width:240px}
+.lrs .card .col-4 ul>li{margin:0;display:inline-flex;width:100%}
+.lrs .card .col-4 li>a{color:var(--mcLightColor);font-weight: bold}
+.lrs .card .col-4 .mi{font-size: 2em;font-weight:600;color:var(--mcLightColor)}
+.lrs .card li:last-child{border-bottom:1px solid #eeeeee;}
+
 .ls,.home{display:flex;justify-content:space-around;flex-flow:row wrap;align-content:flex-start}
 .ls li{line-height:1.5em;overflow:hidden}
 .ls .card{height:320px}
@@ -347,11 +367,21 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .ls .card .card-footer ul {width: 100%}
 .ls .card .card-footer li {line-height: 1.5em; border:0}
 
-.search-box .roots{display:flex;width:100%;border:0;justify-content: space-between;max-width: 1000px;margin: 0 0 50px;color: var(--mColor70)}
+/*.search-box .roots{display:flex;width:100%;border:0;justify-content: space-between;max-width: 1000px;margin: 0 0 50px;color: whit; min-height:158px}*/
+.search-box .roots{display:flex;width:100%;border:0;justify-content:space-between;max-width: 1000px;margin:0 0 50px;color:var(--mColor70);min-height:158px}
 .search-box .roots .large{display:inherit;width:150px;height:150px;border:0;border-radius:25px;align-items:center;flex-direction:column;background-color:var(--mColor10);}
+/*.search-box .roots .large{display:inherit;width:150px;height:150px;border:0;border-radius:25px;align-items:center;flex-direction:column;background-color:var(--mcLightColor);}*/
+.search-box .roots .large:hover{box-shadow:0 0 0 3px #7abaff inset;width:155px;height:155px;cursor:pointer;background-color:var(--mcLightColor);color:white}
+.search-box .roots .large:hover i{filter:invert(1)}
+.search-box .roots .large:hover .arrow::before{background-color:white}
+.search-box .roots .large:hover .arrow::after{background-color:white}
+/*.search-box .roots .large:hover{background-color:var(--mcLightColor);color:var(--mcDarkColor)}
+//.search-box .roots .large:hover i{filter:invert}*/
 .search-box .roots .large>span {font-weight: 600}
-.search-box .roots .large i {filter:invert(64%) sepia(10%) saturate(539%) hue-rotate(165deg) brightness(90%) contrast(93%);}
+/*.search-box .roots .large i {filter:invert(64%) sepia(10%) saturate(539%) hue-rotate(165deg) brightness(90%) contrast(93%);}*/
+.search-box .roots .large i {filter: invert(20%) sepia(6%) saturate(7269%) hue-rotate(168deg) brightness(89%) contrast(85%);}
 .large .arrow{margin-top: 8px;margin-inline-start:6px;}
+
 
 .adc::first-line{font-weight:bold;}
 .block-with-text{overflow:hidden;position:relative;line-height:1.5em;height:4.5em;}
@@ -391,12 +421,12 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .option.selected {color: #ffffff;background-color: var(--mcLightColor);}
 
 
-.arrow {position:relative;height:10px;width:10px;margin-inline-start:20px;margin-top: 2px}
+.arrow{position:relative;height:10px;width:10px;margin-inline-start:20px;margin-top:2px}
 .arrow::before, .arrow::after {content: "";position:absolute;bottom:0px;width:0.14rem;height:100%;transition:all 0.5s;}
-.arrow::before {left: -3px;transform: rotate(-45deg);background-color:var(--mColor70)}
-.arrow::after {left: 3px;transform: rotate(45deg);background-color:var(--mColor70)}
-.open .arrow::before {left: -3px;transform: rotate(45deg);}
-.open .arrow::after {left: 3px;transform: rotate(-45deg);}
+.arrow::before{left:-3px;transform:rotate(-45deg);background-color:var(--mColor70)}
+.arrow::after{left:3px;transform:rotate(45deg);background-color:var(--mColor70)}
+.open .arrow::before{left:-3px;transform:rotate(45deg);}
+.open .arrow::after{left:3px;transform:rotate(-45deg);}
 
 
 .mhbanner{margin: 80px 0 0; height: 140px;overflow: hidden;justify-content: space-between}
@@ -637,7 +667,7 @@ body[dir="rtl"] .modal .card{transform: translate(-50%, 0%);}
     header {
         min-height: 120px;
     }
-    main{display:inherit;background-color:#F7F7F7}
+    main{display:inherit;/*background-color:#F7F7F7*/}
     .ilogo{
         width: 230px;
         height: 50px;       

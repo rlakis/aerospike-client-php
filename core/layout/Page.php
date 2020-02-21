@@ -4790,10 +4790,10 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                     //error_log($minifiedCode);
                 }
                 echo '<script>';
-                include $minjs;
-                //include $this->router->config->baseDir.'/web/js/includes/'.$filename;
-                
+                //include $minjs;
+                include $jsfile;                
                 echo '</script>';
+                \error_log($filename);
             }
             $this->included[$filename]=1;
         }
@@ -5122,7 +5122,8 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         $this->set_analytics_header();
         
         //echo PHP_EOL;
-        //$this->inlineJS('util.js');
+        
+        $this->inlineJS('util.js');
         $this->inlineJS('search-box.js');
         //echo PHP_EOL, PHP_EOL;
         
