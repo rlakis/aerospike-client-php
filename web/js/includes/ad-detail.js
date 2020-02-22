@@ -21,6 +21,7 @@ if(CTRL && e.target.classList.contains('card-description')){
 $.onkeydown = function (e) { CTRL=e.ctrlKey; }
 $.onkeyup = function() { CTRL=false; }
 $.addEventListener("DOMContentLoaded", function () {
+    $$=$.body;
     let c=$$.query('div#cards');
     if(c){
         let a=c.querySelectorAll('div.ad:last-child');

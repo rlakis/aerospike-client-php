@@ -780,5 +780,6 @@ $lang=array(
     
     'all_pubs'      =>  'كل المصادر',
     'other_sources'         =>  'المصادر الأخرى',
-    'countries_regions' => 'البلدان والمناطق'
+    'countries_regions' => 'البلدان والمناطق',
+    'all_categories'=> 'كل الأقسام',
 );

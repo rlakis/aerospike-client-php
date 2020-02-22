@@ -1,16 +1,29 @@
-let lrid=0;
 rootWidget=function(e){
     let ses=JSON.parse(e.dataset.sections);
-    console.log(ses);
-    let h=$.querySelector('div#rs');
-    if (h.innerHTML==='' || lrid!==e.dataset.ro) {
-        lrid=e.dataset.ro
+    //console.log(ses);
+    let h=$.querySelector('div#rs.lrs');
+    if (!e.classList.contains('open')) {
+        for (const i of e.closest('div.roots').querySelectorAll('div.large')) { i.classList.remove('open'); }
         let sb=['<div class=card>'];
 
         sb.push('<div class="col-8 ls">');
         sb.push('<ul>')
         for (var s in ses) {
-            sb.push('<li id='+s+'><a href="#"><img src="/web/css/1.0/assets/se/'+s+'.svg" />'+ses[s].name+'<span style="margin-inline-start:6px;font-weight:normal;font-size:revert">'+ses[s].counter+'</span></a></li>');
+            let ss=ses[s];
+            sb.push('<li id=');
+            sb.push(ss[0]);
+            sb.push('><a href="');
+            sb.push(ss[4]);
+            sb.push('">');
+            sb.push('<img src="/web/css/1.0/assets/se/');
+            sb.push(ss[0]);
+            sb.push('.svg" />');
+            sb.push(ss[1]);
+            sb.push('<span ');
+            if(ss[3]===1){sb.push('class="hot" ')}
+            sb.push('style="margin-inline-start:6px;font-weight:normal;font-size:revert">');
+            sb.push(ss[2].toLocaleString('en-US'));
+            sb.push('</span></a></li>');
         }
         sb.push("</ul>");
         sb.push("</div>");
@@ -28,6 +41,6 @@ rootWidget=function(e){
         h.innerHTML=sb.join('');
     }
     else {
-        h.innerHTML='';        
+        h.innerHTML='';
     }
 }

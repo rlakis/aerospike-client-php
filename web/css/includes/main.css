@@ -89,17 +89,17 @@ body[dir="rtl"] [class*="col-"] { float: right; }
 header{display:flex;background-color:var(--mcLightColor);color:#F9F9F9;padding:0;text-align:center;margin-bottom: 24px;font-size: 0.9em; font-weight: 600 !important}
 /*header>h1{-webkit-margin-before:0.1em;-webkit-margin-after:0.1em;font-size:1.8em;}*/
 header>a{display: flex;}
-header .slogan{margin-top: 56px;}
+header .slogan{margin-top:59px;}
 header div{display: inherit}
 
-header .btn {background-color:#FF6167;border-radius:10px;color:#F9F9F9;font-size:15px;font-weight:400}
+header .btn{background-color:#FF6167;border-radius:10px;color:#F9F9F9;font-size:16px;font-weight:bold}
 
 
 .navbar{display: inherit; flex:1 auto;}
 
 .search-box{display:inherit;background-color:#fff}
 
-footer{padding:76px 0;direction:ltr;text-align:auto; order:999;background-color: var(--mcLightColor);color:white}
+footer{padding:76px 0;text-align:auto;order:999;background-color:var(--mcLightColor);color:white}
 footer ul{color:white;display: flex;flex-flow: column;flex: 1 auto; padding: 0 16px;}
 footer li{display: inherit;flex: 1 auto; border-bottom: 1px solid rgba(0,255,255,0.25);}
 footer a{color:rgba(255,255,255,.75)}
@@ -138,7 +138,7 @@ li>i{margin:0 4px;max-width:32px;}
 .fill-4{filter: invert(50%) sepia(27%) saturate(3597%) hue-rotate(145deg) brightness(101%) contrast(107%);}
 .fill-99{filter: invert(70%) sepia(39%) saturate(6621%) hue-rotate(194deg) brightness(102%) contrast(101%);}
 
-.icn.ro{width:72px;height:72px;margin:20px 0 4px 0}
+.icn.ro{width:72px;height:72px;/*margin:20px 0 4px 0*/}
 .icn.ro.i1{background:url(/web/css/1.0/assets/1.svg) no-repeat center}
 .icn.ro.i2{background:url(/web/css/1.0/assets/2.svg) no-repeat center;width:104px}
 .icn.ro.i3{background:url(/web/css/1.0/assets/3.svg) no-repeat center}
@@ -338,7 +338,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .lrs {max-width: 1000px}
 .lrs .card{margin-top:-24px; box-shadow: none}
 .lrs .card ul {flex-flow: row wrap; flex: 1 auto}
-.lrs .card li {width:40%; line-height: 40px; margin: 0 44px 0 0}
+.lrs .card li {width:40%; line-height: 40px; margin:0 42px 0 0}
 .lrs .card .col-8 {border-right: 2px solid #eeeeee}
 .lrs .card .col-8 a>img {width: 30px;margin-inline-end:8px}
 .lrs .card .btn {background:var(--mcDarkColor);padding:12px 0;text-transform:capitalize;border-radius:4px;font-weight:bold;color:white;box-shadow:0 6px 0 0px var(--mcLightColor);
@@ -369,7 +369,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 
 /*.search-box .roots{display:flex;width:100%;border:0;justify-content: space-between;max-width: 1000px;margin: 0 0 50px;color: whit; min-height:158px}*/
 .search-box .roots{display:flex;width:100%;border:0;justify-content:space-between;max-width: 1000px;margin:0 0 50px;color:var(--mColor70);min-height:158px}
-.search-box .roots .large{display:inherit;width:150px;height:150px;border:0;border-radius:25px;align-items:center;flex-direction:column;background-color:var(--mColor10);}
+.search-box .roots .large{display:inherit;width:150px;height:150px;border:0;border-radius:25px;align-items:center;justify-content:center; flex-direction:column;background-color:var(--mColor10);}
 /*.search-box .roots .large{display:inherit;width:150px;height:150px;border:0;border-radius:25px;align-items:center;flex-direction:column;background-color:var(--mcLightColor);}*/
 .search-box .roots .large:hover{box-shadow:0 0 0 3px #7abaff inset;width:155px;height:155px;cursor:pointer;background-color:var(--mcLightColor);color:white}
 .search-box .roots .large:hover i{filter:invert(1)}
@@ -380,7 +380,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .search-box .roots .large>span {font-weight: 600}
 /*.search-box .roots .large i {filter:invert(64%) sepia(10%) saturate(539%) hue-rotate(165deg) brightness(90%) contrast(93%);}*/
 .search-box .roots .large i {filter: invert(20%) sepia(6%) saturate(7269%) hue-rotate(168deg) brightness(89%) contrast(85%);}
-.large .arrow{margin-top: 8px;margin-inline-start:6px;}
+.large .arrow{margin-top:10px;margin-inline-start:8px;margin-inline-end:0}
 
 
 .adc::first-line{font-weight:bold;}
@@ -414,14 +414,16 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
      border-right:1px solid #BEC9CE;}
 .select__trigger:hover{background-color:var(--mcLightColor);color:var(--mcDarkColor); cursor: pointer}
 .options{position:absolute;display:block;top:calc(100% + 8px);left:0px;right:0;border:1px solid #BEC9CE;border-radius:5px;background:#fff;
-     transition:all 0.5s;opacity:0;visibility:hidden;pointer-events:none;z-index:10;}
+     transition:all 0.5s;opacity:0;visibility:hidden;pointer-events:none;z-index:10;padding: 16px 16px 32px}
 .select-box.open .options {opacity:1;visibility:visible;pointer-events:all;width:fit-content}
-.option{position:relative;display:block;padding:0 16px 0;font-size:1.1em;font-weight:bold;color:var(--mColor70);line-height:2rem;cursor:pointer;transition:all 0.5s;width:100%;}
+.option{position:relative;display:flex;padding:0 16px 0;font-size:1.1em;font-weight:bold;color:var(--mColor70);line-height:48px;cursor:pointer;transition:all 0.5s;
+       border-bottom: 1px solid #eeeeee; align-items:center;justify-content:space-between; flex: 1 auto}
 .option:hover {cursor: pointer;background-color: #b2b2b2;}
 .option.selected {color: #ffffff;background-color: var(--mcLightColor);}
+.option i{height: 28px !important; width: 28px !important; margin:0 !important;}
+.option i.i2{width: 36px !important;}
 
-
-.arrow{position:relative;height:10px;width:10px;margin-inline-start:20px;margin-top:2px}
+.arrow{position:relative;height:10px;width:10px;margin-inline-start:20px;margin-inline-end:20px;margin-top:2px}
 .arrow::before, .arrow::after {content: "";position:absolute;bottom:0px;width:0.14rem;height:100%;transition:all 0.5s;}
 .arrow::before{left:-3px;transform:rotate(-45deg);background-color:var(--mColor70)}
 .arrow::after{left:3px;transform:rotate(45deg);background-color:var(--mColor70)}
@@ -596,6 +598,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 
 body[dir="ltr"] .ad .abuse{right:0;left:auto;}
 body[dir="rtl"] .modal .card{transform: translate(-50%, 0%);}
+body[dir="rtl"] .large .arrow{margin-inline-start:0;margin-inline-end:8px}
 
 .xl-border{border-left:1px #CCC solid;}
 .xr-border{border-right:1px #CCC solid;}

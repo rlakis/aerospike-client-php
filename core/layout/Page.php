@@ -1530,7 +1530,7 @@ class Page extends Site {
                 if ($this->router->isArabic()) { $url.='en/'; }
                 break;
         }
-        
+        $slogan=$this->router->isArabic()?'كل ما كنت تبحث عنه':'EVERYTHING YOU\'VE BEEN LOOKING FOR';
         ?>
         <div class="row top-header"><div class="viewable full-height ff-cols">
             <ul><?php
@@ -1549,7 +1549,7 @@ class Page extends Site {
                 }?>
                 <li>&vert;</li>
                 <li><a href="<?= $this->router->getLanguagePath($this->user->isLoggedIn() ? '/myads/' : '/signin/') ?>"><?php 
-                echo $this->user->isLoggedIn()?$this->lang['myAccount']:'Login/Register';?><i class="icn icn-user i20 icolor"></i></a></li>
+                echo $this->user->isLoggedIn()?$this->lang['myAccount']:$this->lang['signin'];?><i class="icn icn-user i20 icolor"></i></a></li>
                 <li>&vert;</li>
                 <li><a href="<?= $url ?>"><?= ($this->router->isArabic()?'English':'العربية') ?><i class="icn i20 icn-language icolor"></i></a></li>
             </ul>
@@ -1557,8 +1557,8 @@ class Page extends Site {
         
         <header><div class="viewable ff-rows full-height sp-between">    
                 <div><a class=half-height href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i></a>
-                    <span class="slogan">EVERYTHING YOU'VE BEEN LOOKING FOR</span></div>
-            <a class="btn post" href='#'>PLACE YOUR AD FOR FREE</a>
+                    <span class="slogan"><?=$slogan?></span></div>
+                    <a class="btn " href='#'><?=$this->lang['placeAd']?></a>
         </div></header>
 
     <section class=search-box><div class="viewable ha-center"><div class=search>
@@ -1566,17 +1566,20 @@ class Page extends Site {
         <div class=select-wrapper>
             <div class=select-box>
                 <div class=select__trigger><?php 
-                    $i=$this->router->isArabic()?1:2;
-                    $selected=$this->router->params['ro']?$this->router->roots[$this->router->params['ro']][$i]:'All Categories';
+                    $selected=$this->router->params['ro']?$this->router->roots[$this->router->params['ro']][$this->name]:$this->lang['all_categories'];
                     ?>
                     <span><?=$selected?></span>
                     <div class=arrow></div>
                 </div>
                 <div class=options><?php
-                    echo '<span class="option', (!$this->router->params['ro']?' selected"':'"'),' data-value="0">All Categories</span>';
-                    
+                    ?><div class="option<?=(!$this->router->params['ro']?' selected':'');?>" data-value="0"><?=$this->lang['all_categories']?></div><?php                   
                     foreach ($this->router->roots as $root) {
-                        echo '<span class="option', $this->router->params['ro']===$root[\Core\Data\Schema::BIN_ID]?' selected"':'"', ' data-value="', $root[\Core\Data\Schema::BIN_ID], '">', $root['name_'.$this->router->language], '</span>';
+                        ?><div class="option<?=$this->router->params['ro']===$root[\Core\Data\Schema::BIN_ID]?' selected':''?>" <?php
+                        ?>data-value="<?=$root[\Core\Data\Schema::BIN_ID]?>"><?php
+                        ?><span><?=$root[$this->name]?></span><?php
+                        ?><i class="icn ro i<?=$root[\Core\Data\Schema::BIN_ID]?>"></i><?php
+                        ?></div><?php
+                        //echo '<span class="option', $this->router->params['ro']===$root[\Core\Data\Schema::BIN_ID]?' selected"':'"', ' data-value="', $root[\Core\Data\Schema::BIN_ID], '">', $root['name_'.$this->router->language], '</span>';
                     }
                 ?></div>
             </div>

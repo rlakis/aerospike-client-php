@@ -323,10 +323,14 @@ var setOrder=function(e)
                 if (!isset($recs[$id])) { continue; }
                 $items=$recs[$id];
                 \uasort($items, function($a, $b){ return $b['counter'] <=> $a['counter']; });
+                $sections=[];
+                foreach ($items as $se => $row) {
+                    $sections[]=[$se, $row['name'], $row['counter'], $this->checkNewUserContent($row['unixtime'])?1:0, $this->router->getURL($this->router->countryId, $this->router->cityId, $id, $se)];
+                }
                 if ($id===1) {
                     $this->router->logger()->info(\json_encode($items, \JSON_PRETTY_PRINT));
                 }
-                ?><div class=large data-ro="<?=$id?>" data-sections='<?=\json_encode($items)?>' onclick="rootWidget(this);"><?php
+                ?><div class=large data-ro="<?=$id?>" data-sections='<?=\json_encode($sections)?>' onclick="rootWidget(this);"><?php
                 ?><div class=row><i class="icn ro i<?=$id?>"></i></div><?php
                 ?><span class=row><?=$this->router->roots[$id][$this->name]?></span><?php
                 ?><div class=arrow></div></div><?php 
@@ -506,7 +510,7 @@ var setOrder=function(e)
             if ($this->router->db->as->getCacheData($label, $record)===\Aerospike::OK) {
                 $key=Core\Model\NoSQL::instance()->initStringKey(Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $label);
                 ?><div class="row viewable"><div class=col-12><div class="card format2"><?php
-                ?><header class="plain"><h4>What other people are searching now...</h4><a href="#">View All</a></header><?php
+                ?><header class="plain"><h4><?=$this->router->isArabic()?'الأكثر طلباً من القراء':'What other people are looking for...'?></h4><a href="#">View All</a></header><?php
                
                 $q='select id,rand() as r from ad where hold=0 and canonical_id=0 and media=1 ';
                 if ($this->router->cityId>0) {
@@ -553,7 +557,7 @@ var setOrder=function(e)
     
     
     public function recommendedForYou() : void {
-        ?><div class="row viewable"><div class=col-12><div class="card format2"><header class="plain"><h4>Recommended for you</h4><a href="#">View All</a></header><?php
+        ?><div class="row viewable"><div class=col-12><div class="card format2"><header class="plain"><h4><?=$this->router->isArabic()?'اعلانات قد تهمك':'Recommended for you'?></h4><a href="#">View All</a></header><?php
         $q='select id,rand() as r from ad where hold=0 and canonical_id=0 and media=1 and country_id='.$this->router->countryId;
          if ($this->router->cityId>0) {
              $q.=' and city_id='.$this->router->cityId;
@@ -572,7 +576,7 @@ var setOrder=function(e)
 
     
     public function recentUploads() : void {
-         ?><div class="row viewable"><div class=col-12><div class="card format2"><header class="plain"><h4>Latest uploads</h4></header><?php
+         ?><div class="row viewable"><div class=col-12><div class="card format2"><header class="plain"><h4><?=$this->router->isArabic()?'أحدث المنشورات':'Latest uploads'?></h4></header><?php
          $q='select id from ad where hold=0 and canonical_id=0 and media=1 and country_id='.$this->router->countryId;
          if ($this->router->cityId>0) {
              $q.=' and city_id='.$this->router->cityId;
@@ -596,7 +600,7 @@ var setOrder=function(e)
         ?><div class=ad><?php
         ?><a href="<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$section_id]['root_id'], $section_id, $purpose_id)?>"><div class=card><div class="card-image seclogo"><img src="<?=$this->router->config->imgURL.'/200/'.$section_id.$this->router->_png?>" /><?php
         ?><div class="cbox cbl"><?=Ad::FormatSinceDate($root[$section_id]['purposes'][$purpose_id]['unixtime'], $this->lang)?></div><?php
-        ?><div class="cbox cbr"><?=\number_format($root[$section_id]['purposes'][$purpose_id]['counter']).' ads'?></div><?php
+        ?><div class="cbox cbr"><?=\number_format($root[$section_id]['purposes'][$purpose_id]['counter']).' '.$this->lang['ads']?></div><?php
         ?></div><?php
         ?><div class=card-content><?php
         if ($status===\Aerospike::OK) {

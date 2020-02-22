@@ -1,7 +1,6 @@
 
 var $=document;
 var $$=$.body;
-
 var byId=function(id){return $.getElementById(id);}
 
 createElem=function(tag, className, content, isHtml) {

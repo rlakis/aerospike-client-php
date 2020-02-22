@@ -777,4 +777,5 @@ $lang=array(
     
     'show_premium'  => 'Show Premium',
     'hide_premium'  => 'Hide Premium',
+    'all_categories'=> 'All Categories',
 );
