@@ -310,7 +310,7 @@ var setOrder=function(e)
 
     function main_pane() : void {
         echo '<!--googleoff: snippet-->';
-        ?><section class=search-box><div class="viewable va-center ff-cols"><?php
+        ?><section class=search-box style="box-shadow: 0 1px 4px aliceblue;"><div class="viewable va-center ff-cols"><?php
         $labels=[];
         $kr=\array_keys($this->router->pageRoots);
         foreach ($kr as $id) {
@@ -383,44 +383,14 @@ var setOrder=function(e)
         $this->recentUploads();
         $this->mostPopular();
         
-        echo '<div class="row viewable">', '<div class=col-12>';
 
-        $cc=['ae'=>null, 'sa'=>null, 'kw'=>null, 'bh'=>null, 'qa'=>null, 'om'=>null, 
-             'lb'=>null, 'jo'=>null, 'iq'=>null, 
-             'eg'=>null, 'ma'=>null, 'tn'=>null, 'dz'=>null];
-        
-         
-        foreach ($this->router->countries as $id => $cn) {
-            if ($cn['uri']==='ye') {  continue;  }
-            if (!isset($cc[$cn['uri']])) { $cc['uri']=null; }
-            
-            if ($cn['uri'] && $cc[$cn['uri']]===null) {
-                $cc[$cn['uri']] = "<dt><a href={$this->router->getURL($id)}><i class=\"icn icn-{$cn['uri']}\"></i><span>{$cn['name']}</span></a></dt>\n";
-            }
-            
-            foreach ($cn['cities'] as $cid=>$city) {
-                $href = $this->router->getURL($id, $cid);
-                $cc[$cn['uri']].= "<dd><a href={$href}>{$city['name']}</a></dd>\n";
-            }
-        }
-        //$this->lang['countries_regions']
-        echo '<div class=card>';
-        ?><header class="light"><i class="icn icn-region invert"></i></span><h4><span style="color: white;font-size: 36pt">mourjan</span> around The Middle East</h4></header><?php
-        echo '<div class=card-content><div class=row>';
-        echo '<dl class="dl col-4">', $cc['ae'], $cc['bh'], $cc['qa'], $cc['kw'], '</dl>', "\n"; 
-        echo '<dl class="dl col-4">', $cc['sa'], $cc['om'], $cc['iq'], '</dl>', "\n"; 
-        echo '<dl class="dl col-4">', $cc['lb'], $cc['jo'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], '</dl>', "\n"; 
-        echo '</div></div>'; // card-content
-
-        echo '</div>' /* card */, '</div>'; // col-8
-        echo '</div>', "\n";
         echo '<!--googleon: snippet-->';
         $this->inlineJS('util.js')->inlineJS('home.js');
     }
     
     
     public function mostPopular() : void {
-        ?><div class="row viewable"><div class=col-12><div class="card format1"><header class="plain"><h4>Most active sections</h4></header><?php
+        ?><div class="row viewable" style="margin-bottom:40px"><div class=col-12><div class="card format1"><header class="plain"><h4>Most active sections</h4></header><?php
         ?><div class="card-content"><?php
         $sections=[];
         $labels=[];
@@ -543,7 +513,7 @@ var setOrder=function(e)
                 }
                 */
                 $i=0;
-                echo '<div class=col-12>';
+                echo '<div style="max-height:310px;" class=col-12>';
                 foreach ($record as $f) {
                     $this->sectionWidget($f['se'], $f['pu']);
                     $i++;
@@ -643,7 +613,7 @@ var setOrder=function(e)
             $itemScope = ' itemscope itemtype="https://schema.org/Product"';
         }
             
-        $isNewToUser = (isset($this->user->params['last_visit']) && $this->user->params['last_visit'] && $this->user->params['last_visit'] < $ad->epoch());            
+        $isNewToUser = (isset($this->user->params['last_visit']) && $this->user->params['last_visit']>0 && $this->user->params['last_visit'] < $ad->epoch());            
         $textClass = "en";
         $liClass = "";
             
@@ -723,7 +693,10 @@ var setOrder=function(e)
         }
         
         echo '<div class=ad ', $ad->htmlDataAttributes($this->formatNumbers), '>';
-        echo '<div class="card', ($ad->isFeatured()?' premium':''),'" id=', $ad->id(), ' itemprop="itemListElement" ',  $itemScope, '>', "\n";                
+        echo '<div class="card', ($ad->isFeatured()?' premium':''),'" id=', $ad->id(), ' itemprop="itemListElement" ',  $itemScope, '>', "\n";
+        if ($ad->isFeatured()) {
+            ?><img class="tag" src="/web/css/1.0/assets/prtag-en.svg" /><?php
+        }
         echo $pic, "\n";
             
         echo '<div class=card-content>', "\n";

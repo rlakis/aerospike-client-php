@@ -1298,7 +1298,10 @@ class Search extends Page {
             echo '<div class=', $end_user?'ad ':'"ad full" ', $ad->htmlDataAttributes($this->formatNumbers);
             echo ' onclick=oad(this);';
             echo '>';
-            echo '<div class="card card-product', ($ad->isFeatured()?' premium':''),'" id=', $ad->id(), ' itemprop="itemListElement" ',  $itemScope, '>', "\n";                
+            echo '<div class="card card-product', ($ad->isFeatured()?' premium':''),'" id=', $ad->id(), ' itemprop="itemListElement" ',  $itemScope, '>', "\n";
+            if ($ad->isFeatured()) {
+                ?><img class="tag" src="/web/css/1.0/assets/prtag-en.svg" /><?php
+            }
             echo $pic, "\n";
             
             echo '<div class=card-content>', "\n";

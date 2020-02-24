@@ -2626,10 +2626,10 @@ class Page extends Site {
     
     function footer() : void {
         $year = date('Y');
-        ?><div class="row ff-cols viewable">            
+        ?><div class="row ff-cols viewable" style="box-shadow: 0 -5px 5px -5px var(--mColor10);">            
             
-            <div class="col-12 mhbanner">                
-                <img style="position:relative;width:116px;top:-44px;filter:invert(36%) sepia(39%) saturate(7153%) hue-rotate(200deg) brightness(102%) contrast(106%);" src="/web/css/1.0/assets/emblem.svg" />
+            <div class="col-12 mhbanner" style="margin-top:0">                
+                <img style="position:relative;height:176px;top:-44px;filter:invert(36%) sepia(39%) saturate(7153%) hue-rotate(200deg) brightness(102%) contrast(106%);" src="/web/css/1.0/assets/emblem.svg" />
                 <div class="p1">                    
                     <div><span class="um">SELL</span><span class="sm l1">YOUR CAR</span></div>
                     <div><span class="um">FIND</span><span class="sm l2">A JOB</span></div>
@@ -2693,6 +2693,41 @@ class Page extends Site {
                 </li>
             </ul><?php        
 
+            
+            
+                    echo '<div class="row viewable">', '<div class=col-12>';
+
+        $cc=['ae'=>null, 'sa'=>null, 'kw'=>null, 'bh'=>null, 'qa'=>null, 'om'=>null, 
+             'lb'=>null, 'jo'=>null, 'iq'=>null, 
+             'eg'=>null, 'ma'=>null, 'tn'=>null, 'dz'=>null];
+        
+         
+        foreach ($this->router->countries as $id => $cn) {
+            if ($cn['uri']==='ye') {  continue;  }
+            if (!isset($cc[$cn['uri']])) { $cc['uri']=null; }
+            
+            if ($cn['uri'] && $cc[$cn['uri']]===null) {
+                $cc[$cn['uri']] = "<dt><a href={$this->router->getURL($id)}><i class=\"icn icn-{$cn['uri']}\"></i><span>{$cn['name']}</span></a></dt>\n";
+            }
+            
+            foreach ($cn['cities'] as $cid=>$city) {
+                $href = $this->router->getURL($id, $cid);
+                $cc[$cn['uri']].= "<dd><a href={$href}>{$city['name']}</a></dd>\n";
+            }
+        }
+        //$this->lang['countries_regions']
+        echo '<div class=card>';
+        ?><header class="light"><i class="icn icn-region invert"></i></span><h4><span style="color: white;font-size: 36pt">mourjan</span> around The Middle East</h4></header><?php
+        echo '<div class=card-content><div class=row>';
+        echo '<dl class="dl col-4">', $cc['ae'], $cc['bh'], $cc['qa'], $cc['kw'], '</dl>', "\n"; 
+        echo '<dl class="dl col-4">', $cc['sa'], $cc['om'], $cc['iq'], '</dl>', "\n"; 
+        echo '<dl class="dl col-4">', $cc['lb'], $cc['jo'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], '</dl>', "\n"; 
+        echo '</div></div>'; // card-content
+
+        echo '</div>' /* card */, '</div>'; // col-8
+        echo '</div>', "\n";
+        
+        
         echo '</footer>',"\n";
        
         
