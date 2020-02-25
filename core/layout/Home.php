@@ -310,7 +310,7 @@ var setOrder=function(e)
 
     function main_pane() : void {
         echo '<!--googleoff: snippet-->';
-        ?><section class=search-box style="box-shadow: 0 1px 4px aliceblue;"><div class="viewable va-center ff-cols"><?php
+        ?><section class=search-box style="margin-bottom:24px; box-shadow: 0 1px 4px aliceblue;"><div class="viewable va-center ff-cols"><?php
         $labels=[];
         $kr=\array_keys($this->router->pageRoots);
         foreach ($kr as $id) {
@@ -333,7 +333,7 @@ var setOrder=function(e)
                 ?><div class=large data-ro="<?=$id?>" data-sections='<?=\json_encode($sections)?>' onclick="rootWidget(this);"><?php
                 ?><div class=row><i class="icn ro i<?=$id?>"></i></div><?php
                 ?><span class=row><?=$this->router->roots[$id][$this->name]?></span><?php
-                ?><div class=arrow></div></div><?php 
+                ?><div class=arrow></div><div class=bar></div></div><?php 
             }
             ?></div><div id="rs" class="lrs col-12"></div><?php
         }
@@ -569,8 +569,10 @@ var setOrder=function(e)
         $status=$this->router->db->as->getCacheData("section-dat-{$this->router->countryId}-{$this->router->cityId}-{$this->router->sections[$section_id]['root_id']}-{$this->router->language}", $root);        
         ?><div class=ad><?php
         ?><a href="<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$section_id]['root_id'], $section_id, $purpose_id)?>"><div class=card><div class="card-image seclogo"><img src="<?=$this->router->config->imgURL.'/200/'.$section_id.$this->router->_png?>" /><?php
+        ?><div style="position:absolute;height:22px;width:100%;bottom:0;background-color:#2d3e4f;opacity:0.9"><?php
         ?><div class="cbox cbl"><?=Ad::FormatSinceDate($root[$section_id]['purposes'][$purpose_id]['unixtime'], $this->lang)?></div><?php
         ?><div class="cbox cbr"><?=\number_format($root[$section_id]['purposes'][$purpose_id]['counter']).' '.$this->lang['ads']?></div><?php
+        ?></div><?php
         ?></div><?php
         ?><div class=card-content><?php
         if ($status===\Aerospike::OK) {

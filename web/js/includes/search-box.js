@@ -45,7 +45,7 @@ $.addEventListener("DOMContentLoaded", function () {
         }
         if (e.target.closest('div.large')===null) {
             let rs=$.querySelector('div#rs.lrs');
-            if(rs.innerHTML!=='') {
+            if(rs && rs.innerHTML!=='') {
                 rs.innerHTML='';
                 let o=$.querySelector('div.roots').querySelector('div.open');
                 if (o) {o.classList.remove('open');}            

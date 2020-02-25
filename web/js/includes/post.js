@@ -1901,5 +1901,3 @@ const formatToPhone = (event) => {
     }
 };
 
-
-

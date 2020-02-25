@@ -2626,10 +2626,9 @@ class Page extends Site {
     
     function footer() : void {
         $year = date('Y');
-        ?><div class="row ff-cols viewable" style="box-shadow: 0 -5px 5px -5px var(--mColor10);">            
-            
-            <div class="col-12 mhbanner" style="margin-top:0">                
-                <img style="position:relative;height:176px;top:-44px;filter:invert(36%) sepia(39%) saturate(7153%) hue-rotate(200deg) brightness(102%) contrast(106%);" src="/web/css/1.0/assets/emblem.svg" />
+        ?><div class="row ff-cols viewable" style="box-shadow:0 -5px 5px -5px var(--mColor10);">            
+            <div class="col-12 mhbanner" style="margin-top:0">
+                <img src="/web/css/1.0/assets/emblem.svg" />
                 <div class="p1">                    
                     <div><span class="um">SELL</span><span class="sm l1">YOUR CAR</span></div>
                     <div><span class="um">FIND</span><span class="sm l2">A JOB</span></div>
@@ -2639,11 +2638,9 @@ class Page extends Site {
                 </div>
                        
             </div>
-            
-            
-            <div class="col-12 mfbanner"><span style="width:116px"></span><div>EVERYTHING YOU’VE BEEN LOOKING FOR.</div><a class="btn" href='#'>PLACE YOUR AD FOR FREE</a></div>
-</div>
-        <?php
+                        
+            <div class="col-12 mfbanner"><span style="width:177px"></span><div class=slogan>EVERYTHING YOU’VE BEEN LOOKING FOR.</div><a class="btn" href='#'>PLACE YOUR AD FOR FREE</a></div>
+        </div><?php
         ?><div class="row">
             <div class="col-12" style="background-color:white;height: 90px;align-items: center;justify-content: center;line-height: 1.8em">
                 <img src="/web/css/1.0/assets/premium-en.svg" width="284"/>
@@ -2654,54 +2651,12 @@ class Page extends Site {
                 </div>
             </div>                
         </div><?php
-        echo '</main>';
-        echo '<footer class=row><div class="viewable ff-rows">';
-        echo '<div class="col-4 ff-cols">';
-        ?><img class=invert src="/web/css/1.0/assets/mc-en.svg" width=160/>
-        <div class="apps bold" style="margin-inline-start:40px;">24/7 Customer Service<br/>+961-70-424-018</div>
-        <p style="margin-inline-start:40px;">mourjan.com, 4th floor, Dekwaneh 1044 center<br/>New Slav Street, Dekwaneh, Lebanon</p><?php
-        echo '<p class="ha-start" style="margin-inline-start:40px;">© 2010-', $year, ' Mourjan Classifieds<br/>All Rights Reserved.</p>';
-        echo '</div>';
         
-        echo '<div class="col-4 va-start"><!--<div class="card "><div class=card-content>-->';
-        echo '<ul>';
-        //if ($this->user()->id()) {
-        //    $balance_label= $this->lang['myBalance']. ' is '.$this->user()->getBalance() . ' coins';
-        //    echo '<li><a href="', $this->router->getLanguagePath('/statement/'), '"><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></a></li>';
-        //}
-        echo '<li><a href="', $this->router->getLanguagePath('/about/'), '"><!--<i class="icn s icn-83"></i>--><span>', $this->lang['aboutUs'], '</span></a></li>';
-        echo '<li><a href="', $this->router->getLanguagePath('/contact/'), '"><!--<i class="icn s icn-88"></i>--><span>', $this->lang['contactUs'], '</span></a></li>';
-        echo '<li><a href="', $this->router->getLanguagePath('/contact/'), '"><span>', 'FAQs & Help Center', '</span></a></li>';
-        echo '<li><a href="', $this->router->getLanguagePath('/terms/'), '"><!--<i class="icn s icn-85"></i>--><span>', $this->lang['termsConditions'], '</span></a></li>';
-        echo '<li><a href="', $this->router->getLanguagePath('/privacy/'), '"><!--<i class="icn s icn-81"></i>--><span>', $this->lang['privacyPolicy'], '</span></a></li>';
-        echo '</ul><!--</div></div>-->', "\n"; // card
-        echo '</div>';
         
-        ?><div class="col-4 ff-cols">
-            <ul>
-                <li class="bold">FIND EXCLUSIVE DEALS ON THE APP:</li>
-                <li>
-                    <div class=apps>
-                        <a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a>
-                        <a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a>
-                    </div>
-                </li>
-                <li class="bold" style="border-bottom:none">CONNECT @mourjan&nbsp;&nbsp;&nbsp;
-                    <img class="invert" src="/web/css/1.0/fa/brands/facebook.svg" style="margin: 0 6px; width:30px"/>
-                    <img class="invert" src="/web/css/1.0/fa/brands/twitter.svg" style="margin: 0 6px; width:30px"/>
-                    <img class="invert" src="/web/css/1.0/fa/brands/instagram.svg" style="margin: 0 6px; width:30px"/>
-                </li>
-            </ul><?php        
-
-            
-            
-                    echo '<div class="row viewable">', '<div class=col-12>';
-
         $cc=['ae'=>null, 'sa'=>null, 'kw'=>null, 'bh'=>null, 'qa'=>null, 'om'=>null, 
              'lb'=>null, 'jo'=>null, 'iq'=>null, 
              'eg'=>null, 'ma'=>null, 'tn'=>null, 'dz'=>null];
-        
-         
+                 
         foreach ($this->router->countries as $id => $cn) {
             if ($cn['uri']==='ye') {  continue;  }
             if (!isset($cc[$cn['uri']])) { $cc['uri']=null; }
@@ -2714,21 +2669,55 @@ class Page extends Site {
                 $href = $this->router->getURL($id, $cid);
                 $cc[$cn['uri']].= "<dd><a href={$href}>{$city['name']}</a></dd>\n";
             }
-        }
-        //$this->lang['countries_regions']
-        echo '<div class=card>';
-        ?><header class="light"><i class="icn icn-region invert"></i></span><h4><span style="color: white;font-size: 36pt">mourjan</span> around The Middle East</h4></header><?php
-        echo '<div class=card-content><div class=row>';
+        }                   
+        
+        
+        echo '</main>';
+        
+        ?><footer class=row><div class="viewable ff-rows"><?php
+        ?><div class="col-4 ff-cols"><?php
+        ?><img class=invert src="/web/css/1.0/assets/mc-en.svg" width=160/>
+        <div class="apps bold" style="margin-inline-start:40px;">24/7 Customer Service<br/>+961-70-424-018</div>
+        <p style="margin-inline-start:40px;">mourjan.com, 4th floor, Dekwaneh 1044 center<br/>New Slav Street, Dekwaneh, Lebanon</p><?php
+        ?><p class=ha-start style="margin-inline-start:40px;">© 2010-<?=$year?> Mourjan Classifieds<br/>All Rights Reserved.</p><?php
+        ?></div><?php
+        
+        ?><div class="col-4 va-start"><ul><?php
+        //if ($this->user()->id()) {
+        //    $balance_label= $this->lang['myBalance']. ' is '.$this->user()->getBalance() . ' coins';
+        //    echo '<li><a href="', $this->router->getLanguagePath('/statement/'), '"><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></a></li>';
+        //}
+        ?><li><a href="<?=$this->router->getLanguagePath('/about/')?>"><span><?=$this->lang['aboutUs']?></span></a></li><?php
+        ?><li><a href="<?=$this->router->getLanguagePath('/contact/')?>"><span><?=$this->lang['contactUs']?></span></a></li><?php
+        ?><li><a href="<?=$this->router->getLanguagePath('/contact/')?>"><span>FAQs & Help Center</span></a></li><?php
+        ?><li><a href="<?=$this->router->getLanguagePath('/terms/')?>"><span><?=$this->lang['termsConditions']?></span></a></li><?php
+        ?><li><a href="<?=$this->router->getLanguagePath('/privacy/')?>"><span><?=$this->lang['privacyPolicy']?></span></a></li><?php
+        ?></ul></div><?php
+        
+        ?><div class="col-4 ff-cols"><ul><?php
+        ?><li class="bold">FIND EXCLUSIVE DEALS ON THE APP:</li>
+            <li><div class=apps>
+                <a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a>
+                <a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a>
+            </div></li>
+            <li class="bold" style="border-bottom:none">CONNECT @mourjan&nbsp;&nbsp;&nbsp;
+                <img class="invert" src="/web/css/1.0/fa/brands/facebook.svg" style="margin: 0 6px; width:30px"/>
+                <img class="invert" src="/web/css/1.0/fa/brands/twitter.svg" style="margin: 0 6px; width:30px"/>
+                <img class="invert" src="/web/css/1.0/fa/brands/instagram.svg" style="margin: 0 6px; width:30px"/>
+            </li>
+            </ul></div></div><?php
+            
+        ?><div class="row viewable"><div class=col-12><div class="card regions"><?php
+        ?><header class=light><i class="icn icn-region invert"></i><h4><span style="color:white;font-size:36pt">mourjan</span> around The Middle East</h4></header><?php
+        ?><div class=card-content><div class=row><?php
         echo '<dl class="dl col-4">', $cc['ae'], $cc['bh'], $cc['qa'], $cc['kw'], '</dl>', "\n"; 
         echo '<dl class="dl col-4">', $cc['sa'], $cc['om'], $cc['iq'], '</dl>', "\n"; 
         echo '<dl class="dl col-4">', $cc['lb'], $cc['jo'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], '</dl>', "\n"; 
-        echo '</div></div>'; // card-content
+        ?></div></div></div></div></div><?php
 
-        echo '</div>' /* card */, '</div>'; // col-8
-        echo '</div>', "\n";
-        
-        
-        echo '</footer>',"\n";
+        ?></footer><?php
+                       
+
        
         
         if (1) { return; }
@@ -3197,11 +3186,12 @@ class Page extends Site {
             ?><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php
         } 
         
+        /*
         //if (!$this->isMobile){
         ?><script type="text/javascript"> //<![CDATA[ 
 document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/javascript/trustlogo.js' type='text/javascript'%3E%3C/script%3E"));
 //]]></script><?php
-        //}
+        //}*/
     }
     
       
@@ -4859,10 +4849,9 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         }
         echo '<!doctype html>';
         echo '<html lang="', $this->router->language, $country_code,'" xmlns:og="http://ogp.me/ns#"';
-        echo '><head><meta charset="utf-8">';
+        echo '><head><meta charset="utf-8">';        
         if ($this->router->module==='myads') {
-            //echo '<script src=/web/js/1.0/socket.io.js async></script>';
-            echo '<script async src=/web/js/1.0/chart-2.9.3/Chart.min.js></script>';
+            ?><script async src=/web/js/1.0/chart-2.9.3/Chart.min.js></script><?php
         }
         if ($this->router->module==='admin') {
             echo '<script async src=/web/js/1.0/jsonTree.js></script>';
@@ -4872,6 +4861,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             echo '<script async src=/web/js/1.0/libphonenumber-min-1.7.10.js></script>';
             echo '<script async src=/web/js/1.0/load-image-scale.js></script>';
         }
+        
         echo "<style>\n";
         
         //if ($this->router->module==='index') {
@@ -5162,8 +5152,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         //echo PHP_EOL;
         
         $this->inlineJS('util.js');
-        $this->inlineJS('search-box.js');
-        //echo PHP_EOL, PHP_EOL;
+        $this->inlineJS('search-box.js');        
         
         echo '</head>', "\n";
         flush();
