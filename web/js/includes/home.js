@@ -27,7 +27,7 @@ rootWidget=function(e){
         }
         sb.push("</ul>");
         sb.push("</div>");
-        sb.push("<div class='col-4 ff-cols'>");
+        sb.push("<div class='col-4 ff-cols va-center'>");
         sb.push('<a class=btn href="#"><img src="/web/css/1.0/assets/action-2.svg" />Sell your car</a>');
         sb.push('<span class="m0 m1">FIND EVERYTHING</span>');
         sb.push('<span class="m0 m2">YOU\'RE LOOKING FOR</span>');

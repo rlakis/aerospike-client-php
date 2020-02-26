@@ -310,7 +310,7 @@ var setOrder=function(e)
 
     function main_pane() : void {
         echo '<!--googleoff: snippet-->';
-        ?><section class=search-box style="margin-bottom:24px; box-shadow: 0 1px 4px aliceblue;"><div class="viewable va-center ff-cols"><?php
+        ?><section class=search-box style="margin-bottom:8px; box-shadow: 0 1px 4px aliceblue;"><div class="viewable va-center ff-cols"><?php
         $labels=[];
         $kr=\array_keys($this->router->pageRoots);
         foreach ($kr as $id) {
@@ -333,9 +333,9 @@ var setOrder=function(e)
                 ?><div class=large data-ro="<?=$id?>" data-sections='<?=\json_encode($sections)?>' onclick="rootWidget(this);"><?php
                 ?><div class=row><i class="icn ro i<?=$id?>"></i></div><?php
                 ?><span class=row><?=$this->router->roots[$id][$this->name]?></span><?php
-                ?><div class=arrow></div><div class=bar></div></div><?php 
+                ?><div class=bar></div></div><?php 
             }
-            ?></div><div id="rs" class="lrs col-12"></div><?php
+            ?></div><div id="rs" class="col-12 lrs"></div><?php
         }
         ?></section><?php
         

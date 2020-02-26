@@ -1557,7 +1557,7 @@ class Page extends Site {
         
         <header><div class="viewable ff-rows full-height sp-between">    
                 <div><a class=half-height href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i></a>
-                    <span class="slogan"><?=$slogan?></span></div>
+                    </div>
                     <a class="btn " href='#'><?=$this->lang['placeAd']?></a>
         </div></header>
 
@@ -2695,7 +2695,7 @@ class Page extends Site {
         ?></ul></div><?php
         
         ?><div class="col-4 ff-cols"><ul><?php
-        ?><li class="bold">FIND EXCLUSIVE DEALS ON THE APP:</li>
+        ?><li class="bold">Find exclusive deals on the app:</li>
             <li><div class=apps>
                 <a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a>
                 <a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a>

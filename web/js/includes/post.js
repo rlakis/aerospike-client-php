@@ -1,5 +1,10 @@
 var Ed, HAS_WEBP=hasWebP();
-$.addEventListener("DOMContentLoaded",function(e){UI.init();});
+Element.prototype.query=function(sel){return this.querySelector(sel);};
+Element.prototype.queryAll=function(sel){return this.querySelectorAll(sel);};
+$.addEventListener("DOMContentLoaded",function(e){
+    if (typeof $$==='undefined') { let $$=document.body; }
+    UI.init();
+});
 $.onkeydown=function(e){if(e.key==='Escape'){UI.close();}};
 
 String.prototype.howArabic = function () {
@@ -52,7 +57,7 @@ var MAP={
     
     init:function(){
         let _=this;
-        _.view = new google.maps.Map($$.query('#gmapView'), {
+        _.view = new google.maps.Map($.query('#gmapView'), {
             center: {lat: parseFloat(UI.ip.ipquality.latitude), lng: parseFloat(UI.ip.ipquality.longitude)},
             zoom: 12
         });
@@ -234,9 +239,9 @@ var MAP={
 };
 
 var UI={
-    adForm:$$.query('form#adForm'),
-    adClass:$$.query('div#ad-class'),
-    ar:$$.dir==='rtl',
+    adForm:$.body.query('form#adForm'),
+    adClass:$.body.query('div#ad-class'),
+    ar:$.body.dir==='rtl',
     ip:null,
     dic:null,
     region:null,
@@ -308,9 +313,9 @@ var UI={
                     while(c.charAt(0)===' '){c=c.substring(1);}
                     if(c.indexOf('PHPSESSID=')===0){_.sessionID=c.substring(10,c.length);break;}
                 }
-                console.log('key', $$.dataset.key, 'sid', _.sessionID);
-                $$.queryAll('span.pix').forEach(function(pix){_.photos.push(new Photo(pix));});
-                $$.queryAll('textarea').forEach(function(txt){
+                console.log('key', $.body.dataset.key, 'sid', _.sessionID);
+                $.body.queryAll('span.pix').forEach(function(pix){_.photos.push(new Photo(pix));});
+                $.body.queryAll('textarea').forEach(function(txt){
                     txt.oninput=function(e){
                         console.log(e);
                         if(e.target)e=e.target;
@@ -338,9 +343,9 @@ var UI={
                         console.log(Ad);
                     };
                 });
-                $$.queryAll('input[type=tel]').forEach(function(t){_.numbers[t.dataset.no]=new ContactNumber(t);});
+                $.body.queryAll('input[type=tel]').forEach(function(t){_.numbers[t.dataset.no]=new ContactNumber(t);});
                 
-                let mail=$$.query('input[type=email]');
+                let mail=$.body.query('input[type=email]');
                 mail.onchange=function(){
                     if(this.checkValidity()){
                         Ad.email=this.value;
@@ -432,7 +437,7 @@ var UI={
         if(name==='map'){                      
             var script=$.createElement('script');script.type="text/javascript";
             script.src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXdUTLoKUM4Dc8LtMYQM-otRB2Rn59xXk&sensor=true&callback=MAP.init&language="+(UI.ar?'ar':'en');           
-            $$.append(script);
+            $.body.append(script);
             X.style.display='none';
         }
         X.onclick = this.close;
@@ -449,8 +454,8 @@ var UI={
     },
     
     showDialog:function(dialog, photo){
-        $$.classList.add('modal-open');
-        $$.append(dialog);  
+        $.body.classList.add('modal-open');
+        $.body.append(dialog);  
         dialog.style.display="flex";
         dialog.dataset.views=parseInt(dialog.dataset.views)+1;
         dialog.style.setProperty('max-height', window.innerHeight+'px');
@@ -469,7 +474,7 @@ var UI={
 
         if(dialog.id==='map' && (Ad.content.lat!==0||Ad.content.lon!==0) && dialog.dataset.views>'1'){ MAP.adLocation(); }
         if(photo){
-            let cw=$$.clientWidth;            
+            let cw=$.body.clientWidth;            
             let img=card.query('span.pix img');
             let spn=img.closest('span');
             spn.style.height=Math.round((cw/2)/1.5)+'px';
@@ -551,7 +556,7 @@ var UI={
         if(!_.dialogs.map){
             dialog=_.createDialog('map',true,true);
             card=dialog.query('div.card');
-            let b=$$.query('#adLocation');
+            let b=$.body.query('#adLocation');
             card.append(b);
             b.style.display='flex';
         }
@@ -646,7 +651,7 @@ var UI={
             
             let okBtn=createElem('button', 'btn blue', 'Confirm');
             okBtn.onclick=function(){                
-                let selected=$$.query('div#regions').queryAll('li.on');
+                let selected=$.body.query('div#regions').queryAll('li.on');
                 Ad.regions.length=0;
                 selected.forEach(function(i){if(i.dataset.cityId){Ad.regions.push(parseInt(i.dataset.cityId));}});
                 UI.regionChanged();
@@ -694,7 +699,7 @@ var UI={
     },
         
     getPhone:function(n){        
-        let e=$$.queryAll('input[type="tel"]')[n];
+        let e=$.body.queryAll('input[type="tel"]')[n];
         console.log('e', e);
         let p=e.closest('li');
         console.log('p',p);
@@ -705,12 +710,12 @@ var UI={
     },
     
     getEmail:function(){
-        return $$.query('input[type=email]').value;
+        return $.body.query('input[type=email]').value;
     },
     
     setEmail:function(v){
-        $$.query('input[type=email]').value=v;
-        $$.query('input[type=email]').checkValidity;
+        $.body.query('input[type=email]').value=v;
+        $.body.query('input[type=email]').checkValidity;
     },
     
     rootChanged:function(ro, pu){
@@ -718,7 +723,7 @@ var UI={
     },
     
     textChanged:function(text, tag){
-        let ta=$$.query('textarea#'+tag);
+        let ta=$.body.query('textarea#'+tag);
         ta.value=text;
         ta.onchange(ta);
         ta.oninput(ta);
@@ -763,11 +768,11 @@ var UI={
     },
     
     close:function(e){
-        $$.classList.remove('modal-open');
+        $.body.classList.remove('modal-open');
         for(let i in UI.dialogs){
             UI.dialogs[i].style.display='none';
             if(UI.dialogs[i].parentElement){
-                $$.removeChild(UI.dialogs[i]);
+                $.body.removeChild(UI.dialogs[i]);
             }
         }
     }
@@ -912,7 +917,7 @@ class Photo {
             alert('The File APIs are not fully supported in this browser.');
             return;
         }
-        let _=this, cw=$$.clientWidth;
+        let _=this, cw=$.body.clientWidth;
         UI.pixIndex=_.index;            
         
         let openFileDialog=function(multiple, isReplace){
@@ -985,7 +990,7 @@ class Photo {
                         if (e !== BreakException) throw e;
                     }
                 };
-                $$.append(inp); 
+                $.body.append(inp); 
                 inp.click();
             });
         };
@@ -1126,7 +1131,7 @@ var Ad={
         if(ad.pics){
             UI.pixIndex=0;
             for(var i in ad.pics){
-                UI.photos[UI.pixIndex++].setImage($$.dataset.repo+'/repos/m/'+i).path=i;
+                UI.photos[UI.pixIndex++].setImage($.body.dataset.repo+'/repos/m/'+i).path=i;
             }
         }
         
@@ -1208,7 +1213,7 @@ var Ad={
         console.log('setSectionId', Prefs.getRootPrefs(se));
         if(this.sectionId!==se){
             this.sectionId=parseInt(se);
-            $$.query('#ad-class').query('a.se').innerHTML=this.getSectionName();
+            $.body.query('#ad-class').query('a.se').innerHTML=this.getSectionName();
         }        
     },
     
@@ -1537,7 +1542,7 @@ var Prefs={
         
         if(rs.actCountry.length===2){_.activationCountryCode=rs.actCountry;}        
         if(rs.ipCountry.length===2 && rs.ipCountry===rs.curCountry && rs.tor==='0' && rs.vpn==='0' && rs.proxy==='0'){_.carrierCountryCode=rs.ipCountry;}
-        if(_.activationCountryCode===null&&($$.dataset.level==='90'||$$.dataset.level==='9')){_.activationCountryCode=rs.ipCountry;}
+        if(_.activationCountryCode===null&&($.body.dataset.level==='90'||$.body.dataset.level==='9')){_.activationCountryCode=rs.ipCountry;}
         
         for(let i in UI.region){
             if(UI.region[i].c.toUpperCase()===_.carrierCountryCode){_.carrierCountryId=parseInt(i);}
