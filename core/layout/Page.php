@@ -2701,28 +2701,22 @@ class Page extends Site {
                 <a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a>
                 <a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a>
             </div></li>
-            <li class="bold" style="border-bottom:none">CONNECT @mourjan&nbsp;&nbsp;&nbsp;
+            <li class="bold" style="border-bottom:none">Connect @mourjan&nbsp;&nbsp;&nbsp;
                 <img class="invert" src="/web/css/1.0/fa/brands/facebook.svg" style="margin: 0 6px; width:30px"/>
                 <img class="invert" src="/web/css/1.0/fa/brands/twitter.svg" style="margin: 0 6px; width:30px"/>
                 <img class="invert" src="/web/css/1.0/fa/brands/instagram.svg" style="margin: 0 6px; width:30px"/>
-            </li>
-            <li>Mourjan sites</li>
-            <li style="display:list-item;font-size:13px;margin-bottom:12px">
-                <div style="position:relative">
-                    <a class="btn" title="Mourjan country sites" href="#">
-                        <i class="icn icnsmall icn-<?=$this->router->countries[$this->router->countryId]['uri'];?>"></i>
-                        <span><?=$this->router->countries[$this->router->countryId]['name']?></span>
-                   </a>
-                    </div></li>
+            </li>            
             </ul></div></div><?php
             
-        ?><div class="row viewable"><div class=col-12><div class="card regions"><?php
-        ?><header class=light><i class="icn icn-region invert"></i><h4><span style="color:white;font-size:36pt">mourjan</span> around The Middle East</h4></header><?php
-        ?><div class=card-content><div class=row><?php
-        echo '<dl class="dl col-4">', $cc['ae'], $cc['bh'], $cc['qa'], $cc['kw'], '</dl>', "\n"; 
-        echo '<dl class="dl col-4">', $cc['sa'], $cc['om'], $cc['iq'], '</dl>', "\n"; 
-        echo '<dl class="dl col-4">', $cc['lb'], $cc['jo'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], '</dl>', "\n"; 
+        if ($this->router->module==='index') {
+            ?><div class="row viewable"><div class=col-12><div class="card regions"><?php
+            ?><header><i class="icn icn-region invert"></i><h4><span style="color:white;font-size:36px">mourjan</span> around The Middle East</h4></header><?php
+            ?><div class=card-content><div class=row><?php
+            echo '<dl class="dl col-4">', $cc['ae'], $cc['bh'], $cc['qa'], $cc['kw'], '</dl>', "\n"; 
+            echo '<dl class="dl col-4">', $cc['sa'], $cc['om'], $cc['iq'], '</dl>', "\n"; 
+            echo '<dl class="dl col-4">', $cc['lb'], $cc['jo'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], '</dl>', "\n"; 
         ?></div></div></div></div></div><?php
+        }
 
         ?></footer><?php
                        

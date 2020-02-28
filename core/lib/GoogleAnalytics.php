@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__.'/../../deps/autoload.php';
 require_once __DIR__.'/../model/NoSQL.php';
-define('STORE_ON_DISK', true, false);
-define('TOKEN_FILENAME', 'tokens.dat', false);
+//define('STORE_ON_DISK', true, false);
+//define('TOKEN_FILENAME', 'tokens.dat', false);
 
 use Core\Model\NoSQL;
 
@@ -12,29 +12,120 @@ class MCGoogleAnalytics {
     private $adClientId;
     private $accountId;       
     
+    private $view_id_site = '19776330';
+    
     public function __construct() {
         // Set up authentication.
         $this->client = new Google_Client();
         $this->client->setApplicationName("Berysoft");
+        $this->client->setAuthConfig('/opt/php-service-key.json');
         $this->client->setScopes(['https://www.googleapis.com/auth/analytics.readonly']);
-        $this->client->setAuthConfigFile('/opt/client_secrets.json');
+        
+        //$this->client->setScopes(['https://www.googleapis.com/auth/analytics.readonly']);
+        //$this->client->setAuthConfigFile('/opt/client_secrets.json');
+        
+        //$this->client->addScope('https://www.googleapis.com/auth/analytics.readonly');
         
         //$this->client->setAccessType('offline');
         //$this->client->setPrompt('select_account consent');
        // https://www.googleapis.com/analytics/v3/data/ga?ids=ga%3A19776330&start-date=30daysAgo&end-date=yesterday&metrics=ga%3Apageviews&dimensions=ga%3ApagePath&sort=-ga%3Apageviews
-        $tokenPath = '/opt/token.json';
+        
+        /*$tokenPath = '/opt/token.json';
         if (file_exists($tokenPath)) {
             $accessToken = json_decode(file_get_contents($tokenPath), true);
             $this->client->setAccessToken($accessToken);
-        }
+        }*/
         
-        $this->service = new Google_Service_Analytics($this->client);
+        $analytics = new Google_Service_AnalyticsReporting($this->client);       
         
-        //$accounts = $this->service->management_accounts->listManagementAccounts();
+        //$request = $this->getTestQuery();
+        $request = $this->getDimension();
 
-        //var_dump($accounts);
+        $body = new Google_Service_AnalyticsReporting_GetReportsRequest();
+        $body->setReportRequests( array( $request) );
+        $res = $analytics->reports->batchGet( $body );
+        
+        for ( $reportIndex = 0; $reportIndex < count( $res ); $reportIndex++ ) {
+            $report = $res[ $reportIndex ];
+            $header = $report->getColumnHeader();
+            $dimensionHeaders = $header->getDimensions();
+            $metricHeaders = $header->getMetricHeader()->getMetricHeaderEntries();
+            $rows = $report->getData()->getRows();
+            print_r($rows);
+
+        }
+       
+        
     }
     
+    public function getDimension(){
+        $dateRange = new Google_Service_AnalyticsReporting_DateRange();
+        $dateRange->setStartDate("30daysAgo");
+        $dateRange->setEndDate("yesterday");
+        
+        $sessions = new Google_Service_AnalyticsReporting_Metric();
+        $sessions->setExpression("ga:sessions");
+        $sessions->setAlias("sessions");
+        
+        $dimensionCountry = new Google_Service_AnalyticsReporting_Dimension();
+        $dimensionCountry->setName("ga:dimension4");
+        
+        $ordering = new Google_Service_AnalyticsReporting_OrderBy();
+        $ordering->setFieldName("ga:sessions");
+        $ordering->setOrderType("VALUE");   
+        $ordering->setSortOrder("DESCENDING");
+       
+        
+        $request = new Google_Service_AnalyticsReporting_ReportRequest();
+        $request->setViewId($this->view_id_site);
+        $request->setDateRanges($dateRange);
+        $request->setDimensions(array($dimensionCountry));
+        $request->setMetrics(array($sessions));
+        $request->setOrderBys($ordering);
+        $request->setPageSize(100);
+        return $request;
+    }
+    
+    public function getTestQuery(){
+        $dateRange = new Google_Service_AnalyticsReporting_DateRange();
+        $dateRange->setStartDate("30daysAgo");
+        $dateRange->setEndDate("yesterday");
+        
+        $sessions = new Google_Service_AnalyticsReporting_Metric();
+        $sessions->setExpression("ga:pageviews");
+        $sessions->setAlias("pageviews");
+        
+        $dimensionCountry = new Google_Service_AnalyticsReporting_Dimension();
+        $dimensionCountry->setName("ga:Country");
+        
+        $dimensionPath = new Google_Service_AnalyticsReporting_Dimension();
+        $dimensionPath->setName("ga:pagePath");
+        
+        $ordering = new Google_Service_AnalyticsReporting_OrderBy();
+        $ordering->setFieldName("ga:pageviews");
+        $ordering->setOrderType("VALUE");   
+        $ordering->setSortOrder("DESCENDING");
+        
+        // Create the DimensionFilter.
+        $dimensionFilter = new Google_Service_AnalyticsReporting_DimensionFilter();
+        $dimensionFilter->setDimensionName('ga:pagePath');
+        $dimensionFilter->setOperator('REGEXP');
+        $dimensionFilter->setExpressions(array('[^?]'));
+
+        // Create the DimensionFilterClauses
+        $dimensionFilterClause = new Google_Service_AnalyticsReporting_DimensionFilterClause();
+        $dimensionFilterClause->setFilters(array($dimensionFilter));
+        
+        $request = new Google_Service_AnalyticsReporting_ReportRequest();
+        $request->setViewId($this->view_id_site);
+        $request->setDateRanges($dateRange);
+        $request->setDimensions(array($dimensionCountry, $dimensionPath));
+        $request->setMetrics(array($sessions));
+        $request->setDimensionFilterClauses(array($dimensionFilterClause));
+        $request->setOrderBys($ordering);
+        $request->setPageSize(100);
+        return $request;
+    }
     
     public function parseTsvFile(string $file='/opt/analytics.tsv') : void {
         $totals=[];
@@ -159,7 +250,7 @@ class MCGoogleAnalytics {
 }
 
 $mcAnalytics = new MCGoogleAnalytics;
-$mcAnalytics->parseTsvFile();
+//$mcAnalytics->parseTsvFile();
 //$mcAnalytics->setAdClientId("313743502213-delb6cit3u4jrjvrsb4dsihpsoak2emm.apps.googleusercontent.com")
 //        ->setAccountId("pub-2427907534283641")
 //        ->earnings();

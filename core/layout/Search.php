@@ -1248,7 +1248,8 @@ class Search extends Page {
                 if ($this->router->isAcceptWebP) { $pix = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pix); }                
                 $pic.= '<img src="'.$this->router->config->adImgURL.'/repos/m/'.$pix.'" />';                
                 if ($pix_count>1) {
-                    $pic.='<div class="cbox ctr">'.$pix_count.'&nbsp;<span class="icn icnsmall icn-camera"></span></div>';                  
+                    $pic.='<div class="cbox ctr"><span class="icn icnsmall icn-camera">5</span></div>';  
+                    //'.$pix_count.'&nbsp;
                 }
             }
             else {
