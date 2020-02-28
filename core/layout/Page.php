@@ -2572,6 +2572,7 @@ class Page extends Site {
         ?><link rel='preconnect' href='https://googleads.g.doubleclick.net' /><?php
         ?><link rel="preconnect" href="https://www.google-analytics.com"><?php
         ?><link rel="preconnect" href="https://adservice.google.com"><?php
+        ?><link rel="preconnect" href="https://fonts.googleapis.com"><?php
         
         ?><meta name="google-site-verification" content="v7TrImfR7LFmP6-6qV2eXLsC1qJSZAeKx2_4oFfxwGg" /><?php
         if ($this->userFavorites){
@@ -2705,6 +2706,14 @@ class Page extends Site {
                 <img class="invert" src="/web/css/1.0/fa/brands/twitter.svg" style="margin: 0 6px; width:30px"/>
                 <img class="invert" src="/web/css/1.0/fa/brands/instagram.svg" style="margin: 0 6px; width:30px"/>
             </li>
+            <li>Mourjan sites</li>
+            <li style="display:list-item;font-size:13px;margin-bottom:12px">
+                <div style="position:relative">
+                    <a class="btn" title="Mourjan country sites" href="#">
+                        <i class="icn icnsmall icn-<?=$this->router->countries[$this->router->countryId]['uri'];?>"></i>
+                        <span><?=$this->router->countries[$this->router->countryId]['name']?></span>
+                   </a>
+                    </div></li>
             </ul></div></div><?php
             
         ?><div class="row viewable"><div class=col-12><div class="card regions"><?php

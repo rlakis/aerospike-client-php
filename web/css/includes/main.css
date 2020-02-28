@@ -96,7 +96,7 @@ header>a{display: flex;}
 header .slogan{margin:80px 0 0 -176px; font-size:9px}
 header div{display: inherit}
 
-header .btn{background-color:#FF6167;border-radius:10px;color:#F9F9F9;font-size:16px;font-weight:bold}
+header .btn{background-color:#FF6167;border-radius:10px;color:#F9F9F9;font-size:14px;font-weight:bold;padding-left:20px;padding-right:20px}
 
 
 .navbar{display: inherit; flex:1 auto;}
@@ -165,8 +165,8 @@ li>i{margin:0 4px;max-width:32px;}
 .icn-search{background:url(/web/css/1.0/fa/solid/search.svg) no-repeat center}
 .icn-bars{background:url(/web/css/1.0/fa/duotone/bars.svg) no-repeat center}
 .icn-bell{background:url(/web/css/1.0/fa/solid/bell.svg) no-repeat center;}
-.icn-user{background:url(/web/css/1.0/fa/duotone/user.svg) no-repeat center}
-.icn-language{background:url(/web/css/1.0/fa/duotone/globe.svg) no-repeat center}
+.icn-user{background:url(/web/css/1.0/fa/solid/user.svg) no-repeat center}
+.icn-language{background:url(/web/css/1.0/fa/solid/globe.svg) no-repeat center}
 .icn-apple{background:url(/web/css/1.0/fa/brands/apple.svg) no-repeat center}
 .icn-play-store{background:url(/web/css/1.0/assets/google-play.svg) no-repeat center}
 .icn-lang{background:url(/web/css/1.0/fa/regular/arabic.svg) no-repeat center}
@@ -394,14 +394,14 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .search-box .roots .large>span {color:#3d6382;font-size:18px;font-weight:bold;margin-bottom:24px;-webkit-text-stroke-width: 0.25px;-webkit-text-stroke-color: var(--mcLightColor);-webkit-text-fill-color: #3d6382;}
 .search-box .roots .large .bar {width:68px;height:3px;background-color:#007AFF;border-radius: 1px}
 /*.search-box .roots .large i {filter:invert(64%) sepia(10%) saturate(539%) hue-rotate(165deg) brightness(90%) contrast(93%);}*/
-.search-box .roots .large i {margin-bottom:8px;filter:var(--mRootFilter)}
+.search-box .roots .large i {margin-bottom:8px;filter:var(--mRootFilter);opacity: 0.8}
 /*.large .arrow{margin-top:10px;margin-inline-start:8px;margin-inline-end:0}*/
 
 
 .adc::first-line{font-weight:bold;}
 .block-with-text{overflow:hidden;position:relative;line-height:1.5em;height:4.5em;}
-.seclogo{background-color:#0a2c63; display: inline-flex; align-items: center; justify-content: center;width: calc(100% - 32px)}
-.seclogo img{width:auto !important;height:auto !important;}
+.seclogo{background-color:var(--mColor70); display: inline-flex; align-items: center; justify-content: center;width: calc(100% - 32px);margin-top:-4px !important}
+.seclogo img{width:160px !important;height:auto !important;}
 .card .cbox{display:flex;color:white;position:absolute;font-size:0.8em;align-items:center;font-weight:bold;}
 .card .cbox.ctl {top:0px;left:0px;}
 .card .cbox.ctl.new {background-color: red; color: white; opacity: 0.8;padding: 2px 5px;font-size: 0.7em;border-bottom-right-radius: 5px;}
@@ -412,7 +412,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 
 .search{display:inline-flex;width:100%;border:1px solid rgba(0,122,255,0.4);border-radius:5px;max-width: 1024px; margin: 36px 0;}
 .search form{width:100%;display:inherit;justify-content:space-between;align-self:flex-start;flex-direction:row}
-.searchTerm{width:100%;border:none;padding:5px;height:56px !important;outline:none;color:var(--midnight);font-size:1.0em;-webkit-appearance:none;}
+.searchTerm{width:100%;border:none;padding:5px 5px 5px 20px;height:56px !important;outline:none;color:var(--midnight);font-size:1.0em;-webkit-appearance:none;}
 .searchTerm:focus{color:var(--mourjanC);}
 .searchButton{width:84px;height:56px;border:0; border-left:1px solid rgba(0,122,255,0.4);border-radius:0 5px 5px 0;background:var(--mourjanC);cursor:pointer;padding-top:0;}
 .search select{position: absolute;display:block; top:0px;left:0px;cursor: pointer;outline:0;padding:0;margin:0;width:auto;height:36px;opacity: 0}

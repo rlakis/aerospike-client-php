@@ -568,7 +568,8 @@ var setOrder=function(e)
     private function sectionWidget(int $section_id, int $purpose_id) : void {
         $status=$this->router->db->as->getCacheData("section-dat-{$this->router->countryId}-{$this->router->cityId}-{$this->router->sections[$section_id]['root_id']}-{$this->router->language}", $root);        
         ?><div class=ad><?php
-        ?><a href="<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$section_id]['root_id'], $section_id, $purpose_id)?>"><div class=card><div class="card-image seclogo"><img src="<?=$this->router->config->imgURL.'/200/'.$section_id.$this->router->_png?>" /><?php
+        ?><a href="<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$section_id]['root_id'], $section_id, $purpose_id)?>"><div class=card><div class="card-image seclogo"><?php
+        ?><img src="/web/css/1.0/assets/se/<?=$section_id?>.svg" /><?php
         ?><div style="position:absolute;height:22px;width:100%;bottom:0;background-color:#2d3e4f;opacity:0.9"><?php
         ?><div class="cbox cbl"><?=Ad::FormatSinceDate($root[$section_id]['purposes'][$purpose_id]['unixtime'], $this->lang)?></div><?php
         ?><div class="cbox cbr"><?=\number_format($root[$section_id]['purposes'][$purpose_id]['counter']).' '.$this->lang['ads']?></div><?php
