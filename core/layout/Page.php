@@ -1477,7 +1477,7 @@ class Page extends Site {
     function top() : void {
         $cityId=$this->router->cityId;
         if ($this->router->cityId) {
-            if ($this->router->countryId==0) {
+            if ($this->router->countryId===0) {
                 $cityId = 0;
             }
             elseif (empty($this->router->countries[$this->router->countryId]['cities'])) {
@@ -1494,7 +1494,7 @@ class Page extends Site {
                 }
             case 'search':
             case 'index':
-                if ($this->router->userId) { $url='/'.($this->partnerInfo['uri']).'/'; }
+                if ($this->router->userId>0) { $url='/'.($this->partnerInfo['uri']).'/'; }
                 elseif ($this->router->watchId) { $url='/watchlist/'; }
                 elseif ($this->userFavorites) { $url='/favorites/'; }
                 else {
@@ -1535,14 +1535,14 @@ class Page extends Site {
         <div class="row top-header"><div class="viewable full-height ff-cols">
             <ul><?php
                 if ($this->router->countryId>0 && isset($this->router->countries[$this->router->countryId])) {
+                    ?><li><a id=regions href="javascript:regionWidget()" data-regions='<?=\json_encode($this->supportedCountries())?>'><?php
                     if ($this->router->cityId===0) {
-                        echo '<li><a href="#">', $this->router->countries[$this->router->countryId]['name'];
+                        echo $this->router->countries[$this->router->countryId]['name'];
                     }
                     else {
-                        echo '<li><a href="#">', $this->router->cities[$this->router->cityId][$this->name];
-                        
+                        echo $this->router->cities[$this->router->cityId][$this->name];                        
                     }
-                    echo '<i class="icn icnsmall icn-', $this->router->countries[$this->router->countryId]['uri'], ' iborder"></i></a></li>';
+                    ?><i class="icn icnsmall icn-<?=$this->router->countries[$this->router->countryId]['uri']?> iborder"></i></a></li><?php
                 }
                 else {
                     echo '<li><a href="#"><i class="icn icnsmall icn-globe invert"></i></a></li>';
@@ -1553,12 +1553,12 @@ class Page extends Site {
                 <li>&vert;</li>
                 <li><a href="<?= $url ?>"><?= ($this->router->isArabic()?'English':'العربية') ?><i class="icn i20 icn-language icolor"></i></a></li>
             </ul>
-            </div></div>
+            <div id='rgns'></div>
+        </div></div>
         
         <header><div class="viewable ff-rows full-height sp-between">    
-                <div><a class=half-height href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i></a>
-                    </div>
-                    <a class="btn " href='#'><?=$this->lang['placeAd']?></a>
+            <div><a class=half-height href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i></a></div>
+            <a class="btn " href='#'><?=$this->lang['placeAd']?></a>
         </div></header>
 
     <section class=search-box><div class="viewable ha-center"><div class=search>
@@ -2625,6 +2625,34 @@ class Page extends Site {
     }
 
     
+    function supportedCountries() : array {
+        $cc=['ae'=>null, 'sa'=>null, 'kw'=>null, 'bh'=>null, 'qa'=>null, 'om'=>null, 
+             'lb'=>null, 'jo'=>null, 'iq'=>null, 
+             'eg'=>null, 'ma'=>null, 'tn'=>null, 'dz'=>null];
+        $result=[];     
+        foreach ($this->router->countries as $id => $cn) {
+            if ($cn['uri']==='ye') {  continue;  }
+            if (!isset($cc[$cn['uri']])) { $cc['uri']=null; }
+            
+            if ($cn['uri'] && $cc[$cn['uri']]===null) {
+                $cc[$cn['uri']] = ['p'=>$this->router->getURL($id), 'n'=>$cn['name'], 'c'=>[]];
+                //$cc[$cn['uri']] = "<dt><a href={$this->router->getURL($id)}><i class=\"icn icn-{$cn['uri']}\"></i><span>{$cn['name']}</span></a></dt>\n";
+            }
+            
+            foreach ($cn['cities'] as $cid=>$city) {
+                $href = $this->router->getURL($id, $cid);
+                $cc[$cn['uri']]['c'][]=['p'=>$href, 'n'=>$city['name']];
+                //$cc[$cn['uri']].= "<dd><a href={$href}>{$city['name']}</a></dd>\n";
+            }
+            if ($cc[$cn['uri']]) {
+                $result[$cn['uri']]=$cc[$cn['uri']];
+            }
+        }
+        $this->router->logger()->info(\json_encode($result, JSON_PRETTY_PRINT));        
+        return $result;
+    }
+    
+    
     function footer() : void {
         $year = date('Y');
         ?><div class="row ff-cols viewable" style="box-shadow:0 -5px 5px -5px var(--mColor10);">            
@@ -2653,25 +2681,15 @@ class Page extends Site {
             </div>                
         </div><?php
         
-        
-        $cc=['ae'=>null, 'sa'=>null, 'kw'=>null, 'bh'=>null, 'qa'=>null, 'om'=>null, 
-             'lb'=>null, 'jo'=>null, 'iq'=>null, 
-             'eg'=>null, 'ma'=>null, 'tn'=>null, 'dz'=>null];
-                 
-        foreach ($this->router->countries as $id => $cn) {
-            if ($cn['uri']==='ye') {  continue;  }
-            if (!isset($cc[$cn['uri']])) { $cc['uri']=null; }
-            
-            if ($cn['uri'] && $cc[$cn['uri']]===null) {
-                $cc[$cn['uri']] = "<dt><a href={$this->router->getURL($id)}><i class=\"icn icn-{$cn['uri']}\"></i><span>{$cn['name']}</span></a></dt>\n";
+               
+        $scn=$this->supportedCountries();
+        $cc=[];
+        foreach ($scn as $k=>$v) {
+            $cc[$k]="<dt><a href={$v['p']}><i class=\"icn icn-{$k}\"></i><span>{$v['n']}</span></a></dt>";    
+            foreach ($v['c'] as $cts) {
+                $cc[$k].= "<dd><a href={$cts['p']}>{$cts['n']}</a></dd>";
             }
-            
-            foreach ($cn['cities'] as $cid=>$city) {
-                $href = $this->router->getURL($id, $cid);
-                $cc[$cn['uri']].= "<dd><a href={$href}>{$city['name']}</a></dd>\n";
-            }
-        }                   
-        
+        }
         
         echo '</main>';
         
@@ -4824,7 +4842,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 //include $minjs;
                 include $jsfile;                
                 echo '</script>';
-                \error_log($filename);
+                //\error_log($filename);
             }
             $this->included[$filename]=1;
         }

@@ -1318,8 +1318,10 @@ class Search extends Page {
             if ($this->user()->isSuperUser() && isset($this->searchResults['body']['scores'][$ad->id()])) {
                 echo '<span style="direction:ltr;display:block;padding-left:20px">', $this->searchResults['body']['scores'][$ad->id()], '</span>';
             }
-            echo '<div class=card-footer>', "\n";    
-            echo $this->getAdSection($ad->data(), $hasSchema);
+            echo '<div class=card-footer>', "\n";
+            if ($this->hasLinkSection($ad->data())) {
+                echo $this->getAdSection($ad->data(), $hasSchema);
+            }
             //if ($debug) { echo "<div style=\"display:inline;font-size:9pt;\">&nbsp;{$ad[Classifieds::ID]} - {$ad[Classifieds::PRICE]}</div>"; }
             //if (!$end_user && $this->user()->isLoggedIn(9)) {
             echo '<div title="', $this->lang['reportAbuse'], '" class=abuse onclick="event.stopPropagation();report(this);"><i class="icn icn-ban"></i></div>';
@@ -1739,10 +1741,33 @@ class Search extends Page {
     }
 
             
+    function hasLinkSection(array $ad, bool $isDetail=false) : bool {
+        $extIDX = $this->router->isArabic() ? Classifieds::EXTENTED_AR : Classifieds::EXTENTED_EN;
+        $locIDX = $this->router->isArabic() ? Classifieds::LOCALITIES_AR : Classifieds::LOCALITIES_EN;
+        $extID = (isset($ad[$extIDX]) && isset($this->extended[$ad[$extIDX]])) ? $ad[$extIDX] : $this->extendedId;
+        $hasLoc = (isset($ad[$locIDX]) && (\is_array($ad[$locIDX]) && \count($ad[$locIDX])>0) && (\is_array($this->localities) && \count($this->localities)>0));
+        $locID = 0;
+        if ($hasLoc) {
+            $locKeys = \array_reverse(\array_keys($ad[$locIDX]));
+            foreach ($locKeys as $key) {
+                if (isset($this->localities[$key])) {
+                    $locID = $key;
+                    break;
+                }
+            }
+        }
+    
+        if ($isDetail || (!($extID && !$this->extendedId) && (!$hasLoc || ($hasLoc && $locID==$this->localityId)) && $this->router->purposeId && $this->router->sectionId)) {
+            return false;
+        }
+        return true;
+    }
+    
+    
     function getAdSection($ad, bool $hasSchema=false, bool $isDetail=false) : string {
         $section = '';        
-        $hasLink = true;
         if (!empty($this->router->sections)) {
+            $hasLink = $this->hasLinkSection($ad, $isDetail);
             $extIDX = $this->router->isArabic() ? Classifieds::EXTENTED_AR : Classifieds::EXTENTED_EN;
             $locIDX = $this->router->isArabic() ? Classifieds::LOCALITIES_AR : Classifieds::LOCALITIES_EN;
             $extID = (isset($ad[$extIDX]) && isset($this->extended[$ad[$extIDX]])) ? $ad[$extIDX] : $this->extendedId;
@@ -1758,11 +1783,12 @@ class Search extends Page {
                     }
                 }
             }
+            /*
     
             if ($isDetail || (!($extID && !$this->extendedId) && (!$hasLoc || ($hasLoc && $locID == $this->localityId)) && $this->router->purposeId && $this->router->sectionId)) {
                 $hasLink=false;
             }
-
+            */
             $section = $this->router->sections[$ad[Classifieds::SECTION_ID]][$this->name];
             if ($extID) { $section = $this->extended[$extID]['name']; }
             

@@ -45,3 +45,28 @@ function hasWebP() {
     }
     return false;
 }
+
+regionWidget=function(e){
+    let a=$.querySelector('a#regions'), r=JSON.parse(a.dataset.regions), d=$.querySelector('div#rgns');
+    if (d.innerHTML>''){d.innerHTML='';return;}
+    th=$.querySelector('div.top-header');
+    let y=th.offsetHeight+th.offsetTop+8;    
+    let s='<div style="display:flex;position:absolute;flex-flow:column;align-self:center;top:'+y+'px;left:0px;width:100%;height:auto;z-index:9;"><div class="row viewable"><div class=col-12 style="padding:0"><div class="card regions">';
+    s+='<header><i class="icn icn-region invert"></i><h4><span style="color:white;font-size:36px">mourjan</span> around The Middle East</h4></header>';
+    s+='<div class=card-content><div class=row>';
+    let aa=[['ae', 'qa', 'om'], ['sa', 'bh'], ['kw', 'jo','ma', 'tn'], ['lb','eg','iq','dz']];
+    aa.forEach(g=>{
+        s+='<dl class="dl col-4">';
+        g.forEach(c=>{
+            let v=r[c];
+            s+='<dt><a href='+v.p+'><i class="icn icn-'+c+'"></i><span>'+v.n+'</span></a></dt>';
+            v.c.forEach(t=>{
+                s+='<dd><a href='+t.p+'>'+t.n+'</a></dd>';
+            });
+        
+        });
+        s+='</dl>'
+    });
+    s+='</div></div></div></div></div>';
+    d.innerHTML=s;
+}

@@ -1,5 +1,5 @@
 @charset "UTF-8";
-@import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Almarai:400,700&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Almarai:400,700|Cairo:300,400,600,700,900&display=swap');
 @font-face{font-family:system;font-style:normal;font-weight:300;
            src:local(".SFNSText-Light"),local(".HelveticaNeueDeskInterface-Light"),
                local(".LucidaGrandeUI"),local("Ubuntu Light"),local("Segoe UI Light"),
@@ -25,6 +25,7 @@
     --mColor50:rgba(28,65,94,.5);
     --mColor70:rgba(28,65,94,.7);
     --mColor80:rgba(28,65,94,.8);
+    --mColor90:rgba(28,65,94,.9);
     
     --mRootFilter:invert(18%) sepia(95%) saturate(421%) hue-rotate(163deg) brightness(90%) contrast(89%);
 }
@@ -197,7 +198,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .icn-ae{background:url(/web/css/flags/ae.svg) center no-repeat;}
 .icn-sa{background:url(/web/css/flags/sa.svg) center no-repeat;}
 .icn-kw{background:url(/web/css/flags/kw.svg) center no-repeat;}
-.icn-bh{background:url(/web/css/flags/bh.svg) center no-repeat; height: 20px;}
+.icn-bh{background:url(/web/css/flags/bh.svg) center no-repeat;}
 .icn-om{background:url(/web/css/flags/om.svg) center no-repeat;}
 .icn-qa{background:url(/web/css/flags/qa.svg) center no-repeat;}
 .icn-iq{background:url(/web/css/flags/iq.svg) center no-repeat;}
@@ -338,7 +339,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .ar{direction:rtl;text-align:right}
 .en{direction:ltr;text-align:left}
 .ad{display:inherit;position:relative;min-width:300px;max-width:360px;width:320px;margin:auto;}
-.ad .card-content{color:var(--mColor80);}
+.ad .card-content{color:var(--mColor90);}
 .ad.full{width:100%;max-width:768px;}
 /*.ad.full .card-image {max-width:768px;margin:-30px auto 0 !important}*/
 .ad .abuse{background-color:transparent;width:32px;height:32px;position:absolute;left:0;top:6px;display:none;cursor:pointer}
@@ -400,8 +401,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .search-box .roots .large i {margin-bottom:8px;filter:var(--mRootFilter);opacity: 0.8}
 /*.large .arrow{margin-top:10px;margin-inline-start:8px;margin-inline-end:0}*/
 
-
-.adc::first-line{font-weight:400;}
+/*.adc::first-line{font-weight:bold;}*/
 .block-with-text{overflow:hidden;position:relative;line-height:1.5em;height:4.5em;}
 .seclogo{background-color:#5f798e;display:inline-flex;align-items:center;justify-content:center;width:calc(100% - 32px);}
 .seclogo img{width:160px !important;height:auto !important;}
@@ -705,7 +705,7 @@ body[dir="rtl"] .large .arrow{margin-inline-start:0;margin-inline-end:8px}
         width: calc(100% - 210px);
     }
     body[dir="ltr"] .ilogo{background-image:url("/web/css/1.0/assets/LogoV5e.svg");}
-    body[dir="rtl"] .ilogo{background-image:url("/web/css/1.0/assets/LogoV5a.svg"); margin-right:60px;}
+    body[dir="rtl"] .ilogo{background-image:url("/web/css/1.0/assets/LogoV5a.svg"); /*margin-right:60px;*/width:308px}
    
 }
 
