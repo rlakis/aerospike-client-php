@@ -475,7 +475,7 @@ class Page extends Site {
             $this->css('doc');
             echo '</style>';
         }
-        echo '<div class=row><div class="col-12 sign">';
+        echo '<div class="row viewable"><div class="col-12 sign">';
         $keepme_in = (isset($this->user->params['keepme_in']) && $this->user->params['keepme_in']==0)?0:1;
         
         if (isset($this->user->pending['login_attempt'])) {
@@ -559,9 +559,9 @@ class Page extends Site {
         
         echo '</div></div>'; // close signin div
         
-        ?><div class=col-12><div class="card card-doc"><div class=card-title><h4><?= $this->lang['NB'] ?></h4></div><?php 
-        ?><div class=card-content><p>&bull;&nbsp;<?= $this->lang['disclaimer'] ?></p><p>&bull;&nbsp;<?= $this->lang['disclaimer_social'] ?></p></div><?php
-        ?></div></div><?php                                
+        ?><div class="row viewable"><div class=col-12><div class="card card-doc"><div class=card-title><h4><?= $this->lang['NB'] ?></h4></div><?php 
+        ?><div class=card-content><p>&bull;&nbsp;<?=$this->lang['disclaimer']?></p><p>&bull;&nbsp;<?= $this->lang['disclaimer_social'] ?></p></div><?php
+        ?></div></div></div><?php                         
                                
         $this->requireLogin=true;
            
@@ -1549,7 +1549,7 @@ class Page extends Site {
                 }?>
                 <li>&vert;</li>
                 <li><a href="<?= $this->router->getLanguagePath($this->user->isLoggedIn() ? '/myads/' : '/signin/') ?>"><?php 
-                echo $this->user->isLoggedIn()?$this->lang['myAccount']:$this->lang['signin'];?><i class="icn icn-user i20 icolor"></i></a></li>
+                echo $this->user->isLoggedIn()?$this->lang['MyAccount']:$this->lang['signin'];?><i class="icn icn-user i20 icolor"></i></a></li>
                 <li>&vert;</li>
                 <li><a href="<?= $url ?>"><?= ($this->router->isArabic()?'English':'العربية') ?><i class="icn i20 icn-language icolor"></i></a></li>
             </ul>
@@ -1587,12 +1587,12 @@ class Page extends Site {
                    
         <?php
         if ($this->user->isLoggedIn(9)) {
-            $selected=$this->router->params['cn']?$this->router->countries[$this->router->params['cn']]['name']:'All Countries';
+            $selected=$this->router->params['cn']?$this->router->countries[$this->router->params['cn']]['name']:$this->lang['opt_all_countries'];
             ?>
             <div class=select-wrapper><div class=select-box>
                 <div class=select__trigger><span><?= $selected?></span><div class=arrow></div></div>
                 <div class=options><?php
-                echo '<span class="option', (!$this->router->params['cn']?' selected" ':'" '), 'data-value="0">All Countries</span>';                
+                echo '<span class="option', (!$this->router->params['cn']?' selected" ':'" '), 'data-value="0">', $this->lang['opt_all_countries'], '</span>';                
                 foreach ($this->router->countries as $cn=>$country) {
                     echo '<span class="option', $this->router->params['cn']===$cn?' selected"':'"', ' data-value="',$cn, '">', $country['name'], '</span>';
                 }
@@ -2655,30 +2655,38 @@ class Page extends Site {
     
     function footer() : void {
         $year = date('Y');
+        if ($this->router->module==='index') {
+        $words=['sell'=>['ar'=>'بع', 'en'=>'SELL'],'car'=>['ar'=>'سيارتك','en'=>'YOUR CAR'],
+            'find'=>['ar'=>'إحصل', 'en'=>'FIND'], 'job'=>['ar'=>'على عمل', 'en'=>'A JOB'],
+            'advert'=>['ar'=>'أعلن', 'en'=>'ADVERTISE'], 'business'=>['ar'=>'عن أعمالك', 'en'=>'YOUR BUSINESS'],
+            'buy'=>['ar'=>'إشتري', 'en'=>'BUY'], 'house'=>['ar'=>'منزل', 'en'=>'A HOUSE'],
+            'promote'=>['ar'=>'سّوق', 'en'=>'PROMOTE'], 'service'=>['ar'=>'خدماتك', 'en'=>'YOUR SERVICES'],
+            ];
+        $ln=$this->router->language;
         ?><div class="row ff-cols viewable" style="box-shadow:0 -5px 5px -5px var(--mColor10);">            
             <div class="col-12 mhbanner" style="margin-top:0">
                 <img src="/web/css/1.0/assets/emblem.svg" />
                 <div class="p1">                    
-                    <div><span class="um">SELL</span><span class="sm l1">YOUR CAR</span></div>
-                    <div><span class="um">FIND</span><span class="sm l2">A JOB</span></div>
-                    <div><span class="um">ADVERTISE</span><span class="sm l3">YOUR BUSINESS</span></div>
-                    <div><span class="um">BUY</span><span class="sm l4">A HOUSE</span></div>
-                    <div><span class="um">PROMOTE</span><span class="sm l5">YOUR SERVICES</span></div>
-                </div>
-                       
-            </div>
-                        
-            <div class="col-12 mfbanner"><span style="width:177px"></span><div class=slogan>EVERYTHING YOU’VE BEEN LOOKING FOR.</div><a class="btn" href='#'>PLACE YOUR AD FOR FREE</a></div>
+                    <div><span class="um"><?=$words['sell'][$ln]?></span><span class="sm l1"><?=$words['car'][$ln]?></span></div>
+                    <div><span class="um"><?=$words['find'][$ln]?></span><span class="sm l2"><?=$words['job'][$ln]?></span></div>
+                    <div><span class="um"><?=$words['advert'][$ln]?></span><span class="sm l3"><?=$words['business'][$ln]?></span></div>
+                    <div><span class="um"><?=$words['buy'][$ln]?></span><span class="sm l4"><?=$words['house'][$ln]?></span></div>
+                    <div><span class="um"><?=$words['promote'][$ln]?></span><span class="sm l5"><?=$words['service'][$ln]?></span></div>
+                </div>                       
+            </div>                        
+            <div class="col-12 mfbanner"><span style="width:177px"></span><div class=slogan><?=$this->lang['slogan']?>.</div><a class="btn" href='#'><?=$this->lang['placeAd']?></a></div>
         </div><?php
+        }
+        
         ?><div class="row">
             <div class="col-12" style="background-color:white;height: 90px;align-items: center;justify-content: center;line-height: 1.8em">
                 <img src="/web/css/1.0/assets/premium-en.svg" width="284"/>
                 <span style="height:43px;width:2px;background-color:var(--mColor03);margin: 0 24px"></span>
                 <div style="color: var(--mColor03);">
-                <span style="font-size:20pt;font-weight:bold">GO PREMIUM & GET SEEN BY MILLIONS OF USERS INSTANTLY!</span><br>
-                <span style="font-size:16pt;">One Mourjan gold is equal to one day of premium ad listing.&nbsp;&nbsp;<a href="#">Learn more</a></span>
+                <span style="font-size:20pt;font-weight:bold"><?=$this->lang['go_premium']?>!</span><br>
+                <span style="font-size:16pt;"><?=$this->lang['gold_note']?>.&nbsp;&nbsp;<a href="#"><?=$this->lang['learn_more']?></a></span>
                 </div>
-            </div>                
+            </div>            
         </div><?php
         
                
@@ -2695,10 +2703,18 @@ class Page extends Site {
         
         ?><footer class=row><div class="viewable ff-rows"><?php
         ?><div class="col-4 ff-cols"><?php
-        ?><img class=invert src="/web/css/1.0/assets/mc-en.svg" width=160/>
-        <div class="apps bold" style="margin-inline-start:40px;">24/7 Customer Service<br/>+961-70-424-018</div>
-        <p style="margin-inline-start:40px;">mourjan.com, 4th floor, Dekwaneh 1044 center<br/>New Slav Street, Dekwaneh, Lebanon</p><?php
-        ?><p class=ha-start style="margin-inline-start:40px;">© 2010-<?=$year?> Mourjan Classifieds<br/>All Rights Reserved.</p><?php
+        ?><img class=invert src="/web/css/1.0/assets/mc-en.svg" width=160/><?php
+        //<!--<div class="apps bold" style="margin-inline-start:40px;">24/7 Customer Service<br/>+961-70-424-018</div>-->
+        if ($this->router->isArabic()) {
+            ?><p style="margin-inline-start:40px;">مركز الأعمال راكز<br/>رأس الخيمة<br/>الامارات العربية المتحدة</br/>صندوق بريد: 294474</p><?php
+            ?><p style="margin-inline-start:40px;margin-top:0">بيريسوفت، الطابق الرابع ، سنتر 1044 الدكوانة<br/>شارع السلاف العريض، الدكوانة، لبنان</p><?php
+            
+        }
+        else {
+            ?><p style="margin-inline-start:40px;">Business Center RAKEZ<br/>Ras Al Khaimah<br/>United Arab Emirates</br/>P.O. Box: 294474</p><?php
+            ?><p style="margin-inline-start:40px;margin-top:0">Berysoft, 4th floor, Dekwaneh 1044 center<br/>New Slav Street, Dekwaneh, Lebanon</p><?php
+        }
+        ?><p class=ha-start style="margin-inline-start:40px;margin-top:8px">© 2010-<?=$year?> <?=$this->lang['mc']?><br/><?=$this->lang['all_rights']?>.</p><?php
         ?></div><?php
         
         ?><div class="col-4 va-start"><ul><?php
@@ -2708,18 +2724,18 @@ class Page extends Site {
         //}
         ?><li><a href="<?=$this->router->getLanguagePath('/about/')?>"><span><?=$this->lang['aboutUs']?></span></a></li><?php
         ?><li><a href="<?=$this->router->getLanguagePath('/contact/')?>"><span><?=$this->lang['contactUs']?></span></a></li><?php
-        ?><li><a href="<?=$this->router->getLanguagePath('/contact/')?>"><span>FAQs & Help Center</span></a></li><?php
+        ?><li><a href="<?=$this->router->getLanguagePath('/contact/')?>"><span><?=$this->lang['faqhc']?></span></a></li><?php
         ?><li><a href="<?=$this->router->getLanguagePath('/terms/')?>"><span><?=$this->lang['termsConditions']?></span></a></li><?php
         ?><li><a href="<?=$this->router->getLanguagePath('/privacy/')?>"><span><?=$this->lang['privacyPolicy']?></span></a></li><?php
         ?></ul></div><?php
         
         ?><div class="col-4 ff-cols"><ul><?php
-        ?><li class="bold">Find exclusive deals on the app:</li>
+        ?><li class="bold"><?=$this->lang['ex_deals_app']?>:</li>
             <li><div class=apps>
                 <a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a>
                 <a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a>
             </div></li>
-            <li class="bold" style="border-bottom:none">Connect @mourjan&nbsp;&nbsp;&nbsp;
+            <li class="bold" style="border-bottom:none"><?=$this->lang['followUs']?> @mourjan&nbsp;&nbsp;&nbsp;
                 <img class="invert" src="/web/css/1.0/fa/brands/facebook.svg" style="margin: 0 6px; width:30px"/>
                 <img class="invert" src="/web/css/1.0/fa/brands/twitter.svg" style="margin: 0 6px; width:30px"/>
                 <img class="invert" src="/web/css/1.0/fa/brands/instagram.svg" style="margin: 0 6px; width:30px"/>
@@ -2728,7 +2744,7 @@ class Page extends Site {
             
         if ($this->router->module==='index') {
             ?><div class="row viewable"><div class=col-12><div class="card regions"><?php
-            ?><header><i class="icn icn-region invert"></i><h4><span style="color:white;font-size:36px">mourjan</span> around The Middle East</h4></header><?php
+            ?><header><i class="icn icn-region invert"></i><h4><span style="color:white;font-size:36px"><?=$this->lang['mourjan']?></span> <?=$this->lang['around_mst']?></h4></header><?php
             ?><div class=card-content><div class=row><?php
             echo '<dl class="dl col-4">', $cc['ae'], $cc['bh'], $cc['qa'], $cc['kw'], '</dl>', "\n"; 
             echo '<dl class="dl col-4">', $cc['sa'], $cc['om'], $cc['iq'], '</dl>', "\n"; 
@@ -4889,7 +4905,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         //    $this->css('uhome'); 
         //}
         //else {
-            $this->css('main');        
+        $this->css('main')->css($this->router->module); 
         //}
        
         switch ($this->router->module) {

@@ -7,8 +7,8 @@ class Signin extends Page {
 
     function __construct() {
         parent::__construct();
-        if ($this->user()->id()) {
-            $this->user()->redirectTo( $this->router()->getURL($this->router->countryId, $this->router->cityId) );
+        if ($this->user->id()) {
+            $this->user->redirectTo( $this->router->getURL($this->router->countryId, $this->router->cityId) );
         }
                 
         $this->forceNoIndex=true;

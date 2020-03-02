@@ -165,7 +165,7 @@ class Home extends Page {
     
     
     public function mostPopular() : void {
-        ?><div class="row viewable" style="margin-bottom:40px"><div class=col-12><div class="card format1"><header class="plain"><h4>Most active sections</h4></header><?php
+        ?><div class="row viewable" style="margin-bottom:40px"><div class=col-12><div class="card format1"><header class="plain"><h4><?=$this->lang['active_sections']?></h4></header><?php
         ?><div class="card-content"><?php
         $sections=[];
         $labels=[];
@@ -255,7 +255,7 @@ class Home extends Page {
             if ($this->router->db->as->getCacheData($label, $record)===\Aerospike::OK) {
                 $key=Core\Model\NoSQL::instance()->initStringKey(Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $label);
                 ?><div class="row viewable"><div class=col-12><div class="card format2"><?php
-                ?><header class="plain"><h4><?=$this->router->isArabic()?'الأكثر طلباً من القراء':'What other people are looking for...'?></h4><a href="#">View All</a></header><?php
+                ?><header class="plain"><h4><?=$this->router->isArabic()?'الأكثر طلباً من القراء':'What other people are looking for...'?></h4><a href="#"><?=$this->lang['more']?></a></header><?php
                
                 $q='select id,rand() as r from ad where hold=0 and canonical_id=0 and media=1 ';
                 if ($this->router->cityId>0) {
@@ -302,7 +302,7 @@ class Home extends Page {
     
     
     public function recommendedForYou() : void {
-        ?><div class="row viewable"><div class=col-12><div class="card format2"><header class="plain"><h4><?=$this->router->isArabic()?'اعلانات قد تهمك':'Recommended for you'?></h4><a href="#">View All</a></header><?php
+        ?><div class="row viewable"><div class=col-12><div class="card format2"><header class="plain"><h4><?=$this->router->isArabic()?'اعلانات قد تهمك':'Recommended for you'?></h4><a href="#"><?=$this->lang['more']?></a></header><?php
         $q='select id,rand() as r from ad where hold=0 and canonical_id=0 and media=1 and country_id='.$this->router->countryId;
          if ($this->router->cityId>0) {
              $q.=' and city_id='.$this->router->cityId;

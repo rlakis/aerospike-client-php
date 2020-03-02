@@ -143,6 +143,7 @@ li>i{margin:0 4px;max-width:32px;}
 .fill-3{filter: invert(76%) sepia(75%) saturate(447%) hue-rotate(91deg) brightness(85%) contrast(94%);}
 .fill-4{filter: invert(50%) sepia(27%) saturate(3597%) hue-rotate(145deg) brightness(101%) contrast(107%);}
 .fill-99{filter: invert(70%) sepia(39%) saturate(6621%) hue-rotate(194deg) brightness(102%) contrast(101%);}
+.fill-si{filter: invert(60%) sepia(13%) saturate(394%) hue-rotate(156deg) brightness(97%) contrast(86%);}
 
 .icn.ro{width:72px;height:72px;/*margin:20px 0 4px 0*/}
 .icn.ro.i1{background:url(/web/css/1.0/assets/1.svg) no-repeat center}
@@ -370,6 +371,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .lrs .card .col-4 li>a{color:var(--mcLightColor);font-weight: bold}
 .lrs .card .col-4 .mi{font-size: 2em;font-weight:600;color:var(--mcLightColor)}
 .lrs .card li:last-child{border-bottom:1px solid #eeeeee;}
+.lrs img{filter:invert(55%) sepia(11%) saturate(758%) hue-rotate(141deg) brightness(87%) contrast(83%);}
 
 .ls,.home{display:flex;justify-content:space-around;flex-flow:row wrap;align-content:flex-start}
 .ls li{line-height:1.5em;overflow:hidden}
@@ -417,7 +419,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 
 .search{display:inline-flex;width:100%;border:1px solid rgba(0,122,255,0.4);border-radius:5px;max-width: 1024px; margin: 36px 0;}
 .search form{width:100%;display:inherit;justify-content:space-between;align-self:flex-start;flex-direction:row}
-.searchTerm{width:100%;border:none;padding:5px 5px 5px 20px;height:56px !important;outline:none;color:var(--midnight);font-size:1.0em;-webkit-appearance:none;}
+.searchTerm{width:100%;border:none;padding-inline-start:20px;height:56px !important;outline:none;color:var(--midnight);font-size:1.0em;-webkit-appearance:none;font-family: inherit}
 .searchTerm:focus{color:var(--mourjanC);}
 .searchButton{width:84px;height:56px;border:0; border-left:1px solid rgba(0,122,255,0.4);border-radius:0 5px 5px 0;background:var(--mourjanC);cursor:pointer;padding-top:0;}
 .search select{position: absolute;display:block; top:0px;left:0px;cursor: pointer;outline:0;padding:0;margin:0;width:auto;height:36px;opacity: 0}
@@ -431,7 +433,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .select-box{position:relative;display:flex;flex-direction:column;}
 .select__trigger{position:relative;display:flex;align-items:center;justify-content:space-between;padding:0 8px;font-size:14pt;
      font-weight:bold;color:var(--mColor70);height:56px;line-height:36px;cursor:pointer;
-     border-right:1px solid rgba(0,122,255,0.4)}
+     border-inline-end:1px solid rgba(0,122,255,0.4)}
 .select__trigger>*{margin: 0 12px;}
 .select__trigger:hover,select__trigger:active{background-color:var(--mcLightColor);color:var(--mcDarkColor); cursor: pointer}
 .options{position:absolute;display:block;top:calc(100% + 8px);left:0px;right:0;border:1px solid #BEC9CE;border-radius:5px;background:#fff;
@@ -454,11 +456,11 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 
 .mhbanner{margin: 80px 0 0; height: 140px;overflow: hidden;justify-content: space-between}
 .mhbanner img{position:relative;height:176px;top:-44px;filter:invert(36%) sepia(39%) saturate(7153%) hue-rotate(200deg) brightness(102%) contrast(106%);display: inline-flex;}
-.mhbanner .p1{display: inherit;flex-flow: row;color:var(--mColor03);font-size:52px;font-family: tahoma}
+.mhbanner .p1{display: inherit;flex-flow: row;color:var(--mColor03);font-size:52px;}
 .mhbanner .p1 > div{display:inherit;flex-direction:column;padding:0 8px}
 .mhbanner .p1 div:nth-child(even) .um{color:rgba(28,65,94,0.50)}
 .mhbanner .p1 .sm{font-weight:normal;}
-.mhbanner .p1 .um {font-weight:bolder;}
+.mhbanner .p1 .um {font-weight:bold;}
 .mhbanner .p1 .l1{font-size:27px}
 .mhbanner .p1 .l2{font-size:50px;margin-top:-7px}
 .mhbanner .p1 .l3{font-size:41px;margin-top:-4px;}
@@ -622,6 +624,8 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 body[dir="ltr"] .ad .abuse{right:0;left:auto;}
 body[dir="rtl"] .modal .card{transform: translate(-50%, 0%);}
 body[dir="rtl"] .large .arrow{margin-inline-start:0;margin-inline-end:8px}
+body[dir="rtl"] .slogan{letter-spacing: 0;font-weight:bold;font-size: 24px}
+body[dir="rtl"] .mhbanner .p1 .um {height: 64px}
 
 .xl-border{border-left:1px #CCC solid;}
 .xr-border{border-right:1px #CCC solid;}
