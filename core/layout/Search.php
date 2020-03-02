@@ -1370,13 +1370,83 @@ class Search extends Page {
             if ($this->router->module=='detail' && !$this->detailAdExpired) {
                 $this->displayDetail();
             }
-            echo '<div class=row><div class="col-2 side">', 
-                $this->renderSearchSettings(),
+            ?><div class=row><div class="col-3 side"><?php
+            ?>
+                <div class="asrch">
+                    <header>Advanced Search</header>
+                    <form>
+                        <label>Searching in</label>
+                        <div class="select-wrapper">
+                            <div class="select-box">
+                                <div class="select__trigger">
+                                    <span><?= $this->router->sections[$this->router->sectionId][$this->name] ?></span><div class="arrow"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <label>Model</label>
+                        <div class="select-wrapper">
+                            <div class="select-box">
+                                <div class="select__trigger">
+                                    <span></span><div class="arrow"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <label>Year</label>
+                        <div class="select-wrapper">
+                            <div class="select-box">
+                                <div class="select__trigger">
+                                    <span></span><div class="arrow"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <label>Kilometers</label>
+                        <div class="two">
+                            <div class="select-wrapper col-6">
+                                <div class="select-box">
+                                    <div class="select__trigger">
+                                        <span>KM from</span><div class="arrow"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="select-wrapper col-6">
+                                <div class="select-box">
+                                    <div class="select__trigger">
+                                        <span>KM to</span><div class="arrow"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <label>Price</label>
+                        <div class="two">
+                            <div class="select-wrapper col-6">
+                                <div class="select-box">
+                                    <div class="select__trigger">
+                                        <span>MINIMUM</span><div class="arrow"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="select-wrapper col-6">
+                                <div class="select-box">
+                                    <div class="select__trigger">
+                                        <span>MAXIMUM</span><div class="arrow"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <label>More filters</label>
+                        <input name="keyword">
+                        <div class=sort><h2>SORT BY</h2>
+                          
+                       </div>
+                    </form>
+                </div>                                
+            <?php
+            echo $this->renderSearchSettings(),
                 $this->renderExtendedLinks(),
                 $this->renderLocalityLinks(), 
-                $this->renderSideRoots(),
-                '</div>';
-            echo '<div class="row col-10 ff-cols"><div id=cards class="ls col-12" ';
+                $this->renderSideRoots();
+            ?></div><?php
+            echo '<div class="row col-9 ff-cols"><div id=cards class="ls col-12" ';
             if ($this->router->module!='detail') { echo 'itemprop="mainContentOfPage" '; }
             echo 'itemscope itemtype="https://schema.org/ItemList">';
             echo '<meta itemprop="name" content="', $this->subTitle, '" />';

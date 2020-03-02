@@ -4905,7 +4905,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         //    $this->css('uhome'); 
         //}
         //else {
-        $this->css('main')->css($this->router->module); 
+        $this->css('main')->css($this->router->module.'-trans'); 
         //}
        
         switch ($this->router->module) {

@@ -19,9 +19,12 @@
     --mlColor50:rgba(1,122,255,0.5);
     
     --mColor002:rgba(28,65,94,.02);
+    --mColor04:rgba(28,65,94,.04);
     --mColor08:rgba(28,65,94,.08);
     --mColor10:rgba(28,65,94,.1);
     --mColor12:rgba(28,65,94,.12);
+    --mColor30:rgba(28,65,94,.3);
+    --mColor45:rgba(28,65,94,.45);
     --mColor50:rgba(28,65,94,.5);
     --mColor70:rgba(28,65,94,.7);
     --mColor80:rgba(28,65,94,.8);
@@ -566,7 +569,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .side .title h5 {font-size:0.9rem !important;padding:0;margin-top:1.25rem;}
 .side ul{padding: 0; padding-inline-start:0; margin: 4px 0 8px;}
 .side li{line-height: 40px;padding: 0 8px;display: block;white-space: nowrap; overflow: hidden;text-overflow: ellipsis;}
-.side div:first-child{border-top-left-radius:6px;border-top-right-radius: 6px !important;}
+/*.side div:first-child{border-top-left-radius:6px;border-top-right-radius: 6px !important;}*/
 .side a{width: 100%;display: block}
 .side a:hover{background-color: rgba(200, 200, 200, 0.2);color:var(--mourjanC);}
 .side [class*="icn-"] {width:24px;height:auto;margin-inline-end: 8px}
