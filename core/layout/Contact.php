@@ -111,10 +111,10 @@ class Contact extends Page {
             <span class=bar></span>
         </div></div><?php
         ?><button class=btn type=submit style="float: right;background-color:#5bc236;color:white;"><?= $this->lang['send'] ?></button><?php
-        ?></form><span class="omail <?= $this->router()->language ?>"></span><span class="nb"></span></div><?php
+        ?></form><span class="omail <?= $this->router->language ?>"></span><span class="nb"></span></div><?php
         ?><script>dirElem=function(e){if(e.target){e=e.target;}var v=e.value;e.className=(!v)?'':((v.match(/[\u0621-\u064a\u0750-\u077f]/))?'ar':'en');};
         vf=function(e){
-            let data={name:e.querySelector('#name').value, email:e.querySelector('#email').value, msg:e.querySelector('#msg').value, lang:'<?=$this->router()->language?>'};
+            let data={name:e.querySelector('#name').value, email:e.querySelector('#email').value, msg:e.querySelector('#msg').value, lang:'<?=$this->router->language?>'};
             console.log(data);
             if(data.name.length<3){alert('name is too short!');return false;}
             if(data.msg.length<10){alert('message is too short!');return false;}            
@@ -241,11 +241,11 @@ class Contact extends Page {
         $countryName=$this->countryName;
         if (isset($this->user->params["country"]) && $this->user->params["country"]) {
             $countryId=$this->user->params["country"];
-            $countryName=$this->urlRouter->countries[$this->user->params["country"]][$this->fieldNameIndex];
+            $countryName=$this->router->countries[$this->user->params["country"]][$this->fieldNameIndex];
         }
         
         ?><div class='sum rc'><div class="brd"><?php
-        echo "<a href='{$this->urlRouter->getURL($countryId)}'>{$countryName}</a> <span>{$this->lang['sep']}</span> ";
+        echo "<a href='{$this->router->getURL($countryId)}'>{$countryName}</a> <span>{$this->lang['sep']}</span> ";
         ?><h1><?= $this->lang['title'] ?></h1></div><?= $this->lang['header'] ?></div><?php
     }
     

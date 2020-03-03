@@ -584,7 +584,7 @@ class Doc extends Page{
         echo '<hr><h4 id=how-to>', $this->lang['buy_gold'], '</h4>';
         echo '<p>', $this->lang['gold_p2_5_0'], '</p>';
         echo "<p>{$this->lang['gold_p2_5']}</p>";
-        echo "<p>".$this->lang['gold_p2_6'.($this->isMobile ? '_m':'')]."</p>";
+        echo "<p>".$this->lang['gold_p2_6'.($this->router->isMobile ? '_m':'')]."</p>";
         ?><div class="btH"><a href="<?= $this->router->getLanguagePath('/buy') ?>"><img width="228" height="44" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png" alt="Buy now with PayPal" /></a></div><br /><?php 
         ?><div class="btH"><a href="<?= $this->router->getLanguagePath('/buy') ?>"><img width="319" height="110" src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg" alt="Buy now with PayPal" /></a></div><br /><?php 
 

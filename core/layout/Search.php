@@ -1382,8 +1382,53 @@ class Search extends Page {
                                     <span><?= $this->router->sections[$this->router->sectionId][$this->name] ?></span><div class="arrow"></div>
                                 </div>
                             </div>
+                        </div><?php
+                        if ($this->router->rootId===1) {
+                            ?><label>For</label>
+                                <div class="select-wrapper">
+                                    <div class="select-box">
+                                        <div class="select__trigger">
+                                            <span></span><div class="arrow"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <label>Area</label>
+                                <div class="select-wrapper">
+                                    <div class="select-box">
+                                        <div class="select__trigger">
+                                            <span></span><div class="arrow"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <label>Price</label>
+                        <div class="two">
+                            <div class="select-wrapper col-6">
+                                <div class="select-box">
+                                    <div class="select__trigger">
+                                        <span>MINIMUM</span><div class="arrow"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="select-wrapper col-6">
+                                <div class="select-box">
+                                    <div class="select__trigger">
+                                        <span>MAXIMUM</span><div class="arrow"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <label>Model</label>
+                            <label>Bedrooms</label>
+                                <div class="select-wrapper">
+                                    <div class="select-box">
+                                        <div class="select__trigger">
+                                            <span>Any</span><div class="arrow"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                    <?php
+                        }
+                        else if ($this->router->rootId===2) {
+                        ?><label>Model</label>
                         <div class="select-wrapper">
                             <div class="select-box">
                                 <div class="select__trigger">
@@ -1416,7 +1461,7 @@ class Search extends Page {
                                 </div>
                             </div>
                         </div>
-                        <label>Price</label>
+                            <label>Price</label>
                         <div class="two">
                             <div class="select-wrapper col-6">
                                 <div class="select-box">
@@ -1432,28 +1477,66 @@ class Search extends Page {
                                     </div>
                                 </div>
                             </div>
+                        </div><?php
+                        }
+                        else if ($this->router->rootId===3) {
+                            ?><label>Type</label>
+                                <div class="select-wrapper">
+                                    <div class="select-box">
+                                        <div class="select__trigger">
+                                            <span></span><div class="arrow"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php
+                        }
+                        ?>
+                        <label>Advertiser</label>
+                        <div class="select-wrapper">
+                            <div class="select-box">
+                                <div class="select__trigger">
+                                    <span>Any</span><div class="arrow"></div>
+                                </div>
+                            </div>
                         </div>
                         <label>More filters</label>
                         <input name="keyword">
                         <div class=sort><h2>SORT BY</h2>
+                            <fieldset id="group1">
                             <ul>
                                 <li>
-                                    <input type="radio" id="f-option" name="selector">
-                                    <label for="f-option">Pizza</label>
+                                    <input type="radio" id="a-opt1" name="selector">
+                                    <label for="a-opt1">Relevance</label>
                                     <div class="check"></div>
                                 </li>
                                 <li>
-                                    <input type="radio" id="s-option" name="selector">
-                                    <label for="s-option">Bacon</label>
+                                    <input type="radio" id="a-opt2" name="selector">
+                                    <label for="a-opt2">Date (newest)</label>
                                     <div class="check"><div class="inside"></div></div>
+                                </li>                                
+                            </ul>
+                            </fieldset>
+                            <fieldset id="group2">
+                            <ul>
+                                <li>
+                                    <input type="radio" id="l-opt1" name="selector">
+                                    <label for="l-opt1">Any language</label>
+                                    <div class="check"></div>
                                 </li>
                                 <li>
-                                    <input type="radio" id="t-option" name="selector">
-                                    <label for="t-option">Cats</label>
-                                    <div class="check"><div class="inside"></div></div>
+                                    <input type="radio" id="l-opt2" name="selector">
+                                    <label for="l-opt2">Arabic first</label>
+                                    <div class="check"></div>
                                 </li>
+                                <li>
+                                    <input type="radio" id="l-opt3" name="selector">
+                                    <label for="l-opt3">English first</label>
+                                    <div class="check"><div class="inside"></div></div>
+                                </li>                                
                             </ul>
+                            </fieldset>
                        </div>
+                        <a href="#" class="btn">Update Search</a>
                     </form>
                 </div>                                
             <?php
@@ -3313,10 +3396,10 @@ class Search extends Page {
             $countryName = $this->router->countries[$this->user->params["country"]]['name'];
         }
         
-        $bc[] = "<div class='brd' itemprop='breadcrumb'><div><a href='" . $this->router->getURL($countryId) . "'>{$countryName}</a>";
+        $bc[] = "<ul itemprop='breadcrumb' class='breadcrumb'><li><a href='" . $this->router->getURL($countryId) . "'>{$countryName}</a></li>";
 
         if ($this->hasCities && $this->router->cityId) {
-            $bc[] = "<a href='" . $this->router->getURL($this->router->countryId, $this->router->cityId) . "'>{$this->cityName}</a>";
+            $bc[] = "<li><a href='" . $this->router->getURL($this->router->countryId, $this->router->cityId) . "'>{$this->cityName}</a></li>";
         }
 
         if ($this->userFavorites) {
@@ -3329,15 +3412,15 @@ class Search extends Page {
             if ($this->router->rootId) {
                 $purposeId = 0;
                 if (isset($this->router->pageRoots[$this->router->rootId]) && 
-                    is_array($this->router->pageRoots[$this->router->rootId]['purposes']) && 
-                    count($this->router->pageRoots[$this->router->rootId]['purposes'])==1 ) {
-                    $purposeId = array_keys($this->router->pageRoots[$this->router->rootId]['purposes'])[0];
+                    \is_array($this->router->pageRoots[$this->router->rootId]['purposes']) && 
+                    \count($this->router->pageRoots[$this->router->rootId]['purposes'])==1 ) {
+                    $purposeId = \array_keys($this->router->pageRoots[$this->router->rootId]['purposes'])[0];
                 }
                 
-                if (($q || $this->router->purposeId || $this->router->sectionId) && !($this->router->sectionId == 0 && $purposeId)) {
-                    $bc[] = "<a href='" .
+                if (($q || $this->router->purposeId || $this->router->sectionId) && !($this->router->sectionId===0 && $purposeId)) {
+                    $bc[] = "<li><a href='" .
                             $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, 0, $purposeId) .
-                            "'>{$this->rootName}</a>";
+                            "'>{$this->rootName}</a></li>";
                 }
                 if ($this->router->sectionId) {
                     if (array_key_exists($this->router->sectionId, $this->router->pageSections)) {
@@ -3486,7 +3569,7 @@ class Search extends Page {
                             }
                         }
                     }
-                    $bc[] = '<b itemprop="headline name">' . $sub_title . '</b>';
+                    $bc[] = '<li itemprop="headline name"><span>' . $sub_title . '</span><img style="height:24px" src=/web/css/1.0/assets/se/'.$this->router->sectionId.'.svg></li>';
                 }
                 $this->subTitle = $sub_title;
             }
@@ -3494,7 +3577,7 @@ class Search extends Page {
 
         $this->crumbTitle = $this->title;       
         
-        $this->crumbString = '<div class=row><div class=col-12>' . implode("", $bc) . '</div><span style="margin:0 8px;">'. $this->getResulstHint($forceSetting). '</span>'.  '</div></div></div>';
+        $this->crumbString = '<div class=row><div class=col-12>' . implode("", $bc) . '</div><span style="margin:0 8px;">'. $this->getResulstHint($forceSetting). '</span>'.  '</div></ul>';
       
         if ($tempTitle) { $this->title = $tempTitle;  }
         return $this->crumbString;

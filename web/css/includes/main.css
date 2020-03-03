@@ -26,6 +26,7 @@
     --mColor30:rgba(28,65,94,.3);
     --mColor45:rgba(28,65,94,.45);
     --mColor50:rgba(28,65,94,.5);
+    --mColor60:rgba(28,65,94,.6);
     --mColor70:rgba(28,65,94,.7);
     --mColor80:rgba(28,65,94,.8);
     --mColor90:rgba(28,65,94,.9);
@@ -219,7 +220,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 
 /*.card dt > a > .icn{box-shadow: 0 4px 20px 0 rgba(0,0,0,0.14), 0 7px 10px -5px rgba(255,152,0,0.4);max-height: 15px}*/
 .premium{border:1px solid var(--premium); background-color:white !important;box-shadow: 0 1px 4px 0 rgba(227, 183, 136, 0.5) !important;}
-.premium .card-footer{color:#89543D}
+.premium .card-footer{color:#89543D;border-top-color:var(--premium)!important}
 .premium .tag{width:60px;z-index:4;position:absolute;top:58px;right:0;}
 .active{background-color:#4CAF50;color:white;}
 

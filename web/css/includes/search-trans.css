@@ -1,18 +1,21 @@
 .ls .card {
   height: 360px; }
-
+fieldset{border: 0}
 .side {
   box-shadow: none;
   border-inline-end: 1px solid var(--mColor30);
-  border-radius: 0; }
-  .side .asrch {
+border-radius: 0; }
+.side .asrch {
     width: 100%;
     background-color: #eff2f4;
     display: inherit;
     flex-flow: column;
     padding-inline-end: 32px !important;
     padding-block-end: 40px !important;
-    color: var(--mColor45); }
+color: var(--mColor45); }
+
+.side .asrch a.btn{background-color: var(--mcLightColor);margin-top: 16px;color:white;border-radius: 10px;height:42px;font-weight: bold}
+
     .side .asrch header {
       font-size: 20px;
       background-color: #eff2f4;
