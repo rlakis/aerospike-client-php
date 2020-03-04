@@ -3396,7 +3396,7 @@ class Search extends Page {
             $countryName = $this->router->countries[$this->user->params["country"]]['name'];
         }
         
-        $bc[] = "<ul itemprop='breadcrumb' class='breadcrumb'><li><a href='" . $this->router->getURL($countryId) . "'>{$countryName}</a></li>";
+        $bc[] = "<ul itemprop='breadcrumb' class=breadcrumb><li><a href='" . $this->router->getURL($countryId) . "'>{$countryName}</a></li>";
 
         if ($this->hasCities && $this->router->cityId) {
             $bc[] = "<li><a href='" . $this->router->getURL($this->router->countryId, $this->router->cityId) . "'>{$this->cityName}</a></li>";
@@ -3433,9 +3433,9 @@ class Search extends Page {
                         $purposeId = 0;
                     }
                     if ($this->extendedId || $this->localityId || (($q || $this->router->purposeId) && !$purposeId)) {
-                        $bc[] = "<a href='" .
+                        $bc[] = "<li><a href='" .
                                 $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $purposeId) .
-                                "'>{$this->sectionName}</a>";
+                                "'>{$this->sectionName}</a></li>";
                     }
                 }
             }
@@ -3555,9 +3555,9 @@ class Search extends Page {
                         while ($this->localities[$localityId]['parent_city_id']) {
                             $localityId = $this->localities[$localityId]['parent_geo_id']+0;
                             if (isset($this->localities[$localityId])) {
-                                $tmp[] = "<a href='" .
+                                $tmp[] = "<li><a href='" .
                                         $prefix_parent_uri . $this->localities[$localityId]['uri'] . $suffix_parent_uri . $prefix_append_uri . $localityId . $suffix_append_uri .
-                                        "'>" . $prefix_parent_name . $this->localities[$localityId]['name'] . "</a>";
+                                        "'>" . $prefix_parent_name . $this->localities[$localityId]['name'] . "</a></li>";
                             }
                             else
                                 break;
@@ -3569,15 +3569,15 @@ class Search extends Page {
                             }
                         }
                     }
-                    $bc[] = '<li itemprop="headline name"><span>' . $sub_title . '</span><img style="height:24px" src=/web/css/1.0/assets/se/'.$this->router->sectionId.'.svg></li>';
+                    $bc[] = '<li itemprop="headline name"><span>' . $sub_title . '</span><img src=/web/css/1.0/assets/se/'.$this->router->sectionId.'.svg></li>';
                 }
                 $this->subTitle = $sub_title;
             }
         }
 
-        $this->crumbTitle = $this->title;       
+        $this->crumbTitle=$this->title;       
         
-        $this->crumbString = '<div class=row><div class=col-12>' . implode("", $bc) . '</div><span style="margin:0 8px;">'. $this->getResulstHint($forceSetting). '</span>'.  '</div></ul>';
+        $this->crumbString='<div class=row><div class="col-12 breadcrumb">'.\implode('', $bc).'</ul><span>'.$this->getResulstHint($forceSetting).'</span></div></div>';
       
         if ($tempTitle) { $this->title = $tempTitle;  }
         return $this->crumbString;
