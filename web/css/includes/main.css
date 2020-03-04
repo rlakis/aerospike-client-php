@@ -442,12 +442,13 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .select__trigger>*{margin: 0 12px;}
 .select__trigger:hover,select__trigger:active{background-color:var(--mcLightColor);color:var(--mcDarkColor); cursor: pointer}
 .options{position:absolute;display:block;top:calc(100% + 8px);left:0px;right:0;border:1px solid #BEC9CE;border-radius:5px;background:#fff;
-     transition:all 0.5s;opacity:0;visibility:hidden;pointer-events:none;z-index:10;padding: 16px 16px 32px}
+     transition:all 0.5s;opacity:0;visibility:hidden;pointer-events:none;z-index:100;padding: 16px 16px 32px}
 .select-box.open .options {opacity:1;visibility:visible;pointer-events:all;width:fit-content}
 .option{position:relative;display:flex;padding:0 16px 0;font-size:1.1em;font-weight:bold;color:var(--mColor70);line-height:48px;cursor:pointer;transition:all 0.5s;
        border-bottom: 1px solid #eeeeee; align-items:center;justify-content:space-between; flex: 1 auto}
 .option:hover {cursor: pointer;background-color: #b2b2b2;}
-.option.selected {color: #ffffff;background-color: var(--mcLightColor);margin:0 -16px}
+.option.selected {color: #ffffff;background-color: var(--mcLightColor);margin:0 -16px;padding-inline-start:32px;padding-inline-end:32px;}
+.option.selected i{filter:invert(1)}
 .option i{height: 30px !important; width: 30px !important; margin:0 !important;filter:var(--mroFilter)}
 /*.option i.i2{width: 36px !important;}*/
 

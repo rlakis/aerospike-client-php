@@ -345,10 +345,16 @@ function report(e){
 
 
 function sorting(o){
+    console.log(o);
     var idx = o.selectedIndex; 
     console.log(idx);
     console.log(o.value);
-    location.href = o.value;
+    //location.href = o.value;
+}
+
+
+function searching(as) {
+    console.log(as);
 }
 
 

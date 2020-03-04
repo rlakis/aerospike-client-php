@@ -19,6 +19,9 @@ class Search extends Page {
         $pageThumb = '', $partnerSection = '', $watchName = '', $formatNumbers=false, $mobileValidator=null, $phoneNumber=null;
     var $isRT = 0;
     
+    private int $advSectionId;
+    private int $advPurposeId;
+    private int $advSubId;
     
     function __construct() {
         header('Vary: User-Agent');
@@ -302,6 +305,14 @@ class Search extends Page {
             $this->inlineCss.='.ls li{height:auto !important;';
         }
         
+        $this->advSectionId=\filter_input(\INPUT_GET, 'se', \FILTER_VALIDATE_INT)+0;
+        if ($this->advSectionId===0 && $this->router->sectionId>0) {
+            $this->advSectionId=$this->router->sectionId;
+        }
+        $this->advPurposeId=\filter_input(\INPUT_GET, 'pu', \FILTER_VALIDATE_INT)+0;
+        if ($this->advPurposeId===0 && $this->router->purposeId>0) {
+            $this->advPurposeId=$this->router->purposeId;
+        }
         $this->render();
     } // end of constructor
 
@@ -1370,37 +1381,35 @@ class Search extends Page {
             if ($this->router->module=='detail' && !$this->detailAdExpired) {
                 $this->displayDetail();
             }
-            ?><div class=row><div class="col-3 side"><?php
-            ?>
-                <div class="asrch">
-                    <header>Advanced Search</header>
-                    <form>
-                        <label>Searching in</label>
-                        <div class="select-wrapper">
-                            <div class="select-box">
-                                <div class="select__trigger">
-                                    <span><?= $this->router->sections[$this->router->sectionId][$this->name] ?></span><div class="arrow"></div>
-                                </div>
-                            </div>
-                        </div><?php
-                        if ($this->router->rootId===1) {
-                            ?><label>For</label>
-                                <div class="select-wrapper">
-                                    <div class="select-box">
-                                        <div class="select__trigger">
-                                            <span></span><div class="arrow"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            <label>Area</label>
-                                <div class="select-wrapper">
-                                    <div class="select-box">
-                                        <div class="select__trigger">
-                                            <span></span><div class="arrow"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            <label>Price</label>
+            $section_name=$this->advSectionId>0?$this->router->sections[$this->advSectionId][$this->name]:'Any';
+            $purpose_name=$this->advPurposeId>0?$this->router->purposes[$this->advPurposeId][$this->name]:'Any';
+            ?><div class=row><div class="col-3 side"><div class="asrch"><header>Advanced Search</header><?php
+            ?><label>Searching in</label><div class=select-wrapper><div class=select-box><div class=select__trigger><?php
+            ?><span><?=$section_name?></span><div class=arrow></div><?php
+            $this->renderAdvancedSearchSections();
+            ?></div></div></div><?php
+            
+            if ($this->router->rootId!==4 && $this->router->rootId!==2) {
+                ?><label>Ad purpose</label><div class=select-wrapper><div class=select-box><div class=select__trigger><?php
+                ?><span><?=$purpose_name?></span><div class="arrow"></div><?php
+                ?><div class=options><div class="option<?=$this->advPurposeId===0?' selected':''?>" data-value=0>Any</div><?php
+                foreach ($this->router->pageRoots[$this->router->rootId]['purposes'] as $k => $v) {
+                    if ($v['counter']===0) { continue; }
+                    ?><div class="option<?=$this->advPurposeId===$k?' selected':''?>" data-value=<?=$k?>><?=$v['name']?></div><?php            
+                }
+                ?></div></div></div></div><?php
+            }
+            
+            if ($this->router->rootId===1) {
+                if ($this->router->countryId>0 && \is_array($this->localities) && \count($this->localities)>1) {
+                    $this->renderLocalityOptions();
+                    //var_dump($this->localities);
+                    ?><label>Area</label><div class=select-wrapper><div class=select-box><div class=select__trigger><?php
+                    ?><span></span><div class=arrow></div>
+                    </div></div></div><?php
+                }
+                
+                            ?><label>Price</label>
                         <div class="two">
                             <div class="select-wrapper col-6">
                                 <div class="select-box">
@@ -1513,10 +1522,15 @@ class Search extends Page {
                                     <input type="radio" id="a-opt2" name="selector">
                                     <label for="a-opt2">Date (newest)</label>
                                     <div class="check"><div class="inside"></div></div>
-                                </li>                                
+                                </li>
+                                <li>
+                                    <input type="radio" id="a-opt3" name="selector">
+                                    <label for="a-opt3">Picture first</label>
+                                    <div class="check"></div>
+                                </li>
                             </ul>
                             </fieldset>
-                            <fieldset id="group2">
+                            <fieldset id="group3">
                             <ul>
                                 <li>
                                     <input type="radio" id="l-opt1" name="selector">
@@ -1536,8 +1550,8 @@ class Search extends Page {
                             </ul>
                             </fieldset>
                        </div>
-                        <a href="#" class="btn">Update Search</a>
-                    </form>
+                        <a class=btn onclick="javascript:searching(this)">Update Search</a>
+                    
                 </div>                                
             <?php
             echo $this->renderSearchSettings(),
@@ -2198,13 +2212,13 @@ class Search extends Page {
         $result.= '</b> ';
                        
         if ($this->router->params['q']) {
-            $result.=' '.$this->lang['for'].' '.$this->crumbTitle.($hasShare?'&nbsp;<span class="st_email"></span><span class="st_facebook"></span><span class="st_twitter"></span><span class="st_googleplus"></span><span class="st_linkedin"></span><span class="st_sharethis"></span>' : '');
+            //$result.=' '.$this->lang['for'].' '.$this->crumbTitle.($hasShare?'&nbsp;<span class="st_email"></span><span class="st_facebook"></span><span class="st_twitter"></span><span class="st_googleplus"></span><span class="st_linkedin"></span><span class="st_sharethis"></span>' : '');
         }
         elseif ($this->userFavorites) {
             $result.=' '.$this->lang['in'].' '. $this->lang['myFavorites'];
         } 
         else { 
-            $result.=' '.$this->crumbTitle.($hasShare ? '&nbsp;<span class="st_email"></span><span class="st_facebook"></span><span class="st_twitter"></span><span class="st_googleplus"></span><span class="st_linkedin"></span><span class="st_sharethis"></span>' : '');                             
+            $result.=' '.$this->crumbTitle; //.($hasShare ? '&nbsp;<span class="st_email"></span><span class="st_facebook"></span><span class="st_twitter"></span><span class="st_googleplus"></span><span class="st_linkedin"></span><span class="st_sharethis"></span>' : '');                             
         }
                       
         $result.='</span>';
@@ -2527,6 +2541,19 @@ class Search extends Page {
     }
 
     
+    function renderAdvancedSearchSections() : void {
+        if ($this->router->rootId<=0) {
+            return;
+        }
+        ?><div class=options><div class="option<?=$this->advSectionId===0?' selected':''?>" data-value=0>Any</div><?php
+        foreach ($this->router->pageSections as $k => $v) {
+            if ($v['counter']===0) { continue; }
+            ?><div class="option<?=$this->advSectionId===$k?' selected':''?>" data-value=<?=$k?>><?=$v['name']?></div><?php            
+        }
+        ?></div><?php        
+    }
+    
+    
     function renderSubSections() {
         if ($this->router->rootId && count($this->router->pageSections)>1) {
             $hasQuery = false;
@@ -2823,6 +2850,205 @@ class Search extends Page {
                 ?> <!--googleon: index --> <?php
             }
         }
+    }
+    
+    
+    function renderLocalityOptions() : void {
+        //var_dump($this->localities);
+        $q='';
+        if ($this->router->params['q']) {
+            $hasQuery=true;
+            $q='?q='.\urlencode($this->router->params['q']);
+        }
+        $citiesList=[];
+        $prefix_uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
+        $keyIndex=2;
+        $suffix_uri='/';
+        $prefix='';
+        $suffix='';
+        if ($this->router->sectionId>0) {
+            $suffix_uri.=$this->router->sections[$this->router->sectionId][\Core\Data\Schema::BIN_URI].'/';
+            $prefix=$this->router->sections[$this->router->sectionId][$this->name].' ';
+        }
+        else {
+            $suffix_uri.=$this->router->roots[$this->router->rootId][\Core\Data\Schema::BIN_URI].'/';
+            $prefix=$this->router->roots[$this->router->rootId][$this->name].' ';
+        }
+        $sectionName=$this->sectionName;
+        
+        if ($this->router->purposeId>0) {
+            $suffix_uri.=$this->router->purposes[$this->router->purposeId][\Core\Data\Schema::BIN_URI].'/';
+            switch ($this->router->purposeId) {
+                case 1:
+                case 2:
+                case 8:
+                    $prefix.=' '.$this->purposeName.' ';
+                    break;
+                case 6:
+                case 7:
+                    $prefix=$this->purposeName.' '.$prefix.' ';
+                    break;
+                default:
+                    break;
+            }
+        }
+        
+        if ($this->router->language!=='ar') {
+            $suffix_uri.=$this->router->language.'/';
+        }
+        
+        $prefix.=$this->lang['in'].'.. ';
+        $pass=false;
+        $locId=$this->localityId;
+        $isParent=true;
+        $hasParent=false;
+        $hasChildren=false;
+        if ($locId>0 && isset($this->localities[$locId])) {
+            if ($this->localities[$locId]['parent_geo_id'] && isset($this->localities[$this->localities[$locId]['parent_geo_id']])) {
+                $hasParent=true;
+            }
+        }
+        
+        $childCount=0;
+        $children=[];
+        foreach ($this->localities as $lid=>$sub) {
+            if ($sub['parent_geo_id']==$locId) {
+                $append='c-'.$lid.'-'.$keyIndex.'/'.$q;
+                $href=$prefix_uri.$sub['uri'].$suffix_uri.$append;
+                $citiesList[]=[$lid, $sub['name'], $href, 0];
+                $pass=true;
+                $children[]=$lid;
+                $childCount++;
+            }
+        }
+        
+        if ($childCount===1) {
+            $citiesList=[];
+            $pass=false;
+            $childId=$children[0];
+            $childCount=0;
+            $children=[];
+            foreach ($this->localities as $lid=>$sub) {
+                if ($sub['parent_geo_id']==$childId) {
+                    $append='c-'.$lid.'-'.$keyIndex.'/'.$q;
+                    $href=$prefix_uri.$sub['uri'].$suffix_uri.$append;
+                    $citiesList[]=[$lid, $sub['name'], $href, 0]; 
+                    $pass=true;
+                    $children[]=$lid;
+                    $childCount++;
+                }
+            }
+        }
+            
+         if ($locId && isset($this->localities[$locId]) && !empty($citiesList)) {
+            $isParent=false;
+            $parentId=$this->localities[$locId]['parent_geo_id'];
+            if ($parentId) {
+                if (isset($this->localities[$parentId])) {
+                    $childCount=0;
+                    $children=[];
+                    foreach ($this->localities as $lid=>$sub) {
+                        if ($sub['parent_geo_id']==$parentId) {
+                            $selected=false;
+                            if($locId===$lid) { $selected=true; }
+                            $append='c-'.$lid.'-'.$keyIndex.'/'.$q;
+                            $href=$prefix_uri.$sub['uri'].$suffix_uri.$append;
+                            $citiesList[]=[$lid, $sub['name'], $href, $selected?1:0];                           
+                            $pass=true;
+                            $children[]=$lid;
+                            $childCount++;
+                        }
+                    }
+                        
+                    if ($childCount===1) {
+                        $citiesList=[];
+                        $pass=false;
+                    }
+                }
+            }
+            else {
+                foreach ($this->localities as $lid=>$sub) {
+                    if ($sub['parent_geo_id']==0) {
+                        $selected=false;
+                        if ($locId==$lid) { $selected = true; }
+                        $append='c-'.$lid.'-'.$keyIndex.'/'.$q;
+                        $href=$prefix_uri.$sub['uri'].$suffix_uri.$append;
+                        $citiesList[]=[$lid, $sub['name'], $href, $selected?1:0];                  
+                        $pass=true;
+                    }
+                }
+            }
+        }
+        else {
+            $hasChildren=true;
+        }
+        
+        
+        
+        if (!empty($citiesList)) {
+            $hasExt=1;
+            /*
+            if ($locId && isset($this->localities[$locId])) {  
+                ?><ul class='sm smn'><?php                    
+                $alocId = (int)$locId;
+                $parentIds=array();
+                if ($isParent) { $parentIds[]=(int)$locId; }
+                if($alocId && isset($this->localities[$alocId])){
+                    while($alocId && isset($this->localities[$alocId]) && isset($this->localities[$this->localities[$alocId]['parent_geo_id']])){
+                        $p_id = $this->localities[$this->localities[$alocId]['parent_geo_id']]['parent_geo_id'];
+                        $hasSiblings = 0;
+                        if($p_id){
+                            foreach ($this->localities as $sub) {
+                                if ($sub['parent_geo_id'] == $p_id) {
+                                    $hasSiblings++;
+                                    if($hasSiblings>1)break;
+                                }
+                            }
+                        }else{
+                            $hasSiblings=2;
+                        }
+                        if($hasSiblings>1){
+                            $alocId=$parentIds[]=(int)$this->localities[$alocId]['parent_geo_id'];
+                        }else{
+                            $alocId=(int)$this->localities[$alocId]['parent_geo_id'];
+                        }
+                    }
+                }       
+                if($hasParent || $hasChildren)
+                    $parentIds[]=0;
+                    
+                $parentIds = array_reverse($parentIds);
+                $i=1;
+                foreach ($parentIds as $pid) {
+                    if($pid){
+                        if($pid == $locId){
+                            ?><li class='sm<?= $i++ ?> on'><b><?= $this->localities[$pid]['name'] ?></b></li><?php
+                        }else{                                
+                            //$append = 'c-' . $this->localities[$pid][0] . '-' . $keyIndex . '/'.$q;
+                            $append = 'c-' . $pid . '-' . $keyIndex . '/'.$q;
+                            ?><li class='sm<?= $i++ ?>'><a href='<?= $prefix_uri . $this->localities[$pid]['uri'] . $suffix_uri . $append ?>'><?= $this->localities[$pid]['name'] ?></a></li><?php
+                        }
+                    }else{
+                        ?><li><a href='<?= $this->router->getURL($this->router->countryId,$this->router->cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId).$q ?>'><?= $this->cityName ? $this->cityName : $this->countryName ?></a></li><?php
+                    }
+                }
+            
+            if ($hasChildren|| $hasParent) {
+                ?><li class='sub sn<?= $i ?>'><ul><?php 
+                echo $citiesList;
+                ?></ul></li></ul><?php
+            }
+            else{                    
+                echo $citiesList;
+                 ?></ul><?php  
+            }
+        */
+        }
+        else {
+            //echo '<div class="title"><h5>', $prefix, '</h5></div>', '<ul>', $citiesList, '</ul>';
+        }
+    
+        //var_dump($citiesList);
     }
     
     
@@ -3258,7 +3484,7 @@ class Search extends Page {
             $q = $this->lang['search_general'];
         }
         
-        $tempTitle = '';
+        $tempTitle = ''; 
         $subPurpose = '';
         if ($this->extendedId && $this->router->sectionId) {
             
@@ -3500,7 +3726,7 @@ class Search extends Page {
                             $this->title = $q . ' ' . $this->lang['in'] . ' ' . $this->title;
                     }
                     else {
-                        $bc[] = '<b itemprop="headline">' . $q . '</b>';
+                        $bc[] = '<li itemprop="headline">' . $q . '</li>';
                         if (!$isDynamic)
                             $this->title = $q . ' ' . $this->lang['in'] . ' ' . $this->title;
                     }
@@ -3575,7 +3801,7 @@ class Search extends Page {
             }
         }
 
-        $this->crumbTitle=$this->title;       
+        $this->crumbTitle= \preg_replace("/{$q}|General Search/", '', $this->title);       
         
         $this->crumbString='<div class=row><div class="col-12 breadcrumb">'.\implode('', $bc).'</ul><span>'.$this->getResulstHint($forceSetting).'</span></div></div>';
       
@@ -3878,6 +4104,45 @@ class Search extends Page {
         }
         return $section;
     }
+    
+}
+
+
+
+class AdvancedSearchLayout {
+    private array $st;
+    private Core\Model\Router $router;
+    
+    private function __construct() {
+        $this->router=Core\Model\Router::instance();        
+    }
+    
+    
+    public static function instance() : AdvancedSearchLayout {
+        $inst=new AdvancedSearchLayout;
+        return $inst;        
+    }
+    
+    
+    public function draw() : void {
+        ?><div class=asrch><header>Advanced Search</header><form><?php
+        ?></form></div><?php
+    }
+    
+    
+    private function openBox(string $title) : void {
+        ?><label><?=$title?></label><div class=select-wrapper><div class=select-box><div class=select__trigger><?php
+    }
+    
+    
+    private function drawSection() : void {
+        $this->openBox('Searching in');
+        ?><span><?=$section_name?></span><div class="arrow"></div>
+            </div>
+            </div>
+        </div><?php
+    }
+    
     
 }
 

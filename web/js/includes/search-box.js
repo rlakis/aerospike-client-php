@@ -23,7 +23,9 @@ $.addEventListener("DOMContentLoaded", function () {
     
     for (const option of $.querySelectorAll("div.option")) {
         option.addEventListener('click', function() {
+            console.log('catched');
             if (!this.classList.contains('selected')) {
+                
                 this.parentNode.querySelector('.option.selected').classList.remove('selected');
                 this.classList.add('selected');
                 this.closest('.select-box').querySelector('.select__trigger span').textContent=this.textContent;                
