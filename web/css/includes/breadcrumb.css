@@ -60,13 +60,13 @@ body[dir="rtl"] .brd a:hover:after{border-right-color:#ff9100!important}
     .reorder {order: 2}
 }
 
-ul.breadcrumb {margin-inline-start:calc(25% + 32px);list-style:none;}
+div.breadcrumb{padding:0 8px;justify-content:space-between;align-items: center;color:var(--mColor70)}
+ul.breadcrumb {display:flex;margin-inline-start:calc(25% + 32px);list-style:none;}
 
 /* Display list items side by side */
-ul.breadcrumb li {display: inline-flex;font-size: 18px;color: var(--mColor80);line-height: 24px}
-ul.breadcrumb img{height:24px;margin-inline-start:8px}
-/* Add a slash symbol (/) before/behind each list item */
-ul.breadcrumb li+li:before {padding-inline-start:8px; color:var(--mcLightColor);content: "〉";font-weight: bold}
+ul.breadcrumb li{display:inline-flex;font-size:18px;color:var(--mColor80);line-height:28px;align-items: center}
+ul.breadcrumb img{height:28px;margin-inline-start:12px;filter:var(--mseFilter)}
+ul.breadcrumb li+li:before{padding:0 12px;color:var(--mcLightColor);content:"›";font-weight:bold;font-size: 1.5em;margin-top:-4px;}
 
 /* Add a color to all links inside the list */
 ul.breadcrumb li a {color: var(--mColor80);text-decoration: none;}
