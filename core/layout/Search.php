@@ -1383,181 +1383,85 @@ class Search extends Page {
             }
             $section_name=$this->advSectionId>0?$this->router->sections[$this->advSectionId][$this->name]:'Any';
             $purpose_name=$this->advPurposeId>0?$this->router->purposes[$this->advPurposeId][$this->name]:'Any';
-            ?><div class=row><div class="col-3 side"><div class="asrch"><header>Advanced Search</header><?php
-            ?><label>Searching in</label><div class=select-wrapper><div class=select-box><div class=select__trigger><?php
+            ?><div class=row><div class="col-3 side"><?php
+            ?><div class=asrch><header>Advanced Search</header><?php
+            ?><label>Searching in</label><div class=sbw><div class=sbe><div class=strg><?php
             ?><span><?=$section_name?></span><div class=arrow></div><?php
             $this->renderAdvancedSearchSections();
             ?></div></div></div><?php
             
             if ($this->router->rootId!==4 && $this->router->rootId!==2) {
-                ?><label>Ad purpose</label><div class=select-wrapper><div class=select-box><div class=select__trigger><?php
+                ?><label>Ad purpose</label><div class=sbw><div class=sbe><div class=strg><?php
                 ?><span><?=$purpose_name?></span><div class="arrow"></div><?php
                 ?><div class=options><div class="option<?=$this->advPurposeId===0?' selected':''?>" data-value=0>Any</div><?php
                 foreach ($this->router->pageRoots[$this->router->rootId]['purposes'] as $k => $v) {
                     if ($v['counter']===0) { continue; }
-                    ?><div class="option<?=$this->advPurposeId===$k?' selected':''?>" data-value=<?=$k?>><?=$v['name']?></div><?php            
+                    ?><div class="option<?=$this->advPurposeId===$k?' selected':''?>" data-value=<?=$k?>><?=$v['name'].' ('.$v['counter'].')'?></div><?php            
                 }
+                //$purposes=$this->filterPurposesArray();
+                //if (\count($purposes)>1) {
+                //    foreach ($purposes as $purpose) {
+                //        echo $purpose;
+                //    }
+                //}
                 ?></div></div></div></div><?php
             }
             
-            if ($this->router->rootId===1) {
-                if ($this->router->countryId>0 && \is_array($this->localities) && \count($this->localities)>1) {
-                    $this->renderLocalityOptions();
-                    //var_dump($this->localities);
-                    ?><label>Area</label><div class=select-wrapper><div class=select-box><div class=select__trigger><?php
-                    ?><span></span><div class=arrow></div>
-                    </div></div></div><?php
-                }
-                
-                            ?><label>Price</label>
-                        <div class="two">
-                            <div class="select-wrapper col-6">
-                                <div class="select-box">
-                                    <div class="select__trigger">
-                                        <span>MINIMUM</span><div class="arrow"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="select-wrapper col-6">
-                                <div class="select-box">
-                                    <div class="select__trigger">
-                                        <span>MAXIMUM</span><div class="arrow"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                            <label>Bedrooms</label>
-                                <div class="select-wrapper">
-                                    <div class="select-box">
-                                        <div class="select__trigger">
-                                            <span>Any</span><div class="arrow"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                    <?php
-                        }
-                        else if ($this->router->rootId===2) {
-                        ?><label>Model</label>
-                        <div class="select-wrapper">
-                            <div class="select-box">
-                                <div class="select__trigger">
-                                    <span></span><div class="arrow"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <label>Year</label>
-                        <div class="select-wrapper">
-                            <div class="select-box">
-                                <div class="select__trigger">
-                                    <span></span><div class="arrow"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <label>Kilometers</label>
-                        <div class="two">
-                            <div class="select-wrapper col-6">
-                                <div class="select-box">
-                                    <div class="select__trigger">
-                                        <span>KM from</span><div class="arrow"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="select-wrapper col-6">
-                                <div class="select-box">
-                                    <div class="select__trigger">
-                                        <span>KM to</span><div class="arrow"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                            <label>Price</label>
-                        <div class="two">
-                            <div class="select-wrapper col-6">
-                                <div class="select-box">
-                                    <div class="select__trigger">
-                                        <span>MINIMUM</span><div class="arrow"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="select-wrapper col-6">
-                                <div class="select-box">
-                                    <div class="select__trigger">
-                                        <span>MAXIMUM</span><div class="arrow"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div><?php
-                        }
-                        else if ($this->router->rootId===3) {
-                            ?><label>Type</label>
-                                <div class="select-wrapper">
-                                    <div class="select-box">
-                                        <div class="select__trigger">
-                                            <span></span><div class="arrow"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php
-                        }
-                        ?>
-                        <label>Advertiser</label>
-                        <div class="select-wrapper">
-                            <div class="select-box">
-                                <div class="select__trigger">
-                                    <span>Any</span><div class="arrow"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <label>More filters</label>
-                        <input name="keyword">
-                        <div class=sort><h2>SORT BY</h2>
-                            <fieldset id="group1">
-                            <ul>
-                                <li>
-                                    <input type="radio" id="a-opt1" name="selector">
-                                    <label for="a-opt1">Relevance</label>
-                                    <div class="check"></div>
-                                </li>
-                                <li>
-                                    <input type="radio" id="a-opt2" name="selector">
-                                    <label for="a-opt2">Date (newest)</label>
-                                    <div class="check"><div class="inside"></div></div>
-                                </li>
-                                <li>
-                                    <input type="radio" id="a-opt3" name="selector">
-                                    <label for="a-opt3">Picture first</label>
-                                    <div class="check"></div>
-                                </li>
-                            </ul>
-                            </fieldset>
-                            <fieldset id="group3">
-                            <ul>
-                                <li>
-                                    <input type="radio" id="l-opt1" name="selector">
-                                    <label for="l-opt1">Any language</label>
-                                    <div class="check"></div>
-                                </li>
-                                <li>
-                                    <input type="radio" id="l-opt2" name="selector">
-                                    <label for="l-opt2">Arabic first</label>
-                                    <div class="check"></div>
-                                </li>
-                                <li>
-                                    <input type="radio" id="l-opt3" name="selector">
-                                    <label for="l-opt3">English first</label>
-                                    <div class="check"><div class="inside"></div></div>
-                                </li>                                
-                            </ul>
-                            </fieldset>
-                       </div>
-                        <a class=btn onclick="javascript:searching(this)">Update Search</a>
-                    
-                </div>                                
-            <?php
+            if ($this->router->rootId===1) {               
+                ?><label>Price</label><div class=two><div class="sbw col-6"><div class=sbe><div class=strg><?php
+                ?><span>MINIMUM</span><div class=arrow></div></div></div></div><?php
+                ?><div class="sbw col-6"><div class=sbe><div class=strg><?php
+                ?><span>MAXIMUM</span><div class=arrow></div></div></div></div></div><?php
+                            
+                ?><label>Bedrooms</label><div class=sbw><div class=sbe><div class=strg><span>Any</span><div class=arrow></div></div></div></div><?php
+            }
+            else if ($this->router->rootId===2) {
+                ?><label>Model</label><div class=sbw><div class=sbe><div class=strg><span></span><div class=arrow></div></div></div></div><?php
+                ?><label>Year</label><div class=sbw><div class=sbe><div class=strg><span></span><div class=arrow></div></div></div></div><?php
+                ?><label>Kilometers</label><div class=two>
+                    <div class="sbw col-6"><div class=sbe><div class=strg><span>KM from</span><div class=arrow></div></div></div></div>
+                    <div class="sbw col-6"><div class=sbe><div class=strg><span>KM to</span><div class=arrow></div></div></div></div>
+                </div><?php
+                ?><label>Price</label><div class=two><div class="sbw col-6"><div class=sbe>
+                        <div class=strg><span>MINIMUM</span><div class=arrow></div></div>
+                        </div></div>
+                        <div class="sbw col-6"><div class=sbe>
+                            <div class=strg><span>MAXIMUM</span><div class=arrow></div></div>
+                        </div></div></div><?php
+            }
+            else if ($this->router->rootId===3) {
+                ?><label>Type</label><div class=sbw><div class=sbe><div class=strg><span></span><div class=arrow></div></div></div></div><?php
+            }
+            
+            ?><label>Advertiser</label><div class=sbw><div class=sbe><div class=strg><span>Any</span><div class=arrow></div></div></div></div><?php
+            ?><label>More filters</label><input name=keyword><?php
+            
+            ?><div class=sort><h2>SORT BY</h2><?php
+            ?><fieldset id=group1><ul><?php
+            ?><li><input type=radio id=aopt1 name=g1><label for=aopt1>Relevance</label><div class=check></div></li><?php
+            ?><li><input type=radio id=aopt2 name=g1><label for=aopt2>Date (newest)</label><div class=check></div></li><?php
+            ?><li><input type=radio id=aopt3 name=g1><label for=aopt3>Picture first</label><div class=check></div></li><?php
+            ?></ul></fieldset><?php
+            ?><fieldset id=group3><ul><?php
+            ?><li><input type=radio id=lopt1 name=sel><label for=lopt1>Any language</label><div class=check></div></li><?php
+            ?><li><input type=radio id=lopt2 name=sel><label for=lopt2>Arabic first</label><div class=check></div></li><?php
+            ?><li><input type=radio id=lopt3 name=sel><label for=lopt3>English first</label><div class=check></div></li><?php
+            ?></ul></fieldset><?php
+            ?></div><?php
+            ?><a class=btn onclick="javascript:searching(this)">Update Search</a><?php                    
+            ?></div><?php
+            
+            if ($this->router->rootId===1 && $this->router->countryId>0 && \is_array($this->localities) && \count($this->localities)>1) {
+                $this->renderLocalityOptions();
+            }
+            $this->renderPageSideSections();
+            
+            
+            
             echo $this->renderSearchSettings(),
-                $this->renderExtendedLinks(),
-                $this->renderLocalityLinks(), 
-                $this->renderSideRoots();
+                $this->renderExtendedLinks();
+                /*$this->renderLocalityLinks(), */
+                //$this->renderSideRoots();
             ?></div><?php
             echo '<div class="row col-9 ff-cols"><div id=cards class="ls col-12" ';
             if ($this->router->module!='detail') { echo 'itemprop="mainContentOfPage" '; }
@@ -3049,6 +2953,13 @@ class Search extends Page {
         }
     
         //var_dump($citiesList);
+        
+        if (empty($citiesList)) { return; }
+        ?><div class=asrch><header><?=$prefix?></header><ul><?php
+        foreach ($citiesList as $city) {
+            ?><li><a href=<?=$city[2]?>><?=$city[1]?></a></li><?php
+        }
+        ?></ul></div><?php
     }
     
     
@@ -3288,6 +3199,8 @@ class Search extends Page {
             echo '<span class="select-highlight"></span>', '<span class="select-bar"></span>' /*, '<label class="select-label">', $this->lang['lg_sorting'],'</label>'*/;
             echo '</div>';          
         }
+        
+        /*
         $purposes=$this->filterPurposesArray();
         if (\count($purposes)>1) {
             echo '<ul>';
@@ -3295,7 +3208,7 @@ class Search extends Page {
                 echo $purpose;
             }
             echo '</ul>';
-        }
+        }*/
     }
     
     
@@ -4107,43 +4020,3 @@ class Search extends Page {
     
 }
 
-
-
-class AdvancedSearchLayout {
-    private array $st;
-    private Core\Model\Router $router;
-    
-    private function __construct() {
-        $this->router=Core\Model\Router::instance();        
-    }
-    
-    
-    public static function instance() : AdvancedSearchLayout {
-        $inst=new AdvancedSearchLayout;
-        return $inst;        
-    }
-    
-    
-    public function draw() : void {
-        ?><div class=asrch><header>Advanced Search</header><form><?php
-        ?></form></div><?php
-    }
-    
-    
-    private function openBox(string $title) : void {
-        ?><label><?=$title?></label><div class=select-wrapper><div class=select-box><div class=select__trigger><?php
-    }
-    
-    
-    private function drawSection() : void {
-        $this->openBox('Searching in');
-        ?><span><?=$section_name?></span><div class="arrow"></div>
-            </div>
-            </div>
-        </div><?php
-    }
-    
-    
-}
-
-?>

@@ -592,41 +592,6 @@ class Page extends Site {
         );
     }
 
-    
-    function includeCssByCountry()
-    {
-        if(!$this->router->countryId && $this->router->module=='index')
-        {
-            
-            $this->inlineCss.='                
-                .cls li {
-                    background-color: #FFF;
-                    margin-bottom: 10px;
-                    border: 1px solid #E7E9F0
-                }
-                .sls li {
-                    background-color: #FFFFBF;
-                    margin-bottom: 0;
-                    border-width: 1px 0 0 0
-                }
-            ';
-            
-            if($this->router->language=='ar'){
-                $this->inlineCss.='
-                    .sls a {
-                        padding-right: 46px !important
-                    }
-                    ';
-            }else{
-                $this->inlineCss.='
-                    .sls a {
-                        padding-left: 46px !important
-                    }
-                    ';
-            }
-        }
-    }
-    
     function renderNotifications(){
         $open=false;
         $lastType='';
@@ -876,6 +841,86 @@ class Page extends Site {
         }
     }
 
+    
+    function renderPageSideSections() : void {
+        if ($this->userFavorites) { return; }
+        if (!isset($this->router->pageRoots[$this->router->rootId])) { return; }
+        if (\count($this->router->pageSections)<=1) { return; }
+        $cityId=$this->router->cityId;
+        $countryId=$this->router->countryId;
+        switch ($this->router->module) {
+            case 'detail':
+            case 'search':
+                break;
+            default:
+                $cityId=$this->user->params['city'];
+                $countryId=$this->user->params['country'];
+                break;
+        }
+        $hasQuery=false;
+        $q='';
+        if ($this->router->params['q']) {
+            $hasQuery=true;
+            $q='?q='.urlencode($this->router->params['q']);
+        }
+        
+        
+        ?><div class=asrch><header>SECTION LIST</header><ul><?php
+        
+        $pId=$this->router->rootId===3?3:0;        
+        foreach ($this->router->pageSections as $k=>$v) {
+            $selected=$this->router->sectionId==$k?true:false;
+            if ($selected && ($this->extendedId||$this->localityId)) { $selected = false; }
+            $purposeId=0;
+            
+            if ($this->router->rootId===3) {
+                $purposeId=3;
+            }
+            elseif (\count($v['purposes'])===1) {
+                $purposeId=\array_keys($v['purposes'])[0];
+            }
+            elseif ($this->router->purposeId && isset($v['purposes'][$this->router->purposeId])) {
+                $purposeId=$this->router->purposeId;
+            }          
+
+            if ($hasQuery) {
+                ?><li><a href=<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $section_id, $purposeId).$q?>><img style="width:25px;height:25px;margin-inline-end:8px" src="/web/css/1.0/assets/se/<?=$k?>.svg"><?=$v['name']?></a></li><?php
+            }
+            else {
+                if ($purposeId>0 && $purposeId===$this->router->purposeId) {
+                    $v['counter']=$v['purposes'][$purposeId]['counter'];
+                }
+                $isNew=(!$selected && $this->checkNewUserContent($v['unixtime']));
+                $name=$v['name'].'&nbsp<span'.($isNew?' class=hot>':'>').\number_format($v['counter']).'</span>';
+                ?><li><a href=<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $k, $purposeId)?>><img style="width:25px;height:25px;margin-inline-end:8px" src="/web/css/1.0/assets/se/<?=$k?>.svg"><?=$name?></a></li><?php
+            }
+        }
+        ?></ul></div><?php
+
+        /*
+            
+            if ($hasQuery) {                                                
+                echo '<li>', $this->renderSubListLink($this->lang['opt_all_categories'], $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, 0, $pId) . $q, $this->router->sectionId == 0,'ovh'), '</li>';
+                foreach ($this->router->pageSections as $section_id=>$section) {
+                    
+                    echo '<li>', $this->renderSubListLink($sectionClass.$section_id.'"></span>'.$section['name'], $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $section_id, $purposeId) . $q, $selected), '</li>';
+                    $i++;
+                }              
+            }
+            else {                
+                echo '<li>', $this->renderSubListLink($this->lang['opt_all_categories'], $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, 0, $pId).$q, $this->router->sectionId==0, 'ovh'), '</li>';
+                
+                foreach ($this->router->pageSections as $section_id=>$section) {
+                    
+                    $isNew = (!$selected && $this->checkNewUserContent($section['unixtime']));
+                    $iTmp=$sectionClass.$section_id.'"></span>';
+                    echo '<li', ($isNew ? ' class="nl">' : '>'),
+                    $this->renderSubListLink($iTmp.$section['name'].'&nbsp;<span class=c>('.$section['counter'].')</span>', $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $section_id, $purposeId), $selected), '</li>';
+                    $i++;
+                }
+            }            */
+    }
+    
     
     function renderSideRoots() : void {
         if (!$this->userFavorites) {
@@ -1565,9 +1610,8 @@ class Page extends Site {
 
     <section class=search-box><div class="viewable ha-center"><div class=search>
         <form onsubmit="if(document.getElementById('q').value)return true;return false;" action="<?= $this->router->getLanguagePath('/'. $this->router->countryId>0?$this->router->countries[$this->router->countryId]['uri']:'' ) ?>"> 
-        <div class=select-wrapper>
-            <div class=select-box>
-                <div class=select__trigger><?php 
+        <div class=sbw><div class=sbe>
+                <div class=strg><?php 
                     $selected=$this->router->params['ro']?$this->router->roots[$this->router->params['ro']][$this->name]:$this->lang['all_categories'];
                     ?>
                     <span><?=$selected?></span>
@@ -1591,8 +1635,8 @@ class Page extends Site {
         if ($this->user->isLoggedIn(9)) {
             $selected=$this->router->params['cn']?$this->router->countries[$this->router->params['cn']]['name']:$this->lang['opt_all_countries'];
             ?>
-            <div class=select-wrapper><div class=select-box>
-                <div class=select__trigger><span><?= $selected?></span><div class=arrow></div></div>
+            <div class=sbw><div class=sbe>
+                <div class=strg><span><?= $selected?></span><div class=arrow></div></div>
                 <div class=options><?php
                 echo '<span class="option', (!$this->router->params['cn']?' selected" ':'" '), 'data-value="0">', $this->lang['opt_all_countries'], '</span>';                
                 foreach ($this->router->countries as $cn=>$country) {
