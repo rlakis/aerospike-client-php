@@ -349,12 +349,30 @@ function sorting(o){
     var idx = o.selectedIndex; 
     console.log(idx);
     console.log(o.value);
-    //location.href = o.value;
+    location.href = o.value;
+}
+
+
+function optsValue(f,id){
+    e=f.querySelector('div.options#'+id);
+    if(e){
+        c=e.querySelector('div.option.selected');
+        if(c){return parseInt(c.dataset.value);}
+    }
+    return 0;
+}
+
+function intValById(f,id){
+    e=f.querySelector('#'+id);
+    if(e){if(e.value){return parseInt(e.value)}}
+    return 0;
 }
 
 
 function searching(as) {
-    console.log(as);
+    let f=as.closest('div.asrch');
+    let se=optsValue(f,'_se'), pu=optsValue(f,'_pu'), xe=optsValue(f,'_xe'), br=optsValue(f,'_br');
+    console.log('se', se, 'pu', pu, 'bedrooms', br, 'advertiser', xe, 'mnp', intValById(f,'mnp'), 'mxp', intValById(f,'mxp'), location.href);
 }
 
 

@@ -49,7 +49,7 @@ html *{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;-ms-
 *, *:after, *:before {box-sizing: border-box;}
 
 html{height:100%}
-body{font-family:"Roboto","Almarai",-apple-system,"system";font-style:normal;font-size:1em;color:var(--midnight);margin:0;background-color:#fff;line-height: 1}
+body{font-family:"Roboto","Almarai",-apple-system,"system";font-style:normal;font-size:1em;color:var(--mColor70);margin:0;background-color:#fff;line-height:1}
 a{color:#007bff;text-decoration:none; align-self:center}
 img{border:0;}
 .float-left{margin-right:auto;float:left}
@@ -243,11 +243,11 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .card-header{display:inline-block;position:absolute;height:62px;margin:-20px 14px 0 14px;padding:12px;box-shadow:0 4px 20px 0px rgba(0, 0, 0, 0.14), 0 7px 10px -5px rgba(255, 152, 0, 0.4);border-radius:inherit;}
 .card .card-header{z-index:3;}
 
-.card .card-footer {margin:0 20px 10px;padding-top:10px;border-top:1px solid #eeeeee;position:relative;display:inherit}
-.card-footer a {color: #007bff !important}
-.card-footer a > span{font-size:inherit !important;font-weight:normal !important;}
-.card-stats .card-content {text-align:right;padding-top:10px;}
-.card .card-content {display:inline-block;width: 100%;padding: 15px 20px;position: relative;}
+.card .card-footer{margin:0 20px 10px;padding-top:10px;border-top:1px solid #eeeeee;position:relative;display:inherit;width:-webkit-fill-available}
+.card-footer a{color:#007bff !important}
+.card-footer a>span{font-size:inherit !important;font-weight:normal !important}
+.card-stats .card-content{text-align:right;padding-top:10px}
+.card .card-content{display:inline-block;width:100%;padding:15px 20px;position:relative}
 
 .card .card-header.card-header-icon, .card-content .card-title{padding-bottom: 24px;}
 .card .card-title{margin:0 68px;font-weight:300;}
@@ -298,7 +298,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .card.format2 .card-footer li {line-height: 1.5em; border:0}
 .card.format2 .premium{border:1px solid var(--premium) !important;box-shadow: 0 1px 4px 0 rgba(227, 183, 136, 0.5) !important;}
 
-.card.regions {font-size:14px;margin:0}
+.card.regions {font-size:14px;margin:0;background-color: #eff2f4}
 .card.regions header{background-color: var(--mcDarkColor);padding-inline-start: 34px;}
 .card.regions header>i{width:40px;height: 40px}
 .card.regions dt{line-height:36px}
@@ -549,14 +549,9 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 
 #report{display:none;height: auto;padding-bottom: 12px;text-align: center}
 
-.side {
-    flex-direction: column;
-    background-color: white;
-    border-radius: 6px;
-    margin:8px 8px 0;
-    box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.42), 0 4px 25px 0px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.2);
-    padding:0 !important;
-    z-index: 9}
+.side{flex-direction:column;background-color:#eff2f4;border:0;margin:8px 8px 0;box-shadow:0 10px 30px -12px rgba(0, 0, 0, 0.42), 0 4px 25px 0px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.2);
+    padding:0 !important;z-index:9;margin-bottom:32px}
+
 .side>div{padding: 0 8px !important;}
 .side .title {
     display: inherit;
@@ -592,6 +587,9 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .select-text:focus ~ .select-bar:before, .select-text:focus ~ .select-bar:after{width:50%;}
 .select-highlight{position:absolute;height:60%;width:100px;top:25%;left:0;pointer-events:none;opacity:0.5;}
 
+.related{flex:1 auto;height:50px;margin-bottom:32px;margin-top:16px;flex-wrap:wrap;overflow:hidden}
+.related .btn{border-radius:30px;background-color:var(--mColor50);font-size:17px;color:white;text-transform:capitalize;margin-top:0;height:50px}
+.related .btn+.btn{margin-inline-start:12px}
 .oops.card{
     width:auto;
     margin:32px auto 64px;

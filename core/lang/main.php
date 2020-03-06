@@ -790,4 +790,5 @@ $lang=array(
     'gold_note'=>'One Mourjan gold is equal to one day of premium ad listing',
     'learn_more'=>'Learn more',
     'go_premium'=>'GO PREMIUM & GET SEEN BY THOUNSANDS OF USERS INSTANTLY',
+    'any'=>'Any',
 );

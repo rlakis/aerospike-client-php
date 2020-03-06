@@ -135,7 +135,7 @@ class MCGoogleAnalytics {
         $request->setMetrics(array($sessions));
         $request->setDimensionFilterClauses(array($dimensionFilterClause));
         $request->setOrderBys($ordering);
-        $request->setPageSize(20000);
+        $request->setPageSize(30000);
         return $request;
     }
     
@@ -507,7 +507,7 @@ class MCGoogleAnalytics {
 }
 
 $mcAnalytics = new MCGoogleAnalytics;
-//$mcAnalytics->topPageViews();
-$mcAnalytics->customerHits();
+$mcAnalytics->topPageViews();
+//$mcAnalytics->customerHits();
 
 //$mcAnalytics->parseTsvFile();
