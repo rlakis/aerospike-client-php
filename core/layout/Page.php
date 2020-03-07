@@ -1369,7 +1369,7 @@ class Page extends Site {
         $result=[];
         if ($this->router->isPriceList) {  return $result;  }
         
-        if (($this->router->module==='search') && ($this->router->rootId || $this->router->sectionId) && !$this->userFavorites && !$this->router->watchId) {
+        if (($this->router->module==='search') && ($this->router->rootId>0||$this->router->sectionId>0) && !$this->userFavorites && !$this->router->watchId) {
             if ($this->router->rootId!==4 && \count($this->router->purposes)>0 && \count($this->router->pagePurposes)>0) {
                 $hasQuery=false;
                 $q='';

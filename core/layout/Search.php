@@ -14,7 +14,6 @@ class Search extends Page {
     private int $tmpRootId=0;
     private int $tmpPurposeId=0;
     
-    /*var $classifieds = null,*/
     public $breadString = '', $crumbTitle = '', $crumbString = '', $adRef = '', $dynamicTitle = '',
         $pageThumb = '', $partnerSection = '', $watchName = '', $formatNumbers=false, $mobileValidator=null, $phoneNumber=null;
     var $isRT = 0;
@@ -22,6 +21,7 @@ class Search extends Page {
     private int $advSectionId;
     private int $advPurposeId;
     private int $advSubId;
+    
     
     function __construct() {
         header('Vary: User-Agent');
@@ -40,9 +40,7 @@ class Search extends Page {
         else if ($this->user()->isLoggedIn(9)) {
             $this->router->config->disableAds();
         }
-        
-            
-       
+                           
         /*     
         if (!$this->isMobile && !$this->router->userId && !$this->userFavorites && !$this->router->watchId) {
             $this->hasLeadingPane=true;
@@ -55,32 +53,32 @@ class Search extends Page {
             $this->router->config->disableAds();
         }
                 
-        $this->stat = [];
+        $this->stat=[];
         if ($this->userFavorites) { $this->checkBlockedAccount(5); }
         if ($this->router->watchId) { $this->checkBlockedAccount(); }
         
         $this->mobileValidator = libphonenumber\PhoneNumberUtil::getInstance();
         if (!isset($this->user->params['user_country'])) { $this->checkUserGeo(); }
 
-        $isBot = preg_match('/googlebot/i',$_SERVER['HTTP_USER_AGENT']);
+        $isBot=\preg_match('/googlebot/i', $_SERVER['HTTP_USER_AGENT']);
         if ($isBot) {
             if ($this->router->countryId) {
-                $this->formatNumbers=strtoupper($this->router->countries[$this->router->countryId]['uri']);
+                $this->formatNumbers=\strtoupper($this->router->countries[$this->router->countryId]['uri']);
             }
             elseif ($this->user->params['user_country']) {
-                $this->formatNumbers=strtoupper($this->user->params['user_country']);                    
+                $this->formatNumbers=\strtoupper($this->user->params['user_country']);                    
             }
         }
         else {
             if ($this->user->params['user_country']) {   
-                $this->formatNumbers=strtoupper($this->user->params['user_country']);
+                $this->formatNumbers=\strtoupper($this->user->params['user_country']);
             } elseif($this->router->countryId) {
-                $this->formatNumbers=strtoupper($this->router->countries[$this->router->countryId]['uri']);
+                $this->formatNumbers=\strtoupper($this->router->countries[$this->router->countryId]['uri']);
             }
         }
         
         
-        if ($this->router->watchId !== null) {
+        if ($this->router->watchId!==null) {
             if ($this->router->watchId > 0) {
                 $this->watchInfo = $this->user->getWatchInfo($this->router->watchId);
             }
@@ -234,15 +232,11 @@ class Search extends Page {
             $this->purposeName = $this->router->purposes[$this->router->purposeId][$this->name];
 
         if (!$this->router->userId && !$this->router->watchId && !$this->userFavorites) {
-            if ($this->router->rootId == 1 && $this->router->sectionId &&
-                    ($this->router->countryId == 1 ||
-                    $this->router->countryId == 2 || 
-                    $this->router->countryId == 3 || 
-                    $this->router->countryId == 4 ||
-                    $this->router->countryId == 7 ||
-                    $this->router->countryId == 9)
-            ) {
-                $this->localities = $this->router->db->getLocalitiesData($this->router->countryId, $this->router->sectionId, NULL, $this->router->language);                
+            if ($this->router->rootId===1 && $this->router->sectionId &&
+                    ($this->router->countryId===1 || $this->router->countryId===2 || 
+                     $this->router->countryId===3 || $this->router->countryId===4 ||
+                     $this->router->countryId===7 || $this->router->countryId===9)) {
+                $this->localities=$this->router->db->getLocalitiesData($this->router->countryId, $this->router->sectionId, NULL, $this->router->language);                
                 if ($this->router->cityId) {
                     foreach ($this->localities as $loc) {
                         if ($loc['city_id'] == $this->router->cityId) {
@@ -252,12 +246,14 @@ class Search extends Page {
                     }
                 }
 
-                if (isset($this->router->params['loc_id']))
+                if (isset($this->router->params['loc_id'])) {
                     $this->localityId = $this->router->params['loc_id']+0;
-                if (!($this->localities && $this->localityId && isset($this->localities[$this->localityId])))
+                }
+                if (!($this->localities && $this->localityId && isset($this->localities[$this->localityId]))) {
                     $this->localityId = 0;
+                }
                 
-                if($this->localityId && isset($this->localities[$this->localityId])){
+                if ($this->localityId && isset($this->localities[$this->localityId])) {
                     $hasSiblings = 0;
                     //die(var_export($this->localities[$this->localityId]));
                     $p_id = $this->localities[$this->localityId]['parent_geo_id'];
@@ -267,29 +263,29 @@ class Search extends Page {
                             if($hasSiblings>1)break;
                         }
                     }
-                    if($hasSiblings<2){
-                        $this->forceNoIndex = true;
+                    if ($hasSiblings<2) {
+                        $this->forceNoIndex=true;
                     }
                 }
                 
             }
             elseif ($this->router->sectionId) {
-                $this->extended = $this->router->db->getSectionTagsData($this->router->countryId, $this->router->cityId, $this->router->sectionId, $this->router->language);
+                $this->extended=$this->router->db->getSectionTagsData($this->router->countryId, $this->router->cityId, $this->router->sectionId, $this->router->language);
             }
         }
         
-        if ($this->router->module == 'search' &&
-                (($this->router->purposeId && !$this->router->rootId && !$this->router->sectionId) ||
-                ($this->router->rootId == 99 && !$this->router->sectionId))) {
-            $this->forceNoIndex = true;
+        if ($this->router->module==='search' &&
+                (($this->router->purposeId>0 && !$this->router->rootId && !$this->router->sectionId) ||
+                ($this->router->rootId=== 99 && !$this->router->sectionId))) {
+            $this->forceNoIndex=true;
         }
         
         if (!$this->router->userId && !$this->router->watchId) {
             $this->buildTitle();
         }
         
-        if(!$this->router->isPriceList){
-            $this->num = 18;
+        if (!$this->router->isPriceList){
+            $this->num=18;
             $this->execute(true);           
             if ($this->pageUserId && !$this->searchResults['body']['total_found']) {
                 $this->router->config->disableAds();
@@ -297,7 +293,7 @@ class Search extends Page {
             }
         }
         
-        if (in_array($this->router->sectionId, $this->router->config->get('restricted_section_ads'))) {
+        if (\in_array($this->router->sectionId, $this->router->config->get('restricted_section_ads'))) {
             $this->router->config->disableAds();
         }
         
@@ -323,14 +319,14 @@ class Search extends Page {
     
     
     function renderSidePage() {
-        $isOwner = $this->router->userId == $this->user->info['id'] && $this->router->module != 'detail' && !$this->pagePreview;
-        $isOwner = 0;
-        $editLink = '/page/' . ($this->router->language == 'ar' ? '' : 'en/');
-        $descAr = isset($this->partnerInfo['descAr']) && $this->partnerInfo['descAr'] ? $this->partnerInfo['descAr'] : '';
-        $descEn = isset($this->partnerInfo['descEn']) && $this->partnerInfo['descEn'] ? $this->partnerInfo['descEn'] : '';
-        $website = isset($this->partnerInfo['url']) && $this->partnerInfo['url'] ? $this->partnerInfo['url'] : '';
+        $isOwner=$this->router->userId==$this->user->info['id'] && $this->router->module!=='detail' && !$this->pagePreview;
+        $isOwner=0;
+        $editLink='/page/'.($this->router->language==='ar' ? '' : 'en/');
+        $descAr=isset($this->partnerInfo['descAr']) && $this->partnerInfo['descAr'] ? $this->partnerInfo['descAr'] : '';
+        $descEn=isset($this->partnerInfo['descEn']) && $this->partnerInfo['descEn'] ? $this->partnerInfo['descEn'] : '';
+        $website=isset($this->partnerInfo['url']) && $this->partnerInfo['url'] ? $this->partnerInfo['url'] : '';
 
-        ?><ul class='list'><?php
+        ?><ul class=list><?php
         if ($descAr || $descEn || $isOwner) {
             /* ?><h4><?= $this->lang['aboutUs'] ?></h4><?php */
                 if ($descAr || $descEn) {
@@ -1109,28 +1105,27 @@ class Search extends Page {
     }
     
 
-    function mergeResults(&$topFeatureCount, &$ad_keys) {
-        $featured_ids = [];
+    function mergeResults(int &$topFeatureCount, array &$ad_keys) : void {
+        $featured_ids=[];
         if (isset($this->searchResults['zone1'])) {
-            $ad_keys = $this->searchResults['zone1']['matches'];
-            $featured_ids = $this->searchResults['zone1']['matches'];
+            $ad_keys=$this->searchResults['zone1']['matches'];
+            $featured_ids=$this->searchResults['zone1']['matches'];
         }
                         
-        $topFeatureCount = count($featured_ids);
+        $topFeatureCount=\count($featured_ids);
         foreach ($this->searchResults['body']['matches'] as $ad_id) {
-            if (!in_array($ad_id, $featured_ids)) {
-                $ad_keys[] = $ad_id;
+            if (!\in_array($ad_id, $featured_ids)) {
+                $ad_keys[]=$ad_id;
             }
         }
         
-        $max = $this->num+2;
-        if ($this->searchResults['body']['total_found']>$max && count($ad_keys)<$max && isset($this->searchResults['zone0'])) {
-            //error_log(var_export($this->searchResults['zone0'], true));
-            $count=count($this->searchResults['zone0']['matches']);
-            $fc=count($ad_keys);
+        $max=$this->num+2;
+        if ($this->searchResults['body']['total_found']>$max && \count($ad_keys)<$max && isset($this->searchResults['zone0'])) {
+            $count=\count($this->searchResults['zone0']['matches']);
+            $fc=\count($ad_keys);
             for ($i=0; $i<$count && $fc+$i<$max; $i++) {
-                $ad_keys[] = $this->searchResults['zone0']['matches'][$i];
-                $this->user()->params['feature'][] = $this->searchResults['zone0']['matches'][$i];
+                $ad_keys[]=$this->searchResults['zone0']['matches'][$i];
+                $this->user()->params['feature'][]=$this->searchResults['zone0']['matches'][$i];
             }
         }
     }
@@ -1138,14 +1133,10 @@ class Search extends Page {
     
     private function adSlot() : void {
         if ($this->router->config->enabledAds()) {
-            //<div class="card card-product">
-            //echo '<div class="adslot">';
-            ?>
-<ins class="adsbygoogle" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="auto" data-full-width-responsive="true"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script><?php
-            //echo '</div>', "\n";//</div>
+            ?><ins class="adsbygoogle" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="auto" data-full-width-responsive="true"></ins><?php
+            ?><script><?php
+            ?>(adsbygoogle = window.adsbygoogle || []).push({});<?php
+            ?></script><?php
         }
     }
     
@@ -1267,8 +1258,8 @@ class Search extends Page {
                 }
             }
             
-            ?><div class="ad<?=$end_user?'':'full'?>" <?=$ad->htmlDataAttributes($this->formatNumbers)?> onclick=oad(this)><?php
-            ?><div class="card card-product<?=($ad->isFeatured()?' premium':'')?>" id=<?=$ad->id()?> itemprop=itemListElement<?=$itemScope?>><?php
+            ?><div class="ad<?=$end_user?'':' full'?>" <?=$ad->htmlDataAttributes($this->formatNumbers)?> onclick=oad(this)><?php
+            ?><div class="card card-product<?=($ad->isFeatured()?' premium':'')?>" id=<?=$ad->id()?> itemprop="itemListElement"<?=$itemScope?>><?php
             if ($ad->isFeatured()) {
                 ?><img class=tag src="/web/css/1.0/assets/prtag-en.svg" /><?php
             }
@@ -1391,7 +1382,7 @@ class Search extends Page {
                 ?><div id=_pu class=options><div class="option<?=$this->advPurposeId===0?' selected':''?>" data-value=0>Any</div><?php
                 foreach ($this->router->pageRoots[$this->router->rootId]['purposes'] as $k => $v) {
                     if ($v['counter']===0) { continue; }
-                    ?><div class="option<?=$this->advPurposeId===$k?' selected':''?>" data-value=<?=$k?>><?=$v['name'].'  '.$v['counter']?></div><?php
+                    ?><div class="option<?=$this->advPurposeId===$k?' selected':''?>" data-value=<?=$k?>><?=$v['name']?></div><?php
                 }               
                 ?></div></div></div></div><?php
             }
@@ -1451,9 +1442,20 @@ class Search extends Page {
             ?><a class=btn onclick="javascript:searching(this)">Update Search</a><?php                    
             ?></div><?php
             
+            $purposes=$this->filterPurposesArray();
+            if (!empty($purposes)) {                
+                ?><div class=asrch><header>MAY BE YOU ARE LOOKING FOR?</header><ul><?php
+                foreach ($purposes as $v) {
+                    echo $v;
+                }        
+                ?></ul></div><?php
+            }
+            
             if ($this->router->rootId===1 && $this->router->countryId>0 && \is_array($this->localities) && \count($this->localities)>1) {
                 $this->renderLocalityOptions();
             }
+            
+            
             $this->renderPageSideSections();
             
             
@@ -3197,16 +3199,6 @@ class Search extends Page {
             echo '<span class="select-highlight"></span>', '<span class="select-bar"></span>' /*, '<label class="select-label">', $this->lang['lg_sorting'],'</label>'*/;
             echo '</div>';          
         }
-        
-        /*
-        $purposes=$this->filterPurposesArray();
-        if (\count($purposes)>1) {
-            echo '<ul>';
-            foreach ($purposes as $purpose) {
-                echo $purpose;
-            }
-            echo '</ul>';
-        }*/
     }
     
     
@@ -3546,12 +3538,12 @@ class Search extends Page {
             $bc[] = "<b>" . $this->lang['myList'] . "</b>";
         } 
         else {
-            if ($this->router->rootId) {
+            if ($this->router->rootId>0) {
                 $purposeId = 0;
                 if (isset($this->router->pageRoots[$this->router->rootId]) && 
                     \is_array($this->router->pageRoots[$this->router->rootId]['purposes']) && 
                     \count($this->router->pageRoots[$this->router->rootId]['purposes'])==1 ) {
-                    $purposeId = \array_keys($this->router->pageRoots[$this->router->rootId]['purposes'])[0];
+                    $purposeId=\array_keys($this->router->pageRoots[$this->router->rootId]['purposes'])[0];
                 }
                 
                 if (($q || $this->router->purposeId || $this->router->sectionId) && !($this->router->sectionId===0 && $purposeId)) {
@@ -4017,4 +4009,3 @@ class Search extends Page {
     }
     
 }
-

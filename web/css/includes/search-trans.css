@@ -9,6 +9,7 @@ fieldset{border:0}
 
 
 .side .asrch .strg{font-size:16px;font-weight:normal;height:38px !important;border:1px solid var(--mColor30);border-radius:4px;color:var(--mColor45)}
+.side .asrch .strg:hover{color:white}
 .side .asrch .strg>*{margin:0}
 
 .side .asrch .two{width:100%;display:inline-flex;flex-flow:row;justify-content:space-between}
