@@ -29,7 +29,7 @@ class Router extends \Core\Model\Singleton {
     public int $rootId=0;
     public int $sectionId=0;
     
-    private int $id=0;
+    public int $id=0;
     
     public array $params=['start'=>0,'q'=>'','iq'=>'', 'id'=>FALSE, 'cn'=>FALSE, 'c'=>FALSE, 'ro'=>FALSE, 'se'=>FALSE, 'pu'=>FALSE, 'rss'=>FALSE];
     

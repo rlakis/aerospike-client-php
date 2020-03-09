@@ -813,54 +813,56 @@ class Search extends Page {
     }
     
 
-    function replacePhonetNumbers(&$text, $countryCode=0, $mobiles, $phones, $undefined, $email=null, &$matches=''){
+    function replacePhonetNumbers(string &$text, $countryCode=0, $mobiles, $phones, $undefined, $email=null, &$matches='') : string {
         $REGEX_MATCH='/((?:(?:[ .,;:\-\/،])(?:mobile|viber|whatsapp|phone|fax|telefax|للتواصل|جوال|موبايل|واتساب|للاستفسار|للأستفسار|للإستفسار|فايبر|هاتف|فاكس|تلفاكس|الاتصال|للتواصل|للمفاهمة|للاتصال|الاتصال على|اتصال|(?:(?:tel|call|ت|ه|ج)(?:\s|):))(?:(?:\s|):|\+|\/|)(?: |$)))/ui';
         $REGEX_CATCH='/(?:(?:(?:[ .,;:\-\/،])(?:mobile|viber|whatsapp|phone|fax|telefax|للتواصل|جوال|موبايل|واتساب|للاستفسار|للأستفسار|للإستفسار|فايبر|هاتف|فاكس|تلفاكس|الاتصال|للتواصل|للمفاهمة|للاتصال|الاتصال على|اتصال|(?:(?:tel|call|ت|ه|ج)(?:\s|):))(?:(?:\s|):|\+|\/|)(?: |$)))(.*)/ui';
         
-        if (!isset($this->formatNumbers) || empty($this->formatNumbers)){
-            return;
+        if (!isset($this->formatNumbers) || empty($this->formatNumbers)) {
+            return $text;
         }
-        $isArabic = preg_match('/[\x{0621}-\x{064a}]/u', $text);
-        if (preg_match('/\<span class/', $text)) {
+        
+        $isArabic=\preg_match('/[\x{0621}-\x{064a}]/u', $text);
+        if (\preg_match('/\<span class/', $text)) {
             foreach ($mobiles as $num) {
                 $number = $this->formatPhoneNumber($num[0]);
                 if ($num[0]!=$number) {
-                    $org = $num[0];
-                    $num[0]= preg_replace('/\+/','\\+' , $num[0]);
-                    $text = preg_replace('/'.$num[0].'/', $number, $text);
-                    $matches .= '<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'")\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
-                } else {
-                    $org = $num[0];
-                    $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
-                    $text = preg_replace('/\<span class="pn(?:[\sa-z0-9]*)">'.$num[0].'\<\/span\>/', '<span class="vn">'.$number.'</span>', $text);
-                    $matches .= '<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'");\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
+                    $org=$num[0];
+                    $num[0]=\preg_replace('/\+/','\\+' , $num[0]);
+                    $text=\preg_replace('/'.$num[0].'/', $number, $text);
+                    $matches.='<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'")\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
+                } 
+                else {
+                    $org=$num[0];
+                    $num[0]=\preg_replace('/\+/','\\+' , $num[0]);
+                    $text=\preg_replace('/\<span class="pn(?:[\sa-z0-9]*)">'.$num[0].'\<\/span\>/', '<span class="vn">'.$number.'</span>', $text);
+                    $matches.='<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'");\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                 }
             }
             foreach ($phones as $num) {
                 $number = $this->formatPhoneNumber($num[0]);
                  if ($num[0]!=$number) {
-                     $org = $num[0];
-                    $num[0]= preg_replace('/\+/','\\+' , $num[0]);
-                    $text = preg_replace('/'.$num[0].'/', $number, $text);
-                    $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
+                     $org=$num[0];
+                     $num[0]=\preg_replace('/\+/','\\+' , $num[0]);
+                     $text=\preg_replace('/'.$num[0].'/', $number, $text);
+                     $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                 } 
                 else {
-                    $org = $num[0];
-                    $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
-                    $text = preg_replace('/\<span class="pn(?:[\sa-z0-9]*)">'.$num[0].'\<\/span\>/', '<span class="vn">'.$number.'</span>', $text);
-                    $matches .= '<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
+                    $org=$num[0];
+                    $num[0]=\preg_replace('/\+/','\\+' , $num[0]);
+                    $text=\preg_replace('/\<span class="pn(?:[\sa-z0-9]*)">'.$num[0].'\<\/span\>/', '<span class="vn">'.$number.'</span>', $text);
+                    $matches.='<a class="bt" href=\'tel:'.$org.'\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
                 }
             }
         } 
         else {
             foreach ($mobiles as $num) {
-                $number = $this->formatPhoneNumber($num[1]);
+                $number=$this->formatPhoneNumber($num[1]);
                 if ($num[0]!=$number) {
-                     $org = $num[0];
-                    $num[0]= preg_replace('/\+/','\\+' , $num[0]);                        
-                    $text = preg_replace('/'.$num[0].'/', '<span class="pn">'.$number.'</span>', $text);
-                    $matches .= '<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'");\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
-                } 
+                     $org=$num[0];
+                     $num[0]=\preg_replace('/\+/','\\+' , $num[0]);                        
+                     $text=\preg_replace('/'.$num[0].'/', '<span class="pn">'.$number.'</span>', $text);
+                     $matches.='<a class="bt" href=\'javascript:void(0);\' onclick=\'callNum("'.$org.'","'.$number.'");\'><span class="k call"></span> <span class="pn">'.$number.'</span></a>';
+                }
                 else {
                     $org = $num[0];
                     $num[0]=  preg_replace('/\+/','\\+' , $num[0]);
@@ -1257,8 +1259,9 @@ class Search extends Page {
                     }
                 }
             }
-            
-            ?><div class="ad<?=$end_user?'':' full'?>" <?=$ad->htmlDataAttributes($this->formatNumbers)?> onclick=oad(this)><?php
+            // onclick=oad(this)
+            ?><div class="ad<?=$end_user?'':' full'?>" <?=$ad->htmlDataAttributes($this->formatNumbers)?>><?php
+            ?><a href=<?=$ad->url()?>
             ?><div class="card card-product<?=($ad->isFeatured()?' premium':'')?>" id=<?=$ad->id()?> itemprop="itemListElement"<?=$itemScope?>><?php
             if ($ad->isFeatured()) {
                 ?><img class=tag src="/web/css/1.0/assets/prtag-en.svg" /><?php
@@ -1324,7 +1327,7 @@ class Search extends Page {
             }
             ?><div title="<?=$this->lang['reportAbuse']?>" class=abuse onclick="event.stopPropagation();report(this);"><i class="icn icn-ban"></i></div><?php
             ?><?=$favLink?></div></div><?php
-            ?></div><?php
+            ?></a></div><?php
         }              
     }
     
@@ -3356,10 +3359,7 @@ class Search extends Page {
             ?><ins class="adsbygoogle" class="ad600" data-ad-client="ca-pub-2427907534283641" data-ad-slot="9190558623"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script><?php
             ?></li><?php             
         }
-        
-        if(0 && $this->router->countryId==1){
-            ?><li><iframe class="adsawa" src="/web/gosawa.html"></iframe></li><?php
-        }
+             
                 
         if(0 && $countAds>7) {
             ?><li><div class="g-page" data-href="https://plus.google.com/+MourjanAds/posts" data-width="300" data-layout="landscape" data-rel="publisher"></div></li><?php
@@ -3864,14 +3864,14 @@ class Search extends Page {
     }
 
     
-    function buildTitle() {
-        $title = '';
-        if ($this->router->module == 'detail') {
-            $title = $this->title;
+    function buildTitle() : void {
+        $title='';
+        if ($this->router->module==='detail') {
+            $title=$this->title;
             if ($this->detailAdExpired) {
                 if (empty($this->detailAd)) {
-                    header("HTTP/1.0 410 Gone");
-                    $title = $this->title;
+                    \header("HTTP/1.0 410 Gone");
+                    $title=$this->title;
                 } 
                 else {
                     $this->router->cacheHeaders($this->detailAd[Classifieds::LAST_UPDATE]);

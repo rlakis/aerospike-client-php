@@ -15,7 +15,6 @@ class Site {
     var $xss_hash='',$watchInfo=false; 
     var $userFavorites,$pageUserId=0;
     public int $num=10;
-    //var $isMobile=false;
     var $isMobileAd=false;
     public int $lnIndex=0;
     var $channelId=0;

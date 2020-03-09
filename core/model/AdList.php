@@ -2,19 +2,19 @@
 namespace Core\Model;
 
 class AdList extends \SplDoublyLinkedList {    
-    private $state;
-    private $uid;
-    private $alterUID;
+    private int $state;
+    private int $uid;
+    private int $alterUID;
     
-    private $rootId;
-    private $purposeId;
-    private $lang;
+    private int $rootId;
+    private int $purposeId;
+    private int $lang;
     
-    private $page;
-    private $limit;
-    private $countAll;
+    private int $page;
+    private int $limit;
+    private int $countAll;
 
-    private $profiles;
+    private array $profiles;
 
     public function __construct() {
         $this->page = 0;

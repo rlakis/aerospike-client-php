@@ -5,8 +5,7 @@ use Core\Model\Classifieds;
 
 class Page extends Site {
     const SearchEngineLegitimateEntries = 21;
-    
-    
+        
     protected $action='';
     protected array $requires=['js'=>[], 'css'=>[]];
     protected string $title='', $description='';
@@ -27,9 +26,10 @@ class Page extends Site {
     var $extended=null,$extendedId=0,$localities=null,$parentLocalities=null,$cityParentLocalityId=0,$localityId=0,$localityParentId=0,$extended_uri='';
     var $isMobileCssLegacy=true;            
     var $countryCounter='',$inlineScript='',$inlineQueryScript='',$globalScript='',$cssImgsLoaded=false, $inlineCss='';
-    var $detailAd, $isNewMobile=false, $detailAdExpired=false,$requireLogin=false,$forceNoIndex=false,$isAdminSearch=0;
+    var $detailAd, $isNewMobile=false,$requireLogin=false,$forceNoIndex=false,$isAdminSearch=0;
     var $cityName='',$rootName='', $countryName='', $categoryName='', $sectionName='', $purposeName='',$backLink='';
-        
+    
+    public bool $detailAdExpired=false;
     var $pageItemScope='itemscope itemtype="https://schema.org/WebPage"';
     
     public string $name;
@@ -215,15 +215,16 @@ class Page extends Site {
         }        
 
         if ($this->router->module==='detail') {
-            $this->detailAd = $this->classifieds->getById($this->router->id);
-            if (!empty ($this->detailAd)) {
+            // need revision to new class Ad
+            $this->detailAd=$this->classifieds->getById($this->router->id);
+            if (!empty($this->detailAd)) {
                 if (!empty($this->detailAd[Classifieds::ALT_CONTENT])) {
-                    if ($this->router->language=="en" && $this->detailAd[Classifieds::RTL]) {
-                        $this->detailAd[Classifieds::TITLE] = $this->detailAd[Classifieds::ALT_TITLE];
-                        $this->detailAd[Classifieds::CONTENT] = $this->detailAd[Classifieds::ALT_CONTENT];
-                        $this->detailAd[Classifieds::RTL] = 0;
+                    if ($this->router->language==='en' && $this->detailAd[Classifieds::RTL]) {
+                        $this->detailAd[Classifieds::TITLE]=$this->detailAd[Classifieds::ALT_TITLE];
+                        $this->detailAd[Classifieds::CONTENT]=$this->detailAd[Classifieds::ALT_CONTENT];
+                        $this->detailAd[Classifieds::RTL]=0;
                         $this->appendLocation=false;
-                    } elseif ($this->router->language=="ar" && $this->detailAd[Classifieds::RTL]==0) {
+                    } elseif ($this->router->language==='ar' && $this->detailAd[Classifieds::RTL]==0) {
                         $this->detailAd[Classifieds::TITLE] = $this->detailAd[Classifieds::ALT_TITLE];
                         $this->detailAd[Classifieds::CONTENT] = $this->detailAd[Classifieds::ALT_CONTENT];
                         $this->detailAd[Classifieds::RTL] = 1;          
@@ -235,7 +236,7 @@ class Page extends Site {
                 $this->router->rootId=$this->detailAd[Classifieds::ROOT_ID];
                 $this->router->sectionId=$this->detailAd[Classifieds::SECTION_ID];
                 $this->router->purposeId=$this->detailAd[Classifieds::PURPOSE_ID];
-                $this->lang['description']=preg_replace('/"/', '', $this->detailAd[Classifieds::CONTENT]);
+                $this->lang['description']=\preg_replace('/"/', '', $this->detailAd[Classifieds::CONTENT]);
                 if ($this->detailAd[Classifieds::HELD]!=0) $this->detailAdExpired=true;
             }
             else {
