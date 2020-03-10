@@ -1462,7 +1462,7 @@ class Page extends Site {
                         $append_uri='/'.($this->router->language!=='ar'?$this->router->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router->cityId?3:2);
                         $extended_uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
                         $extended_uri.=$this->localities[$this->localityId]['uri'].'/';
-                        $extended_uri.=$this->router->sections[$this->router->sectionId][3].'/';
+                        $extended_uri.=$this->router->sections[$this->router->sectionId][\Core\Data\Schema::BIN_URI].'/';
                     }
 
                     $base_name = ($this->extendedId>0 && isset($this->extended[$this->extendedId]))?$this->extended[$this->extendedId]['name']:
@@ -1499,7 +1499,7 @@ class Page extends Site {
                         $isNew=false;
                         $selected=($this->router->purposeId==$pid /*$purpose[0]*/);
                         if ($this->extendedId>0 || $this->localityId>0) {
-                            $result[]='<li>'.$this->renderListLink($pname, $extended_uri.$this->router->purposes[$pid][3].$append_uri.'/', $selected).'</li>';
+                            $result[]='<li>'.$this->renderListLink($pname, $extended_uri.$this->router->purposes[$pid]['uri'].$append_uri.'/', $selected).'</li>';
                         } 
                         else {
                             if (!$selected && $this->checkNewUserContent($purpose['unixtime'])) { $isNew=true; }

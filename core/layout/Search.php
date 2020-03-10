@@ -1261,14 +1261,14 @@ class Search extends Page {
             }
             // onclick=oad(this)
             ?><div class="ad<?=$end_user?'':' full'?>" <?=$ad->htmlDataAttributes($this->formatNumbers)?>><?php
-            ?><a href=<?=$ad->url()?>
+            ?><a href=<?=$ad->url()?>><?php
             ?><div class="card card-product<?=($ad->isFeatured()?' premium':'')?>" id=<?=$ad->id()?> itemprop="itemListElement"<?=$itemScope?>><?php
             if ($ad->isFeatured()) {
                 ?><img class=tag src="/web/css/1.0/assets/prtag-en.svg" /><?php
             }
             
             if ($pix_count) {
-                ?><div class=card-image><div class="cbox footer"></div><?php
+                ?><div class=image><div class="box hint"></div><?php
                 $pix=$ad->picturePath();
                 if ($this->router->isAcceptWebP) { $pix=\preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pix); }
                 ?><img src="<?=$this->router->config->adImgURL.'/repos/m/'.$pix?>" /><?php
@@ -1277,7 +1277,7 @@ class Search extends Page {
                 }
             }
             else {
-                ?><div class="card-image seclogo"><div class="cbox footer"></div><?php
+                ?><div class="image seclogo"><div class="box hint"></div><?php
                 if ($this->router->rootId<4) {
                     ?><img src="/web/css/1.0/assets/se/<?=$ad->sectionId()?>.svg" /><?php
                 }
@@ -1311,7 +1311,7 @@ class Search extends Page {
             
             ?><div class="cbox cbl"><?=$ad->formattedSinceDate($this->lang, $this->router->isArabic())?></div></div><?php
             
-            ?><div class=card-content><div class="adc block-with-text card-description <?=$textClass?>" <?=$itemDesc?>><?php
+            ?><div class=content><div class="adc block-with-text card-description <?=$textClass?>" <?=$itemDesc?>><?php
             
             if ($ad->latitude()||$ad->longitude()) {
                 ?><a href="#" title="<?=$ad->location()?>"><i class="icn icnsmall icn-map-marker"></i></a><?php
@@ -1321,7 +1321,7 @@ class Search extends Page {
             if ($this->user()->isSuperUser() && isset($this->searchResults['body']['scores'][$ad->id()])) {
                 ?><span style="direction:ltr;display:block;padding-left:20px"><?=$this->searchResults['body']['scores'][$ad->id()]?></span><?php
             }
-            ?><div class=card-footer><?php
+            ?><div class=tail><?php
             if ($this->hasLinkSection($ad->data())) {
                 echo $this->getAdSection($ad->data(), $hasSchema);
             }
@@ -3464,8 +3464,8 @@ class Search extends Page {
             }
             
             if ($this->router->purposeId) {
-                $extended_uri.=$this->router->purposes[$this->router->purposeId][3] . '/';
-                $suffix_parent_uri.=$this->router->purposes[$this->router->purposeId][3] . '/';
+                $extended_uri.=$this->router->purposes[$this->router->purposeId][\Core\Data\Schema::BIN_URI] . '/';
+                $suffix_parent_uri.=$this->router->purposes[$this->router->purposeId][\Core\Data\Schema::BIN_URI] . '/';
                 switch ($this->router->purposeId) {
                     case 1:
                     case 2:
