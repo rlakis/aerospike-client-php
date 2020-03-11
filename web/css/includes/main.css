@@ -183,7 +183,7 @@ li>i{margin:0 4px;max-width:32px;}
 .icn-emblem{filter:invert(0) !important;background:url(/web/css/1.0/assets/LogoV5.svg) no-repeat 4px}
 .icn-map-marker{background-color:mediumseagreen;-webkit-mask:url(/web/css/1.0/fa/regular/map-marker-alt.svg) no-repeat 50% 50%;}
 .icn-rss{background-color:orange !important;-webkit-mask:url(/web/css/1.0/fa/regular/rss.svg) no-repeat 50% 50%;}
-.icn-camera{/*background-color:white !important;-webkit-mask:*/ background:url(/web/css/1.0/assets/camera.svg) no-repeat 50% 50%;}
+.icn-camera{/*background-color:white !important;-webkit-mask:*/ background:url(/web/css/1.0/assets/cam.svg) no-repeat 50% 50%;}
 .icn-angle-left{background-color:white !important;-webkit-mask:url(/web/css/1.0/fa/regular/angle-left.svg) no-repeat 50% 50%;}
 .icn-angle-right{background-color:white !important;-webkit-mask:url(/web/css/1.0/fa/regular/angle-right.svg) no-repeat 50% 50%;}
 .icn-angle-down{background-color:white !important;-webkit-mask:url(/web/css/1.0/fa/regular/angle-down.svg) no-repeat 50% 50%;}
@@ -221,7 +221,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 
 /*.card dt > a > .icn{box-shadow: 0 4px 20px 0 rgba(0,0,0,0.14), 0 7px 10px -5px rgba(255,152,0,0.4);max-height: 15px}*/
 .premium{border:1px solid var(--premium); background-color:white !important;box-shadow: 0 1px 4px 0 rgba(227, 183, 136, 0.5) !important;}
-.premium .card-footer{color:#89543D;border-top-color:var(--premium)!important}
+.premium .tail{border-top-color:var(--premium)!important}
 .premium .tag{width:60px;z-index:4;position:absolute;top:58px;right:0;}
 .active{background-color:#4CAF50;color:white;}
 
@@ -345,21 +345,39 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .ar{direction:rtl;text-align:right}
 .en{direction:ltr;text-align:left}
 
+
+.inline{display:inline !important}
+.inline-flex{display:inline-flex !important}
+
 .ad{display:inherit;position:relative;min-width:300px;max-width:360px;width:320px;margin:auto;}
 .ad a{display:inherit}
 .ad .widget{display:inline-block;width:100%;height:360px;margin:25px 0;box-shadow: 0 1px 4px 0 rgba(0,0,0,0.14);border-radius: 6px;color: rgba(0,0,0,0.87);background: #fff;}
 .ad .image{position:relative;height:220px;overflow:hidden;margin-left:15px;margin-right:15px;margin-top:-15px;border-radius:6px;z-index:3;box-shadow:0 6px 15px -10px rgba(0,0,0,0.42),0 4px 25px 0 rgba(0,0,0,0.12),0 8px 10px -5px rgba(0,0,0,0.2);}
 .ad .image img{width:100%;height:100%;object-fit:cover;object-position: center;pointer-events:none;}
 .ad .image .box{color:white;font-size:14px;font-weight:bold}
-.ad .image .box.hint{position:absolute;bottom:0;background-color:#2d3e4f;opacity:0.65;height:24px;width:100%;}
-.ad .content{display:inherit;position:relative;color:var(--mColor90);padding:15px 15px 10px}
-.ad .tail{padding-top:4px;margin:0 20px 10px;border-top:1px solid #eee;position:relative;display:inline-flex;width:-webkit-fill-available;width:-moz-available}
 
-.ad .card-content{color:var(--mColor90);}
+.ad .image .box.hint{display:flex;position:absolute;bottom:0;background-color:#2d3e4f;opacity:0.65;height:24px;width:100%;align-items:center;justify-content:space-between;padding-inline-start:4px;padding-inline-end:4px}
+.ad .image .box.new{position:absolute;top:0;left:0;background-color:#d53845;color:white;opacity:0.8;padding:2px 5px;font-size:0.7em;border-bottom-right-radius:5px;}
+.ad .image .box.cam{position:absolute;top:8px;right:8px;font-weight:bold}
 
-.ad.full{width:-webkit-fill-available;width:-moz-available; max-width:-webkit-fill-available;max-width:-moz-available}
-.ad .abuse{background-color:transparent;width:32px;height:32px;position:absolute;left:0;top:6px;display:none;cursor:pointer}
-.ad:hover .abuse {display: block}
+.ad .icn-camera{width:30px;height:25px !important;display:flex;align-items:center;justify-content:center;padding-top:3px}
+.ad .icn-camera:before{content:""}
+
+.ad .content{display:inherit;position:relative;color:var(--mColor90);padding:15px 15px 8px}
+.ad .tail{/*padding-top:2px*/;margin:0 10px 10px;/*border-top:1px solid #eee;*/position:relative;display:inline-flex;width:-webkit-fill-available;width:-moz-available}
+.ad .tail ul{display:inline-flex;padding:0;margin:0 5px;flex-flow:column;width:100%;white-space:nowrap;overflow:hidden}
+.ad .tail li{overflow:hidden;line-height:1.5em;width:-webkit-fill-available;width:-moz-available;border-top:1px solid var(--mColor12);line-height:26px}
+.ad .tail a{display:flex;justify-content:space-between;align-items:center;font-weight:bold;font-size:13px;color:var(--mColor70)}
+.ad .tail a>:nth-child(2){font-size:22px;margin-top:-1px;color:#5a99ff}
+/*.ad .premium .tail a>:nth-child(2){color:var(--premium)}*/
+.ad .premium .tail a{color:#b59279}
+.ad .premium .tail a>:nth-child(2){color:#b59279}
+
+.ad.full{width:-webkit-fill-available;width:-moz-available;max-width:-webkit-fill-available;max-width:-moz-available}
+.ad .abuse{background-color:transparent;width:32px;height:32px;position:absolute;left:0;top:10px;display:none;cursor:pointer}
+.ad:hover .abuse{display:block}
+
+.ad .seclogo img{filter: invert(55%) sepia(27%) saturate(782%) hue-rotate(173deg) brightness(101%) contrast(94%)}
 
 /*.ad:hover{-moz-box-shadow:0 3px 3px #333;-o-box-shadow:0 3px 3px #333;-webkit-box-shadow:0 3px 3px #333;box-shadow: 0 3px 3px #333}*/
 .adslot{text-align: center; /*min-width:0px; max-width:360px; width: 100%;*/ width: auto; height: auto; min-width: 300px; max-height: 750px !important;padding-bottom: 24px;}
@@ -419,8 +437,8 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 /*.large .arrow{margin-top:10px;margin-inline-start:8px;margin-inline-end:0}*/
 
 /*.adc::first-line{font-weight:bold;}*/
-.block-with-text{overflow:hidden;position:relative;line-height:1.5em;height:4.5em;}
-.seclogo{background-color:#5f798e;display:inline-flex;align-items:center;justify-content:center;width:calc(100% - 32px);}
+.block-with-text{overflow:hidden;position:relative;line-height:1.4em;height:4.2em;font-size:16px;font-weight:400;color:#5c696d/*var(--mColor70)*/}
+.seclogo{background-color:var(--mcDarkColor);display:inline-flex;align-items:center;justify-content:center;width:calc(100% - 32px);}
 .seclogo img{width:160px !important;height:auto !important;}
 .card .cbox{display:flex;color:white;position:absolute;font-size:0.8em;align-items:center;font-weight:bold;}
 .card .cbox .icn-camera{width:30px; height:25px !important;display:flex;align-items: center;color:white;justify-content: center;padding-top: 3px}

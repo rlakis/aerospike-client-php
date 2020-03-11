@@ -893,7 +893,7 @@ class Page extends Site {
                 }
                 $isNew=(!$selected && $this->checkNewUserContent($v['unixtime']));
                 $name=$v['name'].'&nbsp<span'.($isNew?' class=hot>':'>').\number_format($v['counter']).'</span>';
-                ?><li><a href=<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $k, $purposeId)?>><img style="width:25px;height:25px;margin-inline-end:8px" src="/web/css/1.0/assets/se/<?=$k?>.svg"><?=$name?></a></li><?php
+                ?><li><a href=<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $k, $purposeId)?>><img class=se src="/web/css/1.0/assets/se/<?=$k?>.svg"><?=$name?></a></li><?php
             }
         }
         ?></ul></div><?php
