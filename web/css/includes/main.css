@@ -31,6 +31,15 @@
     --mColor80:rgba(28,65,94,.8);
     --mColor90:rgba(28,65,94,.9);
     
+    --mcRent:#2acf8e;
+    --mcSale:#ff6167;
+    --mcSeImg:#5a99ff;
+    
+    --mRentFilter:invert(99%) sepia(65%) saturate(2147%) hue-rotate(76deg) brightness(85%) contrast(85%);
+    --mSaleFilter:invert(46%) sepia(38%) saturate(2637%) hue-rotate(326deg) brightness(114%) contrast(103%);
+    
+    --mseImgFilter:invert(70%) sepia(65%) saturate(5500%) hue-rotate(199deg) brightness(105%) contrast(101%);
+    
     --mroFilter:invert(18%) sepia(95%) saturate(421%) hue-rotate(163deg) brightness(90%) contrast(89%);
     --mseFilter:invert(55%) sepia(11%) saturate(758%) hue-rotate(141deg) brightness(87%) contrast(83%);
 }
@@ -377,7 +386,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .ad .abuse{background-color:transparent;width:32px;height:32px;position:absolute;left:0;top:10px;display:none;cursor:pointer}
 .ad:hover .abuse{display:block}
 
-.ad .seclogo img{filter: invert(55%) sepia(27%) saturate(782%) hue-rotate(173deg) brightness(101%) contrast(94%)}
+.ad .seclogo img{filter:var(--mseImgFilter)}
 
 /*.ad:hover{-moz-box-shadow:0 3px 3px #333;-o-box-shadow:0 3px 3px #333;-webkit-box-shadow:0 3px 3px #333;box-shadow: 0 3px 3px #333}*/
 .adslot{text-align: center; /*min-width:0px; max-width:360px; width: 100%;*/ width: auto; height: auto; min-width: 300px; max-height: 750px !important;padding-bottom: 24px;}

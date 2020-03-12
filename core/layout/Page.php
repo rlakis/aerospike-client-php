@@ -1503,7 +1503,7 @@ class Page extends Site {
                         } 
                         else {
                             if (!$selected && $this->checkNewUserContent($purpose['unixtime'])) { $isNew=true; }
-                            $result[]='<li'.($isNew?" class='nl'":"").'>'.
+                            $result[]='<li'.($isNew?" class=nl":"").'>'.'<img class=se src=/web/css/1.0/assets/pu/'.$pid.'.svg >'.
                                     $this->renderListLink($pname.'<small>&nbsp;('.\number_format($purpose['counter']).')</small>',
                                                 $this->router->getURL($this->router->countryId,$this->router->cityId,$this->router->rootId,
                                                 $this->router->sectionId, $pid), $selected).'</li>';
@@ -1512,7 +1512,7 @@ class Page extends Site {
                     
                     if (isset($this->router->sections[$this->router->sectionId][5]) && $this->router->sections[$this->router->sectionId][5]) {
                         $secId=$this->router->sections[$this->router->sectionId][5];
-                        $result[]='<li>'.$this->renderListLink($this->router->sections[$secId][$this->fieldNameIndex], $this->router->getURL($this->router->countryId,$this->router->cityId,$this->router->sections[$secId][4],
+                        $result[]='<li data-v=r>'.$this->renderListLink($this->router->sections[$secId][$this->fieldNameIndex], $this->router->getURL($this->router->countryId,$this->router->cityId,$this->router->sections[$secId][4],
                                                             $secId, $this->router->sections[$this->router->sectionId][9]), false).'</li>';
                     }
                 }
