@@ -7,7 +7,7 @@ class Classifieds {
 
     const ID                    = 0;
     const HELD                  = 1;
-    //const TITLE                 = 2;
+    
     const PUBLICATION_ID        = 3;
     const COUNTRY_ID            = 4;
     const CITY_ID               = 5;
@@ -22,18 +22,18 @@ class Classifieds {
     const UNIXTIME              = 14;
     const CANONICAL_ID          = 15;
     const EXPIRY_DATE           = 16;
-    //const OUTBOUND_LINK         = 17;
+    
     const URI_FORMAT            = 18;
     const SECTION_NAME_AR       = 19;
     const SECTION_NAME_EN       = 20;
     const LAST_UPDATE           = 21;
     const LATITUDE              = 22;
     const LONGITUDE             = 23;
-    //const ALT_TITLE             = 24;
+    
     const ALT_CONTENT           = 25;
     const USER_ID               = 26;
     const PICTURES              = 27;
-    //const VIDEO                 = 28;
+    
     const EXTENTED_AR           = 29;
     const EXTENTED_EN           = 30;
 
@@ -51,7 +51,6 @@ class Classifieds {
     const EMAILS                = 38;
     const FEATURED              = 39;
     const CONTACT_INFO          = 40;
-    //const CONTACT_TIME          = 41;
     
     const FEATURE_ENDING_DATE   = 42;
     const BO_ENDING_DATE        = 43;
@@ -89,7 +88,7 @@ class Classifieds {
     }
             
     
-    function getAd(int $id, array $cache) : Ad {
+    function getAd(int $id, array $cache=[]) : Ad {
         $result = $cache[$id] ?? $this->db->getCache()->get($id);
         if ($result===false) { $result=$this->getById($id); }
         return new Ad($result===false?[]:$result);
@@ -108,8 +107,8 @@ class Classifieds {
                 }
                 
                 if (!isset($ad[Classifieds::FEATURE_ENDING_DATE])) {                    
-                    $ad[Classifieds::FEATURE_ENDING_DATE] = 0;
-                    $ad[Classifieds::BO_ENDING_DATE] = 0;
+                    $ad[Classifieds::FEATURE_ENDING_DATE]=0;
+                    $ad[Classifieds::BO_ENDING_DATE]=0;
                 }
                 
                 return $ad;
@@ -193,7 +192,6 @@ class Classifieds {
             $ad[Classifieds::UNIXTIME]=$row['UNIXTIME'];
             $ad[Classifieds::CANONICAL_ID]=$row['CANONICAL_ID'];
             $ad[Classifieds::EXPIRY_DATE]=$row['EXPIRY_DATE'];
-            //$ad[Classifieds::OUTBOUND_LINK]=$row['FLINK'];
             $ad[Classifieds::URI_FORMAT]=$row['URI'];
             $ad[Classifieds::SECTION_NAME_AR]=$row['NAME_AR'];
             $ad[Classifieds::SECTION_NAME_EN]=$row['NAME_EN'];
@@ -208,18 +206,17 @@ class Classifieds {
             $ad[Classifieds::EXTENTED_EN]=0;
             
             
-            $ad[Classifieds::PICTURES] = NULL;
-            $ad[Classifieds::PICTURES_DIM] = NULL;
-            //$ad[Classifieds::VIDEO] = NULL; 
-            $ad[Classifieds::LOCALITIES_AR] = NULL;
-            $ad[Classifieds::LOCALITIES_EN] = NULL;
-            $ad[Classifieds::LOCATION] = NULL;
+            $ad[Classifieds::PICTURES]=NULL;
+            $ad[Classifieds::PICTURES_DIM]=NULL;
+            $ad[Classifieds::LOCALITIES_AR]=NULL;
+            $ad[Classifieds::LOCALITIES_EN]=NULL;
+            $ad[Classifieds::LOCATION]=NULL;
             
             $ad[Classifieds::USER_LEVEL]=$row['LVL'];                        
-            $ad[Classifieds::USER_RANK] = $row['USER_RANK'];
-            $ad[Classifieds::FEATURE_ENDING_DATE] = $row['FEATURED_DATE_ENDED'];
-            $ad[Classifieds::BO_ENDING_DATE] = $row['BO_DATE_ENDED'];
-            $ad[Classifieds::PUBLISHER_TYPE] = $row['PUBLISHER_TYPE'];
+            $ad[Classifieds::USER_RANK]=$row['USER_RANK'];
+            $ad[Classifieds::FEATURE_ENDING_DATE]=$row['FEATURED_DATE_ENDED'];
+            $ad[Classifieds::BO_ENDING_DATE]=$row['BO_DATE_ENDED'];
+            $ad[Classifieds::PUBLISHER_TYPE]=$row['PUBLISHER_TYPE'];
             $ad[Classifieds::DONE]=0;
             
             // parser

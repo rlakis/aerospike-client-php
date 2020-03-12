@@ -26,9 +26,10 @@ class Page extends Site {
     var $extended=null,$extendedId=0,$localities=null,$parentLocalities=null,$cityParentLocalityId=0,$localityId=0,$localityParentId=0,$extended_uri='';
     var $isMobileCssLegacy=true;            
     var $countryCounter='',$inlineScript='',$inlineQueryScript='',$globalScript='',$cssImgsLoaded=false, $inlineCss='';
-    var $detailAd, $isNewMobile=false,$requireLogin=false,$forceNoIndex=false,$isAdminSearch=0;
+    var $isNewMobile=false,$requireLogin=false,$forceNoIndex=false,$isAdminSearch=0;
     var $cityName='',$rootName='', $countryName='', $categoryName='', $sectionName='', $purposeName='',$backLink='';
     
+    public Core\Model\Ad $detailAd;
     public bool $detailAdExpired=false;
     var $pageItemScope='itemscope itemtype="https://schema.org/WebPage"';
     
@@ -214,30 +215,32 @@ class Page extends Site {
             }
         }        
 
-        if ($this->router->module==='detail') {
-            // need revision to new class Ad
-            $this->detailAd=$this->classifieds->getById($this->router->id);
-            if (!empty($this->detailAd)) {
-                if (!empty($this->detailAd[Classifieds::ALT_CONTENT])) {
-                    if ($this->router->language==='en' && $this->detailAd[Classifieds::RTL]) {
+        if ($this->router->module==='detail') {            
+            $this->detailAd=$this->classifieds->getAd($this->router->id);
+            if ($this->detailAd->id()>0) {
+                if ($this->detailAd->hasAltContent()) {                    
+                    if ($this->router->language==='en' && $this->detailAd->rtl()) {
                         $this->detailAd[Classifieds::TITLE]=$this->detailAd[Classifieds::ALT_TITLE];
                         $this->detailAd[Classifieds::CONTENT]=$this->detailAd[Classifieds::ALT_CONTENT];
-                        $this->detailAd[Classifieds::RTL]=0;
+                        $this->detailAd->setLTR();                        
                         $this->appendLocation=false;
-                    } elseif ($this->router->language==='ar' && $this->detailAd[Classifieds::RTL]==0) {
+                    } 
+                    elseif ($this->router->language==='ar' && !$this->detailAd->rtl()) {
                         $this->detailAd[Classifieds::TITLE] = $this->detailAd[Classifieds::ALT_TITLE];
                         $this->detailAd[Classifieds::CONTENT] = $this->detailAd[Classifieds::ALT_CONTENT];
-                        $this->detailAd[Classifieds::RTL] = 1;          
+                        $this->detailAd->setRTL();
                         $this->appendLocation=false;
                     }
                 }
-                $this->router->cityId=$this->detailAd[Classifieds::CITY_ID];
-                $this->router->countryId=$this->detailAd[Classifieds::COUNTRY_ID];
-                $this->router->rootId=$this->detailAd[Classifieds::ROOT_ID];
-                $this->router->sectionId=$this->detailAd[Classifieds::SECTION_ID];
-                $this->router->purposeId=$this->detailAd[Classifieds::PURPOSE_ID];
-                $this->lang['description']=\preg_replace('/"/', '', $this->detailAd[Classifieds::CONTENT]);
-                if ($this->detailAd[Classifieds::HELD]!=0) $this->detailAdExpired=true;
+                $this->router->cityId=$this->detailAd->cityId();
+                $this->router->countryId=$this->detailAd->countryId();
+                $this->router->rootId=$this->detailAd->rootId();
+                $this->router->sectionId=$this->detailAd->sectionId();
+                $this->router->purposeId=$this->detailAd->purposeId();
+                $this->lang['description']=\preg_replace('/"/', '', $this->detailAd->text());
+                
+                if ($this->detailAd->expired()) $this->detailAdExpired=true;
+                
             }
             else {
                 $this->detailAdExpired=true;
@@ -1036,6 +1039,24 @@ class Page extends Site {
     }
 
     
+    
+    function composeListLink(string $label, string $link, bool $selected=false, string $icon='') : string {
+        if ($selected) {
+            $result='<b>'.$label.'</b>';
+        }
+        else {
+            if (empty($icon)) {
+                $result="<a href={$link}>{$label}</a>";
+            }
+            else {
+                $result="<a href={$link}><img class=se src={$icon}>{$label}</a>";
+            }
+        }
+        return $result;
+    }
+    
+    
+    // deprecated
     function renderListLink(string $label, string $link, bool $selected=false, string $className='') : string {
         //$class='link'.($className?' '.$className:'');
         $result='';
@@ -1468,6 +1489,7 @@ class Page extends Site {
                     $base_name = ($this->extendedId>0 && isset($this->extended[$this->extendedId]))?$this->extended[$this->extendedId]['name']:
                         (($this->router->sectionId && isset($this->router->pageSections[$this->router->sectionId]))?$this->router->pageSections[$this->router->sectionId]['name']:
                         (($this->router->rootId && isset($this->router->pageRoots[$this->router->rootId]))?$this->router->pageRoots[$this->router->rootId]['name']:''));
+                    
                     foreach ($this->router->pagePurposes as $pid=>$purpose) {
                         $pname = $base_name;
                         switch($pid){
@@ -1503,14 +1525,16 @@ class Page extends Site {
                         } 
                         else {
                             if (!$selected && $this->checkNewUserContent($purpose['unixtime'])) { $isNew=true; }
-                            $result[]='<li'.($isNew?" class=nl":"").'>'.'<img class=se src=/web/css/1.0/assets/pu/'.$pid.'.svg >'.
-                                    $this->renderListLink($pname.'<small>&nbsp;('.\number_format($purpose['counter']).')</small>',
-                                                $this->router->getURL($this->router->countryId,$this->router->cityId,$this->router->rootId,
-                                                $this->router->sectionId, $pid), $selected).'</li>';
+                            
+                            $result[]='<li'.($isNew?" class=nl":"").'>'.
+                                    $this->composeListLink(
+                                            $pname.'<small>&nbsp;('.\number_format($purpose['counter']).')</small>',
+                                            $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $pid), 
+                                            $selected, "/web/css/1.0/assets/pu/{$pid}.svg").'</li>';
                         }
                     }
                     
-                    if (isset($this->router->sections[$this->router->sectionId][5]) && $this->router->sections[$this->router->sectionId][5]) {
+                    if (isset($this->router->sections[$this->router->sectionId][5]) && $this->router->sections[$this->router->sectionId][5]>0) {
                         $secId=$this->router->sections[$this->router->sectionId][5];
                         $result[]='<li data-v=r>'.$this->renderListLink($this->router->sections[$secId][$this->fieldNameIndex], $this->router->getURL($this->router->countryId,$this->router->cityId,$this->router->sections[$secId][4],
                                                             $secId, $this->router->sections[$this->router->sectionId][9]), false).'</li>';
@@ -1537,7 +1561,8 @@ class Page extends Site {
         switch ($this->router->module) {
             case 'detail':
                 if (!empty($this->detailAd)) {
-                    $url = sprintf($this->detailAd[Classifieds::URI_FORMAT], $this->router->isArabic()?'en/':'', $this->detailAd[Classifieds::ID]);
+                    $url=$this->detailAd->url();
+                    //$url=sprintf($this->detailAd[Classifieds::URI_FORMAT], $this->router->isArabic()?'en/':'', $this->detailAd[Classifieds::ID]);
                     break;
                 }
             case 'search':

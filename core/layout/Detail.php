@@ -18,44 +18,45 @@ class Detail extends Search {
             return;
         }
         
-        $description=\trim(\preg_replace("/<\s*\w.*?>(.*?)(<\s*\/\s*\w\s*.*?>|<\s*br\s*>)/", "", $this->detailAd[Classifieds::CONTENT]));
+        $description=\trim(\preg_replace("/<\s*\w.*?>(.*?)(<\s*\/\s*\w\s*.*?>|<\s*br\s*>)/", "", $this->detailAd->text()));
         
-        $text=$this->detailAd[Classifieds::CONTENT]. ' - ' . $this->detailAd[Classifieds::ALT_CONTENT];
-        if(preg_match('/(?:tobacco|cigarette|shisha|gun|bullet|شيشة|شيشه|سلاح|رشاش|بارود|فحم)/i', $text)){
-            $this->urlRouter->cfg['enabled_ads']=false;
+        $text=$this->detailAd->content().' - '.$this->detailAd->altContent();
+        if (\preg_match('/(?:tobacco|cigarette|shisha|gun|bullet|شيشة|شيشه|سلاح|رشاش|بارود|فحم)/i', $text)) {
+            $this->router->config->disableAds();
         }
         
-        $pos = mb_strrpos($description,'/',0,'UTF-8');
-        if($pos){
-            $description = mb_substr($description, 0, $pos-1,'UTF-8');
+        $pos=\mb_strrpos($description,'/',0,'UTF-8');
+        if ($pos) {
+            $description=\mb_substr($description, 0, $pos-1,'UTF-8');
         }
         
-        $this->lang['description'] = trim($description);
+        $this->lang['description']=\trim($description);
         
-        $this->title = trim($this->title);
+        $this->title=\trim($this->title);
 
-        $this->lang['description'] = trim(mb_substr($this->lang['description'], mb_strlen($this->title,'UTF-8'),mb_strlen($this->lang['description'],'UTF-8'),'UTF-8'));
+        $this->lang['description']=\trim(\mb_substr($this->lang['description'], \mb_strlen($this->title,'UTF-8'), \mb_strlen($this->lang['description'], 'UTF-8'), 'UTF-8'));
         
         parent::header();
                 
-        $pageThumb=$this->router->config->imgURL."/200/".$this->detailAd[Classifieds::SECTION_ID].$this->router->_png;
+        $pageThumb=$this->router->config->imgURL."/200/".$this->detailAd->sectionId().$this->router->_png;
                 
-        ?><meta property="og:title" content="<?= $this->title ?>" /><?php 
-        ?><meta property="og:url" content="<?= $this->urlRouter->cfg['host'].$this->urlRouter->uri.$this->detailAd[Classifieds::ID].'/' ?>" /><?php 
+        ?><meta property="og:title" content="<?=$this->title?>" /><?php 
+        ?><meta property="og:url" content="<?=$this->router->config->host.$this->router->uri.$this->detailAd->id().'/'?>" /><?php 
         ?><meta property="og:type" content="product" /><?php 
-        ?><meta property="og:site_name" content="Mourjan.com" /><?php 
-        if (isset($this->detailAd[Classifieds::PICTURES]) && is_array($this->detailAd[Classifieds::PICTURES]) && count($this->detailAd[Classifieds::PICTURES])) {
-            foreach($this->detailAd[Classifieds::PICTURES] as $pic) {
-                ?><meta property="og:image" content="<?= $this->urlRouter->cfg['url_ad_img'].'/repos/d/'.$pic ?>" /><?php
-            }
-        }
+        ?><meta property="og:site_name" content="Mourjan.com" /><?php
+        if ($this->detailAd->hasPictures()) {
+            $pc=$this->detailAd->picturesCount();
+            for ($i=0; $i<$pc; $i++) {
+                ?><meta property="og:image" content="<?=$this->router->config->assetsURL.'/repos/d/'.$this->detailAd->picturePath($i)?>" /><?php
+            }           
+            
+        }     
         else { 
-            ?><meta property="og:image" content="<?= $pageThumb ?>" /><?php
+            ?><meta property="og:image" content="<?=$pageThumb?>" /><?php
         }
-        ?><meta property="og:description" content="<?= $this->lang['description'] ?>" /><?php    
+        ?><meta property="og:description" content="<?=$this->lang['description']?>" /><?php
         ?><meta property="og:admins" content="support@mourjan.com" /><?php 
         ?><meta property="fb:admins" content="682495312" /><?php 
-        /* <meta property="og:locale:alternate" content="<?= ($this->detailAd[Classifieds::RTL] ? "ar_LB" : "en_US" ) ?>"/> */
     }
 
 
@@ -72,80 +73,40 @@ class Detail extends Search {
     }
     
     
-    function displayDetail() {
+    function displayDetail() : void {
         if (!$this->detailAdExpired) {
-            $current_time = time();
-            $isFeatured = $current_time < $this->detailAd[Classifieds::FEATURE_ENDING_DATE];
-            $isFeatureBooked = $current_time < $this->detailAd[Classifieds::BO_ENDING_DATE];
-            //if ($this->detailAd[Classifieds::PUBLICATION_ID]==1) {
-                if (isset($this->user->info['level'])) {
-                    if (!($this->user->info['level']==9 || $this->user->info['id']==$this->detailAd[Classifieds::USER_ID])) {
-                        if (!isset($this->stat['ad-imp']))
-                            $this->stat['ad-imp'] = array(); 
-                        $this->stat['ad-clk'] = $this->detailAd[Classifieds::ID];
-                        $this->stat['ad-imp'][]=$this->detailAd[Classifieds::ID];
-                    }
-                } 
-                else {
-                    if (!isset($this->stat['ad-imp']))
-                            $this->stat['ad-imp'] = array();
-                    $this->stat['ad-clk'] = $this->detailAd[Classifieds::ID];
+            if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp']=[]; }
+            
+            if ($this->user->isLoggedIn()) {
+                if (!($this->user->level()===9||$this->user->id()==$this->detailAd[Classifieds::USER_ID])) {
+                    $this->stat['ad-clk']=$this->detailAd[Classifieds::ID];
                     $this->stat['ad-imp'][]=$this->detailAd[Classifieds::ID];
                 }
-            //}
+            } 
+            else {
+                $this->stat['ad-clk']=$this->detailAd->id();
+                $this->stat['ad-imp'][]=$this->detailAd->id();
+            }
+            
             $pics=null;
             $picsCount=0;
             $hasVideo=0;
             $hasMap=false;
             $showMap=false;
             $vWidth=250;
-            if (isset ($_GET['map']) && $_GET['map']=='on') $showMap=true;
-            if (isset($this->detailAd[Classifieds::PICTURES]) && $this->detailAd[Classifieds::PICTURES]){
-                $pics=$this->detailAd[Classifieds::PICTURES];
-            }
+            if (isset ($_GET['map']) && $_GET['map']==='on') $showMap=true;
+            
+            if ($this->detailAd->hasPictures()) {
+                $picsCount= $this->detailAd->picturesCount();
+            }            
             else {
                 $vWidth+=40;
             }
-           
-            $picsCount= is_array($pics) ? count($pics) : 0;
-            
-            //$pub_link = $this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][$this->fieldNameIndex];
-            //if ($this->detailAd[Classifieds::PUBLICATION_ID]==1 || $this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][6]=='http://www.waseet.net/'){
-            /*
-                if ($this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][6]!='http://www.waseet.net/'){
-                    $partnerInfo=$this->urlRouter->db->getCache()->get('partner_'.$this->detailAd[Classifieds::USER_ID]);
-                    if (!$partnerInfo && isset($this->detailAd[Classifieds::USER_LEVEL]) && $this->detailAd[Classifieds::USER_LEVEL]) $partnerInfo=$this->user->getPartnerInfo($this->detailAd[Classifieds::USER_ID],true);
-                    if ($partnerInfo){
-                        $lang_1='ar';
-                        $lang_2='en';
-                        if ($this->urlRouter->siteLanguage=='en'){
-                            $lang_1='en';
-                            $lang_2='ar';
-                        }
-                        if (isset($partnerInfo['t'][$lang_1]) && $partnerInfo['t'][$lang_1]) {
-                            $pub_link='<a class="fr" href="'.$this->urlRouter->cfg['host'].'/'.(isset($partnerInfo['uri']) && $partnerInfo['uri'] ? $partnerInfo['uri']: $this->urlRouter->basePartnerId+$this->detailAd[Classifieds::USER_ID] ).'/">'.$partnerInfo['t'][$lang_1].'</a>';
-                        }elseif (isset($partnerInfo['t'][$lang_2]) && $partnerInfo['t'][$lang_2]) {
-                            $pub_link='<a class="fr" href="'.$this->urlRouter->cfg['host'].'/'.(isset($partnerInfo['uri']) && $partnerInfo['uri'] ? $partnerInfo['uri']: $this->urlRouter->basePartnerId+$this->detailAd[Classifieds::USER_ID] ).'/">'.$partnerInfo['t'][$lang_2].'</a>';
-                        }
-                    }else{
-                        $pub_link='<span class="mj">'.$pub_link.'</span>';
-                    }
-                }else{*/
-            $pub_link='<span class="mj">'.($this->router->language==='ar' ? 'موقع مرجان':'mourjan.com').'</span>';
-                //}
-            /*    
-            }else {
-                if ($this->detailAd[Classifieds::OUTBOUND_LINK])
-                    //$pub_link = "<a class='fr' onclick=\"ga('send', 'event', 'OutLinks', 'click', '{$this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][2]}');_gaq.push(['_trackEvent', 'OutLinks', 'click', '{$this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][2]}']);wn('{$this->detailAd[Classifieds::OUTBOUND_LINK]}');\">{$pub_link}</a>";
-                    $pub_link = "<a class='fr' onclick=\"ga('send', 'event', 'OutLinks', 'click', '{$this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][2]}');wn('{$this->detailAd[Classifieds::OUTBOUND_LINK]}');\">{$pub_link}</a>";
-                elseif ($this->detailAd[Classifieds::PUBLICATION_ID]!=1)
-                    $pub_link = "<a class='fr' onclick=\"ga('send', 'event', 'OutLinks', 'click', '{$this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][2]}');wn('{$this->urlRouter->publications[$this->detailAd[Classifieds::PUBLICATION_ID]][6]}');\">{$pub_link}</a>";
-            }
-            */
-            $para_class = $this->detailAd[Classifieds::RTL] ? 'ar': 'en';
+                                 
+            $para_class=$this->detailAd->rtl() ? 'ar': 'en';
             if ($this->router->siteTranslate) { $para_class=''; }
             
-            $adSection=$this->getAdSection($this->detailAd, 0, 1);
+            $adSection=$this->getAdSection($this->detailAd->data(), 0, 1);
             
             $favLink = '';
             $isFavorite=0;
@@ -164,7 +125,7 @@ class Detail extends Search {
             $favLink='<div class="d1" onclick="fv(this,1)">'.$favLink.'</div>';
             $abuseLink='';
             if($this->user->info['id'] && $this->user->info['level']==9){
-                if(!$isFeatured && !$isFeatureBooked){
+                if(!$this->detailAd->isFeatured() && !$this->detailAd->isBookedFeature()){
                     $abuseLink="<div class='d2' onclick='rpa(this,0,1)'><span class='i ab'></span><span>{$this->lang['reportAbuse']}</span></div>";
                     if($this->user->isSuperUser() && $this->detailAd[Classifieds::USER_ID] && $this->detailAd[Classifieds::USER_RANK]<2){
                         $abuseLink.="<div class='d2' onclick='rpa(this,0,1,".$this->detailAd[Classifieds::USER_ID].")'><span class='fail'></span><span>{$this->lang['block']}</span></div>";
@@ -178,10 +139,11 @@ class Detail extends Search {
                                                     
             ?><div class="dt sh"><?php 
             
-            if($isFeatured){
+            if ($this->detailAd->isFeatured()) {
                 ?><div class="dtf"><span class="vpdi ar"></span> <?= $this->lang['premium_ad_dt'] ?></div><?php
             }
-            if($this->user->info['id'] && $this->detailAd[Classifieds::USER_ID] && $this->user->info['level']==9){
+            
+            if ($this->user->isLoggedIn() && $this->detailAd->uid()>0 && $this->user->level()===9) {
                 /*if(!$isFeatured && !$isFeatureBooked){
                 $this->globalScript.=' 
                     var blockUser=function(e,id){
@@ -216,7 +178,8 @@ class Detail extends Search {
                 }*/
                 ?></ul></div><?php
             }
-            if ($this->router->cfg['enabled_sharing']) {
+            
+            if ($this->router->config->get('enabled_sharing')) {
                 echo '<!--googleoff: all-->';
                 ?><div class='sha shas'><label><?= $this->lang['shareFriends'] ?></label><span  class='st_email_large' ></span><span  class='st_facebook_large' ></span><span  class='st_twitter_large' ></span><span class='st_googleplus_large'></span><span  class='st_linkedin_large' ></span><span  class='st_sharethis_large' ></span></div><?php
                 echo '<!--googleoff: all-->';
@@ -225,29 +188,31 @@ class Detail extends Search {
             
             //if(isset($this->detailAd[Classifieds::PICTURES_DIM]) && is_array($this->detailAd[Classifieds::PICTURES_DIM]) && (count($this->detailAd[Classifieds::PICTURES_DIM])==$picsCount )){
                 
-                //$autoplay=$this->get('auto_play','boolean');
-                //$videoId = preg_match('/(?:youtube\.com|youtu\.be).*?v=(.*?)(?:$|&)/i', $this->detailAd[Classifieds::VIDEO][1], $matches);
+            //$autoplay=$this->get('auto_play','boolean');
+            //$videoId = preg_match('/(?:youtube\.com|youtu\.be).*?v=(.*?)(?:$|&)/i', $this->detailAd[Classifieds::VIDEO][1], $matches);
                         
-                $this->globalScript.='var imgs=[];';
-                if($picsCount){
-                    echo '<b class="dhr">'.$this->lang['adPics'].'</b>';
-                    $oPics=$this->detailAd[Classifieds::PICTURES_DIM];
-                    $widths=array();
-                    if(is_array($oPics) && count($oPics)){
-                        for($i=0;$i<$picsCount;$i++){
-                            if(isset($oPics[$i][0]) && $oPics[$i][1]){
-                                $oPics[$i][2]=$pics[$i];
-                                $widths[$i]=$oPics[$i][0];
-                            }
+            $this->globalScript.='var imgs=[];';
+            
+            if ($picsCount) {
+                echo '<b class=dhr>', $this->lang['adPics'], '</b>';
+                $oPics=$this->detailAd->data()[Classifieds::PICTURES_DIM];
+                $widths=[];
+                if (\is_array($oPics) && \count($oPics)) {
+                    for ($i=0; $i<$picsCount; $i++) {                        
+                        if (isset($oPics[$i][0]) && $oPics[$i][1]) {
+                            $oPics[$i][2]=$this->detailAd->picturePath($i);
+                            $widths[$i]=$oPics[$i][0];
                         }
-                        if (!empty($widths)) {
-                            if (!array_multisort($widths, SORT_DESC, $oPics)) {
-                                error_log($this->detailAd[Classifieds::ID] . ' -> ' . \json_encode($widths));
-                                error_log(\json_encode($oPics));
-                            }
+                    }
+                    
+                    if (!empty($widths)) {
+                        if (!array_multisort($widths, SORT_DESC, $oPics)) {
+                            error_log($this->detailAd->id() . ' -> ' . \json_encode($widths));
+                            error_log(\json_encode($oPics));
                         }
+                    }
 
-                        ?><style type="text/css"><?php
+                    ?><style type="text/css"><?php
                         for($i=0;$i<$picsCount;$i++){
                             if(isset($oPics[$i][0]) && $oPics[$i][1]){
                                 if($oPics[$i][0] > 448){
@@ -276,7 +241,7 @@ class Detail extends Search {
                         ?><div id="pics" class="pics"><?php
                         for($i=1;$i<=$picsCount;$i++){
                             if(isset($oPics[$i-1][0]) && $oPics[$i-1][1]){
-                                if($this->urlRouter->isAcceptWebP){
+                                if($this->router->isAcceptWebP){
                                     $oPics[$i-1][2] = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $oPics[$i-1][2]);
                                 }
                                 $this->globalScript.='imgs['.$i.']="'.$oPics[$i-1][2].'";';
@@ -287,19 +252,15 @@ class Detail extends Search {
                     }
                 }
 
-                if( ($this->detailAd[Classifieds::LATITUDE] || $this->detailAd[Classifieds::LONGITUDE]) && is_numeric($this->detailAd[Classifieds::LATITUDE]) && is_numeric($this->detailAd[Classifieds::LONGITUDE]))  {
-                    $hasMap=true;
-                }
-
-                //$renderedPics=1;
-            //}
+                $hasMap=($this->detailAd->latitude()!==0||$this->detailAd->longitude()!==0);
             
             ?><div class="txt"><?php 
             echo $adSection;
-            $this->replacePhonetNumbers($this->detailAd[Classifieds::CONTENT], $this->detailAd[Classifieds::COUNTRY_CODE], $this->detailAd[Classifieds::TELEPHONES][0], $this->detailAd[Classifieds::TELEPHONES][1], $this->detailAd[Classifieds::TELEPHONES][2],$this->detailAd[Classifieds::EMAILS]);
+            //$text=$this->detailAd->content();
+            //$this->replacePhonetNumbers($text, $this->detailAd->countryCode(), $this->detailAd->[Classifieds::TELEPHONES][0], $this->detailAd[Classifieds::TELEPHONES][1], $this->detailAd[Classifieds::TELEPHONES][2], $this->detailAd->emails());
 
                 
-            ?><p class='dtp <?= $para_class ?>'><?= $this->detailAd[Classifieds::CONTENT] ?></p><?php 
+            ?><p class='dtp <?= $para_class ?>'><?= $this->detailAd->content() ?></p><?php 
             ?></div><?php
                 if ($this->router->cfg['enabled_sharing']){
                     echo '<!--googleoff: all-->';
@@ -309,26 +270,27 @@ class Detail extends Search {
             ?><div class="opt"><?php
                 echo $favLink;
                 echo $abuseLink;
-                if( isset($this->detailAd[Classifieds::PUBLISHER_TYPE]) && in_array($this->detailAd[Classifieds::ROOT_ID],[1,2,3])){
-                        switch($this->detailAd[Classifieds::PUBLISHER_TYPE]){
-                            case 3:
-                                echo '<div class="d2 ut" onclick="doChat()"><span class="i i'.$this->detailAd[Classifieds::ROOT_ID].'"></span><span>'.$this->lang['pub_3_'.$this->detailAd[Classifieds::ROOT_ID]].'</span></div>';
-                                break;
-                            case 1:
-                                if($this->detailAd[Classifieds::ROOT_ID] == 3){
-                                    echo '<div class="d2 ut"><span class="i p"></span><span>'.$this->lang['bpub_1'].'</span></div>';
-                                }else{
-                                    echo '<div class="d2 ut"><span class="i p"></span><span>'.$this->lang['pub_1'].'</span></div>';
-                                }
-                                break;
-                            default:
-                                //echo '<div class="ms ut"><span class="i i1"></span> '.$this->lang['pub_1'].'</div>';
-                                break;
-                        }
+                if ($this->detailAd->publisherType()!==0 && \in_array($this->detailAd->rootId(), [1,2,3])) {
+                    switch ($this->detailAd->publisherType()) {
+                        case 3:
+                            echo '<div class="d2 ut" onclick="doChat()"><span class="i i'.$this->detailAd->rootId().'"></span><span>'.$this->lang['pub_3_'.$this->detailAd->rootId()].'</span></div>';
+                            break;
+                        case 1:
+                            if ($this->detailAd->isJob()) {
+                                echo '<div class="d2 ut"><span class="i p"></span><span>'.$this->lang['bpub_1'].'</span></div>';
+                            }
+                            else {
+                                echo '<div class="d2 ut"><span class="i p"></span><span>'.$this->lang['pub_1'].'</span></div>';
+                            }
+                            break;
+                        default:
+                            //echo '<div class="ms ut"><span class="i i1"></span> '.$this->lang['pub_1'].'</div>';
+                            break;
                     }
+                }
             ?></div><?php
             ?><div class="drd"><?php
-                    echo '<b class="fl" st="'.$this->detailAd[Classifieds::UNIXTIME].'"></b>';
+                    echo '<b class="fl" st="'.$this->detailAd->epoch().'"></b>';
                     //echo $pub_link;
                     //echo ($this->hasCities && $this->urlRouter->cities[$this->detailAd[Classifieds::CITY_ID]][$this->fieldNameIndex]!=$this->urlRouter->countries[$this->detailAd[Classifieds::COUNTRY_ID]][$this->fieldNameIndex] ? "<a class='fl' href='".$this->urlRouter->getURL($this->detailAd[Classifieds::COUNTRY_ID],$this->detailAd[Classifieds::CITY_ID])."'>" . $this->urlRouter->cities[$this->detailAd[Classifieds::CITY_ID]][$this->fieldNameIndex]."</a>":"")."<a class='fl' href='".$this->urlRouter->getURL($this->detailAd[Classifieds::COUNTRY_ID])."'>" . $this->urlRouter->countries[$this->detailAd[Classifieds::COUNTRY_ID]][$this->fieldNameIndex]."</a>" 
             ?></div><?php
@@ -362,20 +324,15 @@ class Detail extends Search {
                 }
             }*/
             
-            //if ($this->detailAd[Classifieds::PUBLICATION_ID]==1 && $this->urlRouter->cfg['enabled_disqus']) {
-            //    <div class="dthd"><div id="disqus_thread"></div></div>
-            //}
             
             if ($hasMap) {
-                echo '<b class="dhr">'.$this->lang['adMap'].'</b>';
-                if(isset($this->detailAd[Classifieds::LOCATION])){
-                    ?><div class="oc ocl"><span class="i loc"></span><?= $this->detailAd[Classifieds::LOCATION] ?></div><?php
+                echo '<b class=dhr>', $this->lang['adMap'], '</b>';
+                if ($this->detailAd->location()) {
+                    ?><div class="oc ocl"><span class="i loc"></span><?= $this->detailAd->location() ?></div><?php
                 }
                 ?><div class="mph"><div id="map" class="load"></div></div><?php
             }
             ?></div><?php
-//            if ($this->urlRouter->userId)
-//                $this->partnerHeader ();
         }
     }
     

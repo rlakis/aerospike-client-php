@@ -188,9 +188,11 @@ class Search extends Page {
 
            
             $this->title = $this->title ? ($this->partnerSection ? $this->partnerSection . ' - ' : '') . $this->title : $this->lang['partner_page_title'];
-            if (is_numeric($this->partnerInfo['uri']) || $this->router->module == 'detail')
-                $this->forceNoIndex = true;
-            if ($this->router->userId == $this->user->info['id'] ||
+            if (is_numeric($this->partnerInfo['uri']) || $this->router->module==='detail') {
+                $this->forceNoIndex=true;
+            }
+            
+            if ($this->router->userId==$this->user->info['id'] ||
                     $this->lang['description'] ||
                     (isset($this->partnerInfo['a']['ar']) && $this->partnerInfo['a']['ar']) ||
                     (isset($this->partnerInfo['a']['en']) && $this->partnerInfo['a']['en']) ||
@@ -219,17 +221,23 @@ class Search extends Page {
         if ($this->router->sectionId==10) { $this->num = $this->num * 2; }
         */
        
-        if ($this->router->rootId && isset($this->router->roots[$this->router->rootId]))
-            $this->rootName = $this->router->roots[$this->router->rootId][$this->name];
-        else
-            $this->router->rootId = 0;
+        if ($this->router->rootId>0 && isset($this->router->roots[$this->router->rootId])) {
+            $this->rootName=$this->router->roots[$this->router->rootId][$this->name];
+        }
+        else {
+            $this->router->rootId=0;
+        }
 
-        if ($this->router->sectionId && isset($this->router->sections[$this->router->sectionId]))
-            $this->sectionName = $this->router->sections[$this->router->sectionId][$this->name];
-        else
-            $this->router->sectionId = 0;
-        if ($this->router->purposeId && isset($this->router->purposes[$this->router->purposeId]))
-            $this->purposeName = $this->router->purposes[$this->router->purposeId][$this->name];
+        if ($this->router->sectionId && isset($this->router->sections[$this->router->sectionId])) {
+            $this->sectionName=$this->router->sections[$this->router->sectionId][$this->name];
+        } 
+        else {
+            $this->router->sectionId=0;
+        }
+        
+        if ($this->router->purposeId && isset($this->router->purposes[$this->router->purposeId])) {
+            $this->purposeName=$this->router->purposes[$this->router->purposeId][$this->name];
+        }
 
         if (!$this->router->userId && !$this->router->watchId && !$this->userFavorites) {
             if ($this->router->rootId===1 && $this->router->sectionId &&
@@ -296,11 +304,7 @@ class Search extends Page {
         if (\in_array($this->router->sectionId, $this->router->config->get('restricted_section_ads'))) {
             $this->router->config->disableAds();
         }
-        
-        if ($this->user->info['id'] && $this->user->info['level']==9) {
-            $this->inlineCss.='.ls li{height:auto !important;';
-        }
-        
+                
         $this->advSectionId=\filter_input(\INPUT_GET, 'se', \FILTER_VALIDATE_INT)+0;
         if ($this->advSectionId===0 && $this->router->sectionId>0) {
             $this->advSectionId=$this->router->sectionId;
@@ -1360,7 +1364,7 @@ class Search extends Page {
         }
                         
         ?><div id=results class="row viewable"><?php
-        $hasResults = $this->searchResults['body']['total_found']>0 && isset($this->searchResults['body']['matches']) && count($this->searchResults['body']['matches'])>0;
+        $hasResults=$this->searchResults['body']['total_found']>0 && isset($this->searchResults['body']['matches']) && \count($this->searchResults['body']['matches'])>0;
         
         if ($hasResults) {
             echo $this->summarizeSearch();
@@ -1372,9 +1376,10 @@ class Search extends Page {
                 //$this->renderSideSections();
             }
                 
-            if ($this->router->module=='detail' && !$this->detailAdExpired) {
+            if ($this->router->module==='detail' && !$this->detailAdExpired) {
                 $this->displayDetail();
             }
+            
             $section_name=$this->advSectionId>0?$this->router->sections[$this->advSectionId][$this->name]:'Any';
             $purpose_name=$this->advPurposeId>0?$this->router->purposes[$this->advPurposeId][$this->name]:'Any';
             ?><div class=row><div class="col-3 side"><?php
@@ -3883,14 +3888,14 @@ class Search extends Page {
                     $title=$this->title;
                 } 
                 else {
-                    $this->router->cacheHeaders($this->detailAd[Classifieds::LAST_UPDATE]);
+                    $this->router->cacheHeaders($this->detailAd->epoch());
                 }
             } 
             else {
-                $this->router->cacheHeaders($this->detailAd[Classifieds::LAST_UPDATE]);
-                $title=$this->BuildExcerpts($this->detailAd[Classifieds::CONTENT],40,'');
+                $this->router->cacheHeaders($this->detailAd->epoch());
+                $title=$this->BuildExcerpts($this->detailAd->content(), 40, '');
             }
-        } 
+        }
         else {
             $title = $this->title;
             if ($this->localityId && !preg_match('/'.$this->router->countries[$this->router->countryId]['name'].'/',  $this->title)) {

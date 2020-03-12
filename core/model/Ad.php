@@ -20,12 +20,12 @@ class Ad {
         $this->profile=null;
         $this->dataset=null;
         $this->numberValidator= \libphonenumber\PhoneNumberUtil::getInstance();
-        $this->data = $data;
-        if (!isset($this->data[Classifieds::ID])) { $this->data[Classifieds::ID] = 0; }
-        if (!isset($this->data[Classifieds::RTL])) { $this->data[Classifieds::RTL] = 0; }
-        if (!isset($this->data[Classifieds::ROOT_ID])) { $this->data[Classifieds::ROOT_ID] = 0; }
-        if (!isset($this->data[Classifieds::SECTION_ID])) { $this->data[Classifieds::SECTION_ID] = 0; }
-        if (!isset($this->data[Classifieds::PURPOSE_ID])) { $this->data[Classifieds::PURPOSE_ID] = 0; }
+        $this->data=$data;
+        if (!isset($this->data[Classifieds::ID])) { $this->data[Classifieds::ID]=0; }
+        if (!isset($this->data[Classifieds::RTL])) { $this->data[Classifieds::RTL]=0; }
+        if (!isset($this->data[Classifieds::ROOT_ID])) { $this->data[Classifieds::ROOT_ID]=0; }
+        if (!isset($this->data[Classifieds::SECTION_ID])) { $this->data[Classifieds::SECTION_ID]=0; }
+        if (!isset($this->data[Classifieds::PURPOSE_ID])) { $this->data[Classifieds::PURPOSE_ID]=0; }
         
         if (isset($this->data[Classifieds::CONTENT]) && !empty($this->data[Classifieds::CONTENT])) {
             $this->text = preg_split("/\x{200b}/u", $this->data[Classifieds::CONTENT])[0];
@@ -184,6 +184,11 @@ class Ad {
     }
     
     
+    public function altContent() : string {
+        return $this->data[Classifieds::ALT_CONTENT] ?? '';
+    }
+    
+    
     public function text() : string {        
         return $this->text;
     }
@@ -221,6 +226,11 @@ class Ad {
     
     public function publisherType() : int {
         return $this->data[Classifieds::PUBLISHER_TYPE] ?? 0;
+    }
+    
+    
+    public function expired() : bool {
+        return $this->data[Classifieds::HELD]==1;
     }
     
     
@@ -285,7 +295,7 @@ class Ad {
     }
     
     
-    public function contactInfo($userISO='') : array {
+    public function contactInfo(string $userISO='') : array {
         $result = $this->data[Classifieds::CONTACT_INFO] ?? [];
         if (isset($result['p']) && is_array($result['p'])) {
             
@@ -411,19 +421,20 @@ class Ad {
     
     
     public function setRTL() : Ad {
-        $this->data[Classifieds::RTL] = 1;
+        $this->data[Classifieds::RTL]=1;
         return $this;
     }
     
     
     public function setLTR() : Ad {
-        $this->data[Classifieds::RTL] = 0;
+        $this->data[Classifieds::RTL]=0;
         return $this;
     }
     
     
     public function getDateAdded() : int {
-        return $this->data[Classifieds::DATE_ADDED];
+        //\error_log(var_export($this->data, true));
+        return $this->data[Classifieds::DATE_ADDED] ?? 0;
     }
     
     
@@ -758,55 +769,7 @@ class Ad {
         
         if (\is_array($ad) && \count($ad)===1) {
             $this->parseDbRow($ad[0]);
-            /*
-            $this->setID($ad[0]['ID'])
-                    ->setSectionId($ad[0]['SECTION_ID'])
-                    ->setPurposeId($ad[0]['PURPOSE_ID'])
-                    ->setUID($ad[0]['WEB_USER_ID'])
-                    ->setDateAdded($ad[0]['DATE_ADDED'])
-                    ;
-            
-            $this->data[Classifieds::COUNTRY_ID] = $ad[0]['COUNTRY_ID'];
-
-            $this->dataset = new Content($this);
-            $this->dataset
-                    ->setID($id)
-                    ->setState($ad[0]['STATE'])
-                    ->setSectionID($ad[0]['SECTION_ID'])
-                    ->setPurposeID($ad[0]['PURPOSE_ID'])
-                    ->setCountryId($ad[0]['COUNTRY_ID'])
-                    ->setCityId($ad[0]['CITY_ID'])
-                    ->setUID($ad[0]['WEB_USER_ID'])
-                    ->setCoordinate($ad[0]['LATITUDE'], $ad[0]['LONGITUDE']);
-            
-            $ext = \json_decode($ad[0]['CONTENT'], true);
-            $ext_version = $ext[Content::VERSION]??2;
-            
-            if ($ext_version===3) {
-                $this->dataset->setApp(\substr($ext[Content::APP_NAME], 0, 1), \substr($ext[Content::APP_NAME], 2));
-            }
-            else {
-                $this->dataset->setApp($ext[Content::APP_NAME]??'unk', $ext[Content::APP_VERSION]??'');
-            }
-           
-            if ( !empty($ad[0]['PICTURES']) ) {
-                $pics = \json_decode('{' . $ad[0]['PICTURES'] . '}', true);
-                $this->dataset->setPictures($pics);
-            }
-            $this->dataset
-                    ->setOld($ext)
-                    ->setBudget($ext[Content::BUDGET]??0)
-                    ->setUserAgent($ext[Content::USER_AGENT]??'')
-                    ->setContactInfo($ext[Content::CONTACT_INFO]??[])
-                    ->setRegions($ext[Content::REGIONS]??[])
-                    ->setUserLanguage($ext[Content::UI_LANGUAGE]??'en')
-                    ->setLocation($ext[Content::LOCATION]??'')
-                    ->setNativeText($ext[Content::NATIVE_TEXT]??'')
-                    ->setForeignText($ext[Content::FOREIGN_TEXT]??'')
-                    ->setQualified(($ext[Content::QUALIFIED]??false))           
-                    ;
-            */
-            
+          
             $user = Router::instance()->user;
             if ($user!==null && $user->id()>0) {                
                 if ($user->id()===$this->dataset->getUID()) {

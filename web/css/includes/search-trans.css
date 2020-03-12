@@ -29,7 +29,7 @@ fieldset{border:0}
 .side .asrch .sort ul li .check:after{content:"";position:absolute;display:none;left:6px;top:2px;width:7px;height:12px;border:solid white;border-width:0 3px 3px 0;
       -webkit-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg)}
 
-.side .asrch .se{width:25px;height:25px;margin-inline-end:8px;filter:var(--mseFilter)}
+.side .asrch .se{width:30px;height:30px;margin-inline-end:8px;filter:var(--mseFilter)}
 
 /*# sourceMappingURL=search-trans.css.map */
 .side .options{padding-top:4px;}
