@@ -757,8 +757,8 @@ class Site {
                     break;
             }
 
-            if (count($ad['pubTo'])==1) {
-                $cityId=  array_keys($ad['pubTo']);
+            if (\count($ad['pubTo'])===1) {
+                $cityId=\array_keys($ad['pubTo']);
                 $cityId=$cityId[0];
                 if (isset($this->router->cities[$cityId])) {
                     $countryId = $this->router->cities[$cityId][4];

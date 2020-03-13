@@ -415,6 +415,7 @@ class Ad {
     }
     
     
+    
     public function getSuperAdmin() : int {
         return $this->superAdmin;
     }
@@ -483,13 +484,13 @@ class Ad {
     
     
     public function reverseContent() : Ad {
-        $content = $this->data[Classifieds::ALT_CONTENT];
-        $this->data[Classifieds::ALT_CONTENT] = $this->data[Classifieds::CONTENT];
-        $this->data[Classifieds::CONTENT] = $content;
+        $content=$this->data[Classifieds::ALT_CONTENT];
+        $this->data[Classifieds::ALT_CONTENT]=$this->data[Classifieds::CONTENT];
+        $this->data[Classifieds::CONTENT]=$content;
         
-        $content = $this->translation;
-        $this->translation = $this->text;        
-        $this->text = $content;
+        $content=$this->translation;
+        $this->translation=$this->text;        
+        $this->text=$content;
         
         return $this;
     }

@@ -106,7 +106,7 @@ class Detail extends Search {
             $para_class=$this->detailAd->rtl() ? 'ar': 'en';
             if ($this->router->siteTranslate) { $para_class=''; }
             
-            $adSection=$this->getAdSection($this->detailAd->data(), 0, 1);
+            $adSection=$this->getAdSection($this->detailAd, false, true);
             
             $favLink = '';
             $isFavorite=0;
@@ -143,39 +143,10 @@ class Detail extends Search {
                 ?><div class="dtf"><span class="vpdi ar"></span> <?= $this->lang['premium_ad_dt'] ?></div><?php
             }
             
-            if ($this->user->isLoggedIn() && $this->detailAd->uid()>0 && $this->user->level()===9) {
-                /*if(!$isFeatured && !$isFeatureBooked){
-                $this->globalScript.=' 
-                    var blockUser=function(e,id){
-                        if(confirm("Block User?")){
-                            $(e).addClass("load");
-                            $.ajax({
-                                type:"POST",
-                                url:"/ajax-ublock/",
-                                data:{i:'.$this->detailAd[Classifieds::USER_ID].',msg:"Blocked From Detail Page <'.$this->detailAd[Classifieds::USER_ID].'> By Admin '.$this->user->info['id'].'"},
-                                dataType:"json",
-                                success:function(rp){
-                                    if (rp.RP) {
-                                        $(e).parent().parent().parent().html("User Blocked"); 
-                                    }else {
-                                        $(e).removeClass("load");
-                                    }
-                                },
-                                error:function(){
-                                    $(e).removeClass("load");                                   
-                                }
-                            });
-                        }
-                    };
-                ';
-                }*/
+            if ($this->user->isLoggedIn(9)) {
                 echo '<b class="dhr">Admin Controls </b>';
                 ?><div><ul style="overflow:hidden"><?php
                 ?><li class="fr" style="margin:5px 10px"><a href="/myads/?u=<?= $this->detailAd[Classifieds::USER_ID] ?>" class="bt fl">user ads: <?= $this->detailAd[Classifieds::USER_ID] ?></a></li><?php 
-                /*
-                if(!$isFeatured && !$isFeatureBooked && $this->detailAd[Classifieds::USER_RANK]<2){
-                ?><li class="fr" style="margin:5px 10px"><input style="height:auto!important;line-height:35px!important" type="button" class="bt" onclick="blockUser(this,<?= $this->detailAd[Classifieds::USER_ID] ?>)" value="Block User" /></li><?php
-                }*/
                 ?></ul></div><?php
             }
             
@@ -185,14 +156,7 @@ class Detail extends Search {
                 echo '<!--googleoff: all-->';
             }
             
-            
-            //if(isset($this->detailAd[Classifieds::PICTURES_DIM]) && is_array($this->detailAd[Classifieds::PICTURES_DIM]) && (count($this->detailAd[Classifieds::PICTURES_DIM])==$picsCount )){
-                
-            //$autoplay=$this->get('auto_play','boolean');
-            //$videoId = preg_match('/(?:youtube\.com|youtu\.be).*?v=(.*?)(?:$|&)/i', $this->detailAd[Classifieds::VIDEO][1], $matches);
                         
-            $this->globalScript.='var imgs=[];';
-            
             if ($picsCount) {
                 echo '<b class=dhr>', $this->lang['adPics'], '</b>';
                 $oPics=$this->detailAd->data()[Classifieds::PICTURES_DIM];
@@ -244,7 +208,6 @@ class Detail extends Search {
                                 if($this->router->isAcceptWebP){
                                     $oPics[$i-1][2] = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $oPics[$i-1][2]);
                                 }
-                                $this->globalScript.='imgs['.$i.']="'.$oPics[$i-1][2].'";';
                                 ?><span class="sp<?= $i ?> load"></span><?php
                             }
                         }

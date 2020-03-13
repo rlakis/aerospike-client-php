@@ -220,14 +220,16 @@ class Page extends Site {
             if ($this->detailAd->id()>0) {
                 if ($this->detailAd->hasAltContent()) {                    
                     if ($this->router->language==='en' && $this->detailAd->rtl()) {
-                        $this->detailAd[Classifieds::TITLE]=$this->detailAd[Classifieds::ALT_TITLE];
-                        $this->detailAd[Classifieds::CONTENT]=$this->detailAd[Classifieds::ALT_CONTENT];
+                        //$this->detailAd[Classifieds::TITLE]=$this->detailAd[Classifieds::ALT_TITLE];
+                        $this->detailAd->reverseContent();
+                        //$this->detailAd[Classifieds::CONTENT]=$this->detailAd[Classifieds::ALT_CONTENT];
                         $this->detailAd->setLTR();                        
                         $this->appendLocation=false;
                     } 
                     elseif ($this->router->language==='ar' && !$this->detailAd->rtl()) {
-                        $this->detailAd[Classifieds::TITLE] = $this->detailAd[Classifieds::ALT_TITLE];
-                        $this->detailAd[Classifieds::CONTENT] = $this->detailAd[Classifieds::ALT_CONTENT];
+                        //$this->detailAd[Classifieds::TITLE] = $this->detailAd[Classifieds::ALT_TITLE];
+                        //$this->detailAd[Classifieds::CONTENT] = $this->detailAd[Classifieds::ALT_CONTENT];
+                        $this->detailAd->reverseContent();
                         $this->detailAd->setRTL();
                         $this->appendLocation=false;
                     }
@@ -1042,7 +1044,12 @@ class Page extends Site {
     
     function composeListLink(string $label, string $link, bool $selected=false, string $icon='') : string {
         if ($selected) {
-            $result='<b>'.$label.'</b>';
+            if (empty($icon)) {
+                $result='<b>'.$label.'</b>';
+            }
+            else {
+                $result="<span class='inline-flex va-center'><img class=se src={$icon}><b>{$label}</b></span>";  
+            }
         }
         else {
             if (empty($icon)) {
@@ -4971,6 +4978,10 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             
             case 'search':
                 $this->css('breadcrumb')->css('ad-view');
+                break;
+            
+            case 'detail':
+                $this->css('breadcrumb');
                 break;
             
             case 'terms':
