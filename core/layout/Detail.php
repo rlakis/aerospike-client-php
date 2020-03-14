@@ -92,7 +92,7 @@ class Detail extends Search {
             
         $picsCount=0;
         $vWidth=250;
-        $showMap=(isset ($_GET['map']) && $_GET['map']==='on');
+        //$showMap=(isset ($_GET['map']) && $_GET['map']==='on');
             
         if ($this->detailAd->hasPictures()) {
             $picsCount= $this->detailAd->picturesCount();
@@ -208,6 +208,15 @@ class Detail extends Search {
                 $pix=$this->detailAd->picturePath();
                 if ($this->router->isAcceptWebP) { $pix=\preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pix); }
                 ?><img class=col-6 src="<?=$this->router->config->adImgURL.'/repos/d/'.$pix?>" /><?php
+                if ($picsCount>1) {
+                    ?><div class="thumbs"><?php
+                    for ($i=0; $i<$picsCount; $i++) {
+                        $pix=$this->detailAd->picturePath($i);
+                        if ($this->router->isAcceptWebP) { $pix=\preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pix); }
+                        ?><img class=col-6 src="<?=$this->router->config->adImgURL.'/repos/s/'.$pix?>" /><?php
+                    }
+                    ?></div><?php
+                }
                 /*
                 for ($i=1; $i<=$picsCount; $i++) {
                     if (isset($oPics[$i-1][0]) && $oPics[$i-1][1]) {

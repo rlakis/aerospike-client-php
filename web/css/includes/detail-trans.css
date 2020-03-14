@@ -1,5 +1,10 @@
 .dtad{
     display: flex;
     flex-flow: column;
+    background-color: white;
 }
 .dtad [class*="col-"]{padding:0}
+.dtad .pics{display:inline-flex;flex-flow:column}
+.dtad .pics img{margin-bottom:16px;object-fit:cover;object-position:center}
+.dtad .thumbs{display:inherit;flex-flow:row;}
+.dtad .thumbs img{width:128px;height:128px;}
