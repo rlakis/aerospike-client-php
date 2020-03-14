@@ -1,0 +1,5 @@
+.dtad{
+    display: flex;
+    flex-flow: column;
+}
+.dtad [class*="col-"]{padding:0}

@@ -74,123 +74,124 @@ class Detail extends Search {
     
     
     function displayDetail() : void {
-        if (!$this->detailAdExpired) {
-            if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp']=[]; }
-            
-            if ($this->user->isLoggedIn()) {
-                if (!($this->user->level()===9||$this->user->id()==$this->detailAd[Classifieds::USER_ID])) {
-                    $this->stat['ad-clk']=$this->detailAd[Classifieds::ID];
-                    $this->stat['ad-imp'][]=$this->detailAd[Classifieds::ID];
-                }
-            } 
-            else {
+        if ($this->detailAdExpired) {  return;  }
+        
+        if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp']=[]; }
+        $loggedId= $this->user->isLoggedIn();
+                    
+        if ($loggedId) {
+            if (!($this->user->level()===9||$this->user->id()===$this->detailAd->uid())) {
                 $this->stat['ad-clk']=$this->detailAd->id();
                 $this->stat['ad-imp'][]=$this->detailAd->id();
             }
+        } 
+        else {
+            $this->stat['ad-clk']=$this->detailAd->id();
+            $this->stat['ad-imp'][]=$this->detailAd->id();
+        }
             
-            $pics=null;
-            $picsCount=0;
-            $hasVideo=0;
-            $hasMap=false;
-            $showMap=false;
-            $vWidth=250;
-            if (isset ($_GET['map']) && $_GET['map']==='on') $showMap=true;
+        $picsCount=0;
+        $vWidth=250;
+        $showMap=(isset ($_GET['map']) && $_GET['map']==='on');
             
-            if ($this->detailAd->hasPictures()) {
-                $picsCount= $this->detailAd->picturesCount();
-            }            
-            else {
-                $vWidth+=40;
-            }
+        if ($this->detailAd->hasPictures()) {
+            $picsCount= $this->detailAd->picturesCount();
+        }
+        else {
+            $vWidth+=40;
+        }
                                  
-            $para_class=$this->detailAd->rtl() ? 'ar': 'en';
-            if ($this->router->siteTranslate) { $para_class=''; }
+        $para_class=$this->detailAd->rtl() ? 'ar': 'en';
+        if ($this->router->siteTranslate) { $para_class=''; }
             
-            $adSection=$this->getAdSection($this->detailAd, false, true);
+        $adSection=$this->getAdSection($this->detailAd, false, true);
             
-            $favLink = '';
-            $isFavorite=0;
-            if ($this->user->info['id']) {
-                if ($this->user->favorites) {
-                    if (in_array($this->detailAd[Classifieds::ID], $this->user->favorites)) {
-                        $favLink = "<span class='i fav on'></span><span>{$this->lang['removeFav']}</span>";
-                        //$divClass.= 'fon ';
-                        $isFavorite=true;
-                    }
-                }
-            }
-            if(!$favLink){
-                $favLink = "<span class='i fav'></span><span>{$this->lang['addFav']}</span>";
-            }
-            $favLink='<div class="d1" onclick="fv(this,1)">'.$favLink.'</div>';
-            $abuseLink='';
-            if($this->user->info['id'] && $this->user->info['level']==9){
-                if(!$this->detailAd->isFeatured() && !$this->detailAd->isBookedFeature()){
-                    $abuseLink="<div class='d2' onclick='rpa(this,0,1)'><span class='i ab'></span><span>{$this->lang['reportAbuse']}</span></div>";
-                    if($this->user->isSuperUser() && $this->detailAd[Classifieds::USER_ID] && $this->detailAd[Classifieds::USER_RANK]<2){
-                        $abuseLink.="<div class='d2' onclick='rpa(this,0,1,".$this->detailAd[Classifieds::USER_ID].")'><span class='fail'></span><span>{$this->lang['block']}</span></div>";
-                    }
-                }
-            }else{
+        $favLink = '';
+        $isFavorite=0;
+        
+        if ($loggedId && $this->user->favorites) {
+            if (\in_array($this->detailAd->id(), $this->user->favorites)) {
+                $favLink = "<span class='i fav on'></span><span>{$this->lang['removeFav']}</span>";
+                //$divClass.= 'fon ';
+                $isFavorite=true;
+            }                
+        }
+        
+        if (!$favLink) {
+            $favLink = "<span class='i fav'></span><span>{$this->lang['addFav']}</span>";
+        }
+        $favLink='<div class="d1" onclick="fv(this,1)">'.$favLink.'</div>';
+        
+        $abuseLink='';
+        if ($this->user->isLoggedIn(9)) {
+            if (!$this->detailAd->isFeatured() && !$this->detailAd->isBookedFeature()) {
                 $abuseLink="<div class='d2' onclick='rpa(this,0,1)'><span class='i ab'></span><span>{$this->lang['reportAbuse']}</span></div>";
+                if($this->user->isSuperUser() && $this->detailAd->uid() && $this->detailAd->data()[Classifieds::USER_RANK]<2) {
+                    $abuseLink.="<div class='d2' onclick='rpa(this,0,1,".$this->detailAd->uid().")'><span class='fail'></span><span>{$this->lang['block']}</span></div>";
+                }
             }
-                        
-            $renderedPics=0;
+        }
+        else {
+            $abuseLink="<div class='d2' onclick='rpa(this,0,1)'><span class='i ab'></span><span>{$this->lang['reportAbuse']}</span></div>";
+        }                               
                                                     
-            ?><div class="dt sh"><?php 
+        ?><div class="dtad"><?php 
             
-            if ($this->detailAd->isFeatured()) {
-                ?><div class="dtf"><span class="vpdi ar"></span> <?= $this->lang['premium_ad_dt'] ?></div><?php
-            }
+        if ($this->detailAd->isFeatured()) {
+            ?><div class="dtf"><span class="vpdi ar"></span> <?= $this->lang['premium_ad_dt'] ?></div><?php
+        }
             
-            if ($this->user->isLoggedIn(9)) {
-                echo '<b class="dhr">Admin Controls </b>';
-                ?><div><ul style="overflow:hidden"><?php
-                ?><li class="fr" style="margin:5px 10px"><a href="/myads/?u=<?= $this->detailAd[Classifieds::USER_ID] ?>" class="bt fl">user ads: <?= $this->detailAd[Classifieds::USER_ID] ?></a></li><?php 
-                ?></ul></div><?php
-            }
+        if ($this->user->isLoggedIn(9)) {
+            echo '<b class="dhr">Admin Controls </b>';
+            ?><div><ul style="overflow:hidden"><?php
+            ?><li class="fr" style="margin:5px 10px"><a href="/myads/?u=<?= $this->detailAd[Classifieds::USER_ID] ?>" class="bt fl">user ads: <?= $this->detailAd[Classifieds::USER_ID] ?></a></li><?php 
+            ?></ul></div><?php
+        }
             
-            if ($this->router->config->get('enabled_sharing')) {
-                echo '<!--googleoff: all-->';
-                ?><div class='sha shas'><label><?= $this->lang['shareFriends'] ?></label><span  class='st_email_large' ></span><span  class='st_facebook_large' ></span><span  class='st_twitter_large' ></span><span class='st_googleplus_large'></span><span  class='st_linkedin_large' ></span><span  class='st_sharethis_large' ></span></div><?php
-                echo '<!--googleoff: all-->';
-            }
-            
+        /*
+        if ($this->router->config->get('enabled_sharing')) {
+            echo '<!--googleoff: all-->';
+            ?><div class='sha shas'><label><?= $this->lang['shareFriends'] ?></label><span  class='st_email_large' ></span><span  class='st_facebook_large' ></span><span  class='st_twitter_large' ></span><span class='st_googleplus_large'></span><span  class='st_linkedin_large' ></span><span  class='st_sharethis_large' ></span></div><?php
+            echo '<!--googleoff: all-->';
+        }
+        */  
                         
-            if ($picsCount) {
-                echo '<b class=dhr>', $this->lang['adPics'], '</b>';
-                $oPics=$this->detailAd->data()[Classifieds::PICTURES_DIM];
-                $widths=[];
-                if (\is_array($oPics) && \count($oPics)) {
-                    for ($i=0; $i<$picsCount; $i++) {                        
-                        if (isset($oPics[$i][0]) && $oPics[$i][1]) {
-                            $oPics[$i][2]=$this->detailAd->picturePath($i);
-                            $widths[$i]=$oPics[$i][0];
-                        }
+        if ($picsCount) {
+            //echo '<b class=dhr>', $this->lang['adPics'], '</b>';
+            $oPics=$this->detailAd->data()[Classifieds::PICTURES_DIM];
+            $widths=[];
+            if (\is_array($oPics) && !empty($oPics)) {
+                for ($i=0; $i<$picsCount; $i++) {                        
+                    if (isset($oPics[$i][0]) && $oPics[$i][1]) {
+                        $oPics[$i][2]=$this->detailAd->picturePath($i);
+                        $widths[$i]=$oPics[$i][0];
                     }
+                }
                     
-                    if (!empty($widths)) {
-                        if (!array_multisort($widths, SORT_DESC, $oPics)) {
-                            error_log($this->detailAd->id() . ' -> ' . \json_encode($widths));
-                            error_log(\json_encode($oPics));
+                if (!empty($widths)) {
+                    if (!\array_multisort($widths, SORT_DESC, $oPics)) {
+                        error_log($this->detailAd->id() . ' -> ' . \json_encode($widths));
+                        error_log(\json_encode($oPics));
+                    }
+                }                
+                
+                ?><style type="text/css"><?php
+                for ($i=0; $i<$picsCount; $i++) {
+                    if (isset($oPics[$i][0]) && $oPics[$i][1]) {
+                        if ($oPics[$i][0] > 448) {
+                            $width=448;
+                            $height=\floor($width*$oPics[$i][1]/$oPics[$i][0]); 
+                            ?>.sp<?= $i+1 ?>,.sp<?= $i+1 ?> img{width:<?= $width ?>px;height:<?= $height ?>px;display:inline-block}<?php
+                        }
+                        else {
+                            ?>.sp<?= $i+1 ?>,.sp<?= $i+1 ?> img{width:<?= $oPics[$i][0] ?>px;height:<?= $oPics[$i][1] ?>px;display:inline-block}<?php
                         }
                     }
-
-                    ?><style type="text/css"><?php
-                        for($i=0;$i<$picsCount;$i++){
-                            if(isset($oPics[$i][0]) && $oPics[$i][1]){
-                                if($oPics[$i][0] > 448){
-                                    $width = 448;
-                                    $height = floor($width * $oPics[$i][1] / $oPics[$i][0]); 
-                                    ?>.sp<?= $i+1 ?>,.sp<?= $i+1 ?> img{width:<?= $width ?>px;height:<?= $height ?>px;display:inline-block}<?php
-                                }else{
-                                    ?>.sp<?= $i+1 ?>,.sp<?= $i+1 ?> img{width:<?= $oPics[$i][0] ?>px;height:<?= $oPics[$i][1] ?>px;display:inline-block}<?php
-                                }
-                            }
-                        }
-                        ?>@media all and (min-width:1250px) {<?php
-                        for($i=0;$i<$picsCount;$i++){
-                            if(isset($oPics[$i][0]) && $oPics[$i][1]){
+                }
+                
+                ?>@media all and (min-width:1250px) {<?php
+                    for ($i=0; $i<$picsCount; $i++) {
+                        if(isset($oPics[$i][0]) && $oPics[$i][1]){
                                 if($oPics[$i][0] > 650){
                                     $width = 650;
                                     $height = floor($width * $oPics[$i][1] / $oPics[$i][0]); 
@@ -201,23 +202,28 @@ class Detail extends Search {
                             }
                         }
                         ?>}<?php
-                        ?></style><?php
-                        ?><div id="pics" class="pics"><?php
-                        for($i=1;$i<=$picsCount;$i++){
-                            if(isset($oPics[$i-1][0]) && $oPics[$i-1][1]){
-                                if($this->router->isAcceptWebP){
-                                    $oPics[$i-1][2] = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $oPics[$i-1][2]);
-                                }
-                                ?><span class="sp<?= $i ?> load"></span><?php
-                            }
+                ?></style><?php
+                
+                ?><div id=pics class=pics><?php
+                $pix=$this->detailAd->picturePath();
+                if ($this->router->isAcceptWebP) { $pix=\preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pix); }
+                ?><img class=col-6 src="<?=$this->router->config->adImgURL.'/repos/d/'.$pix?>" /><?php
+                /*
+                for ($i=1; $i<=$picsCount; $i++) {
+                    if (isset($oPics[$i-1][0]) && $oPics[$i-1][1]) {
+                        if ($this->router->isAcceptWebP) {
+                            $oPics[$i-1][2]=\preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $oPics[$i-1][2]);
                         }
-                        ?></div><?php 
+                        ?><span class="sp<?= $i ?> load"></span><?php
                     }
-                }
+                }*/
+                ?></div><?php 
+            }
+        }
 
-                $hasMap=($this->detailAd->latitude()!==0||$this->detailAd->longitude()!==0);
+        $hasMap=($this->detailAd->latitude()!==0||$this->detailAd->longitude()!==0);
             
-            ?><div class="txt"><?php 
+        ?><div class="txt"><?php 
             echo $adSection;
             //$text=$this->detailAd->content();
             //$this->replacePhonetNumbers($text, $this->detailAd->countryCode(), $this->detailAd->[Classifieds::TELEPHONES][0], $this->detailAd[Classifieds::TELEPHONES][1], $this->detailAd[Classifieds::TELEPHONES][2], $this->detailAd->emails());
@@ -296,7 +302,7 @@ class Detail extends Search {
                 ?><div class="mph"><div id="map" class="load"></div></div><?php
             }
             ?></div><?php
-        }
+        
     }
     
 
