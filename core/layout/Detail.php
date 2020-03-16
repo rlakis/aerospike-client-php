@@ -134,8 +134,8 @@ class Detail extends Search {
         else {
             $abuseLink="<div class='d2' onclick='rpa(this,0,1)'><span class='i ab'></span><span>{$this->lang['reportAbuse']}</span></div>";
         }                               
-                                                    
-        ?><div class="dtad"><?php 
+                          
+        ?><div class="dtad ff-rows"><div class="col-8 ff-cols cntnt"><?php 
             
         if ($this->detailAd->isFeatured()) {
             ?><div class="dtf"><span class="vpdi ar"></span> <?= $this->lang['premium_ad_dt'] ?></div><?php
@@ -144,7 +144,7 @@ class Detail extends Search {
         if ($this->user->isLoggedIn(9)) {
             echo '<b class="dhr">Admin Controls </b>';
             ?><div><ul style="overflow:hidden"><?php
-            ?><li class="fr" style="margin:5px 10px"><a href="/myads/?u=<?= $this->detailAd[Classifieds::USER_ID] ?>" class="bt fl">user ads: <?= $this->detailAd[Classifieds::USER_ID] ?></a></li><?php 
+            ?><li class="fr" style="margin:5px 10px"><a href="/myads/?u=<?=$this->detailAd->uid()?>" class="bt fl">user ads: <?=$this->detailAd->uid()?></a></li><?php 
             ?></ul></div><?php
         }
             
@@ -207,46 +207,52 @@ class Detail extends Search {
                 ?><div id=pics class=pics><?php
                 $pix=$this->detailAd->picturePath();
                 if ($this->router->isAcceptWebP) { $pix=\preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pix); }
-                ?><img class=col-6 src="<?=$this->router->config->adImgURL.'/repos/d/'.$pix?>" /><?php
+                ?><img class=col-12 src="<?=$this->router->config->adImgURL.'/repos/d/'.$pix?>" /><?php
                 if ($picsCount>1) {
                     ?><div class="thumbs"><?php
                     for ($i=0; $i<$picsCount; $i++) {
                         $pix=$this->detailAd->picturePath($i);
                         if ($this->router->isAcceptWebP) { $pix=\preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pix); }
-                        ?><img class=col-6 src="<?=$this->router->config->adImgURL.'/repos/s/'.$pix?>" /><?php
+                        ?><img class=col-12 src="<?=$this->router->config->adImgURL.'/repos/s/'.$pix?>" /><?php
                     }
                     ?></div><?php
                 }
-                /*
-                for ($i=1; $i<=$picsCount; $i++) {
-                    if (isset($oPics[$i-1][0]) && $oPics[$i-1][1]) {
-                        if ($this->router->isAcceptWebP) {
-                            $oPics[$i-1][2]=\preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $oPics[$i-1][2]);
-                        }
-                        ?><span class="sp<?= $i ?> load"></span><?php
-                    }
-                }*/
                 ?></div><?php 
             }
         }
 
+        ?><div class="social"><?php
+        echo $favLink;
+        if ($this->router->cfg['enabled_sharing']){
+            echo '<!--googleoff: all-->';
+            ?><div class='sha shas shab'><label><?= $this->lang['shareFriends'] ?></label><span  class='st_email_large' ></span><span  class='st_facebook_large' ></span><span  class='st_twitter_large' ></span><span class='st_googleplus_large'></span><span  class='st_linkedin_large' ></span><span  class='st_sharethis_large' ></span></div><?php
+            echo '<!--googleoff: all-->';
+        }
+        ?></div><?php
+        
+        ?><p class=info>Details & Description</p><?php
+        ?><div class="attrs"><?php
+        ?><div class="widget"><?php
+        ?></div><?php
+        ?><div class="widget"><?php
+        ?></div><?php
+        ?><div class="widget"><?php
+        ?></div><?php
+        ?><div class="widget"><?php
+        ?></div><?php
+        ?></div><?php
+        
         $hasMap=($this->detailAd->latitude()!==0||$this->detailAd->longitude()!==0);
             
         ?><div class="txt"><?php 
-            echo $adSection;
-            //$text=$this->detailAd->content();
-            //$this->replacePhonetNumbers($text, $this->detailAd->countryCode(), $this->detailAd->[Classifieds::TELEPHONES][0], $this->detailAd[Classifieds::TELEPHONES][1], $this->detailAd[Classifieds::TELEPHONES][2], $this->detailAd->emails());
-
-                
-            ?><p class='dtp <?= $para_class ?>'><?= $this->detailAd->content() ?></p><?php 
-            ?></div><?php
-                if ($this->router->cfg['enabled_sharing']){
-                    echo '<!--googleoff: all-->';
-                    ?><div class='sha shas shab'><label><?= $this->lang['shareFriends'] ?></label><span  class='st_email_large' ></span><span  class='st_facebook_large' ></span><span  class='st_twitter_large' ></span><span class='st_googleplus_large'></span><span  class='st_linkedin_large' ></span><span  class='st_sharethis_large' ></span></div><?php
-                    echo '<!--googleoff: all-->';
-                }
-            ?><div class="opt"><?php
-                echo $favLink;
+        echo $adSection;
+        //$text=$this->detailAd->content();
+        //$this->replacePhonetNumbers($text, $this->detailAd->countryCode(), $this->detailAd->[Classifieds::TELEPHONES][0], $this->detailAd[Classifieds::TELEPHONES][1], $this->detailAd[Classifieds::TELEPHONES][2], $this->detailAd->emails());
+        ?><p class='dtp <?= $para_class ?>'><?= $this->detailAd->content() ?></p><?php 
+        ?></div><?php
+               
+        ?><div class="opt"><?php
+        
                 echo $abuseLink;
                 if ($this->detailAd->publisherType()!==0 && \in_array($this->detailAd->rootId(), [1,2,3])) {
                     switch ($this->detailAd->publisherType()) {
@@ -272,35 +278,6 @@ class Detail extends Search {
                     //echo $pub_link;
                     //echo ($this->hasCities && $this->urlRouter->cities[$this->detailAd[Classifieds::CITY_ID]][$this->fieldNameIndex]!=$this->urlRouter->countries[$this->detailAd[Classifieds::COUNTRY_ID]][$this->fieldNameIndex] ? "<a class='fl' href='".$this->urlRouter->getURL($this->detailAd[Classifieds::COUNTRY_ID],$this->detailAd[Classifieds::CITY_ID])."'>" . $this->urlRouter->cities[$this->detailAd[Classifieds::CITY_ID]][$this->fieldNameIndex]."</a>":"")."<a class='fl' href='".$this->urlRouter->getURL($this->detailAd[Classifieds::COUNTRY_ID])."'>" . $this->urlRouter->countries[$this->detailAd[Classifieds::COUNTRY_ID]][$this->fieldNameIndex]."</a>" 
             ?></div><?php
-            /*
-            if(!$renderedPics){
-                $autoplay=$this->get('auto_play','boolean');
-                if ($hasVideo){
-                    ?><div id="vid" class="video"><?php
-                        ?><object width="648" height="366"><param name="movie" value="<?= $this->detailAd[Classifieds::VIDEO][1] ?>&autoplay=<?= $autoplay ?>&version=2&fs=1"</param><param name="allowFullScreen" value="true"></param><param name='wmode' value='transparent'></param><param name="allowScriptAccess" value="always"></param><embed src="<?= $this->detailAd[Classifieds::VIDEO][1] ?>&autoplay=<?= $autoplay ?>&version=2&fs=1" type="application/x-shockwave-flash" allowfullscreen="true" allowscriptaccess="always" width="648" height="366"></embed></object><?php 
-                    ?></div><?php
-                }
-
-                $this->globalScript.='var imgs=[];';
-                if($picsCount){
-                    ?><div id="pics" class="pics"><?php
-                    for($i=1;$i<=$picsCount;$i++){
-                        $this->globalScript.='imgs['.$i.']="'.$pics[$i-1].'";';
-                    }
-                    ?></div><?php 
-                }
-
-                if( ($this->detailAd[Classifieds::LATITUDE] || $this->detailAd[Classifieds::LONGITUDE]) && is_numeric($this->detailAd[Classifieds::LATITUDE]) && is_numeric($this->detailAd[Classifieds::LONGITUDE]))  {
-                    $hasMap=true;
-                }
-
-                if ($hasMap) {
-                    if(isset($this->detailAd[Classifieds::LOCATION])){
-                        ?><div class="oc ocl"><span class="i loc"></span><?= $this->detailAd[Classifieds::LOCATION] ?></div><?php
-                    }
-                    ?><div class="mph"><div id="map" class="load"></div></div><?php
-                }
-            }*/
             
             
             if ($hasMap) {
@@ -310,7 +287,8 @@ class Detail extends Search {
                 }
                 ?><div class="mph"><div id="map" class="load"></div></div><?php
             }
-            ?></div><?php
+            ?></div><div class="col-4 banners">Banners here<?php
+            ?></div></div><?php
         
     }
     

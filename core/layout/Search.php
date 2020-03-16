@@ -1385,7 +1385,7 @@ class Search extends Page {
             $this->renderAdvancedSearchSections();
             ?></div></div></div><?php
             
-            if ($this->router->rootId!==4 && $this->router->rootId!==2) {
+            if ($this->router->rootId>0 && $this->router->rootId!==4 && $this->router->rootId!==2) {
                 ?><label>Ad purpose</label><div class=sbw><div class=sbe><div class=strg><?php
                 ?><span><?=$purpose_name?></span><div class="arrow"></div><?php
                 ?><div id=_pu class=options><div class="option<?=$this->advPurposeId===0?' selected':''?>" data-value=0>Any</div><?php

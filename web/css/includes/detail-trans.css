@@ -1,10 +1,15 @@
-.dtad{
-    display: flex;
-    flex-flow: column;
-    background-color: white;
-}
+.dtad{display:flex;}
 .dtad [class*="col-"]{padding:0}
+.dtad .cntnt{background-color:white;padding: 32px}
 .dtad .pics{display:inline-flex;flex-flow:column}
-.dtad .pics img{margin-bottom:16px;object-fit:cover;object-position:center}
-.dtad .thumbs{display:inherit;flex-flow:row;}
+.dtad .pics img{margin-bottom:16px;object-fit:cover;object-position:center;max-height:600px}
+.dtad .pics img{margin-inline-end:8px;}
+.dtad .pics img:last-child{margin-inline-end:0}
+.dtad .thumbs{display:inherit;flex-flow:row;overflow:hidden}
 .dtad .thumbs img{width:128px;height:128px;}
+
+.dtad .social{display:inline-flex;flex-flow:column;height:44px;border-bottom:1px solid  var(--mColor70);margin-bottom:16px}
+.dtad .info{font-size:30px;color:#475660}
+.dtad .attrs{display:inherit;flex-flow:row;height:162px;margin-bottom:16px;justify-content:space-between}
+.dtad .attrs .widget{display:inline; width:130px;height:130px;border-radius:8px; border:1px solid var(--mColor40)}
+.dtad .banners{padding-inline-start:16px}
