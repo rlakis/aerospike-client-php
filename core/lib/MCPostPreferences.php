@@ -544,14 +544,14 @@ class MCPostPreferences implements \JsonSerializable {
         $this->services->section(SS_CLEANING_SERVICES);
         $this->services->section(SS_COMPUTER_SERVICES);
         $this->services->section(SS_CONTRACTING);
-        $this->services->section(SS_DREAM_INTERPRETATION);
+        $this->services->section(SS_DREAM_INTERPRETATION)->deny()->purpose(P_OFFERED_SERVICES);
         $this->services->section(SS_ENTERTAINMENT);
         $this->services->section(SS_EVENTS_PLANNING);
         $this->services->section(SS_FORMALITIES_SERVICES);
         $this->services->section(SS_GENERAL_SERVICES);
         $this->services->section(SS_HOMEMADE_COOKING);
         $this->services->section(SS_HUMAN_RESOURCES_SERVICES);
-        $this->services->section(SS_HUMANITARIAN_AID);
+        $this->services->section(SS_HUMANITARIAN_AID)->deny()->purpose(P_OFFERED_SERVICES);
         $this->services->section(SS_INTERNET);
         $this->services->section(SS_LABOR_RECRUITMENT);
         $this->services->section(SS_LAW_SERVICES);
@@ -559,7 +559,7 @@ class MCPostPreferences implements \JsonSerializable {
         $this->services->section(SS_LOST_FOUND);
         $this->services->section(SS_MAINTENANCE_SERVICES);
         $this->services->section(SS_MARKETING_SERVICE);
-        $this->services->section(SS_MARRIAGE);
+        $this->services->section(SS_MARRIAGE)->deny()->purpose(P_OFFERED_SERVICES);
         $this->services->section(SS_PEST_CONTROL);
         $this->services->section(SS_PRIVATE_LESSONS);
         $this->services->section(SS_PROFESSIONAL_SERVICES);

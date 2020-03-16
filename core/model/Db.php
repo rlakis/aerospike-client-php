@@ -709,7 +709,7 @@ class DB {
                     "select id, section_name_ar as name_ar, section_name_en as name_en, "
                     . " section_uri as uri, root_id, "
                     . " related_id, related, purposes, related_purpose_id, related_to_purpose_id "
-                    . "from section limit 100000");
+                    . "from section where section_blocked=0 limit 100000");
         }
         
         self::$Cache->set($label, $records);        

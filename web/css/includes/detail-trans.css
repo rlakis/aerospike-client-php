@@ -1,6 +1,6 @@
-.dtad{display:flex;}
+.dtad{display:flex;flex-flow:column}
 .dtad [class*="col-"]{padding:0}
-.dtad .cntnt{background-color:white;padding: 32px}
+.dtad .cntnt{background-color:white;padding:32px;line-height:1.4em}
 .dtad .pics{display:inline-flex;flex-flow:column}
 .dtad .pics img{margin-bottom:16px;object-fit:cover;object-position:center;max-height:600px}
 .dtad .pics img{margin-inline-end:8px;}

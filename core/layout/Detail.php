@@ -92,7 +92,6 @@ class Detail extends Search {
             
         $picsCount=0;
         $vWidth=250;
-        //$showMap=(isset ($_GET['map']) && $_GET['map']==='on');
             
         if ($this->detailAd->hasPictures()) {
             $picsCount= $this->detailAd->picturesCount();
@@ -106,13 +105,12 @@ class Detail extends Search {
             
         $adSection=$this->getAdSection($this->detailAd, false, true);
             
-        $favLink = '';
+        $favLink='';
         $isFavorite=0;
         
         if ($loggedId && $this->user->favorites) {
             if (\in_array($this->detailAd->id(), $this->user->favorites)) {
                 $favLink = "<span class='i fav on'></span><span>{$this->lang['removeFav']}</span>";
-                //$divClass.= 'fon ';
                 $isFavorite=true;
             }                
         }
@@ -135,7 +133,7 @@ class Detail extends Search {
             $abuseLink="<div class='d2' onclick='rpa(this,0,1)'><span class='i ab'></span><span>{$this->lang['reportAbuse']}</span></div>";
         }                               
                           
-        ?><div class="dtad ff-rows"><div class="col-8 ff-cols cntnt"><?php 
+        ?><div class="dtad"><div class="row"><div class="col-8 ff-cols cntnt"><?php 
             
         if ($this->detailAd->isFeatured()) {
             ?><div class="dtf"><span class="vpdi ar"></span> <?= $this->lang['premium_ad_dt'] ?></div><?php
@@ -173,36 +171,7 @@ class Detail extends Search {
                         error_log($this->detailAd->id() . ' -> ' . \json_encode($widths));
                         error_log(\json_encode($oPics));
                     }
-                }                
-                
-                ?><style type="text/css"><?php
-                for ($i=0; $i<$picsCount; $i++) {
-                    if (isset($oPics[$i][0]) && $oPics[$i][1]) {
-                        if ($oPics[$i][0] > 448) {
-                            $width=448;
-                            $height=\floor($width*$oPics[$i][1]/$oPics[$i][0]); 
-                            ?>.sp<?= $i+1 ?>,.sp<?= $i+1 ?> img{width:<?= $width ?>px;height:<?= $height ?>px;display:inline-block}<?php
-                        }
-                        else {
-                            ?>.sp<?= $i+1 ?>,.sp<?= $i+1 ?> img{width:<?= $oPics[$i][0] ?>px;height:<?= $oPics[$i][1] ?>px;display:inline-block}<?php
-                        }
-                    }
-                }
-                
-                ?>@media all and (min-width:1250px) {<?php
-                    for ($i=0; $i<$picsCount; $i++) {
-                        if(isset($oPics[$i][0]) && $oPics[$i][1]){
-                                if($oPics[$i][0] > 650){
-                                    $width = 650;
-                                    $height = floor($width * $oPics[$i][1] / $oPics[$i][0]); 
-                                    ?>.sp<?= $i+1 ?>,.sp<?= $i+1 ?> img{width:<?= $width ?>px;height:<?= $height ?>px;display:inline-block}<?php
-                                }else{
-                                    ?>.sp<?= $i+1 ?>,.sp<?= $i+1 ?> img{width:<?= $oPics[$i][0] ?>px;height:<?= $oPics[$i][1] ?>px;display:inline-block}<?php
-                                }
-                            }
-                        }
-                        ?>}<?php
-                ?></style><?php
+                }                              
                 
                 ?><div id=pics class=pics><?php
                 $pix=$this->detailAd->picturePath();
@@ -244,7 +213,7 @@ class Detail extends Search {
         
         $hasMap=($this->detailAd->latitude()!==0||$this->detailAd->longitude()!==0);
             
-        ?><div class="txt"><?php 
+        ?><div class=txt><?php 
         echo $adSection;
         //$text=$this->detailAd->content();
         //$this->replacePhonetNumbers($text, $this->detailAd->countryCode(), $this->detailAd->[Classifieds::TELEPHONES][0], $this->detailAd[Classifieds::TELEPHONES][1], $this->detailAd[Classifieds::TELEPHONES][2], $this->detailAd->emails());
@@ -289,6 +258,8 @@ class Detail extends Search {
             }
             ?></div><div class="col-4 banners">Banners here<?php
             ?></div></div><?php
+            ?><div class="row"><div class="tail"><p>Any issue? Report this ad</p></div></div><?php
+            ?></div><?php
         
     }
     

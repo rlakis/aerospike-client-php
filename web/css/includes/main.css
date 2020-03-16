@@ -322,7 +322,7 @@ body[dir="rtl"] .icntop{right: auto;left:12px;}
 .card li:hover,dd:hover,dt:hover{background-color:rgba(200, 200, 200, 0.2);color:var(--mourjanC);}
 .card li>a,dd>a{display:inherit;color:var(--mcOnColor);flex:1 auto;align-items:center}
 .card dt>a{display:inherit;flex:1 auto;align-items:center;color:var(--mcOnColor)}
-.card a>span { font-size: small; font-weight: bolder; }
+/*.card a>span { font-size: small; font-weight: bolder; }*/
 
 .card.test li{border-bottom:0px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
 .card .icn{flex:0 0 auto;}

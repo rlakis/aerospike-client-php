@@ -52,7 +52,7 @@ class Home extends Page {
 
     function main_pane() : void {
         echo '<!--googleoff: snippet-->';
-        ?><section class=search-box style="margin-bottom:8px; box-shadow: 0 1px 4px aliceblue;"><div class="viewable va-center ff-cols"><?php
+        ?><section class=search-box style="margin-bottom:8px;box-shadow:0 1px 4px aliceblue;"><div class="viewable va-center ff-cols"><?php
         $labels=[];
         $kr=\array_keys($this->router->pageRoots);
         foreach ($kr as $id) {
@@ -102,7 +102,7 @@ class Home extends Page {
                     $sections[]=[$se, $row['name'], $row['counter'], $this->checkNewUserContent($row['unixtime'])?1:0, $this->router->getURL($this->router->countryId, $this->router->cityId, $id, $se)];
                     
                 }
-                if ($id===1) {
+                if ($id===4) {
                     $this->router->logger()->info(\json_encode($items, \JSON_PRETTY_PRINT));
                 }
                 ?><div class=large data-ro="<?=$id?>" data-sections='<?=\json_encode($sections)?>' onclick="rootWidget(this);"><?php

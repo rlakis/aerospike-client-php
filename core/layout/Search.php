@@ -1976,7 +1976,7 @@ class Search extends Page {
                             }
                         }
                         else {
-                            if ($res) { $res .= '  »|  '; }
+                            if ($res) { $res.='  »  '; }
                             $res.=$tempSection;
                         }
                     }
