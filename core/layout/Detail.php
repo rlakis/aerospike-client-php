@@ -223,15 +223,31 @@ class Detail extends Search {
         
         ?><p class='<?=$para_class?>'><?=$this->detailAd->content()?></p><?php 
         ?></div><?php
-        
-        ?><div class="contacts"><?php
-        foreach ($this->detailAd->contactInfo(\strtoupper($this->user->params['user_country']??'')) as $contact) {
-            var_dump($contact);                
+        $contacts=$this->detailAd->contactInfo(\strtoupper($this->user->params['user_country']??''));
+        if (!empty($contacts)) {
+            ?><div class="contacts"><?php
+            if (isset($contacts['p'])) {
+                foreach ($contacts['p'] as $contact) {
+                    //var_dump($contact);
+                    switch ($contact['t']) {
+                        case 1:
+                            ?><a class="btn phone"><?=$contact['v']?></a><?php
+                            break;
+                        case 3:
+                            ?><a class="btn whats"><?=$contact['v']?></a><?php
+                            break;
+
+                        default:
+                            ?><a class="btn phone"><?=$contact['v']?></a><?php
+                            break;
+                    }
+                }
+            }
+            ?></div><?php
         }
-        ?></div><?php
         
         ?><div class="opt"><?php        
-        echo $abuseLink;
+        //echo $abuseLink;
         if ($this->detailAd->publisherType()!==0 && \in_array($this->detailAd->rootId(), [1,2,3])) {
             switch ($this->detailAd->publisherType()) {
                 case 3:
@@ -272,7 +288,7 @@ class Detail extends Search {
         
         ?></div><?php
         
-        ?><div class="row"><div class="tail"><div class="col-8 ff-cols"><p>Any issue? <b>Report this ad</b></p></div><div class="col-4"></div></div></div><?php
+        ?><div class=row><div class=tail><div class="col-8 ff-cols report" onclick="reportAd(this)"><p>Any issue? <b>Report this ad</b></p></div><div class=col-4></div></div></div><?php
                                    
         ?></div><?php        
     }

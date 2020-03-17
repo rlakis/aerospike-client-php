@@ -15,7 +15,15 @@
 .dtad .txt{}
 .dtad .txt p{line-height:1.5em}
 .dtad .contacts{display: inherit; background-color: #eee;margin-top:16px}
+.dtad .contacts a{display:inherit;align-items:center;color:white;height:48px;padding:0 8px;border-radius:6px;font-size:15px;font-weight:bold}
+.dtad .contacts a+a{margin-inline-start:12px}
+.dtad .contacts a:before{content:"\00a0"}
+.dtad .phone, .whats{background-color:#2acf8e}
+.dtad .phone:before{background:url(/web/css/1.0/fa/solid/phone.svg) no-repeat center;width:28px;filter:invert(1);margin-inline-end:16px}
+.dtad .whats:before{background:url(/web/css/1.0/fa/brands/whatsapp.svg) no-repeat center;width:28px;filter:invert(1);margin-inline-end:16px}
+
 .dtad .tail{display: inherit;flex: 1 auto;margin-bottom: 40px}
+.dtad .tail .report{cursor:pointer}
 .dtad .tail p{display:inherit;align-self:flex-end;margin-top:8px;font-size:14px}
 .dtad .tail p>b{color:#FF6167;margin:0 4px 0 8px}
 .dtad .banners{padding-inline-start:16px}

@@ -35,7 +35,7 @@ class Page extends Site {
     
     public string $name;
     
-    private array $included = [];
+    private array $included=[];
     
     function __construct() {
         parent::__construct(); 
@@ -4953,6 +4953,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         echo '><head><meta charset="utf-8">';        
         if ($this->router->module==='myads') {
             ?><script async src=/web/js/1.0/chart-2.9.3/Chart.min.js></script><?php
+            ?><script async src=/web/js/1.0/sweetalert2.all.min.js></script><?php
         }
         if ($this->router->module==='admin') {
             echo '<script async src=/web/js/1.0/jsonTree.js></script>';

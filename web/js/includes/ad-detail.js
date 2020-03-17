@@ -319,7 +319,7 @@ function oad(ad){
 }
 
 function report(e){
-    let level=parseInt($.body.dataset.level);
+    let level=parseInt($.body.dataset.level);    
     if(level===9||level===90){
         if(confirm("Hold this ad?")){
             fetch('/ajax-report/',{method:'POST',mode:'same-origin',credentials:'same-origin',
@@ -342,6 +342,53 @@ function report(e){
         //var rpa=function(id,e){if(confirm("Hold this ad?")){e=$(e);if (!e.hasClass("loading")){e.addClass("loading");
         //$.ajax({type:"POST",url:"/ajax-report/",data:{id:id},dataType:"json",success:function(rp){if(rp.RP){e.click=function(){};e.css("background", "0");e.html("Done")}e.removeClass("loading")},error:function(rp){e.removeClass("loading")}})}}};';
     }    
+}
+
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function addScript(filename){
+    console.log('aa');
+ var head = document.getElementsByTagName('head')[0];
+ var script = document.createElement('script');
+ script.src=filename;
+ script.async=false;
+ script.type='text/javascript';
+ head.append(script);
+}
+
+
+function reportAd(e, t){
+    if(typeof Swal==='undefined'){
+        const onSwalReady = () => { reportAd(e); }
+        var s=$.createElement('script');
+        s.onload=onSwalReady;
+        s.src="/web/js/1.0/sweetalert2.all.min.js";
+        s.async=false;
+        document.head.appendChild(s);
+        return;
+    }
+    
+    let level=$.body.dataset.level?parseInt($.body.dataset.level):0;
+    console.log(level, e);
+    if(level===0){
+        Swal.fire({
+            title: 'Report This Ad',
+            text: 'You will send an SMS to advertiser mobile number for verification!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, report it!',
+            cancelButtonText: 'No, dismiss'
+        }).then((result) => {
+            if (result.value) {
+                //Swal.fire('Deleted!', 'Your imaginary file has been deleted.', 'success' )
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                //Swal.fire('Cancelled', 'Your imaginary file is safe :)', 'error')
+            }
+        });
+    }
 }
 
 

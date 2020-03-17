@@ -351,10 +351,21 @@ var d = {
     },
 
     rtp: function (e) {
-        var answer = window.confirm("Do you really want to ask Real Time Password verification?");
-        if (answer) {
-            this.approve(e, 2);
-        }
+        Swal.fire({
+            title: 'Ask Mobile Verification?',
+            text: 'You will send an SMS to advertiser mobile number for verification!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, send it!',
+            cancelButtonText: 'No, dismiss'
+        }).then((result) => {
+            if (result.value) {
+                this.approve(e, 2);
+                //Swal.fire('Deleted!', 'Your imaginary file has been deleted.', 'success' )
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                //Swal.fire('Cancelled', 'Your imaginary file is safe :)', 'error')
+            }
+        });
     },
 
     reject: function (e, uid) {
