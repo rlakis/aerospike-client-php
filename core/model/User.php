@@ -13,8 +13,8 @@ class User {
 
     var $session_id=null;
 
-    var $info=array();
-    var $params=array();
+    public array $info=[];
+    public array $params=[];
     var $pending=array();
     var $favorites=array();
     public ?\Core\Lib\MCUser $data=null;

@@ -133,7 +133,9 @@ class Detail extends Search {
             $abuseLink="<div class='d2' onclick='rpa(this,0,1)'><span class='i ab'></span><span>{$this->lang['reportAbuse']}</span></div>";
         }                               
                           
-        ?><div class="dtad"><div class="row"><div class="col-8 ff-cols cntnt"><?php 
+        ?><div class="dtad"><?php
+        ?><div class="row"><?php
+        ?><div class="col-8 ff-cols cntnt"><?php 
             
         if ($this->detailAd->isFeatured()) {
             ?><div class="dtf"><span class="vpdi ar"></span> <?= $this->lang['premium_ad_dt'] ?></div><?php
@@ -215,52 +217,64 @@ class Detail extends Search {
             
         ?><div class=txt><?php 
         echo $adSection;
+
         //$text=$this->detailAd->content();
         //$this->replacePhonetNumbers($text, $this->detailAd->countryCode(), $this->detailAd->[Classifieds::TELEPHONES][0], $this->detailAd[Classifieds::TELEPHONES][1], $this->detailAd[Classifieds::TELEPHONES][2], $this->detailAd->emails());
-        ?><p class='dtp <?= $para_class ?>'><?= $this->detailAd->content() ?></p><?php 
+        
+        ?><p class='<?=$para_class?>'><?=$this->detailAd->content()?></p><?php 
         ?></div><?php
-               
-        ?><div class="opt"><?php
         
-                echo $abuseLink;
-                if ($this->detailAd->publisherType()!==0 && \in_array($this->detailAd->rootId(), [1,2,3])) {
-                    switch ($this->detailAd->publisherType()) {
-                        case 3:
-                            echo '<div class="d2 ut" onclick="doChat()"><span class="i i'.$this->detailAd->rootId().'"></span><span>'.$this->lang['pub_3_'.$this->detailAd->rootId()].'</span></div>';
-                            break;
-                        case 1:
-                            if ($this->detailAd->isJob()) {
-                                echo '<div class="d2 ut"><span class="i p"></span><span>'.$this->lang['bpub_1'].'</span></div>';
-                            }
-                            else {
-                                echo '<div class="d2 ut"><span class="i p"></span><span>'.$this->lang['pub_1'].'</span></div>';
-                            }
-                            break;
-                        default:
-                            //echo '<div class="ms ut"><span class="i i1"></span> '.$this->lang['pub_1'].'</div>';
-                            break;
+        ?><div class="contacts"><?php
+        foreach ($this->detailAd->contactInfo(\strtoupper($this->user->params['user_country']??'')) as $contact) {
+            var_dump($contact);                
+        }
+        ?></div><?php
+        
+        ?><div class="opt"><?php        
+        echo $abuseLink;
+        if ($this->detailAd->publisherType()!==0 && \in_array($this->detailAd->rootId(), [1,2,3])) {
+            switch ($this->detailAd->publisherType()) {
+                case 3:
+                    echo '<div class="d2 ut" onclick="doChat()"><span class="i i'.$this->detailAd->rootId().'"></span><span>'.$this->lang['pub_3_'.$this->detailAd->rootId()].'</span></div>';
+                    break;
+                case 1:
+                    if ($this->detailAd->isJob()) {
+                        echo '<div class="d2 ut"><span class="i p"></span><span>'.$this->lang['bpub_1'].'</span></div>';
                     }
-                }
-            ?></div><?php
-            ?><div class="drd"><?php
-                    echo '<b class="fl" st="'.$this->detailAd->epoch().'"></b>';
-                    //echo $pub_link;
-                    //echo ($this->hasCities && $this->urlRouter->cities[$this->detailAd[Classifieds::CITY_ID]][$this->fieldNameIndex]!=$this->urlRouter->countries[$this->detailAd[Classifieds::COUNTRY_ID]][$this->fieldNameIndex] ? "<a class='fl' href='".$this->urlRouter->getURL($this->detailAd[Classifieds::COUNTRY_ID],$this->detailAd[Classifieds::CITY_ID])."'>" . $this->urlRouter->cities[$this->detailAd[Classifieds::CITY_ID]][$this->fieldNameIndex]."</a>":"")."<a class='fl' href='".$this->urlRouter->getURL($this->detailAd[Classifieds::COUNTRY_ID])."'>" . $this->urlRouter->countries[$this->detailAd[Classifieds::COUNTRY_ID]][$this->fieldNameIndex]."</a>" 
-            ?></div><?php
-            
-            
-            if ($hasMap) {
-                echo '<b class=dhr>', $this->lang['adMap'], '</b>';
-                if ($this->detailAd->location()) {
-                    ?><div class="oc ocl"><span class="i loc"></span><?= $this->detailAd->location() ?></div><?php
-                }
-                ?><div class="mph"><div id="map" class="load"></div></div><?php
+                    else {
+                        echo '<div class="d2 ut"><span class="i p"></span><span>'.$this->lang['pub_1'].'</span></div>';
+                    }
+                    break;
+                default:
+                    //echo '<div class="ms ut"><span class="i i1"></span> '.$this->lang['pub_1'].'</div>';
+                    break;
             }
-            ?></div><div class="col-4 banners">Banners here<?php
-            ?></div></div><?php
-            ?><div class="row"><div class="tail"><p>Any issue? Report this ad</p></div></div><?php
-            ?></div><?php
+        }
+        ?></div><?php
+            
         
+        ?><div class="drd"><?php
+        echo '<b class="fl" st="'.$this->detailAd->epoch().'"></b>';
+        ?></div><?php
+            
+            
+        if ($hasMap) {
+            echo '<b class=dhr>', $this->lang['adMap'], '</b>';
+            if ($this->detailAd->location()) {
+                ?><div class="oc ocl"><span class="i loc"></span><?= $this->detailAd->location() ?></div><?php
+            }
+            ?><div class="mph"><div id="map" class="load"></div></div><?php
+        }
+        ?></div><?php
+        
+        ?><div class="col-4 banners">Banners here<?php
+        ?></div><?php
+        
+        ?></div><?php
+        
+        ?><div class="row"><div class="tail"><div class="col-8 ff-cols"><p>Any issue? <b>Report this ad</b></p></div><div class="col-4"></div></div></div><?php
+                                   
+        ?></div><?php        
     }
     
 

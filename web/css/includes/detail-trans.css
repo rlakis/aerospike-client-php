@@ -1,6 +1,6 @@
 .dtad{display:flex;flex-flow:column}
 .dtad [class*="col-"]{padding:0}
-.dtad .cntnt{background-color:white;padding:32px;line-height:1.4em}
+.dtad .cntnt{background-color:white;padding:32px;line-height:1.25em;border-radius:6px}
 .dtad .pics{display:inline-flex;flex-flow:column}
 .dtad .pics img{margin-bottom:16px;object-fit:cover;object-position:center;max-height:600px}
 .dtad .pics img{margin-inline-end:8px;}
@@ -12,4 +12,10 @@
 .dtad .info{font-size:30px;color:#475660}
 .dtad .attrs{display:inherit;flex-flow:row;height:162px;margin-bottom:16px;justify-content:space-between}
 .dtad .attrs .widget{display:inline; width:130px;height:130px;border-radius:8px; border:1px solid var(--mColor40)}
+.dtad .txt{}
+.dtad .txt p{line-height:1.5em}
+.dtad .contacts{display: inherit; background-color: #eee;margin-top:16px}
+.dtad .tail{display: inherit;flex: 1 auto;margin-bottom: 40px}
+.dtad .tail p{display:inherit;align-self:flex-end;margin-top:8px;font-size:14px}
+.dtad .tail p>b{color:#FF6167;margin:0 4px 0 8px}
 .dtad .banners{padding-inline-start:16px}
