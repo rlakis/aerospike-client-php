@@ -189,7 +189,7 @@ class Bin extends AjaxHandler {
     }
     
     
-    private function check(bool $ok, int $fail_code=self::ERR_SYS_FAILURE) {
+    private function check(bool $ok, int $fail_code=self::ERR_SYS_FAILURE) : void {
         if ($ok) {
             $this->success();
         }
@@ -5061,13 +5061,13 @@ class Bin extends AjaxHandler {
                 $id=$this->_JPOST['i']??0;
                 if (!(\is_int($id) && $id>0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
                 $msg=\trim($this->_JPOST['msg']??'');
-                if ($msg=='') { $msg='Scam Detection'; };
+                if ($msg==='') { $msg='Scam Detection'; };
                 if (!\preg_match('/by admin/ui', $msg)) {
-                    $msg .= ' by admin '.$this->user()->id();
+                    $msg.=' by admin '.$this->user()->id();
                 }
-                $msg.=' date:'.date("d.m.y");
+                $msg.=' date:'.\date("d.m.y");
                 
-                $mcUser = new \Core\Lib\MCUser($id);
+                $mcUser=new \Core\Lib\MCUser($id);
                 if ($mcUser->isMobileVerified()) {
                     $this->check(($this->user()->block($id, $mcUser->getMobileNumber(), $msg)===1));
                 }

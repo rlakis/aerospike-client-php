@@ -4951,14 +4951,17 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         echo '<!doctype html>';
         echo '<html lang="', $this->router->language, $country_code,'" xmlns:og="http://ogp.me/ns#"';
         echo '><head><meta charset="utf-8">';        
+        
         if ($this->router->module==='myads') {
             ?><script async src=/web/js/1.0/chart-2.9.3/Chart.min.js></script><?php
             ?><script async src=/web/js/1.0/sweetalert2.all.min.js></script><?php
         }
+        
         if ($this->router->module==='admin') {
-            echo '<script async src=/web/js/1.0/jsonTree.js></script>';
-            
+            ?><script async src=/web/js/1.0/jsonTree.js></script><?php
+            ?><script async src=/web/js/1.0/sweetalert2.all.min.js></script><?php            
         }
+        
         if ($this->router->module==='post') {
             echo '<script async src=/web/js/1.0/libphonenumber-min-1.7.10.js></script>';
             echo '<script async src=/web/js/1.0/load-image-scale.js></script>';

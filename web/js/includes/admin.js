@@ -41,7 +41,36 @@ suspend=function(u,e){
 
 
 block=function(u,e){
-    let modal=$.querySelector('div.body');    
-    modal.classList.add('flex');
-    console.log(modal.querySelector('style'));
+    Swal.fire({
+        title: 'Block User',
+        text: 'You will ban this user from posting any advertisement!',
+        input: 'textarea',
+        inputPlaceholder: 'Type the purpose of banning here...',       
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, block him!',
+        cancelButtonText: 'No, dismiss',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'You need to write something!'
+            }
+        }
+    }).then((result) => {
+        if (result.value) {
+            console.log(result);
+            
+            fetch('/ajax-ublock/', _options('POST', {i:u, msg:result.value}))
+                .then(res => res.json())
+                .then(response => {
+                    console.log('Success:', JSON.stringify(response));
+                    //if(response.RP===1){location.reload();}
+                })
+                .catch(error => {
+                    Swal.fire('Error', error, 'error');
+                });
+            //Swal.fire('Deleted!', 'Your imaginary file has been deleted.', 'success' )
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            //Swal.fire('Cancelled', 'Your imaginary file is safe :)', 'error')
+        }
+    });
 };
