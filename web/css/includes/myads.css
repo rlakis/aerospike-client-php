@@ -52,14 +52,14 @@ canvas{max-width: 1024px;margin-left: auto; margin-right: auto;display: block}
 
 .myad .pn.png{color:darkgreen;font-weight:bolder}
 
-.myadls .inline{width:100%;padding:4px;font-size:1.2rem;text-align:center;display:none;}
-.myadls .inline > textarea{width:100%;height:100px;line-height: 1.5em; font-size: 1em;border:1px solid darkgray}
-.myadls .inline > select{width:100%;padding:4px;font-size:20px !important;border:1px solid darkgray}
+.myadls .inside{width:100%;padding:4px;font-size:1.2rem;text-align:center;display:none;}
+.myadls .inside>textarea{width:100%;height:100px;line-height: 1.5em; font-size: 1em;border:1px solid darkgray}
+.myadls .inside>select{width:100%;padding:4px;font-size:20px !important;border:1px solid darkgray}
 
 .myad input[type=button], .myad button {display:inline-flex;color: #007bff; cursor: pointer; font-size: 16px; font-family: inherit; 
              border-color: var(--mcLightColor) var(--mcDarkColor) var(--mcDarkColor) var(--mcLightColor); 
              border-width: thin; border-radius: 4px; outline: none; min-width: 60px;align-items: center;justify-content: center}
-.inline input[type=button]{color:white;}
+.inside input[type=button]{color:white;}
 .myad .btn{margin:4px 8px;color:white;}
 .myad .btn.ok{background-color:#007bff}
 

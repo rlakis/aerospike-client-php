@@ -1183,25 +1183,25 @@ class MyAds extends Page {
             }
             
             if ($isAdmin && $state<7) {
-                ?><div id=rejForm class=inline><select id=rejS></select><?php
+                ?><div id=rejForm class=inside><select id=rejS></select><?php
                 echo '<textarea id=rejT onkeydown="dirElem(this)"></textarea>';
                 echo '<input type=button class="btn ok" value="', $this->lang['reject'], '" />';
                 echo '<input type=button class="btn cancel" value="', $this->lang['cancel'], '" />';
                 ?></div><?php
                                 
-                ?><div id=suspForm class=inline><select id=suspS></select><?php
+                ?><div id=suspForm class=inside><select id=suspS></select><?php
                 echo '<textarea id=suspT onkeydown="dirElem(this)" placeholder="', $this->lang['reason_suspension'], '"></textarea>';
                 echo '<input type=button class="btn ok" value="', $this->lang['suspend'], '" />';
                 echo '<input type=button class="btn cancel" value="', $this->lang['cancel'], '" />';
                 ?></div><?php
                 
-                ?><div id=banForm class=inline><?php
+                ?><div id=banForm class=inside><?php
                 echo '<textarea id=banT onkeydown="dirElem(this)"></textarea>';
                 echo '<input type=button class="btn ok" value="', $this->lang['block'], '" />';
                 echo '<input type=button class="btn cancel" value="', $this->lang['cancel'], '" />';
                 ?></div><?php
                 echo "\n";
-                ?><div id=fixForm class=inline><?php
+                ?><div id=fixForm class=inside><?php
                 echo '<div class=col-12><input id=fixT type=text onkeydown="dirElem(this)" style="width:100%" /></div>';
                 echo '<div id=qRoot class="float-left col-2"><ul></ul></div>';                
                 echo '<div id=qSec class="float-left col-8 sections"><ul></ul></div>';

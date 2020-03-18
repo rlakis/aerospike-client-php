@@ -231,10 +231,13 @@ class Detail extends Search {
                     //var_dump($contact);
                     switch ($contact['t']) {
                         case 1:
-                            ?><a class="btn phone"><?=$contact['v']?></a><?php
+                            ?><a class="btn mobile"><?=$contact['v']?></a><?php
                             break;
                         case 3:
                             ?><a class="btn whats"><?=$contact['v']?></a><?php
+                            break;
+                        case 5:
+                            ?><a class="btn phone"><?=$contact['v']?></a><?php
                             break;
 
                         default:
