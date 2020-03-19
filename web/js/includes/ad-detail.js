@@ -452,3 +452,93 @@ if(ibars){
         e.stopPropagation();
     };
 }
+
+
+////////////////// Image Slider Begin
+var picsContainer = document.getElementById("pics");
+var picThumbs = document.getElementsByClassName("pic-thumb");
+var nextPic = document.getElementsByClassName("next-pic");
+var prevPic = document.getElementsByClassName("prev-pic");
+var picLarge = document.getElementById("pic-large");
+var currentPicIndex = 0;
+var isFullScreen = false;
+if (picThumbs.length > 1) {
+    var showThumb = function (el) {
+        picLarge.src = el.src.replace("/s/", "/d/");
+        try {
+            el.parentElement.scroll({
+                top: 0,
+                left: el.offsetLeft - el.parentElement.offsetLeft - parseInt((el.parentElement.offsetWidth - el.offsetWidth) / 2),
+                behavior: 'smooth'
+            });
+        } catch (err) {
+            console.log(err);
+            el.parentElement.scrollLeft = el.offsetLeft - el.parentElement.offsetLeft - parseInt((el.parentElement.offsetWidth - el.offsetWidth) / 2);
+        }
+        currentPicIndex = Array.prototype.indexOf.call(el.parentElement.children, el);
+        document.getElementsByClassName("active-thumb")[0].classList.remove("active-thumb");
+        el.classList.add("active-thumb");
+    };
+    var previewImage = function () {
+        var el = this;
+        showThumb(el);
+    };
+    var fNextPic = function () {
+        if(currentPicIndex == picThumbs.length-1){
+            currentPicIndex = 0;
+        }else {
+            currentPicIndex++;
+        }
+        showThumb(picThumbs[currentPicIndex]);
+    };
+    var fPrevPic = function () {
+        if(currentPicIndex == 0){
+            currentPicIndex = picThumbs.length-1;
+        }else {
+            currentPicIndex--;
+        }
+        showThumb(picThumbs[currentPicIndex]);
+    };
+    var openLargePic = function () {
+        if (!isFullScreen) {
+            isFullScreen = true;
+            //Use the specification method before using prefixed versions
+            if (picsContainer.requestFullscreen) {
+                picsContainer.requestFullscreen();
+            } else if (picsContainer.msRequestFullscreen) {
+                picsContainer.msRequestFullscreen();
+            } else if (picsContainer.mozRequestFullScreen) {
+                picsContainer.mozRequestFullScreen();
+            } else if (picsContainer.webkitRequestFullscreen) {
+                picsContainer.webkitRequestFullscreen();
+            } else {
+                console.log("Fullscreen API is not supported");
+            }
+        } else {
+            isFullScreen = false;
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+    };
+
+    for (var i = 0; i < picThumbs.length; i++) {
+        picThumbs[i].addEventListener('click', previewImage, false);
+    }
+    nextPic[0].addEventListener('click', fNextPic, false);
+    prevPic[0].addEventListener('click', fPrevPic, false);
+    picLarge.addEventListener('click', openLargePic, false);
+    picThumbs[0].classList.add("active-thumb");
+    
+} else {
+    nextPic[0].style.display = "none";
+    prevPic[0].style.display = "none";
+}
+
+////////////////// Image Slider End

@@ -178,13 +178,15 @@ class Detail extends Search {
                 ?><div id=pics class=pics><?php
                 $pix=$this->detailAd->picturePath();
                 if ($this->router->isAcceptWebP) { $pix=\preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pix); }
-                ?><img class=col-12 src="<?=$this->router->config->adImgURL.'/repos/d/'.$pix?>" /><?php
+                ?><div class="large-pic-container"><a href="javascript://" class="prev-pic">〈</a>
+                <img class=col-12 id=pic-large src="<?=$this->router->config->adImgURL.'/repos/d/'.$pix?>" />
+                    <a href="javascript://" class="next-pic">〉</a></div><?php
                 if ($picsCount>1) {
                     ?><div class="thumbs"><?php
                     for ($i=0; $i<$picsCount; $i++) {
                         $pix=$this->detailAd->picturePath($i);
                         if ($this->router->isAcceptWebP) { $pix=\preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pix); }
-                        ?><img class=col-12 src="<?=$this->router->config->adImgURL.'/repos/s/'.$pix?>" /><?php
+                        ?><img class="col-12 pic-thumb" src="<?=$this->router->config->adImgURL.'/repos/s/'.$pix?>" /><?php
                     }
                     ?></div><?php
                 }
