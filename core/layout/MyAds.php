@@ -628,8 +628,9 @@ class MyAds extends Page {
                     }
                     
                     if ($images) { $images.='||'; }
-                    $images.='<img class=ir src=\"'.$this->router->config->imgURL.'/90/' . $cad->sectionId() . $this->router->_png .'\" />';
-                    $pic = '<img class=ir src="'.$this->router->config->imgURL.'/90/'.$cad->sectionId().$this->router->_png.'" />';                    
+                    
+                    $images.='<img class=ir src="'.$this->router->config->imgURL.'/se/' . $cad->sectionId() . '.svg" />';
+                    $pic = '<img class=ir src="'.$this->router->config->imgURL.'/se/'.$cad->sectionId().'.svg" />';                    
                 }
                 else {                    
                     //if (!empty($cad->dataset()->getPictures()) /*isset($content['pics']) && is_array($content['pics']) && count($content['pics'])>0*/) {

@@ -2761,11 +2761,9 @@ class User {
 
     
     function getCookieData() : void {
-        //$data=null;
-        $cookie = \filter_input(\INPUT_COOKIE, 'mourjan_user', \FILTER_DEFAULT, ['options'=>['default'=>'{}']]);
-        $data = \json_decode($cookie);
-        //if (isset ($_COOKIE['mourjan_user'])) {
-            //$data=json_decode($_COOKIE['mourjan_user']);
+        $cookie=\filter_input(\INPUT_COOKIE, 'mourjan_user', \FILTER_DEFAULT, ['options'=>['default'=>'{}']]);
+        $data=\json_decode($cookie);
+        
         if (\json_last_error()===\JSON_ERROR_NONE) {
             if (isset($data->lv) && \is_numeric($data->lv) && $data->lv>0) {
                 $this->params['last_visit']=$data->lv;
@@ -2795,13 +2793,24 @@ class User {
             if (isset($data->cv) && $data->cv>0) {
                 $this->params['cv']=$data->cv;
             }
+            
+            //if (isset($data->newlook) && \in_array($data->newlook, [0,1])) {
+            //    $this->params['newlook']=$data->newlook;
+            //}
+            
+            //$newlook=\filter_input(\INPUT_GET, 'newlook', FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>-1]])+0;
+            //if ($newlook===0) {
+            //    $this->params['newlook']=0;            
+            //    $link = "https://{$_SERVER["HTTP_HOST"]}".\preg_replace('/[?&]newlook=[01]/', '', $_SERVER["REQUEST_URI"]);
+            //    \error_log('new '.$link);
+            //    $this->site->router->redirect($link, 302);
+            //}
         }
         
     }
     
 
     function setCookieData() : void {
-        //error_log(__CLASS__.'.'.__FUNCTION__. ' '.$this->config->get('site_domain'));
         if ($this->config->modules[$this->site->router->module][0]==='Bin') { return; }
         $info=['lv'=>time(), 'ap'=>($this->site->router->isApp?1:0)];       
         
@@ -2830,7 +2839,7 @@ class User {
         }
         if (isset($this->params['keepme_in'])) {
             $info['on']=$this->params['keepme_in'];
-        }
+        }        
         
         if (isset($this->params['mourjan_user']) || $this->info['id']>0) {
             $info['mu']=1;    
@@ -2845,13 +2854,22 @@ class User {
             $info['cv']=$this->params['cv'];
         }
         
-        \setcookie('mourjan_user', \json_encode($info), time()+31536000,'/', $this->config->get('site_domain'), false);        
-        //error_log(__CLASS__.'.'.__FUNCTION__. ' -> '.\json_encode($info));        
+        \setcookie('mourjan_user', \json_encode($info), time()+31536000,'/', $this->config->get('site_domain'), false);           
+        $newlook=\filter_input(\INPUT_GET, 'newlook', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>-1]])+0;
+        if ($newlook===0) {                     
+            \setcookie('mourjan_site', '0', time()+31536000,'/', '.mourjan.com', false);
+            $link = "https://{$_SERVER["HTTP_HOST"]}" . \preg_replace('/[?&]newlook=[01]/', '', $_SERVER["REQUEST_URI"]);
+            \error_log('new to old ' .$link);
+            $this->site->router->redirect($link, 302);
+        }
+        else {
+            \setcookie('mourjan_site', '1', time()+31536000,'/', '.mourjan.com', false);
+        }
     }
     
     
     function setActiveCookie() {
-        $info=array('on'=>1);
+        $info=['on'=>1];
         setcookie('mourjan_sess', json_encode($info), 0,'/',$this->cfg['site_domain']);
     }
 

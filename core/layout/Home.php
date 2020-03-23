@@ -345,11 +345,13 @@ class Home extends Page {
         ?><div class=ad><?php
         ?><a href="<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$section_id]['root_id'], $section_id, $purpose_id)?>"><?php
         ?><div class=widget><div class="image seclogo"><?php
-        ?><div class=icon><img class=fill-<?=$this->router->sections[$section_id]['root_id']?> src="/web/css/1.0/assets/se/<?=$section_id?>.svg" /></div><?php
-        ?><i><img class="fpu<?=$purpose_id?>" src="/web/css/1.0/assets/pu/<?=$purpose_id?>.svg" /></i><?php
+        ?><div class=icon><img class=fill-<?=$this->router->sections[$section_id]['root_id']?> src="<?=$this->router->config->imgURL?>/se/<?=$section_id?>.svg" /></div><?php
+        ?><i><img class="fpu<?=$purpose_id?>" src="<?=$this->router->config->imgURL?>/pu/<?=$purpose_id?>.svg" /></i><?php
         ?><div class="box hint"><?php
-        ?><div><?=Ad::FormatSinceDate($root[$section_id]['purposes'][$purpose_id]['unixtime'], $this->lang)?></div><?php
-        ?><div><?=\number_format($root[$section_id]['purposes'][$purpose_id]['counter']).' '.$this->lang['ads']?></div><?php
+        if (isset($root[$section_id]) && isset($root[$section_id]['purposes']) && isset($root[$section_id]['purposes'][$purpose_id])) {            
+            ?><div><?=Ad::FormatSinceDate($root[$section_id]['purposes'][$purpose_id]['unixtime'], $this->lang)?></div><?php
+            ?><div><?=\number_format($root[$section_id]['purposes'][$purpose_id]['counter']).' '.$this->lang['ads']?></div><?php
+        }
         ?></div></div><div class=content><?php
         if ($status===\Aerospike::OK) {
             echo $this->sectionLabel($section_id, $purpose_id);
@@ -410,7 +412,7 @@ class Home extends Page {
         }
         else {
             $pic= '<div class="image seclogo">'; //<div class="cbox footer"></div>';
-            $pic.='<img src="/web/css/1.0/assets/se/'.$ad->sectionId().'.svg" />';
+            $pic.='<img src="'.$this->router->config->imgURL.'/se/'.$ad->sectionId().'.svg" />';
         }
             
         //if ($isNewToUser) { $pic.='<div class="cbox ctl new">NEW</div>'; }
@@ -472,7 +474,7 @@ class Home extends Page {
         echo '<div class=ad ', $ad->htmlDataAttributes($this->formatNumbers), '>';
         echo '<div class="widget', ($ad->isFeatured()?' premium':''),'" id=', $ad->id(), ' itemprop="itemListElement" ',  $itemScope, '>', "\n";
         if ($ad->isFeatured()) {
-            ?><img class="tag" src="/web/css/1.0/assets/prtag-en.svg" /><?php
+            ?><img class="tag" src="<?=$this->router->config->imgURL?>/prtag-en.svg" /><?php
         }
         echo $pic, "\n";
             

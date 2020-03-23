@@ -1267,7 +1267,7 @@ class Search extends Page {
             ?><div class="ad<?=$end_user?'':' full'?>" <?=$ad->htmlDataAttributes($this->formatNumbers)?>><a href=<?=$ad->url()?>><?php
             ?><div class="widget<?=($ad->isFeatured()?' premium':'')?>" id=<?=$ad->id()?> itemprop="itemListElement"<?=$itemScope?>><?php
             if ($ad->isFeatured()) {
-                echo '<img class=tag src="/web/css/1.0/assets/prtag-en.svg" />';
+                echo '<img class=tag src="', $this->router->config->imgURL, '/prtag-en.svg" />';
             }
             
             if ($pix_count) {
@@ -1282,7 +1282,7 @@ class Search extends Page {
             else {
                 ?><div class="image seclogo"><?php
                 if ($this->router->rootId<4) {
-                    ?><img src="/web/css/1.0/assets/se/<?=$ad->sectionId()?>.svg" /><?php
+                    ?><img src="<?=$this->router->config->imgURL?>/se/<?=$ad->sectionId()?>.svg" /><?php
                 }
                 else {
                     ?><img src="<?=$this->router->config->imgURL.'/200/'.$ad->sectionId().$this->router->_png?>" /><?php
@@ -3724,7 +3724,7 @@ class Search extends Page {
                             }
                         }
                     }
-                    $bc[] = '<li itemprop="headline name"><span>' . $sub_title . '</span><img src=/web/css/1.0/assets/se/'.$this->router->sectionId.'.svg></li>';
+                    $bc[] = '<li itemprop="headline name"><span>' . $sub_title . '</span><img src='. $this->router->config->imgURL. '/se/'.$this->router->sectionId.'.svg></li>';
                 }
                 $this->subTitle = $sub_title;
             }

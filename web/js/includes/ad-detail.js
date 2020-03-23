@@ -455,90 +455,76 @@ if(ibars){
 
 
 ////////////////// Image Slider Begin
-var picsContainer = document.getElementById("pics");
-var picThumbs = document.getElementsByClassName("pic-thumb");
-var nextPic = document.getElementsByClassName("next-pic");
-var prevPic = document.getElementsByClassName("prev-pic");
-var picLarge = document.getElementById("pic-large");
-var currentPicIndex = 0;
-var isFullScreen = false;
-if (picThumbs.length > 1) {
-    var showThumb = function (el) {
-        picLarge.src = el.src.replace("/s/", "/d/");
+let pics=$.querySelector('div.pics');
+let thumbs=pics.queryAll('div.thumbs img');
+let nextPic=pics.query('a.next-pic'), prevPic=pics.query('a.prev-pic');
+let picLarge=pics.query("img#pic-large");
+let pix=0,isFullScreen=false;
+if (thumbs.length>1) {
+    var showThumb=function(e){
+        let p=e.parentElement;
+        picLarge.src=e.src.replace("/s/", "/d/");
         try {
-            el.parentElement.scroll({
-                top: 0,
-                left: el.offsetLeft - el.parentElement.offsetLeft - parseInt((el.parentElement.offsetWidth - el.offsetWidth) / 2),
-                behavior: 'smooth'
-            });
+            p.scroll({top:0,left:e.offsetLeft-p.offsetLeft-parseInt((p.offsetWidth-e.offsetWidth)/2),behavior:'smooth'});
         } catch (err) {
             console.log(err);
-            el.parentElement.scrollLeft = el.offsetLeft - el.parentElement.offsetLeft - parseInt((el.parentElement.offsetWidth - el.offsetWidth) / 2);
+            p.scrollLeft=e.offsetLeft-p.offsetLeft-parseInt((p.offsetWidth-e.offsetWidth)/2);
         }
-        currentPicIndex = Array.prototype.indexOf.call(el.parentElement.children, el);
-        document.getElementsByClassName("active-thumb")[0].classList.remove("active-thumb");
-        el.classList.add("active-thumb");
+        pix=Array.prototype.indexOf.call(p.children, e);
+        p.query('img.active-thumb').classList.remove("active-thumb");
+        e.classList.add("active-thumb");
     };
-    var previewImage = function () {
-        var el = this;
-        showThumb(el);
+    var previewImage=function(){
+        var e=this;
+        showThumb(e);
     };
-    var fNextPic = function () {
-        if(currentPicIndex == picThumbs.length-1){
-            currentPicIndex = 0;
-        }else {
-            currentPicIndex++;
-        }
-        showThumb(picThumbs[currentPicIndex]);
+    var fNextPic=function(){
+        if(pix===thumbs.length-1){pix=0;}else{pix++;}
+        showThumb(thumbs[pix]);
     };
-    var fPrevPic = function () {
-        if(currentPicIndex == 0){
-            currentPicIndex = picThumbs.length-1;
-        }else {
-            currentPicIndex--;
-        }
-        showThumb(picThumbs[currentPicIndex]);
+    var fPrevPic=function(){
+        if(pix===0){pix=thumbs.length-1;}else{pix--;}
+        showThumb(thumbs[pix]);
     };
-    var openLargePic = function () {
+    var openLargePic=function(){
         if (!isFullScreen) {
-            isFullScreen = true;
+            isFullScreen=true;
             //Use the specification method before using prefixed versions
-            if (picsContainer.requestFullscreen) {
-                picsContainer.requestFullscreen();
-            } else if (picsContainer.msRequestFullscreen) {
-                picsContainer.msRequestFullscreen();
-            } else if (picsContainer.mozRequestFullScreen) {
-                picsContainer.mozRequestFullScreen();
-            } else if (picsContainer.webkitRequestFullscreen) {
-                picsContainer.webkitRequestFullscreen();
-            } else {
-                console.log("Fullscreen API is not supported");
+            if (pics.requestFullscreen) {
+                pics.requestFullscreen();
+            } else if (pics.msRequestFullscreen) {
+                pics.msRequestFullscreen();
+            } else if (pics.mozRequestFullScreen) {
+                pics.mozRequestFullScreen();
+            } else if (pics.webkitRequestFullscreen) {
+                pics.webkitRequestFullscreen();
             }
         } else {
-            isFullScreen = false;
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.mozCancelFullScreen) {
-                document.mozCancelFullScreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
+            isFullScreen=false;
+            if (pics.exitFullscreen) {
+                pics.exitFullscreen();
+            } else if (pics.mozCancelFullScreen) {
+                pics.mozCancelFullScreen();
+            } else if (pics.webkitExitFullscreen) {
+                pics.webkitExitFullscreen();
+            } else if (pics.msExitFullscreen) {
+                pics.msExitFullscreen();
             }
         }
     };
 
-    for (var i = 0; i < picThumbs.length; i++) {
-        picThumbs[i].addEventListener('click', previewImage, false);
-    }
-    nextPic[0].addEventListener('click', fNextPic, false);
-    prevPic[0].addEventListener('click', fPrevPic, false);
+    thumbs.forEach(function(t){t.addEventListener('click', previewImage, false)});
+    //for (var i=0; i < thumbs.length; i++) {
+    //    thumbs[i].addEventListener('click', previewImage, false);
+    //}
+    nextPic.addEventListener('click', fNextPic, false);
+    prevPic.addEventListener('click', fPrevPic, false);
     picLarge.addEventListener('click', openLargePic, false);
-    picThumbs[0].classList.add("active-thumb");
+    thumbs[0].classList.add("active-thumb");
     
 } else {
-    nextPic[0].style.display = "none";
-    prevPic[0].style.display = "none";
+    nextPic.style.display="none";
+    prevPic.style.display="none";
 }
 
 ////////////////// Image Slider End

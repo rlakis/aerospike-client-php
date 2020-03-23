@@ -15,8 +15,7 @@ class Config extends \Core\Model\Singleton {
     public $baseURL;
     public $cssURL;
     public $imgURL;
-    public $assetsURL;
-    //public $jQueryURL;
+    public string $assetsURL;
     public $adImgURL;
     public $imgLibURL;
     public $modules;
@@ -44,12 +43,11 @@ class Config extends \Core\Model\Singleton {
         $this->imgURL = $this->config['url_img'];
         $this->modules = $this->config['modules'];
         $this->assetsURL = $this->config['url_resources'];
-        //$this->jQueryURL = $this->config['url_jquery'];
         $this->adImgURL = $this->config['url_ad_img'];
         $this->imgLibURL = $this->config['url_image_lib'];
         
         $this->adImgURL = 'https://c6.mourjan.com';
-        //error_log($this->host);
+        //error_log($this->imgURL);
         
         $this->libDir = $this->baseDir . '/core/lib/';
         $this->modelDir = $this->baseDir . "/core/model/";
@@ -463,12 +461,10 @@ $config['dir_css']              = '/var/www/mourjan';
 $config['url_resources']        = 'https://h1.mourjan.com';
 $config['url_js']               = 'https://h1.mourjan.com/web/js/1.0.0';
 $config['url_css']              = 'https://h1.mourjan.com/web/css/5.4.3';
-//$config['url_jquery']           = 'https://h1.mourjan.com/web/jquery/3.1.0/js/';
-//$config['url_jquery_mobile']    = 'https://h1.mourjan.com/web/jquery/4.0.0/js/';
 $config['url_css_mobile']       = 'https://h1.mourjan.com/web/css/1.0.2';
 $config['url_js_mobile']        = 'https://h1.mourjan.com/web/js/2.0.0';
 $config['url_image_lib']        = 'https://h1.mourjan.com/web/lix/2.0.0';
-$config['url_img']              = 'https://h1.mourjan.com/img/1.0.3';
+$config['url_img']              = 'https://h1.mourjan.com/web/css/1.0/assets';
 $config['url_uploader']         = 'https://h1.mourjan.com';
 
 $config['server_id'] = get_cfg_var('mourjan.server_id');

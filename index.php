@@ -1,6 +1,15 @@
-<?php 
-if (!isset($argc)) {tideways_xhprof_enable();}
+<?php
 
+$oldsite=\filter_input(\INPUT_GET, 'oldlook', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>-1]])+0;
+if ($oldsite===1) {
+    \chdir("/home/www/mourjan");
+    $n=getcwd();
+    \error_log($n);
+    include 'index.php';
+    return;
+}
+
+if (!isset($argc)) {tideways_xhprof_enable();}
 include_once __DIR__ . '/config/cfg.php';
 include_once __DIR__ . '/deps/autoload.php';
 
@@ -29,7 +38,7 @@ if (php_sapi_name()!=='cli') {
 }
 
 
-$router = Router::instance();
+$router=Router::instance();
 $router->setLogger(new \Core\Lib\Logger('/var/log/mourjan', \Psr\Log\LogLevel::DEBUG, ['filename' => 'site.log', 'logFormat'=>false]));
 
 if (!isset($argc)) {

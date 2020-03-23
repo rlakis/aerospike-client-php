@@ -890,7 +890,7 @@ class Page extends Site {
             }          
 
             if ($hasQuery) {
-                ?><li><a href=<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $section_id, $purposeId).$q?>><img style="width:25px;height:25px;margin-inline-end:8px" src="/web/css/1.0/assets/se/<?=$k?>.svg"><?=$v['name']?></a></li><?php
+                ?><li><a href=<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $section_id, $purposeId).$q?>><img style="width:25px;height:25px;margin-inline-end:8px" src="<?=$this->router->config->imgURL?>/se/<?=$k?>.svg"><?=$v['name']?></a></li><?php
             }
             else {
                 if ($purposeId>0 && $purposeId===$this->router->purposeId) {
@@ -898,7 +898,7 @@ class Page extends Site {
                 }
                 $isNew=(!$selected && $this->checkNewUserContent($v['unixtime']));
                 $name=$v['name'].'&nbsp<span'.($isNew?' class=hot>':'>').\number_format($v['counter']).'</span>';
-                ?><li><a href=<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $k, $purposeId)?>><img class=se src="/web/css/1.0/assets/se/<?=$k?>.svg"><?=$name?></a></li><?php
+                ?><li><a href=<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $k, $purposeId)?>><img class=se src="<?=$this->router->config->imgURL?>/se/<?=$k?>.svg"><?=$name?></a></li><?php
             }
         }
         ?></ul></div><?php
@@ -1537,7 +1537,7 @@ class Page extends Site {
                                     $this->composeListLink(
                                             $pname.'<small>&nbsp;('.\number_format($purpose['counter']).')</small>',
                                             $this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $pid), 
-                                            $selected, "/web/css/1.0/assets/pu/{$pid}.svg").'</li>';
+                                            $selected, $this->router->config->imgURL."/pu/{$pid}.svg").'</li>';
                         }
                     }
                     
@@ -2729,7 +2729,7 @@ class Page extends Site {
         $ln=$this->router->language;
         ?><div class="row ff-cols viewable" style="box-shadow:0 -5px 5px -5px var(--mColor10);">            
             <div class="col-12 mhbanner" style="margin-top:0">
-                <img src="/web/css/1.0/assets/emblem.svg" />
+                <img src="<?=$this->router->config->imgURL?>/emblem.svg" />
                 <div class="p1">                    
                     <div><span class="um"><?=$words['sell'][$ln]?></span><span class="sm l1"><?=$words['car'][$ln]?></span></div>
                     <div><span class="um"><?=$words['find'][$ln]?></span><span class="sm l2"><?=$words['job'][$ln]?></span></div>
@@ -2744,7 +2744,7 @@ class Page extends Site {
         
         ?><div class="row">
             <div class="col-12" style="background-color:white;height: 90px;align-items: center;justify-content: center;line-height: 1.8em">
-                <img src="/web/css/1.0/assets/premium-en.svg" width="284"/>
+                <img src="<?=$this->router->config->imgURL?>/premium-en.svg" width="284"/>
                 <span style="height:43px;width:2px;background-color:var(--mColor03);margin: 0 24px"></span>
                 <div style="color: var(--mColor03);">
                 <span style="font-size:20pt;font-weight:bold"><?=$this->lang['go_premium']?>!</span><br>
@@ -2767,16 +2767,17 @@ class Page extends Site {
         
         ?><footer class=row><div class="viewable ff-rows"><?php
         ?><div class="col-4 ff-cols"><?php
-        ?><img class=invert src="/web/css/1.0/assets/mc-en.svg" width=160/><?php
+        ?><img class=invert src="<?=$this->router->config->imgURL?>/mc-en.svg" width=160/><?php
         //<!--<div class="apps bold" style="margin-inline-start:40px;">24/7 Customer Service<br/>+961-70-424-018</div>-->
         if ($this->router->isArabic()) {
             ?><p style="margin-inline-start:40px;">مركز الأعمال راكز<br/>رأس الخيمة<br/>الامارات العربية المتحدة</br/>صندوق بريد: 294474</p><?php
             ?><p style="margin-inline-start:40px;margin-top:0">بيريسوفت، الطابق الرابع ، سنتر 1044 الدكوانة<br/>شارع السلاف العريض، الدكوانة، لبنان</p><?php
-            
+            $look="الشكل القديم لمرجان";
         }
         else {
             ?><p style="margin-inline-start:40px;">Business Center RAKEZ<br/>Ras Al Khaimah<br/>United Arab Emirates</br/>P.O. Box: 294474</p><?php
             ?><p style="margin-inline-start:40px;margin-top:0">Berysoft, 4th floor, Dekwaneh 1044 center<br/>New Slav Street, Dekwaneh, Lebanon</p><?php
+            $look="Back to old site";
         }
         ?><p class=ha-start style="margin-inline-start:40px;margin-top:8px">© 2010-<?=$year?> <?=$this->lang['mc']?><br/><?=$this->lang['all_rights']?>.</p><?php
         ?></div><?php
@@ -2786,11 +2787,17 @@ class Page extends Site {
         //    $balance_label= $this->lang['myBalance']. ' is '.$this->user()->getBalance() . ' coins';
         //    echo '<li><a href="', $this->router->getLanguagePath('/statement/'), '"><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></a></li>';
         //}
+       
         ?><li><a href="<?=$this->router->getLanguagePath('/about/')?>"><span><?=$this->lang['aboutUs']?></span></a></li><?php
         ?><li><a href="<?=$this->router->getLanguagePath('/contact/')?>"><span><?=$this->lang['contactUs']?></span></a></li><?php
         ?><li><a href="<?=$this->router->getLanguagePath('/contact/')?>"><span><?=$this->lang['faqhc']?></span></a></li><?php
         ?><li><a href="<?=$this->router->getLanguagePath('/terms/')?>"><span><?=$this->lang['termsConditions']?></span></a></li><?php
         ?><li><a href="<?=$this->router->getLanguagePath('/privacy/')?>"><span><?=$this->lang['privacyPolicy']?></span></a></li><?php
+        ?><li><a href="<?=$this->router->getLanguagePath('/privacy/')?>"><span><?=$this->lang['privacyPolicy']?></span></a></li><?php
+        
+        $link = "https://{$_SERVER["HTTP_HOST"]}{$_SERVER["REQUEST_URI"]}".(empty($_GET)?'?':'&')."newlook=0";
+        
+        ?><li><a href="<?=$link?>"><span><?=$look?></span></a></li><?php
         ?></ul></div><?php
         
         ?><div class="col-4 ff-cols"><ul><?php
@@ -2800,9 +2807,9 @@ class Page extends Site {
                 <a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a>
             </div></li>
             <li class="bold" style="border-bottom:none"><?=$this->lang['followUs']?> @mourjan&nbsp;&nbsp;&nbsp;
-                <img class="invert" src="/web/css/1.0/fa/brands/facebook.svg" style="margin: 0 6px; width:30px"/>
-                <img class="invert" src="/web/css/1.0/fa/brands/twitter.svg" style="margin: 0 6px; width:30px"/>
-                <img class="invert" src="/web/css/1.0/fa/brands/instagram.svg" style="margin: 0 6px; width:30px"/>
+                <img class="invert" src="<?=$this->router->config->imgURL?>/../fa/brands/facebook.svg" style="margin: 0 6px; width:30px"/>
+                <img class="invert" src="<?=$this->router->config->imgURL?>/../fa/brands/twitter.svg" style="margin: 0 6px; width:30px"/>
+                <img class="invert" src="<?=$this->router->config->imgURL?>/../fa/brands/instagram.svg" style="margin: 0 6px; width:30px"/>
             </li>            
             </ul></div></div><?php
             
