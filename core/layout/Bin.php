@@ -67,17 +67,17 @@ class AjaxHandler extends Site {
 
 
 class Bin extends AjaxHandler {
-    const ERR_USER_BLOCKED      = 100;
-    const ERR_USER_SUSPENDED    = 101;
-    const ERR_USER_UNAUTHORIZED = 102;
-    const ERR_DATA_INVALID_PARAM= 200;
-    const ERR_DATA_INVALID_META = 201;
-    const ERR_DATA_INVALID_EMAIL= 202;
-    const ERR_DATA_USED_EMAIL   = 203;
-    const ERR_LIMIT_EXCEEDED    = 299;
-    const ERR_SYS_MAINTENANCE   = 400;
-    const ERR_SYS_FAILURE       = 401;
-    const ERR_SYS_UNKNOWN       = 402;
+    const ERR_USER_BLOCKED          = 100;
+    const ERR_USER_SUSPENDED        = 101;
+    const ERR_USER_UNAUTHORIZED     = 102;
+    const ERR_DATA_INVALID_PARAM    = 200;
+    const ERR_DATA_INVALID_META     = 201;
+    const ERR_DATA_INVALID_EMAIL    = 202;
+    const ERR_DATA_USED_EMAIL       = 203;
+    const ERR_LIMIT_EXCEEDED        = 299;
+    const ERR_SYS_MAINTENANCE       = 400;
+    const ERR_SYS_FAILURE           = 401;
+    const ERR_SYS_UNKNOWN           = 402;
     
     private array $_JPOST = [];
     private array $resp = ['command'=>'', 'success'=>0, 'code'=>0, 'error'=>'', 'warning'=>'', 'result'=>[]];
@@ -107,14 +107,19 @@ class Bin extends AjaxHandler {
                 $this->_JPOST = \json_decode($content, true);
             }
         }
-
+        
         // set default language if matched
+        if (isset($this->user->params['slang']) && \in_array($this->user->params['slang'], ['en', 'ar'])) {
+            \Core\Model\Router::instance()->language=$this->user->params['slang'];
+        }
+        else {
         $referer=\filter_input(\INPUT_SERVER, 'HTTP_REFERER');
-        if ($referer) {
-            $r=\parse_url($referer);
-            if (\is_array($r) && $r['scheme']==='https' && ($r['host']==='www.mourjan.com'||$r['host']==='dv.mourjan.com'||$r['host']==='h1.mourjan.com')) {
-                \preg_match('/(:?\/)(en|fr|)(:?\/|)$/', $r['path'], $matches);
-                if ($matches && $matches[2]==='en') { \Core\Model\Router::instance()->language=$matches[2]; }
+            if ($referer) {
+                $r=\parse_url($referer);
+                if (\is_array($r) && $r['scheme']==='https' && ($r['host']==='www.mourjan.com'||$r['host']==='dv.mourjan.com'||$r['host']==='h1.mourjan.com'||$r['host']==='dev.mourjan.com')) {
+                    \preg_match('/(:?\/)(en|fr|)(:?\/|)$/', $r['path'], $matches);
+                    if ($matches && $matches[2]==='en') { \Core\Model\Router::instance()->language=$matches[2]; }
+                }
             }
         }
         
@@ -1707,18 +1712,53 @@ class Bin extends AjaxHandler {
                 
                 
             case 'menu':
-                $lang = $this->getGetString('sections');
+                $lang=$this->getGetString('sections');
                 if ($lang) {
+                    //if ($lang==='en') { $this->name='name_en'; }
                     $this->authorize();
                    
                     $result=['r'=>[],  'qs'=>[], 'qr'=>[]];
                                         
-                    $referer = \filter_input(\INPUT_SERVER, 'HTTP_REFERER', \FILTER_SANITIZE_STRING);
+                    $referer=\filter_input(\INPUT_SERVER, 'HTTP_REFERER', \FILTER_SANITIZE_STRING);
                     $path=\parse_url($referer, \PHP_URL_PATH);
                     if (\strlen($path)>5) { $path=\substr($path, 0, 6); }
-                    $forPostAd = ($path==='/post/');
-                    $sections = $this->router->sections;
+                    $forPostAd=($path==='/post/');
+                    
+                    $sections=$this->router->sections;
+                    /*
+                    $osecs=[];
+                    switch ($id) {
+                        case 1:
+                            $osecs=[748, 105];
+                            break;
+                        case 2:
+                            $osecs=[75, 117, 1518];
+                            break;
+                        case 3:
+                            $osecs=[29];
+                            break;
+                        case 4:
+                            //$osecs=[29];
+                            break;
+                        case 99:
+                            $osecs=[63];
+                            break;
+                    }
+
+                    $append=[];
+                    foreach ($osecs as $val) {
+                        if (isset($sections[$val])) {
+                            $append[$val]=$sections[$val];
+                            unset($sections[$val]);
+                        }    
+                    }
+                    */
+                    
                     \usort($sections, function(array $a, array $b) {return ($a[$this->name]<=>$b[$this->name]);});
+                    /*
+                    foreach ($append as $se => $row) {
+                        $sections[$se]=$row;
+                    }*/
                     // todo: move differ section to last
                     
                     $result['n'] = $sections;
