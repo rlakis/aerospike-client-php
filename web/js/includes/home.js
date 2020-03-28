@@ -1,7 +1,8 @@
 rootWidget=function(e){
-    let ses=JSON.parse(e.dataset.sections);
+    let ses=JSON.parse(e.dataset.sections), assetsURL="https://dev.mourjan.com/css/2020/1.0/assets";
     //console.log(ses);
-    let h=$.querySelector('div#rs.lrs');
+    
+    let h=document.querySelector('div#rs.lrs');
     if (!e.classList.contains('open')) {
         for (const i of e.closest('div.roots').querySelectorAll('div.large')) { i.classList.remove('open'); }
         let sb=['<div class=card>'];
@@ -15,20 +16,20 @@ rootWidget=function(e){
             sb.push('><a href="');
             sb.push(ss[4]);
             sb.push('">');
-            sb.push('<img src="/web/css/1.0/assets/se/');
+            sb.push('<img src="'+assetsURL+'/se/');
             sb.push(ss[0]);
-            sb.push('.svg" />');
+            sb.push('.svg" /><div style="display:inline-flex;flex:1;justify-content:space-between">');
             sb.push(ss[1]);
             sb.push('<span ');
             if(ss[3]===1){sb.push('class="hot" ')}
-            sb.push('style="margin-inline-start:6px;font-weight:normal;font-size:revert">');
+            sb.push('>');
             sb.push(ss[2].toLocaleString('en-US'));
-            sb.push('</span></a></li>');
+            sb.push('</span></div></a></li>');
         }
         sb.push("</ul>");
         sb.push("</div>");
         sb.push("<div class='col-4 ff-cols va-center'>");
-        sb.push('<a class=btn href="#"><img src="/web/css/1.0/assets/action-2.svg" />Sell your car</a>');
+        sb.push('<a class=btn href="#"><img src="'+assetsURL+'/action-2.svg" />Sell your car</a>');
         sb.push('<span class="m0 m1">FIND EVERYTHING</span>');
         sb.push('<span class="m0 m2">YOU\'RE LOOKING FOR</span>');
         sb.push('<ul>');

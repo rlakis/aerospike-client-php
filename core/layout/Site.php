@@ -98,7 +98,7 @@ class Site {
     
     
     function getGetString(string $parameter, string $default='') : string {
-        $result = \filter_input(\INPUT_GET, $parameter, \FILTER_SANITIZE_STRING, ['options'=>['default'=>$default]]);
+        $result=\filter_input(\INPUT_GET, $parameter, \FILTER_SANITIZE_STRING, ['options'=>['default'=>$default]]);
         return $result;
     }
     

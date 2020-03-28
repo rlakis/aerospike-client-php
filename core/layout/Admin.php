@@ -361,7 +361,7 @@ class Admin extends Page {
 
     
     function header() : void {
-        echo '<link href="/web/css/1.0/jsonTree.css" rel="stylesheet" /> ';
+        echo '<link href="', $this->router->config->cssURL, '/1.0/jsonTree.css" rel="stylesheet" /> ';
     }
     
     

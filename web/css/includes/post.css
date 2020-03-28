@@ -1,16 +1,45 @@
 #main {width: 100%;display:flex;flex:1 auto;flex-flow: column}
-#main .card{margin: 12px 0}
+#main .card{
+    display: flex;
+    margin: 12px 0;
+    flex: 1 auto
+}
 #main .card-header{display: flex;align-items: center;background-color: white;padding: 0;height:40px; min-width: 240px}
 #main .card .card-title{margin: 0 44px !important}
-#main .card .card-content{padding-top: 24px}
+#main .card .card-content{
+    display: inline-flex;
+}
 #main h5{margin: 0;font-size: 1.1rem}
 .btn.blue{background-color: #007bff; color:white!important}
-.card .pictures{display: flex; flex: 1 auto; flex-flow: row wrap; align-items: center; justify-content: space-between;}
-#main .pix {display:inline-flex; width: 306px; height: 192px; border: 1px solid lightgray;margin-bottom:8px;cursor: pointer; align-items: center; justify-content: center;flex-flow:column}
+.card .pictures{
+    flex-flow: row wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+#main .pix {
+    display:inline-flex;
+    width: 306px;
+    height: 192px;
+    border: 1px solid;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    flex-flow:column
+}
 #main .pix > input {display:none}
 #main .pix > img {display:block; object-fit: cover; object-position: center;height: 100%;width: 100%}
-.card textarea{width: 100%; height: 120px;border: 1px solid lightgray;font-size: 1em;padding: 6px}
-#main .card ul{padding:15px 20px}
+#main .card textarea{
+    width: 100%;
+    height: 120px;
+    border: 1px solid #eee;
+    font-family: inherit;
+    font-size: 1em;
+    padding: 6px
+}
+#main .card ul{
+    flex-grow:1;
+    padding:15px 20px
+}
 
 @media screen and (max-width: 768px) {    
     .modal{position:absolute;top:0;left:0;width:100%;height:100%;bottom:0;-webkit-overflow-scrolling:touch;background-color: white}
@@ -23,8 +52,12 @@
 .modal h6{margin: 24px 0 12px}
 .modal li{cursor: pointer}
 
-.pictures span.icn-camera{background-color:lightgrey !important;-webkit-mask:url(/web/css/1.0/fa/regular/camera-retro.svg) no-repeat 50% 50%;}
+.pictures span.icn-camera{    
+    background:url(https://dev.mourjan.com/css/2020/1.0/fa/regular/camera-retro.svg) no-repeat 50% 50%;
+    filter:var(--mseFilter)
+}
 .pictures progress{width: 100%;align-self:flex-end; height: 8px;border:0;background-color: lightgrey; order:1;display:none}
+
 .modal .card {max-height: 100%}
 .modal .card .card-footer{display: flex; flex-flow: row; flex: 1 auto; justify-content: space-around}
 .modal .card ul {display:flex; flex:1 auto; flex-wrap: wrap}

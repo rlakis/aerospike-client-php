@@ -5,12 +5,9 @@
  * Copyright 2017 Vera Lobacheva (http://iamvera.com)
  * Released under the MIT license (LICENSE.txt)
  */
-
-var jsonTree = (function() {
-    
+var jsonTree = (function() {    
     /* ---------- Utilities ---------- */
-    var utils = {
-        
+    var utils = {        
         /*
          * Returns js-"class" of value
          * 

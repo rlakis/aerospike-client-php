@@ -110,7 +110,7 @@ class Home extends Page {
                 ?><span class=row><?=$this->router->roots[$id][$this->name]?></span><?php
                 ?><div class=bar></div></div><?php 
             }
-            ?></div><div id="rs" class="col-12 lrs"></div><?php
+            ?></div><div id=rs class="col-12 lrs"></div><?php
         }
         ?></section><?php
         

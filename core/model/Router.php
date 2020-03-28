@@ -142,7 +142,7 @@ class Router extends \Core\Model\Singleton {
         $pos = \strpos($this->referer, $this->config->get('site_domain'));
         if (!($pos===FALSE)) {
             $this->internal_referer = ($pos>0 && $pos<13);
-        }      
+        }
       
         if (!isset($_session_params['mobile'])) {
             if (isset($this->cookie->m) && \in_array($this->cookie->m, [0,1])) {
@@ -179,7 +179,13 @@ class Router extends \Core\Model\Singleton {
         }
         
         $this->explodedRequestURI = \explode('/', \ltrim(\rtrim(\parse_url(\filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_URL), \PHP_URL_PATH), '/'), '/'));
-        $this->language = 'ar';
+        
+        if (isset($this->cookie->lg) &&  \in_array($this->cookie->lg, ['en', 'ar'])) {
+            $this->language=$this->cookie->lg;
+        }
+        else {
+            $this->language='ar';
+        }
         
         $len = \count($this->explodedRequestURI);
         
@@ -927,10 +933,11 @@ class Router extends \Core\Model\Singleton {
     }
     
     
-    function FetchUrl($url=NULL) {
+    function FetchUrl(?string $url=NULL) {
         if ($url==NULL) { $url = $this->uri; }
         $pk=NoSQL::instance()->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_URL_PATH, $url);        
         $result=NoSQL::instance()->getBins($pk);
+        
         /*
         $result=$this->db->queryCacheResultSimpleArray($url, "
                 SELECT r.COUNTRY_ID, r.CITY_ID, r.ROOT_ID, r.SECTION_ID, r.PURPOSE_ID, trim(r.MODULE),
@@ -941,6 +948,7 @@ class Router extends \Core\Model\Singleton {
                 where r.PATH=?
                 and r.BLOCKED=0
                 ", [$url], -1, 0, FALSE, TRUE);*/
+        
         return $result;
     }
     
@@ -1002,21 +1010,41 @@ class Router extends \Core\Model\Singleton {
                         $this->http_status=410;
                     }
                     
+                    if (\in_array($this->countryId, [6, 10, 122])) {   
+                        \header('HTTP/1.1 410 Gone');
+                        $this->http_status=410;
+                        $this->module = 'notfound';
+                        $this->countryId = 0;
+                        $this->cityId = 0;
+                        $this->rootId = 0;
+                        $this->sectionId = 0;
+                        $this->purposeId = 0;
+                        $this->pageTitle['en'] = '';
+                        $this->pageTitle['ar'] = '';            
+                    }
+                    
                     if (isset($url_codes[9]) && !empty($url_codes[9])) {
                         $this->redirect($url_codes[9], 301);
                     }
                 } 
-                else {
-                    if (strstr($this->uri, '/facebook')) $this->module='facebook';
-                    elseif (strstr($this->uri, '/cse')) $this->module='cse';                    
+                else {                 
+                    if ($this->uri==='/kw/al-jahra-governorate') {
+                        $this->redirect($this->getLanguagePath('/kw/jahra'), 301);
+                    }
+                    if (\strstr($this->uri, '/facebook')) {
+                        $this->module='facebook';
+                    }
+                    elseif (strstr($this->uri, '/cse')) {
+                        $this->module='cse';
+                    }
                     else {
                         if ($this->module==='search' && $this->purposeId===0 && $this->rootId===0 && $this->sectionId===0 && empty($this->params['q']) && $this->params['start']>0) {
-                            header('HTTP/1.1 410 Gone');
+                            \header('HTTP/1.1 410 Gone');
                             $this->http_status=410;
                             $this->module = 'notfound';
                         }
                         elseif ($this->module!=='search') {
-                            header('HTTP/1.1 404 Not Found');
+                            \header('HTTP/1.1 404 Not Found');
                             $this->http_status=404;
                             $this->module = 'notfound';
                         }
@@ -1024,7 +1052,7 @@ class Router extends \Core\Model\Singleton {
                 }
             } 
             else {
-                if ($this->force_search) $this->module='search';
+                if ($this->force_search) { $this->module='search'; }
             }
         }
         $this->uri.='/';

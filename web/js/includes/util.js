@@ -69,4 +69,4 @@ regionWidget=function(e){
     });
     s+='</div></div></div></div></div>';
     d.innerHTML=s;
-}
+};

@@ -5,20 +5,22 @@ ini_set('display_errors', get_cfg_var('mourjan.server_id')=='99'?1:0);
 include_once dirname(__DIR__) . '/core/model/Singleton.php';
 
 class Config extends \Core\Model\Singleton {
-    protected $config;
+    protected array $config;
         
-    public $serverId;
-    public $host;
-    public $baseDir;
-    public $cssDir;
-    public $jsURL;
-    public $baseURL;
-    public $cssURL;
-    public $imgURL;
+    public int $serverId;
+    public string $host;
+    public string $baseDir;
+    public string $cssDir;
+    public string $jsDir;
+    
+    public string $baseURL;
+    public string $jsURL;
+    public string $cssURL;
+    public string $imgURL;
     public string $assetsURL;
-    public $adImgURL;
-    public $imgLibURL;
-    public $modules;
+    public string $adImgURL;
+    public string $imgLibURL;
+    public array $modules;
     
     protected string $layoutDir;
     protected string $modelDir;
@@ -37,6 +39,7 @@ class Config extends \Core\Model\Singleton {
         $this->host = $this->config['host'];
         $this->baseDir = $this->config['dir'];
         $this->cssDir = $this->config['dir_css'];
+        $this->jsDir = '/home/www/mourjan/web/js/2020';
         $this->baseURL = $this->config['url_base'];
         $this->jsURL = $this->config['url_js'];
         $this->cssURL = $this->config['url_css'];
@@ -130,7 +133,7 @@ $aws = 'https://doxplxe8wce37.cloudfront.net';
 $config=array(
     //Site parameters
     'site_production'       => 0,
-    'site_domain'           => 'h1.mourjan.com',
+    'site_domain'           => 'dev.mourjan.com',
     'slogan'                => '',// ' <span>faster than 82% of websites</span>',
     'slogan_en'             => '<span>The Best Classifieds Website</span>',
     'slogan_ar'             => '<span>أفضل موقع للإعلانات</span>',
@@ -287,7 +290,7 @@ $config=array(
     'sphinxql'		   => ['host'=>'p1.mourjan.com', 'port'=>8307, 'socket'=>'/var/run/manticore.sock'],
     
     //resourses parameters
-    'host'                  => 'https://h1.mourjan.com',
+    'host'                  => 'https://dev.mourjan.com',
     'dir'                   => '/var/www/mourjan',
     'dir_css'               => '/var/www/mourjan',
             
@@ -457,40 +460,15 @@ if ($globalSettings!==FALSE) {
     }
 }
 
-$config['dir_css']              = '/var/www/mourjan';
-$config['url_resources']        = 'https://h1.mourjan.com';
-$config['url_js']               = 'https://h1.mourjan.com/web/js/1.0.0';
-$config['url_css']              = 'https://h1.mourjan.com/web/css/5.4.3';
-$config['url_css_mobile']       = 'https://h1.mourjan.com/web/css/1.0.2';
-$config['url_js_mobile']        = 'https://h1.mourjan.com/web/js/2.0.0';
-$config['url_image_lib']        = 'https://h1.mourjan.com/web/lix/2.0.0';
-$config['url_img']              = 'https://h1.mourjan.com/web/css/1.0/assets';
-$config['url_uploader']         = 'https://h1.mourjan.com';
+$config['dir_css']              = '/home/www/mourjan/web/css/2020';
+$config['url_resources']        = 'https://dev.mourjan.com';
+$config['url_js']               = 'https://dev.mourjan.com/js/2020';
+$config['url_css']              = 'https://dev.mourjan.com/css/2020';
+$config['url_img']              = 'https://dev.mourjan.com/css/2020/1.0/assets';
+$config['url_uploader']         = 'https://dev.mourjan.com';
 
-$config['server_id'] = get_cfg_var('mourjan.server_id');
+$config['server_id']=get_cfg_var('mourjan.server_id');
 $config['active_maintenance']=0;
 
 
 Config::instance()->init($config);
-
-
-
-/*
-function layout_file(string $file_name) {
-    global $config;
-    include_once $config['dir'] . '/core/layout/' . $file_name;
-}
-
-function model_file(string $file_name) {
-    global $config;
-    include_once $config['dir'] . '/core/model/' . $file_name;
-}
-
-function libFile(string $file_name) {    
-    global $config;
-    if (!isset($config['lib-dir'])) {
-        $config['lib-dir'] = $config['dir'] . '/core/lib/';
-    }
-    include_once $config['lib-dir'] . $file_name;
-}
-*/

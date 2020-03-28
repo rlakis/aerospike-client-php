@@ -1,18 +1,8 @@
 <?php
-
-$oldsite=\filter_input(\INPUT_GET, 'oldlook', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>-1]])+0;
-if ($oldsite===1) {
-    \chdir("/home/www/mourjan");
-    $n=getcwd();
-    \error_log($n);
-    include 'index.php';
-    return;
-}
-
 if (!isset($argc)) {tideways_xhprof_enable();}
+
 include_once __DIR__ . '/config/cfg.php';
 include_once __DIR__ . '/deps/autoload.php';
-
 
 Config::instance()->incModelFile('Router')->incModelFile('Db')->incLibFile('MCSessionHandler')->incLibFile('Logger');
 
@@ -48,32 +38,29 @@ if (!isset($argc)) {
    
     if (!$stop && \array_key_exists($router->module, $config['modules'])) {
         $mod_class = $config['modules'][$router->module][0];
-        include_once $config['dir'].($router->module==='cache'?'/core/gen/':'/core/layout/').$mod_class.'.php';        
-        $object = new $mod_class();    
-        
+        include_once Config::instance()->baseDir.($router->module==='cache'?'/core/gen/':'/core/layout/').$mod_class.'.php';        
+        $object = new $mod_class();            
     }     
     else {
-        include_once Prefs::$dir.'/core/layout/NotFound.php';
+        include_once Config::instance()->baseDir.'/core/layout/NotFound.php';
         header('HTTP/1.0 404 Not Found');
         new NotFound($router);    
     }
     
     $router->close();
     
-    $contentType = \filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
-    $requestURI = \filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_STRING);
+    $contentType=\filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
+    $requestURI=\filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_STRING);
     
     if ($contentType!=='application/json' && \strpos($requestURI, 'ajax-')==false) {
-        $data = tideways_xhprof_disable();
-        $XHPROF_ROOT = realpath(dirname(__FILE__).'/web/xhprof');
-        include_once $XHPROF_ROOT . "/lib/utils/xhprof_lib.php";
-        include_once $XHPROF_ROOT . "/lib/utils/xhprof_runs.php";
+        $data=tideways_xhprof_disable();
+        $XHPROF_ROOT= realpath(dirname(__FILE__).'/web/xhprof');
+        include_once $XHPROF_ROOT."/lib/utils/xhprof_lib.php";
+        include_once $XHPROF_ROOT."/lib/utils/xhprof_runs.php";
     
-        $xhprof_runs = new XHProfRuns_Default();
+        $xhprof_runs=new XHProfRuns_Default();
 
-        // save the run under a namespace "xhprof_foo"
-        $run_id = $xhprof_runs->save_run($data, "xhprof_mourjan");
+        $run_id=$xhprof_runs->save_run($data, "xhprof_mourjan");
         echo '<p style="background-color:var(--mcLightColor);height:60px;display:flex;justify-content:center;margin:0">&nbsp;&nbsp;<a style="color:white;" target=_blank href="', "https://h1.mourjan.com/web/xhprof/html/index.php?run=$run_id&source=xhprof_mourjan", '">Page profiler</a></p>';
     }
-    
 }

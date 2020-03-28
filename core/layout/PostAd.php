@@ -49,7 +49,7 @@ class PostAd extends Page {
                 $this->set_require('css', array('select2'));                
             }
             else {
-                $id=\filter_input(\INPUT_POST, 'ad' , FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
+                $id=\filter_input(\INPUT_POST, 'ad' , \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
                 if ($id>0) {
                     $this->ad->getAdFromAdUserTableForEditing($id);              
                 }
@@ -224,17 +224,13 @@ class PostAd extends Page {
             echo '</div>';
             echo '</div></div>';
             
-            echo '<div class=col-12><div class=card>';
-            echo '<div class="card-content">';
+            ?><div class=col-12><div class=card><div class=card-content><?php
             ?><textarea id=natural placeholder="Enter ad text"></textarea><?php
-            echo '</div>';
-            echo '</div></div>';
+            ?></div></div></div><?php
             
-            echo '<div class=col-12><div class=card>';
-            echo '<div class="card-content">';
+            ?><div class=col-12><div class=card><div class="card-content"><?php
             ?><textarea id=foreign placeholder=""></textarea><?php
-            echo '</div>';
-            echo '</div></div>';
+            ?></div></div></div><?php
 
             echo '<div class=col-12><div id=ad-class class=card><ul>';
             echo '<li><a class=ro href="javascript:void(0)" onclick="UI.chooseRootPurpose()">Choose listing section</a></li>';

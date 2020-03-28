@@ -630,7 +630,7 @@ class MyAds extends Page {
                     if ($images) { $images.='||'; }
                     
                     $images.='<img class=ir src="'.$this->router->config->imgURL.'/se/' . $cad->sectionId() . '.svg" />';
-                    $pic = '<img class=ir src="'.$this->router->config->imgURL.'/se/'.$cad->sectionId().'.svg" />';                    
+                    $pic = '<img src="'.$this->router->config->imgURL.'/se/'.$cad->sectionId().'.svg" />';                    
                 }
                 else {                    
                     //if (!empty($cad->dataset()->getPictures()) /*isset($content['pics']) && is_array($content['pics']) && count($content['pics'])>0*/) {
@@ -887,7 +887,7 @@ class MyAds extends Page {
                 echo $link?' onclick="wo('.$link.')"' : '';
                 if ($isAdmin) { echo ' onmouseup="d.textSelected(this);"'; }
                 if ($isAdmin) { echo ' oncontextmenu="d.lookup(this);return false;"'; }
-                echo '>', ($pic ? $pic :'').$text;
+                echo '>', ($pic ? $pic :''), '<div>',$text,'</div>';
                 echo '</section>';
                 
                 if ($altText) {
@@ -898,7 +898,7 @@ class MyAds extends Page {
                     elseif ($isAdmin) {
                         echo ' onselect="MSAD(this)" ';
                     }
-                    echo '>',  ($pic ? $pic :''), $altText;
+                    echo '>',  ($pic ? $pic :''), '<div>', $altText, '</div>';
                     echo '</section>';
                 }
 

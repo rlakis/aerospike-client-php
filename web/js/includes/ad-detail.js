@@ -1,9 +1,12 @@
 var wrapperTop=0,CTRL=false;
 
-const preventEventProp = (e) => { e.preventDefault(); e.stopPropagation(); return false; };
+const preventEventProp = (e) => {
+    e.preventDefault(); 
+    e.stopPropagation(); 
+    return false; 
+};
 const preventEventPropagation = (e) => {e.stopPropagation()};
 const preventModalTouch = (e) => { e.preventDefault(); e.stopPropagation(); return false; };
-
 
 var supportsOrientationChange = "onorientationchange" in window, orientationEvent = supportsOrientationChange ? "orientationchange" : "resize";
 window.addEventListener(orientationEvent, function() {
@@ -13,6 +16,7 @@ window.addEventListener(orientationEvent, function() {
         adScreen._card.className='card col-'+(adScreen._modal.clientWidth<1200)?'8':'6';
     }
 });
+
 /*
 document.addEventListener('contextmenu', function(e){preventEventProp(e);
 if(CTRL && e.target.classList.contains('card-description')){
@@ -312,10 +316,10 @@ var adScreen=null;
 function oad(ad){
     adScreen = new AdScreen(ad);
     adScreen.open();
-    if (1) return;
-    var state = {'detail':1};
-    window.history.pushState(state, $.title, $.location.href);
-    $.body.setAttribute('data-detail', 1);
+    //if (1) return;
+    //var state = {'detail':1};
+    //window.history.pushState(state, $.title, $.location.href);
+    //$.body.setAttribute('data-detail', 1);
 }
 
 function report(e){
@@ -382,11 +386,11 @@ function reportAd(e, t){
             confirmButtonText: 'Yes, report it!',
             cancelButtonText: 'No, dismiss'
         }).then((result) => {
-            if (result.value) {
+            //if (result.value) {
                 //Swal.fire('Deleted!', 'Your imaginary file has been deleted.', 'success' )
-            } else if (result.dismiss === Swal.DismissReason.cancel) {
+            //} else if (result.dismiss === Swal.DismissReason.cancel) {
                 //Swal.fire('Cancelled', 'Your imaginary file is safe :)', 'error')
-            }
+            //}
         });
     }
 }
@@ -416,16 +420,13 @@ function intValById(f,id){
     return 0;
 }
 
-
 function searching(as) {
     let f=as.closest('div.asrch');
     let se=optsValue(f,'_se'), pu=optsValue(f,'_pu'), xe=optsValue(f,'_xe'), br=optsValue(f,'_br');
     console.log('se', se, 'pu', pu, 'bedrooms', br, 'advertiser', xe, 'mnp', intValById(f,'mnp'), 'mxp', intValById(f,'mxp'), location.href);
 }
 
-
 window.onclick=function(e){if(adScreen&&e.target===byId('adScreen')){adScreen.close();}};
-
 
 window.onpopstate=function(event){
     console.log($.body.dataset.detail);
@@ -456,6 +457,7 @@ if(ibars){
 
 ////////////////// Image Slider Begin
 let pics=$.querySelector('div.pics');
+if (pics) {
 let thumbs=pics.queryAll('div.thumbs img');
 let nextPic=pics.query('a.next-pic'), prevPic=pics.query('a.prev-pic');
 let picLarge=pics.query("img#pic-large");
@@ -527,4 +529,5 @@ if (thumbs.length>1) {
     prevPic.style.display="none";
 }
 
+}
 ////////////////// Image Slider End

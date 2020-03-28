@@ -2744,7 +2744,7 @@ class Page extends Site {
         
         ?><div class="row">
             <div class="col-12" style="background-color:white;height: 90px;align-items: center;justify-content: center;line-height: 1.8em">
-                <img src="<?=$this->router->config->imgURL?>/premium-en.svg" width="284"/>
+                <img src="<?=$this->router->config->imgURL?>/premium-<?=$this->router->language?>.svg" width="284"/>
                 <span style="height:43px;width:2px;background-color:var(--mColor03);margin: 0 24px"></span>
                 <div style="color: var(--mColor03);">
                 <span style="font-size:20pt;font-weight:bold"><?=$this->lang['go_premium']?>!</span><br>
@@ -2767,7 +2767,7 @@ class Page extends Site {
         
         ?><footer class=row><div class="viewable ff-rows"><?php
         ?><div class="col-4 ff-cols"><?php
-        ?><img class=invert src="<?=$this->router->config->imgURL?>/mc-en.svg" width=160/><?php
+        ?><img class=invert src="<?=$this->router->config->imgURL?>/mc-<?=$this->router->language?>.svg" width=200/><?php
         //<!--<div class="apps bold" style="margin-inline-start:40px;">24/7 Customer Service<br/>+961-70-424-018</div>-->
         if ($this->router->isArabic()) {
             ?><p style="margin-inline-start:40px;">مركز الأعمال راكز<br/>رأس الخيمة<br/>الامارات العربية المتحدة</br/>صندوق بريد: 294474</p><?php
@@ -2795,7 +2795,9 @@ class Page extends Site {
         ?><li><a href="<?=$this->router->getLanguagePath('/privacy/')?>"><span><?=$this->lang['privacyPolicy']?></span></a></li><?php
         ?><li><a href="<?=$this->router->getLanguagePath('/privacy/')?>"><span><?=$this->lang['privacyPolicy']?></span></a></li><?php
         
-        $link = "https://{$_SERVER["HTTP_HOST"]}{$_SERVER["REQUEST_URI"]}".(empty($_GET)?'?':'&')."newlook=0";
+        $req=\preg_replace('/[?&]newlook=[01]/','',$_SERVER["REQUEST_URI"]);
+        $link="https://{$_SERVER["HTTP_HOST"]}{$req}".(\preg_match('/\?/', $req) ? '&' : '?')."newlook=0";
+        //$link = "https://{$_SERVER["HTTP_HOST"]}{$_SERVER["REQUEST_URI"]}".(empty($_GET)?'?':'&')."newlook=0";
         
         ?><li><a href="<?=$link?>"><span><?=$look?></span></a></li><?php
         ?></ul></div><?php
@@ -4897,15 +4899,16 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     
     public function css(string $filename) : Page {
         if (!isset($this->included[$filename])) {
-            $cssfile=$this->router->config->baseDir.'/web/css/includes/'.$filename.'.css';
-            if (\file_exists($cssfile)) {                
-                $mincss=$this->router->config->baseDir.'/web/css/includes/min/'.$filename.'.css';
+            $cssfile=$this->router->config->cssDir.'/includes/'.$filename.'.css';
+            if (\file_exists($cssfile)) {
+                /*
+                $mincss=$this->router->config->cssDir.'/includes/min/'.$filename.'.css';
                 
                 if (!\file_exists($mincss) || (\file_exists($mincss) && (filemtime($cssfile)>filemtime($mincss)))) {
                     $cssContents = \file_get_contents($cssfile);
                     file_put_contents($mincss, $this->router->minifyCss($cssContents));
-                }
-                include $mincss;
+                }*/
+                include $cssfile;
                 //include $this->router->config->baseDir.'/web/css/includes/'.$filename.'.css';
             }
             
@@ -4917,19 +4920,18 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     
     public function inlineJS(string $filename) : Page {
         if (!isset($this->included[$filename])) {
-            $jsfile=$this->router->config->baseDir.'/web/js/includes/'.$filename;
+            $jsfile=$this->router->config->jsDir.'/includes/'.$filename;
             if (\file_exists($jsfile)) {
+                /*
                 $minjs=$this->router->config->baseDir.'/web/js/includes/min/'.$filename;
                 if (!\file_exists($minjs) || (\file_exists($minjs) && (\filemtime($jsfile)>\filemtime($minjs)))) {
                     $minifiedCode = \JShrink\Minifier::minify(\file_get_contents($jsfile));
                     file_put_contents($minjs, $minifiedCode);
-                    //error_log($minifiedCode);
                 }
+                */
                 echo '<script>';
-                //include $minjs;
                 include $jsfile;                
                 echo '</script>';
-                //\error_log($filename);
             }
             $this->included[$filename]=1;
         }
@@ -4940,14 +4942,14 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     protected function _header() : void {
         //error_log(__CLASS__ . '.' . __FUNCTION__ . '.' .$this->router->module);
         if ($this->router->module==='myads') {
-            \header("Link: </web/js/1.0/socket.io.js>; rel=preload; as=script;", false);
+            \header("Link: <".$this->router->config->jsURL."/1.0/socket.io.js>; rel=preload; as=script;", false);
         }
         else if ($this->router->module==='admin') {
-            \header("Link: </web/js/1.0/jsonTree.js>; rel=preload; as=script;", false);
+            \header("Link: <".$this->router->config->jsURL."/1.0/jsonTree.js>; rel=preload; as=script;", false);
         }        
         else if ($this->router->module==='post') {            
-            \header("Link: </web/js/1.0/libphonenumber-min-1.7.10.js>; rel=preload; as=script;", false);
-            \header("Link: </web/js/1.0/load-image-scale.js>; rel=preload; as=script;", false);
+            \header("Link: <".$this->router->config->jsURL."/1.0/libphonenumber-min-1.7.10.js>; rel=preload; as=script;", false);
+            \header("Link: <".$this->router->config->jsURL."/1.0/load-image-scale.js>; rel=preload; as=script;", false);
         }
         
         
@@ -4960,18 +4962,18 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         echo '><head><meta charset="utf-8">';        
         
         if ($this->router->module==='myads') {
-            ?><script async src=/web/js/1.0/chart-2.9.3/Chart.min.js></script><?php
-            ?><script async src=/web/js/1.0/sweetalert2.all.min.js></script><?php
+            ?><script async src=<?=$this->router->config->jsURL?>/1.0/chart-2.9.3/Chart.min.js></script><?php
+            ?><script async src=<?=$this->router->config->jsURL?>/1.0/sweetalert2.all.min.js></script><?php
         }
         
         if ($this->router->module==='admin') {
-            ?><script async src=/web/js/1.0/jsonTree.js></script><?php
-            ?><script async src=/web/js/1.0/sweetalert2.all.min.js></script><?php            
+            ?><script async src=<?=$this->router->config->jsURL?>/1.0/jsonTree.js></script><?php
+            ?><script async src=<?=$this->router->config->jsURL?>/1.0/sweetalert2.all.min.js></script><?php            
         }
         
         if ($this->router->module==='post') {
-            echo '<script async src=/web/js/1.0/libphonenumber-min-1.7.10.js></script>';
-            echo '<script async src=/web/js/1.0/load-image-scale.js></script>';
+            ?><script async src=<?=$this->router->config->jsURL?>/1.0/libphonenumber-min-1.7.10.js></script><?php
+            ?><script async src=<?=$this->router->config->jsURL?>/1.0/load-image-scale.js></script><?php
         }
         
         echo "<style>\n";

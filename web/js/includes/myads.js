@@ -104,7 +104,7 @@ $.addEventListener("DOMContentLoaded", function () {
     }
     
     var script=$.createElement('script');script.type="text/javascript";
-    script.src="/web/js/1.0/socket.io.js";           
+    script.src="https://dev.mourjan.com/js/2020/1.0/socket.io.js";           
     $.body.append(script);
     script.onload=function(){ reqSIO(); }
     
@@ -242,7 +242,7 @@ var d = {
 
     openWindow:function(url, name){
         let win;
-        if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1){
+        if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1){            
             win = window.open(url, name, 'width=1024, height='+(window.innerHeight));
         }
         else {
@@ -267,10 +267,9 @@ var d = {
     },
     
     edit: function(e) {
-        if(this.level===9){
-            
-        }
-        console.log('edit button', this, e);        
+        //if (this.level===9) {            
+        //}
+        //console.log('edit button', this, e);        
         var form = createElem("form");
         form.target = '';
         form.method = "POST";
@@ -313,21 +312,21 @@ var d = {
         if (typeof rtpFlag!=='undefined') { data['rtp']=rtpFlag; }
         this.ad.mask(true);
         fetch('/ajax-approve/', _options('POST', data))
-                .then(res => res.json())
-                .then(response => {
-                    console.log('Success:', JSON.stringify(response));
-                    if (response.success===1) {
-                        this.ad.approved().removeMask();
-                    }
-                    else {
-                        console.log(response.error);                        
-                        d.items[e.article().id].mask().maskText(response.error);
-                    }
-                })
-                .catch(error => {
-                    console.log('Error:', error);
-                    this.ad.removeMask();
-                });
+            .then(res => res.json())
+            .then(response => {
+                console.log('Success:', JSON.stringify(response));
+                if (response.success===1) {
+                    this.ad.approved().removeMask();
+                }
+                else {
+                    console.log(response.error);                        
+                    d.items[e.article().id].mask().maskText(response.error);
+                }
+            })
+            .catch(error => {
+                console.log('Error:', error);
+                this.ad.removeMask();
+            });
     },
 
     getForm: function (prefix, moveTo) {
@@ -362,7 +361,7 @@ var d = {
             if (result.value) {
                 this.approve(e, 2);
                 //Swal.fire('Deleted!', 'Your imaginary file has been deleted.', 'success' )
-            } else if (result.dismiss === Swal.DismissReason.cancel) {
+            //} else if (result.dismiss === Swal.DismissReason.cancel) {
                 //Swal.fire('Cancelled', 'Your imaginary file is safe :)', 'error')
             }
         });
@@ -456,10 +455,10 @@ var d = {
                     .then(res => res.json())
                     .then(response => {
                         console.log('Success:', JSON.stringify(response));
-                        if (response.RP===1) {
+                        //if (response.success===1) {
                             //let ad=new Ad(e.parentElement.parentElement.id);
                             //ad.approved();
-                        }
+                        //}
                     })
                     .catch(error => {
                         console.error('Error:', error);
@@ -1202,7 +1201,7 @@ socket.on("ads", function (data) {
                     ad.setMessage(t);
                     break;
                 case 2:
-                    t = d.ar ? 'تمت الموافقة وبإنتظار العرض من قبل محرك مرجان' : 'Approved and pending Mourjan system processing';
+                    t = d.ar ? 'تمت الموافقة وبإنتظار العرض من قبل محرك مرجان' : 'Approved and pending Mourjan system processing';                    
                     ad.setMessage(t);
                     ad.setAs('approved');
                     break;
@@ -1234,7 +1233,7 @@ socket.on("ads", function (data) {
     if (data.c===1) { d.inc(); }
     });
     
-    socket.on('superAdmin', function (data) {console.log(data);if (typeof data !== 'undefined') {}});
+    socket.on('superAdmin', function (data) {console.log(data);/*if (typeof data !== 'undefined') {}*/});
     socket.on('reconnect', function () { console.log('Reconnnect to ws'); });
     socket.on('connect', function () {console.log('connnect to ws');if (d.KUID) { this.emit("hook_myads", [d.KUID, d.level]); }});
     socket.on('disconnect', function () { console.log('disconnect from ws'); });

@@ -12,27 +12,7 @@ class Account extends Page{
         
         $this->load_lang(array("account"));
         
-        if ($this->isMobile) {
-            $this->inlineCss.='
-.po .et{display:inline-block}
-.pi .et{display:none}
-.po .h .et{display:none}
-.pi .h .et{display:inline-block}
-.pi .h{background-color:#666}
-.ls li.on{background-color:#FFF;color:#333}
-.pi li{background-color:#FFFFBF}
-.pi li.on{background-color:#FFFFBF!important}
-.pi .cbx{display:none}
-.uno .cbx{background-position:0px 0px}
-.uno .on .cbx{background-position:0px -25px}
-.btw{width:50%}
-.bt{margin-top:10px !important;margin-bottom:10px !important}
-.liw{background-color:#F7E741!important}
-.act2,.nobd,input.bt{border:0!important}
-form{height:auto!important;padding:0!important}
-            ';
-        }
-        else {
+
             $this->set_require('css', 'account');
             $this->inlineCss.='.acc{width:660px;padding-left:0;padding-right:0;clear:none;display:inline-block}
                     .merge{float:'.($this->router->language==='ar'?'left':'right').';text-align:center;padding-top:10px;}
@@ -41,7 +21,6 @@ form{height:auto!important;padding:0!important}
             if (!$this->user->isLoggedIn()) {
                 $this->inlineCss.='.ph{width:650px}.acc{height:auto}';
             }
-        }
         $this->title=$this->lang['title'];
         $this->description=$this->lang['description'];
         $this->forceNoIndex=true;

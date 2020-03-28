@@ -12,11 +12,7 @@
 }
 
 /* Styles for the container of the tree (e.g. fonts, margins etc.) */
-.jsontree_tree {
-    margin-left: 30px;
-    font-family: 'PT Mono', monospace;
-    font-size: 14px;
-}
+.jsontree_tree{margin-left:30px;font-family: 'PT Mono',monospace;font-size:14px;}
 
 /* Styles for a list of child nodes */
 .jsontree_child-nodes {
@@ -26,11 +22,8 @@
     line-height: 2;
 }
 
-.jsontree_node{line-height: 1.5em !important}
-
-.jsontree_node_expanded > .jsontree_value-wrapper > .jsontree_value > .jsontree_child-nodes {
-    display: block;
-}
+.jsontree_node{line-height:1.5em !important}
+.jsontree_node_expanded > .jsontree_value-wrapper > .jsontree_value > .jsontree_child-nodes {display:block;}
 
 /* Styles for labels */
 .jsontree_label-wrapper {
@@ -89,12 +82,15 @@
     height: 11px;
     background-image: url('icons.svg');
 }
+
 .jsontree_node_expanded > .jsontree_label-wrapper > .jsontree_label > .jsontree_expand-button {
     background-position: 0 -11px;
 }
+
 .jsontree_show-more {
     cursor: pointer;
 }
+
 .jsontree_node_expanded > .jsontree_value-wrapper > .jsontree_value > .jsontree_show-more {
     display: none;
 }

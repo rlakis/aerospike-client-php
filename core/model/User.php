@@ -19,7 +19,9 @@ class User {
     var $favorites=array();
     public ?\Core\Lib\MCUser $data=null;
 
-    var $db=null, $config=null, $site=null;
+    var $db=null;
+    public Config $config;
+    public Site $site;
     
     var $md5_prefix='ZGr63LE02Ad';
     
@@ -984,7 +986,7 @@ class User {
             $content=json_decode($ad['CONTENT'],true);
             $lang=($ad['RTL'])?'ar':'en';
             $loadedLang=false;
-            if (\preg_match('/(?:https):\/\/(www|dv|h1)\.mourjan\.com\//u', $msg)) {
+            if (\preg_match('/(?:https):\/\/(www|dv|h1|dev)\.mourjan\.com\//u', $msg)) {
                 $loadedLang=true;
                 $this->site->load_lang(array('ad_notices'), $lang);
                 $msg=\preg_replace('/{link}/u', $msg, $this->site->lang['dup']);
@@ -2739,9 +2741,9 @@ class User {
     }
     
     
-    function getSessionHandlerCookieData() : void {
-        $cookie = \filter_input(\INPUT_COOKIE, 'mourjan_user', \FILTER_DEFAULT, ['options'=>['default'=>'{}']]);
-        $data = \json_decode($cookie);
+    function getSessionHandlerCookieData() : void {        
+        $cookie=\filter_input(\INPUT_COOKIE, 'mourjan_user', \FILTER_DEFAULT, ['options'=>['default'=>'{}']]);
+        $data=\json_decode($cookie);
         if (\json_last_error()===\JSON_ERROR_NONE) {
             if (isset($data->mu)) {
                 $this->params['mourjan_user']=1;
@@ -2794,23 +2796,15 @@ class User {
                 $this->params['cv']=$data->cv;
             }
             
-            //if (isset($data->newlook) && \in_array($data->newlook, [0,1])) {
-            //    $this->params['newlook']=$data->newlook;
-            //}
-            
-            //$newlook=\filter_input(\INPUT_GET, 'newlook', FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>-1]])+0;
-            //if ($newlook===0) {
-            //    $this->params['newlook']=0;            
-            //    $link = "https://{$_SERVER["HTTP_HOST"]}".\preg_replace('/[?&]newlook=[01]/', '', $_SERVER["REQUEST_URI"]);
-            //    \error_log('new '.$link);
-            //    $this->site->router->redirect($link, 302);
+            //if (isset($data->lg) && ($data->lg==='en'||$data->lg==='ar')) {
+            //    $this->params['lang']=$data->lg;
             //}
         }
         
     }
     
 
-    function setCookieData() : void {
+    function setCookieData() : void {       
         if ($this->config->modules[$this->site->router->module][0]==='Bin') { return; }
         $info=['lv'=>time(), 'ap'=>($this->site->router->isApp?1:0)];       
         
@@ -2833,10 +2827,12 @@ class User {
         if (isset($this->params['catsort'])) {
             $info['or']=$this->params['catsort'];
         }
+        
         if (isset($this->params['screen'])) {
             //mobile screen dimensions
             $info['sc']=$this->params['screen'];
         }
+        
         if (isset($this->params['keepme_in'])) {
             $info['on']=$this->params['keepme_in'];
         }        
@@ -2856,15 +2852,9 @@ class User {
         
         \setcookie('mourjan_user', \json_encode($info), time()+31536000,'/', $this->config->get('site_domain'), false);           
         $newlook=\filter_input(\INPUT_GET, 'newlook', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>-1]])+0;
-        if ($newlook===0) {                     
-            \setcookie('mourjan_site', '0', time()+31536000,'/', '.mourjan.com', false);
-            $link = "https://{$_SERVER["HTTP_HOST"]}" . \preg_replace('/[?&]newlook=[01]/', '', $_SERVER["REQUEST_URI"]);
-            \error_log('new to old ' .$link);
-            $this->site->router->redirect($link, 302);
-        }
-        else {
+        if ($newlook===1) {
             \setcookie('mourjan_site', '1', time()+31536000,'/', '.mourjan.com', false);
-        }
+        }      
     }
     
     

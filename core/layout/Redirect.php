@@ -9,20 +9,18 @@ class Redirect extends Site {
 
     function __construct() {
         parent::__construct();
-        
         $userLogin=$this->post('u');
         if ($userLogin && $this->isEmail($userLogin)) {
             $ref=$this->post('r');
-            
             $http_referer=\filter_input(INPUT_SERVER, 'HTTP_REFERER');
             if ($http_referer && $ref &&
-                \preg_match('/^(?:https)\:\/\/(?:www\.|dv\.|h1\.|)mourjan\.com/', $http_referer) &&
+                \preg_match('/^(?:https)\:\/\/(?:www\.|dv\.|h1\.|dev\.)mourjan\.com/', $http_referer) &&
                 \preg_match('/\/home\/|\/signin\/|\/favorites\/|\/account\/\|\/myads\/|\/post\/|\/watchlist\/|\/buy\/|\/buyu\/|\/statement\//', $ref)) {
 
                 $userPass=$this->post('p');
                 $keepme_in=$this->post('o', 'boolean');
                 
-                if ($userPass && strlen($userPass)>=6) {
+                if ($userPass && \strlen($userPass)>=6) {
                     $pass = false;
                     //if (isset($_POST['g-recaptcha-response'])) {
                         //$cred = DB::getCacheStorage()->get('recaptcha');

@@ -108,12 +108,13 @@ class Bin extends AjaxHandler {
             }
         }
         
+        /*
         // set default language if matched
-        if (isset($this->user->params['slang']) && \in_array($this->user->params['slang'], ['en', 'ar'])) {
-            \Core\Model\Router::instance()->language=$this->user->params['slang'];
+        if (isset($this->user->params['slang']) &&  \in_array($this->user->params['slang'], ['en', 'ar'])) {
+            $this->router->language=$this->user->params['slang'];
         }
         else {
-        $referer=\filter_input(\INPUT_SERVER, 'HTTP_REFERER');
+            $referer=\filter_input(\INPUT_SERVER, 'HTTP_REFERER');
             if ($referer) {
                 $r=\parse_url($referer);
                 if (\is_array($r) && $r['scheme']==='https' && ($r['host']==='www.mourjan.com'||$r['host']==='dv.mourjan.com'||$r['host']==='h1.mourjan.com'||$r['host']==='dev.mourjan.com')) {
@@ -122,6 +123,7 @@ class Bin extends AjaxHandler {
                 }
             }
         }
+        */
         
         $this->name='name_'.$this->router->language;
         $this->actionSwitch();   
@@ -335,24 +337,9 @@ class Bin extends AjaxHandler {
                     foreach ($ad->dataset()->getPictures() as $pp => $dim) {
                         if ($images) { $images.="||"; }
                         $images.='<img width="118" src="'.$this->router->config->adImgURL.'/repos/s/'.$pp.'" />';                        
-                    }
-                    
-                    //if (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])) {
-                    //    $pass=0;
-                    //    foreach($content['pics'] as $img => $dim){
-                    //        if ($pass===0) { $content['pic_def']=$img; }
-                    //        if ($images) { $images.="||"; }
-                    //            $images.='<img width="118" src="'.$this->router->config->adImgURL.'/repos/s/'.$img.'" />';
-                    //            $pass=1;
-                    //    }
-                    //}
-                    //else {
-                    //    unset($content['pic_def']);
-                    //    $content['extra']['p']=2;
-                    //}
-
+                    }                                      
                     if ($images) { $images.="||"; }
-                    $images.='<img class=ir src="'.$this->router->config->imgURL.'/90/' . $ad->sectionId() . $this->router->_png .'" />';
+                    $images.='<img src="'.$this->router->config->imgURL.'/90/' . $ad->sectionId() . $this->router->_png .'" />';
                     
                 }
                 
@@ -384,15 +371,7 @@ class Bin extends AjaxHandler {
                         $content['altRtl'] = $textRtl;
                     }
                 }
-                        
-                //if (empty($content['other']) && $content['altother']){
-                //    $content['other']=$content['altother'];
-                //    $content['rtl']=$content['altRtl'];
-                //    $content['altother']='';
-                //    $content['altRtl']=0;
-                //    $textIdx=1;
-                //}
-                                                
+                                                    
                 // fix here
                 Config::instance()->incLibFile('MCSaveHandler');
                 $normalizer = new MCSaveHandler();    
@@ -5646,14 +5625,15 @@ class Bin extends AjaxHandler {
            
         //$adContent = json_decode($ad['CONTENT'], true);
         //$countries = $this->router->db->asCountriesDictionary();
+        
         $countries = $this->router->countries;
         $regions = $ad->dataset()->getRegions();
         
         if ( !empty($regions)) {
-            $fieldIndex=2;
+            //$fieldIndex=2;
             $comma=',';
             if ($this->router->isArabic()) {
-                $fieldIndex=1;
+                //$fieldIndex=1;
                 $comma='،';
             }
             $countriesArray=array();
@@ -5666,6 +5646,9 @@ class Bin extends AjaxHandler {
                     $country_id=$cities[$city][\Core\Data\Schema::BIN_COUNTRY_ID];                        
                     if (!isset($countriesArray[$cities[$city][\Core\Data\Schema::BIN_COUNTRY_ID]])){                            
                         $ccs = $countries[$country_id][\Core\Data\Schema::COUNTRY_CITIES];
+                        
+                        \error_log(var_export($countries[$country_id], true));
+                        
                         if ($ccs && \count($ccs)>0) {
                             $countriesArray[$country_id] = [$countries[$country_id]['name'], [] ];
                         }

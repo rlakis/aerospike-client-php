@@ -263,106 +263,106 @@ var UI={
         //console.log('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''));
         
         fetch('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''), _options('GET'))
-        .then(res=>res.json())
-        .then(response => {
-            if(response.success===1){
-                Ad.init();
-                let rs=response.result;
-                _.region=rs.regions;_.dic=rs.roots;_.ip=rs.ip;
-                if(rs.ad && rs.ad.hasOwnProperty('umc')){_.adForm.dataset.actCountry=rs.ad.umc;};
-                Prefs.init(rs.prefs);
-                //console.log('UMC', rs.ad.umc);
-                //console.log('UI.region', _.region, "\r", _.ip);
-                for(i in _.dic){
-                    _.dic[i].menu=[];
-                    let m=_.dic[i].menu;
-                    switch(i){
-                        case '1':                            
-                            m.push({'id':1, 'en':'Sell a property', 'ar':'عرض عقار للبيع'});
-                            m.push({'id':2, 'en':'Offer a property for rent', 'ar':'عرض عقار للايجار'});
-                            m.push({'id':8, 'en':"Offer a property for exchange", 'ar':"عرض عقار للمبادلة"});
-                            m.push({'id':7, 'en':"Looking to buy a property", 'ar':"أبحث عن عقار للشراء"});
-                            m.push({'id':6, 'en':"Looking to rent a property", 'ar':"أبحث عن عقار للإستئجار"});
-                            break
-                        case '2':
-                            m.push({'id':1, 'en':"Sell a car", 'ar':"عرض سيارة للبيع"});
-                            m.push({'id':7, 'en':"Looking to buy a car", 'ar':"أبحث عن سيارة للشراء"});
-                            break;
-                        case '3':
-                            m.push({'id':3, 'en':"Place a job vacancy", 'ar':"إعلان عن وظيفة شاغرة"});
-                            m.push({'id':4, 'en':"Looking for work", 'ar':"أبحث عن عمل"});
-                            m.push({'id':5, 'en':"Offer special service", 'ar':"عرض خدمة خاصة"});
-                            break;
-                        case '4':
-                            m.push({'id':5, 'en':"Service Advert", 'ar':"الإعلان عن خدمة"});
-                            break;
-                        case '99':
-                            m.push({'id':1, 'en':"Sell an item" ,'ar':"عرض سلعة للبيع"});
-                            m.push({'id':2, 'en':"Offer an item for rent", 'ar':"عرض سلعة للايجار"});
-                            m.push({'id':8, 'en':"Offer an item for exchange", 'ar':"عرض سلعة للمبادلة"});
-                            m.push({'id':7, 'en':"Looking to buy an item", 'ar':"أبحث عن سلعة للشراء"});
-                            m.push({'id':6, 'en':"Looking to rent an item", 'ar':"أبحث عن سلعة للإستئجار"});
-                            break;
-                    }
-                }
-                console.log('UI.dic', _.dic);
-                
-                let dc = decodeURIComponent($.cookie);
-                let ca = dc.split(';');
-                for (let i in ca) {var c=ca[i];
-                    while(c.charAt(0)===' '){c=c.substring(1);}
-                    if(c.indexOf('PHPSESSID=')===0){_.sessionID=c.substring(10,c.length);break;}
-                }
-                console.log('key', $.body.dataset.key, 'sid', _.sessionID);
-                $.body.queryAll('span.pix').forEach(function(pix){_.photos.push(new Photo(pix));});
-                $.body.queryAll('textarea').forEach(function(txt){
-                    txt.oninput=function(e){
-                        console.log(e);
-                        if(e.target)e=e.target;
-                        let v=e.value;
-                        if(v){
-                            if(v.toString().isArabic(0.5)){
-                                if(e.className!=='ar'){ e.className='ar'; }
-                            }
-                            else{
-                                if(e.className!=='en'){ e.className='en'; }                                
-                            }
+            .then(res=>res.json())
+            .then(response => {
+                if(response.success===1){
+                    Ad.init();
+                    let rs=response.result;
+                    _.region=rs.regions;_.dic=rs.roots;_.ip=rs.ip;
+                    if(rs.ad && rs.ad.hasOwnProperty('umc')){_.adForm.dataset.actCountry=rs.ad.umc;};
+                    Prefs.init(rs.prefs);
+                    for(i in _.dic){
+                        _.dic[i].menu=[];
+                        let m=_.dic[i].menu;
+                        switch(i){
+                            case '1':                            
+                                m.push({'id':1, 'en':'Sell a property', 'ar':'عرض عقار للبيع'});
+                                m.push({'id':2, 'en':'Offer a property for rent', 'ar':'عرض عقار للايجار'});
+                                m.push({'id':8, 'en':"Offer a property for exchange", 'ar':"عرض عقار للمبادلة"});
+                                m.push({'id':7, 'en':"Looking to buy a property", 'ar':"أبحث عن عقار للشراء"});
+                                m.push({'id':6, 'en':"Looking to rent a property", 'ar':"أبحث عن عقار للإستئجار"});
+                                break
+                            case '2':
+                                m.push({'id':1, 'en':"Sell a car", 'ar':"عرض سيارة للبيع"});
+                                m.push({'id':7, 'en':"Looking to buy a car", 'ar':"أبحث عن سيارة للشراء"});
+                                break;
+                            case '3':
+                                m.push({'id':3, 'en':"Place a job vacancy", 'ar':"إعلان عن وظيفة شاغرة"});
+                                m.push({'id':4, 'en':"Looking for work", 'ar':"أبحث عن عمل"});
+                                m.push({'id':5, 'en':"Offer special service", 'ar':"عرض خدمة خاصة"});
+                                break;
+                            case '4':
+                                m.push({'id':5, 'en':"Service Advert", 'ar':"الإعلان عن خدمة"});
+                                break;
+                            case '99':
+                                m.push({'id':1, 'en':"Sell an item" ,'ar':"عرض سلعة للبيع"});
+                                m.push({'id':2, 'en':"Offer an item for rent", 'ar':"عرض سلعة للايجار"});
+                                m.push({'id':8, 'en':"Offer an item for exchange", 'ar':"عرض سلعة للمبادلة"});
+                                m.push({'id':7, 'en':"Looking to buy an item", 'ar':"أبحث عن سلعة للشراء"});
+                                m.push({'id':6, 'en':"Looking to rent an item", 'ar':"أبحث عن سلعة للإستئجار"});
+                                break;
                         }
-                        else { e.className=''; }
-                        e.style.height = 'auto';
-                        e.style.height = (e.scrollHeight) + 'px';
-                    };
-                    txt.onchange=function(){
-                        console.log('textarea.onchange', this);
-                        if(this.id==='natural'){
-                            Ad.natural=this.value;
+                    }
+                    console.log('UI.dic', _.dic);
+                
+                    let dc = decodeURIComponent($.cookie);
+                    let ca = dc.split(';');
+                    for (let i in ca) {
+                        var c=ca[i];
+                        while(c.charAt(0)===' '){c=c.substring(1);}
+                        if(c.indexOf('PHPSESSID=')===0){_.sessionID=c.substring(10,c.length);break;}
+                    }
+                    console.log('key', $.body.dataset.key, 'sid', _.sessionID);
+                    $.body.queryAll('span.pix').forEach(function(pix){_.photos.push(new Photo(pix));});
+                    $.body.queryAll('textarea').forEach(function(txt){
+                        txt.oninput=function(e){
+                            console.log(e);
+                            if(e.target)e=e.target;
+                            let v=e.value;
+                            if(v){
+                                if(v.toString().isArabic(0.5)){
+                                    if(e.className!=='ar'){ e.className='ar'; }
+                                }
+                                else{
+                                    if(e.className!=='en'){ e.className='en'; }                                
+                                }
+                            }
+                            else { 
+                                e.className='';
+                            }
+                            e.style.height = 'auto';
+                            e.style.height = (e.scrollHeight+20) + 'px';
+                        };
+                        txt.onchange=function(){
+                            console.log('textarea.onchange', this);
+                            if(this.id==='natural'){
+                                Ad.natural=this.value;
+                            }
+                            else {
+                                Ad.foreign=this.value;
+                            }
+                            console.log(Ad);
+                        };
+                    });
+                    
+                    $.body.queryAll('input[type=tel]').forEach(function(t){_.numbers[t.dataset.no]=new ContactNumber(t);});
+                
+                    let mail=$.body.query('input[type=email]');
+                    mail.onchange=function(){
+                        if(this.checkValidity()){
+                            Ad.email=this.value;
                         }
                         else {
-                            Ad.foreign=this.value;
+                            console.log('invalid email');
                         }
-                        console.log(Ad);
                     };
-                });
-                $.body.queryAll('input[type=tel]').forEach(function(t){_.numbers[t.dataset.no]=new ContactNumber(t);});
                 
-                let mail=$.body.query('input[type=email]');
-                mail.onchange=function(){
-                    if(this.checkValidity()){
-                        Ad.email=this.value;
-                    }
-                    else {
-                        console.log('invalid email');
-                    }
-                };
-                
-                if(rs.ad){Ad.parse(rs.ad);}
-            }
-        })
-        .catch(error => { 
-            console.log(error);
-        });
-       
-        
+                    if(rs.ad){Ad.parse(rs.ad);}
+                }
+            })
+            .catch(error => { 
+                console.log(error);
+            });               
         //_.validator=new FormValidator(  );
     },
     
@@ -1116,22 +1116,21 @@ var Ad={
         let _=this; _.init();
         
         _.id=ad.id;
-        _.state=ad.state;
-                        
-        _.content.id=_.id;
-        
-        _.content.hl=((ad.hl)?ad.hl:(UI.ar?'ar':'en'));
-        //_.content.hl=cnt.hl;
+        _.state=ad.state;                        
+        _.content.id=_.id;        
+        _.content.hl=((ad.hl)?ad.hl:(UI.ar?'ar':'en'));        
         _.content.lat=ad.lat;
         _.content.lon=ad.lon;
         _.content.loc=ad.loc;
-        UI.addressChanged();
         
+        UI.addressChanged();        
         UI.photos.forEach(function(p){ p.clear(); });
+        
         if(ad.pics){
             UI.pixIndex=0;
             for(var i in ad.pics){
                 UI.photos[UI.pixIndex++].setImage($.body.dataset.repo+'/repos/m/'+i).path=i;
+                if (UI.pixIndex===5) break;
             }
         }
         

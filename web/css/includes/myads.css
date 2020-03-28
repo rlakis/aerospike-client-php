@@ -9,16 +9,18 @@ canvas{max-width: 1024px;margin-left: auto; margin-right: auto;display: block}
 .myad header > span {margin: 0 8px !important}
 .myad header > div{display:inherit;}
 .myad header span {line-height: 24px;}
-.myad section {line-height: 1.5rem}
+.myad section {
+    line-height: 1.5rem
+}
 .myad footer{height:32px;padding-top:0px;margin: 0 8px; border-bottom-left-radius:6px;border-bottom-right-radius:6px;background-image:linear-gradient(90deg,white,#f1f3f4);
             display:flex;flex:1 auto;justify-content:space-between;align-items:center;direction: inherit}
 .myad hr{margin:0 8px;border-top:1px dotted silver;border-bottom:0}
 .myad .ar{font-size:1.05rem;line-height:1.6em}
 .myad .note{display:flex;flex:1 auto;min-height:28px;background-image:linear-gradient(90deg,lightgray,#f1f3f4);justify-content:space-between;align-items:center;padding:4px 8px;font-size:0.9em}
-.icn-fail{background:transparent url(/web/css/1.0/fa/solid/lightbulb-exclamation.svg) no-repeat center;filter: invert(86%) sepia(64%) saturate(484%) hue-rotate(355deg) brightness(105%) contrast(106%);}
+.icn-fail{background:transparent url(https://dev.mourjan.com/css/2020/1.0/fa/solid/lightbulb-exclamation.svg) no-repeat center;filter: invert(86%) sepia(64%) saturate(484%) hue-rotate(355deg) brightness(105%) contrast(106%);}
 .icn-wait{mask:url(/web/css/1.0/fa/solid/alarm-clock.svg) no-repeat center;background-color: whitesmoke;margin:0 4px;}
-.icn-done{background:transparent url(/web/css/1.0/fa/solid/check.svg) no-repeat center / cover !important;filter:invert(20%) sepia(52%) saturate(3178%) hue-rotate(99deg) brightness(97%) contrast(104%);}
-.icn-minus-circle{background:transparent url(/web/css/1.0/fa/solid/minus-circle.svg) no-repeat center / cover !important;
+.icn-done{background:transparent url(https://dev.mourjan.com/css/2020/1.0/fa/solid/check.svg) no-repeat center / cover !important;filter:invert(20%) sepia(52%) saturate(3178%) hue-rotate(99deg) brightness(97%) contrast(104%);}
+.icn-minus-circle{background:transparent url(https://dev.mourjan.com/css/2020/1.0/fa/solid/minus-circle.svg) no-repeat center / cover !important;
                  filter: invert(11%) sepia(67%) saturate(6919%) hue-rotate(352deg) brightness(106%) contrast(114%);
 }
 .icn-chart-line{background:transparent url(/web/css/1.0/fa/duotone/chart-line.svg) no-repeat center / cover !important;
@@ -28,32 +30,40 @@ canvas{max-width: 1024px;margin-left: auto; margin-right: auto;display: block}
 .myad .user {direction:ltr;display:flex;flex:1 auto;justify-content:space-between;background-color:#f1f3f4;height:28px;padding:0 8px;align-items:center;box-shadow:0 1px 4px 0 rgba(0, 0, 0, 0.14);}
 .myad .user > div{display:flex;}
 .myad.selected section{background-color:#d3f1c4;}
-.myad.alert .icon-state{background:transparent url(/web/css/1.0/fa/regular/bell.svg) no-repeat center / cover !important;filter:invert(20%) sepia(52%) saturate(3178%) hue-rotate(99deg) brightness(97%) contrast(104%);}
+.myad.alert .icon-state{background:transparent url(https://dev.mourjan.com/css/2020/1.0/fa/regular/bell.svg) no-repeat center / cover !important;filter:invert(20%) sepia(52%) saturate(3178%) hue-rotate(99deg) brightness(97%) contrast(104%);}
 
 .myad.feature{}
 .myad.feature .user{background-color:goldenrod;color:white}
 .myad.fail{}
 .myad.pending header{background-color: dimgrey}
-.myad.pending .icon-state{background:transparent url(/web/css/1.0/fa/regular/alarm-clock.svg) no-repeat center / cover;filter: invert(68%) sepia(47%) saturate(2740%) hue-rotate(359deg) brightness(100%) contrast(105%);}
+.myad.pending .icon-state{background:transparent url(https://dev.mourjan.com/css/2020/1.0/fa/regular/alarm-clock.svg) no-repeat center / cover;filter: invert(68%) sepia(47%) saturate(2740%) hue-rotate(359deg) brightness(100%) contrast(105%);}
 .myad.rejected{}
 .myad.rejected header{background-color:#f8d3d3 !important; color:darkred}
 .myad.rejected .icon-state{background:transparent url(/web/css/1.0/fa/regular/lightbulb-exclamation.svg) no-repeat center / cover;filter: invert(15%) sepia(31%) saturate(5635%) hue-rotate(346deg) brightness(105%) contrast(111%);}
 
 .myad.approved header{background-color: #d3f1c4 !important; color:green}
 .myad.approved section{background-color:#eed4ff;}
-.myad.approved .icon-state{background:transparent url(/web/css/1.0/fa/solid/check.svg) no-repeat center / cover !important;filter:invert(20%) sepia(52%) saturate(3178%) hue-rotate(99deg) brightness(97%) contrast(104%);}
+.myad.approved .icon-state{background:transparent url(https://dev.mourjan.com/css/2020/1.0/fa/solid/check.svg) no-repeat center / cover !important;filter:invert(20%) sepia(52%) saturate(3178%) hue-rotate(99deg) brightness(97%) contrast(104%);}
 .myad.locked{background-color: #fac8c8}
 
 .myad .pn{direction:ltr;unicode-bidi:bidi-override;white-space:nowrap;}
 
-.myad section > img {display:inline; width:90px; height:90px;border: 1px solid red}
+.myad section img {
+    display:inline-flex;
+    min-width: 90px;
+    width:90px;
+    height:90px;
+    margin-inline-end:12px;
+    border:none;
+    filter:var(--mseFilter);
+}
+/*
 .myad section.ar > img {float:right;margin:0 0 5px 10px;border:0}
 .myad section.en > img {float:left;margin:0 10px 5px 0;border:0}
-
+*/
 .myad .pn.png{color:darkgreen;font-weight:bolder}
 
-.myadls .inside{width:100%;padding:4px;font-size:1.2rem;text-align:center;display:none;}
-.myadls .inside>textarea{width:100%;height:100px;line-height: 1.5em; font-size: 1em;border:1px solid darkgray}
+
 .myadls .inside>select{width:100%;padding:4px;font-size:20px !important;border:1px solid darkgray}
 
 .myad input[type=button], .myad button {display:inline-flex;color: #007bff; cursor: pointer; font-size: 16px; font-family: inherit; 
@@ -78,15 +88,34 @@ canvas{max-width: 1024px;margin-left: auto; margin-right: auto;display: block}
 .myad #qRoot{display:inherit;background-color:darkcyan;font-weight:bold}
 .myad #qAlt{display:inherit;background-color:olivedrab;padding:2px;font-weight:bold}
 .myad #qSec ul {display:flex;flex-flow:row wrap;flex:1 auto;align-items:flex-start;justify-content:space-between}
-.myad #qSec li {min-width: 200px;}
+.myad #qSec li {
+    min-width: 200px;
+    flex-grow: initial
+}
 
 .pimgs{display:flex;flex-flow:row wrap;flex:1 auto;align-items:flex-start;justify-content: space-around;min-height: 200px}
 .pimgs span{max-height:240px;position:relative}
 .pimgs img{max-height:240px}
 .pimgs .del{position: absolute; top:0;right:0}
 
+.myadls .inside{width:100%;padding:4px;font-size:1.2rem;text-align:center;display:none;}
+.myadls .inside textarea{
+    width:100%;
+    height:100px;
+    line-height: 1.5em;
+    font-size: 1em;
+    border:1px solid #eee
+}
 .myadls .pgn{text-align: center;max-width: 1024px;width: 100%;}
 .myadls .pgn .card{padding: 8px;}
+
+.myadls .card .card-content{
+    display: flex;
+    flex-flow: row;
+    align-items: center;
+    justify-content: flex-start;
+}
+
 .adminNB{position:fixed;cursor:pointer;bottom:0;left:8px;background-color:#D9FAC8;padding:5px 15px;border:1px solid #ccc;font-weight:bold;color:#00e;width:140px;border-top-right-radius:6px;border-top-left-radius:6px;z-index:999;text-align:center}
 
 .tooltip{position:relative;display:block}
@@ -117,12 +146,12 @@ canvas{max-width: 1024px;margin-left: auto; margin-right: auto;display: block}
 .fade{-webkit-animation-name:fade;-webkit-animation-duration:1.5s;animation-name:fade;animation-duration:1.5s;}
 
 .loader{
-  border: 12px solid #f3f3f3; /* Light grey */
-  border-top: 12px solid #3498db; /* Blue */
-  border-radius: 50%;
-  width: 80px;
-  height: 80px;
-  animation: spin 2s linear infinite;
+    border: 12px solid #f3f3f3; /* Light grey */
+    border-top: 12px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    animation: spin 2s linear infinite;
 }
 
 @keyframes spin{0% {transform: rotate(0deg);} 100% {transform:rotate(360deg);}}
