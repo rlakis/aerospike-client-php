@@ -4,7 +4,7 @@ namespace Core\Model;
 use JsonException;
 
 class Ad {
-    private $list;
+    private ?AdList $list;
     
     private array $data;              // raw classified array
     private string $text;              // ad text without contacts
@@ -225,6 +225,10 @@ class Ad {
     
     
     public function publisherType() : int {
+        if ($this->isRealEstate()) {
+            
+            
+        }
         return $this->data[Classifieds::PUBLISHER_TYPE] ?? 0;
     }
     

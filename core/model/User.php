@@ -21,7 +21,7 @@ class User {
 
     var $db=null;
     public Config $config;
-    public Site $site;
+    var $site = null;
     
     var $md5_prefix='ZGr63LE02Ad';
     
@@ -300,6 +300,13 @@ class User {
         }
     }
     
+    function getUserByEmailAndProvider($email, $provider){
+        $res = false;
+        $email = trim($email);
+        $res=$this->db->get('select * from web_users where (email = ? or user_email=?) and provider =? order by id asc', [$email, $email, $provider]);
+        
+        return $res;
+    }
     
     function id() : int {
         return $this->info['id'] ?? 0;
@@ -313,7 +320,7 @@ class User {
     
     public function isLoggedIn(int $user_level=0) : bool {
         if ($user_level>0) {
-            return ($this->id()>0 && $this->level()==$user_level);
+            return ($this->id()>0 && $this->level()===$user_level);
         }
         return ($this->id()>0);
     }
@@ -839,13 +846,30 @@ class User {
     }
     
     
-    function getUserByEmail($email){
-        $res = false;
-        if ($this->info['id'] && $this->info['level']==9) {
-            $email = trim($email);
-            $res=$this->db->get('select * from web_users where email=? or user_email=? order by last_visit desc', [$email, $email]);
+    function getUserByEmail(string $email, ?array &$records) : int {
+        if (!$this->isLoggedIn(9)) {  return -1;  }
+        
+        $records=[];
+        
+        $as=NoSQL::instance();
+        $where=\Aerospike::predicateEquals(\Core\Model\ASD\USER_PROVIDER_EMAIL, $email);
+        $status=$as->getConnection()->query(NoSQL::NS_USER, \Core\Data\Schema::TS_PROFILE, $where, function ($_record) use (&$records) {
+            $records[$_record['bins']['id']]=$_record['bins'];            
+        });
+        if ($status===\Aerospike::OK) {
+            $where=\Aerospike::predicateEquals(\Core\Model\ASD\USER_EMAIL, $email);
+            $status=$as->getConnection()->query(NoSQL::NS_USER, \Core\Data\Schema::TS_PROFILE, $where, function ($_record) use (&$records) {
+                $records[$_record['bins']['id']]=$_record['bins'];            
+            });
+            if ($status!==\Aerospike::OK) {
+                \Core\Model\NoSQL::Log(['USER_EMAIL'=>$email, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]); 
+            }
+            \uasort($records, function($a, $b){ return $b[\Core\Model\ASD\USER_LAST_VISITED] <=> $a[\Core\Model\ASD\USER_LAST_VISITED]; });
         }
-        return $res;
+        else {
+            \Core\Model\NoSQL::Log(['EMAIL'=>$email, 'Error'=>"[{$this->getConnection()->errorno()}] {$this->getConnection()->error()}"]);             
+        }
+        return $status;
     }
     
     
@@ -2953,7 +2977,8 @@ class User {
     }
 
     
-    function logout() {
+    function logout() : bool {
+        \error_log(__FUNCTION__);
         $countryId=$this->params['country']??0;
         $cityId=$this->params['city']??0;
         $lang=isset($this->params['slang'])?$this->params['slang']:'ar';
@@ -2961,7 +2986,7 @@ class User {
         $sortingLang=isset($this->params['list_lang'])?$this->params['list_lang']:-1;
         $mourjanUser = isset($this->params['mourjan_user']) ? 1 : NULL;
         
-        if(isset($_COOKIE['__uvme'])) {
+        if (isset($_COOKIE['__uvme'])) {
             setcookie('__uvme', '', 1,'/',$this->config->get('site_domain'));
         }
                 

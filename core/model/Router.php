@@ -31,7 +31,19 @@ class Router extends \Core\Model\Singleton {
     
     public int $id=0;
     
-    public array $params=['start'=>0,'q'=>'','iq'=>'', 'id'=>FALSE, 'cn'=>FALSE, 'c'=>FALSE, 'ro'=>FALSE, 'se'=>FALSE, 'pu'=>FALSE, 'rss'=>FALSE];
+    public array $params=[
+        'start'=>0,
+        'q'=>'',
+        'iq'=>'', 
+        'id'=>FALSE, 
+        'cn'=>FALSE, 
+        'c'=>FALSE, 
+        'ro'=>FALSE, 
+        'se'=>FALSE, 
+        'pu'=>FALSE, 
+        'rss'=>FALSE,
+        'aid'=>0,
+        'cmp'=>0];
     
     public ?array $countries=NULL;
     public ?array $cities=NULL;
@@ -57,8 +69,8 @@ class Router extends \Core\Model\Singleton {
     
     
     public string $client_ip;
-    public string $host='www.mourjan.com';
-    public string $referer='';
+    public string $host;
+    public string $referer;
     public string $session_key;
     
     
@@ -88,48 +100,45 @@ class Router extends \Core\Model\Singleton {
         $this->db=new DB();
         if (isset($argc)) { return; }
 
-        if (isset($_GET['shareapp'])) {
-            $device = new \Detection\MobileDetect();
-            if($device->isMobile()) {
-                if( $device->isAndroidOS() ) {
-                    header("Location:https://play.google.com/store/apps/details?id=com.mourjan.classifieds");
+        if (\filter_has_var(\INPUT_GET, 'shareapp')) {
+            $device=new \Detection\MobileDetect();
+            if ($device->isMobile()) {
+                if ($device->isAndroidOS()) {
+                    \header("Location:https://play.google.com/store/apps/details?id=com.mourjan.classifieds");
                 }
-                elseif( $device->isiOS() && preg_replace('/_.*/', '', $device->version('iPhone'))>8) {
-                    header("Location:https://itunes.apple.com/us/app/mourjan-mrjan/id876330682?ls=1&mt=8");
+                elseif ($device->isiOS() && preg_replace('/_.*/', '', $device->version('iPhone'))>8) {
+                    \header("Location:https://itunes.apple.com/us/app/mourjan-mrjan/id876330682?ls=1&mt=8");
                 }
             }
         }
         
-        $cmu=\filter_input(\INPUT_COOKIE, 'mourjan_user', \FILTER_DEFAULT, ['options'=>['default'=>'{}']]);
-        $this->cookie=\json_decode($cmu);
+        $this->cookie=\json_decode(\filter_input(\INPUT_COOKIE, 'mourjan_user', \FILTER_DEFAULT, ['options'=>['default'=>'{}']]));
         
         $this->session_key=\session_id();
         $_session_params = $_SESSION['_u']['params'] ?? [];
                 
-        $this->isAcceptWebP=(isset($_SERVER['HTTP_ACCEPT']) && \strstr($_SERVER['HTTP_ACCEPT'], 'image/webp'));
+        $this->isAcceptWebP=(\strpos(\filter_input(\INPUT_SERVER, 'HTTP_ACCEPT', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]), 'image/webp')!==false);
+
         if (isset($_SESSION['webp']) && $_SESSION['webp']) {
-            $this->isAcceptWebP = 1;            
+            $this->isAcceptWebP=true; 
         } 
         elseif ($this->isAcceptWebP) {
-            $_SESSION['webp'] = 1;
+            $_SESSION['webp']=1;
         }
         
         if (0 && $this->isAcceptWebP) {
             $this->_png = ".webp";
             $this->_jpg = ".webp";
             $this->_jpeg = ".webp";
-        }
+        }               
         
-        if (\array_key_exists('HTTP_HOST', $_SERVER)) {
-            $this->host = $_SERVER['HTTP_HOST'];
-        }
+        $this->host=\filter_input(\INPUT_SERVER, 'HTTP_HOST', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'www.mourjan.com']]);
+        $this->referer=\filter_input(\INPUT_SERVER, 'HTTP_REFERER', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+        $this->internal_referer=(\strpos($this->referer, 'https://'.$this->config->get('site_domain'))===0);
         
-        if (\array_key_exists('HTTP_REFERER', $_SERVER)) {
-            $this->referer=$_SERVER['HTTP_REFERER'];
-        }
-
-        if (\array_key_exists('HTTP_USER_AGENT', $_SERVER)) {
-            if (\array_key_exists($_SERVER['HTTP_USER_AGENT'], $this->config->get('blocked_agents')) || empty($_SERVER['HTTP_USER_AGENT'])) {
+        $user_agent=\filter_input(\INPUT_SERVER, 'HTTP_USER_AGENT', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+        if ($user_agent) {
+            if (\array_key_exists($user_agent, $this->config->get('blocked_agents'))) {
                 \header("HTTP/1.1 403 Forbidden");
                 exit(0);
             }            
@@ -138,33 +147,16 @@ class Router extends \Core\Model\Singleton {
             \header("HTTP/1.1 403 Forbidden");
             exit(0);            
         }
-
-        $pos = \strpos($this->referer, $this->config->get('site_domain'));
-        if (!($pos===FALSE)) {
-            $this->internal_referer = ($pos>0 && $pos<13);
-        }
       
         if (!isset($_session_params['mobile'])) {
             if (isset($this->cookie->m) && \in_array($this->cookie->m, [0,1])) {
                 $this->isMobile = (int)$this->cookie->m ? true : false;
                 $_session_params['mobile']=(int)$this->cookie->m;
-            }
-            else {
-                /*
-                $device = new \Detection\MobileDetect();
-
-                if ($device->isMobile() && !$device->isTablet()) {
-                    $this->isMobile = TRUE;
-                    $_session_params['mobile']=1;
-                } 
-                else {
-                    $this->isMobile = FALSE;
-                    $_session_params['mobile']=0;
-                }*/
-            }
+            }            
         }
 
-        if (isset($_POST['mobile'])) {
+        
+        if (\filter_has_var(\INPUT_POST, 'mobile')) {
             if ($_POST['mobile']) {
                 $this->isMobile = TRUE;
                 $_session_params['mobile']=1;
@@ -177,19 +169,11 @@ class Router extends \Core\Model\Singleton {
         elseif (isset($_session_params['mobile'])) {
             $this->isMobile = $_session_params['mobile'];
         }
+                
+        $this->explodedRequestURI=\explode('/', \ltrim(\rtrim(\parse_url(\filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_URL), \PHP_URL_PATH), '/'), '/'));        
+        $len=\count($this->explodedRequestURI);
         
-        $this->explodedRequestURI = \explode('/', \ltrim(\rtrim(\parse_url(\filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_URL), \PHP_URL_PATH), '/'), '/'));
-        
-        if (isset($this->cookie->lg) &&  \in_array($this->cookie->lg, ['en', 'ar'])) {
-            $this->language=$this->cookie->lg;
-        }
-        else {
-            $this->language='ar';
-        }
-        
-        $len = \count($this->explodedRequestURI);
-        
-        if ($len>0) {        
+        if ($len>0) {
             $lastIdx=$len-1;
             
             if ($this->explodedRequestURI[$lastIdx]==='amp') {
@@ -210,47 +194,56 @@ class Router extends \Core\Model\Singleton {
                 $len--;          
             }
                                                 
-            
             if ($len>0) {
                 if ($this->explodedRequestURI[$lastIdx]==='en') {
                     $this->language='en';  
                     unset($this->explodedRequestURI[$lastIdx]);
                 }
                 elseif ($this->explodedRequestURI[$lastIdx]==='fr') {
-                    $this->language = 'en';
-                    $this->extendedLanguage = 'fr';
+                    $this->language='en';
+                    $this->extendedLanguage='fr';
                     unset($this->explodedRequestURI[$lastIdx]);
                 }
                 elseif ($len>1) {
                     $lastIdx=$len-2;
                     if ($this->explodedRequestURI[$lastIdx]==='en') {
                         $this->language='en';  
-                        $this->explodedRequestURI[$lastIdx]= $this->explodedRequestURI[$len-1];
+                        $this->explodedRequestURI[$lastIdx]=$this->explodedRequestURI[$len-1];
                         unset($this->explodedRequestURI[$len-1]);
                     }
                     elseif ($this->explodedRequestURI[$lastIdx]==='fr') {
-                        $this->language = 'en';
-                        $this->extendedLanguage = 'fr';
-                        $this->explodedRequestURI[$lastIdx]= $this->explodedRequestURI[$len-1];
+                        $this->language='en';
+                        $this->extendedLanguage='fr';
+                        $this->explodedRequestURI[$lastIdx]=$this->explodedRequestURI[$len-1];
                         unset($this->explodedRequestURI[$len-1]);
                     }                    
                 }
             }
             
             if ($___p) { $this->explodedRequestURI[\count($this->explodedRequestURI)]=$___p; }
-        }        
-        $this->uri = '/'.\implode('/', $this->explodedRequestURI);
+        }   
+        $this->uri='/'.\implode('/', $this->explodedRequestURI);
         
+        $isAjax=(\strpos($this->uri, '/ajax-')===0);
+        if (empty($this->language)) {
+            if (isset($this->cookie->lg) && ($this->cookie->lg!=='en' || $isAjax || $this->uri==='/')) {
+                $this->language=$this->cookie->lg;
+            }
+            else {
+                $this->language='ar';
+            }
+        }
+                        
         $_session_params['lang']=$this->language;
                 
-        if (isset($_SERVER['HTTP_REFERER']) && \preg_match('/translate\.google\.com/', $_SERVER['HTTP_REFERER'])) {
+        if (\preg_match('/translate\.google\.com/', $this->referer)) {
             $toLang=null;
-            \preg_match('/&langpair\=[a-z]{2}(?:\||%7C)([a-z]{2})/', $_SERVER['HTTP_REFERER'], $toLang);
+            \preg_match('/&langpair\=[a-z]{2}(?:\||%7C)([a-z]{2})/', $this->referer, $toLang);
             if ($toLang && \count($toLang)>1) {
                 $this->siteTranslate=$toLang[1];
             }
             else {
-                \preg_match('/&tl\=([a-z]{2})/', $_SERVER['HTTP_REFERER'], $toLang);
+                \preg_match('/&tl\=([a-z]{2})/', $this->referer, $toLang);
                 if ($toLang && \count($toLang)>1) {
                     $this->siteTranslate=$toLang[1];
                 }
@@ -258,68 +251,75 @@ class Router extends \Core\Model\Singleton {
         }                   
 
         if (\preg_match('/\/(?:houses|villas)(?:\/|$)/i', $this->uri)) {
-            $this->uri = \preg_replace('/\/(?:houses|villas)(\/|$)/','/villas-and-houses$1',$this->uri);
+            $this->uri=\preg_replace('/\/(?:houses|villas)(\/|$)/','/villas-and-houses$1',$this->uri);
             if ($this->uri[\strlen($this->uri)-1]!='/') {
-                $this->uri .= '/';
+                $this->uri.='/';
             }
-            $_SESSION['_u']['params'] = $_session_params;
+            $_SESSION['_u']['params']=$_session_params;
             $this->redirect($this->uri, 301);
         }
         
-        if (\substr($this->uri, -10)=='/index.php') {
-            $this->uri = \substr($this->uri, 0, strlen ($this->uri)-10);
+        if (\substr($this->uri, -10)==='/index.php') {
+            $this->uri=\substr($this->uri, 0, \strlen($this->uri)-10);
+            if (empty($this->uri)) { $this->uri='/'; }
         }
-                    
-        $_args = \explode('&', $_SERVER['QUERY_STRING']);
-                        
-        $count = \count($_args);
-        for ($i=0; $i<$count; ++$i) {
-            $node = \explode('=', $_args[$i]);
-            if (!empty($node[1]) && \array_key_exists($node[0], $this->params)) {                
-                $this->params[$node[0]] = \trim(\urldecode($node[1]));
-                
-                switch ($node[0]) {
-                    case 'rss':
-                        $this->params['rss'] = TRUE;
+              
+        
+        $got=\filter_input_array(\INPUT_GET);
+        if (\is_array($got)) {
+            foreach ($got as $k => $v) {
+                if (empty($v) || !\array_key_exists($k, $this->params)) { continue; }
+                //$this->params[$node[0]]=\trim(\urldecode($node[1]));
+                switch ($k) {
+                    case 'q':
                         $this->force_search=true;
+                        $this->params[$k]= \html_entity_decode(\filter_input(\INPUT_GET, $k, \FILTER_SANITIZE_STRING));
                         break;
+                    
+                    case 'cmp':
+                    case 'aid':
+                        $this->params[$k]= \intval(\filter_input(\INPUT_GET, $k, \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
+                        if (!$isAjax) {
+                            $this->force_search=true;
+                        }
+                        break;
+                    
                     case 'id':
                         //workaround for youtube upload callback
-                        if (!isset($_GET['status'])) {
-                            $this->id = \intval($node[1]);                        
-                            $ad_url = $this->getAdURI($this->id);
-                            $this->module = 'detail';
-                            $this->http_status = 410;
+                        if (!\filter_has_var(\INPUT_GET, 'status')) {
+                            $this->id=\intval($v);                        
+                            $ad_url=$this->getAdURI($this->id);
+                            $this->module='detail';
+                            $this->http_status=410;
                             \header('HTTP/1.1 410 Gone');
                             return;
                         }
-                        break;         
-                    case 'q':
-                        $this->force_search=true;
                         break;
+                        
                     case 'ro':
                     case 'cn':
-                        $this->params[$node[0]]= \intval(\filter_input(\INPUT_GET, $node[0], \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
+                        $this->params[$k]= \intval(\filter_input(\INPUT_GET, $k, \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
                         break;
+                    
+                    case 'rss':
+                        $this->params['rss']=true;
+                        $this->force_search=true;
+                        break;
+
                     default:
-                        $this->isDynamic = true;
+                        $this->isDynamic=true;
                         break;
                 }
-            }                        
+            }
         }
         
-        //\error_log(\json_encode($this->params, JSON_PRETTY_PRINT));
-        
-        if (isset($_GET['aid']) && isset($_GET['q'])) {
-            $this->force_search=true;
-        }
-        
-        
-        if ($this->params['start'] && !\array_key_exists('start', $_GET)) {
+       
+        if ($this->params['start'] && !\filter_has_var(\INPUT_GET, 'start')) {
             $_GET['start']=$this->params['start'];
         }
              
-        $_args = \explode('/', $this->uri);
+                
+        $_args=\explode('/', $this->uri);
         if (!empty($_args)) {
             $idx=\count($_args)-1;
                 
@@ -327,7 +327,7 @@ class Router extends \Core\Model\Singleton {
                 $this->id=(int)$_args[$idx];
                 $rpos=\strrpos($this->uri, '/');
                 if ($rpos) {
-                    $this->uri = \substr($this->uri, 0, $rpos);
+                    $this->uri=\substr($this->uri, 0, $rpos);
                 }
                 
                 if ($this->id<1000000000) {
@@ -418,14 +418,12 @@ class Router extends \Core\Model\Singleton {
             }
         }    
                 
-
-        if ((!$this->internal_referer || \strstr($this->referer, '/oauth/')) &&
-            empty($_GET) && ($this->uri===''||$this->uri==='/') && 
-            !$this->userId && !$this->watchId) {
-            $this->countries = $this->db->getCountriesData($this->language);
+                
+        if ((!$this->internal_referer || \strstr($this->referer, '/oauth/')) && empty($got) && ($this->uri===''||$this->uri==='/') && !$this->userId && !$this->watchId) {
+            $this->countries=$this->db->getCountriesData($this->language);
             
             if (isset($_session_params['visit']) && isset($_session_params['user_country'])) { 
-                if (!$this->countryId && \strpos($this->config->baseURL, 'dv.mourjan.com')===false && \strpos($this->config->baseURL, 'h1.mourjan.com')===false) {  
+                if (!$this->countryId && \strpos($this->config->baseURL, '.mourjan.com')===false) {  
                     $curi = $this->uri;
                     if (isset($this->cookie->cn) && $this->cookie->cn) {
                         if (!isset($_GET['app']) && isset($this->cookie->lg) && \in_array($this->cookie->lg, ['ar','en'])) {
@@ -482,7 +480,7 @@ class Router extends \Core\Model\Singleton {
                         }
                     }
                 }
-            }                            
+            }            
         }
 
         if ($this->countryId===0 && isset($this->cookie->cn) && $this->cookie->cn>0) {
@@ -518,10 +516,11 @@ class Router extends \Core\Model\Singleton {
             $_session_params['lang']=$this->language;
         }
         
-        $_SESSION['_u']['params'] = $_session_params;
+        $_SESSION['_u']['params']=$_session_params;
         
-        //error_log(__CLASS__.'.'.__FUNCTION__."\n".\json_encode($_session_params, JSON_PRETTY_PRINT));
-        //error_log('cookie '. json_encode($this->cookie));
+        
+        //log(PHP_EOL. $this->uri.PHP_EOL. __CLASS__.'.'.__FUNCTION__."\n".\json_encode($_session_params, JSON_PRETTY_PRINT));
+        //error_error_log('cookie '. json_encode($this->cookie));
     }
         
     
@@ -972,7 +971,7 @@ class Router extends \Core\Model\Singleton {
         } 
         else {
             if ($this->uri) {
-                $url_codes = $this->FetchUrl($this->uri);
+                $url_codes=$this->FetchUrl($this->uri);
                 if (!empty($url_codes)) {
                     $this->countryId = $url_codes['country_id'];// $url_codes[0];
                     $this->cityId = $url_codes['city_id'];//$url_codes[1];
@@ -990,13 +989,13 @@ class Router extends \Core\Model\Singleton {
                         $this->force_search=false;
                     }
 
-                    if ($this->force_search)  {
+                    if ($this->force_search) {
                         $this->module='search';
                     } 
                     elseif ($this->isMobile && $this->rootId>0 && $this->sectionId===0) {
                         $this->module='index';
                     } 
-                    elseif ($this->purposeId>0 || $this->rootId>0 || ($this->force_search)) {
+                    elseif ($this->purposeId>0 || $this->rootId>0) {
                         $this->module='search';
                     }
 

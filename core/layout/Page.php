@@ -42,10 +42,10 @@ class Page extends Site {
         $this->name='name_'.$this->router->language;
         if ($this->user()->id()) {
             if ($this->user()->level()===9 && $this->user()->id()!==1 && $this->user()->id()!==2) {
-                $this->isUserMobileVerified = true;
+                $this->isUserMobileVerified=true;
             }
             else {
-                $this->isUserMobileVerified = (isset($this->user->info['verified']) && $this->user->info['verified']);
+                $this->isUserMobileVerified=(isset($this->user->info['verified']) && $this->user->info['verified']);
             }
         }
         
@@ -98,12 +98,12 @@ class Page extends Site {
         }
         
         
-        if ($this->router->isMobile) {
-            $this->includeCssByCountry();
-            if($this->router->module=='signin'){
-                $this->inlineCss.='.g-recaptcha{display:inline-block;min-height:78px}li.recap{text-align:center}';
-            }
-        }        
+        //if ($this->router->isMobile) {
+        //    $this->includeCssByCountry();
+        //    if($this->router->module=='signin'){
+        //        $this->inlineCss.='.g-recaptcha{display:inline-block;min-height:78px}li.recap{text-align:center}';
+        //    }
+        //}        
 
         if (!in_array($this->router->countryId, $this->router->config->get('iso_countries'))) {
             $this->router->countryId=0;
@@ -364,9 +364,9 @@ class Page extends Site {
             $this->router->params['q'] = \trim(\preg_replace('/\s+/',' ', $this->router->params['q']));
         }
 
-        if (in_array($this->user->info['id'],array(1,2,2100,38813,44835,53456))) {
-            $this->router->cfg['enabled_sharing']=false;
-            $this->router->config->disableAds();
+        if ($this->user->level()===9) {
+            //$this->router->cfg['enabled_sharing']=false;
+            //$this->router->config->disableAds();
         }
         
         if ($this->router->params['q']) {
@@ -496,14 +496,7 @@ class Page extends Site {
         $qrfile = \dirname( $this->router->config->get('dir')).'/tmp/qr/'.\session_id().'.png';
         QRcode::png('mourjan:login:'.\session_id().\str_pad($this->router->config->serverId, 4, '0', \STR_PAD_LEFT) . \str_pad(time(),16, '0', \STR_PAD_LEFT), $qrfile, QR_ECLEVEL_L, 5);
 
-        $sh = '0';
-        $mu = filter_input(INPUT_COOKIE, 'mourjan_user', FILTER_DEFAULT);
-        if ($mu) {            
-            $cook = json_decode($mu);            
-            if (is_object($cook) && isset($cook->mu)) {
-                $sh='1';
-            }
-        }
+        $sh=(isset($this->router->cookie->mu) && $this->router->cookie->mu==1)?'1':'0';
 
         $redis = new Redis();
         $redis->connect($this->router->config->get('rs-host'), $this->router->config->get('rs-port'), 1, NULL, 100); 
@@ -518,32 +511,25 @@ class Page extends Site {
         
         ?><div class="card card-doc"><?php
         ?><div class=title><h5><?= $this->lang['signin_mourjan'] ?></h5></div><?php
-        ?><form method="post" action="<?= $this->router->getLanguagePath('/a/') ?>" onsubmit="lgi(this);return false;"><?php 
+        ?><form method=post action="<?= $this->router->getLanguagePath('/a/') ?>" onsubmit="lgi(this);return false;"><?php 
         ?><div class="card-content"><?php
-        ?>
-            <br><div class=group><input class="en" name="u" type=email required><span class=highlight></span><span class=bar></span><label><?= $this->lang['email'] ?></label></div>
-            <div class=group><input name="p" type=password required><span class=highlight></span><span class=bar></span><label><?= $this->lang['password'] ?></label></div>
-            <label class=chkbox style="padding-bottom:8px"><input name=o type=checkbox <?= $keepme_in ? 'checked':'' ?>><span><?= $this->lang['keepme_in'] ?></span></label>
-            <div class="g-recaptcha" data-sitekey="<?= $this->router->config->get('recap-key') ?>"></div>
-            
-            <?php           
-            if (isset($this->user->pending['login_attempt'])) {
-                ?><p class=nl><span><span class=fail></span><?= $this->lang['login_error'] ?></span></p><?php                    
-            }
-            elseif (isset($this->user->pending['login_attempt_captcha'])) {
-                ?><p class=nl><span><span class=fail></span><?= $this->lang['login_error_captcha'] ?></span></p><?php                    
-            }
-            $uri = $this->router->uri;
-            if (preg_match('/signin/',$this->router->uri)) {
-                $uri = $this->router->getLanguagePath('/home/');
-            }
-            ?><div class=group style="margin:0"><input name=r type=hidden value="<?= $uri ?>" /><i class="icn icn-sign-in"></i><input type="submit" class=btn value="<?= $this->lang['signin'] ?>" /></div><?php            
+        ?><br><div class=group><input class=en name=u type=email required><span class=highlight></span><span class=bar></span><label><?= $this->lang['email'] ?></label></div><?php
+        ?><div class=group><input name="p" type=password required><span class=highlight></span><span class=bar></span><label><?= $this->lang['password'] ?></label></div><?php
+        ?><label class=chkbox style="padding-bottom:8px"><input name=o type=checkbox <?= $keepme_in ? 'checked':'' ?>><span><?= $this->lang['keepme_in'] ?></span></label><?php
+        if (isset($this->user->pending['login_attempt'])) {
+            ?><p class=nl><span><span class=fail></span><?= $this->lang['login_error'] ?></span></p><?php                    
+        }
+        $uri=$this->router->uri;
+        \error_log($uri);
+        if (\preg_match('/signin/', $this->router->uri)) {
+            $uri=$this->router->getLanguagePath('/myads/');
+        }
+        \error_log($uri);
+        ?><div class=group style="margin:0"><input name=r type=hidden value="<?=$uri?>" /><i class="icn icn-sign-in"></i><input type=submit class=btn value="<?= $this->lang['signin'] ?>" /></div><?php            
           
-            echo '<div class=group style="margin:0"><a class=btn href="', $this->router->getLanguagePath('/signup/'), '">', $this->lang['create_account'], '<i class="icn icn-sign-up"></i></a></div>';
-        ?>
-        <p><a class=lnk href="<?= $this->router->getLanguagePath('/password/') ?>"><?= $this->lang['forgot_pass'] ?></a></p>
-        </div><?php                
-        ?></form></div><?php
+        echo '<div class=group style="margin:0"><a class=btn href="', $this->router->getLanguagePath('/signup/'), '">', $this->lang['create_account'], '<i class="icn icn-sign-up"></i></a></div>';
+        ?><p><a class=lnk href="<?= $this->router->getLanguagePath('/password/') ?>"><?= $this->lang['forgot_pass'] ?></a></p><?php
+        ?></div></form></div><?php
         
         ?><div class="card card-doc"><div class=title><h5><?= $this->lang['signin_m'] ?></h5></div><?php
         ?><div class=card-content><?php            
@@ -666,7 +652,7 @@ class Page extends Site {
         }
     }
     
-    
+    /*
     function prepare_css(){
         $addOn='';
         $mobileDir='';
@@ -738,7 +724,7 @@ class Page extends Site {
             }
         }
     }
-    
+    */
     function renderMobileLike(){
         ?><div class="fb-like-box fbb" data-href="http://www.facebook.com/pages/Mourjan/318337638191015" data-show-faces="true" data-stream="false" data-border-color="#E7E9F0" data-header="true"></div><?php 
     }
@@ -831,11 +817,15 @@ class Page extends Site {
             if ($this->router->cfg['enabled_post']) {
                 $renderedFirst=true;
                 $sub='';
-                if (isset ($_GET['sub']) && $_GET['sub']) $sub=$_GET['sub'];
+                if (isset ($_GET['sub']) && $_GET['sub']) { $sub=$_GET['sub']; }
                 //echo '<li class="cty"><ul>';
                 echo '<li><a href="/post/'.$lang.'?clear=true">'.$this->lang['create_ad'].'</a></li>';
-                if ($this->router->module=="myads" && $sub=='') echo '<li><b>'.$this->lang['ads_active'].'</b></li>';
-                else echo '<li><a href="/myads/'.$lang.'">'.$this->lang['ads_active'].'</a></li>';
+                if ($this->router->module==="myads" && $sub==='') {
+                    echo '<li><b>'.$this->lang['ads_active'].'</b></li>';
+                }
+                else {
+                    echo '<li><a href="/myads/'.$lang.'">'.$this->lang['ads_active'].'</a></li>';
+                }
                 if ($this->router->module=="myads" && $sub=='pending') echo '<li><b>'.$this->lang['ads_pending'].'</b></li>';
                 else echo '<li><a href="/myads/'.$lang.'?sub=pending">'.$this->lang['ads_pending'].'</a></li>';
                 if ($this->router->module=="myads" && $sub=='drafts') echo '<li><b>'.$this->lang['ads_drafts'].'</b></li>';
@@ -1096,25 +1086,26 @@ class Page extends Site {
     }
     
 
-    function getPageUri() {
-        if($this->pageUri){
+    function getPageUri() : string {
+        if ($this->pageUri) {
             return $this->pageUri;
         }
         
         $this->field_name='NAME_'.strtoupper($this->router->language);
         
         $uri='/';
-        if ($this->extendedId){
+        if ($this->extendedId>0) {
             if (isset($this->router->countries[$this->router->countryId])) {
                 $uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
                 if (isset($this->router->countries[$this->router->countryId]['cities'][$this->router->cityId])) {
-                    $uri.=$this->router->cities[$this->router->cityId][3].'/';
+                    $uri.=$this->router->cities[$this->router->cityId]['uri'].'/';
                 }
             }
             $uri.=$this->router->sections[$this->router->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
             if ($this->router->purposeId)$uri.=$this->router->purposes[$this->router->purposeId][3].'/';
             $uri.=($this->router->language!='ar'?$this->router->language.'/':'').'q-'.$this->extendedId.'-'.($this->router->countryId ? ($this->hasCities && $this->router->cityId ? 3:2) :1).'/';
-        }elseif($this->localityId){
+        }
+        elseif ($this->localityId>0) {
             if (isset($this->router->countries[$this->router->countryId])) {
                 $uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
             }
@@ -1122,10 +1113,11 @@ class Page extends Site {
             $uri.=$this->router->sections[$this->router->sectionId]['uri'].'/';
             if ($this->router->purposeId)$uri.=$this->router->purposes[$this->router->purposeId][3].'/';
             $uri.=($this->router->language!='ar'?$this->router->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router->cityId ? 3:2).'/';
-        }else {
+        }
+        else {
             $uri=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId);
         }
-        $this->pageUri = $uri;
+        $this->pageUri=$uri;
         return $uri;
     }
     
@@ -1133,10 +1125,10 @@ class Page extends Site {
     function search_bar(){
         
         $q=$this->router->params['q'];
-        $uri = $this->getPageUri();
+        $uri=$this->getPageUri();
                 
         ?><div class="srch w"><?php
-        ?><form onsubmit="if(document.getElementById('q').value)return true;return false" action="<?= $uri ?>" method="get"><?php 
+        ?><form onsubmit="if(document.getElementById('q').value)return true;return false" action="<?=$uri?>" method=get><?php 
             ?><div class='q'><?php 
                 ?><input id="q" name='q' value="<?= htmlspecialchars($q,ENT_QUOTES) ?>" type='text' placeholder='<?= $this->lang['search_what'] ?>' /><?php 
                 if ($this->router->params['q']) {
@@ -1611,38 +1603,37 @@ class Page extends Site {
                 break;
         }
         $slogan=$this->router->isArabic()?'كل ما كنت تبحث عنه':'EVERYTHING YOU\'VE BEEN LOOKING FOR';
-        ?>
-        <div class="row top-header"><div class="viewable full-height ff-cols">
-            <ul><?php
-                if ($this->router->countryId>0 && isset($this->router->countries[$this->router->countryId])) {
-                    ?><li><a id=regions href="javascript:regionWidget()" data-regions='<?=\json_encode($this->supportedCountries())?>'><?php
-                    if ($this->router->cityId===0) {
-                        echo $this->router->countries[$this->router->countryId]['name'];
-                    }
-                    else {
-                        echo $this->router->cities[$this->router->cityId][$this->name];                        
-                    }
-                    ?><i class="icn icnsmall icn-<?=$this->router->countries[$this->router->countryId]['uri']?> iborder"></i></a></li><?php
-                }
-                else {
-                    echo '<li><a href="#"><i class="icn icnsmall icn-globe invert"></i></a></li>';
-                }?>
-                <li>&vert;</li>
-                <li><a href="<?= $this->router->getLanguagePath($this->user->isLoggedIn() ? '/myads/' : '/signin/') ?>"><?php 
-                echo $this->user->isLoggedIn()?$this->lang['MyAccount']:$this->lang['signin'];?><i class="icn icn-user i20 icolor"></i></a></li>
-                <li>&vert;</li>
-                <li><a href="<?= $url ?>"><?= ($this->router->isArabic()?'English':'العربية') ?><i class="icn i20 icn-language icolor"></i></a></li>
-            </ul>
-            <div id='rgns'></div>
-        </div></div>
         
-        <header><div class="viewable ff-rows full-height sp-between">    
-            <div><a class=half-height href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i></a></div>
-            <a class="btn " href='#'><?=$this->lang['placeAd']?></a>
-        </div></header>
+        ?><div class="row top-header"><div class="viewable full-height ff-cols"><?php
+        ?><ul><?php
+        if ($this->router->countryId>0 && isset($this->router->countries[$this->router->countryId])) {
+            ?><li><a id=regions href="javascript:regionWidget()" data-regions='<?=\json_encode($this->supportedCountries())?>'><?php
+            if ($this->router->cityId===0) {
+                echo $this->router->countries[$this->router->countryId]['name'];
+            }
+            else {
+                echo $this->router->cities[$this->router->cityId][$this->name];                        
+            }
+            ?><i class="icn icnsmall icn-<?=$this->router->countries[$this->router->countryId]['uri']?> iborder"></i></a></li><?php
+        }
+        else {
+            echo '<li><a href="#"><i class="icn icnsmall icn-globe invert"></i></a></li>';
+        }
+        ?><li>&vert;</li><?php
+        ?><li><a href="<?= $this->router->getLanguagePath($this->user->isLoggedIn() ? '/myads/' : '/signin/') ?>"><?php 
+        echo $this->user->isLoggedIn()?$this->lang['MyAccount']:$this->lang['signin'];?><i class="icn icn-user i20 invert"></i></a></li><li>&vert;</li><?php
+        ?><li><a href="<?= $url ?>"><?= ($this->router->isArabic()?'English':'العربية') ?><i class="icn i20 icn-language invert"></i></a></li><?php
+        ?></ul><div id=rgns></div></div></div><?php
+        
+        ?><header><div class="viewable ff-rows full-height sp-between"><?php  
+        ?><div><a class=half-height href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i></a></div><?php
+        ?><a class=btn href=<?=$this->router->getLanguagePath('/post/')?>><?=$this->lang['placeAd']?></a><?php
+        ?></div></header><?php
 
-    <section class=search-box><div class="viewable ha-center"><div class=search>
-        <form onsubmit="if(document.getElementById('q').value)return true;return false;" action="<?= $this->router->getLanguagePath('/'. $this->router->countryId>0?$this->router->countries[$this->router->countryId]['uri']:'' ) ?>"> 
+        //\error_log('page uri ' .$this->getPageUri() . '  vs  ' . $this->router->getLanguagePath('/'. $this->router->countryId>0?$this->router->countries[$this->router->countryId]['uri']:''));
+        
+        ?><section class=search-box><div class="viewable ha-center"><div class=search><?php
+        ?><form onsubmit="if(document.getElementById('q').value)return true;return false;" action="<?=$this->getPageUri()?>"> 
         <div class=sbw><div class=sbe>
                 <div class=strg><?php 
                     $selected=$this->router->params['ro']?$this->router->roots[$this->router->params['ro']][$this->name]:$this->lang['all_categories'];
@@ -2683,9 +2674,10 @@ class Page extends Site {
         }
         
         ?><meta name="msapplication-config" content="<?= $this->router->config->host ?>/browserconfig.xml" /><?php 
+        /*
         if($this->user->info['id']==0 && \in_array($this->router->module,['home','signin','favorites','account','myads','post','statement','watchlist','signup','password','buy','buyu'])) {
             ?><script async="true" defer="true" src='https://www.google.com/recaptcha/api.js<?= $this->router->isArabic()?'?hl=ar':'' ?>'></script><?php
-        }                
+        } */               
     }
 
     
@@ -2738,7 +2730,7 @@ class Page extends Site {
                     <div><span class="um"><?=$words['promote'][$ln]?></span><span class="sm l5"><?=$words['service'][$ln]?></span></div>
                 </div>                       
             </div>                        
-            <div class="col-12 mfbanner"><span style="width:177px"></span><div class=slogan><?=$this->lang['slogan']?>.</div><a class="btn" href='#'><?=$this->lang['placeAd']?></a></div>
+            <div class="col-12 mfbanner"><span style="width:177px"></span><div class=slogan><?=$this->lang['slogan']?>.</div><a class=btn href=<?=$this->router->getLanguagePath('/post/')?>><?=$this->lang['placeAd']?></a></div>
         </div><?php
         }
         
@@ -2805,8 +2797,8 @@ class Page extends Site {
         ?><div class="col-4 ff-cols"><ul><?php
         ?><li class="bold"><?=$this->lang['ex_deals_app']?>:</li>
             <li><div class=apps>
-                <a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a>
-                <a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a>
+                <a rel=noopener target=_blank href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a>
+                <a rel=noopener target=_blank href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a>
             </div></li>
             <li class="bold" style="border-bottom:none"><?=$this->lang['followUs']?> @mourjan&nbsp;&nbsp;&nbsp;
                 <img class="invert" src="<?=$this->router->config->imgURL?>/../fa/brands/facebook.svg" style="margin: 0 6px; width:30px"/>
@@ -2834,7 +2826,7 @@ class Page extends Site {
         
         
         $adLang='';
-        if ($this->router->language!="ar") $adLang=$this->router->language.'/';
+        if ($this->router->language!="ar") { $adLang=$this->router->language.'/'; }
         if ($this->router->module=='about') $this->router->cfg['enabled_sharing']=true;
         if ((!$this->user->info['id'] ||  ($this->user->info['id'] && $this->user->info['level']!=9)) && $this->router->module=='search' && !$this->userFavorites && !$this->router->watchId && !$this->router->userId) {
             $this->globalScript.='var upem=1;';
@@ -3215,13 +3207,14 @@ class Page extends Site {
     /********************************************************************/
 
     protected function set_analytics_header() {
-        if (isset($this->user->info['level']) && $this->user->info['level']==9) {
-            return;
+        if ($this->user->isLoggedIn(9)) {
+        //    return;
         }
         
         if (preg_match('/Firefox\/27\.0/ui', $_SERVER['HTTP_USER_AGENT'])) {
             $this->router->config->disableAds();
         }
+        
         if (0) {
         ?><script async src="https://www.googletagmanager.com/gtag/js?id=UA-435731-13"></script><?php
         ?><script type='text/javascript'><?php
@@ -3291,11 +3284,11 @@ class Page extends Site {
            
         }
         
-        
-        if ($this->router->config->get('enabled_ads') && in_array($this->router->module,['search','detail'])) {
-            ?><script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php
-        } 
-        
+        echo "\n";
+        if ($this->router->config->get('enabled_ads') && \in_array($this->router->module,['search','detail', 'index'])) {
+            ?><script data-ad-client="ca-pub-2427907534283641" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php
+        }
+        echo "\n";
         /*
         //if (!$this->isMobile){
         ?><script type="text/javascript"> //<![CDATA[ 
@@ -3495,73 +3488,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         echo $this->globalScript;        
         echo $this->inlineScript;       
         ?>function inlineQS(){<?= $this->inlineQueryScript; ?>}<?php
-        
-        
-        
-        
-        /*
-        switch($this->router->module){
-            case 'myads':
-                if($this->user->info['id']) {
-                    ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                        ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                        ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_ads.js'<?php
-                    ?>]);<?php
-                }else{
-                    ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                        ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js'<?php
-                    ?>]);<?php
-                }
-                break;
-            case 'post':
-                if($this->user->info['id']) {
-                    ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                        ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                        ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_post.js'<?php
-                    ?>]);<?php
-                }else{
-                    ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                        ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js'<?php
-                    ?>]);<?php
-                }
-                break;
-            case 'detail':
-            case 'search':                
-                ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                    ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                    ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_srh.js'<?php
-                ?>]);<?php
-                break;
-            case 'account':
-                if(!$this->user->info['id']) {
-                    
-                    ?>(function () {<?php
-                        ?>var s=document.createElement('script');<?php
-                        ?>s.type='text/javascript';<?php
-                        ?>s.async=true;<?php
-                        ?>s.defer=true;<?php
-                        ?>s.src='<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js';<?php
-                        ?>var x=document.getElementsByTagName('script')[0];<?php
-                        ?>x.parentNode.insertBefore(s,x);<?php
-                    ?>})();<?php 
-                }
-                break;
-            case 'contact':
-            case 'password':
-                break;
-            case 'index':
-            default:
-                ?>(function () {<?php
-                    ?>var s=document.createElement('script');<?php
-                    ?>s.type='text/javascript';<?php
-                    ?>s.async=true;<?php
-                    ?>s.defer=true;<?php
-                    ?>s.src='<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js';<?php
-                    ?>var x=document.getElementsByTagName('script')[0];<?php
-                    ?>x.parentNode.insertBefore(s,x);<?php
-                ?>})();<?php 
-                break;
-        }*/
+                                 
         ?></script><?php
         $renderMobileVerifyPage = $this->router->module=='password' || ($this->router->module=='post' && $this->user->info['id'] && !$this->isUserMobileVerified);
         if(!$renderMobileVerifyPage){
@@ -4375,69 +4302,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             if(0 && in_array($this->router->module,['index','search','detail'])){ ?>loadCss(ucss+"/gen<?= $this->router->language=='ar'?'_ar':'' ?>.css");<?php }
             echo $this->globalScript;
             
-                
-                /*
-                switch($this->router->module){
-                case 'myads':
-                    if($this->user->info['id']) {
-                        ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                            ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                            ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_ads.js'<?php
-                        ?>])<?php
-                    }else{
-
-                    }
-                    break;
-                case 'post':
-                    if($this->user->info['id']) {
-                        ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                            ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                            ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_post.js'<?php
-                        ?>])<?php
-                    }else{
-
-                    }
-                    break;
-                case 'detail':
-                case 'search':                
-                    ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                        ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                        ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_srh.js'<?php
-                    ?>]);<?php
-                    break;
-                case 'account':
-                    if($this->user->info['id']) {
-                        ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                            ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                            ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_acc.js'<?php
-                        ?>]);<?php
-                    }else{
-
-                    }
-                    break;
-                case 'contact':
-                        ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                            ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                            ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_cnt.js'<?php
-                        ?>]);<?php
-                    break;
-                case 'password':
-                        ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=!1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                            ?>'<?= $this->router->cfg['url_jquery_mobile'] ?>/zepto.min.js',<?php
-                            ?>'<?= $this->router->cfg['url_js_mobile'] ?>/m_pwd.js'<?php
-                        ?>]);<?php
-                    break;
-
-                case 'index':
-                default:
-                    ?>!function(e,t,r){function n(){for(;d[0]&&"loaded"==d[0][f];)c=d.shift(),c[o]=!i.parentNode.insertBefore(c,i)}for(var s,a,c,d=[],i=e.scripts[0],o="onreadystatechange",f="readyState";s=r.shift();)a=e.createElement(t),"async"in i?(a.async=1,e.head.appendChild(a)):i[f]?(d.push(a),a[o]=n):e.write("<"+t+' src="'+s+'" defer></'+t+">"),a.src=s}(document,"script",[<?php
-                        ?>'<?= $this->router->cfg['url_jquery'] ?>/jquery.min.js'<?php
-                    ?>]);<?php
-
-                    break;
-            }*/
-        
-                if($this->router->cfg['enabled_sharing'] && in_array($this->router->module,['index','search','detail'])){ 
+            if($this->router->cfg['enabled_sharing'] && in_array($this->router->module,['index','search','detail'])){ 
                     ?>addEvent(window,'load',function(){<?php
                         ?>var po = document.createElement('script');<?php
                         ?>po.type = 'text/javascript';<?php 
@@ -4446,10 +4311,9 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                         ?>var s = document.getElementsByTagName('script')[0];<?php
                         ?>s.parentNode.insertBefore(po,s);<?php                         
                       ?>});<?php 
-                }
+            }
         
             
-        /*?>(function(){var ga=document.createElement('script');ga.type='text/javascript';ga.async=true;ga.src=('https:'==document.location.protocol?'https://':'http://')+'stats.g.doubleclick.net/dc.js';var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(ga,s);})();<?php*/
                 ?>function inlineQS(){<?= $this->inlineQueryScript; ?>}<?php
         ?></script><?php
         ?><script type="text/javascript" onload="inlineQS()" defer="true" src="<?= $this->router->config->jQueryURL ?>jquery.min.js"></script><?php
@@ -4941,8 +4805,11 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     
     protected function _header() : void {
         //error_log(__CLASS__ . '.' . __FUNCTION__ . '.' .$this->router->module);
+        \header("Link: <".$this->router->config->cssURL."/1.0/mc.css>; rel=preload; as=style;", false);
         if ($this->router->module==='myads') {
             \header("Link: <".$this->router->config->jsURL."/1.0/socket.io.js>; rel=preload; as=script;", false);
+            \header("Link: <".$this->router->config->jsURL."/1.0/chart-2.9.3/Chart.min.js>; rel=preload; as=script;", false);
+            \header("Link: <".$this->router->config->jsURL."/1.0/sweetalert2.all.min.js>; rel=preload; as=script;", false);
         }
         else if ($this->router->module==='admin') {
             \header("Link: <".$this->router->config->jsURL."/1.0/jsonTree.js>; rel=preload; as=script;", false);
@@ -4960,8 +4827,10 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         echo '<!doctype html>';
         echo '<html lang="', $this->router->language, $country_code,'" xmlns:og="http://ogp.me/ns#"';
         echo '><head><meta charset="utf-8">';        
+        echo '<link rel=stylesheet type=text/css href=', $this->router->config->cssURL, '/1.0/mc.css />';
         
         if ($this->router->module==='myads') {
+            ?><script async src=<?=$this->router->config->jsURL?>/1.0/socket.io.js></script><?php
             ?><script async src=<?=$this->router->config->jsURL?>/1.0/chart-2.9.3/Chart.min.js></script><?php
             ?><script async src=<?=$this->router->config->jsURL?>/1.0/sweetalert2.all.min.js></script><?php
         }
@@ -4978,9 +4847,9 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         
         echo "<style>\n";
         
-        //if ($this->router->module==='index') {
-        //    $this->css('uhome'); 
-        //}
+        if ($this->router->module==='index') {
+            $this->css('home'); 
+        }
         //else {
         $this->css('main')->css($this->router->module.'-trans'); 
         //}
@@ -5039,7 +4908,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 break;
             
             case 'admin':
-                $this->css('admin')->css('popup');  
+                $this->css('admin');  
                 break;
             
             case 'statement':
@@ -5062,7 +4931,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         <link rel="apple-touch-icon" sizes="144x144" href="<?= "{$imgURL}/mourjan-icon-144.png" ?>" />            
         <link rel="apple-touch-startup-image" href="<?= "{$imgURL}/mourjan-splash.png"?>" />
         <meta name="format-detection" content="telephone=no">
-        <link rel="manifest" href="/manifest.json"><?php
+        <!--<link rel="manifest" href="/manifest.json">--><?php
         
         if ($this->forceNoIndex) {
             echo '<meta name="robots" content="noindex,nofollow,noarchive" />';
@@ -5264,7 +5133,9 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             }
         }
                 
-        ?><link rel="icon" href="<?= $this->router->config->imgURL ?>/favicon.ico" type="image/x-icon" /><?php 
+        ?><link rel="apple-touch-icon" sizes="180x180" href="<?=$this->router->config->imgURL?>/apple-touch-icon.png"><?php
+        ?><link rel="icon" type="image/png" sizes="32x32" href="<?=$this->router->config->imgURL?>/favicon-32x32.png"><?php
+        ?><link rel="icon" type="image/png" sizes="16x16" href="<?=$this->router->config->imgURL?>/favicon-16x16.png"><?php
         $this->set_analytics_header();
         
         //echo PHP_EOL;
@@ -5425,10 +5296,6 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         
         if ($this->isMobile) {            
             ?><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, maximum-scale=5.0, user-scalable=1" name="viewport"><?php
-            ?><link rel="apple-touch-icon" sizes="57x57" href="<?= $this->router->cfg["url_img"]."/mourjan-icon-114.png" ?>" /><?php
-            ?><link rel="apple-touch-icon" sizes="114x114" href="<?= $this->router->cfg["url_img"]."/mourjan-icon-114.png" ?>" /><?php
-            ?><link rel="apple-touch-icon" sizes="72x72" href="<?= $this->router->cfg["url_img"]."/mourjan-icon-144.png" ?>" /><?php
-            ?><link rel="apple-touch-icon" sizes="144x144" href="<?= $this->router->cfg["url_img"]."/mourjan-icon-144.png" ?>" /><?php
             
             ?><link rel="apple-touch-startup-image" href="<?= $this->router->cfg["url_img"]."/mourjan-splash.png"?>" /><?php
             ?><meta name="format-detection" content="telephone=no"><?php

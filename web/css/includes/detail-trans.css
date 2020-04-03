@@ -42,9 +42,9 @@
 .dtad .contacts a:before{content:"\00a0"}
 .dtad .phone, .whats, .mobile{background-color:#2acf8e}
 .dtad .phone:before,.whats:before,.mobile:before{margin-inline-end:16px;border-inline-end:1px solid black;filter:invert(1);width:40px}
-.dtad .phone:before{background:url(/web/css/1.0/fa/regular/phone.svg) no-repeat center}
-.dtad .whats:before{background:url(/web/css/1.0/fa/brands/whatsapp.svg) no-repeat center}
-.dtad .mobile:before{background:url(/web/css/1.0/fa/regular/mobile.svg) no-repeat center}
+.dtad .phone:before{background:url(https://dev.mourjan.com/css/2020/1.0/fa/regular/phone.svg) no-repeat center}
+.dtad .whats:before{background:url(https://dev.mourjan.com/css/2020/1.0/fa/brands/whatsapp.svg) no-repeat center}
+.dtad .mobile:before{background:url(https://dev.mourjan.com/css/2020/1.0/fa/regular/mobile.svg) no-repeat center}
 
 .dtad .tail{display: inherit;flex: 1 auto;margin-bottom: 40px}
 .dtad .tail .report{cursor:pointer}

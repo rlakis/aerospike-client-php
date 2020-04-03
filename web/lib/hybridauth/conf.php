@@ -1,7 +1,7 @@
 <?php
 
 $hybridConfig = [
-    'callback' => "https://h1.mourjan.com/web/lib/hybridauth/",    
+    'callback' => "https://".($_SERVER['HTTP_HOST'] ?? 'h1.mourjan.com')."/web/lib/hybridauth/",    
     "providers" => [
         
         /*"Yahoo" => [
@@ -29,7 +29,7 @@ $hybridConfig = [
                 "secret" => "Ar4wtlv1pkVm1gi3fo2us110"],
             "scope" => "email"
         ],
-        "Facebook" => [
+        /*"Facebook" => [
             "enabled" => true,
             "keys" => [
                 "id" => "184370954908428",
@@ -39,8 +39,8 @@ $hybridConfig = [
             "scope" => "email",
             // The display context to show the authentication page. Options are: page, popup, iframe, touch and wap. Read the Facebook docs for more details: http://developers.facebook.com/docs/reference/dialogs#display. Default: page
             "display" => "popup"
-        ],
-        /*"Facebook" => [//dev
+        ],*/
+        "Facebook" => [//dev
             "enabled" => true,
             "keys" => [
                 "id" => "225134451713462",
@@ -50,7 +50,7 @@ $hybridConfig = [
             "scope" => "email",
             // The display context to show the authentication page. Options are: page, popup, iframe, touch and wap. Read the Facebook docs for more details: http://developers.facebook.com/docs/reference/dialogs#display. Default: page
             "display" => "popup"
-        ],*/
+        ],
         "Twitter" => [
             "enabled" => true,
             "keys" => [
@@ -71,14 +71,13 @@ $hybridConfig = [
                 "secret" => "txsnfcPPRO020)bSBO89_})"],
             "scope" => "wl.emails"
         ],
-        
         "LinkedIn" => [
             "enabled" => true,
             "keys" => [
-                "key" => "86sbzgo4pvhdm2",
+                "id" => "86sbzgo4pvhdm2",
                 "secret" => "2lHQ5KTZs8cFx9Qb"
             ],
-            "scope"   => array("r_basicprofile", "r_emailaddress"), 
+            "scope"   => array("r_liteprofile", "r_emailaddress"), 
         ]
     ]
 ];

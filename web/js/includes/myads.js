@@ -112,7 +112,7 @@ $.addEventListener("DOMContentLoaded", function () {
         var item=part.split("=");
         d.queryParams[item[0]]=decodeURIComponent(item[1]);
     });
-    console.log(d.queryParams);
+    
     if (d.queryParams.u) {
         d.userStatistics(+d.queryParams.u);
     }
@@ -138,9 +138,14 @@ $$.onclick = function (e) {
         editable[0].setAttribute("contenteditable", false);        
         d.normalize(editable[0]);
     }
-    d.setId(0);
-    let f=byId('fixForm');
-    if(f&&window.getComputedStyle(f).visibility!=='hidden'){f.style.display='none'; }
+    
+    if (e.target.closest('div.swal2-container')===null) {
+        d.setId(0);
+        let f=byId('fixForm');
+        if (f && window.getComputedStyle(f).visibility!=='hidden') {
+            f.style.display='none'; 
+        }
+    }
 };
 
 var d = {
@@ -157,11 +162,11 @@ var d = {
     count: (typeof $$.queryAll("article")==='object') ? $$.queryAll("article").length : 0,
     isAdmin: function () { return this.level>=9; },
     setId: function (kId) {
-        let _=this;
-        if(_.ad)_.ad.unselect();
-        _.currentId=kId;
-        _.ad=_.items[kId];
-        if(_.ad)_.ad.select();
+        if(this.ad) this.ad.unselect();
+        this.currentId=kId;
+        this.ad=this.items[kId];
+        console.log("setId", this.ad);
+        if(this.ad)this.ad.select();
     },
     getName: function (kUID) {
         if(this.editors){
@@ -350,6 +355,7 @@ var d = {
     },
 
     rtp: function (e) {
+        if(!this.isSafe(e.article().id))return;
         Swal.fire({
             title: 'Ask Mobile Verification?',
             text: 'You will send an SMS to advertiser mobile number for verification!',
@@ -438,7 +444,7 @@ var d = {
             o.setAttribute('value', 1);
             inline.select.append(o);
             for (var i = 6; i <= 72; i = i + 6) {
-                if (i > 48 && d.su) {
+                if (i > 48 && !d.su) {
                     break;
                 }
                 let o = createElem('option', '', i + (d.ar ? ' ساعة' : ' hour'));
@@ -497,100 +503,189 @@ var d = {
         inline.show();
     },
 
+    chart: function(e) {
+        let article = e.article();
+        let inline = this.getForm('chart', article);
+        if (inline===null) { return; }
+        if (inline.form.style.display!=='none') {
+            inline.hide();
+            return;
+        }
+        fetch('/ajax-ga/', _options('POST', {u: article.uid, a: article.id})).then(res => res.json())
+            .then(response => {                
+                if (response.success===1) {
+                    response.result.d/=1000;
+                    let monthNames=["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    let point=new Date(0), dates=[];
+                    point.setUTCSeconds(response.result.d);
+                    response.result.c.forEach(function(){                            
+                        dates.push(point.getUTCDate()+" "+monthNames[point.getMonth()]);
+                        point.setDate(point.getDate()+1);
+                    });
+                    
+                    let config={
+                        type: 'line',
+                        data: {
+                            labels:dates,
+                            datasets:[{
+                                    label: 'Impressions',
+                                    backgroundColor: window.chartColors.red,
+                                    borderColor: window.chartColors.red,
+                                    data: response.result.c,                                       
+                                    fill: false,                                
+                                }, {
+                                    label: 'Interactions',
+                                    fill: false,
+                                    backgroundColor: window.chartColors.blue,
+                                    borderColor: window.chartColors.blue,
+                                    data: response.result.k,
+                                }
+                            ],
+                        },
+                        options: {
+                            responsive:true,
+                            title: {
+                                display:true,
+                                position:'top',
+                                text:response.result.t.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")+' overall impressions'
+                            },
+                            tooltips: {
+                                mode: 'index',
+                                intersect: false,
+                            },
+                            hover: {
+                                mode: 'nearest',
+                                intersect: true
+                            },
+                            scales: {
+                                xAxes: [{
+                                    display: true,
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Day'
+                                    }
+                                }],
+                                yAxes: [{
+                                    display: true,
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Value'
+                                    }
+                                }]
+                            }
+                        }                            
+                    };
+                    
+                    //console.log(response);
+                    
+                    if (inline) {
+                        let canvas=inline.form.querySelector('canvas#chart');
+                        let ctx=canvas.getContext('2d');
+                        if (dates.length>0){
+                            window.adchart=new Chart(ctx, config);
+                            inline.show();
+                        }
+                    }
+                }
+            });
+    },
+    
     userStatistics: function(uid) {
         fetch('/ajax-ga/', _options('POST', {u: uid, x: 0}))
-                .then(res => res.json())
-                .then(response => {
-                    console.log(response);
-                    if (response.success===1) {                        
-                        let monthNames=["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                        let canvas=document.getElementById('canvas');
-                        let ctx=canvas.getContext('2d');
+            .then(res => res.json())
+            .then(response => {
+                console.log(response);
+                if (response.success===1) {
+                    let monthNames=["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    let canvas=document.getElementById('canvas');
+                    let ctx=canvas.getContext('2d');
                                                 
-                        response.result.d/=1000;
-                        let point=new Date(0);
-                        point.setUTCSeconds(response.result.d);                        
+                    response.result.d/=1000;
+                    let point=new Date(0);
+                    point.setUTCSeconds(response.result.d);                        
                         
-                        let dates=[];
-                        response.result.c.forEach(function(){                            
-                            dates.push(point.getUTCDate()+" "+monthNames[point.getMonth()]);
-                            point.setDate(point.getDate()+1);
-                        });
+                    let dates=[];
+                    response.result.c.forEach(function(){                            
+                        dates.push(point.getUTCDate()+" "+monthNames[point.getMonth()]);
+                        point.setDate(point.getDate()+1);
+                    });
                         
-                        let config={
-                            type: 'line',
-                            data: {
-                                labels:dates,
-                                datasets:[{
-                                        label: 'Impressions',
-                                        backgroundColor: window.chartColors.red,
-                                        borderColor: window.chartColors.red,
-                                        data: response.result.c,                                       
-                                        fill: false,                                
-                                    }, {
-                                        label: 'Interactions',
-                                        fill: false,
-                                        backgroundColor: window.chartColors.blue,
-                                        borderColor: window.chartColors.blue,
-                                        data: response.result.k,
-                                    }
-                                ],
-                            },
-                            options: {
-                                responsive:true,
-                                title: {
-                                    display:true,
-                                    position:'top',
-                                    text:response.result.t.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")+' overall impressions'
-                                },
-                                tooltips: {
-                                    mode: 'index',
-                                    intersect: false,
-                                },
-                                hover: {
-                                    mode: 'nearest',
-                                    intersect: true
-                                },
-                                scales: {
-                                    xAxes: [{
-                                        display: true,
-                                        scaleLabel: {
-                                            display: true,
-                                            labelString: 'Day'
-                                        }
-                                    }],
-                                    yAxes: [{
-                                        display: true,
-                                        scaleLabel: {
-                                            display: true,
-                                            labelString: 'Value'
-                                        }
-                                    }]
+                    let config={
+                        type: 'line',
+                        data: {
+                            labels:dates,
+                            datasets:[{
+                                    label: 'Impressions',
+                                    backgroundColor: window.chartColors.red,
+                                    borderColor: window.chartColors.red,
+                                    data: response.result.c,                                       
+                                    fill: false,                                
+                                }, {
+                                    label: 'Interactions',
+                                    fill: false,
+                                    backgroundColor: window.chartColors.blue,
+                                    borderColor: window.chartColors.blue,
+                                    data: response.result.k,
                                 }
-                            }                            
-                        };
-                        if (dates.length>0){
-                            window.statictics=new Chart(ctx, config);
-                            let rbt=document.getElementById('refreshChart');
-                            if(rbt){
-                                rbt.style.display='inline';
-                                rbt.style.top=(canvas.offsetTop+8)+"px";
-                                rbt.style.left=(canvas.offsetLeft+canvas.offsetWidth-68)+"px";
+                            ],
+                        },
+                        options: {
+                            responsive:true,
+                            title: {
+                                display:true,
+                                position:'top',
+                                text:response.result.t.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")+' overall impressions'
+                            },
+                            tooltips: {
+                                mode: 'index',
+                                intersect: false,
+                            },
+                            hover: {
+                                mode: 'nearest',
+                                intersect: true
+                            },
+                            scales: {
+                                xAxes: [{
+                                    display: true,
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Day'
+                                    }
+                                }],
+                                yAxes: [{
+                                    display: true,
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Value'
+                                    }
+                                }]
                             }
+                        }                            
+                    };
+                    
+                    if (dates.length>0){
+                        window.statictics=new Chart(ctx, config);
+                        let rbt=document.getElementById('refreshChart');
+                        if(rbt){
+                            rbt.style.display='inline';
+                            rbt.style.top=(canvas.offsetTop+8)+"px";
+                            rbt.style.left=(canvas.offsetLeft+canvas.offsetWidth-68)+"px";
                         }
-                        if (response.result.a) {
-                            for (k in response.result.a) {
-                                let ad=d.items[k];
-                                if (ad) {                                
-                                    ad.hits(response.result.a[k]);
-                                }                                
-                            }                            
-                        }
-                    }                
-                })
-                .catch(error => {
-                    console.log('Error:', error);
-                });
+                    }
+                    
+                    if (response.result.a) {
+                        for (k in response.result.a) {
+                            let ad=d.items[k];
+                            if (ad) {                                
+                                ad.hits(response.result.a[k]);
+                            }                                
+                        }                            
+                    }
+                }                
+            })
+            .catch(error => {
+                console.log('Error:', error);
+            });
     },
     
     slideView: function (img) {
@@ -636,12 +731,11 @@ var d = {
     normalize: function(e){
         console.log(e.tagName,  e.innerText);
         let data = {dx: e.dataset.foreign ? 2 : 1, rtl: e.classList.contains('ar') ? 1 : 0, t: e.innerText};
-        if(e.tagName==='SECTION'){
-            if(data.dx===2||(data.dx===1&&data.t.length>30)){this.updateAd(e, e.article().id, 0, 0, 0, data);}
-        }
-        //if(e.tagName==='SECTION' && data.t.length>30){
-        //    this.updateAd(e, e.article().id, 0, 0, 0, data);
-        //}
+        if(e.tagName==='DIV' && e.parentElement.tagName==='SECTION'){
+            if (data.dx===2||(data.dx===1&&data.t.length>30)){
+                this.updateAd(e, e.article().id, 0, 0, 0, data);
+            }
+        }      
         else console.log('data not suitable', data);
     },
 
@@ -676,21 +770,26 @@ var d = {
     },
     
     clickedAd:function(e){
-        let ee=e.target, pp=ee.parentElement, eTag=ee.tagName, pTag=pp.tagName;
+        let ee=e.target, pp=ee.parentElement;
         let prevent=function(){e.preventDefault();e.stopPropagation();return false;};
+        
+        if (this.getStatus()>=7) { 
+            d.setId(this.id);
+            return prevent(); 
+        }
+        
         switch(ee.tagName) {
             case 'A':
                 if ((ee.className===''&&pp.className==='mask')||ee.target==='_similar') {
                     e.stopPropagation();return;
                 }
-                break;          
-            case 'DIV':
+                break;
+            
+            case 'DIV':                
                 if (ee.className==='mask'||ee.classList.contains('locked')){
                     return prevent();
                 }
-                break;
-            case 'SECTION':
-                if (ALT&&!ee.isContentEditable) {
+                if (ALT && pp.tagName==='SECTION' && !ee.isContentEditable) {
                     var re = /\u200b/;
                     var parts = ee.innerText.split(re);
                     if (parts.length===2) {
@@ -702,8 +801,39 @@ var d = {
                     return prevent();
                 }
                 break;
+                
+            case 'SECTION':
+                if (ALT) {
+                    let ed=ee.query('div');
+                    console.log('section', ed);
+                    if (ed && !ed.isContentEditable) {
+                        var re = /\u200b/;
+                        var parts = ed.innerText.split(re);
+                        if (parts.length===2) {
+                            ed.dataset.contacts = parts[1];
+                            ed.contentEditable = "true";
+                            ed.innerHTML = parts[0].trim();
+                            ed.focus();
+                        }
+                        return prevent();
+                    }
+                    
+                }
+                /*
+                if (ALT && !ee.isContentEditable) {
+                    var re = /\u200b/;
+                    var parts = ee.innerText.split(re);
+                    if (parts.length===2) {
+                        ee.dataset.contacts = parts[1];
+                        ee.contentEditable = "true";
+                        ee.innerHTML = parts[0].trim();
+                        ee.focus();
+                    }
+                    return prevent();
+                }*/
+                break;
+                
             case 'G':
-                console.log('grammarly');
                 if (ee.dataset.grId){return prevent();}
                 break;
             default:
@@ -716,7 +846,7 @@ var d = {
             d.setId(this.id);
         }
         
-        let editable=$$.queryAll("section[contenteditable=true]");
+        let editable=$$.queryAll("section div[contenteditable=true]");
         if (editable && editable.length>0 &&editable[0]!==ee && editable[0].article()) {
             console.log('catched editables');
             editable[0].setAttribute("contenteditable",false);
@@ -924,7 +1054,9 @@ class Ad {
     }
     
     replName(v) {
-        this._editor.innerHTML = v;
+        if (this.getStatus()<7 && this._editor) {
+            this._editor.innerHTML = v;
+        }
     }
     
     getMessage() {
@@ -935,11 +1067,17 @@ class Ad {
         this._message.innerHTML = v;
     }
         
+    getStatus() {
+        return parseInt(this.node.dataset.status);
+    }
+    
     
     select() {
         if (!this.node.classList.contains('selected')) {
             this.setAs('selected');
-            socket.emit("touch", [this.id, d.KUID]);
+            if (this.getStatus()<7) {
+                socket.emit("touch", [this.id, d.KUID]);
+            }
             let f=byId('fixForm');
             if(f&&window.getComputedStyle(f).visibility!=='hidden'){f.style.display='none';}
         }
@@ -947,17 +1085,23 @@ class Ad {
     
     unselect() {
         this.unsetAs('selected');
-        socket.emit("release", [this.id, d.KUID]);
+        if (this.getStatus()<7) {
+            socket.emit("release", [this.id, d.KUID]);
+        }
     }
     
     lock() {
-        this.setAs('locked');
-        this.mask().opacity(0.25);
+        if (this.getStatus()<7) {
+            this.setAs('locked');
+            this.mask().opacity(0.25);
+        }
     }
     
     release() {
-        this.unsetAs('locked');
-        this.removeMask();
+        if (this.getStatus()<7) {
+            this.unsetAs('locked');
+            this.removeMask();
+        }
     }
     
     setAs(c) {
@@ -969,16 +1113,20 @@ class Ad {
     }
     
     rejected(t) {
-        this.unsetAs('approved');
-        this.setAs('rejected');
-        this.setMessage(t);
-        this.node.dataset.status = 3;
+        if (this.getStatus()<7) {
+            this.unsetAs('approved');
+            this.setAs('rejected');
+            this.setMessage(t);
+            this.node.dataset.status = 3;
+        }
     }
     
     approved() {
-        this.unsetAs('rejected');
-        this.setAs('approved');
-        this.node.dataset.status = 2;
+        if (this.getStatus()<7) {
+            this.unsetAs('rejected');
+            this.setAs('approved');
+            this.node.dataset.status = 2;
+        }
         return this;
     }
     
@@ -1020,6 +1168,7 @@ class Ad {
         }
         return this;
     }
+    
     hideLoader() {
         this._m = this.node.query('div.mask');
         if (this._m) {
@@ -1043,196 +1192,196 @@ class Ad {
 
 
 const reqSIO = async () => {
-socket = io.connect('ws.mourjan.com:1313', {transports: ['websocket'], 'force new connection': false});
-socket.on('admins', function (data) {
-    active_admins = data.a;
-    if (isNaN(active_admins)) {
-        let len = active_admins.length;
-        let matched = [];
-        for (var i = 0; i < len; i++) {
-            if (d.editors) {
-                var x = d.editors.getElementsByClassName(active_admins[i]);
-                if (x && x.length > 0) {
-                    matched.push(x[0].className);
-                    if (d.su) {
-                        x[0].firstChild.style.setProperty('color', 'green', 'important');
-                    } else
-                        x[0].style.setProperty('color', 'green', 'important');
+    socket = io.connect('ws.mourjan.com:1313', {transports: ['websocket'], 'force new connection': false});
+    socket.on('admins', function (data) {
+        active_admins = data.a;
+        if (isNaN(active_admins)) {
+            let len = active_admins.length;
+            let matched = [];
+            for (var i = 0; i < len; i++) {
+                if (d.editors) {
+                    var x = d.editors.getElementsByClassName(active_admins[i]);
+                    if (x && x.length > 0) {
+                        matched.push(x[0].className);
+                        if (d.su) {
+                            x[0].firstChild.style.setProperty('color', 'green', 'important');
+                        } else
+                            x[0].style.setProperty('color', 'green', 'important');
+                    }
+                }
+            }
+            len = d.editors ? d.editors.childNodes.length : 0;
+            for (var i = 0; i < len; i++) {
+                if (matched.indexOf(d.editors.childNodes[i].className) === -1) {
+                    d.editors.childNodes[i].style.removeProperty('color');
+                }
+            }
+            matched = null;
+        } else {
+            console.log('on<admins>: Active Admins:' + active_admins);
+        }
+
+        if (d.editors && typeof data.b==='object') {
+            for (let uid in data.b) {
+                if (data.b[uid]===0) { continue; }
+                let ad=d.items[data.b[uid]];
+                if (ad) {
+                    ad.replName(d.getName(uid));
+                    if(uid===d.KUID)ad.select();else ad.lock();
                 }
             }
         }
-        len = d.editors ? d.editors.childNodes.length : 0;
-        for (var i = 0; i < len; i++) {
-            if (matched.indexOf(d.editors.childNodes[i].className) === -1) {
-                d.editors.childNodes[i].style.removeProperty('color');
+    });
+    socket.on("ad_touch", function (data) {
+        if (data.hasOwnProperty('x')) {
+            if (data.hasOwnProperty('i') && data.i > 0) {
+                let ad=d.items[data.i];
+                if(ad)ad.setName(d.getName(data.x)).lock();
+            }
+            if (data.hasOwnProperty('o') && data.o > 0) {
+                let ad=d.items[data.o];
+                if(ad)ad.release();
             }
         }
-        matched = null;
-    } else {
-        console.log('on<admins>: Active Admins:' + active_admins);
-    }
-
-    if (d.editors && typeof data.b==='object') {
-        for (let uid in data.b) {
-            if (data.b[uid]===0) { continue; }
-            let ad=d.items[data.b[uid]];
-            if (ad) {
-                ad.replName(d.getName(uid));
-                if(uid===d.KUID)ad.select();else ad.lock();
-            }
-        }
-    }
-});
-socket.on("ad_touch", function (data) {
-    if (data.hasOwnProperty('x')) {
+    });
+    socket.on("ad_release", function (data) {//console.log('releasing', data);
         if (data.hasOwnProperty('i') && data.i > 0) {
             let ad=d.items[data.i];
-            if(ad)ad.setName(d.getName(data.x)).lock();
+            if (ad)ad.release();
         }
-        if (data.hasOwnProperty('o') && data.o > 0) {
-            let ad=d.items[data.o];
-            if(ad)ad.release();
+    });
+    socket.on('superAdmin', function (data) { console.log(typeof data, data);
+        if (typeof data !== 'undefined' && data.id && data.id > 0) {
+            let ad = d.items[data.i];
+            if(ad)ad.mask().maskText('Sent To Super Admin');
         }
-    }
-});
-socket.on("ad_release", function (data) {//console.log('releasing', data);
-    if (data.hasOwnProperty('i') && data.i > 0) {
-        let ad=d.items[data.i];
-        if (ad)ad.release();
-    }
-});
-socket.on('superAdmin', function (data) { console.log(typeof data, data);
-    if (typeof data !== 'undefined' && data.id && data.id > 0) {
-        let ad = d.items[data.i];
-        if(ad)ad.mask().maskText('Sent To Super Admin');
-    }
-});
-socket.on('editorialUpdate', function (data) { console.log(data);
-    if (typeof data==='object'&&data.id) {
-        let ad=d.items[data.id];
-        if(ad){
-            ad.node.dataset.ro = data.ro;
-            ad.node.dataset.se = data.se;
-            ad.node.dataset.pu = data.pu;
-            ad.node.query('div.note').innerHTML = data.label;
+    });
+    socket.on('editorialUpdate', function (data) { console.log(data);
+        if (typeof data==='object'&&data.id) {
+            let ad=d.items[data.id];
+            if(ad){
+                ad.node.dataset.ro = data.ro;
+                ad.node.dataset.se = data.se;
+                ad.node.dataset.pu = data.pu;
+                ad.node.query('div.note').innerHTML = data.label;
+            }
         }
-    }
-});
-socket.on('editorialImg', function (data) {
-    if (typeof data === 'object') {
+    });
+    socket.on('editorialImg', function (data) {
+        if (typeof data === 'object') {
+            let ad = d.items[data.id];
+            if (ad) {
+                let p=ad.node.query('p.pimgs');
+                if(p){
+                    p.childNodes.forEach(function(spx){
+                        if(spx.query('img').dataset.path===data.removed){
+                            spx.remove();
+                        }                
+                    });          
+                    if (p.childNodes.length === 0) {
+                        p.remove();
+                    }
+                }
+            }
+        }
+    });
+    socket.on('editorialText', function (data) {
+        if (typeof data==='object') {
+            let ad = d.items[data.id];
+            if (!ad) { return; }
+            let arText = ad.node.query('section.ar');
+            let enText = ad.node.query('section.en');
+            if (data.rtl===1) {
+                if (arText.classList.contains('en')) {
+                    arText.classList.remove('en');
+                    arText.dataset.foreign = 0;
+                }
+                if (!arText.classList.contains('ar')) {
+                    arText.classList.add('ar');
+                }
+                arText.innerHTML = data.t;
+                if (data.t2 && data.t2.length > 0) {
+                    if (!enText) {
+                        enText = createElem('section', 'card-content en', data.t2, true);
+                        enText.dataset.foreign = 1;
+                        arText.parentElement.append(enText);
+                    } else {
+                        enText.innerHTML = data.t2;
+                    }
+                }
+            } else {
+                if (arText) {
+                    if (arText.classList.contains('ar')) arText.classList.remove('ar');
+                    if (!arText.classList.contains('en')) arText.classList.add('en');
+                    arText.innerHTML = data.t;
+                }
+                else if(enText) {
+                    if (enText.classList.contains('ar')) enText.classList.remove('ar');
+                    if (!enText.classList.contains('en')) enText.classList.add('en');
+
+                    enText.innerHTML = data.t;
+                }
+                else {
+                    console.log('arText', arText, 'enText', enText);
+                }
+
+            }
+        }
+    });
+    socket.on("ads", function (data) {
+        if(typeof data.c==='undefined')return;
+        data.c = parseInt(data.c);
         let ad = d.items[data.id];
         if (ad) {
-            let p=ad.node.query('p.pimgs');
-            if(p){
-                p.childNodes.forEach(function(spx){
-                    if(spx.query('img').dataset.path===data.removed){
-                        spx.remove();
-                    }                
-                });          
-                if (p.childNodes.length === 0) {
-                    p.remove();
-                }
-            }
-        }
-    }
-});
-socket.on('editorialText', function (data) {
-    if (typeof data==='object') {
-        let ad = d.items[data.id];
-        if (!ad) { return; }
-        let arText = ad.node.query('section.ar');
-        let enText = ad.node.query('section.en');
-        if (data.rtl===1) {
-            if (arText.classList.contains('en')) {
-                arText.classList.remove('en');
-                arText.dataset.foreign = 0;
-            }
-            if (!arText.classList.contains('ar')) {
-                arText.classList.add('ar');
-            }
-            arText.innerHTML = data.t;
-            if (data.t2 && data.t2.length > 0) {
-                if (!enText) {
-                    enText = createElem('section', 'card-content en', data.t2, true);
-                    enText.dataset.foreign = 1;
-                    arText.parentElement.append(enText);
-                } else {
-                    enText.innerHTML = data.t2;
-                }
-            }
-        } else {
-            if (arText) {
-                if (arText.classList.contains('ar')) arText.classList.remove('ar');
-                if (!arText.classList.contains('en')) arText.classList.add('en');
-                arText.innerHTML = data.t;
-            }
-            else if(enText) {
-                if (enText.classList.contains('ar')) enText.classList.remove('ar');
-                if (!enText.classList.contains('en')) enText.classList.add('en');
-
-                enText.innerHTML = data.t;
-            }
-            else {
-                console.log('arText', arText, 'enText', enText);
-            }
-            
-        }
-    }
-});
-socket.on("ads", function (data) {
-    if(typeof data.c==='undefined')return;
-    data.c = parseInt(data.c);
-    let ad = d.items[data.id];
-    if (ad) {
-        var t;
-        if (parseInt(ad.dataset.status)>=0||c.data===-1) {
-            switch (data.c) {
-                case - 1:
-                case 6:
-                    t = d.ar ? 'تم الحذف' : 'Deleted';
-                    ad.setMessage(t);
-                    break;
-                case 0:
-                    t = d.ar ? 'جاري التعديل، يجب تحديث الصفحة' : 'editting in progress, refresh page';
-                    ad.maskText(t);
-                    break;
-                case 1:
-                    t = d.ar ? 'بإنتظار موافقة النشر من قبل محرري الموقع' : 'Waiting for Editorial approval';
-                    ad.setMessage(t);
-                    break;
-                case 2:
-                    t = d.ar ? 'تمت الموافقة وبإنتظار العرض من قبل محرك مرجان' : 'Approved and pending Mourjan system processing';                    
-                    ad.setMessage(t);
-                    ad.setAs('approved');
-                    break;
-                case 3:
-                    t = d.ar ? 'تم رفض عرض هذا الإعلان' : 'Rejected By Admin';
-                    if (typeof data.m !== 'undefined') {
-                        t += ': ' + data.m;
-                    }
-                    ad.rejected(t);
-                    break;
-                case 7:
-                    ad.dataset.status = 7;
-                    ad.mask().opacity(0.75);
-                    var link;
-                    if (d.isAdmin()) {
-                        var lnks = ad.node.queryAll('div.user > a');
-                        if (lnks && lnks.length > 1) {
-                            link = lnks[1].href + '#' + ad.id;
+            var t;
+            if (parseInt(ad.dataset.status)>=0||c.data===-1) {
+                switch (data.c) {
+                    case - 1:
+                    case 6:
+                        t = d.ar ? 'تم الحذف' : 'Deleted';
+                        ad.setMessage(t);
+                        break;
+                    case 0:
+                        t = d.ar ? 'جاري التعديل، يجب تحديث الصفحة' : 'editting in progress, refresh page';
+                        ad.maskText(t);
+                        break;
+                    case 1:
+                        t = d.ar ? 'بإنتظار موافقة النشر من قبل محرري الموقع' : 'Waiting for Editorial approval';
+                        ad.setMessage(t);
+                        break;
+                    case 2:
+                        t = d.ar ? 'تمت الموافقة وبإنتظار العرض من قبل محرك مرجان' : 'Approved and pending Mourjan system processing';                    
+                        ad.setMessage(t);
+                        ad.setAs('approved');
+                        break;
+                    case 3:
+                        t = d.ar ? 'تم رفض عرض هذا الإعلان' : 'Rejected By Admin';
+                        if (typeof data.m !== 'undefined') {
+                            t += ': ' + data.m;
                         }
-                    } else {
-                        link = '/myads/' + (d.ar ? '' : 'en/') + '#' + ad.id;
-                    }
-                    t = d.ar ? 'الإعلان أصبح فعالاً، <a href="' + link + '">انقر(ي) هنا</a> لتفقد الإعلانات الفعالة' : 'Ad is online now, <a href="' + link + '">click here</a> to view Active Ads';
-                    ad.maskText(t);
-                    break;
+                        ad.rejected(t);
+                        break;
+                    case 7:
+                        ad.dataset.status = 7;
+                        ad.mask().opacity(0.75);
+                        var link;
+                        if (d.isAdmin()) {
+                            var lnks = ad.node.queryAll('div.user > a');
+                            if (lnks && lnks.length > 1) {
+                                link = lnks[1].href + '#' + ad.id;
+                            }
+                        } else {
+                            link = '/myads/' + (d.ar ? '' : 'en/') + '#' + ad.id;
+                        }
+                        t = d.ar ? 'الإعلان أصبح فعالاً، <a href="' + link + '">انقر(ي) هنا</a> لتفقد الإعلانات الفعالة' : 'Ad is online now, <a href="' + link + '">click here</a> to view Active Ads';
+                        ad.maskText(t);
+                        break;
+                }
             }
         }
-    }
-    if (data.c===1) { d.inc(); }
+        if (data.c===1) { d.inc(); }
     });
-    
+
     socket.on('superAdmin', function (data) {console.log(data);/*if (typeof data !== 'undefined') {}*/});
     socket.on('reconnect', function () { console.log('Reconnnect to ws'); });
     socket.on('connect', function () {console.log('connnect to ws');if (d.KUID) { this.emit("hook_myads", [d.KUID, d.level]); }});
@@ -1245,3 +1394,5 @@ d.nodes.forEach(function(node){
     d.items[node.id]=new Ad(node.id);
     node.onclick=d.clickedAd.bind(d.items[node.id]); 
 });
+
+console.log("finishied");

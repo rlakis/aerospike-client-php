@@ -265,6 +265,7 @@ var UI={
         fetch('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''), _options('GET'))
             .then(res=>res.json())
             .then(response => {
+                console.log(response);
                 if(response.success===1){
                     Ad.init();
                     let rs=response.result;
@@ -362,8 +363,7 @@ var UI={
             })
             .catch(error => { 
                 console.log(error);
-            });               
-        //_.validator=new FormValidator(  );
+            });
     },
     
     submit:function(e){

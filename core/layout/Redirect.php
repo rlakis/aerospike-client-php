@@ -12,31 +12,31 @@ class Redirect extends Site {
         $userLogin=$this->post('u');
         if ($userLogin && $this->isEmail($userLogin)) {
             $ref=$this->post('r');
-            $http_referer=\filter_input(INPUT_SERVER, 'HTTP_REFERER');
+            $http_referer=\filter_input(\INPUT_SERVER, 'HTTP_REFERER');
             if ($http_referer && $ref &&
                 \preg_match('/^(?:https)\:\/\/(?:www\.|dv\.|h1\.|dev\.)mourjan\.com/', $http_referer) &&
-                \preg_match('/\/home\/|\/signin\/|\/favorites\/|\/account\/\|\/myads\/|\/post\/|\/watchlist\/|\/buy\/|\/buyu\/|\/statement\//', $ref)) {
-
+                \preg_match('/\/home\/|\/signin\/|\/favorites\/|\/account\/|\/myads\/|\/post\/|\/watchlist\/|\/buy\/|\/buyu\/|\/statement\//', $ref)) {
+                
                 $userPass=$this->post('p');
                 $keepme_in=$this->post('o', 'boolean');
                 
                 if ($userPass && \strlen($userPass)>=6) {
-                    $pass = false;
+                    //$pass=false;
                     //if (isset($_POST['g-recaptcha-response'])) {
                         //$cred = DB::getCacheStorage()->get('recaptcha');
                         //$recaptcha = new \ReCaptcha\ReCaptcha($cred['secret'], new \ReCaptcha\RequestMethod\SocketPost());
                         //$resp = $recaptcha->verify($_POST['g-recaptcha-response'], $_SERVER['REMOTE_ADDR']);
                         //if ($resp->isSuccess()) {
-                            $pass = $this->user()->authenticateByEmail($userLogin, $userPass);
-                            if ($pass) {
-                                $this->user->params['keepme_in'] = $keepme_in ? 1 : 0;
-                                if ($keepme_in) {
-                                    $sKey = $this->user->encodeRequest('keepme_in', array($this->user->info['id']));
-                                    setcookie('__uvme', $sKey, time() + 1814400, '/', $this->router->config->get('site_domain'));
-                                }
-                            } else {
-                                $this->user->pending['login_attempt'] = true;
-                            }
+                    $pass=$this->user()->authenticateByEmail($userLogin, $userPass);
+                    if ($pass) {
+                        $this->user->params['keepme_in']=$keepme_in ? 1 : 0;
+                        if ($keepme_in) {
+                            $sKey=$this->user->encodeRequest('keepme_in', array($this->user->info['id']));
+                            \setcookie('__uvme', $sKey, \time() + 1814400, '/', $this->router->config->get('site_domain'));
+                        }
+                    } else {
+                        $this->user->pending['login_attempt']=true;
+                    }
                         //} else {
                         //    $this->user->pending['login_attempt_captcha'] = true;
                         //}

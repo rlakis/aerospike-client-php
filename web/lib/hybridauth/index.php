@@ -13,10 +13,10 @@ use Hybridauth\Storage\Session;
 use Core\Model\Router;
 
 function redirectTo($user) : void {    
-    $router = Router::instance();
-    $router->language = $user->params['slang'];
+    $router=Router::instance();
+    $router->language=$user->params['slang'];
     $router->cache();
-    $url = $router->getURL($user->params['country'], $user->params['city']);  
+    $url=$router->getURL($user->params['country'], $user->params['city']);  
     $router->close();
     
     HttpClient\Util::redirect($url);
@@ -32,22 +32,23 @@ function redirectToUrl($url) {
 
 MCSessionHandler::instance();
 
-$storage = new Session();
-$isAndroid = $storage->get('android');
-
-$user = new User(null, 0);
+$user=new User(null, 0);
 $user->populate();
 
-$newId = 0;
 
-if ($user->id() && isset($_GET['logout'])) {   
-    $provider = filter_input(INPUT_GET, 'logout', FILTER_SANITIZE_STRING);
-    if ($provider=='mourjan' || $provider=="mourjan-iphone" || $provider=='Android' || $provider=='mourjan-android') {        
+if ($user->isLoggedIn()) {   
+    $provider=\filter_input(\INPUT_GET, 'logout', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+    \error_log($provider);
+    if ($provider==='mourjan' || $provider==="mourjan-iphone" || $provider==='Android' || $provider==='mourjan-android') {
         $user->logout();
         redirectTo($user);
     }
 }
-    
+
+
+$newId=0;
+$storage=new Session();
+$isAndroid=$storage->get('android');
 
 try {
     if (isset($_GET['provider'])) {
@@ -112,6 +113,14 @@ try {
             
             $info = $auth_info = $adapter->getUserProfile();  
             
+            //FIX FOR CHANGING API KEY OF FACEBOOK
+            if($provider == 'facebook' && $info->email){
+                $usr = $user->getUserByEmailAndProvider($info->email, $provider);
+                if(isset($usr[0]['ID'])){
+                    $auth_info->identifier = $usr[0]['IDENTIFIER'];
+                }
+            }
+            
 //            error_log("1 ".$info->identifier);
 //            error_log("2 ".(is_null($info->email) ? '' : $info->email));
 //            error_log("3 ".trim(($info->firstName ? $info->firstName : '').' '.($info->lastName ? $info->lastName : '')));
@@ -163,7 +172,7 @@ try {
             }
             else {
                 if (!isset($user->params['uri']) || !in_array($user->params['uri'], ['/favorites/', '/account/', '/myads/', '/post/', '/watchlist/', '/statement/', '/buy/', '/buyu/'])) {
-                    $uri='/home/';
+                    $uri='/myads/';
                 }
                 else {
                     $uri=$user->params['uri'];
@@ -220,7 +229,6 @@ try {
     if (isset($user->params['slang']) && $user->params['slang']!='ar') {
         $url .= $user->params['slang'].'/';
     }
-    error_log($url);
     HttpClient\Util::redirect($url);
 } 
 catch (Exception $e) {

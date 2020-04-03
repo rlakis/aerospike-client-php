@@ -266,8 +266,7 @@ class Bin extends AjaxHandler {
                     if ($content['success']===false) {
                         $content['message'].=' - failed!';
                         Config::instance()->incLibFile('IPQuality');
-                        $content=IPQuality::getIPStatus($content['host']);
-                        \error_log(var_export($content, true));
+                        $content=IPQuality::getIPStatus($content['host']);                        
                     }
                     $this->success($content);
                 }
@@ -1420,7 +1419,7 @@ class Bin extends AjaxHandler {
                 $uid=\intval($this->_JPOST['u']??0);                
                 $archive=$this->post('x', 'boolean');
                 $adStats=$this->post('ads', 'boolean');
-                if ($adStats && $this->user->isLoggedIn(9)) {
+                if ($adStats && $this->user->isLoggedIn(9)) {                    
                     $pubId=$this->post('pub', 'int');
                     $secId=$this->post('sec', 'int');
                     $countryId=$this->post('cn', 'int');
@@ -1464,30 +1463,29 @@ class Bin extends AjaxHandler {
                     $this->success();                    
                 }
                 elseif ($this->user->isLoggedIn() && ($this->user->id()===$uid || $this->user->level()===9)) {
+                    $aid=\intval($this->_JPOST['a']??0); 
                     
-                    $aid = $this->post('a', 'uint');
-                    
-                    $showInteractions = 0;
+                    $showInteractions=0;
                     if($this->user->level()===9 || \in_array($this->user->id(), $this->router->config->get('enabled_interactions'))) {
                         $showInteractions = 1;
                     }
-                    $stat_server = $this->router->db->getCache()->get("stat_server");
-                    $redis = new Redis();
                     
+                    $stat_server=$this->router->db->getCache()->get("stat_server");
+                    $redis=new Redis();                    
                     $redis->connect($stat_server['host'], $stat_server['port'], 1, NULL, 100); // 1 sec timeout, 100ms delay between reconnection attempts.
                     $redis->setOption(Redis::OPT_PREFIX, $stat_server['prefix']);
                     $redis->select($stat_server['index']);
                     
-                    if ($aid) {
+                    if ($aid>0) {
                         $count=0;                     
                         
-                        $res = $redis->hGetAll('AI'.$aid);
+                        $res=$redis->hGetAll('AI'.$aid);
                         \ksort($res, \SORT_STRING);
                     
-                        $data = $cdata = [];
-                        $dt = 0;
+                        $data=$cdata=[];
+                        $dt=0;
                         if ($res && \count($res)) {
-                            $i = $curDt = $prevDt = 0;
+                            $i=$curDt=$prevDt=0;
                             foreach ($res as $date=>$hits) {
                                 $curDt=\strtotime($date);
                                 if ($i===0) {
@@ -1510,23 +1508,16 @@ class Bin extends AjaxHandler {
                             }
                             
                             if ($showInteractions) {
-                                /*
-                                $q='select cast(r.ts as date) as d,count(*) as c
-                                from xref x
-                                left join clks r on x.ad_id = r.ad_id
-                                where x.ad_id = ? and r.ad_id is not null  
-                                group by 1';
-                                $rc=$db->queryResultArray($q,array($aid));*/
-                                $rc = $redis->hGetAll('AC'.$aid);
+                                $rc=$redis->hGetAll('AC'.$aid);
                                 \ksort($rc, SORT_STRING);
                                 if ($rc && \count($res)) {
-                                    $j = $curDt = 0;
-                                    $prevDt = $dt-86400;
+                                    $j=$curDt=0;
+                                    $prevDt=$dt-86400;
                                     foreach ($rc as $date=>$clks) {
-                                        $curDt = \strtotime($date);
-                                        $ddif = $curDt-$prevDt;
+                                        $curDt=\strtotime($date);
+                                        $ddif=$curDt-$prevDt;
                                         if ($ddif>86400) {
-                                            $span = $ddif/86400;
+                                            $span=$ddif/86400;
                                             for ($k=0; $k<$span-1; $k++) {
                                                 $cdata[] = 0;   
                                                 $j++;
@@ -1547,13 +1538,13 @@ class Bin extends AjaxHandler {
                         }
                         
                         $this->response('c', $data);
-                        if (\count($cdata)) {  $this->response('k', $cdata);  }
+                        if (!empty($cdata)) {  $this->response('k', $cdata);  }
                         $this->response('t', $count);
                         $this->response('d', $dt*1000);
                     }
                     else {
-                        $total = 0;
-                        $summary = [];
+                        $total=0;
+                        $summary=[];
                         if (!$archive) {
                             /*
                             $q='select cast(r.ts as date) as d,
@@ -1833,22 +1824,7 @@ class Bin extends AjaxHandler {
                             ->setAccountId("pub-2427907534283641")->earnings($cStartDate, $cEndDate, $pStartDate, $pEndDate);
                     $this->success($res);
                 }
-                $this->error(self::ERR_DATA_INVALID_PARAM);
-                /*
-                else {
-                    if (isset($_GET['c'])) {
-                        $c = $this->get('c','boolean');
-                        $this->user->params['hasCanvas'] = $c ? 1 : 0;
-                        $this->user->update();
-                    }
-                    $hash=$this->get('h');
-                    if ($hash) {
-                        //$content=eval('?'.'>'.file_get_contents( dirname( $this->urlRouter->cfg['dir'] ) .'/tmp/gen/'.$hash.'99.php').'<'.'?');
-                        $content=eval('?'.'>'.file_get_contents( dirname( '/home/www/mourjan' ) .'/tmp/gen/'.$hash.'99.php').'<'.'?');
-                        echo $content;
-                    }
-                    else $this->fail('101');
-                }*/
+                $this->error(self::ERR_DATA_INVALID_PARAM);                
                 break;
                 
             case 'ajax-prog':
@@ -5646,8 +5622,6 @@ class Bin extends AjaxHandler {
                     $country_id=$cities[$city][\Core\Data\Schema::BIN_COUNTRY_ID];                        
                     if (!isset($countriesArray[$cities[$city][\Core\Data\Schema::BIN_COUNTRY_ID]])){                            
                         $ccs = $countries[$country_id][\Core\Data\Schema::COUNTRY_CITIES];
-                        
-                        \error_log(var_export($countries[$country_id], true));
                         
                         if ($ccs && \count($ccs)>0) {
                             $countriesArray[$country_id] = [$countries[$country_id]['name'], [] ];

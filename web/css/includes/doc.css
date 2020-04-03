@@ -1,8 +1,7 @@
 .card-doc {
     border-radius: 6px;
-    /*box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.2);*/
     margin-top:0;   
-    padding:20px;
+    padding:4px 20px;
     line-height: 1.5em;
 }
 
@@ -11,6 +10,7 @@
 .card-doc h4{color:#3C4858;margin:32px 0 4px}
 
 .sign {
+    display: inherit;
     justify-content:space-around;
     flex-flow:row wrap;
     align-content:flex-start;    
@@ -19,7 +19,7 @@
 
 .sign .card-doc {
     display: inline-block;
-    height: 544px;
+    height: 480px;
     max-width: 360px;
     margin: auto;
     padding: 0;
@@ -73,12 +73,13 @@
 .group{position:relative;margin-bottom:36px;}
 .group>input,.group>textarea{font-size:1rem;padding:10px 10px 10px 5px;display:block;width:100%;border:none;border-bottom:1px solid #757575;resize:none}
 .group>input:focus,.group>textarea:focus{outline:none;}
-.group label{color:#999;font-size:18px;font-weight:normal;position:absolute;pointer-events:none;left:5px;top:10px;transition:0.2s ease all;-moz-transition:0.2s ease all;-webkit-transition:0.2s ease all;}
+.group label{color:var(--mColor90);font-size:18px;font-weight:normal;position:absolute;pointer-events:none;left:5px;top:10px;transition:0.2s ease all;-moz-transition:0.2s ease all;-webkit-transition:0.2s ease all;}
 .group input:focus ~ label, input:valid ~ label {top:-20px;font-size:14px;color:#5264AE;}
 .group input[type="email"]:not([value='']) ~ label{top:-20px;font-size:14px;color:#5264AE;}
+.group input[type="password"]:not([value='']) ~ label{top:-20px;font-size:14px;color:#5264AE;}
 .group textarea:focus ~ label, textarea:valid ~ label{top:-20px;font-size:14px;color:#5264AE;}
 .group .bar{position:relative; display:block; width:100%;}
-.group .bar:before, .bar:after{content:'';height:2px;width:0;bottom:1px;position:absolute;background:#5264AE;transition:0.2s ease all;-moz-transition:0.2s ease all;-webkit-transition:0.2s ease all;}
+.group .bar:before, .bar:after{content:'';height:2px;width:0;bottom:1px;position:absolute;background:var(--mcLightColor);transition:0.2s ease all;-moz-transition:0.2s ease all;-webkit-transition:0.2s ease all;}
 .group .bar:before{left:50%;}
 .group .bar:after{right:50%;}
 .group input:focus ~ .bar:before, input:focus ~ .bar:after{width:50%;}

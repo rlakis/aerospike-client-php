@@ -193,8 +193,8 @@ class Home extends Page {
                 \uasort($items, function($a, $b){ return $b['counter'] <=> $a['counter']; });
                 //$this->router->logger()->info(\json_encode($items, JSON_PRETTY_PRINT));            
                 ?><div class=row><div class=col-12><?php
-                ?><div class="col-3 va-center"><span style="display:inherit;width:60px;justify-content:center;margin-inline-end:8px"><i class="icn ro i<?=$root_id?>"></i></span><?php
-                ?><span style="color:var(--mcLightColor);font-size:14pt;font-weight:bold"><?=$this->router->roots[$root_id][$this->name]?></span></div><?php
+                ?><div class="col-3 va-center"><span class=icon><i class="icn ro i<?=$root_id?>"></i></span><?php
+                ?><span class=name><?=$this->router->roots[$root_id][$this->name]?></span></div><?php
                 $i=0;
                 ?><div class="col-9 va-center"><?php
                 foreach ($items as $section_id => $section) {

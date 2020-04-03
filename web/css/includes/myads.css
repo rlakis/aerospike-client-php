@@ -12,8 +12,17 @@ canvas{max-width: 1024px;margin-left: auto; margin-right: auto;display: block}
 .myad section {
     line-height: 1.5rem
 }
-.myad footer{height:32px;padding-top:0px;margin: 0 8px; border-bottom-left-radius:6px;border-bottom-right-radius:6px;background-image:linear-gradient(90deg,white,#f1f3f4);
-            display:flex;flex:1 auto;justify-content:space-between;align-items:center;direction: inherit}
+.myad footer{
+    display:flex;
+    height:32px;
+    padding: 0 8px; 
+    border-bottom-left-radius:6px;
+    border-bottom-right-radius:6px;
+    background-image:linear-gradient(90deg,white,#f1f3f4);
+    justify-content:space-between;
+    align-items:center;
+    direction: inherit
+}
 .myad hr{margin:0 8px;border-top:1px dotted silver;border-bottom:0}
 .myad .ar{font-size:1.05rem;line-height:1.6em}
 .myad .note{display:flex;flex:1 auto;min-height:28px;background-image:linear-gradient(90deg,lightgray,#f1f3f4);justify-content:space-between;align-items:center;padding:4px 8px;font-size:0.9em}
@@ -27,7 +36,18 @@ canvas{max-width: 1024px;margin-left: auto; margin-right: auto;display: block}
                  filter: invert(11%) sepia(67%) saturate(6919%) hue-rotate(352deg) brightness(106%) contrast(114%);
 }
 .icn-sync{background:transparent url(/web/css/1.0/fa/duotone/sync.svg) no-repeat center / cover !important;filter:invert(1);margin: 0}
-.myad .user {direction:ltr;display:flex;flex:1 auto;justify-content:space-between;background-color:#f1f3f4;height:28px;padding:0 8px;align-items:center;box-shadow:0 1px 4px 0 rgba(0, 0, 0, 0.14);}
+.myad .user {
+    display:flex;
+    flex:1 auto;
+    height:28px;
+    padding:0 8px;
+    direction:ltr;
+    background-color:#f1f3f4;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 1px 3px 0 rgba(0, 0, 0, 0.14);
+}
+.myad .user span{display: inline-flex;align-items: center}
 .myad .user > div{display:flex;}
 .myad.selected section{background-color:#d3f1c4;}
 .myad.alert .icon-state{background:transparent url(https://dev.mourjan.com/css/2020/1.0/fa/regular/bell.svg) no-repeat center / cover !important;filter:invert(20%) sepia(52%) saturate(3178%) hue-rotate(99deg) brightness(97%) contrast(104%);}
@@ -57,6 +77,14 @@ canvas{max-width: 1024px;margin-left: auto; margin-right: auto;display: block}
     border:none;
     filter:var(--mseFilter);
 }
+
+.myad section > div[contenteditable="true"]{
+    background-color: white;
+    width: -webkit-fill-available;
+    width: -moz-available;
+    border: 1px solid var(--mcLightColor);
+    padding: 8px;
+}
 /*
 .myad section.ar > img {float:right;margin:0 0 5px 10px;border:0}
 .myad section.en > img {float:left;margin:0 10px 5px 0;border:0}
@@ -64,7 +92,13 @@ canvas{max-width: 1024px;margin-left: auto; margin-right: auto;display: block}
 .myad .pn.png{color:darkgreen;font-weight:bolder}
 
 
-.myadls .inside>select{width:100%;padding:4px;font-size:20px !important;border:1px solid darkgray}
+.myadls .inside>select{
+    width:100%;
+    padding:4px;
+    font-family: inherit; 
+    font-size:18px !important;
+    border:1px solid #eee
+}
 
 .myad input[type=button], .myad button {display:inline-flex;color: #007bff; cursor: pointer; font-size: 16px; font-family: inherit; 
              border-color: var(--mcLightColor) var(--mcDarkColor) var(--mcDarkColor) var(--mcLightColor); 
@@ -103,6 +137,7 @@ canvas{max-width: 1024px;margin-left: auto; margin-right: auto;display: block}
     width:100%;
     height:100px;
     line-height: 1.5em;
+    font-family: inherit;
     font-size: 1em;
     border:1px solid #eee
 }

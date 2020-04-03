@@ -30,7 +30,7 @@ class Search extends Page {
         $this->tmpPurposeId=0;
         $this->tmpRootId=0;
         
-        if (isset($_GET['rt'])) { $this->isRT = 1; }
+        if (\filter_has_var(\INPUT_GET, 'rt')) { $this->isRT = 1; }
         
         if (!$this->user()->isLoggedIn()) {
             if ($this->userFavorites || $this->router->watchId) {
@@ -38,7 +38,7 @@ class Search extends Page {
             }
         }
         else if ($this->user()->isLoggedIn(9)) {
-            $this->router->config->disableAds();
+            //$this->router->config->disableAds();
         }
                            
         /*     
@@ -1160,9 +1160,11 @@ class Search extends Page {
         if ($ad_count) {
             $cmp=\filter_input(\INPUT_GET, 'cmp', \FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
             $aid=\filter_input(\INPUT_GET, 'aid', \FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
+            \error_log("cmp {$cmp} aid {$aid}\n");
+            
             if ($cmp>0||$aid>0) {
                 $end_user=false;
-                $aid=$cmp>0?$cmp:$aid;
+                $aid=($cmp>0)?$cmp:$aid;
                 $ad=$this->user()->getPendingAds($aid);
                 
                 if (!empty($ad)) {                  
@@ -1180,10 +1182,11 @@ class Search extends Page {
                     
                     ?><div style="margin:5px"><?=$this->formatPlural($count, 'ad');?></div><?php
                     
-                    $strip=$_GET['strip'] ?? 0;
-                    $link=$_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'];
+                    $strip=\filter_input(\INPUT_GET, 'strip', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]])+0;
+                                        
+                    $link='/?'.$_SERVER['QUERY_STRING'];
                     ?><div style="height:auto;text-align:center;margin-bottom:8px;"><?php
-                    if ($strip) {
+                    if ($strip===1) {
                         $link=\trim(\preg_replace('/&strip=1/', '', $link));
                         ?><a href="<?=$link?>" class=bt><?=$this->lang['show_premium']?></a><?php
                     }
@@ -1265,7 +1268,7 @@ class Search extends Page {
             }
             // onclick=oad(this)
             ?><div class="ad<?=$end_user?'':' full'?>" <?=$ad->htmlDataAttributes($this->formatNumbers)?>><a href=<?=$ad->url()?>><?php
-            ?><div class="widget<?=($ad->isFeatured()?' premium':'')?>" id=<?=$ad->id()?> itemprop="itemListElement"<?=$itemScope?>><?php
+            ?><div class="widget<?=($ad->isFeatured()?' premium':'')?>" id=<?=$ad->id(). 'itemprop=itemListElement'.$itemScope?>><?php
             if ($ad->isFeatured()) {
                 echo '<img class=tag src="', $this->router->config->imgURL, '/prtag-en.svg" />';
             }
@@ -1909,7 +1912,8 @@ class Search extends Page {
                 case 6:
                 case 7:
                     if ($hasSchema) {
-                        $section = $this->router->purposes[$purpose_id][$this->name] . ' <span itemprop="name">' . $section . '</span>';
+                        //$section = $this->router->purposes[$purpose_id][$this->name] . ' <span itemprop="name">' . $section . '</span>';
+                        $section = $this->router->purposes[$purpose_id][$this->name] . ' ' . $section;
                     }
                     else {
                         $section = $this->router->purposes[$purpose_id][$this->name] . ' ' . $section;
@@ -3377,6 +3381,7 @@ class Search extends Page {
                     break;
             }
         }
+        
         if ($this->router->config->enabledAds() && $countAds>=10) {
             ?><li><?php
             ?><ins class="adsbygoogle" class="ad600" data-ad-client="ca-pub-2427907534283641" data-ad-slot="9190558623"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script><?php

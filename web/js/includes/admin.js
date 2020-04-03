@@ -7,9 +7,8 @@ if(typeof userRaw==='string'){
             var tree = jsonTree.create(data, wrapper);
             tree.expand();
         }, 100);
-        if(typeof jsonTree==='undefined'){
-            
-        }
+        //if(typeof jsonTree==='undefined'){            
+        //}
         
     } catch (e) {
         console.log(e);
@@ -63,14 +62,14 @@ block=function(u,e){
                 .then(res => res.json())
                 .then(response => {
                     console.log('Success:', JSON.stringify(response));
-                    //if(response.RP===1){location.reload();}
+                    if(response.success===1){
+                        Swal.fire('Banned!', 'This user has been blocked.', 'success' );
+                        location.reload();
+                    }
                 })
                 .catch(error => {
                     Swal.fire('Error', error, 'error');
                 });
-            //Swal.fire('Deleted!', 'Your imaginary file has been deleted.', 'success' )
-        } else if (result.dismiss === Swal.DismissReason.cancel) {
-            //Swal.fire('Cancelled', 'Your imaginary file is safe :)', 'error')
         }
     });
 };

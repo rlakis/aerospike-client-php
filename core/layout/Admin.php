@@ -5,18 +5,20 @@ class Admin extends Page {
 
     var $action = '', $liOpen = '';
     private int $uid;
-    private int $aid = 0;
-    private $userdata = 0;
+    private string $uuid='';
+    private string $email='';
+    private int $aid=0;
+    private $userdata=0;
     private array $multipleAccounts = [];
 
     function __construct() {
         parent::__construct();
-        $this->uid = 0;
-        $this->sub = $_GET['sub'] ?? '';
-        $this->mobile_param = $_GET['t'] ?? '';
-        $this->aid = filter_input(INPUT_GET, 'r', FILTER_SANITIZE_NUMBER_INT, ['options' => ['default' => 0]]);
+        $this->uid=0;
+        $this->sub=\filter_input(\INPUT_GET, 'sub', \FILTER_SANITIZE_STRING, ['options' => ['default' => '']]);
+        $this->aid=filter_input(INPUT_GET, 'r', FILTER_SANITIZE_NUMBER_INT, ['options' => ['default' => 0]]);
+        $this->mobile_param=\filter_input(\INPUT_GET, 't', \FILTER_SANITIZE_STRING, ['options' => ['default' => '']]);
 
-        $this->hasLeadingPane = true;
+        $this->hasLeadingPane=true;
 
         if ($this->router->isMobile || !$this->user->isSuperUser()) {
             $this->user->redirectTo($this->router->getLanguagePath('/notfound/'));
@@ -24,20 +26,18 @@ class Admin extends Page {
 
         $this->load_lang(array("account"));      
                 
-        
-        //$this->set_require('css', 'account');
-        $this->title = $this->lang['title'];
-        $this->description = $this->lang['description'];
-        $this->forceNoIndex = true;
+        $this->title=$this->lang['title'];
+        $this->description=$this->lang['description'];
+        $this->forceNoIndex=true;
         $this->router->config->setValue('enabled_sharing', 0);
         $this->router->config->disableAds();
 
 
-        $parameter = filter_input(INPUT_GET, 'p', FILTER_SANITIZE_STRING);
-        $action = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_STRING);
+        $parameter=\filter_input(\INPUT_GET, 'p', \FILTER_SANITIZE_STRING);
+        $action=\filter_input(\INPUT_GET, 'action', \FILTER_SANITIZE_STRING);
 
         if ($action) {
-            $redirectWhenDone = true;
+            $redirectWhenDone=true;
 
             switch ($action) {
                 case 'blacklist':
@@ -56,16 +56,15 @@ class Admin extends Page {
                     break;
                 
                 case 'unblock':
-                    //$unblockNumbers = [];
                     $userdata=[$this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUser($parameter))];
 
                     if (isset($userdata[0]['mobiles'])) {
                         $accounts=[];
                         foreach ($userdata[0]['mobiles'] as $number) {
                             $uids=[];
-                            if (\Core\Model\NoSQL::instance()->mobileGetLinkedUIDs(intval($number['number']), $uids) == Core\Model\NoSQL::OK) {
+                            if (\Core\Model\NoSQL::instance()->mobileGetLinkedUIDs(intval($number['number']), $uids)===Core\Model\NoSQL::OK) {
                                 foreach ($uids as $bins) {
-                                    $accounts[] = $this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
+                                    $accounts[]=$this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
                                 }
                             }
                         }
@@ -76,7 +75,7 @@ class Admin extends Page {
                             $uids[]=$account['id'];
 
                             foreach ($account['mobiles'] as $number) {
-                                $numbers[$number['number']] = $number['id'];
+                                $numbers[$number['number']]=$number['id'];
                             }
                         }
                         $this->user()->unblock($uids, $numbers);
@@ -98,37 +97,47 @@ class Admin extends Page {
                 }
                 if ($url) { $url = '?' . $url; }
 
-                header('Location: ' . $url);
+                \header('Location: ' . $url);
             }
         }
 
-        $release = intval(filter_input(INPUT_GET, 'a', FILTER_SANITIZE_NUMBER_INT));
+        $release=\intval(\filter_input(\INPUT_GET, 'a', \FILTER_SANITIZE_NUMBER_INT));
 
         if ($parameter) {
-            $this->uid = 0;
-            $isEmail = preg_match('/@/', $parameter);
-            $email = '';
+            $this->uid=0;
+            $isEmail=\preg_match('/@/', $parameter);            
 
-            $date = new DateTime();
+            $date=new DateTime();
 
-            $len = strlen($parameter);
-            $uuid = '';
+            //$len=\strlen($parameter);
             if (!$isEmail && preg_match('/[^0-9]/', $parameter)) {
-                $record = [];
-                $status = [$this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUserByUUID($parameter, $record))];
+                $record=[];
+                $status=[$this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUserByUUID($parameter, $record))];
 
-                if (count($record)) {
-                    $this->uid = $record['id'];
-                    $uuid = $parameter;
+                if (!empty($record)) {
+                    $this->uid=$record['id'];
+                    $this->uuid=$parameter;
                 }
-            } elseif ($isEmail) {
-                $email = $parameter;
-                $user = $this->user->getUserByEmail($parameter);
+            } 
+            elseif ($isEmail) {
+                $this->email=$parameter;
+                if ($this->user->getUserByEmail($parameter, $records)===\Aerospike::OK && !empty($records)) {                    
+                    $selected=$this->uid=current($records)[Core\Model\ASD\USER_PROFILE_ID];
+                    if (\filter_has_var(\INPUT_GET, 'selected')) {
+                        $selected=\intval(\filter_input(\INPUT_GET, 'selected', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
+                        $this->uid=$selected;
+                    }
+                    if (\count($records)>1) {
+                        $this->multipleAccounts=\array_keys($records);
+                    }
+                }
+                /*
+                $user=$this->user->getUserByEmail($parameter, $records);
                 if ($user && count($user)) {
-                    $selected = $this->uid = $user[0]['ID'];
+                    $selected=$this->uid=$user[0]['ID'];
 
                     if (isset($_GET['selected'])) {
-                        $selected = intval($_GET['selected']);
+                        $selected=intval($_GET['selected']);
                     }
 
                     if (count($user) > 1) {
@@ -139,20 +148,16 @@ class Admin extends Page {
                             }
                         }
                     }
-                }
+                }*/
             } else {
                 $this->uid = intval($parameter);
             }
 
-
-            // get Profile by id
-            //\Core\Model\NoSQL::instance()->getProfile($user, $record);
-            //$this->user()->getProfile();
             
             $this->userdata=[$this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUser($this->uid))];
 
-            if ($uuid) { $this->uid = $uuid; }
-            if ($isEmail) { $this->uid = $email; }
+            //if ($uuid) { $this->uid=$uuid; }
+            //if ($isEmail) { $this->uid=$email; }
         } 
         else {
             $parameter = filter_input(INPUT_GET, 't', FILTER_SANITIZE_NUMBER_INT, ['options' => ['default' => 0]]);
@@ -417,8 +422,7 @@ class Admin extends Page {
     }
 
     
-    function main_pane() {
-
+    function main_pane() : void {
         switch ($this->sub) {
             case 'ads':
                 $this->renderStatisticsPanel();
@@ -1385,47 +1389,36 @@ $.ajax({
                         ";
     }
 
-    function renderUserAdminPanel() {
+    
+    function renderUserAdminPanel() : void {
+        ?><div class="row viewable"><div class=col-12><div class="card admin"><?php
         ?><div class=row><?php
-        ?><div class="col-12"><?php
-        ?><div class="card admin"><?php
-        ?><ul class=ts><?php
-        ?><li><?php
-        ?><form method=get><?php
-        ?><div><label>UID/UUID/EMAIL:</label><input name="p" type="text" value="<?= $this->uid ? $this->uid : '' ?>" /><?php
-        ?><input type=submit class=btn value="<?= $this->lang['review'] ?>" /><?php
-        ?></div><?php
-        ?></form><?php
-        ?></li><?php
         
-        $lang = $this->router->isArabic() ? '' : $this->router->language . '/';
-        if (isset($_GET['p']) && count($this->multipleAccounts)) {
-            $selected = $this->get('selected', 'uint') ? $this->get('selected', 'uint') : $this->multipleAccounts[0];
-            ?><ul class="ts multi"><?php
-            foreach ($this->multipleAccounts as $acc) {
-                if ($selected == $acc) {
-                    echo "<li><b>{$acc}</b></li>";
-                } else {
-                    echo "<li><a href='/admin/{$lang}?p={$this->uid}&selected={$acc}'>{$acc}</a></li>";
-                }
-            }
-            ?></ul><?php
+        ?><div class="col-4 ha-center"><form method=get><?php
+        $value=$this->uid;
+        if (!empty($this->email)) {
+            $value=$this->email;
         }
-
-        
-        ?><li><?php        
-        ?><form method=get><?php
-        ?><div><label><?= $this->lang['labelP0'] ?>:</label><input name="t" type=tel value="<?= $this->mobile_param ?>" /><?php
+        else if (!empty ($this->uuid)) {
+            $value=$this->uuid;
+        }
+        ?><label>UID/UUID/EMAIL<input name=p type=text value="<?= $value ? $value : '' ?>" /></label><?php
         ?><input type=submit class=btn value="<?= $this->lang['review'] ?>" /><?php
-        ?></div><?php
-        ?></form><?php
-        ?></li><?php
+        ?></form></div><?php
         
+        $lang=$this->router->isArabic() ? '' : $this->router->language . '/';
         
-        if (isset($_GET['t']) && count($this->multipleAccounts)) {
+        ?><div class="col-4 ha-center"><form method=get><?php
+        ?><label><?= $this->lang['labelP0'] ?><input name=t type=tel value="<?= $this->mobile_param ?>" style="width:120px" /></label><?php
+        ?><input type=submit class=btn value="<?= $this->lang['review'] ?>" /><?php
+        ?></form></div><?php        
+        
+        if (\filter_has_var(\INPUT_GET, 't') && !empty($this->multipleAccounts)) {
             $usersHTML=[];
-            $parameter = filter_input(INPUT_GET, 't', FILTER_SANITIZE_NUMBER_INT, ['options' => ['default' => 0]]);
-            $selected = $this->get('selected', 'uint') ? $this->get('selected', 'uint') : $this->multipleAccounts[0];
+            $parameter=\filter_input(\INPUT_GET, 't', \FILTER_SANITIZE_NUMBER_INT, ['options' => ['default' => 0]]);
+            $selected=\filter_input(\INPUT_GET, 'selected', \FILTER_SANITIZE_NUMBER_INT, ['options' => ['default' => 0]]); 
+            if ($selected==0) {  $selected=$this->multipleAccounts[0];  }
+            //$this->get('selected', 'uint') ? $this->get('selected', 'uint') : $this->multipleAccounts[0];
             $usersHTML[]='<ul class="ts multi">';
             foreach ($this->multipleAccounts as $acc) {
                 if ($selected==$acc) {
@@ -1437,14 +1430,27 @@ $.ajax({
             $usersHTML[]='</ul>';
         }
         
-        ?><li><?php        
-        ?><form method=get><?php
-        ?><div><label>AID:</label><input name="r" type="ad" value="<?= $this->aid ? $this->aid : '' ?>" /><?php
+        ?><div class="col-4 ha-center"><form method=get><?php
+        ?><label>AD<input name=r type=ad value="<?= $this->aid ? $this->aid : '' ?>" style="width:90px" /></label><?php
         ?><input type=submit class=btn value="<?= $this->lang['review'] ?>" /><?php
+        ?></form></div><?php
+        
         ?></div><?php
-        ?></form><?php
-        ?></li><?php
-        ?></ul><?php
+        
+        if (\filter_has_var(INPUT_GET, 'p') && !empty($this->multipleAccounts)) {
+            ?><div class=row><ul class="ts"><?php
+            $selected=$this->get('selected', 'uint') ? $this->get('selected', 'uint') : $this->multipleAccounts[0];
+            foreach ($this->multipleAccounts as $acc) {
+                if ($selected == $acc) {
+                    echo "<li><b>{$acc}</b></li>";
+                } else {
+                    
+                    echo "<li><a href='/admin/{$lang}?p={$value}&selected={$acc}'>{$acc}</a></li>";
+                }
+            }
+            ?></ul></div><?php
+        }
+
 
         if ($this->userdata && count($this->userdata) && (($this->aid==0 && $this->userdata[0]) || ($this->aid))) {
             if ($this->aid==0) {
@@ -1459,83 +1465,17 @@ $.ajax({
                                 return \mb_convert_encoding(pack('H*', $match[1]), 'UTF-8', 'UTF-16BE');
                             }, 
                             \json_encode($this->userdata, JSON_FORCE_OBJECT));
-                $str=\strip_tags(\addcslashes($str, "'"));
-                //$this->userdata=\json_decode(str_replace('class=\"pn\"', 'class=pn', $str));
-                //$this->userdata=\json_decode(\addcslashes(\strip_tags($str), "'"));
-                //if (isset($this->userdata->TITLE)) { unset($this->userdata->TITLE); }
-                //\error_log(__LINE__);
-                //\error_log(\json_encode($this->userdata));
-            
-                echo "\n<script>var userRaw='", $str, "';</script>\n";
-              
-                //echo json_encode($this->userdata, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+                $striped=\strip_tags(\addcslashes($str, "'"));            
+                echo "\n<script>var userRaw='", $striped, "';</script>\n";
             }
-
-                $this->globalScript .= '
-                            var block=function(id,e){
-                                e=$(e).parent().parent();
-                                if(e.next().hasClass("rpd")){
-                                    e.next().remove()
-                                }else{
-                                    var d=$("<div class=\'rpd cct\'><b>سبب الايقاف؟</b><textarea onkeydown=\'idir(this)\' onchange=\'idir(this,1)\'></textarea><input type=\'button\' onclick=\'rpa("+id+",this)\' class=\'bt\' value=\'ايقاف\'><input type=\'button\' onclick=\'closeA(this)\' class=\'bt cl\' value=\'إلغاء\'></div>");                                
-                                    d.insertAfter(e);
-                                }
-                            };
-                            var suspend=function(id,e){
-                                Dialog.show("susp_dialog",null,function(){suspA(e,id)});  
-                            };
-                            var suspA=function(e,usr){
-                                e=$(e);
-                                e.addClass("load");
-                                $.ajax({
-                                    type:"POST",
-                                    url:"/ajax-ususpend/",
-                                    data:{i:usr,v:$("#suspT").val(),m:$("#suspM").val()},
-                                    dataType:"json",
-                                    success:function(rp){
-                                        e.removeClass("load");
-                                        if (rp.RP) {
-                                            e.html("Release");
-                                            e[0].onclick=function(){};
-                                            e.attr("href","?p="+usr+"&a=-1");
-                                            e.parent().css("float","left");
-                                        }
-                                    },
-                                    error:function(){
-                                        e.removeClass("load");
-                                    }
-                                });
-                            };
-                            var closeA=function(e){
-                                e=$(e).parent().remove()
-                            };
-                            var rpa=function(id,e){
-                                e=$(e);
-                                var m=$("textarea",e.parent()).val();
-                                e.parent().remove();
-                                if(m.length>0){
-                                    $.ajax({
-                                        type:"POST",
-                                        url:"/ajax-ublock/",
-                                        data:{
-                                            i:id,
-                                            msg:"Blocked From Admin Panel By Admin "+UID+" reason <<"+m+">>"
-                                        },
-                                        dataType:"json",
-                                        success:function(rp){
-                                            document.location="";
-                                        }
-                                    });
-                                }
-                            };
-                        ';
-            } 
-            else {
-                ?><div class=ctr><?php
+        }
+        else {
+            ?><div class=ctr><?php
             if ($this->uid || $this->mobile_param != '') {
                 ?><h4>NO USER DATA FOUND</h4><?php
             }
             ?></div><?php
+            
             if (isset($_GET['t']) && $_GET['t']) {
                 echo '<br />';
                 if (!($this->userdata && count($this->userdata))) {
@@ -1566,18 +1506,7 @@ $.ajax({
                             ?><input type="hidden" name="p" value="<?= $_GET['t'] ?>" /><?php
                             ?><input type="hidden" name="action" value="blacklist" /><?php
                             ?><p style="text-align:center"><input class=btn type="submit" value="blacklist"/></p><?php
-                            ?></form></div><br /><?php
-                            $this->globalScript .= '
-                                                var black=function(){
-                                                    var e=$("#breason");
-                                                    if(e.val().length < 3){
-                                                        e.addClass("err");
-                                                        return false;
-                                                    }else{
-                                                        return true;
-                                                    }
-                                                };
-                                            ';
+                            ?></form></div><br /><?php                            
                         } else {
                             ?><div class="ctr"><?php
                             ?><h4 style="color:red">MOBILE NUMBER IS NOT VALID</h4><?php
@@ -1588,30 +1517,12 @@ $.ajax({
                 }
             }
         }
-        ?></ul><?php
-        if (isset($usersHTML)) { echo implode('', $usersHTML); }
-        echo '</div>';
-        ?></div></div></div><?php
-        echo '<div id=userDIV dir=ltr></div>';
         
-        ?><div class=body><div class="popup-container okcancel animated bounceInUp"><div class=popup></div>
-        <!--<a class="signup" href="">Sign Up</a>-->
-        <a href="" class=xbtn>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-        </svg></a>
-<form action="">
-  <h2>Login</h2>
-  <input type="text" placeholder="Email" >
-  <input type="password" placeholder="Password">
-</form>
-  <button class="facebook"><svg viewBox="0 0 512 512"><path d="M211.9 197.4h-36.7v59.9h36.7V433.1h70.5V256.5h49.2l5.2-59.1h-54.4c0 0 0-22.1 0-33.7 0-13.9 2.8-19.5 16.3-19.5 10.9 0 38.2 0 38.2 0V82.9c0 0-40.2 0-48.8 0 -52.5 0-76.1 23.1-76.1 67.3C211.9 188.8 211.9 197.4 211.9 197.4z"/></svg></button>
-  <button class="twitter"><svg viewBox="0 0 512 512"><path d="M419.6 168.6c-11.7 5.2-24.2 8.7-37.4 10.2 13.4-8.1 23.8-20.8 28.6-36 -12.6 7.5-26.5 12.9-41.3 15.8 -11.9-12.6-28.8-20.6-47.5-20.6 -42 0-72.9 39.2-63.4 79.9 -54.1-2.7-102.1-28.6-134.2-68 -17 29.2-8.8 67.5 20.1 86.9 -10.7-0.3-20.7-3.3-29.5-8.1 -0.7 30.2 20.9 58.4 52.2 64.6 -9.2 2.5-19.2 3.1-29.4 1.1 8.3 25.9 32.3 44.7 60.8 45.2 -27.4 21.4-61.8 31-96.4 27 28.8 18.5 63 29.2 99.8 29.2 120.8 0 189.1-102.1 185-193.6C399.9 193.1 410.9 181.7 419.6 168.6z"/></svg></button>
-  <button class="button button-with-icon">
-      <i class="icn icnsmall icn-bars"></i>Cancel
-  </button>
-</div></div>        
-        <?php
+        if (isset($usersHTML)) { echo implode('', $usersHTML); }
+        ?></div></div></div><?php
+        
+        echo '<div class="row viewable"><div id=userDIV dir=ltr></div></div>';
+        //echo '</div>';
     }
 
     

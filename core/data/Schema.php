@@ -17,6 +17,8 @@ const TS_URL_PATH           = 'urlpath';
 const TS_CACHE              = 'cache';
 
 class Schema extends \Core\Model\Singleton {
+    const TS_PROFILE        = 'profile';
+    
     const TYPE_INTEGER      = 0;
     const TYPE_STRING       = 1;   
     const TYPE_BOOLEAN      = 2;   
