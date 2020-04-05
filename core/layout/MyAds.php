@@ -1353,7 +1353,10 @@ class MyAds extends Page {
                 echo '<span class="alert alert-warning" style="align-self:center;width:auto"><span class="wait"></span>'.$hours.'</span>';
             }
             
-            echo '<span class="alert alert-info" style="align-self:center;width:auto">', $this->lang['user_type_label'], '&nbsp;<select onchange="d.setUserType(this,'.$userId.')"><option value="0">'.$this->lang['user_type_option_0'].'</option><option value="1"'.($type == 1 ? ' selected':'').'>'.$this->lang['user_type_option_1'].'</option><option value="2"'.($type == 2 ? ' selected':'').'>'.$this->lang['user_type_option_2'].'</option></select></span>';
+            echo '<span class="alert alert-info" style="align-self:center;width:auto">', $this->lang['user_type_label'], '&nbsp;<select onchange="d.setUserType(this,'.$userId.')">',
+                    '<option value=0>', $this->lang['user_type_option_0'], '</option>',
+                    '<option value=1', ($type==1?' selected':''), '>', $this->lang['user_type_option_1'].'</option>',
+                    '<option value=3', ($type==3?' selected':''), '>', $this->lang['user_type_option_2'].'</option></select></span>';
         }
     }
     

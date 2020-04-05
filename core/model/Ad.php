@@ -645,10 +645,10 @@ class Ad {
     
     
     public function htmlDataAttributes($userISO='') : string {
-        $result='';
-        if (!empty($this->translation)) {
-            $result.='data-alt="' .  \htmlspecialchars($this->translation , \ENT_QUOTES, 'UTF-8') . '" ';
-        }
+        $result='data-uid="'.$this->uid().'" ';
+        //if (!empty($this->translation)) {
+        //    $result.='data-alt="' .  \htmlspecialchars($this->translation , \ENT_QUOTES, 'UTF-8') . '" ';
+        //}
         if ($this->isFeatured()) {
             $result.='data-premuim=1 ';
         }
@@ -668,6 +668,7 @@ class Ad {
         if ($this->latitude()||$this->longitude()) {
             $result.='data-coord="'.$this->latitude().','.$this->longitude().'" ';
         }
+        
         if ($this->picturesCount()) {
             $result.='data-pics="' . implode(',', $this->data[Classifieds::PICTURES]).'" ';            
         }

@@ -1268,7 +1268,7 @@ class Search extends Page {
             }
             // onclick=oad(this)
             ?><div class="ad<?=$end_user?'':' full'?>" <?=$ad->htmlDataAttributes($this->formatNumbers)?>><a href=<?=$ad->url()?>><?php
-            ?><div class="widget<?=($ad->isFeatured()?' premium':'')?>" id=<?=$ad->id(). 'itemprop=itemListElement'.$itemScope?>><?php
+            ?><div class="widget<?=($ad->isFeatured()?' premium':'')?>" id=<?=$ad->id(). ' itemprop=itemListElement'.$itemScope?>><?php
             if ($ad->isFeatured()) {
                 echo '<img class=tag src="', $this->router->config->imgURL, '/prtag-en.svg" />';
             }

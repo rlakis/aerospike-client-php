@@ -5494,16 +5494,9 @@ class Bin extends AjaxHandler {
                 $this->authorize(true, 9);
                 $userId=$this->getGetInt('u');
                 $userType=$this->getGetInt('t');                               
-                if ($userId>0 && \in_array($userType, [1, 2])) {                    
+                if ($userId>0 && \in_array($userType, [1, 3])) {                    
                     if ($this->user->setType($userId, $userType)) {
-                        $this->success();
-                        /*
-                        $q='update ad a set a.publisher_type='.($userType==1 ? 1:3).' where a.id in (select u.id from ad_user u where u.web_user_id=?)';
-                        if ($this->urlRouter->db->queryResultArray($q, [$userId], true)) {
-                        }
-                        else { 
-                            $this->error(self::ERR_SYS_FAILURE);      
-                        }*/
+                        $this->success(['uid'=>$userId, 'type'=>$userType]);
                     }
                     else { 
                         $this->error(self::ERR_SYS_FAILURE);                        

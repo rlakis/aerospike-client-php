@@ -517,7 +517,22 @@ var d = {
     },
     
     setUserType: function(e, uid) {
-        console.log(uid, e);
+        let v=parseInt(e.value);
+        if (uid>0 && (v===1 || v===3)) {
+            fetch('/ajax-user-type/?u='+uid+'&t='+v, {method: 'GET', mode: 'same-origin', credentials: 'same-origin'})
+                .then(res => res.json())
+                .then(response => {                
+                    console.log('Success:', response);
+                    //if (response.sucess===1) {
+                    //    
+                    //}
+                    
+            
+            })
+            .catch(error => {
+                console.log('Error:', error);
+            });
+        }
     },
 
     chart: function(e) {
