@@ -1299,6 +1299,7 @@ class Search extends Page {
             ?><div class="box hint"><?php
             if ($ad->publisherType() && \in_array($ad->rootId(), [1,2,3]) && (!$ad->isJob() || ($ad->isJob() && $ad->isVacancies()))) {
                 switch ($ad->publisherType()) {
+                    case 2:
                     case 3:
                         echo '<div value=a', $ad->rootId(), '>', $this->lang['pub_3_'.$ad->rootId()], '</div>';
                         break;

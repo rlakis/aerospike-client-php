@@ -1926,9 +1926,9 @@ class User {
     }
     
     
-    function setType($id, $type) {
+    function setType($id, $type) : bool {
         $succeed=false;
-        if($id && is_numeric($type)) {
+        if ($id && is_numeric($type)) {
             return \Core\Model\NoSQL::instance()->setUserPublisherStatus($id, $type); 
         }
         return $succeed;

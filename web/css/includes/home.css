@@ -190,3 +190,100 @@
   filter: var(--mroFilter);
   opacity: .8
 }
+
+/* drop down sections */
+.lrs {
+  max-width: 1024px;
+  padding: 8px 0!important
+}
+.lrs .card {
+  margin-top: -16px
+}
+.lrs .card ul {
+  flex-flow: row wrap;
+  flex: 1 auto;
+  padding: 20px;
+  font-weight: 300
+}
+.lrs .card li {
+  width: 40%;
+  line-height: 40px;
+  margin: 0 42px 0 0
+}
+.lrs .card .col-8 {
+  border-right: 2px solid #eee
+}
+.lrs .card .col-8 a > img {
+  width: 28px;
+  margin-inline-end: 8px;
+  max-height: 32px
+}
+.lrs .card .col-8 a > span {
+  font-size: .9rem;
+  margin-inline-start: 6px
+}
+.lrs .card .btn {
+  background: var(--mdc);
+  padding: 12px 0;
+  margin-top: 24px;
+  text-transform: capitalize;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  box-shadow: 0 6px 0 0 var(--mlc);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 240px
+}
+.lrs .card .btn img {
+  filter: invert(1);
+  width: 64px;
+  margin: 0 15px 0 0
+}
+.lrs .card .col-4 .m0 {
+  display: inherit;
+  height: 1.6em;
+  justify-content: center;
+  color: var(--mdc50);
+  align-items: center;
+  letter-spacing: 0;
+  font-weight: 400;
+  width: 100%
+}
+.lrs .card .col-4 .m1 {
+  margin-top: 32px;
+  letter-spacing: 2px
+}
+.lrs .card .col-4 .m2 {
+  font-weight: 600
+}
+.lrs .card .col-4 {
+  align-items: flex-end
+}
+.lrs .card .col-4 ul {
+  margin-top: 64px;
+  width: 240px;
+  align-self: center
+}
+.lrs .card .col-4 ul > li {
+  margin: 0;
+  display: inline-flex;
+  width: 100%
+}
+.lrs .card .col-4 li > a {
+  color: var(--mlc);
+  font-weight: 700
+}
+.lrs .card .col-4 .mi {
+  font-size: 2em;
+  font-weight: 600;
+  color: var(--mlc)
+}
+.lrs .card li:last-child {
+  border-bottom: 1px solid #eee
+}
+.lrs img {
+  filter: var(--mseFilter)
+}

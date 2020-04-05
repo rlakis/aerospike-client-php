@@ -50,7 +50,7 @@ canvas{max-width: 1024px;margin-left: auto; margin-right: auto;display: block}
 .myad .user span{display: inline-flex;align-items: center}
 .myad .user > div{display:flex;}
 .myad.selected section{background-color:#d3f1c4;}
-.myad.alert .icon-state{background:transparent url(https://dev.mourjan.com/css/2020/1.0/fa/regular/bell.svg) no-repeat center / cover !important;filter:invert(20%) sepia(52%) saturate(3178%) hue-rotate(99deg) brightness(97%) contrast(104%);}
+.myad.warn .icon-state{background:transparent url(https://dev.mourjan.com/css/2020/1.0/fa/regular/bell.svg) no-repeat center / cover !important;filter:invert(20%) sepia(52%) saturate(3178%) hue-rotate(99deg) brightness(97%) contrast(104%);}
 
 .myad.feature{}
 .myad.feature .user{background-color:goldenrod;color:white}
@@ -194,3 +194,63 @@ canvas{max-width: 1024px;margin-left: auto; margin-right: auto;display: block}
 @-webkit-keyframes fade{from{opacity:.4} to{opacity:1}}
 @keyframes fade{from{opacity:.4} to{opacity:1}}
 @media only screen and (max-width:300px){.prev, .next,.text {font-size:11px}}
+
+.alert {
+    display: inherit;
+    position: relative;
+    padding: .75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: .25rem;
+    align-items: center;
+    justify-content: center;
+    min-height: 3em;
+}
+
+.alert-primary {
+    color: #004085;
+    background-color: #cce5ff;
+    border-color: #b8daff;
+}
+
+.alert-secondary {
+    color: #383d41;
+    background-color: #e2e3e5;
+    border-color: #d6d8db;
+}
+
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.alert-warning {
+    color: #856404;
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+}
+
+.alert-info {
+    color: #0c5460;
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+}
+
+.alert-light {
+    color: #818182;
+    background-color: #fefefe;
+    border-color: #fdfdfe;
+}
+
+.alert-dark {
+    color: #1b1e21;
+    background-color: #d6d8d9;
+    border-color: #c6c8ca;
+}

@@ -162,18 +162,22 @@ var d = {
     count: (typeof $$.queryAll("article")==='object') ? $$.queryAll("article").length : 0,
     isAdmin: function () { return this.level>=9; },
     setId: function (kId) {
+        console.log('setId', kId, typeof this.items[kId]);
+        
         if(this.ad) this.ad.unselect();
         this.currentId=kId;
         this.ad=this.items[kId];
         console.log("setId", this.ad);
         if(this.ad)this.ad.select();
     },
+    
     getName: function (kUID) {
         if(this.editors){
             var x = this.editors.getElementsByClassName(kUID);
             return (x&&x.length)?x[0].innerText:'Anonymous/'+kUID;
         }
     },
+    
     inc: function () {
         let _=this;
         this.n++;
@@ -189,11 +193,16 @@ var d = {
             if(typeof _.panel.onclick!=='function'){_.panel.onclick=function(){location.reload();};}
         }
     },
-    isSafe(adId){return parseInt(adId)===parseInt(this.currentId);},
+    
+    isSafe(adId){
+        return parseInt(adId)===parseInt(this.currentId);
+    },
+    
     inViewport(e) {
         var cr = e.getBoundingClientRect();
         return(cr.top >= 0 && cr.left >= 0 && cr.top <= (window.innerHeight || $.documentElement.clientHeight));
     },
+    
     visibleAds(f) {
         var v = [];
         var max = (window.innerHeight || $.documentElement.clientHeight);
@@ -219,7 +228,8 @@ var d = {
         var selection = null;
         if (window.getSelection) {
             selection = window.getSelection().toString();
-        } else if (document.selection) {
+        } 
+        else if (document.selection) {
             selection = document.selection.createRange().text;
         }
         if (selection) {
@@ -228,7 +238,8 @@ var d = {
                 let q = revise.dataset.contact;
                 if (selection.split(' ').length > 1) {
                     q += ' "' + selection + '"';
-                } else {
+                } 
+                else {
                     q += ' ' + selection;
                 }
                 let url = (this.ar ? '/' : '/en/') + '?cmp=' + e.article().id + '&q=' + q;
@@ -240,7 +251,8 @@ var d = {
     textSelected: function (e) {
         if (window.getSelection) {
             selection = window.getSelection().toString();
-        } else if (document.selection) {
+        } 
+        else if (document.selection) {
             selection = document.selection.createRange().text;
         }
     },
@@ -411,6 +423,7 @@ var d = {
                 }
             }
         };
+        
         inline.ok.onclick = function () {
             if (!uid) uid=0;
             let ad=d.items[article.id].mask().maskText(inline.text.value);
@@ -501,6 +514,10 @@ var d = {
             inline.hide();
         };
         inline.show();
+    },
+    
+    setUserType: function(e, uid) {
+        console.log(uid, e);
     },
 
     chart: function(e) {
@@ -775,7 +792,9 @@ var d = {
         
         if (this.getStatus()>=7) { 
             d.setId(this.id);
-            return prevent(); 
+            if (ee.closest('div.user')===null && ee.closest('footer')===null) {
+                return prevent();                 
+            }
         }
         
         switch(ee.tagName) {

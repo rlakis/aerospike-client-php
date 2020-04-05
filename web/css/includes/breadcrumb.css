@@ -19,16 +19,6 @@ body[dir="rtl"] .brd b{padding:0 30px 0 0;}
 body[dir="rtl"] .brd a:hover{background-color:#ff9100!important}
 body[dir="rtl"] .brd a:hover:after{border-right-color:#ff9100!important}
 
-.pgn{display:inline-block;padding-left:0;margin:20px auto;border-radius:4px;}
-.pgn > li{display:inline;}
-.pgn > .active > a, .pgn > .active > a:focus, .pgn > .active > a:hover, .pgn > .active > span, .pgn > .active > span:focus, .pgn > .active > span:hover{
-    z-index:2;color:#fff;cursor:default;background-color:#8699a3;border:0;
-    box-shadow:none}
-
-.pgn > li > a, .pgn > li > span{border:0;border-top-color:currentcolor;border-right-color:currentcolor;border-bottom-color:currentcolor;border-left-color:currentcolor;border-radius:50%;
-    transition:all .3s;margin:0 3px;min-width:40px;height:40px;line-height:40px;position:relative;
-    float:left;color:#8699a3; text-decoration:none;text-align:center;font-weight:bold;font-size: 16px}
-.pgn > li > a{border:1px solid #8699a3;}
 .reorder{order: 0}
 .prps {display: inherit;padding:0 8px;}
 .prps ul {display: inherit;justify-content: space-between; flex: 1 auto; padding: 0 8px;align-items: center;margin-block-start:0;margin-block-end:0;flex-wrap: wrap; background-color: white; border-radius:6px}
@@ -42,16 +32,3 @@ body[dir="rtl"] .brd a:hover:after{border-right-color:#ff9100!important}
     .reorder {order: 2}
 }
 
-div.breadcrumb{padding:0 8px;justify-content:space-between;align-items: center;color:var(--mColor70);font-size:15px}
-ul.breadcrumb {display:flex;margin-inline-start:calc(25% + 32px);list-style:none;}
-
-/* Display list items side by side */
-ul.breadcrumb li{display:inline-flex;color:var(--mColor80);line-height:28px;align-items: center}
-ul.breadcrumb img{height:28px;margin-inline-start:12px;filter:var(--mseFilter)}
-ul.breadcrumb li+li:before{padding:0 12px;color:var(--mcLightColor);content:"›";font-weight:bold;font-size: 1.5em;margin-top:-4px;}
-
-/* Add a color to all links inside the list */
-ul.breadcrumb li a {color: var(--mColor80);text-decoration: none;}
-
-/* Add a color on mouse-over */
-ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}

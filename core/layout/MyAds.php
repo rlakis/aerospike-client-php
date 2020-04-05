@@ -2,7 +2,6 @@
 \Config::instance()->incLayoutFile('Page')->incModelFile('AdList');
 
 use Core\Model\Ad;
-use Core\Model\Content;
 use Core\Model\AdList;
 use Core\Lib\MCUser;
 
@@ -39,55 +38,34 @@ class MyAds extends Page {
          
         $this->checkBlockedAccount();
         
-        $this->adList = new AdList();
+        $this->adList=new AdList();
         $this->adList->cacheProfile($this->user()->data);
         
         $this->forceNoIndex=true;
         $this->router->config->disableAds();
         $this->title=$this->lang['myAds'];
         
-        if (isset ($this->user->pending['post'])) {
+        if (isset($this->user->pending['post'])) {
             unset($this->user->pending['post']);
             $this->user->update();
         }
         
-        $sub = filter_input(INPUT_GET, 'sub', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                
-        if ($sub==='deleted' && $this->user()->level()!=9) { $sub = ''; }
-
-        $this->globalScript.='var SOUND="beep.mp3",';
-
-        if (isset($this->user->params['mute'])&&$this->user->params['mute']) {
-            $this->globalScript.='MUTE=1';
-        }
-        else {
-            $this->globalScript.='MUTE=0';
-        }
-                        
-        if ($this->user()->isLoggedIn(9)) {
-                
-            if ($sub==='') {
-                $this->globalScript.='
-                        function mCPrem(){
-                            Dialog.show("alert_dialog",\'<span class="fail"></span>'.$this->lang['multi_premium_no'].'\');
-                        };
-                    ';
-            }
-        }
-            
+        $sub=$this->getGetString('sub');
+        $userLevel=$this->user->level();  
+        if ($sub==='deleted' && $userLevel!==9) { $sub = ''; }
+                                    
         $this->set_ad(['zone_0'=>['/1006833/PublicRelation', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->router->config->serverId]]);
                             
         
-        if ($this->user()->isLoggedIn(9) && ($sub==='pending')) {
-            $this->redis = $redis = new Redis();
+        if ($userLevel===9 && $sub==='pending') {
+            $this->redis=$redis=new Redis();
             $redis->connect("p1.mourjan.com", 6379, 1, NULL, 100);
             $redis->select(5);
             
             if (!$this->user->isSuperUser()) {
                 $redis->setex('ADMIN-'.$this->user()->id(), 300, $this->user()->id());
             }
-            $this->admins_online = $redis->keys('ADMIN-*');            
-            //error_log(json_encode($this->admins_online));
+            $this->admins_online=$redis->keys('ADMIN-*');            
         }
         
         $this->render();
@@ -100,30 +78,29 @@ class MyAds extends Page {
     }    
 
     
-    function assignAdToAdmin($ad_id, $admin_id) {
+    function assignAdToAdmin(int $ad_id, int $admin_id) : int {
         $admin_id=0;
-        if ($this->redis && \count($this->admins_online)) {
-            //\error_log(json_encode($this->admins_online));
+        if ($this->redis && !empty($this->admins_online)) {
             $redis=$this->redis;
             $ad=$redis->mGet(array('AD-'.$ad_id));
             if ($ad[0]===false) {
                 
-                $lastIndex = $redis->mGet(array('LAST_IDX'));
+                $lastIndex=$redis->mGet(array('LAST_IDX'));
                 if ($lastIndex[0]===false) {
-                    $lastIndex = 0;
+                    $lastIndex=0;
                 }
                 else {
-                    $lastIndex = $lastIndex[0];
+                    $lastIndex=$lastIndex[0];
                 }
                 
-                if ($lastIndex+1 < count($this->admins_online)) {
+                if ($lastIndex+1<\count($this->admins_online)) {
                     $lastIndex++;
                 }
                 else {
-                    $lastIndex = 0;
+                    $lastIndex=0;
                 }
                 
-                $admin_id = $this->admins_online[$lastIndex];
+                $admin_id=$this->admins_online[$lastIndex];
                 
                 $redis->setex('AD-'.$ad_id, 120, $admin_id);
                 $redis->setex('LAST_IDX', 86400, $lastIndex);                
@@ -285,7 +262,6 @@ class MyAds extends Page {
         'group=Website Policy',      
         'please add missing details concerning RERA',
         'cannot publish similar ads unless you add ONLY the mobile number (used to activate your mourjan account) to the contact information',
-        'Temporary marriages (Mesyar, Muta\') ads are against the website policy and caanot be published',
         'This type of ads is against the website policy and cannot be published',
         'Selling Visas and work permits is against the law',
         'This ad contradicts with the sense of your other published ads, and this is a warning before blocking your account for fraud',
@@ -315,13 +291,15 @@ class MyAds extends Page {
     }    
     
     
-    function renderEditorsBox($state=0, $standalone=false) {
-        $isSuperUser = $this->user()->isSuperUser();
+    function renderEditorsBox(int $state=0, bool $standalone=false) {
+        \error_log(__FUNCTION__ . $standalone);
+        $isSuperUser=$this->user->isSuperUser();
         if ($isSuperUser) {
-            $filters = $this->user()->getAdminFilters();
+            $filters=$this->user->getAdminFilters();
         }
         
-        if ($this->user()->isLoggedIn(9)) {
+        if ($this->user->isLoggedIn(9)) {
+            /*
             ?><style><?php
             ?>.stin,.phc{display:none}.prx h4{margin-bottom:5px}.prx{display:block;clear:both;width:300px}.prx a{color:#00e}.prx a:hover{text-decoration:underline}<?php
             ?>.pfrx{height:auto}.prx select{width:260px;padding:3px 5px;margin:10px}.pfrx input{padding:5px 20px;margin:5px 0 10px}<?php            
@@ -329,6 +307,8 @@ class MyAds extends Page {
                 ?>.pfrx{background-color:#D9FAC8}<?php
             }
             ?></style><?php
+             * 
+             */
         }
         
         if ($isSuperUser) {
@@ -351,10 +331,9 @@ class MyAds extends Page {
                     return;
             }
             
-            if ($state==1) {
+            if ($state===1) {
                 $baseUrl = $this->router->getLanguagePath('/myads/');
-                echo '<div class=col-12>';
-                echo '<form action="', $baseUrl, '" method=GET class=account><input type=hidden name=sub value=pending />';
+                ?><div class=col-12><form action="<?=$baseUrl?>" method=GET class=account><input type=hidden name=sub value=pending /><?php
                 if ($filters['uid']) {
                     echo '<input type=hidden name=fuid value="', $filters['uid'], ' />', $this->router->isArabic()?'مستخدم':'user', ': <b>', $filters['uid'], '</b>';                    
                 }
@@ -384,11 +363,11 @@ class MyAds extends Page {
                 if ($filters['active']) {
                     echo '<input type=reset onclick="location.href=\'', $baseUrl, '?sub=pending\'" value="', $this->lang['search_cancel'], '" />';
                 }
-                echo '</form></div>';
+                ?></form></div><?php
             }
         }
 
-        if (($this->user()->isLoggedIn(9) && filter_input(INPUT_GET, 'sub', FILTER_SANITIZE_STRING)==='pending') || $isSuperUser) {
+        if (($this->user->isLoggedIn(9) && $this->getGetString('sub')==='pending') || $isSuperUser) {
             if (!isset($filters) || !$filters['active']) {   
                 echo '<div id=editors class=account style="padding-top:12px">';
                 ?><span class="hvn50okt2 d2d9s5pl1g n2u2hbyqsn"><?= $isSuperUser ? '<a href="'. $link .'69905">Robert</a>' : 'Robert' ?></span><?php
@@ -491,7 +470,6 @@ class MyAds extends Page {
     
     private function accountButton(string $href, string $text, bool $active, int $count) : void {
         ?><a href="<?=$href?>" class="btn<?=$active?' current':''?>"><?php
-        //echo '<a href="', $href, '" class="btn', $active ? ' current">' : '">', $text;
         echo $text;
         if ($active && $count>0) {  echo ' (', $count, ')';  }
         ?></a><?php        
@@ -502,19 +480,23 @@ class MyAds extends Page {
         $isAdmin=$isAdminOwner=false;
         $isSuperAdmin=$this->user()->isSuperUser();
         
-        if ($this->user()->level()===9) {
+        if ($this->user->level()===9) {
             $isAdmin=true;
             $mobileValidator=libphonenumber\PhoneNumberUtil::getInstance();
         }
         
         $sub=$this->getGetString('sub');
-        $uid=($this->user()->level()===9)?$this->getGetInt('u'):0;
+        $uid=$isAdmin?$this->getGetInt('u'):0;
         $this->adList->setState($state)->fetchFromAdUser();
         $count=$this->adList->count();
         $dbCount=$this->adList->dbCount();
         
         echo '<div class="row viewable"><div class=col-12><div class=card>';
         $this->renderBalanceBar();
+        
+        if ($isAdmin===true && $uid>0 && $uid!==$this->user->id()) {
+            $this->renderUserTypeSelector($this->user->data);
+        }
         
         ?><div class=account><?php
         //echo '<a href="', $this->router->getLanguagePath('/post/'), '" class="btn">', $this->lang['button_ad_post_m'], '</a>';
@@ -539,33 +521,7 @@ class MyAds extends Page {
             $hasNext = (($this->adList->page()*$this->adList->limit())<$this->adList->dbCount());
             
             $renderAssignedAdsOnly = ($state>0 && $state<4);
-                      
-            /*
-            switch ($state) {
-                case 8:
-                    ?><p class="ph phb"><?= $this->lang['ads_deleted'].($dbCount ? ' ('.$dbCount.')':'').' '.$this->renderUserTypeSelector() ?></p><div class=fl><p class=phc></p></div><?php
-                    break;
-                
-                case 7:                    
-                    $this->userBalance = $this->user->getStatement(0, 0, true);
-                    if (isset($this->userBalance['balance'])) {
-                        $this->userBalance = $this->userBalance['balance'];
-                    }
-                    $this->renderUserTypeSelector();
-                    ?><p class="ph phb"><?= $this->lang['ads_active'].($dbCount ? ' ('.$dbCount.')':'').' '.$this->renderUserTypeSelector() ?></p>
-                    ?><div class=fl><p class=phc><?= $this->lang['ads_active_desc'] ?></p></div><?php
-                    break;
-                    
-                case 1:
-                case 2:
-                case 3:
-                    $renderAssignedAdsOnly = true;
-                    break;
-
-                default:
-                    break;
-            }
-            */
+                               
             $isAdminProfiling = (boolean)($this->get('a') && $this->user()->level()===9);
             if ($isAdminProfiling) { $renderAssignedAdsOnly = false; }           
             
@@ -592,7 +548,7 @@ class MyAds extends Page {
                 
                 $assignedAdmin='';
                 if ($isAdmin && $renderAssignedAdsOnly && !$isAdminOwner) {
-                    $assignedAdmin = $this->assignAdToAdmin($cad->id(), $this->user()->id());
+                    $assignedAdmin=$this->assignAdToAdmin($cad->id(), $this->user()->id());
                     if (!$isSuperAdmin && $assignedAdmin && $assignedAdmin!=$this->user()->id()) {
                         continue;
                     }
@@ -864,7 +820,7 @@ class MyAds extends Page {
                         break;
                 }
                                
-                if ($onlySuper) { $adClass.=' alert'; }
+                if ($onlySuper) { $adClass.=' warn'; }
                 
                 // new look
                 ?><article id=<?php
@@ -1250,7 +1206,7 @@ class MyAds extends Page {
             /*?><p class="ph phb db"><?php*/
             $msg='';
             $mcUser=null;
-            $this->renderUserTypeSelector($mcUser);
+            //$this->renderUserTypeSelector($mcUser);
             
             switch ($state) {
                 case 9:
@@ -1288,13 +1244,14 @@ class MyAds extends Page {
                 }
             }
             
-            ?><div class="htf db"><?= $msg ?><br /><br /></div><?php
+            ?><div class="viewable alert alert-danger"><?= $msg ?></div><?php
             if ($state===7) {                
                 if ($this->router->config->get('enabled_charts')) {
                     ?><div class=row><canvas id=canvas class=col-12></canvas></div><?php
                 }                
             } 
         }
+        
         $this->inlineJS('util.js')->inlineJS('myads.js');
     }
     
@@ -1334,23 +1291,25 @@ class MyAds extends Page {
 
     
     function renderUserTypeSelector(&$user=null) {
-        if ($this->user->isLoggedIn(9)) {
-            $userId = $this->user->id();
-            $type = 0;
-            if (isset($_GET['u']) && \is_numeric($_GET['u']) && $_GET['u']) {
-                $userId = $_GET['u'];
-                $type = \Core\Model\NoSQL::instance()->getUserPublisherStatus($userId); 
-            }
-            $user = new MCUser($userId);
+        $userId=$this->user->id();
+        $type=0;
+        $uid=$this->getGetInt('u');
+        if ($uid>0) {
+            $userId=$uid;
+            $type=\Core\Model\NoSQL::instance()->getUserPublisherStatus($userId); 
+            $user=new MCUser($userId);
+        }
+    
+        if ($user!==null) {
             if ($user->isSuspended()) {
-                $time = MCSessionHandler::checkSuspendedMobile($user->getMobileNumber());
+                $time=MCSessionHandler::checkSuspendedMobile($user->getMobileNumber());
                 $hours=0;
                 $lang=$this->router->language;
                 if ($time) {
-                    $hours = $time / 3600;
+                    $hours=$time/3600;
                     if (\ceil($hours)>1) {
-                        $hours = ceil($hours);
-                        if ($lang=='ar') {
+                        $hours=\ceil($hours);
+                        if ($lang==='ar') {
                             if ($hours==2) {
                                 $hours='ساعتين';
                             }
@@ -1358,16 +1317,16 @@ class MyAds extends Page {
                                 $hours=$hours.' ساعات';
                             }
                             else {
-                                $hours = $hours.' ساعة';
+                                $hours=$hours.' ساعة';
                             }
                         }
                         else {
-                            $hours = $hours.' hours';
+                            $hours=$hours.' hours';
                         }
                     }
                     else {
-                        $hours = ceil($time / 60);
-                        if ($lang=='ar') {
+                        $hours=\ceil($time/60);
+                        if ($lang==='ar') {
                             if ($hours==1) {
                                 $hours='دقيقة';
                             }
@@ -1378,22 +1337,23 @@ class MyAds extends Page {
                                 $hours=$hours.' دقائق';
                             } 
                             else {
-                                $hours = $hours.' دقيقة';
+                                $hours=$hours.' دقيقة';
                             }
                         }
                         else {
                             if ($hours>1) {  
-                                $hours = $hours.' minutes';
+                                $hours=$hours.' minutes';
                             }
                             else {                        
-                                $hours = $hours.' minute';
+                                $hours=$hours.' minute';
                             }
                         }
                     }
                 }
-                echo '<span class="fl"><span class="wait"></span>'.$hours.'</span>';
+                echo '<span class="alert alert-warning" style="align-self:center;width:auto"><span class="wait"></span>'.$hours.'</span>';
             }
-            //echo '<span class="fl">'.$this->lang['user_type_label'].': <select onchange="setUT(this,'.$userId.')"><option value="0">'.$this->lang['user_type_option_0'].'</option><option value="1"'.($type == 1 ? ' selected':'').'>'.$this->lang['user_type_option_1'].'</option><option value="2"'.($type == 2 ? ' selected':'').'>'.$this->lang['user_type_option_2'].'</option></select></span>';
+            
+            echo '<span class="alert alert-info" style="align-self:center;width:auto">', $this->lang['user_type_label'], '&nbsp;<select onchange="d.setUserType(this,'.$userId.')"><option value="0">'.$this->lang['user_type_option_0'].'</option><option value="1"'.($type == 1 ? ' selected':'').'>'.$this->lang['user_type_option_1'].'</option><option value="2"'.($type == 2 ? ' selected':'').'>'.$this->lang['user_type_option_2'].'</option></select></span>';
         }
     }
     
@@ -1402,8 +1362,6 @@ class MyAds extends Page {
         ?><div class="slideshow-container"></div>                                
         <?php        
     }
-    
 }
             
-
 ?>

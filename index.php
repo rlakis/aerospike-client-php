@@ -8,14 +8,14 @@ Config::instance()->incModelFile('Router')->incModelFile('Db')->incLibFile('MCSe
 
 use Core\Model\Router;
 
-if (isset($_GET['provider']) && isset($_GET['connect'])) {
+if (\filter_has_var(\INPUT_GET, 'provider') && \filter_has_var(\INPUT_GET, 'connect')) {
     $connect=\strtolower(\filter_input(\INPUT_GET, 'connect', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
     $provider=\strtolower(\filter_input(\INPUT_GET, 'provider', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));    
     $uid=\filter_input(\INPUT_GET, 'uid', \FILTER_VALIDATE_INT)+0;
     $uuid=\urldecode(\filter_input(\INPUT_GET, 'uuid', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
     
-    header("Location: /web/lib/hybridauth/?connect={$connect}&provider={$provider}&uid={$uid}&uuid={$uuid}");
-    exit(0);    
+    \header("Location: /web/lib/hybridauth/?connect={$connect}&provider={$provider}&uid={$uid}&uuid={$uuid}");
+    exit(0);
 }
 
 

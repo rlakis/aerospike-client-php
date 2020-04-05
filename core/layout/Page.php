@@ -2624,10 +2624,11 @@ class Page extends Site {
         ?><link rel='preconnect' href='https//c6.mourjan.com' /><?php    
         ?><link rel='preconnect' href='https://www.googletagmanager.com' /><?php
         ?><link rel='preconnect' href='https://pagead2.googlesyndication.com' /><?php
-        ?><link rel='preconnect' href='https://googleads.g.doubleclick.net' /><?php
+        ?><link rel='preconnect' href='https://tpc.googlesyndication.com' /><?php
         ?><link rel="preconnect" href="https://www.google-analytics.com"><?php
         ?><link rel="preconnect" href="https://adservice.google.com"><?php
         ?><link rel="preconnect" href="https://fonts.googleapis.com"><?php
+        ?><link rel="preconnect" href="https://www.googletagservices.com"><?php
         
         ?><meta name="google-site-verification" content="v7TrImfR7LFmP6-6qV2eXLsC1qJSZAeKx2_4oFfxwGg" /><?php
         if ($this->userFavorites){
@@ -2720,17 +2721,19 @@ class Page extends Site {
             ];
         $ln=$this->router->language;
         ?><div class="row ff-cols viewable" style="box-shadow:0 -5px 5px -5px var(--mColor10);">            
-            <div class="col-12 mhbanner" style="margin-top:0">
+            <div class="col-12 mhbanner">
                 <img src="<?=$this->router->config->imgURL?>/emblem.svg" />
+                <div>
                 <div class="p1">                    
                     <div><span class="um"><?=$words['sell'][$ln]?></span><span class="sm l1"><?=$words['car'][$ln]?></span></div>
                     <div><span class="um"><?=$words['find'][$ln]?></span><span class="sm l2"><?=$words['job'][$ln]?></span></div>
                     <div><span class="um"><?=$words['advert'][$ln]?></span><span class="sm l3"><?=$words['business'][$ln]?></span></div>
                     <div><span class="um"><?=$words['buy'][$ln]?></span><span class="sm l4"><?=$words['house'][$ln]?></span></div>
                     <div><span class="um"><?=$words['promote'][$ln]?></span><span class="sm l5"><?=$words['service'][$ln]?></span></div>
-                </div>                       
+                </div>
+                <div class="col-12 mfbanner"><div class=slogan><?=$this->lang['slogan']?>.</div><a class=btn href=<?=$this->router->getLanguagePath('/post/')?>><?=$this->lang['placeAd']?></a></div>
+                </div>
             </div>                        
-            <div class="col-12 mfbanner"><span style="width:177px"></span><div class=slogan><?=$this->lang['slogan']?>.</div><a class=btn href=<?=$this->router->getLanguagePath('/post/')?>><?=$this->lang['placeAd']?></a></div>
         </div><?php
         }
         
@@ -2796,16 +2799,19 @@ class Page extends Site {
         
         ?><div class="col-4 ff-cols"><ul><?php
         ?><li class="bold"><?=$this->lang['ex_deals_app']?>:</li>
-            <li><div class=apps>
-                <a rel=noopener target=_blank href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a>
-                <a rel=noopener target=_blank href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a>
-            </div></li>
+        <li class="no-border"><div class=apps>
+            <a rel=noopener target=_blank href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a>
+            <a rel=noopener target=_blank href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a>
+        </div></li><?php
+            /*
             <li class="bold" style="border-bottom:none"><?=$this->lang['followUs']?> @mourjan&nbsp;&nbsp;&nbsp;
                 <img class="invert" src="<?=$this->router->config->imgURL?>/../fa/brands/facebook.svg" style="margin: 0 6px; width:30px"/>
                 <img class="invert" src="<?=$this->router->config->imgURL?>/../fa/brands/twitter.svg" style="margin: 0 6px; width:30px"/>
                 <img class="invert" src="<?=$this->router->config->imgURL?>/../fa/brands/instagram.svg" style="margin: 0 6px; width:30px"/>
-            </li>            
-            </ul></div></div><?php
+            </li>
+             * 
+             */
+        ?></ul></div></div><?php
             
         if ($this->router->module==='index') {
             ?><div class="row viewable"><div class=col-12><div class="card regions"><?php
@@ -4859,11 +4865,11 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 break;
             
             case 'search':
-                $this->css('breadcrumb')->css('ad-view');
+                $this->css('listing')->css('ad-view');
                 break;
             
             case 'detail':
-                $this->css('breadcrumb');
+                $this->css('listing');
                 break;
             
             case 'terms':

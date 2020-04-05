@@ -5490,24 +5490,27 @@ class Bin extends AjaxHandler {
                 }else $this->fail('101');
                 break;
                 
-            case 'ajax-user-type':
-                if($this->user->info['id'] && $this->user->info['level']==9){
-                    $userId = $this->get('u','numeric');
-                    $userType = $this->get('t','numeric');
-                    if($userId && in_array($userType,array(1,2))){
-                        if($this->user->setType($userId, $userType)){
-                            $q = 'update ad a set a.publisher_type = '.($userType==1 ? 1:3).' where a.id in (select u.id from ad_user u where u.web_user_id = ?)';
-                            if($this->urlRouter->db->queryResultArray(
-                            $q,
-                            array($userId), true)){
-                                $this->process();
-                            }else{
-                                $this->fail('104');
-                            }
-                        }else $this->fail('103');
-                    }else $this->fail('102');
-                }  else {
-                    $this->fail('101');
+            case 'user-type':
+                $this->authorize(true, 9);
+                $userId=$this->getGetInt('u');
+                $userType=$this->getGetInt('t');                               
+                if ($userId>0 && \in_array($userType, [1, 2])) {                    
+                    if ($this->user->setType($userId, $userType)) {
+                        $this->success();
+                        /*
+                        $q='update ad a set a.publisher_type='.($userType==1 ? 1:3).' where a.id in (select u.id from ad_user u where u.web_user_id=?)';
+                        if ($this->urlRouter->db->queryResultArray($q, [$userId], true)) {
+                        }
+                        else { 
+                            $this->error(self::ERR_SYS_FAILURE);      
+                        }*/
+                    }
+                    else { 
+                        $this->error(self::ERR_SYS_FAILURE);                        
+                    }
+                }
+                else { 
+                    $this->error(self::ERR_DATA_INVALID_META);                     
                 }
                 break;
                 
