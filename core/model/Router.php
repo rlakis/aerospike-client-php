@@ -1300,12 +1300,12 @@ class Router extends \Core\Model\Singleton {
     }
 
     
-    public static function getPositiveVariable($variable, int $type=-1) : int {
+    public static function getPositiveVariable(string $variable, int $type=-1) : int {
         if ($type<0) {
-            return filter_var($variable, FILTER_VALIDATE_INT, static::POSITIVE_VALUE);
+            return \filter_var($variable, \FILTER_VALIDATE_INT, static::POSITIVE_VALUE);
         }
         else {
-            return filter_input( $type, $variable, FILTER_VALIDATE_INT, static::POSITIVE_VALUE);            
+            return \filter_input($type, $variable, \FILTER_VALIDATE_INT, static::POSITIVE_VALUE);            
         }
     }
     

@@ -5091,98 +5091,6 @@ class Bin extends AjaxHandler {
             case 'video-upload-ready':               
                 break;
                 
-            case 'ajax-upload-check':
-            case 'video-upload-check':
-                if ($this->user->info['id'] && isset($this->user->pending['post']['id'])){
-                    $lang='ar';
-                    $tLang=$this->post('lang');
-                    if($tLang=='ar'||$tLang=='en')$lang=$tLang;
-                    $this->urlRouter->language=$lang;
-                    $this->load_lang(array('post'));
-                    $adContent=json_decode($this->user->pending['post']['content'],true);
-                    if (isset($adContent['video']) && $adContent['video'][0]){
-                        require_once 'Zend/Loader.php';
-                        Zend_Loader::loadClass('Zend_Gdata_YouTube');
-                        Zend_Loader::loadClass('Zend_Gdata_ClientLogin');
-                        Zend_Loader::loadClass('Zend_Gdata_App_Exception');
-
-                        $httpClient = Zend_Gdata_ClientLogin::getHttpClient($this->urlRouter->cfg['yt_user'],$this->urlRouter->cfg['yt_pass'], Zend_Gdata_YouTube::AUTH_SERVICE_NAME);
-                        $yt = new Zend_Gdata_YouTube($httpClient, 'Mourjan.com Uploader', null, $this->urlRouter->cfg['yt_dev_key']);
-                        $pass=1;
-                        $append=true;
-                        try {
-                            $entry = $yt->getFullVideoEntry($adContent['video'][0]);
-                            $videoUrl = htmlspecialchars($this->findFlashUrl($entry));  
-                            $firstThumbnail = htmlspecialchars($entry->mediaGroup->thumbnail[0]->url);
-                            $state = $entry->getVideoState();
-                            if (is_object($state)){
-                                $name=$state->getName();
-                                if ($name=='processing') {
-                                    $this->setData(1,'P');
-                                    $append=false;
-                                }else {
-                                    $pass=0;
-                                    $this->deleteVideo($adContent['video'][0]);
-                                }
-                            }
-                        } catch (Zend_Gdata_App_HttpException $httpException) {
-                            error_log($httpException->getRawResponseBody());
-                            $pass=0;
-                        } catch (Zend_Gdata_App_Exception $e) {
-                            error_log($e->getMessage());
-                            $pass=0;
-                        } 
-                        if ($pass) {
-                            //if ($append && isset($this->user->params['mobile']) && $this->user->params['mobile']){
-                            if ($append){
-                                $matches=null;
-                                $vId=preg_match('/\/v\/([a-zA-Z0-9]*?)\?/', $videoUrl, $matches);
-
-                                $vurl=$videoUrl;
-                                $os=0;
-                                if ($vId) {
-                                    $vId=$matches[1];
-                                    $os=preg_match('/(android|iphone)/i', $_SERVER['HTTP_USER_AGENT'], $matches);
-                                    if($os){
-                                        $os=strtolower($matches[1]);
-                                        switch($os){
-                                            case 'iphone':
-                                                $vurl='youtube:'.$vId;
-                                                break;
-                                            case 'android':
-                                                $vurl='vnd.youtube:'.$vId;
-                                                break;
-                                            default:
-                                                break;
-                                        }
-                                    }
-                                 }
-                                $this->setData("<a class='ctr ah' target='blank' href='".$vurl."&autoplay=1'><span title='".$this->lang['removeVideo']."' onclick='delV(this)' class='pz pzd'></span><img src='". $firstThumbnail ."' width='250' height='200' /><span class='play'></span></a>", 'video');
-                            }
-                            $this->process();
-                        }else {
-                            $this->fail(stripcslashes($this->lang['uploadFail']));
-                        }
-                    }else $this->fail(102);
-                }else $this->fail(101);
-                break;
-                
-            case 'ajax-video-delete':
-            case 'video-delete':
-                if ($this->user->info['id'] && isset($this->user->pending['post']['id'])) {
-                    $adContent=json_decode($this->user->pending['post']['content'],true);
-                    $pass=false;
-                    if (isset($adContent['video'])) {
-                        if ($this->deleteVideo($adContent['video'])) {
-                            unset($adContent['video']);
-                            $this->user->pending['post']['content']=json_encode($adContent);
-                            $this->user->update();
-                            $this->user->saveAd();
-                            $this->process();
-                        }else $this->fail(103);
-                    }else $this->process();
-                }else $this->fail(101);
-                break;
                 
             case 'ajax-video-link':
             case 'video-link':
@@ -5494,8 +5402,10 @@ class Bin extends AjaxHandler {
                 $this->authorize(true, 9);
                 $userId=$this->getGetInt('u');
                 $userType=$this->getGetInt('t');                               
-                if ($userId>0 && \in_array($userType, [1, 3])) {                    
+                if ($userId>0 && \in_array($userType, [1, 2])) {                    
                     if ($this->user->setType($userId, $userType)) {
+                        $q='update ad a set a.publisher_type='.($userType==1?1:3).' where a.id in (select u.id from ad_user u where u.web_user_id=?)';
+                        $this->router->db->queryResultArray($q, [$userId], true);
                         $this->success(['uid'=>$userId, 'type'=>$userType]);
                     }
                     else { 
@@ -5518,38 +5428,6 @@ class Bin extends AjaxHandler {
                 $this->error(self::ERR_DATA_INVALID_META, ['en'=>'Invalid command!!!', 'ar'=>'لا يمكن التعرف على الطلب!']);
                 break;
         }
-    }
-    
-    
-    function deleteVideo($video, $yt=null) {
-        $pass=true;
-        if ($video[0]) {
-            if (!$yt) {
-                require_once 'Zend/Loader.php';
-                Zend_Loader::loadClass('Zend_Gdata_YouTube');
-                Zend_Loader::loadClass('Zend_Gdata_ClientLogin');
-                Zend_Loader::loadClass('Zend_Gdata_App_Exception');
-
-                $httpClient = Zend_Gdata_ClientLogin::getHttpClient($this->urlRouter->cfg['yt_user'],$this->urlRouter->cfg['yt_pass'], Zend_Gdata_YouTube::AUTH_SERVICE_NAME);
-                $yt = new Zend_Gdata_YouTube($httpClient, 'Mourjan.com Uploader', null, $this->urlRouter->cfg['yt_dev_key']);
-                $yt->setMajorProtocolVersion(2);
-                
-            }
-                try {
-                    $entry = $yt->getVideoEntry($video[0],null,true);
-                    $httpResponse = $yt->delete($entry);
-                } catch (Zend_Gdata_App_HttpException $httpException) {
-                    error_log($httpException->getRawResponseBody());
-                    $pass=false;
-                    if ($httpException->getCode()==0){
-                        $pass=true;
-                    }
-                } catch (Zend_Gdata_App_Exception $e) {
-                    error_log($e->getMessage());
-                    $pass=false;
-                }
-        }
-        return $pass;
     }
     
     

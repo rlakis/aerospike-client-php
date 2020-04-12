@@ -17,37 +17,34 @@ class Monitor extends Page {
         $this->sub = $_GET['sub'] ?? '';
         $this->hasLeadingPane=false;
         
-        if($this->isMobile || !$this->user->isSuperUser()) {
+        if($this->router->isMobile || !$this->user->isSuperUser()) {
             $this->user->redirectTo('/notfound/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
         }     
         
         $this->load_lang(array("account"));
         
-        $this->inlineCss .= 
-                  'th{padding:10px 5px;color:#FFF;background-color:#143D55}'
-                . 'td{padding:10px 5px;border-bottom:1px solid forestgreen}';
         
-        $this->set_require('css', 'account');
+        //$this->set_require('css', 'account');
         $this->title=$this->lang['title'];
         $this->description=$this->lang['description'];
         $this->forceNoIndex=true;
-        $this->urlRouter->cfg['enabled_sharing']=0;
-        $this->urlRouter->cfg['enabled_ads']=0;
+        
+        $this->router->config->setValue('enabled_sharing', 0);
+        $this->router->config->disableAds();
         
         
-        $action = filter_input(INPUT_GET, 'action', FILTER_SANITIZE_STRING);
+        $action=\filter_input(\INPUT_GET, 'action', \FILTER_SANITIZE_STRING);
         
-        if($action)
-        {
+        if ($action) {
             $redirectWenDone=true;
-            
+            /*
             switch ($action)
             {
                     default:
                         break;
             }
-            
-            if($redirectWenDone){
+            */
+            if ($redirectWenDone) {
                 $url = "";
                 unset($_GET['action']);
                 
@@ -67,26 +64,21 @@ class Monitor extends Page {
         $this->render();
     }    
     
-    public function getData()
-    {
+    public function getData() {
         $tasks=[];
-        NoSQL::getInstance()->getConnection()->scan("users", "services", function ($record) use (&$tasks) {
+        NoSQL::instance()->getConnection()->scan("users", "services", function ($record) use (&$tasks) {
             $tasks[$record['bins']['task'].$record['bins']['server_id']]=$record['bins'];
         });
         $keys = array_keys($tasks);
         asort($keys);
-        
-        ?><br /><br /><table dir="ltr" width="100%"><?php
+        ?><div class="row viewable"><?php
+        ?><table style="direction:ltr;width:100%;margin-top:40px;margin-bottom:60px"><?php
         echo '<tr><th>Task</th><th>host/sid</th><th>datetime</th><th>status</th><th>success</th><th>failure</th><th>message</th><th>since</th></tr>';
-        //NoSQL::getInstance()->getConnection()->scan("users", "services", function ($record) {
-        foreach ($keys as $key) 
-        {
+        
+        foreach ($keys as $key) {                        
+            $bins=$tasks[$key];
             
-            
-            //$bins = $record['bins'];
-            $bins = $tasks[$key];
-            
-            $since = $this->formatSinceDate($bins['last_completed']);
+            $since=$this->formatSinceDate($bins['last_completed']);
             $success = isset($bins['success']) ? $bins['success'] : '-';
             $failure = isset($bins['failure']) ? $bins['failure'] : '-';
             
@@ -99,10 +91,12 @@ class Monitor extends Page {
             echo '<td>', $bins['message'], '</td>';
             echo '<td class="ctr">', $since, '</td></tr>';
         }
-        //});
-        ?></table><?php
+      
+        ?></table></div><?php
     }
-    function formatSinceDate($seconds) {
+    
+    
+    function formatSinceDate($seconds) : string {
         $stamp='';
         $seconds=time()-$seconds;
         if ($seconds<0) {
@@ -123,6 +117,7 @@ class Monitor extends Page {
         }
         return $stamp;
     }
+    
     /*
     function side_pane()
     {
@@ -159,12 +154,10 @@ class Monitor extends Page {
     }
     
     
-    function main_pane()
-    {
-        $language = 'en';
+    function main_pane() {
+        $language='en';
         
-        switch ($this->sub)
-        {
+        switch ($this->sub) {
                 default:
                     //html goes here
                     $this->getData();
@@ -175,4 +168,3 @@ class Monitor extends Page {
 
     
 }
-?>

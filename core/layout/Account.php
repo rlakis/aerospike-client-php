@@ -1,26 +1,26 @@
 <?php
-require_once 'Page.php';
+Config::instance()->incLayoutFile('Page');
 
-class Account extends Page{
+class Account extends Page {
     
-    //private string $action='';
     private string $liOpen='';
 
-    function __construct(){
+    function __construct() {
         parent::__construct();
         $this->checkBlockedAccount(5);
         
         $this->load_lang(array("account"));
         
 
-            $this->set_require('css', 'account');
-            $this->inlineCss.='.acc{width:660px;padding-left:0;padding-right:0;clear:none;display:inline-block}
+        $this->set_require('css', 'account');
+        $this->inlineCss.='.acc{width:660px;padding-left:0;padding-right:0;clear:none;display:inline-block}
                     .merge{float:'.($this->router->language==='ar'?'left':'right').';text-align:center;padding-top:10px;}
                     .bt.scan{margin:15px 0 20px}
                     ';
-            if (!$this->user->isLoggedIn()) {
-                $this->inlineCss.='.ph{width:650px}.acc{height:auto}';
-            }
+        if (!$this->user->isLoggedIn()) {
+            $this->inlineCss.='.ph{width:650px}.acc{height:auto}';
+        }
+        
         $this->title=$this->lang['title'];
         $this->description=$this->lang['description'];
         $this->forceNoIndex=true;
@@ -30,7 +30,7 @@ class Account extends Page{
     }
    
     
-    function mainMobile(){
+    function mainMobile() {
         if ($this->user->info['id']) {
             $language=$this->urlRouter->siteLanguage;
             if (isset($this->user->info['options']['lang']))$language=$this->user->info['options']['lang'];
@@ -108,41 +108,7 @@ class Account extends Page{
                 }
                 $this->user->update();
             }
-            /*
-            if (isset($_GET['action'])) $this->action=$this->get('action', 'filter');
-            $this->action='verify';
-            switch ($this->action){
-                case 'verify':
-                    if (isset($this->user->info['options']['emailKey'])) {
-                        if ((isset($_GET['key']) && $_GET['key']==$this->user->info['options']['emailKey'])){
-                            if ($this->user->emailVerified()) {
-                                ?><ul class="ls po"><?php
-                                ?><li><b class="ah"><span class="done"></span><ok><?php 
-                                echo $this->lang['emailVerificationMOk'];
-                                ?></ok></b></li><?php 
-                                ?></ul><?php
-                                $emailMsg='';
-                                $email=$this->user->info['email'];
-                            }else {
-                                ?><ul class="ls po"><?php
-                                ?><li><b class="ah err"><span class="fail"></span><?php 
-                                echo $this->lang['emailVerificationSno'];
-                                ?></b></li><?php 
-                                ?></ul><?php
-                            }
-                        }else {
-                            ?><ul class="ls po"><?php
-                            ?><li><b class="ah err"><span class="fail"></span><?php 
-                            echo $this->lang['emailVerificationNo'];
-                            ?></b></li><?php 
-                            ?></ul><?php 
-                        }
-                    }
-                    break;
-                default:
-                    break;
-            }
-             * */
+         
             $this->globalScript.='var ulg="'.$language.'",uname="'.$name.'",uemail="'.$email.'";';
             ?><ul class="ls po uno pi"><?php
                 ?><li onclick="elg(this)" class="button h"><b><?= $this->lang['language'] ?><span class="et"></span></b></li><?php 
@@ -183,11 +149,6 @@ class Account extends Page{
             ?><br /><?php
         }
     }
-/*
-    function side_pane(){
-        $this->renderSideUserPanel();
-    }
-*/
 
     function main_pane() {
         if ($this->user->isLoggedIn()) {
@@ -211,13 +172,14 @@ class Account extends Page{
     }
     
     
-    function generalList(){
+    function generalList() {
+        ?><div class="row viewable"><?php
         $language=$this->router->language;
         if (isset($this->user->info['options']['lang'])) { $language=$this->user->info['options']['lang']; }
         
         
         if (isset($_GET['action'])) $this->action=$this->get('action', 'filter');
-        switch ($this->action){
+        switch ($this->action) {
             case 'notifications':
                 $this->liOpen='notifications';
                 break;
@@ -378,11 +340,9 @@ class Account extends Page{
         
         ?></div><?php 
         
-        echo "<div class=merge>";
-        echo "<img width=185 height=185 src='{$this->router->config->host}/web/qr/m-".session_id().".png'></img>";
-        echo '<br /><span class="bt scan"><span class="apple"></span><span class="apple up"></span> '.$this->lang['hint_merge_Account'].' <span class="apple up"></span><span class="apple"></span></span>';                    
-        echo '</div>';
-        $this->globalScript.='var curForm="'.$this->liOpen.'";';
+        ?><div class=merge><img width=185 height=185 src=<?=$this->router->config->host.'/web/qr/m-'.session_id().'.png'?> /><?php
+        ?><br /><span class="bt scan"><span class=apple></span><span class="apple up"></span> <?=$this->lang['hint_merge_Account']?> <span class="apple up"></span><span class=apple></span></span><?php                    
+        ?></div></div><?php
     }
     
 }

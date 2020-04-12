@@ -292,7 +292,6 @@ class MyAds extends Page {
     
     
     function renderEditorsBox(int $state=0, bool $standalone=false) {
-        \error_log(__FUNCTION__ . $standalone);
         $isSuperUser=$this->user->isSuperUser();
         if ($isSuperUser) {
             $filters=$this->user->getAdminFilters();
@@ -462,7 +461,7 @@ class MyAds extends Page {
         }
 
         if ($section) {
-            $section = '<span>' . $section . ' - <b>' . $this->formatSinceDate($ad->getDateModified()) . '</b></span>';
+            $section = '<span>' . $section . '</span><b>' . $this->formatSinceDate($ad->getDateModified()) . '</b>';
         }
         return $section;
     }
@@ -877,7 +876,7 @@ class MyAds extends Page {
                 echo '</section>';
                 
                 if ($altText) {
-                    echo '<hr /><section class="card-content en" data-foreign=1';
+                    echo '<section class="card-content en" data-foreign=1';
                     if ($altlink) {
                         echo ' onclick="wo(', $altlink, ')"';
                     }
@@ -889,7 +888,7 @@ class MyAds extends Page {
                 }
 
                 if (($cad->latitude()>0||$cad->longitude()>0) && $cad->dataset()->getLocation()) {
-                    echo '<hr><div class="oc ocl"';
+                    echo '<div class="oc ocl"';
                     if ($isAdmin) { echo ' onmouseup="d.textSelected(this);"'; }
                     if ($isAdmin) { echo ' oncontextmenu="d.lookup(this);return false;"'; }
                     echo '><span class="i loc"></span>', $cad->dataset()->getLocation();

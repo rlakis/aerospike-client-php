@@ -30,7 +30,7 @@ class Search extends Page {
         $this->tmpPurposeId=0;
         $this->tmpRootId=0;
         
-        if (\filter_has_var(\INPUT_GET, 'rt')) { $this->isRT = 1; }
+        if (\filter_has_var(\INPUT_GET, 'rt')) { $this->isRT=1; }
         
         if (!$this->user()->isLoggedIn()) {
             if ($this->userFavorites || $this->router->watchId) {
@@ -1160,7 +1160,6 @@ class Search extends Page {
         if ($ad_count) {
             $cmp=\filter_input(\INPUT_GET, 'cmp', \FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
             $aid=\filter_input(\INPUT_GET, 'aid', \FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
-            \error_log("cmp {$cmp} aid {$aid}\n");
             
             if ($cmp>0||$aid>0) {
                 $end_user=false;
@@ -1284,12 +1283,12 @@ class Search extends Page {
             }
             else {
                 ?><div class="image seclogo"><?php
-                if ($this->router->rootId<4) {
-                    ?><img src="<?=$this->router->config->imgURL?>/se/<?=$ad->sectionId()?>.svg" /><?php
-                }
+                //if ($this->router->rootId<4) {
+                ?><img src="<?=$this->router->config->imgURL?>/se/<?=$ad->sectionId()?>.svg" /><?php
+                /*}
                 else {
                     ?><img src="<?=$this->router->config->imgURL.'/200/'.$ad->sectionId().$this->router->_png?>" /><?php
-                }
+                }*/
             }
             
             if ($isNewToUser) { 
@@ -1324,7 +1323,7 @@ class Search extends Page {
             
             ?><div><?=$ad->formattedSinceDate($this->lang, $this->router->isArabic())?></div></div></div><?php
             
-            ?><div class=content><div class="adc block-with-text card-description <?=$textClass?>" <?=$itemDesc?>><?php
+            ?><div class=content><div class="block-with-text <?=$textClass?>" <?=$itemDesc?>><?php
             
             if ($ad->latitude()||$ad->longitude()) {
                 ?><a class=inline href="#" title="<?=$ad->location()?>"><i class="icn icnsmall icn-map-marker"></i></a><?php
@@ -1380,19 +1379,19 @@ class Search extends Page {
                 //$this->renderSideSections();
             }
                          
-            $section_name=$this->advSectionId>0?$this->router->sections[$this->advSectionId][$this->name]:'Any';
-            $purpose_name=$this->advPurposeId>0?$this->router->purposes[$this->advPurposeId][$this->name]:'Any';
+            $section_name=$this->advSectionId>0?$this->router->sections[$this->advSectionId][$this->name]:$this->lang['any1'];
+            $purpose_name=$this->advPurposeId>0?$this->router->purposes[$this->advPurposeId][$this->name]:$this->lang['any1'];
             ?><div class=row><div class="col-3 side"><?php
-            ?><div class=asrch><header>Advanced Search</header><?php
-            ?><label>Searching in</label><div class=sbw><div class=sbe><div class=strg><?php
+            ?><div class=asrch><header><?= $this->lang['advanced_search']?></header><?php
+            ?><label><?=$this->lang['searching_in']?></label><div class=sbw><div class=sbe><div class=strg><?php
             ?><span><?=$section_name?></span><div class=arrow></div><?php
             $this->renderAdvancedSearchSections();
             ?></div></div></div><?php
             
             if ($this->router->rootId>0 && $this->router->rootId!==4 && $this->router->rootId!==2) {
-                ?><label>Ad purpose</label><div class=sbw><div class=sbe><div class=strg><?php
+                ?><label><?=$this->lang['ad_purpose']?></label><div class=sbw><div class=sbe><div class=strg><?php
                 ?><span><?=$purpose_name?></span><div class="arrow"></div><?php
-                ?><div id=_pu class=options><div class="option<?=$this->advPurposeId===0?' selected':''?>" data-value=0>Any</div><?php
+                ?><div id=_pu class=options><div class="option<?=$this->advPurposeId===0?' selected':''?>" data-value=0><?=$this->lang['any1']?></div><?php
                 foreach ($this->router->pageRoots[$this->router->rootId]['purposes'] as $k => $v) {
                     if ($v['counter']===0) { continue; }
                     ?><div class="option<?=$this->advPurposeId===$k?' selected':''?>" data-value=<?=$k?>><?=$v['name']?></div><?php
@@ -1401,62 +1400,66 @@ class Search extends Page {
             }
             
             if ($this->router->rootId===1) {               
-                ?><label>Price</label><div class=two><?php
-                ?><div class=col-6><input id=mnp type=number min=0 step=100 placeholder=MINIMUM></div><?php
-                ?><div class=col-6><input id=mxp type=number min=0 step=100 placeholder=MAXIMUM></div><?php               
+                ?><label><?=$this->lang['price']?></label><div class=two><?php
+                ?><div class=col-6><input id=mnp type=number min=0 step=100 placeholder=<?=$this->lang['MINIMUM']?>></div><?php
+                ?><div class=col-6><input id=mxp type=number min=0 step=100 placeholder=<?=$this->lang['MAXIMUM']?>></div><?php               
                 ?></div><?php
                             
-                ?><label>Bedrooms</label><div class=sbw><div class=sbe><div class=strg><span><?=$this->lang['any']?></span><div class=arrow></div><div id=_br class=options><?php
+                ?><label><?=$this->lang['bedrooms']?></label><div class=sbw><div class=sbe><div class=strg><span><?=$this->lang['any1']?></span><div class=arrow></div><div id=_br class=options><?php
                 foreach ([0,1,2,3,4,5] as $br) {
-                    ?><div class="option<?=$this->publisherTypeSorting==$br?' selected':''?>" data-value=<?=$br?>><?=$br===0?$this->lang['any']:$br?></div><?php
+                    ?><div class="option<?=$this->publisherTypeSorting==$br?' selected':''?>" data-value=<?=$br?>><?=$br===0?$this->lang['any1']:$br?></div><?php
                 }
                 ?></div></div></div></div><?php
             }
             else if ($this->router->rootId===2) {
-                ?><label>Model</label><div class=sbw><div class=sbe><div class=strg><span></span><div class=arrow></div></div></div></div><?php
-                ?><label>Year</label><div class=sbw><div class=sbe><div class=strg><span></span><div class=arrow></div></div></div></div><?php
-                ?><label>Kilometers</label><div class=two>
-                    <div class="sbw col-6"><div class=sbe><div class=strg><span>KM from</span><div class=arrow></div></div></div></div>
-                    <div class="sbw col-6"><div class=sbe><div class=strg><span>KM to</span><div class=arrow></div></div></div></div>
-                </div><?php
-                ?><label>Price</label><div class=two><div class="sbw col-6"><div class=sbe>
-                        <div class=strg><span>MINIMUM</span><div class=arrow></div></div>
-                        </div></div>
-                        <div class="sbw col-6"><div class=sbe>
-                            <div class=strg><span>MAXIMUM</span><div class=arrow></div></div>
-                        </div></div></div><?php
+                ?><label><?=$this->lang['Model']?></label><div class=sbw><div class=sbe><div class=strg><span></span><div class=arrow></div></div></div></div><?php
+                ?><label><?=$this->lang['Year']?></label><div class=sbw><div class=sbe><div class=strg><span></span><div class=arrow></div></div></div></div><?php
+                ?><label><?=$this->lang['mileage']?></label><div class=two><?php
+                ?><div class=col-6><input id=mnp type=number min=0 step=500 placeholder=<?=$this->lang['MINIMUM']?>></div><?php
+                ?><div class=col-6><input id=mxp type=number min=0 step=500 placeholder=<?=$this->lang['MAXIMUM']?>></div><?php     
+                ?></div><?php
+                
+                ?><label><?=$this->lang['price']?></label><div class=two><?php
+                ?><div class=col-6><input id=mnp type=number min=0 step=100 placeholder=<?=$this->lang['MINIMUM']?>></div><?php
+                ?><div class=col-6><input id=mxp type=number min=0 step=100 placeholder=<?=$this->lang['MAXIMUM']?>></div><?php               
+                ?></div><?php                
             }
             else if ($this->router->rootId===3) {
-                ?><label>Type</label><div class=sbw><div class=sbe><div class=strg><span></span><div class=arrow></div></div></div></div><?php
+                ?><label><?=$this->lang['career_level']?></label><div class=sbw><div class=sbe><div class=strg><span></span><div class=arrow></div></div></div></div><?php
+                ?><label><?=$this->lang['employment_type']?></label><div class=sbw><div class=sbe><div class=strg><span></span><div class=arrow></div></div></div></div><?php
+                ?><label><?=$this->lang['salary']?></label><div class=two><?php
+                ?><div class=col-6><input id=mnp type=number min=0 step=500 placeholder=<?=$this->lang['MINIMUM']?>></div><?php
+                ?><div class=col-6><input id=mxp type=number min=0 step=500 placeholder=<?=$this->lang['MAXIMUM']?>></div><?php               
+                ?></div><?php
             }
             
             if (\in_array($this->router->rootId, [1,2,3])) {
-                ?><label>Advertiser type</label><div class=sbw><div class=sbe><div class=strg><span><?=$this->lang['spub_0']?></span><div class=arrow></div><div id=_xe class=options><?php
+                ?><label><?=$this->lang['advertiser_type']?></label><div class=sbw><div class=sbe><div class=strg><span><?=$this->lang['spub_0']?></span><div class=arrow></div><div id=_xe class=options><?php
                 ?><div class="option<?=$this->publisherTypeSorting==0?' selected':''?>" data-value=0><?=$this->lang['spub_0']?></div><?php
                 ?><div class="option<?=$this->publisherTypeSorting==1?' selected':''?>" data-value=1><?=$this->router->rootId==3?$this->lang['sbpub_1']:$this->lang['spub_1']?></div><?php    
                 ?><div class="option<?=$this->publisherTypeSorting==2?' selected':''?>" data-value=2><?=$this->lang['spub_3_'.$this->router->rootId]?></div><?php    
                 ?></div></div></div></div><?php
             }
             
-            ?><label>More filters</label><input name=keyword><?php
+            ?><label><?=$this->lang['more_filters']?></label><input name=keyword><?php
             
-            ?><div class=sort><h2>SORT BY</h2><?php
+            ?><div class=sort><h2><?=$this->lang['SORT_BY']?></h2><?php
             ?><fieldset id=group1><ul><?php
-            ?><li><input type=radio id=aopt2 name=g1><label for=aopt2>Date (newest)</label><div class=check></div></li><?php
-            ?><li><input type=radio id=aopt3 name=g1><label for=aopt3>Picture first</label><div class=check></div></li><?php
+            ?><li><input type=radio id=aopt2 name=g1><label for=aopt2><?=$this->lang['date_newest']?></label><div class=check></div></li><?php
+            ?><li><input type=radio id=aopt3 name=g1><label for=aopt3><?=$this->lang['picture_first']?></label><div class=check></div></li><?php
             ?></ul></fieldset><?php
             ?><fieldset id=group3><ul><?php
-            ?><li><input type=radio id=lopt1 name=sel><label for=lopt1>Any language</label><div class=check></div></li><?php
-            ?><li><input type=radio id=lopt2 name=sel><label for=lopt2>Arabic first</label><div class=check></div></li><?php
-            ?><li><input type=radio id=lopt3 name=sel><label for=lopt3>English first</label><div class=check></div></li><?php
+            ?><li><input type=radio id=lopt1 name=sel><label for=lopt1><?=$this->lang['any_language']?></label><div class=check></div></li><?php
+            ?><li><input type=radio id=lopt2 name=sel><label for=lopt2><?=$this->lang['arabic_first']?></label><div class=check></div></li><?php
+            ?><li><input type=radio id=lopt3 name=sel><label for=lopt3><?=$this->lang['english_first']?></label><div class=check></div></li><?php
             ?></ul></fieldset><?php
             ?></div><?php
-            ?><a class=btn onclick="javascript:searching(this)">Update Search</a><?php                    
+            ?><a class=btn onclick="javascript:searching(this)"><?=$this->lang['update_search']?></a><?php                    
             ?></div><?php
             
             $purposes=$this->filterPurposesArray();
             if (!empty($purposes)) {                
-                ?><div class=asrch><header>MAY BE YOU ARE LOOKING FOR?</header><ul><?php
+                ?><div class=asrch><header><?=$this->lang['may_be_looking_for']?></header><ul><?php
                 foreach ($purposes as $v) {
                     echo $v;
                 }        
@@ -2480,7 +2483,7 @@ class Search extends Page {
         if ($this->router->rootId<=0) {
             return;
         }
-        ?><div id=_se class=options><div class="option<?=$this->advSectionId===0?' selected':''?>" data-value=0>Any</div><?php
+        ?><div id=_se class=options><div class="option<?=$this->advSectionId===0?' selected':''?>" data-value=0><?=$this->lang['any1']?></div><?php
         foreach ($this->router->pageSections as $k => $v) {
             if ($v['counter']===0) { continue; }
             ?><div class="option<?=$this->advSectionId===$k?' selected':''?>" data-value=<?=$k?>><?=$v['name']?></div><?php            

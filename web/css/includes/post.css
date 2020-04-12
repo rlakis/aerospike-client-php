@@ -1,13 +1,18 @@
-#main {width: 100%;display:flex;flex:1 auto;flex-flow: column}
+#main {
+    display:flex;
+    flex:1 auto;
+    flex-flow: column
+}
 #main .card{
-    display: flex;
-    margin: 12px 0;
+    display: inherit;
+    margin: 0 0 16px 0;
     flex: 1 auto
 }
 #main .card-header{display: flex;align-items: center;background-color: white;padding: 0;height:40px; min-width: 240px}
 #main .card .card-title{margin: 0 44px !important}
 #main .card .card-content{
     display: inline-flex;
+    padding: 8px 10px;
 }
 #main h5{margin: 0;font-size: 1.1rem}
 .btn.blue{background-color: #007bff; color:white!important}
@@ -17,9 +22,9 @@
     justify-content: space-between;
 }
 #main .pix {
-    display:inline-flex;
-    width: 306px;
-    height: 192px;
+    display:inherit;
+    width: 260px;
+    height: 190px;
     border: 1px solid;
     cursor: pointer;
     align-items: center;

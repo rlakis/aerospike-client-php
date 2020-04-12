@@ -299,7 +299,7 @@ class Site {
             if ($forceInit) { $this->router->db->ql->resetFilters(); }
         }
         else {
-            $this->router->db->ql = new SphinxQL($this->router->cfg['sphinxql'], $this->router->cfg['search_index']);
+            $this->router->db->ql=new SphinxQL($this->router->cfg['sphinxql'], $this->router->cfg['search_index']);
         }
     }
     
@@ -336,9 +336,8 @@ class Site {
     
     
     function execute(bool $forceInit=false) {
-        $offset = ($this->router->params['start'] ? ($this->router->params['start']-1) : 0) * $this->num;
+        $offset=($this->router->params['start']? ($this->router->params['start']-1):0)*$this->num;
         $this->initSphinx($forceInit);
-        
         
         $rootId=$this->router->rootId;
         $q=\preg_replace('/@/', '\@', $this->router->params['q']);
@@ -391,23 +390,24 @@ class Site {
 
         } /* End of WatchId */
         else {
-            if (($this->user->info['id'] || $this->pageUserId) && $this->userFavorites) {
-                $id = $this->user->info['id'] ? $this->user->info['id'] : $this->pageUserId;                
+            if (($this->user->isLoggedIn() || $this->pageUserId) && $this->userFavorites) {
+                $id = $this->user->id()>0 ? $this->user->id() : $this->pageUserId;                
                 $this->router->db->index()
                         ->setSelect('id')
                         ->starred($id)
                         ->setSortBy('date_added desc')
                         ->setLimits($offset, $this->num)
                         ->addQuery('body', '');
-                $this->searchResults = $this->router->db->index()->executeBatch();
+                $this->searchResults=$this->router->db->index()->executeBatch();
             } 
             else {
-                $__compareID = $this->router->getPositiveVariable('cmp', INPUT_GET);
-                $__compareAID = $this->router->getPositiveVariable('aid', INPUT_GET);
-                $__stripPremium = $this->router->getPositiveVariable('strip', INPUT_GET);
+                $__compareID=$this->router->getPositiveVariable('cmp', \INPUT_GET);
+                $__compareAID=$this->router->getPositiveVariable('aid', \INPUT_GET);
+                $__stripPremium=$this->router->getPositiveVariable('strip', \INPUT_GET);
+                
                 $this->router->db->index()
                         ->region($this->router->countryId, $this->router->cityId)
-                        ->id($__compareID, TRUE)
+                        ->id($__compareID, true)
                         ->uid($this->router->userId)                        
                         ->root($rootId)
                         ->section($this->router->sectionId)
@@ -415,55 +415,56 @@ class Site {
                         ->locality($this->localityId)
                         ->tag($this->extendedId)
                         ;
-                if ($__stripPremium==1){                   
+                
+                if ($__stripPremium===1) {  
                     $this->router->db->index()->featured(false);
                 }
                                 
-                if ($this->publisherTypeSorting && in_array($rootId,[1,2,3]) && 
-                    ($rootId!=3 || ($rootId==3 && $this->router->purposeId==3)) && 
-                    ($rootId!=2 || ($rootId==2 && $this->router->purposeId==1)) ) {
-                    $this->router->db->index()->publisherType($this->publisherTypeSorting == 1 ? 1 : 3);
+                if ($this->publisherTypeSorting && \in_array($rootId, [1, 2, 3]) && 
+                    ($rootId!==3 || ($rootId===3 && $this->router->purposeId===3)) && 
+                    ($rootId!==2 || ($rootId===2 && $this->router->purposeId===1)) ) {
+                    $this->router->db->index()->publisherType($this->publisherTypeSorting==1 ? 1 : 3);
                 }
                 
                 switch ($this->langSortingMode) {
                     case 0:
-                        $lng = '0 as lngmask';
+                        $lng='0 as lngmask';
                     case 1:
-                        $lng = 'IF(rtl>0,0,1) as lngmask';
+                        $lng='IF(rtl>0,0,1) as lngmask';
                         break;
                     case 2:
-                        $lng = 'IF(rtl<>1,0,1) as lngmask';
+                        $lng='IF(rtl<>1,0,1) as lngmask';
                         break;
                     default:
-                        $lng = ($this->router->language=='ar') ? 'IF(rtl>0,0,1) as lngmask' : 'IF(rtl<>1,0,1) as lngmask';
+                        $lng=($this->router->language==='ar') ? 'IF(rtl>0,0,1) as lngmask' : 'IF(rtl<>1,0,1) as lngmask';
                         break;
                 }
            
 
-                $fields = "id, 0 as newad, date_added, {$lng}";
-                if (($last_visited = $this->user()->getLastVisited())) {
-                    $fields = "id, if(date_added>{$last_visited}, 1, 0) newad, date_added, {$lng}";                    
-                } 
+                $fields="id, 0 as newad, date_added, {$lng}";
+                if (($last_visited=$this->user->getLastVisited())) {
+                    $fields="id, if(date_added>{$last_visited}, 1, 0) newad, date_added, {$lng}";                    
+                }
                 
                 $this->router->db->index()
                         ->setSelect($fields)
-                        ->setSortBy($this->sortingMode ? 'lngmask asc, media desc, date_added desc' : 'lngmask asc, date_added desc')
+                        ->setSortBy($this->sortingMode?'lngmask asc, media desc, date_added desc':'lngmask asc, date_added desc')
                         ->setLimits($offset, $this->num)
                         ->addQuery('body', $q);
                                 
-                if($this->router->module=='search' && !$this->userFavorites && !$this->router->watchId && !$this->router->userId && $__compareID===0 && $__compareAID===0) {
+                if ($this->router->module==='search' && !$this->userFavorites && !$this->router->watchId && !$this->router->userId && $__compareID===0 && $__compareAID===0) {
                     $this->getFeaturedAds();
                     $this->getMediaAds();
                 }                
         
                                 
-                if($__compareAID) {                    
+                if ($__compareAID>0) {  
                     $this->router->config->incLibFile('MCSaveHandler');
-                    $handler = new MCSaveHandler($this->router->cfg);
-                    $this->searchResults = $handler->searchByAdId($__compareAID, $__stripPremium);
+                    $handler=new MCSaveHandler($this->router->cfg);                
+                    $this->searchResults=$handler->searchByAdId($__compareAID, $__stripPremium);
                 }
                 else {
-                    $this->searchResults = $this->router->db->index()->executeBatchNew();   
+                    $this->searchResults=$this->router->db->index()->executeBatchNew();   
                 }                
             }       
         }

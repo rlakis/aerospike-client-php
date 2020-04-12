@@ -422,9 +422,9 @@ class SphinxQL {
     }
     
     
-    function addQuery(string $name, string $keywords='', bool $assoc=FALSE) : void {
+    function addQuery(string $name, string $keywords='', bool $assoc=false) : void {
         $this->build($keywords);
-        $this->_batch[$name] = [$this->_query, $assoc, 0];
+        $this->_batch[$name]=[$this->_query, $assoc, 0];
         $this->_query='';
     }
     
@@ -518,7 +518,7 @@ class SphinxQL {
     
     
     function executeBatchNew() : array {
-        $result = [];
+        $result=[];
         $q='';
         $i=0;
         $running=[];
@@ -534,7 +534,8 @@ class SphinxQL {
         $running[$i]=[$this->_batch['body'][1], $this->_batch['body'][0],'body'];
         $q.=$this->_batch['body'][0].';'.PHP_EOL;
         
-        $rs = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'matches'=>[], 'facet'=>[], 'sql'=>$q];
+        $rs=['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'matches'=>[], 'facet'=>[], 'sql'=>$q];               
+        
         $this->_sphinx->multi_query($q);
         if ($this->_sphinx->error) {
             $this->Log(['query'=>$q, 'error'=>'['.$this->_sphinx->connect_errno . '] ' . $this->_sphinx->connect_error]);
@@ -545,7 +546,7 @@ class SphinxQL {
         
         $i=0;
         do {
-            $name = $running[$i][2];
+            $name=$running[$i][2];
             $rs = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'matches'=>[], 'sql'=>$running[$i][1]];
             if ($res = $this->_sphinx->store_result()) {
                 while ($row=$res->fetch_assoc()) {

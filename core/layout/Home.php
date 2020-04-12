@@ -255,8 +255,8 @@ class Home extends Page {
             if ($this->router->db->as->getCacheData($label, $record)===\Aerospike::OK) {
                 $key=Core\Model\NoSQL::instance()->initStringKey(Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $label);
                 ?><div class="row viewable"><div class=col-12><div class="card format2"><?php
-                ?><header class="plain"><h4><?=$this->router->isArabic()?'الأكثر طلباً من القراء':'What other people are looking for...'?></h4><a href="#"><?=$this->lang['more']?></a></header><?php
-               
+                ?><header class="plain"><h4><?=$this->router->isArabic()?'الأكثر طلباً من القراء':'What other people are looking for...'?></h4></header><?php
+                /* <a href="#"><?=$this->lang['more']?></a> */
                 $q='select id,rand() as r from ad where hold=0 and canonical_id=0 and media=1 ';
                 if ($this->router->cityId>0) {
                     $q.='and city_id='.$this->router->cityId;
@@ -302,7 +302,7 @@ class Home extends Page {
     
     
     public function recommendedForYou() : void {
-        ?><div class="row viewable"><div class=col-12><div class="card format2"><header class="plain"><h4><?=$this->router->isArabic()?'اعلانات قد تهمك':'Recommended for you'?></h4><a href="#"><?=$this->lang['more']?></a></header><?php
+        ?><div class="row viewable"><div class=col-12><div class="card format2"><header class="plain"><h4><?=$this->router->isArabic()?'اعلانات قد تهمك':'Recommended for you'?></h4></header><?php
         $q='select id,rand() as r from ad where hold=0 and canonical_id=0 and media=1 and country_id='.$this->router->countryId;
          if ($this->router->cityId>0) {
              $q.=' and city_id='.$this->router->cityId;
@@ -341,22 +341,29 @@ class Home extends Page {
     
     
     private function sectionWidget(int $section_id, int $purpose_id) : void {
+        //style="background-color:var(--mpc<?=$purpose_id)"
         $status=$this->router->db->as->getCacheData("section-dat-{$this->router->countryId}-{$this->router->cityId}-{$this->router->sections[$section_id]['root_id']}-{$this->router->language}", $root);        
         ?><div class=ad><?php
-        ?><a href="<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$section_id]['root_id'], $section_id, $purpose_id)?>"><?php
+        ?><a style="flex: 1 auto" href="<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$section_id]['root_id'], $section_id, $purpose_id)?>"><?php
         ?><div class=widget><div class="image seclogo"><?php
         ?><div class=icon><img class=fill-<?=$this->router->sections[$section_id]['root_id']?> src="<?=$this->router->config->imgURL?>/se/<?=$section_id?>.svg" /></div><?php
+        /*
         ?><i><img class="fpu<?=$purpose_id?>" src="<?=$this->router->config->imgURL?>/pu/<?=$purpose_id?>.svg" /></i><?php
+         * 
+         */
+        ?><i style="background-color:var(--mpc<?=$purpose_id?>)"><img src="<?=$this->router->config->imgURL?>/pu/<?=$purpose_id?>.svg" /></i><?php
         ?><div class="box hint"><?php
         if (isset($root[$section_id]) && isset($root[$section_id]['purposes']) && isset($root[$section_id]['purposes'][$purpose_id])) {            
             ?><div><?=Ad::FormatSinceDate($root[$section_id]['purposes'][$purpose_id]['unixtime'], $this->lang)?></div><?php
             ?><div><?=\number_format($root[$section_id]['purposes'][$purpose_id]['counter']).' '.$this->lang['ads']?></div><?php
         }
         ?></div></div><div class=content><?php
+        
         if ($status===\Aerospike::OK) {
-            echo $this->sectionLabel($section_id, $purpose_id);
+            ?><i><img style="width:24px;filter: var(--mseFilter);" src="<?=$this->router->config->imgURL?>/pu/<?=$purpose_id?>.svg" /></i><?php
+            echo '<div>', $this->sectionLabel($section_id, $purpose_id), '</div>'; 
         }
-        ?></div></a></div></div><?php
+        ?></div></div></a></div><?php
     }
     
     
@@ -479,13 +486,15 @@ class Home extends Page {
         echo $pic, "\n";
             
         echo '<div class=content>', "\n";
-        echo '<div class="adc block-with-text card-description ', $textClass, '" ';
+        echo '<div class="block-with-text ', $textClass, '" ';
             
         echo $itemDesc, '>', "\n";
         if ($ad->latitude()||$ad->longitude()) {
-            echo '<a href="#" title="', $ad->location(), '"><i class="icn icnsmall icn-map-marker"></i></a>', "\n"; 
+            echo '<a href="#" title="', $ad->location(), '"><i class="icn icnsmall icn-map-marker"></i></a><div style="display:contents">', $ad->text(), '</div></div>'; 
         }
-        echo $ad->text(), '</div>', "\n";
+        else {
+            echo $ad->text(), '</div>', "\n";
+        }
 
         echo '</div>', "\n";
         //if ($this->user()->isSuperUser() && isset($this->searchResults['body']['scores'][$ad->id()])) {
@@ -607,7 +616,7 @@ class Home extends Page {
                     }
                     break;
                 case 4:
-                    $in = ' ';
+                    $in=' ';
                     if (!$this->router->isArabic())
                         $in = ' ' . $this->lang['in'] . ' ';
                     if ($hasSchema)
@@ -624,26 +633,26 @@ class Home extends Page {
             }
             
             if ($hasLoc) {
-                $res = '';
-                $iter = 0;
+                $res='';
+                $iter=0;
                 foreach ($ad[$locIDX] as $id=>$loc) {
                     if (isset($this->localities[$id])) {
-                        if ($iter==0) {
-                            $tempSection = $section . ' ' . $this->lang['in'] . ' ' . $this->localities[$id]['name'];
+                        if ($iter===0) {
+                            $tempSection=$section . ' ' . $this->lang['in'] . ' ' . $this->localities[$id]['name'];
                         }
                         else {
-                            $tempSection = $this->localities[$id]['name'];
+                            $tempSection=$this->localities[$id]['name'];
                         }
                         $iter++;
                         if ($iter>2) {break;}
                         if ($hasLink) {
-                            $idx = 2;
-                            $uri = '/' . $this->router->countries[$ad[Classifieds::COUNTRY_ID]][\Core\Data\Schema::BIN_URI] . '/';
-                            $uri.=$this->localities[$id]['uri'] . '/';
-                            $uri.=$this->router->sections[$ad[Classifieds::SECTION_ID]][\Core\Data\Schema::BIN_URI] . '/';
-                            $uri.=$this->router->purposes[$ad[Classifieds::PURPOSE_ID]][\Core\Data\Schema::BIN_URI] . '/';
+                            $idx=2;
+                            $uri='/'.$this->router->countries[$ad[Classifieds::COUNTRY_ID]][\Core\Data\Schema::BIN_URI].'/';
+                            $uri.=$this->localities[$id]['uri'].'/';
+                            $uri.=$this->router->sections[$ad[Classifieds::SECTION_ID]][\Core\Data\Schema::BIN_URI].'/';
+                            $uri.=$this->router->purposes[$ad[Classifieds::PURPOSE_ID]][\Core\Data\Schema::BIN_URI].'/';
                             $uri.=($this->router->isArabic()?'':$this->router->language . '/') . 'c-' . $id . '-' . $idx . '/';
-                            $res.='<li><a href="' . $uri . '">' . $tempSection . '</a></li>';
+                            $res.='<li id=here><a href="' . $uri . '">' . $tempSection . '</a></li>';
                         }
                         else {
                             if ($res) { $res .= '  »|  '; }
@@ -651,7 +660,7 @@ class Home extends Page {
                         }
                     }
                 }
-                $section = $res;
+                $section='<span>'.$res.'</span>';
             } 
             else {
                 if ($this->router->countryId && $ad[Classifieds::COUNTRY_ID] != $this->router->countryId) {
@@ -664,12 +673,12 @@ class Home extends Page {
                 }
                 
                 if (isset($this->router->countries[$ad[Classifieds::COUNTRY_ID]])) {
-                    $countryId = $ad[Classifieds::COUNTRY_ID];
-                    $cityId = 0;
+                    $countryId=$ad[Classifieds::COUNTRY_ID];
+                    $cityId=0;
                     if (!empty($this->router->countries[$countryId]['cities']) && $ad[Classifieds::CITY_ID] && isset($this->router->countries[$countryId]['cities'][$ad[Classifieds::CITY_ID]])) {
-                        $cityId = $ad[Classifieds::CITY_ID];
+                        $cityId=$ad[Classifieds::CITY_ID];
                         if ($this->router->cityId!=$cityId) {
-                            $section = $section . ' ' . $this->lang['in'] . ' ' . $this->router->countries[$countryId]['cities'][$cityId]['name'];
+                            $section.=' '.$this->lang['in'].' '.$this->router->countries[$countryId]['cities'][$cityId]['name'];
                         }
 
                         //if (!mb_strstr($section, $this->router->countries[$countryId]['name'], true, "utf-8")) {
@@ -690,10 +699,10 @@ class Home extends Page {
                             $uri.=$this->router->sections[$ad[Classifieds::SECTION_ID]][\Core\Data\Schema::BIN_URI] . '-' . $this->extended[$extID]['uri'] . '/';
                             $uri.=$this->router->purposes[$ad[Classifieds::PURPOSE_ID]][\Core\Data\Schema::BIN_URI] . '/';
                             $uri.=($this->router->language == 'ar' ? '' : $this->router->language . '/') . 'q-' . $extID . '-' . $idx . '/';
-                            $section = '<li><a href="' . $uri . '">' . $section . '</a></li>';
+                            $section = '<li id=thre><a href="' . $uri . '">' . $section . '</a></li>';
                         }
                         else {
-                            $section = '<li><a href="' . $this->router->getURL($countryId, $cityId, $ad[Classifieds::ROOT_ID], $ad[Classifieds::SECTION_ID], $ad[Classifieds::PURPOSE_ID]) . '">' . $section . '</a></li>';
+                            $section='<li><a href="'.$this->router->getURL($countryId, $cityId, $ad[Classifieds::ROOT_ID], $ad[Classifieds::SECTION_ID], $ad[Classifieds::PURPOSE_ID]).'"><span>'.$section.'</span></a></li>';
                         }
                     }
                 }

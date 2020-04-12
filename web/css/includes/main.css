@@ -158,10 +158,11 @@ li > i {
   margin: 0 4px;
   max-width: 32px
 }
+/*
 .invert {
   background-color: transparent!important;
   filter: invert(100%)
-}
+}*/
 .icn {
   position: relative;
   display: inline-block;
@@ -369,10 +370,12 @@ body[dir=rtl] .icntop {
   top: 58px;
   right: 0
 }
+/*
 .active {
   background-color: #4caf50;
   color: #fff
 }
+*/
 .ilogo {
   margin: 9px 18px;
   height: 72px;
@@ -624,9 +627,15 @@ dt > a > span {
   width: 320px;
   margin: auto
 }
+/*
 .ad a {
-  display: inherit
+  display: inline-block
 }
+*/
+.ad a > i {
+  margin: 0
+}
+
 .ad .widget {
   display: inline-block;
   width: 100%;
@@ -637,6 +646,17 @@ dt > a > span {
   color: rgba(0,0,0,.87);
   background: #fff
 }
+.ad .widget .content{
+    display: inline-flex;
+    width: 100%;
+    align-items: center;
+    overflow: hidden;
+}
+.ad .widget .content i{
+    margin-inline-start: 1px;
+    margin-inline-end: 6px;
+}
+
 .ad .image {
   position: relative;
   height: 220px;
@@ -655,11 +675,16 @@ dt > a > span {
   object-position: center;
   pointer-events: none
 }
+.ad .image.seclogo *{
+    opacity: 1 !important;
+}
+
 .ad .image .box {
   color: #fff;
   font-size: 14px;
   font-weight: 700
 }
+
 .ad .image .box.hint {
   display: flex;
   position: absolute;
@@ -776,22 +801,37 @@ dt > a > span {
   position: relative;
   object-fit: contain
 }
-.ad .seclogo i {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 32px;
-  height: auto
+.ad .image.seclogo i {
+    display: inherit;
+    position: absolute;
+    top: 24px;
+    left: 0;
+    width: 32px;
+    height: 22px;
+    border-radius: 0 3px 3px 0;
+    padding-inline-end: 5px;
+    align-items: center;
+    justify-content: flex-end;
 }
-.ad .seclogo i > img {
-  object-fit: fill;
-  width: auto!important
+body[dir=rtl] .image.seclogo i {
+    left: auto;
+    right: 0;
+    border-radius: 3px 0 0 3px;
+}
+.ad .image.seclogo i img {
+    filter: invert(1);
+    max-width: 18px !important;
+    object-fit: fill;
+    width: auto!important
 }
 .ad img.fpu1 {
   filter: var(--mpu1F)
 }
 .ad img.fpu2 {
   filter: var(--mpu2F)
+}
+.ad img.fpu3 {
+  filter: var(--mpu3F)
 }
 
 .adslot {
@@ -818,14 +858,20 @@ dt > a > span {
 
 
 .block-with-text {
-  overflow: hidden;
-  position: relative;
-  line-height: 1.4em;
-  height: 4.2em;
-  font-size: 16px;
-  font-weight: 400;
-  color: #5c696d
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    line-height: 1.4em;
+    width:100%;
+    height: 4.2em;
+    font-size: 16px;
+    font-weight: 400;
+    color: #5c696d
 }
+.ad .widget .block-with-text i{
+    margin-inline-end: 2px;
+}
+
 .seclogo {
   background-color: var(--mdc);
   display: inline-flex;
@@ -1197,9 +1243,7 @@ body[dir=rtl] .slogan {
   font-weight: 700;
   font-size: 24px
 }
-body[dir=rtl] .mhbanner .p1 .um {
-  height: 64px
-}
+
 .xl-border {
   border-left: 1px #ccc solid
 }

@@ -59,9 +59,9 @@
 }
 .card.format1 .col-3 .name {
     display: inherit;
-    color: var(--mlc);
-    font-size:14pt;
-    font-weight:bold;
+    color: var(--mdc70);
+    font-size:15px;
+    font-weight:500;
     margin-top: 8px;
 }
 
@@ -194,14 +194,21 @@
 /* drop down sections */
 .lrs {
   max-width: 1024px;
-  padding: 8px 0!important
+  padding: 8px 0!important;
+  transition: opacity 1s linear;  
+  transform:translate(0);
+  opacity: 0;
 }
+
 .lrs .card {
-  margin-top: -16px
+    flex-flow: row;
+    --prefix-animation: slide 1s ease 3.5s forwards;
+    --webkit-transition-duration: 0, 200ms;
+    margin-top: -16px
 }
 .lrs .card ul {
   flex-flow: row wrap;
-  flex: 1 auto;
+  flex-grow: 0;
   padding: 20px;
   font-weight: 300
 }

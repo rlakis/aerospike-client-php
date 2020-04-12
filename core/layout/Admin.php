@@ -224,7 +224,6 @@ class Admin extends Page {
                     and b.valid=1
                     order by b.ID desc', [$this->userdata[0]['id']]);            
             if (!empty($rs)) {
-                 //\error_log(var_export($rs, true));
                  $this->userdata[0]['rera']=$rs[0];
             }
         }

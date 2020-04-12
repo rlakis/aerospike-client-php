@@ -861,7 +861,7 @@ class Page extends Site {
         }
         
         
-        ?><div class=asrch><header>SECTION LIST</header><ul><?php
+        ?><div class=asrch><header><?=$this->lang['section_list']?></header><ul><?php
         
         $pId=$this->router->rootId===3?3:0;        
         foreach ($this->router->pageSections as $k=>$v) {
@@ -1622,6 +1622,12 @@ class Page extends Site {
         ?><li>&vert;</li><?php
         ?><li><a href="<?= $this->router->getLanguagePath($this->user->isLoggedIn() ? '/myads/' : '/signin/') ?>"><?php 
         echo $this->user->isLoggedIn()?$this->lang['MyAccount']:$this->lang['signin'];?><i class="icn icn-user i20 invert"></i></a></li><li>&vert;</li><?php
+        if ($this->user->isSuperUser() && $this->router->module!=='admin') {
+            ?><li class="desktop"><a href="<?=$this->router->getLanguagePath('/monitor/')?>"><?=$this->lang['monitor']?></a></li><?php 
+            ?><li class="desktop">&vert;</li><?php
+            ?><li class="desktop"><a href="<?=$this->router->getLanguagePath('/admin/')?>"><?=$this->lang['administration']?></a></li><?php 
+            ?><li class="desktop">&vert;</li><?php
+        }
         ?><li><a href="<?= $url ?>"><?= ($this->router->isArabic()?'English':'العربية') ?><i class="icn i20 icn-language invert"></i></a></li><?php
         ?></ul><div id=rgns></div></div></div><?php
         
@@ -2602,7 +2608,7 @@ class Page extends Site {
                     $result.='<a target="_self" href="';                        
                     $page_no=$currentPage+1;
                     $result.=\sprintf($link, "{$page_no}/{$uri_query}");
-                    $result.='"><b style="margin-left:9px;">&#x3009;</b></a></li></ul>';
+                    $result.='"><b style="margin-inline-start:9px;">&#x3009;</b></a></li></ul>';
                         
                     $result='<div class=row><div class=col-12><ul class=pgn>'.$result.'</div></div>';
                 }
@@ -2714,22 +2720,29 @@ class Page extends Site {
         $year = date('Y');
         if ($this->router->module==='index') {
         $words=['sell'=>['ar'=>'بع', 'en'=>'SELL'],'car'=>['ar'=>'سيارتك','en'=>'YOUR CAR'],
-            'find'=>['ar'=>'إحصل', 'en'=>'FIND'], 'job'=>['ar'=>'على عمل', 'en'=>'A JOB'],
+            'find'=>['ar'=>'إحصل', 'en'=>'FIND'], 'job'=>['ar'=>'على عــــــمل', 'en'=>'A JOB'],
             'advert'=>['ar'=>'أعلن', 'en'=>'ADVERTISE'], 'business'=>['ar'=>'عن أعمالك', 'en'=>'YOUR BUSINESS'],
-            'buy'=>['ar'=>'إشتري', 'en'=>'BUY'], 'house'=>['ar'=>'منزل', 'en'=>'A HOUSE'],
-            'promote'=>['ar'=>'سّوق', 'en'=>'PROMOTE'], 'service'=>['ar'=>'خدماتك', 'en'=>'YOUR SERVICES'],
+            'buy'=>['ar'=>'إشتري', 'en'=>'BUY'], 'house'=>['ar'=>'منزل أو شـــــــــــقة', 'en'=>'A HOUSE'],
+            'promote'=>['ar'=>'سّوق', 'en'=>'PROMOTE'], 'service'=>['ar'=>'خدماتــــــــــــــك', 'en'=>'YOUR SERVICES'],
             ];
         $ln=$this->router->language;
         ?><div class="row ff-cols viewable" style="box-shadow:0 -5px 5px -5px var(--mColor10);">            
             <div class="col-12 mhbanner">
                 <img src="<?=$this->router->config->imgURL?>/emblem.svg" />
                 <div>
-                <div class="p1">                    
-                    <div><span class="um"><?=$words['sell'][$ln]?></span><span class="sm l1"><?=$words['car'][$ln]?></span></div>
-                    <div><span class="um"><?=$words['find'][$ln]?></span><span class="sm l2"><?=$words['job'][$ln]?></span></div>
-                    <div><span class="um"><?=$words['advert'][$ln]?></span><span class="sm l3"><?=$words['business'][$ln]?></span></div>
-                    <div><span class="um"><?=$words['buy'][$ln]?></span><span class="sm l4"><?=$words['house'][$ln]?></span></div>
-                    <div><span class="um"><?=$words['promote'][$ln]?></span><span class="sm l5"><?=$words['service'][$ln]?></span></div>
+                <div class=p1>                    
+                    <div><span class="um"><?=$words['sell'][$ln]?></span><span class="sm l1"><?=$words['car'][$ln]?></span></div><?php
+                    if ($ln==='ar') {
+                        ?><div><span class="um"><?=$words['buy'][$ln]?></span><span class="sm l4"><?=$words['house'][$ln]?></span></div><?php                        
+                        ?><div><span class="um"><?=$words['find'][$ln]?></span><span class="sm l2"><?=$words['job'][$ln]?></span></div><?php
+                        ?><div><span class="um"><?=$words['advert'][$ln]?></span><span class="sm l3"><?=$words['business'][$ln]?></span></div><?php
+                    }
+                    else {
+                        ?><div><span class="um"><?=$words['find'][$ln]?></span><span class="sm l2"><?=$words['job'][$ln]?></span></div><?php
+                        ?><div><span class="um"><?=$words['advert'][$ln]?></span><span class="sm l3"><?=$words['business'][$ln]?></span></div><?php
+                        ?><div><span class="um"><?=$words['buy'][$ln]?></span><span class="sm l4"><?=$words['house'][$ln]?></span></div><?php
+                    }
+                    ?><div><span class="um"><?=$words['promote'][$ln]?></span><span class="sm l5"><?=$words['service'][$ln]?></span></div>
                 </div>
                 <div class="col-12 mfbanner"><div class=slogan><?=$this->lang['slogan']?>.</div><a class=btn href=<?=$this->router->getLanguagePath('/post/')?>><?=$this->lang['placeAd']?></a></div>
                 </div>
@@ -2737,16 +2750,15 @@ class Page extends Site {
         </div><?php
         }
         
-        ?><div class="row">
-            <div class="col-12" style="background-color:white;height: 90px;align-items: center;justify-content: center;line-height: 1.8em">
-                <img src="<?=$this->router->config->imgURL?>/premium-<?=$this->router->language?>.svg" width="284"/>
-                <span style="height:43px;width:2px;background-color:var(--mColor03);margin: 0 24px"></span>
-                <div style="color: var(--mColor03);">
-                <span style="font-size:20pt;font-weight:bold"><?=$this->lang['go_premium']?>!</span><br>
-                <span style="font-size:16pt;"><?=$this->lang['gold_note']?>.&nbsp;&nbsp;<a href="#"><?=$this->lang['learn_more']?></a></span>
-                </div>
-            </div>            
-        </div><?php
+        // premuim promotion
+        ?><div class=row><div class=col-12 style="background-color:white;height:90px;align-items:center;justify-content:center;line-height:1.8em"><?php
+            ?><img src="<?=$this->router->config->imgURL?>/premium-<?=$this->router->language?>.svg" width="284"/><?php
+            ?><span style="height:43px;width:2px;background-color:var(--mColor03);margin:0 24px"></span><?php
+            ?><div style="color:var(--mColor03);"><?php
+            ?><span style="font-size:20pt;font-weight:bold"><?=$this->lang['go_premium']?>!</span><br><?php
+            ?><span style="font-size:16pt;"><?=$this->lang['gold_note']?>.&nbsp;&nbsp;<a href=<?=$this->router->getLanguagePath('/gold/')?>><?=$this->lang['learn_more']?></a></span><?php
+            ?></div><?php
+        ?></div></div><?php
         
                
         $scn=$this->supportedCountries();
@@ -2764,20 +2776,21 @@ class Page extends Site {
         ?><div class="col-4 ff-cols"><?php
         ?><img class=invert src="<?=$this->router->config->imgURL?>/mc-<?=$this->router->language?>.svg" width=200/><?php
         //<!--<div class="apps bold" style="margin-inline-start:40px;">24/7 Customer Service<br/>+961-70-424-018</div>-->
+        ?><div class=addr><?php
         if ($this->router->isArabic()) {
-            ?><p style="margin-inline-start:40px;">مركز الأعمال راكز<br/>رأس الخيمة<br/>الامارات العربية المتحدة</br/>صندوق بريد: 294474</p><?php
-            ?><p style="margin-inline-start:40px;margin-top:0">بيريسوفت، الطابق الرابع ، سنتر 1044 الدكوانة<br/>شارع السلاف العريض، الدكوانة، لبنان</p><?php
+            ?><p>مركز الأعمال راكز<br/>رأس الخيمة<br/>الامارات العربية المتحدة</br/>صندوق بريد: 294474</p><?php
+            ?><p style="margin-top:0">بيريسوفت، الطابق الرابع ، سنتر 1044 الدكوانة<br/>شارع السلاف العريض، الدكوانة، لبنان</p><?php
             $look="الشكل القديم لمرجان";
         }
         else {
-            ?><p style="margin-inline-start:40px;">Business Center RAKEZ<br/>Ras Al Khaimah<br/>United Arab Emirates</br/>P.O. Box: 294474</p><?php
-            ?><p style="margin-inline-start:40px;margin-top:0">Berysoft, 4th floor, Dekwaneh 1044 center<br/>New Slav Street, Dekwaneh, Lebanon</p><?php
+            ?><p>Business Center RAKEZ<br/>Ras Al Khaimah<br/>United Arab Emirates</br/>P.O. Box: 294474</p><?php
+            ?><p>Berysoft, 4th floor, Dekwaneh 1044 center<br/>New Slav Street, Dekwaneh, Lebanon</p><?php
             $look="Back to old site";
         }
-        ?><p class=ha-start style="margin-inline-start:40px;margin-top:8px">© 2010-<?=$year?> <?=$this->lang['mc']?><br/><?=$this->lang['all_rights']?>.</p><?php
-        ?></div><?php
+        ?><p class=ha-start style="margin-top:8px">© 2010-<?=$year?> <?=$this->lang['mc']?><br/><?=$this->lang['all_rights']?>.</p><?php
+        ?></div></div><?php
         
-        ?><div class="col-4 va-start"><ul><?php
+        ?><div class="col-4 ff-cols"><ul><?php
         //if ($this->user()->id()) {
         //    $balance_label= $this->lang['myBalance']. ' is '.$this->user()->getBalance() . ' coins';
         //    echo '<li><a href="', $this->router->getLanguagePath('/statement/'), '"><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></a></li>';
@@ -2814,7 +2827,7 @@ class Page extends Site {
         ?></ul></div></div><?php
             
         if ($this->router->module==='index') {
-            ?><div class="row viewable"><div class=col-12><div class="card regions"><?php
+            ?><div class="row viewable mt-64"><div class=col-12><div class="card regions"><?php
             ?><header><i class="icn icn-region invert"></i><h4><span style="color:white;font-size:36px"><?=$this->lang['mourjan']?></span> <?=$this->lang['around_mst']?></h4></header><?php
             ?><div class=card-content><div class=row><?php
             echo '<dl class="dl col-4">', $cc['ae'], $cc['bh'], $cc['qa'], $cc['kw'], '</dl>', "\n"; 
@@ -4421,7 +4434,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
 
     
     protected function render() {
-        if ($this->router->isAMP && $this->router->module=='search') {
+        if ($this->router->isAMP && $this->router->module==='search') {
             
             ?><!doctype html><?php
             ?><html amp lang="<?= $this->router->language ?>"><?php

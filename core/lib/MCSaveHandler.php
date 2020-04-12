@@ -362,17 +362,18 @@ class MCSaveHandler {
 
     
     function searchByAdId(int $reference, int $stripPremuim=0) : array {
-        $db = new DB(true);
+        $db=new DB(true);
         Config::instance()->incLibFile('SphinxQL');
         $sphinx=new SphinxQL(['host'=>'p1.mourjan.com', 'port'=>8307, 'socket'=>NULL], 'ad');
         $sphinx->connect();
-        $rs=$db->queryResultArray("select section_id, purpose_id, rtl, content from ad_user where id=?", [$reference])[0];
+        $rs=$db->queryResultArray("select section_id, purpose_id, rtl, WEB_USER_ID, content from ad_user where id=?", [$reference])[0];
         $db->close();        
 
         $obj=\json_decode($rs['CONTENT'], false);
         $obj->pu=$rs['PURPOSE_ID'];
         $obj->se=$rs['SECTION_ID'];
         $obj->rtl=$rs['RTL'];
+        $obj->user=$rs['WEB_USER_ID'];
         
         if (!isset($obj->attrs->ar)) { 
             \error_log("ad {$reference} normalized text does not exists!"); 
@@ -406,7 +407,7 @@ class MCSaveHandler {
                 //error_log($rs['ID']);
                 //error_log(\var_export($obj->attrs, true));
                 
-                $obj->attrs->locality = new stdClass();
+                $obj->attrs->locality=new stdClass();
                 $obj->attrs->locality->id=-1;
             }
         }
@@ -451,11 +452,10 @@ class MCSaveHandler {
             $contactFilter=true;
         }
         $q.=" FROM ad WHERE id!={$reference} and hold=0 ";
-        if ($contactFilter) { $q.='and cfilter=1 '; }
+        if ($contactFilter) { $q.='and (cfilter=1 or user_id='.$obj->user.') '; }
         if ($stripPremuim===1) { $q.='and featured=0 '; }
         $q.= 'limit 1000';
 
-        //\error_log($q);
         
         //echo $q, "\n";
         $res=$sphinx->search($q);
@@ -467,8 +467,8 @@ class MCSaveHandler {
         
         //$x = preg_split('//u', $obj->attrs->ar, null, PREG_SPLIT_NO_EMPTY);
         for ($i=0; $i<$len; $i++) {
-            $desc = "";
-            $scores[ $res['matches'][$i]['id'] ] = 0;
+            $desc='';
+            $scores[ $res['matches'][$i]['id'] ]=0;
             
             $attrs = \json_decode($res['matches'][$i]['attrs']);
             

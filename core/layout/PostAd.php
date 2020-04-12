@@ -10,7 +10,7 @@ class PostAd extends Page {
     private $advanced=false;
     private $pageGlobal='';
     private $pageInline='';
-    private $ad=null;
+    private \Core\Model\Ad $ad;
     private $sectionCrumb='';
     private int $userBalance=0;
         
@@ -23,8 +23,7 @@ class PostAd extends Page {
         
         $this->checkBlockedAccount();
         $this->checkSuspendedAccount();
-                
-        //syslog(LOG_INFO, json_encode($this->user->info));        
+                 
         $this->router->config->setValue('enabled_sharing', 0);
         $this->router->config->disableAds();               
         
@@ -39,8 +38,7 @@ class PostAd extends Page {
             $this->router->cityId=$this->user->params['city'];
         }
         
-        //$this->isUserMobileVerified=false;
-        $this->ad = new Core\Model\Ad();
+        $this->ad=new Core\Model\Ad();
         $this->hasLeadingPane = $this->user()->id() && !$this->isUserMobileVerified;
         
         if ($this->user()->isLoggedIn()) {
@@ -197,9 +195,11 @@ class PostAd extends Page {
                 }
             }                      
             
+            
             $current_country_code = isset($this->router->countries[$this->router->countryId]['uri']) ? \strtoupper($this->router->countries[$this->router->countryId]['uri']) : '';
             
             $ip=IPQuality::fetchJson(false)['ipquality'];
+            ?><div class="row viewable"><?php
             echo '<form id=adForm action="" onsubmit="window.event.preventDefault(); return false;" method=post data-id=', $this->ad()->id(), 
                     ' data-ip-country="', $ip['country_code']??'', '" data-cur-country="', $current_country_code, '"',
                     ' data-act-country="', $activation_country_code, '"',
@@ -281,6 +281,7 @@ class PostAd extends Page {
             //echo '</div>';
             echo '</div></div>';
             echo '</form>';
+            ?></div><?php
             
             $q='select cn.id, cn.NAME_AR, cn.NAME_EN,lower(trim(cn.id_2)), c.id, c.NAME_AR, c.NAME_EN, c.uri,
                     cn.id||\'-\'||c.id
