@@ -76,6 +76,25 @@ class DB {
     }
 
 
+    public function __call($name, $arguments) {
+        \error_log(__CLASS__.'.'.__FUNCTION__.' '.$name);
+        /*
+         try {
+         }
+         catch (\PDOException $e) {
+            if($e->getCode() != 'HY000' || !stristr($e->getMessage(), 'server has gone away')) {
+                throw $e;
+            }
+            DB::$Instance=null;
+            DB::newInstance();
+            
+         }
+         * 
+         */
+        return call_user_func_array([$this->connection(), $name], $arguments);
+    }
+    
+    
     public static function getCacheStorage() : MCCache {
         if (!isset(DB::$Cache)) { DB::$Cache = new MCCache(); }
         return self::$Cache;
@@ -174,7 +193,7 @@ class DB {
     
     
     private function newInstance() : void {
-        DB::$Instance = new \PDO(DB::$dbUri, \Config::instance()->get('db_user'), \Config::instance()->get('db_pass'),
+        DB::$Instance=new \PDO(DB::$dbUri, \Config::instance()->get('db_user'), \Config::instance()->get('db_pass'),
                     [
                         \PDO::ATTR_PERSISTENT=>TRUE,
                         \PDO::ATTR_AUTOCOMMIT=>FALSE,
@@ -185,9 +204,9 @@ class DB {
                         \PDO::ATTR_ERRMODE=>\PDO::ERRMODE_EXCEPTION,
 
                         \PDO::FB_ATTR_COMMIT_RETAINING=>FALSE,
-                        \PDO::FB_ATTR_READONLY => DB::$Readonly,
-                        \PDO::FB_TRANS_ISOLATION_LEVEL => DB::$IsolationLevel,
-                        \PDO::FB_ATTR_TIMEOUT => DB::$WaitTimeout
+                        \PDO::FB_ATTR_READONLY=>DB::$Readonly,
+                        \PDO::FB_TRANS_ISOLATION_LEVEL=>DB::$IsolationLevel,
+                        \PDO::FB_ATTR_TIMEOUT=>DB::$WaitTimeout
                     ]
                 );
     }
@@ -195,7 +214,7 @@ class DB {
 
     public static function getDatabase() : \PDO {
         if (!DB::$Instance) {
-            DB::$Instance = new \PDO(DB::$dbUri, \Config::instance()->get('db_user'), \Config::instance()->get('db_pass'),
+            DB::$Instance=new \PDO(DB::$dbUri, \Config::instance()->get('db_user'), \Config::instance()->get('db_pass'),
                     [
                         \PDO::ATTR_PERSISTENT=>TRUE,
                         \PDO::ATTR_AUTOCOMMIT=>FALSE,
@@ -216,11 +235,11 @@ class DB {
     
     
     public function getInstance($try=0) {
-       if (self::$Instance === NULL) { 
+       if (self::$Instance===null) { 
             $this->newInstance();
             if (!self::$Instance->inTransaction()) {                
                 self::$Instance->beginTransaction();
-            }           
+            }      
         } 
         else { 
             if (!self::$Instance->inTransaction()) {   

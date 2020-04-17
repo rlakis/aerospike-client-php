@@ -12,14 +12,14 @@ class Account extends Page {
         $this->load_lang(array("account"));
         
 
-        $this->set_require('css', 'account');
-        $this->inlineCss.='.acc{width:660px;padding-left:0;padding-right:0;clear:none;display:inline-block}
-                    .merge{float:'.($this->router->language==='ar'?'left':'right').';text-align:center;padding-top:10px;}
-                    .bt.scan{margin:15px 0 20px}
-                    ';
-        if (!$this->user->isLoggedIn()) {
-            $this->inlineCss.='.ph{width:650px}.acc{height:auto}';
-        }
+        //$this->set_require('css', 'account');
+        //$this->inlineCss.='.acc{width:660px;padding-left:0;padding-right:0;clear:none;display:inline-block}
+        //            .merge{float:'.($this->router->language==='ar'?'left':'right').';text-align:center;padding-top:10px;}
+        //            .bt.scan{margin:15px 0 20px}
+        //            ';
+        //if (!$this->user->isLoggedIn()) {
+        //    $this->inlineCss.='.ph{width:650px}.acc{height:auto}';
+        //}
         
         $this->title=$this->lang['title'];
         $this->description=$this->lang['description'];
@@ -29,7 +29,7 @@ class Account extends Page {
         $this->render();
     }
    
-    
+    /*
     function mainMobile() {
         if ($this->user->info['id']) {
             $language=$this->urlRouter->siteLanguage;
@@ -144,14 +144,15 @@ class Account extends Page {
                     ?><li onclick="ckO(this)" class="button <?= isset($notifications['coms']) && $notifications['coms'] ? 'on':'' ?>"><b class="ah"><?= $this->lang['nb_comments'] ?><span class="cbx"></span></b></li><?php
                     ?><li onclick="ckO(this)" class="button <?=  isset($notifications['news']) && $notifications['news'] ? 'on':'' ?>"><b class="ah"><?= $this->lang['nb_news'] ?><span class="cbx"></span></b></li><?php
                     /* ?><li onclick="ckO(this)"<?= $notifications['third'] ? ' class="on"':'' ?>><b class="ah"><?= $this->lang['nb_third'] ?><span class="cbx"></span></b></li><?php */
-                ?></ul><?php
+                /*?></ul><?php
             }
             ?><br /><?php
         }
-    }
+    }*/
 
     function main_pane() {
         if ($this->user->isLoggedIn()) {
+            $this->inlineJS('account.js');
             $this->generalList();
         }
         else {
@@ -174,18 +175,27 @@ class Account extends Page {
     
     function generalList() {
         ?><div class="row viewable"><?php
+        
         $language=$this->router->language;
-        if (isset($this->user->info['options']['lang'])) { $language=$this->user->info['options']['lang']; }
+        if (isset($this->user->info['options']['lang'])) { 
+            $language=$this->user->info['options']['lang'];             
+        }
         
+        if (\filter_has_var(\INPUT_GET, 'action')) {
+            $this->action=$this->getGetString('action');
+        }
         
-        if (isset($_GET['action'])) $this->action=$this->get('action', 'filter');
+        //if (isset($_GET['action'])) $this->action=$this->get('action', 'filter');
+        
         switch ($this->action) {
             case 'notifications':
                 $this->liOpen='notifications';
                 break;
+            
             case 'email':
-                if($this->user->info['provider']!=='mourjan')
+                if ($this->user->info['provider']!=='mourjan') {
                     $this->liOpen='email';
+                }
                 break;
             /*
             case 'verify':
@@ -259,30 +269,122 @@ class Account extends Page {
             $this->user->update();
         }
         
-        $nameAlert=( isset($this->user->info['name']) && $this->user->info['name'] ) ?false:true;
+        $nameAlert=!(isset($this->user->info['name']) && $this->user->info['name']);
         $emailAlert=false;
         
         if (isset($this->user->info['options']['email'])) {
             $email=$this->user->info['options']['email'];
             if ($this->action=='verify') {
                 $emailMsg= '<i>'.$this->lang['emailFail'].'<b>'.$email.'</b></i>';                
-            }else {
+            }
+            else {
                 $emailMsg= '<ok>'. preg_replace('/{email}/', $email, $this->lang['emailSent']).'</ok>';
             }
             $email=$this->user->info['email'];
-        }else {
-            $emailAlert=( isset($this->user->info['email']) && $this->user->info['email'] ) ?false:true;
+        }
+        else {
+            $emailAlert=!(isset($this->user->info['email']) && $this->user->info['email']);
             if (!$emailAlert) {
                 $emailMsg=$email=$this->user->info['email'];
             }
         }
         $actionDiv='<div class=am><input class="bt" type="submit" value="'.$this->lang['saveChanges'].'" /><input class="bt cl" type="reset" onclick="clsOpen()" value="'.$this->lang['cancel'].'" /><span class="notice"></span></div>';
-        if (!$this->liOpen) echo $actionDiv;
-        ?><div class="acc"><?php
+        //if (!$this->liOpen) echo $actionDiv;
+        
+        // new code starts here
+        ?><div class=col-8><?php
+        ?><div class="card card-doc acct"><?php
+        ?><p>Account Preferences</p><?php
+        
+        // preferred language block
+        ?><div class=row style="justify-content:space-evenly;margin-bottom:32px" data-value="<?=$language?>"><?php
+        if ($this->router->isArabic()) {
+            ?><div class=radio><input type=radio name=radio id=lngar class=radio__input<?=$language==='ar'?' checked':''?>><label for=lngar class=radio__label>العربية</label></div><?php
+            ?><div class=radio><input type=radio name=radio id=lngen class=radio__input<?=$language!=='ar'?' checked':''?>><label for=lngen class=radio__label>English</label></div><?php
+        } 
+        else {
+            ?><div class=radio><input type=radio name=radio id=lngen class=radio__input<?=$language!=='ar'?' checked':''?>><label for=lngen class=radio__label>English</label></div><?php
+            ?><div class=radio><input type=radio name=radio id=lngar class=radio__input<?=$language==='ar'?' checked':''?>><label for=lngar class=radio__label>العربية</label></div><?php
+        }
+        ?></div><?php
+        
+        // full name block
+        ?><div class=row data-value="<?=$nameAlert?'':$this->user->info['name']?>"><div class=group><?php
+            ?><input type="text" id=name required onkeydown="dirElem(this)" onchange="dirElem(this)" minLength=2 maxlength=128 value="<?=$nameAlert?'':$this->user->info['name']?>" /><?php
+            echo '<label>', $this->lang['name'], '</label>';
+            ?><span class=highlight></span><span class=bar></span><?php
+        ?></div></div><?php
+        
+        // preferred email block
+        ?><div class=row data-value="<?=$emailAlert?'':$email?>"><div class=group><?php
+        if ($this->user->info['provider']==='mourjan') {
+            ?><input id=email type="email" disabled class=en maxlength=128  value="<?=$emailAlert?'':$email ?>"  /><?php            
+        }
+        else {
+            ?><input id=email type="email" required class=en maxlength=128  value="<?=$emailAlert?'':$email ?>"  /><?php
+        }
+        ?><label><?=$this->lang['email']?></label><?php
+        ?><span class=highlight></span><span class=bar></span><?php
+        ?></div></div><?php
+        
+        // notification block
+        if (!$emailAlert) { 
+            $notifications=['ads'=>1,'coms'=>1, 'news'=>1,'third'=>1];
+            if (isset($this->user->info['options']['nb']) && \is_array($this->user->info['options']['nb'])) {
+                $notifications=\array_merge($notifications,$this->user->info['options']['nb']);
+            }
+            ?><h4><?=$this->lang['notifications']?></h4><?php
+            ?><label class=chkbox><input id=ads type=checkbox<?=$notifications['ads']?' checked':'' ?> data-value="<?=$notifications['ads']?>"><span><?=$this->lang['nb_ads']?></span></label><?php
+            ?><label class=chkbox><input id=coms type=checkbox<?=$notifications['coms']?' checked':'' ?> data-value="<?=$notifications['coms']?>"><span><?=$this->lang['nb_comments']?></span></label><?php
+            ?><label class=chkbox><input id=news type=checkbox<?=$notifications['news']?' checked':'' ?> data-value="<?=$notifications['news']?>"><span><?=$this->lang['nb_news']?></span></label><?php            
+        }
+        
         ?><form onsubmit="save();return false"><?php
-        ?><ul class="ts"><?php
-            ?><li id="lang"><?php 
-                ?><div class="lm"><label><?= $this->lang['language'] ?></label><div class="info" label="lang"><?= $language=='ar' ? 'العربية':'English' ?></div><span class="lnk edit"><?= $this->lang['edit'] ?></span></div><?php
+        /*
+        ?><div class="row"><label><?=$this->lang['language']?></label><div class=sbw><div class=sbe><div class=strg><?php
+        ?><span><?=$language==='ar'?'العربية':'English' ?></span><div class="arrow"></div><?php                
+        ?><div id=_lng class=options><?php
+            ?><div class="option<?=$language==='ar'?' selected':''?>" data-value=ar>العربية</div><?php
+            ?><div class="option<?=$language!=='ar'?' selected':''?>" data-value=en>English</div><?php
+        ?></div><?php                
+        ?></div></div></div><?php
+        ?></div><?php
+        
+        ?><div class=row><div class=group><?php
+            ?><input type=text required onkeydown="dirElem(this)" onchange="dirElem(this)" minLength=2 maxlength=128 type=text id=name value="<?=$nameAlert?'':$this->user->info['name']?>" /><?php
+            //if (!$this->user()->isLoggedIn()) {
+            echo '<label>', $this->lang['name'], '</label>';
+            //}
+            ?><span class=highlight></span><span class=bar></span><?php
+            /*?><label><?=$this->lang['name']?></label><?php*/
+        /*?><input name="name" onkeydown="idir(this)" onchange="idir(this,1)" minLength="2" maxlength="128" type="text" 
+                   value="<?=$nameAlert?'':$this->user->info['name']?>" placeholder="<?= $this->lang['specifyName'] ?>" regexMatch="false" regex="[0-9]|[\,\.\'\{}\[\]\@\#\$\%\^\&\*\-\_\+\=\(\)\~\`\?\/\\]" vErr="<?= $this->lang['validName'] ?>" yErr="<?= $this->lang['missingNameLength'] ?>" req="1"/><?php        
+         * 
+        ?></div></div><?php
+
+        ?><div class=row><div class=group><?php
+        ?><input name=email required class=en maxlength=128 type=email value="<?= $emailAlert ? '': $email ?>"  /><?php
+        ?><label><?=$this->lang['email']?></label><?php
+        ?><span class=highlight></span><span class=bar></span><?php
+        ?></div></div><?php
+         
+        
+        if (!$emailAlert) { 
+            $notifications=['ads'=>1,'coms'=>1, 'news'=>1,'third'=>1];
+            if (isset($this->user->info['options']['nb']) && \is_array($this->user->info['options']['nb'])) {
+                $notifications=\array_merge($notifications,$this->user->info['options']['nb']);
+            }
+            ?><h4><?=$this->lang['notifications']?></h4><?php
+            ?><label class=chkbox><input type=checkbox<?=$notifications['ads']?' checked':'' ?>><span><?=$this->lang['nb_ads']?></span></label><?php
+            ?><label class=chkbox><input type=checkbox<?=$notifications['coms']?' checked':'' ?>><span><?=$this->lang['nb_comments']?></span></label><?php
+            ?><label class=chkbox><input type=checkbox<?=$notifications['news']?' checked':'' ?>><span><?=$this->lang['nb_news']?></span></label><?php            
+        }
+        /*
+        ?><ul><?php
+            ?><li id=lang><?php
+            
+            
+                ?><div class=lm><label><?=$this->lang['language']?></label><div class=info label=lang><?= $language==='ar'?'العربية':'English' ?></div><span class="lnk edit"><?=$this->lang['edit']?></span></div><?php
                 ?><div class="fm"><label><?= $this->lang['language'] ?></label><?php
                     ?><div class="bm"><?php
                     ?><p><select name="lang"><option<?= $language=='ar'?' selected':'' ?> value="ar">العربية</option><option<?= $language=='en'?' selected':'' ?> value="en">English</option></select></p><?php
@@ -319,30 +421,32 @@ class Account extends Page {
                         ?><p><input type="checkbox" name="ads" <?= $notifications['ads']?'checked="checked" ':'' ?>/><?= $this->lang['nb_ads'] ?></p><?php
                         ?><p><input type="checkbox" name="coms" <?= $notifications['coms']?'checked="checked" ':'' ?>/><?= $this->lang['nb_comments'] ?></p><?php
                         ?><p><input type="checkbox" name="news" <?= $notifications['news']?'checked="checked" ':'' ?>/><?= $this->lang['nb_news'] ?></p><?php
-                        /* ?><p><input type="checkbox" name="third" <?= $notifications['third']?'checked="checked" ':'' ?>/><?= $this->lang['nb_third'] ?></p><?php */
+                       
                         ?></div><?php  
                         if ($this->liOpen=='notifications') echo $actionDiv;
                     ?></div><?php
                 ?></li><?php             
             }
-        ?></ul><?php 
-        ?></form><?php
+        ?></ul><?php */
+        ?></form><?php    
+        ?><div class=row style="justify-content:end"><a class="btn" style="background-color: var(--mlc);color:white" href=javascript:void(0) onclick=save(this)>save</a></div><?php
+        ?></div></div><?php 
+
         include_once $this->router->config->get('dir').'/core/lib/phpqrcode.php';
         $qrfile = $this->router->config->get('dir').'/web/qr/m-'.session_id().'.png';
         QRcode::png('mourjan:merge:'.session_id().str_pad($this->router->config->serverId, 4, '0', STR_PAD_LEFT).str_pad(time(), 16, '0', STR_PAD_LEFT), $qrfile, QR_ECLEVEL_L, 5);
-        $redis = new Redis;
+        $redis=new Redis;
         $redis->connect($this->router->config->get('rs-host'), $this->router->config->get('rs-port'), 1, NULL, 100); 
         $redis->setOption(Redis::OPT_PREFIX, 'SESS:');
         $redis->select(1);
         $redis->setex('m-'.session_id(), 300, $this->router->config->serverId.':1:'.$this->user->info['id']);
         $redis->close();
-            //error_log(var_export($this->user->info, TRUE));
         
-        ?></div><?php 
-        
-        ?><div class=merge><img width=185 height=185 src=<?=$this->router->config->host.'/web/qr/m-'.session_id().'.png'?> /><?php
-        ?><br /><span class="bt scan"><span class=apple></span><span class="apple up"></span> <?=$this->lang['hint_merge_Account']?> <span class="apple up"></span><span class=apple></span></span><?php                    
+        ?><div class="col-4"><div class="card card-doc va-center"><img class="mt-64 mb-32" width=185 height=185 src=<?=$this->router->config->host.'/web/qr/m-'.session_id().'.png'?> /><?php
+        ?><span class="bt scan"><span class=apple></span><span class="apple up"></span> <?=$this->lang['hint_merge_Account']?> <span class="apple up"></span><span class=apple></span></span><?php                    
         ?></div></div><?php
+        
+        ?></div><?php
     }
     
 }

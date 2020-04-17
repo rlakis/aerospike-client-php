@@ -163,7 +163,7 @@ class Page extends Site {
             $this->set_require('css', array('gen'));
         }
                
-        if ($this->user->info['id'] && $this->router->module!='account' && $this->user->info['app-user']==0){
+        if ($this->user->info['id'] && $this->router->module!=='account' && $this->user->info['app-user']==0){
             if (!$this->user->info['email']) {
                 if ((isset($this->user->info['options']['email']) && isset($this->user->info['options']['emailKey']) )) {
                     $this->setNotification(preg_replace('/{email}/', $this->user->info['options']['email'], $this->lang['validateEmail']));                    
@@ -2628,13 +2628,16 @@ class Page extends Site {
 
     function header() : void {
         ?><link rel='preconnect' href='https//c6.mourjan.com' /><?php    
-        ?><link rel='preconnect' href='https://www.googletagmanager.com' /><?php
+        ?><link rel="preconnect" href="https://fonts.googleapis.com"><?php
+        
+        ?><link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin><?php
+
         ?><link rel='preconnect' href='https://pagead2.googlesyndication.com' /><?php
+        ?><link rel='preconnect' href='https://googleads.g.doubleclick.net' /><?php
+        ?><link rel="preconnect" href="https://adservice.google.com"><?php
+        ?><link rel="preconnect" href="https://www.googletagservices.com"><?php
         ?><link rel='preconnect' href='https://tpc.googlesyndication.com' /><?php
         ?><link rel="preconnect" href="https://www.google-analytics.com"><?php
-        ?><link rel="preconnect" href="https://adservice.google.com"><?php
-        ?><link rel="preconnect" href="https://fonts.googleapis.com"><?php
-        ?><link rel="preconnect" href="https://www.googletagservices.com"><?php
         
         ?><meta name="google-site-verification" content="v7TrImfR7LFmP6-6qV2eXLsC1qJSZAeKx2_4oFfxwGg" /><?php
         if ($this->userFavorites){
@@ -4825,44 +4828,60 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     protected function _header() : void {
         //error_log(__CLASS__ . '.' . __FUNCTION__ . '.' .$this->router->module);
         \header("Link: <".$this->router->config->cssURL."/1.0/mc.css>; rel=preload; as=style;", false);
-        if ($this->router->module==='myads') {
-            \header("Link: <".$this->router->config->jsURL."/1.0/socket.io.js>; rel=preload; as=script;", false);
-            \header("Link: <".$this->router->config->jsURL."/1.0/chart-2.9.3/Chart.min.js>; rel=preload; as=script;", false);
-            \header("Link: <".$this->router->config->jsURL."/1.0/sweetalert2.all.min.js>; rel=preload; as=script;", false);
+        switch ($this->router->module) {
+            case 'myads':
+                \header("Link: <".$this->router->config->jsURL."/1.0/socket.io.js>; rel=preload; as=script;", false);
+                \header("Link: <".$this->router->config->jsURL."/1.0/chart-2.9.3/Chart.min.js>; rel=preload; as=script;", false);
+                \header("Link: <".$this->router->config->jsURL."/1.0/sweetalert2.all.min.js>; rel=preload; as=script;", false);
+                break;
+            
+            case 'admin':
+                \header("Link: <".$this->router->config->jsURL."/1.0/jsonTree.js>; rel=preload; as=script;", false);
+                break;
+            
+            case 'post':    
+                \header("Link: <".$this->router->config->jsURL."/1.0/libphonenumber-min-1.7.10.js>; rel=preload; as=script;", false);
+                \header("Link: <".$this->router->config->jsURL."/1.0/load-image-scale.js>; rel=preload; as=script;", false);
+                break;
+            
+            case 'account':
+                \header("Link: <".$this->router->config->jsURL."/1.0/sweetalert2.all.min.js>; rel=preload; as=script;", false);
+
+            default:
+                break;
         }
-        else if ($this->router->module==='admin') {
-            \header("Link: <".$this->router->config->jsURL."/1.0/jsonTree.js>; rel=preload; as=script;", false);
-        }        
-        else if ($this->router->module==='post') {            
-            \header("Link: <".$this->router->config->jsURL."/1.0/libphonenumber-min-1.7.10.js>; rel=preload; as=script;", false);
-            \header("Link: <".$this->router->config->jsURL."/1.0/load-image-scale.js>; rel=preload; as=script;", false);
-        }
-        
         
         $country_code='';
         if ($this->router->countryId && \array_key_exists($this->router->countryId, $this->router->countries)) {
-            $country_code = '-'.$this->router->countries[$this->router->countryId]['uri'];
+            $country_code='-'.$this->router->countries[$this->router->countryId]['uri'];
         }
         echo '<!doctype html>';
         echo '<html lang="', $this->router->language, $country_code,'" xmlns:og="http://ogp.me/ns#"';
         echo '><head><meta charset="utf-8">';        
         echo '<link rel=stylesheet type=text/css href=', $this->router->config->cssURL, '/1.0/mc.css />';
-        
-        if ($this->router->module==='myads') {
-            ?><script async src=<?=$this->router->config->jsURL?>/1.0/socket.io.js></script><?php
-            ?><script async src=<?=$this->router->config->jsURL?>/1.0/chart-2.9.3/Chart.min.js></script><?php
-            ?><script async src=<?=$this->router->config->jsURL?>/1.0/sweetalert2.all.min.js></script><?php
+        ?><link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet"><?php
+        switch ($this->router->module) {
+            case 'myads':
+                ?><script async src=<?=$this->router->config->jsURL?>/1.0/socket.io.js></script><?php
+                ?><script async src=<?=$this->router->config->jsURL?>/1.0/chart-2.9.3/Chart.min.js></script><?php
+                ?><script async src=<?=$this->router->config->jsURL?>/1.0/sweetalert2.all.min.js></script><?php
+                break;
+            
+            case 'admin':
+                ?><script async src=<?=$this->router->config->jsURL?>/1.0/jsonTree.js></script><?php
+                ?><script async src=<?=$this->router->config->jsURL?>/1.0/sweetalert2.all.min.js></script><?php            
+                break;
+            
+            case 'post':
+                ?><script async src=<?=$this->router->config->jsURL?>/1.0/libphonenumber-min-1.7.10.js></script><?php
+                ?><script async src=<?=$this->router->config->jsURL?>/1.0/load-image-scale.js></script><?php
+                break;
+            
+            case 'account':
+                ?><script async src=<?=$this->router->config->jsURL?>/1.0/sweetalert2.all.min.js></script><?php
+                break;
         }
         
-        if ($this->router->module==='admin') {
-            ?><script async src=<?=$this->router->config->jsURL?>/1.0/jsonTree.js></script><?php
-            ?><script async src=<?=$this->router->config->jsURL?>/1.0/sweetalert2.all.min.js></script><?php            
-        }
-        
-        if ($this->router->module==='post') {
-            ?><script async src=<?=$this->router->config->jsURL?>/1.0/libphonenumber-min-1.7.10.js></script><?php
-            ?><script async src=<?=$this->router->config->jsURL?>/1.0/load-image-scale.js></script><?php
-        }
         
         echo "<style>\n";
         
@@ -4914,6 +4933,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 break;
             
             case 'signup':
+            case 'account':
             case 'password':
                 $this->css('doc');
                 break;
@@ -5178,6 +5198,9 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
 
         //error_log('key '.$this->user->info['idKey']. ' decoded ' . $this->user()->decodeId($this->user->info['idKey']) . ' uid '.$this->user()->id());
         if (1) {  return; }
+        
+        
+        
         
         
         /*-------------- OLD code --------------------------*/

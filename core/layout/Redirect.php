@@ -73,7 +73,7 @@ class Redirect extends Site {
         $addLang=($this->router->isArabic() ? '' : $this->router->language . '/');
         $key=$this->getGetString('k');
         $uri=$this->router->getLanguagePath('/invalid/');
-        if ($key && strlen($key)>32) {
+        if ($key && \strlen($key)>32) {
             $cmd=$this->user()->decodeRequest($key);
             \error_log(__CLASS__.'.'.__FUNCTION__.': '. \json_encode($cmd));
             
@@ -211,41 +211,45 @@ class Redirect extends Site {
                     case 'email_verify':
                         $userId=$cmd['params'][0];
                         if (is_numeric($userId) && $userId) {
-                            if ($this->user->info['id'] == $userId) {
+                            if ($this->user->id()==$userId) {
                                 if (isset($this->user->info['options']['emailKey'])) {
-                                    if ((isset($_GET['key']) && $_GET['key'] == $this->user->info['options']['emailKey'])) {
+                                    if ((isset($_GET['key']) && $_GET['key']==$this->user->info['options']['emailKey'])) {
                                         if ($this->user->emailVerified()) {
                                             //email verified
-                                            $this->user->pending['email_validation'] = 1;
+                                            $this->user->pending['email_validation']=1;
                                             $this->user->update();
-                                            $uri = '/account/' . $addLang;
-                                        } else {
+                                            $uri='/account/'.$addLang;
+                                        } 
+                                        else {
                                             //failed to verify
-                                            $this->user->pending['email_validation'] = 0;
+                                            $this->user->pending['email_validation']=0;
                                             $this->user->update();
-                                            $uri = '/account/' . $addLang;
+                                            $uri='/account/'.$addLang;
                                         }
-                                    } else {
+                                    } 
+                                    else {
                                         //wrong ticket
-                                        $this->user->pending['email_validation'] = 3;
+                                        $this->user->pending['email_validation']=3;
                                         $this->user->update();
-                                        $uri = '/account/' . $addLang;
+                                        $uri='/account/'.$addLang;
                                     }
-                                } else {
+                                } 
+                                else {
                                     //invalid ticket
                                 }
                             } 
                             else {
-                                $userOptions = NoSQL::getInstance()->getOptions($userId);
+                                $userOptions=NoSQL::getInstance()->getOptions($userId);
                                 if ($userOptions) {
                                     if (is_array($userOptions)) {
                                         if (isset($userOptions['emailKey'])) {
-                                            if ((isset($_GET['key']) && $_GET['key'] == $userOptions['emailKey'])) {
-                                                $this->user->pending['email_validation'] = 2;
-                                                $this->user->pending['email_key'] = $_GET['key'];
+                                            if ((isset($_GET['key']) && $_GET['key']==$userOptions['emailKey'])) {
+                                                $this->user->pending['email_validation']=2;
+                                                $this->user->pending['email_key']=$_GET['key'];
                                                 $this->user->update();
                                                 $uri = '/account/' . $addLang;
-                                            } else {
+                                            } 
+                                            else {
                                                 //wrong ticket
                                             }
                                         } else {

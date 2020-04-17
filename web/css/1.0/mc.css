@@ -1,5 +1,4 @@
 @charset "UTF-8";
-@import url(https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Almarai:400,700|Cairo:300,400,600,700,900&display=swap);
 :root {
   --mourjanC: rgba(10,122,255,1);
   --midnight: rgba(44,62,80,1);
@@ -64,7 +63,7 @@ html * {
   touch-action: manipulation
 }
 body {
-  font-family: Roboto,Almarai,-apple-system,system;
+  font-family: 'Roboto',Almarai,-apple-system,system;
   font-style: normal;
   font-size: 1em;
   color: var(--mdc70);
@@ -195,6 +194,12 @@ footer .addr {
 }
 .invert {
   filter: invert(1)
+}
+.mb-32{
+    margin-bottom: 32px;
+}
+.mt-32{
+    margin-top: 32px;
 }
 .mb-64{
     margin-bottom: 64px;

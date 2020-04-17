@@ -2476,8 +2476,8 @@ class User {
         }
         
         $succeed=false;
-        $bins = [\Core\Model\ASD\USER_PROVIDER_EMAIL=>$email, Core\Model\ASD\USER_OPTIONS=>$this->info['options']];
-        $status = NoSQL::instance()->modProfile([\Core\Model\ASD\USER_UID=>$this->info['id']], $bins);
+        $bins=[\Core\Model\ASD\USER_PROVIDER_EMAIL=>$email, Core\Model\ASD\USER_OPTIONS=>$this->info['options']];
+        $status=NoSQL::instance()->modProfile([\Core\Model\ASD\USER_UID=>$this->id()], $bins);
         if ($status==NoSQL::OK) {
             $succeed=true;
             if($this->info['level']==6) {
@@ -2973,7 +2973,7 @@ class User {
     
 
     function update() : void {
-        $_SESSION['_u'] = ['info'=>$this->info, 'params'=>$this->params, 'pending'=>$this->pending];
+        $_SESSION['_u']=['info'=>$this->info, 'params'=>$this->params, 'pending'=>$this->pending];
     }
 
     

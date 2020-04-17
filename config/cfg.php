@@ -32,7 +32,7 @@ class Config extends \Core\Model\Singleton {
     }
     
     
-    public function init(array $params) {
+    public function init(array $params) : void {
         $this->config = $params;
         
         $this->serverId = $this->config['server_id'];
@@ -451,8 +451,8 @@ $config['url_bin']          = $config['url_base'].'/bin';
 $config['url_upload']       = $config['url_bin'].'/uploadLogo.php';
 
 Config::instance()->init($config);
-include_once dirname(__DIR__) . '/core/model/Db.php';
-$globalSettings = \Core\Model\DB::getCacheStorage($config)->get("global-settings");
+include_once dirname(__DIR__).'/core/model/Db.php';
+$globalSettings=\Core\Model\DB::getCacheStorage($config)->get("global-settings");
 if ($globalSettings!==FALSE) {
     //$globalSettings['db_host']='fb.mourjan.com';
     foreach ($globalSettings as $key => $value) {
@@ -468,7 +468,7 @@ $config['url_img']              = 'https://dev.mourjan.com/css/2020/1.0/assets';
 $config['url_uploader']         = 'https://dev.mourjan.com';
 
 $config['server_id']=get_cfg_var('mourjan.server_id');
-$config['active_maintenance']=0;
+//$config['active_maintenance']=0;
 
 
 Config::instance()->init($config);

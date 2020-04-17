@@ -62,41 +62,41 @@ class AdList extends \SplDoublyLinkedList {
     
     
     public function fetchFromAdUser() : void {
-        $this->data = [];
-        $this->page = \intval( \filter_input(\INPUT_GET, 'o', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]) );
+        $this->data=[];
+        $this->page=\intval(\filter_input(\INPUT_GET, 'o', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
        
-        $db = Router::instance()->db;
-        $q = 'SELECT AD_USER.ID, AD_USER.CONTENT, AD_USER.PURPOSE_ID, AD_USER.SECTION_ID, ';
-        $q.= 'AD_USER.RTL, AD_USER.STATE, AD_USER.COUNTRY_ID, AD_USER.CITY_ID, ';
-        $q.= 'AD_USER.LATITUDE, AD_USER.LONGITUDE, AD_USER.WEB_USER_ID, ';
-        $q.= 'DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', AD_USER.DATE_ADDED) DATE_ADDED, ';
-        $q.= 'DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', AD_USER.LAST_UPDATE) LAST_UPDATE, ';
+        $db=Router::instance()->db;
+        $q ='SELECT AD_USER.ID, AD_USER.CONTENT, AD_USER.PURPOSE_ID, AD_USER.SECTION_ID, ';
+        $q.='AD_USER.RTL, AD_USER.STATE, AD_USER.COUNTRY_ID, AD_USER.CITY_ID, ';
+        $q.='AD_USER.LATITUDE, AD_USER.LONGITUDE, AD_USER.WEB_USER_ID, ';
+        $q.='DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', AD_USER.DATE_ADDED) DATE_ADDED, ';
+        $q.='DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', AD_USER.LAST_UPDATE) LAST_UPDATE, ';
         
-        $q.= '(select list(\'"\'||MEDIA.FILENAME||\'":\'||\'[\'||MEDIA.WIDTH||\',\'||MEDIA.HEIGHT||\']\') PICTURES ';
-        $q.= 'from AD_MEDIA left join MEDIA on MEDIA.ID=AD_MEDIA.MEDIA_ID where AD_MEDIA.AD_ID=AD_USER.ID), ';
+        $q.='(select list(\'"\'||MEDIA.FILENAME||\'":\'||\'[\'||MEDIA.WIDTH||\',\'||MEDIA.HEIGHT||\']\') PICTURES ';
+        $q.='from AD_MEDIA left join MEDIA on MEDIA.ID=AD_MEDIA.MEDIA_ID where AD_MEDIA.AD_ID=AD_USER.ID), ';
         
-        $q.= 'WEB_USERS.FULL_NAME, WEB_USERS.DISPLAY_NAME, WEB_USERS.PROFILE_URL, WEB_USERS.LVL, WEB_USERS.USER_RANK ';
+        $q.='WEB_USERS.FULL_NAME, WEB_USERS.DISPLAY_NAME, WEB_USERS.PROFILE_URL, WEB_USERS.LVL, WEB_USERS.USER_RANK ';
         
-        $f = 'FROM AD_USER ';
-        $f.= 'LEFT JOIN WEB_USERS on WEB_USERS.ID=AD_USER.WEB_USER_ID ';
+        $f ='FROM AD_USER ';
+        $f.='LEFT JOIN WEB_USERS on WEB_USERS.ID=AD_USER.WEB_USER_ID ';
 
-        $w = 'where ';
+        $w ='where ';
         
         if ($this->state>6) {
-            $q.= ', ';
-            $q.= 'IIF(T_AD_FEATURED.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', T_AD_FEATURED.ended_date)) featured_date_ended, ';
-            $q.= 'IIF(T_AD_BO.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', T_AD_BO.end_date)) bo_date_ended, WEB_USERS.provider ';
+            $q.=', ';
+            $q.='IIF(T_AD_FEATURED.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', T_AD_FEATURED.ended_date)) featured_date_ended, ';
+            $q.='IIF(T_AD_BO.id is null, 0, DATEDIFF(SECOND, timestamp \'01-01-1970 00:00:00\', T_AD_BO.end_date)) bo_date_ended, WEB_USERS.provider ';
             
-            $f.= 'LEFT JOIN T_AD_BO on T_AD_BO.AD_ID=AD_USER.ID and T_AD_BO.BLOCKED=0 ';
-            $f.= 'LEFT JOIN T_AD_FEATURED on T_AD_FEATURED.AD_ID=AD_USER.ID and current_timestamp between T_AD_FEATURED.added_date and T_AD_FEATURED.ended_date ';
+            $f.='LEFT JOIN T_AD_BO on T_AD_BO.AD_ID=AD_USER.ID and T_AD_BO.BLOCKED=0 ';
+            $f.='LEFT JOIN T_AD_FEATURED on T_AD_FEATURED.AD_ID=AD_USER.ID and current_timestamp between T_AD_FEATURED.added_date and T_AD_FEATURED.ended_date ';
 
-            $w.= "AD_USER.web_user_id={$this->uid} and AD_USER.state={$this->state} ";
-            $o = 'ORDER BY bo_date_ended desc, AD_USER.LAST_UPDATE desc';
+            $w.="AD_USER.web_user_id={$this->uid} and AD_USER.state={$this->state} ";
+            $o ='ORDER BY bo_date_ended desc, AD_USER.LAST_UPDATE desc';
 
         }
         elseif ($this->state>0) {
-            $user = Router::instance()->user;
-            $adLevel= $user->isSuperUser() ? $adLevel=100000000 : 0;
+            $user=Router::instance()->user;
+            $adLevel=$user->isSuperUser() ? $adLevel=100000000 : 0;
             
             $q.= ', ';
             $q.= 'AD_USER.ADMIN_ID, AD_USER.DOC_ID, AD_OBJECT.super_admin, ';
@@ -152,10 +152,10 @@ class AdList extends \SplDoublyLinkedList {
         $l = ' rows ' . (($this->page===0)?1:($this->page*$this->limit)+1) . ' to ' . (($this->page*$this->limit)+$this->limit);
         
         $fixes=[];
-        $st = $db->prepareQuery($q.$f.$w.$o.$l, [\PDO::ATTR_CURSOR=>\PDO::CURSOR_FWDONLY]);
+        $st=$db->prepareQuery($q.$f.$w.$o.$l, [\PDO::ATTR_CURSOR=>\PDO::CURSOR_FWDONLY]);
         if ($st->execute()) {
             while (($rs=$st->fetch(\PDO::FETCH_ASSOC))!==false) {
-                $ad = new Ad();
+                $ad=new Ad();
                 if ($rs['CONTENT'] && $rs['CONTENT'][0]==='"') {
                     $rs['CONTENT']=\trim(\stripcslashes($rs['CONTENT']), '"');
                     $fixes[$rs['ID']]=$rs['CONTENT'];                   
@@ -167,7 +167,7 @@ class AdList extends \SplDoublyLinkedList {
         $st->closeCursor();
         
         
-        $ct = $db->prepareQuery('select count(AD_USER.ID) '.$f.$w);
+        $ct=$db->prepareQuery('select count(AD_USER.ID) '.$f.$w);
         if ($ct->execute()) {
             $row=$ct->fetch(\PDO::FETCH_NUM);
             $this->countAll=$row[0];

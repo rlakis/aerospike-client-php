@@ -182,6 +182,10 @@ class Bin extends AjaxHandler {
             }
         }
         
+        if (!$this->user->isLoggedIn()) {
+            $this->error(self::ERR_USER_UNAUTHORIZED);
+        }
+        
         if ($this->user()->getProfile()->isBlocked()) {
             $this->error(self::ERR_USER_BLOCKED);
         }
@@ -239,10 +243,10 @@ class Bin extends AjaxHandler {
     
     
     function actionSwitch() : void {
-        $err_file = '/var/log/mourjan/editor.log';
+        $err_file='/var/log/mourjan/editor.log';
         $action=\substr($this->router->module, 5);
         $this->resp['command']=$action;
-        //error_log(substr($this->router->module, 5));
+
         switch ($action) {
             
             case 'ajax-sorting':
@@ -4604,130 +4608,95 @@ class Bin extends AjaxHandler {
                     }else $this->fail('102');
                 }else $this->fail('101');
                 break; 
-            case 'ajax-account':
-                $lang=$this->post('lang');
-                if ($lang!=='en' && $lang!=='ar') $lang='ar';
-                $this->load_lang(array('account'), $lang);
-                if ($this->user->info['id']) {
-                    $form=$this->post('form');
-                    $fields=$this->post('fields', 'array');
-                    if ($form && is_array($fields)){
-                        switch($form){
-                            case 'lang':
-                                if (isset($fields['lang']) && in_array($fields['lang'],array('en','ar')) ) {
-                                    if (isset($this->user->info['options']['lang']) && $this->user->info['options']['lang']==$fields['lang']){
-                                        $result=array();
-                                        $result['lang']=array('value',$fields['lang'],($fields['lang']=='ar' ? 'العربية' : 'English' ));
-                                        $this->setData($result,'fields');
-                                        $this->process();
-                                    }else {
-                                        $this->user->info['options']['lang']=$fields['lang'];
-                                        $this->user->update();
-                                        $this->user->updateOptions();
-                                        $result=array();
-                                        $result['lang']=array('value',$fields['lang'],($fields['lang']=='ar' ? 'العربية' : 'English' ));
-                                        $this->setData($result,'fields');
-                                        $this->process();
-                                    }
-                                }else {
-                                    $this->fail('103');
-                                }
-                                break;
-                            case 'name':
-                                if (isset($fields['name']) && mb_strlen($fields['name'])>2 && !preg_match('/[0-9]|[\,\.\'\{}\[\]\@\#\$\%\^\&\*\-\_\+\=\(\)\~\`\?\/\\\]/', $fields['name']) ) {
-                                    if ($this->user->info['name']==$fields['name']){
-                                        $result=array();
-                                        $result['name']=array('value',$fields['name']);
-                                        $this->setData($result,'fields');
-                                        $this->process();
-                                    }else {
-                                        if ($this->urlRouter->db->queryResultArray('update web_users set user_name=? where id=?',array($fields['name'],$this->user->info['id']), true)) {
-                                            $result=array();
-                                            $result['name']=array('value',$fields['name']);
-                                            $this->setData($result,'fields');
-                                            $this->user->info['name']=$fields['name'];
-                                            $this->user->update();
-                                            $this->process();
-                                        }else $this->fail($this->lang['systemErr']);
-                                    }
-                                }else {
-                                    $fields['name']=$this->lang['validName'];
-                                    $this->setData($fields,'fields');
-                                    $this->fail($this->lang['wrongInfo']);
-                                }
-                                break;
-                            case 'email':
-                                if ($this->user->info['id']){
-                                    if(isset($fields['email']) && preg_match('/[a-z0-9!#$%&\'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum)\b/', $fields['email']) ) {
-                                        if ($this->user->info['email']!=$fields['email']) {
-                                            require_once $this->dir.'/bin/utils/MourjanMail.php';
-                                            
-                                            $sessionKey=md5($this->sid.$this->user->info['id'].$this->user->info['provider'].time());
-                                            
-                                            $sKey=$this->user->encodeRequest('email_verify',array($this->user->info['id']));
-                                            $verifyLink=$this->host.'/a/'.($lang=='ar'?'':$lang.'/').'?k='.$sKey.'&key='.urlencode($sessionKey);
-                                            
-                                            $mailer=new MourjanMail($this->urlRouter->cfg, $this->user->info['options']['lang'] ? $this->user->info['options']['lang'] : $this->urlRouter->language);
-                                            if ($mailer->sendEmailValidation($fields['email'],$verifyLink,$this->user->info['name'])){
-                                                $this->user->info['options']['email']=$fields['email'];
-                                                $this->user->info['options']['emailKey']=$sessionKey;
-                                                $this->user->update();
-                                                $this->user->updateOptions();
-                                                $result=array();
-                                                $result['email']=array('value', $fields['email'], '<ok>'.preg_replace('/{email}/', $fields['email'],$this->lang['emailSent']).'</ok>');
-                                                $this->setData($result,'fields');
-                                                $this->process();
-                                            }else $this->fail($this->lang['systemErr']);
-                                        }else {
-                                            unset($this->user->info['options']['email']);
-                                            unset($this->user->info['options']['emailKey']);
-                                            $this->user->update();
-                                            $this->user->updateOptions();
-                                            $result=array();
-                                            $result['email']=array('value', $fields['email']);
-                                            $this->setData($result,'fields');
-                                            $this->process();
-                                        }
-                                    }else {
-                                        $fields['email']=$this->lang['validEmail'];
-                                        $this->setData($fields,'fields');
-                                        $this->fail($this->lang['wrongInfo']);
-                                    }
-                                }else $this->fail('101');
-                                break;
-                            case 'notifications':
-                                $old=$notifications=array('ads'=>1,'coms'=>1, 'news'=>1,'third'=>1);
-                                if (isset($this->user->info['options']['nb']) && is_array($this->user->info['options']['nb'])) $old=$notifications=array_merge($notifications,$this->user->info['options']['nb']);
-                                if (isset($fields['ads']) && $fields['ads']) $notifications['ads']=1;
-                                else $notifications['ads']=0;
-                                if (isset($fields['news']) && $fields['news']) $notifications['news']=1;
-                                else $notifications['news']=0;
-                                if (isset($fields['third']) && $fields['third']) $notifications['third']=1;
-                                else $notifications['third']=0;
-                                if (isset($fields['coms']) && $fields['coms']) $notifications['coms']=1;
-                                else $notifications['coms']=0;
-                                $this->user->info['options']['nb']=$notifications;
-                                if ($this->user->updateOptions()) {                                    
-                                    $this->user->update();
-                                    $result=array();
-                                    $result['ads']=array('checked', ($notifications['ads'] ? 'checked' : ''));
-                                    $result['coms']=array('checked', ($notifications['coms'] ? 'checked' : ''));
-                                    $result['news']=array('checked', ($notifications['news'] ? 'checked' : ''));
-                                    $result['third']=array('checked', ($notifications['third'] ? 'checked' : ''));
-                                    $this->setData($result,'fields');
-                                    $this->process();
-                                }else {
-                                    $this->user->info['options']['nb']=$old;
-                                    $this->user->update();
-                                    $this->fail($this->lang['systemErr']);
-                                }
-                                break;
-                            default:
-                                $this->fail('102');
-                                break;
-                        }
-                    }else $this->fail('101');
-                }else $this->fail($this->lang['sessionTO']);
+                
+            case 'account':
+                $this->authorize(true);
+                $this->load_lang(['account'], $this->router->language);          
+                $notifications=$this->user->info['options']['nb']??['ads'=>1,'coms'=>1, 'news'=>1];
+                
+                /*
+                $name=\filter_var($this->_JPOST['name'], FILTER_SANITIZE_STRING);
+                $email=\filter_var($this->_JPOST['email'], FILTER_VALIDATE_EMAIL);
+                if (!$email) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
+                $feed=\filter_var($this->_JPOST['msg'], \FILTER_SANITIZE_STRING);
+                */
+                
+                $keys=\array_keys($this->_JPOST);
+                foreach ($keys as $key) {
+                    switch ($key) {
+                        case 'lang':
+                            $value=\filter_var($this->_JPOST[$key], FILTER_SANITIZE_STRING);
+                            if (\in_array($value, ['ar', 'en'])) {
+                                $this->user->info['options']['lang']=$value;
+                                $this->user->update();
+                                $this->user->updateOptions();
+                                $this->response($key, $value);
+                            }
+                            break;
+                            
+                        case 'name':
+                            $value=\filter_var($this->_JPOST[$key], FILTER_SANITIZE_STRING);
+                            if (NoSQL::instance()->setUserBin($this->user->id(), \Core\Model\ASD\USER_FULL_NAME , $value)) {
+                                $this->user->info['name']=$value;
+                                $this->user->update();
+                                $this->response($key, $value);
+                            }                            
+                            break;
+                            
+                        case 'email':
+                            $value=\filter_var($this->_JPOST[$key], FILTER_SANITIZE_EMAIL);
+                            $status=IPQuality::getEMailStatus($value);
+                            if ($status['disposable']===1) {
+                                $this->response('email', 'Disposable email is not accepted');
+                                $this->error(self::ERR_DATA_INVALID_EMAIL);
+                            }
+                            if ($status['honeypot']===1) {
+                                $this->response('email', 'Honeypot email is not accepted');
+                                $this->error(self::ERR_DATA_INVALID_EMAIL);
+                            }
+                            if ($status['valid']!==1) {
+                                $this->response('email', 'Invalid email is not accepted');
+                                $this->error(self::ERR_DATA_INVALID_EMAIL);
+                            }
+                            
+                            require_once $this->dir.'/bin/utils/MourjanMail.php';
+                            $lang=$this->user->info['options']['lang']?$this->user->info['options']['lang']:$this->router->language;
+                            $sessionKey=\md5($this->sid.$this->user->id().$this->user->info['provider'].time());                                            
+                            $sKey=$this->user->encodeRequest('email_verify', [$this->user->id()]);
+                            $verifyLink=$this->host.'/a/'.($lang=='ar'?'':$lang.'/').'?k='.$sKey.'&key='.urlencode($sessionKey);
+                            
+                            $mailer=new MourjanMail($lang);
+                            if ($mailer->sendEmailValidation($value, $verifyLink, $this->user->info['name'])) {
+                                $this->user->info['options']['email']=$value;
+                                $this->user->info['options']['emailKey']=$sessionKey;
+                                $this->user->update();
+                                $this->user->updateOptions();
+                                $this->response($key, $value);
+                                $this->response('hint', \preg_replace('/{email}/', $value, $this->lang['emailSent']));  
+                            } 
+                            else {
+                                $this->error(self::ERR_SYS_FAILURE, ['more'=>$this->lang['systemErr']]);
+                            }                            
+                            break;
+                            
+                        case 'ads':
+                        case 'coms':
+                        case 'news':  
+                            $value=\filter_var($this->_JPOST[$key], FILTER_SANITIZE_NUMBER_INT)+0;
+                            $this->response($key, $value);
+                            $notifications[$key]=$value;
+                            $this->user->info['options']['nb']=$notifications;
+                            if ($this->user->updateOptions()) {
+                                $this->user->update();
+                            }
+                            break;
+                        
+                        default:
+                            break;
+                    }
+                }                
+                $this->success();                             
+                
                 break;
 
             case 'ajax-support':

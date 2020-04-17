@@ -276,7 +276,7 @@ class IPQuality {
                 }                
             } 
             catch (RedisException $re) {
-                \error_log($re->getMessage());
+                \error_log(__FUNCTION__.'.RedisException '. $re->getMessage());
             }
             finally {
                 $redis->close();

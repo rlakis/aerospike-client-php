@@ -29,9 +29,11 @@ class MyAds extends Page {
     
     function __construct() {
         parent::__construct();    
+        
         if (!$this->user()->isLoggedIn()) {
             $this->user()->redirectTo($this->router->getLanguagePath('/signin/'));
         }
+               
         if ($this->router->config->isMaintenanceMode()) {
             $this->user->redirectTo($this->router->getLanguagePath('/maintenance/'));
         }
@@ -516,8 +518,8 @@ class MyAds extends Page {
         
         
         if ($this->adList->count()>0) {
-            $hasPrevious = ($this->adList->page()>0);
-            $hasNext = (($this->adList->page()*$this->adList->limit())<$this->adList->dbCount());
+            $hasPrevious=($this->adList->page()>0);
+            $hasNext=(($this->adList->page()*$this->adList->limit())<$this->adList->dbCount());
             
             $renderAssignedAdsOnly = ($state>0 && $state<4);
                                

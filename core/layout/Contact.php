@@ -85,8 +85,7 @@ class Contact extends Page {
         }
         
         ?><p class="ph phm"><?= $this->lang['header'] ?></p><div class="card-content"><form onsubmit="vf(this);return false;"><?php
-        ?><div class=row>
-            <div class=group>
+        ?><div class=row><div class=group>
             <input type=text required onkeydown="dirElem(this)" onchange="dirElem(this)" type=text id=name value="<?= $name ?>" <?= $name ? "readonly":"" ?> /><?php
             if (!$this->user()->isLoggedIn()) {
                 echo '<label>', $this->lang['hint_name'], '</label>';
