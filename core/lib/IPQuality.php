@@ -123,8 +123,7 @@ class IPQuality {
     public static function ipScore($mobile=null) : float {
         $ip = static::getClientIP();
         
-        //$ip = $ipq->get_client_ip_server();
-        if ($ip!='UNKNOWN') {
+        if ($ip!=='UNKNOWN') {
             $redis = new Redis();
             try {                              
                 if ($redis->connect('h5.mourjan.com', 6379, 1, NULL, 50)) {
@@ -326,18 +325,18 @@ class IPQuality {
     }
 
 
-    public static function fetchJson(bool $mobile) : array {
+    public static function fetchJson(bool $mobile=false) : array {
         $ret = ['datetime'=>date("Y-m-d H:i:s"), 
                 'ip'=>static::getClientIP(), 
                 'agent'=>$_SERVER['HTTP_USER_AGENT']??'', 
                 'data'=>[], 
                 'ipquality'=>null];
         
-        if ($ret['ip']=='UNKNOWN') {
-            $ret['error'] = "Unknown IP address";
+        if ($ret['ip']==='UNKNOWN') {
+            $ret['error']="Unknown IP address";
         }
         else {
-            $redis = new Redis();
+            $redis=new Redis;
             try {                  
                 if ($redis->connect('h5.mourjan.com', 6379, 1, NULL, 50)) {
                     $redis->select(3);
@@ -361,29 +360,29 @@ class IPQuality {
             catch (RedisException $re) {}
            
             if (empty($ret['ipquality'])) {
-                $ipq = new IPQuality;
+                $ipq=new IPQuality;
                 if ($mobile===TRUE) {
-                    $raw = $ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?strictness=%s&allow_public_access_points=%s&mobile=%s', $ipq->key, $ret['ip'], 3, 'false', 'true')); 
+                    $raw=$ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?strictness=%s&allow_public_access_points=%s&mobile=%s', $ipq->key, $ret['ip'], 3, 'false', 'true')); 
                 }
                 else {
-                    $user_agent = urlencode($ret['agent']); // User Browser (optional) - provides better forensics for our algorithm to enhance fraud scores.
-                    $language = urlencode($_SERVER['HTTP_ACCEPT_LANGUAGE']??''); // User System Language (optional) - provides better forensics for our algorithm to enhance fraud scores.
-                    $raw = $ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?user_agent=%s&user_language=%s&strictness=%s&allow_public_access_points=%s', $ipq->key, $ret['ip'], $user_agent, $language, 3, 'false'));                
+                    $user_agent=\urlencode($ret['agent']); // User Browser (optional) - provides better forensics for our algorithm to enhance fraud scores.
+                    $language=\urlencode($_SERVER['HTTP_ACCEPT_LANGUAGE']??''); // User System Language (optional) - provides better forensics for our algorithm to enhance fraud scores.
+                    $raw=$ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?user_agent=%s&user_language=%s&strictness=%s&allow_public_access_points=%s', $ipq->key, $ret['ip'], $user_agent, $language, 3, 'false'));                
                 }
-                $result = json_decode($raw, true);
+                $result=\json_decode($raw, true);
                 if ($result!==null) {
                     if (isset($result['request_id'])) { unset($result['request_id']); }
                     $ret['ipquality']=$result;
                     
-                    if (isset($result['tor'])) { $result['tor'] = $result['tor'] ? 1 : 0; }
-                    if (isset($result['vpn'])) { $result['vpn'] = $result['vpn'] ? 1 : 0; }
-                    if (isset($result['proxy'])) { $result['proxy'] = $result['proxy'] ? 1 : 0; }
-                    if (isset($result['mobile'])) { $result['mobile'] = $result['mobile'] ? 1 : 0; }
-                    if (isset($result['is_crawler'])) { $result['is_crawler'] = $result['is_crawler'] ? 1 : 0; }
-                    if (isset($result['success'])) { $result['success'] = $result['success'] ? 1 : 0; }
-                    if (isset($result['recent_abuse'])) { $result['recent_abuse'] = $result['recent_abuse'] ? 1 : 0; }
+                    if (isset($result['tor'])) { $result['tor']=$result['tor'] ? 1 : 0; }
+                    if (isset($result['vpn'])) { $result['vpn']=$result['vpn'] ? 1 : 0; }
+                    if (isset($result['proxy'])) { $result['proxy']=$result['proxy'] ? 1 : 0; }
+                    if (isset($result['mobile'])) { $result['mobile']=$result['mobile'] ? 1 : 0; }
+                    if (isset($result['is_crawler'])) { $result['is_crawler']=$result['is_crawler'] ? 1 : 0; }
+                    if (isset($result['success'])) { $result['success']=$result['success'] ? 1 : 0; }
+                    if (isset($result['recent_abuse'])) { $result['recent_abuse']=$result['recent_abuse'] ? 1 : 0; }
                     if (isset($result['message']) && $result['message']=='Success') { unset($result['message']); }
-                    $raw = json_encode($result);
+                    $raw=\json_encode($result);
                     try {
                         if (!$redis->isConnected()) {
                             if ($redis->connect('h5.mourjan.com', 6379, 1, NULL, 50)) {
@@ -400,7 +399,7 @@ class IPQuality {
                     }
                 }
                 else {
-                    $ret['error'] = "Could not get ip record";
+                    $ret['error']="Could not get ip record";
                 }
                 $redis->close();
             }
@@ -410,13 +409,13 @@ class IPQuality {
     
     
     public static function fetch(bool $mobile) : string {
-        $ip = static::getClientIP();        
+        $ip=static::getClientIP();        
         if ($ip=='UNKNOWN') {
             error_log("Unknown IP address");
             return json_encode(['IP'=>'Unknown']);
         }
         
-        $redis = new Redis();
+        $redis=new Redis();
         try {                  
             if ($redis->connect('h5.mourjan.com', 6379, 1, NULL, 50)) {
                 $redis->select(3);
@@ -438,19 +437,19 @@ class IPQuality {
         } 
         catch (RedisException $re) {}
         
-        $ipq = new IPQuality;
+        $ipq=new IPQuality;
         if ($mobile===TRUE) {
-            $raw = $ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?strictness=%s&allow_public_access_points=%s&mobile=%s', $ipq->key, $ip, 3, 'false', 'true')); 
+            $raw=$ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?strictness=%s&allow_public_access_points=%s&mobile=%s', $ipq->key, $ip, 3, 'false', 'true')); 
         }
         else {
-            $user_agent = urlencode($_SERVER['HTTP_USER_AGENT']??''); // User Browser (optional) - provides better forensics for our algorithm to enhance fraud scores.
-            $language = urlencode($_SERVER['HTTP_ACCEPT_LANGUAGE']??''); // User System Language (optional) - provides better forensics for our algorithm to enhance fraud scores.
-            $raw = $ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?user_agent=%s&user_language=%s&strictness=%s&allow_public_access_points=%s', $ipq->key, $ip, $user_agent, $language, 3, 'false'));                
+            $user_agent=urlencode($_SERVER['HTTP_USER_AGENT']??''); // User Browser (optional) - provides better forensics for our algorithm to enhance fraud scores.
+            $language=urlencode($_SERVER['HTTP_ACCEPT_LANGUAGE']??''); // User System Language (optional) - provides better forensics for our algorithm to enhance fraud scores.
+            $raw=$ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?user_agent=%s&user_language=%s&strictness=%s&allow_public_access_points=%s', $ipq->key, $ip, $user_agent, $language, 3, 'false'));                
         }
         
-        $result = json_decode($raw, true);
+        $result=json_decode($raw, true);
         if ($result!==null) {
-            $raw = json_encode($result);
+            $raw=json_encode($result);
             try {
                 if (!$redis->isConnected()) {
                     if ($redis->connect('h5.mourjan.com', 6379, 1, NULL, 50)) {
@@ -517,7 +516,7 @@ class IPQuality {
     }
 
 
-    public static function getClientIP() {
+    public static function getClientIP() : string {
         if ($_SERVER['REMOTE_ADDR']) { return $_SERVER['REMOTE_ADDR']; }
         if ($_SERVER['HTTP_CLIENT_IP']) { return $_SERVER['HTTP_CLIENT_IP']; }
         if ($_SERVER['HTTP_X_FORWARDED_FOR']) { return $_SERVER['HTTP_X_FORWARDED_FOR']; }
@@ -525,31 +524,6 @@ class IPQuality {
         if ($_SERVER['HTTP_FORWARDED_FOR']) { return $_SERVER['HTTP_FORWARDED_FOR']; }
         if ($_SERVER['HTTP_FORWARDED']) { return $_SERVER['HTTP_FORWARDED']; }        
         return 'UNKNOWN';
-    }
-    
-    
-    function get_client_ip_server() {
-        $ipaddress = 'UNKNOWN';
-        if ($_SERVER['REMOTE_ADDR']) {
-            $ipaddress = $_SERVER['REMOTE_ADDR'];
-        }
-        else if ($_SERVER['HTTP_CLIENT_IP']) {
-            $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
-        }
-        else if($_SERVER['HTTP_X_FORWARDED_FOR']) {
-            $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        }
-        else if($_SERVER['HTTP_X_FORWARDED']) {
-            $ipaddress = $_SERVER['HTTP_X_FORWARDED'];
-        }
-        else if($_SERVER['HTTP_FORWARDED_FOR']) {
-            $ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
-        }
-        else if($_SERVER['HTTP_FORWARDED']) {
-            $ipaddress = $_SERVER['HTTP_FORWARDED'];
-        }        
- 
-        return $ipaddress;
-    }
+    }           
 		
 }

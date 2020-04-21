@@ -60,7 +60,7 @@ class Classifieds {
     const PRICE                 = 46;
     
     const RERA                  = 47;
-    
+    const ATTRS                 = 80;
     const DONE                  = 99;
 
     private $stmt_get_ad = null;
@@ -70,13 +70,13 @@ class Classifieds {
 
     private $db;
     
-    private $formatNumbers='LB';
+    private string $formatNumbers='LB';
     private $mobileValidator=null;
     
-    private $isDebugMode=false;
+    private bool $isDebugMode=false;
 
     function __construct($database){
-        $this->db = $database;
+        $this->db=$database;
     }
 
     
@@ -89,7 +89,7 @@ class Classifieds {
             
     
     function getAd(int $id, array $cache=[]) : Ad {
-        $result = $cache[$id] ?? $this->db->getCache()->get($id);
+        $result=$cache[$id] ?? $this->db->getCache()->get($id);
         if ($result===false) { $result=$this->getById($id); }
         return new Ad($result===false?[]:$result);
     }
@@ -220,10 +220,10 @@ class Classifieds {
             $ad[Classifieds::DONE]=0;
             
             // parser
-            $decoder = json_decode($row['USER_CONTENT'], true);    
+            $decoder=\json_decode($row['USER_CONTENT'], true);    
             
             $this->stmt_get_media->execute([$id]);
-            while (($media=$this->stmt_get_media->fetch(\PDO::FETCH_ASSOC)) !== false) {
+            while (($media=$this->stmt_get_media->fetch(\PDO::FETCH_ASSOC))!==false) {
                 $ad[Classifieds::PICTURES][]=$media['FILENAME'];
                 $ad[Classifieds::PICTURES_DIM][]=[$media['WIDTH'], $media['HEIGHT']];
             }
@@ -260,7 +260,7 @@ class Classifieds {
                         
             $this->normalizeContacts($ad);
 
-            $res = $this->db->getCache()->setEx($id, 180*86400, $ad);
+            $res=$this->db->getCache()->setEx($id, 180*86400, $ad);
             if ($res===false) { \error_log("Classifieds->getById: Cound not set ad {$id} to redis cache"); }
         }
         return $ad;

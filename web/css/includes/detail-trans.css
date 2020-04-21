@@ -30,24 +30,107 @@
 .dtad .pics::-ms-fullscreen .large-pic-container {height: calc(100vh - 144px);}
 .dtad .pics:fullscreen .large-pic-container {height: calc(100vh - 144px);}
 
-.dtad .social{display:inline-flex;flex-flow:column;height:44px;border-bottom:1px solid  var(--mColor70);margin-bottom:16px}
-.dtad .info{font-size:30px;color:#475660}
+.dtad .social{
+    display:flex;
+    flex-flow:row;
+    align-items: center;
+    height:44px;
+    border-bottom:1px solid var(--mdc30);
+    margin-bottom:16px
+}
+
+.dtad .social a {
+    display: inline-flex;
+    align-items: center;
+    font-size: 17.3pt;
+    font-weight: 700;
+    margin-inline-end: 32px;
+}
+.dtad .social a:last-child {
+    margin-inline-end: 0;
+}
+
+.dtad .social a>i {
+    margin-inline-end: 4px;
+}
+
+.dtad .top {
+    display: inherit;
+    line-height: 1em;
+    margin-bottom: 32px;
+}
+.dtad .info{font-size:30px;line-height: 1.4em; color:#475660}
 .dtad .attrs{display:inherit;flex-flow:row;height:162px;margin-bottom:16px;justify-content:space-between}
-.dtad .attrs .widget{display:inline; width:130px;height:130px;border-radius:8px; border:1px solid var(--mColor40)}
+.dtad .attrs .widget{
+    display:inline-flex; 
+    flex-flow: column;
+    align-items: center;
+    width:130px;
+    height:130px;
+    border-radius:8px;
+    border:1px solid var(--mdc40)
+}
+.dtad .attrs .widget img {
+    width: 28px;
+    height: 28px;
+    margin-block-start: 24px;
+    margin-block-end: 2px;
+    margin-inline-start: auto;
+    margin-inline-end: auto;
+    filter: var(--mseFilter);
+}
+.dtad .attrs .widget span {
+    margin-block-end:16px;
+    font-weight: 300;
+    font-size: 12pt;    
+}
+.dtad .attrs .widget div {
+    overflow: hidden;
+    text-align: center;
+    font-size: 16pt;
+    font-weight: 700;
+    line-height: 1.5em;
+    word-break: normal;
+}
 .dtad .txt{}
 .dtad .txt p{line-height:1.5em}
-.dtad .contacts{display: inherit; background-color: #eee;margin-top:16px}
-.dtad .contacts a{display:inherit;align-items:center;color:white;height:48px;padding:0 12px 0 4px;border-radius:6px;font-size:15px;font-weight:bold}
-.dtad .contacts a+a{margin-inline-start:12px}
+.dtad .txt p::first-line{font-weight: 500}
+.dtad .contacts{
+    display: inherit;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-top:16px
+}
+.dtad .contacts a{
+    display:inherit;
+    flex-basis: 45%;
+    align-items:center;
+    color:white;
+    height:48px;
+    padding:0 12px 0 4px;
+    border-radius:6px;
+    font-size:15px;
+    font-weight:700
+}
+/*.dtad .contacts a+a{margin-inline-start:12px}*/
 .dtad .contacts a:before{content:"\00a0"}
 .dtad .phone, .whats, .mobile{background-color:#2acf8e}
-.dtad .phone:before,.whats:before,.mobile:before{margin-inline-end:16px;border-inline-end:1px solid black;filter:invert(1);width:40px}
+.dtad .phone:before,.whats:before,.mobile:before,.mail:before{margin-inline-end:16px;border-inline-end:1px solid black;filter:invert(1);width:40px}
 .dtad .phone:before{background:url(https://dev.mourjan.com/css/2020/1.0/fa/regular/phone.svg) no-repeat center}
 .dtad .whats:before{background:url(https://dev.mourjan.com/css/2020/1.0/fa/brands/whatsapp.svg) no-repeat center}
-.dtad .mobile:before{background:url(https://dev.mourjan.com/css/2020/1.0/fa/regular/mobile.svg) no-repeat center}
+.dtad .mobile:before{background:url(https://dev.mourjan.com/css/2020/1.0/fa/light/mobile.svg) no-repeat center}
+.dtad .mail:before{background:url(https://dev.mourjan.com/css/2020/1.0/fa/light/envelope.svg) no-repeat center}
 
-.dtad .tail{display: inherit;flex: 1 auto;margin-bottom: 40px}
+.dtad .tail{display: inherit;flex-basis: 100%; margin-bottom: 40px;margin-inline-end:28px}
 .dtad .tail .report{cursor:pointer}
 .dtad .tail p{display:inherit;align-self:flex-end;margin-top:8px;font-size:14px}
 .dtad .tail p>b{color:#FF6167;margin:0 4px 0 8px}
-.dtad .banners{padding-inline-start:16px}
+.dtad .banners{margin-inline-start:16px}
+
+.icn.star {
+  background: url(https://dev.mourjan.com/css/2020/1.0/fa/regular/star.svg) no-repeat center
+}
+
+.icn.share {
+  background: url(https://dev.mourjan.com/css/2020/1.0/fa/regular/share-alt.svg) no-repeat center
+}

@@ -1137,9 +1137,9 @@ class Search extends Page {
     }
     
     
-    private function adSlot() : void {
+    private function adSlot(string $format='auto') : void {
         if ($this->router->config->enabledAds()) {
-            ?><ins class="adsbygoogle" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="auto" data-full-width-responsive="true"></ins><?php
+            ?><ins class="adsbygoogle" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="<?=$format?>" data-full-width-responsive="true"></ins><?php
             ?><script><?php
             ?>(adsbygoogle = window.adsbygoogle || []).push({});<?php
             ?></script><?php
@@ -1591,6 +1591,10 @@ class Search extends Page {
                     echo $followStr;
                     ?></div></div></div><!--googleon: index --><?php
                 }
+                
+                if ($this->router->module==='detail') {
+                    $this->adSlot('horizontal');
+                }
             } 
         }
         else {
@@ -2037,7 +2041,7 @@ class Search extends Page {
             }
             
             if ($isDetail) {
-                return '<b>' . $section . '</b>';
+                return $section;
             }
             else {
                 return (\stristr($section,'<li>')) ? '<ul>'.$section.'</ul>' : $section;    
@@ -3745,11 +3749,15 @@ class Search extends Page {
             $this->crumbString='<div class=row><div class="col-12 breadcrumb">'.\implode('', $bc).'</ul><span>'.$this->getResulstHint($forceSetting).'</span></div></div>';
         }
         else {
-            $this->crumbString='<div class=row><div class="col-12 breadcrumb">'.\implode('', $bc).'</ul><span></span></div></div>';
-            
+            $this->crumbString='<div class=row><div class="col-12 breadcrumb">'.\implode('', $bc).'</ul><span>';
+            if ($this->user->isLoggedIn(9)) {
+                $this->crumbString.='<a class="btn" href="/myads/?u='.$this->detailAd->uid().'">User '.$this->detailAd->uid().' ads</a>';
+            }
+             $this->crumbString.='</span></div></div>';            
         }
       
         if ($tempTitle) { $this->title=$tempTitle;  }
+        
         return $this->crumbString;
     }
 

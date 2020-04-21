@@ -2628,16 +2628,16 @@ class Page extends Site {
 
     function header() : void {
         ?><link rel='preconnect' href='https//c6.mourjan.com' /><?php    
-        ?><link rel="preconnect" href="https://fonts.googleapis.com"><?php
+        ?><link rel="preconnect" href="https://fonts.googleapis.com" /><?php
         
-        ?><link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin><?php
+        ?><link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin /><?php
 
         ?><link rel='preconnect' href='https://pagead2.googlesyndication.com' /><?php
         ?><link rel='preconnect' href='https://googleads.g.doubleclick.net' /><?php
-        ?><link rel="preconnect" href="https://adservice.google.com"><?php
-        ?><link rel="preconnect" href="https://www.googletagservices.com"><?php
+        ?><link rel="preconnect" href="https://adservice.google.com" /><?php
+        ?><link rel="preconnect" href="https://www.googletagservices.com" /><?php
         ?><link rel='preconnect' href='https://tpc.googlesyndication.com' /><?php
-        ?><link rel="preconnect" href="https://www.google-analytics.com"><?php
+        ?><link rel="preconnect" href="https://www.google-analytics.com" /><?php
         
         ?><meta name="google-site-verification" content="v7TrImfR7LFmP6-6qV2eXLsC1qJSZAeKx2_4oFfxwGg" /><?php
         if ($this->userFavorites){
@@ -2729,33 +2729,26 @@ class Page extends Site {
             'promote'=>['ar'=>'سّوق', 'en'=>'PROMOTE'], 'service'=>['ar'=>'خدماتــــــــــــــك', 'en'=>'YOUR SERVICES'],
             ];
         $ln=$this->router->language;
-        ?><div class="row ff-cols viewable" style="box-shadow:0 -5px 5px -5px var(--mColor10);">            
-            <div class="col-12 mhbanner">
-                <img src="<?=$this->router->config->imgURL?>/emblem.svg" />
-                <div>
-                <div class=p1>                    
-                    <div><span class="um"><?=$words['sell'][$ln]?></span><span class="sm l1"><?=$words['car'][$ln]?></span></div><?php
-                    if ($ln==='ar') {
-                        ?><div><span class="um"><?=$words['buy'][$ln]?></span><span class="sm l4"><?=$words['house'][$ln]?></span></div><?php                        
-                        ?><div><span class="um"><?=$words['find'][$ln]?></span><span class="sm l2"><?=$words['job'][$ln]?></span></div><?php
-                        ?><div><span class="um"><?=$words['advert'][$ln]?></span><span class="sm l3"><?=$words['business'][$ln]?></span></div><?php
-                    }
-                    else {
-                        ?><div><span class="um"><?=$words['find'][$ln]?></span><span class="sm l2"><?=$words['job'][$ln]?></span></div><?php
-                        ?><div><span class="um"><?=$words['advert'][$ln]?></span><span class="sm l3"><?=$words['business'][$ln]?></span></div><?php
-                        ?><div><span class="um"><?=$words['buy'][$ln]?></span><span class="sm l4"><?=$words['house'][$ln]?></span></div><?php
-                    }
-                    ?><div><span class="um"><?=$words['promote'][$ln]?></span><span class="sm l5"><?=$words['service'][$ln]?></span></div>
-                </div>
-                <div class="col-12 mfbanner"><div class=slogan><?=$this->lang['slogan']?>.</div><a class=btn href=<?=$this->router->getLanguagePath('/post/')?>><?=$this->lang['placeAd']?></a></div>
-                </div>
-            </div>                        
-        </div><?php
+        ?><div class="row ff-cols viewable"><div class="col-12 mhbanner"><img src="<?=$this->router->config->imgURL?>/emblem.svg" /><?php
+        ?><div><div class=p1><div><span class=um><?=$words['sell'][$ln]?></span><span class="sm l1"><?=$words['car'][$ln]?></span></div><?php
+        if ($ln==='ar') {
+            ?><div><span class="um"><?=$words['buy'][$ln]?></span><span class="sm l4"><?=$words['house'][$ln]?></span></div><?php                        
+            ?><div><span class="um"><?=$words['find'][$ln]?></span><span class="sm l2"><?=$words['job'][$ln]?></span></div><?php
+            ?><div><span class="um"><?=$words['advert'][$ln]?></span><span class="sm l3"><?=$words['business'][$ln]?></span></div><?php
+        }
+        else {
+            ?><div><span class="um"><?=$words['find'][$ln]?></span><span class="sm l2"><?=$words['job'][$ln]?></span></div><?php
+            ?><div><span class="um"><?=$words['advert'][$ln]?></span><span class="sm l3"><?=$words['business'][$ln]?></span></div><?php
+            ?><div><span class="um"><?=$words['buy'][$ln]?></span><span class="sm l4"><?=$words['house'][$ln]?></span></div><?php
+        }
+        ?><div><span class="um"><?=$words['promote'][$ln]?></span><span class="sm l5"><?=$words['service'][$ln]?></span></div></div><?php
+        ?><div class="col-12 mfbanner"><div class=slogan><?=$this->lang['slogan']?>.</div><a class=btn href=<?=$this->router->getLanguagePath('/post/')?>><?=$this->lang['placeAd']?></a></div><?php
+        ?></div></div></div><?php
         }
         
         // premuim promotion
         ?><div class=row><div class=col-12 style="background-color:white;height:90px;align-items:center;justify-content:center;line-height:1.8em"><?php
-            ?><img src="<?=$this->router->config->imgURL?>/premium-<?=$this->router->language?>.svg" width="284"/><?php
+            ?><img src="<?=$this->router->config->imgURL?>/premium-<?=$this->router->language?>.svg" width=284 /><?php
             ?><span style="height:43px;width:2px;background-color:var(--mColor03);margin:0 24px"></span><?php
             ?><div style="color:var(--mColor03);"><?php
             ?><span style="font-size:20pt;font-weight:bold"><?=$this->lang['go_premium']?>!</span><br><?php
@@ -2777,7 +2770,7 @@ class Page extends Site {
         
         ?><footer class=row><div class="viewable ff-rows"><?php
         ?><div class="col-4 ff-cols"><?php
-        ?><img class=invert src="<?=$this->router->config->imgURL?>/mc-<?=$this->router->language?>.svg" width=200/><?php
+        ?><img class=invert src="<?=$this->router->config->imgURL?>/mc-<?=$this->router->language?>.svg" width=200 /><?php
         //<!--<div class="apps bold" style="margin-inline-start:40px;">24/7 Customer Service<br/>+961-70-424-018</div>-->
         ?><div class=addr><?php
         if ($this->router->isArabic()) {
@@ -2814,324 +2807,32 @@ class Page extends Site {
         ?></ul></div><?php
         
         ?><div class="col-4 ff-cols"><ul><?php
-        ?><li class="bold"><?=$this->lang['ex_deals_app']?>:</li>
-        <li class="no-border"><div class=apps>
-            <a rel=noopener target=_blank href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a>
-            <a rel=noopener target=_blank href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a>
-        </div></li><?php
-            /*
+        ?><li class=bold><?=$this->lang['ex_deals_app']?>:</li><?php
+        ?><li class="no-border"><div class=apps><?php
+            ?><a rel=noopener target=_blank href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a><?php
+            ?><a rel=noopener target=_blank href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a><?php
+        ?></div></li><?php
+        /*
             <li class="bold" style="border-bottom:none"><?=$this->lang['followUs']?> @mourjan&nbsp;&nbsp;&nbsp;
                 <img class="invert" src="<?=$this->router->config->imgURL?>/../fa/brands/facebook.svg" style="margin: 0 6px; width:30px"/>
                 <img class="invert" src="<?=$this->router->config->imgURL?>/../fa/brands/twitter.svg" style="margin: 0 6px; width:30px"/>
                 <img class="invert" src="<?=$this->router->config->imgURL?>/../fa/brands/instagram.svg" style="margin: 0 6px; width:30px"/>
             </li>
-             * 
-             */
+         * 
+         */
         ?></ul></div></div><?php
             
         if ($this->router->module==='index') {
             ?><div class="row viewable mt-64"><div class=col-12><div class="card regions"><?php
             ?><header><i class="icn icn-region invert"></i><h4><span style="color:white;font-size:36px"><?=$this->lang['mourjan']?></span> <?=$this->lang['around_mst']?></h4></header><?php
             ?><div class=card-content><div class=row><?php
-            echo '<dl class="dl col-4">', $cc['ae'], $cc['bh'], $cc['qa'], $cc['kw'], '</dl>', "\n"; 
-            echo '<dl class="dl col-4">', $cc['sa'], $cc['om'], $cc['iq'], '</dl>', "\n"; 
-            echo '<dl class="dl col-4">', $cc['lb'], $cc['jo'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], '</dl>', "\n"; 
-        ?></div></div></div></div></div><?php
+            echo '<dl class="dl col-4">', $cc['ae'], $cc['bh'], $cc['qa'], $cc['kw'], '</dl>'; 
+            echo '<dl class="dl col-4">', $cc['sa'], $cc['om'], $cc['iq'], '</dl>'; 
+            echo '<dl class="dl col-4">', $cc['lb'], $cc['jo'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], '</dl>'; 
+            ?></div></div></div></div></div><?php
         }
 
-        ?></footer><?php
-                       
-
-       
-        
-        if (1) { return; }
-        
-        
-        $adLang='';
-        if ($this->router->language!="ar") { $adLang=$this->router->language.'/'; }
-        if ($this->router->module=='about') $this->router->cfg['enabled_sharing']=true;
-        if ((!$this->user->info['id'] ||  ($this->user->info['id'] && $this->user->info['level']!=9)) && $this->router->module=='search' && !$this->userFavorites && !$this->router->watchId && !$this->router->userId) {
-            $this->globalScript.='var upem=1;';
-            if (isset($this->searchResults['media']) && $this->searchResults['media']['total_found']>0) {
-                if ($this->searchResults['media']['total_found']>2) {
-                    $k=0;
-                    $images_widths = array();
-                    $j=4;
-                    $ad_cache = $this->router->db->getCache()->getMulti($this->searchResults['media']['matches']);
-                    $ad_count = count($this->searchResults['media']['matches']);
-                    if($j > $ad_count) $j = $ad_count;
-                    if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp'] = []; }
-                    ?><h4 class="peh w"><?= $this->lang['we_suggest'] ?></h4><?php
-                    ?><ul class="pe pe<?= $j ?> w"><?php
-                    
-                    for ($ptr = 0; $ptr < $j; $ptr++) {
-                        $id = $this->searchResults['media']['matches'][$ptr];
-                        $ad = $this->classifieds->getById($id,false,$ad_cache);
-                        if(is_null($ad[Classifieds::PICTURES]) || count($ad[Classifieds::PICTURES])==0){
-                            continue;
-                        }
-                        if (isset($this->user->info['level'])) {
-                            if (!($this->user->info['level'] == 9 || $this->user->info['id'] == $ad[Classifieds::USER_ID])) {
-                                $this->stat['ad-imp'][]=$id;
-                            }
-                        } 
-                        else {
-                            if(isset($this->mediaResults["matches"][$id])){
-                                $this->stat['ad-imp'][]=$id;
-                            }
-                        }
-                        if (!empty($ad[Classifieds::ALT_CONTENT])) {
-                            if ($this->router->language == "en" && $ad[Classifieds::RTL]) {
-                                $ad[Classifieds::TITLE] = $ad[Classifieds::ALT_TITLE];
-                                $ad[Classifieds::CONTENT] = $ad[Classifieds::ALT_CONTENT];
-                                $ad[Classifieds::RTL] = 0;
-                            } elseif ($this->router->language == "ar" && $ad[Classifieds::RTL] == 0) {
-                                $ad[Classifieds::TITLE] = $ad[Classifieds::ALT_TITLE];
-                                $ad[Classifieds::CONTENT] = $ad[Classifieds::ALT_CONTENT];
-                                $ad[Classifieds::RTL] = 1;
-                            }
-                        }
-
-                        $isNewToUser = (isset($this->user->params['last_visit']) && $this->user->params['last_visit'] && $this->user->params['last_visit'] < $ad[Classifieds::UNIXTIME]);
-                        $newSpan = '';
-                        if ($isNewToUser) {
-                            $newSpan.="<span class='nw'></span>";
-                        }
-                        $_link = sprintf($ad[Classifieds::URI_FORMAT], ($this->router->language == 'ar' ? '' : $this->router->language . '/'), $ad[Classifieds::ID]).'?ref=mediabox';
-                        
-                        if (isset($ad[Classifieds::VIDEO]) && $ad[Classifieds::VIDEO]){
-                            $images_widths[$k]=array(400,300);
-                            $pic = $ad[Classifieds::VIDEO][2];
-                            $this->globalScript.='sic["e' . $ad[Classifieds::ID] . '"]="<img class=\"ik'.$k.'\" src=\"' . $ad[Classifieds::VIDEO][2] .'&amp;autohide=1\" />";';
-                        }else{
-                            $pics = $ad[Classifieds::PICTURES];
-                            $picsCount=count($ad[Classifieds::PICTURES]);
-
-                            if (isset($ad[Classifieds::PICTURES_DIM])) {
-                                $oPics= $ad[Classifieds::PICTURES_DIM];
-
-                            } else {
-                                $oPics= array(0=>array(400,300));
-                                $picsCount = 1;
-
-                            }
-                            $widths=array();
-                            
-                            for($i=0;$i<$picsCount;$i++){
-                                    $oPics[$i][2]=$pics[$i];
-                                    $widths[$i]=$oPics[$i][0];
-                            }
-                            array_multisort($widths, SORT_DESC, $oPics);
-
-                            for($i=0;$i<$picsCount;$i++){
-                                if(isset($oPics[$i][0]) && $oPics[$i][1]){
-                                    $images_widths[$k]=array($oPics[$i][0],$oPics[$i][1]);
-                                    $pic = $oPics[$i][2];
-                                    if($this->router->isAcceptWebP){
-                                        $pic = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pic);
-                                    }
-                                    $this->globalScript.='sic["e' . $ad[Classifieds::ID] . '"]="<img class=\"ik'.$k.'\" src=\"' . $this->router->cfg['url_ad_img'] . '/repos/m/' . $pic . '\" />";';
-                                }
-                            }
-                        }
-                        
-                        $caption = $this->BuildExcerpts($ad[Classifieds::CONTENT],25,'..');
-                        
-                        ?><li id="e<?= $ad[Classifieds::ID] ?>"><a class="<?= $ad[Classifieds::RTL] ? 'ar':'en' ?>" href="<?= $_link ?>"><span class="ik load ik<?= $k ?>"></span><br /><?= $caption ?></a></li><?php 
-                        $k++;
-                    }
-                    ?></ul><?php
-                    $i=0;
-                    ?><style><?php
-                    foreach ($images_widths as $dim){
-                        $width = $dim[0];
-                        $height = $dim[1];
-                        $margin=0;
-                        if($width >= $height){
-                            if($j==4){
-                                if($width>210){
-                                    $height = floor(210 * $height / $width);
-                                    $width = 210;
-                                }
-                                if($height < 210){
-                                    $margin = ceil((210 - $height)/2);
-                                }
-                            }else{
-                                if($width>290){
-                                    $height = floor(290 * $height / $width);
-                                    $width = 290;
-                                }
-                                if($height < 290){
-                                    $margin = ceil((290 - $height)/2);
-                                }
-                            }
-                        }else{
-                            if($j==4){
-                                if($height > 210){
-                                    $width = floor(210 * $width / $height);
-                                    $height = 210;
-                                }
-                                if($height < 210){
-                                    $margin = ceil((210 - $height)/2);
-                                }
-                            }else{                                
-                                if($height > 290){
-                                    $width = floor(290 * $width / $height);
-                                    $height = 290;
-                                }
-                                if($height < 290){
-                                    $margin = ceil((290 - $height)/2);
-                                }
-                            }
-                        }
-                        ?>.ik<?= $i ?>{width:<?= $width  ?>px;height:<?= $height ?>px;margin:<?= $margin ?>px 0}<?php
-                        $i++;
-                    }
-                    ?></style><?php
-                    ?><br /><div class="adLnk"><a href="/post/<?= $this->router->language=='ar'?'':'en/' ?>" class="bt"><?= $this->lang['addAd'] ?></a></div><?php
-                }
-            }
-            
-        }
-        else {
-            $this->globalScript.='var upem=0;';
-        }
-        
-        if ( ($this->router->module=='index' || $this->router->module=='about' || ($this->router->module=='search' && isset($this->searchResults['body']['total_found']) && $this->searchResults['body']['total_found']) ) && !$this->userFavorites && !$this->router->watchId && !$this->router->userId && $this->router->cfg['enabled_sharing']){
-            ?><div class="sha sh <?= $this->router->language ?> rc w"><?php
-                ?><div class="fr"><?php 
-                    ?><label><?= $this->router->module=='search' ? $this->lang['shareUsSearch']:$this->lang['shareUs'] ?></label><?php 
-                     ?><span class='st_facebook_hcount'></span><span class='st_twitter_hcount'></span><span class='st_googleplus_hcount'></span><span class='st_linkedin_hcount'></span><span class='st_email_hcount'></span><span class='st_sharethis_hcount'></span><?php 
-                ?></div><?php
-                ?><div class="fl"><?php
-                    ?><label><?= $this->lang['followUs'] ?></label><a href="https://www.facebook.com/pages/Mourjan/318337638191015" target="_blank"><span class="fb-link"></span></a><a href="https://twitter.com/MourjanWeb" target="blank"><span class="tw-link"></span></a><a href="https://plus.google.com/104043262417362495551" rel="publisher" target="blank"><span class="gp-link"></span></a><?php
-                ?></div><?php
-            ?></div><?php 
-        }elseif($this->router->module!='signin'){
-            ?><br /><?php
-        }
-        
-        if ($this->router->userId) {
-            $year = date('Y');
-            ?><div class="ftr"><div class="cr">© 2010-<?= $year ?> Mourjan.com Classifieds Aggregator - All Rights Reserved.<?php        
-            if (!isset($this->user->info['level']) || $this->user->info['level']!=9){
-                ?><br /><?php
-                ?><script language="JavaScript" type="text/javascript">TrustLogo("https://www.mourjan.com/img/1.0.3/comodo.png", "CL1", "none");</script><?php
-            }
-        }
-        else {
-            ?><div class="ftr"><div class="w"><?php
-            ?><div class="q0 q1 fl"><?php
-            ?><b class="h"><?= $this->lang['mourjan'] ?></b><?php
-            if ($this->router->config->get('enabled_post') && $this->router->module!='post') {
-                if ($this->user->info['id']){
-                    echo '<a class="nt" href="/post/'.$adLang.'">'.$this->lang['button_ad_post'].'</a>';
-                }else {
-                    echo '<a class="login nt" href="/post/'.$adLang.'" rel="nofollow">'.$this->lang['button_ad_post'].'</a>';
-                }
-            }
-            if ($this->router->module!='about') {
-                ?><a href="/about/<?= $adLang ?>"><?= $this->lang['aboutUs'] ?></a><?php
-            }else {
-                ?><b><?= $this->lang['aboutUs'] ?></b><?php
-            }
-            if ($this->router->module!='contact') {
-                ?><a href="/contact/<?= $adLang ?>"><?= $this->lang['contactUs'] ?></a><?php
-            }else {
-                ?><b><?= $this->lang['contactUs'] ?></b><?php
-            }
-            if ($this->router->module!='gold') {
-                ?><a href="/gold/<?= $adLang ?>"><?= $this->lang['gold_title'] ?></a><?php
-            }else {
-                ?><b><?= $this->lang['gold_title'] ?></b><?php
-            }
-            if ($this->router->module!='privacy') {
-                ?><a href="/privacy/<?= $adLang ?>"><?= $this->lang['privacyPolicy'] ?></a><?php
-            }else {
-                ?><b><?= $this->lang['privacyPolicy'] ?></b><?php
-            }
-            if ($this->router->module!='terms') {
-                ?><a itemprop="publishingPrinciples" href="/terms/<?= $adLang ?>"><?= $this->lang['termsConditions'] ?></a><?php
-            }else {
-                ?><b><?= $this->lang['termsConditions'] ?></b><?php
-            }
-            
-            ?><form action="<?= $this->router->getURL($this->router->countryId,$this->router->cityId) ?>" method="post"><input type="hidden" name="mobile" value="1" /><a href='#' onclick="this.parentNode.submit();"><?= $this->lang['mobile'] ?></a></form><?php
-       
-            ?></div><?php 
-            
-            ?><div class="q1"><?php
-            ?><b class="h"><?= $this->lang['pclassifieds_'.$this->router->language] ?></b><?php
-            $cityId=$this->user->params['city'];
-            $countryId=$this->user->params['country'];
-            $currentRoot='';
-            foreach ($this->router->pageRoots as $rid=>$root) {
-                if($rid==$this->router->rootId)$currentRoot=($this->router->language=='ar' ? 'أقسام ال'.$root['name'] : $root['name'].'\''.($rid==1 ? 's':'').' Sections');
-                $purposeId=0;
-                ?><a href="<?= $this->router->getURL($countryId,$cityId,$rid,0,$purposeId) ?>"><span class='i i<?= $rid ?>'></span><?= ($this->router->language=='ar' ? 'إعلانات ال'.$root['name'] : $root['name']) ?></a><?php
-            }
-            ?></div><?php
-            
-            if($this->router->module=='search' || $this->router->module=='detail'){
-                ?><div class="qw"><?php
-                    ?><div><?php
-                    ?><h4><?= $this->lang['safety_tip'] ?></h4><?php 
-                    ?><ul><?php
-                        ?><li><?php
-                        echo $this->lang['safety_tip_1'] 
-                        ?></li><?php
-                        ?><li><?php
-                        echo $this->lang['safety_tip_2'] 
-                        ?></li><?php
-                        ?><li><?php
-                        echo $this->lang['safety_tip_3'] 
-                        ?></li><?php
-                        ?><li><?php
-                        echo $this->lang['safety_tip_4'] 
-                        ?></li><?php
-                    ?></ul><?php
-                    ?></div><?php
-                ?></div><?php
-          
-            }else {
-            
-            
-                ?><div class="q2"><?php
-                ?><b class="h"><?= $this->lang['countries'] ?></b><?php                
-                if($this->router->language=='en'){                
-                    $index_1=6;
-                    $index_2=13;
-                } else {
-                    $index_1=5;
-                    $index_2=9;
-                }
-           
-                $countryIDX=0;
-                foreach ($this->router->countries as $country_id => $country) {
-                    $countryIDX++;
-                    if($countryIDX==$index_1 || $countryIDX==$index_2){
-                        ?></div><div class="q2 qp"><?php
-                    }
-                    ?><a href="<?= $this->router->getURL($country_id, 0) ?>"><span class="cf c<?= $country_id ?>"></span><?= $country['name'] ?></a><?php
-                    foreach ($country['cities'] as $city_id=>$city) {
-                        echo '<a class="ct" href="'. $this->router->getURL($country_id, $city_id) .'">'.$city['name'].'</a>';                            
-                    }
-                    
-                }
-          
-                ?></div><?php
-                }
-
-                $year = date('Y');
-                ?><div class="cr">© 2010-<?= $year ?> Mourjan.com Classifieds Aggregator - All Rights Reserved.<?php 
-                if (!isset($this->user->info['level']) || $this->user->info['level']!=9){
-                    ?><br /><?php
-                    ?><script language="JavaScript" type="text/javascript">TrustLogo("https://www.mourjan.com/img/1.0.3/comodo.png", "CL1", "none");</script><?php
-                }
-                ?></div><?php                    
-            
-        }
-        ?></div></div><?php 
+        ?></footer><?php                               
     }
 
     
@@ -4963,14 +4664,9 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         $this->header();
         echo '<title>', $this->title, '</title>';
         $imgURL = $this->router->config->imgURL;
-        ?><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, maximum-scale=5.0, user-scalable=1" name="viewport">
-        <link rel="apple-touch-icon" sizes="57x57" href="<?= "{$imgURL}/mourjan-icon-114.png" ?>" />
-        <link rel="apple-touch-icon" sizes="114x114" href="<?= "{$imgURL}/mourjan-icon-114.png" ?>" />
-        <link rel="apple-touch-icon" sizes="72x72" href="<?= "{$imgURL}/mourjan-icon-144.png" ?>" />
-        <link rel="apple-touch-icon" sizes="144x144" href="<?= "{$imgURL}/mourjan-icon-144.png" ?>" />            
-        <link rel="apple-touch-startup-image" href="<?= "{$imgURL}/mourjan-splash.png"?>" />
-        <meta name="format-detection" content="telephone=no">
-        <!--<link rel="manifest" href="/manifest.json">--><?php
+        ?><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, maximum-scale=5.0, user-scalable=1" name="viewport"><?php
+        ?><meta name="format-detection" content="telephone=no"><?php
+        //<!--<link rel="manifest" href="/manifest.json">--><?php
         
         if ($this->forceNoIndex) {
             echo '<meta name="robots" content="noindex,nofollow,noarchive" />';

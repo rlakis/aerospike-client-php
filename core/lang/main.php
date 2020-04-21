@@ -496,7 +496,7 @@ $lang=array(
     'uriError'      =>  'Mourjan system Error, <span class=\"lnk\" onclick=\"svR(this)\">click here</span> to try again. If the problem persists, please <a href=\"/contact/en/\">tell us about it</a>',
     'uriAlreadySet' =>  'Your page address is already set to',
     'uriSet'        =>  'Your page address was successfully set',
-    'save'          =>  'save',
+    'save'          =>  'Save',
 
     'requireEmail'  =>  'To better serve you, Mourjan.com needs to know your email address. <a href="/account/en/?action=email">Click here</a> to specify your email address',
     'validateEmail' =>  'A verification email has been sent to <b>{email}</b>. Please visit your email inbox to verify your email address or <a href="/account/en/?action=email">click here</a> to correct the provided email address',

@@ -219,6 +219,12 @@ class Ad {
     }
     
    
+    public function attrs() : array {
+        $attrss = $this->data[Classifieds::ATTRS] ?? '{}';
+        return \json_decode($attrss, true);
+    }
+    
+    
     public function epoch() : int {
         return $this->data[Classifieds::UNIXTIME] ?? 0;
     }
@@ -275,10 +281,57 @@ class Ad {
             
 
     public function location() : string {        
-        return $this->data[Classifieds::LOCATION] ?? '';
+        return \preg_replace('/Unnamed Road,/', '', $this->data[Classifieds::LOCATION] ?? '');
+    }
+    
+    
+    public function price() : float {
+        if ($this->isForSale() || $this->isForRent()) {
+            if (isset($this->data[Classifieds::PRICE]) && !empty($this->data[Classifieds::PRICE])) {
+                return $this->data[Classifieds::PRICE];
+            }
+        }
+        return 0.0;
     }
 
+    
+    public function formattedPrice() : string {
+        $price=$this->price();
+        if ($price>0) {
+            switch ($this->countryCode()) {
+                case 'LB':
+                    return '$'.number_format($price);
+                    break;
+                case 'AE':
+                    return 'AED '.number_format($price);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+        return '';         
+    }
+    
    
+    public function formattedSpace() : string {
+        $space=$this->attrs()['space']??0;
+        if ($space>0) {
+            switch ($this->countryCode()) {
+                case 'LB':
+                    return number_format($space). 'm2';
+                    break;
+                case 'AE':
+                    return number_format($space*10.7639).' sq ft';
+                    break;
+
+                default:
+                    break;
+            }
+        }
+        return '';
+    }
+    
     
     private function formatPhoneNumber($number, $userISO='') : string {                
         $key='P.'.$userISO.$number;

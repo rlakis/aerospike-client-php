@@ -57,7 +57,7 @@ class NoSQL extends Singleton {
     const ERR_BIN_NAME                  = \Aerospike::ERR_BIN_NAME;
     const QUERY_END                     = \Aerospike::ERR_QUERY_END;
     const ERR_UDF                       = \Aerospike::ERR_UDF;
-    const ERR_LARGE_ITEM_NOT_FOUND      = \Aerospike::ERR_LARGE_ITEM_NOT_FOUND;
+    //const ERR_LARGE_ITEM_NOT_FOUND      = \Aerospike::ERR_LARGE_ITEM_NOT_FOUND;
     const ERR_INDEX_FOUND               = \Aerospike::ERR_INDEX_FOUND;
     const ERR_INDEX_NOT_FOUND           = \Aerospike::ERR_INDEX_NOT_FOUND;
     const ERR_INDEX_OOM                 = \Aerospike::ERR_INDEX_OOM;

@@ -41,6 +41,7 @@
   --mpc8: #155147;  /* For Trade */
   
   --mcSeImg: #5a99ff;
+  --mlcF: invert(42%) sepia(61%) saturate(6977%) hue-rotate(201deg) brightness(104%) contrast(104%); /* mourjan light color */
   --mpu1F: invert(46%) sepia(38%) saturate(2637%) hue-rotate(326deg) brightness(114%) contrast(103%);
   --mpu2F: invert(99%) sepia(65%) saturate(2147%) hue-rotate(76deg) brightness(85%) contrast(85%);
   --mpu3F: invert(34%) sepia(13%) saturate(3566%) hue-rotate(210deg) brightness(94%) contrast(94%);
@@ -151,8 +152,8 @@ footer .addr {
   flex-flow: column
 }
 .viewable {
-  display: inline-flex;
-  width: 100%
+    display: inline-flex;
+    width: 100%
 }
 .row {
   display: flex;
@@ -168,6 +169,25 @@ footer .addr {
   clear: both;
   display: table
 }
+.w100{
+    width: 100%;
+}
+.h100{
+    height: 100%;
+}
+.fw-300 {
+    font-weight: 300;
+}
+.fw-400 {
+    font-weight: 400;
+}
+.fw-500 {
+    font-weight: 500;
+}
+.fw-700 {
+    font-weight: 700;
+}
+
 .ff-cols {
   flex-flow: column
 }
@@ -186,6 +206,9 @@ footer .addr {
 .ha-start {
   justify-content: flex-start
 }
+.ha-end {
+    justify-content: flex-end;
+}
 .sp-between {
   justify-content: space-between
 }
@@ -195,6 +218,10 @@ footer .addr {
 .invert {
   filter: invert(1)
 }
+.mlc-filter {
+    filter: var(--mlcF)
+}
+
 .mb-32{
     margin-bottom: 32px;
 }
@@ -207,6 +234,30 @@ footer .addr {
 .mt-64{
     margin-top: 64px;
 }
+
+.icn {
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    margin: 0 3px
+}
+.icn:before, .ilogo:before {
+    content: "\00a0"
+}
+
+.icn.i16 {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.icn.i20 {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+}
+
 
 .icn-ae {
   background: url(https://dev.mourjan.com/css/2020/flags/ae.svg) center no-repeat
@@ -255,6 +306,35 @@ footer .addr {
 }
 .icn-ly {
   background: url(https://dev.mourjan.com/css/2020/flags/ly.svg) center no-repeat
+}
+
+.btn {
+  background-color: var(--mlc);
+  color: #fff;
+  display: inline-block;
+  padding: 6px 12px;
+  margin-bottom: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.42857143;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  -ms-touch-action: manipulation;
+  touch-action: manipulation;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  background-image: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  box-shadow: 0 2px 2px 0 rgba(153,153,153,.14),0 3px 1px -2px rgba(153,153,153,.2),0 1px 5px 0 rgba(153,153,153,.12)
+}
+
+.btn.uc{
+    text-transform: uppercase;
 }
 
 .top-header {
@@ -654,4 +734,23 @@ footer ul:last-child{
 body[dir=rtl] .large .arrow {
   margin-inline-start: 0;
   margin-inline-end: 8px
+}
+
+@media only screen and (min-width:769px) {
+    .viewable {
+        padding: 0;
+        max-width: 1280px;
+        align-self: center;
+    }
+}
+
+@media only screen and (min-width:1920px) {
+    body {
+        margin: 0 auto;
+        width: 1920px;
+        display: block
+    }
+    .viewable {
+        max-width: 1600px
+    }
 }

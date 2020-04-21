@@ -1,11 +1,13 @@
 <?php
 
-Config::instance()->incLayoutFile('Search');
+Config::instance()->incLayoutFile('Search')->incLibFile('IPQuality');
 
 use Core\Model\Classifieds;
 
 class Detail extends Search {
 
+    private int $attrWidgetCount=0;
+    
     function __construct() {
         parent::__construct();
     }
@@ -60,7 +62,7 @@ class Detail extends Search {
     }
 
 
-
+/*
     function mainMobile() {
         $this->displayDetailMobile();
         $iDir=  $this->urlRouter->siteLanguage=='ar' ? 'ad_r' :'ad_l';
@@ -71,7 +73,7 @@ class Detail extends Search {
         if($this->detailAdExpired && $this->searchResults['body']['total_found'])
             echo '<br />'.$this->fill_ad('Square', $iDir).'<br />';
     }
-    
+  */  
     
     function displayDetail() : void {
         if ($this->detailAdExpired) {  return;  }
@@ -115,10 +117,12 @@ class Detail extends Search {
             }                
         }
         
-        if (!$favLink) {
-            $favLink = "<span class='i fav'></span><span>{$this->lang['addFav']}</span>";
+        
+        if (empty($favLink)) {
+            $favLink="<i class='icn star i16 mlc-filter'></i><span>{$this->lang['save']}</span>";
         }
-        $favLink='<div class="d1" onclick="fv(this,1)">'.$favLink.'</div>';
+        $favLink='<a onclick="fv(this,1)">'.$favLink.'</a>';
+        
         
         $abuseLink='';
         if ($this->user->isLoggedIn(9)) {
@@ -133,21 +137,40 @@ class Detail extends Search {
             $abuseLink="<div class='d2' onclick='rpa(this,0,1)'><span class='i ab'></span><span>{$this->lang['reportAbuse']}</span></div>";
         }                               
                           
-        ?><div class="dtad"><?php
-        ?><div class="row"><?php
-        ?><div class="col-8 ff-cols cntnt"><?php 
+        ?><div class=dtad><div class=row><?php
             
         if ($this->detailAd->isFeatured()) {
-            ?><div class="dtf"><span class="vpdi ar"></span> <?= $this->lang['premium_ad_dt'] ?></div><?php
+            ?><div class="col-8 ff-cols cntnt premium"><?php 
+            /*?><div class="dtf"><span class="vpdi ar"></span> <?= $this->lang['premium_ad_dt'] ?></div><?php*/
         }
-            
+        else {
+            ?><div class="col-8 ff-cols cntnt"><?php             
+        }
+        
+        $ipqs=IPQuality::fetchJson();        
+        if (isset($ipqs['ipquality']['timezone'])) {
+            $userTimezone=new DateTimeZone($ipqs['ipquality']['timezone']);
+            $date=new DateTime;
+            $date->setTimestamp($this->detailAd->epoch());
+            $date->setTimezone($userTimezone);
+        }
+        else {
+            $date=new DateTime;
+            $date->setTimestamp($this->detailAd->epoch());
+        }
+        
+        ?><div class="top ff-cols"><div class="col-12 sp-between"><?php
+        if (!$this->detailAd->isJob()) {
+            ?><div class="fw-300">Posted on <?=$date->format('d.m.Y H:i e')?></div><?php
+        }
+        ?><div style="font-weight:700;font-size:30px"><?=$this->detailAd->formattedPrice()?></div></div><?php
+        /*?><div class="row fw-700"><?=$adSection?></div><?php*/
+        ?></div><?php
+        /*
         if ($this->user->isLoggedIn(9)) {
-            echo '<b class="dhr">Admin Controls </b>';
-            ?><div><ul style="overflow:hidden"><?php
-            ?><li class="fr" style="margin:5px 10px"><a href="/myads/?u=<?=$this->detailAd->uid()?>" class="bt fl">user ads: <?=$this->detailAd->uid()?></a></li><?php 
-            ?></ul></div><?php
+            ?><a class="btn" href="/myads/?u=<?=$this->detailAd->uid()?>">User <?=$this->detailAd->uid()?> ads</a><?php
         }
-            
+        */  
         /*
         if ($this->router->config->get('enabled_sharing')) {
             echo '<!--googleoff: all-->';
@@ -156,8 +179,7 @@ class Detail extends Search {
         }
         */  
                         
-        if ($picsCount) {
-            //echo '<b class=dhr>', $this->lang['adPics'], '</b>';
+        if ($picsCount>0) {
             $oPics=$this->detailAd->data()[Classifieds::PICTURES_DIM];
             $widths=[];
             if (\is_array($oPics) && !empty($oPics)) {
@@ -193,41 +215,93 @@ class Detail extends Search {
                 ?></div><?php 
             }
         }
+        
+        
 
-        ?><div class="social"><?php
-        echo $favLink;
-        if ($this->router->cfg['enabled_sharing']){
-            echo '<!--googleoff: all-->';
-            ?><div class='sha shas shab'><label><?= $this->lang['shareFriends'] ?></label><span  class='st_email_large' ></span><span  class='st_facebook_large' ></span><span  class='st_twitter_large' ></span><span class='st_googleplus_large'></span><span  class='st_linkedin_large' ></span><span  class='st_sharethis_large' ></span></div><?php
-            echo '<!--googleoff: all-->';
+        ?><div class="social<?=$this->detailAd->isJob()?' sp-between':' ha-end'?>"><?php
+         if ($this->detailAd->isJob()) {
+            ?><div class="fw-300" style="height: 24px"><?php
+            echo "Posted on ", $date->format('d.m.Y H:i:s');
+            ?></div><?php
         }
+        //if ($this->router->cfg['enabled_sharing']){
+        echo '<!--googleoff: all-->';
+        ?><div><?php
+        ?><a href="#"><i class="icn share i16 mlc-filter"></i><span>Share</span></a><?php
+        /*?><div class='sha shas shab'><label><?= $this->lang['shareFriends'] ?></label><span  class='st_email_large' ></span><span  class='st_facebook_large' ></span><span  class='st_twitter_large' ></span><span class='st_googleplus_large'></span><span  class='st_linkedin_large' ></span><span  class='st_sharethis_large' ></span></div><?php*/
+        //}
+        echo $favLink;
+        ?></div><?php
+        echo '<!--googleoff: all-->';
         ?></div><?php
         
-        ?><p class=info>Details & Description</p><?php
-        ?><div class="attrs"><?php
-        ?><div class="widget"><?php
-        ?></div><?php
-        ?><div class="widget"><?php
-        ?></div><?php
-        ?><div class="widget"><?php
-        ?></div><?php
-        ?><div class="widget"><?php
-        ?></div><?php
-        ?></div><?php
-        
-        $hasMap=($this->detailAd->latitude()!==0||$this->detailAd->longitude()!==0);
+        $hasMap=($this->detailAd->latitude()!==0.0||$this->detailAd->longitude()!==0.0);
+        $location=$this->detailAd->location();
+        //Details & Description
+        ?><p class=info><?=$adSection?></p><?php
+        $attrs=$this->detailAd->attrs();
+        $rtlUI=$this->router->isArabic();
+        ?><div class=attrs><?php
+            $loc='';
+            if ($hasMap||(isset($attrs['locales']) && !empty($attrs['locales']))) {
+                if ($hasMap) {
+                    $sloc=preg_split('/\|/', $location);                
+                    if (\count($sloc)===2) {
+                        if ($rtlUI) {
+                            $lnloc=\preg_match('/\p{Arabic}/u', $sloc[0])?$sloc[0]:$sloc[1];                        
+                        }
+                        else {
+                            $lnloc=\preg_match('/\p{Arabic}/u', $sloc[1])?$sloc[0]:$sloc[1];                        
+                        }
+                    }
+                    else {
+                        $lnloc=$sloc[0];
+                    }
+                    $localities=\preg_split('/,/', $lnloc);
+                    $loc=$localities[0];
+                    
+                }
+                else {                    
+                    foreach ($attrs['locales'] as $locale) {
+                        if (\preg_match('/\p{Arabic}/u', $locale)) {
+                            if ($rtlUI) {
+                                $loc=$locale;                                
+                                break;
+                            }
+                        }
+                        else {
+                            if (!$rtlUI) {
+                                $loc= \ucwords($locale);  
+                                break;
+                            }
+                        }                        
+                    }
+                }                
+                $this->addAttributeWidget('location', 'Location', $loc);
+            }
             
-        ?><div class=txt><?php 
-        echo $adSection;
+            if (isset($attrs['space'])) {
+                $this->addAttributeWidget('size', 'Space/Size', $this->detailAd->formattedSpace());                      
+            }
+           
+            if (isset($attrs['rooms'])) {
+                $this->addAttributeWidget('size', 'Rooms', $attrs['rooms']);   
+            }                       
+            
+            $this->addAttributeWidget('', '', '');   
+            $this->addAttributeWidget('', '', '');   
+        ?></div><?php
+        
+            
+        ?><div class=txt><p class='<?=$para_class?>'><?=$this->detailAd->text()?></p></div><?php
 
         //$text=$this->detailAd->content();
         //$this->replacePhonetNumbers($text, $this->detailAd->countryCode(), $this->detailAd->[Classifieds::TELEPHONES][0], $this->detailAd[Classifieds::TELEPHONES][1], $this->detailAd[Classifieds::TELEPHONES][2], $this->detailAd->emails());
         
-        ?><p class='<?=$para_class?>'><?=$this->detailAd->content()?></p><?php 
-        ?></div><?php
+        
         $contacts=$this->detailAd->contactInfo(\strtoupper($this->user->params['user_country']??''));
-        if (!empty($contacts)) {
-            ?><div class="contacts"><?php
+        if (!empty($contacts)||!empty($this->detailAd->emails())) {
+            ?><div class=contacts><?php
             if (isset($contacts['p'])) {
                 foreach ($contacts['p'] as $contact) {
                     //var_dump($contact);
@@ -241,17 +315,20 @@ class Detail extends Search {
                         case 5:
                             ?><a class="btn phone"><?=$contact['v']?></a><?php
                             break;
-
                         default:
                             ?><a class="btn phone"><?=$contact['v']?></a><?php
                             break;
                     }
                 }
             }
+            
+            foreach ($this->detailAd->emails() as $email) {
+                ?><a class="btn mail"><?= \strtolower($email)?></a><?php
+            }
             ?></div><?php
         }
         
-        ?><div class="opt"><?php        
+        ?><div class=opt><?php        
         //echo $abuseLink;
         if ($this->detailAd->publisherType()!==0 && \in_array($this->detailAd->rootId(), [1,2,3])) {
             switch ($this->detailAd->publisherType()) {
@@ -273,22 +350,35 @@ class Detail extends Search {
         }
         ?></div><?php
             
-        
+        /*
         ?><div class="drd"><?php
         echo '<b class="fl" st="'.$this->detailAd->epoch().'"></b>';
         ?></div><?php
-            
+          */  
             
         if ($hasMap) {
-            echo '<b class=dhr>', $this->lang['adMap'], '</b>';
-            if ($this->detailAd->location()) {
-                ?><div class="oc ocl"><span class="i loc"></span><?= $this->detailAd->location() ?></div><?php
+            //echo '<b class=dhr>', $this->lang['adMap'], '</b>';
+            if ($location) {
+                ?><div class="oc ocl"><span class="i loc"></span><?=$location?></div><?php
             }
             ?><div class="mph"><div id="map" class="load"></div></div><?php
         }
+        print_r($this->detailAd->attrs());
         ?></div><?php
         
-        ?><div class="col-4 banners">Banners here<?php
+        ?><div class="col-4 banners ff-cols cntnt"><?php
+         if ($this->router->config->enabledAds()) {
+            ?><ins class="adsbygoogle" style="margin-top: 0" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="vertical" data-full-width-responsive="true"></ins><?php
+            ?><script><?php
+            ?>(adsbygoogle = window.adsbygoogle || []).push({});<?php
+            ?></script><?php
+            if ($this->detailAd->picturesCount()>1) {
+                ?><ins class="adsbygoogle" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="vertical" data-full-width-responsive="true"></ins><?php
+                ?><script><?php
+                ?>(adsbygoogle = window.adsbygoogle || []).push({});<?php
+                ?></script><?php
+            }
+        }
         ?></div><?php
         
         ?></div><?php
@@ -299,6 +389,19 @@ class Detail extends Search {
     }
     
 
+    private function addAttributeWidget(string $icon, string $title, string $value) {
+        if ($this->attrWidgetCount>3) {  return;  }
+        $this->attrWidgetCount++;
+        if (empty($icon)) {
+            ?><div class=widget><img  /><?php
+        }
+        else {
+            ?><div class=widget><img src="<?=$this->router->config->cssURL?>/1.0/assets/<?=$icon?>.svg" /><?php
+        }
+        ?><span><?=$title?></span><?php
+        ?><div><?=$value?></div><?php
+        ?></div><?php        
+    }
     
     function displayDetailMobile() {
         if (!$this->detailAdExpired) {
