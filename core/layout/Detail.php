@@ -287,6 +287,13 @@ class Detail extends Search {
             if (isset($attrs['rooms'])) {
                 $this->addAttributeWidget('size', 'Rooms', $attrs['rooms']);   
             }                       
+
+            if (isset($attrs['make'])) {
+                $this->addAttributeWidget('size', 'Year Make', $attrs['make']);   
+            }                       
+            if (isset($attrs['mileage'])) {
+                $this->addAttributeWidget('size', 'Mileage KM', number_format($attrs['mileage']));   
+            }                       
             
             $this->addAttributeWidget('', '', '');   
             $this->addAttributeWidget('', '', '');   
