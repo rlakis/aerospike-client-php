@@ -97,7 +97,7 @@ class Page extends Site {
             $this->router->cfg['enabled_charts']=0;
         }
         
-        
+        //bassel
         //if ($this->router->isMobile) {
         //    $this->includeCssByCountry();
         //    if($this->router->module=='signin'){
