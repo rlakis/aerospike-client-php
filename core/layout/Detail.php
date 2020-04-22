@@ -310,11 +310,11 @@ class Detail extends Search {
             }                       
 
             if (isset($attrs[Core\Model\Ad::YEAR_MAKE_ATTR])) {
-                $this->addAttributeWidget('size', 'Year Make', $attrs[Core\Model\Ad::YEAR_MAKE_ATTR]);   
+                $this->addAttributeWidget('calendar', 'Year Make', $attrs[Core\Model\Ad::YEAR_MAKE_ATTR]);   
             }                       
             
             if (isset($attrs[Core\Model\Ad::MILEAGE_ATTR]) && $attrs[Core\Model\Ad::MILEAGE_ATTR]>=0) {
-                $this->addAttributeWidget('size', 'Mileage KM', number_format($attrs[Core\Model\Ad::MILEAGE_ATTR]));   
+                $this->addAttributeWidget('odometer', 'Mileage KM', number_format($attrs[Core\Model\Ad::MILEAGE_ATTR]));   
             }                       
             
             $this->addAttributeWidget('', '', '');   
