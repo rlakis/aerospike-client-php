@@ -388,6 +388,8 @@ class Detail extends Search {
             
         if ($hasMap) {
             if ($location) {
+                $dir=$this->isRTL($location)?'ar':'en';
+                /*
                 if ($this->router->isArabic()) {
                     if ($this->isRTL($location)) {
                         $dir=' ha-start';
@@ -403,8 +405,8 @@ class Detail extends Search {
                     else {
                         $dir=' ha-start';
                     }
-                }
-                ?><div class="loc<?=$dir?>"><?=$location?></div><?php
+                }*/
+                ?><div class="loc <?=$dir?>"><?=$location?></div><?php
             }
             ?><div class="mph"><div id="map" class="load"></div></div><?php
         }        
