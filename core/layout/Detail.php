@@ -242,6 +242,27 @@ class Detail extends Search {
         $attrs=$this->detailAd->attrs();
         $rtlUI=$this->router->isArabic();
         ?><div class=attrs><?php
+        
+            if ($this->detailAd->publisherType()!==0 && \in_array($this->detailAd->rootId(), [1,2,3])) {
+                switch ($this->detailAd->publisherType()) {
+                    case 3:
+                        $this->addAttributeWidget('size', 'Published by', $this->lang['pub_3_'.$this->detailAd->rootId()]);
+                        //echo '<div class="d2 ut" onclick="doChat()"><span class="i i'.$this->detailAd->rootId().'"></span><span>'.$this->lang['pub_3_'.$this->detailAd->rootId()].'</span></div>';
+                        break;
+                    case 1:
+                        if ($this->detailAd->isJob()) {
+                            $this->addAttributeWidget('size', 'Published by', $this->lang['bpub_1']);
+                        }
+                        else {
+                            $this->addAttributeWidget('size', 'Published by', $this->lang['pub_1']);
+                        }
+                        break;
+                    default:
+                        //echo '<div class="ms ut"><span class="i i1"></span> '.$this->lang['pub_1'].'</div>';
+                        break;
+                }
+            }
+        
             $loc='';
             if ($hasMap||(isset($attrs['locales']) && !empty($attrs['locales']))) {
                 if ($hasMap) {
@@ -280,19 +301,20 @@ class Detail extends Search {
                 $this->addAttributeWidget('location', 'Location', $loc);
             }
             
-            if (isset($attrs['space'])) {
+            if (isset($attrs[Core\Model\Ad::SPACE_ATTR])) {
                 $this->addAttributeWidget('size', 'Space/Size', $this->detailAd->formattedSpace());                      
             }
            
-            if (isset($attrs['rooms'])) {
-                $this->addAttributeWidget('size', 'Rooms', $attrs['rooms']);   
+            if (isset($attrs[Core\Model\Ad::ROOMS_ATTR])) {
+                $this->addAttributeWidget('size', 'Rooms', $attrs[Core\Model\Ad::ROOMS_ATTR]);   
             }                       
 
-            if (isset($attrs['make'])) {
-                $this->addAttributeWidget('size', 'Year Make', $attrs['make']);   
+            if (isset($attrs[Core\Model\Ad::YEAR_MAKE_ATTR])) {
+                $this->addAttributeWidget('size', 'Year Make', $attrs[Core\Model\Ad::YEAR_MAKE_ATTR]);   
             }                       
-            if (isset($attrs['mileage'])) {
-                $this->addAttributeWidget('size', 'Mileage KM', number_format($attrs['mileage']));   
+            
+            if (isset($attrs[Core\Model\Ad::MILEAGE_ATTR]) && $attrs[Core\Model\Ad::MILEAGE_ATTR]>=0) {
+                $this->addAttributeWidget('size', 'Mileage KM', number_format($attrs[Core\Model\Ad::MILEAGE_ATTR]));   
             }                       
             
             $this->addAttributeWidget('', '', '');   
@@ -335,6 +357,7 @@ class Detail extends Search {
             ?></div><?php
         }
         
+        /*
         ?><div class=opt><?php        
         //echo $abuseLink;
         if ($this->detailAd->publisherType()!==0 && \in_array($this->detailAd->rootId(), [1,2,3])) {
@@ -356,7 +379,7 @@ class Detail extends Search {
             }
         }
         ?></div><?php
-            
+            */
         /*
         ?><div class="drd"><?php
         echo '<b class="fl" st="'.$this->detailAd->epoch().'"></b>';
@@ -364,13 +387,30 @@ class Detail extends Search {
           */  
             
         if ($hasMap) {
-            //echo '<b class=dhr>', $this->lang['adMap'], '</b>';
             if ($location) {
-                ?><div class="oc ocl"><span class="i loc"></span><?=$location?></div><?php
+                if ($this->router->isArabic()) {
+                    if ($this->isRTL($location)) {
+                        $dir=' ha-start';
+                    }
+                    else {
+                        $dir=' ha-end';
+                    }
+                }
+                else {
+                    if ($this->isRTL($location)) {
+                        $dir=' ha-end';
+                    }
+                    else {
+                        $dir=' ha-start';
+                    }
+                }
+                ?><div class="loc<?=$dir?>"><?=$location?></div><?php
             }
             ?><div class="mph"><div id="map" class="load"></div></div><?php
-        }
-        print_r($this->detailAd->attrs());
+        }        
+        
+        
+        
         ?></div><?php
         
         ?><div class="col-4 banners ff-cols cntnt"><?php
@@ -388,10 +428,14 @@ class Detail extends Search {
         }
         ?></div><?php
         
+        
+       
         ?></div><?php
         
         ?><div class=row><div class=tail><div class="col-8 ff-cols report" onclick="reportAd(this)"><p>Any issue? <b>Report this ad</b></p></div><div class=col-4></div></div></div><?php
-                                   
+        ?><div class=row><div class=col-12><?php
+        print_r($this->detailAd->attrs());
+        ?></div></div><?php
         ?></div><?php        
     }
     

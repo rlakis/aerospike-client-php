@@ -127,6 +127,12 @@
 .dtad .tail p>b{color:#FF6167;margin:0 4px 0 8px}
 .dtad .banners{margin-inline-start:16px}
 
+.dtad .loc {
+    display:inherit;
+    line-height: 1.5em;
+    margin: 16px 0;
+    border-top: 1px solid var(--mdc30);
+}
 .icn.star {
   background: url(https://dev.mourjan.com/css/2020/1.0/fa/regular/star.svg) no-repeat center
 }

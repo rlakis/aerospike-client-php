@@ -4,6 +4,14 @@ namespace Core\Model;
 use JsonException;
 
 class Ad {
+    const PRICE_ATTR        = 'price';
+    
+    const ROOMS_ATTR        = 'rooms';
+    const SPACE_ATTR        = 'space';
+    
+    const YEAR_MAKE_ATTR    = 'make';
+    const MILEAGE_ATTR      = 'mileage';
+    
     private ?AdList $list;
     
     private array $data;              // raw classified array
@@ -315,7 +323,7 @@ class Ad {
     
    
     public function formattedSpace() : string {
-        $space=$this->attrs()['space']??0;
+        $space=$this->attrs()[self::SPACE_ATTR]??0;
         if ($space>0) {
             switch ($this->countryCode()) {
                 case 'LB':
