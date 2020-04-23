@@ -317,8 +317,8 @@ class Detail extends Search {
                 $this->addAttributeWidget('odometer', 'Mileage KM', number_format($attrs[Core\Model\Ad::MILEAGE_ATTR]));   
             }                       
             
-            $this->addAttributeWidget('', '', '');   
-            $this->addAttributeWidget('', '', '');   
+            //$this->addAttributeWidget('', '', '');   
+            //$this->addAttributeWidget('', '', '');   
         ?></div><?php
         
             

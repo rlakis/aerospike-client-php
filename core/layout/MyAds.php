@@ -267,7 +267,7 @@ class MyAds extends Page {
         'This type of ads is against the website policy and cannot be published',
         'Selling Visas and work permits is against the law',
         'This ad contradicts with the sense of your other published ads, and this is a warning before blocking your account for fraud',
-        'The user behind proxy ad posting is prohibited',
+        'The user behind VPN/PROXY ad posting is prohibited',
         'Posting ad from fraudulent connection is not accepted'
     ]
 };</script><?php

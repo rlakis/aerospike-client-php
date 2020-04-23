@@ -42,9 +42,9 @@
 .dtad .social a {
     display: inline-flex;
     align-items: center;
-    font-size: 17.3pt;
+    font-size: 12pt;
     font-weight: 700;
-    margin-inline-end: 32px;
+    margin-inline-end: 28px;
 }
 .dtad .social a:last-child {
     margin-inline-end: 0;
@@ -59,8 +59,8 @@
     line-height: 1em;
     margin-bottom: 32px;
 }
-.dtad .info{font-size:30px;line-height: 1.4em; color:#475660}
-.dtad .attrs{display:inherit;flex-flow:row;height:162px;margin-bottom:16px;justify-content:space-between}
+.dtad .info{font-size:24px;line-height: 1.4em; color:#475660}
+.dtad .attrs{display:inherit;flex-flow:row;height:162px;margin-bottom:16px;justify-content:flex-start}
 .dtad .attrs .widget{
     display:inline-flex; 
     flex-flow: column;
@@ -68,7 +68,11 @@
     width:130px;
     height:130px;
     border-radius:8px;
+    margin-inline-end:16px;
     border:1px solid var(--mdc40)
+}
+dtad .attrs .widget:last-child {
+    margin-inline-start:0;
 }
 .dtad .attrs .widget img {
     width: 28px;
@@ -82,7 +86,7 @@
 .dtad .attrs .widget span {
     margin-block-end:16px;
     font-weight: 300;
-    font-size: 12pt;    
+    font-size: 10pt;    
 }
 .dtad .attrs .widget div {
     overflow: hidden;
@@ -131,7 +135,7 @@
     display:inherit;
     line-height: 1.5em;
     margin: 16px 0;
-    border-top: 1px solid var(--mdc30);
+    /*border-top: 1px solid var(--mdc30);*/
 }
 .icn.star {
   background: url(https://dev.mourjan.com/css/2020/1.0/fa/regular/star.svg) no-repeat center

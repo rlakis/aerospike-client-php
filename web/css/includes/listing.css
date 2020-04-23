@@ -186,6 +186,7 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
   color: #fff;
   border-radius: 10px;
   height: 42px;
+  font-size: 20px;
   font-weight: 700;
   justify-content: center
 }
